@@ -1,0 +1,11 @@
+numpy>=1.15.4,<2
+h5py>=2.7.0,<3
+scipy>=1.1,<2
+pandas>=0.20.2,<1
+scikit-learn==0.21.3
+requests_toolbelt
+xgboost==0.90
+torch==1.2.0
+grpcio==1.27.2
+tensorflow<2
+keras==2.2.5
