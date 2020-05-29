@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "engineType": "Generic",
+  "language": "Python",
+  "userStandalone": false,
+  "name": "df_to_shared_mem",
+  "label": "DataFrame to Shared Mem",
+  "program": "df_to_shmem.py",
+  "componentClass": "DfToSharedMem",
+  "useMLOps": false,
+  "group": "Connectors",
+  "inputInfo": [],
+  "outputInfo": [
+    {
+      "description": "Pandas Dataframe",
+      "label": "dataframe",
+      "defaultComponent": "",
+      "type": "dataframe",
+      "group": "data"
+    }
+  ],
+  "arguments": [
+    {
+      "key": "output_filename",
+      "label": "Output shared mem filename",
+      "type": "str",
+      "description": "Shared mem file to write DataFrame to. (Pipeline writes to on output, server reads from)",
+      "optional": false
+    }
+  ]
+}
