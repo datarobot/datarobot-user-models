@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "engineType": "Generic",
+  "language": "Python",
+  "userStandalone": false,
+  "name": "prediction_server",
+  "label": "Prediction Server",
+  "program": "prediction_server.py",
+  "componentClass": "PredictionServer",
+  "useMLOps": false,
+  "group": "Connectors",
+  "inputInfo": [],
+  "outputInfo": [],
+  "arguments": [
+    {
+      "key": "pipeline",
+      "label": "Pipeline",
+      "type": "str",
+      "description": "Pipeline to run",
+      "optional": true
+    },
+    {
+      "key": "repo",
+      "label": "Components repo",
+      "type": "str",
+      "description": "Components repo",
+      "optional": false
+    },
+    {
+      "key": "threaded",
+      "label": "Flask threaded mode",
+      "type": "bool",
+      "description": "Run Flask server in threaded mode or not",
+      "optional": false
+    }
+  ]
+}
