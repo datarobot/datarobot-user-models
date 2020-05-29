@@ -1,0 +1,7 @@
+flask
+numpy
+pandas
+requests
+jinja2
+argcomplete==1.11.1
+mlpiper==2.2.0

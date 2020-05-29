@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "engineType": "Generic",
+  "language": "Python",
+  "userStandalone": false,
+  "name": "df_to_csv",
+  "label": "DataFrame to CSV",
+  "program": "df_to_csv.py",
+  "componentClass": "DfToCsv",
+  "useMLOps": false,
+  "group": "Connectors",
+  "inputInfo": [
+   {
+    "description": "Pandas Dataframe",
+    "label": "dataframe",
+    "defaultComponent": "",
+    "type": "dataframe",
+    "group": "data"
+  }],
+  "outputInfo": [],
+  "arguments": [
+    {
+      "key": "output_filename",
+      "label": "File to write DataFrame to in CSV format",
+      "type": "str",
+      "description": "File to write DataFrame to in CSV format",
+      "optional": false
+    }
+  ]
+}
