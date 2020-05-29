@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "engineType": "Generic",
+  "language": "Python",
+  "userStandalone": false,
+  "name": "java_predictor",
+  "label": "Custom Scoring Code",
+  "program": "custom_scoring_code.py",
+  "componentClass": "CustomScoringCode",
+  "useMLOps": false,
+  "group": "Connectors",
+  "inputInfo": [
+  {
+    "description": "Pandas Dataframe",
+    "label": "dataframe",
+    "defaultComponent": "",
+    "type": "dataframe",
+    "group": "data"
+  }],
+  "outputInfo": [
+  {
+    "description": "Pandas Dataframe",
+    "label": "dataframe",
+    "defaultComponent": "",
+    "type": "dataframe",
+    "group": "data"
+  }],
+  "arguments": [
+  {
+    "key": "positiveClassLabel",
+    "label": "Positive class label",
+    "type": "str",
+    "description": "Positive class label for the classification model",
+    "optional": true
+  },
+  {
+    "key": "negativeClassLabel",
+    "label": "Negative class label",
+    "type": "str",
+    "description": "Negative class label for the classification model",
+    "optional": false
+  }
+  ]
+}

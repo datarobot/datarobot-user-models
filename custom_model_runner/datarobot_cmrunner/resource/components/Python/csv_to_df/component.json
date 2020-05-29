@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "engineType": "Generic",
+  "language": "Python",
+  "userStandalone": false,
+  "name": "csv_to_df",
+  "label": "CSV to DataFrame",
+  "program": "csv_to_df.py",
+  "componentClass": "CsvToDf",
+  "useMLOps": false,
+  "group": "Connectors",
+  "inputInfo": [],
+  "outputInfo": [
+    {
+      "description": "Pandas Dataframe",
+      "label": "dataframe",
+      "defaultComponent": "",
+      "type": "dataframe",
+      "group": "data"
+    }
+  ],
+  "arguments": [
+    {
+      "key": "input_filename",
+      "label": "CSV file to load DataFrame from",
+      "type": "str",
+      "description": "CSV file to load DataFrame from",
+      "optional": false
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "engineType": "Generic",
+  "language": "Python",
+  "userStandalone": false,
+  "name": "python_fit",
+  "label": "Python Fit",
+  "program": "python_fit.py",
+  "componentClass": "PythonFit",
+  "useMLOps": false,
+  "group": "Connectors",
+  "inputInfo": [],
+  "outputInfo": [],
+  "arguments": [
+    {
+    "key": "inputFilename",
+    "label": "csv file",
+    "type": "str",
+    "description": "Input to model",
+    "optional": false
+    },
+    {
+      "key": "weights",
+      "label": "weights",
+      "type": "str",
+      "description": "Row weights column name",
+      "optional": true
+    },
+    {
+      "key": "weightsFilename",
+      "label": "weightsFilename",
+      "type": "str",
+      "description": "Row weights file name",
+      "optional": true
+    },
+    {
+      "key": "targetColumn",
+      "label": "targetColumn",
+      "type": "str",
+      "description": "Which column to use for the target",
+      "optional": true
+    },
+    {
+      "key": "targetFilename",
+      "label": "targetFilename",
+      "type": "str",
+      "description": "A file to use as the target column",
+      "optional": true
+    },
+   {
+    "key": "positiveClassLabel",
+    "label": "Positive class label",
+    "type": "str",
+    "description": "Positive class label for the classification model",
+    "optional": true
+  },
+  {
+    "key": "negativeClassLabel",
+    "label": "Negative class label",
+    "type": "str",
+    "description": "Negative class label for the classification model",
+    "optional": false
+  },
+  {
+    "key": "outputDir",
+    "label": "Artifact output directory",
+    "type": "str",
+    "description": "Artifact output directory",
+    "optional": false
+  },
+  {
+    "key": "numRows",
+    "label": "Number of rows to fit on",
+    "type": "str or int",
+    "description": "Number of rows to fit on",
+    "optional": false
+  }
+  ]
+}
