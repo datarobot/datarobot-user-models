@@ -2,8 +2,8 @@ import argparse
 import os
 import sys
 
-from datarobot_cmrunner.cmrunner.description import version
-from datarobot_cmrunner.cmrunner.common import LOG_LEVELS, ArgumentsOptions, RunLanguage
+from datarobot_drum.cmrunner.description import version
+from datarobot_drum.cmrunner.common import LOG_LEVELS, ArgumentsOptions, RunLanguage
 
 
 class CMRunnerArgsRegistry(object):

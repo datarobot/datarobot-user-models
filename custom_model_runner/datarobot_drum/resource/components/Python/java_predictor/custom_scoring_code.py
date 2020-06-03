@@ -11,7 +11,7 @@ import pandas as pd
 from io import StringIO
 from contextlib import closing
 
-from datarobot_cmrunner.cmrunner.common import LOGGER_NAME_PREFIX, EnvVarNames
+from datarobot_drum.cmrunner.common import LOGGER_NAME_PREFIX, EnvVarNames
 from mlpiper.components.connectable_component import ConnectableComponent
 
 from py4j.java_gateway import GatewayParameters, CallbackServerParameters

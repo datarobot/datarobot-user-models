@@ -1,8 +1,8 @@
 from setuptools import setup, find_packages
 import os
 
-from datarobot_cmrunner.cmrunner.description import version, project_name
-from datarobot_cmrunner.cmrunner.common import extra_deps, SupportedFrameworks
+from datarobot_drum.cmrunner.description import version, project_name
+from datarobot_drum.cmrunner.common import extra_deps, SupportedFrameworks
 
 # The directory containing this file
 root = os.path.dirname(os.path.abspath(__file__))
@@ -47,7 +47,7 @@ setup(
     packages=find_packages("."),
     package_data={
         "": ["*.json", "*.jar", "*.R", "*.j2"],
-        "datarobot_cmrunner.resource.pipelines": ["*"],
+        "datarobot_drum.resource.pipelines": ["*"],
     },
     scripts=["bin/drum"],
     install_requires=requirements,

@@ -7,7 +7,7 @@ import logging
 import sys
 import textwrap
 
-from datarobot_cmrunner.cmrunner.common import (
+from datarobot_drum.cmrunner.common import (
     CustomHooks,
     CUSTOM_FILE_NAME,
     LOGGER_NAME_PREFIX,
@@ -16,9 +16,9 @@ from datarobot_cmrunner.cmrunner.common import (
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
 )
 
-from datarobot_cmrunner.cmrunner.exceptions import CMRunnerCommonException
+from datarobot_drum.cmrunner.exceptions import CMRunnerCommonException
 
-from datarobot_cmrunner.cmrunner.artifact_predictors.artifact_predictor import (
+from datarobot_drum.cmrunner.artifact_predictors.artifact_predictor import (
     KerasPredictor,
     SKLearnPredictor,
     PyTorchPredictor,

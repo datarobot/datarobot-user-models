@@ -4,7 +4,7 @@ import pandas as pd
 import logging
 import sys
 
-from datarobot_cmrunner.cmrunner.common import (
+from datarobot_drum.cmrunner.common import (
     LOGGER_NAME_PREFIX,
     PythonArtifacts,
     REGRESSION_PRED_COLUMN,
@@ -14,7 +14,7 @@ from datarobot_cmrunner.cmrunner.common import (
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
 )
-from datarobot_cmrunner.cmrunner.exceptions import CMRunnerCommonException
+from datarobot_drum.cmrunner.exceptions import CMRunnerCommonException
 
 
 class ArtifactPredictor(ABC):

@@ -3,7 +3,7 @@ import logging
 import socket
 from contextlib import closing
 from jinja2 import Environment, BaseLoader, DebugUndefined
-from datarobot_cmrunner.cmrunner.common import LOGGER_NAME_PREFIX
+from datarobot_drum.cmrunner.common import LOGGER_NAME_PREFIX
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 

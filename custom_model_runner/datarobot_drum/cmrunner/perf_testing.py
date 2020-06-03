@@ -13,10 +13,10 @@ import time
 from texttable import Texttable
 from tempfile import mkdtemp, NamedTemporaryFile
 
-from datarobot_cmrunner.profiler.stats_collector import StatsCollector, StatsOperation
-from datarobot_cmrunner.cmrunner.exceptions import CMRunnerPerfTestTimeout
-from datarobot_cmrunner.cmrunner.utils import CMRunnerUtils
-from datarobot_cmrunner.cmrunner.common import RunMode, ArgumentsOptions
+from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
+from datarobot_drum.cmrunner.exceptions import CMRunnerPerfTestTimeout
+from datarobot_drum.cmrunner.utils import CMRunnerUtils
+from datarobot_drum.cmrunner.common import RunMode, ArgumentsOptions
 
 
 def _get_samples_df(df, samples):

@@ -11,7 +11,7 @@ import pandas as pd
 from mlpiper.pipeline.executor import Executor
 from mlpiper.pipeline.executor_config import ExecutorConfig
 
-from datarobot_cmrunner.cmrunner.common import (
+from datarobot_drum.cmrunner.common import (
     ArgumentsOptions,
     JavaArtifacts,
     LOG_LEVELS,
@@ -22,11 +22,11 @@ from datarobot_cmrunner.cmrunner.common import (
     RunMode,
     TemplateType,
 )
-from datarobot_cmrunner.cmrunner.perf_testing import CMRunTests
-from datarobot_cmrunner.cmrunner.templates_generator import CMTemplateGenerator
-from datarobot_cmrunner.cmrunner.utils import CMRunnerUtils
-from datarobot_cmrunner.profiler.stats_collector import StatsCollector, StatsOperation
-from datarobot_cmrunner.cmrunner.exceptions import CMRunnerCommonException
+from datarobot_drum.cmrunner.perf_testing import CMRunTests
+from datarobot_drum.cmrunner.templates_generator import CMTemplateGenerator
+from datarobot_drum.cmrunner.utils import CMRunnerUtils
+from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
+from datarobot_drum.cmrunner.exceptions import CMRunnerCommonException
 from mlpiper.pipeline.executor import Executor
 from mlpiper.pipeline.executor_config import ExecutorConfig
 

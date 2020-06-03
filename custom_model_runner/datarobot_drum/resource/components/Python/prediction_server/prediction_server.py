@@ -3,13 +3,11 @@ import os
 import pandas as pd
 
 from flask import Flask, request
-from datarobot_cmrunner.resource.components.Python.external_runner.external_runner import (
-    ExternalRunner,
-)
-from datarobot_cmrunner.cmrunner.common import LOGGER_NAME_PREFIX
-from datarobot_cmrunner.cmrunner.exceptions import CMRunnerCommonException
-from datarobot_cmrunner.profiler.stats_collector import StatsCollector, StatsOperation
-from datarobot_cmrunner.cmrunner.memory_monitor import MemoryMonitor
+from datarobot_drum.resource.components.Python.external_runner.external_runner import ExternalRunner
+from datarobot_drum.cmrunner.common import LOGGER_NAME_PREFIX
+from datarobot_drum.cmrunner.exceptions import CMRunnerCommonException
+from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
+from datarobot_drum.cmrunner.memory_monitor import MemoryMonitor
 from mlpiper.common.byte_conv import ByteConv
 
 

@@ -35,8 +35,8 @@ import os
 import sys
 import signal
 import requests
-from datarobot_cmrunner.cmrunner.args_parser import CMRunnerArgsRegistry
-from datarobot_cmrunner.cmrunner.cmrunner import CMRunner
+from datarobot_drum.cmrunner.args_parser import CMRunnerArgsRegistry
+from datarobot_drum.cmrunner.cmrunner import CMRunner
 
 
 def main():

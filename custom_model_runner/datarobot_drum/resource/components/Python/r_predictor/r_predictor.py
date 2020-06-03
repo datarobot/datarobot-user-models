@@ -3,7 +3,7 @@ import numpy
 import os
 import pandas as pd
 
-from datarobot_cmrunner.cmrunner.common import LOGGER_NAME_PREFIX
+from datarobot_drum.cmrunner.common import LOGGER_NAME_PREFIX
 from mlpiper.components.connectable_component import ConnectableComponent
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
