@@ -327,7 +327,9 @@ class XGBNativePredictor(ArtifactPredictor):
             import xgboost
 
             if isinstance(model, Pipeline):
-                if isinstance(model[-1], (xgboost.sklearn.XGBClassifier, xgboost.sklearn.XGBRegressor)):
+                if isinstance(
+                    model[-1], (xgboost.sklearn.XGBClassifier, xgboost.sklearn.XGBRegressor)
+                ):
                     return True
             else:
                 if isinstance(model, xgboost.core.Booster):
@@ -357,9 +359,6 @@ class XGBNativePredictor(ArtifactPredictor):
             )
         else:
             preds = model.predict(data)
-            predictions = pd.DataFrame(
-                data=preds,
-                columns=[REGRESSION_PRED_COLUMN],
-            )
+            predictions = pd.DataFrame(data=preds, columns=[REGRESSION_PRED_COLUMN],)
 
         return predictions

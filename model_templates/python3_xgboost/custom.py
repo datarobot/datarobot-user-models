@@ -58,6 +58,7 @@ def fit(
     if class_order:
         estimator = make_classifier_pipeline(X)
         from sklearn.preprocessing import LabelBinarizer
+
         lb = LabelBinarizer()
         y = lb.fit_transform(y).ravel()
     else:
