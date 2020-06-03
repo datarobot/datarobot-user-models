@@ -10,7 +10,6 @@ from datarobot_drum.drum.common import (
     REGRESSION_PRED_COLUMN,
     extra_deps,
     SupportedFrameworks,
-    CustomHooks,
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
 )
@@ -351,39 +350,15 @@ class XGBNativePredictor(ArtifactPredictor):
         # done in the base class
         super(XGBNativePredictor, self).predict(data, model, **kwargs)
 
-        def _determine_positive_class_index(pos_label, neg_label):
-            """Find index of positive class label to interpret predict_proba output"""
-
-            if not hasattr(model, "classes_"):
-                self._logger.warning(
-                    "We were not able to verify you were using the right class labels because your estimator doesn't have a classes_ attribute"
-                )
-                return 1
-            labels = [str(label) for label in model.classes_]
-            if not all(x in labels for x in [pos_label, neg_label]):
-                error_message = "Wrong class labels. Use class labels detected by xgboost model: {}".format(
-                    labels
-                )
-                raise CMRunnerCommonException(error_message)
-
-            return labels.index(pos_label)
-
-        if self.positive_class_label is not None and self.negative_class_label is not None:
+        if None not in (self.positive_class_label, self.negative_class_label):
             predictions = model.predict_proba(data)
-            positive_label_index = _determine_positive_class_index(
-                self.positive_class_label, self.negative_class_label
-            )
-            negative_label_index = 1 - positive_label_index
-            predictions = [
-                [prediction[positive_label_index], prediction[negative_label_index]]
-                for prediction in predictions
-            ]
             predictions = pd.DataFrame(
-                predictions, columns=[self.positive_class_label, self.negative_class_label]
+                predictions, columns=[self.negative_class_label, self.positive_class_label]
             )
         else:
+            preds = model.predict(data)
             predictions = pd.DataFrame(
-                [float(prediction) for prediction in model.predict(data)],
+                data=preds,
                 columns=[REGRESSION_PRED_COLUMN],
             )
 
