@@ -31,6 +31,9 @@ class PythonModelAdapter:
         self._logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + self.__class__.__name__)
 
         # Get all the artifact predictors we have
+        # let `SKLearnPredictor` be the last item, as we iterate through this list to find the
+        # predictor for the given model artifact (based on the instance type of the estimator) it might
+        # overlap with other predictors especially the ones with `sklearn.pipeline`
         self._artifact_predictors = [
             KerasPredictor(),
             XGBNativePredictor(),
