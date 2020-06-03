@@ -43,7 +43,7 @@ function build_docker_image_with_cmrun() {
   make clean && make
   CMRUNNER_WHEEL=$(find dist/datarobot_drum*.whl)
   cp $CMRUNNER_WHEEL $docker_dir
-  cp requirements.txt $docker_dir/cmrunner_requirements.txt
+  cp requirements.txt $docker_dir/drum_requirements.txt
   popd
 
   pushd $docker_dir

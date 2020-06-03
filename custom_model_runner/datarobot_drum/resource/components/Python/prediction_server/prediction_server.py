@@ -4,10 +4,10 @@ import pandas as pd
 
 from flask import Flask, request
 from datarobot_drum.resource.components.Python.external_runner.external_runner import ExternalRunner
-from datarobot_drum.cmrunner.common import LOGGER_NAME_PREFIX
-from datarobot_drum.cmrunner.exceptions import CMRunnerCommonException
+from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
-from datarobot_drum.cmrunner.memory_monitor import MemoryMonitor
+from datarobot_drum.drum.memory_monitor import MemoryMonitor
 from mlpiper.common.byte_conv import ByteConv
 
 
@@ -142,7 +142,7 @@ class PredictionServer(ExternalRunner):
         try:
             app.run(host, port, threaded=self._threaded)
         except OSError as e:
-            raise CMRunnerCommonException("{}: host: {}; port: {}".format(e, host, port))
+            raise DrumCommonException("{}: host: {}; port: {}".format(e, host, port))
 
         self._cleanup_pipeline()
         if self._stats_collector:

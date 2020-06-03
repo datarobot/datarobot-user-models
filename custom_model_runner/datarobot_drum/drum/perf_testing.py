@@ -14,9 +14,9 @@ from texttable import Texttable
 from tempfile import mkdtemp, NamedTemporaryFile
 
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
-from datarobot_drum.cmrunner.exceptions import CMRunnerPerfTestTimeout
-from datarobot_drum.cmrunner.utils import CMRunnerUtils
-from datarobot_drum.cmrunner.common import RunMode, ArgumentsOptions
+from datarobot_drum.drum.exceptions import DrumPerfTestTimeout
+from datarobot_drum.drum.utils import CMRunnerUtils
+from datarobot_drum.drum.common import RunMode, ArgumentsOptions
 
 
 def _get_samples_df(df, samples):
@@ -291,7 +291,7 @@ class CMRunTests:
             sys.exit(0)
 
         def testcase_timeout(signum, frame):
-            raise CMRunnerPerfTestTimeout()
+            raise DrumPerfTestTimeout()
 
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGALRM, testcase_timeout)
@@ -302,7 +302,7 @@ class CMRunTests:
             signal.alarm(self.options.timeout)
             try:
                 self._run_test_case(tc, results)
-            except CMRunnerPerfTestTimeout:
+            except DrumPerfTestTimeout:
                 print("... timed out ({}s)".format(self.options.timeout))
             except Exception as e:
                 print("\n...test case failed with a message: {}".format(e))
@@ -326,7 +326,7 @@ class CMRunTests:
         cmd_list[1] = ArgumentsOptions.SCORE
 
         TMP_DIR = "/tmp"
-        DIR_PREFIX = "cmrunner_validation_checks_"
+        DIR_PREFIX = "drum_validation_checks_"
 
         null_datasets_dir = mkdtemp(prefix=DIR_PREFIX, dir=TMP_DIR)
 

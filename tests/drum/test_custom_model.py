@@ -15,7 +15,7 @@ import pandas as pd
 import pytest
 import requests
 
-from datarobot_cmrunner.cmrunner.common import CUSTOM_FILE_NAME, CustomHooks, ArgumentsOptions
+from datarobot_drum.drum.common import CUSTOM_FILE_NAME, CustomHooks, ArgumentsOptions
 
 KERAS = "keras"
 XGB = "xgb"
@@ -213,7 +213,7 @@ class TestCMRunner:
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
         ],
     )
-    def test_custom_models_with_cmrunner(self, framework, problem, language, docker):
+    def test_custom_models_with_drum(self, framework, problem, language, docker):
         custom_model_dir = self._create_custom_model_dir(framework, problem, language)
 
         input_dataset = self._get_dataset_filename(problem)
@@ -331,9 +331,7 @@ class TestCMRunner:
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
         ],
     )
-    def test_custom_models_with_cmrunner_prediction_server(
-        self, framework, problem, language, docker
-    ):
+    def test_custom_models_with_drum_prediction_server(self, framework, problem, language, docker):
         timeout = 10
         port = 6799
         server_address = "localhost:{}".format(port)
@@ -393,7 +391,7 @@ class TestCMRunner:
         "framework, problem, language, docker",
         [(SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN), (SKLEARN, BINARY, PYTHON, None),],
     )
-    def test_custom_models_cmrunner_prediction_server_response(
+    def test_custom_models_drum_prediction_server_response(
         self, framework, problem, language, docker
     ):
         port = 6799

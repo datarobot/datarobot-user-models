@@ -5,8 +5,8 @@ from pathlib import Path
 import pandas as pd
 from mlpiper.components.connectable_component import ConnectableComponent
 
-from datarobot_drum.cmrunner.common import LOGGER_NAME_PREFIX
-from datarobot_drum.cmrunner.model_adapter import PythonModelAdapter
+from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.model_adapter import PythonModelAdapter
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 

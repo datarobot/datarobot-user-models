@@ -44,23 +44,23 @@ function build_docker_image_with_cmrun() {
 
   orig_docker_context_dir=$1
   image_name=$2
-  cmrunner_wheel=$3
-  cmrunner_requirements=$4
+  drum_wheel=$3
+  drum_requirements=$4
 
   docker_dir=/tmp/cmrun_docker.$$
 
   echo "Building docker image:"
   echo "orig_docker_context_dir: $orig_docker_context_dir"
   echo "image_name:              $image_name"
-  echo "cmrunner_wheel:          $cmrunner_wheel"
-  echo "cmrunner_requirements:   $cmrunner_requirements"
+  echo "deum_wheel:              $drum_wheel"
+  echo "drum_requirements:       $drum_requirements"
   echo "docker_dir:              $docker_dir"
 
   rm -rf $docker_dir
   cp -a $orig_docker_context_dir $docker_dir
 
-  cp $cmrunner_wheel $docker_dir
-  cp $cmrunner_requirements $docker_dir/cmrunner_requirements.txt
+  cp $drum_wheel $docker_dir
+  cp $drum_requirements $docker_dir/drum_requirements.txt
 
   cd $docker_dir || exit 1
   docker build -t $image_name ./
@@ -92,9 +92,9 @@ echo "Running pytest:"
 cd $GIT_ROOT || exit 1
 DONE_PREP_TIME=$(date +%s)
 
-#pytest -s tests/cmrunner/test_custom_model.py::TestCMRunner::test_custom_models_with_cmrunner[rds-regression-R-None] \
+#pytest -s tests/drum/test_custom_model.py::TestCMRunner::test_custom_models_with_drum[rds-regression-R-None] \
 #  --junit-xml="$CODE_DIR/results_integration.xml"
-pytest tests/cmrunner/test_custom_model.py --junit-xml="$CODE_DIR/results_integration.xml"
+pytest tests/drum/test_custom_model.py --junit-xml="$CODE_DIR/results_integration.xml"
 
 TEST_RESULT=$?
 END_TIME=$(date +%s)

@@ -1,7 +1,7 @@
 import logging
 from enum import Enum
 
-LOGGER_NAME_PREFIX = "cmrunner"
+LOGGER_NAME_PREFIX = "drum"
 REGRESSION_PRED_COLUMN = "Predictions"
 CUSTOM_FILE_NAME = "custom"
 POSITIVE_CLASS_LABEL_ARG_KEYWORD = "positive_class_label"

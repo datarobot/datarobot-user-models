@@ -11,7 +11,7 @@ import pandas as pd
 from mlpiper.pipeline.executor import Executor
 from mlpiper.pipeline.executor_config import ExecutorConfig
 
-from datarobot_drum.cmrunner.common import (
+from datarobot_drum.drum.common import (
     ArgumentsOptions,
     JavaArtifacts,
     LOG_LEVELS,
@@ -22,11 +22,11 @@ from datarobot_drum.cmrunner.common import (
     RunMode,
     TemplateType,
 )
-from datarobot_drum.cmrunner.perf_testing import CMRunTests
-from datarobot_drum.cmrunner.templates_generator import CMTemplateGenerator
-from datarobot_drum.cmrunner.utils import CMRunnerUtils
+from datarobot_drum.drum.perf_testing import CMRunTests
+from datarobot_drum.drum.templates_generator import CMTemplateGenerator
+from datarobot_drum.drum.utils import CMRunnerUtils
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
-from datarobot_drum.cmrunner.exceptions import CMRunnerCommonException
+from datarobot_drum.drum.exceptions import DrumCommonException
 from mlpiper.pipeline.executor import Executor
 from mlpiper.pipeline.executor_config import ExecutorConfig
 
@@ -132,7 +132,7 @@ class CMRunner(object):
                     exit(1)
                 else:
                     return
-        except CMRunnerCommonException as e:
+        except DrumCommonException as e:
             self.logger.error(e)
             exit(1)
         except AttributeError:
@@ -308,7 +308,7 @@ class CMRunner(object):
                 sc.mark("init")
                 _pipeline_executor.run_pipeline(cleanup=False)
                 sc.mark("run")
-            except CMRunnerCommonException as e:
+            except DrumCommonException as e:
                 self.logger.error(e)
                 exit(1)
             finally:
@@ -362,7 +362,7 @@ class CMRunner(object):
         if run_mode == RunMode.SERVER:
             host_port_list = options.address.split(":", 1)
             if len(host_port_list) == 1:
-                raise CMRunnerCommonException(
+                raise DrumCommonException(
                     "Error: when using the docker option provide argument --server host:port"
                 )
             port = int(host_port_list[1])

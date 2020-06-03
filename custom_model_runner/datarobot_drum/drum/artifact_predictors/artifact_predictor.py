@@ -4,7 +4,7 @@ import pandas as pd
 import logging
 import sys
 
-from datarobot_drum.cmrunner.common import (
+from datarobot_drum.drum.common import (
     LOGGER_NAME_PREFIX,
     PythonArtifacts,
     REGRESSION_PRED_COLUMN,
@@ -14,7 +14,7 @@ from datarobot_drum.cmrunner.common import (
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
 )
-from datarobot_drum.cmrunner.exceptions import CMRunnerCommonException
+from datarobot_drum.drum.exceptions import DrumCommonException
 
 
 class ArtifactPredictor(ABC):
@@ -131,7 +131,7 @@ class SKLearnPredictor(ArtifactPredictor):
                 error_message = "Wrong class labels. Use class labels detected by sklearn model: {}".format(
                     labels
                 )
-                raise CMRunnerCommonException(error_message)
+                raise DrumCommonException(error_message)
 
             return labels.index(pos_label)
 

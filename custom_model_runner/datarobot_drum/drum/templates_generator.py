@@ -5,7 +5,7 @@ import time
 import pprint
 from jinja2 import Environment, FileSystemLoader
 
-from datarobot_drum.cmrunner.common import (
+from datarobot_drum.drum.common import (
     RunLanguage,
     LOGGER_NAME_PREFIX,
     CustomHooks,

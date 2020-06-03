@@ -7,7 +7,7 @@ import logging
 import sys
 import textwrap
 
-from datarobot_drum.cmrunner.common import (
+from datarobot_drum.drum.common import (
     CustomHooks,
     CUSTOM_FILE_NAME,
     LOGGER_NAME_PREFIX,
@@ -16,9 +16,9 @@ from datarobot_drum.cmrunner.common import (
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
 )
 
-from datarobot_drum.cmrunner.exceptions import CMRunnerCommonException
+from datarobot_drum.drum.exceptions import DrumCommonException
 
-from datarobot_drum.cmrunner.artifact_predictors.artifact_predictor import (
+from datarobot_drum.drum.artifact_predictors.artifact_predictor import (
     KerasPredictor,
     SKLearnPredictor,
     PyTorchPredictor,
@@ -68,7 +68,7 @@ class PythonModelAdapter:
             self._logger.debug("Hooks loaded: {}".format(self._custom_hooks))
         except ImportError as e:
             self._logger.error("Could not load hooks: {}".format(e))
-            raise CMRunnerCommonException(
+            raise DrumCommonException(
                 "Failed loading hooks from [{}] : {}".format(custom_file_path, e)
             )
 
@@ -81,7 +81,7 @@ class PythonModelAdapter:
             The deserialized model
         Raises
         ------
-        CMRunnerCommonException if model loading failed.
+        DrumCommonException if model loading failed.
         """
         if self._custom_hooks[CustomHooks.LOAD_MODEL]:
             self._model = self._load_model_via_hook()
@@ -103,7 +103,7 @@ class PythonModelAdapter:
             self._logger.debug("Model was successfully loaded by load hook")
             return model
         else:
-            raise CMRunnerCommonException("Model loading hook failed to load model")
+            raise DrumCommonException("Model loading hook failed to load model")
 
     def _detect_model_artifact_file(self):
         # No model was loaded - so there is no local hook - so we are using our artifact predictors
@@ -118,14 +118,14 @@ class PythonModelAdapter:
 
             if any(filename.endswith(extension) for extension in all_supported_extensions):
                 if model_artifact_file:
-                    raise CMRunnerCommonException(
+                    raise DrumCommonException(
                         "Multiple serialized model files found. Remove extra artifacts "
                         "or overwrite custom.load_model()"
                     )
                 model_artifact_file = path
 
         if not model_artifact_file:
-            raise CMRunnerCommonException(
+            raise DrumCommonException(
                 "Could not find model artifact file supported by default predictors. "
                 "They support filenames with the following extensions {}. "
                 "If your artifact is not supported by default predictor, implement `load_model` hook".format(
@@ -160,9 +160,9 @@ class PythonModelAdapter:
                         pred.name, pred.framework_requirements()
                     )
 
-                raise CMRunnerCommonException(textwrap.dedent(framework_err))
+                raise DrumCommonException(textwrap.dedent(framework_err))
             else:
-                raise CMRunnerCommonException(
+                raise DrumCommonException(
                     "Could not load model from artifact file {}."
                     " No builtin support for this model was detected".format(model_artifact_file)
                 )
@@ -178,7 +178,7 @@ class PythonModelAdapter:
                 break
 
         if not self._predictor_to_use and not self._custom_hooks[CustomHooks.SCORE]:
-            raise CMRunnerCommonException(
+            raise DrumCommonException(
                 "Could not find any framework to handle loaded model and a {} "
                 "hook is not provided".format(CustomHooks.SCORE)
             )
@@ -262,7 +262,7 @@ class PythonModelAdapter:
                 X, y, output_dir, class_order=class_order, row_weights=row_weights
             )
         else:
-            raise CMRunnerCommonException(
+            raise DrumCommonException(
                 "fit() method must be implemented in the 'custom.py' in the provided code_dir: '{}'".format(
                     self._model_dir
                 )
