@@ -56,7 +56,6 @@ class ShmemUtils(object):
         return df
 
 
-# score imports custom from the custom model root
 class ExternalRunner(ConnectableComponent):
     def __init__(self, engine):
         super(ExternalRunner, self).__init__(engine)

@@ -89,7 +89,7 @@ class CMRunner(object):
         self._print_verbose(mode_headers[self.run_mode])
 
     def _check_artifacts_and_get_run_language(self):
-        # Get custom model's abs path and add it to the python path
+        # Get code dir's abs path and add it to the python path
         custom_model_abspath = os.path.abspath(self.options.code_dir)
 
         python_artifacts = CMRunnerUtils.find_files_by_extensions(

@@ -1,32 +1,32 @@
 #!/usr/bin/env python3
 
 """
-Custom model runner is a tool to run custom models in batch prediction or prediction server modes.
+Custom model runner is a tool to work with user models in scoring, training and other modes.
 
 Examples:
 
     # Prepare custom_model folder containing model artifact.
     # It also and may contain custom.py file implementing custom predict() method.
 
-    # Run binary classification custom model in a batch prediction mode. If output parameter is omitted,
+    # Run binary classification user model in a batch prediction mode. If output parameter is omitted,
     # results will be printed.
-    drum predict --code-dir ~/custom_model3/ --input input.csv --output output.csv --positive-class-label yes
+    drum score --code-dir ~/custom_model3/ --input input.csv --output output.csv --positive-class-label yes
           --negative-class-label no
 
-    # Run regression custom model in a predict mode.
-    drum predict --code-dir ~/custom_model3/ --input input.csv --output output.csv
+    # Run regression user model in a predict mode.
+    drum score --code-dir ~/custom_model3/ --input input.csv --output output.csv
 
-    # Run binary classification custom model in a prediction server mode.
+    # Run binary classification user model in a prediction server mode.
     drum server --code-dir ~/custom_model3/ --positive-class-label yes --negative-class-label no
           --address host:port
 
-    # Run regression custom model in a prediction server mode.
+    # Run regression user model in a prediction server mode.
     drum server --code-dir ~/custom_model3/ --address host:port
 
-    # Run binary classification custom model in fit mode.
+    # Run binary classification user model in fit mode.
     drum fit --code-dir <custom code dir> --input <input.csv> --output <output_dir> --target <target feature> --positive-class-label <class-label-1> --negative-class-label <class-label-0> --verbose
 
-    # Run regression custom model in fit mode.
+    # Run regression user model in fit mode.
     drum fit --code-dir <custom code dir> --input <input.csv> --output <output_dir> --target <target feature> --verbose
 """
 

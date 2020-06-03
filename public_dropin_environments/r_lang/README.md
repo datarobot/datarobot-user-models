@@ -1,7 +1,7 @@
 # R Drop-In Template Environment
 
 This template environment can be used to create artifact-only R custom models that use the caret library.
-Your custom model archive need only contain your model artifacts if you use the
+Your custom model directory needs only contain your model artifacts if you use the
 environment correctly.
 
 ## Supported Libraries

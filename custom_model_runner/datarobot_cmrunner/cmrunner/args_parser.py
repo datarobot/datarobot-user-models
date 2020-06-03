@@ -313,7 +313,7 @@ class CMRunnerArgsRegistry(object):
 
     @staticmethod
     def get_arg_parser():
-        parser = argparse.ArgumentParser(description="Run custom models")
+        parser = argparse.ArgumentParser(description="Run user model")
         CMRunnerArgsRegistry._parsers[ArgumentsOptions.MAIN_COMMAND] = parser
         subparsers = parser.add_subparsers(
             dest=CMRunnerArgsRegistry.SUBPARSER_DEST_KEYWORD, help="Commands"
