@@ -347,8 +347,9 @@ class XGBNativePredictor(ArtifactPredictor):
         # done in the base class
         super(XGBNativePredictor, self).predict(data, model, **kwargs)
 
-        dinput = xgboost.DMatrix(data)
-        predictions = model.predict(dinput)
+        # dinput = xgboost.DMatrix(data)
+        # predictions = model.predict(dinput)
+        predictions = model.predict(data)
         if self.positive_class_label is not None and self.negative_class_label is not None:
             predictions = pd.DataFrame(predictions, columns=[self.positive_class_label])
             predictions[self.negative_class_label] = 1 - predictions[self.positive_class_label]
