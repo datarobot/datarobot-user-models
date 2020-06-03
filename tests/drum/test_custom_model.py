@@ -114,6 +114,7 @@ class TestCMRunner:
         cls.target = {BINARY: "Species", REGRESSION: "MEDV"}
         cls.class_labels = {
             (SKLEARN, BINARY): ["Iris-setosa", "Iris-versicolor"],
+            (XGB, BINARY): ["Iris-setosa", "Iris-versicolor"],
             (RDS, BINARY): ["Iris-setosa", "Iris-versicolor"],
         }
 

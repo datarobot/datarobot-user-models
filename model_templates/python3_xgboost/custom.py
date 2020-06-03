@@ -56,10 +56,7 @@ def fit(
     """
     # Feel free to delete which ever one of these you aren't using
     if class_order:
-        from sklearn.preprocessing import LabelBinarizer
-
         estimator = make_classifier_pipeline(X)
-        y = LabelBinarizer().fit_transform(y).ravel()
     else:
         estimator = make_regressor_pipeline(X)
     estimator.fit(X, y)

@@ -324,10 +324,16 @@ class XGBNativePredictor(ArtifactPredictor):
         if not self.is_framework_present():
             return False
         try:
+            from sklearn.pipeline import Pipeline
             import xgboost
 
-            if isinstance(model, xgboost.core.Booster):
-                return True
+            if isinstance(model, Pipeline):
+                if isinstance(model[-1], (xgboost.sklearn.XGBClassifier, xgboost.sklearn.XGBRegressor)):
+                    return True
+            else:
+                if isinstance(model, xgboost.core.Booster):
+                    return True
+            return False
         except Exception as e:
             self._logger.debug("Exception: {}".format(e))
             return False
@@ -341,19 +347,44 @@ class XGBNativePredictor(ArtifactPredictor):
             return model
 
     def predict(self, data, model, **kwargs):
-        import xgboost
-
         # checking if positive/negative class labels were provided
         # done in the base class
         super(XGBNativePredictor, self).predict(data, model, **kwargs)
 
-        # dinput = xgboost.DMatrix(data)
-        # predictions = model.predict(dinput)
-        predictions = model.predict(data)
+        def _determine_positive_class_index(pos_label, neg_label):
+            """Find index of positive class label to interpret predict_proba output"""
+
+            if not hasattr(model, "classes_"):
+                self._logger.warning(
+                    "We were not able to verify you were using the right class labels because your estimator doesn't have a classes_ attribute"
+                )
+                return 1
+            labels = [str(label) for label in model.classes_]
+            if not all(x in labels for x in [pos_label, neg_label]):
+                error_message = "Wrong class labels. Use class labels detected by xgboost model: {}".format(
+                    labels
+                )
+                raise CMRunnerCommonException(error_message)
+
+            return labels.index(pos_label)
+
         if self.positive_class_label is not None and self.negative_class_label is not None:
-            predictions = pd.DataFrame(predictions, columns=[self.positive_class_label])
-            predictions[self.negative_class_label] = 1 - predictions[self.positive_class_label]
+            predictions = model.predict_proba(data)
+            positive_label_index = _determine_positive_class_index(
+                self.positive_class_label, self.negative_class_label
+            )
+            negative_label_index = 1 - positive_label_index
+            predictions = [
+                [prediction[positive_label_index], prediction[negative_label_index]]
+                for prediction in predictions
+            ]
+            predictions = pd.DataFrame(
+                predictions, columns=[self.positive_class_label, self.negative_class_label]
+            )
         else:
-            predictions = pd.DataFrame(predictions, columns=[REGRESSION_PRED_COLUMN])
+            predictions = pd.DataFrame(
+                [float(prediction) for prediction in model.predict(data)],
+                columns=[REGRESSION_PRED_COLUMN],
+            )
 
         return predictions

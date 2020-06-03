@@ -73,8 +73,14 @@ def make_classifier_pipeline(X: pd.DataFrame) -> Pipeline:
     num_features = list(X.select_dtypes(include=numerics).columns)
 
     # This example model only uses numeric features and drops the rest
-    num_transformer = Pipeline(steps=[("imputer", SimpleImputer(strategy="mean"))])
-    preprocessor = ColumnTransformer(transformers=[("num", num_transformer, num_features),])
+    num_transformer = Pipeline(steps=[
+        ("imputer", SimpleImputer(strategy="median")),
+        ("scaler", StandardScaler()),
+    ])
+
+    preprocessor = ColumnTransformer(transformers=[
+        ("num", num_transformer, num_features),
+    ])
 
     # create model
     estimator = create_binary_classification_model()

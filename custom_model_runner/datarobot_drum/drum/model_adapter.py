@@ -33,9 +33,9 @@ class PythonModelAdapter:
         # Get all the artifact predictors we have
         self._artifact_predictors = [
             KerasPredictor(),
-            SKLearnPredictor(),
             XGBNativePredictor(),
             PyTorchPredictor(),
+            SKLearnPredictor(),
         ]
         self._predictor_to_use = None
         self._custom_hooks = {}
