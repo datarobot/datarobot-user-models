@@ -18,10 +18,10 @@ COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt --no-cache-dir && \
     rm -rf requirements.txt
 
-# Install cmrunner requirements separately to avoid installing them every time cmrunner recompiled
-COPY cmrunner_requirements.txt cmrunner_requirements.txt
-RUN pip3 install -r cmrunner_requirements.txt --no-cache-dir && \
-    rm -rf cmrunner_requirements.txt
+# Install drum requirements separately to avoid installing them every time drum recompiled
+COPY drum_requirements.txt drum_requirements.txt
+RUN pip3 install -r drum_requirements.txt --no-cache-dir && \
+    rm -rf drum_requirements.txt
 
 # Copying the fresh wheel file
 COPY datarobot_drum-*.whl /tmp/
