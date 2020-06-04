@@ -1,6 +1,4 @@
 import os
-import pickle
-from functools import partial
 
 import pandas as pd
 import logging
