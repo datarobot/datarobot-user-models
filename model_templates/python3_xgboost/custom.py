@@ -5,6 +5,7 @@ import pickle
 import pandas as pd
 import numpy as np
 from pathlib import Path
+from sklearn.preprocessing import LabelBinarizer
 
 from model_to_fit import (
     make_classifier_pipeline,
@@ -57,8 +58,6 @@ def fit(
     # Feel free to delete which ever one of these you aren't using
     if class_order:
         estimator = make_classifier_pipeline(X)
-        from sklearn.preprocessing import LabelBinarizer
-
         lb = LabelBinarizer()
         y = lb.fit_transform(y).ravel()
     else:
@@ -79,8 +78,8 @@ def transform(data, model):
 
     Parameters
     ----------
-    data : pd.DataFrame
-    model : object, the deserialized model
+    data: pd.DataFrame
+    model: object, the deserialized model
 
     Returns
     -------

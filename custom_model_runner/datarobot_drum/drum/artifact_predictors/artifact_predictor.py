@@ -327,6 +327,7 @@ class XGBNativePredictor(ArtifactPredictor):
             import xgboost
 
             if isinstance(model, Pipeline):
+                # check the final estimator in the pipeline is XGBoost
                 if isinstance(
                     model[-1], (xgboost.sklearn.XGBClassifier, xgboost.sklearn.XGBRegressor)
                 ):
