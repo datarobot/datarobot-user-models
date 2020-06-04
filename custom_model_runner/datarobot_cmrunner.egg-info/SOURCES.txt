@@ -1,7 +1,0 @@
-README.md
-setup.py
-datarobot_cmrunner.egg-info/PKG-INFO
-datarobot_cmrunner.egg-info/SOURCES.txt
-datarobot_cmrunner.egg-info/dependency_links.txt
-datarobot_cmrunner.egg-info/not-zip-safe
-datarobot_cmrunner.egg-info/top_level.txt
