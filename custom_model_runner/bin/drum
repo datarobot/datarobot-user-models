@@ -2,6 +2,6 @@
 # PYTHON_ARGCOMPLETE_OK
 
 import os
-from datarobot_cmrunner.cmrunner.main import main
+from datarobot_drum.drum.main import main
 main()
 
