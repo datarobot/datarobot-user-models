@@ -92,6 +92,9 @@ class CMRunner(object):
         # Get code dir's abs path and add it to the python path
         custom_model_abspath = os.path.abspath(self.options.code_dir)
 
+        artifact_language = None
+        custom_language = None
+        # check which artifacts present in the code dir
         python_artifacts = CMRunnerUtils.find_files_by_extensions(
             custom_model_abspath, PythonArtifacts.ALL
         )
@@ -101,27 +104,54 @@ class CMRunner(object):
             custom_model_abspath, JavaArtifacts.ALL
         )
 
-        if bool(len(python_artifacts)) + bool(len(r_artifacts)) + bool(
-            len(java_artifacts)
-        ) > 1 or not any([len(python_artifacts), len(r_artifacts), len(java_artifacts)]):
+        # check which custom code files present in the code dir
+        is_custom_py = CMRunnerUtils.filename_exists_and_is_file(custom_model_abspath, "custom.py")
+        is_custom_r = CMRunnerUtils.filename_exists_and_is_file(
+            custom_model_abspath, "custom.R"
+        ) or CMRunnerUtils.filename_exists_and_is_file(custom_model_abspath, "custom.r")
+
+        # if all the artifacts belong to the same language, set it
+        if bool(len(python_artifacts)) + bool(len(r_artifacts)) + bool(len(java_artifacts)) == 1:
+            if len(python_artifacts):
+                artifact_language = RunLanguage.PYTHON
+            elif len(r_artifacts):
+                artifact_language = RunLanguage.R
+            elif len(java_artifacts):
+                artifact_language = RunLanguage.JAVA
+
+        # if only one custom file found, set it:
+        if is_custom_py + is_custom_r == 1:
+            custom_language = RunLanguage.PYTHON if is_custom_py else RunLanguage.R
+
+        # if both language values are None, or both are not None and not equal
+        if (
+            bool(custom_language) + bool(artifact_language) == 0
+            or bool(custom_language) + bool(artifact_language) == 2
+            and custom_language != artifact_language
+        ):
+
+            artifact_language = "None" if artifact_language is None else artifact_language.value
+            custom_language = "None" if custom_language is None else custom_language.value
             error_mes = (
-                "Custom model folder must have one or more model artifacts belonging to the same language:"
+                "Can not detect language by artifacts and/or custom.py/R files.\n"
+                "Detected: language by artifacts - {}; language by custom - {}.\n"
+                "Code directory must have one or more model artifacts belonging to the same language:\n"
                 "Python/R/Java, with an extension:\n"
                 "Python models: {}\n"
                 "R models: {}\n"
-                "Java models: {}".format(PythonArtifacts.ALL, RArtifacts.ALL, JavaArtifacts.ALL)
+                "Java models: {}.\n"
+                "Or one of custom.py/R files.".format(
+                    artifact_language,
+                    custom_language,
+                    PythonArtifacts.ALL,
+                    RArtifacts.ALL,
+                    JavaArtifacts.ALL,
+                )
             )
             self.logger.error(error_mes)
             exit(1)
 
-        if len(python_artifacts):
-            run_language = RunLanguage.PYTHON
-        elif len(r_artifacts):
-            run_language = RunLanguage.R
-        elif len(java_artifacts):
-            run_language = RunLanguage.JAVA
-        else:
-            raise NotImplementedError("We don't support your language")
+        run_language = custom_language if custom_language is not None else artifact_language
         return run_language
 
     def run(self):

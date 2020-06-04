@@ -90,6 +90,8 @@ class TestCMRunner:
         }
 
         cls.artifacts = {
+            (None, REGRESSION): None,
+            (None, BINARY): None,
             (SKLEARN, REGRESSION): os.path.join(cls.tests_artifacts_path, "sklearn_reg.pkl"),
             (SKLEARN, REGRESSION_INFERENCE): os.path.join(
                 cls.tests_artifacts_path, "sklearn_reg.pkl"
@@ -158,10 +160,11 @@ class TestCMRunner:
                 shutil.copy2(filename, custom_model_dir)
         else:
             artifact_filenames = cls._get_artifact_filename(framework, problem)
-            if not isinstance(artifact_filenames, list):
-                artifact_filenames = [artifact_filenames]
-            for filename in artifact_filenames:
-                shutil.copy2(filename, custom_model_dir)
+            if artifact_filenames is not None:
+                if not isinstance(artifact_filenames, list):
+                    artifact_filenames = [artifact_filenames]
+                for filename in artifact_filenames:
+                    shutil.copy2(filename, custom_model_dir)
 
             fixture_filename, rename = cls._get_fixture_filename(language)
             if fixture_filename:
@@ -271,6 +274,54 @@ class TestCMRunner:
                 str(stde).find("Wrong class labels. Use class labels according to your dataset")
                 != -1
             )
+        TestCMRunner._delete_custom_model_dir(custom_model_dir)
+
+    # testing negative cases: no artifact, no custom;
+    @pytest.mark.parametrize(
+        "framework, problem, language",
+        [
+            (None, REGRESSION, NO_CUSTOM),  # no artifact, no custom
+            (SKLEARN, REGRESSION, R),  # python artifact, custom.R
+            (RDS, REGRESSION, PYTHON),  # R artifact, custom.py
+            (None, REGRESSION, R),  # no artifact, custom.R without load_model
+            (None, REGRESSION, PYTHON),  # no artifact, custom.py without load_model
+        ],
+    )
+    def test_detect_language(self, framework, problem, language):
+        custom_model_dir = self._create_custom_model_dir(framework, problem, language)
+
+        input_dataset = self._get_dataset_filename(problem)
+        cmd = "{} score --code-dir {} --input {}".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset
+        )
+        if problem == BINARY:
+            cmd = cmd + " --positive-class-label yes --negative-class-label no"
+
+        p, stdo, stde = TestCMRunner._exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+
+        cases_1_2_3 = (
+            str(stde).find("Can not detect language by artifacts and/or custom.py/R files") != -1
+        )
+        case_4 = (
+            str(stde).find(
+                "Could not find model artifact, with .rds extension, supported by default R predictor. "
+                "If your artifact is not supported by default predictor, implement custom.load_model hook."
+            )
+            != -1
+        )
+        case_5 = (
+            str(stde).find(
+                "Could not find model artifact file supported by default predictors. "
+                "They support filenames with the following extensions"
+            )
+            != -1
+        )
+        assert any([cases_1_2_3, case_4, case_5])
+
         TestCMRunner._delete_custom_model_dir(custom_model_dir)
 
     @pytest.mark.parametrize(

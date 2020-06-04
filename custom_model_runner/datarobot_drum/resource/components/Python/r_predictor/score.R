@@ -92,7 +92,12 @@ load_serialized_model <- function(model_dir) {
     }
     if (is.null(model)) {
         file_names <- dir(model_dir, pattern = CUSTOM_MODEL_FILE_EXTENSION)
-        if (length(file_names) > 1) {
+        if (length(file_names) == 0) {
+            stop("Could not find model artifact, with ", CUSTOM_MODEL_FILE_EXTENSION,
+                 " extension, supported by default R predictor. ",
+                 "If your artifact is not supported by default predictor, implement custom.load_model hook."
+                )
+        } else if (length(file_names) > 0) {
             stop("Multiple serialized model files found. Remove extra artifacts or overwrite custom.load_model")
         }
         model_artifact <- file.path(model_dir, file_names[1])

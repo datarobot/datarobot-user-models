@@ -42,15 +42,20 @@ class CMRunnerUtils:
         return cls.render_template_keep_undefined(file_str, data)
 
     @classmethod
-    def find_files_by_extensions(self, dir, extensions):
+    def find_files_by_extensions(cls, dirpath, extensions):
         lst = []
-        for filename in os.listdir(dir):
-            path = os.path.join(dir, filename)
+        for filename in os.listdir(dirpath):
+            path = os.path.join(dirpath, filename)
             if os.path.isdir(path):
                 continue
             if any(filename.endswith(extension) for extension in extensions):
                 lst.append(path)
         return lst
+
+    @classmethod
+    def filename_exists_and_is_file(cls, dirpath, filename):
+        abs_filepath = os.path.abspath(os.path.join(dirpath, filename))
+        return os.path.exists(abs_filepath) and os.path.isfile(abs_filepath)
 
     @classmethod
     def is_port_in_use(cls, host, port):
