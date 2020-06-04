@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import pickle
+import numpy as np
 import pandas as pd
 import logging
 import sys
@@ -364,7 +365,11 @@ class XGBoostPredictor(ArtifactPredictor):
 
         if None not in (self.positive_class_label, self.negative_class_label):
             if xgboost_native:
-                predictions = model.predict(data)
+                positive_preds = model.predict(data)
+                negative_preds = 1 - positive_preds
+                predictions = np.concatenate(
+                    (positive_preds.reshape(-1, 1), negative_preds.reshape(-1, 1)), axis=1
+                )
             else:
                 predictions = model.predict_proba(data)
             predictions = pd.DataFrame(
