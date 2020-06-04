@@ -299,6 +299,7 @@ class XGBoostPredictor(ArtifactPredictor):
     """
     This Predictor supports both XGBoost native & sklearn api wrapper as well
     """
+
     def __init__(self):
         super(XGBoostPredictor, self).__init__(
             SupportedFrameworks.XGBOOST, PythonArtifacts.PKL_EXTENSION
