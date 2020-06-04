@@ -97,7 +97,7 @@ load_serialized_model <- function(model_dir) {
                  " extension, supported by default R predictor. ",
                  "If your artifact is not supported by default predictor, implement custom.load_model hook."
                 )
-        } else if (length(file_names) > 0) {
+        } else if (length(file_names) > 1) {
             stop("Multiple serialized model files found. Remove extra artifacts or overwrite custom.load_model")
         }
         model_artifact <- file.path(model_dir, file_names[1])
