@@ -25,7 +25,7 @@ def fit(
     **kwargs,
 ) -> None:
     """
-    This hook must be implemented with your fitting code, for running cmrun in the fit mode.
+    This hook must be implemented with your fitting code, for running drum in the fit mode.
 
     This hook MUST ALWAYS be implemented for custom training models.
     For inference models, this hook can stick around unimplemented, and won’t be triggered.
@@ -35,7 +35,7 @@ def fit(
     X: pd.DataFrame - training data to perform fit on
     y: pd.Series - target data to perform fit on
     output_dir: the path to write output. This is the path provided in '--output' parameter of the
-        'cmrun fit' command.
+        'drum fit' command.
     class_order : A two element long list dictating the order of classes which should be used for
         modeling. Class order will always be passed to fit by DataRobot for classification tasks,
         and never otherwise. When models predict, they output a likelihood of one class, with a
@@ -67,58 +67,3 @@ def fit(
     if output_dir_path.exists() and output_dir_path.is_dir():
         model_path = output_dir_path / "artifact.joblib"
         serialize_estimator_pipeline(estimator, model_path)
-
-
-def transform(data, model):
-    """
-    Modify this method to add data transformation before scoring calls. For example, this can be
-    used to implement one-hot encoding for models that don't include it on their own.
-
-    Parameters
-    ----------
-    data: pd.DataFrame
-    model: object, the deserialized model
-
-    Returns
-    -------
-    pd.DataFrame
-    """
-    # Execute any steps you need to do before scoring
-    # Remove target columns if  they're in the dataset
-
-    # For Boston Housing dataset
-    if "MEDV" in data:
-        data.pop("MEDV")
-
-    # For sklearn iris dataset
-    if "Species" in data:
-        data.pop("Species")
-
-    # for Loan Lending Club dataset
-    if "is_bad" in data:
-        data.pop("is_bad")
-
-    data = data.fillna(0)
-    return data
-
-
-def load_model(input_dir: str) -> Pipeline:
-    """
-    This keras estimator requires 'load_model()' to be overridden. Coz as it involves pipeline of
-    preprocessor and estimator bundled together, it requires a special handling (oppose to usually
-    simple keras.models.load_model() or unpickling) to load the model. Currently there is no elegant
-    default method to save the keras classifier/regressor along with the sklearn pipeline. Hence we
-    use deserialize_estimator_pipeline() to load the model pipeline to predict.
-
-    Parameters
-    ----------
-    input_dir: str
-
-    Returns
-    -------
-    pipelined_model: Pipeline
-        Estimator pipeline obj
-    """
-    artifact_path = Path(input_dir) / "artifact.joblib"
-    pipelined_model = deserialize_estimator_pipeline(artifact_path)
-    return pipelined_model
