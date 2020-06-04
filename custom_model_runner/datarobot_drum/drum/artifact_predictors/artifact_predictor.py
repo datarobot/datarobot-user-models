@@ -70,7 +70,6 @@ class ArtifactPredictor(ABC):
         """
         self.positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD, None)
         self.negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD, None)
-        pass
 
 
 class SKLearnPredictor(ArtifactPredictor):
@@ -296,9 +295,12 @@ class PyTorchPredictor(ArtifactPredictor):
         return predictions
 
 
-class XGBNativePredictor(ArtifactPredictor):
+class XGBoostPredictor(ArtifactPredictor):
+    """
+    This Predictor supports both XGBoost native & sklearn api wrapper as well
+    """
     def __init__(self):
-        super(XGBNativePredictor, self).__init__(
+        super(XGBoostPredictor, self).__init__(
             SupportedFrameworks.XGBOOST, PythonArtifacts.PKL_EXTENSION
         )
 
@@ -332,9 +334,8 @@ class XGBNativePredictor(ArtifactPredictor):
                     model[-1], (xgboost.sklearn.XGBClassifier, xgboost.sklearn.XGBRegressor)
                 ):
                     return True
-            else:
-                if isinstance(model, xgboost.core.Booster):
-                    return True
+            elif isinstance(model, xgboost.core.Booster):
+                return True
             return False
         except Exception as e:
             self._logger.debug("Exception: {}".format(e))
@@ -351,10 +352,20 @@ class XGBNativePredictor(ArtifactPredictor):
     def predict(self, data, model, **kwargs):
         # checking if positive/negative class labels were provided
         # done in the base class
-        super(XGBNativePredictor, self).predict(data, model, **kwargs)
+        super(XGBoostPredictor, self).predict(data, model, **kwargs)
+
+        import xgboost
+
+        xgboost_native = False
+        if isinstance(model, xgboost.core.Booster):
+            xgboost_native = True
+            data = xgboost.DMatrix(data)
 
         if None not in (self.positive_class_label, self.negative_class_label):
-            predictions = model.predict_proba(data)
+            if xgboost_native:
+                predictions = model.predict(data)
+            else:
+                predictions = model.predict_proba(data)
             predictions = pd.DataFrame(
                 predictions, columns=[self.negative_class_label, self.positive_class_label]
             )

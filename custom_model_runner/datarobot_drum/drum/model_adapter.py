@@ -20,7 +20,7 @@ from datarobot_drum.drum.artifact_predictors.artifact_predictor import (
     KerasPredictor,
     SKLearnPredictor,
     PyTorchPredictor,
-    XGBNativePredictor,
+    XGBoostPredictor,
 )
 
 
@@ -34,7 +34,7 @@ class PythonModelAdapter:
         # overlap with other predictors especially the ones with `sklearn.pipeline`
         self._artifact_predictors = [
             KerasPredictor(),
-            XGBNativePredictor(),
+            XGBoostPredictor(),
             PyTorchPredictor(),
             SKLearnPredictor(),
         ]
