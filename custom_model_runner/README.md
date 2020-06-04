@@ -3,9 +3,9 @@
 DataRobot User Model runner - **drum**
 
 ## About
-The DataRobot Model Runner - **drum** - is a tool that allows you to locally run Python, R, and Java custom models.
-It can be used to verify that a custom model can run and make predictions before you upload it to DataRobot.
-However, this testing is only for development purposes. DataRobot recommends that any custom model you wish to deploy should also be tested in the Custom Model Workshop after uploading it.
+The DataRobot Model Runner - **drum** - is a tool that allows you to work locally with Python, R, and Java DataRobot custom models.
+It can be used to verify that a custom model can run and make predictions before it is uploaded to the DataRobot.
+However, this testing is only for development purposes. DataRobot recommends that any model you wish to deploy should also be tested in the Custom Model Workshop after uploading it.
   
 **drum** can also:
 - run performance and memory usage testing for models,
@@ -61,7 +61,7 @@ For more information and troubleshooting visit the [argcomplete](https://pypi.or
 | caret | *.rds | brnn-regressor.rds |
 
 This tool makes the following assumption about your serialized model:
-- The data sent to custom model can be used to make predictions without
+- The data sent to a model can be used to make predictions without
 additional pre-processing
 - Regression models return a single floating point per row of prediction data
 - Binary classification models return two floating point values that sum to 1.0 per row of prediction data
@@ -165,25 +165,25 @@ The *--code-dir (code directory)* argument is required in all commands and shoul
 ### Model template generation
 <a name="new"></a>
 drum can help you to generate a code folder template with the `custom` file described above.  
-`drum new model --code-dir ~/code_dir/ --language r`  
+`drum new model --code-dir ~/user_code_dir/ --language r`  
 This command creates a folder with a `custom.py/R` file and a short description - `README.md`.
 
 ### Batch scoring mode
 <a name="score"></a>
-#### Run a custom binary classification model   
-Make batch predictions with a custom binary classification model. Optionally, specify an output file. Otherwise, predictions are returned to the command line:  
-```drum score --code-dir ~/custom_model/ --input 10k.csv  --positive-class-label yes --negative-class-label no --output 10k-results.csv --verbose```
+#### Run a binary classification custom model
+Make batch predictions with a binary classification model. Optionally, specify an output file. Otherwise, predictions are returned to the command line:  
+```drum score --code-dir ~/user_code_dir/ --input 10k.csv  --positive-class-label yes --negative-class-label no --output 10k-results.csv --verbose```
 
-#### Run a custom regression model
-Make batch predictions with a custom regression model:  
-```drum score --code-dir ~/custom_model/ --input fast-iron.csv --verbose```
+#### Run a regression custom model
+Make batch predictions with a regression model:  
+```drum score --code-dir ~/user_code_dir/ --input fast-iron.csv --verbose```
 
 ### Testing model performance
 <a name="perf"></a>
 You can test how the model performs and get its latency times and memory usage.  
 In this mode, the model is started with a prediction server. Different request combinations are submitted to it.
 After it completes, it returns a report.  
-```drum perf-test --code-dir ~/custom_model/ --input 10k.csv --positive-class-label yes --negative-class-label no```  
+```drum perf-test --code-dir ~/user_code_dir/ --input 10k.csv --positive-class-label yes --negative-class-label no```  
 Report example:
 ```
 samples   iters    min     avg     max    used (MB)   total (MB)
@@ -207,7 +207,7 @@ List of checks:
 - null values imputation: each feature of the provided dataset is set to missing and fed to the model.
 
 To run:
-```drum validation --code-dir ~/custom_model/ --input 10k.csv --positive-class-label yes --negative-class-label no```
+```drum validation --code-dir ~/user_code_dir/ --input 10k.csv --positive-class-label yes --negative-class-label no```
 Report example:
 ```
 Validation check results
@@ -222,7 +222,7 @@ In case of check failure more information will be provided.
 <a name="server"></a>
 
 The **drum** can run as a prediction server. To do so, provide a server address argument:  
-```drum server --code-dir ~/custom model --address localhost:6789```
+```drum server --code-dir ~/user_code_dir --address localhost:6789```
 
 The **drum** prediction server provides the following routes. You may provide the environment variable URL_PREFIX. Note that URLs must end with /.
 
@@ -263,5 +263,5 @@ In every mode **drum** can be run inside a docker container by providing an opti
 The container should implement an environment required to preform desired action.
 **drum** must be installed as a part of this environment.  
 Example on how to run inside of container:  
-```drum score --code-dir ~/custom_model/ --input dataset.csv --docker <container_name>```  
-```drum perf-test --code-dir ~/custom_model/ --input dataset.csv --docker <container_name>```
+```drum score --code-dir ~/user_code_dir/ --input dataset.csv --docker <container_name>```  
+```drum perf-test --code-dir ~/user_code_dir/ --input dataset.csv --docker <container_name>```

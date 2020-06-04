@@ -1,7 +1,12 @@
-# Datarobot external models
+# DataRobot User Models
 ## What is it?
-**The DataRobot user models** repository contains boilerplates, information, and tools on how to assemble,
+**The DataRobot User Models** repository contains boilerplates, information, and tools on how to assemble,
 debug, test, and run your training and inference models on the DataRobot platform.
+
+### Terminology
+Described DataRobot functionality is known as `Custom Model`, so words `custom model` and `user model` may be interchangeably used.
+Also `custom model directory` and `code directory` mean the same entity.
+
 
 ## Content  
 - [model templates](model_templates) - contains templates for building and deploying custom models in DataRobot.
@@ -27,7 +32,7 @@ please see:
 * [Java sample model](model_templates/java_codegen)
 
 ## Custom Environment Templates
-A custom environment defines the runtime environment for your custom model.  In this repository, we provide several example environments that you can use and modify:
+A custom environment defines the runtime environment for a custom model.  In this repository, we provide several example environments that you can use and modify:
 * [Python 3 + sklearn](public_dropin_environments/python3_sklearn)
 * [Python 3 + PyTorch](public_dropin_environments/python3_pytorch)
 * [Python 3 + xgboost](public_dropin_environments/python3_xgboost)
