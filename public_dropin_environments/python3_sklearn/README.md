@@ -1,7 +1,7 @@
 # Python 3 Scikit-Learn Drop-In Template Environment
 
 This template environment can be used to create artifact-only scikit-learn custom models.
-Your custom model archive need only contain your model artifact if you use the
+Your custom model directory needs only contain your model artifact if you use the
 environment correctly.
 
 ## Supported Libraries
