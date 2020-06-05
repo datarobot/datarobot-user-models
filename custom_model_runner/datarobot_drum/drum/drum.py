@@ -146,7 +146,7 @@ class CMRunner(object):
                 )
             )
             all_files_message = "\n\nFiles(100 first) found in {}:\n{}\n".format(
-                code_dir_abspath, "\n".join(os.listdir(code_dir_abspath)[0:100])
+                code_dir_abspath, "\n".join(sorted(os.listdir(code_dir_abspath))[0:100])
             )
             self.logger.error(error_mes + all_files_message)
             exit(1)
