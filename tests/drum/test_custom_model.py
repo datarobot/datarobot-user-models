@@ -194,7 +194,7 @@ class TestCMRunner:
         return cls.artifacts[(framework, problem)]
 
     @classmethod
-    def _get_template_dir(cls, language, framework, is_training=False):
+    def _get_template_dir(cls, language, framework, is_training):
         if framework == KERAS and is_training:
             return cls.paths_to_real_models[(language, KERAS_TRAINING_JOBLIB)]
         return cls.paths_to_real_models[(language, framework)]
