@@ -355,7 +355,7 @@ class CMRunnerArgsRegistry(object):
             ArgumentsOptions.NEW_MODEL, help="Create a new modeling code directory template"
         )
 
-        CMRunnerArgsRegistry._reg_arg_version(batch_parser)
+        CMRunnerArgsRegistry._reg_arg_version(parser)
         CMRunnerArgsRegistry._reg_arg_verbose(
             batch_parser, server_parser, fit_parser, new_parser, new_model_parser
         )
