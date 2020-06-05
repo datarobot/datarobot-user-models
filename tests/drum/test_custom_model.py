@@ -624,7 +624,7 @@ class TestCMRunner:
 
         return "", input_csv, __keep_this_around
 
-    @pytest.mark.parametrize("framework", [SKLEARN, XGB_TRAINING, KERAS])
+    @pytest.mark.parametrize("framework", [SKLEARN, XGB, KERAS])
     @pytest.mark.parametrize("problem", [BINARY, REGRESSION])
     @pytest.mark.parametrize("language", [PYTHON])
     @pytest.mark.parametrize("docker", [DOCKER_PYTHON_SKLEARN, None])
@@ -677,7 +677,7 @@ class TestCMRunner:
             with open(os.path.join(input_dir, "weights.csv"), "w+") as fp:
                 weights_data.to_csv(fp, header=False)
 
-    @pytest.mark.parametrize("framework", [SKLEARN, XGB_TRAINING, KERAS])
+    @pytest.mark.parametrize("framework", [SKLEARN, XGB, KERAS])
     @pytest.mark.parametrize("problem", [BINARY, REGRESSION])
     @pytest.mark.parametrize("language", [PYTHON])
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, None])
