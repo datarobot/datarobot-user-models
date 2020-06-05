@@ -4,6 +4,8 @@ from typing import List, Optional, TYPE_CHECKING
 import pandas as pd
 import numpy as np
 from pathlib import Path
+from keras.utils import to_categorical
+from sklearn.preprocessing import LabelBinarizer
 
 from model_to_fit import (
     make_classifier_pipeline,
@@ -11,9 +13,6 @@ from model_to_fit import (
     serialize_estimator_pipeline,
     deserialize_estimator_pipeline,
 )
-
-if TYPE_CHECKING:
-    from sklearn.pipeline import Pipeline
 
 
 def fit(
@@ -54,8 +53,7 @@ def fit(
     """
     # Feel free to delete which ever one of these you aren't using
     if class_order:
-        from keras.utils import to_categorical
-
+        y = LabelBinarizer().fit_transform(y)
         estimator = make_classifier_pipeline(X)
         estimator.fit(X, to_categorical(y))
     else:
