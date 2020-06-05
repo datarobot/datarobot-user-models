@@ -58,8 +58,12 @@ class TestCMRunner:
 
         cls.paths_to_real_models = {
             (PYTHON, SKLEARN): os.path.join(cls.model_templates_path, "python3_sklearn"),
-            (PYTHON, XGB_INFERENCE): os.path.join(cls.model_templates_path, "python3_xgboost_inference"),
-            (PYTHON, XGB_TRAINING): os.path.join(cls.model_templates_path, "python3_xgboost_training"),
+            (PYTHON, XGB_INFERENCE): os.path.join(
+                cls.model_templates_path, "python3_xgboost_inference"
+            ),
+            (PYTHON, XGB_TRAINING): os.path.join(
+                cls.model_templates_path, "python3_xgboost_training"
+            ),
         }
         cls.fixtures = {
             PYTHON: (os.path.join(cls.tests_fixtures_path, "custom.py"), "custom.py"),
