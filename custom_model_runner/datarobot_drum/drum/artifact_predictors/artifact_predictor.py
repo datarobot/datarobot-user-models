@@ -193,12 +193,18 @@ class KerasPredictor(ArtifactPredictor):
 
         try:
             import keras
-            from keras.models import load_model
+            from sklearn.pipeline import Pipeline
 
-            if isinstance(model, keras.Model):
+            if isinstance(model, Pipeline):
+                # check the final estimator in the pipeline is Keras
+                if isinstance(model[-1], keras.Model):
+                    return True
+            elif isinstance(model, keras.Model):
                 return True
-        except Exception:
+        except Exception as e:
+            self._logger.debug("Exception: {}".format(e))
             return False
+        return False
 
     def load_model_from_artifact(self, artifact_path):
         from keras.models import load_model

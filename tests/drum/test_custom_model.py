@@ -17,9 +17,13 @@ import requests
 
 from datarobot_drum.drum.common import CUSTOM_FILE_NAME, CustomHooks, ArgumentsOptions
 
-KERAS = "keras"
+XGB = "xgboost"
 XGB_INFERENCE = "xgb_inference"
 XGB_TRAINING = "xgb_training"
+KERAS = "keras"
+KERAS_INFERENCE = "keras_inference"
+KERAS_INFERENCE_JOBLIB = "keras_inference_joblib"
+KERAS_TRAINING_JOBLIB = "keras_training_joblib"
 SKLEARN = "sklearn"
 PYTORCH = "pytorch"
 RDS = "rds"
@@ -30,7 +34,7 @@ REGRESSION = "regression"
 REGRESSION_INFERENCE = "regression_inference"
 BINARY = "binary"
 
-PYTHON = "python"
+PYTHON = "python3"
 NO_CUSTOM = "no_custom"
 PYTHON_ALL_HOOKS = "python_all_hooks"
 PYTHON_LOAD_MODEL = "python_load_model"
@@ -58,6 +62,15 @@ class TestCMRunner:
 
         cls.paths_to_real_models = {
             (PYTHON, SKLEARN): os.path.join(cls.model_templates_path, "python3_sklearn"),
+            (PYTHON, KERAS_INFERENCE): os.path.join(
+                cls.model_templates_path, "python3_keras_inference"
+            ),
+            (PYTHON, KERAS_INFERENCE_JOBLIB): os.path.join(
+                cls.model_templates_path, "python3_keras_inference_joblib"
+            ),
+            (PYTHON, KERAS_TRAINING_JOBLIB): os.path.join(
+                cls.model_templates_path, "python3_keras_training_joblib"
+            ),
             (PYTHON, XGB_INFERENCE): os.path.join(
                 cls.model_templates_path, "python3_xgboost_inference"
             ),
@@ -122,8 +135,8 @@ class TestCMRunner:
         cls.target = {BINARY: "Species", REGRESSION: "MEDV"}
         cls.class_labels = {
             (SKLEARN, BINARY): ["Iris-setosa", "Iris-versicolor"],
-            (XGB_INFERENCE, BINARY): ["Iris-setosa", "Iris-versicolor"],
-            (XGB_TRAINING, BINARY): ["Iris-setosa", "Iris-versicolor"],
+            (XGB, BINARY): ["Iris-setosa", "Iris-versicolor"],
+            (KERAS, BINARY): ["Iris-setosa", "Iris-versicolor"],
             (RDS, BINARY): ["Iris-setosa", "Iris-versicolor"],
         }
 
@@ -155,7 +168,7 @@ class TestCMRunner:
         custom_model_dir = mkdtemp(prefix="custom_model_", dir="/tmp")
 
         if is_training:
-            model_template_dir = cls._get_template_dir(language, framework)
+            model_template_dir = cls._get_template_dir(language, framework, is_training)
             for filename in glob.glob(r"{}/*.py".format(model_template_dir)):
                 shutil.copy2(filename, custom_model_dir)
         else:
@@ -180,7 +193,12 @@ class TestCMRunner:
         return cls.artifacts[(framework, problem)]
 
     @classmethod
-    def _get_template_dir(cls, language, framework):
+    def _get_template_dir(cls, language, framework, is_training):
+        if is_training:
+            if framework == KERAS:
+                return cls.paths_to_real_models[(language, KERAS_TRAINING_JOBLIB)]
+            elif framework == XGB:
+                return cls.paths_to_real_models[(language, XGB_TRAINING)]
         return cls.paths_to_real_models[(language, framework)]
 
     @classmethod
@@ -315,8 +333,8 @@ class TestCMRunner:
         )
         case_5 = (
             str(stde).find(
-                "Could not find model artifact file supported by default predictors. "
-                "They support filenames with the following extensions"
+                "Could not find model artifact file in: {} supported by default predictors. "
+                "They support filenames with the following extensions".format(custom_model_dir)
             )
             != -1
         )
@@ -606,7 +624,7 @@ class TestCMRunner:
 
         return "", input_csv, __keep_this_around
 
-    @pytest.mark.parametrize("framework", [SKLEARN, XGB_TRAINING])
+    @pytest.mark.parametrize("framework", [SKLEARN, XGB, KERAS])
     @pytest.mark.parametrize("problem", [BINARY, REGRESSION])
     @pytest.mark.parametrize("language", [PYTHON])
     @pytest.mark.parametrize("docker", [DOCKER_PYTHON_SKLEARN, None])
@@ -623,7 +641,7 @@ class TestCMRunner:
         )
 
         with TemporaryDirectory() as output:
-            cmd = "{} fit --code-dir {} --target {} --input {} --output {}".format(
+            cmd = "{} fit --code-dir {} --target {} --input {} --output {} --skip-predict".format(
                 ArgumentsOptions.MAIN_COMMAND,
                 custom_model_dir,
                 self.target[problem],
@@ -659,7 +677,7 @@ class TestCMRunner:
             with open(os.path.join(input_dir, "weights.csv"), "w+") as fp:
                 weights_data.to_csv(fp, header=False)
 
-    @pytest.mark.parametrize("framework", [SKLEARN, XGB_TRAINING])
+    @pytest.mark.parametrize("framework", [SKLEARN, XGB, KERAS])
     @pytest.mark.parametrize("problem", [BINARY, REGRESSION])
     @pytest.mark.parametrize("language", [PYTHON])
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, None])
@@ -669,7 +687,9 @@ class TestCMRunner:
         )
         env = os.environ
         fit_sh = os.path.join(
-            self.tests_root_path, "..", "public_dropin_environments/python3_sklearn/fit.sh"
+            self.tests_root_path,
+            "..",
+            "public_dropin_environments/{}_{}/fit.sh".format(language, framework),
         )
         with TemporaryDirectory() as input_dir, TemporaryDirectory() as output:
             self._create_fit_input_data_dir(input_dir, problem, weights)
