@@ -639,7 +639,7 @@ class TestCMRunner:
         )
 
         with TemporaryDirectory() as output:
-            cmd = "{} fit --code-dir {} --target {} --input {} --output {}".format(
+            cmd = "{} fit --code-dir {} --target {} --input {} --output {} --skip-predict".format(
                 ArgumentsOptions.MAIN_COMMAND,
                 custom_model_dir,
                 self.target[problem],
