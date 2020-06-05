@@ -17,7 +17,7 @@ import requests
 
 from datarobot_drum.drum.common import CUSTOM_FILE_NAME, CustomHooks, ArgumentsOptions
 
-XGB = "xgb"
+XGB = "xgboost"
 XGB_INFERENCE = "xgb_inference"
 XGB_TRAINING = "xgb_training"
 KERAS = "keras"
@@ -135,8 +135,7 @@ class TestCMRunner:
         cls.target = {BINARY: "Species", REGRESSION: "MEDV"}
         cls.class_labels = {
             (SKLEARN, BINARY): ["Iris-setosa", "Iris-versicolor"],
-            (XGB_INFERENCE, BINARY): ["Iris-setosa", "Iris-versicolor"],
-            (XGB_TRAINING, BINARY): ["Iris-setosa", "Iris-versicolor"],
+            (XGB, BINARY): ["Iris-setosa", "Iris-versicolor"],
             (KERAS, BINARY): ["Iris-setosa", "Iris-versicolor"],
             (RDS, BINARY): ["Iris-setosa", "Iris-versicolor"],
         }
@@ -195,8 +194,11 @@ class TestCMRunner:
 
     @classmethod
     def _get_template_dir(cls, language, framework, is_training):
-        if framework == KERAS and is_training:
-            return cls.paths_to_real_models[(language, KERAS_TRAINING_JOBLIB)]
+        if is_training:
+            if framework == KERAS:
+                return cls.paths_to_real_models[(language, KERAS_TRAINING_JOBLIB)]
+            elif framework == XGB:
+                return cls.paths_to_real_models[(language, XGB_TRAINING)]
         return cls.paths_to_real_models[(language, framework)]
 
     @classmethod
