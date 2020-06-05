@@ -208,7 +208,6 @@ class KerasPredictor(ArtifactPredictor):
 
     def load_model_from_artifact(self, artifact_path):
         from keras.models import load_model
-
         self._model = load_model(artifact_path)
         self._model._make_predict_function()
         return self._model
