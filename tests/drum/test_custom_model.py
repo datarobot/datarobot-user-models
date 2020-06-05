@@ -308,7 +308,7 @@ class TestCMRunner:
         )
         case_4 = (
             str(stde).find(
-                "Could not find model artifact, with .rds extension, supported by default R predictor. "
+                "Could not find a serialized model artifact with .rds extension, supported by default R predictor. "
                 "If your artifact is not supported by default predictor, implement custom.load_model hook."
             )
             != -1

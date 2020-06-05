@@ -93,20 +93,30 @@ load_serialized_model <- function(model_dir) {
     if (is.null(model)) {
         file_names <- dir(model_dir, pattern = CUSTOM_MODEL_FILE_EXTENSION)
         if (length(file_names) == 0) {
-            stop("Could not find model artifact, with ", CUSTOM_MODEL_FILE_EXTENSION,
+            stop("Could not find a serialized model artifact with ", CUSTOM_MODEL_FILE_EXTENSION,
                  " extension, supported by default R predictor. ",
                  "If your artifact is not supported by default predictor, implement custom.load_model hook."
                 )
         } else if (length(file_names) > 1) {
-            stop("Multiple serialized model files found. Remove extra artifacts or overwrite custom.load_model")
+            stop("Multiple serialized model artifacts found: [", paste(file_names, collapse = ' '),
+            "] in ", model_dir,
+            ". Remove extra artifacts or overwrite custom.load_model")
         }
         model_artifact <- file.path(model_dir, file_names[1])
         if (is.na(model_artifact)) {
-            stop(sprintf("Could not find serialized model file. Serialized model file name should have the extension %s",
+            stop(sprintf("Could not find serialized model artifact. Serialized model file name should have the extension %s",
                          CUSTOM_MODEL_FILE_EXTENSION
             ))
         }
-        model <- readRDS(model_artifact)
+
+        tryCatch(
+            {
+                model <- readRDS(model_artifact)
+            },
+            error = function(err) {
+                stop("Could not load searialized model artifact: ", model_artifact)
+            }
+        )
     }
     model
 }
