@@ -11,5 +11,5 @@ For this sample model, custom.py contains additional data pre-processing that th
 Create a new custom model with these files and use the Python Drop-In Environment with it
 
 ### To run locally using 'drum'
-Paths are relative to `./datarobot-user-models/model_templates`
-`drum score -cd ./python3_keras_inference_joblib/ --input ../tests/testdata/boston_housing.csv`
+Paths are relative to `./datarobot-user-models/model_templates`:  
+`drum fit --code-dir ./python3_keras_training_joblib --input ../tests/testdata/boston_housing.csv --target MEDV  --output ./ --skip-predict`
