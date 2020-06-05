@@ -18,7 +18,8 @@ import requests
 from datarobot_drum.drum.common import CUSTOM_FILE_NAME, CustomHooks, ArgumentsOptions
 
 KERAS = "keras"
-XGB = "xgb"
+XGB_INFERENCE = "xgb_inference"
+XGB_TRAINING = "xgb_training"
 SKLEARN = "sklearn"
 PYTORCH = "pytorch"
 RDS = "rds"
@@ -57,7 +58,8 @@ class TestCMRunner:
 
         cls.paths_to_real_models = {
             (PYTHON, SKLEARN): os.path.join(cls.model_templates_path, "python3_sklearn"),
-            (PYTHON, XGB): os.path.join(cls.model_templates_path, "python3_xgboost_inference"),
+            (PYTHON, XGB_INFERENCE): os.path.join(cls.model_templates_path, "python3_xgboost_inference"),
+            (PYTHON, XGB_TRAINING): os.path.join(cls.model_templates_path, "python3_xgboost_training"),
         }
         cls.fixtures = {
             PYTHON: (os.path.join(cls.tests_fixtures_path, "custom.py"), "custom.py"),
@@ -95,8 +97,8 @@ class TestCMRunner:
             (SKLEARN, BINARY): os.path.join(cls.tests_artifacts_path, "sklearn_bin.pkl"),
             (KERAS, REGRESSION): os.path.join(cls.tests_artifacts_path, "keras_reg.h5"),
             (KERAS, BINARY): os.path.join(cls.tests_artifacts_path, "keras_bin.h5"),
-            (XGB, REGRESSION): os.path.join(cls.tests_artifacts_path, "xgb_reg.pkl"),
-            (XGB, BINARY): os.path.join(cls.tests_artifacts_path, "xgb_bin.pkl"),
+            (XGB_INFERENCE, REGRESSION): os.path.join(cls.tests_artifacts_path, "xgb_reg.pkl"),
+            (XGB_INFERENCE, BINARY): os.path.join(cls.tests_artifacts_path, "xgb_bin.pkl"),
             (PYTORCH, REGRESSION): [
                 os.path.join(cls.tests_artifacts_path, "torch_reg.pth"),
                 os.path.join(cls.tests_artifacts_path, "PyTorch.py"),
@@ -114,7 +116,8 @@ class TestCMRunner:
         cls.target = {BINARY: "Species", REGRESSION: "MEDV"}
         cls.class_labels = {
             (SKLEARN, BINARY): ["Iris-setosa", "Iris-versicolor"],
-            (XGB, BINARY): ["Iris-setosa", "Iris-versicolor"],
+            (XGB_INFERENCE, BINARY): ["Iris-setosa", "Iris-versicolor"],
+            (XGB_TRAINING, BINARY): ["Iris-setosa", "Iris-versicolor"],
             (RDS, BINARY): ["Iris-setosa", "Iris-versicolor"],
         }
 
@@ -203,9 +206,9 @@ class TestCMRunner:
             (SKLEARN, BINARY, PYTHON, None),
             (KERAS, REGRESSION, PYTHON, None),
             (KERAS, BINARY, PYTHON, None),
-            (XGB, REGRESSION, PYTHON, None),
-            (XGB, BINARY, PYTHON, None),
-            (XGB, BINARY, PYTHON_XGBOOST_CLASS_LABELS_VALIDATION, None),
+            (XGB_INFERENCE, REGRESSION, PYTHON, None),
+            (XGB_INFERENCE, BINARY, PYTHON, None),
+            (XGB_INFERENCE, BINARY, PYTHON_XGBOOST_CLASS_LABELS_VALIDATION, None),
             (PYTORCH, REGRESSION, PYTHON, None),
             (PYTORCH, BINARY, PYTHON, None),
             (RDS, REGRESSION, R, None),
@@ -322,8 +325,8 @@ class TestCMRunner:
             (SKLEARN, BINARY, PYTHON, None),
             (KERAS, REGRESSION, PYTHON, None),
             (KERAS, BINARY, PYTHON, None),
-            (XGB, REGRESSION, PYTHON, None),
-            (XGB, BINARY, PYTHON, None),
+            (XGB_INFERENCE, REGRESSION, PYTHON, None),
+            (XGB_INFERENCE, BINARY, PYTHON, None),
             (PYTORCH, REGRESSION, PYTHON, None),
             (PYTORCH, BINARY, PYTHON, None),
             (RDS, REGRESSION, R, None),
@@ -548,7 +551,7 @@ class TestCMRunner:
 
         return "", input_csv, __keep_this_around
 
-    @pytest.mark.parametrize("framework", [SKLEARN, XGB])
+    @pytest.mark.parametrize("framework", [SKLEARN, XGB_TRAINING])
     @pytest.mark.parametrize("problem", [BINARY, REGRESSION])
     @pytest.mark.parametrize("language", [PYTHON])
     @pytest.mark.parametrize("docker", [DOCKER_PYTHON_SKLEARN, None])
@@ -601,7 +604,7 @@ class TestCMRunner:
             with open(os.path.join(input_dir, "weights.csv"), "w+") as fp:
                 weights_data.to_csv(fp, header=False)
 
-    @pytest.mark.parametrize("framework", [SKLEARN, XGB])
+    @pytest.mark.parametrize("framework", [SKLEARN, XGB_TRAINING])
     @pytest.mark.parametrize("problem", [BINARY, REGRESSION])
     @pytest.mark.parametrize("language", [PYTHON])
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, None])
