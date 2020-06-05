@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 import pickle
+import numpy as np
 import pandas as pd
 import logging
 import sys
@@ -10,7 +11,6 @@ from datarobot_drum.drum.common import (
     REGRESSION_PRED_COLUMN,
     extra_deps,
     SupportedFrameworks,
-    CustomHooks,
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
 )
@@ -71,7 +71,6 @@ class ArtifactPredictor(ABC):
         """
         self.positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD, None)
         self.negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD, None)
-        pass
 
 
 class SKLearnPredictor(ArtifactPredictor):
@@ -297,9 +296,13 @@ class PyTorchPredictor(ArtifactPredictor):
         return predictions
 
 
-class XGBNativePredictor(ArtifactPredictor):
+class XGBoostPredictor(ArtifactPredictor):
+    """
+    This Predictor supports both XGBoost native & sklearn api wrapper as well
+    """
+
     def __init__(self):
-        super(XGBNativePredictor, self).__init__(
+        super(XGBoostPredictor, self).__init__(
             SupportedFrameworks.XGBOOST, PythonArtifacts.PKL_EXTENSION
         )
 
@@ -324,10 +327,18 @@ class XGBNativePredictor(ArtifactPredictor):
         if not self.is_framework_present():
             return False
         try:
+            from sklearn.pipeline import Pipeline
             import xgboost
 
-            if isinstance(model, xgboost.core.Booster):
+            if isinstance(model, Pipeline):
+                # check the final estimator in the pipeline is XGBoost
+                if isinstance(
+                    model[-1], (xgboost.sklearn.XGBClassifier, xgboost.sklearn.XGBRegressor)
+                ):
+                    return True
+            elif isinstance(model, xgboost.core.Booster):
                 return True
+            return False
         except Exception as e:
             self._logger.debug("Exception: {}".format(e))
             return False
@@ -341,18 +352,31 @@ class XGBNativePredictor(ArtifactPredictor):
             return model
 
     def predict(self, data, model, **kwargs):
-        import xgboost
-
         # checking if positive/negative class labels were provided
         # done in the base class
-        super(XGBNativePredictor, self).predict(data, model, **kwargs)
+        super(XGBoostPredictor, self).predict(data, model, **kwargs)
 
-        dinput = xgboost.DMatrix(data)
-        predictions = model.predict(dinput)
-        if self.positive_class_label is not None and self.negative_class_label is not None:
-            predictions = pd.DataFrame(predictions, columns=[self.positive_class_label])
-            predictions[self.negative_class_label] = 1 - predictions[self.positive_class_label]
+        import xgboost
+
+        xgboost_native = False
+        if isinstance(model, xgboost.core.Booster):
+            xgboost_native = True
+            data = xgboost.DMatrix(data)
+
+        if None not in (self.positive_class_label, self.negative_class_label):
+            if xgboost_native:
+                positive_preds = model.predict(data)
+                negative_preds = 1 - positive_preds
+                predictions = np.concatenate(
+                    (positive_preds.reshape(-1, 1), negative_preds.reshape(-1, 1)), axis=1
+                )
+            else:
+                predictions = model.predict_proba(data)
+            predictions = pd.DataFrame(
+                predictions, columns=[self.negative_class_label, self.positive_class_label]
+            )
         else:
-            predictions = pd.DataFrame(predictions, columns=[REGRESSION_PRED_COLUMN])
+            preds = model.predict(data)
+            predictions = pd.DataFrame(data=preds, columns=[REGRESSION_PRED_COLUMN],)
 
         return predictions

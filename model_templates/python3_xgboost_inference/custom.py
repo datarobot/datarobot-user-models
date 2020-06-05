@@ -1,5 +1,8 @@
 def transform(data, model):
     """
+    Note: This hook may not have be implemented for your model.
+    In this case implemented for the model used in the example.
+
     Modify this method to add data transformation before scoring calls. For example, this can be
     used to implement one-hot encoding for models that don't include it on their own.
 
