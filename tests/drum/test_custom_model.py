@@ -17,13 +17,13 @@ import requests
 
 from datarobot_drum.drum.common import CUSTOM_FILE_NAME, CustomHooks, ArgumentsOptions
 
-KERAS = "keras"
+XGB = "xgb"
 XGB_INFERENCE = "xgb_inference"
 XGB_TRAINING = "xgb_training"
+KERAS = "keras"
 KERAS_INFERENCE = "keras_inference"
 KERAS_INFERENCE_JOBLIB = "keras_inference_joblib"
 KERAS_TRAINING_JOBLIB = "keras_training_joblib"
-XGB = "xgb"
 SKLEARN = "sklearn"
 PYTORCH = "pytorch"
 RDS = "rds"
