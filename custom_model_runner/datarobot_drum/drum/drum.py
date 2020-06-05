@@ -90,25 +90,23 @@ class CMRunner(object):
 
     def _check_artifacts_and_get_run_language(self):
         # Get code dir's abs path and add it to the python path
-        custom_model_abspath = os.path.abspath(self.options.code_dir)
+        code_dir_abspath = os.path.abspath(self.options.code_dir)
 
         artifact_language = None
         custom_language = None
         # check which artifacts present in the code dir
         python_artifacts = CMRunnerUtils.find_files_by_extensions(
-            custom_model_abspath, PythonArtifacts.ALL
+            code_dir_abspath, PythonArtifacts.ALL
         )
-        r_artifacts = CMRunnerUtils.find_files_by_extensions(custom_model_abspath, RArtifacts.ALL)
+        r_artifacts = CMRunnerUtils.find_files_by_extensions(code_dir_abspath, RArtifacts.ALL)
 
-        java_artifacts = CMRunnerUtils.find_files_by_extensions(
-            custom_model_abspath, JavaArtifacts.ALL
-        )
+        java_artifacts = CMRunnerUtils.find_files_by_extensions(code_dir_abspath, JavaArtifacts.ALL)
 
         # check which custom code files present in the code dir
-        is_custom_py = CMRunnerUtils.filename_exists_and_is_file(custom_model_abspath, "custom.py")
+        is_custom_py = CMRunnerUtils.filename_exists_and_is_file(code_dir_abspath, "custom.py")
         is_custom_r = CMRunnerUtils.filename_exists_and_is_file(
-            custom_model_abspath, "custom.R"
-        ) or CMRunnerUtils.filename_exists_and_is_file(custom_model_abspath, "custom.r")
+            code_dir_abspath, "custom.R"
+        ) or CMRunnerUtils.filename_exists_and_is_file(code_dir_abspath, "custom.r")
 
         # if all the artifacts belong to the same language, set it
         if bool(len(python_artifacts)) + bool(len(r_artifacts)) + bool(len(java_artifacts)) == 1:
@@ -129,7 +127,6 @@ class CMRunner(object):
             or bool(custom_language) + bool(artifact_language) == 2
             and custom_language != artifact_language
         ):
-
             artifact_language = "None" if artifact_language is None else artifact_language.value
             custom_language = "None" if custom_language is None else custom_language.value
             error_mes = (
@@ -148,7 +145,10 @@ class CMRunner(object):
                     JavaArtifacts.ALL,
                 )
             )
-            self.logger.error(error_mes)
+            all_files_message = "\n\nFiles(100 first) found in {}:\n{}\n".format(
+                code_dir_abspath, "\n".join(os.listdir(code_dir_abspath)[0:100])
+            )
+            self.logger.error(error_mes + all_files_message)
             exit(1)
 
         run_language = custom_language if custom_language is not None else artifact_language
