@@ -14,6 +14,9 @@ from model_to_fit import (
     deserialize_estimator_pipeline,
 )
 
+if TYPE_CHECKING:
+    from sklearn.pipeline import Pipeline
+
 
 def fit(
     X: pd.DataFrame,
@@ -65,3 +68,28 @@ def fit(
     if output_dir_path.exists() and output_dir_path.is_dir():
         model_path = output_dir_path / "artifact.joblib"
         serialize_estimator_pipeline(estimator, model_path)
+
+
+def load_model(input_dir: str) -> Pipeline:
+    """
+    Note: This hook may not have be implemented for your model.
+    In this case implemented for the model used in the example.
+
+    This keras estimator requires 'load_model()' to be overridden. Coz as it involves pipeline of
+    preprocessor and estimator bundled together, it requires a special handling (oppose to usually
+    simple keras.models.load_model() or unpickling) to load the model. Currently there is no elegant
+    default method to save the keras classifier/regressor along with the sklearn pipeline. Hence we
+    use deserialize_estimator_pipeline() to load the model pipeline to predict.
+
+    Parameters
+    ----------
+    input_dir: str
+
+    Returns
+    -------
+    pipelined_model: Pipeline
+        Estimator pipeline obj
+    """
+    artifact_path = Path(input_dir) / "artifact.joblib"
+    pipelined_model = deserialize_estimator_pipeline(artifact_path)
+    return pipelined_model

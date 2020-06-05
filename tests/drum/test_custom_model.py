@@ -20,6 +20,10 @@ from datarobot_drum.drum.common import CUSTOM_FILE_NAME, CustomHooks, ArgumentsO
 KERAS = "keras"
 XGB_INFERENCE = "xgb_inference"
 XGB_TRAINING = "xgb_training"
+KERAS_INFERENCE = "keras_inference"
+KERAS_INFERENCE_JOBLIB = "keras_inference_joblib"
+KERAS_TRAINING_JOBLIB = "keras_training_joblib"
+XGB = "xgb"
 SKLEARN = "sklearn"
 PYTORCH = "pytorch"
 RDS = "rds"
@@ -30,7 +34,7 @@ REGRESSION = "regression"
 REGRESSION_INFERENCE = "regression_inference"
 BINARY = "binary"
 
-PYTHON = "python"
+PYTHON = "python3"
 NO_CUSTOM = "no_custom"
 PYTHON_ALL_HOOKS = "python_all_hooks"
 PYTHON_LOAD_MODEL = "python_load_model"
@@ -58,13 +62,21 @@ class TestCMRunner:
 
         cls.paths_to_real_models = {
             (PYTHON, SKLEARN): os.path.join(cls.model_templates_path, "python3_sklearn"),
+            (PYTHON, KERAS_INFERENCE): os.path.join(
+                cls.model_templates_path, "python3_keras_inference"
+            ),
+            (PYTHON, KERAS_INFERENCE_JOBLIB): os.path.join(
+                cls.model_templates_path, "python3_keras_inference_joblib"
+            ),
+            (PYTHON, KERAS_TRAINING_JOBLIB): os.path.join(
+                cls.model_templates_path, "python3_keras_training_joblib"
+            ),
             (PYTHON, XGB_INFERENCE): os.path.join(
                 cls.model_templates_path, "python3_xgboost_inference"
             ),
             (PYTHON, XGB_TRAINING): os.path.join(
                 cls.model_templates_path, "python3_xgboost_training"
             ),
-            (PYTHON, KERAS): os.path.join(cls.model_templates_path, "python3_keras"),
         }
         cls.fixtures = {
             PYTHON: (os.path.join(cls.tests_fixtures_path, "custom.py"), "custom.py"),
@@ -157,7 +169,7 @@ class TestCMRunner:
         custom_model_dir = mkdtemp(prefix="custom_model_", dir="/tmp")
 
         if is_training:
-            model_template_dir = cls._get_template_dir(language, framework)
+            model_template_dir = cls._get_template_dir(language, framework, is_training)
             for filename in glob.glob(r"{}/*.py".format(model_template_dir)):
                 shutil.copy2(filename, custom_model_dir)
         else:
@@ -182,7 +194,9 @@ class TestCMRunner:
         return cls.artifacts[(framework, problem)]
 
     @classmethod
-    def _get_template_dir(cls, language, framework):
+    def _get_template_dir(cls, language, framework, is_training=False):
+        if framework == KERAS and is_training:
+            return cls.paths_to_real_models[(language, KERAS_TRAINING_JOBLIB)]
         return cls.paths_to_real_models[(language, framework)]
 
     @classmethod
@@ -671,7 +685,9 @@ class TestCMRunner:
         )
         env = os.environ
         fit_sh = os.path.join(
-            self.tests_root_path, "..", "public_dropin_environments/python3_sklearn/fit.sh"
+            self.tests_root_path,
+            "..",
+            "public_dropin_environments/{}_{}/fit.sh".format(language, framework),
         )
         with TemporaryDirectory() as input_dir, TemporaryDirectory() as output:
             self._create_fit_input_data_dir(input_dir, problem, weights)
