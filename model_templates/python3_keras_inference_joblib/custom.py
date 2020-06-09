@@ -1,18 +1,14 @@
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
 import pandas as pd
 from pathlib import Path
 
 from model_to_fit import deserialize_estimator_pipeline
 
-if TYPE_CHECKING:
-    from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline
 
 
 def transform(data, model):
     """
-    Note: This hook may not have be implemented for your model.
+    Note: This hook may not have to be implemented for your model.
     In this case implemented for the model used in the example.
 
     Modify this method to add data transformation before scoring calls. For example, this can be
@@ -48,7 +44,7 @@ def transform(data, model):
 
 def load_model(input_dir: str) -> Pipeline:
     """
-    Note: This hook may not have be implemented for your model.
+    Note: This hook may not have to be implemented for your model.
     In this case implemented for the model used in the example.
 
     This keras estimator requires 'load_model()' to be overridden. Coz as it involves pipeline of

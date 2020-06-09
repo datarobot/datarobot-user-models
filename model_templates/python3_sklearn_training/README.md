@@ -10,4 +10,7 @@ For this sample model, custom.py contains additional data pre-processing that th
 ## Instructions
 Create a new custom model with these files and use the Python Drop-In Environment with it
 
-NOTE: This model also supports training!
+### To run locally using 'drum'
+Paths are relative to `./datarobot-user-models/model_templates`:  
+`drum fit --code-dir ./python3_sklearn_training --input ../tests/testdata/boston_housing.csv --target MEDV --output ./ --skip-predict`  
+Check that `artifact.pkl` file was created.
