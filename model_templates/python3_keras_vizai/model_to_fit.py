@@ -1,11 +1,8 @@
 from __future__ import annotations
 
 # keras imports
-# import keras
-from keras.metrics import BinaryAccuracy
-from keras.optimizers import Adam
-from keras.losses import BinaryCrossentropy
-from keras.models import Sequential, Model
+import keras
+from keras.models import Sequential
 from keras.layers import Dense  # core layers
 from keras.layers import GlobalAveragePooling2D  # CNN layers
 from keras.utils import to_categorical
@@ -31,17 +28,12 @@ import base64
 import h5py
 from PIL import Image
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    import pandas as pd
-
 
 # define constants
 
 IMG_SIZE = 150
 IMG_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
-EPOCHS = 30
+EPOCHS = 10
 BATCH_SIZE = 32
 TEST_SIZE = 0.33
 SEED = 4321
@@ -105,7 +97,7 @@ def apply_image_data_preprocessing(
     x_data_df: pd.DataFrame, target_feature_name: str, image_feature_name: str,
 ):
     X_data_df = preprocessing_X_transform(x_data_df, target_feature_name, image_feature_name)
-    X_data = reshape_numpy_array(X_data_df.squeeze())
+    X_data = reshape_numpy_array(X_data_df[image_feature_name])
     return X_data
 
 
@@ -155,7 +147,9 @@ def create_image_binary_classification_model():
     model.add(Dense(128, activation="relu"))
     model.add(Dense(1, activation="sigmoid"))
     model.compile(
-        optimizer=Adam(), loss=BinaryCrossentropy(from_logits=True), metrics=[BinaryAccuracy()],
+        optimizer=keras.optimizers.Adam(),
+        loss=keras.losses.BinaryCrossentropy(from_logits=True),
+        metrics=[keras.metrics.BinaryAccuracy()],
     )
     return model
 
