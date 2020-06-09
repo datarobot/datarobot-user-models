@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 # keras imports
-import keras
-from keras import optimizers, losses
+# import keras
+from keras.metrics import BinaryAccuracy
+from keras.optimizers import Adam
+from keras.losses import BinaryCrossentropy
 from keras.models import Sequential, Model
 from keras.layers import Dense  # core layers
 from keras.layers import GlobalAveragePooling2D  # CNN layers
@@ -20,7 +22,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 
 # pandas/numpy imports
-# import pandas as pd
+import pandas as pd
 import numpy as np
 
 import joblib
@@ -39,7 +41,7 @@ if TYPE_CHECKING:
 
 IMG_SIZE = 150
 IMG_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
-EPOCHS = 3  # TODO 30
+EPOCHS = 30
 BATCH_SIZE = 32
 TEST_SIZE = 0.33
 SEED = 4321
@@ -153,9 +155,7 @@ def create_image_binary_classification_model():
     model.add(Dense(128, activation="relu"))
     model.add(Dense(1, activation="sigmoid"))
     model.compile(
-        optimizer=keras.optimizers.Adam(),
-        loss=keras.losses.BinaryCrossentropy(from_logits=True),
-        metrics=[keras.metrics.BinaryAccuracy()],
+        optimizer=Adam(), loss=BinaryCrossentropy(from_logits=True), metrics=[BinaryAccuracy()],
     )
     return model
 
@@ -173,8 +173,8 @@ def get_transformed_train_test_split(X_df: pd.DataFrame, y_series: pd.Series):
     x_test_data = X_df[msk]
     x_train_data = X_df[~msk]
 
-    y_train_data = y_series[msk]
     y_test_data = y_series[msk]
+    y_train_data = y_series[~msk]
 
     return (x_train_data, x_test_data, y_train_data, y_test_data)
 
@@ -286,7 +286,12 @@ def deserialize_estimator_pipeline(joblib_file_path: str) -> Pipeline:
 
 
 def fit_image_classifier_pipeline(
-    X_train: pd.DataFrame, y_train: pd.Series, tgt_col: str, img_col: str
+    X_train: pd.DataFrame,
+    X_test: pd.DataFrame,
+    y_train: pd.Series,
+    y_test: pd.Series,
+    tgt_col: str,
+    img_col: str,
 ) -> Pipeline:
     X_transformer = make_X_transformer_pipeline(X_train, tgt_col, img_col)
 

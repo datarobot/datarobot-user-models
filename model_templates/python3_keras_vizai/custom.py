@@ -67,7 +67,11 @@ def fit(
         tgt_col = y.name
 
         X_train, X_test, y_train, y_test = get_transformed_train_test_split(X, y)
-        fit_estimator = fit_image_classifier_pipeline(X_train, y_train, tgt_col, img_col)
+        assert len(X_train) == len(y_train)
+        assert len(X_test) == len(y_test)
+        fit_estimator = fit_image_classifier_pipeline(
+            X_train, X_test, y_train, y_test, tgt_col, img_col
+        )
         # NOTE: We currently set a 10GB limit to the size of the serialized model
         output_dir_path = Path(output_dir)
         if output_dir_path.exists() and output_dir_path.is_dir():
