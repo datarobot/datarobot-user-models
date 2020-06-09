@@ -1,11 +1,14 @@
+import glob
+from distutils.dir_util import copy_tree
 import json
 import logging
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
 from contextlib import contextmanager
-from tempfile import NamedTemporaryFile
+from tempfile import mkdtemp, NamedTemporaryFile
 
 import pandas as pd
 from mlpiper.pipeline.executor import Executor
@@ -22,13 +25,11 @@ from datarobot_drum.drum.common import (
     RunMode,
     TemplateType,
 )
+from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.utils import CMRunnerUtils
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
-from datarobot_drum.drum.exceptions import DrumCommonException
-from mlpiper.pipeline.executor import Executor
-from mlpiper.pipeline.executor_config import ExecutorConfig
 
 EXTERNAL_SERVER_RUNNER = "external_prediction_server_runner.json"
 
@@ -172,9 +173,20 @@ class CMRunner(object):
         self._print_welcome_header()
 
         if self.run_mode in [RunMode.SERVER, RunMode.SCORE, RunMode.FIT]:
+            remove_temp_output = None
+            if self.run_mode == RunMode.FIT and not self.options.output:
+                self.options.output = mkdtemp()
+                remove_temp_output = self.options.output
             self._run_fit_and_predictions_pipelines_in_mlpiper()
             if self.run_mode == RunMode.FIT and not self.options.skip_predict:
                 self.run_test_predict()
+            if remove_temp_output:
+                print(
+                    "Validation Complete: Your model can be fit to your data, "
+                    "and predictions can be made on the fit model! "
+                    "You're ready to add it to DataRobot. "
+                )
+                shutil.rmtree(remove_temp_output)
             return
         elif self.run_mode == RunMode.PERF_TEST:
             CMRunTests(self.options, self.run_mode).performance_test()
@@ -190,8 +202,12 @@ class CMRunner(object):
 
     def run_test_predict(self):
         self.run_mode = RunMode.SCORE
+        files_in_output = set(glob.glob(self.options.output + "/**"))
+        copied_files = set(copy_tree(self.options.code_dir, self.options.output))
+        if files_in_output & copied_files:
+            self.logger.warn("Files were overwritten: {}".format(files_in_output & copied_files))
         self.options.code_dir = self.options.output
-        self.options.output = "/dev/null"
+        self.options.output = os.devnull
         if self.options.target:
             __tempfile = NamedTemporaryFile()
             df = pd.read_csv(self.options.input)
@@ -359,7 +375,7 @@ class CMRunner(object):
     def _prepare_docker_command(self, options, run_mode):
         """
         Building a docker command line for running the model inside the docker - this command line can
-        be used by the user independently of cmrun.
+        be used by the user independently of drum.
         Parameters
         Returns: docker command line to run as a string
         """
@@ -416,8 +432,9 @@ class CMRunner(object):
                     in_docker_cmd_list, ArgumentsOptions.OUTPUT, in_docker_output_file
                 )
             elif run_mode == RunMode.FIT:
-                fit_output_dir = os.path.realpath(options.output)
-                docker_cmd_args += " -v {}:{}".format(fit_output_dir, in_docker_fit_output_dir)
+                if options.output:
+                    fit_output_dir = os.path.realpath(options.output)
+                    docker_cmd_args += " -v {}:{}".format(fit_output_dir, in_docker_fit_output_dir)
                 CMRunnerUtils.replace_cmd_argument_value(
                     in_docker_cmd_list, ArgumentsOptions.OUTPUT, in_docker_fit_output_dir
                 )

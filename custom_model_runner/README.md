@@ -15,8 +15,12 @@ However, this testing is only for development purposes. DataRobot recommends tha
 ## Installation
 
 ### Prerequisites:
+All models:
+- It is on you to make sure that you install the dependencies needed to run your code. 
+- If you are using a Dropin Environment found in this repo, you will have to pip install these dependencies yourself.
+
 Python models:
-- Python 3 is recommended.
+- Python 3 is required, unless you are using drum with a docker image. This is because the DRUM tool only runs with python 3 itself.
   
 Java models:
 - JRE >= 11.

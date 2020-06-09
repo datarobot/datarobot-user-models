@@ -163,7 +163,12 @@ class TestCMRunner:
     @staticmethod
     def _exec_shell_cmd(cmd, err_msg, assert_if_fail=True, process_obj_holder=None, env=os.environ):
         p = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, env=env
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=True,
+            env=env,
+            universal_newlines=True,
         )
 
         if process_obj_holder is not None:
@@ -599,9 +604,9 @@ class TestCMRunner:
 
         TestCMRunner._delete_custom_model_dir(custom_model_dir)
         if language == NO_CUSTOM:
-            assert re.search(r"Null value imputation\s+FAILED", stdo.decode("utf-8"))
+            assert re.search(r"Null value imputation\s+FAILED", stdo)
         else:
-            assert re.search(r"Null value imputation\s+PASSED", stdo.decode("utf-8"))
+            assert re.search(r"Null value imputation\s+PASSED", stdo)
 
     @pytest.mark.parametrize(
         "language, language_suffix", [("python", ".py"), ("r", ".R"),],
@@ -647,7 +652,8 @@ class TestCMRunner:
     @pytest.mark.parametrize("language", [PYTHON])
     @pytest.mark.parametrize("docker", [DOCKER_PYTHON_SKLEARN, None])
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
-    def test_fit(self, framework, problem, language, docker, weights):
+    @pytest.mark.parametrize("use_output", [True, False])
+    def test_fit(self, framework, problem, language, docker, weights, use_output):
         custom_model_dir = self._create_custom_model_dir(
             framework, problem, language, is_training=True
         )
@@ -659,13 +665,14 @@ class TestCMRunner:
         )
 
         with TemporaryDirectory() as output:
-            cmd = "{} fit --code-dir {} --target {} --input {} --output {} --skip-predict".format(
+            cmd = "{} fit --code-dir {} --target {} --input {}".format(
                 ArgumentsOptions.MAIN_COMMAND,
                 custom_model_dir,
                 self.target[problem],
                 input_dataset,
-                output,
             )
+            if use_output:
+                cmd += " --output {}".format(output)
             if problem == BINARY:
                 cmd = self._cmd_add_class_labels(cmd, framework, problem)
             if docker:
