@@ -14,7 +14,7 @@ from keras.applications.vgg16 import preprocess_input
 from keras.wrappers.scikit_learn import KerasClassifier
 
 # scikit-learn imports
-from sklearn.preprocessing import LabelBinarizer, FunctionTransformer
+from sklearn.preprocessing import LabelBinarizer, label_binarize, FunctionTransformer
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 
@@ -27,6 +27,8 @@ import io
 import base64
 import h5py
 from PIL import Image
+
+from typing import List, Optional
 
 
 # define constants
@@ -145,7 +147,7 @@ def create_image_binary_classification_model():
     model.add(GlobalAveragePooling2D())
     model.add(Dense(256, activation="relu"))
     model.add(Dense(128, activation="relu"))
-    model.add(Dense(1, activation="sigmoid"))
+    model.add(Dense(2, activation="sigmoid"))
     model.compile(
         optimizer=keras.optimizers.Adam(),
         loss=keras.losses.BinaryCrossentropy(from_logits=True),
@@ -154,13 +156,18 @@ def create_image_binary_classification_model():
     return model
 
 
-def get_transformed_train_test_split(X_df: pd.DataFrame, y_series: pd.Series):
+def get_transformed_train_test_split(
+    X_df: pd.DataFrame, y_series: pd.Series, class_order: List[str]
+):
     assert len(X_df) == len(y_series)
 
     # preprocessing steps
-    lb = LabelBinarizer()
-    y_series = lb.fit_transform(y_series)
-    # y_series = to_categorical(y_series)
+    if class_order:
+        y_series = label_binarize(y_series, classes=class_order)
+    else:
+        lb = LabelBinarizer()
+        y_series = lb.fit_transform(y_series)
+    y_series = to_categorical(y_series)
 
     # split train/test data
     msk = np.random.rand(len(X_df)) < TEST_SIZE

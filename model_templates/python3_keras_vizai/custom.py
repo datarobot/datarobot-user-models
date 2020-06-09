@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pathlib import Path
+from sklearn.pipeline import Pipeline
 
 # pandas/numpy imports
 import pandas as pd
@@ -8,8 +8,9 @@ import numpy as np
 
 import joblib
 import h5py
+from pathlib import Path
 
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional
 
 from model_to_fit import (
     get_transformed_train_test_split,
@@ -17,9 +18,6 @@ from model_to_fit import (
     serialize_estimator_pipeline,
     deserialize_estimator_pipeline,
 )
-
-if TYPE_CHECKING:
-    from sklearn.pipeline import Pipeline
 
 
 def fit(
@@ -66,7 +64,7 @@ def fit(
         img_col = X.columns[np.argmax(img_features_col_mask)]
         tgt_col = y.name
 
-        X_train, X_test, y_train, y_test = get_transformed_train_test_split(X, y)
+        X_train, X_test, y_train, y_test = get_transformed_train_test_split(X, y, class_order)
         assert len(X_train) == len(y_train)
         assert len(X_test) == len(y_test)
         fit_estimator = fit_image_classifier_pipeline(
