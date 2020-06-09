@@ -1,6 +1,5 @@
-from __future__ import annotations
 
-from typing import List, Optional, TYPE_CHECKING
+from typing import List, Optional
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -14,8 +13,7 @@ from model_to_fit import (
     deserialize_estimator_pipeline,
 )
 
-if TYPE_CHECKING:
-    from sklearn.pipeline import Pipeline
+from sklearn.pipeline import Pipeline
 
 
 def fit(

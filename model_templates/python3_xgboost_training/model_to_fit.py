@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from xgboost import XGBClassifier, XGBRegressor
 
 from sklearn.compose import ColumnTransformer
@@ -7,10 +5,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    import pandas as pd
+import pandas as pd
 
 
 def create_regression_model() -> XGBRegressor:
