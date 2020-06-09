@@ -1,4 +1,3 @@
-
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.constraints import maxnorm
