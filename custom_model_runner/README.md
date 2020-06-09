@@ -33,6 +33,21 @@ Install **drum** with Python/Java models support:
 Install **drum** with R support:  
 ```pip install datarobot-drum[R]```
 
+### Running examples
+Clone the DataRobot User Models repo from: https://github.com/datarobot/datarobot-user-model
+- change dir `cd datarobot-user-model`
+- create virtual environment `python3 -m venv ~/drum-virt-env`
+- activate virtual environment `. ~/drum-virt-env/bin/activate`
+- install example dependencies `pip install -r requirements.txt`
+- install **drum** `pip install datarobot-drum`
+- go to the directory with model templates `cd model_templates`
+
+Check README file in every directory for the exact command to run the example.
+Copy/paste command to run it from the current path `datarobot-user-models/model_templates` e.g.:  
+`drum score --code-dir ./python3_sklearn_inference --input ../tests/testdata/boston_housing.csv`
+
+
+
 ### Autocompletion
 **drum** supports autocompletion based on the `argcomplete` package. Additional configuration is required to use it:
 - run `activate-global-python-argcomplete --user`; this should create a file: `~/.bash_completion.d/python-argcomplete`,

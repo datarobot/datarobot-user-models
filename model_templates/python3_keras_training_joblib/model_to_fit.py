@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.constraints import maxnorm
@@ -15,10 +13,7 @@ import joblib
 import io
 import h5py
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    import pandas as pd
+import pandas as pd
 
 
 def create_regression_model(num_features: int) -> Sequential:

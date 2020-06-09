@@ -8,3 +8,7 @@ package will work.
 
 ## Instructions
 Upload the jar file as the only file in the custom model and use the Java Drop-In Environment with it
+
+### To run locally using 'drum'
+Paths are relative to `./datarobot-user-models/model_templates`:  
+`drum score --code-dir ./java_codegen --input ../tests/testdata/boston_housing.csv`

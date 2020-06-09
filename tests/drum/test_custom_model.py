@@ -20,12 +20,19 @@ from datarobot_drum.drum.common import CUSTOM_FILE_NAME, CustomHooks, ArgumentsO
 XGB = "xgboost"
 XGB_INFERENCE = "xgb_inference"
 XGB_TRAINING = "xgb_training"
+
 KERAS = "keras"
 KERAS_INFERENCE = "keras_inference"
 KERAS_INFERENCE_JOBLIB = "keras_inference_joblib"
 KERAS_TRAINING_JOBLIB = "keras_training_joblib"
+
 SKLEARN = "sklearn"
+SKLEARN_TRAINING = "sklearn_training"
+SKLEARN_INFERENCE = "sklearn_inference"
+
 PYTORCH = "pytorch"
+PYTORCH_INFERENCE = "pytorch_inference"
+
 RDS = "rds"
 CODEGEN = "jar"
 MULTI_ARTIFACT = "multiartifact"
@@ -76,6 +83,15 @@ class TestCMRunner:
             ),
             (PYTHON, XGB_TRAINING): os.path.join(
                 cls.model_templates_path, "python3_xgboost_training"
+            ),
+            (PYTHON, SKLEARN_INFERENCE): os.path.join(
+                cls.model_templates_path, "python3_sklearn_inference"
+            ),
+            (PYTHON, SKLEARN_TRAINING): os.path.join(
+                cls.model_templates_path, "python3_sklearn_training"
+            ),
+            (PYTHON, PYTORCH_INFERENCE): os.path.join(
+                cls.model_templates_path, "python3_pytorch_inference"
             ),
         }
         cls.fixtures = {
@@ -199,6 +215,8 @@ class TestCMRunner:
                 return cls.paths_to_real_models[(language, KERAS_TRAINING_JOBLIB)]
             elif framework == XGB:
                 return cls.paths_to_real_models[(language, XGB_TRAINING)]
+            elif framework == SKLEARN:
+                return cls.paths_to_real_models[(language, SKLEARN_TRAINING)]
         return cls.paths_to_real_models[(language, framework)]
 
     @classmethod
