@@ -69,7 +69,7 @@ def fit(
 
 def load_model(input_dir: str) -> Pipeline:
     """
-    Note: This hook may not have be implemented for your model.
+    Note: This hook may not have to be implemented for your model.
     In this case implemented for the model used in the example.
 
     This keras estimator requires 'load_model()' to be overridden. Coz as it involves pipeline of
