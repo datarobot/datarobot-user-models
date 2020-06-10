@@ -694,11 +694,9 @@ class TestCMRunner:
             )
             TestCMRunner._delete_custom_model_dir(custom_model_dir)
 
-    @pytest.mark.parametrize(
-        "framework, problem, language", [(KERAS_VIZAI_TRAINING_JOBLIB, VIZAI_BINARY, PYTHON),]
-    )
     @pytest.mark.parametrize("docker", [DOCKER_PYTHON_SKLEARN, None])
-    def test_fit_visual_ai(self, framework, problem, language, docker):
+    def test_fit_visual_ai(self, docker):
+        framework, problem, language = KERAS_VIZAI_TRAINING_JOBLIB, VIZAI_BINARY, PYTHON
         custom_model_dir = self._create_custom_model_dir(
             framework, problem, language, is_training=True
         )
