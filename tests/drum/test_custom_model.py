@@ -25,6 +25,7 @@ KERAS = "keras"
 KERAS_INFERENCE = "keras_inference"
 KERAS_INFERENCE_JOBLIB = "keras_inference_joblib"
 KERAS_TRAINING_JOBLIB = "keras_training_joblib"
+KERAS_VIZAI_TRAINING_JOBLIB = "keras_vizai_training_joblib"
 
 SKLEARN = "sklearn"
 SKLEARN_TRAINING = "sklearn_training"
@@ -40,6 +41,7 @@ MULTI_ARTIFACT = "multiartifact"
 REGRESSION = "regression"
 REGRESSION_INFERENCE = "regression_inference"
 BINARY = "binary"
+VIZAI_BINARY = "visual_ai_binary"
 
 PYTHON = "python3"
 NO_CUSTOM = "no_custom"
@@ -77,6 +79,9 @@ class TestCMRunner:
             ),
             (PYTHON, KERAS_TRAINING_JOBLIB): os.path.join(
                 cls.model_templates_path, "python3_keras_training_joblib"
+            ),
+            (PYTHON, KERAS_VIZAI_TRAINING_JOBLIB): os.path.join(
+                cls.model_templates_path, "python3_keras_vizai_training_joblib"
             ),
             (PYTHON, XGB_INFERENCE): os.path.join(
                 cls.model_templates_path, "python3_xgboost_inference"
@@ -116,6 +121,7 @@ class TestCMRunner:
             REGRESSION: os.path.join(cls.tests_data_path, "boston_housing.csv"),
             REGRESSION_INFERENCE: os.path.join(cls.tests_data_path, "boston_housing_inference.csv"),
             BINARY: os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
+            VIZAI_BINARY: os.path.join(cls.tests_data_path, "cats_dogs_small_training.csv"),
         }
 
         cls.artifacts = {
@@ -148,11 +154,12 @@ class TestCMRunner:
             (CODEGEN, BINARY): os.path.join(cls.tests_artifacts_path, "java_bin.jar"),
         }
 
-        cls.target = {BINARY: "Species", REGRESSION: "MEDV"}
+        cls.target = {BINARY: "Species", REGRESSION: "MEDV", VIZAI_BINARY: "class"}
         cls.class_labels = {
             (SKLEARN, BINARY): ["Iris-setosa", "Iris-versicolor"],
             (XGB, BINARY): ["Iris-setosa", "Iris-versicolor"],
             (KERAS, BINARY): ["Iris-setosa", "Iris-versicolor"],
+            (KERAS_VIZAI_TRAINING_JOBLIB, VIZAI_BINARY): ["cats", "dogs"],
             (RDS, BINARY): ["Iris-setosa", "Iris-versicolor"],
         }
 
@@ -218,6 +225,8 @@ class TestCMRunner:
         if is_training:
             if framework == KERAS:
                 return cls.paths_to_real_models[(language, KERAS_TRAINING_JOBLIB)]
+            elif framework == KERAS_VIZAI_TRAINING_JOBLIB:
+                return cls.paths_to_real_models[(language, KERAS_VIZAI_TRAINING_JOBLIB)]
             elif framework == XGB:
                 return cls.paths_to_real_models[(language, XGB_TRAINING)]
             elif framework == SKLEARN:
@@ -238,7 +247,7 @@ class TestCMRunner:
 
     @classmethod
     def _cmd_add_class_labels(cls, cmd, framework, problem):
-        if problem != BINARY:
+        if problem != BINARY and problem != VIZAI_BINARY:
             return cmd
         labels = cls._get_class_labels(framework, problem)
         pos = labels[1] if labels else "yes"
@@ -679,6 +688,35 @@ class TestCMRunner:
                 cmd += " --docker {} --verbose ".format(docker)
 
             cmd += weights_cmd
+
+            TestCMRunner._exec_shell_cmd(
+                cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+            )
+            TestCMRunner._delete_custom_model_dir(custom_model_dir)
+
+    @pytest.mark.parametrize(
+        "framework, problem, language", [(KERAS_VIZAI_TRAINING_JOBLIB, VIZAI_BINARY, PYTHON),]
+    )
+    @pytest.mark.parametrize("docker", [DOCKER_PYTHON_SKLEARN, None])
+    def test_fit_visual_ai(self, framework, problem, language, docker):
+        custom_model_dir = self._create_custom_model_dir(
+            framework, problem, language, is_training=True
+        )
+
+        input_dataset = self._get_dataset_filename(problem)
+
+        with TemporaryDirectory() as output:
+            cmd = "{} fit --code-dir {} --target {} --input {} --output {} --skip-predict".format(
+                ArgumentsOptions.MAIN_COMMAND,
+                custom_model_dir,
+                self.target[problem],
+                input_dataset,
+                output,
+            )
+            if problem == VIZAI_BINARY:
+                cmd = self._cmd_add_class_labels(cmd, framework, problem)
+            if docker:
+                cmd += " --docker {} --verbose ".format(docker)
 
             TestCMRunner._exec_shell_cmd(
                 cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
