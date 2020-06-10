@@ -11,7 +11,7 @@ Also `custom model directory` and `code directory` mean the same entity.
 ## Content  
 - [model templates](model_templates) - contains templates for building and deploying custom models in DataRobot.
 - [environment templates](public_dropin_environments) - contains templates of base environments used in DataRobot. Dependency requirements can be applied to the base to create runtime environment for custom models.
-- [user models runner](custom_model_runner) - **drum** - a tool that helps to assemble, test, and run custom model.
+- [user models runner](custom_model_runner) - **drum** - a tool that helps to assemble, test, and run custom model. For more information about how to run drum, check out the [pypi docs](https://pypi.org/project/datarobot-drum/)
 
 
 ## Custom Model Templates
