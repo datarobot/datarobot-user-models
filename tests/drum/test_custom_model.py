@@ -711,8 +711,7 @@ class TestCMRunner:
                 input_dataset,
                 output,
             )
-            if problem == VIZAI_BINARY:
-                cmd = self._cmd_add_class_labels(cmd, framework, problem)
+            cmd = self._cmd_add_class_labels(cmd, framework, problem)
             if docker:
                 cmd += " --docker {} --verbose ".format(docker)
 
@@ -723,14 +722,18 @@ class TestCMRunner:
 
     def _create_fit_input_data_dir(self, input_dir, problem, weights):
         input_dataset = self._get_dataset_filename(problem)
+        df = pd.read_csv(input_dataset)
 
         # Training data
-        shutil.copy2(input_dataset, os.path.join(input_dir, "X.csv"))
+        with open(os.path.join(input_dir, "X.csv"), "w+") as fp:
+            feature_df = df.loc[:, df.columns != self.target[problem]]
+            feature_df.to_csv(fp, index=False)
+
         # Target data
         with open(os.path.join(input_dir, "y.csv"), "w+") as fp:
-            df = pd.read_csv(input_dataset)
             target_series = df[self.target[problem]]
             target_series.to_csv(fp, index=False, header="Target")
+
         # Weights data
         if weights:
             df = pd.read_csv(input_dataset)
@@ -767,6 +770,31 @@ class TestCMRunner:
                 if os.environ.get("NEGATIVE_CLASS_LABEL"):
                     del os.environ["NEGATIVE_CLASS_LABEL"]
                     del os.environ["POSITIVE_CLASS_LABEL"]
+
+            TestCMRunner._exec_shell_cmd(fit_sh, "Failed cmd {}".format(fit_sh), env=env)
+            TestCMRunner._delete_custom_model_dir(custom_model_dir)
+
+    def test_fit_sh_visual_ai(self):
+        framework, problem, language = KERAS_VIZAI_TRAINING_JOBLIB, VIZAI_BINARY, PYTHON
+        custom_model_dir = self._create_custom_model_dir(
+            framework, problem, language, is_training=True
+        )
+        env = os.environ
+        fit_sh = os.path.join(
+            self.tests_root_path,
+            "..",
+            "public_dropin_environments/python3_keras/fit.sh".format(language, framework),
+        )
+        with TemporaryDirectory() as input_dir, TemporaryDirectory() as output:
+            self._create_fit_input_data_dir(input_dir, problem, None)
+
+            env["CODEPATH"] = custom_model_dir
+            env["INPUT_DIRECTORY"] = input_dir
+            env["ARTIFACT_DIRECTORY"] = output
+
+            labels = self._get_class_labels(framework, problem)
+            env["NEGATIVE_CLASS_LABEL"] = labels[0]
+            env["POSITIVE_CLASS_LABEL"] = labels[1]
 
             TestCMRunner._exec_shell_cmd(fit_sh, "Failed cmd {}".format(fit_sh), env=env)
             TestCMRunner._delete_custom_model_dir(custom_model_dir)
