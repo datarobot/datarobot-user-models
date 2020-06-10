@@ -149,9 +149,7 @@ def create_image_binary_classification_model():
     model.add(Dense(128, activation="relu"))
     model.add(Dense(2, activation="sigmoid"))
     model.compile(
-        optimizer=keras.optimizers.Adam(),
-        loss=keras.losses.BinaryCrossentropy(from_logits=True),
-        metrics=[keras.metrics.BinaryAccuracy()],
+        optimizer=keras.optimizers.Adam(), loss="binary_crossentropy", metrics=["binary_accuracy"],
     )
     return model
 
