@@ -127,7 +127,9 @@ class TestCMRunner:
             # Otherwise default dataset is used (None, problem)
             (None, REGRESSION): os.path.join(cls.tests_data_path, "boston_housing.csv"),
             (PYPMML, REGRESSION): os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
-            (None, REGRESSION_INFERENCE): os.path.join(cls.tests_data_path, "boston_housing_inference.csv"),
+            (None, REGRESSION_INFERENCE): os.path.join(
+                cls.tests_data_path, "boston_housing_inference.csv"
+            ),
             (None, BINARY): os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
             (None, VIZAI_BINARY): os.path.join(cls.tests_data_path, "cats_dogs_small_training.csv"),
         }
