@@ -23,6 +23,7 @@ class SupportedFrameworks(object):
     TORCH = "torch"
     KERAS = "keras"
     XGBOOST = "xgboost"
+    PYPMML = "pypmml"
 
 
 extra_deps = {
@@ -30,6 +31,7 @@ extra_deps = {
     SupportedFrameworks.TORCH: ["torch", "numpy", "scikit-learn", "scipy"],
     SupportedFrameworks.KERAS: ["scipy", "numpy", "h5py", "keras", "tensorflow"],
     SupportedFrameworks.XGBOOST: ["scipy", "numpy", "xgboost"],
+    SupportedFrameworks.PYPMML: ["pypmml"]
 }
 
 
@@ -50,7 +52,8 @@ class PythonArtifacts(object):
     TORCH_EXTENSION = ".pth"
     KERAS_EXTENSION = ".h5"
     JOBLIB_EXTENSION = ".joblib"
-    ALL = [PKL_EXTENSION, TORCH_EXTENSION, KERAS_EXTENSION, JOBLIB_EXTENSION]
+    PYPMML_EXTENSION = ".pmml"
+    ALL = [PKL_EXTENSION, TORCH_EXTENSION, KERAS_EXTENSION, JOBLIB_EXTENSION, PYPMML_EXTENSION]
 
 
 class RArtifacts(object):

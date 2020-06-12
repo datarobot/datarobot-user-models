@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+<PMML version="4.0" xmlns="http://www.dmg.org/PMML-4_0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.dmg.org/PMML-4_0 http://www.dmg.org/v4-0/pmml-4-0.xsd">
+ <Header copyright="Copyright (c) 2012 DMG" description="Generalized Linear Regression Model">
+  <Extension name="user" value="DMG" extender="Rattle/PMML"/>
+  <Application name="Rattle/PMML" version="1.2.30"/>
+  <Timestamp>2012-09-27 15:57:54</Timestamp>
+ </Header>
+ <DataDictionary numberOfFields="5">
+  <DataField name="sepal_length" optype="continuous" dataType="double"/>
+  <DataField name="sepal_width" optype="continuous" dataType="double"/>
+  <DataField name="petal_length" optype="continuous" dataType="double"/>
+  <DataField name="petal_width" optype="continuous" dataType="double"/>
+  <DataField name="class" optype="categorical" dataType="string">
+   <Value value="Iris-setosa"/>
+   <Value value="Iris-versicolor"/>
+   <Value value="Iris-virginica"/>
+  </DataField>
+ </DataDictionary>
+ <GeneralRegressionModel modelName="General_Regression_Model" modelType="generalizedLinear" functionName="regression" algorithmName="glm" distribution="normal" linkFunction="identity">
+  <MiningSchema>
+   <MiningField name="sepal_length" usageType="predicted"/>
+   <MiningField name="sepal_width" usageType="active"/>
+   <MiningField name="petal_length" usageType="active"/>
+   <MiningField name="petal_width" usageType="active"/>
+   <MiningField name="class" usageType="active"/>
+  </MiningSchema>
+  <ParameterList>
+   <Parameter name="p0" label="(Intercept)"/>
+   <Parameter name="p1" label="sepal_width"/>
+   <Parameter name="p2" label="petal_length"/>
+   <Parameter name="p3" label="petal_width"/>
+   <Parameter name="p4" label="classIris-versicolor"/>
+   <Parameter name="p5" label="classIris-virginica"/>
+  </ParameterList>
+  <FactorList>
+   <Predictor name="class"/>
+  </FactorList>
+  <CovariateList>
+   <Predictor name="sepal_width"/>
+   <Predictor name="petal_length"/>
+   <Predictor name="petal_width"/>
+  </CovariateList>
+  <PPMatrix>
+   <PPCell value="1" predictorName="sepal_width" parameterName="p1"/>
+   <PPCell value="1" predictorName="petal_length" parameterName="p2"/>
+   <PPCell value="1" predictorName="petal_width" parameterName="p3"/>
+   <PPCell value="Iris-versicolor" predictorName="class" parameterName="p4"/>
+   <PPCell value="Iris-virginica" predictorName="class" parameterName="p5"/>
+  </PPMatrix>
+  <ParamMatrix>
+   <PCell parameterName="p0" df="1" beta="2.22413677241697"/>
+   <PCell parameterName="p1" df="1" beta="0.462828301295544"/>
+   <PCell parameterName="p2" df="1" beta="0.912364461921148"/>
+   <PCell parameterName="p3" df="1" beta="-0.384539403624331"/>
+   <PCell parameterName="p4" df="1" beta="-0.944151669544111"/>
+   <PCell parameterName="p5" df="1" beta="-1.33483727247749"/>
+  </ParamMatrix>
+ </GeneralRegressionModel>
+</PMML>

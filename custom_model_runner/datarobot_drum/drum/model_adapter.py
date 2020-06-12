@@ -20,6 +20,7 @@ from datarobot_drum.drum.artifact_predictors.artifact_predictor import (
     KerasPredictor,
     SKLearnPredictor,
     PyTorchPredictor,
+    PMMLPredictor,
     XGBoostPredictor,
 )
 
@@ -36,6 +37,7 @@ class PythonModelAdapter:
             KerasPredictor(),
             XGBoostPredictor(),
             PyTorchPredictor(),
+            PMMLPredictor(),
             SKLearnPredictor(),
         ]
         self._predictor_to_use = None

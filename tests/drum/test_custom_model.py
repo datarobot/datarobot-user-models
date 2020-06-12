@@ -37,11 +37,15 @@ PYTORCH_INFERENCE = "pytorch_inference"
 RDS = "rds"
 CODEGEN = "jar"
 MULTI_ARTIFACT = "multiartifact"
+PYPMML = "pypmml"
 
 REGRESSION = "regression"
 REGRESSION_INFERENCE = "regression_inference"
 BINARY = "binary"
 VIZAI_BINARY = "visual_ai_binary"
+
+PYPMML_REGRESSION = "pypmml_regression"
+PYPMML_BINARY = "pypmml_binary"
 
 PYTHON = "python3"
 NO_CUSTOM = "no_custom"
@@ -122,6 +126,8 @@ class TestCMRunner:
             REGRESSION_INFERENCE: os.path.join(cls.tests_data_path, "boston_housing_inference.csv"),
             BINARY: os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
             VIZAI_BINARY: os.path.join(cls.tests_data_path, "cats_dogs_small_training.csv"),
+            PYPMML_REGRESSION: os.path.join(cls.tests_data_path, "iris_pmml_for_scoring.csv"),
+            PYPMML_BINARY: os.path.join(cls.tests_data_path, "iris_pmml_for_scoring.csv")
         }
 
         cls.artifacts = {
@@ -152,6 +158,8 @@ class TestCMRunner:
             (RDS, BINARY): os.path.join(cls.tests_artifacts_path, "r_bin.rds"),
             (CODEGEN, REGRESSION): os.path.join(cls.tests_artifacts_path, "java_reg.jar"),
             (CODEGEN, BINARY): os.path.join(cls.tests_artifacts_path, "java_bin.jar"),
+            (PYPMML, PYPMML_REGRESSION): os.path.join(cls.tests_artifacts_path, "iris_reg.pmml"),
+            (PYPMML, PYPMML_BINARY): os.path.join(cls.tests_artifacts_path, "iris_bin.pmml")
         }
 
         cls.target = {BINARY: "Species", REGRESSION: "MEDV", VIZAI_BINARY: "class"}
@@ -161,6 +169,7 @@ class TestCMRunner:
             (KERAS, BINARY): ["Iris-setosa", "Iris-versicolor"],
             (KERAS_VIZAI_TRAINING_JOBLIB, VIZAI_BINARY): ["cats", "dogs"],
             (RDS, BINARY): ["Iris-setosa", "Iris-versicolor"],
+            (PYPMML, PYPMML_BINARY): ["Another-Iris", "P_classIris_setosa"]
         }
 
     @classmethod
@@ -247,8 +256,9 @@ class TestCMRunner:
 
     @classmethod
     def _cmd_add_class_labels(cls, cmd, framework, problem):
-        if problem != BINARY and problem != VIZAI_BINARY:
+        if problem != BINARY and problem != VIZAI_BINARY and problem != PYPMML_BINARY:
             return cmd
+
         labels = cls._get_class_labels(framework, problem)
         pos = labels[1] if labels else "yes"
         neg = labels[0] if labels else "no"
@@ -273,6 +283,8 @@ class TestCMRunner:
             (CODEGEN, REGRESSION, NO_CUSTOM, None),
             (CODEGEN, BINARY, NO_CUSTOM, None),
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
+            (PYPMML, PYPMML_REGRESSION, NO_CUSTOM, None),
+            (PYPMML, PYPMML_BINARY, NO_CUSTOM, None)
         ],
     )
     def test_custom_models_with_drum(self, framework, problem, language, docker):
@@ -439,6 +451,8 @@ class TestCMRunner:
             (CODEGEN, REGRESSION, NO_CUSTOM, None),
             (CODEGEN, BINARY, NO_CUSTOM, None),
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
+            (PYPMML, PYPMML_REGRESSION, NO_CUSTOM, None),
+            (PYPMML, PYPMML_BINARY, NO_CUSTOM, None)
         ],
     )
     def test_custom_models_with_drum_prediction_server(self, framework, problem, language, docker):
