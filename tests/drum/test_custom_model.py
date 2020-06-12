@@ -47,8 +47,6 @@ REGRESSION_INFERENCE = "regression_inference"
 BINARY = "binary"
 VIZAI_BINARY = "visual_ai_binary"
 
-PYPMML_REGRESSION = "pypmml_regression"
-
 # Language keywords
 PYTHON = "python3"
 NO_CUSTOM = "no_custom"
@@ -128,10 +126,10 @@ class TestCMRunner:
             # If specific dataset should be defined for a framework, use (framework, problem) key.
             # Otherwise default dataset is used (None, problem)
             (None, REGRESSION): os.path.join(cls.tests_data_path, "boston_housing.csv"),
+            (PYPMML, REGRESSION): os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
             (None, REGRESSION_INFERENCE): os.path.join(cls.tests_data_path, "boston_housing_inference.csv"),
             (None, BINARY): os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
             (None, VIZAI_BINARY): os.path.join(cls.tests_data_path, "cats_dogs_small_training.csv"),
-            (None, PYPMML_REGRESSION): os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
         }
 
         cls.artifacts = {
@@ -162,7 +160,7 @@ class TestCMRunner:
             (RDS, BINARY): os.path.join(cls.tests_artifacts_path, "r_bin.rds"),
             (CODEGEN, REGRESSION): os.path.join(cls.tests_artifacts_path, "java_reg.jar"),
             (CODEGEN, BINARY): os.path.join(cls.tests_artifacts_path, "java_bin.jar"),
-            (PYPMML, PYPMML_REGRESSION): os.path.join(cls.tests_artifacts_path, "iris_reg.pmml"),
+            (PYPMML, REGRESSION): os.path.join(cls.tests_artifacts_path, "iris_reg.pmml"),
             (PYPMML, BINARY): os.path.join(cls.tests_artifacts_path, "iris_bin.pmml"),
         }
 
@@ -292,7 +290,7 @@ class TestCMRunner:
             (CODEGEN, REGRESSION, NO_CUSTOM, None),
             (CODEGEN, BINARY, NO_CUSTOM, None),
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
-            (PYPMML, PYPMML_REGRESSION, NO_CUSTOM, None),
+            (PYPMML, REGRESSION, NO_CUSTOM, None),
             (PYPMML, BINARY, NO_CUSTOM, None),
         ],
     )
@@ -460,7 +458,7 @@ class TestCMRunner:
             (CODEGEN, REGRESSION, NO_CUSTOM, None),
             (CODEGEN, BINARY, NO_CUSTOM, None),
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
-            (PYPMML, PYPMML_REGRESSION, NO_CUSTOM, None),
+            (PYPMML, REGRESSION, NO_CUSTOM, None),
             (PYPMML, BINARY, NO_CUSTOM, None),
         ],
     )
