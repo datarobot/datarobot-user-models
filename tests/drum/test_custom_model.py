@@ -17,6 +17,7 @@ import requests
 
 from datarobot_drum.drum.common import CUSTOM_FILE_NAME, CustomHooks, ArgumentsOptions
 
+# Framweork keywords
 XGB = "xgboost"
 XGB_INFERENCE = "xgb_inference"
 XGB_TRAINING = "xgb_training"
@@ -34,19 +35,21 @@ SKLEARN_INFERENCE = "sklearn_inference"
 PYTORCH = "pytorch"
 PYTORCH_INFERENCE = "pytorch_inference"
 
+PYPMML = "pypmml"
+
 RDS = "rds"
 CODEGEN = "jar"
 MULTI_ARTIFACT = "multiartifact"
-PYPMML = "pypmml"
 
+# Problem keywords, used to mark datasets
 REGRESSION = "regression"
 REGRESSION_INFERENCE = "regression_inference"
 BINARY = "binary"
 VIZAI_BINARY = "visual_ai_binary"
 
 PYPMML_REGRESSION = "pypmml_regression"
-PYPMML_BINARY = "pypmml_binary"
 
+# Language keywords
 PYTHON = "python3"
 NO_CUSTOM = "no_custom"
 PYTHON_ALL_HOOKS = "python_all_hooks"
@@ -127,7 +130,6 @@ class TestCMRunner:
             BINARY: os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
             VIZAI_BINARY: os.path.join(cls.tests_data_path, "cats_dogs_small_training.csv"),
             PYPMML_REGRESSION: os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
-            PYPMML_BINARY: os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
         }
 
         cls.artifacts = {
@@ -159,7 +161,7 @@ class TestCMRunner:
             (CODEGEN, REGRESSION): os.path.join(cls.tests_artifacts_path, "java_reg.jar"),
             (CODEGEN, BINARY): os.path.join(cls.tests_artifacts_path, "java_bin.jar"),
             (PYPMML, PYPMML_REGRESSION): os.path.join(cls.tests_artifacts_path, "iris_reg.pmml"),
-            (PYPMML, PYPMML_BINARY): os.path.join(cls.tests_artifacts_path, "iris_bin.pmml"),
+            (PYPMML, BINARY): os.path.join(cls.tests_artifacts_path, "iris_bin.pmml"),
         }
 
         cls.target = {BINARY: "Species", REGRESSION: "MEDV", VIZAI_BINARY: "class"}
@@ -169,7 +171,7 @@ class TestCMRunner:
             (KERAS, BINARY): ["Iris-setosa", "Iris-versicolor"],
             (KERAS_VIZAI_TRAINING_JOBLIB, VIZAI_BINARY): ["cats", "dogs"],
             (RDS, BINARY): ["Iris-setosa", "Iris-versicolor"],
-            (PYPMML, PYPMML_BINARY): ["Another-Iris", "P_classIris_setosa"],
+            (PYPMML, BINARY): ["Another-Iris", "P_classIris_setosa"],
         }
 
     @classmethod
@@ -256,7 +258,7 @@ class TestCMRunner:
 
     @classmethod
     def _cmd_add_class_labels(cls, cmd, framework, problem):
-        if problem != BINARY and problem != VIZAI_BINARY and problem != PYPMML_BINARY:
+        if problem != BINARY and problem != VIZAI_BINARY:
             return cmd
 
         labels = cls._get_class_labels(framework, problem)
@@ -284,7 +286,7 @@ class TestCMRunner:
             (CODEGEN, BINARY, NO_CUSTOM, None),
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
             (PYPMML, PYPMML_REGRESSION, NO_CUSTOM, None),
-            (PYPMML, PYPMML_BINARY, NO_CUSTOM, None),
+            (PYPMML, BINARY, NO_CUSTOM, None),
         ],
     )
     def test_custom_models_with_drum(self, framework, problem, language, docker):
@@ -452,7 +454,7 @@ class TestCMRunner:
             (CODEGEN, BINARY, NO_CUSTOM, None),
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
             (PYPMML, PYPMML_REGRESSION, NO_CUSTOM, None),
-            (PYPMML, PYPMML_BINARY, NO_CUSTOM, None),
+            (PYPMML, BINARY, NO_CUSTOM, None),
         ],
     )
     def test_custom_models_with_drum_prediction_server(self, framework, problem, language, docker):
