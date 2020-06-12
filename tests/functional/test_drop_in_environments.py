@@ -306,8 +306,7 @@ class TestDropInEnvironments(object):
         [
             ("java_codegen", "java", "java_drop_in_env"),
             ("python3_keras_inference", "python", "keras_drop_in_env"),
-            # this test case must be fixed: RAPTOR-2876
-            # ("python3_keras_inference_joblib", "python", "keras_drop_in_env"),
+            ("python3_keras_inference_joblib", "python", "keras_drop_in_env"),
             ("python3_pytorch_inference", "python", "pytorch_drop_in_env"),
             ("python3_sklearn_inference", "python", "sklearn_drop_in_env"),
             ("python3_xgboost_inference", "python", "xgboost_drop_in_env"),
