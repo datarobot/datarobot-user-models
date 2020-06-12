@@ -127,7 +127,7 @@ class TestCMRunner:
             BINARY: os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
             VIZAI_BINARY: os.path.join(cls.tests_data_path, "cats_dogs_small_training.csv"),
             PYPMML_REGRESSION: os.path.join(cls.tests_data_path, "iris_pmml_for_scoring.csv"),
-            PYPMML_BINARY: os.path.join(cls.tests_data_path, "iris_pmml_for_scoring.csv")
+            PYPMML_BINARY: os.path.join(cls.tests_data_path, "iris_pmml_for_scoring.csv"),
         }
 
         cls.artifacts = {
@@ -159,7 +159,7 @@ class TestCMRunner:
             (CODEGEN, REGRESSION): os.path.join(cls.tests_artifacts_path, "java_reg.jar"),
             (CODEGEN, BINARY): os.path.join(cls.tests_artifacts_path, "java_bin.jar"),
             (PYPMML, PYPMML_REGRESSION): os.path.join(cls.tests_artifacts_path, "iris_reg.pmml"),
-            (PYPMML, PYPMML_BINARY): os.path.join(cls.tests_artifacts_path, "iris_bin.pmml")
+            (PYPMML, PYPMML_BINARY): os.path.join(cls.tests_artifacts_path, "iris_bin.pmml"),
         }
 
         cls.target = {BINARY: "Species", REGRESSION: "MEDV", VIZAI_BINARY: "class"}
@@ -169,7 +169,7 @@ class TestCMRunner:
             (KERAS, BINARY): ["Iris-setosa", "Iris-versicolor"],
             (KERAS_VIZAI_TRAINING_JOBLIB, VIZAI_BINARY): ["cats", "dogs"],
             (RDS, BINARY): ["Iris-setosa", "Iris-versicolor"],
-            (PYPMML, PYPMML_BINARY): ["Another-Iris", "P_classIris_setosa"]
+            (PYPMML, PYPMML_BINARY): ["Another-Iris", "P_classIris_setosa"],
         }
 
     @classmethod
@@ -284,7 +284,7 @@ class TestCMRunner:
             (CODEGEN, BINARY, NO_CUSTOM, None),
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
             (PYPMML, PYPMML_REGRESSION, NO_CUSTOM, None),
-            (PYPMML, PYPMML_BINARY, NO_CUSTOM, None)
+            (PYPMML, PYPMML_BINARY, NO_CUSTOM, None),
         ],
     )
     def test_custom_models_with_drum(self, framework, problem, language, docker):
@@ -452,7 +452,7 @@ class TestCMRunner:
             (CODEGEN, BINARY, NO_CUSTOM, None),
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
             (PYPMML, PYPMML_REGRESSION, NO_CUSTOM, None),
-            (PYPMML, PYPMML_BINARY, NO_CUSTOM, None)
+            (PYPMML, PYPMML_BINARY, NO_CUSTOM, None),
         ],
     )
     def test_custom_models_with_drum_prediction_server(self, framework, problem, language, docker):

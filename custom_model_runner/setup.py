@@ -19,7 +19,7 @@ extras_require = {
     "keras": extra_deps[SupportedFrameworks.KERAS],
     "xgboost": extra_deps[SupportedFrameworks.XGBOOST],
     "R": ["rpy2;python_version>='3.6'"],
-    "pypmml": extra_deps[SupportedFrameworks.PYPMML]
+    "pypmml": extra_deps[SupportedFrameworks.PYPMML],
 }
 
 setup(

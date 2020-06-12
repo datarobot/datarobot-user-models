@@ -72,6 +72,7 @@ class ArtifactPredictor(ABC):
         self.positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD, None)
         self.negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD, None)
 
+
 class PMMLPredictor(ArtifactPredictor):
     def __init__(self):
         super(PMMLPredictor, self).__init__(
@@ -94,6 +95,7 @@ class PMMLPredictor(ArtifactPredictor):
 
     def load_model_from_artifact(self, artifact_path):
         from pypmml import Model
+
         model = Model.load(artifact_path)
 
         return model
@@ -125,7 +127,9 @@ class PMMLPredictor(ArtifactPredictor):
                 predictions = pd.DataFrame(predictions, columns=[self.positive_class_label])
                 predictions[self.negative_class_label] = 1 - predictions[self.positive_class_label]
         else:
-            predictions = predictions.rename(columns = {predictions.columns[0]: REGRESSION_PRED_COLUMN})
+            predictions = predictions.rename(
+                columns={predictions.columns[0]: REGRESSION_PRED_COLUMN}
+            )
 
         return predictions
 

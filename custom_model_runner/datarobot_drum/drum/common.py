@@ -31,7 +31,7 @@ extra_deps = {
     SupportedFrameworks.TORCH: ["torch", "numpy", "scikit-learn", "scipy"],
     SupportedFrameworks.KERAS: ["scipy", "numpy", "h5py", "keras", "tensorflow"],
     SupportedFrameworks.XGBOOST: ["scipy", "numpy", "xgboost"],
-    SupportedFrameworks.PYPMML: ["pypmml"]
+    SupportedFrameworks.PYPMML: ["pypmml"],
 }
 
 
