@@ -30,9 +30,9 @@ class CMRunnerUtils:
 
     @classmethod
     def render_template_keep_undefined(cls, template_str, data):
-        rtemplate = Environment(loader=BaseLoader, undefined=DebugUndefined, autoescape=True).from_string(
-            template_str
-        )
+        rtemplate = Environment(
+            loader=BaseLoader, undefined=DebugUndefined, autoescape=True
+        ).from_string(template_str)
         return rtemplate.render(data)
 
     @classmethod
