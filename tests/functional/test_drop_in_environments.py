@@ -365,18 +365,17 @@ class TestDropInEnvironments(object):
         model.assign_training_data(test_data_id)
 
         test_passed = False
-        status_404_count = 0
-        for i in range(600):
+        error_message = ""
+        for i in range(300):
             try:
                 model_image.get_feature_impact()
                 test_passed = True
                 break
             except (dr.errors.ClientError, dr.errors.ClientError) as e:
-                status_404_count += 1
-                assert status_404_count < 30, "Feature impact test has failed with response: " + e
+                error_message = "get_feature_impact() response: " + str(e)
             time.sleep(1)
 
-        assert test_passed, "Feature impact test has timed out"
+        assert test_passed, "Feature impact test has timed out. " + error_message
 
     @pytest.mark.parametrize(
         "env, model, test_data_id",
