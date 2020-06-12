@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+  <PMML version="4.1"
+   xmlns="http://www.dmg.org/PMML-4_1"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <Header copyright="Copyright(c) 2002 SAS Institute Inc., Cary, NC, USA. All Rights Reserved.">
+    <Application name="SAS(r)" version="9.4"/>
+    <Timestamp>2020-05-17 14:13:39</Timestamp>
+    </Header>
+    <DataDictionary numberOfFields="5">
+      <DataField name="petal_length" optype="continuous" dataType="double"/>
+      <DataField name="petal_width" optype="continuous" dataType="double"/>
+      <DataField name="sepal_length" optype="continuous" dataType="double"/>
+      <DataField name="sepal_width" optype="continuous" dataType="double"/>
+      <DataField name="class" optype="categorical" dataType="string"/>
+    </DataDictionary>
+    <TransformationDictionary>
+      <DefineFunction name="SAS-EM-String-Normalize" optype="categorical" dataType="string">
+        <ParameterField name="FMTWIDTH" optype="continuous"/>
+        <ParameterField name="AnyCInput" optype="categorical"/>
+        <Apply function="if">
+          <Apply function="isNotMissing">
+            <FieldRef field="AnyCInput"/>
+          </Apply>
+          <Apply function="trimBlanks">
+            <Apply function="uppercase">
+              <Apply function="if">
+                <Apply function="greaterThan">
+                  <Constant>FMTWIDTH</Constant>
+                  <Constant>32</Constant>
+                </Apply>
+                <Apply function="substring">
+                  <FieldRef field="AnyCInput"/>
+                  <Constant>1</Constant>
+                  <Constant>32</Constant>
+                </Apply>
+                <Apply function="substring">
+                  <FieldRef field="AnyCInput"/>
+                  <Constant>1</Constant>
+                  <Constant>FMTWIDTH</Constant>
+                </Apply>
+              </Apply>
+            </Apply>
+          </Apply>
+        </Apply>
+      </DefineFunction>
+      <DefineFunction name="SAS-FORMAT-BESTw" optype="categorical" dataType="string">
+        <ParameterField name="FMTWIDTH" optype="continuous"/>
+        <ParameterField name="AnyNInput" optype="continuous"/>
+        <Apply function="if">
+          <Apply function="isNotMissing">
+            <FieldRef field="AnyNInput"/>
+          </Apply>
+          <Apply function="formatNumber">
+            <FieldRef field="AnyNInput"/>
+            <Constant>%12g</Constant>
+          </Apply>
+        </Apply>
+      </DefineFunction>
+      <DefineFunction name="SAS-FORMAT-$CHARw" optype="categorical" dataType="string">
+        <ParameterField name="FMTWIDTH" optype="continuous"/>
+        <ParameterField name="AnyCInput" optype="continuous"/>
+        <Apply function="if">
+          <Apply function="isNotMissing">
+            <FieldRef field="AnyCInput"/>
+          </Apply>
+          <Apply function="substring">
+            <FieldRef field="AnyCInput"/>
+            <Constant>1</Constant>
+            <Constant>FMTWIDTH</Constant>
+          </Apply>
+        </Apply>
+      </DefineFunction>
+    </TransformationDictionary>
+    <TreeModel functionName="classification" splitCharacteristic="binarySplit">
+      <MiningSchema>
+        <MiningField name="class" usageType="predicted" optype="categorical"/>
+        <MiningField name="petal_width" usageType="active" optype="continuous"/>
+      </MiningSchema>
+      <Output>
+        <OutputField name="P_classIris_setosa" displayName="Predicted: class=Iris-setosa" optype="continuous" dataType="double" targetField="class" feature="probability" value="IRIS-SETOSA"/>
+        <OutputField name="P_classIris_versicolor" displayName="Predicted: class=Iris-versicolor" optype="continuous" dataType="double" targetField="class" feature="probability" value="IRIS-VERSICOLOR"/>
+        <OutputField name="P_classIris_virginica" displayName="Predicted: class=Iris-virginica" optype="continuous" dataType="double" targetField="class" feature="probability" value="IRIS-VIRGINICA"/>
+        <OutputField name="Q_classIris_setosa" displayName="Unadjusted P: class=Iris-setosa" optype="continuous" dataType="double" targetField="class" feature="probability" value="IRIS-SETOSA"/>
+        <OutputField name="Q_classIris_versicolor" displayName="Unadjusted P: class=Iris-versicolor" optype="continuous" dataType="double" targetField="class" feature="probability" value="IRIS-VERSICOLOR"/>
+        <OutputField name="Q_classIris_virginica" displayName="Unadjusted P: class=Iris-virginica" optype="continuous" dataType="double" targetField="class" feature="probability" value="IRIS-VIRGINICA"/>
+        <OutputField name="R_classIris_setosa" displayName="Residual: class=Iris-setosa" optype="continuous" dataType="double" targetField="class" feature="residual" value="IRIS-SETOSA"/>
+        <OutputField name="R_classIris_versicolor" displayName="Residual: class=Iris-versicolor" optype="continuous" dataType="double" targetField="class" feature="residual" value="IRIS-VERSICOLOR"/>
+        <OutputField name="R_classIris_virginica" displayName="Residual: class=Iris-virginica" optype="continuous" dataType="double" targetField="class" feature="residual" value="IRIS-VIRGINICA"/>
+        <OutputField name="F_class" displayName="From: class" optype="categorical" dataType="string" targetField="class" feature="predictedValue"/>
+        <OutputField name="I_class" displayName="Into: class" optype="categorical" dataType="string" targetField="class" feature="predictedValue"/>
+        <OutputField name="U_class" displayName="Unnormalized Into: class" optype="categorical" dataType="string" targetField="class" feature="predictedDisplayValue"/>
+      </Output>
+      <Targets>
+        <Target field="class" optype="categorical">
+          <TargetValue value="IRIS-SETOSA" displayValue="Iris-setosa    "/>
+          <TargetValue value="IRIS-VERSICOLOR" displayValue="Iris-versicolor"/>
+          <TargetValue value="IRIS-VIRGINICA" displayValue="Iris-virginica "/>
+        </Target>
+      </Targets>
+      <Node id="1" score="IRIS-VIRGINICA" recordCount="103">
+        <True/>
+        <ScoreDistribution value="IRIS-SETOSA" recordCount="34" confidence="0.3300970874"/>
+        <ScoreDistribution value="IRIS-VERSICOLOR" recordCount="34" confidence="0.3300970874"/>
+        <ScoreDistribution value="IRIS-VIRGINICA" recordCount="35" confidence="0.3398058252"/>
+        <Node id="2" score="IRIS-SETOSA" recordCount="34">
+          <CompoundPredicate booleanOperator="surrogate">
+            <SimplePredicate field="petal_width" operator="lessThan" value="    0.8"/>
+            <False/>
+          </CompoundPredicate>
+          <ScoreDistribution value="IRIS-SETOSA" recordCount="34" confidence="1"/>
+          <ScoreDistribution value="IRIS-VERSICOLOR" recordCount="0" confidence="0"/>
+          <ScoreDistribution value="IRIS-VIRGINICA" recordCount="0" confidence="0"/>
+        </Node>
+        <Node id="3" score="IRIS-VIRGINICA" recordCount="69">
+          <CompoundPredicate booleanOperator="surrogate">
+            <SimplePredicate field="petal_width" operator="greaterOrEqual" value="    0.8"/>
+            <SimplePredicate field="petal_width" operator="isMissing"/>
+          </CompoundPredicate>
+          <ScoreDistribution value="IRIS-SETOSA" recordCount="0" confidence="0"/>
+          <ScoreDistribution value="IRIS-VERSICOLOR" recordCount="34" confidence="0.4927536232"/>
+          <ScoreDistribution value="IRIS-VIRGINICA" recordCount="35" confidence="0.5072463768"/>
+          <Node id="5" score="IRIS-VIRGINICA" recordCount="32">
+            <CompoundPredicate booleanOperator="surrogate">
+              <SimplePredicate field="petal_width" operator="greaterOrEqual" value="   1.75"/>
+              <False/>
+            </CompoundPredicate>
+            <ScoreDistribution value="IRIS-SETOSA" recordCount="0" confidence="0"/>
+            <ScoreDistribution value="IRIS-VERSICOLOR" recordCount="1" confidence="0.03125"/>
+            <ScoreDistribution value="IRIS-VIRGINICA" recordCount="31" confidence="0.96875"/>
+          </Node>
+          <Node id="4" score="IRIS-VERSICOLOR" recordCount="37">
+            <CompoundPredicate booleanOperator="surrogate">
+              <SimplePredicate field="petal_width" operator="lessThan" value="   1.75"/>
+              <SimplePredicate field="petal_width" operator="isMissing"/>
+            </CompoundPredicate>
+            <ScoreDistribution value="IRIS-SETOSA" recordCount="0" confidence="0"/>
+            <ScoreDistribution value="IRIS-VERSICOLOR" recordCount="33" confidence="0.8918918919"/>
+            <ScoreDistribution value="IRIS-VIRGINICA" recordCount="4" confidence="0.1081081081"/>
+          </Node>
+        </Node>
+      </Node>
+    </TreeModel>
+  </PMML>
