@@ -126,8 +126,8 @@ class TestCMRunner:
             REGRESSION_INFERENCE: os.path.join(cls.tests_data_path, "boston_housing_inference.csv"),
             BINARY: os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
             VIZAI_BINARY: os.path.join(cls.tests_data_path, "cats_dogs_small_training.csv"),
-            PYPMML_REGRESSION: os.path.join(cls.tests_data_path, "iris_pmml_for_scoring.csv"),
-            PYPMML_BINARY: os.path.join(cls.tests_data_path, "iris_pmml_for_scoring.csv"),
+            PYPMML_REGRESSION: os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
+            PYPMML_BINARY: os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
         }
 
         cls.artifacts = {
