@@ -2,13 +2,12 @@ from __future__ import absolute_import
 
 import os
 import time
-
-import datarobot.dse as dse
 import pytest
-from datarobot.dse.enums import CustomModelType, DatasetCategory
-from datarobot.dse.errors import AsyncTaskFailureError
+import datarobot as dr
+import datarobot.dse as dse
 
 BASE_TEMPLATE_ENV_DIR = "public_dropin_environments"
+BASE_MODEL_TEMPLATES_DIR = "model_templates"
 BASE_FIXTURE_DIR = "tests/fixtures"
 BASE_DATASET_DIR = "tests/testdata"
 ARTIFACT_DIR = "drop_in_model_artifacts"
@@ -53,8 +52,6 @@ class TestDropInEnvironments(object):
         -------
         custom_model_id, custom_model_version_id
         """
-        custom_models_url = "http://localhost/api/v2/customModels/"
-
         if artifact_only and (
             isinstance(artifact_names, list) or custom_predict_path or other_file_names
         ):
@@ -66,22 +63,18 @@ class TestDropInEnvironments(object):
         if not isinstance(artifact_names, list):
             artifact_names = [artifact_names]
 
-        model_args = dict(
-            customModelType=CustomModelType.INFERENCE.value,
-            name=artifact_names[0],
-            targetName=target_name,
-        )
-
         if positive_class_label and negative_class_label:
-            model_args["positiveClassLabel"] = positive_class_label
-            model_args["negativeClassLabel"] = negative_class_label
-            model_args["supportsBinaryClassification"] = True
+            target_type = dr.TARGET_TYPE.BINARY
         else:
-            model_args["supportsRegression"] = True
+            target_type = dr.TARGET_TYPE.REGRESSION
 
-        response = client.post(custom_models_url, json=model_args)
-        custom_model_id = response.json()["id"]
-        version_url = "{}/{}/versions".format(custom_models_url, custom_model_id)
+        custom_model = dr.CustomInferenceModel.create(
+            name=artifact_names[0],
+            target_type=target_type,
+            target_name=target_name,
+            positive_class_label=positive_class_label,
+            negative_class_label=negative_class_label,
+        )
 
         items = []
 
@@ -96,15 +89,11 @@ class TestDropInEnvironments(object):
             artifact_path = os.path.join(BASE_FIXTURE_DIR, ARTIFACT_DIR, artifact_name)
             items.append((artifact_path, artifact_name))
 
-        file_paths = []
-        files_actual = []
-        for file_actual, file_path in items:
-            file_paths.append(("filePath", file_path))
-            files_actual.append(("file", open(file_actual, "rb")))
+        model_version = dr.CustomModelVersion.create_clean(
+            custom_model_id=custom_model.id, files=items
+        )
 
-        version = client.post(version_url, data=file_paths, files=files_actual)
-
-        return custom_model_id, version.json()["id"]
+        return custom_model.id, model_version.id
 
     @pytest.fixture(scope="session")
     def dse_client(self, pytestconfig):
@@ -116,53 +105,58 @@ class TestDropInEnvironments(object):
         return client
 
     @pytest.fixture(scope="session")
-    def java_drop_in_env(self, dse_client):
-        env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "java_codegen")
-        environment = dse_client.execution_environments.create("java_drop_in")
-        environment_version = environment.versions.sync_create(environment_path=env_dir)
-        return environment.id, environment_version.id
-
-    @pytest.fixture(scope="session")
-    def sklearn_drop_in_env(self, dse_client):
-        env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "python3_sklearn")
-        environment = dse_client.execution_environments.create("python3_sklearn")
-        environment_version = environment.versions.sync_create(environment_path=env_dir)
-        return environment.id, environment_version.id
-
-    @pytest.fixture(scope="session")
-    def xgboost_drop_in_env(self, dse_client):
-        env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "python3_xgboost")
-        environment = dse_client.execution_environments.create("python3_xgboost")
-        environment_version = environment.versions.sync_create(environment_path=env_dir)
-        return environment.id, environment_version.id
-
-    @pytest.fixture(scope="session")
-    def pytorch_drop_in_env(self, dse_client):
-        env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "python3_pytorch")
-        environment = dse_client.execution_environments.create("python3_pytorch")
-        environment_version = environment.versions.sync_create(environment_path=env_dir)
-        return environment.id, environment_version.id
-
-    @pytest.fixture(scope="session")
-    def keras_drop_in_env(self, dse_client):
-        env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "python3_keras")
-        environment = dse_client.execution_environments.create("python3_keras")
-        environment_version = environment.versions.sync_create(environment_path=env_dir)
-        return environment.id, environment_version.id
-
-    @pytest.fixture(scope="session")
-    def r_drop_in_env(self, dse_client):
-        env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "r_lang")
-        environment = dse_client.execution_environments.create("r_drop_in")
-        environment_version = environment.versions.sync_create(
-            environment_path=env_dir, timeout=5400,  # R dependency management is an abomination
+    def dr_client(self, pytestconfig):
+        client = dr.Client(
+            endpoint="http://localhost/api/v2", token=os.environ["DATAROBOT_API_TOKEN"]
         )
+        return client
+
+    @pytest.fixture(scope="session")
+    def java_drop_in_env(self, dr_client):
+        env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "java_codegen")
+        environment = dr.ExecutionEnvironment.create(name="java_drop_in")
+        environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
         return environment.id, environment_version.id
 
     @pytest.fixture(scope="session")
-    def sklearn_binary_custom_model(self, dse_client):
+    def sklearn_drop_in_env(self, dr_client):
+        env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "python3_sklearn")
+        environment = dr.ExecutionEnvironment.create(name="python3_sklearn")
+        environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
+        return environment.id, environment_version.id
+
+    @pytest.fixture(scope="session")
+    def xgboost_drop_in_env(self, dr_client):
+        env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "python3_xgboost")
+        environment = dr.ExecutionEnvironment.create(name="python3_xgboost")
+        environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
+        return environment.id, environment_version.id
+
+    @pytest.fixture(scope="session")
+    def pytorch_drop_in_env(self, dr_client):
+        env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "python3_pytorch")
+        environment = dr.ExecutionEnvironment.create(name="python3_pytorch")
+        environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
+        return environment.id, environment_version.id
+
+    @pytest.fixture(scope="session")
+    def keras_drop_in_env(self, dr_client):
+        env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "python3_keras")
+        environment = dr.ExecutionEnvironment.create(name="python3_keras")
+        environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
+        return environment.id, environment_version.id
+
+    @pytest.fixture(scope="session")
+    def r_drop_in_env(self, dr_client):
+        env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "r_lang")
+        environment = dr.ExecutionEnvironment.create(name="r_drop_in")
+        environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
+        return environment.id, environment_version.id
+
+    @pytest.fixture(scope="session")
+    def sklearn_binary_custom_model(self, dr_client):
         return self.make_custom_model(
-            dse_client,
+            dr_client,
             "sklearn_bin.pkl",
             "Iris-setosa",
             "Iris-versicolor",
@@ -171,65 +165,65 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def sklearn_regression_custom_model(self, dse_client):
+    def sklearn_regression_custom_model(self, dr_client):
         return self.make_custom_model(
-            dse_client,
+            dr_client,
             "sklearn_reg.pkl",
             custom_predict_path=CUSTOM_PREDICT_PY_PATH,
             target_name="MEDV",
         )
 
     @pytest.fixture(scope="session")
-    def keras_binary_custom_model(self, dse_client):
+    def keras_binary_custom_model(self, dr_client):
         return self.make_custom_model(
-            dse_client, "keras_bin.h5", "yes", "no", custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            dr_client, "keras_bin.h5", "yes", "no", custom_predict_path=CUSTOM_PREDICT_PY_PATH,
         )
 
     @pytest.fixture(scope="session")
-    def keras_regression_custom_model(self, dse_client):
+    def keras_regression_custom_model(self, dr_client):
         return self.make_custom_model(
-            dse_client, "keras_reg.h5", custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            dr_client, "keras_reg.h5", custom_predict_path=CUSTOM_PREDICT_PY_PATH,
         )
 
     @pytest.fixture(scope="session")
-    def torch_binary_custom_model(self, dse_client):
+    def torch_binary_custom_model(self, dr_client):
         return self.make_custom_model(
-            dse_client, "torch_bin.pth", "yes", "no", CUSTOM_PREDICT_PY_PATH, ["PyTorch.py"],
+            dr_client, "torch_bin.pth", "yes", "no", CUSTOM_PREDICT_PY_PATH, ["PyTorch.py"],
         )
 
     @pytest.fixture(scope="session")
-    def torch_regression_custom_model(self, dse_client):
+    def torch_regression_custom_model(self, dr_client):
         return self.make_custom_model(
-            dse_client,
+            dr_client,
             "torch_reg.pth",
             custom_predict_path=CUSTOM_PREDICT_PY_PATH,
             other_file_names=["PyTorch.py"],
         )
 
     @pytest.fixture(scope="session")
-    def xgb_binary_custom_model(self, dse_client):
+    def xgb_binary_custom_model(self, dr_client):
         return self.make_custom_model(
-            dse_client, "xgb_bin.pkl", "yes", "no", custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            dr_client, "xgb_bin.pkl", "yes", "no", custom_predict_path=CUSTOM_PREDICT_PY_PATH,
         )
 
     @pytest.fixture(scope="session")
-    def xgb_regression_custom_model(self, dse_client):
+    def xgb_regression_custom_model(self, dr_client):
         return self.make_custom_model(
-            dse_client, "xgb_reg.pkl", custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            dr_client, "xgb_reg.pkl", custom_predict_path=CUSTOM_PREDICT_PY_PATH,
         )
 
     @pytest.fixture(scope="session")
-    def python_multi_artifact_regression_custom_model(self, dse_client):
+    def python_multi_artifact_regression_custom_model(self, dr_client):
         return self.make_custom_model(
-            dse_client,
+            dr_client,
             ["sklearn_bin.pkl", "sklearn_reg.pkl"],
             custom_predict_path=CUSTOM_LOAD_PREDICT_PY_PATH,
         )
 
     @pytest.fixture(scope="session")
-    def bad_python_multi_artifact_binary_custom_model(self, dse_client):
+    def bad_python_multi_artifact_binary_custom_model(self, dr_client):
         return self.make_custom_model(
-            dse_client,
+            dr_client,
             ["sklearn_bin.pkl", "sklearn_reg.pkl"],
             "Iris-setosa",
             "Iris-versicolor",
@@ -237,9 +231,9 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def java_binary_custom_model(self, dse_client):
+    def java_binary_custom_model(self, dr_client):
         return self.make_custom_model(
-            dse_client,
+            dr_client,
             "java_bin.jar",
             "Iris-setosa",
             "Iris-versicolor",
@@ -248,15 +242,15 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def java_regression_custom_model(self, dse_client):
+    def java_regression_custom_model(self, dr_client):
         return self.make_custom_model(
-            dse_client, "java_reg.jar", artifact_only=True, target_name="MEDV",
+            dr_client, "java_reg.jar", artifact_only=True, target_name="MEDV",
         )
 
     @pytest.fixture(scope="session")
-    def r_binary_custom_model(self, dse_client):
+    def r_binary_custom_model(self, dr_client):
         return self.make_custom_model(
-            dse_client,
+            dr_client,
             "r_bin.rds",
             "Iris-setosa",
             "Iris-versicolor",
@@ -265,15 +259,15 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def r_regression_custom_model(self, dse_client):
+    def r_regression_custom_model(self, dr_client):
         return self.make_custom_model(
-            dse_client, "r_reg.rds", custom_predict_path=CUSTOM_PREDICT_R_PATH, target_name="MEDV",
+            dr_client, "r_reg.rds", custom_predict_path=CUSTOM_PREDICT_R_PATH, target_name="MEDV",
         )
 
     @pytest.fixture(scope="session")
-    def r_multi_artifact_binary_custom_model(self, dse_client):
+    def r_multi_artifact_binary_custom_model(self, dr_client):
         return self.make_custom_model(
-            dse_client,
+            dr_client,
             ["r_bin.rds", "r_reg.rds"],
             "Iris-setosa",
             "Iris-versicolor",
@@ -281,9 +275,9 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def bad_r_multi_artifact_binary_custom_model(self, dse_client):
+    def bad_r_multi_artifact_binary_custom_model(self, dr_client):
         return self.make_custom_model(
-            dse_client,
+            dr_client,
             ["r_bin.rds", "r_reg.rds"],
             "Iris-setosa",
             "Iris-versicolor",
@@ -291,20 +285,18 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def binary_testing_data(self, dse_client):
-        dataset = dse_client.datasets.sync_create(
-            dataset_path=os.path.join(BASE_DATASET_DIR, "iris_binary_training.csv"),
-            categories=DatasetCategory.PREDICTION,
+    def binary_testing_data(self, dr_client):
+        dataset = dr.Dataset.create_from_file(
+            file_path=os.path.join(BASE_DATASET_DIR, "iris_binary_training.csv")
         )
-        return dataset.dataset_id
+        return dataset.id
 
     @pytest.fixture(scope="session")
-    def regression_testing_data(self, dse_client):
-        dataset = dse_client.datasets.sync_create(
-            dataset_path=os.path.join(BASE_DATASET_DIR, "boston_housing.csv"),
-            categories=DatasetCategory.PREDICTION,
+    def regression_testing_data(self, dr_client):
+        dataset = dr.Dataset.create_from_file(
+            file_path=os.path.join(BASE_DATASET_DIR, "boston_housing.csv")
         )
-        return dataset.dataset_id
+        return dataset.id
 
     @pytest.mark.parametrize(
         "env, model, test_data_id",
@@ -329,19 +321,59 @@ class TestDropInEnvironments(object):
             ("r_drop_in_env", "r_multi_artifact_binary_custom_model", "binary_testing_data"),
         ],
     )
-    def test_drop_in_environments(self, dse_client, request, env, model, test_data_id):
+    def test_drop_in_environments(self, dr_client, request, env, model, test_data_id):
         env_id, env_version_id = request.getfixturevalue(env)
         model_id, model_version_id = request.getfixturevalue(model)
         test_data_id = request.getfixturevalue(test_data_id)
 
-        payload = {
-            "custom_model_id": model_id,
-            "dataset_id": test_data_id,
-            "custom_model_version_id": model_version_id,
-            "environment_id": env_id,
-            "environment_version_id": env_version_id,
-        }
-        test = dse_client.custom_model_tests.sync_create(timeout=600, **payload)
+        test = dr.CustomModelTest.create(
+            custom_model_id=model_id,
+            custom_model_version_id=model_version_id,
+            environment_id=env_id,
+            environment_version_id=env_version_id,
+            dataset_id=test_data_id,
+        )
+
+        assert test.overall_status == "succeeded"
+
+    @pytest.mark.parametrize(
+        "model_template, language, env",
+        [
+            ("java_codegen", "java", "java_drop_in_env"),
+            ("python3_keras_inference", "python", "keras_drop_in_env"),
+            # this test case must be fixed: RAPTOR-2876
+            # ("python3_keras_inference_joblib", "python", "keras_drop_in_env"),
+            ("python3_pytorch_inference", "python", "pytorch_drop_in_env"),
+            ("python3_sklearn_inference", "python", "sklearn_drop_in_env"),
+            ("python3_xgboost_inference", "python", "xgboost_drop_in_env"),
+            ("r_lang", "r", "r_drop_in_env"),
+        ],
+    )
+    def test_inference_model_templates(self, dr_client, request, model_template, language, env):
+        env_id, env_version_id = request.getfixturevalue(env)
+        test_data_id = request.getfixturevalue("regression_testing_data")
+        target = "MEDV"
+
+        model = dr.CustomInferenceModel.create(
+            name=model_template,
+            target_type=dr.TARGET_TYPE.REGRESSION,
+            target_name=target,
+            description=model_template,
+            language=language,
+        )
+
+        model_version = dr.CustomModelVersion.create_clean(
+            custom_model_id=model.id,
+            folder_path=os.path.join(BASE_MODEL_TEMPLATES_DIR, model_template),
+        )
+
+        test = dr.CustomModelTest.create(
+            custom_model_id=model.id,
+            custom_model_version_id=model_version.id,
+            environment_id=env_id,
+            environment_version_id=env_version_id,
+            dataset_id=test_data_id,
+        )
 
         assert test.overall_status == "succeeded"
 
@@ -368,6 +400,7 @@ class TestDropInEnvironments(object):
             "environment_version_id": env_version_id,
         }
         model_image = dse_client.custom_model_images.create(**attrs)
+
         dataset = dse_client.datasets.get(test_data_id)
         custom_model = dse_client.custom_models.get(model_id)
 
@@ -404,17 +437,16 @@ class TestDropInEnvironments(object):
             ("r_drop_in_env", "bad_r_multi_artifact_binary_custom_model", "binary_testing_data",),
         ],
     )
-    def test_fail_multi_artifacts(self, dse_client, request, env, model, test_data_id):
+    def test_fail_multi_artifacts(self, dr_client, request, env, model, test_data_id):
         env_id, env_version_id = request.getfixturevalue(env)
         model_id, model_version_id = request.getfixturevalue(model)
         test_data_id = request.getfixturevalue(test_data_id)
 
-        payload = {
-            "custom_model_id": model_id,
-            "dataset_id": test_data_id,
-            "custom_model_version_id": model_version_id,
-            "environment_id": env_id,
-            "environment_version_id": env_version_id,
-        }
-        with pytest.raises(AsyncTaskFailureError):
-            dse_client.custom_model_tests.sync_create(timeout=600, **payload)
+        test = dr.CustomModelTest.create(
+            custom_model_id=model_id,
+            custom_model_version_id=model_version_id,
+            environment_id=env_id,
+            environment_version_id=env_version_id,
+            dataset_id=test_data_id,
+        )
+        assert test.overall_status == "failed"
