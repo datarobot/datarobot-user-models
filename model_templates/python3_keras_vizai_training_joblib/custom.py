@@ -77,28 +77,3 @@ def fit(
             serialize_estimator_pipeline(fit_estimator, model_path)
     else:
         raise NotImplementedError("Regression not implemented for Visual AI.")
-
-
-def load_model(input_dir: str) -> Pipeline:
-    """
-    Note: This hook may not have be implemented for your model.
-    In this case implemented for the model used in the example.
-
-    This keras estimator requires 'load_model()' to be overridden. Coz as it involves pipeline of
-    preprocessor and estimator bundled together, it requires a special handling (oppose to usually
-    simple keras.models.load_model() or unpickling) to load the model. Currently there is no elegant
-    default method to save the keras classifier/regressor along with the sklearn pipeline. Hence we
-    use deserialize_estimator_pipeline() to load the model pipeline to predict.
-
-    Parameters
-    ----------
-    input_dir: str
-
-    Returns
-    -------
-    pipelined_model: Pipeline
-        Estimator pipeline obj
-    """
-    artifact_path = Path(input_dir) / "artifact.joblib"
-    predictor_pipeline = deserialize_estimator_pipeline(artifact_path)
-    return predictor_pipeline
