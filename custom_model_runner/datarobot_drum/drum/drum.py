@@ -485,7 +485,6 @@ class CMRunner(object):
 
 def possibly_intuit_order(input_data_file, target_data_file=None, target_col_name=None):
     if target_data_file:
-
         y = pd.read_csv(target_data_file, index_col=False).head(1000)
         classes = np.unique(y.iloc[:, 0])
     else:
@@ -493,4 +492,6 @@ def possibly_intuit_order(input_data_file, target_data_file=None, target_col_nam
         classes = np.unique(df[target_col_name].head(1000))
     if len(classes) == 2:
         return classes
+    elif len(classes) == 1:
+        raise DrumCommonException("Only one target label was provided, please revise training data")
     return None, None

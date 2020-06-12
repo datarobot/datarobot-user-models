@@ -160,13 +160,17 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.POSITIVE_CLASS_LABEL,
                 default=None,
                 type=are_both_labels_present,
-                help="Positive class label for a binary classification case",
+                help="Positive class label for a binary classification case. "
+                "If you do not provide these labels, but your dataset is classification, DRUM will"
+                " choose the labels for you",
             )
             parser.add_argument(
                 ArgumentsOptions.NEGATIVE_CLASS_LABEL,
                 default=None,
                 type=are_both_labels_present,
-                help="Negative class label for a binary classification case",
+                help="Negative class label for a binary classification case. "
+                "If you do not provide these labels, but your dataset is classification, DRUM will"
+                " choose the labels for you",
             )
 
     @staticmethod
