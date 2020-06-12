@@ -61,7 +61,7 @@ class CMTemplateGenerator:
 
     def _copy_and_render(self, src, dst, token_values, prefix=None):
         self._logger.debug("vars: {}".format(pprint.pformat(token_values)))
-        env = Environment(loader=self._file_loader)
+        env = Environment(loader=self._file_loader, autoescape=True)
         template = env.get_template(os.path.basename(src))
         output = template.render(**token_values)
 
