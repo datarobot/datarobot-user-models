@@ -17,6 +17,7 @@ import requests
 
 from datarobot_drum.drum.common import CUSTOM_FILE_NAME, CustomHooks, ArgumentsOptions
 
+# Framweork keywords
 XGB = "xgboost"
 XGB_INFERENCE = "xgb_inference"
 XGB_TRAINING = "xgb_training"
@@ -34,19 +35,19 @@ SKLEARN_INFERENCE = "sklearn_inference"
 PYTORCH = "pytorch"
 PYTORCH_INFERENCE = "pytorch_inference"
 
+PYPMML = "pypmml"
+
 RDS = "rds"
 CODEGEN = "jar"
 MULTI_ARTIFACT = "multiartifact"
-PYPMML = "pypmml"
 
+# Problem keywords, used to mark datasets
 REGRESSION = "regression"
 REGRESSION_INFERENCE = "regression_inference"
 BINARY = "binary"
 VIZAI_BINARY = "visual_ai_binary"
 
-PYPMML_REGRESSION = "pypmml_regression"
-PYPMML_BINARY = "pypmml_binary"
-
+# Language keywords
 PYTHON = "python3"
 NO_CUSTOM = "no_custom"
 PYTHON_ALL_HOOKS = "python_all_hooks"
@@ -122,12 +123,15 @@ class TestCMRunner:
             R_ALL_HOOKS: (os.path.join(cls.tests_fixtures_path, "all_hooks_custom.R"), "custom.R"),
         }
         cls.datasets = {
-            REGRESSION: os.path.join(cls.tests_data_path, "boston_housing.csv"),
-            REGRESSION_INFERENCE: os.path.join(cls.tests_data_path, "boston_housing_inference.csv"),
-            BINARY: os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
-            VIZAI_BINARY: os.path.join(cls.tests_data_path, "cats_dogs_small_training.csv"),
-            PYPMML_REGRESSION: os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
-            PYPMML_BINARY: os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
+            # If specific dataset should be defined for a framework, use (framework, problem) key.
+            # Otherwise default dataset is used (None, problem)
+            (None, REGRESSION): os.path.join(cls.tests_data_path, "boston_housing.csv"),
+            (PYPMML, REGRESSION): os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
+            (None, REGRESSION_INFERENCE): os.path.join(
+                cls.tests_data_path, "boston_housing_inference.csv"
+            ),
+            (None, BINARY): os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
+            (None, VIZAI_BINARY): os.path.join(cls.tests_data_path, "cats_dogs_small_training.csv"),
         }
 
         cls.artifacts = {
@@ -158,8 +162,8 @@ class TestCMRunner:
             (RDS, BINARY): os.path.join(cls.tests_artifacts_path, "r_bin.rds"),
             (CODEGEN, REGRESSION): os.path.join(cls.tests_artifacts_path, "java_reg.jar"),
             (CODEGEN, BINARY): os.path.join(cls.tests_artifacts_path, "java_bin.jar"),
-            (PYPMML, PYPMML_REGRESSION): os.path.join(cls.tests_artifacts_path, "iris_reg.pmml"),
-            (PYPMML, PYPMML_BINARY): os.path.join(cls.tests_artifacts_path, "iris_bin.pmml"),
+            (PYPMML, REGRESSION): os.path.join(cls.tests_artifacts_path, "iris_reg.pmml"),
+            (PYPMML, BINARY): os.path.join(cls.tests_artifacts_path, "iris_bin.pmml"),
         }
 
         cls.target = {BINARY: "Species", REGRESSION: "MEDV", VIZAI_BINARY: "class"}
@@ -247,8 +251,13 @@ class TestCMRunner:
         return cls.class_labels.get((framework, problem), None)
 
     @classmethod
-    def _get_dataset_filename(cls, problem):
-        return cls.datasets[problem]
+    def _get_dataset_filename(cls, framework, problem):
+        framework_key = framework
+        problem_key = problem
+        # if specific dataset for framework was not defined,
+        # use default dataset for this problem, e.g. (None, problem)
+        framework_key = None if (framework_key, problem_key) not in cls.datasets else framework_key
+        return cls.datasets[(framework_key, problem_key)]
 
     @classmethod
     def _get_fixture_filename(cls, language):
@@ -256,7 +265,7 @@ class TestCMRunner:
 
     @classmethod
     def _cmd_add_class_labels(cls, cmd, framework, problem):
-        if problem != BINARY and problem != VIZAI_BINARY and problem != PYPMML_BINARY:
+        if problem != BINARY and problem != VIZAI_BINARY:
             return cmd
 
         labels = cls._get_class_labels(framework, problem)
@@ -283,14 +292,14 @@ class TestCMRunner:
             (CODEGEN, REGRESSION, NO_CUSTOM, None),
             (CODEGEN, BINARY, NO_CUSTOM, None),
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
-            (PYPMML, PYPMML_REGRESSION, NO_CUSTOM, None),
-            (PYPMML, PYPMML_BINARY, NO_CUSTOM, None),
+            (PYPMML, REGRESSION, NO_CUSTOM, None),
+            (PYPMML, BINARY, NO_CUSTOM, None),
         ],
     )
     def test_custom_models_with_drum(self, framework, problem, language, docker):
         custom_model_dir = self._create_custom_model_dir(framework, problem, language)
 
-        input_dataset = self._get_dataset_filename(problem)
+        input_dataset = self._get_dataset_filename(framework, problem)
 
         with NamedTemporaryFile() as output:
             cmd = "{} score --code-dir {} --input {} --output {}".format(
@@ -314,7 +323,7 @@ class TestCMRunner:
     def test_bin_models_with_wrong_labels(self, framework, problem, language):
         custom_model_dir = self._create_custom_model_dir(framework, problem, language)
 
-        input_dataset = self._get_dataset_filename(problem)
+        input_dataset = self._get_dataset_filename(framework, problem)
         cmd = "{} score --code-dir {} --input {}".format(
             ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset
         )
@@ -352,7 +361,7 @@ class TestCMRunner:
     def test_detect_language(self, framework, problem, language):
         custom_model_dir = self._create_custom_model_dir(framework, problem, language)
 
-        input_dataset = self._get_dataset_filename(problem)
+        input_dataset = self._get_dataset_filename(framework, problem)
         cmd = "{} score --code-dir {} --input {}".format(
             ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset
         )
@@ -391,7 +400,7 @@ class TestCMRunner:
     )
     def test_custom_model_with_all_predict_hooks(self, framework, language):
         custom_model_dir = self._create_custom_model_dir(framework, REGRESSION, language)
-        input_dataset = self._get_dataset_filename(REGRESSION)
+        input_dataset = self._get_dataset_filename(framework, REGRESSION)
         with NamedTemporaryFile() as output:
             cmd = "{} score --code-dir {} --input {} --output {}".format(
                 ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output.name
@@ -451,8 +460,8 @@ class TestCMRunner:
             (CODEGEN, REGRESSION, NO_CUSTOM, None),
             (CODEGEN, BINARY, NO_CUSTOM, None),
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
-            (PYPMML, PYPMML_REGRESSION, NO_CUSTOM, None),
-            (PYPMML, PYPMML_BINARY, NO_CUSTOM, None),
+            (PYPMML, REGRESSION, NO_CUSTOM, None),
+            (PYPMML, BINARY, NO_CUSTOM, None),
         ],
     )
     def test_custom_models_with_drum_prediction_server(self, framework, problem, language, docker):
@@ -470,7 +479,7 @@ class TestCMRunner:
 
         shutdown_endpoint = "/shutdown/"
         predict_endpoint = "/predict/"
-        input_dataset = self._get_dataset_filename(problem)
+        input_dataset = self._get_dataset_filename(framework, problem)
         print("input_dataset: {}".format(input_dataset))
 
         custom_model_dir = self._create_custom_model_dir(framework, problem, language)
@@ -528,7 +537,7 @@ class TestCMRunner:
 
         shutdown_endpoint = "/shutdown/"
         predict_endpoint = "/predict/"
-        input_dataset = self._get_dataset_filename(problem)
+        input_dataset = self._get_dataset_filename(framework, problem)
         timeout = 10
 
         custom_model_dir = self._create_custom_model_dir(framework, problem, language)
@@ -584,7 +593,7 @@ class TestCMRunner:
     def test_custom_models_perf_test(self, framework, problem, language, docker):
         custom_model_dir = self._create_custom_model_dir(framework, problem, language)
 
-        input_dataset = self._get_dataset_filename(problem)
+        input_dataset = self._get_dataset_filename(framework, problem)
 
         cmd = "{} perf-test -i 10 -s 1000 --code-dir {} --input {}".format(
             ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset
@@ -610,7 +619,7 @@ class TestCMRunner:
     def test_custom_models_validation_test(self, framework, problem, language, docker):
         custom_model_dir = self._create_custom_model_dir(framework, problem, language)
 
-        input_dataset = self._get_dataset_filename(problem)
+        input_dataset = self._get_dataset_filename(framework, problem)
 
         cmd = "{} validation --code-dir {} --input {}".format(
             ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset
@@ -681,7 +690,7 @@ class TestCMRunner:
             framework, problem, language, is_training=True
         )
 
-        input_dataset = self._get_dataset_filename(problem)
+        input_dataset = self._get_dataset_filename(framework, problem)
 
         weights_cmd, input_dataset, __keep_this_around = self._add_weights_cmd(
             weights, input_dataset
@@ -715,7 +724,7 @@ class TestCMRunner:
             framework, problem, language, is_training=True
         )
 
-        input_dataset = self._get_dataset_filename(problem)
+        input_dataset = self._get_dataset_filename(framework, problem)
 
         with TemporaryDirectory() as output:
             cmd = "{} fit --code-dir {} --target {} --input {} --output {} --skip-predict".format(
@@ -735,7 +744,7 @@ class TestCMRunner:
             TestCMRunner._delete_custom_model_dir(custom_model_dir)
 
     def _create_fit_input_data_dir(self, input_dir, problem, weights):
-        input_dataset = self._get_dataset_filename(problem)
+        input_dataset = self._get_dataset_filename(None, problem)
         df = pd.read_csv(input_dataset)
 
         # Training data
