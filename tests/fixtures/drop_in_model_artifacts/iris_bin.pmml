@@ -7,10 +7,10 @@
     <Timestamp>2020-05-17 14:13:39</Timestamp>
     </Header>
     <DataDictionary numberOfFields="5">
-      <DataField name="petal_length" optype="continuous" dataType="double"/>
-      <DataField name="petal_width" optype="continuous" dataType="double"/>
-      <DataField name="sepal_length" optype="continuous" dataType="double"/>
-      <DataField name="sepal_width" optype="continuous" dataType="double"/>
+      <DataField name="PetalLengthCm" optype="continuous" dataType="double"/>
+      <DataField name="PetalWidthCm" optype="continuous" dataType="double"/>
+      <DataField name="SepalLengthCm" optype="continuous" dataType="double"/>
+      <DataField name="SepalWidthCm" optype="continuous" dataType="double"/>
       <DataField name="class" optype="categorical" dataType="string"/>
     </DataDictionary>
     <TransformationDictionary>
@@ -74,11 +74,11 @@
     <TreeModel functionName="classification" splitCharacteristic="binarySplit">
       <MiningSchema>
         <MiningField name="class" usageType="predicted" optype="categorical"/>
-        <MiningField name="petal_width" usageType="active" optype="continuous"/>
+        <MiningField name="PetalWidthCm" usageType="active" optype="continuous"/>
       </MiningSchema>
       <Output>
-        <OutputField name="P_classIris_setosa" displayName="Predicted: class=Iris-setosa" optype="continuous" dataType="double" targetField="class" feature="probability" value="IRIS-SETOSA"/>
-        <OutputField name="P_classIris_versicolor" displayName="Predicted: class=Iris-versicolor" optype="continuous" dataType="double" targetField="class" feature="probability" value="IRIS-VERSICOLOR"/>
+        <OutputField name="Iris-setosa" displayName="Predicted: class=Iris-setosa" optype="continuous" dataType="double" targetField="class" feature="probability" value="IRIS-SETOSA"/>
+        <OutputField name="Iris-versicolor" displayName="Predicted: class=Iris-versicolor" optype="continuous" dataType="double" targetField="class" feature="probability" value="IRIS-VERSICOLOR"/>
         <OutputField name="P_classIris_virginica" displayName="Predicted: class=Iris-virginica" optype="continuous" dataType="double" targetField="class" feature="probability" value="IRIS-VIRGINICA"/>
         <OutputField name="Q_classIris_setosa" displayName="Unadjusted P: class=Iris-setosa" optype="continuous" dataType="double" targetField="class" feature="probability" value="IRIS-SETOSA"/>
         <OutputField name="Q_classIris_versicolor" displayName="Unadjusted P: class=Iris-versicolor" optype="continuous" dataType="double" targetField="class" feature="probability" value="IRIS-VERSICOLOR"/>
@@ -104,7 +104,7 @@
         <ScoreDistribution value="IRIS-VIRGINICA" recordCount="35" confidence="0.3398058252"/>
         <Node id="2" score="IRIS-SETOSA" recordCount="34">
           <CompoundPredicate booleanOperator="surrogate">
-            <SimplePredicate field="petal_width" operator="lessThan" value="    0.8"/>
+            <SimplePredicate field="PetalWidthCm" operator="lessThan" value="    0.8"/>
             <False/>
           </CompoundPredicate>
           <ScoreDistribution value="IRIS-SETOSA" recordCount="34" confidence="1"/>
@@ -113,15 +113,15 @@
         </Node>
         <Node id="3" score="IRIS-VIRGINICA" recordCount="69">
           <CompoundPredicate booleanOperator="surrogate">
-            <SimplePredicate field="petal_width" operator="greaterOrEqual" value="    0.8"/>
-            <SimplePredicate field="petal_width" operator="isMissing"/>
+            <SimplePredicate field="PetalWidthCm" operator="greaterOrEqual" value="    0.8"/>
+            <SimplePredicate field="PetalWidthCm" operator="isMissing"/>
           </CompoundPredicate>
           <ScoreDistribution value="IRIS-SETOSA" recordCount="0" confidence="0"/>
           <ScoreDistribution value="IRIS-VERSICOLOR" recordCount="34" confidence="0.4927536232"/>
           <ScoreDistribution value="IRIS-VIRGINICA" recordCount="35" confidence="0.5072463768"/>
           <Node id="5" score="IRIS-VIRGINICA" recordCount="32">
             <CompoundPredicate booleanOperator="surrogate">
-              <SimplePredicate field="petal_width" operator="greaterOrEqual" value="   1.75"/>
+              <SimplePredicate field="PetalWidthCm" operator="greaterOrEqual" value="   1.75"/>
               <False/>
             </CompoundPredicate>
             <ScoreDistribution value="IRIS-SETOSA" recordCount="0" confidence="0"/>
@@ -130,8 +130,8 @@
           </Node>
           <Node id="4" score="IRIS-VERSICOLOR" recordCount="37">
             <CompoundPredicate booleanOperator="surrogate">
-              <SimplePredicate field="petal_width" operator="lessThan" value="   1.75"/>
-              <SimplePredicate field="petal_width" operator="isMissing"/>
+              <SimplePredicate field="PetalWidthCm" operator="lessThan" value="   1.75"/>
+              <SimplePredicate field="PetalWidthCm" operator="isMissing"/>
             </CompoundPredicate>
             <ScoreDistribution value="IRIS-SETOSA" recordCount="0" confidence="0"/>
             <ScoreDistribution value="IRIS-VERSICOLOR" recordCount="33" confidence="0.8918918919"/>

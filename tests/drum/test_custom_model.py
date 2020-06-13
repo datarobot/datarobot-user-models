@@ -169,7 +169,7 @@ class TestCMRunner:
             (KERAS, BINARY): ["Iris-setosa", "Iris-versicolor"],
             (KERAS_VIZAI_TRAINING_JOBLIB, VIZAI_BINARY): ["cats", "dogs"],
             (RDS, BINARY): ["Iris-setosa", "Iris-versicolor"],
-            (PYPMML, PYPMML_BINARY): ["Another-Iris", "P_classIris_setosa"],
+            (PYPMML, PYPMML_BINARY): ["Iris-setosa", "Iris-versicolor"],
         }
 
     @classmethod
