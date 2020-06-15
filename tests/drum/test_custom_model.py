@@ -318,7 +318,7 @@ class TestCMRunner:
             assert in_data.shape[0] == out_data.shape[0]
 
     @pytest.mark.parametrize(
-        "framework, problem, language", [(SKLEARN, BINARY, PYTHON), (RDS, BINARY, R)],
+        "framework, problem, language", [(SKLEARN, BINARY, PYTHON), (RDS, BINARY, R)]
     )
     def test_bin_models_with_wrong_labels(self, framework, problem, language):
         custom_model_dir = self._create_custom_model_dir(framework, problem, language)
@@ -522,7 +522,7 @@ class TestCMRunner:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [(SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN), (SKLEARN, BINARY, PYTHON, None),],
+        [(SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN), (SKLEARN, BINARY, PYTHON, None)],
     )
     def test_custom_models_drum_prediction_server_response(
         self, framework, problem, language, docker
@@ -588,7 +588,7 @@ class TestCMRunner:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [(SKLEARN, BINARY, PYTHON, None), (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),],
+        [(SKLEARN, BINARY, PYTHON, None), (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN)],
     )
     def test_custom_models_perf_test(self, framework, problem, language, docker):
         custom_model_dir = self._create_custom_model_dir(framework, problem, language)
@@ -640,9 +640,7 @@ class TestCMRunner:
         else:
             assert re.search(r"Null value imputation\s+PASSED", stdo)
 
-    @pytest.mark.parametrize(
-        "language, language_suffix", [("python", ".py"), ("r", ".R"),],
-    )
+    @pytest.mark.parametrize("language, language_suffix", [("python", ".py"), ("r", ".R")])
     def test_template_creation(self, language, language_suffix):
         print("Running template creation tests: {}".format(language))
         directory = os.path.join("/tmp", "template_test_{}".format(uuid4()))
@@ -698,10 +696,7 @@ class TestCMRunner:
 
         with TemporaryDirectory() as output:
             cmd = "{} fit --code-dir {} --target {} --input {}".format(
-                ArgumentsOptions.MAIN_COMMAND,
-                custom_model_dir,
-                self.target[problem],
-                input_dataset,
+                ArgumentsOptions.MAIN_COMMAND, custom_model_dir, self.target[problem], input_dataset
             )
             if use_output:
                 cmd += " --output {}".format(output)
