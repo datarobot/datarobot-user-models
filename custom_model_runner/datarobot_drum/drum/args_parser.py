@@ -156,21 +156,22 @@ class CMRunnerArgsRegistry(object):
             return arg
 
         for parser in parsers:
+            fit_intuit_message = ""
+            prog_name_lst = CMRunnerArgsRegistry._tokenize_parser_prog(parser)
+            if prog_name_lst[1] == ArgumentsOptions.FIT:
+                fit_intuit_message = "If you do not provide these labels, but your dataset is classification, DRUM will choose the labels for you"
+
             parser.add_argument(
                 ArgumentsOptions.POSITIVE_CLASS_LABEL,
                 default=None,
                 type=are_both_labels_present,
-                help="Positive class label for a binary classification case. "
-                "If you do not provide these labels, but your dataset is classification, DRUM will"
-                " choose the labels for you",
+                help="Positive class label for a binary classification case. " + fit_intuit_message,
             )
             parser.add_argument(
                 ArgumentsOptions.NEGATIVE_CLASS_LABEL,
                 default=None,
                 type=are_both_labels_present,
-                help="Negative class label for a binary classification case. "
-                "If you do not provide these labels, but your dataset is classification, DRUM will"
-                " choose the labels for you",
+                help="Negative class label for a binary classification case. " + fit_intuit_message,
             )
 
     @staticmethod
