@@ -10,3 +10,4 @@ grpcio==1.27.2
 tensorflow<2
 keras==2.2.5
 Pillow==7.1.2
+pypmml==0.9.6
