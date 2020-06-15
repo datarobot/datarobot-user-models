@@ -1,13 +1,9 @@
 from __future__ import annotations
 
-from sklearn.pipeline import Pipeline
-
 # pandas/numpy imports
 import pandas as pd
 import numpy as np
 
-import joblib
-import h5py
 from pathlib import Path
 
 from typing import List, Optional
@@ -58,6 +54,8 @@ def fit(
     """
     # Feel free to delete which ever one of these you aren't using
     if class_order:
+        # select only textual columns
+        X = X.select_dtypes(object)
         img_features_col_mask = [X[col].str.startswith("/9j/", na=False).any() for col in X]
         # should have just one image feature
         assert sum(img_features_col_mask) == 1, "expecting just one image feature column"

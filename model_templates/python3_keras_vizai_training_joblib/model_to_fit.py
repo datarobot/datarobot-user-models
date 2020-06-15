@@ -11,7 +11,6 @@ from keras.models import load_model
 from keras.callbacks import EarlyStopping
 from keras.applications import VGG16
 from keras.applications.vgg16 import preprocess_input
-from keras.wrappers.scikit_learn import KerasClassifier
 
 # scikit-learn imports
 from sklearn.preprocessing import LabelBinarizer, label_binarize, FunctionTransformer
@@ -28,7 +27,7 @@ import base64
 import h5py
 from PIL import Image
 
-from typing import List, Optional
+from typing import List
 
 
 # define constants
