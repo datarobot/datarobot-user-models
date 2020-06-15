@@ -14,7 +14,7 @@ def make_classifier(X):
 
     # This example model only uses numeric features and drops the rest
     num_transformer = Pipeline(steps=[("imputer", SimpleImputer(strategy="mean"))])
-    preprocessor = ColumnTransformer(transformers=[("num", num_transformer, num_features),])
+    preprocessor = ColumnTransformer(transformers=[("num", num_transformer, num_features)])
 
     classifier = Pipeline(
         steps=[("preprocessor", preprocessor), ("classifier", SVC(probability=True))]
@@ -29,7 +29,7 @@ def make_regressor(X):
 
     # This example model only uses numeric features and drops the rest
     num_transformer = Pipeline(steps=[("imputer", SimpleImputer(strategy="mean"))])
-    preprocessor = ColumnTransformer(transformers=[("num", num_transformer, num_features),])
+    preprocessor = ColumnTransformer(transformers=[("num", num_transformer, num_features)])
 
     regressor = Pipeline(steps=[("preprocessor", preprocessor), ("regressor", SVR())])
     return regressor
