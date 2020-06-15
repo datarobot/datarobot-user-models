@@ -78,7 +78,7 @@ class PythonFit(ConnectableComponent):
             else None
         )
         self._model_adapter.fit(
-            X, y, output_dir=self.output_dir, class_order=class_order, row_weights=row_weights,
+            X, y, output_dir=self.output_dir, class_order=class_order, row_weights=row_weights
         )
 
         make_sure_artifact_is_small(self.output_dir)
