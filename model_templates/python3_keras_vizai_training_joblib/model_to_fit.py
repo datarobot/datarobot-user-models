@@ -91,12 +91,12 @@ def reshape_numpy_array(data_series: pd.Series) -> np.ndarray:
 
 
 def get_all_callbacks() -> list:
-    es = EarlyStopping(monitor="val_loss", patience=5, verbose=True, mode="auto", min_delta=1e-4,)
+    es = EarlyStopping(monitor="val_loss", patience=5, verbose=True, mode="auto", min_delta=1e-4)
     return [es]
 
 
 def apply_image_data_preprocessing(
-    x_data_df: pd.DataFrame, target_feature_name: str, image_feature_name: str,
+    x_data_df: pd.DataFrame, target_feature_name: str, image_feature_name: str
 ):
     X_data_df = preprocessing_X_transform(x_data_df, target_feature_name, image_feature_name)
     X_data = reshape_numpy_array(X_data_df[image_feature_name])
@@ -149,7 +149,7 @@ def create_image_binary_classification_model():
     model.add(Dense(128, activation="relu"))
     model.add(Dense(2, activation="sigmoid"))
     model.compile(
-        optimizer=keras.optimizers.Adam(), loss="binary_crossentropy", metrics=["binary_accuracy"],
+        optimizer=keras.optimizers.Adam(), loss="binary_crossentropy", metrics=["binary_accuracy"]
     )
     return model
 
@@ -195,7 +195,7 @@ def make_X_transformer_pipeline(X: pd.DataFrame, tgt_col, img_col):
 
     img_preprocessing_transformer = Pipeline(
         steps=[
-            ("img_imputer", SimpleImputer(fill_value=get_imputation_img(), strategy="constant"),),
+            ("img_imputer", SimpleImputer(fill_value=get_imputation_img(), strategy="constant")),
             (
                 "np_to_df",
                 FunctionTransformer(convert_np_to_df, validate=False, kw_args={"img_col": img_col}),
@@ -278,9 +278,7 @@ def deserialize_estimator_pipeline(joblib_file_path: str) -> Pipeline:
     with h5py.File(model, mode="r") as fp:
         keras_model = load_model(fp)
 
-    pipeline = Pipeline(
-        [("preprocessor", prep_pipeline), ("estimator", keras_model),], verbose=True
-    )
+    pipeline = Pipeline([("preprocessor", prep_pipeline), ("estimator", keras_model)], verbose=True)
     return pipeline
 
 
