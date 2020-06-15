@@ -257,9 +257,7 @@ class PythonModelAdapter:
 
         return predictions
 
-    def fit(
-        self, X, y, output_dir, class_order=None, row_weights=None,
-    ):
+    def fit(self, X, y, output_dir, class_order=None, row_weights=None):
         if self._custom_hooks.get(CustomHooks.FIT):
             self._custom_hooks[CustomHooks.FIT](
                 X, y, output_dir, class_order=class_order, row_weights=row_weights

@@ -152,23 +152,23 @@ class TestDropInEnvironments(object):
     @pytest.fixture(scope="session")
     def sklearn_regression_custom_model(self):
         return self.make_custom_model(
-            "sklearn_reg.pkl", custom_predict_path=CUSTOM_PREDICT_PY_PATH, target_name="MEDV",
+            "sklearn_reg.pkl", custom_predict_path=CUSTOM_PREDICT_PY_PATH, target_name="MEDV"
         )
 
     @pytest.fixture(scope="session")
     def keras_binary_custom_model(self):
         return self.make_custom_model(
-            "keras_bin.h5", "yes", "no", custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            "keras_bin.h5", "yes", "no", custom_predict_path=CUSTOM_PREDICT_PY_PATH
         )
 
     @pytest.fixture(scope="session")
     def keras_regression_custom_model(self):
-        return self.make_custom_model("keras_reg.h5", custom_predict_path=CUSTOM_PREDICT_PY_PATH,)
+        return self.make_custom_model("keras_reg.h5", custom_predict_path=CUSTOM_PREDICT_PY_PATH)
 
     @pytest.fixture(scope="session")
     def torch_binary_custom_model(self):
         return self.make_custom_model(
-            "torch_bin.pth", "yes", "no", CUSTOM_PREDICT_PY_PATH, ["PyTorch.py"],
+            "torch_bin.pth", "yes", "no", CUSTOM_PREDICT_PY_PATH, ["PyTorch.py"]
         )
 
     @pytest.fixture(scope="session")
@@ -182,17 +182,17 @@ class TestDropInEnvironments(object):
     @pytest.fixture(scope="session")
     def xgb_binary_custom_model(self):
         return self.make_custom_model(
-            "xgb_bin.pkl", "yes", "no", custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            "xgb_bin.pkl", "yes", "no", custom_predict_path=CUSTOM_PREDICT_PY_PATH
         )
 
     @pytest.fixture(scope="session")
     def xgb_regression_custom_model(self):
-        return self.make_custom_model("xgb_reg.pkl", custom_predict_path=CUSTOM_PREDICT_PY_PATH,)
+        return self.make_custom_model("xgb_reg.pkl", custom_predict_path=CUSTOM_PREDICT_PY_PATH)
 
     @pytest.fixture(scope="session")
     def python_multi_artifact_regression_custom_model(self):
         return self.make_custom_model(
-            ["sklearn_bin.pkl", "sklearn_reg.pkl"], custom_predict_path=CUSTOM_LOAD_PREDICT_PY_PATH,
+            ["sklearn_bin.pkl", "sklearn_reg.pkl"], custom_predict_path=CUSTOM_LOAD_PREDICT_PY_PATH
         )
 
     @pytest.fixture(scope="session")
@@ -216,7 +216,7 @@ class TestDropInEnvironments(object):
 
     @pytest.fixture(scope="session")
     def java_regression_custom_model(self):
-        return self.make_custom_model("java_reg.jar", artifact_only=True, target_name="MEDV",)
+        return self.make_custom_model("java_reg.jar", artifact_only=True, target_name="MEDV")
 
     @pytest.fixture(scope="session")
     def r_binary_custom_model(self):
@@ -231,22 +231,19 @@ class TestDropInEnvironments(object):
     @pytest.fixture(scope="session")
     def r_regression_custom_model(self):
         return self.make_custom_model(
-            "r_reg.rds", custom_predict_path=CUSTOM_PREDICT_R_PATH, target_name="MEDV",
+            "r_reg.rds", custom_predict_path=CUSTOM_PREDICT_R_PATH, target_name="MEDV"
         )
 
     @pytest.fixture(scope="session")
     def r_multi_artifact_binary_custom_model(self):
         return self.make_custom_model(
-            ["r_bin.rds", "r_reg.rds"],
-            "Iris-setosa",
-            "Iris-versicolor",
-            CUSTOM_LOAD_PREDICT_R_PATH,
+            ["r_bin.rds", "r_reg.rds"], "Iris-setosa", "Iris-versicolor", CUSTOM_LOAD_PREDICT_R_PATH
         )
 
     @pytest.fixture(scope="session")
     def bad_r_multi_artifact_binary_custom_model(self):
         return self.make_custom_model(
-            ["r_bin.rds", "r_reg.rds"], "Iris-setosa", "Iris-versicolor", CUSTOM_PREDICT_R_PATH,
+            ["r_bin.rds", "r_reg.rds"], "Iris-setosa", "Iris-versicolor", CUSTOM_PREDICT_R_PATH
         )
 
     @pytest.fixture(scope="session")
@@ -384,7 +381,7 @@ class TestDropInEnvironments(object):
                 "bad_python_multi_artifact_binary_custom_model",
                 "binary_testing_data",
             ),
-            ("r_drop_in_env", "bad_r_multi_artifact_binary_custom_model", "binary_testing_data",),
+            ("r_drop_in_env", "bad_r_multi_artifact_binary_custom_model", "binary_testing_data"),
         ],
     )
     def test_fail_multi_artifacts(self, request, env, model, test_data_id):

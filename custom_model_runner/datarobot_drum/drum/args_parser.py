@@ -84,7 +84,7 @@ class CMRunnerArgsRegistry(object):
                     )
                 )
             parser.add_argument(
-                ArgumentsOptions.OUTPUT, default=None, type=type_callback, help=help_message,
+                ArgumentsOptions.OUTPUT, default=None, type=type_callback, help=help_message
             )
 
     @staticmethod

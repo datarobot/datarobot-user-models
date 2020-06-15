@@ -444,6 +444,6 @@ class XGBoostPredictor(ArtifactPredictor):
             )
         else:
             preds = model.predict(data)
-            predictions = pd.DataFrame(data=preds, columns=[REGRESSION_PRED_COLUMN],)
+            predictions = pd.DataFrame(data=preds, columns=[REGRESSION_PRED_COLUMN])
 
         return predictions
