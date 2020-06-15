@@ -113,7 +113,7 @@ class CMRunTests:
                 PerfTestCase("{} {}".format(*_get_size_and_units(sample_size)), 1, 100),
                 PerfTestCase("0.1MB", int(samples_in_50mb / 500), 50),
                 PerfTestCase("10MB", int(samples_in_50mb / 5), 5),
-                PerfTestCase("50MB", samples_in_50mb, 1,),
+                PerfTestCase("50MB", samples_in_50mb, 1),
             ]
             self._test_cases_to_run = _default_test_cases
             self._df_for_test = df_50mb
