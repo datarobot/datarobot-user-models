@@ -100,7 +100,7 @@ def make_classifier_pipeline(X: pd.DataFrame) -> Pipeline:
 
     # This example model only uses numeric features and drops the rest
     num_transformer = Pipeline(steps=[("imputer", SimpleImputer(strategy="mean"))])
-    preprocessor = ColumnTransformer(transformers=[("num", num_transformer, num_features),])
+    preprocessor = ColumnTransformer(transformers=[("num", num_transformer, num_features)])
 
     # create model
     estimator = KerasClassifier(
@@ -137,7 +137,7 @@ def make_regressor_pipeline(X: pd.DataFrame) -> Pipeline:
     num_transformer = Pipeline(
         steps=[("imputer", SimpleImputer(strategy="mean")), ("standardize", StandardScaler())]
     )
-    preprocessor = ColumnTransformer(transformers=[("num", num_transformer, num_features),])
+    preprocessor = ColumnTransformer(transformers=[("num", num_transformer, num_features)])
 
     # create model
     estimator = KerasRegressor(
@@ -218,6 +218,6 @@ def deserialize_estimator_pipeline(joblib_file_path: str) -> Pipeline:
         keras_model = load_model(fp)
 
     pipeline = Pipeline(
-        [("preprocessor", estimator_dict["preprocessor_pipeline"]), ("estimator", keras_model),]
+        [("preprocessor", estimator_dict["preprocessor_pipeline"]), ("estimator", keras_model)]
     )
     return pipeline
