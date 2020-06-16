@@ -2,7 +2,6 @@ from typing import List, Optional
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from keras.utils import to_categorical
 
 from model_to_fit import (
     make_classifier_pipeline,
@@ -56,10 +55,9 @@ def fit(
 
         y = label_binarize(y, classes=class_order)
         estimator = make_classifier_pipeline(X)
-        estimator.fit(X, to_categorical(y))
     else:
         estimator = make_regressor_pipeline(X)
-        estimator.fit(X, y)
+    estimator.fit(X, y)
 
     # NOTE: We currently set a 10GB limit to the size of the serialized model
     output_dir_path = Path(output_dir)

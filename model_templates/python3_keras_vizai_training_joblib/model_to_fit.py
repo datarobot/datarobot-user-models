@@ -5,7 +5,6 @@ import keras
 from keras.models import Sequential
 from keras.layers import Dense  # core layers
 from keras.layers import GlobalAveragePooling2D  # CNN layers
-from keras.utils import to_categorical
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import load_model
 from keras.callbacks import EarlyStopping
@@ -146,7 +145,7 @@ def create_image_binary_classification_model():
     model.add(GlobalAveragePooling2D())
     model.add(Dense(256, activation="relu"))
     model.add(Dense(128, activation="relu"))
-    model.add(Dense(2, activation="sigmoid"))
+    model.add(Dense(1, activation="sigmoid"))
     model.compile(
         optimizer=keras.optimizers.Adam(), loss="binary_crossentropy", metrics=["binary_accuracy"]
     )
@@ -164,7 +163,6 @@ def get_transformed_train_test_split(
     else:
         lb = LabelBinarizer()
         y_series = lb.fit_transform(y_series)
-    y_series = to_categorical(y_series)
 
     # split train/test data
     msk = np.random.rand(len(X_df)) < TEST_SIZE

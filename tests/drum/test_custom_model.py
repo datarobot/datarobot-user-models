@@ -722,7 +722,7 @@ class TestCMRunner:
         input_dataset = self._get_dataset_filename(framework, problem)
 
         with TemporaryDirectory() as output:
-            cmd = "{} fit --code-dir {} --target {} --input {} --output {} --skip-predict".format(
+            cmd = "{} fit --verbose --code-dir {} --target {} --input {} --output {} --skip-predict".format(
                 ArgumentsOptions.MAIN_COMMAND,
                 custom_model_dir,
                 self.target[problem],
@@ -731,7 +731,7 @@ class TestCMRunner:
             )
             cmd = self._cmd_add_class_labels(cmd, framework, problem)
             if docker:
-                cmd += " --docker {} --verbose ".format(docker)
+                cmd += " --docker {}".format(docker)
 
             TestCMRunner._exec_shell_cmd(
                 cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)

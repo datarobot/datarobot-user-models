@@ -58,7 +58,7 @@ def create_binary_classification_model(num_features: int) -> Sequential:
     model: Sequential
         Compiled binary classification model
     """
-    input_dim, output_dim = num_features, 2
+    input_dim, output_dim = num_features, 1
 
     # create model
     model = Sequential()
