@@ -98,48 +98,6 @@ class TestDropInEnvironments(object):
         return custom_model.id, model_version.id
 
     @pytest.fixture(scope="session")
-    def java_drop_in_env(self):
-        env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "java_codegen")
-        environment = dr.ExecutionEnvironment.create(name="java_drop_in")
-        environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
-        return environment.id, environment_version.id
-
-    @pytest.fixture(scope="session")
-    def sklearn_drop_in_env(self):
-        env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "python3_sklearn")
-        environment = dr.ExecutionEnvironment.create(name="python3_sklearn")
-        environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
-        return environment.id, environment_version.id
-
-    @pytest.fixture(scope="session")
-    def xgboost_drop_in_env(self):
-        env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "python3_xgboost")
-        environment = dr.ExecutionEnvironment.create(name="python3_xgboost")
-        environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
-        return environment.id, environment_version.id
-
-    @pytest.fixture(scope="session")
-    def pytorch_drop_in_env(self):
-        env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "python3_pytorch")
-        environment = dr.ExecutionEnvironment.create(name="python3_pytorch")
-        environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
-        return environment.id, environment_version.id
-
-    @pytest.fixture(scope="session")
-    def keras_drop_in_env(self):
-        env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "python3_keras")
-        environment = dr.ExecutionEnvironment.create(name="python3_keras")
-        environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
-        return environment.id, environment_version.id
-
-    @pytest.fixture(scope="session")
-    def r_drop_in_env(self):
-        env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "r_lang")
-        environment = dr.ExecutionEnvironment.create(name="r_drop_in")
-        environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
-        return environment.id, environment_version.id
-
-    @pytest.fixture(scope="session")
     def sklearn_binary_custom_model(self):
         return self.make_custom_model(
             "sklearn_bin.pkl",
