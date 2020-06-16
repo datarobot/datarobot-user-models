@@ -61,12 +61,10 @@ def fit(
         tgt_col = y.name
 
         X_train, X_test, y_train, y_test = get_transformed_train_test_split(X, y, class_order)
-        assert len(X_train) == len(y_train)
-        assert len(X_test) == len(y_test)
         fit_estimator = fit_image_classifier_pipeline(
             X_train, X_test, y_train, y_test, tgt_col, img_col
         )
         # NOTE: We currently set a 10GB limit to the size of the serialized model
-        serialize_estimator_pipeline(fit_estimator, model_path)
+        serialize_estimator_pipeline(fit_estimator, output_dir)
     else:
         raise NotImplementedError("Regression not implemented for Visual AI.")
