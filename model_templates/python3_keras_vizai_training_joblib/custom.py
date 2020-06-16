@@ -52,18 +52,8 @@ def fit(
     """
     # Feel free to delete which ever one of these you aren't using
     if class_order:
-        # select only textual columns
-        X = X.select_dtypes(object)
-        img_features_col_mask = [X[col].str.startswith("/9j/", na=False).any() for col in X]
-        # should have just one image feature
-        assert sum(img_features_col_mask) == 1, "expecting just one image feature column"
-        img_col = X.columns[np.argmax(img_features_col_mask)]
-        tgt_col = y.name
-
         X_train, X_test, y_train, y_test = get_transformed_train_test_split(X, y, class_order)
-        fit_estimator = fit_image_classifier_pipeline(
-            X_train, X_test, y_train, y_test, tgt_col, img_col
-        )
+        fit_estimator = fit_image_classifier_pipeline(X_train, X_test, y_train, y_test)
         # NOTE: We currently set a 10GB limit to the size of the serialized model
         serialize_estimator_pipeline(fit_estimator, output_dir)
     else:

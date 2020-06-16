@@ -25,7 +25,6 @@ import io
 import base64
 import h5py
 from PIL import Image
-
 from pathlib import Path
 
 from typing import List
@@ -70,15 +69,10 @@ def get_imputation_img() -> str:
     return get_base64_str_from_PIL_img(black_PIL_img)
 
 
-def preprocessing_X_transform(
-    data_df: pd.DataFrame, target_feature_name: str, image_feature_name: str
-) -> pd.DataFrame:
+def preprocessing_X_transform(data_df: pd.DataFrame, image_feature_name: str,) -> pd.DataFrame:
     """ Apply the preprocessing methods on the data before prediction for the model to work on """
 
     data_df = data_df.copy()
-    if target_feature_name in data_df:
-        data_df.pop(target_feature_name)
-
     if image_feature_name in data_df:
         data_df[image_feature_name] = data_df[image_feature_name].astype(bytes)
         data_df[image_feature_name] = data_df[image_feature_name].apply(get_img_obj_from_base64_str)
@@ -95,11 +89,10 @@ def get_all_callbacks() -> list:
     return [es]
 
 
-def apply_image_data_preprocessing(
-    x_data_df: pd.DataFrame, target_feature_name: str, image_feature_name: str
-):
-    X_data_df = preprocessing_X_transform(x_data_df, target_feature_name, image_feature_name)
+def apply_image_data_preprocessing(x_data_df: pd.DataFrame, image_feature_name: str):
+    X_data_df = preprocessing_X_transform(x_data_df, image_feature_name)
     X_data = reshape_numpy_array(X_data_df[image_feature_name])
+
     return X_data
 
 
@@ -181,16 +174,19 @@ def convert_np_to_df(np_array, img_col):
     return pd.DataFrame(data=np_array, columns=[img_col])
 
 
-def apply_preprocessing(x_df, tgt_col, img_col):
-    return apply_image_data_preprocessing(x_df, tgt_col, img_col)
-
-
-def make_X_transformer_pipeline(X: pd.DataFrame, tgt_col, img_col):
+def get_image_feature_column(X: pd.DataFrame):
+    X = X.select_dtypes(object)
     img_features_col_mask = [X[col].str.startswith("/9j/", na=False).any() for col in X]
+
     # should have just one image feature
     assert sum(img_features_col_mask) == 1, "expecting just one image feature column"
-    # img_col = X.columns[np.argmax(img_features_col_mask)]
-    # tgt_col = X.columns[np.argmin(img_features_col_mask)]
+
+    img_col = X.columns[np.argmax(img_features_col_mask)]
+    return img_col
+
+
+def make_X_transformer_pipeline(X: pd.DataFrame):
+    img_col = get_image_feature_column(X)
 
     img_preprocessing_transformer = Pipeline(
         steps=[
@@ -202,15 +198,14 @@ def make_X_transformer_pipeline(X: pd.DataFrame, tgt_col, img_col):
             (
                 "apply_preprocessing",
                 FunctionTransformer(
-                    apply_preprocessing,
+                    apply_image_data_preprocessing,
                     validate=False,
-                    kw_args={"tgt_col": tgt_col, "img_col": img_col},
+                    kw_args={"image_feature_name": img_col},
                 ),
             ),
         ],
         verbose=True,
     )
-
     return img_preprocessing_transformer
 
 
@@ -285,14 +280,9 @@ def deserialize_estimator_pipeline(joblib_file_path: str) -> Pipeline:
 
 
 def fit_image_classifier_pipeline(
-    X_train: pd.DataFrame,
-    X_test: pd.DataFrame,
-    y_train: pd.Series,
-    y_test: pd.Series,
-    tgt_col: str,
-    img_col: str,
+    X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series, y_test: pd.Series,
 ) -> Pipeline:
-    X_transformer = make_X_transformer_pipeline(X_train, tgt_col, img_col)
+    X_transformer = make_X_transformer_pipeline(X_train)
 
     X_train_transformed = X_transformer.fit_transform(X_train, y_train)
     train_gen = get_image_augmentation_gen(X_train_transformed, y_train, BATCH_SIZE, SEED)

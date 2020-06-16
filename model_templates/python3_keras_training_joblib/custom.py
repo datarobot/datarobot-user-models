@@ -1,7 +1,6 @@
 from typing import List, Optional
 import pandas as pd
 import numpy as np
-from pathlib import Path
 
 from model_to_fit import (
     make_classifier_pipeline,
@@ -60,10 +59,7 @@ def fit(
     estimator.fit(X, y)
 
     # NOTE: We currently set a 10GB limit to the size of the serialized model
-    output_dir_path = Path(output_dir)
-    if output_dir_path.exists() and output_dir_path.is_dir():
-        model_path = output_dir_path / "artifact.joblib"
-        serialize_estimator_pipeline(estimator, model_path)
+    serialize_estimator_pipeline(estimator, output_dir)
 
 
 def load_model(input_dir: str) -> Pipeline:
@@ -83,9 +79,7 @@ def load_model(input_dir: str) -> Pipeline:
 
     Returns
     -------
-    pipelined_model: Pipeline
+    Pipeline
         Estimator pipeline obj
     """
-    artifact_path = Path(input_dir) / "artifact.joblib"
-    pipelined_model = deserialize_estimator_pipeline(artifact_path)
-    return pipelined_model
+    return deserialize_estimator_pipeline(input_dir)
