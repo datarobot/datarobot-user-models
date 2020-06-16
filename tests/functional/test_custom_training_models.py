@@ -53,8 +53,8 @@ class TestTrainingModelTemplates(object):
                 "project_binary_iris",
                 "keras_drop_in_env",
                 "binary",
-                "Iris-setosa",
-                "Iris-versicolor",
+                None,
+                None,
             ),
             (
                 "python3_xgboost_training",
@@ -69,8 +69,8 @@ class TestTrainingModelTemplates(object):
                 "project_binary_iris",
                 "xgboost_drop_in_env",
                 "binary",
-                "Iris-setosa",
-                "Iris-versicolor",
+                None,
+                None,
             ),
             (
                 "python3_sklearn_training",
@@ -85,8 +85,8 @@ class TestTrainingModelTemplates(object):
                 "project_binary_iris",
                 "sklearn_drop_in_env",
                 "binary",
-                "Iris-setosa",
-                "Iris-versicolor",
+                None,
+                None,
             )
             # this case is failing: RAPTOR-2922
             # (
