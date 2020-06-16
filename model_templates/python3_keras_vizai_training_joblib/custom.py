@@ -4,8 +4,6 @@ from __future__ import annotations
 import pandas as pd
 import numpy as np
 
-from pathlib import Path
-
 from typing import List, Optional
 
 from model_to_fit import (
@@ -69,9 +67,6 @@ def fit(
             X_train, X_test, y_train, y_test, tgt_col, img_col
         )
         # NOTE: We currently set a 10GB limit to the size of the serialized model
-        output_dir_path = Path(output_dir)
-        if output_dir_path.exists() and output_dir_path.is_dir():
-            model_path = output_dir_path / "artifact.joblib"
-            serialize_estimator_pipeline(fit_estimator, model_path)
+        serialize_estimator_pipeline(fit_estimator, model_path)
     else:
         raise NotImplementedError("Regression not implemented for Visual AI.")

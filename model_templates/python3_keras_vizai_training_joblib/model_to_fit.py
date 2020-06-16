@@ -26,6 +26,8 @@ import base64
 import h5py
 from PIL import Image
 
+from pathlib import Path
+
 from typing import List
 
 
@@ -212,7 +214,7 @@ def make_X_transformer_pipeline(X: pd.DataFrame, tgt_col, img_col):
     return img_preprocessing_transformer
 
 
-def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_file_path: str) -> None:
+def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_dir: str) -> None:
     """
     Save the estimator pipeline object in the file path provided.
     This function extracts the preprocessor pipeline and estimator model from the pipeline
@@ -220,12 +222,14 @@ def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_file_path:
     file in the given path. This is required as there is no default save method currently
     available. Also with this we consolidate and bundle the preprocessor pipeline and keras model
     as one single joblib file, which otherwise would require two different file '.pkl' and '.h5'
+
     Parameters
     ----------
     estimator_pipeline: Pipeline
         Estimator pipeline object with necessary preprocessor and estimator(classifier/regressor) included.
-    output_file_path: str
-        Output file path where the joblib would be saved/dumped.
+    output_dir: str
+        Output directory path where the joblib would be saved/dumped.
+
     Returns
     -------
     Nothing
@@ -251,6 +255,7 @@ def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_file_path:
     model_dict["model"] = io_container
 
     # save the dict obj as a joblib file
+    output_file_path = Path(output_dir) / "artifact.joblib"
     joblib.dump(model_dict, output_file_path)
 
 
