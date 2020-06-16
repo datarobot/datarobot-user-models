@@ -11,10 +11,6 @@ BASE_DATASET_DIR = "tests/testdata"
 
 
 class TestTrainingModelTemplates(object):
-    @classmethod
-    def setup_class(cls):
-        dr.Client(endpoint="http://localhost/api/v2", token=os.environ["DATAROBOT_API_TOKEN"])
-
     @pytest.fixture(scope="session")
     def project_regression_boston(self):
         proj = dr.Project.create(sourcedata=os.path.join(BASE_DATASET_DIR, "boston_housing.csv"))
