@@ -49,6 +49,14 @@ class TestTrainingModelTemplates(object):
                 None,
             ),
             (
+                "python3_keras_training_joblib",
+                "project_binary_iris",
+                "keras_drop_in_env",
+                "binary",
+                "Iris-setosa",
+                "Iris-versicolor",
+            )
+            (
                 "python3_xgboost_training",
                 "project_regression_boston",
                 "xgboost_drop_in_env",
@@ -57,6 +65,14 @@ class TestTrainingModelTemplates(object):
                 None,
             ),
             (
+                "python3_xgboost_training",
+                "project_binary_iris",
+                "xgboost_drop_in_env",
+                "binary",
+                "Iris-setosa",
+                "Iris-versicolor",
+            )
+            (
                 "python3_sklearn_training",
                 "project_regression_boston",
                 "sklearn_drop_in_env",
@@ -64,6 +80,14 @@ class TestTrainingModelTemplates(object):
                 None,
                 None,
             ),
+            (
+                "python3_sklearn_training",
+                "project_binary_iris",
+                "sklearn_drop_in_env",
+                "binary",
+                "Iris-setosa",
+                "Iris-versicolor",
+            )
             # this case is failing: RAPTOR-2922
             # (
             #    "python3_keras_vizai_training_joblib",
@@ -108,11 +132,8 @@ class TestTrainingModelTemplates(object):
 
         job = dr.ModelJob.get(proj_id, job_id)
         test_passed = False
-        try:
-            res = job.get_result_when_complete()
-            if isinstance(res, dr.Model):
-                test_passed = True
-        except:
-            pass
+        res = job.get_result_when_complete()
+        if isinstance(res, dr.Model):
+            test_passed = True
 
-        assert test_passed
+        assert test_passed, "Job result is the object: " + str(res)

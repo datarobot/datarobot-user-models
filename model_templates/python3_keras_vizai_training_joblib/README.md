@@ -1,4 +1,4 @@
-## Python Keras Vizai Training Model Template
+## Python Keras Visual AI Training Model Template
 
 This model is intended to work with the [Python 3 Keras Drop-In Environment](../../public_dropin_environments/python3_keras/).
 
