@@ -2,7 +2,7 @@ from __future__ import annotations
 
 # keras imports
 import keras
-from keras.models import Sequential
+from keras.models import Sequential, Model
 from keras.layers import Dense  # core layers
 from keras.layers import GlobalAveragePooling2D  # CNN layers
 from keras.preprocessing.image import ImageDataGenerator
@@ -27,7 +27,7 @@ import h5py
 from PIL import Image
 from pathlib import Path
 
-from typing import List
+from typing import List, Iterator
 
 
 # define constants
@@ -65,6 +65,7 @@ def img_preprocessing(pillowed_img: Image) -> np.ndarray:
 
 
 def get_imputation_img() -> str:
+    """ black image in base64 str for data imputation filling """
     black_PIL_img = Image.fromarray(np.zeros(IMG_SHAPE, dtype="float32"), "RGB")
     return get_base64_str_from_PIL_img(black_PIL_img)
 
@@ -81,22 +82,26 @@ def preprocessing_X_transform(data_df: pd.DataFrame, image_feature_name: str,) -
 
 
 def reshape_numpy_array(data_series: pd.Series) -> np.ndarray:
+    """ Convert pd.Series to numpy array and reshape it too """
     return np.asarray(data_series.to_list()).reshape(-1, *IMG_SHAPE)
 
 
 def get_all_callbacks() -> list:
+    """ List of all keras callbacks """
     es = EarlyStopping(monitor="val_loss", patience=5, verbose=True, mode="auto", min_delta=1e-4)
     return [es]
 
 
-def apply_image_data_preprocessing(x_data_df: pd.DataFrame, image_feature_name: str):
+def apply_image_data_preprocessing(x_data_df: pd.DataFrame, image_feature_name: str) -> np.ndarray:
+    """ Image data preprocessing before fit """
     X_data_df = preprocessing_X_transform(x_data_df, image_feature_name)
     X_data = reshape_numpy_array(X_data_df[image_feature_name])
 
     return X_data
 
 
-def get_image_augmentation_gen(X_data, y_data, bs, seed):
+def get_image_augmentation_gen(X_data, y_data, bs, seed) -> Iterator[tuple]:
+    """ Generator which yields tuple of image data and corresponding labels in np.array """
     # normalize by rescaling
     datagen = ImageDataGenerator(
         rescale=1.0 / 255,
@@ -113,7 +118,8 @@ def get_image_augmentation_gen(X_data, y_data, bs, seed):
     return image_aug_generator
 
 
-def get_pretrained_base_model():
+def get_pretrained_base_model() -> Model:
+    """ A base pretrained model to build on top of """
     pretrained_model = VGG16(
         weights="imagenet", include_top=False, input_shape=IMG_SHAPE, classes=NUM_CLASSES
     )
@@ -121,18 +127,13 @@ def get_pretrained_base_model():
     return pretrained_model
 
 
-def create_image_binary_classification_model():
+def create_image_binary_classification_model() -> Model:
     """
     Create an image binary classification model.
 
-    Parameters
-    ----------
-    num_features: int
-        Number of features in X to be trained with
-
     Returns
     -------
-    model: Sequential
+    Model
         Compiled binary classification model
     """
     model = Sequential()
@@ -149,7 +150,8 @@ def create_image_binary_classification_model():
 
 def get_transformed_train_test_split(
     X_df: pd.DataFrame, y_series: pd.Series, class_order: List[str]
-):
+) -> tuple:
+    """ split train/test data after apply label encoder on y """
     assert len(X_df) == len(y_series)
 
     # preprocessing steps
@@ -170,11 +172,13 @@ def get_transformed_train_test_split(
     return (x_train_data, x_test_data, y_train_data, y_test_data)
 
 
-def convert_np_to_df(np_array, img_col):
+def convert_np_to_df(np_array, img_col) -> pd.DataFrame:
+    """ simple utility to convert numpy array to dataframe """
     return pd.DataFrame(data=np_array, columns=[img_col])
 
 
-def get_image_feature_column(X: pd.DataFrame):
+def get_image_feature_column(X: pd.DataFrame) -> str:
+    """ Get only the image feature column name from X """
     X = X.select_dtypes(object)
     img_features_col_mask = [X[col].str.startswith("/9j/", na=False).any() for col in X]
 
@@ -185,7 +189,8 @@ def get_image_feature_column(X: pd.DataFrame):
     return img_col
 
 
-def make_X_transformer_pipeline(X: pd.DataFrame):
+def make_X_transformer_pipeline(X: pd.DataFrame) -> Pipeline:
+    """ Image preprocessing pipeline """
     img_col = get_image_feature_column(X)
 
     img_preprocessing_transformer = Pipeline(
@@ -283,6 +288,7 @@ def deserialize_estimator_pipeline(input_dir: str) -> Pipeline:
 def fit_image_classifier_pipeline(
     X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series, y_test: pd.Series,
 ) -> Pipeline:
+    """ Fit the estimator pipeline """
     X_transformer = make_X_transformer_pipeline(X_train)
 
     X_train_transformed = X_transformer.fit_transform(X_train, y_train)
