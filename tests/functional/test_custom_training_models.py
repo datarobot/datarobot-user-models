@@ -55,7 +55,7 @@ class TestTrainingModelTemplates(object):
                 "binary",
                 "Iris-setosa",
                 "Iris-versicolor",
-            )
+            ),
             (
                 "python3_xgboost_training",
                 "project_regression_boston",
@@ -71,7 +71,7 @@ class TestTrainingModelTemplates(object):
                 "binary",
                 "Iris-setosa",
                 "Iris-versicolor",
-            )
+            ),
             (
                 "python3_sklearn_training",
                 "project_regression_boston",

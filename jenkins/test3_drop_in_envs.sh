@@ -2,6 +2,5 @@
 
 CDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
 
-py.test tests/functional/test_drop_in_environments.py \
-        tests/functional/test_custom_training_models.py \
+py.test tests/functional/test_custom_training_models.py \
         --junit-xml="$CDIR/results_drop_in.xml"
