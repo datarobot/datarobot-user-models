@@ -254,7 +254,7 @@ def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_dir: str) 
     joblib.dump(model_dict, output_file_path)
 
 
-def deserialize_estimator_pipeline(joblib_file_path: str) -> Pipeline:
+def deserialize_estimator_pipeline(input_dir: str) -> Pipeline:
     """
     Load estimator pipeline from the given joblib file.
 
@@ -269,6 +269,7 @@ def deserialize_estimator_pipeline(joblib_file_path: str) -> Pipeline:
         Constructed pipeline with necessary preprocessor steps and estimator to predict/score.
     """
     # load the dictionary obj from the joblib file
+    joblib_file_path = Path(input_dir) / "artifact.joblib"
     estimator_dict = joblib.load(joblib_file_path)
     model = estimator_dict["model"]
     prep_pipeline = estimator_dict["preprocessor_pipeline"]
