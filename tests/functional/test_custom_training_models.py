@@ -29,30 +29,55 @@ class TestTrainingModelTemplates(object):
         proj.set_target(target="Species", mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
+    @pytest.fixture(scope="session")
+    def project_binary_cats_dogs(self):
+        proj = dr.Project.create(
+            sourcedata=os.path.join(BASE_DATASET_DIR, "cats_dogs_small_training.csv")
+        )
+        proj.set_target(target="class", mode=dr.AUTOPILOT_MODE.MANUAL)
+        return proj.id
+
     @pytest.mark.parametrize(
-        "model_template, proj, target_type, env",
+        "model_template, proj, env, target_type, pos_label, neg_label",
         [
             (
                 "python3_keras_training_joblib",
                 "project_regression_boston",
-                "regression",
                 "keras_drop_in_env",
+                "regression",
+                None,
+                None,
             ),
             (
                 "python3_xgboost_training",
                 "project_regression_boston",
-                "regression",
                 "xgboost_drop_in_env",
+                "regression",
+                None,
+                None,
             ),
             (
                 "python3_sklearn_training",
                 "project_regression_boston",
-                "regression",
                 "sklearn_drop_in_env",
+                "regression",
+                None,
+                None,
             ),
+            # this case is failing: RAPTOR-2922
+            # (
+            #    "python3_keras_vizai_training_joblib",
+            #    "project_binary_cats_dogs",
+            #    "keras_drop_in_env",
+            #    "binary",
+            #    "cats",
+            #    "dogs",
+            # ),
         ],
     )
-    def test_training_model_templates(self, request, model_template, proj, target_type, env):
+    def test_training_model_templates(
+        self, request, model_template, proj, env, target_type, pos_label, neg_label
+    ):
         env_id, env_version_id = request.getfixturevalue(env)
         proj_id = request.getfixturevalue(proj)
         dr_target_type = (
@@ -60,7 +85,11 @@ class TestTrainingModelTemplates(object):
         )
 
         model = CustomTrainingModel.create(
-            name=model_template, target_type=dr_target_type, description=model_template
+            name=model_template,
+            target_type=dr_target_type,
+            description=model_template,
+            positive_class_label=pos_label,
+            negative_class_label=neg_label,
         )
 
         model_version = dr.CustomModelVersion.create_clean(
