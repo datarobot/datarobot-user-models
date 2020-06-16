@@ -86,7 +86,7 @@ def reshape_numpy_array(data_series: pd.Series) -> np.ndarray:
     return np.asarray(data_series.to_list()).reshape(-1, *IMG_SHAPE)
 
 
-def get_all_callbacks() -> list:
+def get_all_callbacks() -> List[keras.callbacks]:
     """ List of all keras callbacks """
     es = EarlyStopping(monitor="val_loss", patience=5, verbose=True, mode="auto", min_delta=1e-4)
     return [es]
@@ -286,9 +286,10 @@ def deserialize_estimator_pipeline(input_dir: str) -> Pipeline:
 
 
 def fit_image_classifier_pipeline(
-    X_train: pd.DataFrame, X_test: pd.DataFrame, y_train: pd.Series, y_test: pd.Series,
+    X: pd.DataFrame, y: pd.Series, class_order: List[str]
 ) -> Pipeline:
     """ Fit the estimator pipeline """
+    X_train, X_test, y_train, y_test = get_transformed_train_test_split(X, y, class_order)
     X_transformer = make_X_transformer_pipeline(X_train)
 
     X_train_transformed = X_transformer.fit_transform(X_train, y_train)

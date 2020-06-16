@@ -52,8 +52,7 @@ def fit(
     """
     # Feel free to delete which ever one of these you aren't using
     if class_order:
-        X_train, X_test, y_train, y_test = get_transformed_train_test_split(X, y, class_order)
-        fit_estimator = fit_image_classifier_pipeline(X_train, X_test, y_train, y_test)
+        fit_estimator = fit_image_classifier_pipeline(X, y, class_order)
         # NOTE: We currently set a 10GB limit to the size of the serialized model
         serialize_estimator_pipeline(fit_estimator, output_dir)
     else:
