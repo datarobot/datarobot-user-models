@@ -4,14 +4,7 @@ from typing import List, Optional
 import numpy as np
 import pandas as pd
 
-from make_fit_method import make_classifier, make_regressor
-
-
-####################################################################################################
-
-##############################
-### Custom Training Models ###
-##############################
+from create_pipeline import make_classifier, make_regressor
 
 
 def fit(

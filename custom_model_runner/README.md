@@ -272,6 +272,8 @@ drum fit --code-dir model_templates/python3_sklearn --target Species --input \
 tests/testdata/iris_binary_training.csv --output . --positive-class-label Iris-setosa \
 --negative-class-label Iris-versicolor
 ```
+NOTE: If you don't provide class label, we will try to autodetect the labels for you. 
+
 You can also use **drum** on regression datasets, and soon, you will be able to provide row weights
 as well. Checkout the ```drum fit --help``` output for further details. 
 
