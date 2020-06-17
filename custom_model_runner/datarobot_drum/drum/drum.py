@@ -485,9 +485,11 @@ class CMRunner(object):
 
 def possibly_intuit_order(input_data_file, target_data_file=None, target_col_name=None):
     if target_data_file:
+        assert target_col_name is None
         y = pd.read_csv(target_data_file, index_col=False).head(1000)
         classes = np.unique(y.iloc[:, 0])
     else:
+        assert target_data_file is None
         df = pd.read_csv(input_data_file)
         classes = np.unique(df[target_col_name].head(1000))
     if len(classes) == 2:
