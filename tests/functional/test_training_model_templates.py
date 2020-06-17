@@ -77,7 +77,7 @@ class TestTrainingModelTemplates(object):
                 "sklearn_drop_in_env",
                 "binary",
                 marks=pytest.mark.skip(reason="RAPTOR-2826"),
-            )
+            ),
         ],
     )
     def test_training_model_templates(self, request, model_template, proj, env, target_type):
