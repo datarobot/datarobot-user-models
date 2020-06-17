@@ -1,4 +1,6 @@
 # :bowtie: Welcome to Custom Training Models :bowtie: 
+*NOTE*: This feature is currently in Beta. That means to get access to it, you need to reach out and 
+ask us. Please email `sylvain.ferrandiz@datarobot.com` if you are interested. 
 
 This is a quick start guide.
 
