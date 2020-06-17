@@ -69,6 +69,7 @@ class TestTrainingModelTemplates(object):
                 "project_regression_boston",
                 "sklearn_drop_in_env",
                 "regression",
+                marks=pytest.mark.skip(reason="RAPTOR-2826"),
             ),
             pytest.param(
                 "python3_sklearn_training",
