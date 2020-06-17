@@ -5,7 +5,7 @@ from pathlib import Path
 from keras.utils import to_categorical
 from sklearn.preprocessing import label_binarize
 
-from model_to_fit import (
+from example_code import (
     make_classifier_pipeline,
     make_regressor_pipeline,
     serialize_estimator_pipeline,
