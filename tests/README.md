@@ -2,7 +2,7 @@
 Here is how test are organized in this repo. If you want to add more test cases, decide under which category they fall, or create a new one.
 
 
-## tests folder ciontent
+## tests folder content
 
 - [fixtures](fixtures) - folder contains pre-created model artifacts, datasets, customization files used in the tests. 
 - [drum](drum) - integration tests for the drum tool. Tests run in a single virtual environment which installs all the dependencies required by artifacts located in [fixtures](#fixtures). 
