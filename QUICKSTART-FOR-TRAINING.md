@@ -32,31 +32,30 @@ to test locally
 pip install -r public_dropin_environments/python3_sklearn/dr_requirements.txt \
  -r public_dropin_environments/python3_sklearn/dr_requirements.txt
 ```
-6. Theres no step 6! Thats it. 
 ### Test that your code works locally
-7. To do this, we're going to be using the tester tool developed by DataRobot engineers to make 
+6. To do this, we're going to be using the tester tool developed by DataRobot engineers to make 
 sure your model is in tip top shape to be uploaded into the app. This tool is called DRUM. Here's
 how to run it
 ```
 drum fit --code-dir model_templates/python3_sklearn_training \
 --input tests/testdata/iris_binary_training.csv --target Species --verbose
 ```
-This is going to build a model with the code in the `python3_sklearn_training`, and then use
-that model to make predictions using the training data it fit with. 
+This is going to build a model with the code in the `python3_sklearn_training` directory, 
+and then use that model to make predictions using the training data it fit with. 
 ### Upload your code into DataRobot
-8. Now that we've made sure the model can run, it's time to add it into DataRobot. To do this, 
+7. Now that we've made sure the model can run, it's time to add it into DataRobot. To do this, 
 go to `staging.datarobot.com`. 
-9. First, make a project with the data file we just tested the model with. Start the project in 
+8. First, make a project with the data file we just tested the model with. Start the project in 
 manual mode.
-10. Make sure that the feature flag `Enable Custom Training Models` is checked off. 
-11. You should see a top level tab called the `Model Registry` click on that, and then go into the
+9. Make sure that the feature flag `Enable Custom Training Models` is checked off. 
+10. You should see a top level tab called the `Model Registry` click on that, and then go into the
 custom model workshop
-12. Create a new custom training model with the target type Binary. 
-13. After this, drag and drop the contents of the code directory into the custom model file drop
+11. Create a new custom training model with the target type Binary. 
+12. After this, drag and drop the contents of the code directory into the custom model file drop
 14. Click on the big `Make Custom Blueprint` button
 ## Train your model
-15. Now we can head over to the `Repository` tab, into the `Custom Blueprints` subtab
-16. You should see the blueprint you just created. You can check the box next to it and then 
+13. Now we can head over to the `Repository` tab, into the `Custom Blueprints` subtab
+14. You should see the blueprint you just created. You can check the box next to it and then 
 train it on your project. 
 
 Thats it! This process has some rough edges still, but it will get easier and easier over time. 
