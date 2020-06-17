@@ -36,11 +36,12 @@ class TestTrainingModelTemplates(object):
     @pytest.mark.parametrize(
         "model_template, proj, env, target_type",
         [
-            (
+            pytest.param(
                 "python3_keras_training_joblib",
                 "project_regression_boston",
                 "keras_drop_in_env",
                 "regression",
+                marks=pytest.mark.skip(reason="RAPTOR-2826"),
             ),
             # this case is failing: RAPTOR-2938
             # (
@@ -49,27 +50,34 @@ class TestTrainingModelTemplates(object):
             #    "keras_drop_in_env",
             #    "binary",
             # ),
-            (
+            pytest.param(
                 "python3_xgboost_training",
                 "project_regression_boston",
                 "xgboost_drop_in_env",
                 "regression",
+                marks=pytest.mark.skip(reason="RAPTOR-2826"),
             ),
-            ("python3_xgboost_training", "project_binary_iris", "xgboost_drop_in_env", "binary",),
-            (
+            pytest.param(
+                "python3_xgboost_training",
+                "project_binary_iris",
+                "xgboost_drop_in_env",
+                "binary",
+                marks=pytest.mark.skip(reason="RAPTOR-2826"),
+            ),
+            pytest.param(
                 "python3_sklearn_training",
                 "project_regression_boston",
                 "sklearn_drop_in_env",
                 "regression",
+                marks=pytest.mark.skip(reason="RAPTOR-2826"),
             ),
-            ("python3_sklearn_training", "project_binary_iris", "sklearn_drop_in_env", "binary",)
-            # this case is failing: RAPTOR-2922
-            # (
-            #    "python3_keras_vizai_training_joblib",
-            #    "project_binary_cats_dogs",
-            #    "keras_drop_in_env",
-            #    "binary",
-            # ),
+            pytest.param(
+                "python3_sklearn_training",
+                "project_binary_iris",
+                "sklearn_drop_in_env",
+                "binary",
+                marks=pytest.mark.skip(reason="RAPTOR-2826"),
+            )
         ],
     )
     def test_training_model_templates(self, request, model_template, proj, env, target_type):
