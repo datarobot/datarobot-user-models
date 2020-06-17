@@ -16,21 +16,20 @@ CUSTOM_LOAD_PREDICT_R_PATH = os.path.join(BASE_FIXTURE_DIR, "load_model_custom.R
 
 class TestInferenceModelTemplates(object):
     @pytest.mark.parametrize(
-        "model_template, language, env",
+        "model_template, language, env, target",
         [
-            ("java_codegen", "java", "java_drop_in_env"),
-            ("python3_keras_inference", "python", "keras_drop_in_env"),
-            ("python3_keras_inference_joblib", "python", "keras_drop_in_env"),
-            ("python3_pytorch_inference", "python", "pytorch_drop_in_env"),
-            ("python3_sklearn_inference", "python", "sklearn_drop_in_env"),
-            ("python3_xgboost_inference", "python", "xgboost_drop_in_env"),
+            ("java_codegen", "java", "java_drop_in_env", "MEDV"),
+            ("python3_keras_inference", "python", "keras_drop_in_env", "MEDV"),
+            ("python3_keras_inference_joblib", "python", "keras_drop_in_env", "MEDV"),
+            ("python3_pytorch_inference", "python", "pytorch_drop_in_env", "MEDV"),
+            ("python3_sklearn_inference", "python", "sklearn_drop_in_env", "MEDV"),
+            ("python3_xgboost_inference", "python", "xgboost_drop_in_env", "MEDV"),
             ("r_lang", "r", "r_drop_in_env"),
         ],
     )
-    def test_inference_model_templates(self, request, model_template, language, env):
+    def test_inference_model_templates(self, request, model_template, language, env, target):
         env_id, env_version_id = request.getfixturevalue(env)
         test_data_id = request.getfixturevalue("regression_testing_data")
-        target = "MEDV"
 
         model = dr.CustomInferenceModel.create(
             name=model_template,

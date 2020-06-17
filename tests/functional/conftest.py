@@ -9,6 +9,7 @@ from dr_usertool.utils import get_permissions
 
 BASE_TEMPLATE_ENV_DIR = "public_dropin_environments"
 BASE_DATASET_DIR = "tests/testdata"
+ENDPOINT_URL = "http://localhost/api/v2"
 
 
 def dr_usertool_setup():
@@ -54,7 +55,7 @@ def pytest_unconfigure(config):
 
 
 def pytest_sessionstart(session):
-    dr.Client(endpoint="http://localhost/api/v2", token=os.environ["DATAROBOT_API_TOKEN"])
+    dr.Client(endpoint=ENDPOINT_URL, token=os.environ["DATAROBOT_API_TOKEN"])
 
 
 @pytest.fixture(scope="session")
