@@ -41,43 +41,29 @@ class TestTrainingModelTemplates(object):
                 "project_regression_boston",
                 "keras_drop_in_env",
                 "regression",
-                marks=pytest.mark.skip(reason="RAPTOR-2826"),
+                marks=pytest.mark.skip(reason="RAPTOR-2938"),
             ),
-            # this case is failing: RAPTOR-2938
-            # (
-            #    "python3_keras_training_joblib",
-            #    "project_binary_iris",
-            #    "keras_drop_in_env",
-            #    "binary",
-            # ),
             pytest.param(
+                "python3_keras_training_joblib",
+                "project_binary_iris",
+                "keras_drop_in_env",
+                "binary",
+                marks=pytest.mark.skip(reason="RAPTOR-2938"),
+            ),
+            (
                 "python3_xgboost_training",
                 "project_regression_boston",
                 "xgboost_drop_in_env",
                 "regression",
-                marks=pytest.mark.skip(reason="RAPTOR-2826"),
             ),
-            pytest.param(
-                "python3_xgboost_training",
-                "project_binary_iris",
-                "xgboost_drop_in_env",
-                "binary",
-                marks=pytest.mark.skip(reason="RAPTOR-2826"),
-            ),
-            pytest.param(
+            ("python3_xgboost_training", "project_binary_iris", "xgboost_drop_in_env", "binary",),
+            (
                 "python3_sklearn_training",
                 "project_regression_boston",
                 "sklearn_drop_in_env",
                 "regression",
-                marks=pytest.mark.skip(reason="RAPTOR-2826"),
             ),
-            pytest.param(
-                "python3_sklearn_training",
-                "project_binary_iris",
-                "sklearn_drop_in_env",
-                "binary",
-                marks=pytest.mark.skip(reason="RAPTOR-2826"),
-            ),
+            ("python3_sklearn_training", "project_binary_iris", "sklearn_drop_in_env", "binary",),
         ],
     )
     def test_training_model_templates(self, request, model_template, proj, env, target_type):
