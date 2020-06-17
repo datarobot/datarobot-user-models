@@ -26,7 +26,6 @@ KERAS = "keras"
 KERAS_INFERENCE = "keras_inference"
 KERAS_INFERENCE_JOBLIB = "keras_inference_joblib"
 KERAS_TRAINING_JOBLIB = "keras_training_joblib"
-KERAS_VIZAI_TRAINING_JOBLIB = "keras_vizai_training_joblib"
 
 SKLEARN = "sklearn"
 SKLEARN_TRAINING = "sklearn_training"
@@ -45,7 +44,6 @@ MULTI_ARTIFACT = "multiartifact"
 REGRESSION = "regression"
 REGRESSION_INFERENCE = "regression_inference"
 BINARY = "binary"
-VIZAI_BINARY = "visual_ai_binary"
 
 # Language keywords
 PYTHON = "python3"
@@ -84,9 +82,6 @@ class TestCMRunner:
             ),
             (PYTHON, KERAS_TRAINING_JOBLIB): os.path.join(
                 cls.model_templates_path, "python3_keras_training_joblib"
-            ),
-            (PYTHON, KERAS_VIZAI_TRAINING_JOBLIB): os.path.join(
-                cls.model_templates_path, "python3_keras_vizai_training_joblib"
             ),
             (PYTHON, XGB_INFERENCE): os.path.join(
                 cls.model_templates_path, "python3_xgboost_inference"
@@ -131,7 +126,6 @@ class TestCMRunner:
                 cls.tests_data_path, "boston_housing_inference.csv"
             ),
             (None, BINARY): os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
-            (None, VIZAI_BINARY): os.path.join(cls.tests_data_path, "cats_dogs_small_training.csv"),
         }
 
         cls.artifacts = {
@@ -166,12 +160,11 @@ class TestCMRunner:
             (PYPMML, BINARY): os.path.join(cls.tests_artifacts_path, "iris_bin.pmml"),
         }
 
-        cls.target = {BINARY: "Species", REGRESSION: "MEDV", VIZAI_BINARY: "class"}
+        cls.target = {BINARY: "Species", REGRESSION: "MEDV"}
         cls.class_labels = {
             (SKLEARN, BINARY): ["Iris-setosa", "Iris-versicolor"],
             (XGB, BINARY): ["Iris-setosa", "Iris-versicolor"],
             (KERAS, BINARY): ["Iris-setosa", "Iris-versicolor"],
-            (KERAS_VIZAI_TRAINING_JOBLIB, VIZAI_BINARY): ["cats", "dogs"],
             (RDS, BINARY): ["Iris-setosa", "Iris-versicolor"],
             (PYPMML, BINARY): ["Iris-setosa", "Iris-versicolor"],
         }
@@ -238,8 +231,6 @@ class TestCMRunner:
         if is_training:
             if framework == KERAS:
                 return cls.paths_to_real_models[(language, KERAS_TRAINING_JOBLIB)]
-            elif framework == KERAS_VIZAI_TRAINING_JOBLIB:
-                return cls.paths_to_real_models[(language, KERAS_VIZAI_TRAINING_JOBLIB)]
             elif framework == XGB:
                 return cls.paths_to_real_models[(language, XGB_TRAINING)]
             elif framework == SKLEARN:
@@ -265,7 +256,7 @@ class TestCMRunner:
 
     @classmethod
     def _cmd_add_class_labels(cls, cmd, framework, problem):
-        if problem != BINARY and problem != VIZAI_BINARY:
+        if problem != BINARY:
             return cmd
 
         labels = cls._get_class_labels(framework, problem)
@@ -712,32 +703,6 @@ class TestCMRunner:
             )
             TestCMRunner._delete_custom_model_dir(custom_model_dir)
 
-    @pytest.mark.parametrize("docker", [DOCKER_PYTHON_SKLEARN, None])
-    def test_fit_visual_ai(self, docker):
-        framework, problem, language = KERAS_VIZAI_TRAINING_JOBLIB, VIZAI_BINARY, PYTHON
-        custom_model_dir = self._create_custom_model_dir(
-            framework, problem, language, is_training=True
-        )
-
-        input_dataset = self._get_dataset_filename(framework, problem)
-
-        with TemporaryDirectory() as output:
-            cmd = "{} fit --code-dir {} --target {} --input {} --output {} --skip-predict".format(
-                ArgumentsOptions.MAIN_COMMAND,
-                custom_model_dir,
-                self.target[problem],
-                input_dataset,
-                output,
-            )
-            cmd = self._cmd_add_class_labels(cmd, framework, problem)
-            if docker:
-                cmd += " --docker {} --verbose ".format(docker)
-
-            TestCMRunner._exec_shell_cmd(
-                cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
-            )
-            TestCMRunner._delete_custom_model_dir(custom_model_dir)
-
     def _create_fit_input_data_dir(self, input_dir, problem, weights):
         input_dataset = self._get_dataset_filename(None, problem)
         df = pd.read_csv(input_dataset)
@@ -788,31 +753,6 @@ class TestCMRunner:
                 if os.environ.get("NEGATIVE_CLASS_LABEL"):
                     del os.environ["NEGATIVE_CLASS_LABEL"]
                     del os.environ["POSITIVE_CLASS_LABEL"]
-
-            TestCMRunner._exec_shell_cmd(fit_sh, "Failed cmd {}".format(fit_sh), env=env)
-            TestCMRunner._delete_custom_model_dir(custom_model_dir)
-
-    def test_fit_sh_visual_ai(self):
-        framework, problem, language = KERAS_VIZAI_TRAINING_JOBLIB, VIZAI_BINARY, PYTHON
-        custom_model_dir = self._create_custom_model_dir(
-            framework, problem, language, is_training=True
-        )
-        env = os.environ
-        fit_sh = os.path.join(
-            self.tests_root_path,
-            "..",
-            "public_dropin_environments/python3_keras/fit.sh".format(language, framework),
-        )
-        with TemporaryDirectory() as input_dir, TemporaryDirectory() as output:
-            self._create_fit_input_data_dir(input_dir, problem, None)
-
-            env["CODEPATH"] = custom_model_dir
-            env["INPUT_DIRECTORY"] = input_dir
-            env["ARTIFACT_DIRECTORY"] = output
-
-            labels = self._get_class_labels(framework, problem)
-            env["NEGATIVE_CLASS_LABEL"] = labels[0]
-            env["POSITIVE_CLASS_LABEL"] = labels[1]
 
             TestCMRunner._exec_shell_cmd(fit_sh, "Failed cmd {}".format(fit_sh), env=env)
             TestCMRunner._delete_custom_model_dir(custom_model_dir)
