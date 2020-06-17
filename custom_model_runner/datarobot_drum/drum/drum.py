@@ -1,5 +1,4 @@
 import glob
-from distutils.dir_util import copy_tree
 import json
 import logging
 import os
@@ -8,8 +7,10 @@ import subprocess
 import sys
 import tempfile
 from contextlib import contextmanager
+from distutils.dir_util import copy_tree
 from tempfile import mkdtemp, NamedTemporaryFile
 
+import numpy as np
 import pandas as pd
 from mlpiper.pipeline.executor import Executor
 from mlpiper.pipeline.executor_config import ExecutorConfig
@@ -270,6 +271,13 @@ class CMRunner(object):
         return ret_pipeline
 
     def _prepare_fit_pipeline(self, run_language):
+        if not self.options.negative_class_label:
+            (
+                self.options.positive_class_label,
+                self.options.negative_class_label,
+            ) = possibly_intuit_order(
+                self.options.input, self.options.target_csv, self.options.target
+            )
         options = self.options
         # functional pipeline is predictor pipeline
         # they are a little different for batch and server predictions.
@@ -473,3 +481,19 @@ class CMRunner(object):
         retcode = p.wait()
         self._print_verbose("{bar} retcode: {retcode} {bar}".format(bar="-" * 10, retcode=retcode))
         return retcode
+
+
+def possibly_intuit_order(input_data_file, target_data_file=None, target_col_name=None):
+    if target_data_file:
+        assert target_col_name is None
+        y = pd.read_csv(target_data_file, index_col=False).head(1000)
+        classes = np.unique(y.iloc[:, 0])
+    else:
+        assert target_data_file is None
+        df = pd.read_csv(input_data_file)
+        classes = np.unique(df[target_col_name].head(1000))
+    if len(classes) == 2:
+        return classes
+    elif len(classes) == 1:
+        raise DrumCommonException("Only one target label was provided, please revise training data")
+    return None, None
