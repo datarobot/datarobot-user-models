@@ -94,7 +94,7 @@ DONE_PREP_TIME=$(date +%s)
 
 #pytest -s tests/drum/test_custom_model.py::TestCMRunner::test_custom_models_with_drum[rds-regression-R-None] \
 #  --junit-xml="$CODE_DIR/results_integration.xml"
-pytest tests/drum/test_custom_model.py --junit-xml="$CODE_DIR/results_integration.xml"
+pytest tests/drum/test_units.py tests/drum/test_custom_model.py --junit-xml="$CODE_DIR/results_integration.xml"
 
 TEST_RESULT=$?
 END_TIME=$(date +%s)
