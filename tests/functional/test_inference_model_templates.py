@@ -24,7 +24,7 @@ class TestInferenceModelTemplates(object):
             ("python3_pytorch_inference", "python", "pytorch_drop_in_env", "MEDV"),
             ("python3_sklearn_inference", "python", "sklearn_drop_in_env", "MEDV"),
             ("python3_xgboost_inference", "python", "xgboost_drop_in_env", "MEDV"),
-            ("r_lang", "r", "r_drop_in_env"),
+            ("r_lang", "r", "r_drop_in_env", "MEDV"),
         ],
     )
     def test_inference_model_templates(self, request, model_template, language, env, target):
