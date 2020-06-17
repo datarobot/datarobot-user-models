@@ -1,8 +1,6 @@
 from typing import List, Optional
 import pandas as pd
 import numpy as np
-from pathlib import Path
-from keras.utils import to_categorical
 from sklearn.preprocessing import label_binarize
 
 from example_code import (
@@ -55,16 +53,12 @@ def fit(
     if class_order:
         y = label_binarize(y, classes=class_order)
         estimator = make_classifier_pipeline(X)
-        estimator.fit(X, to_categorical(y))
     else:
         estimator = make_regressor_pipeline(X)
-        estimator.fit(X, y)
+    estimator.fit(X, y)
 
     # NOTE: We currently set a 10GB limit to the size of the serialized model
-    output_dir_path = Path(output_dir)
-    if output_dir_path.exists() and output_dir_path.is_dir():
-        model_path = output_dir_path / "artifact.joblib"
-        serialize_estimator_pipeline(estimator, model_path)
+    serialize_estimator_pipeline(estimator, output_dir)
 
 
 def load_model(input_dir: str) -> Pipeline:
@@ -87,6 +81,4 @@ def load_model(input_dir: str) -> Pipeline:
     pipelined_model: Pipeline
         Estimator pipeline obj
     """
-    artifact_path = Path(input_dir) / "artifact.joblib"
-    pipelined_model = deserialize_estimator_pipeline(artifact_path)
-    return pipelined_model
+    return deserialize_estimator_pipeline(input_dir)
