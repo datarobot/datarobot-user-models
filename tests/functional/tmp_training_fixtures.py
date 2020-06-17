@@ -24,6 +24,7 @@ class CustomTrainingBlueprint(APIObject):
             t.Key("execution_environment_version"): t.Dict(
                 {t.Key("id"): t.String(), t.Key("label"): t.String()}
             ),
+            t.Key("training_history"): t.List(t.Dict()),
         }
     )
 
@@ -34,12 +35,14 @@ class CustomTrainingBlueprint(APIObject):
         custom_model_version,
         execution_environment,
         execution_environment_version,
+        training_history,
     ):
         self.id = id
         self.custom_model = custom_model
         self.custom_model_version = custom_model_version
         self.execution_environment = execution_environment
         self.execution_environment_version = execution_environment_version
+        self.training_history = training_history
         self.project_id = None
 
     def __repr__(self):
