@@ -8,6 +8,8 @@ from dr_usertool.utils import get_permissions
 
 
 BASE_TEMPLATE_ENV_DIR = "public_dropin_environments"
+BASE_DATASET_DIR = "tests/testdata"
+ENDPOINT_URL = "http://localhost/api/v2"
 
 
 def dr_usertool_setup():
@@ -50,6 +52,10 @@ def pytest_unconfigure(config):
         _, db = dr_usertool_setup()
         DataRobotUserDatabase.delete_user(db, config.user_username)
         warnings.simplefilter("error")
+
+
+def pytest_sessionstart(session):
+    dr.Client(endpoint=ENDPOINT_URL, token=os.environ["DATAROBOT_API_TOKEN"])
 
 
 @pytest.fixture(scope="session")
@@ -98,3 +104,19 @@ def r_drop_in_env():
     environment = dr.ExecutionEnvironment.create(name="r_drop_in")
     environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
     return environment.id, environment_version.id
+
+
+@pytest.fixture(scope="session")
+def binary_testing_data():
+    dataset = dr.Dataset.create_from_file(
+        file_path=os.path.join(BASE_DATASET_DIR, "iris_binary_training.csv")
+    )
+    return dataset.id
+
+
+@pytest.fixture(scope="session")
+def regression_testing_data():
+    dataset = dr.Dataset.create_from_file(
+        file_path=os.path.join(BASE_DATASET_DIR, "boston_housing.csv")
+    )
+    return dataset.id
