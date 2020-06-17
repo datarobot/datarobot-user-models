@@ -14,6 +14,7 @@ import io
 import h5py
 
 import pandas as pd
+from pathlib import Path
 
 
 def create_regression_model(num_features: int) -> Sequential:
@@ -153,7 +154,7 @@ def make_regressor_pipeline(X: pd.DataFrame) -> Pipeline:
     return regressor_pipeline
 
 
-def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_file_path: str) -> None:
+def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_dir_path: str) -> None:
     """
     Save the estimator pipeline object in the file path provided.
 
@@ -168,8 +169,8 @@ def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_file_path:
     estimator_pipeline: Pipeline
         Estimator pipeline object with necessary preprocessor and estimator(classifier/regressor) included.
 
-    output_file_path: str
-        Output file path where the joblib would be saved/dumped.
+    output_dir_path: str
+        Output directory path where the joblib would be saved/dumped.
 
     Returns
     -------
@@ -195,17 +196,18 @@ def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_file_path:
     model_dict["model"] = io_container
 
     # save the dict obj as a joblib file
+    output_file_path = Path(output_dir_path) / "artifact.joblib"
     joblib.dump(model_dict, output_file_path)
 
 
-def deserialize_estimator_pipeline(joblib_file_path: str) -> Pipeline:
+def deserialize_estimator_pipeline(input_dir: str) -> Pipeline:
     """
     Load estimator pipeline from the given joblib file.
 
     Parameters
     ----------
-    joblib_file_path: str
-        The joblib file path to load from.
+    input_dir: str
+        The directory from which joblib file would be loaded.
 
     Returns
     -------
@@ -213,6 +215,7 @@ def deserialize_estimator_pipeline(joblib_file_path: str) -> Pipeline:
         Constructed pipeline with necessary preprocessor steps and estimator to predict/score.
     """
     # load the dictionary obj from the joblib file
+    joblib_file_path = Path(input_dir) / "artifact.joblib"
     estimator_dict = joblib.load(joblib_file_path)
     with h5py.File(estimator_dict["model"], mode="r") as fp:
         keras_model = load_model(fp)

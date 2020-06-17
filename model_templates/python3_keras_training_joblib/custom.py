@@ -2,6 +2,7 @@ from typing import List, Optional
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import label_binarize
+from keras.utils import to_categorical
 
 from example_code import (
     make_classifier_pipeline,
@@ -53,9 +54,10 @@ def fit(
     if class_order:
         y = label_binarize(y, classes=class_order)
         estimator = make_classifier_pipeline(X)
+        estimator.fit(X, to_categorical(y))
     else:
         estimator = make_regressor_pipeline(X)
-    estimator.fit(X, y)
+        estimator.fit(X, y)
 
     # NOTE: We currently set a 10GB limit to the size of the serialized model
     serialize_estimator_pipeline(estimator, output_dir)
