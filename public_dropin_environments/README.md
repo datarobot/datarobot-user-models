@@ -1,5 +1,5 @@
 # Public Dropin Environments
 
-### How to update environments on staging/production
+### How to update environments
 
 In development

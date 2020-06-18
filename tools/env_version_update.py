@@ -8,7 +8,7 @@ from bson import ObjectId
 This script helps to update drop in environments version IDs.
 If IDs are not updated, environment will not be installed.
 
-How to install environments on staging/production.
+How to install environments.
 TODO: add link to instructions here.
 """
 
