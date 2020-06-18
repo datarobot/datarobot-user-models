@@ -29,8 +29,9 @@ def main(dir_to_scan):
         folder with drop in environments
     """
     for item in os.listdir(dir_to_scan):
-        if os.path.isdir(item):
-            env_info_json = os.path.join(dir_to_scan, item, ENV_INFO_JSON)
+        item_abs_path = os.path.abspath(os.path.join(dir_to_scan, item))
+        if os.path.isdir(item_abs_path):
+            env_info_json = os.path.join(item_abs_path, ENV_INFO_JSON)
             with open(env_info_json) as json_file:
                 metadata = json.load(json_file)
                 metadata["environmentVersionId"] = str(ObjectId())
