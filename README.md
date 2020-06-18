@@ -46,6 +46,7 @@ A custom environment defines the runtime environment for a custom model.  In thi
 * [Python 3 + PyTorch](public_dropin_environments/python3_pytorch)
 * [Python 3 + xgboost](public_dropin_environments/python3_xgboost)
 * [Python 3 + keras/tensorflow](public_dropin_environments/python3_keras)
+* [Python 3 + pmml](public_dropin_environments/python3_pmml)
 * [R + caret](public_dropin_environments/r_lang)
 * [Java Scoring Code](public_dropin_environments/java_codegen)
 
