@@ -16,27 +16,91 @@ CUSTOM_LOAD_PREDICT_R_PATH = os.path.join(BASE_FIXTURE_DIR, "load_model_custom.R
 
 class TestInferenceModelTemplates(object):
     @pytest.mark.parametrize(
-        "model_template, language, env, target",
+        "model_template, language, env, dataset, target, pos_label, neg_label",
         [
-            ("java_codegen", "java", "java_drop_in_env", "MEDV"),
-            ("python3_keras_inference", "python", "keras_drop_in_env", "MEDV"),
-            ("python3_keras_inference_joblib", "python", "keras_drop_in_env", "MEDV"),
-            ("python3_pytorch_inference", "python", "pytorch_drop_in_env", "MEDV"),
-            ("python3_sklearn_inference", "python", "sklearn_drop_in_env", "MEDV"),
-            ("python3_xgboost_inference", "python", "xgboost_drop_in_env", "MEDV"),
-            ("r_lang", "r", "r_drop_in_env", "MEDV"),
+            (
+                "java_codegen",
+                "java",
+                "java_drop_in_env",
+                "regression_testing_data",
+                "MEDV",
+                None,
+                None,
+            ),
+            (
+                "python3_keras_inference",
+                "python",
+                "keras_drop_in_env",
+                "regression_testing_data",
+                "MEDV",
+                None,
+                None,
+            ),
+            (
+                "python3_keras_inference_joblib",
+                "python",
+                "keras_drop_in_env",
+                "regression_testing_data",
+                "MEDV",
+                None,
+                None,
+            ),
+            (
+                "python3_pytorch_inference",
+                "python",
+                "pytorch_drop_in_env",
+                "regression_testing_data",
+                "MEDV",
+                None,
+                None,
+            ),
+            (
+                "python3_sklearn_inference",
+                "python",
+                "sklearn_drop_in_env",
+                "regression_testing_data",
+                "MEDV",
+                None,
+                None,
+            ),
+            (
+                "python3_xgboost_inference",
+                "python",
+                "xgboost_drop_in_env",
+                "regression_testing_data",
+                "MEDV",
+                None,
+                None,
+            ),
+            ("r_lang", "r", "r_drop_in_env", "regression_testing_data", "MEDV", None, None),
+            (
+                "python3_pmml_inference",
+                "python",
+                "pmml_drop_in_env",
+                "binary_testing_data",
+                "Species",
+                "Iris-setosa",
+                "Iris-versicolor",
+            ),
         ],
     )
-    def test_inference_model_templates(self, request, model_template, language, env, target):
+    def test_inference_model_templates(
+        self, request, model_template, language, env, dataset, target, pos_label, neg_label
+    ):
         env_id, env_version_id = request.getfixturevalue(env)
-        test_data_id = request.getfixturevalue("regression_testing_data")
+        test_data_id = request.getfixturevalue(dataset)
 
+        dr_target_type = dr.TARGET_TYPE.REGRESSION
+        if pos_label is not None and neg_label is not None:
+            dr_target_type = dr.TARGET_TYPE.BINARY
         model = dr.CustomInferenceModel.create(
             name=model_template,
-            target_type=dr.TARGET_TYPE.REGRESSION,
+            target_type=dr_target_type,
             target_name=target,
             description=model_template,
             language=language,
+            positive_class_label=pos_label,
+            negative_class_label=neg_label,
         )
 
         model_version = dr.CustomModelVersion.create_clean(
