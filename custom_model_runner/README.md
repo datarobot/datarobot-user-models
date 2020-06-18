@@ -73,6 +73,7 @@ For more information and troubleshooting visit the [argcomplete](https://pypi.or
 | xgboost | *.pkl | xgboost-regressor.pkl |
 | PyTorch | *.pth | torch-regressor.pth |
 | keras | *.h5 | keras-regressor.h5 |
+| pmml | *.xml | pmml_regressor.xml |
 
 ### R
 | Library | File Extension | Example |

@@ -1,4 +1,4 @@
-## Java Template Model
+## Java Model Template
 
 This model is intended to work with the [Java Drop-In Environment](../../public_dropin_environments/java_codegen/).
 The supplied jar is a DataRobot scoring code model trained from [boston_housing.csv](../../tests/testdata/boston_housing.csv)
