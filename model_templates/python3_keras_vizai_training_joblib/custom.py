@@ -4,7 +4,6 @@ import numpy as np
 from sklearn.pipeline import Pipeline
 
 from model_to_fit import (
-    get_transformed_train_test_split,
     fit_image_classifier_pipeline,
     serialize_estimator_pipeline,
     deserialize_estimator_pipeline,
