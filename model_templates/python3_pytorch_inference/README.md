@@ -1,4 +1,5 @@
-## Python Template Model
+## Python PyTorch Inference Model Template
+
 
 This model is intended to work with the [Python 3 PyTorch Drop-In Environment](../../public_dropin_environments/python3_pytorch/).
 The supplied pth file is a PyTorch model trained on [boston_housing.csv](../../tests/testdata/boston_housing.csv)
