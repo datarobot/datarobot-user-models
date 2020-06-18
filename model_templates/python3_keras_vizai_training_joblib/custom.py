@@ -1,6 +1,7 @@
 from typing import List, Optional
 import pandas as pd
 import numpy as np
+from sklearn.pipeline import Pipeline
 
 from model_to_fit import (
     get_transformed_train_test_split,
@@ -53,3 +54,34 @@ def fit(
         serialize_estimator_pipeline(fit_estimator, output_dir)
     else:
         raise NotImplementedError("Regression not implemented for Visual AI.")
+
+
+def transform(data, model):
+    if "class" in data:
+        data.pop("class")
+
+    data = data.fillna(0)
+    return data
+
+
+def load_model(input_dir: str) -> Pipeline:
+    """
+    Note: This hook may not have to be implemented for your model.
+    In this case implemented for the model used in the example.
+
+    This keras estimator requires 'load_model()' to be overridden. Coz as it involves pipeline of
+    preprocessor and estimator bundled together, it requires a special handling (oppose to usually
+    simple keras.models.load_model() or unpickling) to load the model. Currently there is no elegant
+    default method to save the keras classifier/regressor along with the sklearn pipeline. Hence we
+    use deserialize_estimator_pipeline() to load the model pipeline to predict.
+
+    Parameters
+    ----------
+    input_dir: str
+
+    Returns
+    -------
+    pipelined_model: Pipeline
+        Estimator pipeline obj
+    """
+    return deserialize_estimator_pipeline(input_dir)
