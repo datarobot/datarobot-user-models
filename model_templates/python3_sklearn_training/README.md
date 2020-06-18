@@ -1,4 +1,4 @@
-## Python Template Model
+## Python Sklearn Training Model Template
 
 This model is intended to work with the [Python 3 Scikit-Learn Drop-In Environment](../../public_dropin_environments/python3_sklearn/).
 The supplied pkl file is a scikit-learn model trained on [boston_housing.csv](../../tests/testdata/boston_housing.csv)
