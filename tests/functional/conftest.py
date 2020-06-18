@@ -99,6 +99,14 @@ def keras_drop_in_env():
 
 
 @pytest.fixture(scope="session")
+def pmml_drop_in_env():
+    env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "python3_pmml")
+    environment = dr.ExecutionEnvironment.create(name="python3_pmml")
+    environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
+    return environment.id, environment_version.id
+
+
+@pytest.fixture(scope="session")
 def r_drop_in_env():
     env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "r_lang")
     environment = dr.ExecutionEnvironment.create(name="r_drop_in")
