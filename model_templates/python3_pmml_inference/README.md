@@ -1,4 +1,4 @@
-## Python PMML inference model template
+## Python PMML Inference Model Template
 
 This model is intended to work with the [Python 3 pypmml Drop-In Environment](../../public_dropin_environments/python3_pmml).
 

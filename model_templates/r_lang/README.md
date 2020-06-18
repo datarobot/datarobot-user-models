@@ -1,4 +1,4 @@
-## R Template Model
+## R Inference Model Template
 
 This model is intended to work with the [R Drop-In Environment](../../public_dropin_environments/r_lang/).
 The supplied rds file is a caret trained BRNN model trained on [boston_housing.csv](../../tests/testdata/boston_housing.csv)
