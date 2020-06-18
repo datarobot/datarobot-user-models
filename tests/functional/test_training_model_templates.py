@@ -42,12 +42,11 @@ class TestTrainingModelTemplates(object):
                 "keras_drop_in_env",
                 "regression",
             ),
-            pytest.param(
+            (
                 "python3_keras_training_joblib",
                 "project_binary_iris",
                 "keras_drop_in_env",
                 "binary",
-                marks=pytest.mark.skip(reason="RAPTOR-2938"),
             ),
             (
                 "python3_xgboost_training",
