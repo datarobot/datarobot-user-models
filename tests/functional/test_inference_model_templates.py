@@ -46,6 +46,15 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
+                "inference/python3_keras_vizai_joblib",
+                "python",
+                "keras_drop_in_env",
+                "binary_vizai_testing_data",
+                "class",
+                "dogs",
+                "cats",
+            ),
+            (
                 "inference/python3_pytorch",
                 "python",
                 "pytorch_drop_in_env",
