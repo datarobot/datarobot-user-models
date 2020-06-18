@@ -1,10 +1,6 @@
 from typing import List, Optional
-
-# pandas/numpy imports
 import pandas as pd
 import numpy as np
-
-from pathlib import Path
 
 from model_to_fit import (
     get_transformed_train_test_split,
@@ -24,8 +20,10 @@ def fit(
 ) -> None:
     """
     This hook must be implemented with your fitting code, for running drum in the fit mode.
+
     This hook MUST ALWAYS be implemented for custom training models.
     For inference models, this hook can stick around unimplemented, and won’t be triggered.
+
     Parameters
     ----------
     X: pd.DataFrame - training data to perform fit on
@@ -43,6 +41,7 @@ def fit(
         custom models support this. There are two situations when values will be passed into
         row_weights, during smart downsampling and when weights are explicitly provided by the user
     kwargs: Added for forwards compatibility
+
     Returns
     -------
     Nothing
@@ -50,25 +49,7 @@ def fit(
     # Feel free to delete which ever one of these you aren't using
     if class_order:
         fit_estimator = fit_image_classifier_pipeline(X, y, class_order)
-
         # NOTE: We currently set a 10GB limit to the size of the serialized model
         serialize_estimator_pipeline(fit_estimator, output_dir)
-
-        img_features_col_mask = [X[col].str.startswith("/9j/", na=False).any() for col in X]
-        # should have just one image feature
-        assert sum(img_features_col_mask) == 1, "expecting just one image feature column"
-        img_col = X.columns[np.argmax(img_features_col_mask)]
-        tgt_col = y.name
-
-        X_train, X_test, y_train, y_test = get_transformed_train_test_split(X, y, class_order)
-        assert len(X_train) == len(y_train)
-        assert len(X_test) == len(y_test)
-        fit_estimator = fit_image_classifier_pipeline(
-            X_train, X_test, y_train, y_test, tgt_col, img_col
-        )
-        output_dir_path = Path(output_dir)
-        if output_dir_path.exists() and output_dir_path.is_dir():
-            model_path = output_dir_path / "artifact.joblib"
-            serialize_estimator_pipeline(fit_estimator, model_path)
     else:
         raise NotImplementedError("Regression not implemented for Visual AI.")

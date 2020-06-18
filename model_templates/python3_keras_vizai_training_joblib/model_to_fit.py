@@ -25,6 +25,10 @@ import io
 import base64
 import h5py
 from PIL import Image
+from pathlib import Path
+
+from typing import List, Iterator
+
 
 # define constants
 
@@ -61,13 +65,12 @@ def img_preprocessing(pillowed_img: Image) -> np.ndarray:
 
 
 def get_imputation_img() -> str:
+    """ black image in base64 str for data imputation filling """
     black_PIL_img = Image.fromarray(np.zeros(IMG_SHAPE, dtype="float32"), "RGB")
     return get_base64_str_from_PIL_img(black_PIL_img)
 
 
-def preprocessing_X_transform(
-    data_df: pd.DataFrame, target_feature_name: str, image_feature_name: str
-) -> pd.DataFrame:
+def preprocessing_X_transform(data_df: pd.DataFrame, image_feature_name: str,) -> pd.DataFrame:
     """ Apply the preprocessing methods on the data before prediction for the model to work on """
 
     data_df = data_df.copy()
@@ -83,13 +86,13 @@ def reshape_numpy_array(data_series: pd.Series) -> np.ndarray:
     return np.asarray(data_series.to_list()).reshape(-1, *IMG_SHAPE)
 
 
-def get_all_callbacks() -> List[keras.callbacks]:
+def get_all_callbacks():  # -> List[keras.callbacks]:
     """ List of all keras callbacks """
     es = EarlyStopping(monitor="val_loss", patience=5, verbose=True, mode="auto", min_delta=1e-4)
     return [es]
 
 
-def apply_image_data_preprocessing(x_data_df: pd.DataFrame, image_feature_name: str):
+def apply_image_data_preprocessing(x_data_df: pd.DataFrame, image_feature_name: str) -> np.ndarray:
     """ Image data preprocessing before fit """
     X_data_df = preprocessing_X_transform(x_data_df, image_feature_name)
     X_data = reshape_numpy_array(X_data_df[image_feature_name])
@@ -126,10 +129,7 @@ def get_pretrained_base_model() -> Model:
 def create_image_binary_classification_model() -> Model:
     """
     Create an image binary classification model.
-    Parameters
-    ----------
-    num_features: int
-        Number of features in X to be trained with
+
     Returns
     -------
     Model
@@ -172,20 +172,25 @@ def get_transformed_train_test_split(
 
 
 def convert_np_to_df(np_array, img_col) -> pd.DataFrame:
+    """ simple utility to convert numpy array to dataframe """
     return pd.DataFrame(data=np_array, columns=[img_col])
 
 
 def get_image_feature_column(X: pd.DataFrame) -> str:
     """ Get only the image feature column name from X """
     X = X.select_dtypes(object)
-
-
-def make_X_transformer_pipeline(X: pd.DataFrame, tgt_col, img_col):
     img_features_col_mask = [X[col].str.startswith("/9j/", na=False).any() for col in X]
+
     # should have just one image feature
     assert sum(img_features_col_mask) == 1, "expecting just one image feature column"
-    # img_col = X.columns[np.argmax(img_features_col_mask)]
-    # tgt_col = X.columns[np.argmin(img_features_col_mask)]
+
+    img_col = X.columns[np.argmax(img_features_col_mask)]
+    return img_col
+
+
+def make_X_transformer_pipeline(X: pd.DataFrame) -> Pipeline:
+    """ Image preprocessing pipeline """
+    img_col = get_image_feature_column(X)
 
     img_preprocessing_transformer = Pipeline(
         steps=[
@@ -197,19 +202,18 @@ def make_X_transformer_pipeline(X: pd.DataFrame, tgt_col, img_col):
             (
                 "apply_preprocessing",
                 FunctionTransformer(
-                    apply_preprocessing,
+                    apply_image_data_preprocessing,
                     validate=False,
-                    kw_args={"tgt_col": tgt_col, "img_col": img_col},
+                    kw_args={"image_feature_name": img_col},
                 ),
             ),
         ],
         verbose=True,
     )
-
     return img_preprocessing_transformer
 
 
-def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_file_path: str) -> None:
+def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_dir: str) -> None:
     """
     Save the estimator pipeline object in the file path provided.
     This function extracts the preprocessor pipeline and estimator model from the pipeline
@@ -217,12 +221,14 @@ def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_file_path:
     file in the given path. This is required as there is no default save method currently
     available. Also with this we consolidate and bundle the preprocessor pipeline and keras model
     as one single joblib file, which otherwise would require two different file '.pkl' and '.h5'
+
     Parameters
     ----------
     estimator_pipeline: Pipeline
         Estimator pipeline object with necessary preprocessor and estimator(classifier/regressor) included.
-    output_file_path: str
-        Output file path where the joblib would be saved/dumped.
+    output_dir: str
+        Output directory path where the joblib would be saved/dumped.
+
     Returns
     -------
     Nothing
@@ -248,22 +254,26 @@ def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_file_path:
     model_dict["model"] = io_container
 
     # save the dict obj as a joblib file
+    output_file_path = Path(output_dir) / "artifact.joblib"
     joblib.dump(model_dict, output_file_path)
 
 
-def deserialize_estimator_pipeline(joblib_file_path: str) -> Pipeline:
+def deserialize_estimator_pipeline(input_dir: str) -> Pipeline:
     """
     Load estimator pipeline from the given joblib file.
+
     Parameters
     ----------
     joblib_file_path: str
         The joblib file path to load from.
+
     Returns
     -------
     pipeline: Pipeline
         Constructed pipeline with necessary preprocessor steps and estimator to predict/score.
     """
     # load the dictionary obj from the joblib file
+    joblib_file_path = Path(input_dir) / "artifact.joblib"
     estimator_dict = joblib.load(joblib_file_path)
     model = estimator_dict["model"]
     prep_pipeline = estimator_dict["preprocessor_pipeline"]
@@ -275,14 +285,11 @@ def deserialize_estimator_pipeline(joblib_file_path: str) -> Pipeline:
 
 
 def fit_image_classifier_pipeline(
-    X_train: pd.DataFrame,
-    X_test: pd.DataFrame,
-    y_train: pd.Series,
-    y_test: pd.Series,
-    tgt_col: str,
-    img_col: str,
+    X: pd.DataFrame, y: pd.Series, class_order: List[str]
 ) -> Pipeline:
-    X_transformer = make_X_transformer_pipeline(X_train, tgt_col, img_col)
+    """ Fit the estimator pipeline """
+    X_train, X_test, y_train, y_test = get_transformed_train_test_split(X, y, class_order)
+    X_transformer = make_X_transformer_pipeline(X_train)
 
     X_train_transformed = X_transformer.fit_transform(X_train, y_train)
     train_gen = get_image_augmentation_gen(X_train_transformed, y_train, BATCH_SIZE, SEED)
