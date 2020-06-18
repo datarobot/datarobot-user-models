@@ -1,8 +1,8 @@
 from typing import List, Optional
 import pandas as pd
 import numpy as np
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import label_binarize
-from keras.utils import to_categorical
 
 from example_code import (
     make_classifier_pipeline,
@@ -10,8 +10,6 @@ from example_code import (
     serialize_estimator_pipeline,
     deserialize_estimator_pipeline,
 )
-
-from sklearn.pipeline import Pipeline
 
 
 def fit(
