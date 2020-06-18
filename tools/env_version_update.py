@@ -29,13 +29,14 @@ def main(dir_to_scan):
         folder with drop in environments
     """
     for item in os.listdir(dir_to_scan):
-        env_info_json = os.path.join(dir_to_scan, item, ENV_INFO_JSON)
-        with open(env_info_json) as json_file:
-            metadata = json.load(json_file)
-            metadata["environmentVersionId"] = str(ObjectId())
-        with open(env_info_json, "w") as json_file:
-            json.dump(metadata, json_file, indent=2)
-            json_file.write("\n")
+        if os.path.isdir(item):
+            env_info_json = os.path.join(dir_to_scan, item, ENV_INFO_JSON)
+            with open(env_info_json) as json_file:
+                metadata = json.load(json_file)
+                metadata["environmentVersionId"] = str(ObjectId())
+            with open(env_info_json, "w") as json_file:
+                json.dump(metadata, json_file, indent=2)
+                json_file.write("\n")
 
 
 if __name__ == "__main__":
