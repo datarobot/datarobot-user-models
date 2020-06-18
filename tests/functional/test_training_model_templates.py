@@ -49,6 +49,12 @@ class TestTrainingModelTemplates(object):
                 "binary",
             ),
             (
+                "training/python3_keras_vizai_joblib",
+                "project_binary_cats_dogs",
+                "keras_drop_in_env",
+                "binary",
+            ),
+            (
                 "training/python3_xgboost",
                 "project_regression_boston",
                 "xgboost_drop_in_env",

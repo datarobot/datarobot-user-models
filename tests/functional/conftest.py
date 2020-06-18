@@ -127,6 +127,14 @@ def binary_testing_data():
 
 
 @pytest.fixture(scope="session")
+def binary_vizai_testing_data():
+    dataset = dr.Dataset.create_from_file(
+        file_path=os.path.join(BASE_DATASET_DIR, "cats_dogs_small_training.csv")
+    )
+    return dataset.id
+
+
+@pytest.fixture(scope="session")
 def regression_testing_data():
     dataset = dr.Dataset.create_from_file(
         file_path=os.path.join(BASE_DATASET_DIR, "boston_housing.csv")

@@ -126,11 +126,14 @@ class PythonModelAdapter:
                 model_artifact_file = path
 
         if not model_artifact_file:
+            files_list = os.listdir(self._model_dir)
+            files_list_str = " | ".join(files_list)
             raise DrumCommonException(
                 "\n\nCould not find model artifact file in: {} supported by default predictors.\n"
                 "They support filenames with the following extensions {}.\n"
-                "If your artifact is not supported by default predictor, implement custom.load_model hook".format(
-                    self._model_dir, list(all_supported_extensions)
+                "If your artifact is not supported by default predictor, implement custom.load_model hook. "
+                "List of files got here are: {}".format(
+                    self._model_dir, list(all_supported_extensions), files_list_str
                 )
             )
 
@@ -188,7 +191,7 @@ class PythonModelAdapter:
 
     @staticmethod
     def _validate_data(to_validate, hook):
-        if not isinstance(to_validate, pd.DataFrame):
+        if not isinstance(to_validate, (pd.DataFrame, np.ndarray)):
             raise ValueError(
                 "{} must return a DataFrame; but received {}".format(hook, type(to_validate))
             )
