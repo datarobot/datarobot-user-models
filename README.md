@@ -19,7 +19,7 @@ This repository contains templates for building and deploying custom models in D
 
 Custom Inference Models are models that are trained outside of DataRobot. Once they're uploaded to DR, they are deployed straight to a DR Deployment, and tracked with Model Monitoring and Management.
 
-Custom Learning Models are in active development. They include a `fit()` function, and can be trained on the Leaderboard, benchmarked against DR AutoML models, and get access to our full set of automated insights. No templates exist yet, but when the feature is released, this repository will have learning model templates available.
+Custom Training Models are in active development. They include a `fit()` function, and can be trained on the Leaderboard, benchmarked against DR AutoML models, and get access to our full set of automated insights. Check out [The quickrun readme here](QUICKSTART-FOR-TRAINING.md)
 
 ### Sample Models
 The [model_templates](model_templates) contain example models that will work with the template environments discussed above. For more information about each model,
