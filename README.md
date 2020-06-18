@@ -24,12 +24,21 @@ Custom Training Models are in active development. They include a `fit()` functio
 ### Sample Models
 The [model_templates](model_templates) contain example models that will work with the template environments discussed above. For more information about each model,
 please see:
-* [Scikit-Learn sample model](model_templates/python3_sklearn)
-* [PyTorch sample model](model_templates/python3_pytorch)
-* [XGBoost sample model](model_templates/python3_xgboost)
-* [Keras sample model](model_templates/python3_keras)
+##### Inference Models
+* [Scikit-Learn sample model](model_templates/python3_sklearn_inference)
+* [PyTorch sample model](model_templates/python3_pytorch_inference)
+* [XGBoost sample model](model_templates/python3_xgboost_inference)
+* [Keras sample model](model_templates/python3_keras_inference)
+* [Keras sample model + Joblib artifact](model_templates/python3_keras_inference_joblib)
+* [PyPMML sample model](model_templates/python3_pmml_inference)
 * [R sample model](model_templates/r_lang)
 * [Java sample model](model_templates/java_codegen)
+
+##### Training Models
+* [Scikit-Learn sample model](model_templates/python3_sklearn_training)
+* [XGBoost sample model](model_templates/python3_xgboost_training)
+* [Keras sample model + Joblib artifact](model_templates/python3_keras_training_joblib)
+
 
 ## Custom Environment Templates
 A custom environment defines the runtime environment for a custom model.  In this repository, we provide several example environments that you can use and modify:
@@ -37,6 +46,7 @@ A custom environment defines the runtime environment for a custom model.  In thi
 * [Python 3 + PyTorch](public_dropin_environments/python3_pytorch)
 * [Python 3 + xgboost](public_dropin_environments/python3_xgboost)
 * [Python 3 + keras/tensorflow](public_dropin_environments/python3_keras)
+* [Python 3 + pmml](public_dropin_environments/python3_pmml)
 * [R + caret](public_dropin_environments/r_lang)
 * [Java Scoring Code](public_dropin_environments/java_codegen)
 

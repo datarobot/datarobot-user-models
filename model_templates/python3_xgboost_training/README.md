@@ -1,4 +1,4 @@
-## Python Template Model
+## Python XGBoost Training Model Template
 
 This model is intended to work with the [Python 3 XGBoost Drop-In Environment](../../public_dropin_environments/python3_xgboost/).
 The supplied pkl file is an xgboost model trained on [boston_housing.csv](../../tests/testdata/boston_housing.csv)
