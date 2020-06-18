@@ -1,7 +1,7 @@
 import pandas as pd
 from pathlib import Path
 
-from model_to_fit import deserialize_estimator_pipeline
+from model_deserializer import deserialize_estimator_pipeline
 
 from sklearn.pipeline import Pipeline
 
@@ -62,6 +62,5 @@ def load_model(input_dir: str) -> Pipeline:
     pipelined_model: Pipeline
         Estimator pipeline obj
     """
-    artifact_path = Path(input_dir) / "artifact.joblib"
-    pipelined_model = deserialize_estimator_pipeline(artifact_path)
+    pipelined_model = deserialize_estimator_pipeline(input_dir)
     return pipelined_model
