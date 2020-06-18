@@ -36,12 +36,11 @@ class TestTrainingModelTemplates(object):
     @pytest.mark.parametrize(
         "model_template, proj, env, target_type",
         [
-            pytest.param(
+            (
                 "python3_keras_training_joblib",
                 "project_regression_boston",
                 "keras_drop_in_env",
                 "regression",
-                marks=pytest.mark.skip(reason="RAPTOR-2938"),
             ),
             pytest.param(
                 "python3_keras_training_joblib",
