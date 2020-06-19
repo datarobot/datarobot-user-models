@@ -1,4 +1,4 @@
-from typing import List, Optional, Iterator
+from typing import Tuple
 
 # keras imports
 import keras
@@ -70,7 +70,9 @@ def get_imputation_img() -> str:
     return get_base64_str_from_PIL_img(black_PIL_img)
 
 
-def extract_features(generator, sample_count, base_model):
+def extract_features(
+    generator: Iterator[tuple], sample_count: int, base_model: Model
+) -> Tuple[np.ndarray, np.ndarray]:
     """ extract the features using the CNN base model """
     conv_base_actvn_output_shape = tuple(base_model.layers[-1].output.shape[1:])
     features = np.zeros((sample_count, *conv_base_actvn_output_shape))
@@ -100,7 +102,7 @@ def preprocessing_X_transform(data_df: pd.DataFrame, image_feature_name: str,) -
     return data_df
 
 
-def pretrained_preprocess_input(img_arr):
+def pretrained_preprocess_input(img_arr: np.ndarray) -> np.ndarray:
     return preprocess_input(img_arr)
 
 
@@ -109,7 +111,7 @@ def reshape_numpy_array(data_series: pd.Series) -> np.ndarray:
     return np.asarray(data_series.to_list()).reshape(-1, *IMG_SHAPE)
 
 
-def get_all_callbacks():  # -> List[keras.callbacks]:
+def get_all_callbacks() -> List[keras.callbacks.Callback]:
     """ List of all keras callbacks """
     es = EarlyStopping(monitor="val_loss", patience=5, verbose=True, mode="auto", min_delta=1e-4)
     return [es]
