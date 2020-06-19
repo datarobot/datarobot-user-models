@@ -171,16 +171,18 @@ def create_image_binary_classification_model() -> Model:
 
 def get_transformed_train_test_split(
     X_df: pd.DataFrame, y_series: pd.Series, class_order: List[str]
-) -> tuple:
+) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     """ split train/test data after apply label encoder on y """
     assert len(X_df) == len(y_series)
-
     # preprocessing steps
     if class_order:
         y_series = label_binarize(y_series, classes=class_order)
     else:
         lb = LabelBinarizer()
         y_series = lb.fit_transform(y_series)
+
+    # convert np.ndarray to pd.Series
+    y_series = pd.Series(y_series.squeeze())
 
     # split train/test data
     msk = np.random.rand(len(X_df)) < TEST_SIZE
