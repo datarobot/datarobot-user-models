@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 import pandas as pd
 import logging
 import sys
@@ -188,7 +189,7 @@ class PythonModelAdapter:
 
     @staticmethod
     def _validate_data(to_validate, hook):
-        if not isinstance(to_validate, pd.DataFrame):
+        if not isinstance(to_validate, (pd.DataFrame, np.ndarray)):
             raise ValueError(
                 "{} must return a DataFrame; but received {}".format(hook, type(to_validate))
             )

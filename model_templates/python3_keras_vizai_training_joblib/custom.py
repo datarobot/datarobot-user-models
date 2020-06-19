@@ -7,6 +7,7 @@ from model_to_fit import (
     fit_image_classifier_pipeline,
     serialize_estimator_pipeline,
     deserialize_estimator_pipeline,
+    transform_before_prediction,
 )
 
 
@@ -60,6 +61,8 @@ def transform(data, model):
         data.pop("class")
 
     data = data.fillna(0)
+    data = transform_before_prediction(data)
+
     return data
 
 
@@ -84,3 +87,13 @@ def load_model(input_dir: str) -> Pipeline:
         Estimator pipeline obj
     """
     return deserialize_estimator_pipeline(input_dir)
+
+
+def score(data, model, **kwargs):
+    positive_class_label = kwargs.get("positive_class_label")
+    negative_class_label = kwargs.get("negative_class_label")
+    prob_score = model.named_steps.estimator.predict(data)
+    positive_class_score = np.squeeze(prob_score)
+    predictions = pd.DataFrame(positive_class_score, columns=[positive_class_label])
+    predictions[negative_class_label] = 1 - predictions[positive_class_label]
+    return predictions

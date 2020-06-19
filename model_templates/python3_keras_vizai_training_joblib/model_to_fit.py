@@ -34,7 +34,7 @@ from typing import List, Iterator
 
 IMG_SIZE = 150
 IMG_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
-EPOCHS = 10
+EPOCHS = 100
 BATCH_SIZE = 32
 TEST_SIZE = 0.33
 SEED = 4321
@@ -68,6 +68,25 @@ def get_imputation_img() -> str:
     """ black image in base64 str for data imputation filling """
     black_PIL_img = Image.fromarray(np.zeros(IMG_SHAPE, dtype="float32"), "RGB")
     return get_base64_str_from_PIL_img(black_PIL_img)
+
+
+def extract_features(generator, sample_count, base_model):
+    """ extract the features using the CNN base model """
+    conv_base_actvn_output_shape = tuple(base_model.layers[-1].output.shape[1:])
+    features = np.zeros((sample_count, *conv_base_actvn_output_shape))
+    labels = np.zeros((sample_count))
+    i = 0
+
+    for inputs_batch, labels_batch in generator:
+        # using base model to predict and extract the features
+        features_batch = base_model.predict(inputs_batch)
+        features[i * BATCH_SIZE : (i + 1) * BATCH_SIZE] = features_batch
+        labels[i * BATCH_SIZE : (i + 1) * BATCH_SIZE] = labels_batch.squeeze()
+        i += 1
+        if i * BATCH_SIZE >= sample_count:
+            break
+
+    return features, labels
 
 
 def preprocessing_X_transform(data_df: pd.DataFrame, image_feature_name: str,) -> pd.DataFrame:
@@ -136,10 +155,7 @@ def create_image_binary_classification_model() -> Model:
         Compiled binary classification model
     """
     model = Sequential()
-    model.add(get_pretrained_base_model())
     model.add(GlobalAveragePooling2D())
-    model.add(Dense(256, activation="relu"))
-    model.add(Dense(128, activation="relu"))
     model.add(Dense(1, activation="sigmoid"))
     model.compile(
         optimizer=keras.optimizers.Adam(), loss="binary_crossentropy", metrics=["binary_accuracy"]
@@ -297,15 +313,39 @@ def fit_image_classifier_pipeline(
     X_test_transformed = X_transformer.fit_transform(X_test, y_test)
     test_gen = get_image_augmentation_gen(X_test_transformed, y_test, BATCH_SIZE, SEED)
 
+    train_features, train_labels = extract_features(
+        train_gen, len(X_train_transformed), get_pretrained_base_model()
+    )
+    test_features, test_labels = extract_features(
+        test_gen, len(X_test_transformed), get_pretrained_base_model()
+    )
+
     clf_model = create_image_binary_classification_model()
     clf_model.fit(
-        train_gen,
+        x=train_features,
+        y=train_labels,
         steps_per_epoch=train_gen.n // train_gen.batch_size,
         epochs=EPOCHS,
-        validation_data=test_gen,
+        validation_data=(test_features, test_labels),
         validation_steps=test_gen.n // test_gen.batch_size,
         callbacks=get_all_callbacks(),
     )
     # append "model" to the pipeline
     X_transformer.steps.append(["model", clf_model])
     return X_transformer
+
+
+def transform_before_prediction(data):
+    img_arr = None
+    """ transform the df and return as numpy array after reshaping"""
+    if isinstance(data, pd.DataFrame):
+        img_col_name = "image"
+        preprocessed_data = preprocessing_X_transform(data, img_col_name)
+        img_arr = reshape_numpy_array(preprocessed_data[img_col_name])
+    else:
+        pass
+        # img_arr = img_preprocessing(data)
+        # img_arr = np.expand_dims(test_img_arr, axis=0)
+    preprocess_input(img_arr)
+    extracted_features = get_pretrained_base_model().predict(img_arr)
+    return extracted_features
