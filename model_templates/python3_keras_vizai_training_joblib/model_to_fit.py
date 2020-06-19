@@ -100,6 +100,10 @@ def preprocessing_X_transform(data_df: pd.DataFrame, image_feature_name: str,) -
     return data_df
 
 
+def pretrained_preprocess_input(img_arr):
+    return preprocess_input(img_arr)
+
+
 def reshape_numpy_array(data_series: pd.Series) -> np.ndarray:
     """ Convert pd.Series to numpy array and reshape it too """
     return np.asarray(data_series.to_list()).reshape(-1, *IMG_SHAPE)
@@ -249,7 +253,6 @@ def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_dir: str) 
     -------
     Nothing
     """
-
     # extract preprocessor pipeline
     preprocessor = estimator_pipeline[:-1]
 
@@ -330,22 +333,15 @@ def fit_image_classifier_pipeline(
         validation_steps=test_gen.n // test_gen.batch_size,
         callbacks=get_all_callbacks(),
     )
+    X_transformer.steps.append(
+        ["preprocess_input", FunctionTransformer(pretrained_preprocess_input, validate=False)]
+    )
+    X_transformer.steps.append(
+        [
+            "feature_extraction",
+            FunctionTransformer(get_pretrained_base_model().predict, validate=False),
+        ]
+    )
     # append "model" to the pipeline
     X_transformer.steps.append(["model", clf_model])
     return X_transformer
-
-
-def transform_before_prediction(data):
-    img_arr = None
-    """ transform the df and return as numpy array after reshaping"""
-    if isinstance(data, pd.DataFrame):
-        img_col_name = "image"
-        preprocessed_data = preprocessing_X_transform(data, img_col_name)
-        img_arr = reshape_numpy_array(preprocessed_data[img_col_name])
-    else:
-        pass
-        # img_arr = img_preprocessing(data)
-        # img_arr = np.expand_dims(test_img_arr, axis=0)
-    preprocess_input(img_arr)
-    extracted_features = get_pretrained_base_model().predict(img_arr)
-    return extracted_features
