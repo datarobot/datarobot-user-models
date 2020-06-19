@@ -38,6 +38,11 @@ class TestTrainingModelTemplates(object):
         [
             (
                 "training/python3_keras_joblib",
+                "project_binary_cats_dogs",
+                "keras_drop_in_env",
+                "binary",
+            ),
+            (
                 "project_regression_boston",
                 "keras_drop_in_env",
                 "regression",

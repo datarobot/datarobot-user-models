@@ -48,6 +48,15 @@ class TestInferenceModelTemplates(object):
             (
                 "inference/python3_pytorch",
                 "python",
+                "keras_drop_in_env",
+                "binary_testing_data",
+                "class",
+                "cats",
+                "dogs",
+            ),
+            (
+                "python3_pytorch_inference",
+                "python",
                 "pytorch_drop_in_env",
                 "regression_testing_data",
                 "MEDV",
