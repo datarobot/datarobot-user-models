@@ -333,6 +333,8 @@ def fit_image_classifier_pipeline(
         validation_steps=test_gen.n // test_gen.batch_size,
         callbacks=get_all_callbacks(),
     )
+
+    # append few more steps to the preprocess-pipeline for the final prediction
     X_transformer.steps.append(
         ["preprocess_input", FunctionTransformer(pretrained_preprocess_input, validate=False)]
     )
@@ -342,6 +344,7 @@ def fit_image_classifier_pipeline(
             FunctionTransformer(get_pretrained_base_model().predict, validate=False),
         ]
     )
+
     # append "model" to the pipeline
     X_transformer.steps.append(["model", clf_model])
     return X_transformer
