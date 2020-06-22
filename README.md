@@ -88,6 +88,10 @@ Ubuntu 18.04
 `Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$forClass, c(1)]), Ncpus=4)'`
 
 ### DR developers
+#### DataRobot Confluence
+To get more information, search for `custom models` and `datarobot user models` in DataRobot Confluence.
+
+#### Committing into the repo
 1. Ask repository admin for write access.
 2. Develop your contribution in a separate branch run tests and push to the repository.
 3. Create a pull request
