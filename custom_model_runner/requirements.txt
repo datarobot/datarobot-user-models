@@ -7,3 +7,4 @@ progress
 texttable
 argcomplete==1.11.1
 mlpiper==2.2.0
+jupyter
