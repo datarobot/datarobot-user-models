@@ -64,11 +64,17 @@ WEIGHTS_CSV = "weights-csv"
 
 
 class TestCMRunner:
+    @pytest.fixture(scope="class", autouse=True)
+    def setup(self, get_artifacts_dir):
+        TestCMRunner.setup_class2(get_artifacts_dir)
+
     @classmethod
-    def setup_class(cls):
+    def setup_class2(cls, artifacts_path):
+        cls.tests_artifacts_path = artifacts_path
+
         cls.tests_root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
         cls.tests_fixtures_path = os.path.join(cls.tests_root_path, "fixtures")
-        cls.tests_artifacts_path = os.path.join(cls.tests_fixtures_path, "drop_in_model_artifacts")
+        cls.source_artifacts_path = os.path.join(cls.tests_fixtures_path, "drop_in_model_artifacts")
         cls.tests_data_path = os.path.join(cls.tests_root_path, "testdata")
         cls.model_templates_path = os.path.join(cls.tests_root_path, "..", "model_templates")
 
@@ -99,6 +105,7 @@ class TestCMRunner:
                 cls.model_templates_path, "python3_pytorch_inference"
             ),
         }
+
         cls.fixtures = {
             PYTHON: (os.path.join(cls.tests_fixtures_path, "custom.py"), "custom.py"),
             NO_CUSTOM: (None, None),
