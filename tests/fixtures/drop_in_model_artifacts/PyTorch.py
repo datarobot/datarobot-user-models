@@ -79,8 +79,8 @@ def train_epoch(model, opt, criterion, X, y, batch_size=50):
 if __name__ == "__main__":
     from PyTorch import BinModel, RegModel
 
-    BINARY_DATA = "tests/testdata/iris_binary_training.csv"
-    REGRESSION_DATA = "tests/testdata/boston_housing.csv"
+    BINARY_DATA = "iris_binary_training.csv"
+    REGRESSION_DATA = "boston_housing.csv"
 
     bin_X = pd.read_csv(BINARY_DATA)
     bin_y = bin_X.pop("Species")

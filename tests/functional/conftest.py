@@ -2,14 +2,30 @@ import os
 import pytest
 import uuid
 import warnings
+import sys
+import shutil
 import datarobot as dr
 from dr_usertool.datarobot_user_database import DataRobotUserDatabase
 from dr_usertool.utils import get_permissions
+
+# fixtures dir
+TESTS_ROOT_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TESTS_FIXTURES_PATH = os.path.join(TESTS_ROOT_PATH, "fixtures")
+
+sys.path.append(TESTS_FIXTURES_PATH)
+from artifacts import generate_artifacts_dir
 
 
 BASE_TEMPLATE_ENV_DIR = "public_dropin_environments"
 BASE_DATASET_DIR = "tests/testdata"
 ENDPOINT_URL = "http://localhost/api/v2"
+
+test_artifacts_dir = None
+
+
+@pytest.fixture(scope="session")
+def get_artifacts_dir():
+    return test_artifacts_dir
 
 
 def dr_usertool_setup():
@@ -56,6 +72,13 @@ def pytest_unconfigure(config):
 
 def pytest_sessionstart(session):
     dr.Client(endpoint=ENDPOINT_URL, token=os.environ["DATAROBOT_API_TOKEN"])
+    global test_artifacts_dir
+    test_artifacts_dir = generate_artifacts_dir()
+
+
+def pytest_sessionfinish(session):
+    global test_artifacts_dir
+    shutil.rmtree(test_artifacts_dir)
 
 
 @pytest.fixture(scope="session")
