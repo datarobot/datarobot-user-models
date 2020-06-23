@@ -2,7 +2,7 @@
 # This file will be executed from the root of the repository in a python3 virtualenv.
 # It will run the test of drum inside a predefined docker image:
 
-DOCKER_IMAGE="065017677492.dkr.ecr.us-east-1.amazonaws.com/custom_models/cmrun_test_env:2"
+DOCKER_IMAGE="datarobot/drum_integration_tests_base"
 CDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
 FULL_PATH_CODE_DIR=$(realpath $CDIR)
 
