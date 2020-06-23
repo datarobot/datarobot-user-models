@@ -2,16 +2,12 @@
 # This file will be executed from the root of the repository in a python3 virtualenv.
 # It will run the test of drum inside a predefined docker image:
 
-DOCKER_IMAGE="065017677492.dkr.ecr.us-east-1.amazonaws.com/custom_models/cmrun_test_env:2"
+DOCKER_IMAGE="datarobot/drum_integration_tests_base"
 CDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
 FULL_PATH_CODE_DIR=$(realpath $CDIR)
 
 
 echo "FULL_PATH_CODE_DIR: $FULL_PATH_CODE_DIR"
-echo "Getting mlpiper"
-cd /tmp/
-rm -rf mlpiper
-git clone git@github.com:datarobot/mlpiper.git
 
 echo "Running tests inside docker:"
 cd $FULL_PATH_CODE_DIR || exit 1
@@ -55,7 +51,6 @@ docker run -i \
       -v /tmp:/tmp \
       -v /var/run/docker.sock:/var/run/docker.sock \
       -v "$FULL_PATH_CODE_DIR:$FULL_PATH_CODE_DIR" \
-      -v /tmp/mlpiper:/opt/tmp_mlpiper \
       --workdir $FULL_PATH_CODE_DIR \
       -i $TERMINAM_OPTION\
       $DOCKER_IMAGE \

@@ -71,8 +71,8 @@ RUN python3.7 -m pip install wheel
 RUN python3.7 -m pip install virtualenv
 
 RUN python3.7 -m virtualenv /opt/v3.7
-COPY requirements_cmrun.txt /tmp/requirements_cmrun.txt
-RUN cd /opt && . v3.7/bin/activate && pip install -r /tmp/requirements_cmrun.txt && rm -rf /root/.cache/pip
+COPY requirements_drum.txt /tmp/requirements_drum.txt
+RUN cd /opt && . v3.7/bin/activate && pip install -r /tmp/requirements_drum.txt && rm -rf /root/.cache/pip
 
 COPY requirements_dropin.txt /tmp/requirements_dropin.txt
 RUN cd /opt && . v3.7/bin/activate && pip install -r /tmp/requirements_dropin.txt && rm -rf /root/.cache/pip
