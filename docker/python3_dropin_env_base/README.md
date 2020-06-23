@@ -1,5 +1,5 @@
 # Python3 drop-in environment base image
-Reposirory name: **datarobot/python3_dropin_env_base**  
+Repository name: **datarobot/python3_dropin_env_base**  
 Latest date: 06-10-2020  
 Dockerfile: https://github.com/datarobot/datarobot-user-models/blob/master/docker/python3_dropin_env_base/Dockerfile
 
