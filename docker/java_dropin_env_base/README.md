@@ -1,5 +1,5 @@
 # Java drop-in environment base image
-Reposirory name: **datarobot/java_dropin_env_base**  
+Repository name: **datarobot/java_dropin_env_base**  
 Latest date: 06-10-2020  
 Dockerfile: https://github.com/datarobot/datarobot-user-models/blob/master/docker/java_dropin_env_base/Dockerfile
 
