@@ -5,8 +5,8 @@ library(recipes)
 library(glmnet)
 
 # URL to dataset
-PATH_TO_BIN_DATAFRAME <- "../DataRobot/tests/testdata/iris_binary_training.csv"
-PATH_TO_REG_DATAFRAME <- "../DataRobot/tests/testdata/boston_housing.csv"
+PATH_TO_BIN_DATAFRAME <- "iris_binary_training.csv"
+PATH_TO_REG_DATAFRAME <- "boston_housing.csv"
 
 # Reading in dataset
 bin_df <- read.csv(PATH_TO_BIN_DATAFRAME)
