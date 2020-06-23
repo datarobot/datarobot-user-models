@@ -7,4 +7,3 @@ pytest
 pytest-runner
 datarobot==2.21
 black
-jupyter
