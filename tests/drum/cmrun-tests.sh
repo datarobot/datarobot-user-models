@@ -19,10 +19,6 @@ pwd
 GIT_ROOT=$(git rev-parse --show-toplevel)
 echo "GIT_ROOT: $GIT_ROOT"
 
-cp -a /opt/tmp_mlpiper /opt/mlpiper
-cd /opt/mlpiper/mlpiper-java || exit 1
-mvn install
-
 cd $GIT_ROOT/custom_model_runner || exit 1
 
 echo
@@ -37,7 +33,7 @@ echo "CMRUNNER_WHEEL_REAL_PATH: $CMRUNNER_WHEEL_REAL_PATH"
 echo
 echo "--> Installing wheel"
 echo
-pip install "${CMRUNNER_WHEEL}[R]" --extra-index-url https://test.pypi.org/simple/
+pip install "${CMRUNNER_WHEEL}[R]"
 
 function build_docker_image_with_cmrun() {
   cd "$GIT_ROOT" || exit 1
