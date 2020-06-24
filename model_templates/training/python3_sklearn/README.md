@@ -1,5 +1,4 @@
-## Python Sklearn Inference Model Template
-
+## Python Sklearn Training Model Template
 
 This model is intended to work with the [Python 3 Scikit-Learn Drop-In Environment](../../public_dropin_environments/python3_sklearn/).
 The supplied pkl file is a scikit-learn model trained on [boston_housing.csv](../../tests/testdata/boston_housing.csv)
@@ -13,4 +12,5 @@ Create a new custom model with these files and use the Python Drop-In Environmen
 
 ### To run locally using 'drum'
 Paths are relative to `./datarobot-user-models/model_templates`:  
-`drum score --code-dir ./python3_sklearn_inference --input ../tests/testdata/boston_housing.csv`
+`drum fit --code-dir ./model_templates/training/python3_sklearn --input ../tests/testdata/boston_housing.csv --target MEDV`  
+Check that `artifact.pkl` file was created.
