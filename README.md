@@ -25,19 +25,19 @@ Custom Training Models are in active development. They include a `fit()` functio
 The [model_templates](model_templates) contain example models that will work with the template environments discussed above. For more information about each model,
 please see:
 ##### Inference Models
-* [Scikit-Learn sample model](model_templates/python3_sklearn_inference)
-* [PyTorch sample model](model_templates/python3_pytorch_inference)
-* [XGBoost sample model](model_templates/python3_xgboost_inference)
-* [Keras sample model](model_templates/python3_keras_inference)
-* [Keras sample model + Joblib artifact](model_templates/python3_keras_inference_joblib)
-* [PyPMML sample model](model_templates/python3_pmml_inference)
+* [Scikit-Learn sample model](model_templates/inference/python3_sklearn)
+* [PyTorch sample model](model_templates/inference/python3_pytorch)
+* [XGBoost sample model](model_templates/inference/python3_xgboost)
+* [Keras sample model](model_templates/inference/python3_keras)
+* [Keras sample model + Joblib artifact](model_templates/inference/python3_keras_joblib)
+* [PyPMML sample model](model_templates/inference/python3_pmml)
 * [R sample model](model_templates/r_lang)
 * [Java sample model](model_templates/java_codegen)
 
 ##### Training Models
-* [Scikit-Learn sample model](model_templates/python3_sklearn_training)
-* [XGBoost sample model](model_templates/python3_xgboost_training)
-* [Keras sample model + Joblib artifact](model_templates/python3_keras_training_joblib)
+* [Scikit-Learn sample model](model_templates/training/python3_sklearn)
+* [XGBoost sample model](model_templates/training/python3_xgboost)
+* [Keras sample model + Joblib artifact](model_templates/training/python3_keras_joblib)
 
 
 ## Custom Environment Templates

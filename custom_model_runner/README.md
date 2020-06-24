@@ -48,7 +48,7 @@ Clone the DataRobot User Models repo from: https://github.com/datarobot/datarobo
 
 Check README file in every directory for the exact command to run the example.
 Copy/paste command to run it from the current path `datarobot-user-models/model_templates` e.g.:  
-`drum score --code-dir ./python3_sklearn_inference --input ../tests/testdata/boston_housing.csv`
+`drum score --code-dir ./inference/python3_sklearn --input ../tests/testdata/boston_housing.csv`
 
 
 

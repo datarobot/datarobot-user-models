@@ -43,10 +43,10 @@ pip install -r public_dropin_environments/python3_sklearn/dr_requirements.txt\
 engineers to make sure your model is in tip top shape to be uploaded into the 
 app. This tool is called DRUM. Here's how to run it
 ```
-drum fit --code-dir model_templates/python3_sklearn_training --input \
+drum fit --code-dir model_templates/training/python3_sklearn --input \
 tests/testdata/iris_binary_training.csv --target Species --verbose
 ```
-This is going to build a model with the code in the `python3_sklearn_training` 
+This is going to build a model with the code in the `training/python3_sklearn` 
 directory, and then use that model to make predictions using the training data 
 it fit with. 
 ### Upload your code into DataRobot
