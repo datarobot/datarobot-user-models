@@ -13,6 +13,15 @@ SOURCE_ARTIFACTS_PATH = os.path.join(TESTS_FIXTURES_PATH, "drop_in_model_artifac
 
 
 def generate_artifacts_dir():
+    """
+    This method may be used in conftest.py in a pytest_sessionstart hook,
+    to generate a folder with model artifacts.
+    Generated folder will contain some copied artifacts, some re-trained with current dependencies.
+
+    Returns
+    -------
+    path to generated directory
+    """
     test_artifacts_dir = mkdtemp(prefix="custom_model_tests_artifacts", dir="/tmp")
 
     # copy files required to generate model artifacts
