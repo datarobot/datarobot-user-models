@@ -103,3 +103,12 @@ def load_model(input_dir: str) -> Pipeline:
         Estimator pipeline obj
     """
     return deserialize_estimator_pipeline(input_dir)
+
+
+def score(data, model, **kwargs):
+    positive_class_label = kwargs["positive_class_label"]
+    negative_class_label = kwargs["negative_class_label"]
+    predictions = model.predict(data)
+    predictions = pd.DataFrame(predictions, columns=[positive_class_label])
+    predictions[negative_class_label] = 1 - predictions[positive_class_label]
+    return predictions
