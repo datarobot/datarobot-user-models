@@ -6,6 +6,7 @@ from tempfile import NamedTemporaryFile
 import pandas as pd
 
 from datarobot_drum.drum.drum import possibly_intuit_order
+from datarobot_drum.drum.model_adapter import PythonModelAdapter
 
 
 class TestOrderIntuition(object):
@@ -35,3 +36,30 @@ class TestOrderIntuition(object):
     def test_badfile(self):
         with pytest.raises(DrumCommonException):
             possibly_intuit_order(self.one_target_filename, target_col_name="Species")
+
+
+class TestValidatePredictions(object):
+    def test_add_to_one_happy(self):
+        positive_label = "poslabel"
+        negative_label = "neglabel"
+        adapter = PythonModelAdapter(model_dir=None)
+        df = pd.DataFrame({positive_label: [0.1, 0.2, 0.3], negative_label: [0.9, 0.8, 0.7]})
+        adapter._validate_predictions(
+            to_validate=df,
+            hook=None,
+            positive_class_label=positive_label,
+            negative_class_label=negative_label,
+        )
+
+    def test_add_to_one_sad(self):
+        positive_label = "poslabel"
+        negative_label = "neglabel"
+        adapter = PythonModelAdapter(model_dir=None)
+        df = pd.DataFrame({positive_label: [1, 1, 1], negative_label: [-1, 0, 0]})
+        with pytest.raises(ValueError):
+            adapter._validate_predictions(
+                to_validate=df,
+                hook=None,
+                positive_class_label=positive_label,
+                negative_class_label=negative_label,
+            )
