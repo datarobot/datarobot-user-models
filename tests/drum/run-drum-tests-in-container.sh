@@ -6,15 +6,14 @@ export
 echo
 echo
 
-# We assume for now that this scripts starting point is the top dir
-CODE_DIR=$(pwd)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 START_TIME=$(date +%s)
 cd /opt || exit 1
 . v3.7/bin/activate
 
 echo "-- running drum tests - assuming running inside Docker"
-cd  $CODE_DIR || exit 1
+cd $SCRIPT_DIR || exit 1
 pwd
 GIT_ROOT=$(git rev-parse --show-toplevel)
 echo "GIT_ROOT: $GIT_ROOT"
@@ -35,37 +34,7 @@ echo "--> Installing wheel"
 echo
 pip install "${CMRUNNER_WHEEL}[R]"
 
-function build_docker_image_with_cmrun() {
-  cd "$GIT_ROOT" || exit 1
-
-  orig_docker_context_dir=$1
-  image_name=$2
-  drum_wheel=$3
-  drum_requirements=$4
-
-  docker_dir=/tmp/cmrun_docker.$$
-
-  echo "Building docker image:"
-  echo "orig_docker_context_dir: $orig_docker_context_dir"
-  echo "image_name:              $image_name"
-  echo "deum_wheel:              $drum_wheel"
-  echo "drum_requirements:       $drum_requirements"
-  echo "docker_dir:              $docker_dir"
-
-  rm -rf $docker_dir
-  cp -a $orig_docker_context_dir $docker_dir
-
-  cp $drum_wheel $docker_dir
-  cp $drum_requirements $docker_dir/drum_requirements.txt
-
-  cd $docker_dir || exit 1
-  docker build -t $image_name ./
-  rm -rf $docker_dir
-  echo
-  echo
-  docker images
-  cd $GIT_ROOT || exit 1
-}
+source $GIT_ROOT/tests/drum/integration-helpers.sh
 
 cd $GIT_ROOT || exit 1
 
@@ -89,8 +58,8 @@ cd $GIT_ROOT || exit 1
 DONE_PREP_TIME=$(date +%s)
 
 #pytest -s tests/drum/test_custom_model.py::TestCMRunner::test_custom_models_with_drum[rds-regression-R-None] \
-#  --junit-xml="$CODE_DIR/results_integration.xml"
-pytest tests/drum/test_units.py tests/drum/test_custom_model.py --junit-xml="$CODE_DIR/results_integration.xml"
+#  --junit-xml="$GIT_ROOT/results_integration.xml"
+pytest tests/drum/test_units.py tests/drum/test_custom_model.py --junit-xml="$GIT_ROOT/results_integration.xml"
 
 TEST_RESULT=$?
 END_TIME=$(date +%s)
