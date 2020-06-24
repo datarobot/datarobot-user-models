@@ -59,8 +59,9 @@ function build_docker_image_with_cmrun() {
   cp $drum_wheel $docker_dir
   cp $drum_requirements $docker_dir/drum_requirements.txt
 
-  cd $docker_dir || exit 1
+  pushd $docker_dir || exit 1
   docker build -t $image_name ./
+  popd
   rm -rf $docker_dir
   echo
   echo
