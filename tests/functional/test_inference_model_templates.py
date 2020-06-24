@@ -19,7 +19,7 @@ class TestInferenceModelTemplates(object):
         "model_template, language, env, dataset, target, pos_label, neg_label",
         [
             (
-                "java_codegen",
+                "inference/java_codegen",
                 "java",
                 "java_drop_in_env",
                 "regression_testing_data",
@@ -72,7 +72,15 @@ class TestInferenceModelTemplates(object):
                 None,
                 None,
             ),
-            ("r_lang", "r", "r_drop_in_env", "regression_testing_data", "MEDV", None, None),
+            (
+                "inference/r_lang",
+                "r",
+                "r_drop_in_env",
+                "regression_testing_data",
+                "MEDV",
+                None,
+                None,
+            ),
             (
                 "inference/python3_pmml",
                 "python",
