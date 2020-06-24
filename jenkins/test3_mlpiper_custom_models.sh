@@ -11,7 +11,7 @@ echo "FULL_PATH_CODE_DIR: $FULL_PATH_CODE_DIR"
 
 echo "Running tests inside docker:"
 cd $FULL_PATH_CODE_DIR || exit 1
-ls  ./tests/drum/cmrun-tests.sh
+ls  ./tests/drum/run-drum-tests-in-container.sh
 
 unameOut="$(uname -s)"
 case "${unameOut}" in
@@ -54,7 +54,7 @@ docker run -i \
       --workdir $FULL_PATH_CODE_DIR \
       -i $TERMINAM_OPTION\
       $DOCKER_IMAGE \
-      ./tests/drum/cmrun-tests.sh
+      ./tests/drum/run-drum-tests-in-container.sh
 
 TEST_RESULT=$?
 
