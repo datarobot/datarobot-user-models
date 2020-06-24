@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-# This runs drum integration tests locally.
+# This script creates a python environment and runs drum integration tests locally.
+# It installs only python dependencies. Also R and JDK 11 are required.
 #
 # Here are the steps that are executed:
 #   1. Script checks if virtual env `drum_tests_virtual_environment` exists in the HOME dir.
@@ -12,6 +13,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd ${SCRIPT_DIR}
 GIT_ROOT=$(git rev-parse --show-toplevel)
+cd ${GIT_ROOT}
 CUSTOM_MODEL_RUNNER_DIR=${GIT_ROOT}/custom_model_runner
 PATH_TO_ENV="${HOME}/drum_tests_virtual_environment"
 ENV_ACTIVATE=${PATH_TO_ENV}/bin/activate
@@ -88,4 +90,4 @@ deactivate
 
 # Test drum on Python3
 test_drum ${CMRUNNER_WHEEL_REAL_PATH}
-title "custom model runner tests passed successfully on Python3 environment"
+title "drum tests passed successfully on Python3 environment"
