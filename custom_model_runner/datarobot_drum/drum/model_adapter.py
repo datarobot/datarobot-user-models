@@ -16,13 +16,11 @@ from datarobot_drum.drum.common import (
 
 from datarobot_drum.drum.exceptions import DrumCommonException
 
-from datarobot_drum.drum.artifact_predictors.artifact_predictor import (
-    KerasPredictor,
-    SKLearnPredictor,
-    PyTorchPredictor,
-    PMMLPredictor,
-    XGBoostPredictor,
-)
+from datarobot_drum.drum.artifact_predictors.keras_predictor import KerasPredictor
+from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPredictor
+from datarobot_drum.drum.artifact_predictors.torch_predictor import PyTorchPredictor
+from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
+from datarobot_drum.drum.artifact_predictors.xgboost_predictor import XGBoostPredictor
 
 
 class PythonModelAdapter:
