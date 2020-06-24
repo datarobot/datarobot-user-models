@@ -37,3 +37,32 @@ function install_wheel_into_venv() {
     pip install -U ${wheel} || { title "Failed installing '${wheel}' in '${venv}'! Exiting ..."; exit -1; }
     deactivate
 }
+
+function build_docker_image_with_cmrun() {
+  orig_docker_context_dir=$1
+  image_name=$2
+  drum_wheel=$3
+  drum_requirements=$4
+
+  docker_dir=/tmp/cmrun_docker.$$
+
+  echo "Building docker image:"
+  echo "orig_docker_context_dir: $orig_docker_context_dir"
+  echo "image_name:              $image_name"
+  echo "drum_wheel:              $drum_wheel"
+  echo "drum_requirements:       $drum_requirements"
+  echo "docker_dir:              $docker_dir"
+
+  rm -rf $docker_dir
+  cp -a $orig_docker_context_dir $docker_dir
+
+  cp $drum_wheel $docker_dir
+  cp $drum_requirements $docker_dir/drum_requirements.txt
+
+  cd $docker_dir || exit 1
+  docker build -t $image_name ./
+  rm -rf $docker_dir
+  echo
+  echo
+  docker images
+}
