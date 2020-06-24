@@ -75,28 +75,28 @@ class TestCMRunner:
         cls.paths_to_real_models = {
             (PYTHON, SKLEARN): os.path.join(cls.model_templates_path, "python3_sklearn"),
             (PYTHON, KERAS_INFERENCE): os.path.join(
-                cls.model_templates_path, "python3_keras_inference"
+                cls.model_templates_path, "inference/python3_keras"
             ),
             (PYTHON, KERAS_INFERENCE_JOBLIB): os.path.join(
-                cls.model_templates_path, "python3_keras_inference_joblib"
+                cls.model_templates_path, "inference/python3_keras_joblib"
             ),
             (PYTHON, KERAS_TRAINING_JOBLIB): os.path.join(
-                cls.model_templates_path, "python3_keras_training_joblib"
+                cls.model_templates_path, "training/python3_keras_joblib"
             ),
             (PYTHON, XGB_INFERENCE): os.path.join(
-                cls.model_templates_path, "python3_xgboost_inference"
+                cls.model_templates_path, "inference/python3_xgboost"
             ),
             (PYTHON, XGB_TRAINING): os.path.join(
-                cls.model_templates_path, "python3_xgboost_training"
+                cls.model_templates_path, "training/python3_xgboost"
             ),
             (PYTHON, SKLEARN_INFERENCE): os.path.join(
-                cls.model_templates_path, "python3_sklearn_inference"
+                cls.model_templates_path, "inference/python3_sklearn"
             ),
             (PYTHON, SKLEARN_TRAINING): os.path.join(
-                cls.model_templates_path, "python3_sklearn_training"
+                cls.model_templates_path, "training/python3_sklearn"
             ),
             (PYTHON, PYTORCH_INFERENCE): os.path.join(
-                cls.model_templates_path, "python3_pytorch_inference"
+                cls.model_templates_path, "inference/python3_pytorch"
             ),
         }
 
@@ -201,7 +201,6 @@ class TestCMRunner:
     @classmethod
     def _create_custom_model_dir(cls, framework, problem, language, is_training=False):
         custom_model_dir = mkdtemp(prefix="custom_model_", dir="/tmp")
-
         if is_training:
             model_template_dir = cls._get_template_dir(language, framework, is_training)
             for filename in glob.glob(r"{}/*.py".format(model_template_dir)):
@@ -687,7 +686,7 @@ class TestCMRunner:
         )
 
         with TemporaryDirectory() as output:
-            cmd = "{} fit --code-dir {} --target {} --input {}".format(
+            cmd = "{} fit --code-dir {} --target {} --input {} --verbose ".format(
                 ArgumentsOptions.MAIN_COMMAND, custom_model_dir, self.target[problem], input_dataset
             )
             if use_output:
@@ -695,7 +694,7 @@ class TestCMRunner:
             if problem == BINARY:
                 cmd = self._cmd_add_class_labels(cmd, framework, problem)
             if docker:
-                cmd += " --docker {} --verbose ".format(docker)
+                cmd += " --docker {} ".format(docker)
 
             cmd += weights_cmd
 

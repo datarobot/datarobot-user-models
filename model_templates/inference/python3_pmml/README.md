@@ -11,9 +11,9 @@ Create a new custom model with these files and use the Python Drop-In Environmen
 
 ### To run locally classification model using 'drum'
 Paths are relative to `./datarobot-user-models/model_templates`:  
-`drum score --code-dir ./python3_pmml_inference --input ../tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor`
+`drum score --code-dir ./inference/python3_pmml --input ../tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor`
 
 ### To run locally regression model using 'drum'
 Replace `iris_bin.pmml` with `iris_reg.pmml` from the repo's `tests/fixtures/drop_in_model_atifacts` folder, which is a pypmml model trained on Iris dataset with a `Sepal Length` as the target (regression).  
 Paths are relative to `./datarobot-user-models/model_templates`:  
-`drum score --code-dir ./python3_pmml_inference --input ../tests/testdata/iris_binary_training.csv`
+`drum score --code-dir ./inference/python3_pmml --input ../tests/testdata/iris_binary_training.csv`
