@@ -52,10 +52,10 @@ class PythonModelAdapter:
         custom_file_path = os.path.join(self._model_dir, CUSTOM_FILE_NAME + ".py")
 
         if not os.path.isfile(custom_file_path):
-            self._logger.debug("No {} detected".format(custom_file_path))
+            print("No file detected at {}".format(custom_file_path))
             return
 
-        self._logger.debug("Detected {} .. trying to load hooks".format(custom_file_path))
+        print("Detected {} .. trying to load hooks".format(custom_file_path))
         sys.path.append(self._model_dir)
 
         try:

@@ -19,7 +19,7 @@ class TestInferenceModelTemplates(object):
         "model_template, language, env, dataset, target, pos_label, neg_label",
         [
             (
-                "java_codegen",
+                "inference/java_codegen",
                 "java",
                 "java_drop_in_env",
                 "regression_testing_data",
@@ -28,7 +28,7 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
-                "python3_keras_inference",
+                "inference/python3_keras",
                 "python",
                 "keras_drop_in_env",
                 "regression_testing_data",
@@ -37,7 +37,7 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
-                "python3_keras_inference_joblib",
+                "inference/python3_keras_joblib",
                 "python",
                 "keras_drop_in_env",
                 "regression_testing_data",
@@ -46,7 +46,7 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
-                "python3_pytorch_inference",
+                "inference/python3_pytorch",
                 "python",
                 "pytorch_drop_in_env",
                 "regression_testing_data",
@@ -55,7 +55,7 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
-                "python3_sklearn_inference",
+                "inference/python3_sklearn",
                 "python",
                 "sklearn_drop_in_env",
                 "regression_testing_data",
@@ -64,7 +64,7 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
-                "python3_xgboost_inference",
+                "inference/python3_xgboost",
                 "python",
                 "xgboost_drop_in_env",
                 "regression_testing_data",
@@ -72,9 +72,17 @@ class TestInferenceModelTemplates(object):
                 None,
                 None,
             ),
-            ("r_lang", "r", "r_drop_in_env", "regression_testing_data", "MEDV", None, None),
             (
-                "python3_pmml_inference",
+                "inference/r_lang",
+                "r",
+                "r_drop_in_env",
+                "regression_testing_data",
+                "MEDV",
+                None,
+                None,
+            ),
+            (
+                "inference/python3_pmml",
                 "python",
                 "pmml_drop_in_env",
                 "binary_testing_data",
