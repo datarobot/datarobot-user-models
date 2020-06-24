@@ -122,4 +122,4 @@ custom-model-templates.Rproj
 .idea
 
 # java/jar
-*.jar
+custom_model_runner/**/*.jar

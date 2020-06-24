@@ -1,4 +1,4 @@
-## Python Keras Joblib Inference Model Template
+## Python Keras Joblib Training Model Template
 
 This model is intended to work with the [Python 3 Keras Drop-In Environment](../../public_dropin_environments/python3_keras/).
 The supplied h5 file is a keras + tensorflow model trained on [boston_housing.csv](../../tests/testdata/boston_housing.csv)
@@ -12,4 +12,5 @@ Create a new custom model with these files and use the Python Drop-In Environmen
 
 ### To run locally using 'drum'
 Paths are relative to `./datarobot-user-models/model_templates`:  
-`drum score --code-dir ./python3_keras_inference_joblib --input ../tests/testdata/boston_housing.csv`
+`drum fit --code-dir ./model_templates/training/python3_keras_joblib --input ../tests/testdata/boston_housing.csv --target MEDV`  
+Check that `artifact.joblib` file was created.
