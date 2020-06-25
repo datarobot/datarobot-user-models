@@ -103,13 +103,14 @@ class MyTruncatedSVD(TruncatedSVD):
             self.n_components = X.shape[1] - 1
         return TruncatedSVD.fit_transform(self, X=X, y=y)
 
+
 # Dense preprocessing pipeline, for models such as XGboost that do not do well with
 # extremely wide, sparse data
 # This preprocessing will work with linear models such as Ridge too
 dense_preprocessing_pipeline = Pipeline(
     steps=[
         ("preprocessing", sparse_preprocessing_pipeline),
-        ("SVD", MyTruncatedSVD(n_components=10, random_state=42, algorithm='randomized')),
+        ("SVD", MyTruncatedSVD(n_components=10, random_state=42, algorithm="randomized")),
     ]
 )
 

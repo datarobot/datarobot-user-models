@@ -44,5 +44,5 @@ Penalized linear model (but you can drop in any other sklearn model)
 
 ### To run locally using 'drum'
 Paths are relative to `./datarobot-user-models/model_templates`:
-`drum fit --code-dir ./model_templates/training/python3_sklearn --input ../tests/testdata/boston_housing.csv --target MEDV`
-If the command succeeds, your code is ready to be uploaded. 
+`drum fit --code-dir ./training/python3_sklearn --input ../tests/testdata/boston_housing.csv --target MEDV`
+If the command succeeds, your code is ready to be uploaded.
