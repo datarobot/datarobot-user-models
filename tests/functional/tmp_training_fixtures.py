@@ -108,7 +108,7 @@ class CustomTrainingBlueprint(APIObject):
             name=name + "-environment", description=desc, programming_language="python"
         )
 
-        ev = ExecutionEnvironmentVersion.create(str(ee.id), environment_dir, description=desc,)
+        ev = ExecutionEnvironmentVersion.create(str(ee.id), environment_dir, description=desc)
 
         # Make custom model
         cm = CustomTrainingModel.create(

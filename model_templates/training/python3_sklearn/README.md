@@ -1,16 +1,48 @@
-## Python Sklearn Training Model Template
+## Advanced Python Template Model
+
+This is an advanced python model template with preproccessing that:
+- Handles text variables
+- Handles categorical variables
+- Handles numeric variables
+
+The final modeler can be any sklearn-compatible modeler.
 
 This model is intended to work with the [Python 3 Scikit-Learn Drop-In Environment](../../public_dropin_environments/python3_sklearn/).
-The supplied pkl file is a scikit-learn model trained on [boston_housing.csv](../../tests/testdata/boston_housing.csv)
-with a MEDV as the target (regression), though any binary or regression model trained using the libraries
-outlined in [Python 3 Scikit-Learn Drop-In Environment](../../public_dropin_environments/python3_sklearn) will work.
 
-For this sample model, custom.py contains additional data pre-processing that the model itself lacks.
+## Instructions:
+Edit make_fit_method.py
+Leave custom.py alone
 
-## Instructions
-Create a new custom model with these files and use the Python Drop-In Environment with it
+## Overview of the pipeline
+
+### Feature identification
+- Helper function to identify numeric data types
+- Helper function to identify categorical data types
+- Helper function to identify text data types (This is pretty cool, and demonstrates how one might write more advanced column selectors for complicated blueporints)
+
+### Preprocessing
+Numerics:
+- Impute missing values with the median, adding a missing value indicator
+- Then center and scale the data
+
+Categoricals:
+- Impute missing values with the string "missing"
+- One hot encode the data (ignoring new categorical levels at prediction time)
+
+Text:
+- Impute missing values with the string "missing"
+- Tfidf encode the text, using 1-grams and 2-grams.
+
+SVD:
+After all the above is done, run SVD to reduce the dimensionality of the dataset to 10.
+
+This makes a dataset that can be used with basically any sklearn model.  This step could be removed for models that support sparse data.
+
+### Modeling
+Penalized linear model (but you can drop in any other sklearn model)
+
 
 ### To run locally using 'drum'
-Paths are relative to `./datarobot-user-models/model_templates`:  
-`drum fit --code-dir ./model_templates/training/python3_sklearn --input ../tests/testdata/boston_housing.csv --target MEDV`  
-Check that `artifact.pkl` file was created.
+Paths are relative to `./datarobot-user-models/model_templates`:
+`drum fit --code-dir ./training/python3_sklearn --input ../tests/testdata/boston_housing.csv --target MEDV`
+If the command succeeds, your code is ready to be uploaded.
