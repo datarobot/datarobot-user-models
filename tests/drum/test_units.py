@@ -46,7 +46,6 @@ class TestValidatePredictions(object):
         df = pd.DataFrame({positive_label: [0.1, 0.2, 0.3], negative_label: [0.9, 0.8, 0.7]})
         adapter._validate_predictions(
             to_validate=df,
-            hook=None,
             positive_class_label=positive_label,
             negative_class_label=negative_label,
         )
@@ -59,7 +58,6 @@ class TestValidatePredictions(object):
         with pytest.raises(ValueError):
             adapter._validate_predictions(
                 to_validate=df,
-                hook=None,
                 positive_class_label=positive_label,
                 negative_class_label=negative_label,
             )

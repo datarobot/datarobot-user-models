@@ -1,5 +1,4 @@
 import glob
-import tracemalloc
 import json
 import logging
 import os
@@ -174,16 +173,18 @@ class CMRunner(object):
 
         self._print_welcome_header()
 
-        if self.run_mode in [RunMode.SERVER, RunMode.SCORE, RunMode.FIT]:
+        if self.run_mode in [RunMode.SERVER, RunMode.SCORE]:
+            self._run_fit_and_predictions_pipelines_in_mlpiper()
+        elif self.run_mode == RunMode.FIT:
             remove_temp_output = None
-            if self.run_mode == RunMode.FIT and not self.options.output:
+            if not self.options.output:
                 self.options.output = mkdtemp()
                 remove_temp_output = self.options.output
             self._run_fit_and_predictions_pipelines_in_mlpiper()
-            if self.run_mode == RunMode.FIT:
-                create_custom_inference_model_folder(self.options.codedir, self.options.output)
-                if not self.options.skip_predict:
-                    self.run_test_predict()
+            if self.options.output or not self.options.skip_predict:
+                create_custom_inference_model_folder(self.options.code_dir, self.options.output)
+            if not self.options.skip_predict:
+                self.run_test_predict()
             if remove_temp_output:
                 print(
                     "Validation Complete: Your model can be fit to your data, "
@@ -191,13 +192,10 @@ class CMRunner(object):
                     "You're ready to add it to DataRobot. "
                 )
                 shutil.rmtree(remove_temp_output)
-            return
         elif self.run_mode == RunMode.PERF_TEST:
             CMRunTests(self.options, self.run_mode).performance_test()
-            return
         elif self.run_mode == RunMode.VALIDATION:
             CMRunTests(self.options, self.run_mode).validation_test()
-            return
         elif self.run_mode == RunMode.NEW:
             self._generate_template()
         else:

@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 import pandas as pd
 import logging
 import sys
@@ -203,12 +204,15 @@ class PythonModelAdapter:
                         {positive_class_label, negative_class_label}, columns_to_validate
                     )
                 )
-            if any(
-                a + b != 1
-                for a, b in zip(
-                    to_validate[positive_class_label], to_validate[negative_class_label]
-                )
-            ):
+            try:
+                added_probs = [
+                    a + b
+                    for a, b in zip(
+                        to_validate[positive_class_label], to_validate[negative_class_label]
+                    )
+                ]
+                np.testing.assert_almost_equal(added_probs, 1)
+            except AssertionError:
                 raise ValueError("Your prediction probabilities do not add up to 1.")
 
         elif columns_to_validate != {REGRESSION_PRED_COLUMN}:
