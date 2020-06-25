@@ -5,10 +5,7 @@ import numpy as np
 from pathlib import Path
 from sklearn.preprocessing import LabelBinarizer
 
-from create_pipeline import (
-    make_classifier_pipeline,
-    make_regressor_pipeline,
-)
+from create_pipeline import make_classifier_pipeline, make_regressor_pipeline
 
 
 def fit(
