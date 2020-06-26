@@ -12,6 +12,7 @@ from tempfile import mkdtemp, NamedTemporaryFile
 
 import numpy as np
 import pandas as pd
+from flask import Flask, request
 from mlpiper.pipeline.executor import Executor
 from mlpiper.pipeline.executor_config import ExecutorConfig
 
@@ -31,6 +32,9 @@ from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.utils import CMRunnerUtils
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
+
+from custom_model_runner.datarobot_drum.resource.components.Python.prediction_server.prediction_server import \
+    HTTP_200_OK
 
 EXTERNAL_SERVER_RUNNER = "external_prediction_server_runner.json"
 
@@ -357,11 +361,42 @@ class CMRunner(object):
             sc.enable()
             try:
                 sc.mark("start")
-                _pipeline_executor.init_pipeline()
-                sc.mark("init")
+                try:
+                    _pipeline_executor.init_pipeline()
+                    sc.mark("init")
+                except Exception as e:
+                    if self.options.force_start_internal:
+                        # TODO: move this to a function
+                        app = Flask(__name__)
+                        url_prefix = os.environ.get("URL_PREFIX", "")
+
+                        @app.route("{}/healty/".format(url_prefix))
+                        def healty():
+                            """This route is used to ensure that server has started"""
+                            return False, HTTP_200_OK
+
+                        @app.route("{}/".format(url_prefix))
+                        def ping():
+                            """This route is used to ensure that server has started"""
+                            return "Server is up!\n", HTTP_200_OK
+
+                        @app.route("{}/shutdown/".format(url_prefix), methods=["POST"])
+                        def shutdown():
+                            func = request.environ.get("werkzeug.server.shutdown")
+                            if func is None:
+                                raise RuntimeError("Not running with the Werkzeug Server")
+                            func()
+                            return "Server shutting down...", HTTP_200_OK
+
+                        # TODO: use real host & port
+                        host = 'localhost'
+                        port = 8080
+                        app.run(host, port)
+                    raise
+
                 _pipeline_executor.run_pipeline(cleanup=False)
                 sc.mark("run")
-            except DrumCommonException as e:
+            except Exception as e:
                 self.logger.error(e)
                 exit(1)
             finally:

@@ -121,6 +121,11 @@ class PredictionServer(ExternalRunner):
                 raise RuntimeError("Not running with the Werkzeug Server")
             func()
 
+        @app.route("{}/healty/".format(url_prefix))
+        def healty():
+            """This route is used to ensure that server has started"""
+            return True, HTTP_200_OK
+
         @app.route("{}/".format(url_prefix))
         def ping():
             """This route is used to ensure that server has started"""

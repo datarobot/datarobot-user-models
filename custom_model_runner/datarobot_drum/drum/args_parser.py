@@ -329,6 +329,17 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
+    def _reg_arg_force_start_internal(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                "--force-start-internal",
+                action="store_true",
+                default=False,
+                help="Start server even if pipeline initialization fails. "
+                "Server exposes /health route to check a state of the server",
+            )
+
+    @staticmethod
     def get_arg_parser():
         parser = argparse.ArgumentParser(description="Run user model")
         CMRunnerArgsRegistry._parsers[ArgumentsOptions.MAIN_COMMAND] = parser
@@ -412,6 +423,7 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_arg_address(server_parser)
         CMRunnerArgsRegistry._reg_arg_threaded(server_parser)
         CMRunnerArgsRegistry._reg_arg_in_perf_mode_internal(server_parser)
+        CMRunnerArgsRegistry._reg_arg_force_start_internal(server_parser)
 
         CMRunnerArgsRegistry._reg_arg_language(new_model_parser)
 
