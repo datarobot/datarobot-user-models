@@ -49,6 +49,18 @@ class CMRunnerArgsRegistry(object):
             return os.path.realpath(abs_path)
 
     @staticmethod
+    def _is_valid_output_dir(arg):
+        abs_path = os.path.abspath(arg)
+        if not os.path.isdir(arg):
+            raise argparse.ArgumentTypeError(
+                "The path {} is not a directory! For custom training models, "
+                "the output directory will consist of the artifacts usable "
+                "for making predictions. ".format(arg)
+            )
+        else:
+            return os.path.realpath(abs_path)
+
+    @staticmethod
     def _path_does_non_exist(arg):
         if os.path.exists(arg):
             raise argparse.ArgumentTypeError(
@@ -76,7 +88,7 @@ class CMRunnerArgsRegistry(object):
                 type_callback = os.path.abspath
             elif prog_name_lst[1] == ArgumentsOptions.FIT:
                 help_message = "Path to an output directory"
-                type_callback = CMRunnerArgsRegistry._is_valid_dir
+                type_callback = CMRunnerArgsRegistry._is_valid_output_dir
             else:
                 raise ValueError(
                     "{} argument should be used only by score and fit parsers!".format(
