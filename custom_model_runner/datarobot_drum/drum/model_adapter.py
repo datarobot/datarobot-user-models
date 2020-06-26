@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 import pandas as pd
 import logging
 import sys
@@ -193,20 +194,31 @@ class PythonModelAdapter:
                 "{} must return a DataFrame; but received {}".format(hook, type(to_validate))
             )
 
-    def _validate_predictions(self, to_validate, hook, positive_class_label, negative_class_label):
-        self._validate_data(to_validate, hook)
+    def _validate_predictions(self, to_validate, positive_class_label, negative_class_label):
+        self._validate_data(to_validate, "Predictions")
         columns_to_validate = set(list(to_validate.columns))
         if positive_class_label and negative_class_label:
             if columns_to_validate != {positive_class_label, negative_class_label}:
                 raise ValueError(
-                    "Expected {} predictions to have columns {}, but encountered {}".format(
-                        hook, {positive_class_label, negative_class_label}, columns_to_validate
+                    "Expected predictions to have columns {}, but encountered {}".format(
+                        {positive_class_label, negative_class_label}, columns_to_validate
                     )
                 )
+            try:
+                added_probs = [
+                    a + b
+                    for a, b in zip(
+                        to_validate[positive_class_label], to_validate[negative_class_label]
+                    )
+                ]
+                np.testing.assert_almost_equal(added_probs, 1)
+            except AssertionError:
+                raise ValueError("Your prediction probabilities do not add up to 1.")
+
         elif columns_to_validate != {REGRESSION_PRED_COLUMN}:
             raise ValueError(
-                "Expected {} predictions to have a single {} column, but encountered {}".format(
-                    hook, REGRESSION_PRED_COLUMN, columns_to_validate
+                "Expected predictions to have a single {} column, but encountered {}".format(
+                    REGRESSION_PRED_COLUMN, columns_to_validate
                 )
             )
 
@@ -240,18 +252,14 @@ class PythonModelAdapter:
         if self._custom_hooks.get(CustomHooks.SCORE):
             # noinspection PyCallingNonCallable
             predictions = self._custom_hooks[CustomHooks.SCORE](data, model, **kwargs)
-            self._validate_predictions(
-                predictions, CustomHooks.SCORE, positive_class_label, negative_class_label
-            )
         else:
             predictions = self._predictor_to_use.predict(data, model, **kwargs)
 
         if self._custom_hooks.get(CustomHooks.POST_PROCESS):
             # noinspection PyCallingNonCallable
             predictions = self._custom_hooks[CustomHooks.POST_PROCESS](predictions, model)
-            self._validate_predictions(
-                predictions, CustomHooks.POST_PROCESS, positive_class_label, negative_class_label
-            )
+
+        self._validate_predictions(predictions, positive_class_label, negative_class_label)
 
         return predictions
 
