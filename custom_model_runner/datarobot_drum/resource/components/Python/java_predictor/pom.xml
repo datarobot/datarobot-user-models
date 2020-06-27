@@ -82,7 +82,7 @@
                                     <goal>single</goal>
                                 </goals>
                                 <configuration>
-                                    <finalName>${artifactId}</finalName>
+                                    <finalName>${project.artifactId}</finalName>
                                     <outputDirectory>${componentDirectory}</outputDirectory>
                                     <descriptorRefs>
                                         <descriptorRef>jar-with-dependencies</descriptorRef>
