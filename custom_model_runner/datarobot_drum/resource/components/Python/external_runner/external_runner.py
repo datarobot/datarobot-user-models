@@ -80,7 +80,7 @@ class ExternalRunner(ConnectableComponent):
 
     def configure(self, params):
         super(ExternalRunner, self).configure(params)
-        self._promoted_errors = self._params.get("promoted_errors")
+        self._promoted_errors = self._params.get("promoted_errors") if "promoted_errors" in self._params else []
 
         self._shmem_format = self._params.get("shmem_format")
         if self._shmem_format is None:

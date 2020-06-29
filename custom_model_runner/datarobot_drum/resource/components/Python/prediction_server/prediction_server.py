@@ -23,9 +23,15 @@ class PredictionServer(ExternalRunner):
         self._show_perf = False
         self._stats_collector = None
         self._memory_monitor = None
+        self._fail_mode = False
 
     def configure(self, params):
-        super(PredictionServer, self).configure(params)
+        try:
+            super(PredictionServer, self).configure(params)
+        except DrumCommonException as e:
+            self._promoted_errors.append(str(e))
+            self._fail_mode = True
+
         self._threaded = self._params.get("threaded", False)
         self._show_perf = self._params.get("show_perf")
         self._stats_collector = StatsCollector(disable_instance=not self._show_perf)
@@ -54,7 +60,7 @@ class PredictionServer(ExternalRunner):
             REGRESSION_PRED_COLUMN = "Predictions"
 
             # check if pipeline is not ready at all
-            if not self._is_pipeline_ready():
+            if not self._is_pipeline_ready() or self._fail_mode:
                 response_status = HTTP_422_UNPROCESSABLE_ENTITY
                 pipeline_not_ready_error_message = "pipeline is not ready.\n"
                 promoted_errors = ""
