@@ -6,7 +6,7 @@ import trafaret as t
 
 
 class CustomTrainingModel(_CustomModelBase):
-    _model_type = "learning"
+    _model_type = "training"
 
 
 class CustomTrainingBlueprint(APIObject):
