@@ -150,8 +150,9 @@ class CMRunner(object):
             all_files_message = "\n\nFiles(100 first) found in {}:\n{}\n".format(
                 code_dir_abspath, "\n".join(sorted(os.listdir(code_dir_abspath))[0:100])
             )
-            self.logger.error(error_mes + all_files_message)
-            exit(1)
+            full_error_message = error_mes + all_files_message
+            self.logger.error(full_error_message)
+            raise DrumCommonException(full_error_message)
 
         run_language = custom_language if custom_language is not None else artifact_language
         return run_language
@@ -224,8 +225,8 @@ class CMRunner(object):
     # Build functional inference pipeline:
     # From file -> predictor -> to file
     def _prepare_inference_pipeline(self):
-        run_language = self._check_artifacts_and_get_run_language()
         options = self.options
+        run_language = self._check_artifacts_and_get_run_language()
         # functional pipeline is predictor pipeline
         # they are a little different for batch and server predictions.
         functional_pipeline_name = self._functional_pipelines[(self.run_mode, run_language)]
@@ -254,7 +255,7 @@ class CMRunner(object):
         )
         return functional_pipeline_str
 
-    def _prepare_prediction_server_pipeline(self, functional_pipeline_str):
+    def _prepare_prediction_server_pipeline(self, functional_pipeline_str, errors_lst):
         with open(CMRunnerUtils.get_pipeline_filepath(EXTERNAL_SERVER_RUNNER), "r") as f:
             runner_pipeline_json = json.load(f)
             # can not use template for pipeline as quotes won't be escaped
@@ -267,6 +268,7 @@ class CMRunner(object):
             args["port"] = int(host_port_list[1]) if len(host_port_list) == 2 else None
             args["threaded"] = self.options.threaded
             args["show_perf"] = self.options.show_perf
+            args["errors"] = errors_lst
             ret_pipeline = json.dumps(runner_pipeline_json)
         return ret_pipeline
 
@@ -309,11 +311,17 @@ class CMRunner(object):
         return functional_pipeline_str
 
     def _run_fit_and_predictions_pipelines_in_mlpiper(self):
-
         if self.run_mode == RunMode.SERVER:
-            # in prediction server mode infra pipeline == prediction server runner pipeline
-            functional_pipeline_str = self._prepare_inference_pipeline()
-            infra_pipeline_str = self._prepare_prediction_server_pipeline(functional_pipeline_str)
+            errors_list = []
+            try:
+                functional_pipeline_str = self._prepare_inference_pipeline()
+            except DrumCommonException as e:
+                errors_list.append(str(e))
+                functional_pipeline_str = None
+
+            infra_pipeline_str = self._prepare_prediction_server_pipeline(
+                functional_pipeline_str, errors_list
+            )
         elif self.run_mode == RunMode.SCORE:
             tmp_output_filename = None
             # if output is not provided, output into tmp file and print
@@ -321,7 +329,10 @@ class CMRunner(object):
                 # keep object reference so it will be destroyed only in the end of the process
                 __tmp_output_file = tempfile.NamedTemporaryFile(mode="w")
                 self.options.output = tmp_output_filename = __tmp_output_file.name
-            infra_pipeline_str = self._prepare_inference_pipeline()
+            try:
+                infra_pipeline_str = self._prepare_inference_pipeline()
+            except DrumCommonException as e:
+                exit(1)
         elif self.run_mode == RunMode.FIT:
             run_language = RunLanguage.PYTHON
             infra_pipeline_str = self._prepare_fit_pipeline(run_language)
