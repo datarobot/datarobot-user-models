@@ -1,7 +1,7 @@
 ## Python XGBoost Inference Model Template
 
 This model is intended to work with the [Python 3 XGBoost Drop-In Environment](../../../public_dropin_environments/python3_xgboost/).
-The supplied pkl file is an xgboost model trained on [boston_housing.csv](../../tests/testdata/boston_housing.csv)
+The supplied pkl file is an xgboost model trained on [boston_housing.csv](../../../tests/testdata/boston_housing.csv)
 with a MEDV as the target (regression), though any binary or regression model trained using the libraries
 outlined in [Python 3 XGBoost Drop-In Environment](../../../public_dropin_environments/python3_xgboost) will work.
 
