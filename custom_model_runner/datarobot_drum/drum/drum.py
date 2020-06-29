@@ -221,7 +221,10 @@ class CMRunner(object):
             dir=self.options.code_dir,
         ).generate()
 
-    def _prepare_prediction_server_or_batch_pipeline(self, run_language):
+    # Build functional inference pipeline:
+    # From file -> predictor -> to file
+    def _prepare_inference_pipeline(self):
+        run_language = self._check_artifacts_and_get_run_language()
         options = self.options
         # functional pipeline is predictor pipeline
         # they are a little different for batch and server predictions.
@@ -249,22 +252,22 @@ class CMRunner(object):
         functional_pipeline_str = CMRunnerUtils.render_file(
             functional_pipeline_filepath, replace_data
         )
-        ret_pipeline = functional_pipeline_str
+        return functional_pipeline_str
 
-        if self.run_mode == RunMode.SERVER:
-            with open(CMRunnerUtils.get_pipeline_filepath(EXTERNAL_SERVER_RUNNER), "r") as f:
-                runner_pipeline_json = json.load(f)
-                # can not use template for pipeline as quotes won't be escaped
-                args = runner_pipeline_json["pipe"][0]["arguments"]
-                # in server mode, predictor pipeline is passed to server as param
-                args["pipeline"] = functional_pipeline_str
-                args["repo"] = CMRunnerUtils.get_components_repo()
-                host_port_list = options.address.split(":", 1)
-                args["host"] = host_port_list[0]
-                args["port"] = int(host_port_list[1]) if len(host_port_list) == 2 else None
-                args["threaded"] = options.threaded
-                args["show_perf"] = options.show_perf
-                ret_pipeline = json.dumps(runner_pipeline_json)
+    def _prepare_prediction_server_pipeline(self, functional_pipeline_str):
+        with open(CMRunnerUtils.get_pipeline_filepath(EXTERNAL_SERVER_RUNNER), "r") as f:
+            runner_pipeline_json = json.load(f)
+            # can not use template for pipeline as quotes won't be escaped
+            args = runner_pipeline_json["pipe"][0]["arguments"]
+            # in server mode, predictor pipeline is passed to server as param
+            args["pipeline"] = functional_pipeline_str
+            args["repo"] = CMRunnerUtils.get_components_repo()
+            host_port_list = self.options.address.split(":", 1)
+            args["host"] = host_port_list[0]
+            args["port"] = int(host_port_list[1]) if len(host_port_list) == 2 else None
+            args["threaded"] = self.options.threaded
+            args["show_perf"] = self.options.show_perf
+            ret_pipeline = json.dumps(runner_pipeline_json)
         return ret_pipeline
 
     def _prepare_fit_pipeline(self, run_language):
@@ -306,10 +309,11 @@ class CMRunner(object):
         return functional_pipeline_str
 
     def _run_fit_and_predictions_pipelines_in_mlpiper(self):
+
         if self.run_mode == RunMode.SERVER:
-            run_language = self._check_artifacts_and_get_run_language()
             # in prediction server mode infra pipeline == prediction server runner pipeline
-            infra_pipeline_str = self._prepare_prediction_server_or_batch_pipeline(run_language)
+            functional_pipeline_str = self._prepare_inference_pipeline()
+            infra_pipeline_str = self._prepare_prediction_server_pipeline(functional_pipeline_str)
         elif self.run_mode == RunMode.SCORE:
             tmp_output_filename = None
             # if output is not provided, output into tmp file and print
@@ -317,9 +321,7 @@ class CMRunner(object):
                 # keep object reference so it will be destroyed only in the end of the process
                 __tmp_output_file = tempfile.NamedTemporaryFile(mode="w")
                 self.options.output = tmp_output_filename = __tmp_output_file.name
-            run_language = self._check_artifacts_and_get_run_language()
-            # in batch prediction mode infra pipeline == predictor pipeline
-            infra_pipeline_str = self._prepare_prediction_server_or_batch_pipeline(run_language)
+            infra_pipeline_str = self._prepare_inference_pipeline()
         elif self.run_mode == RunMode.FIT:
             run_language = RunLanguage.PYTHON
             infra_pipeline_str = self._prepare_fit_pipeline(run_language)
