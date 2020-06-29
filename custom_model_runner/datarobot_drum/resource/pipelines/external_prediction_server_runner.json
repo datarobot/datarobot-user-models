@@ -13,7 +13,9 @@
                             "port": null,
                             "shmem_format": null,
                             "threaded": false,
-                            "show_perf": false}
+                            "show_perf": false,
+                            "promoted_errors": null
+                           }
           }
       ]
   }

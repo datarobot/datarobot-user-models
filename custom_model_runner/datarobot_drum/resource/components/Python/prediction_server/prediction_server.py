@@ -52,6 +52,18 @@ class PredictionServer(ExternalRunner):
             file_key = "X"
             logger.debug("Entering predict() endpoint")
             REGRESSION_PRED_COLUMN = "Predictions"
+
+            # check if pipeline is not ready at all
+            if not self._is_pipeline_ready():
+                response_status = HTTP_422_UNPROCESSABLE_ENTITY
+                pipeline_not_ready_error_message = "pipeline is not ready.\n"
+                promoted_errors = ""
+                if self._promoted_errors:
+                    promoted_errors = "\n".join(self._promoted_errors)
+                error_message = pipeline_not_ready_error_message + promoted_errors
+                error_message = error_message.replace("\n", " ")
+                return {"message": "ERROR: " + error_message}, response_status
+
             filename = request.files[file_key] if file_key in request.files else None
             logger.debug("Filename provided under X key: {}".format(filename))
 

@@ -268,7 +268,7 @@ class CMRunner(object):
             args["port"] = int(host_port_list[1]) if len(host_port_list) == 2 else None
             args["threaded"] = self.options.threaded
             args["show_perf"] = self.options.show_perf
-            args["errors"] = errors_lst
+            args["promoted_errors"] = errors_lst
             ret_pipeline = json.dumps(runner_pipeline_json)
         return ret_pipeline
 

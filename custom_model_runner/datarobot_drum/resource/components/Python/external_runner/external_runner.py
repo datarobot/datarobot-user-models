@@ -80,6 +80,7 @@ class ExternalRunner(ConnectableComponent):
 
     def configure(self, params):
         super(ExternalRunner, self).configure(params)
+        self._promoted_errors = self._params.get("promoted_errors")
 
         self._shmem_format = self._params.get("shmem_format")
         if self._shmem_format is None:
@@ -94,22 +95,25 @@ class ExternalRunner(ConnectableComponent):
         }
 
         pipeline_str = self._params.get("pipeline")
-        pipeline_str = Template(pipeline_str).render(replace_data)
-        pipeline_str = self._fix_pipeline(pipeline_str)
+        if pipeline_str:
+            pipeline_str = Template(pipeline_str).render(replace_data)
+            pipeline_str = self._fix_pipeline(pipeline_str)
 
-        comp_repo = self._params.get("repo")
+            comp_repo = self._params.get("repo")
 
-        config = ExecutorConfig(
-            pipeline=pipeline_str,
-            pipeline_file=None,
-            run_locally=True,
-            comp_root_path=comp_repo,
-            mlpiper_jar=os.path.join(MLPiperRunner.SCRIPT_DIR, "..", "jars", "mlpiper.jar"),
-            spark_jars=None,
-        )
+            config = ExecutorConfig(
+                pipeline=pipeline_str,
+                pipeline_file=None,
+                run_locally=True,
+                comp_root_path=comp_repo,
+                mlpiper_jar=os.path.join(MLPiperRunner.SCRIPT_DIR, "..", "jars", "mlpiper.jar"),
+                spark_jars=None,
+            )
 
-        self._pipeline_executor = Executor(config)
-        self._pipeline_executor.init_pipeline()
+            self._pipeline_executor = Executor(config)
+
+        if self._pipeline_executor:
+            self._pipeline_executor.init_pipeline()
 
     def _get_out_df(self):
         return ShmemUtils.read_out_mem_file(self._shmem_format, self._out_mmap_file)
@@ -125,6 +129,9 @@ class ExternalRunner(ConnectableComponent):
 
     def _cleanup_pipeline(self):
         self._pipeline_executor.cleanup_pipeline()
+
+    def _is_pipeline_ready(self):
+        return bool(self._pipeline_executor)
 
     def _materialize(self, parent_data_objs, user_data):
         self._pipeline_executor.go()
