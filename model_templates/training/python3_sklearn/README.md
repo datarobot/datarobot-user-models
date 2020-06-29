@@ -7,10 +7,10 @@ This is an advanced python model template with preproccessing that:
 
 The final modeler can be any sklearn-compatible modeler.
 
-This model is intended to work with the [Python 3 Scikit-Learn Drop-In Environment](../../public_dropin_environments/python3_sklearn/).
+This model is intended to work with the [Python 3 Scikit-Learn Drop-In Environment](../../../public_dropin_environments/python3_sklearn/).
 
 ## Instructions:
-Edit make_fit_method.py
+Edit `create_pipeline.py`
 Leave custom.py alone
 
 ## Overview of the pipeline
@@ -43,6 +43,6 @@ Penalized linear model (but you can drop in any other sklearn model)
 
 
 ### To run locally using 'drum'
-Paths are relative to `./datarobot-user-models/model_templates`:
-`drum fit --code-dir ./training/python3_sklearn --input ../tests/testdata/boston_housing.csv --target MEDV`
+Paths are relative to `datarobot-user-models` root:
+`drum fit --code-dir model_templates/training/python3_sklearn --input tests/testdata/boston_housing.csv --target MEDV`
 If the command succeeds, your code is ready to be uploaded.
