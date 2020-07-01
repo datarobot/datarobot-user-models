@@ -33,8 +33,7 @@ from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.utils import CMRunnerUtils
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 
-from custom_model_runner.datarobot_drum.resource.components.Python.prediction_server.prediction_server import \
-    HTTP_200_OK
+from datarobot_drum.resource.components.Python.prediction_server.prediction_server import HTTP_200_OK
 
 EXTERNAL_SERVER_RUNNER = "external_prediction_server_runner.json"
 
