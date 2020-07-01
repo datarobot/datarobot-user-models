@@ -1,6 +1,9 @@
 import os
 from flask import Flask, request
 
+HTTP_200_OK = 200
+HTTP_503_SERVICE_UNAVAILABLE = 503
+
 
 class DrumErrorHandler:
     def __init__(self, ctx):
@@ -36,7 +39,7 @@ def run_error_server(host, port, exc_type, exc_value, exc_traceback):
     @app.route("{}/".format(url_prefix))
     def ping():
         """This route is used to ensure that server has started"""
-        return "Server is up!\n", 200
+        return "Server is up!\n", HTTP_200_OK
 
     @app.route("{}/shutdown/".format(url_prefix), methods=["POST"])
     def shutdown():
@@ -44,6 +47,12 @@ def run_error_server(host, port, exc_type, exc_value, exc_traceback):
         if func is None:
             raise RuntimeError("Not running with the Werkzeug Server")
         func()
-        return "Server shutting down...", 200
+        return "Server shutting down...", HTTP_200_OK
+
+    @app.route("{}/predict/".format(url_prefix), methods=["POST"])
+    def predict():
+        pipeline_not_ready_error_message = "pipeline is not ready.\n"
+        error_message = "kkk"
+        return {"message": "ERROR: " + error_message}, HTTP_503_SERVICE_UNAVAILABLE
 
     app.run(host, port)
