@@ -10,7 +10,7 @@ class CustomTrainingModel(_CustomModelBase):
 
 
 class CustomTrainingBlueprint(APIObject):
-    _path = "customLearningBlueprints/"
+    _path = "customTrainingBlueprints/"
     _converter = t.Dict(
         {
             t.Key("blueprint_id") >> "id": t.String(),
