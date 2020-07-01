@@ -29,12 +29,12 @@ Examples:
     # Run regression user model in fit mode.
     drum fit --code-dir <custom code dir> --input <input.csv> --output <output_dir> --target <target feature> --verbose
 """
-from datarobot_drum.drum.common import DrumContext
+from datarobot_drum.drum.common import DrumRunContext
 from datarobot_drum.drum.error_handling import DrumErrorHandler
 
 
 def main():
-    ctx = DrumContext()
+    ctx = DrumRunContext()
     with DrumErrorHandler(ctx):
         import argcomplete
         import os
