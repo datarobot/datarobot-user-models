@@ -51,8 +51,7 @@ def run_error_server(host, port, exc_type, exc_value, exc_traceback):
 
     @app.route("{}/predict/".format(url_prefix), methods=["POST"])
     def predict():
-        pipeline_not_ready_error_message = "pipeline is not ready.\n"
-        error_message = "kkk"
+        error_message = exc_value.msg
         return {"message": "ERROR: " + error_message}, HTTP_503_SERVICE_UNAVAILABLE
 
     app.run(host, port)
