@@ -6,11 +6,11 @@ import trafaret as t
 
 
 class CustomTrainingModel(_CustomModelBase):
-    _model_type = "learning"
+    _model_type = "training"
 
 
 class CustomTrainingBlueprint(APIObject):
-    _path = "customLearningBlueprints/"
+    _path = "customTrainingBlueprints/"
     _converter = t.Dict(
         {
             t.Key("blueprint_id") >> "id": t.String(),
