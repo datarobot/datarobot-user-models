@@ -29,40 +29,46 @@ Examples:
     # Run regression user model in fit mode.
     drum fit --code-dir <custom code dir> --input <input.csv> --output <output_dir> --target <target feature> --verbose
 """
-
-import argcomplete
-import os
-import sys
-import signal
-import requests
-from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
-from datarobot_drum.drum.drum import CMRunner
+from datarobot_drum.drum.common import DrumContext
+from datarobot_drum.drum.error_handling import DrumErrorHandler
 
 
 def main():
-    options = None
+    ctx = DrumContext()
+    with DrumErrorHandler(ctx):
+        import argcomplete
+        import os
+        import sys
+        import signal
+        import requests
+        from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
+        from datarobot_drum.drum.drum import CMRunner
 
-    def signal_handler(sig, frame):
-        # The signal is assigned so the stacktrace is not presented when Ctrl-C is pressed.
-        # The cleanup itself is done only if we are NOT running in performance test mode which
-        # has its own cleanup
-        print("\nCtrl+C pressed, aborting drum")
+        arg_parser = CMRunnerArgsRegistry.get_arg_parser()
+        # argcomplete call should be as close to the beginning as possible
+        argcomplete.autocomplete(arg_parser)
+        options = arg_parser.parse_args()
+        CMRunnerArgsRegistry.verify_options(options)
 
-        if options and options.docker and not options.in_perf_mode_internal:
-            url = "http://{}/shutdown/".format(options.address)
-            print("Sending shutdown to server: {}".format(url))
-            requests.post(url, timeout=2)
-        os.system("tput init")
-        os._exit(130)
+        ctx.options = options
 
-    signal.signal(signal.SIGINT, signal_handler)
+        options = None
 
-    arg_parser = CMRunnerArgsRegistry.get_arg_parser()
-    # argcomplete call should be as close to the beginning as possible
-    argcomplete.autocomplete(arg_parser)
-    options = arg_parser.parse_args()
-    CMRunnerArgsRegistry.verify_options(options)
-    CMRunner(options).run()
+        def signal_handler(sig, frame):
+            # The signal is assigned so the stacktrace is not presented when Ctrl-C is pressed.
+            # The cleanup itself is done only if we are NOT running in performance test mode which
+            # has its own cleanup
+            print("\nCtrl+C pressed, aborting drum")
+
+            if options and options.docker and not options.in_perf_mode_internal:
+                url = "http://{}/shutdown/".format(options.address)
+                print("Sending shutdown to server: {}".format(url))
+                requests.post(url, timeout=2)
+                os.system("tput init")
+                os._exit(130)
+
+        signal.signal(signal.SIGINT, signal_handler)
+        CMRunner(options).run()
 
 
 if __name__ == "__main__":
