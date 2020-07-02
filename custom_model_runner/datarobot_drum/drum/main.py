@@ -68,7 +68,7 @@ def main():
                 os._exit(130)
 
         signal.signal(signal.SIGINT, signal_handler)
-        CMRunner(options).run()
+        CMRunner(ctx).run()
 
 
 if __name__ == "__main__":

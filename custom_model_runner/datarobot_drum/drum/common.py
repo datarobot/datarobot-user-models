@@ -125,5 +125,5 @@ class EnvVarNames:
 
 class DrumRunContext:
     def __init__(self):
-        self.is_server_running = False
+        self.initialization_succeeded = False
         self.options = None

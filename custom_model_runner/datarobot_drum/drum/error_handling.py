@@ -22,9 +22,10 @@ class DrumErrorHandler:
             # propagate exception further
             return False
 
-        if self._ctx.is_server_running:
-            # server is already started and is running
-            # propagate exception further
+        if self._ctx.initialization_succeeded:
+            # pipeline initialization was successful.
+            # exceptions that occur during pipeline running
+            # must be propagated further
             return False
 
         if self._ctx.options.force_start_internal:
