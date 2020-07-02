@@ -29,6 +29,7 @@ Examples:
     # Run regression user model in fit mode.
     drum fit --code-dir <custom code dir> --input <input.csv> --output <output_dir> --target <target feature> --verbose
 """
+from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.common import DrumRunContext
 from datarobot_drum.drum.error_handling import DrumErrorHandler
 
@@ -36,23 +37,26 @@ from datarobot_drum.drum.error_handling import DrumErrorHandler
 def main():
     ctx = DrumRunContext()
     with DrumErrorHandler(ctx):
-        import argcomplete
-        import os
-        import sys
-        import signal
-        import requests
-        from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
-        from datarobot_drum.drum.drum import CMRunner
-
         arg_parser = CMRunnerArgsRegistry.get_arg_parser()
-        # argcomplete call should be as close to the beginning as possible
-        argcomplete.autocomplete(arg_parser)
+
+        try:
+            import argcomplete
+        except ImportError:
+            pass
+        else:
+            # argcomplete call should be as close to the beginning as possible
+            argcomplete.autocomplete(arg_parser)
+
         options = arg_parser.parse_args()
         CMRunnerArgsRegistry.verify_options(options)
 
         ctx.options = options
 
-        options = None
+        import os
+        import sys
+        import signal
+        import requests
+        from datarobot_drum.drum.drum import CMRunner
 
         def signal_handler(sig, frame):
             # The signal is assigned so the stacktrace is not presented when Ctrl-C is pressed.
