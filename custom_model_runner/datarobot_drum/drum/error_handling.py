@@ -14,22 +14,28 @@ class DrumErrorHandler:
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         if not exc_type:
+            # no exception, just return
             return True
 
         if not self._ctx.options:
+            # exception occurred before args were parsed
+            # propagate exception further
             return False
 
-        force_start_server = self._ctx.options.force_start_internal
+        if self._ctx.is_server_running:
+            # server is already started and is running
+            # propagate exception further
+            return False
 
-        if not self._ctx.is_server_running and force_start_server:
+        if self._ctx.options.force_start_internal:
             host_port_list = self._ctx.options.address.split(":", 1)
             host = host_port_list[0]
             port = int(host_port_list[1]) if len(host_port_list) == 2 else None
 
             run_error_server(host, port, exc_type, exc_value, exc_traceback)
 
-            # NOTE: exception is propagated further
-            return False
+        # NOTE: exception is propagated further
+        return False
 
 
 def run_error_server(host, port, exc_type, exc_value, exc_traceback):
