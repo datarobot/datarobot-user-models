@@ -33,13 +33,13 @@ class DrumErrorHandler:
             host = host_port_list[0]
             port = int(host_port_list[1]) if len(host_port_list) == 2 else None
 
-            run_error_server(host, port, exc_type, exc_value, exc_traceback)
+            run_error_server(host, port, exc_value)
 
         # NOTE: exception is propagated further
         return False
 
 
-def run_error_server(host, port, exc_type, exc_value, exc_traceback):
+def run_error_server(host, port, exc_value):
     app = Flask(__name__)
     url_prefix = os.environ.get("URL_PREFIX", "")
 
