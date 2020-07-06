@@ -312,19 +312,20 @@ class TestCMRunner:
         time.sleep(0.5)
         TestCMRunner.wait_for_server(url_server_address, timeout=10, process_holder=process_object_holder)
 
-        yield collections.namedtuple('DrumServerContext', 'url_server_address')(url_server_address)
+        try:
+            yield collections.namedtuple('DrumServerContext', 'url_server_address')(url_server_address)
+        finally:
+            # shutdown server
+            response = requests.post(url_server_address + "/shutdown/")
+            assert response.ok
+            time.sleep(1)
 
-        # shutdown server
-        response = requests.post(url_server_address + "/shutdown/")
-        assert response.ok
-        time.sleep(1)
+            server_thread.join()
 
-        server_thread.join()
-
-        if custom_model_dir is None:
-            # If custom model directory is not set explicitly - it's is created in scope of this function.
-            # In such case it should also be removed.
-            TestCMRunner._delete_custom_model_dir(model_dir)
+            if custom_model_dir is None:
+                # If custom model directory is not set explicitly - it's is created in scope of this function.
+                # In such case it should also be removed.
+                TestCMRunner._delete_custom_model_dir(model_dir)
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
