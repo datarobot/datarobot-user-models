@@ -1,3 +1,5 @@
+import collections
+import contextlib
 import glob
 import json
 import os
@@ -15,7 +17,12 @@ import pandas as pd
 import pytest
 import requests
 
-from datarobot_drum.drum.common import CUSTOM_FILE_NAME, CustomHooks, ArgumentsOptions
+from datarobot_drum.drum.common import (
+    CUSTOM_FILE_NAME,
+    CustomHooks,
+    ArgumentsOptions,
+    PythonArtifacts,
+)
 
 # Framweork keywords
 XGB = "xgboost"
@@ -265,6 +272,60 @@ class TestCMRunner:
         cmd = cmd + " --positive-class-label {} --negative-class-label {}".format(pos, neg)
         return cmd
 
+    @classmethod
+    @contextlib.contextmanager
+    def run_drum_server(
+            cls,
+            framework,
+            problem,
+            language,
+            docker=None,
+            custom_model_dir=None,
+            cmd_extra=None):
+        if custom_model_dir is not None:
+            model_dir = custom_model_dir
+        else:
+            model_dir = cls._create_custom_model_dir(framework, problem, language)
+
+        port = 6799
+        server_address = "localhost:{}".format(port)
+        url_host = os.environ.get("TEST_URL_HOST", "localhost")
+        if docker:
+            url_server_address = "http://{}:{}".format(url_host, port)
+        else:
+            url_server_address = "http://localhost:{}".format(port)
+
+        cmd = "{} server --code-dir {} --address {}".format(
+            ArgumentsOptions.MAIN_COMMAND, model_dir, server_address
+        )
+        cmd = cls._cmd_add_class_labels(cmd, framework, problem)
+        if docker:
+            cmd += " --docker {}".format(docker)
+        if cmd_extra:
+            cmd += " {}".format(cmd_extra)
+
+        process_object_holder = []
+        server_thread = Thread(
+            target=TestCMRunner.run_server_thread, args=(cmd, process_object_holder)
+        )
+        server_thread.start()
+        time.sleep(0.5)
+        TestCMRunner.wait_for_server(url_server_address, timeout=10, process_holder=process_object_holder)
+
+        yield collections.namedtuple('DrumServerContext', 'url_server_address')(url_server_address)
+
+        # shutdown server
+        response = requests.post(url_server_address + "/shutdown/")
+        assert response.ok
+        time.sleep(1)
+
+        server_thread.join()
+
+        if custom_model_dir is None:
+            # If custom model directory is not set explicitly - it's is created in scope of this function.
+            # In such case it should also be removed.
+            TestCMRunner._delete_custom_model_dir(model_dir)
+
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
@@ -457,60 +518,19 @@ class TestCMRunner:
         ],
     )
     def test_custom_models_with_drum_prediction_server(self, framework, problem, language, docker):
-        timeout = 10
-        port = 6799
-        server_address = "localhost:{}".format(port)
-        url_host = os.environ.get("TEST_URL_HOST", "localhost")
+        with self.run_drum_server(framework, problem, language, docker) as ctx:
+            input_dataset = self._get_dataset_filename(framework, problem)
 
-        if docker:
-            url_server_address = "http://{}:{}".format(url_host, port)
-        else:
-            url_server_address = "http://localhost:{}".format(port)
+            # do predictions
+            response = requests.post(
+                ctx.url_server_address + '/predict/', files={"X": open(input_dataset)}
+            )
 
-        print("url_server_address: {}".format(url_server_address))
-
-        shutdown_endpoint = "/shutdown/"
-        predict_endpoint = "/predict/"
-        input_dataset = self._get_dataset_filename(framework, problem)
-        print("input_dataset: {}".format(input_dataset))
-
-        custom_model_dir = self._create_custom_model_dir(framework, problem, language)
-
-        cmd = "{} server --code-dir {} --address {}".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, server_address
-        )
-        cmd = self._cmd_add_class_labels(cmd, framework, problem)
-        if docker:
-            cmd += " --docker {}".format(docker)
-
-        print("{} cmd: {}".format(ArgumentsOptions.MAIN_COMMAND, cmd))
-        process_object_holder = []
-        server_thread = Thread(
-            target=TestCMRunner.run_server_thread, args=(cmd, process_object_holder)
-        )
-        server_thread.start()
-        time.sleep(0.5)
-        TestCMRunner.wait_for_server(url_server_address, timeout, process_object_holder)
-
-        # do predictions
-        response = requests.post(
-            url_server_address + predict_endpoint, files={"X": open(input_dataset)}
-        )
-        print(response.text)
-        assert response.ok
-        actual_num_predictions = len(json.loads(response.text)[RESPONSE_PREDICTIONS_KEY])
-        in_data = pd.read_csv(input_dataset)
-        test_passed = in_data.shape[0] == actual_num_predictions
-
-        # shutdown server
-        response = requests.post(url_server_address + shutdown_endpoint)
-        print(response)
-
-        assert response.ok
-        time.sleep(1)
-        server_thread.join()
-        TestCMRunner._delete_custom_model_dir(custom_model_dir)
-        assert test_passed
+            print(response.text)
+            assert response.ok
+            actual_num_predictions = len(json.loads(response.text)[RESPONSE_PREDICTIONS_KEY])
+            in_data = pd.read_csv(input_dataset)
+            assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
@@ -519,64 +539,29 @@ class TestCMRunner:
     def test_custom_models_drum_prediction_server_response(
         self, framework, problem, language, docker
     ):
-        port = 6799
-        server_address = "localhost:{}".format(port)
-        url_host = os.environ.get("TEST_URL_HOST", "localhost")
-        if docker:
-            url_server_address = "http://{}:{}".format(url_host, port)
-        else:
-            url_server_address = "http://localhost:{}".format(port)
+        with self.run_drum_server(framework, problem, language, docker) as ctx:
+            input_dataset = self._get_dataset_filename(framework, problem)
 
-        shutdown_endpoint = "/shutdown/"
-        predict_endpoint = "/predict/"
-        input_dataset = self._get_dataset_filename(framework, problem)
-        timeout = 10
+            # do predictions
+            response = requests.post(
+                ctx.url_server_address + '/predict/', files={"X": open(input_dataset)}
+            )
 
-        custom_model_dir = self._create_custom_model_dir(framework, problem, language)
-
-        cmd = "{} server --code-dir {} --address {}".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, server_address
-        )
-        cmd = self._cmd_add_class_labels(cmd, framework, problem)
-        if docker:
-            cmd += " --docker {}".format(docker)
-
-        process_object_holder = []
-        server_thread = Thread(
-            target=TestCMRunner.run_server_thread, args=(cmd, process_object_holder)
-        )
-        server_thread.start()
-        time.sleep(0.5)
-        TestCMRunner.wait_for_server(url_server_address, timeout, process_object_holder)
-
-        # do predictions
-        response = requests.post(
-            url_server_address + predict_endpoint, files={"X": open(input_dataset)}
-        )
-
-        assert response.ok
-        response_json = json.loads(response.text)
-        assert isinstance(response_json, dict)
-        assert RESPONSE_PREDICTIONS_KEY in response_json
-        predictions_list = response_json[RESPONSE_PREDICTIONS_KEY]
-        assert isinstance(predictions_list, list)
-        assert len(predictions_list)
-        prediction_item = predictions_list[0]
-        if problem == BINARY:
-            assert isinstance(prediction_item, dict)
-            assert len(prediction_item) == 2
-            assert all([isinstance(x, str) for x in prediction_item.keys()])
-            assert all([isinstance(x, float) for x in prediction_item.values()])
-        elif problem == REGRESSION:
-            assert isinstance(prediction_item, float)
-
-        # shutdown server
-        response = requests.post(url_server_address + shutdown_endpoint)
-        assert response.ok
-        time.sleep(1)
-
-        server_thread.join()
-        TestCMRunner._delete_custom_model_dir(custom_model_dir)
+            assert response.ok
+            response_json = json.loads(response.text)
+            assert isinstance(response_json, dict)
+            assert RESPONSE_PREDICTIONS_KEY in response_json
+            predictions_list = response_json[RESPONSE_PREDICTIONS_KEY]
+            assert isinstance(predictions_list, list)
+            assert len(predictions_list)
+            prediction_item = predictions_list[0]
+            if problem == BINARY:
+                assert isinstance(prediction_item, dict)
+                assert len(prediction_item) == 2
+                assert all([isinstance(x, str) for x in prediction_item.keys()])
+                assert all([isinstance(x, float) for x in prediction_item.values()])
+            elif problem == REGRESSION:
+                assert isinstance(prediction_item, float)
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
