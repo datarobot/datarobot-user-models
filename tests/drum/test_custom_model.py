@@ -89,7 +89,6 @@ class DrumServerRun:
             docker=None,
             custom_model_dir=None,
             force_start=False,
-            server_wait_timeout=10,
     ):
         self._custom_model_dir_to_remove = None
         if custom_model_dir is None:
@@ -102,9 +101,9 @@ class DrumServerRun:
         server_address = "localhost:{}".format(port)
         url_host = os.environ.get("TEST_URL_HOST", "localhost")
         if docker:
-            self._url_server_address = "http://{}:{}".format(url_host, port)
+            self.url_server_address = "http://{}:{}".format(url_host, port)
         else:
-            self._url_server_address = "http://localhost:{}".format(port)
+            self.url_server_address = "http://localhost:{}".format(port)
 
         cmd = "{} server --code-dir {} --address {}".format(
             ArgumentsOptions.MAIN_COMMAND, custom_model_dir, server_address
@@ -119,8 +118,6 @@ class DrumServerRun:
         self._process_object_holder = DrumServerProcess()
         self._server_thread = None
 
-        self._server_wait_timeout = server_wait_timeout
-
     def __enter__(self):
         self._server_thread = Thread(
             target=TestCMRunner.run_server_thread, args=(self._cmd, self._process_object_holder)
@@ -129,16 +126,16 @@ class DrumServerRun:
         time.sleep(0.5)
 
         TestCMRunner.wait_for_server(
-            self._url_server_address,
-            timeout=self._server_wait_timeout,
+            self.url_server_address,
+            timeout=10,
             process_holder=self._process_object_holder
         )
 
-        return collections.namedtuple('DrumServerRunContext', 'url_server_address')(self._url_server_address)
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # shutdown server
-        response = requests.post(self._url_server_address + "/shutdown/")
+        response = requests.post(self.url_server_address + "/shutdown/")
         assert response.ok
         time.sleep(1)
 
@@ -273,11 +270,12 @@ class TestCMRunner:
             env=env,
             universal_newlines=True,
         )
+        if process_obj_holder is not None:
+            process_obj_holder.process = p
 
         (stdout, stderr) = p.communicate()
 
         if process_obj_holder is not None:
-            process_obj_holder.process = p
             process_obj_holder.out_stream = stdout
             process_obj_holder.err_stream = stderr
 
@@ -806,22 +804,33 @@ class TestDrumRuntime:
 
         return framework, problem, language, docker, custom_model_dir, server_run_args
 
-    def test_no_artifact_no_force_start_wait_server(self, params):
+    @pytest.mark.parametrize('force_start', [False, True])
+    def test_e2e_no_artifact(self, params, force_start):
         """Verify that is an error occurs on drum server initialization
         and '--force-start-internal' is not set, drum process will exit with error."""
         framework, problem, language, docker, custom_model_dir, server_run_args = params
+
+        error_message = 'Could not find model artifact file'
 
         # remove model artifact
         for item in os.listdir(custom_model_dir):
             if item.endswith(PythonArtifacts.PKL_EXTENSION):
                 os.remove(os.path.join(custom_model_dir, item))
 
-        drum_server_run = DrumServerRun(**server_run_args, server_wait_timeout=0)
+        drum_server_run = DrumServerRun(**server_run_args, force_start=force_start)
 
-        # DrumServerRun tries to ping the server.
-        # Assert that the process is already dead we it's done.
-        with pytest.raises(ProcessLookupError), drum_server_run:
-            pass
+        if force_start:
+            # Assert that error the server is up and message is propagated via API
+            with drum_server_run as run:
+                response = requests.post(run.url_server_address + '/predict/')
+
+                assert response.status_code == 503
+                assert 'ERROR: {}'.format(error_message) in response.json()['message']
+        else:
+            # DrumServerRun tries to ping the server.
+            # Assert that the process is already dead we it's done.
+            with pytest.raises(ProcessLookupError), drum_server_run:
+                pass
 
         assert drum_server_run.process.returncode == 1
-        assert 'Could not find model artifact file' in drum_server_run.process.err_stream
+        assert error_message in drum_server_run.process.err_stream
