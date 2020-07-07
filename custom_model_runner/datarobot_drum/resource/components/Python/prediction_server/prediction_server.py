@@ -8,13 +8,15 @@ from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.memory_monitor import MemoryMonitor
-from mlpiper.common.byte_conv import ByteConv
 
+from datarobot_drum.drum.server import (
+    HTTP_200_OK,
+    HTTP_422_UNPROCESSABLE_ENTITY,
+    get_flask_app,
+    base_api_blueprint,
+)
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
-
-HTTP_200_OK = 200
-HTTP_422_UNPROCESSABLE_ENTITY = 422
 
 
 class PredictionServer(ExternalRunner):
@@ -42,11 +44,9 @@ class PredictionServer(ExternalRunner):
         self._memory_monitor = MemoryMonitor()
 
     def _materialize(self, parent_data_objs, user_data):
-        app = Flask(__name__)
-        logging.getLogger("werkzeug").setLevel(logger.getEffectiveLevel())
-        url_prefix = os.environ.get("URL_PREFIX", "")
+        model_api = base_api_blueprint()
 
-        @app.route("{}/predict/".format(url_prefix), methods=["POST"])
+        @model_api.route("/predict/", methods=["POST"])
         def predict():
             response_status = HTTP_200_OK
             file_key = "X"
@@ -102,7 +102,7 @@ class PredictionServer(ExternalRunner):
 
             return response_json, response_status
 
-        @app.route("{}/stats/".format(url_prefix))
+        @model_api.route("/stats/", methods=["GET"])
         def stats():
             mem_info = self._memory_monitor.collect_memory_info()
             ret_dict = {"mem_info": mem_info._asdict()}
@@ -115,27 +115,8 @@ class PredictionServer(ExternalRunner):
             self._stats_collector.stats_reset()
             return ret_dict, HTTP_200_OK
 
-        def _shutdown_server():
-            func = request.environ.get("werkzeug.server.shutdown")
-            if func is None:
-                raise RuntimeError("Not running with the Werkzeug Server")
-            func()
-
-        @app.route("{}/".format(url_prefix))
-        def ping():
-            """This route is used to ensure that server has started"""
-            return "Server is up!\n", HTTP_200_OK
-
-        def _shutdown_server():
-            func = request.environ.get("werkzeug.server.shutdown")
-            if func is None:
-                raise RuntimeError("Not running with the Werkzeug Server")
-            func()
-
-        @app.route("{}/shutdown/".format(url_prefix), methods=["POST"])
-        def shutdown():
-            _shutdown_server()
-            return "Server shutting down...", HTTP_200_OK
+        app = get_flask_app(model_api)
+        logging.getLogger("werkzeug").setLevel(logger.getEffectiveLevel())
 
         host = self._params.get("host", None)
         port = self._params.get("port", None)

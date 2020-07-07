@@ -1,11 +1,15 @@
-import os
-from flask import Flask, request
-
-HTTP_200_OK = 200
-HTTP_503_SERVICE_UNAVAILABLE = 503
+from datarobot_drum.drum.server import (
+    base_api_blueprint,
+    get_flask_app,
+    HTTP_503_SERVICE_UNAVAILABLE,
+)
 
 
 class DrumRuntime:
+    def __init__(self):
+        self.initialization_succeeded = False
+        self.options = None
+
     def __enter__(self):
         return self
 
@@ -14,19 +18,19 @@ class DrumRuntime:
             # no exception, just return
             return True
 
-        if not self._ctx.options:
+        if not self.options:
             # exception occurred before args were parsed
             # propagate exception further
             return False
 
-        if self._ctx.initialization_succeeded:
+        if self.initialization_succeeded:
             # pipeline initialization was successful.
             # exceptions that occur during pipeline running
             # must be propagated further
             return False
 
-        if self._ctx.options.force_start_internal:
-            host_port_list = self._ctx.options.address.split(":", 1)
+        if self.options.force_start_internal:
+            host_port_list = self.options.address.split(":", 1)
             host = host_port_list[0]
             port = int(host_port_list[1]) if len(host_port_list) == 2 else None
 
@@ -37,24 +41,11 @@ class DrumRuntime:
 
 
 def run_error_server(host, port, exc_value):
-    app = Flask(__name__)
-    url_prefix = os.environ.get("URL_PREFIX", "")
+    model_api = base_api_blueprint()
 
-    @app.route("{}/".format(url_prefix))
-    def ping():
-        """This route is used to ensure that server has started"""
-        return "Server is up!\n", HTTP_200_OK
-
-    @app.route("{}/shutdown/".format(url_prefix), methods=["POST"])
-    def shutdown():
-        func = request.environ.get("werkzeug.server.shutdown")
-        if func is None:
-            raise RuntimeError("Not running with the Werkzeug Server")
-        func()
-        return "Server shutting down...", HTTP_200_OK
-
-    @app.route("{}/predict/".format(url_prefix), methods=["POST"])
+    @model_api.route("/predict/", methods=["POST"])
     def predict():
         return {"message": "ERROR: {}".format(exc_value)}, HTTP_503_SERVICE_UNAVAILABLE
 
+    app = get_flask_app(model_api)
     app.run(host, port)
