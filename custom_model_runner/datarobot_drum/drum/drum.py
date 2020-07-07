@@ -365,9 +365,6 @@ class CMRunner(object):
 
                 _pipeline_executor.run_pipeline(cleanup=False)
                 sc.mark("run")
-            except DrumCommonException as e:
-                self.logger.error(e)
-                raise
             finally:
                 _pipeline_executor.cleanup_pipeline()
                 sc.mark("end")
