@@ -1,6 +1,7 @@
 from flask import Flask, Blueprint, request
 import os
 
+from datarobot_drum.drum.common import URL_PREFIX_ENV_VAR_NAME
 
 HTTP_200_OK = 200
 HTTP_422_UNPROCESSABLE_ENTITY = 422
@@ -9,7 +10,7 @@ HTTP_503_SERVICE_UNAVAILABLE = 503
 
 def get_flask_app(api_blueprint):
     app = Flask(__name__)
-    url_prefix = os.environ.get("URL_PREFIX", "")
+    url_prefix = os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")
     app.register_blueprint(api_blueprint, url_prefix=url_prefix)
     return app
 
