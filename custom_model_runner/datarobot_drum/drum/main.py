@@ -29,14 +29,14 @@ Examples:
     # Run regression user model in fit mode.
     drum fit --code-dir <custom code dir> --input <input.csv> --output <output_dir> --target <target feature> --verbose
 """
+import os
+import sys
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
-from datarobot_drum.drum.common import DrumRunContext
-from datarobot_drum.drum.error_handling import DrumErrorHandler
+from datarobot_drum.drum.runtime import DrumRuntime
 
 
 def main():
-    ctx = DrumRunContext()
-    with DrumErrorHandler(ctx):
+    with DrumRuntime() as runtime:
         arg_parser = CMRunnerArgsRegistry.get_arg_parser()
 
         try:
@@ -50,10 +50,8 @@ def main():
         options = arg_parser.parse_args()
         CMRunnerArgsRegistry.verify_options(options)
 
-        ctx.options = options
+        runtime.options = options
 
-        import os
-        import sys
         import signal
         import requests
         from datarobot_drum.drum.drum import CMRunner
@@ -72,7 +70,7 @@ def main():
                 os._exit(130)
 
         signal.signal(signal.SIGINT, signal_handler)
-        CMRunner(ctx).run()
+        CMRunner(runtime).run()
 
 
 if __name__ == "__main__":

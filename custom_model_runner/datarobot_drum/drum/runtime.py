@@ -5,12 +5,9 @@ HTTP_200_OK = 200
 HTTP_503_SERVICE_UNAVAILABLE = 503
 
 
-class DrumErrorHandler:
-    def __init__(self, ctx):
-        self._ctx = ctx
-
+class DrumRuntime:
     def __enter__(self):
-        pass
+        return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         if not exc_type:
