@@ -1,5 +1,4 @@
 import collections
-import contextlib
 import glob
 import json
 import os
@@ -90,6 +89,7 @@ class DrumServerRun:
             docker=None,
             custom_model_dir=None,
             force_start=False,
+            server_wait_timeout=10,
     ):
         self._custom_model_dir_to_remove = None
         if custom_model_dir is None:
@@ -119,13 +119,20 @@ class DrumServerRun:
         self._process_object_holder = DrumServerProcess()
         self._server_thread = None
 
+        self._server_wait_timeout = server_wait_timeout
+
     def __enter__(self):
         self._server_thread = Thread(
             target=TestCMRunner.run_server_thread, args=(self._cmd, self._process_object_holder)
         )
         self._server_thread.start()
         time.sleep(0.5)
-        TestCMRunner.wait_for_server(self._url_server_address, timeout=10, process_holder=self._process_object_holder)
+
+        TestCMRunner.wait_for_server(
+            self._url_server_address,
+            timeout=self._server_wait_timeout,
+            process_holder=self._process_object_holder
+        )
 
         return collections.namedtuple('DrumServerRunContext', 'url_server_address')(self._url_server_address)
 
@@ -513,8 +520,8 @@ class TestCMRunner:
                 pass
 
             time.sleep(1)
-            timeout = timeout - 1
-            if timeout == 0:
+            timeout -= 1
+            if timeout <= 0:
                 if process_holder is not None:
                     print("Killing subprocess: {}".format(process_holder.process.pid))
                     os.killpg(os.getpgid(process_holder.process.pid), signal.SIGTERM)
@@ -777,48 +784,44 @@ class TestDrumRuntime:
     def setup_class(cls):
         TestCMRunner.setup_class()
 
-    @pytest.mark.parametrize(
-        "problem, docker",
-        [#(REGRESSION, DOCKER_PYTHON_SKLEARN),
-         (BINARY, None)],
-    )
-    @pytest.mark.parametrize("force_start", [False])
-    def test_drum_error_handling_no_artifact(
-        self, problem, docker, force_start
-    ):
-        """Verify that is an error occures on drum server initialization,
-        the server is still started, but 503 for /predict/ is returned."""
+    @pytest.fixture(params=[
+        # (REGRESSION, DOCKER_PYTHON_SKLEARN),
+        (BINARY, None),
+    ])
+    def params(self, request):
         framework = SKLEARN
         language = PYTHON
 
+        problem, docker = request.param
+
         custom_model_dir = TestCMRunner._create_custom_model_dir(framework, problem, language)
+
+        server_run_args = dict(
+            framework=framework,
+            problem=problem,
+            language=language,
+            docker=docker,
+            custom_model_dir=custom_model_dir,
+        )
+
+        return framework, problem, language, docker, custom_model_dir, server_run_args
+
+    def test_no_artifact_no_force_start_wait_server(self, params):
+        """Verify that is an error occurs on drum server initialization
+        and '--force-start-internal' is not set, drum process will exit with error."""
+        framework, problem, language, docker, custom_model_dir, server_run_args = params
 
         # remove model artifact
         for item in os.listdir(custom_model_dir):
             if item.endswith(PythonArtifacts.PKL_EXTENSION):
                 os.remove(os.path.join(custom_model_dir, item))
 
-        drum_server_run = DrumServerRun(
-                framework,
-                problem,
-                language,
-                docker,
-                custom_model_dir=custom_model_dir,
-                force_start=force_start,
-        )
+        drum_server_run = DrumServerRun(**server_run_args, server_wait_timeout=0)
 
-        try:
-            with drum_server_run as ctx:
-                if force_start:
-                    input_dataset = TestCMRunner._get_dataset_filename(framework, problem)
-
-                    response = requests.post(
-                        ctx.url_server_address + '/predict/', files={"X": open(input_dataset)}
-                    )
-                else:
-                    pass
-        except ProcessLookupError:
+        # DrumServerRun tries to ping the server.
+        # Assert that the process is already dead we it's done.
+        with pytest.raises(ProcessLookupError), drum_server_run:
             pass
-        finally:
-            assert drum_server_run.process.returncode == 1
-            assert 'Could not find model artifact file' in drum_server_run.process.err_stream
+
+        assert drum_server_run.process.returncode == 1
+        assert 'Could not find model artifact file' in drum_server_run.process.err_stream
