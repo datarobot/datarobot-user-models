@@ -4,6 +4,8 @@ from datarobot_drum.drum.server import (
     HTTP_503_SERVICE_UNAVAILABLE,
 )
 
+from datarobot_drum.drum.common import RunMode
+
 
 class DrumRuntime:
     def __init__(self):
@@ -15,24 +17,26 @@ class DrumRuntime:
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         if not exc_type:
-            # no exception, just return
-            return True
+            return True  # no exception, just return
 
         if not self.options:
             # exception occurred before args were parsed
-            # propagate exception further
-            return False
+            return False  # propagate exception further
 
-        if not getattr(self.options, "force_start_internal", False):
-            # drum is not run in server mode, or force start is not set
-            # propagate exception further
-            return False
+        run_mode = RunMode(self.options.subparser_name)
+        if run_mode != RunMode.SERVER:
+            # drum is not run in server mode
+            return False  # propagate exception further
+
+        if not self.options.force_start_internal:
+            # force start is not set
+            return False  # propagate exception further
 
         if self.initialization_succeeded:
             # pipeline initialization was successful.
             # exceptions that occur during pipeline running
             # must be propagated further
-            return False
+            return False  # propagate exception further
 
         # start 'error server'
         host_port_list = self.options.address.split(":", 1)
@@ -41,8 +45,7 @@ class DrumRuntime:
 
         run_error_server(host, port, exc_value)
 
-        # NOTE: exception is propagated further
-        return False
+        return False  # propagate exception further
 
 
 def run_error_server(host, port, exc_value):
