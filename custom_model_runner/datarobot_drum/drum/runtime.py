@@ -23,10 +23,7 @@ class DrumRuntime:
             # propagate exception further
             return False
 
-        if (
-            not hasattr(self.options, "force_start_internal")
-            or not self.options.force_start_internal
-        ):
+        if not getattr(self.options, "force_start_internal", False):
             # drum is not run in server mode, or force start is not set
             # propagate exception further
             return False
