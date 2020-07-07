@@ -769,7 +769,6 @@ class TestCMRunner:
             TestCMRunner._delete_custom_model_dir(custom_model_dir)
 
 
-@pytest.mark.skip
 class TestDrumRuntime:
     @classmethod
     def setup_class(cls):
@@ -824,7 +823,7 @@ class TestDrumRuntime:
 
         mock_run_error_server.assert_called()
 
-    @pytest.fixture(params=[(REGRESSION, DOCKER_PYTHON_SKLEARN), (BINARY, None)])
+    @pytest.fixture(params=[(REGRESSION, None), (BINARY, None)])  # DOCKER_PYTHON_SKLEARN),
     def params(self, request):
         framework = SKLEARN
         language = PYTHON
