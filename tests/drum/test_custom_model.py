@@ -1,3 +1,4 @@
+import collections
 import glob
 import json
 import os
@@ -9,6 +10,7 @@ import subprocess
 import time
 from tempfile import mkdtemp, NamedTemporaryFile, TemporaryDirectory
 from threading import Thread
+from unittest import mock
 from uuid import uuid4
 
 import numpy as np
@@ -22,6 +24,8 @@ from datarobot_drum.drum.common import (
     ArgumentsOptions,
     PythonArtifacts,
 )
+
+from datarobot_drum.drum.runtime import DrumRuntime
 
 # Framweork keywords
 XGB = "xgboost"
@@ -781,6 +785,53 @@ class TestDrumRuntime:
     @classmethod
     def setup_class(cls):
         TestCMRunner.setup_class()
+
+    Options = collections.namedtuple('Options', 'force_start_internal address', defaults=['localhost'])
+
+    @mock.patch('datarobot_drum.drum.runtime.run_error_server')
+    def test_no_exceptions(self, mock_run_error_server):
+        with DrumRuntime():
+            pass
+
+        mock_run_error_server.assert_not_called()
+
+    @mock.patch('datarobot_drum.drum.runtime.run_error_server')
+    def test_exception_no_options(self, mock_run_error_server):
+        with pytest.raises(ValueError):
+            with DrumRuntime():
+                raise ValueError()
+
+        mock_run_error_server.assert_not_called()
+
+    @mock.patch('datarobot_drum.drum.runtime.run_error_server')
+    def test_exception_initialization_succeeded(self, mock_run_error_server):
+        with pytest.raises(ValueError):
+            with DrumRuntime() as runtime:
+                runtime.options = TestDrumRuntime.Options(False)
+                runtime.initialization_succeeded = True
+                raise ValueError()
+
+        mock_run_error_server.assert_not_called()
+
+    @mock.patch('datarobot_drum.drum.runtime.run_error_server')
+    def test_exception_no_force_start(self, mock_run_error_server):
+        with pytest.raises(ValueError):
+            with DrumRuntime() as runtime:
+                runtime.options = TestDrumRuntime.Options(False)
+                runtime.initialization_succeeded = False
+                raise ValueError()
+
+        mock_run_error_server.assert_not_called()
+
+    @mock.patch('datarobot_drum.drum.runtime.run_error_server')
+    def test_exception_force_start(self, mock_run_error_server):
+        with pytest.raises(ValueError):
+            with DrumRuntime() as runtime:
+                runtime.options = TestDrumRuntime.Options(True)
+                runtime.initialization_succeeded = False
+                raise ValueError()
+
+        mock_run_error_server.assert_called()
 
     @pytest.fixture(params=[
         # (REGRESSION, DOCKER_PYTHON_SKLEARN),
