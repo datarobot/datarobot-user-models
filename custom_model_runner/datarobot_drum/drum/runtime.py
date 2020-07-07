@@ -23,18 +23,26 @@ class DrumRuntime:
             # propagate exception further
             return False
 
+        if (
+            not hasattr(self.options, "force_start_internal")
+            or not self.options.force_start_internal
+        ):
+            # drum is not run in server mode, or force start is not set
+            # propagate exception further
+            return False
+
         if self.initialization_succeeded:
             # pipeline initialization was successful.
             # exceptions that occur during pipeline running
             # must be propagated further
             return False
 
-        if self.options.force_start_internal:
-            host_port_list = self.options.address.split(":", 1)
-            host = host_port_list[0]
-            port = int(host_port_list[1]) if len(host_port_list) == 2 else None
+        # start 'error server'
+        host_port_list = self.options.address.split(":", 1)
+        host = host_port_list[0]
+        port = int(host_port_list[1]) if len(host_port_list) == 2 else None
 
-            run_error_server(host, port, exc_value)
+        run_error_server(host, port, exc_value)
 
         # NOTE: exception is propagated further
         return False
