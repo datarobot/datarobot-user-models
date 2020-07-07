@@ -825,7 +825,7 @@ class TestDrumRuntime:
 
     @pytest.fixture(
         params=[
-            # (REGRESSION, DOCKER_PYTHON_SKLEARN),
+            (REGRESSION, DOCKER_PYTHON_SKLEARN),
             (BINARY, None),
         ]
     )
