@@ -42,7 +42,11 @@ def main():
         try:
             import argcomplete
         except ImportError:
-            pass
+            print(
+                "WARNING: autocompletion of arguments is not supported "
+                "as 'argcomplete' package is not found",
+                file=sys.stderr,
+            )
         else:
             # argcomplete call should be as close to the beginning as possible
             argcomplete.autocomplete(arg_parser)
