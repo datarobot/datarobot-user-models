@@ -70,6 +70,81 @@ WEIGHTS_ARGS = "weights-args"
 WEIGHTS_CSV = "weights-csv"
 
 
+class DrumServerProcess:
+    def __init__(self):
+        self.process = None
+        self.out_stream = None
+        self.err_stream = None
+
+    @property
+    def returncode(self):
+        return self.process.returncode
+
+
+class DrumServerRun:
+    def __init__(
+            self,
+            framework,
+            problem,
+            language,
+            docker=None,
+            custom_model_dir=None,
+            force_start=False,
+    ):
+        self._custom_model_dir_to_remove = None
+        if custom_model_dir is None:
+            # If custom model directory is not set explicitly - it's is created for the class.
+            # In such case it should also be removed.
+            custom_model_dir = TestCMRunner._create_custom_model_dir(framework, problem, language)
+            self._custom_model_dir_to_remove = custom_model_dir
+
+        port = 6799
+        server_address = "localhost:{}".format(port)
+        url_host = os.environ.get("TEST_URL_HOST", "localhost")
+        if docker:
+            self._url_server_address = "http://{}:{}".format(url_host, port)
+        else:
+            self._url_server_address = "http://localhost:{}".format(port)
+
+        cmd = "{} server --code-dir {} --address {}".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, server_address
+        )
+        cmd = TestCMRunner._cmd_add_class_labels(cmd, framework, problem)
+        if docker:
+            cmd += " --docker {}".format(docker)
+        if force_start:
+            cmd += " --force-start-internal"
+        self._cmd = cmd
+
+        self._process_object_holder = DrumServerProcess()
+        self._server_thread = None
+
+    def __enter__(self):
+        self._server_thread = Thread(
+            target=TestCMRunner.run_server_thread, args=(self._cmd, self._process_object_holder)
+        )
+        self._server_thread.start()
+        time.sleep(0.5)
+        TestCMRunner.wait_for_server(self._url_server_address, timeout=10, process_holder=self._process_object_holder)
+
+        return collections.namedtuple('DrumServerRunContext', 'url_server_address')(self._url_server_address)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # shutdown server
+        response = requests.post(self._url_server_address + "/shutdown/")
+        assert response.ok
+        time.sleep(1)
+
+        self._server_thread.join()
+
+        if self._custom_model_dir_to_remove is not None:
+            TestCMRunner._delete_custom_model_dir(self._custom_model_dir_to_remove)
+
+    @property
+    def process(self):
+        return self._process_object_holder or None
+
+
 class TestCMRunner:
     @classmethod
     def setup_class(cls):
@@ -192,10 +267,12 @@ class TestCMRunner:
             universal_newlines=True,
         )
 
-        if process_obj_holder is not None:
-            process_obj_holder.append(p)
-
         (stdout, stderr) = p.communicate()
+
+        if process_obj_holder is not None:
+            process_obj_holder.process = p
+            process_obj_holder.out_stream = stdout
+            process_obj_holder.err_stream = stderr
 
         if p.returncode != 0:
             print("stdout: {}".format(stdout))
@@ -272,60 +349,7 @@ class TestCMRunner:
         cmd = cmd + " --positive-class-label {} --negative-class-label {}".format(pos, neg)
         return cmd
 
-    @classmethod
-    @contextlib.contextmanager
-    def run_drum_server(
-            cls,
-            framework,
-            problem,
-            language,
-            docker=None,
-            custom_model_dir=None,
-            cmd_extra=None):
-        if custom_model_dir is not None:
-            model_dir = custom_model_dir
-        else:
-            model_dir = cls._create_custom_model_dir(framework, problem, language)
 
-        port = 6799
-        server_address = "localhost:{}".format(port)
-        url_host = os.environ.get("TEST_URL_HOST", "localhost")
-        if docker:
-            url_server_address = "http://{}:{}".format(url_host, port)
-        else:
-            url_server_address = "http://localhost:{}".format(port)
-
-        cmd = "{} server --code-dir {} --address {}".format(
-            ArgumentsOptions.MAIN_COMMAND, model_dir, server_address
-        )
-        cmd = cls._cmd_add_class_labels(cmd, framework, problem)
-        if docker:
-            cmd += " --docker {}".format(docker)
-        if cmd_extra:
-            cmd += " {}".format(cmd_extra)
-
-        process_object_holder = []
-        server_thread = Thread(
-            target=TestCMRunner.run_server_thread, args=(cmd, process_object_holder)
-        )
-        server_thread.start()
-        time.sleep(0.5)
-        TestCMRunner.wait_for_server(url_server_address, timeout=10, process_holder=process_object_holder)
-
-        try:
-            yield collections.namedtuple('DrumServerContext', 'url_server_address')(url_server_address)
-        finally:
-            # shutdown server
-            response = requests.post(url_server_address + "/shutdown/")
-            assert response.ok
-            time.sleep(1)
-
-            server_thread.join()
-
-            if custom_model_dir is None:
-                # If custom model directory is not set explicitly - it's is created in scope of this function.
-                # In such case it should also be removed.
-                TestCMRunner._delete_custom_model_dir(model_dir)
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
@@ -473,6 +497,7 @@ class TestCMRunner:
         TestCMRunner._exec_shell_cmd(
             cmd,
             "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
             process_obj_holder=process_obj_holder,
         )
 
@@ -490,11 +515,11 @@ class TestCMRunner:
             time.sleep(1)
             timeout = timeout - 1
             if timeout == 0:
-                if len(process_holder) > 0:
-                    print("Killing subprocess: {}".format(process_holder[0].pid))
-                    os.killpg(os.getpgid(process_holder[0].pid), signal.SIGTERM)
+                if process_holder is not None:
+                    print("Killing subprocess: {}".format(process_holder.process.pid))
+                    os.killpg(os.getpgid(process_holder.process.pid), signal.SIGTERM)
                     time.sleep(0.25)
-                    os.killpg(os.getpgid(process_holder[0].pid), signal.SIGKILL)
+                    os.killpg(os.getpgid(process_holder.process.pid), signal.SIGKILL)
 
                 assert timeout, "Server failed to start: url: {}".format(url)
 
@@ -519,7 +544,7 @@ class TestCMRunner:
         ],
     )
     def test_custom_models_with_drum_prediction_server(self, framework, problem, language, docker):
-        with self.run_drum_server(framework, problem, language, docker) as ctx:
+        with DrumServerRun(framework, problem, language, docker) as ctx:
             input_dataset = self._get_dataset_filename(framework, problem)
 
             # do predictions
@@ -540,7 +565,7 @@ class TestCMRunner:
     def test_custom_models_drum_prediction_server_response(
         self, framework, problem, language, docker
     ):
-        with self.run_drum_server(framework, problem, language, docker) as ctx:
+        with DrumServerRun(framework, problem, language, docker) as ctx:
             input_dataset = self._get_dataset_filename(framework, problem)
 
             # do predictions
@@ -563,6 +588,8 @@ class TestCMRunner:
                 assert all([isinstance(x, float) for x in prediction_item.values()])
             elif problem == REGRESSION:
                 assert isinstance(prediction_item, float)
+
+
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
@@ -743,3 +770,55 @@ class TestCMRunner:
 
             TestCMRunner._exec_shell_cmd(fit_sh, "Failed cmd {}".format(fit_sh), env=env)
             TestCMRunner._delete_custom_model_dir(custom_model_dir)
+
+
+class TestDrumRuntime:
+    @classmethod
+    def setup_class(cls):
+        TestCMRunner.setup_class()
+
+    @pytest.mark.parametrize(
+        "problem, docker",
+        [#(REGRESSION, DOCKER_PYTHON_SKLEARN),
+         (BINARY, None)],
+    )
+    @pytest.mark.parametrize("force_start", [False])
+    def test_drum_error_handling_no_artifact(
+        self, problem, docker, force_start
+    ):
+        """Verify that is an error occures on drum server initialization,
+        the server is still started, but 503 for /predict/ is returned."""
+        framework = SKLEARN
+        language = PYTHON
+
+        custom_model_dir = TestCMRunner._create_custom_model_dir(framework, problem, language)
+
+        # remove model artifact
+        for item in os.listdir(custom_model_dir):
+            if item.endswith(PythonArtifacts.PKL_EXTENSION):
+                os.remove(os.path.join(custom_model_dir, item))
+
+        drum_server_run = DrumServerRun(
+                framework,
+                problem,
+                language,
+                docker,
+                custom_model_dir=custom_model_dir,
+                force_start=force_start,
+        )
+
+        try:
+            with drum_server_run as ctx:
+                if force_start:
+                    input_dataset = TestCMRunner._get_dataset_filename(framework, problem)
+
+                    response = requests.post(
+                        ctx.url_server_address + '/predict/', files={"X": open(input_dataset)}
+                    )
+                else:
+                    pass
+        except ProcessLookupError:
+            pass
+        finally:
+            assert drum_server_run.process.returncode == 1
+            assert 'Could not find model artifact file' in drum_server_run.process.err_stream
