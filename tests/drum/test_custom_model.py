@@ -549,12 +549,12 @@ class TestCMRunner:
         ],
     )
     def test_custom_models_with_drum_prediction_server(self, framework, problem, language, docker):
-        with DrumServerRun(framework, problem, language, docker) as ctx:
+        with DrumServerRun(framework, problem, language, docker) as run:
             input_dataset = self._get_dataset_filename(framework, problem)
 
             # do predictions
             response = requests.post(
-                ctx.url_server_address + '/predict/', files={"X": open(input_dataset)}
+                run.url_server_address + '/predict/', files={"X": open(input_dataset)}
             )
 
             print(response.text)
@@ -570,12 +570,12 @@ class TestCMRunner:
     def test_custom_models_drum_prediction_server_response(
         self, framework, problem, language, docker
     ):
-        with DrumServerRun(framework, problem, language, docker) as ctx:
+        with DrumServerRun(framework, problem, language, docker) as run:
             input_dataset = self._get_dataset_filename(framework, problem)
 
             # do predictions
             response = requests.post(
-                ctx.url_server_address + '/predict/', files={"X": open(input_dataset)}
+                run.url_server_address + '/predict/', files={"X": open(input_dataset)}
             )
 
             assert response.ok
@@ -804,7 +804,7 @@ class TestDrumRuntime:
 
         return framework, problem, language, docker, custom_model_dir, server_run_args
 
-    def assert_drum_server_run(self, server_run_args, force_start,  error_message):
+    def assert_drum_server_run_failure(self, server_run_args, force_start,  error_message):
         drum_server_run = DrumServerRun(**server_run_args, force_start=force_start)
 
         if force_start:
@@ -828,7 +828,7 @@ class TestDrumRuntime:
         """
         Verify that if an error occurs on drum server initialization if no model artifact is found
           - if '--force-start-internal' is not set, drum server process will exit with error
-          - if '--force-start-internal' is set, drum server will still be started, and
+          - if '--force-start-internal' is set, 'error server' will still be started, and
             will be serving initialization error
         """
         framework, problem, language, docker, custom_model_dir, server_run_args = params
@@ -840,14 +840,14 @@ class TestDrumRuntime:
             if item.endswith(PythonArtifacts.PKL_EXTENSION):
                 os.remove(os.path.join(custom_model_dir, item))
 
-        self.assert_drum_server_run(server_run_args, force_start, error_message)
+        self.assert_drum_server_run_failure(server_run_args, force_start, error_message)
 
     @pytest.mark.parametrize('force_start', [False, True])
     def test_e2e_model_loading_fails(self, params, force_start):
         """
         Verify that if an error occurs on drum server initialization if model cannot load properly
           - if '--force-start-internal' is not set, drum server process will exit with error
-          - if '--force-start-internal' is set, drum server will still be started, and
+          - if '--force-start-internal' is set, 'error server' will still be started, and
             will be serving initialization error
         """
         framework, problem, language, docker, custom_model_dir, server_run_args = params
@@ -860,4 +860,37 @@ class TestDrumRuntime:
                 with open(os.path.join(custom_model_dir, item), 'wb') as f:
                     f.write(pickle.dumps('invalid model content'))
 
-        self.assert_drum_server_run(server_run_args, force_start, error_message)
+        self.assert_drum_server_run_failure(server_run_args, force_start, error_message)
+
+    @pytest.mark.parametrize('force_start', [False, True])
+    def test_e2e_predict_fails(self, params, force_start):
+        """
+        Verify that if an error occurs when drum server is started on /predict/ route,
+        regardless '--force-start-internal' flag 'error server' will is not started.
+        """
+        framework, problem, language, docker, custom_model_dir, server_run_args = params
+
+        # remove a module required during processing of /predict/ request
+        os.remove(os.path.join(custom_model_dir, 'custom.py'))
+
+        drum_server_run = DrumServerRun(**server_run_args, force_start=force_start)
+
+        with drum_server_run as run:
+            input_dataset = TestCMRunner._get_dataset_filename(framework, problem)
+
+            response = requests.post(
+                run.url_server_address + '/predict/', files={"X": open(input_dataset)}
+            )
+
+            assert response.status_code == 500  # error occurs
+
+            # assert that 'error server' is not started.
+            # as 'error server' propagates errors with 503 status code,
+            # assert that after error occurred, the next request is not 503
+            response = requests.post(run.url_server_address + '/predict/')
+
+            error_message = 'ERROR: Samples should be provided as a csv file under `X` key.'
+            assert response.status_code == 422
+            assert response.json()['message'] == error_message
+
+        assert drum_server_run.process.returncode == 0
