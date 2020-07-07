@@ -823,12 +823,7 @@ class TestDrumRuntime:
 
         mock_run_error_server.assert_called()
 
-    @pytest.fixture(
-        params=[
-            (REGRESSION, DOCKER_PYTHON_SKLEARN),
-            (BINARY, None),
-        ]
-    )
+    @pytest.fixture(params=[(REGRESSION, DOCKER_PYTHON_SKLEARN), (BINARY, None)])
     def params(self, request):
         framework = SKLEARN
         language = PYTHON
