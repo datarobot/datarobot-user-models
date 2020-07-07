@@ -1,7 +1,7 @@
-import collections
 import glob
 import json
 import os
+import pickle
 import re
 import shutil
 import signal
@@ -804,10 +804,33 @@ class TestDrumRuntime:
 
         return framework, problem, language, docker, custom_model_dir, server_run_args
 
+    def assert_drum_server_run(self, server_run_args, force_start,  error_message):
+        drum_server_run = DrumServerRun(**server_run_args, force_start=force_start)
+
+        if force_start:
+            # assert that error the server is up and message is propagated via API
+            with drum_server_run as run:
+                response = requests.post(run.url_server_address + '/predict/')
+
+                assert response.status_code == 503
+                assert 'ERROR: {}'.format(error_message) in response.json()['message']
+        else:
+            # DrumServerRun tries to ping the server.
+            # assert that the process is already dead we it's done.
+            with pytest.raises(ProcessLookupError), drum_server_run:
+                pass
+
+        assert drum_server_run.process.returncode == 1
+        assert error_message in drum_server_run.process.err_stream
+
     @pytest.mark.parametrize('force_start', [False, True])
-    def test_e2e_no_artifact(self, params, force_start):
-        """Verify that is an error occurs on drum server initialization
-        and '--force-start-internal' is not set, drum process will exit with error."""
+    def test_e2e_no_model_artifact(self, params, force_start):
+        """
+        Verify that if an error occurs on drum server initialization if no model artifact is found
+          - if '--force-start-internal' is not set, drum server process will exit with error
+          - if '--force-start-internal' is set, drum server will still be started, and
+            will be serving initialization error
+        """
         framework, problem, language, docker, custom_model_dir, server_run_args = params
 
         error_message = 'Could not find model artifact file'
@@ -817,20 +840,24 @@ class TestDrumRuntime:
             if item.endswith(PythonArtifacts.PKL_EXTENSION):
                 os.remove(os.path.join(custom_model_dir, item))
 
-        drum_server_run = DrumServerRun(**server_run_args, force_start=force_start)
+        self.assert_drum_server_run(server_run_args, force_start, error_message)
 
-        if force_start:
-            # Assert that error the server is up and message is propagated via API
-            with drum_server_run as run:
-                response = requests.post(run.url_server_address + '/predict/')
+    @pytest.mark.parametrize('force_start', [False, True])
+    def test_e2e_model_loading_fails(self, params, force_start):
+        """
+        Verify that if an error occurs on drum server initialization if model cannot load properly
+          - if '--force-start-internal' is not set, drum server process will exit with error
+          - if '--force-start-internal' is set, drum server will still be started, and
+            will be serving initialization error
+        """
+        framework, problem, language, docker, custom_model_dir, server_run_args = params
 
-                assert response.status_code == 503
-                assert 'ERROR: {}'.format(error_message) in response.json()['message']
-        else:
-            # DrumServerRun tries to ping the server.
-            # Assert that the process is already dead we it's done.
-            with pytest.raises(ProcessLookupError), drum_server_run:
-                pass
+        error_message = 'Could not find any framework to handle loaded model and a score hook is not provided'
 
-        assert drum_server_run.process.returncode == 1
-        assert error_message in drum_server_run.process.err_stream
+        # make model artifact invalid by erasing its content
+        for item in os.listdir(custom_model_dir):
+            if item.endswith(PythonArtifacts.PKL_EXTENSION):
+                with open(os.path.join(custom_model_dir, item), 'wb') as f:
+                    f.write(pickle.dumps('invalid model content'))
+
+        self.assert_drum_server_run(server_run_args, force_start, error_message)
