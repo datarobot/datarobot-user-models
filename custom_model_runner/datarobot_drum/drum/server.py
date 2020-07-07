@@ -15,7 +15,7 @@ def get_flask_app(api_blueprint):
 
 
 def base_api_blueprint():
-    model_api = Blueprint('model_api', __name__)
+    model_api = Blueprint("model_api", __name__)
 
     @model_api.route("/shutdown/", methods=["POST"])
     def shutdown():

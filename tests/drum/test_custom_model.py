@@ -86,13 +86,7 @@ class DrumServerProcess:
 
 class DrumServerRun:
     def __init__(
-            self,
-            framework,
-            problem,
-            language,
-            docker=None,
-            custom_model_dir=None,
-            force_start=False,
+        self, framework, problem, language, docker=None, custom_model_dir=None, force_start=False,
     ):
         self._custom_model_dir_to_remove = None
         if custom_model_dir is None:
@@ -130,9 +124,7 @@ class DrumServerRun:
         time.sleep(0.5)
 
         TestCMRunner.wait_for_server(
-            self.url_server_address,
-            timeout=10,
-            process_holder=self._process_object_holder
+            self.url_server_address, timeout=10, process_holder=self._process_object_holder
         )
 
         return self
@@ -358,8 +350,6 @@ class TestCMRunner:
         cmd = cmd + " --positive-class-label {} --negative-class-label {}".format(pos, neg)
         return cmd
 
-
-
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
@@ -558,7 +548,7 @@ class TestCMRunner:
 
             # do predictions
             response = requests.post(
-                run.url_server_address + '/predict/', files={"X": open(input_dataset)}
+                run.url_server_address + "/predict/", files={"X": open(input_dataset)}
             )
 
             print(response.text)
@@ -579,7 +569,7 @@ class TestCMRunner:
 
             # do predictions
             response = requests.post(
-                run.url_server_address + '/predict/', files={"X": open(input_dataset)}
+                run.url_server_address + "/predict/", files={"X": open(input_dataset)}
             )
 
             assert response.ok
@@ -597,8 +587,6 @@ class TestCMRunner:
                 assert all([isinstance(x, float) for x in prediction_item.values()])
             elif problem == REGRESSION:
                 assert isinstance(prediction_item, float)
-
-
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
@@ -786,16 +774,18 @@ class TestDrumRuntime:
     def setup_class(cls):
         TestCMRunner.setup_class()
 
-    Options = collections.namedtuple('Options', 'force_start_internal address', defaults=['localhost'])
+    Options = collections.namedtuple(
+        "Options", "force_start_internal address", defaults=["localhost"]
+    )
 
-    @mock.patch('datarobot_drum.drum.runtime.run_error_server')
+    @mock.patch("datarobot_drum.drum.runtime.run_error_server")
     def test_no_exceptions(self, mock_run_error_server):
         with DrumRuntime():
             pass
 
         mock_run_error_server.assert_not_called()
 
-    @mock.patch('datarobot_drum.drum.runtime.run_error_server')
+    @mock.patch("datarobot_drum.drum.runtime.run_error_server")
     def test_exception_no_options(self, mock_run_error_server):
         with pytest.raises(ValueError):
             with DrumRuntime():
@@ -803,7 +793,7 @@ class TestDrumRuntime:
 
         mock_run_error_server.assert_not_called()
 
-    @mock.patch('datarobot_drum.drum.runtime.run_error_server')
+    @mock.patch("datarobot_drum.drum.runtime.run_error_server")
     def test_exception_initialization_succeeded(self, mock_run_error_server):
         with pytest.raises(ValueError):
             with DrumRuntime() as runtime:
@@ -813,7 +803,7 @@ class TestDrumRuntime:
 
         mock_run_error_server.assert_not_called()
 
-    @mock.patch('datarobot_drum.drum.runtime.run_error_server')
+    @mock.patch("datarobot_drum.drum.runtime.run_error_server")
     def test_exception_no_force_start(self, mock_run_error_server):
         with pytest.raises(ValueError):
             with DrumRuntime() as runtime:
@@ -823,7 +813,7 @@ class TestDrumRuntime:
 
         mock_run_error_server.assert_not_called()
 
-    @mock.patch('datarobot_drum.drum.runtime.run_error_server')
+    @mock.patch("datarobot_drum.drum.runtime.run_error_server")
     def test_exception_force_start(self, mock_run_error_server):
         with pytest.raises(ValueError):
             with DrumRuntime() as runtime:
@@ -833,10 +823,12 @@ class TestDrumRuntime:
 
         mock_run_error_server.assert_called()
 
-    @pytest.fixture(params=[
-        # (REGRESSION, DOCKER_PYTHON_SKLEARN),
-        (BINARY, None),
-    ])
+    @pytest.fixture(
+        params=[
+            # (REGRESSION, DOCKER_PYTHON_SKLEARN),
+            (BINARY, None),
+        ]
+    )
     def params(self, request):
         framework = SKLEARN
         language = PYTHON
@@ -855,16 +847,16 @@ class TestDrumRuntime:
 
         return framework, problem, language, docker, custom_model_dir, server_run_args
 
-    def assert_drum_server_run_failure(self, server_run_args, force_start,  error_message):
+    def assert_drum_server_run_failure(self, server_run_args, force_start, error_message):
         drum_server_run = DrumServerRun(**server_run_args, force_start=force_start)
 
         if force_start:
             # assert that error the server is up and message is propagated via API
             with drum_server_run as run:
-                response = requests.post(run.url_server_address + '/predict/')
+                response = requests.post(run.url_server_address + "/predict/")
 
                 assert response.status_code == 503
-                assert 'ERROR: {}'.format(error_message) in response.json()['message']
+                assert "ERROR: {}".format(error_message) in response.json()["message"]
         else:
             # DrumServerRun tries to ping the server.
             # assert that the process is already dead we it's done.
@@ -874,7 +866,7 @@ class TestDrumRuntime:
         assert drum_server_run.process.returncode == 1
         assert error_message in drum_server_run.process.err_stream
 
-    @pytest.mark.parametrize('force_start', [False, True])
+    @pytest.mark.parametrize("force_start", [False, True])
     def test_e2e_no_model_artifact(self, params, force_start):
         """
         Verify that if an error occurs on drum server initialization if no model artifact is found
@@ -884,7 +876,7 @@ class TestDrumRuntime:
         """
         framework, problem, language, docker, custom_model_dir, server_run_args = params
 
-        error_message = 'Could not find model artifact file'
+        error_message = "Could not find model artifact file"
 
         # remove model artifact
         for item in os.listdir(custom_model_dir):
@@ -893,7 +885,7 @@ class TestDrumRuntime:
 
         self.assert_drum_server_run_failure(server_run_args, force_start, error_message)
 
-    @pytest.mark.parametrize('force_start', [False, True])
+    @pytest.mark.parametrize("force_start", [False, True])
     def test_e2e_model_loading_fails(self, params, force_start):
         """
         Verify that if an error occurs on drum server initialization if model cannot load properly
@@ -903,17 +895,19 @@ class TestDrumRuntime:
         """
         framework, problem, language, docker, custom_model_dir, server_run_args = params
 
-        error_message = 'Could not find any framework to handle loaded model and a score hook is not provided'
+        error_message = (
+            "Could not find any framework to handle loaded model and a score hook is not provided"
+        )
 
         # make model artifact invalid by erasing its content
         for item in os.listdir(custom_model_dir):
             if item.endswith(PythonArtifacts.PKL_EXTENSION):
-                with open(os.path.join(custom_model_dir, item), 'wb') as f:
-                    f.write(pickle.dumps('invalid model content'))
+                with open(os.path.join(custom_model_dir, item), "wb") as f:
+                    f.write(pickle.dumps("invalid model content"))
 
         self.assert_drum_server_run_failure(server_run_args, force_start, error_message)
 
-    @pytest.mark.parametrize('force_start', [False, True])
+    @pytest.mark.parametrize("force_start", [False, True])
     def test_e2e_predict_fails(self, params, force_start):
         """
         Verify that if an error occurs when drum server is started on /predict/ route,
@@ -922,7 +916,7 @@ class TestDrumRuntime:
         framework, problem, language, docker, custom_model_dir, server_run_args = params
 
         # remove a module required during processing of /predict/ request
-        os.remove(os.path.join(custom_model_dir, 'custom.py'))
+        os.remove(os.path.join(custom_model_dir, "custom.py"))
 
         drum_server_run = DrumServerRun(**server_run_args, force_start=force_start)
 
@@ -930,7 +924,7 @@ class TestDrumRuntime:
             input_dataset = TestCMRunner._get_dataset_filename(framework, problem)
 
             response = requests.post(
-                run.url_server_address + '/predict/', files={"X": open(input_dataset)}
+                run.url_server_address + "/predict/", files={"X": open(input_dataset)}
             )
 
             assert response.status_code == 500  # error occurs
@@ -938,10 +932,10 @@ class TestDrumRuntime:
             # assert that 'error server' is not started.
             # as 'error server' propagates errors with 503 status code,
             # assert that after error occurred, the next request is not 503
-            response = requests.post(run.url_server_address + '/predict/')
+            response = requests.post(run.url_server_address + "/predict/")
 
-            error_message = 'ERROR: Samples should be provided as a csv file under `X` key.'
+            error_message = "ERROR: Samples should be provided as a csv file under `X` key."
             assert response.status_code == 422
-            assert response.json()['message'] == error_message
+            assert response.json()["message"] == error_message
 
         assert drum_server_run.process.returncode == 0

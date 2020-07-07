@@ -335,7 +335,7 @@ class CMRunnerArgsRegistry(object):
                 "--force-start-internal",
                 action="store_true",
                 default=False,
-                help="Start server even if pipeline initialization fails."
+                help="Start server even if pipeline initialization fails.",
             )
 
     @staticmethod
