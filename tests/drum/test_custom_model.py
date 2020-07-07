@@ -769,6 +769,7 @@ class TestCMRunner:
             TestCMRunner._delete_custom_model_dir(custom_model_dir)
 
 
+@pytest.mark.skip
 class TestDrumRuntime:
     @classmethod
     def setup_class(cls):
