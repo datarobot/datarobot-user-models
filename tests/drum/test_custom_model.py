@@ -837,12 +837,15 @@ class TestDrumRuntime:
 
         mock_run_error_server.assert_called()
 
-    @pytest.fixture(params=[(REGRESSION, None), (BINARY, None)])  # DOCKER_PYTHON_SKLEARN),
+    @pytest.fixture(params=[REGRESSION, BINARY])
     def params(self, request):
         framework = SKLEARN
         language = PYTHON
 
-        problem, docker = request.param
+        # TODO: add tests for docker. parametrize docker with DOCKER_PYTHON_SKLEARN
+        docker = None
+
+        problem = request.param
 
         custom_model_dir = TestCMRunner._create_custom_model_dir(framework, problem, language)
 
