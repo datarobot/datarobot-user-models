@@ -778,8 +778,10 @@ class TestDrumRuntime:
 
     Options = collections.namedtuple(
         "Options",
-        "force_start_internal {} address".format(CMRunnerArgsRegistry.SUBPARSER_DEST_KEYWORD),
-        defaults=[RunMode.SERVER, "localhost"],
+        "force_start_internal {} docker address".format(
+            CMRunnerArgsRegistry.SUBPARSER_DEST_KEYWORD
+        ),
+        defaults=[RunMode.SERVER, None, "localhost"],
     )
 
     @mock.patch("datarobot_drum.drum.runtime.run_error_server")
@@ -818,6 +820,16 @@ class TestDrumRuntime:
         mock_run_error_server.assert_not_called()
 
     @mock.patch("datarobot_drum.drum.runtime.run_error_server")
+    def test_exception_not_server_mode(self, mock_run_error_server):
+        with pytest.raises(ValueError):
+            with DrumRuntime() as runtime:
+                runtime.options = TestDrumRuntime.Options(False, RunMode.SERVER, "path_to_image")
+                runtime.initialization_succeeded = False
+                raise ValueError()
+
+        mock_run_error_server.assert_not_called()
+
+    @mock.patch("datarobot_drum.drum.runtime.run_error_server")
     def test_exception_no_force_start(self, mock_run_error_server):
         with pytest.raises(ValueError):
             with DrumRuntime() as runtime:
@@ -842,9 +854,6 @@ class TestDrumRuntime:
         framework = SKLEARN
         language = PYTHON
 
-        # TODO: add tests for docker. parametrize docker with DOCKER_PYTHON_SKLEARN
-        docker = None
-
         problem = request.param
 
         custom_model_dir = TestCMRunner._create_custom_model_dir(framework, problem, language)
@@ -853,11 +862,10 @@ class TestDrumRuntime:
             framework=framework,
             problem=problem,
             language=language,
-            docker=docker,
             custom_model_dir=custom_model_dir,
         )
 
-        return framework, problem, language, docker, custom_model_dir, server_run_args
+        return framework, problem, custom_model_dir, server_run_args
 
     def assert_drum_server_run_failure(self, server_run_args, force_start, error_message):
         drum_server_run = DrumServerRun(**server_run_args, force_start=force_start)
@@ -886,7 +894,7 @@ class TestDrumRuntime:
           - if '--force-start-internal' is set, 'error server' will still be started, and
             will be serving initialization error
         """
-        framework, problem, language, docker, custom_model_dir, server_run_args = params
+        _, _, custom_model_dir, server_run_args = params
 
         error_message = "Could not find model artifact file"
 
@@ -905,7 +913,7 @@ class TestDrumRuntime:
           - if '--force-start-internal' is set, 'error server' will still be started, and
             will be serving initialization error
         """
-        framework, problem, language, docker, custom_model_dir, server_run_args = params
+        _, _, custom_model_dir, server_run_args = params
 
         error_message = (
             "Could not find any framework to handle loaded model and a score hook is not provided"
@@ -925,7 +933,7 @@ class TestDrumRuntime:
         Verify that if an error occurs when drum server is started on /predict/ route,
         regardless '--force-start-internal' flag 'error server' will is not started.
         """
-        framework, problem, language, docker, custom_model_dir, server_run_args = params
+        framework, problem, custom_model_dir, server_run_args = params
 
         # remove a module required during processing of /predict/ request
         os.remove(os.path.join(custom_model_dir, "custom.py"))

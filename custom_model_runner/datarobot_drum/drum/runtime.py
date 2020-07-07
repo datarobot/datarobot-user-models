@@ -28,6 +28,11 @@ class DrumRuntime:
             # drum is not run in server mode
             return False  # propagate exception further
 
+        # TODO: add docker support
+        if getattr(self.options, "docker", None):
+            # running 'error server' in docker mode is not supported
+            return False  # propagate exception further
+
         if not self.options.force_start_internal:
             # force start is not set
             return False  # propagate exception further
