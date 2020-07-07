@@ -121,9 +121,3 @@ class TemplateType(object):
 
 class EnvVarNames:
     DRUM_JAVA_XMX = "DRUM_JAVA_XMX"
-
-
-class DrumRunContext:
-    def __init__(self):
-        self.initialization_succeeded = False
-        self.options = None
