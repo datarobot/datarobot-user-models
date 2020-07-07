@@ -86,7 +86,7 @@ class ArgumentsOptions(object):
     LANGUAGE = "--language"
     NUM_ROWS = "--num-rows"
 
-    MAIN_COMMAND = "python /Users/roman/workspace/datarobot-user-models/custom_model_runner/datarobot_drum/drum/main.py"  # "drum"
+    MAIN_COMMAND = "drum"
     SCORE = "score"
     SERVER = "server"
     FIT = "fit"
