@@ -128,8 +128,8 @@ class PythonModelAdapter:
 
         if not model_artifact_file:
             raise DrumCommonException(
-                "Could not find model artifact file in: {} supported by default predictors. "
-                "They support filenames with the following extensions {}. "
+                "\n\nCould not find model artifact file in: {} supported by default predictors.\n"
+                "They support filenames with the following extensions {}.\n"
                 "If your artifact is not supported by default predictor, implement custom.load_model hook".format(
                     self._model_dir, list(all_supported_extensions)
                 )
@@ -270,7 +270,7 @@ class PythonModelAdapter:
             )
         else:
             raise DrumCommonException(
-                "fit() method must be implemented in the 'custom.py' in the provided code_dir: '{}'".format(
+                "fit() method must be implemented in a file named 'custom.py' in the provided code_dir: '{}'".format(
                     self._model_dir
                 )
             )
