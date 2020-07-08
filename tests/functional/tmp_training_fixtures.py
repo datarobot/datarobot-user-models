@@ -8,11 +8,6 @@ import trafaret as t
 class CustomTrainingModel(_CustomModelBase):
     _model_type = "training"
 
-    _converter = (
-        _CustomModelBase._converter
-        + {t.Key("target_type"): t.String(), t.Key("created_at"): t.String(),}
-    ).allow_extra("*")
-
 
 class CustomTrainingBlueprint(APIObject):
     _path = "customTrainingBlueprints/"
@@ -30,6 +25,8 @@ class CustomTrainingBlueprint(APIObject):
                 {t.Key("id"): t.String(), t.Key("label"): t.String()}
             ),
             t.Key("training_history"): t.List(t.Dict()),
+            t.Key("target_type"): t.String(),
+            t.Key("created_at"): t.String(),
         }
     )
 
