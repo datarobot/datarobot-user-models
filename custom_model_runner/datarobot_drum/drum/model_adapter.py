@@ -274,7 +274,7 @@ class PythonModelAdapter:
             raise DrumCommonException(
                 "\nfit() method must be implemented in a file named 'custom.py' in the provided code_dir: '{}' \n"
                 "Here is a list of files in this dir. {}\n"
-                "Here are the hooks your model has: {}".format(
+                "Here are the hooks your custom.py file has: {}".format(
                     self._model_dir, os.listdir(self._model_dir)[:100], hooks
                 )
             )
