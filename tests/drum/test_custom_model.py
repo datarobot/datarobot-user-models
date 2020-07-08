@@ -377,7 +377,9 @@ class TestCMRunner:
         )
         case_5 = (
             str(stde).find(
-                "Could not find model artifact file in: {} supported by default predictors".format(custom_model_dir)
+                "Could not find model artifact file in: {} supported by default predictors".format(
+                    custom_model_dir
+                )
             )
             != -1
         )
