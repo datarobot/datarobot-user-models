@@ -268,7 +268,9 @@ class PythonModelAdapter:
                 X, y, output_dir, class_order=class_order, row_weights=row_weights
             )
         else:
-            hooks = ["{}: {}".format(hook, fn is not None) for hook, fn in self._custom_hooks.items()]
+            hooks = [
+                "{}: {}".format(hook, fn is not None) for hook, fn in self._custom_hooks.items()
+            ]
             raise DrumCommonException(
                 "\nfit() method must be implemented in a file named 'custom.py' in the provided code_dir: '{}' \n"
                 "Here is a list of files in this dir. {}\n"
