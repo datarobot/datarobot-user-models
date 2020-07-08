@@ -26,7 +26,7 @@ class CustomTrainingBlueprint(APIObject):
             ),
             t.Key("training_history"): t.List(t.Dict()),
             t.Key("target_type"): t.String(),
-            t.Key("created_at"): t.String(),
+            t.Key("created_at"): t.Float(),
         }
     )
 
