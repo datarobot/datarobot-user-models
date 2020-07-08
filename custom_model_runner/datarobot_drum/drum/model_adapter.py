@@ -55,11 +55,10 @@ class PythonModelAdapter:
             return
 
         print("Detected {} .. trying to load hooks".format(custom_file_path))
-        sys.path.append(self._model_dir)
+        sys.path.insert(0, self._model_dir)
 
         try:
             custom_module = __import__(CUSTOM_FILE_NAME)
-
             for hook in CustomHooks.ALL:
                 self._custom_hooks[hook] = getattr(custom_module, hook, None)
 
@@ -269,8 +268,11 @@ class PythonModelAdapter:
                 X, y, output_dir, class_order=class_order, row_weights=row_weights
             )
         else:
+            hooks = ["{}: {}".format(hook, fn is not None) for hook, fn in self._custom_hooks.items()]
             raise DrumCommonException(
-                "fit() method must be implemented in a file named 'custom.py' in the provided code_dir: '{}'".format(
-                    self._model_dir
+                "\nfit() method must be implemented in a file named 'custom.py' in the provided code_dir: '{}' \n"
+                "Here is a list of files in this dir. {}\n"
+                "Here are the hooks your model has: {}".format(
+                    self._model_dir, os.listdir(self._model_dir)[:100], hooks
                 )
             )
