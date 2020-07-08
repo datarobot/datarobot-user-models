@@ -868,7 +868,9 @@ class TestDrumRuntime:
             custom_model_dir=custom_model_dir,
         )
 
-        return framework, problem, custom_model_dir, server_run_args
+        yield framework, problem, custom_model_dir, server_run_args
+
+        TestCMRunner._delete_custom_model_dir(custom_model_dir)
 
     def assert_drum_server_run_failure(self, server_run_args, force_start, error_message):
         drum_server_run = DrumServerRun(**server_run_args, force_start=force_start)
