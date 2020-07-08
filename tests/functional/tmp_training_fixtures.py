@@ -25,6 +25,8 @@ class CustomTrainingBlueprint(APIObject):
                 {t.Key("id"): t.String(), t.Key("label"): t.String()}
             ),
             t.Key("training_history"): t.List(t.Dict()),
+            t.Key("target_type"): t.String(),
+            t.Key("created_at"): t.Float(),
         }
     )
 
@@ -36,6 +38,8 @@ class CustomTrainingBlueprint(APIObject):
         execution_environment,
         execution_environment_version,
         training_history,
+        target_type,
+        created_at,
     ):
         self.id = id
         self.custom_model = custom_model
@@ -44,6 +48,8 @@ class CustomTrainingBlueprint(APIObject):
         self.execution_environment_version = execution_environment_version
         self.training_history = training_history
         self.project_id = None
+        self.target_type = target_type
+        self.created_at = created_at
 
     def __repr__(self):
         return encode_utf8_if_py2(u"{}({})".format(self.__class__.__name__, self.id))
