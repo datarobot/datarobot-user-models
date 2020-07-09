@@ -29,40 +29,66 @@ Examples:
     # Run regression user model in fit mode.
     drum fit --code-dir <custom code dir> --input <input.csv> --output <output_dir> --target <target feature> --verbose
 """
-
-import argcomplete
 import os
-import sys
 import signal
-import requests
+import sys
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
-from datarobot_drum.drum.drum import CMRunner
+from datarobot_drum.drum.runtime import DrumRuntime
 
 
 def main():
-    options = None
+    with DrumRuntime() as runtime:
 
-    def signal_handler(sig, frame):
-        # The signal is assigned so the stacktrace is not presented when Ctrl-C is pressed.
-        # The cleanup itself is done only if we are NOT running in performance test mode which
-        # has its own cleanup
-        print("\nCtrl+C pressed, aborting drum")
+        def signal_handler(sig, frame):
+            # The signal is assigned so the stacktrace is not presented when Ctrl-C is pressed.
+            # The cleanup itself is done only if we are NOT running in performance test mode which
+            # has its own cleanup
+            print("\nCtrl+C pressed, aborting drum")
 
-        if options and options.docker and not options.in_perf_mode_internal:
-            url = "http://{}/shutdown/".format(options.address)
-            print("Sending shutdown to server: {}".format(url))
-            requests.post(url, timeout=2)
-        os.system("tput init")
-        os._exit(130)
+            if (
+                runtime.options
+                and runtime.options.docker
+                and not runtime.options.in_perf_mode_internal
+            ):
+                try:
+                    import requests
+                except ImportError:
+                    print(
+                        "WARNING: 'requests' package is not found - "
+                        "cannot send shutdown to server",
+                        file=sys.stderr,
+                    )
+                else:
+                    url = "http://{}/shutdown/".format(runtime.options.address)
+                    print("Sending shutdown to server: {}".format(url))
+                    requests.post(url, timeout=2)
+                os.system("tput init")
+                os._exit(130)
 
-    signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGINT, signal_handler)
 
-    arg_parser = CMRunnerArgsRegistry.get_arg_parser()
-    # argcomplete call should be as close to the beginning as possible
-    argcomplete.autocomplete(arg_parser)
-    options = arg_parser.parse_args()
-    CMRunnerArgsRegistry.verify_options(options)
-    CMRunner(options).run()
+        arg_parser = CMRunnerArgsRegistry.get_arg_parser()
+
+        try:
+            import argcomplete
+        except ImportError:
+            print(
+                "WARNING: autocompletion of arguments is not supported "
+                "as 'argcomplete' package is not found",
+                file=sys.stderr,
+            )
+        else:
+            # argcomplete call should be as close to the beginning as possible
+            argcomplete.autocomplete(arg_parser)
+
+        options = arg_parser.parse_args()
+        CMRunnerArgsRegistry.verify_options(options)
+
+        runtime.options = options
+
+        from datarobot_drum.drum.drum import CMRunner
+
+        CMRunner(runtime).run()
 
 
 if __name__ == "__main__":
