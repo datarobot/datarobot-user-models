@@ -31,8 +31,7 @@ additional pre-processing
   - The first value is the positive class probability, the second is the negative class probability
 - There is a single pkl file present
   
-If these assumptions are incorrect for your model, you should make a copy of [custom.py](custom.py)
-, modify it as needed, and include in your custom model archive.
+If these assumptions are incorrect for your model, you should make a copy of [custom.py](https://github.com/datarobot/datarobot-user-models/blob/master/model_templates/inference/python3_sklearn/custom.py), modify it as needed, and include in your custom model archive.
 
 The structure of your custom model archive should look like:
 
