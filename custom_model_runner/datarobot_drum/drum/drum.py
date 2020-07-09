@@ -49,11 +49,12 @@ def verbose_stdout(verbose):
 
 
 class CMRunner(object):
-    def __init__(self, options):
-        self.options = options
-        self.logger = CMRunner._config_logger(options)
-        self.verbose = options.verbose
-        self.run_mode = RunMode(options.subparser_name)
+    def __init__(self, runtime):
+        self.runtime = runtime
+        self.options = runtime.options
+        self.logger = CMRunner._config_logger(runtime.options)
+        self.verbose = runtime.options.verbose
+        self.run_mode = RunMode(runtime.options.subparser_name)
 
         self._functional_pipelines = {
             (RunMode.SCORE, RunLanguage.PYTHON): "python_predictor.json.j2",
@@ -357,13 +358,13 @@ class CMRunner(object):
             sc.enable()
             try:
                 sc.mark("start")
+
                 _pipeline_executor.init_pipeline()
+                self.runtime.initialization_succeeded = True
                 sc.mark("init")
+
                 _pipeline_executor.run_pipeline(cleanup=False)
                 sc.mark("run")
-            except DrumCommonException as e:
-                self.logger.error(e)
-                exit(1)
             finally:
                 _pipeline_executor.cleanup_pipeline()
                 sc.mark("end")
