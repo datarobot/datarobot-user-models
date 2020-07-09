@@ -40,26 +40,28 @@ from datarobot_drum.drum.drum import CMRunner
 
 
 def main():
-    arg_parser = CMRunnerArgsRegistry.get_arg_parser()
-    # argcomplete call should be as close to the beginning as possible
-    argcomplete.autocomplete(arg_parser)
-    options = arg_parser.parse_args()
-    CMRunnerArgsRegistry.verify_options(options)
+    options = None
 
     def signal_handler(sig, frame):
         # The signal is assigned so the stacktrace is not presented when Ctrl-C is pressed.
         # The cleanup itself is done only if we are NOT running in performance test mode which
         # has its own cleanup
-        print("Ctrl+C pressed, aborting cmrun")
+        print("\nCtrl+C pressed, aborting drum")
 
-        if options.docker and not options.in_perf_mode_internal:
+        if options and options.docker and not options.in_perf_mode_internal:
             url = "http://{}/shutdown/".format(options.address)
             print("Sending shutdown to server: {}".format(url))
             requests.post(url, timeout=2)
         os.system("tput init")
-        sys.exit(0)
+        os._exit(130)
 
     signal.signal(signal.SIGINT, signal_handler)
+
+    arg_parser = CMRunnerArgsRegistry.get_arg_parser()
+    # argcomplete call should be as close to the beginning as possible
+    argcomplete.autocomplete(arg_parser)
+    options = arg_parser.parse_args()
+    CMRunnerArgsRegistry.verify_options(options)
     CMRunner(options).run()
 
 
