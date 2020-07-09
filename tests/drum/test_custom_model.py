@@ -881,7 +881,7 @@ class TestDrumRuntime:
                 response = requests.post(run.url_server_address + "/predict/")
 
                 assert response.status_code == 503
-                assert "ERROR: {}".format(error_message) in response.json()["message"]
+                assert error_message in response.json()["message"]
         else:
             # DrumServerRun tries to ping the server.
             # assert that the process is already dead we it's done.
