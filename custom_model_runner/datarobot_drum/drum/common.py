@@ -7,6 +7,8 @@ CUSTOM_FILE_NAME = "custom"
 POSITIVE_CLASS_LABEL_ARG_KEYWORD = "positive_class_label"
 NEGATIVE_CLASS_LABEL_ARG_KEYWORD = "negative_class_label"
 
+URL_PREFIX_ENV_VAR_NAME = "URL_PREFIX"
+
 LOG_LEVELS = {
     "noset": logging.NOTSET,
     "debug": logging.DEBUG,
