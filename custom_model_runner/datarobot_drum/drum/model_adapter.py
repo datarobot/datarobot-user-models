@@ -55,11 +55,10 @@ class PythonModelAdapter:
             return
 
         print("Detected {} .. trying to load hooks".format(custom_file_path))
-        sys.path.append(self._model_dir)
+        sys.path.insert(0, self._model_dir)
 
         try:
             custom_module = __import__(CUSTOM_FILE_NAME)
-
             for hook in CustomHooks.ALL:
                 self._custom_hooks[hook] = getattr(custom_module, hook, None)
 
@@ -128,8 +127,8 @@ class PythonModelAdapter:
 
         if not model_artifact_file:
             raise DrumCommonException(
-                "Could not find model artifact file in: {} supported by default predictors. "
-                "They support filenames with the following extensions {}. "
+                "\n\nCould not find model artifact file in: {} supported by default predictors.\n"
+                "They support filenames with the following extensions {}.\n"
                 "If your artifact is not supported by default predictor, implement custom.load_model hook".format(
                     self._model_dir, list(all_supported_extensions)
                 )
@@ -269,8 +268,13 @@ class PythonModelAdapter:
                 X, y, output_dir, class_order=class_order, row_weights=row_weights
             )
         else:
+            hooks = [
+                "{}: {}".format(hook, fn is not None) for hook, fn in self._custom_hooks.items()
+            ]
             raise DrumCommonException(
-                "fit() method must be implemented in the 'custom.py' in the provided code_dir: '{}'".format(
-                    self._model_dir
+                "\nfit() method must be implemented in a file named 'custom.py' in the provided code_dir: '{}' \n"
+                "Here is a list of files in this dir. {}\n"
+                "Here are the hooks your custom.py file has: {}".format(
+                    self._model_dir, os.listdir(self._model_dir)[:100], hooks
                 )
             )

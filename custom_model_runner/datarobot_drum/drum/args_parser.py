@@ -323,7 +323,7 @@ class CMRunnerArgsRegistry(object):
         for parser in parsers:
             parser.add_argument(
                 ArgumentsOptions.NUM_ROWS,
-                default=100,
+                default="ALL",
                 help="Number of rows to use for testing the fit functionality. "
                 "Set to ALL to use all rows. Default is 100",
             )

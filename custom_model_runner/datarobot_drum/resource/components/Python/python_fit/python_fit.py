@@ -51,17 +51,23 @@ class PythonFit(ConnectableComponent):
         else:
             self.num_rows = int(self.num_rows)
         if self.target_filename:
-            X = df.head(self.num_rows)
-            y = pd.read_csv(self.target_filename, index_col=False).head(self.num_rows)
+            X = df.sample(self.num_rows, random_state=1)
+            y = pd.read_csv(self.target_filename, index_col=False).sample(
+                self.num_rows, random_state=1
+            )
             assert len(y.columns) == 1
             assert len(X) == len(y)
             y = y.iloc[:, 0]
         else:
-            X = df.drop(self.target_name, axis=1).head(self.num_rows)
-            y = df[self.target_name].head(self.num_rows)
+            X = df.drop(self.target_name, axis=1).sample(
+                self.num_rows, random_state=1, replace=True
+            )
+            y = df[self.target_name].sample(self.num_rows, random_state=1, replace=True)
 
         if self.weights_filename:
-            row_weights = pd.read_csv(self.weights_filename).head(self.num_rows)
+            row_weights = pd.read_csv(self.weights_filename).sample(
+                self.num_rows, random_state=1, replace=True
+            )
         elif self.weights:
             if self.weights not in X.columns:
                 raise ValueError(
