@@ -187,11 +187,13 @@ class CMRunner(object):
                 self.run_test_predict()
             if remove_temp_output:
                 print(
-                    "Validation Complete: Your model can be fit to your data, "
-                    "and predictions can be made on the fit model! "
+                    "Validation Complete 🎉 Your model can be fit to your data, "
+                    "and predictions can be made on the fit model! \n"
                     "You're ready to add it to DataRobot. "
                 )
                 shutil.rmtree(remove_temp_output)
+            else:
+                print("Success 🎉")
         elif self.run_mode == RunMode.PERF_TEST:
             CMRunTests(self.options, self.run_mode).performance_test()
         elif self.run_mode == RunMode.VALIDATION:
@@ -483,12 +485,21 @@ class CMRunner(object):
 def possibly_intuit_order(input_data_file, target_data_file=None, target_col_name=None):
     if target_data_file:
         assert target_col_name is None
-        y = pd.read_csv(target_data_file, index_col=False).head(1000)
+
+        y = pd.read_csv(target_data_file, index_col=False).sample(
+            1000, random_state=1, replace=True
+        )
         classes = np.unique(y.iloc[:, 0])
     else:
         assert target_data_file is None
         df = pd.read_csv(input_data_file)
-        classes = np.unique(df[target_col_name].head(1000))
+        if not target_col_name in df.columns:
+            e = "The column '{}' does not exist in your dataframe. \nThe columns in your dataframe are these: {}".format(
+                target_col_name, list(df.columns)
+            )
+            print(e, file=sys.stderr)
+            exit(1)
+        classes = np.unique(df[target_col_name].sample(1000, random_state=1, replace=True))
     if len(classes) == 2:
         return classes
     elif len(classes) == 1:
