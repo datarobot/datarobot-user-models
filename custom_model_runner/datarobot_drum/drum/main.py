@@ -30,6 +30,7 @@ Examples:
     drum fit --code-dir <custom code dir> --input <input.csv> --output <output_dir> --target <target feature> --verbose
 """
 import os
+import signal
 import sys
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.runtime import DrumRuntime
@@ -37,6 +38,35 @@ from datarobot_drum.drum.runtime import DrumRuntime
 
 def main():
     with DrumRuntime() as runtime:
+
+        def signal_handler(sig, frame):
+            # The signal is assigned so the stacktrace is not presented when Ctrl-C is pressed.
+            # The cleanup itself is done only if we are NOT running in performance test mode which
+            # has its own cleanup
+            print("\nCtrl+C pressed, aborting drum")
+
+            if (
+                runtime.options
+                and runtime.options.docker
+                and not runtime.options.in_perf_mode_internal
+            ):
+                try:
+                    import requests
+                except ImportError:
+                    print(
+                        "WARNING: 'requests' package is not found - "
+                        "cannot send shutdown to server",
+                        file=sys.stderr,
+                    )
+                else:
+                    url = "http://{}/shutdown/".format(runtime.options.address)
+                    print("Sending shutdown to server: {}".format(url))
+                    requests.post(url, timeout=2)
+                os.system("tput init")
+                os._exit(130)
+
+        signal.signal(signal.SIGINT, signal_handler)
+
         arg_parser = CMRunnerArgsRegistry.get_arg_parser()
 
         try:
@@ -56,24 +86,8 @@ def main():
 
         runtime.options = options
 
-        import signal
-        import requests
         from datarobot_drum.drum.drum import CMRunner
 
-        def signal_handler(sig, frame):
-            # The signal is assigned so the stacktrace is not presented when Ctrl-C is pressed.
-            # The cleanup itself is done only if we are NOT running in performance test mode which
-            # has its own cleanup
-            print("\nCtrl+C pressed, aborting drum")
-
-            if options and options.docker and not options.in_perf_mode_internal:
-                url = "http://{}/shutdown/".format(options.address)
-                print("Sending shutdown to server: {}".format(url))
-                requests.post(url, timeout=2)
-                os.system("tput init")
-                os._exit(130)
-
-        signal.signal(signal.SIGINT, signal_handler)
         CMRunner(runtime).run()
 
 
