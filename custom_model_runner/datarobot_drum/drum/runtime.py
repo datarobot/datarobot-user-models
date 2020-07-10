@@ -1,7 +1,7 @@
 from datarobot_drum.drum.server import (
     base_api_blueprint,
     get_flask_app,
-    HTTP_503_SERVICE_UNAVAILABLE,
+    HTTP_513_DRUM_PIPELINE_ERROR,
 )
 
 from datarobot_drum.drum.common import RunMode
@@ -58,7 +58,7 @@ def run_error_server(host, port, exc_value):
 
     @model_api.route("/predict/", methods=["POST"])
     def predict():
-        return {"message": "ERROR: {}".format(exc_value)}, HTTP_503_SERVICE_UNAVAILABLE
+        return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR
 
     app = get_flask_app(model_api)
     app.run(host, port)
