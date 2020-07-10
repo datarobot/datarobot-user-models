@@ -750,7 +750,10 @@ class TestCMRunner:
         )
 
         input_dir = tmp_path / "input_dir"
+        self._create_fit_input_data_dir(input_dir, problem, weights)
+
         output = tmp_path / "output"
+        output.mkdir()
 
         env = os.environ
         fit_sh = os.path.join(
@@ -758,8 +761,6 @@ class TestCMRunner:
             "..",
             "public_dropin_environments/{}_{}/fit.sh".format(language, framework),
         )
-
-        self._create_fit_input_data_dir(input_dir, problem, weights)
 
         env["CODEPATH"] = str(custom_model_dir)
         env["INPUT_DIRECTORY"] = str(input_dir)
