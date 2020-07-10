@@ -88,7 +88,7 @@ class DrumServerProcess:
 
 class DrumServerRun:
     def __init__(
-        self, framework, problem, docker=None, custom_model_dir=None, force_start=False,
+        self, framework, problem, custom_model_dir, docker=None, force_start=False,
     ):
         port = 6799
         server_address = "localhost:{}".format(port)
@@ -540,7 +540,7 @@ class TestCMRunner:
         custom_model_dir = tmp_path / "custom_model"
         TestCMRunner._create_custom_model_dir(custom_model_dir, framework, problem, language)
 
-        with DrumServerRun(framework, problem, docker, custom_model_dir) as run:
+        with DrumServerRun(framework, problem, custom_model_dir, docker) as run:
             input_dataset = self._get_dataset_filename(framework, problem)
 
             # do predictions
@@ -564,7 +564,7 @@ class TestCMRunner:
         custom_model_dir = tmp_path / "custom_model"
         TestCMRunner._create_custom_model_dir(custom_model_dir, framework, problem, language)
 
-        with DrumServerRun(framework, problem, docker, custom_model_dir) as run:
+        with DrumServerRun(framework, problem, custom_model_dir, docker) as run:
             input_dataset = self._get_dataset_filename(framework, problem)
 
             # do predictions
