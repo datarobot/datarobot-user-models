@@ -366,9 +366,9 @@ class TestCMRunner:
         custom_model_dir = tmp_path / "custom_model"
         self._create_custom_model_dir(custom_model_dir, framework, problem, language)
 
-        output = tmp_path / "output"
-
         input_dataset = self._get_dataset_filename(framework, problem)
+
+        output = tmp_path / "output"
 
         cmd = "{} score --code-dir {} --input {} --output {}".format(
             ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output
@@ -469,9 +469,10 @@ class TestCMRunner:
         custom_model_dir = tmp_path / "custom_model"
         self._create_custom_model_dir(custom_model_dir, framework, REGRESSION, language)
 
+        input_dataset = self._get_dataset_filename(framework, REGRESSION)
+
         output = tmp_path / "output"
 
-        input_dataset = self._get_dataset_filename(framework, REGRESSION)
         cmd = "{} score --code-dir {} --input {} --output {}".format(
             ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output
         )
@@ -691,14 +692,14 @@ class TestCMRunner:
             custom_model_dir, framework, problem, language, is_training=True
         )
 
-        output = tmp_path / "output"
-        output.mkdir()
-
         input_dataset = self._get_dataset_filename(framework, problem)
 
         weights_cmd, input_dataset, __keep_this_around = self._add_weights_cmd(
             weights, input_dataset
         )
+
+        output = tmp_path / "output"
+        output.mkdir()
 
         cmd = "{} fit --code-dir {} --target {} --input {} --verbose ".format(
             ArgumentsOptions.MAIN_COMMAND, custom_model_dir, self.target[problem], input_dataset
@@ -749,18 +750,18 @@ class TestCMRunner:
             custom_model_dir, framework, problem, language, is_training=True
         )
 
-        input_dir = tmp_path / "input_dir"
-        self._create_fit_input_data_dir(input_dir, problem, weights)
-
-        output = tmp_path / "output"
-        output.mkdir()
-
         env = os.environ
         fit_sh = os.path.join(
             self.tests_root_path,
             "..",
             "public_dropin_environments/{}_{}/fit.sh".format(language, framework),
         )
+
+        input_dir = tmp_path / "input_dir"
+        self._create_fit_input_data_dir(input_dir, problem, weights)
+
+        output = tmp_path / "output"
+        output.mkdir()
 
         env["CODEPATH"] = str(custom_model_dir)
         env["INPUT_DIRECTORY"] = str(input_dir)
