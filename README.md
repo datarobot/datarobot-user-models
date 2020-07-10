@@ -1,22 +1,37 @@
 # DataRobot User Models
 
 > NOTE: large files are tracked by **git-lfs**. Enable **git-lfs** support for your git installation.
-## What is it?
+
+## Content  
+0. [What is it?](#what_is_it)
+1. [Quickstart, example](#quickstart)
+0. [Assembling custom Model Folder](#custom_model_folder)
+1. [Custom Model Templates](#custom_model_templates)
+2. [Custom Environment Templates](#custom_environment_templates)
+3. [Custom Model Runner (drum)](#custom_model_runner)
+4. [Contribution & development](#contribution_development)
+
+## What is it? <a name="what_is_it"></a>
 **The DataRobot User Models** repository contains boilerplates, information, and tools on how to assemble,
 debug, test, and run your training and inference models on the DataRobot platform.
 
-### Terminology
+#### Terminology
 Described DataRobot functionality is known as `Custom Model`, so words `custom model` and `user model` may be interchangeably used.
 Also `custom model directory` and `code directory` mean the same entity.
 
+## Quickstart <a name="quickstart"></a>
+This examples shows how to use **drum** to do predictions on [sklearn model](model_templates/inference/python3_sklearn)
+1. Clone the repository
+2. Create virtual environment: `python3 -m virtualenv <dirname for virtual environment>`
+3. Activate virtual environment: `source <dirname for virtual environment>/bin/activate`
+4. cd into the repo `cd datarobot-user-models`
+5. Install required dependencies: `pip install -r public_dropin_environments/python3_sklearn/requirements.txt`
+6. Install datarobot-drum: `pip install datarobot-drum`
+6. Run example: `drum score --code-dir model_templates/inference/python3_sklearn --input tests/testdata/boston_housing.csv`
+## Assembling custom model folder <a name="custom_model_folder"></a>
 
-## Content  
-- [model templates](model_templates) - contains templates for building and deploying custom models in DataRobot.
-- [environment templates](public_dropin_environments) - contains templates of base environments used in DataRobot. Dependency requirements can be applied to the base to create runtime environment for custom models.
-- [user models runner](custom_model_runner) - **drum** - a tool that helps to assemble, test, and run custom model. For more information about how to run drum, check out the [pypi docs](https://pypi.org/project/datarobot-drum/)
-
-## Custom Model Templates
-This repository contains templates for building and deploying custom models in DataRobot.
+## Custom Model Templates <a name="custom_model_templates"></a>
+Here, in [model templates](model_templates) folder,  you can find templates for building and deploying custom models in DataRobot.
 
 Custom Inference Models are models that are trained outside of DataRobot. Once they're uploaded to DR, they are deployed straight to a DR Deployment, and tracked with Model Monitoring and Management.
 
@@ -26,7 +41,7 @@ Custom Training Models are in active development. They include a `fit()` functio
 The examples in this repository use the DataRobot User Model runner (drum).  For more information on how to use and write models with drum, check out the [readme](./custom_model_runner/README.md).
 
 ### Sample Models
-The [model_templates](model_templates) contain example models that will work with the template environments discussed above. For more information about each model,
+The [model_templates](model_templates) contain example models that will work with the template environments discussed further. For more information about each model,
 please see:
 ##### Inference Models
 * [Scikit-Learn sample model](model_templates/inference/python3_sklearn)
@@ -44,7 +59,8 @@ please see:
 * [Keras sample model + Joblib artifact](model_templates/training/python3_keras_joblib)
 
 
-## Custom Environment Templates
+## Custom Environment Templates <a name="custom_environment_templates"></a>
+Folder [environment templates](#custom_environment_template) - contains templates of base environments used in DataRobot. Dependency requirements can be applied to the base to create runtime environment for custom models.
 A custom environment defines the runtime environment for a custom model.  In this repository, we provide several example environments that you can use and modify:
 * [Python 3 + sklearn](public_dropin_environments/python3_sklearn)
 * [Python 3 + PyTorch](public_dropin_environments/python3_pytorch)
@@ -72,7 +88,12 @@ your environment so that you can reuse it with multiple models. The webserver mu
 1) Any code and start_server.sh should be copied to `/opt/code/` by your Dockerfile
 > **_NOTE:_** URL_PREFIX is an environment variable that will be available at runtime
 
-## Contribution
+## Custom Model Runner <a name="custom_model_runner"></a>
+Custom model runner - **drum** is a  tool that helps to assemble, test, and run custom model.
+Folder [custom_model_runner](custom_model_runner) contains its source code. 
+For more information about how to use it, check out the [pypi docs](https://pypi.org/project/datarobot-drum/).
+
+## Contribution & development <a name="contribution_development"></a> 
 
 ### Prerequisites for development
 This section is only relevant if you plan to work on the **drum**
