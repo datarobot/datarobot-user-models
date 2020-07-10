@@ -884,7 +884,7 @@ class TestDrumRuntime:
             with drum_server_run as run:
                 response = requests.post(run.url_server_address + "/predict/")
 
-                assert response.status_code == 503
+                assert response.status_code == 513
                 assert error_message in response.json()["message"]
         else:
             # DrumServerRun tries to ping the server.
@@ -959,8 +959,8 @@ class TestDrumRuntime:
             assert response.status_code == 500  # error occurs
 
             # assert that 'error server' is not started.
-            # as 'error server' propagates errors with 503 status code,
-            # assert that after error occurred, the next request is not 503
+            # as 'error server' propagates errors with 513 status code,
+            # assert that after error occurred, the next request is not 513
             response = requests.post(run.url_server_address + "/predict/")
 
             error_message = "ERROR: Samples should be provided as a csv file under `X` key."
