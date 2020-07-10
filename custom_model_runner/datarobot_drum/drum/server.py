@@ -5,7 +5,7 @@ from datarobot_drum.drum.common import URL_PREFIX_ENV_VAR_NAME
 
 HTTP_200_OK = 200
 HTTP_422_UNPROCESSABLE_ENTITY = 422
-HTTP_503_SERVICE_UNAVAILABLE = 503
+HTTP_513_DRUM_PIPELINE_ERROR = 513
 
 
 def get_flask_app(api_blueprint):
