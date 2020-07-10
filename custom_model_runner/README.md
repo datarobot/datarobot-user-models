@@ -38,18 +38,7 @@ Install **drum** with R support:
 ```pip install datarobot-drum[R]```
 
 ### Running examples
-Clone the DataRobot User Models repo from: https://github.com/datarobot/datarobot-user-model
-- change dir `cd datarobot-user-model`
-- create virtual environment `python3 -m venv ~/drum-virt-env`
-- activate virtual environment `. ~/drum-virt-env/bin/activate`
-- install example dependencies `pip install -r requirements.txt`
-- install **drum** `pip install datarobot-drum`
-- go to the directory with model templates `cd model_templates`
-
-Check README file in every directory for the exact command to run the example.
-Copy/paste command to run it from the current path `datarobot-user-models/model_templates` e.g.:  
-`drum score --code-dir ./inference/python3_sklearn --input ../tests/testdata/boston_housing.csv`
-
+Check examples [here](https://github.com/datarobot/datarobot-user-models#quickstart)
 
 
 ### Autocompletion
@@ -62,91 +51,6 @@ If global completion is not completing your script, bash may have registered a d
 - `complete -r <some_line_containing_drum>`
 
 For more information and troubleshooting visit the [argcomplete](https://pypi.org/project/argcomplete/) information page.
-
-## Built-In Model Support
-**drum** has built in support for the following libraries; if your model is based on one of these libraries, **drum** expects your model artifact to have a matching file extension.
-
-### Python
-| Library | File Extension | Example |
-| --- | --- | --- |
-| scikit-learn | *.pkl | sklean-regressor.pkl |
-| xgboost | *.pkl | xgboost-regressor.pkl |
-| PyTorch | *.pth | torch-regressor.pth |
-| keras | *.h5 | keras-regressor.h5 |
-| pmml | *.pmml | pmml-regressor.pmml |
-
-### R
-| Library | File Extension | Example |
-| --- | --- | --- |
-| caret | *.rds | brnn-regressor.rds |
-
-This tool makes the following assumption about your serialized model:
-- The data sent to a model can be used to make predictions without
-additional pre-processing
-- Regression models return a single floating point per row of prediction data
-- Binary classification models return two floating point values that sum to 1.0 per row of prediction data
-  - The first value is the positive class probability, the second is the negative class probability
-- There is a single pkl/pth/h5 file present
-- Your model uses one of the above frameworks
-  
-### Custom hooks for Python and R models
-If the assumptions mentioned above are incorrect for your model, **drum** supports several hooks for custom code. If needed,
-include any necessary hooks in a file called `custom.py` for python models or `custom.R` for R models alongside your model artifacts in your model folder:
-
-> _**NOTE:**_ The following hook signatures are written with Python 3 type annotations. The Python types match the following R types
-> - DataFrame = data.frame
-> - None = NULL
-> - str = character
-> - Any = R Object (the deserialized model)
-> - *args, **kwargs = ... (these aren't types, they're just placeholders for additional parameter)
-
-- `init(**kwargs) -> None`
-  - Executed once in the beginning of the run.
-  - `kwargs` - additional keyword arguments to the method;
-    - code_dir - code folder passed in the `--code_dir` parameter
-- `load_model(code_dir: str) -> Any`
-  - `code_dir` is the directory where model artifact and additional code are provided, passed in the `--code_dir` parameter
-  - If used, this hook must return a non-None value
-  - Can be used to load supported models if your model has multiple artifacts, or for loading models that
-  **drum** does not natively support
-- `transform(data: DataFrame, model: Any) -> DataFrame`
-  - `data` is the dataframe given to **drum** to make predictions on
-  - `model` is the deserialized model loaded by **drum** or by `load_model`, if supplied
-  - Intended to apply transformations to the prediction data before making predictions. This is most useful
-  if **drum** supports the model's library, but your model requires additional data processing before it can make predictions
-- `score(data: DataFrame, model: Any, **kwargs: Dict[str, Any]) -> DataFrame`
-  - `data` is the dataframe to make predictions against. If `transform` is supplied, `data` will be the transformed data.
-  - `model` is the deserialized model loaded by **drum** or by `load_model`, if supplied
-  - `kwargs` - additional keyword arguments to the method;  
-    In case of classification model class labels will be provided as the following arguments:
-    - `positive_class_label` is the positive class label for a binary classification model
-    - `negative_class_label` is the negative class label for a binary classification model
-  - This method should return predictions as a dataframe with the following format:
-    - Binary Classification: must have columns for each class label with floating- point class probabilities as values. Each row
-    should sum to 1.0
-    - Regression: must have a single column called `Predictions` with numerical values
-  - This hook is only needed if you would like to use **drum** with a framework not natively supported by the tool.
-- `post_process(predictions: DataFrame, model: Any) -> DataFrame`
-  - `predictions` is the dataframe of predictions produced by **drum** or by the `score` hook, if supplied
-  - `model` is the deserialized model loaded by **drum** or by `load_model`, if supplied
-  - This method should return predictions as a dataframe with the following format:
-    - Binary Classification: must have columns for each class label with floating- point class probabilities as values. Each row
-    should sum to 1.0
-    - Regression: must have a single column called `Predictions` with numerical values
-  - This method is only needed if your model's output does not match the above expectations
-> *Note: training and inference hooks can be defined in the same file*
-### Java
-| Library | File Extension | Example |
-| --- | --- | --- |
-| datarobot-prediction | *.jar | dr-regressor.jar |
-
-**drum** currently supports models with DataRobot-generated Scoring Code or models that implement the either the `IClassificationPredictor`
-or `IRegressionPredictor` interface from the [datarobot-prediction](https://mvnrepository.com/artifact/com.datarobot/datarobot-prediction).
-The model artifact must have a **jar** extension.
-
-#### Additional params
-Define DRUM_JAVA_XMX environment variable to set JVM maximum heap memory size (-Xmx java parameter), e.g:
-```DRUM_JAVA_XMX=512m```
 
 ## Training models. Content of the model folder
 The model folder must contain any code needed for **drum** to run to train your model.

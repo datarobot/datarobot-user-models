@@ -15,5 +15,5 @@ Paths are relative to `./datarobot-user-models/model_templates`:
 
 ### To run locally regression model using 'drum'
 Replace `iris_bin.pmml` with `iris_reg.pmml` from the repo's `tests/fixtures/drop_in_model_atifacts` folder, which is a pypmml model trained on Iris dataset with a `Sepal Length` as the target (regression).  
-Paths are relative to `./datarobot-user-models/model_templates`:  
-`drum score --code-dir ./inference/python3_pmml --input ../tests/testdata/iris_binary_training.csv`
+Paths are relative to `./datarobot-user-models`:  
+`drum score --code-dir model_templates/inference/python3_pmml --input tests/testdata/iris_binary_training.csv`

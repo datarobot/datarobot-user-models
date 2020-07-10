@@ -1,32 +1,146 @@
 # DataRobot User Models
 
-## What is it?
+
+## Content  
+1. [What is it?](#what_is_it)
+2. [Quickstart and examples](#quickstart)
+3. [Assembling inference model code folder](#inference_model_folder)
+4. [Custom Model Templates](#custom_model_templates)
+5. [Custom Environment Templates](#custom_environment_templates)
+6. [Custom Model Runner (drum)](#custom_model_runner)
+4. [Contribution & development](#contribution_development)
+
+## What is it? <a name="what_is_it"></a>
 **The DataRobot User Models** repository contains boilerplate, information, and tools on how to assemble,
 debug, test, and run your training and inference models on the DataRobot platform.
 
-### Terminology
+#### Terminology
 Described DataRobot functionality is known as `Custom Model`, so words `custom model` and `user model` may be interchangeably used.
 Also `custom model directory` and `code directory` mean the same entity.
 
+## Quickstart <a name="quickstart"></a>
+This examples show how to use **drum** to do predictions on [sklearn model](model_templates/inference/python3_sklearn)
+1. Clone the repository
+2. Create virtual environment: `python3 -m virtualenv <dirname for virtual environment>`
+3. Activate virtual environment: `source <dirname for virtual environment>/bin/activate`
+4. cd into the repo `cd datarobot-user-models`
+5. Install required dependencies: `pip install -r public_dropin_environments/python3_sklearn/requirements.txt`
+6. Install datarobot-drum: `pip install datarobot-drum`
+7. Run example: `drum score --code-dir model_templates/inference/python3_sklearn --input tests/testdata/boston_housing.csv`
 
-## Content  
-- [model templates](model_templates) - contains templates for building and deploying custom models in DataRobot.
-- [environment templates](public_dropin_environments) - contains templates of base environments used in DataRobot. Dependency requirements can be applied to the base to create runtime environment for custom models.
-- [user models runner](custom_model_runner) - **drum** - a tool that helps to assemble, test, and run custom model. For more information about how to run drum, check out the [pypi docs](https://pypi.org/project/datarobot-drum/)
+For more examples, check [Custom Model Templates](#custom_model_templates)
 
-## Custom Model Templates
-This repository contains templates for building and deploying custom models in DataRobot.
+
+## Assembling custom model folder <a name="inference_model_folder"></a>
+> Note: all the following information is only relevant if [**drum**](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) is used to run the model. 
+
+To create a custom inference model, provide specific files to use with your custom environment:
+
+- a serialized model artifact with a file extension corresponding to the chosen environment language.
+- any additional custom code required to use it.
+
+`drum new model` command can help you to generate a model template - check [here](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner#model-template-generation) for more information.
+
+### Built-In Model Support
+**drum** has built in support for the following libraries. If your model is based on one of these libraries, **drum** expects your model artifact to have a matching file extension.
+
+### Python
+| Library | File Extension | Example |
+| --- | --- | --- |
+| scikit-learn | *.pkl | sklean-regressor.pkl |
+| xgboost | *.pkl | xgboost-regressor.pkl |
+| PyTorch | *.pth | torch-regressor.pth |
+| keras | *.h5 | keras-regressor.h5 |
+| pmml | *.pmml | pmml-regressor.pmml |
+
+
+### R
+| Library | File Extension | Example |
+| --- | --- | --- |
+| caret | *.rds | brnn-regressor.rds |
+
+This tool makes the following assumption about your serialized model:
+- The data sent to a model can be used to make predictions without additional pre-processing.
+- Regression models return a single floating point per row of prediction data.
+- Binary classification models return two floating point values that sum to 1.0 per row of prediction data.
+  - The first value is the positive class probability, the second is the negative class probability
+- There is a single pkl/pth/h5 file present.
+- Your model uses one of the above frameworks.
+  
+### Custom hooks for Python and R models
+If the assumptions mentioned above are incorrect for your model, **drum** supports several hooks for custom code. If needed,
+include any necessary hooks in a file called `custom.py` for Python models or `custom.R` for R models alongside your model artifacts in your model folder:
+
+> _**NOTE:**_ The following hook signatures are written with Python 3 type annotations. The Python types match the following R types
+> - DataFrame = data.frame
+> - None = NULL
+> - str = character
+> - Any = R Object (the deserialized model)
+> - *args, **kwargs = ... (these aren't types, they're just placeholders for additional parameter)
+
+- `init(**kwargs) -> None`
+  - Executed once in the beginning of the run.
+  - `kwargs` - additional keyword arguments to the method;
+    - code_dir - code folder passed in the `--code_dir` parameter
+- `load_model(code_dir: str) -> Any`
+  - `code_dir` is the directory where model artifact and additional code are provided, passed in the `--code_dir` parameter
+  - If used, this hook must return a non-None value
+  - Can be used to load supported models if your model has multiple artifacts, or for loading models that
+  **drum** does not natively support
+- `transform(data: DataFrame, model: Any) -> DataFrame`
+  - `data` is the dataframe given to **drum** to make predictions on
+  - `model` is the deserialized model loaded by **drum** or by `load_model`, if supplied
+  - Intended to apply transformations to the prediction data before making predictions. This is most useful
+  if **drum** supports the model's library, but your model requires additional data processing before it can make predictions
+- `score(data: DataFrame, model: Any, **kwargs: Dict[str, Any]) -> DataFrame`
+  - `data` is the dataframe to make predictions against. If `transform` is supplied, `data` will be the transformed data.
+  - `model` is the deserialized model loaded by **drum** or by `load_model`, if supplied
+  - `kwargs` - additional keyword arguments to the method;  
+    In case of classification model class labels will be provided as the following arguments:
+    - `positive_class_label` is the positive class label for a binary classification model
+    - `negative_class_label` is the negative class label for a binary classification model
+  - This method should return predictions as a dataframe with the following format:
+    - Binary Classification: must have columns for each class label with floating- point class probabilities as values. Each row
+    should sum to 1.0
+    - Regression: must have a single column called `Predictions` with numerical values
+  - This hook is only needed if you would like to use **drum** with a framework not natively supported by the tool.
+- `post_process(predictions: DataFrame, model: Any) -> DataFrame`
+  - `predictions` is the dataframe of predictions produced by **drum** or by the `score` hook, if supplied
+  - `model` is the deserialized model loaded by **drum** or by `load_model`, if supplied
+  - This method should return predictions as a dataframe with the following format:
+    - Binary Classification: must have columns for each class label with floating- point class probabilities as values. Each row
+    should sum to 1.0
+    - Regression: must have a single column called `Predictions` with numerical values
+  - This method is only needed if your model's output does not match the above expectations
+> *Note: training and inference hooks can be defined in the same file*
+### Java
+| Library | File Extension | Example |
+| --- | --- | --- |
+| datarobot-prediction | *.jar | dr-regressor.jar |
+
+#### Additional params
+Define DRUM_JAVA_XMX environment variable to set JVM maximum heap memory size (-Xmx java parameter), e.g:
+```DRUM_JAVA_XMX=512m```
+
+**drum** currently supports models with DataRobot-generated Scoring Code or models that implement the either the `IClassificationPredictor`
+or `IRegressionPredictor` interface from the [datarobot-prediction](https://mvnrepository.com/artifact/com.datarobot/datarobot-prediction).
+The model artifact must have a **jar** extension.
+
+
+## Custom Model Templates <a name="custom_model_templates"></a>
+Here, in [model templates](model_templates) folder,  you can find templates for building and deploying custom models in DataRobot.
 
 Custom Inference Models are models that are trained outside of DataRobot. Once they're uploaded to DR, they are deployed straight to a DR Deployment, and tracked with Model Monitoring and Management.
 
 Custom Training Models are in active development. They include a `fit()` function, and can be trained on the Leaderboard, benchmarked against DR AutoML models, and get access to our full set of automated insights. Check out [The quickrun readme here](QUICKSTART-FOR-TRAINING.md)
 
 ### DataRobot User Model Runner
-The examples in this repository use the DataRobot User Model runner (drum).  For more information on how to use and write models with drum, check out the [readme](./custom_model_runner/README.md).
+The examples in this repository use the DataRobot User Model runner (**drum**).  For more information on how to use and write models with drum, check out the [readme](./custom_model_runner/README.md).
 
 ### Sample Models
-The [model_templates](model_templates) contain example models that will work with the template environments discussed above. For more information about each model,
-please see:
+The [model_templates](model_templates) folder contain example models that will work with the template environments discussed further. For more information about each model,
+please see README for every example:
+
 ##### Inference Models
 * [Scikit-Learn sample model](model_templates/inference/python3_sklearn)
 * [PyTorch sample model](model_templates/inference/python3_pytorch)
@@ -43,7 +157,8 @@ please see:
 * [Keras sample model + Joblib artifact](model_templates/training/python3_keras_joblib)
 
 
-## Custom Environment Templates
+## Custom Environment Templates <a name="custom_environment_templates"></a>
+Folder [environment templates](#custom_environment_template) - contains templates of base environments used in DataRobot. Dependency requirements can be applied to the base to create runtime environment for custom models.
 A custom environment defines the runtime environment for a custom model.  In this repository, we provide several example environments that you can use and modify:
 * [Python 3 + sklearn](public_dropin_environments/python3_sklearn)
 * [Python 3 + PyTorch](public_dropin_environments/python3_pytorch)
@@ -71,7 +186,12 @@ your environment so that you can reuse it with multiple models. The webserver mu
 1) Any code and start_server.sh should be copied to `/opt/code/` by your Dockerfile
 > **_NOTE:_** URL_PREFIX is an environment variable that will be available at runtime
 
-## Contribution
+## Custom Model Runner <a name="custom_model_runner"></a>
+Custom model runner - **drum** is a  tool that helps to assemble, test, and run custom model.
+Folder [custom_model_runner](custom_model_runner) contains its source code. 
+For more information about how to use it, check out the [pypi docs](https://pypi.org/project/datarobot-drum/).
+
+## Contribution & development <a name="contribution_development"></a> 
 
 ### Prerequisites for development
 This section is only relevant if you plan to work on the **drum**
