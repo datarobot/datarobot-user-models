@@ -647,7 +647,7 @@ class TestCMRunner:
     def test_template_creation(self, language, language_suffix, tmp_path):
         print("Running template creation tests: {}".format(language))
         directory = tmp_path / "template_test_{}".format(uuid4())
-        directory.mkdir()
+
         cmd = "{drum_prog} new model --language {language} --code-dir {directory}".format(
             drum_prog=ArgumentsOptions.MAIN_COMMAND, language=language, directory=directory
         )
@@ -688,7 +688,8 @@ class TestCMRunner:
     @pytest.mark.parametrize("use_output", [True, False])
     def test_fit(self, framework, problem, language, docker, weights, use_output, tmp_path):
         custom_model_dir = tmp_path / "custom_model"
-        output_file = tmp_path / "output"
+        output = tmp_path / "output"
+        output.mkdir()
 
         self._create_custom_model_dir(
             custom_model_dir, framework, problem, language, is_training=True
@@ -704,7 +705,7 @@ class TestCMRunner:
             ArgumentsOptions.MAIN_COMMAND, custom_model_dir, self.target[problem], input_dataset
         )
         if use_output:
-            cmd += " --output {}".format(output_file)
+            cmd += " --output {}".format(output)
         if problem == BINARY:
             cmd = self._cmd_add_class_labels(cmd, framework, problem)
         if docker:
@@ -717,8 +718,6 @@ class TestCMRunner:
         )
 
     def _create_fit_input_data_dir(self, input_dir, problem, weights):
-        input_dir.mkdir(parents=True, exist_ok=True)
-
         input_dataset = self._get_dataset_filename(None, problem)
         df = pd.read_csv(input_dataset)
 
