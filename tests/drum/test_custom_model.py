@@ -717,7 +717,7 @@ class TestCMRunner:
         )
 
     def _create_fit_input_data_dir(self, input_dir, problem, weights):
-        input_dir.mkdir()
+        input_dir.mkdir(parents=True, exist_ok=True)
 
         input_dataset = self._get_dataset_filename(None, problem)
         df = pd.read_csv(input_dataset)
