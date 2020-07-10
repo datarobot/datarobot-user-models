@@ -364,9 +364,9 @@ class TestCMRunner:
     )
     def test_custom_models_with_drum(self, framework, problem, language, docker, tmp_path):
         custom_model_dir = tmp_path / "custom_model"
-        output = tmp_path / "output"
-
         self._create_custom_model_dir(custom_model_dir, framework, problem, language)
+
+        output = tmp_path / "output"
 
         input_dataset = self._get_dataset_filename(framework, problem)
 
@@ -467,9 +467,9 @@ class TestCMRunner:
     )
     def test_custom_model_with_all_predict_hooks(self, framework, language, tmp_path):
         custom_model_dir = tmp_path / "custom_model"
-        output = tmp_path / "output"
-
         self._create_custom_model_dir(custom_model_dir, framework, REGRESSION, language)
+
+        output = tmp_path / "output"
 
         input_dataset = self._get_dataset_filename(framework, REGRESSION)
         cmd = "{} score --code-dir {} --input {} --output {}".format(
@@ -594,7 +594,6 @@ class TestCMRunner:
     )
     def test_custom_models_perf_test(self, framework, problem, language, docker, tmp_path):
         custom_model_dir = tmp_path / "custom_model"
-
         self._create_custom_model_dir(custom_model_dir, framework, problem, language)
 
         input_dataset = self._get_dataset_filename(framework, problem)
@@ -688,12 +687,12 @@ class TestCMRunner:
     @pytest.mark.parametrize("use_output", [True, False])
     def test_fit(self, framework, problem, language, docker, weights, use_output, tmp_path):
         custom_model_dir = tmp_path / "custom_model"
-        output = tmp_path / "output"
-        output.mkdir()
-
         self._create_custom_model_dir(
             custom_model_dir, framework, problem, language, is_training=True
         )
+
+        output = tmp_path / "output"
+        output.mkdir()
 
         input_dataset = self._get_dataset_filename(framework, problem)
 
@@ -744,12 +743,13 @@ class TestCMRunner:
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, None])
     def test_fit_sh(self, framework, problem, language, weights, tmp_path):
         custom_model_dir = tmp_path / "custom_model"
-        input_dir = tmp_path / "input_dir"
-        output = tmp_path / "output"
-
         self._create_custom_model_dir(
             custom_model_dir, framework, problem, language, is_training=True
         )
+
+        input_dir = tmp_path / "input_dir"
+        output = tmp_path / "output"
+
         env = os.environ
         fit_sh = os.path.join(
             self.tests_root_path,
