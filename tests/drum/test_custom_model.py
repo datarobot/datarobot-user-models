@@ -88,15 +88,8 @@ class DrumServerProcess:
 
 class DrumServerRun:
     def __init__(
-        self, framework, problem, language, docker=None, custom_model_dir=None, force_start=False,
+        self, framework, problem, docker=None, custom_model_dir=None, force_start=False,
     ):
-        self._custom_model_dir_to_remove = None
-        if custom_model_dir is None:
-            # If custom model directory is not set explicitly - it's is created for the class.
-            # In such case it should also be removed.
-            custom_model_dir = TestCMRunner._create_custom_model_dir(framework, problem, language)
-            self._custom_model_dir_to_remove = custom_model_dir
-
         port = 6799
         server_address = "localhost:{}".format(port)
         url_host = os.environ.get("TEST_URL_HOST", "localhost")
@@ -138,9 +131,6 @@ class DrumServerRun:
         time.sleep(1)
 
         self._server_thread.join()
-
-        if self._custom_model_dir_to_remove is not None:
-            TestCMRunner._delete_custom_model_dir(self._custom_model_dir_to_remove)
 
     @property
     def process(self):
@@ -286,8 +276,10 @@ class TestCMRunner:
         return p, stdout, stderr
 
     @classmethod
-    def _create_custom_model_dir(cls, framework, problem, language, is_training=False):
-        custom_model_dir = mkdtemp(prefix="custom_model_", dir="/tmp")
+    def _create_custom_model_dir(
+        cls, custom_model_dir, framework, problem, language, is_training=False
+    ):
+        custom_model_dir.mkdir(parents=True, exist_ok=True)
         if is_training:
             model_template_dir = cls._get_template_dir(language, framework, is_training)
             for filename in glob.glob(r"{}/*.py".format(model_template_dir)):
@@ -304,10 +296,6 @@ class TestCMRunner:
             if fixture_filename:
                 shutil.copy2(fixture_filename, os.path.join(custom_model_dir, rename))
         return custom_model_dir
-
-    @staticmethod
-    def _delete_custom_model_dir(custom_model_dir):
-        shutil.rmtree(custom_model_dir)
 
     @classmethod
     def _get_artifact_filename(cls, framework, problem):
@@ -374,32 +362,34 @@ class TestCMRunner:
             (PYPMML, BINARY, NO_CUSTOM, None),
         ],
     )
-    def test_custom_models_with_drum(self, framework, problem, language, docker):
-        custom_model_dir = self._create_custom_model_dir(framework, problem, language)
+    def test_custom_models_with_drum(self, framework, problem, language, docker, tmp_path):
+        custom_model_dir = tmp_path / "custom_model"
+        output = tmp_path / "output"
+
+        self._create_custom_model_dir(custom_model_dir, framework, problem, language)
 
         input_dataset = self._get_dataset_filename(framework, problem)
 
-        with NamedTemporaryFile() as output:
-            cmd = "{} score --code-dir {} --input {} --output {}".format(
-                ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output.name
-            )
-            cmd = self._cmd_add_class_labels(cmd, framework, problem)
-            if docker:
-                cmd += " --docker {} --verbose ".format(docker)
+        cmd = "{} score --code-dir {} --input {} --output {}".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output
+        )
+        cmd = self._cmd_add_class_labels(cmd, framework, problem)
+        if docker:
+            cmd += " --docker {} --verbose ".format(docker)
 
-            TestCMRunner._exec_shell_cmd(
-                cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
-            )
-            TestCMRunner._delete_custom_model_dir(custom_model_dir)
-            in_data = pd.read_csv(input_dataset)
-            out_data = pd.read_csv(output.name)
-            assert in_data.shape[0] == out_data.shape[0]
+        TestCMRunner._exec_shell_cmd(
+            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+        )
+        in_data = pd.read_csv(input_dataset)
+        out_data = pd.read_csv(output)
+        assert in_data.shape[0] == out_data.shape[0]
 
     @pytest.mark.parametrize(
         "framework, problem, language", [(SKLEARN, BINARY, PYTHON), (RDS, BINARY, R)]
     )
-    def test_bin_models_with_wrong_labels(self, framework, problem, language):
-        custom_model_dir = self._create_custom_model_dir(framework, problem, language)
+    def test_bin_models_with_wrong_labels(self, framework, problem, language, tmp_path):
+        custom_model_dir = tmp_path / "custom_model"
+        self._create_custom_model_dir(custom_model_dir, framework, problem, language)
 
         input_dataset = self._get_dataset_filename(framework, problem)
         cmd = "{} score --code-dir {} --input {}".format(
@@ -423,7 +413,6 @@ class TestCMRunner:
                 str(stde).find("Wrong class labels. Use class labels according to your dataset")
                 != -1
             )
-        TestCMRunner._delete_custom_model_dir(custom_model_dir)
 
     # testing negative cases: no artifact, no custom;
     @pytest.mark.parametrize(
@@ -436,8 +425,9 @@ class TestCMRunner:
             (None, REGRESSION, PYTHON),  # no artifact, custom.py without load_model
         ],
     )
-    def test_detect_language(self, framework, problem, language):
-        custom_model_dir = self._create_custom_model_dir(framework, problem, language)
+    def test_detect_language(self, framework, problem, language, tmp_path):
+        custom_model_dir = tmp_path / "custom_model"
+        self._create_custom_model_dir(custom_model_dir, framework, problem, language)
 
         input_dataset = self._get_dataset_filename(framework, problem)
         cmd = "{} score --code-dir {} --input {}".format(
@@ -472,26 +462,26 @@ class TestCMRunner:
         )
         assert any([cases_1_2_3, case_4, case_5])
 
-        TestCMRunner._delete_custom_model_dir(custom_model_dir)
-
     @pytest.mark.parametrize(
         "framework, language", [(SKLEARN, PYTHON_ALL_HOOKS), (RDS, R_ALL_HOOKS)]
     )
-    def test_custom_model_with_all_predict_hooks(self, framework, language):
-        custom_model_dir = self._create_custom_model_dir(framework, REGRESSION, language)
+    def test_custom_model_with_all_predict_hooks(self, framework, language, tmp_path):
+        custom_model_dir = tmp_path / "custom_model"
+        output = tmp_path / "output"
+
+        self._create_custom_model_dir(custom_model_dir, framework, REGRESSION, language)
+
         input_dataset = self._get_dataset_filename(framework, REGRESSION)
-        with NamedTemporaryFile() as output:
-            cmd = "{} score --code-dir {} --input {} --output {}".format(
-                ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output.name
-            )
-            TestCMRunner._exec_shell_cmd(
-                cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
-            )
-            TestCMRunner._delete_custom_model_dir(custom_model_dir)
-            preds = pd.read_csv(output.name)
-            assert all(
-                val for val in (preds["Predictions"] == len(CustomHooks.ALL_PREDICT)).values
-            ), preds
+        cmd = "{} score --code-dir {} --input {} --output {}".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output
+        )
+        TestCMRunner._exec_shell_cmd(
+            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+        )
+        preds = pd.read_csv(output)
+        assert all(
+            val for val in (preds["Predictions"] == len(CustomHooks.ALL_PREDICT)).values
+        ), preds
 
     @staticmethod
     def run_server_thread(cmd, process_obj_holder):
@@ -544,8 +534,13 @@ class TestCMRunner:
             (PYPMML, BINARY, NO_CUSTOM, None),
         ],
     )
-    def test_custom_models_with_drum_prediction_server(self, framework, problem, language, docker):
-        with DrumServerRun(framework, problem, language, docker) as run:
+    def test_custom_models_with_drum_prediction_server(
+        self, framework, problem, language, docker, tmp_path
+    ):
+        custom_model_dir = tmp_path / "custom_model"
+        TestCMRunner._create_custom_model_dir(custom_model_dir, framework, problem, language)
+
+        with DrumServerRun(framework, problem, docker, custom_model_dir) as run:
             input_dataset = self._get_dataset_filename(framework, problem)
 
             # do predictions
@@ -564,9 +559,12 @@ class TestCMRunner:
         [(SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN), (SKLEARN, BINARY, PYTHON, None)],
     )
     def test_custom_models_drum_prediction_server_response(
-        self, framework, problem, language, docker
+        self, framework, problem, language, docker, tmp_path
     ):
-        with DrumServerRun(framework, problem, language, docker) as run:
+        custom_model_dir = tmp_path / "custom_model"
+        TestCMRunner._create_custom_model_dir(custom_model_dir, framework, problem, language)
+
+        with DrumServerRun(framework, problem, docker, custom_model_dir) as run:
             input_dataset = self._get_dataset_filename(framework, problem)
 
             # do predictions
@@ -594,8 +592,10 @@ class TestCMRunner:
         "framework, problem, language, docker",
         [(SKLEARN, BINARY, PYTHON, None), (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN)],
     )
-    def test_custom_models_perf_test(self, framework, problem, language, docker):
-        custom_model_dir = self._create_custom_model_dir(framework, problem, language)
+    def test_custom_models_perf_test(self, framework, problem, language, docker, tmp_path):
+        custom_model_dir = tmp_path / "custom_model"
+
+        self._create_custom_model_dir(custom_model_dir, framework, problem, language)
 
         input_dataset = self._get_dataset_filename(framework, problem)
 
@@ -609,7 +609,6 @@ class TestCMRunner:
         TestCMRunner._exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
-        TestCMRunner._delete_custom_model_dir(custom_model_dir)
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
@@ -620,8 +619,9 @@ class TestCMRunner:
             (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, DOCKER_PYTHON_SKLEARN),
         ],
     )
-    def test_custom_models_validation_test(self, framework, problem, language, docker):
-        custom_model_dir = self._create_custom_model_dir(framework, problem, language)
+    def test_custom_models_validation_test(self, framework, problem, language, docker, tmp_path):
+        custom_model_dir = tmp_path / "custom_model"
+        self._create_custom_model_dir(custom_model_dir, framework, problem, language)
 
         input_dataset = self._get_dataset_filename(framework, problem)
 
@@ -638,16 +638,16 @@ class TestCMRunner:
             assert_if_fail=False,
         )
 
-        TestCMRunner._delete_custom_model_dir(custom_model_dir)
         if language == NO_CUSTOM:
             assert re.search(r"Null value imputation\s+FAILED", stdo)
         else:
             assert re.search(r"Null value imputation\s+PASSED", stdo)
 
     @pytest.mark.parametrize("language, language_suffix", [("python", ".py"), ("r", ".R")])
-    def test_template_creation(self, language, language_suffix):
+    def test_template_creation(self, language, language_suffix, tmp_path):
         print("Running template creation tests: {}".format(language))
-        directory = os.path.join("/tmp", "template_test_{}".format(uuid4()))
+        directory = tmp_path / "template_test_{}".format(uuid4())
+        directory.mkdir()
         cmd = "{drum_prog} new model --language {language} --code-dir {directory}".format(
             drum_prog=ArgumentsOptions.MAIN_COMMAND, language=language, directory=directory
         )
@@ -663,7 +663,6 @@ class TestCMRunner:
         assert os.path.isfile(os.path.join(directory, "README.md"))
         custom_file = os.path.join(directory, CUSTOM_FILE_NAME + language_suffix)
         assert os.path.isfile(custom_file)
-        TestCMRunner._delete_custom_model_dir(directory)
 
     @staticmethod
     def _add_weights_cmd(weights, input_csv):
@@ -687,9 +686,12 @@ class TestCMRunner:
     @pytest.mark.parametrize("docker", [DOCKER_PYTHON_SKLEARN, None])
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
     @pytest.mark.parametrize("use_output", [True, False])
-    def test_fit(self, framework, problem, language, docker, weights, use_output):
-        custom_model_dir = self._create_custom_model_dir(
-            framework, problem, language, is_training=True
+    def test_fit(self, framework, problem, language, docker, weights, use_output, tmp_path):
+        custom_model_dir = tmp_path / "custom_model"
+        output_file = tmp_path / "output"
+
+        self._create_custom_model_dir(
+            custom_model_dir, framework, problem, language, is_training=True
         )
 
         input_dataset = self._get_dataset_filename(framework, problem)
@@ -698,25 +700,25 @@ class TestCMRunner:
             weights, input_dataset
         )
 
-        with TemporaryDirectory() as output:
-            cmd = "{} fit --code-dir {} --target {} --input {} --verbose ".format(
-                ArgumentsOptions.MAIN_COMMAND, custom_model_dir, self.target[problem], input_dataset
-            )
-            if use_output:
-                cmd += " --output {}".format(output)
-            if problem == BINARY:
-                cmd = self._cmd_add_class_labels(cmd, framework, problem)
-            if docker:
-                cmd += " --docker {} ".format(docker)
+        cmd = "{} fit --code-dir {} --target {} --input {} --verbose ".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, self.target[problem], input_dataset
+        )
+        if use_output:
+            cmd += " --output {}".format(output_file)
+        if problem == BINARY:
+            cmd = self._cmd_add_class_labels(cmd, framework, problem)
+        if docker:
+            cmd += " --docker {} ".format(docker)
 
-            cmd += weights_cmd
+        cmd += weights_cmd
 
-            TestCMRunner._exec_shell_cmd(
-                cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
-            )
-            TestCMRunner._delete_custom_model_dir(custom_model_dir)
+        TestCMRunner._exec_shell_cmd(
+            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+        )
 
     def _create_fit_input_data_dir(self, input_dir, problem, weights):
+        input_dir.mkdir(parents=True, exist_ok=True)
+
         input_dataset = self._get_dataset_filename(None, problem)
         df = pd.read_csv(input_dataset)
 
@@ -741,9 +743,13 @@ class TestCMRunner:
     @pytest.mark.parametrize("problem", [BINARY, REGRESSION])
     @pytest.mark.parametrize("language", [PYTHON])
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, None])
-    def test_fit_sh(self, framework, problem, language, weights):
-        custom_model_dir = self._create_custom_model_dir(
-            framework, problem, language, is_training=True
+    def test_fit_sh(self, framework, problem, language, weights, tmp_path):
+        custom_model_dir = tmp_path / "custom_model"
+        input_dir = tmp_path / "input_dir"
+        output = tmp_path / "output"
+
+        self._create_custom_model_dir(
+            custom_model_dir, framework, problem, language, is_training=True
         )
         env = os.environ
         fit_sh = os.path.join(
@@ -751,24 +757,23 @@ class TestCMRunner:
             "..",
             "public_dropin_environments/{}_{}/fit.sh".format(language, framework),
         )
-        with TemporaryDirectory() as input_dir, TemporaryDirectory() as output:
-            self._create_fit_input_data_dir(input_dir, problem, weights)
 
-            env["CODEPATH"] = custom_model_dir
-            env["INPUT_DIRECTORY"] = input_dir
-            env["ARTIFACT_DIRECTORY"] = output
+        self._create_fit_input_data_dir(input_dir, problem, weights)
 
-            if problem == BINARY:
-                labels = self._get_class_labels(framework, problem)
-                env["NEGATIVE_CLASS_LABEL"] = labels[0]
-                env["POSITIVE_CLASS_LABEL"] = labels[1]
-            else:
-                if os.environ.get("NEGATIVE_CLASS_LABEL"):
-                    del os.environ["NEGATIVE_CLASS_LABEL"]
-                    del os.environ["POSITIVE_CLASS_LABEL"]
+        env["CODEPATH"] = str(custom_model_dir)
+        env["INPUT_DIRECTORY"] = str(input_dir)
+        env["ARTIFACT_DIRECTORY"] = str(output)
 
-            TestCMRunner._exec_shell_cmd(fit_sh, "Failed cmd {}".format(fit_sh), env=env)
-            TestCMRunner._delete_custom_model_dir(custom_model_dir)
+        if problem == BINARY:
+            labels = self._get_class_labels(framework, problem)
+            env["NEGATIVE_CLASS_LABEL"] = labels[0]
+            env["POSITIVE_CLASS_LABEL"] = labels[1]
+        else:
+            if os.environ.get("NEGATIVE_CLASS_LABEL"):
+                del os.environ["NEGATIVE_CLASS_LABEL"]
+                del os.environ["POSITIVE_CLASS_LABEL"]
+
+        TestCMRunner._exec_shell_cmd(fit_sh, "Failed cmd {}".format(fit_sh), env=env)
 
 
 class TestDrumRuntime:
@@ -853,24 +858,20 @@ class TestDrumRuntime:
         mock_run_error_server.assert_called()
 
     @pytest.fixture(params=[REGRESSION, BINARY])
-    def params(self, request):
+    def params(self, request, tmp_path):
         framework = SKLEARN
         language = PYTHON
 
         problem = request.param
 
-        custom_model_dir = TestCMRunner._create_custom_model_dir(framework, problem, language)
+        custom_model_dir = tmp_path / "custom_model"
+        TestCMRunner._create_custom_model_dir(custom_model_dir, framework, problem, language)
 
         server_run_args = dict(
-            framework=framework,
-            problem=problem,
-            language=language,
-            custom_model_dir=custom_model_dir,
+            framework=framework, problem=problem, custom_model_dir=custom_model_dir,
         )
 
-        yield framework, problem, custom_model_dir, server_run_args
-
-        TestCMRunner._delete_custom_model_dir(custom_model_dir)
+        return framework, problem, custom_model_dir, server_run_args
 
     def assert_drum_server_run_failure(self, server_run_args, force_start, error_message):
         drum_server_run = DrumServerRun(**server_run_args, force_start=force_start)
