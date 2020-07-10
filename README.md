@@ -1,4 +1,6 @@
 # DataRobot User Models
+
+> NOTE: large files are tracked by **git-lfs**. Enable **git-lfs** support for your git installation.
 ## What is it?
 **The DataRobot User Models** repository contains boilerplates, information, and tools on how to assemble,
 debug, test, and run your training and inference models on the DataRobot platform.
