@@ -281,7 +281,7 @@ class TestCMRunner:
     @classmethod
     def _get_template_dir(cls, language, framework, is_training):
         return cls.paths_to_real_models[
-            (language, framework, TRAINING if is_training else INFERENCE)
+            (language, framework)
         ]
 
     @classmethod
