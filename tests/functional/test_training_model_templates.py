@@ -81,7 +81,7 @@ class TestTrainingModelTemplates(object):
             model_name="training model",
             dropin_env_id=env_id,
             target_type=dr_target_type,
-            folder_path=model_template,
+            folder_path=os.path.join(BASE_MODEL_TEMPLATES_DIR, model_template),
         )
         proj = dr.Project.get(proj_id)
 
