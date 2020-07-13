@@ -131,7 +131,7 @@ class PythonModelAdapter:
             raise DrumCommonException(
                 "\n\nCould not find model artifact file in: {} supported by default predictors.\n"
                 "They support filenames with the following extensions {}.\n"
-                "If your artifact is not supported by default predictor, implement custom.load_model hook. "
+                "If your artifact is not supported by default predictor, implement custom.load_model hook.\n"
                 "List of files got here are: {}".format(
                     self._model_dir, list(all_supported_extensions), files_list_str
                 )
