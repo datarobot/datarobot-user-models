@@ -29,23 +29,16 @@ from datarobot_drum.drum.common import (
 from datarobot_drum.drum.runtime import DrumRuntime
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 
+TRAINING = "training"
+INFERENCE = "inference"
+
 # Framweork keywords
 XGB = "xgboost"
-XGB_INFERENCE = "xgb_inference"
-XGB_TRAINING = "xgb_training"
-
 KERAS = "keras"
-KERAS_INFERENCE = "keras_inference"
-KERAS_INFERENCE_JOBLIB = "keras_inference_joblib"
-KERAS_TRAINING_JOBLIB = "keras_training_joblib"
-
+KERAS_JOBLIB = "keras_joblib"
 SKLEARN = "sklearn"
-SKLEARN_TRAINING = "sklearn_training"
-SKLEARN_INFERENCE = "sklearn_inference"
-
+SIMPLE = "simple"
 PYTORCH = "pytorch"
-PYTORCH_INFERENCE = "pytorch_inference"
-
 PYPMML = "pypmml"
 
 RDS = "rds"
@@ -144,34 +137,18 @@ class TestCMRunner:
         cls.tests_fixtures_path = os.path.join(cls.tests_root_path, "fixtures")
         cls.tests_artifacts_path = os.path.join(cls.tests_fixtures_path, "drop_in_model_artifacts")
         cls.tests_data_path = os.path.join(cls.tests_root_path, "testdata")
-        cls.model_templates_path = os.path.join(cls.tests_root_path, "..", "model_templates")
+        cls.training_templates_path = os.path.join(
+            cls.tests_root_path, "..", "model_templates", "training"
+        )
 
         cls.paths_to_real_models = {
-            (PYTHON, SKLEARN): os.path.join(cls.model_templates_path, "python3_sklearn"),
-            (PYTHON, KERAS_INFERENCE): os.path.join(
-                cls.model_templates_path, "inference/python3_keras"
+            (PYTHON, SKLEARN): os.path.join(cls.training_templates_path, "python3_sklearn"),
+            (PYTHON, SIMPLE): os.path.join(cls.training_templates_path, "simple"),
+            (PYTHON, KERAS): os.path.join(cls.training_templates_path, "python3_keras"),
+            (PYTHON, KERAS_JOBLIB): os.path.join(
+                cls.training_templates_path, "python3_keras_joblib"
             ),
-            (PYTHON, KERAS_INFERENCE_JOBLIB): os.path.join(
-                cls.model_templates_path, "inference/python3_keras_joblib"
-            ),
-            (PYTHON, KERAS_TRAINING_JOBLIB): os.path.join(
-                cls.model_templates_path, "training/python3_keras_joblib"
-            ),
-            (PYTHON, XGB_INFERENCE): os.path.join(
-                cls.model_templates_path, "inference/python3_xgboost"
-            ),
-            (PYTHON, XGB_TRAINING): os.path.join(
-                cls.model_templates_path, "training/python3_xgboost"
-            ),
-            (PYTHON, SKLEARN_INFERENCE): os.path.join(
-                cls.model_templates_path, "inference/python3_sklearn"
-            ),
-            (PYTHON, SKLEARN_TRAINING): os.path.join(
-                cls.model_templates_path, "training/python3_sklearn"
-            ),
-            (PYTHON, PYTORCH_INFERENCE): os.path.join(
-                cls.model_templates_path, "inference/python3_pytorch"
-            ),
+            (PYTHON, XGB): os.path.join(cls.training_templates_path, "python3_xgboost"),
         }
 
         cls.fixtures = {
@@ -217,8 +194,8 @@ class TestCMRunner:
             (SKLEARN, BINARY): os.path.join(cls.tests_artifacts_path, "sklearn_bin.pkl"),
             (KERAS, REGRESSION): os.path.join(cls.tests_artifacts_path, "keras_reg.h5"),
             (KERAS, BINARY): os.path.join(cls.tests_artifacts_path, "keras_bin.h5"),
-            (XGB_INFERENCE, REGRESSION): os.path.join(cls.tests_artifacts_path, "xgb_reg.pkl"),
-            (XGB_INFERENCE, BINARY): os.path.join(cls.tests_artifacts_path, "xgb_bin.pkl"),
+            (XGB, REGRESSION): os.path.join(cls.tests_artifacts_path, "xgb_reg.pkl"),
+            (XGB, BINARY): os.path.join(cls.tests_artifacts_path, "xgb_bin.pkl"),
             (PYTORCH, REGRESSION): [
                 os.path.join(cls.tests_artifacts_path, "torch_reg.pth"),
                 os.path.join(cls.tests_artifacts_path, "PyTorch.py"),
@@ -303,14 +280,9 @@ class TestCMRunner:
 
     @classmethod
     def _get_template_dir(cls, language, framework, is_training):
-        if is_training:
-            if framework == KERAS:
-                return cls.paths_to_real_models[(language, KERAS_TRAINING_JOBLIB)]
-            elif framework == XGB:
-                return cls.paths_to_real_models[(language, XGB_TRAINING)]
-            elif framework == SKLEARN:
-                return cls.paths_to_real_models[(language, SKLEARN_TRAINING)]
-        return cls.paths_to_real_models[(language, framework)]
+        return cls.paths_to_real_models[
+            (language, framework, TRAINING if is_training else INFERENCE)
+        ]
 
     @classmethod
     def _get_class_labels(cls, framework, problem):
@@ -348,9 +320,9 @@ class TestCMRunner:
             (SKLEARN, BINARY, PYTHON, None),
             (KERAS, REGRESSION, PYTHON, None),
             (KERAS, BINARY, PYTHON, None),
-            (XGB_INFERENCE, REGRESSION, PYTHON, None),
-            (XGB_INFERENCE, BINARY, PYTHON, None),
-            (XGB_INFERENCE, BINARY, PYTHON_XGBOOST_CLASS_LABELS_VALIDATION, None),
+            (XGB, REGRESSION, PYTHON, None),
+            (XGB, BINARY, PYTHON, None),
+            (XGB, BINARY, PYTHON_XGBOOST_CLASS_LABELS_VALIDATION, None),
             (PYTORCH, REGRESSION, PYTHON, None),
             (PYTORCH, BINARY, PYTHON, None),
             (RDS, REGRESSION, R, None),
@@ -522,8 +494,8 @@ class TestCMRunner:
             (SKLEARN, BINARY, PYTHON, None),
             (KERAS, REGRESSION, PYTHON, None),
             (KERAS, BINARY, PYTHON, None),
-            (XGB_INFERENCE, REGRESSION, PYTHON, None),
-            (XGB_INFERENCE, BINARY, PYTHON, None),
+            (XGB, REGRESSION, PYTHON, None),
+            (XGB, BINARY, PYTHON, None),
             (PYTORCH, REGRESSION, PYTHON, None),
             (PYTORCH, BINARY, PYTHON, None),
             (RDS, REGRESSION, R, None),
@@ -777,6 +749,24 @@ class TestCMRunner:
                 del os.environ["POSITIVE_CLASS_LABEL"]
 
         TestCMRunner._exec_shell_cmd(fit_sh, "Failed cmd {}".format(fit_sh), env=env)
+
+    def test_fit_simple(self, tmp_path):
+        custom_model_dir = tmp_path / "custom_model"
+        self._create_custom_model_dir(
+            custom_model_dir, SIMPLE, REGRESSION, PYTHON, is_training=True
+        )
+
+        input_dataset = self._get_dataset_filename(SKLEARN, REGRESSION)
+
+        output = tmp_path / "output"
+        output.mkdir()
+
+        cmd = "{} fit --code-dir {} --target {} --input {} --verbose ".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, self.target[REGRESSION], input_dataset
+        )
+        TestCMRunner._exec_shell_cmd(
+            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+        )
 
 
 class TestDrumRuntime:

@@ -265,11 +265,58 @@ class PythonModelAdapter:
 
         return predictions
 
+    def try_to_fit_on_custom_wrapper(self, X, y, output_dir):
+        """
+        A user can surround an sklearn pipeline or estimator with the custom() function, importable
+        from drum, which will tag the object that is passed in with a to_upload variable.
+        This function searches thru all the pipelines and estimators imported from all the modules
+        in the code directory, and looks for this to_upload variable. If it finds it, it will
+        load the object here, and call fit on it. Then, it will serialize the fit model out
+        to the output directory. If it can't find the wrapper, it will return False, if it
+        successfully runs fit, it will return True, otherwise it will throw a DrumCommonException.
+
+        Returns
+        -------
+        Boolean, whether fit was run
+        """
+        import sklearn
+        import glob
+        from pathlib import Path
+        import pickle
+
+        found_obj = None
+        sys.path.insert(0, self._model_dir)
+        files_in_modeldir = glob.glob(self._model_dir + "/*.py")
+        if len(files_in_modeldir) > 100:
+            raise DrumCommonException("Too many files in model dir")
+        if len(files_in_modeldir) == 0:
+            raise DrumCommonException("No files in model dir")
+        for f in files_in_modeldir:
+            name = os.path.basename(f)
+            module = __import__(name[:-3])
+            for obj_name in dir(module):
+                obj = getattr(module, obj_name)
+                if isinstance(obj, sklearn.base.BaseEstimator):
+                    if hasattr(obj, "is_custom"):
+                        found_obj = obj
+                        break
+
+        if found_obj:
+            found_obj = found_obj.fit(X, y)
+            output_dir_path = Path(output_dir)
+            if output_dir_path.exists() and output_dir_path.is_dir():
+                with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
+                    pickle.dump(found_obj, fp)
+            return True
+        return False
+
     def fit(self, X, y, output_dir, class_order=None, row_weights=None):
         if self._custom_hooks.get(CustomHooks.FIT):
             self._custom_hooks[CustomHooks.FIT](
                 X, y, output_dir, class_order=class_order, row_weights=row_weights
             )
+        elif self.try_to_fit_on_custom_wrapper(X, y, output_dir):
+            return
         else:
             hooks = [
                 "{}: {}".format(hook, fn is not None) for hook, fn in self._custom_hooks.items()
