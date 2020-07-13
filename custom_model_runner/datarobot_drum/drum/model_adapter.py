@@ -288,9 +288,10 @@ class PythonModelAdapter:
         sys.path.insert(0, self._model_dir)
         files_in_modeldir = glob.glob(self._model_dir + "/*.py")
         if len(files_in_modeldir) > 100:
-            raise DrumCommonException("Too many files in model dir")
+            self._logger.warning("Too many files in model dir")
+            return False
         if len(files_in_modeldir) == 0:
-            raise DrumCommonException("No files in model dir")
+            return False
         for f in files_in_modeldir:
             name = os.path.basename(f)
             module = __import__(name[:-3])

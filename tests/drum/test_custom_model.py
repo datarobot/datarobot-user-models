@@ -144,10 +144,7 @@ class TestCMRunner:
         cls.paths_to_real_models = {
             (PYTHON, SKLEARN): os.path.join(cls.training_templates_path, "python3_sklearn"),
             (PYTHON, SIMPLE): os.path.join(cls.training_templates_path, "simple"),
-            (PYTHON, KERAS): os.path.join(cls.training_templates_path, "python3_keras"),
-            (PYTHON, KERAS_JOBLIB): os.path.join(
-                cls.training_templates_path, "python3_keras_joblib"
-            ),
+            (PYTHON, KERAS): os.path.join(cls.training_templates_path, "python3_keras_joblib"),
             (PYTHON, XGB): os.path.join(cls.training_templates_path, "python3_xgboost"),
         }
 
