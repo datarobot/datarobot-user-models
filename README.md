@@ -1,7 +1,7 @@
 # DataRobot User Models
 
 ## What is it?
-**The DataRobot User Models** repository contains boilerplates, information, and tools on how to assemble,
+**The DataRobot User Models** repository contains boilerplate, information, and tools on how to assemble,
 debug, test, and run your training and inference models on the DataRobot platform.
 
 ### Terminology

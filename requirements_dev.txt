@@ -5,5 +5,5 @@ dr-usertool
 datarobot-oss-java-jdk==11.0.2.7.post1+dr
 pytest
 pytest-runner
-datarobot==2.21
+datarobot==2.22b0
 black
