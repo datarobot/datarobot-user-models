@@ -141,7 +141,7 @@ class TestCMRunner:
             cls.tests_root_path, "..", "model_templates", "training"
         )
 
-        cls.paths_to_real_models = {
+        cls.paths_to_training_models = {
             (PYTHON, SKLEARN): os.path.join(cls.training_templates_path, "python3_sklearn"),
             (PYTHON, SIMPLE): os.path.join(cls.training_templates_path, "simple"),
             (PYTHON, KERAS): os.path.join(cls.training_templates_path, "python3_keras_joblib"),
@@ -255,7 +255,8 @@ class TestCMRunner:
     ):
         custom_model_dir.mkdir(parents=True, exist_ok=True)
         if is_training:
-            model_template_dir = cls._get_template_dir(language, framework, is_training)
+            model_template_dir = cls.paths_to_training_models[(language, framework)]
+
             for filename in glob.glob(r"{}/*.py".format(model_template_dir)):
                 shutil.copy2(filename, custom_model_dir)
         else:
@@ -274,10 +275,6 @@ class TestCMRunner:
     @classmethod
     def _get_artifact_filename(cls, framework, problem):
         return cls.artifacts[(framework, problem)]
-
-    @classmethod
-    def _get_template_dir(cls, language, framework, is_training):
-        return cls.paths_to_real_models[(language, framework)]
 
     @classmethod
     def _get_class_labels(cls, framework, problem):
