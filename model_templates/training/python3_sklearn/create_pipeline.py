@@ -47,7 +47,7 @@ def is_text(x):
 # This selector tells sklearn which columns in a pd.DataFrame are text
 # Returns a list of strings
 def text_selector(X):
-    return X.columns[list(X.apply(is_text))]
+    return X.columns[list(X.apply(is_text, result_type="expand"))]
 
 
 ##############################

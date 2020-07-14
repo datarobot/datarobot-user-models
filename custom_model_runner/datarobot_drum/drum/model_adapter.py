@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import sklearn
 
+from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
 from datarobot_drum.drum.artifact_predictors.keras_predictor import KerasPredictor
 from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
 from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPredictor
@@ -270,9 +271,9 @@ class PythonModelAdapter:
     def try_to_fit_on_custom_wrapper(self, X, y, output_dir):
         """
         A user can surround an sklearn pipeline or estimator with the custom() function, importable
-        from drum, which will tag the object that is passed in with a to_upload variable.
+        from drum, which will tag the object that is passed in with a magic variable.
         This function searches thru all the pipelines and estimators imported from all the modules
-        in the code directory, and looks for this to_upload variable. If it finds it, it will
+        in the code directory, and looks for this magic variable. If it finds it, it will
         load the object here, and call fit on it. Then, it will serialize the fit model out
         to the output directory. If it can't find the wrapper, it will return False, if it
         successfully runs fit, it will return True, otherwise it will throw a DrumCommonException.
@@ -304,7 +305,7 @@ class PythonModelAdapter:
             for object_name in dir(module):
                 _object = getattr(module, object_name)
                 if isinstance(_object, sklearn.base.BaseEstimator):
-                    if hasattr(_object, "is_custom"):
+                    if hasattr(_object, MAGIC_MARKER):
                         wrapped_object = _object
                         break
 

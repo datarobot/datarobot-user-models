@@ -4,7 +4,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.linear_model import Ridge
 from sklearn.pipeline import Pipeline
 
-from datarobot_drum import custom
+from datarobot_drum import drum_autofit
 
 numeric_transformer = ColumnTransformer(
     transformers=[
@@ -18,6 +18,6 @@ numeric_transformer = ColumnTransformer(
 pipeline = Pipeline(steps=[("numeric", numeric_transformer), ("model", Ridge())])
 
 
-# The custom function will tag the my_custom_regressor object so that DRUM knows that this object
+# The custom function will tag the pipeline object so that DRUM knows that this object
 # is the one you want to use to train your model with
-my_custom_regressor = custom(pipeline)
+drum_autofit(pipeline)
