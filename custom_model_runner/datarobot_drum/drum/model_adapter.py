@@ -294,7 +294,13 @@ class PythonModelAdapter:
             return False
         for filepath in files_in_model_dir:
             filename = os.path.basename(filepath)
-            module = __import__(filename[:-3])
+            try:
+                module = __import__(filename[:-3])
+            except ImportError as e:
+                self._logger.warning(
+                    "File at path {} could not be imported: {}".format(filepath, str(e))
+                )
+                continue
             for object_name in dir(module):
                 _object = getattr(module, object_name)
                 if isinstance(_object, sklearn.base.BaseEstimator):
