@@ -1,27 +1,29 @@
+import glob
+import logging
 import os
+import pickle
+import sys
+import textwrap
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import logging
-import sys
-import textwrap
-
-from datarobot_drum.drum.common import (
-    CustomHooks,
-    CUSTOM_FILE_NAME,
-    LOGGER_NAME_PREFIX,
-    REGRESSION_PRED_COLUMN,
-    POSITIVE_CLASS_LABEL_ARG_KEYWORD,
-    NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
-)
-
-from datarobot_drum.drum.exceptions import DrumCommonException
+import sklearn
 
 from datarobot_drum.drum.artifact_predictors.keras_predictor import KerasPredictor
+from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
 from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPredictor
 from datarobot_drum.drum.artifact_predictors.torch_predictor import PyTorchPredictor
-from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
 from datarobot_drum.drum.artifact_predictors.xgboost_predictor import XGBoostPredictor
+from datarobot_drum.drum.common import (
+    CUSTOM_FILE_NAME,
+    CustomHooks,
+    LOGGER_NAME_PREFIX,
+    NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
+    POSITIVE_CLASS_LABEL_ARG_KEYWORD,
+    REGRESSION_PRED_COLUMN,
+)
+from datarobot_drum.drum.exceptions import DrumCommonException
 
 
 class PythonModelAdapter:
@@ -279,35 +281,38 @@ class PythonModelAdapter:
         -------
         Boolean, whether fit was run
         """
-        import sklearn
-        import glob
-        from pathlib import Path
-        import pickle
-
-        found_obj = None
+        model_dir_limit = 100
+        wrapped_object = None
         sys.path.insert(0, self._model_dir)
-        files_in_modeldir = glob.glob(self._model_dir + "/*.py")
-        if len(files_in_modeldir) > 100:
-            self._logger.warning("Too many files in model dir")
+        files_in_model_dir = glob.glob(self._model_dir + "/*.py")
+        if len(files_in_model_dir) == 0:
             return False
-        if len(files_in_modeldir) == 0:
+        if len(files_in_model_dir) > model_dir_limit:
+            self._logger.warning(
+                "There are more than {} files in this directory".format(model_dir_limit)
+            )
             return False
-        for f in files_in_modeldir:
-            name = os.path.basename(f)
-            module = __import__(name[:-3])
-            for obj_name in dir(module):
-                obj = getattr(module, obj_name)
-                if isinstance(obj, sklearn.base.BaseEstimator):
-                    if hasattr(obj, "is_custom"):
-                        found_obj = obj
+        for filepath in files_in_model_dir:
+            filename = os.path.basename(filepath)
+            module = __import__(filename[:-3])
+            for object_name in dir(module):
+                _object = getattr(module, object_name)
+                if isinstance(_object, sklearn.base.BaseEstimator):
+                    if hasattr(_object, "is_custom"):
+                        wrapped_object = _object
                         break
 
-        if found_obj:
-            found_obj = found_obj.fit(X, y)
+        if wrapped_object is not None:
+            wrapped_object.fit(X, y)
             output_dir_path = Path(output_dir)
             if output_dir_path.exists() and output_dir_path.is_dir():
                 with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
-                    pickle.dump(found_obj, fp)
+                    pickle.dump(wrapped_object, fp)
+            else:
+                raise RuntimeError(
+                    "Your output directory does not exist or "
+                    "isn't a directory at location {}".format(output_dir)
+                )
             return True
         return False
 
