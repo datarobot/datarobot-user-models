@@ -7,6 +7,7 @@ import subprocess
 import sys
 import tempfile
 from distutils.dir_util import copy_tree
+from pathlib import Path
 from tempfile import mkdtemp, NamedTemporaryFile
 
 import numpy as np
@@ -45,6 +46,7 @@ class CMRunner(object):
 
         self._functional_pipelines = {
             (RunMode.FIT, RunLanguage.PYTHON): "python_fit.json.j2",
+            (RunMode.FIT, RunLanguage.R): "r_fit.json.j2",
         }
 
         self._predictor_components = {
@@ -143,6 +145,65 @@ class CMRunner(object):
             raise DrumCommonException(error_mes)
 
         run_language = custom_language if custom_language is not None else artifact_language
+        return run_language
+
+    def _get_fit_run_language(self):
+        def raise_no_language(custom_language):
+            custom_language = "None" if custom_language is None else custom_language.value
+            error_mes = (
+                "Can not detect language by custom.py/R files.\n"
+                "Detected: language by custom - {}.\n"
+                "Code directory must have either a custom.py/R file\n"
+                "Or a python file using the drum_autofit() wrapper.".format(custom_language,)
+            )
+            all_files_message = "\n\nFiles(100 first) found in {}:\n{}\n".format(
+                code_dir_abspath, "\n".join(sorted(os.listdir(code_dir_abspath))[0:100])
+            )
+
+            error_mes += all_files_message
+            self.logger.error(error_mes)
+            raise DrumCommonException(error_mes)
+
+        # Get code dir's abs path and add it to the python path
+        code_dir_abspath = os.path.abspath(self.options.code_dir)
+
+        custom_language = None
+        run_language = None
+        is_py = False
+
+        # check which custom code files present in the code dir
+        custom_py_paths = list(Path(code_dir_abspath).rglob("{}.py".format("custom")))
+        custom_r_paths = list(Path(code_dir_abspath).rglob("{}.r".format("custom"))) + list(
+            Path(code_dir_abspath).rglob("{}.R".format("custom"))
+        )
+
+        # if only one custom file found, set it:
+        if len(custom_py_paths) + len(custom_r_paths) == 1:
+            custom_language = RunLanguage.PYTHON if custom_py_paths else RunLanguage.R
+
+        # if no custom files, look for any other python file to use
+        elif len(custom_py_paths) + len(custom_r_paths) == 0:
+
+            other_py = list(Path(code_dir_abspath).rglob("*.py"))
+
+            other_r = list(Path(code_dir_abspath).rglob("*.r")) + list(
+                Path(code_dir_abspath).rglob("*.R")
+            )
+
+            # if we find any py files and no R files set python, otherwise raise
+            if len(other_py) and not len(other_r):
+                is_py = True
+            else:
+                raise_no_language(custom_language)
+
+        # otherwise, we're in trouble
+        else:
+            raise_no_language(custom_language)
+
+        if custom_language is not None:
+            run_language = custom_language
+        elif is_py:
+            run_language = RunLanguage.PYTHON
         return run_language
 
     def run(self):
@@ -314,17 +375,17 @@ class CMRunner(object):
             # in prediction server mode infra pipeline == prediction server runner pipeline
             infra_pipeline_str = self._prepare_prediction_server_or_batch_pipeline(run_language)
         elif self.run_mode == RunMode.SCORE:
+            run_language = self._check_artifacts_and_get_run_language()
             tmp_output_filename = None
             # if output is not provided, output into tmp file and print
             if not self.options.output:
                 # keep object reference so it will be destroyed only in the end of the process
                 __tmp_output_file = tempfile.NamedTemporaryFile(mode="w")
                 self.options.output = tmp_output_filename = __tmp_output_file.name
-            run_language = self._check_artifacts_and_get_run_language()
             # in batch prediction mode infra pipeline == predictor pipeline
             infra_pipeline_str = self._prepare_prediction_server_or_batch_pipeline(run_language)
         elif self.run_mode == RunMode.FIT:
-            run_language = RunLanguage.PYTHON
+            run_language = self._get_fit_run_language()
             infra_pipeline_str = self._prepare_fit_pipeline(run_language)
         else:
             error_message = "{} mode is not supported here".format(self.run_mode)
