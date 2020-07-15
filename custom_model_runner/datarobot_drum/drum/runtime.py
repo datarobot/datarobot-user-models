@@ -4,7 +4,7 @@ from datarobot_drum.drum.server import (
     HTTP_513_DRUM_PIPELINE_ERROR,
 )
 
-from datarobot_drum.drum.common import RunMode
+from datarobot_drum.drum.common import RunMode, verbose_stdout
 
 
 class DrumRuntime:
@@ -48,7 +48,8 @@ class DrumRuntime:
         host = host_port_list[0]
         port = int(host_port_list[1]) if len(host_port_list) == 2 else None
 
-        run_error_server(host, port, exc_value)
+        with verbose_stdout(self.options.verbose):
+            run_error_server(host, port, exc_value)
 
         return False  # propagate exception further
 
