@@ -4,7 +4,7 @@
 ## Content  
 1. [What is this repository?](#what_is_it)
 2. [Quickstart and examples](#quickstart)
-3. [Assembling inference model code folder](#inference_model_folder)
+3. [Assembling an inference model code folder](#inference_model_folder)
 4. [Custom Model Templates](#custom_model_templates)
 5. [Custom Environment Templates](#custom_environment_templates)
 6. [Custom Model Runner (drum)](#custom_model_runner)
@@ -29,7 +29,7 @@ The following example shows how to use the [**drum**](https://github.com/datarob
 
 For more examples, reference the [Custom Model Templates](#custom_model_templates).
 
-## Assembling a custom model folder <a name="inference_model_folder"></a>
+## Assembling an inference model code folder <a name="inference_model_folder"></a>
 > Note: the following information is only relevant you are using [**drum**](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) to run a model. 
 
 To create a custom inference model, you must provide specific files to use with a custom environment:
