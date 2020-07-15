@@ -6,7 +6,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from contextlib import contextmanager
 from distutils.dir_util import copy_tree
 from tempfile import mkdtemp, NamedTemporaryFile
 
@@ -25,6 +24,7 @@ from datarobot_drum.drum.common import (
     RunLanguage,
     RunMode,
     TemplateType,
+    verbose_stdout,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.perf_testing import CMRunTests
@@ -33,19 +33,6 @@ from datarobot_drum.drum.utils import CMRunnerUtils
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 
 EXTERNAL_SERVER_RUNNER = "external_prediction_server_runner.json"
-
-
-@contextmanager
-def verbose_stdout(verbose):
-    new_target = sys.stdout
-    old_target = sys.stdout
-    if not verbose:
-        new_target = open(os.devnull, "w")
-        sys.stdout = new_target
-    try:
-        yield new_target
-    finally:
-        sys.stdout = old_target
 
 
 class CMRunner(object):
