@@ -1,5 +1,3 @@
-import logging
-
 from datarobot_drum.drum.server import (
     base_api_blueprint,
     get_flask_app,
@@ -57,8 +55,6 @@ class DrumRuntime:
 
 
 def run_error_server(host, port, exc_value):
-    logging.getLogger("werkzeug").setLevel(logging.ERROR)
-
     model_api = base_api_blueprint()
 
     @model_api.route("/predict/", methods=["POST"])
