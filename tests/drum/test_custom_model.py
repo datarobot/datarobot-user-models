@@ -786,10 +786,10 @@ class TestDrumRuntime:
 
     Options = collections.namedtuple(
         "Options",
-        "force_start_internal {} docker address".format(
+        "force_start_internal {} docker address verbose".format(
             CMRunnerArgsRegistry.SUBPARSER_DEST_KEYWORD
         ),
-        defaults=[RunMode.SERVER, None, "localhost"],
+        defaults=[RunMode.SERVER, None, "localhost", False],
     )
 
     class StubDrumException(Exception):
