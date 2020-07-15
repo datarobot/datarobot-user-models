@@ -1,4 +1,7 @@
 import logging
+import os
+import sys
+from contextlib import contextmanager
 from enum import Enum
 
 LOGGER_NAME_PREFIX = "drum"
@@ -123,3 +126,16 @@ class TemplateType(object):
 
 class EnvVarNames:
     DRUM_JAVA_XMX = "DRUM_JAVA_XMX"
+
+
+@contextmanager
+def verbose_stdout(verbose):
+    new_target = sys.stdout
+    old_target = sys.stdout
+    if not verbose:
+        new_target = open(os.devnull, "w")
+        sys.stdout = new_target
+    try:
+        yield new_target
+    finally:
+        sys.stdout = old_target
