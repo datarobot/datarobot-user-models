@@ -15,7 +15,7 @@ The **DataRobot User Models** repository contains information and tools for asse
 debugging, testing, and running your training and inference models with DataRobot.
 
 #### Terminology
-This repository address the DataRobot functionality  known as `custom models`. The terms `custom model` and `user model` can be used interchangeably, as can `custom model directory` and `code directory`.
+This repository address the DataRobot functionality known as `custom models`. The terms `custom model` and `user model` can be used interchangeably, as can `custom model directory` and `code directory`.
 
 ## Quickstart <a name="quickstart"></a>
 The following example shows how to use the [**drum**](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) tool to make predictions on an [sklearn model](model_templates/inference/python3_sklearn)
@@ -93,7 +93,7 @@ include any necessary hooks in a file called `custom.py` for Python models or `c
 - `score(data: DataFrame, model: Any, **kwargs: Dict[str, Any]) -> DataFrame`
   - `data` is the dataframe to make predictions against. If `transform` is supplied, `data` will be the transformed data.
   - `model` is the deserialized model loaded by **drum** or by `load_model`, if supplied
-  - `kwargs` - additional keyword arguments to the method; In the case of a binary classification model, provide class labels as the following arguments:
+  - `kwargs` - additional keyword arguments to the method; In the case of a binary classification model, contains class labels as the following keys:
     - `positive_class_label` for the positive class label
     - `negative_class_label` for the negative class label
   - This method should return predictions as a dataframe with the following format:
