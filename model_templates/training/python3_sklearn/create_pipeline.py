@@ -3,10 +3,9 @@ import pandas as pd
 from sagemaker_sklearn_extension.feature_extraction.text import MultiColumnTfidfVectorizer
 from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.decomposition import TruncatedSVD
-from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression, Ridge
-from sklearn.pipeline import make_pipeline, Pipeline
+from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 
@@ -48,7 +47,7 @@ def is_text(x):
 # This selector tells sklearn which columns in a pd.DataFrame are text
 # Returns a list of strings
 def text_selector(X):
-    return X.columns[list(X.apply(is_text))]
+    return X.columns[list(X.apply(is_text, result_type="expand"))]
 
 
 ##############################

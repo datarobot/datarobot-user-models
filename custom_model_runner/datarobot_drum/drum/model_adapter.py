@@ -1,27 +1,30 @@
+import glob
+import logging
 import os
+import pickle
+import sys
+import textwrap
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import logging
-import sys
-import textwrap
+import sklearn
 
-from datarobot_drum.drum.common import (
-    CustomHooks,
-    CUSTOM_FILE_NAME,
-    LOGGER_NAME_PREFIX,
-    REGRESSION_PRED_COLUMN,
-    POSITIVE_CLASS_LABEL_ARG_KEYWORD,
-    NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
-)
-
-from datarobot_drum.drum.exceptions import DrumCommonException
-
+from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
 from datarobot_drum.drum.artifact_predictors.keras_predictor import KerasPredictor
+from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
 from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPredictor
 from datarobot_drum.drum.artifact_predictors.torch_predictor import PyTorchPredictor
-from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
 from datarobot_drum.drum.artifact_predictors.xgboost_predictor import XGBoostPredictor
+from datarobot_drum.drum.common import (
+    CUSTOM_FILE_NAME,
+    CustomHooks,
+    LOGGER_NAME_PREFIX,
+    NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
+    POSITIVE_CLASS_LABEL_ARG_KEYWORD,
+    REGRESSION_PRED_COLUMN,
+)
+from datarobot_drum.drum.exceptions import DrumCommonException
 
 
 class PythonModelAdapter:
@@ -265,11 +268,61 @@ class PythonModelAdapter:
 
         return predictions
 
+    def _drum_autofit_internal(self, X, y, output_dir):
+        """
+        A user can surround an sklearn pipeline or estimator with the drum_autofit() function,
+        importable from drum, which will tag the object that is passed in with a magic variable.
+        This function searches thru all the pipelines and estimators imported from all the modules
+        in the code directory, and looks for this magic variable. If it finds it, it will
+        load the object here, and call fit on it. Then, it will serialize the fit model out
+        to the output directory. If it can't find the wrapper, it will return False, if it
+        successfully runs fit, it will return True, otherwise it will throw a DrumCommonException.
+
+        Returns
+        -------
+        Boolean, whether fit was run
+        """
+        model_dir_limit = 100
+        marked_object = None
+        sys.path.insert(0, self._model_dir)
+        files_in_model_dir = glob.glob(self._model_dir + "/*.py")
+        if len(files_in_model_dir) == 0:
+            return False
+        if len(files_in_model_dir) > model_dir_limit:
+            self._logger.warning(
+                "There are more than {} files in this directory".format(model_dir_limit)
+            )
+            return False
+        for filepath in files_in_model_dir:
+            filename = os.path.basename(filepath)
+            try:
+                module = __import__(filename[:-3])
+            except ImportError as e:
+                self._logger.warning(
+                    "File at path {} could not be imported: {}".format(filepath, str(e))
+                )
+                continue
+            for object_name in dir(module):
+                _object = getattr(module, object_name)
+                if isinstance(_object, sklearn.base.BaseEstimator):
+                    if hasattr(_object, MAGIC_MARKER):
+                        marked_object = _object
+                        break
+
+        if marked_object is not None:
+            marked_object.fit(X, y)
+            with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
+                pickle.dump(marked_object, fp)
+            return True
+        return False
+
     def fit(self, X, y, output_dir, class_order=None, row_weights=None):
         if self._custom_hooks.get(CustomHooks.FIT):
             self._custom_hooks[CustomHooks.FIT](
                 X, y, output_dir, class_order=class_order, row_weights=row_weights
             )
+        elif self._drum_autofit_internal(X, y, output_dir):
+            return
         else:
             hooks = [
                 "{}: {}".format(hook, fn is not None) for hook, fn in self._custom_hooks.items()
