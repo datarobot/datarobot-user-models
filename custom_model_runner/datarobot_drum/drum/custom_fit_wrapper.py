@@ -9,5 +9,4 @@ def drum_autofit(estimator):
     if not isinstance(estimator, BaseEstimator):
         raise ValueError("The object passed in does not inherit from BaseEstimator")
     setattr(estimator, MAGIC_MARKER, True)
-    estimator.is_custom = True
     return estimator

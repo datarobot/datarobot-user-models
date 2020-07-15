@@ -268,10 +268,10 @@ class PythonModelAdapter:
 
         return predictions
 
-    def try_to_fit_on_custom_wrapper(self, X, y, output_dir):
+    def _drum_autofit_internal(self, X, y, output_dir):
         """
-        A user can surround an sklearn pipeline or estimator with the custom() function, importable
-        from drum, which will tag the object that is passed in with a magic variable.
+        A user can surround an sklearn pipeline or estimator with the drum_autofit() function,
+        importable from drum, which will tag the object that is passed in with a magic variable.
         This function searches thru all the pipelines and estimators imported from all the modules
         in the code directory, and looks for this magic variable. If it finds it, it will
         load the object here, and call fit on it. Then, it will serialize the fit model out
@@ -283,7 +283,7 @@ class PythonModelAdapter:
         Boolean, whether fit was run
         """
         model_dir_limit = 100
-        wrapped_object = None
+        marked_object = None
         sys.path.insert(0, self._model_dir)
         files_in_model_dir = glob.glob(self._model_dir + "/*.py")
         if len(files_in_model_dir) == 0:
@@ -306,20 +306,13 @@ class PythonModelAdapter:
                 _object = getattr(module, object_name)
                 if isinstance(_object, sklearn.base.BaseEstimator):
                     if hasattr(_object, MAGIC_MARKER):
-                        wrapped_object = _object
+                        marked_object = _object
                         break
 
-        if wrapped_object is not None:
-            wrapped_object.fit(X, y)
-            output_dir_path = Path(output_dir)
-            if output_dir_path.exists() and output_dir_path.is_dir():
-                with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
-                    pickle.dump(wrapped_object, fp)
-            else:
-                raise RuntimeError(
-                    "Your output directory does not exist or "
-                    "isn't a directory at location {}".format(output_dir)
-                )
+        if marked_object is not None:
+            marked_object.fit(X, y)
+            with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
+                pickle.dump(marked_object, fp)
             return True
         return False
 
@@ -328,7 +321,7 @@ class PythonModelAdapter:
             self._custom_hooks[CustomHooks.FIT](
                 X, y, output_dir, class_order=class_order, row_weights=row_weights
             )
-        elif self.try_to_fit_on_custom_wrapper(X, y, output_dir):
+        elif self._drum_autofit_internal(X, y, output_dir):
             return
         else:
             hooks = [

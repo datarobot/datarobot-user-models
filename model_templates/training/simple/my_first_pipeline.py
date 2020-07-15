@@ -18,6 +18,6 @@ numeric_transformer = ColumnTransformer(
 pipeline = Pipeline(steps=[("numeric", numeric_transformer), ("model", Ridge())])
 
 
-# The custom function will tag the pipeline object so that DRUM knows that this object
-# is the one you want to use to train your model with
+# The drum_autofit function will mark the pipeline object so that DRUM
+# knows that this is the object you want to use to train your model
 drum_autofit(pipeline)
