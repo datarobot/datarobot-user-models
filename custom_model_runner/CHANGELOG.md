@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.1.3] - in progress
 ### Added
 - error server is started in case of imports/pipeline failures
+- drum_autofit() helper for sklearn estimator
 ### Changed
 - updated Java predictor dependencies
 
