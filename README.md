@@ -5,10 +5,11 @@
 1. [What is this repository?](#what_is_it)
 2. [Quickstart and examples](#quickstart)
 3. [Assembling an inference model code folder](#inference_model_folder)
-4. [Custom Model Templates](#custom_model_templates)
-5. [Custom Environment Templates](#custom_environment_templates)
-6. [Custom Model Runner (drum)](#custom_model_runner)
-4. [Contribution & development](#contribution_development)
+4. [Assembling a training model code folder](#training_model_folder)
+5. [Custom Model Templates](#custom_model_templates)
+6. [Custom Environment Templates](#custom_environment_templates)
+7. [Custom Model Runner (drum)](#custom_model_runner)
+8. [Contribution & development](#contribution_development)
 
 ## What is this repository? <a name="what_is_it"></a>
 The **DataRobot User Models** repository contains information and tools for assembling,
@@ -31,6 +32,8 @@ For more examples, reference the [Custom Model Templates](#custom_model_template
 
 ## Assembling an inference model code folder <a name="inference_model_folder"></a>
 > Note: the following information is only relevant you are using [**drum**](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) to run a model. 
+
+Custom inference models are models trained outside of DataRobot. Once they are uploaded to DataRobot, they are deployed as a DataRobot deployment which supports model monitoring and management.
 
 To create a custom inference model, you must provide specific files to use with a custom environment:
 
@@ -125,13 +128,27 @@ The **drum** tool currently supports models with DataRobot-generated Scoring Cod
 or `IRegressionPredictor` interface from [datarobot-prediction](https://mvnrepository.com/artifact/com.datarobot/datarobot-prediction).
 The model artifact must have a **jar** extension.
 
+## Assembling a training model code folder <a name="training_model_folder"></a>
+Custom training models are in active development. They include a `fit()` function, can be trained on the Leaderboard, benchmarked against DataRobot AutoML models, and get access to DataRobot's full set of automated insights. Refer to the [quickrun readme](QUICKSTART-FOR-TRAINING.md).
+
+The model folder must contain any code required for **drum** to run and train your model.
+
+### Python
+The model folder must contain a `custom.py` file which defines a `fit` method.
+
+- `fit(X: pandas.DataFrame, y: pandas.Series, output_dir: str, **kwargs: Dict[str, Any]) -> None`
+    - `X` is the dataframe to perform fit on.
+    - `y` is the dataframe containing target data.
+    - `output_dir` is the path to write the model artifact to.
+    - `kwargs` additional keyword arguments to the method;
+        - `class_order: List[str]` a two element long list dictating the order of classes which should be used for modeling.
+        - `row_weights: np.ndarray` an array of non-negative numeric values which can be used to dictate how important a row is.
+
+> Note: Training and inference hooks can be defined in the same file.
+
 
 ## Custom Model Templates <a name="custom_model_templates"></a>
-The [model templates](model_templates) folder provides templates for building and deploying custom models in DataRobot.
-
-Custom inference models are models trained outside of DataRobot. Once they are uploaded to DataRobot, they are deployed as a DataRobot deployment which supports model monitoring and management.
-
-Custom training models are in active development. They include a `fit()` function, can be trained on the Leaderboard, benchmarked against DataRobot AutoML models, and get access to our full set of automated insights. Refer to the [quickrun readme](QUICKSTART-FOR-TRAINING.md).
+The [model templates](model_templates) folder provides templates for building and deploying custom models in DataRobot. Use the templates as an example structure for your own custom models.
 
 ### DataRobot User Model Runner
 The examples in this repository use the DataRobot User Model Runner (**drum**).  For more information on how to use and write models with **drum**, reference the [readme](./custom_model_runner/README.md).
@@ -157,7 +174,7 @@ The [model_templates](model_templates) folder contains sample models that work w
 
 ## Custom Environment Templates <a name="custom_environment_templates"></a>
 The [environment templates folder](#custom_environment_template) contains templates for the base environments used in DataRobot. Dependency requirements can be applied to the base environment to create a runtime environment for custom models.
-A custom environment defines the runtime environment for a custom model.  In this repository, we provide several example environments that you can use and modify:
+A custom environment defines the runtime environment for a custom model. In this repository, we provide several example environments that you can use and modify:
 * [Python 3 + sklearn](public_dropin_environments/python3_sklearn)
 * [Python 3 + PyTorch](public_dropin_environments/python3_pytorch)
 * [Python 3 + xgboost](public_dropin_environments/python3_xgboost)
