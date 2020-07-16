@@ -12,6 +12,12 @@ However, this testing is only for development purposes. DataRobot recommends tha
 - perform model validation tests, e.g., checking model functionality on corner cases, like null values imputation.
 - run models in a Docker container.
 
+## Custom inference models
+View examples [here](https://github.com/datarobot/datarobot-user-models#quickstart).
+
+## Custom training models
+View examples [here](https://github.com/datarobot/datarobot-user-models#training_model_folder).
+
 ## Installation
 
 ### Prerequisites:
@@ -37,10 +43,6 @@ To install **drum** with Python/Java models support:
 To install **drum** with R support:  
 ```pip install datarobot-drum[R]```
 
-### Running examples
-View examples [here](https://github.com/datarobot/datarobot-user-models#quickstart).
-
-
 ### Autocompletion
 **drum** supports autocompletion based on the `argcomplete` package. Additional configuration is required to use it:
 - run `activate-global-python-argcomplete --user`; this should create a file: `~/.bash_completion.d/python-argcomplete`,
@@ -52,21 +54,6 @@ If global completion is not completing your script, bash may have registered a d
 
 For more information and troubleshooting visit the [argcomplete](https://pypi.org/project/argcomplete/) information page.
 
-## Custom training model folder content
-The model folder must contain any code required for **drum** to run and train your model.
-
-### Python
-The model folder must contain a `custom.py` file which defines a `fit` method.
-
-- `fit(X: pandas.DataFrame, y: pandas.Series, output_dir: str, **kwargs: Dict[str, Any]) -> None`
-    - `X` is the dataframe to perform fit on.
-    - `y` is the dataframe containing target data.
-    - `output_dir` is the path to write the model artifact to.
-    - `kwargs` additional keyword arguments to the method;
-        - `class_order: List[str]` a two element long list dictating the order of classes which should be used for modeling.
-        - `row_weights: np.ndarray` an array of non-negative numeric values which can be used to dictate how important a row is.
-
-> Note: Training and inference hooks can be defined in the same file.
 
 ## Usage
 Help:  
