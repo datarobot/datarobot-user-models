@@ -148,7 +148,7 @@ The model folder must contain a `custom.py` file which defines a `fit` method.
 
 
 ## Custom Model Templates <a name="custom_model_templates"></a>
-The [model templates](model_templates) folder provides templates for building and deploying custom models in DataRobot.
+The [model templates](model_templates) folder provides templates for building and deploying custom models in DataRobot. Use the templates as an example structure for your own custom models.
 
 ### DataRobot User Model Runner
 The examples in this repository use the DataRobot User Model Runner (**drum**).  For more information on how to use and write models with **drum**, reference the [readme](./custom_model_runner/README.md).
