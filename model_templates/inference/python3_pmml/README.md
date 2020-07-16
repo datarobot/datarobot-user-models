@@ -10,8 +10,8 @@ outlined in [Python 3 pypmml Drop-In Environment](../../../public_dropin_environ
 Create a new custom model with these files and use the Python Drop-In Environment with it
 
 ### To run locally classification model using 'drum'
-Paths are relative to `./datarobot-user-models/model_templates`:  
-`drum score --code-dir ./inference/python3_pmml --input ../tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor`
+Paths are relative to `./datarobot-user-models`:  
+`drum score --code-dir model_templates/inference/python3_pmml --input tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor`
 
 ### To run locally regression model using 'drum'
 Replace `iris_bin.pmml` with `iris_reg.pmml` from the repo's `tests/fixtures/drop_in_model_atifacts` folder, which is a pypmml model trained on Iris dataset with a `Sepal Length` as the target (regression).  
