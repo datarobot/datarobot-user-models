@@ -81,7 +81,7 @@ class DrumServerProcess:
 
 class DrumServerRun:
     def __init__(
-        self, framework, problem, custom_model_dir, docker=None, force_start=False,
+        self, framework, problem, custom_model_dir, docker=None, with_error_server=False,
     ):
         port = 6799
         server_address = "localhost:{}".format(port)
@@ -97,8 +97,8 @@ class DrumServerRun:
         cmd = TestCMRunner._cmd_add_class_labels(cmd, framework, problem)
         if docker:
             cmd += " --docker {}".format(docker)
-        if force_start:
-            cmd += " --force-start-internal"
+        if with_error_server:
+            cmd += " --with-error-server"
         self._cmd = cmd
 
         self._process_object_holder = DrumServerProcess()
@@ -768,7 +768,7 @@ class TestDrumRuntime:
 
     Options = collections.namedtuple(
         "Options",
-        "force_start_internal {} docker address verbose".format(
+        "with_error_server {} docker address verbose".format(
             CMRunnerArgsRegistry.SUBPARSER_DEST_KEYWORD
         ),
         defaults=[RunMode.SERVER, None, "localhost", False],
@@ -823,7 +823,7 @@ class TestDrumRuntime:
         mock_run_error_server.assert_not_called()
 
     @mock.patch("datarobot_drum.drum.runtime.run_error_server")
-    def test_exception_no_force_start(self, mock_run_error_server):
+    def test_exception_no_with_error_server(self, mock_run_error_server):
         with pytest.raises(TestDrumRuntime.StubDrumException):
             with DrumRuntime() as runtime:
                 runtime.options = TestDrumRuntime.Options(False)
@@ -833,7 +833,7 @@ class TestDrumRuntime:
         mock_run_error_server.assert_not_called()
 
     @mock.patch("datarobot_drum.drum.runtime.run_error_server")
-    def test_exception_force_start(self, mock_run_error_server):
+    def test_exception_with_error_server(self, mock_run_error_server):
         with pytest.raises(TestDrumRuntime.StubDrumException):
             with DrumRuntime() as runtime:
                 runtime.options = TestDrumRuntime.Options(True)
@@ -858,10 +858,10 @@ class TestDrumRuntime:
 
         return framework, problem, custom_model_dir, server_run_args
 
-    def assert_drum_server_run_failure(self, server_run_args, force_start, error_message):
-        drum_server_run = DrumServerRun(**server_run_args, force_start=force_start)
+    def assert_drum_server_run_failure(self, server_run_args, with_error_server, error_message):
+        drum_server_run = DrumServerRun(**server_run_args, with_error_server=with_error_server)
 
-        if force_start:
+        if with_error_server:
             # assert that error the server is up and message is propagated via API
             with drum_server_run as run:
                 response = requests.post(run.url_server_address + "/predict/")
@@ -877,12 +877,12 @@ class TestDrumRuntime:
         assert drum_server_run.process.returncode == 1
         assert error_message in drum_server_run.process.err_stream
 
-    @pytest.mark.parametrize("force_start", [False, True])
-    def test_e2e_no_model_artifact(self, params, force_start):
+    @pytest.mark.parametrize("with_error_server", [False, True])
+    def test_e2e_no_model_artifact(self, params, with_error_server):
         """
         Verify that if an error occurs on drum server initialization if no model artifact is found
-          - if '--force-start-internal' is not set, drum server process will exit with error
-          - if '--force-start-internal' is set, 'error server' will still be started, and
+          - if '--with-error-server' is not set, drum server process will exit with error
+          - if '--with-error-server' is set, 'error server' will still be started, and
             will be serving initialization error
         """
         _, _, custom_model_dir, server_run_args = params
@@ -894,14 +894,14 @@ class TestDrumRuntime:
             if item.endswith(PythonArtifacts.PKL_EXTENSION):
                 os.remove(os.path.join(custom_model_dir, item))
 
-        self.assert_drum_server_run_failure(server_run_args, force_start, error_message)
+        self.assert_drum_server_run_failure(server_run_args, with_error_server, error_message)
 
-    @pytest.mark.parametrize("force_start", [False, True])
-    def test_e2e_model_loading_fails(self, params, force_start):
+    @pytest.mark.parametrize("with_error_server", [False, True])
+    def test_e2e_model_loading_fails(self, params, with_error_server):
         """
         Verify that if an error occurs on drum server initialization if model cannot load properly
-          - if '--force-start-internal' is not set, drum server process will exit with error
-          - if '--force-start-internal' is set, 'error server' will still be started, and
+          - if '--with-error-server' is not set, drum server process will exit with error
+          - if '--with-error-server' is set, 'error server' will still be started, and
             will be serving initialization error
         """
         _, _, custom_model_dir, server_run_args = params
@@ -916,20 +916,20 @@ class TestDrumRuntime:
                 with open(os.path.join(custom_model_dir, item), "wb") as f:
                     f.write(pickle.dumps("invalid model content"))
 
-        self.assert_drum_server_run_failure(server_run_args, force_start, error_message)
+        self.assert_drum_server_run_failure(server_run_args, with_error_server, error_message)
 
-    @pytest.mark.parametrize("force_start", [False, True])
-    def test_e2e_predict_fails(self, params, force_start):
+    @pytest.mark.parametrize("with_error_server", [False, True])
+    def test_e2e_predict_fails(self, params, with_error_server):
         """
         Verify that if an error occurs when drum server is started on /predict/ route,
-        regardless '--force-start-internal' flag 'error server' will is not started.
+        regardless '--with-error-server' flag 'error server' will is not started.
         """
         framework, problem, custom_model_dir, server_run_args = params
 
         # remove a module required during processing of /predict/ request
         os.remove(os.path.join(custom_model_dir, "custom.py"))
 
-        drum_server_run = DrumServerRun(**server_run_args, force_start=force_start)
+        drum_server_run = DrumServerRun(**server_run_args, with_error_server=with_error_server)
 
         with drum_server_run as run:
             input_dataset = TestCMRunner._get_dataset_filename(framework, problem)

@@ -33,7 +33,7 @@ class DrumRuntime:
             # running 'error server' in docker mode is not supported
             return False  # propagate exception further
 
-        if not self.options.force_start_internal:
+        if not self.options.with_error_server:
             # force start is not set
             return False  # propagate exception further
 
