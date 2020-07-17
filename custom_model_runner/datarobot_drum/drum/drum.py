@@ -138,8 +138,10 @@ class CMRunner(object):
             all_files_message = "\n\nFiles(100 first) found in {}:\n{}\n".format(
                 code_dir_abspath, "\n".join(sorted(os.listdir(code_dir_abspath))[0:100])
             )
-            self.logger.error(error_mes + all_files_message)
-            exit(1)
+
+            error_mes += all_files_message
+            self.logger.error(error_mes)
+            raise DrumCommonException(error_mes)
 
         run_language = custom_language if custom_language is not None else artifact_language
         return run_language
@@ -149,12 +151,12 @@ class CMRunner(object):
             if self.options.docker:
                 ret = self._run_inside_docker(self.options, self.run_mode)
                 if ret:
-                    exit(1)
+                    raise DrumCommonException('Error from docker process: {}'.format(ret))
                 else:
                     return
         except DrumCommonException as e:
             self.logger.error(e)
-            exit(1)
+            raise
         except AttributeError:
             # In some parser the options.docker does not exists
             pass
@@ -189,8 +191,9 @@ class CMRunner(object):
         elif self.run_mode == RunMode.NEW:
             self._generate_template()
         else:
-            print("{} mode is not implemented".format(self.run_mode))
-            exit(1)
+            error_message = "{} mode is not implemented".format(self.run_mode)
+            print(error_message)
+            raise DrumCommonException(error_message)
 
     def run_test_predict(self):
         self.run_mode = RunMode.SCORE
@@ -314,8 +317,9 @@ class CMRunner(object):
             run_language = RunLanguage.PYTHON
             infra_pipeline_str = self._prepare_fit_pipeline(run_language)
         else:
-            print("{} mode is not supported here".format(self.run_mode))
-            exit(1)
+            error_message = "{} mode is not supported here".format(self.run_mode)
+            print(error_message)
+            raise DrumCommonException(error_message)
 
         config = ExecutorConfig(
             pipeline=infra_pipeline_str,
@@ -486,7 +490,7 @@ def possibly_intuit_order(input_data_file, target_data_file=None, target_col_nam
                 target_col_name, list(df.columns)
             )
             print(e, file=sys.stderr)
-            exit(1)
+            raise DrumCommonException(e)
         classes = np.unique(df[target_col_name].sample(1000, random_state=1, replace=True))
     if len(classes) == 2:
         return classes

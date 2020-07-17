@@ -4,6 +4,7 @@ import os
 import pandas as pd
 
 from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.exceptions import DrumCommonException
 from mlpiper.components.connectable_component import ConnectableComponent
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
@@ -19,7 +20,7 @@ except ImportError:
         "Available for Python>=3.6"
     )
     logger.error(error_message)
-    exit(1)
+    raise DrumCommonException(error_message)
 
 
 pandas2ri.activate()
@@ -72,12 +73,13 @@ class RPredictor(ConnectableComponent):
             py_df = pd.DataFrame({"Predictions": py_df})
 
         if not isinstance(py_df, pd.DataFrame):
-            logger.error(
+            error_message = (
                 "Expected predictions type: {}, actual: {}. "
                 "Are you trying to run binary classification without class labels provided?".format(
                     pd.DataFrame, type(py_df)
                 )
             )
-            exit(1)
+            logger.error(error_message)
+            raise DrumCommonException(error_message)
 
         return [py_df]
