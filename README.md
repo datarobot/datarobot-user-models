@@ -19,14 +19,15 @@ debugging, testing, and running your training and inference models with DataRobo
 This repository address the DataRobot functionality known as `custom models`. The terms `custom model` and `user model` can be used interchangeably, as can `custom model directory` and `code directory`.
 
 ## Quickstart <a name="quickstart"></a>
-The following example shows how to use the [**drum**](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) tool to make predictions on an [sklearn model](model_templates/inference/python3_sklearn)
+The following example shows how to use the [**drum**](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) tool to make predictions on an [sklearn regression model](model_templates/inference/python3_sklearn)
 1. Clone the repository
 2. Create a virtual environment: `python3 -m virtualenv <dirname for virtual environment>`
 3. Activate the virtual environment: `source <dirname for virtual environment>/bin/activate`
 4. cd into the repo: `cd datarobot-user-models`
 5. Install the required dependencies: `pip install -r public_dropin_environments/python3_sklearn/requirements.txt`
 6. Install datarobot-drum: `pip install datarobot-drum`
-7. Run the example: `drum score --code-dir model_templates/inference/python3_sklearn --input tests/testdata/boston_housing.csv`
+7. Run the example: `drum score --code-dir model_templates/inference/python3_sklearn --input tests/testdata/boston_housing.csv`  
+    > Note: this command assumes model is regression. For binary classification model provide: _**positive-class-label**_ and _**negative-class-label**_ arguments.
 
 For more examples, reference the [Custom Model Templates](#custom_model_templates).
 
