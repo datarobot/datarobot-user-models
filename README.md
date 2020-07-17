@@ -190,6 +190,8 @@ file, if necessary.
 For detailed information on how to create models that work in these environments, reference the links above for each environment.
 
 ## Building your own environment
+>Note: DataRobot recommends using an environment template and not building your own environment except for specific use cases. (For example: you don't want to use **drum** but you want to implement your own prediction server.)
+
 If you'd like to use a tool/language/framework that is not supported by our template environments, you can make your own. DataRobot recommends modifying the provided environments to suit your needs. However, to make an easy to use, re-usable environment, you should adhere to the following guidelines:
 
 1) Your environment must include a Dockerfile that installs any requirements you may want.

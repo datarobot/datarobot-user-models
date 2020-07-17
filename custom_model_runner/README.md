@@ -12,7 +12,7 @@ However, this testing is only for development purposes. DataRobot recommends tha
 - perform model validation tests, e.g., checking model functionality on corner cases, like null values imputation.
 - run models in a Docker container.
 
-## Custom inference models
+## Custom inference models quickstart guide
 View examples [here](https://github.com/datarobot/datarobot-user-models#quickstart).
 
 ## Custom training models
