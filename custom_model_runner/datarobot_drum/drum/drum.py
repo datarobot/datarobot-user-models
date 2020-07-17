@@ -151,7 +151,7 @@ class CMRunner(object):
             if self.options.docker:
                 ret = self._run_inside_docker(self.options, self.run_mode)
                 if ret:
-                    raise DrumCommonException('Error from docker process: {}'.format(ret))
+                    raise DrumCommonException("Error from docker process: {}".format(ret))
                 else:
                     return
         except DrumCommonException as e:
