@@ -81,6 +81,7 @@ This command creates a folder with a `custom.py/R` file and a short description:
 
 ### Batch scoring mode
 <a name="score"></a>
+> Note: **drum** doesn't automatically distinguish between regression and classification. When you are using classification model, provide: _**positive-class-label**_ and _**negative-class-label**_ arguments.
 #### Run a binary classification custom model
 Make batch predictions with a binary classification model. Optionally, specify an output file. Otherwise, predictions are returned to the command line:  
 ```drum score --code-dir ~/user_code_dir/ --input 10k.csv  --positive-class-label yes --negative-class-label no --output 10k-results.csv --verbose```
