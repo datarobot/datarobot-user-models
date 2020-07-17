@@ -14,7 +14,7 @@ from texttable import Texttable
 from tempfile import mkdtemp, NamedTemporaryFile
 
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
-from datarobot_drum.drum.exceptions import DrumPerfTestTimeout
+from datarobot_drum.drum.exceptions import DrumCommonException, DrumPerfTestTimeout
 from datarobot_drum.drum.utils import CMRunnerUtils
 from datarobot_drum.drum.common import RunMode, ArgumentsOptions
 
@@ -138,8 +138,9 @@ class CMRunTests:
             time.sleep(1)
             self._timeout = self._timeout - 1
             if self._timeout == 0:
-                print("Error: server failed to start while running performance testing")
-                exit(1)
+                error_message = "Error: server failed to start while running performance testing"
+                print(error_message)
+                raise DrumCommonException(error_message)
 
     def _build_cmrun_cmd(self):
         cmd_list = [
@@ -276,8 +277,9 @@ class CMRunTests:
     def performance_test(self):
         _find_and_kill_cmrun_server_process(self.options.verbose)
         if CMRunnerUtils.is_port_in_use(self._server_addr, self._server_port):
-            print("\nError: address: {} is in use".format(self._url_server_address))
-            exit(1)
+            error_message = "\nError: address: {} is in use".format(self._url_server_address)
+            print(error_message)
+            raise DrumCommonException(error_message)
 
         cmd_list = self._build_cmrun_cmd()
         self._server_process = subprocess.Popen(cmd_list, env=os.environ)
