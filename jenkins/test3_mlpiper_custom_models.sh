@@ -38,7 +38,7 @@ if [ -t 1 ] ; then
 fi
 
 echo "detected machine=$machine url_host: $url_host"
-# Note : The mapping of /tmp is criticall so the code inside the docker can run the tests.
+# Note : The mapping of /tmp is critical so the code inside the docker can run the tests.
 #        Since one of the tests is using a docker the second docker can only share a host file
 #        system with the first docker.
 # Note: The --network=host will allow a code running inside the docker to access the host network
