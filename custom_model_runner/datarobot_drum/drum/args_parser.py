@@ -329,10 +329,10 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
-    def _reg_arg_force_start_internal(*parsers):
+    def _reg_arg_with_error_server(*parsers):
         for parser in parsers:
             parser.add_argument(
-                "--force-start-internal",
+                "--with-error-server",
                 action="store_true",
                 default=False,
                 help="Start server even if pipeline initialization fails.",
@@ -422,7 +422,7 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_arg_address(server_parser)
         CMRunnerArgsRegistry._reg_arg_threaded(server_parser)
         CMRunnerArgsRegistry._reg_arg_in_perf_mode_internal(server_parser)
-        CMRunnerArgsRegistry._reg_arg_force_start_internal(server_parser)
+        CMRunnerArgsRegistry._reg_arg_with_error_server(server_parser)
 
         CMRunnerArgsRegistry._reg_arg_language(new_model_parser)
 
