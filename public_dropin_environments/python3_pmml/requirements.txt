@@ -1,4 +1,4 @@
 pypmml==0.9.6
-numpy==1.18.4
+numpy==1.19.0
 pandas==1.0.3
 scikit-learn==0.23.1
