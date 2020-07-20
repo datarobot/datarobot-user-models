@@ -55,7 +55,6 @@ class CMRunner(object):
 
     @staticmethod
     def _config_logger(options):
-        logging.basicConfig(format="%(asctime)-15s %(levelname)s %(name)s:  %(message)s")
         logger = logging.getLogger(LOGGER_NAME_PREFIX)
         logger.setLevel(LOG_LEVELS[options.logging_level])
         return logger

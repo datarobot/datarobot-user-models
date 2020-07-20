@@ -1,10 +1,18 @@
+import logging
+import traceback
 from datarobot_drum.drum.server import (
     base_api_blueprint,
     get_flask_app,
     HTTP_513_DRUM_PIPELINE_ERROR,
 )
+from datarobot_drum.drum.common import (
+    RunMode,
+    verbose_stdout,
+    LOGGER_NAME_PREFIX,
+)
 
-from datarobot_drum.drum.common import RunMode, verbose_stdout
+logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
+logger.setLevel(logging.ERROR)
 
 
 class DrumRuntime:
@@ -18,6 +26,11 @@ class DrumRuntime:
     def __exit__(self, exc_type, exc_value, exc_traceback):
         if not exc_type:
             return True  # no exception, just return
+
+        # log exception
+        exc_msg_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+        exc_msg = "".join(exc_msg_lines)
+        logger.error(exc_msg)
 
         if not self.options:
             # exception occurred before args were parsed
