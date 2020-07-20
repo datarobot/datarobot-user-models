@@ -33,11 +33,13 @@ import os
 import signal
 import sys
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
+from datarobot_drum.drum.common import config_logging
 from datarobot_drum.drum.runtime import DrumRuntime
 
 
 def main():
     with DrumRuntime() as runtime:
+        config_logging()
 
         def signal_handler(sig, frame):
             # The signal is assigned so the stacktrace is not presented when Ctrl-C is pressed.

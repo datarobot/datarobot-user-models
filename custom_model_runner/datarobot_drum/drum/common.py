@@ -139,3 +139,7 @@ def verbose_stdout(verbose):
         yield new_target
     finally:
         sys.stdout = old_target
+
+
+def config_logging():
+    logging.basicConfig(format="%(asctime)-15s %(levelname)s %(name)s:  %(message)s")
