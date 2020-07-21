@@ -13,7 +13,7 @@ import re
 from io import StringIO
 from contextlib import closing
 
-from datarobot_drum.drum.common import LOGGER_NAME_PREFIX, EnvVarNames
+from datarobot_drum.drum.common import LOGGER_NAME_PREFIX, EnvVarNames, JavaArtifacts
 from mlpiper.components.connectable_component import ConnectableComponent
 
 from py4j.java_gateway import GatewayParameters, CallbackServerParameters
