@@ -1,6 +1,7 @@
 ## H2O POJO Template
 
 __WIP__
+__TESTS ARE COMING__
 
 These models are inteded to work with the [Java Drop-In Environment](../../../public_dropin_environments/java_codegen/).
 
