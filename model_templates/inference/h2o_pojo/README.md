@@ -22,7 +22,7 @@ For the time being, the POJO must be compiled and the entire folder would by loa
 * regression - boston housing pricing dataset with target `MEDV`. 
 
 ### To run locally using 'drum'
-Paths are relative to `./datarobot-user-models`:  
+Paths are relative to `./datarobot-user-models/model_templates/inference/h2o_pojo`:  
 
 #### Binary 
 
@@ -30,7 +30,7 @@ First, compile the pojo
 
 `javac -cp h2o-genmodel-3.30.0.6.jar binary/XGBoost_grid__1_AutoML_20200717_163214_model_159.java`
 
-`drum score --code-dir ./h2o_pojo/binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label 1 --negative-class-label 0`
+`drum score --code-dir ./binary --input ../../../tests/testdata/iris_binary_training.csv --positive-class-label 1 --negative-class-label 0`
 
 #### Regression 
 
@@ -38,4 +38,4 @@ First, compile the pojo
 
 `javac -cp h2o-genmodel-3.30.0.6.jar regression/drf_887c2e5b_0941_40b7_ae26_cae274c4b424.java`
 
-`drum score --code-dir ./h2o_pojo/regression --input ../../tests/testdata/boston_housing.csv`
+`drum score --code-dir ./regression --input ../../../tests/testdata/boston_housing.csv`
