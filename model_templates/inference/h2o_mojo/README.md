@@ -22,8 +22,6 @@ Upload the a H2O Mojo file as the only file in the custom model and use the Java
 ### Examples
 
 * Binary - The binary example is based on the iris dataset
-* Lending Club - lending club data set with Binary target `is_bad`
-* Readmission - 10K diabetes dataset with Binary target `readmit`
 * regression - boston housing pricing dataset with target `MEDV`. 
 
 ### To run locally using 'drum'
@@ -31,9 +29,6 @@ Paths are relative to `./datarobot-user-models`:
 
 #### Binary 
 `drum score --code-dir ./h2o_mojo/binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label 1 --negative-class-label 0`
-#### Lending Club 
-`drum score --code-dir ./h2o_mojo/lendingclub --input ../../tests/testdata/10K_Lending_Club_Loans.csv --positive-class-label 1 --negative-class-label 0`
-#### Readmission 
-`drum score --code-dir ./h2o_mojo/readmission --input ../../tests/testdata/diabetes_with_week_no_period.csv --positive-class-label 1 --negative-class-label 0`
+
 #### Regression 
 `drum score --code-dir ./h2o_mojo/regression --input ../../tests/testdata/boston_housing.csv`
