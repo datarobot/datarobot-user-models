@@ -23,6 +23,8 @@ RUN apt-get update && \
         libxml2-dev \
         python3-pip \
         python3-dev \
+        openjdk-11-jdk \
+        openjdk-11-jre \
         libgomp1 \
         gcc \
         libc6-dev \
