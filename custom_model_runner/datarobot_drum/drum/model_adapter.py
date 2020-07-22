@@ -1,16 +1,14 @@
-import glob
+from pathlib import Path
 import logging
 import os
 import pickle
 import sys
 import textwrap
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
 import sklearn
 
-from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
 from datarobot_drum.drum.artifact_predictors.keras_predictor import KerasPredictor
 from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
 from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPredictor
@@ -24,6 +22,7 @@ from datarobot_drum.drum.common import (
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
     REGRESSION_PRED_COLUMN,
 )
+from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 
@@ -51,14 +50,16 @@ class PythonModelAdapter:
             self._custom_hooks[hook] = None
 
     def load_custom_hooks(self):
-        custom_file_path = os.path.join(self._model_dir, CUSTOM_FILE_NAME + ".py")
+        custom_file_paths = list(Path(self._model_dir).rglob("{}.py".format(CUSTOM_FILE_NAME)))
+        assert len(custom_file_paths) <= 1
 
-        if not os.path.isfile(custom_file_path):
-            print("No file detected at {}".format(custom_file_path))
+        if len(custom_file_paths) == 0:
+            print("No {}.py file detected in {}".format(CUSTOM_FILE_NAME, self._model_dir))
             return
 
+        custom_file_path = custom_file_paths[0]
         print("Detected {} .. trying to load hooks".format(custom_file_path))
-        sys.path.insert(0, self._model_dir)
+        sys.path.insert(0, os.path.dirname(custom_file_path))
 
         try:
             custom_module = __import__(CUSTOM_FILE_NAME)
@@ -284,8 +285,7 @@ class PythonModelAdapter:
         """
         model_dir_limit = 100
         marked_object = None
-        sys.path.insert(0, self._model_dir)
-        files_in_model_dir = glob.glob(self._model_dir + "/*.py")
+        files_in_model_dir = list(Path(self._model_dir).rglob("*.py"))
         if len(files_in_model_dir) == 0:
             return False
         if len(files_in_model_dir) > model_dir_limit:
@@ -295,6 +295,7 @@ class PythonModelAdapter:
             return False
         for filepath in files_in_model_dir:
             filename = os.path.basename(filepath)
+            sys.path.insert(0, os.path.dirname(filepath))
             try:
                 module = __import__(filename[:-3])
             except ImportError as e:
