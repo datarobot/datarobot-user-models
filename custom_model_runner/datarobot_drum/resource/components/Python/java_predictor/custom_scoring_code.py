@@ -23,7 +23,7 @@ from py4j.java_gateway import JavaGateway
 class CustomScoringCode(ConnectableComponent):
     JAVA_COMPONENT_ENTRY_POINT_CLASS = "com.datarobot.custom.PredictorEntryPoint"
     JAVA_COMPONENT_CLASS_NAME = "com.datarobot.custom.ScoringCode"
-    JAVA_COMPONENT_CLASS_NAME_2 = "com.datarobot.custom.H2OPredictor"    
+    JAVA_COMPONENT_CLASS_NAME_2 = "com.datarobot.custom.H2OPredictor"
 
     def __init__(self, engine):
         super(CustomScoringCode, self).__init__(engine)
@@ -48,8 +48,11 @@ class CustomScoringCode(ConnectableComponent):
         self.custom_model_path = self._params["__custom_model_path__"]
         self.positive_class_label = self._params.get("positiveClassLabel")
         self.negative_class_label = self._params.get("negativeClassLabel")
-        ## retrieve the extension of the main java model artifact        
-        ext_re = re.search("({})|({})|({})".format(*JavaArtifacts.ALL), ",".join(os.listdir(self.custom_model_path)))
+        ## retrieve the extension of the main java model artifact
+        ext_re = re.search(
+            "({})|({})|({})".format(*JavaArtifacts.ALL),
+            ",".join(os.listdir(self.custom_model_path)),
+        )
         self.model_artifact_extension = ext_re.group()
 
         self._init_py4j_and_load_predictor()
@@ -97,7 +100,9 @@ class CustomScoringCode(ConnectableComponent):
                 java_cp,
                 CustomScoringCode.JAVA_COMPONENT_ENTRY_POINT_CLASS,
                 "--class-name",
-                CustomScoringCode.JAVA_COMPONENT_CLASS_NAME if self.model_artifact_extension == ".jar" else CustomScoringCode.JAVA_COMPONENT_CLASS_NAME_2,  ## this needs to change
+                CustomScoringCode.JAVA_COMPONENT_CLASS_NAME
+                if self.model_artifact_extension == ".jar"
+                else CustomScoringCode.JAVA_COMPONENT_CLASS_NAME_2,  ## this needs to change
                 "--port",
                 str(self._java_port),
             ]
