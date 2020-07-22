@@ -251,8 +251,10 @@ class TestCMRunner:
 
     @classmethod
     def _create_custom_model_dir(
-        cls, custom_model_dir, framework, problem, language, is_training=False
+        cls, custom_model_dir, framework, problem, language, is_training=False, nested=False
     ):
+        if nested:
+            custom_model_dir = custom_model_dir.joinpath("nested_dir")
         custom_model_dir.mkdir(parents=True, exist_ok=True)
         if is_training:
             model_template_dir = cls.paths_to_training_models[(language, framework)]
@@ -650,10 +652,11 @@ class TestCMRunner:
     @pytest.mark.parametrize("docker", [DOCKER_PYTHON_SKLEARN, None])
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
     @pytest.mark.parametrize("use_output", [True, False])
-    def test_fit(self, framework, problem, language, docker, weights, use_output, tmp_path):
+    @pytest.mark.parametrize("nested", [True, False])
+    def test_fit(self, framework, problem, language, docker, weights, use_output, tmp_path, nested):
         custom_model_dir = tmp_path / "custom_model"
         self._create_custom_model_dir(
-            custom_model_dir, framework, problem, language, is_training=True
+            custom_model_dir, framework, problem, language, is_training=True, nested=nested
         )
 
         input_dataset = self._get_dataset_filename(framework, problem)
@@ -745,7 +748,7 @@ class TestCMRunner:
     def test_fit_simple(self, tmp_path):
         custom_model_dir = tmp_path / "custom_model"
         self._create_custom_model_dir(
-            custom_model_dir, SIMPLE, REGRESSION, PYTHON, is_training=True
+            custom_model_dir, SIMPLE, REGRESSION, PYTHON, is_training=True, nested=True
         )
 
         input_dataset = self._get_dataset_filename(SKLEARN, REGRESSION)
