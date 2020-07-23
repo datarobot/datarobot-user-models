@@ -70,6 +70,13 @@ def java_drop_in_env():
     return environment.id, environment_version.id
 
 
+def java_h2o_drop_in_env():
+    env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "java_h2o")
+    environment = dr.ExecutionEnvironment.create(name="java_h2o_drop_in")
+    environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
+    return environment.id, environment_version.id
+
+
 @pytest.fixture(scope="session")
 def sklearn_drop_in_env():
     env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "python3_sklearn")

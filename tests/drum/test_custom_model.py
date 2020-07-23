@@ -13,6 +13,7 @@ from threading import Thread
 from unittest import mock
 from uuid import uuid4
 
+import re
 import numpy as np
 import pandas as pd
 import pytest
@@ -44,6 +45,9 @@ PYPMML = "pypmml"
 RDS = "rds"
 CODEGEN = "jar"
 MULTI_ARTIFACT = "multiartifact"
+
+POJO = "java"
+MOJO = "zip"
 
 # Problem keywords, used to mark datasets
 REGRESSION = "regression"
@@ -205,6 +209,18 @@ class TestCMRunner:
             (RDS, BINARY): os.path.join(cls.tests_artifacts_path, "r_bin.rds"),
             (CODEGEN, REGRESSION): os.path.join(cls.tests_artifacts_path, "java_reg.jar"),
             (CODEGEN, BINARY): os.path.join(cls.tests_artifacts_path, "java_bin.jar"),
+            (MOJO, REGRESSION): os.path.join(cls.tests_artifacts_path, "mojo_reg.zip"),
+            (MOJO, BINARY): os.path.join(cls.tests_artifacts_path, "mojo_bin.zip"),
+            (POJO, REGRESSION): os.path.join(
+                cls.tests_artifacts_path,
+                "pojo_reg",
+                "drf_887c2e5b_0941_40b7_ae26_cae274c4b424.java",
+            ),
+            (POJO, BINARY): os.path.join(
+                cls.tests_artifacts_path,
+                "pojo_bin",
+                "XGBoost_grid__1_AutoML_20200717_163214_model_159.java",
+            ),
             (PYPMML, REGRESSION): os.path.join(cls.tests_artifacts_path, "iris_reg.pmml"),
             (PYPMML, BINARY): os.path.join(cls.tests_artifacts_path, "iris_bin.pmml"),
         }
@@ -268,6 +284,18 @@ class TestCMRunner:
                     artifact_filenames = [artifact_filenames]
                 for filename in artifact_filenames:
                     shutil.copy2(filename, custom_model_dir)
+                    print(filename)
+                    ## need to compile pojo here (i think)
+                    # if ".java" in filename:
+                    if framework == POJO:
+                        new_filename = os.listdir(custom_model_dir).pop(0)
+                        pojo_compile_cmd = [
+                            "javac",
+                            "-cp",
+                            "./model_templates/inference/h2o_pojo/h2o-genmodel-3.30.0.6.jar",
+                        ]
+                        pojo_compile_cmd.append(os.path.join(custom_model_dir, new_filename))
+                        subprocess.run(pojo_compile_cmd)
 
             fixture_filename, rename = cls._get_fixture_filename(language)
             if fixture_filename:
@@ -323,6 +351,10 @@ class TestCMRunner:
             (RDS, BINARY, R, None),
             (CODEGEN, REGRESSION, NO_CUSTOM, None),
             (CODEGEN, BINARY, NO_CUSTOM, None),
+            (MOJO, REGRESSION, NO_CUSTOM, None),
+            (MOJO, BINARY, NO_CUSTOM, None),
+            (POJO, REGRESSION, NO_CUSTOM, None),
+            (POJO, BINARY, NO_CUSTOM, None),
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
             (PYPMML, REGRESSION, NO_CUSTOM, None),
             (PYPMML, BINARY, NO_CUSTOM, None),
@@ -496,6 +528,10 @@ class TestCMRunner:
             (RDS, BINARY, R, None),
             (CODEGEN, REGRESSION, NO_CUSTOM, None),
             (CODEGEN, BINARY, NO_CUSTOM, None),
+            (MOJO, REGRESSION, NO_CUSTOM, None),
+            (MOJO, BINARY, NO_CUSTOM, None),
+            (POJO, REGRESSION, NO_CUSTOM, None),
+            (POJO, BINARY, NO_CUSTOM, None),
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
             (PYPMML, REGRESSION, NO_CUSTOM, None),
             (PYPMML, BINARY, NO_CUSTOM, None),
@@ -506,6 +542,7 @@ class TestCMRunner:
     ):
         custom_model_dir = tmp_path / "custom_model"
         TestCMRunner._create_custom_model_dir(custom_model_dir, framework, problem, language)
+        ### come back here
 
         with DrumServerRun(framework, problem, custom_model_dir, docker) as run:
             input_dataset = self._get_dataset_filename(framework, problem)
