@@ -44,13 +44,13 @@ class CMRunner(object):
         self.run_mode = RunMode(runtime.options.subparser_name)
 
         self._functional_pipelines = {
-            (RunMode.SCORE, RunLanguage.PYTHON): "python_predictor.json.j2",
-            (RunMode.SERVER, RunLanguage.PYTHON): "python_predictor_for_server.json.j2",
-            (RunMode.SCORE, RunLanguage.R): "r_predictor.json.j2",
-            (RunMode.SERVER, RunLanguage.R): "r_predictor_for_server.json.j2",
-            (RunMode.SCORE, RunLanguage.JAVA): "java_predictor.json.j2",
-            (RunMode.SERVER, RunLanguage.JAVA): "java_predictor_for_server.json.j2",
             (RunMode.FIT, RunLanguage.PYTHON): "python_fit.json.j2",
+        }
+
+        self._predictor_components = {
+            RunLanguage.PYTHON: "python_predictor",
+            RunLanguage.R: "r_predictor",
+            RunLanguage.JAVA: "java_predictor",
         }
 
     @staticmethod
@@ -217,8 +217,9 @@ class CMRunner(object):
         options = self.options
         # functional pipeline is predictor pipeline
         # they are a little different for batch and server predictions.
-        functional_pipeline_name = self._functional_pipelines[(self.run_mode, run_language)]
-        functional_pipeline_filepath = CMRunnerUtils.get_pipeline_filepath(functional_pipeline_name)
+        functional_pipeline_filepath = CMRunnerUtils.get_pipeline_filepath(
+            "prediction_pipeline.json.j2"
+        )
         # fields to replace in the functional pipeline (predictor)
         replace_data = {
             "positiveClassLabel": '"{}"'.format(options.positive_class_label)
@@ -228,6 +229,7 @@ class CMRunner(object):
             if options.negative_class_label
             else "null",
             "customModelPath": os.path.abspath(options.code_dir),
+            "predictor_component": self._predictor_components[run_language],
         }
 
         if self.run_mode == RunMode.SCORE:
@@ -235,6 +237,15 @@ class CMRunner(object):
                 {
                     "input_filename": options.input,
                     "output_filename": '"{}"'.format(options.output) if options.output else "null",
+                    "data_input_component": "csv_to_df",
+                    "data_output_component": "df_to_csv",
+                }
+            )
+        elif self.run_mode == RunMode.SERVER:
+            replace_data.update(
+                {
+                    "data_input_component": "shared_mem_to_df",
+                    "data_output_component": "df_to_shared_mem",
                 }
             )
 
