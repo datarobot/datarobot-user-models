@@ -1,0 +1,19 @@
+  {
+      "name": "Python Default Predictor",
+      "engineType": "RestModelServing",
+      "pipe": [
+          {
+              "name": "DF Source",
+              "id": 1,
+              "type": "uwsgi_serving",
+              "parents": [],
+              "arguments": {
+                  "positiveClassLabel": {{ positiveClassLabel }},
+                  "negativeClassLabel": {{ negativeClassLabel }},
+                  "__custom_model_path__": "{{ customModelPath }}",
+                  "run_language": "{{ run_language }}",
+                  "port": {{ port }}
+              }
+          }
+      ]
+  }

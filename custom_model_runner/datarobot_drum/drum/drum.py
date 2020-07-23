@@ -1,4 +1,5 @@
 import glob
+import json
 import logging
 import os
 import shutil
@@ -15,6 +16,7 @@ import numpy as np
 import pandas as pd
 from mlpiper.pipeline.executor import Executor
 from mlpiper.pipeline.executor_config import ExecutorConfig
+from mlpiper.pipeline import json_fields
 
 from datarobot_drum.drum.common import (
     ArgumentsOptions,
@@ -36,7 +38,8 @@ from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.utils import CMRunnerUtils
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 
-PREDICTION_SERVER_PIPELINE = "prediction_server_pipeline.json.j2"
+FLASK_SERVER_PIPELINE = "prediction_server_pipeline.json.j2"
+UWSGI_SERVER_PIPELINE = "uwsgi_pipeline.json.j2"
 PREDICTOR_PIPELINE = "prediction_pipeline.json.j2"
 
 
@@ -290,9 +293,12 @@ class CMRunner(object):
 
     def _prepare_prediction_server_or_batch_pipeline(self, run_language):
         options = self.options
-        functional_pipeline_name = (
-            PREDICTION_SERVER_PIPELINE if self.run_mode == RunMode.SERVER else PREDICTOR_PIPELINE
-        )
+        if self.run_mode == RunMode.SERVER:
+            functional_pipeline_name = (
+                UWSGI_SERVER_PIPELINE if options.production else FLASK_SERVER_PIPELINE
+            )
+        else:
+            functional_pipeline_name = PREDICTOR_PIPELINE
         functional_pipeline_filepath = CMRunnerUtils.get_pipeline_filepath(functional_pipeline_name)
 
         # fields to replace in the pipeline
@@ -330,6 +336,13 @@ class CMRunner(object):
             functional_pipeline_filepath, replace_data
         )
 
+        if self.run_mode == RunMode.SERVER:
+            if options.production:
+                pipeline_json = json.loads(functional_pipeline_str)
+                if json_fields.PIPELINE_SYSTEM_CONFIG_FIELD not in pipeline_json:
+                    system_config = {"modelFileSourcePath": os.path.abspath(__file__)}
+                pipeline_json[json_fields.PIPELINE_SYSTEM_CONFIG_FIELD] = system_config
+                functional_pipeline_str = json.dumps(pipeline_json)
         return functional_pipeline_str
 
     def _prepare_fit_pipeline(self, run_language):

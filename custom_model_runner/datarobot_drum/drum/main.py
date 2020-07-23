@@ -46,6 +46,7 @@ def main():
             # The cleanup itself is done only if we are NOT running in performance test mode which
             # has its own cleanup
             print("\nCtrl+C pressed, aborting drum")
+            exit(1)
 
             if (
                 runtime.options
