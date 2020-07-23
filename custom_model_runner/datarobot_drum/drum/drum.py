@@ -17,6 +17,7 @@ from mlpiper.pipeline.executor_config import ExecutorConfig
 
 from datarobot_drum.drum.common import (
     ArgumentsOptions,
+    CUSTOM_FILE_NAME,
     JavaArtifacts,
     LOG_LEVELS,
     LOGGER_NAME_PREFIX,
@@ -171,9 +172,9 @@ class CMRunner(object):
         is_py = False
 
         # check which custom code files present in the code dir
-        custom_py_paths = list(Path(code_dir_abspath).rglob("{}.py".format("custom")))
-        custom_r_paths = list(Path(code_dir_abspath).rglob("{}.r".format("custom"))) + list(
-            Path(code_dir_abspath).rglob("{}.R".format("custom"))
+        custom_py_paths = list(Path(code_dir_abspath).rglob("{}.py".format(CUSTOM_FILE_NAME)))
+        custom_r_paths = list(Path(code_dir_abspath).rglob("{}.r".format(CUSTOM_FILE_NAME))) + list(
+            Path(code_dir_abspath).rglob("{}.R".format(CUSTOM_FILE_NAME))
         )
 
         # if only one custom file found, set it:
