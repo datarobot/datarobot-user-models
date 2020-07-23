@@ -25,6 +25,7 @@ except ImportError:
 pandas2ri.activate()
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 R_FIT_PATH = os.path.join(CUR_DIR, "fit.R")
+R_COMMON_PATH = os.path.abspath(os.path.join(CUR_DIR, "..", "r_common_code", "common.R"))
 
 r_handler = ro.r
 
@@ -57,6 +58,7 @@ class RFit(ConnectableComponent):
         self.target_filename = self._params.get("targetFilename")
         self.num_rows = self._params["numRows"]
 
+        r_handler.source(R_COMMON_PATH)
         r_handler.source(R_FIT_PATH)
         r_handler.init(self.custom_model_path)
 

@@ -11,58 +11,6 @@ post_process_hook <- FALSE
 REGRESSION_PRED_COLUMN_NAME <- "Predictions"
 CUSTOM_MODEL_FILE_EXTENSION <- ".rds"
 
-#' Import R source files as a named package
-#'
-#' @param srcFiles character, file paths to load as the package
-#' @param pkgName character or NULL, name to give the package
-#'
-#' @return bool, TRUE if the package was succussfully loaded, FALSE otherwise
-#' @export
-#'
-#' @examples import("~/Documents/R/custom.R", "myPackage")
-import <- function(srcFiles, pkgName = "custom") {
-    dd <- tempdir()
-    on.exit(unlink(file.path(dd, pkgName), recursive=TRUE))
-    tryCatch(
-        {
-            package.skeleton(name=pkgName, path = dd, code_files=srcFiles)
-            load_all(file.path(dd, pkgName))
-            return(TRUE)
-        },
-        error = function(cond) {
-            message(c(cond, "\n"))
-            return(FALSE)
-        }
-    )
-}
-
-#' Get a method from a package
-#'
-#' @param name character, the name of the method to retrieve
-#' @param pkgName character or NULL, the package to look in for the method
-#'
-#' @return function if the method is found or FALSE
-#' @export
-#'
-#' @examples getHookMethod("foo", "myPackage")
-getHookMethod <- function(name, pkgName = "custom") {
-    tryCatch(
-        {
-            hook = getExportedValue(pkgName, name)
-            if (is.function(hook)) {
-                return(hook)
-            } else {
-                message(name, " is not a method")
-                return(FALSE)
-            }
-        },
-        error = function(cond) {
-            message(c(cond, "\n"))
-            return(FALSE)
-        }
-    )
-}
-
 init <- function(code_dir) {
     custom_path <- file.path(code_dir, "custom.R")
     custom_loaded <- import(custom_path)
@@ -73,7 +21,7 @@ init <- function(code_dir) {
         score_hook <<- getHookMethod("score")
         post_process_hook <<- getHookMethod("post_process")
     }
-    
+
     if (!isFALSE(init_hook)) {
         init_hook(code_dir=code_dir)
     }
@@ -185,7 +133,7 @@ outer_predict <- function(data, model=NULL, positive_class_label=NULL, negative_
             stop(sprintf("%s must return a data.frame", hook))
         }
     }
-    
+
     .validate_predictions <- function(to_validate, hook) {
         .validate_data(to_validate, hook)
         if (!is.null(positive_class_label) & !is.null(negative_class_label)) {
@@ -210,11 +158,11 @@ outer_predict <- function(data, model=NULL, positive_class_label=NULL, negative_
             )
         }
     }
-    
+
     if (is.null(model)) {
         model <- load_serialized_model()
     }
-    
+
     if (!isFALSE(transform_hook)) {
         data <- transform_hook(data, model)
         .validate_data(data, "transform")
@@ -231,11 +179,11 @@ outer_predict <- function(data, model=NULL, positive_class_label=NULL, negative_
     } else {
         predictions <- model_predict(data, model, positive_class_label, negative_class_label)
     }
-    
+
     if (!isFALSE(post_process_hook)) {
         predictions <- post_process_hook(predictions, model)
         .validate_predictions(predictions, "post_process")
     }
-    
+
     predictions
 }
