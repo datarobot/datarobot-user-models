@@ -1,20 +1,20 @@
   {
-      "name": "Python Default Predictor",
+      "name": "Predictor Pipeline",
       "engineType": "Generic",
       "pipe": [
           {
               "name": "DF Source",
               "id": 1,
-              "type": "csv_to_df",
+              "type": "{{ data_input_component }}",
               "parents": [],
               "arguments": {
                   "input_filename": "{{ input_filename }}"
               }
           },
           {
-              "name": "Python Predictor",
+              "name": "Predictor",
               "id": 2,
-              "type": "python_predictor",
+              "type": "{{ predictor_component }}",
               "parents": [{"parent": 1, "output": 0}],
               "arguments": {
                 "positiveClassLabel": {{ positiveClassLabel }},
@@ -25,7 +25,7 @@
           {
               "name": "DF Sink",
               "id": 3,
-              "type": "df_to_csv",
+              "type": "{{ data_output_component }}",
               "parents": [{"parent": 2, "output": 0}],
               "arguments": {
                   "output_filename": {{ output_filename }}
