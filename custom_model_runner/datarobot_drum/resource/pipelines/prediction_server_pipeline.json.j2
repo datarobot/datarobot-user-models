@@ -1,11 +1,11 @@
   {
       "name": "Python Prediction Server",
-      "engineType": "Generic",
+      "engineType": "{{ engine_type }}",
       "pipe": [
           {
               "name": "Prediction Server",
               "id": 1,
-              "type": "prediction_server",
+              "type": "{{ component_type }}",
               "parents": [],
               "arguments": {
                 "host": "{{ host }}",

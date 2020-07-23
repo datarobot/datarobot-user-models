@@ -65,10 +65,7 @@ def main():
                     url = "http://{}/shutdown/".format(runtime.options.address)
                     print("Sending shutdown to server: {}".format(url))
                     requests.post(url, timeout=2)
-
             os._exit(130)
-
-        signal.signal(signal.SIGINT, signal_handler)
 
         arg_parser = CMRunnerArgsRegistry.get_arg_parser()
 
@@ -86,8 +83,14 @@ def main():
 
         options = arg_parser.parse_args()
         CMRunnerArgsRegistry.verify_options(options)
-
         runtime.options = options
+
+        # mlpiper restful_component relies on SIGINT to shutdown nginx and uwsgi,
+        # so we don't intercept it.
+        if hasattr(runtime.options, "production") and runtime.options.production:
+            pass
+        else:
+            signal.signal(signal.SIGINT, signal_handler)
 
         from datarobot_drum.drum.drum import CMRunner
 

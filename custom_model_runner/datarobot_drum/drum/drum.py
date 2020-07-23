@@ -1,5 +1,6 @@
 import copy
 import glob
+import json
 import logging
 import os
 import shutil
@@ -16,6 +17,7 @@ import pandas as pd
 from memory_profiler import memory_usage
 from mlpiper.pipeline.executor import Executor
 from mlpiper.pipeline.executor_config import ExecutorConfig
+from mlpiper.pipeline import json_fields
 
 from datarobot_drum.drum.common import (
     ArgumentsOptions,
@@ -37,7 +39,7 @@ from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.utils import CMRunnerUtils
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 
-PREDICTION_SERVER_PIPELINE = "prediction_server_pipeline.json.j2"
+SERVER_PIPELINE = "prediction_server_pipeline.json.j2"
 PREDICTOR_PIPELINE = "prediction_pipeline.json.j2"
 
 
@@ -304,7 +306,7 @@ class CMRunner(object):
     def _prepare_prediction_server_or_batch_pipeline(self, run_language):
         options = self.options
         functional_pipeline_name = (
-            PREDICTION_SERVER_PIPELINE if self.run_mode == RunMode.SERVER else PREDICTOR_PIPELINE
+            SERVER_PIPELINE if self.run_mode == RunMode.SERVER else PREDICTOR_PIPELINE
         )
         functional_pipeline_filepath = CMRunnerUtils.get_pipeline_filepath(functional_pipeline_name)
 
@@ -336,6 +338,13 @@ class CMRunner(object):
                     "port": port,
                     "threaded": str(options.threaded).lower(),
                     "show_perf": str(options.show_perf).lower(),
+                    "engine_type": "RestModelServing" if options.production else "Generic",
+                    "component_type": "uwsgi_serving"
+                    if options.production
+                    else "prediction_server",
+                    "uwsgi_max_workers": options.max_workers
+                    if getattr(options, "max_workers")
+                    else "null",
                 }
             )
 
@@ -343,6 +352,17 @@ class CMRunner(object):
             functional_pipeline_filepath, replace_data
         )
 
+        if self.run_mode == RunMode.SERVER:
+            if options.production:
+                pipeline_json = json.loads(functional_pipeline_str)
+                # mlpiper requires model file to be provided in a specific param.
+                # We just provide current file, but never use.
+                if json_fields.PIPELINE_SYSTEM_CONFIG_FIELD not in pipeline_json:
+                    system_config = {"modelFileSourcePath": os.path.abspath(__file__)}
+                pipeline_json[json_fields.PIPELINE_SYSTEM_CONFIG_FIELD] = system_config
+                if options.max_workers:
+                    pipeline_json["pipe"][0]["arguments"]["uwsgi_max_workers"] = options.max_workers
+                functional_pipeline_str = json.dumps(pipeline_json)
         return functional_pipeline_str
 
     def _prepare_fit_pipeline(self, run_language):
