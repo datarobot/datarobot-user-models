@@ -164,7 +164,6 @@ class CMRunner(object):
             self.logger.error(error_mes)
             raise DrumCommonException(error_mes)
 
-        # Get code dir's abs path and add it to the python path
         code_dir_abspath = os.path.abspath(self.options.code_dir)
 
         custom_language = None

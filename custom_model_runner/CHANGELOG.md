@@ -5,14 +5,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 #### [1.1.4rc1] - in progress
+##### Added
+- r_lang fit component, pipeline, and template
 ##### Changed
 - search custom.py recursively in the code dir
+- set rpy2 dependcy <= 3.2.7 to avoid pandas import error 
 
 ## [1.1.3] - 2020-07-17
 ### Added
 - error server is started in case of imports/pipeline failures
 - drum_autofit() helper for sklearn estimator
-- r_lang fit component, pipeline, and template
 ### Changed
 - updated Java predictor dependencies
 
