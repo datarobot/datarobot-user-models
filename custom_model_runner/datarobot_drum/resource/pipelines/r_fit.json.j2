@@ -1,0 +1,24 @@
+  {
+      "name": "R Default Fitter",
+      "engineType": "Generic",
+      "pipe": [
+          {
+              "name": "R Fit",
+              "id": 1,
+              "type": "r_fit",
+              "parents": [],
+              "arguments": {
+                "targetColumn": {{ target_column }},
+                "targetFilename": {{ target_filename }},
+                "outputDir": "{{ output_dir }}",
+                "numRows": "{{ num_rows }}",
+                "inputFilename": "{{ input_filename }}",
+                "weightsFilename": {{ weights_filename }},
+                "weights": {{ weights }},
+                "positiveClassLabel": {{ positiveClassLabel }},
+                "negativeClassLabel": {{ negativeClassLabel }},
+                "__custom_model_path__": "{{ customModelPath }}"
+              }
+          }
+      ]
+  }
