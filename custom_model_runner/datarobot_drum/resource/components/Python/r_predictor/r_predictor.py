@@ -26,6 +26,7 @@ except ImportError:
 pandas2ri.activate()
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 R_SCORE_PATH = os.path.join(CUR_DIR, "score.R")
+R_COMMON_PATH = os.path.abspath(os.path.join(CUR_DIR, "..", "r_common_code", "common.R"))
 
 r_handler = ro.r
 
@@ -48,6 +49,7 @@ class RPredictor(ConnectableComponent):
         if neg_cl_label:
             self.negative_class_label = neg_cl_label
 
+        r_handler.source(R_COMMON_PATH)
         r_handler.source(R_SCORE_PATH)
         r_handler.init(self.custom_model_path)
         self.model = r_handler.load_serialized_model(self.custom_model_path)
