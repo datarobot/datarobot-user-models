@@ -57,6 +57,7 @@ PYTHON_ALL_HOOKS = "python_all_hooks"
 PYTHON_LOAD_MODEL = "python_load_model"
 R = "R"
 R_ALL_HOOKS = "R_all_hooks"
+R_FIT = "R_fit"
 JAVA = "java"
 PYTHON_XGBOOST_CLASS_LABELS_VALIDATION = "predictions_and_class_labels_validation"
 
@@ -146,6 +147,7 @@ class TestCMRunner:
             (PYTHON, SIMPLE): os.path.join(cls.training_templates_path, "simple"),
             (PYTHON, KERAS): os.path.join(cls.training_templates_path, "python3_keras_joblib"),
             (PYTHON, XGB): os.path.join(cls.training_templates_path, "python3_xgboost"),
+            (R_FIT, RDS): os.path.join(cls.training_templates_path, "r_lang"),
         }
 
         cls.fixtures = {
@@ -165,6 +167,7 @@ class TestCMRunner:
             ),
             R: (os.path.join(cls.tests_fixtures_path, "custom.R"), "custom.R"),
             R_ALL_HOOKS: (os.path.join(cls.tests_fixtures_path, "all_hooks_custom.R"), "custom.R"),
+            R_FIT: (os.path.join(cls.tests_fixtures_path, "fit_custom.R"), "custom.R"),
         }
         cls.datasets = {
             # If specific dataset should be defined for a framework, use (framework, problem) key.
@@ -259,7 +262,14 @@ class TestCMRunner:
         if is_training:
             model_template_dir = cls.paths_to_training_models[(language, framework)]
 
-            for filename in glob.glob(r"{}/*.py".format(model_template_dir)):
+            if language == PYTHON:
+                files = glob.glob(r"{}/*.py".format(model_template_dir))
+            elif language in [R, R_ALL_HOOKS, R_FIT]:
+                files = glob.glob(r"{}/*.r".format(model_template_dir)) + glob.glob(
+                    r"{}/*.R".format(model_template_dir)
+                )
+
+            for filename in files:
                 shutil.copy2(filename, custom_model_dir)
         else:
             artifact_filenames = cls._get_artifact_filename(framework, problem)
@@ -646,17 +656,27 @@ class TestCMRunner:
 
         return "", input_csv, __keep_this_around
 
-    @pytest.mark.parametrize("framework", [SKLEARN, XGB, KERAS])
+    @pytest.mark.parametrize("framework", [RDS, SKLEARN, XGB, KERAS])
     @pytest.mark.parametrize("problem", [BINARY, REGRESSION])
-    @pytest.mark.parametrize("language", [PYTHON])
     @pytest.mark.parametrize("docker", [DOCKER_PYTHON_SKLEARN, None])
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
     @pytest.mark.parametrize("use_output", [True, False])
     @pytest.mark.parametrize("nested", [True, False])
-    def test_fit(self, framework, problem, language, docker, weights, use_output, tmp_path, nested):
+    def test_fit(self, framework, problem, docker, weights, use_output, tmp_path, nested):
+
+        if framework == RDS:
+            language = R_FIT
+        else:
+            language = PYTHON
+
         custom_model_dir = tmp_path / "custom_model"
         self._create_custom_model_dir(
-            custom_model_dir, framework, problem, language, is_training=True, nested=nested
+            custom_model_dir,
+            framework,
+            problem,
+            language,
+            is_training=True,
+            nested=nested if language == PYTHON else False,  # TODO: support nested R files
         )
 
         input_dataset = self._get_dataset_filename(framework, problem)
