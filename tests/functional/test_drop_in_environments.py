@@ -166,8 +166,40 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
+    def java_h2o_pojo_binary_custom_model(self):
+        return self.make_custom_model(
+            "pojo/bin/XGBoost_grid__1_AutoML_20200717_163214_model_159.java",
+            "Iris-setosa",
+            "Iris-versicolor",
+            artifact_only=True,
+            target_name="Species",
+        )
+
+    @pytest.fixture(scope="session")
+    def java_h2o_mojo_binary_custom_model(self):
+        return self.make_custom_model(
+            "mojo_bin.zip",
+            "Iris-setosa",
+            "Iris-versicolor",
+            artifact_only=True,
+            target_name="Species",
+        )
+
+    @pytest.fixture(scope="session")
     def java_regression_custom_model(self):
         return self.make_custom_model("java_reg.jar", artifact_only=True, target_name="MEDV")
+
+    @pytest.fixture(scope="session")
+    def java_h2o_pojo_regression_custom_model(self):
+        return self.make_custom_model(
+            "pojo/reg/drf_887c2e5b_0941_40b7_ae26_cae274c4b424.java",
+            artifact_only=True,
+            target_name="MEDV",
+        )
+
+    @pytest.fixture(scope="session")
+    def java_h2o_mojo_regression_custom_model(self):
+        return self.make_custom_model("mojo_reg.zip", artifact_only=True, target_name="MEDV")
 
     @pytest.fixture(scope="session")
     def r_binary_custom_model(self):
@@ -204,12 +236,24 @@ class TestDropInEnvironments(object):
         "env, model, test_data_id",
         [
             ("java_drop_in_env", "java_binary_custom_model", "binary_testing_data"),
+            ("java_drop_in_env", "java_h2o_mojo_binary_custom_model", "binary_testing_data"),
+            ("java_h2o_drop_in_env", "java_h2o_pojo_binary_custom_model", "binary_testing_data"),
             ("sklearn_drop_in_env", "sklearn_binary_custom_model", "binary_testing_data"),
             ("keras_drop_in_env", "keras_binary_custom_model", "binary_testing_data"),
             ("pytorch_drop_in_env", "torch_binary_custom_model", "binary_testing_data"),
             ("xgboost_drop_in_env", "xgb_binary_custom_model", "binary_testing_data"),
             ("r_drop_in_env", "r_binary_custom_model", "binary_testing_data"),
             ("java_drop_in_env", "java_regression_custom_model", "regression_testing_data"),
+            (
+                "java_drop_in_env",
+                "java_h2o_mojo_regression_custom_model",
+                "regression_testing_data",
+            ),
+            (
+                "java_h2o_drop_in_env",
+                "java_h2o_pojo_regression_custom_model",
+                "regression_testing_data",
+            ),
             ("sklearn_drop_in_env", "sklearn_regression_custom_model", "regression_testing_data"),
             ("keras_drop_in_env", "keras_regression_custom_model", "regression_testing_data"),
             ("pytorch_drop_in_env", "torch_regression_custom_model", "regression_testing_data"),

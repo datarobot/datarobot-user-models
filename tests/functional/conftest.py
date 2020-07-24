@@ -70,6 +70,7 @@ def java_drop_in_env():
     return environment.id, environment_version.id
 
 
+@pytest.fixture(scope="session")
 def java_h2o_drop_in_env():
     env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "java_h2o")
     environment = dr.ExecutionEnvironment.create(name="java_h2o_drop_in")
