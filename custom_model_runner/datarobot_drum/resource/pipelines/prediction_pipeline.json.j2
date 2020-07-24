@@ -3,32 +3,17 @@
       "engineType": "Generic",
       "pipe": [
           {
-              "name": "DF Source",
+              "name": "Predictor",
               "id": 1,
-              "type": "{{ data_input_component }}",
+              "type": "generic_predictor",
               "parents": [],
               "arguments": {
-                  "input_filename": "{{ input_filename }}"
-              }
-          },
-          {
-              "name": "Predictor",
-              "id": 2,
-              "type": "{{ predictor_component }}",
-              "parents": [{"parent": 1, "output": 0}],
-              "arguments": {
+                "input_filename": "{{ input_filename }}",
+                "output_filename": {{ output_filename }},
                 "positiveClassLabel": {{ positiveClassLabel }},
                 "negativeClassLabel": {{ negativeClassLabel }},
-                "__custom_model_path__": "{{ customModelPath }}"
-              }
-          },
-          {
-              "name": "DF Sink",
-              "id": 3,
-              "type": "{{ data_output_component }}",
-              "parents": [{"parent": 2, "output": 0}],
-              "arguments": {
-                  "output_filename": {{ output_filename }}
+                "__custom_model_path__": "{{ customModelPath }}",
+                "run_language": "{{ run_language }}"
               }
           }
       ]

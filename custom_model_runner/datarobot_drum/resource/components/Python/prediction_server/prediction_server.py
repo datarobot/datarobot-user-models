@@ -1,13 +1,19 @@
 import logging
-import os
 import pandas as pd
 
-from flask import Flask, request
-from datarobot_drum.resource.components.Python.external_runner.external_runner import ExternalRunner
+from flask import request
+
+from mlpiper.components.connectable_component import ConnectableComponent
 from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.memory_monitor import MemoryMonitor
+from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
+    PythonPredictor,
+)
+from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import JavaPredictor
+from datarobot_drum.drum.common import RunLanguage
+from datarobot_drum.drum.exceptions import DrumCommonException
 
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
@@ -19,12 +25,14 @@ from datarobot_drum.drum.server import (
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 
-class PredictionServer(ExternalRunner):
+class PredictionServer(ConnectableComponent):
     def __init__(self, engine):
         super(PredictionServer, self).__init__(engine)
         self._show_perf = False
         self._stats_collector = None
         self._memory_monitor = None
+        self._run_language = None
+        self._predictor = None
 
     def configure(self, params):
         super(PredictionServer, self).configure(params)
@@ -35,13 +43,24 @@ class PredictionServer(ExternalRunner):
         self._stats_collector.register_report(
             "set_in_df_total", "set_in_df", StatsOperation.SUB, "start"
         )
-        self._stats_collector.register_report(
-            "run_pipeline_total", "run_pipeline", StatsOperation.SUB, "set_in_df"
-        )
-        self._stats_collector.register_report(
-            "get_out_df_total", "get_out_df", StatsOperation.SUB, "run_pipeline"
-        )
         self._memory_monitor = MemoryMonitor()
+        self._run_language = RunLanguage(params.get("run_language"))
+        if self._run_language == RunLanguage.PYTHON:
+            self._predictor = PythonPredictor()
+        elif self._run_language == RunLanguage.JAVA:
+            self._predictor = JavaPredictor()
+        elif self._run_language == RunLanguage.R:
+            # this import is here, because RPredictor imports rpy library,
+            # which is not installed for Java and Python cases.
+            from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
+
+            self._predictor = RPredictor()
+        else:
+            raise DrumCommonException(
+                "Prediction server doesn't support language: {} ".format(self._run_language)
+            )
+
+        self._predictor.configure(params)
 
     def _materialize(self, parent_data_objs, user_data):
         model_api = base_api_blueprint()
@@ -72,13 +91,7 @@ class PredictionServer(ExternalRunner):
             # TODO labels have to be provided as command line arguments or within configure endpoint
             self._stats_collector.enable()
             self._stats_collector.mark("start")
-            self._set_in_df(in_df)
-            self._stats_collector.mark("set_in_df")
-            self._run_pipeline()
-            self._stats_collector.mark("run_pipeline")
-            out_df = self._get_out_df()
-            self._clean_out_mem()
-            self._stats_collector.mark("get_out_df")
+            out_df = self._predictor.predict(in_df)
             self._stats_collector.disable()
 
             num_columns = len(out_df.columns)
@@ -129,7 +142,6 @@ class PredictionServer(ExternalRunner):
         except OSError as e:
             raise DrumCommonException("{}: host: {}; port: {}".format(e, host, port))
 
-        self._cleanup_pipeline()
         if self._stats_collector:
             self._stats_collector.print_reports()
 

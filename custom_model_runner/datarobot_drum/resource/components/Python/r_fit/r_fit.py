@@ -25,7 +25,11 @@ except ImportError:
 pandas2ri.activate()
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 R_FIT_PATH = os.path.join(CUR_DIR, "fit.R")
-R_COMMON_PATH = os.path.abspath(os.path.join(CUR_DIR, "..", "r_common_code", "common.R"))
+R_COMMON_PATH = os.path.abspath(
+    os.path.join(
+        CUR_DIR, "..", "..", "..", "..", "drum", "language_predictors", "r_common_code", "common.R",
+    )
+)
 
 r_handler = ro.r
 
