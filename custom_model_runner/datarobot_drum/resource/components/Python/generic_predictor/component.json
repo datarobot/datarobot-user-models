@@ -3,10 +3,10 @@
   "engineType": "Generic",
   "language": "Python",
   "userStandalone": false,
-  "name": "java_predictor",
-  "label": "Custom Scoring Code",
-  "program": "custom_scoring_code.py",
-  "componentClass": "CustomScoringCode",
+  "name": "generic_predictor",
+  "label": "Generic Predictor",
+  "program": "generic_predictor.py",
+  "componentClass": "GenericPredictorComponent",
   "useMLOps": false,
   "group": "Connectors",
   "inputInfo": [
@@ -38,6 +38,13 @@
     "label": "Negative class label",
     "type": "str",
     "description": "Negative class label for the classification model",
+    "optional": false
+  },
+  {
+    "key": "run_language",
+    "label": "Run language",
+    "type": "str",
+    "description": "Run language",
     "optional": false
   }
   ]
