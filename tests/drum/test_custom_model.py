@@ -887,6 +887,12 @@ class TestDrumRuntime:
         if with_error_server:
             # assert that error the server is up and message is propagated via API
             with drum_server_run as run:
+                # check /health/ route
+                response = requests.get(run.url_server_address + "/health/")
+                assert response.status_code == 513
+                assert error_message in response.json()["message"]
+
+                # check /predict/ route
                 response = requests.post(run.url_server_address + "/predict/")
 
                 assert response.status_code == 513
@@ -944,8 +950,8 @@ class TestDrumRuntime:
     @pytest.mark.parametrize("with_error_server", [False, True])
     def test_e2e_predict_fails(self, params, with_error_server):
         """
-        Verify that if an error occurs when drum server is started on /predict/ route,
-        regardless '--with-error-server' flag 'error server' will is not started.
+        Verify that when drum server is started, if an error occurs on /predict/ route,
+        'error server' is not started regardless '--with-error-server' flag.
         """
         framework, problem, custom_model_dir, server_run_args = params
 
@@ -966,6 +972,12 @@ class TestDrumRuntime:
             # assert that 'error server' is not started.
             # as 'error server' propagates errors with 513 status code,
             # assert that after error occurred, the next request is not 513
+
+            # check /health/ route
+            response = requests.get(run.url_server_address + "/health/")
+            assert response.status_code == 200
+
+            # check /predict/ route
             response = requests.post(run.url_server_address + "/predict/")
 
             error_message = "ERROR: Samples should be provided as a csv file under `X` key."
