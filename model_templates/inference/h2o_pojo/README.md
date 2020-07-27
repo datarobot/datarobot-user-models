@@ -33,6 +33,9 @@ First, compile the pojo
 
 `drum score --code-dir ./binary --input ../../../tests/testdata/iris_binary_training.csv --positive-class-label 1 --negative-class-label 0`
 
+`drum score --code-dir ./h2o_pojo/binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label 1 --negative-class-label 0 --docker drum_h2o`
+
+
 #### Regression 
 
 First, compile the pojo
@@ -40,3 +43,7 @@ First, compile the pojo
 `javac -cp h2o-genmodel-3.30.0.6.jar regression/drf_887c2e5b_0941_40b7_ae26_cae274c4b424.java`
 
 `drum score --code-dir ./regression --input ../../../tests/testdata/boston_housing.csv`
+
+`drum score --code-dir ./h2o_pojo/regression --input ../../tests/testdata/boston_housing.csv --docker drum_h2o`
+
+drum server --code-dir ./h2o_pojo/regression --address localhost:6789 --docker drum_h2o

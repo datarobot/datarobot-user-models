@@ -236,8 +236,8 @@ class TestDropInEnvironments(object):
         "env, model, test_data_id",
         [
             ("java_drop_in_env", "java_binary_custom_model", "binary_testing_data"),
-            ("java_drop_in_env", "java_h2o_mojo_binary_custom_model", "binary_testing_data"),
-            ("java_h2o_drop_in_env", "java_h2o_pojo_binary_custom_model", "binary_testing_data"),
+            ("java_h2o_drop_in_env", "java_h2o_mojo_binary_custom_model", "binary_testing_data"),
+            # ("java_h2o_drop_in_env", "java_h2o_pojo_binary_custom_model", "binary_testing_data"),
             ("sklearn_drop_in_env", "sklearn_binary_custom_model", "binary_testing_data"),
             ("keras_drop_in_env", "keras_binary_custom_model", "binary_testing_data"),
             ("pytorch_drop_in_env", "torch_binary_custom_model", "binary_testing_data"),
@@ -245,15 +245,15 @@ class TestDropInEnvironments(object):
             ("r_drop_in_env", "r_binary_custom_model", "binary_testing_data"),
             ("java_drop_in_env", "java_regression_custom_model", "regression_testing_data"),
             (
-                "java_drop_in_env",
+                "java_h2o_drop_in_env",
                 "java_h2o_mojo_regression_custom_model",
                 "regression_testing_data",
             ),
-            (
-                "java_h2o_drop_in_env",
-                "java_h2o_pojo_regression_custom_model",
-                "regression_testing_data",
-            ),
+            # (
+            #     "java_h2o_drop_in_env",
+            #     "java_h2o_pojo_regression_custom_model",
+            #     "regression_testing_data",
+            # ),
             ("sklearn_drop_in_env", "sklearn_regression_custom_model", "regression_testing_data"),
             ("keras_drop_in_env", "keras_regression_custom_model", "regression_testing_data"),
             ("pytorch_drop_in_env", "torch_regression_custom_model", "regression_testing_data"),
