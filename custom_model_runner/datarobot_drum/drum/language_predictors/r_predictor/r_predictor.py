@@ -5,7 +5,8 @@ import pandas as pd
 
 from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.exceptions import DrumCommonException
-from mlpiper.components.connectable_component import ConnectableComponent
+
+from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -26,47 +27,37 @@ except ImportError:
 pandas2ri.activate()
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 R_SCORE_PATH = os.path.join(CUR_DIR, "score.R")
-R_COMMON_PATH = os.path.abspath(os.path.join(CUR_DIR, "..", "r_common_code", "common.R"))
+R_COMMON_PATH = os.path.abspath(os.path.join(CUR_DIR, "..", "r_common_code", "common.R",))
 
 r_handler = ro.r
 
 
-class RPredictor(ConnectableComponent):
-    def __init__(self, engine):
-        super(RPredictor, self).__init__(engine)
-        self.model = None
-        self.positive_class_label = ro.rinterface.NULL
-        self.negative_class_label = ro.rinterface.NULL
-        self.custom_model_path = None
+class RPredictor(BaseLanguagePredictor):
+    def __init__(self,):
+        super(RPredictor, self).__init__()
 
     def configure(self, params):
         super(RPredictor, self).configure(params)
-        self.custom_model_path = self._params["__custom_model_path__"]
-        pos_cl_label = self._params.get("positiveClassLabel")
-        neg_cl_label = self._params.get("negativeClassLabel")
-        if pos_cl_label:
-            self.positive_class_label = pos_cl_label
-        if neg_cl_label:
-            self.negative_class_label = neg_cl_label
+
+        if self._positive_class_label is None:
+            self._positive_class_label = ro.rinterface.NULL
+        if self._negative_class_label is None:
+            self._negative_class_label = ro.rinterface.NULL
 
         r_handler.source(R_COMMON_PATH)
         r_handler.source(R_SCORE_PATH)
-        r_handler.init(self.custom_model_path)
-        self.model = r_handler.load_serialized_model(self.custom_model_path)
+        r_handler.init(self._custom_model_path)
+        self._model = r_handler.load_serialized_model(self._custom_model_path)
 
-    def _materialize(self, parent_data_objs, user_data):
-        # This class is a ConnectableComponent utilizing mlpiper infrastructure.
-        # Items existance in parent_data_objs is guaranteed by pipeline DAG verification by mlpiper
-        # and by implementation of the previous step in pipeline.
-        df = parent_data_objs[0]
+    def predict(self, df):
         with localconverter(ro.default_converter + pandas2ri.converter):
             r_df = ro.conversion.py2rpy(df)
 
         predictions = r_handler.outer_predict(
             r_df,
-            model=self.model,
-            positive_class_label=self.positive_class_label,
-            negative_class_label=self.negative_class_label,
+            model=self._model,
+            positive_class_label=self._positive_class_label,
+            negative_class_label=self._negative_class_label,
         )
         with localconverter(ro.default_converter + pandas2ri.converter):
             py_df = ro.conversion.rpy2py(predictions)
@@ -84,4 +75,4 @@ class RPredictor(ConnectableComponent):
             logger.error(error_message)
             raise DrumCommonException(error_message)
 
-        return [py_df]
+        return py_df

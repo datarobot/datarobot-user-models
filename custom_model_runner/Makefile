@@ -7,7 +7,7 @@ wheel: clean
 	python3 setup.py bdist_wheel
 
 java_components:
-	cd datarobot_drum/resource/components/Python/java_predictor && $(MAKE)
+	cd datarobot_drum/drum/language_predictors/java_predictor && $(MAKE)
 
 clean:
 	\rm -rf dist build datarobot_drum.egg-info
