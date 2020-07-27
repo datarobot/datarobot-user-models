@@ -1,5 +1,4 @@
 import glob
-import json
 import logging
 import os
 import shutil
@@ -34,7 +33,8 @@ from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.utils import CMRunnerUtils
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 
-EXTERNAL_SERVER_RUNNER = "external_prediction_server_runner.json"
+PREDICTION_SERVER_PIPELINE = "prediction_server_pipeline.json.j2"
+PREDICTOR_PIPELINE = "prediction_pipeline.json.j2"
 
 
 class CMRunner(object):
@@ -48,12 +48,6 @@ class CMRunner(object):
         self._functional_pipelines = {
             (RunMode.FIT, RunLanguage.PYTHON): "python_fit.json.j2",
             (RunMode.FIT, RunLanguage.R): "r_fit.json.j2",
-        }
-
-        self._predictor_components = {
-            RunLanguage.PYTHON: "python_predictor",
-            RunLanguage.R: "r_predictor",
-            RunLanguage.JAVA: "java_predictor",
         }
 
     @staticmethod
@@ -276,12 +270,12 @@ class CMRunner(object):
 
     def _prepare_prediction_server_or_batch_pipeline(self, run_language):
         options = self.options
-        # functional pipeline is predictor pipeline
-        # they are a little different for batch and server predictions.
-        functional_pipeline_filepath = CMRunnerUtils.get_pipeline_filepath(
-            "prediction_pipeline.json.j2"
+        functional_pipeline_name = (
+            PREDICTION_SERVER_PIPELINE if self.run_mode == RunMode.SERVER else PREDICTOR_PIPELINE
         )
-        # fields to replace in the functional pipeline (predictor)
+        functional_pipeline_filepath = CMRunnerUtils.get_pipeline_filepath(functional_pipeline_name)
+
+        # fields to replace in the pipeline
         replace_data = {
             "positiveClassLabel": '"{}"'.format(options.positive_class_label)
             if options.positive_class_label
@@ -290,46 +284,33 @@ class CMRunner(object):
             if options.negative_class_label
             else "null",
             "customModelPath": os.path.abspath(options.code_dir),
-            "predictor_component": self._predictor_components[run_language],
+            "run_language": run_language.value,
         }
-
         if self.run_mode == RunMode.SCORE:
             replace_data.update(
                 {
                     "input_filename": options.input,
                     "output_filename": '"{}"'.format(options.output) if options.output else "null",
-                    "data_input_component": "csv_to_df",
-                    "data_output_component": "df_to_csv",
                 }
             )
-        elif self.run_mode == RunMode.SERVER:
+        else:
+            host_port_list = options.address.split(":", 1)
+            host = host_port_list[0]
+            port = int(host_port_list[1]) if len(host_port_list) == 2 else None
             replace_data.update(
                 {
-                    "data_input_component": "shared_mem_to_df",
-                    "data_output_component": "df_to_shared_mem",
+                    "host": host,
+                    "port": port,
+                    "threaded": str(options.threaded).lower(),
+                    "show_perf": str(options.show_perf).lower(),
                 }
             )
 
         functional_pipeline_str = CMRunnerUtils.render_file(
             functional_pipeline_filepath, replace_data
         )
-        ret_pipeline = functional_pipeline_str
 
-        if self.run_mode == RunMode.SERVER:
-            with open(CMRunnerUtils.get_pipeline_filepath(EXTERNAL_SERVER_RUNNER), "r") as f:
-                runner_pipeline_json = json.load(f)
-                # can not use template for pipeline as quotes won't be escaped
-                args = runner_pipeline_json["pipe"][0]["arguments"]
-                # in server mode, predictor pipeline is passed to server as param
-                args["pipeline"] = functional_pipeline_str
-                args["repo"] = CMRunnerUtils.get_components_repo()
-                host_port_list = options.address.split(":", 1)
-                args["host"] = host_port_list[0]
-                args["port"] = int(host_port_list[1]) if len(host_port_list) == 2 else None
-                args["threaded"] = options.threaded
-                args["show_perf"] = options.show_perf
-                ret_pipeline = json.dumps(runner_pipeline_json)
-        return ret_pipeline
+        return functional_pipeline_str
 
     def _prepare_fit_pipeline(self, run_language):
         if not self.options.negative_class_label:

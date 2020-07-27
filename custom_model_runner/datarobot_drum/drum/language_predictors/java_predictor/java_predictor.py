@@ -12,23 +12,19 @@ from io import StringIO
 from contextlib import closing
 
 from datarobot_drum.drum.common import LOGGER_NAME_PREFIX, EnvVarNames
-from mlpiper.components.connectable_component import ConnectableComponent
+from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 
 from py4j.java_gateway import GatewayParameters, CallbackServerParameters
 from py4j.java_gateway import JavaGateway
 
 
-class CustomScoringCode(ConnectableComponent):
+class JavaPredictor(BaseLanguagePredictor):
     JAVA_COMPONENT_ENTRY_POINT_CLASS = "com.datarobot.custom.PredictorEntryPoint"
     JAVA_COMPONENT_CLASS_NAME = "com.datarobot.custom.ScoringCode"
 
-    def __init__(self, engine):
-        super(CustomScoringCode, self).__init__(engine)
+    def __init__(self):
+        super(JavaPredictor, self).__init__()
         self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
-
-        self.positive_class_label = None
-        self.negative_class_label = None
-        self.custom_model_path = None
 
         self._gateway = None
         self._predictor_via_py4j = None
@@ -41,25 +37,22 @@ class CustomScoringCode(ConnectableComponent):
         self._jar_files = glob.glob(os.path.join(os.path.dirname(__file__), "*.jar"))
 
     def configure(self, params):
-        super(CustomScoringCode, self).configure(params)
-        self.custom_model_path = self._params["__custom_model_path__"]
-        self.positive_class_label = self._params.get("positiveClassLabel")
-        self.negative_class_label = self._params.get("negativeClassLabel")
+        super(JavaPredictor, self).configure(params)
+
         self._init_py4j_and_load_predictor()
 
         m = self._gateway.jvm.java.util.HashMap()
-        for key in self._params.keys():
-            if isinstance(self._params[key], dict):
+        for key in params.keys():
+            if isinstance(params[key], dict):
                 continue
-            m[key] = self._params[key]
+            m[key] = params[key]
         self._predictor_via_py4j.configure(m)
 
-    def _materialize(self, parent_data_objs, user_data):
-        df = parent_data_objs[0]
+    def predict(self, df):
         csv_data = self._convert_data_to_csv(df)
         out_csv = self._predictor_via_py4j.predict(csv_data)
         out_df = pd.read_csv(StringIO(out_csv))
-        return [out_df]
+        return out_df
 
     def _init_py4j_and_load_predictor(self):
         self._run_java_server_entry_point()
@@ -80,7 +73,7 @@ class CustomScoringCode(ConnectableComponent):
 
         self.logger.debug("java_cp: {}".format(java_cp))
 
-        self._java_port = CustomScoringCode.find_free_port()
+        self._java_port = JavaPredictor.find_free_port()
         cmd = ["java"]
         if self._java_Xmx:
             cmd.append("-Xmx{}".format(self._java_Xmx))
@@ -88,9 +81,9 @@ class CustomScoringCode(ConnectableComponent):
             [
                 "-cp",
                 java_cp,
-                CustomScoringCode.JAVA_COMPONENT_ENTRY_POINT_CLASS,
+                JavaPredictor.JAVA_COMPONENT_ENTRY_POINT_CLASS,
                 "--class-name",
-                CustomScoringCode.JAVA_COMPONENT_CLASS_NAME,
+                JavaPredictor.JAVA_COMPONENT_CLASS_NAME,
                 "--port",
                 str(self._java_port),
             ]
