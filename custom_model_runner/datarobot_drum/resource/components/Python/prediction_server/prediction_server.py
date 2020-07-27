@@ -46,6 +46,10 @@ class PredictionServer(ExternalRunner):
     def _materialize(self, parent_data_objs, user_data):
         model_api = base_api_blueprint()
 
+        @model_api.route("/health/", methods=["GET"])
+        def health():
+            return {"message": "OK"}, HTTP_200_OK
+
         @model_api.route("/predict/", methods=["POST"])
         def predict():
             response_status = HTTP_200_OK
