@@ -221,9 +221,9 @@ class CMRunTests:
             col_allign.extend(["r", "r"])
 
         if show_inside_server:
-            header_names.extend(["to shmem", "pipeline", "from shmem"])
-            header_types.extend(["f", "f", "f"])
-            col_allign.extend(["r", "r", "r"])
+            header_names.extend(["prediction"])
+            header_types.extend(["f"])
+            col_allign.extend(["r"])
 
         table.set_cols_dtype(header_types)
         table.set_cols_align(col_allign)
@@ -253,11 +253,7 @@ class CMRunTests:
             if show_inside_server and server_stats:
                 time_info = server_stats["time_info"]
                 row.extend(
-                    [
-                        time_info["set_in_df_total"]["avg"],
-                        time_info["run_pipeline_total"]["avg"],
-                        time_info["get_out_df_total"]["avg"],
-                    ]
+                    [time_info["run_predictor_total"]["avg"],]
                 )
 
         table.add_rows(rows)
