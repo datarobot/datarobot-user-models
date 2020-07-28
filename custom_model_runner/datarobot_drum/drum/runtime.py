@@ -27,14 +27,14 @@ class DrumRuntime:
         if not exc_type:
             return True  # no exception, just return
 
+        if not self.options:
+            # exception occurred before args were parsed
+            return False  # propagate exception further
+
         # log exception
         exc_msg_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
         exc_msg = "".join(exc_msg_lines)
         logger.error(exc_msg)
-
-        if not self.options:
-            # exception occurred before args were parsed
-            return False  # propagate exception further
 
         run_mode = RunMode(self.options.subparser_name)
         if run_mode != RunMode.SERVER:
