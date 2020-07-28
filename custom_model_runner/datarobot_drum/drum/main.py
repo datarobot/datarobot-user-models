@@ -64,7 +64,7 @@ def main():
                     url = "http://{}/shutdown/".format(runtime.options.address)
                     print("Sending shutdown to server: {}".format(url))
                     requests.post(url, timeout=2)
-            os.system("tput init")
+
             os._exit(130)
 
         signal.signal(signal.SIGINT, signal_handler)
