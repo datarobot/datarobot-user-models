@@ -41,7 +41,7 @@ class PredictionServer(ConnectableComponent):
         self._stats_collector = StatsCollector(disable_instance=not self._show_perf)
 
         self._stats_collector.register_report(
-            "set_in_df_total", "set_in_df", StatsOperation.SUB, "start"
+            "run_predictor_total", "finish", StatsOperation.SUB, "start"
         )
         self._memory_monitor = MemoryMonitor()
         self._run_language = RunLanguage(params.get("run_language"))
@@ -92,7 +92,6 @@ class PredictionServer(ConnectableComponent):
             self._stats_collector.enable()
             self._stats_collector.mark("start")
             out_df = self._predictor.predict(in_df)
-            self._stats_collector.disable()
 
             num_columns = len(out_df.columns)
             # float32 is not JSON serializable, so cast to float, which is float64
@@ -117,6 +116,8 @@ class PredictionServer(ConnectableComponent):
                 response_json = {"message": "ERROR: " + ret_str}
                 response_status = HTTP_422_UNPROCESSABLE_ENTITY
 
+            self._stats_collector.mark("finish")
+            self._stats_collector.disable()
             return response_json, response_status
 
         @model_api.route("/stats/", methods=["GET"])
