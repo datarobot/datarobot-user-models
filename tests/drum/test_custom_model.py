@@ -43,6 +43,10 @@ PYPMML = "pypmml"
 
 RDS = "rds"
 CODEGEN = "jar"
+## adding h2o pojo and mojo
+MOJO = "zip"
+POJO = "java"
+##
 MULTI_ARTIFACT = "multiartifact"
 
 # Problem keywords, used to mark datasets
@@ -208,6 +212,13 @@ class TestCMRunner:
             (RDS, BINARY): os.path.join(cls.tests_artifacts_path, "r_bin.rds"),
             (CODEGEN, REGRESSION): os.path.join(cls.tests_artifacts_path, "java_reg.jar"),
             (CODEGEN, BINARY): os.path.join(cls.tests_artifacts_path, "java_bin.jar"),
+
+            (POJO, REGRESSION): os.path.join(cls.tests_artifacts_path, "pojo_reg", "drf_887c2e5b_0941_40b7_ae26_cae274c4b424.java"),
+            (POJO, BINARY): os.path.join(cls.tests_artifacts_path, "pojo_bin", "XGBoost_grid__1_AutoML_20200717_163214_model_159.java"),
+
+            (MOJO, REGRESSION): os.path.join(cls.tests_artifacts_path, "mojo_reg.zip"),
+            (MOJO, BINARY): os.path.join(cls.tests_artifacts_path, "mojo_bin.zip"),
+
             (PYPMML, REGRESSION): os.path.join(cls.tests_artifacts_path, "iris_reg.pmml"),
             (PYPMML, BINARY): os.path.join(cls.tests_artifacts_path, "iris_bin.pmml"),
         }
@@ -333,6 +344,10 @@ class TestCMRunner:
             (RDS, BINARY, R, None),
             (CODEGEN, REGRESSION, NO_CUSTOM, None),
             (CODEGEN, BINARY, NO_CUSTOM, None),
+            (POJO, REGRESSION, NO_CUSTOM, None),
+            (POJO, BINARY, NO_CUSTOM, None),
+            (MOJO, REGRESSION, NO_CUSTOM, None),
+            (MOJO, BINARY, NO_CUSTOM, None),
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
             (PYPMML, REGRESSION, NO_CUSTOM, None),
             (PYPMML, BINARY, NO_CUSTOM, None),
@@ -506,6 +521,10 @@ class TestCMRunner:
             (RDS, BINARY, R, None),
             (CODEGEN, REGRESSION, NO_CUSTOM, None),
             (CODEGEN, BINARY, NO_CUSTOM, None),
+            (MOJO, REGRESSION, NO_CUSTOM, None),
+            (MOJO, BINARY, NO_CUSTOM, None),
+            (POJO, REGRESSION, NO_CUSTOM, None),
+            (POJO, BINARY, NO_CUSTOM, None),
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
             (PYPMML, REGRESSION, NO_CUSTOM, None),
             (PYPMML, BINARY, NO_CUSTOM, None),
