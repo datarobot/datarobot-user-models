@@ -82,7 +82,13 @@ class DrumServerProcess:
 
 class DrumServerRun:
     def __init__(
-        self, framework, problem, custom_model_dir, docker=None, with_error_server=False,
+        self,
+        framework,
+        problem,
+        custom_model_dir,
+        docker=None,
+        with_error_server=False,
+        show_stacktrace=True,
     ):
         port = 6799
         server_address = "localhost:{}".format(port)
@@ -100,6 +106,8 @@ class DrumServerRun:
             cmd += " --docker {}".format(docker)
         if with_error_server:
             cmd += " --with-error-server"
+        if show_stacktrace:
+            cmd += " --show-stacktrace"
         self._cmd = cmd
 
         self._process_object_holder = DrumServerProcess()
@@ -379,14 +387,21 @@ class TestCMRunner:
             "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
             assert_if_fail=False,
         )
+
+        stdo_stde = str(stdo) + str(stde)
+
         if framework == SKLEARN:
             assert (
-                str(stde).find("Wrong class labels. Use class labels detected by sklearn model")
+                str(stdo_stde).find(
+                    "Wrong class labels. Use class labels detected by sklearn model"
+                )
                 != -1
             )
         elif framework == RDS:
             assert (
-                str(stde).find("Wrong class labels. Use class labels according to your dataset")
+                str(stdo_stde).find(
+                    "Wrong class labels. Use class labels according to your dataset"
+                )
                 != -1
             )
 
@@ -418,18 +433,21 @@ class TestCMRunner:
             assert_if_fail=False,
         )
 
+        stdo_stde = str(stdo) + str(stde)
+
         cases_1_2_3 = (
-            str(stde).find("Can not detect language by artifacts and/or custom.py/R files") != -1
+            str(stdo_stde).find("Can not detect language by artifacts and/or custom.py/R files")
+            != -1
         )
         case_4 = (
-            str(stde).find(
+            str(stdo_stde).find(
                 "Could not find a serialized model artifact with .rds extension, supported by default R predictor. "
                 "If your artifact is not supported by default predictor, implement custom.load_model hook."
             )
             != -1
         )
         case_5 = (
-            str(stde).find(
+            str(stdo_stde).find(
                 "Could not find model artifact file in: {} supported by default predictors".format(
                     custom_model_dir
                 )
@@ -791,10 +809,10 @@ class TestDrumRuntime:
 
     Options = collections.namedtuple(
         "Options",
-        "with_error_server {} docker address verbose".format(
+        "with_error_server {} docker address verbose show_stacktrace".format(
             CMRunnerArgsRegistry.SUBPARSER_DEST_KEYWORD
         ),
-        defaults=[RunMode.SERVER, None, "localhost", False],
+        defaults=[RunMode.SERVER, None, "localhost", False, True],
     )
 
     class StubDrumException(Exception):

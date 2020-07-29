@@ -339,6 +339,16 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
+    def _reg_arg_show_stacktrace(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                "--show-stacktrace",
+                action="store_true",
+                default=False,
+                help="Show stacktrace when error happens.",
+            )
+
+    @staticmethod
     def get_arg_parser():
         parser = argparse.ArgumentParser(description="Run user model")
         CMRunnerArgsRegistry._parsers[ArgumentsOptions.MAIN_COMMAND] = parser
@@ -425,6 +435,15 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_arg_with_error_server(server_parser)
 
         CMRunnerArgsRegistry._reg_arg_language(new_model_parser)
+
+        CMRunnerArgsRegistry._reg_arg_show_stacktrace(
+            batch_parser,
+            parser_perf_test,
+            server_parser,
+            fit_parser,
+            validation_parser,
+            new_model_parser,
+        )
 
         return parser
 
