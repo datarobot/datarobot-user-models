@@ -18,6 +18,7 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
     HTTP_422_UNPROCESSABLE_ENTITY,
+    HTTP_500_INTERNAL_SERVER_ERROR,
     get_flask_app,
     base_api_blueprint,
 )
@@ -132,6 +133,11 @@ class PredictionServer(ConnectableComponent):
                 ret_dict["time_info"][name] = d
             self._stats_collector.stats_reset()
             return ret_dict, HTTP_200_OK
+
+        @model_api.errorhandler(Exception)
+        def handle_exception(e):
+            logger.exception(e)
+            return {"message": "ERROR: {}".format(e)}, HTTP_500_INTERNAL_SERVER_ERROR
 
         app = get_flask_app(model_api)
         logging.getLogger("werkzeug").setLevel(logger.getEffectiveLevel())
