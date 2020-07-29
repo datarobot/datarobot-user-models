@@ -68,12 +68,7 @@ class TestTrainingModelTemplates(object):
                 "regression",
             ),
             ("training/python3_sklearn", "project_binary_iris", "sklearn_drop_in_env", "binary",),
-            (
-                    "training/r_lang",
-                    "project_regression_boston",
-                    "r_drop_in_env",
-                    "regression",
-            ),
+            ("training/r_lang", "project_regression_boston", "r_drop_in_env", "regression",),
             ("training/r_lang", "project_binary_iris", "r_drop_in_env", "binary",),
         ],
     )
