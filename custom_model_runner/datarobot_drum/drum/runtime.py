@@ -11,6 +11,8 @@ from datarobot_drum.drum.common import (
     LOGGER_NAME_PREFIX,
 )
 
+from datarobot_drum.drum.exceptions import DrumCommonException
+
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 logger.setLevel(logging.ERROR)
 
@@ -24,19 +26,30 @@ class DrumRuntime:
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
+
         if not exc_type:
             return True  # no exception, just return
-
-        # log exception
-        exc_msg_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-        exc_msg = "".join(exc_msg_lines)
-        logger.error(exc_msg)
 
         if not self.options:
             # exception occurred before args were parsed
             return False  # propagate exception further
 
+        # log exception
+        exc_msg_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
+        exc_msg = "".join(exc_msg_lines)
+
         run_mode = RunMode(self.options.subparser_name)
+        if self.options.show_stacktrace or (
+            run_mode == RunMode.SERVER and self.options.with_error_server
+        ):
+            logger.error(exc_msg)
+        else:
+            if exc_type == DrumCommonException:
+                print(exc_value)
+                return True
+            else:
+                return False
+
         if run_mode != RunMode.SERVER:
             # drum is not run in server mode
             return False  # propagate exception further
