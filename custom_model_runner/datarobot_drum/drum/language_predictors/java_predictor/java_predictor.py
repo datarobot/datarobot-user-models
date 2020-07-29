@@ -93,7 +93,8 @@ class JavaPredictor(BaseLanguagePredictor):
                 java_cp,
                 JavaPredictor.JAVA_COMPONENT_ENTRY_POINT_CLASS,
                 "--class-name",
-                JavaPredictor.JAVA_COMPONENT_CLASS_NAME if self.model_artifact_extension == ".jar"
+                JavaPredictor.JAVA_COMPONENT_CLASS_NAME
+                if self.model_artifact_extension == ".jar"
                 else JavaPredictor.JAVA_COMPONENT_CLASS_NAME_H2O,
                 "--port",
                 str(self._java_port),
