@@ -122,6 +122,7 @@ class TestInferenceModelTemplates(object):
 
         model_version = dr.CustomModelVersion.create_clean(
             custom_model_id=model.id,
+            base_environment_id=env_id,
             folder_path=os.path.join(BASE_MODEL_TEMPLATES_DIR, model_template),
         )
 
