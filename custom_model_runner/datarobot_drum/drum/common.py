@@ -92,6 +92,7 @@ class ArgumentsOptions(object):
     NUM_ROWS = "--num-rows"
 
     MAIN_COMMAND = "drum"
+
     SCORE = "score"
     SERVER = "server"
     FIT = "fit"
@@ -100,7 +101,7 @@ class ArgumentsOptions(object):
     NEW_MODEL = "model"
     NEW_ENV = "env"
     VALIDATION = "validation"
-    SUBPARSERS = [SCORE, PERF_TEST, VALIDATION, SERVER, NEW]
+    PUSH = "push"
 
 
 class RunMode(Enum):
@@ -110,6 +111,7 @@ class RunMode(Enum):
     VALIDATION = ArgumentsOptions.VALIDATION
     FIT = ArgumentsOptions.FIT
     NEW = ArgumentsOptions.NEW
+    PUSH = ArgumentsOptions.PUSH
     NEW_MODEL = "new_model"
 
 
