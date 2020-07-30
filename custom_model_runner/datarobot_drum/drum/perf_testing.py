@@ -55,6 +55,9 @@ def _find_and_kill_cmrun_server_process(verbose=False):
                 except psutil.NoSuchProcess:
                     pass
                 break
+    for proc in psutil.process_iter():
+        if proc.name() == "uwsgi":
+            proc.kill()
 
 
 PerfTestCase = collections.namedtuple("PerfTestCase", "name samples iterations")
@@ -82,7 +85,7 @@ class CMRunTests:
         self._shutdown_endpoint = "/shutdown/"
         self._predict_endpoint = "/predict/"
         self._stats_endpoint = "/stats/"
-        self._timeout = 20
+        self._timeout = 40
         self._server_process = None
 
         self._df_for_test = None
@@ -128,6 +131,7 @@ class CMRunTests:
 
     def _wait_for_server_to_start(self):
         while True:
+            print("waiting, {}".format(self._server_port))
             try:
                 response = requests.get(self._url_server_address)
                 if response.ok:
@@ -155,6 +159,8 @@ class CMRunTests:
         cmd_list.append("--logging-level")
         cmd_list.append("warning")
         cmd_list.append("--show-perf")
+        # cmd_list.append("--production")
+        cmd_list.append("--verbose")
 
         if self.options.positive_class_label:
             cmd_list.append("--positive-class-label")
@@ -240,7 +246,8 @@ class CMRunTests:
             row = [res.name, res.samples, res.iterations]
             d = res.stats_obj.dict_report(CMRunTests.REPORT_NAME)
             row.extend([d["min"], d["avg"], d["max"]])
-            server_stats = json.loads(res.server_stats) if res.server_stats else None
+            server_stats = None
+            # server_stats = json.loads(res.server_stats) if res.server_stats else None
 
             if show_mem:
                 if server_stats and "mem_info" in server_stats:
