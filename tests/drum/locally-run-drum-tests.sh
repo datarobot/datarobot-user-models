@@ -41,7 +41,7 @@ function check_env_or_create() {
         exit 1
     fi
     . $ENV_ACTIVATE
-    pip install pytest -r ${GIT_ROOT}/requirements.txt
+    pip install pytest -r ${GIT_ROOT}/requirements_dev.txt
     deactivate
 }
 

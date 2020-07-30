@@ -20,6 +20,7 @@ extras_require = {
     "xgboost": extra_deps[SupportedFrameworks.XGBOOST],
     "R": ["rpy2;python_version>='3.6'"],
     "pypmml": extra_deps[SupportedFrameworks.PYPMML],
+    "trainingModels": ["datarobot==2.22.0b0"],
 }
 
 setup(

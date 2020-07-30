@@ -27,6 +27,7 @@ from datarobot_drum.drum.common import (
     TemplateType,
     verbose_stdout,
 )
+from datarobot_drum.drum.push import drum_push
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
@@ -71,6 +72,7 @@ class CMRunner(object):
             RunMode.VALIDATION: "Detected validation check mode",
             RunMode.FIT: "Detected fit mode",
             RunMode.NEW: "Detected template generation mode",
+            RunMode.PUSH: "Detected push mode",
         }
         self._print_verbose(mode_headers[self.run_mode])
 
@@ -244,6 +246,8 @@ class CMRunner(object):
             CMRunTests(self.options, self.run_mode).validation_test()
         elif self.run_mode == RunMode.NEW:
             self._generate_template()
+        elif self.run_mode == RunMode.PUSH:
+            drum_push(self.options)
         else:
             error_message = "{} mode is not implemented".format(self.run_mode)
             print(error_message)

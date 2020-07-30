@@ -1,8 +1,9 @@
 import os
-import pytest
 import uuid
 import warnings
+
 import datarobot as dr
+import pytest
 from dr_usertool.datarobot_user_database import DataRobotUserDatabase
 from dr_usertool.utils import get_permissions
 

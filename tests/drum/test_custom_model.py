@@ -8,7 +8,7 @@ import shutil
 import signal
 import subprocess
 import time
-from tempfile import mkdtemp, NamedTemporaryFile, TemporaryDirectory
+from tempfile import NamedTemporaryFile
 from threading import Thread
 from unittest import mock
 from uuid import uuid4
@@ -18,16 +18,15 @@ import pandas as pd
 import pytest
 import requests
 
+from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.common import (
+    ArgumentsOptions,
     CUSTOM_FILE_NAME,
     CustomHooks,
-    ArgumentsOptions,
     PythonArtifacts,
     RunMode,
 )
-
 from datarobot_drum.drum.runtime import DrumRuntime
-from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 
 TRAINING = "training"
 INFERENCE = "inference"
