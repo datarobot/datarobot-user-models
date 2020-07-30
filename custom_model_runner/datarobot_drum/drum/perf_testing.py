@@ -71,6 +71,7 @@ class TestCaseResults:
 
 class CMRunTests:
     REPORT_NAME = "Request time (s)"
+    NA_VALUE = "NA"
 
     def __init__(self, options, run_mode):
         self.options = options
@@ -155,6 +156,11 @@ class CMRunTests:
         cmd_list.append("--logging-level")
         cmd_list.append("warning")
         cmd_list.append("--show-perf")
+        if self.options.production:
+            cmd_list.append("--production")
+        if self.options.max_workers:
+            cmd_list.append("--max-workers")
+            cmd_list.append(str(self.options.max_workers))
 
         if self.options.positive_class_label:
             cmd_list.append("--positive-class-label")
@@ -202,7 +208,8 @@ class CMRunTests:
             bar.next()
         bar.finish()
         response = requests.get(self._url_server_address + self._stats_endpoint)
-        tc_results.server_stats = response.text
+        if response.ok:
+            tc_results.server_stats = response.text
 
     def _generate_table_report_adv(self, results, show_mem=True, show_inside_server=True):
 
@@ -247,14 +254,19 @@ class CMRunTests:
                     mem_info = server_stats["mem_info"]
                     row.extend([mem_info["predictor_rss"], mem_info["total"]])
                 else:
-                    row.extend([-9999, -9999])
+                    row.extend([CMRunTests.NA_VALUE, CMRunTests.NA_VALUE])
                 rows.append(row)
 
-            if show_inside_server and server_stats:
-                time_info = server_stats["time_info"]
-                row.extend(
-                    [time_info["run_predictor_total"]["avg"],]
-                )
+            if show_inside_server:
+                if server_stats:
+                    time_info = server_stats["time_info"]
+                    row.extend(
+                        [time_info["run_predictor_total"]["avg"],]
+                    )
+                else:
+                    row.extend(
+                        [CMRunTests.NA_VALUE,]
+                    )
 
         table.add_rows(rows)
         tbl_report = table.draw()
