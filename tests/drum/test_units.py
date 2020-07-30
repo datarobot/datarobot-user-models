@@ -224,20 +224,16 @@ def test_push(config_yaml):
             and calls[2].request.method == "GET"
         )
         assert (
-            calls[3].request.path_url == "/executionEnvironments/{}/".format(environmentID)
-            and calls[3].request.method == "GET"
-        )
-        assert (
-            calls[4].request.path_url == "/customTrainingBlueprints/"
-            and calls[4].request.method == "POST"
+            calls[3].request.path_url == "/customTrainingBlueprints/"
+            and calls[3].request.method == "POST"
         )
         if "trainingModel" in config:
             assert (
-                calls[5].request.path_url == "/projects/abc123/models/"
-                and calls[5].request.method == "POST"
+                calls[4].request.path_url == "/projects/abc123/models/"
+                and calls[4].request.method == "POST"
             )
-            assert len(calls) == 6
-        else:
             assert len(calls) == 5
+        else:
+            assert len(calls) == 4
     else:
         assert len(calls) == 2

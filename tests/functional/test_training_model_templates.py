@@ -4,7 +4,7 @@ import os
 import pytest
 import datarobot as dr
 
-from datarobot._experimental import CustomTrainingBlueprint
+from datarobot._experimental import CustomTrainingBlueprint, CustomTrainingModel
 
 BASE_MODEL_TEMPLATES_DIR = "model_templates"
 BASE_DATASET_DIR = "tests/testdata"
@@ -79,11 +79,17 @@ class TestTrainingModelTemplates(object):
             dr.TARGET_TYPE.REGRESSION if target_type == "regression" else dr.TARGET_TYPE.BINARY
         )
 
-        blueprint = CustomTrainingBlueprint.create_from_dropin(
-            model_name="training model",
-            dropin_env_id=env_id,
-            target_type=dr_target_type,
+        model = CustomTrainingModel.create(name="training model", target_type=dr_target_type)
+        model_version = dr.CustomModelVersion.create_clean(
+            custom_model_id=model.id,
+            base_environment_id=env_id,
             folder_path=os.path.join(BASE_MODEL_TEMPLATES_DIR, model_template),
+        )
+        blueprint = CustomTrainingBlueprint.create(
+            custom_model_id=model.id,
+            custom_model_version_id=model_version.id,
+            environment_id=env_id,
+            environment_version_id=env_version_id,
         )
         proj = dr.Project.get(proj_id)
 

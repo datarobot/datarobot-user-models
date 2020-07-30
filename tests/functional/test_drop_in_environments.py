@@ -17,6 +17,7 @@ class TestDropInEnvironments(object):
     def make_custom_model(
         self,
         artifact_names,
+        base_environment_id,
         positive_class_label=None,
         negative_class_label=None,
         custom_predict_path=None,
@@ -28,10 +29,11 @@ class TestDropInEnvironments(object):
 
         Parameters
         ----------
-        client: dse.DSEClient
         artifact_names: Union[List[str], str]
             a singular filename or list of artifact filenames from the
             drop_in_model_artifacts directory to include
+        base_environment_id: str
+            The base environment for the model version
         positive_class_label: str or None
         negative_class_label: str or None
         custom_predict_path: str or None
@@ -85,15 +87,17 @@ class TestDropInEnvironments(object):
             items.append((artifact_path, artifact_name))
 
         model_version = dr.CustomModelVersion.create_clean(
-            custom_model_id=custom_model.id, files=items
+            custom_model_id=custom_model.id, base_environment_id=base_environment_id, files=items
         )
 
         return custom_model.id, model_version.id
 
     @pytest.fixture(scope="session")
-    def sklearn_binary_custom_model(self):
+    def sklearn_binary_custom_model(self, sklearn_drop_in_env):
+        env_id, _ = sklearn_drop_in_env
         return self.make_custom_model(
             "sklearn_bin.pkl",
+            env_id,
             "Iris-setosa",
             "Iris-versicolor",
             custom_predict_path=CUSTOM_PREDICT_PY_PATH,
@@ -101,64 +105,86 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def sklearn_regression_custom_model(self):
+    def sklearn_regression_custom_model(self, sklearn_drop_in_env):
+        env_id, _ = sklearn_drop_in_env
         return self.make_custom_model(
-            "sklearn_reg.pkl", custom_predict_path=CUSTOM_PREDICT_PY_PATH, target_name="MEDV",
+            "sklearn_reg.pkl",
+            env_id,
+            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            target_name="MEDV",
         )
 
     @pytest.fixture(scope="session")
-    def keras_binary_custom_model(self):
+    def keras_binary_custom_model(self, keras_drop_in_env):
+        env_id, _ = keras_drop_in_env
         return self.make_custom_model(
-            "keras_bin.h5", "yes", "no", custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            "keras_bin.h5", env_id, "yes", "no", custom_predict_path=CUSTOM_PREDICT_PY_PATH,
         )
 
     @pytest.fixture(scope="session")
-    def keras_regression_custom_model(self):
-        return self.make_custom_model("keras_reg.h5", custom_predict_path=CUSTOM_PREDICT_PY_PATH)
-
-    @pytest.fixture(scope="session")
-    def torch_binary_custom_model(self):
+    def keras_regression_custom_model(self, keras_drop_in_env):
+        env_id, _ = keras_drop_in_env
         return self.make_custom_model(
-            "torch_bin.pth", "yes", "no", CUSTOM_PREDICT_PY_PATH, ["PyTorch.py"]
+            "keras_reg.h5", env_id, custom_predict_path=CUSTOM_PREDICT_PY_PATH
         )
 
     @pytest.fixture(scope="session")
-    def torch_regression_custom_model(self):
+    def torch_binary_custom_model(self, pytorch_drop_in_env):
+        env_id, _ = pytorch_drop_in_env
+        return self.make_custom_model(
+            "torch_bin.pth", env_id, "yes", "no", CUSTOM_PREDICT_PY_PATH, ["PyTorch.py"]
+        )
+
+    @pytest.fixture(scope="session")
+    def torch_regression_custom_model(self, pytorch_drop_in_env):
+        env_id, _ = pytorch_drop_in_env
         return self.make_custom_model(
             "torch_reg.pth",
+            env_id,
             custom_predict_path=CUSTOM_PREDICT_PY_PATH,
             other_file_names=["PyTorch.py"],
         )
 
     @pytest.fixture(scope="session")
-    def xgb_binary_custom_model(self):
+    def xgb_binary_custom_model(self, xgboost_drop_in_env):
+        env_id, _ = xgboost_drop_in_env
         return self.make_custom_model(
-            "xgb_bin.pkl", "yes", "no", custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            "xgb_bin.pkl", env_id, "yes", "no", custom_predict_path=CUSTOM_PREDICT_PY_PATH,
         )
 
     @pytest.fixture(scope="session")
-    def xgb_regression_custom_model(self):
-        return self.make_custom_model("xgb_reg.pkl", custom_predict_path=CUSTOM_PREDICT_PY_PATH)
-
-    @pytest.fixture(scope="session")
-    def python_multi_artifact_regression_custom_model(self):
+    def xgb_regression_custom_model(self, xgboost_drop_in_env):
+        env_id, _ = xgboost_drop_in_env
         return self.make_custom_model(
-            ["sklearn_bin.pkl", "sklearn_reg.pkl"], custom_predict_path=CUSTOM_LOAD_PREDICT_PY_PATH,
+            "xgb_reg.pkl", env_id, custom_predict_path=CUSTOM_PREDICT_PY_PATH
         )
 
     @pytest.fixture(scope="session")
-    def bad_python_multi_artifact_binary_custom_model(self):
+    def python_multi_artifact_regression_custom_model(self, sklearn_drop_in_env):
+        env_id, _ = sklearn_drop_in_env
         return self.make_custom_model(
             ["sklearn_bin.pkl", "sklearn_reg.pkl"],
+            env_id,
+            custom_predict_path=CUSTOM_LOAD_PREDICT_PY_PATH,
+        )
+
+    @pytest.fixture(scope="session")
+    def bad_python_multi_artifact_binary_custom_model(self, sklearn_drop_in_env):
+        env_id, _ = sklearn_drop_in_env
+        return self.make_custom_model(
+            ["sklearn_bin.pkl", "sklearn_reg.pkl"],
+            env_id,
             "Iris-setosa",
             "Iris-versicolor",
             CUSTOM_PREDICT_PY_PATH,
         )
 
     @pytest.fixture(scope="session")
-    def java_binary_custom_model(self):
+    def java_binary_custom_model(self, java_drop_in_env):
+        env_id, _ = java_drop_in_env
         return self.make_custom_model(
             "java_bin.jar",
+            env_id,
             "Iris-setosa",
             "Iris-versicolor",
             artifact_only=True,
@@ -166,13 +192,18 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def java_regression_custom_model(self):
-        return self.make_custom_model("java_reg.jar", artifact_only=True, target_name="MEDV")
+    def java_regression_custom_model(self, java_drop_in_env):
+        env_id, _ = java_drop_in_env
+        return self.make_custom_model(
+            "java_reg.jar", env_id, artifact_only=True, target_name="MEDV"
+        )
 
     @pytest.fixture(scope="session")
-    def r_binary_custom_model(self):
+    def r_binary_custom_model(self, r_drop_in_env):
+        env_id, _ = r_drop_in_env
         return self.make_custom_model(
             "r_bin.rds",
+            env_id,
             "Iris-setosa",
             "Iris-versicolor",
             CUSTOM_PREDICT_R_PATH,
@@ -180,24 +211,32 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def r_regression_custom_model(self):
+    def r_regression_custom_model(self, r_drop_in_env):
+        env_id, _ = r_drop_in_env
         return self.make_custom_model(
-            "r_reg.rds", custom_predict_path=CUSTOM_PREDICT_R_PATH, target_name="MEDV",
+            "r_reg.rds", env_id, custom_predict_path=CUSTOM_PREDICT_R_PATH, target_name="MEDV",
         )
 
     @pytest.fixture(scope="session")
-    def r_multi_artifact_binary_custom_model(self):
+    def r_multi_artifact_binary_custom_model(self, r_drop_in_env):
+        env_id, _ = r_drop_in_env
         return self.make_custom_model(
             ["r_bin.rds", "r_reg.rds"],
+            env_id,
             "Iris-setosa",
             "Iris-versicolor",
             CUSTOM_LOAD_PREDICT_R_PATH,
         )
 
     @pytest.fixture(scope="session")
-    def bad_r_multi_artifact_binary_custom_model(self):
+    def bad_r_multi_artifact_binary_custom_model(self, r_drop_in_env):
+        env_id, _ = r_drop_in_env
         return self.make_custom_model(
-            ["r_bin.rds", "r_reg.rds"], "Iris-setosa", "Iris-versicolor", CUSTOM_PREDICT_R_PATH,
+            ["r_bin.rds", "r_reg.rds"],
+            env_id,
+            "Iris-setosa",
+            "Iris-versicolor",
+            CUSTOM_PREDICT_R_PATH,
         )
 
     @pytest.mark.parametrize(
