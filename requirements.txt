@@ -15,3 +15,6 @@ pypmml==0.9.6
 rpy2<=3.2.7
 datarobot==2.22.0b0
 strictyaml==1.0.6
+docker>=4.2.2<5.0.0
+flask
+datarobot_drum

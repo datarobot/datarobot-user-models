@@ -9,3 +9,4 @@ argcomplete==1.11.1
 mlpiper==2.2.0
 datarobot==2.21.3
 strictyaml==1.0.6
+docker>=4.2.2<5.0.0

@@ -172,9 +172,13 @@ You can also use **drum** on regression datasets, and soon you will also be able
 
 
 ### Running inside a docker container
-In every mode, **drum** can be run inside a docker container by providing the option ```--docker <image_name>```.
+In every mode, **drum** can be run inside a docker container by providing the option ```--docker <image_name/directory_path>```.
 The container should implement an environment required to perform desired action.
 **drum** must be installed as a part of this environment.  
 The following is an example gn how to run **drum** inside of container:  
 ```drum score --code-dir ~/user_code_dir/ --input dataset.csv --docker <container_name>```  
 ```drum perf-test --code-dir ~/user_code_dir/ --input dataset.csv --docker <container_name>```
+
+Alternatively, the argument passed through the `--docker` flag may be a directory containing the unbuilt contents 
+of an image. The DRUM tool will then attempt to build an image using this directory and run your model inside 
+the newly built image.
