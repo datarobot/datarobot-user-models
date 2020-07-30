@@ -38,7 +38,7 @@ source $GIT_ROOT/tests/drum/integration-helpers.sh
 
 cd $GIT_ROOT || exit 1
 
-CMRUNNER_REQUIREMENT_PATH=$GIT_ROOT/custom_model_runner/requirements.txt
+CMRUNNER_REQUIREMENT_PATH=$GIT_ROOT/custom_model_runner/requirements_dev.txt
 
 # shellcheck disable=SC2218
 build_docker_image_with_cmrun tests/fixtures/cmrun_docker_env \
@@ -47,9 +47,9 @@ build_docker_image_with_cmrun tests/fixtures/cmrun_docker_env \
                                $CMRUNNER_REQUIREMENT_PATH || exit 1
 
 echo
-echo "Installing the requirements for all tests:  $GIT_ROOT/requirements.txt"
+echo "Installing the requirements for all tests:  $GIT_ROOT/requirements_dev.txt"
 cd $GIT_ROOT || exit 1
-pip install -r $GIT_ROOT/requirements.txt
+pip install -r $GIT_ROOT/requirements_dev.txt -i https://artifactory.int.datarobot.com/artifactory/api/pypi/python-all/simple
 
 echo
 echo "Running pytest:"

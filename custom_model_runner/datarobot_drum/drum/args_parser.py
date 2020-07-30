@@ -352,37 +352,29 @@ class CMRunnerArgsRegistry(object):
     def get_arg_parser():
         parser = argparse.ArgumentParser(description="Run user model")
         CMRunnerArgsRegistry._parsers[ArgumentsOptions.MAIN_COMMAND] = parser
+        CMRunnerArgsRegistry._reg_arg_version(parser)
         subparsers = parser.add_subparsers(
             dest=CMRunnerArgsRegistry.SUBPARSER_DEST_KEYWORD, help="Commands"
         )
+
         batch_parser = subparsers.add_parser(
             ArgumentsOptions.SCORE, help="Run predictions in batch mode"
         )
-
         fit_parser = subparsers.add_parser(ArgumentsOptions.FIT, help="Fit your model to your data")
-
         parser_perf_test = subparsers.add_parser(
             ArgumentsOptions.PERF_TEST, help="Run performance tests"
         )
-
         validation_parser = subparsers.add_parser(
             ArgumentsOptions.VALIDATION, help="Run validation checks"
         )
-
-        # Note following args are not supported for perf-test, thus set as default
-        parser_perf_test.set_defaults(logging_level="warning", verbose=False)
-        validation_parser.set_defaults(logging_level="warning", verbose=False)
-
         server_parser = subparsers.add_parser(
             ArgumentsOptions.SERVER, help="Run predictions in server"
         )
-
         new_parser = subparsers.add_parser(
             ArgumentsOptions.NEW,
             description="Create new model/env template",
             help="Create new model/env template",
         )
-
         new_subparsers = new_parser.add_subparsers(
             dest=CMRunnerArgsRegistry.NEW_SUBPARSER_DEST_KEYWORD, help="Commands"
         )
@@ -391,21 +383,14 @@ class CMRunnerArgsRegistry(object):
         new_model_parser = new_subparsers.add_parser(
             ArgumentsOptions.NEW_MODEL, help="Create a new modeling code directory template"
         )
+        push_parser = subparsers.add_parser(
+            ArgumentsOptions.PUSH, help="Add your model or modeling code into the DataRobot app"
+        )
 
-        CMRunnerArgsRegistry._reg_arg_version(parser)
-        CMRunnerArgsRegistry._reg_arg_verbose(
-            batch_parser, server_parser, fit_parser, new_parser, new_model_parser
-        )
-        CMRunnerArgsRegistry._reg_arg_input(
-            batch_parser, parser_perf_test, fit_parser, validation_parser
-        )
-        CMRunnerArgsRegistry._reg_arg_output(batch_parser, fit_parser)
-        CMRunnerArgsRegistry._reg_arg_target_feature_and_filename(fit_parser)
-        CMRunnerArgsRegistry._reg_arg_weights(fit_parser)
-        CMRunnerArgsRegistry._reg_arg_skip_predict(fit_parser)
-        CMRunnerArgsRegistry._reg_arg_pos_neg_labels(
-            batch_parser, parser_perf_test, server_parser, fit_parser, validation_parser
-        )
+        # Note following args are not supported for perf-test, thus set as default
+        parser_perf_test.set_defaults(logging_level="warning", verbose=False)
+        validation_parser.set_defaults(logging_level="warning", verbose=False)
+
         CMRunnerArgsRegistry._reg_arg_code_dir(
             batch_parser,
             parser_perf_test,
@@ -413,15 +398,30 @@ class CMRunnerArgsRegistry(object):
             fit_parser,
             new_model_parser,
             validation_parser,
+            push_parser,
+        )
+        CMRunnerArgsRegistry._reg_arg_verbose(
+            batch_parser, server_parser, fit_parser, new_parser, new_model_parser, push_parser
+        )
+        CMRunnerArgsRegistry._reg_arg_input(
+            batch_parser, parser_perf_test, fit_parser, validation_parser
+        )
+        CMRunnerArgsRegistry._reg_arg_pos_neg_labels(
+            batch_parser, parser_perf_test, server_parser, fit_parser, validation_parser
         )
         CMRunnerArgsRegistry._reg_arg_logging_level(
-            batch_parser, server_parser, fit_parser, new_parser, new_model_parser
+            batch_parser, server_parser, fit_parser, new_parser, new_model_parser, push_parser
         )
-        CMRunnerArgsRegistry._reg_arg_num_rows(fit_parser)
         CMRunnerArgsRegistry._reg_arg_docker(
             batch_parser, parser_perf_test, server_parser, fit_parser, validation_parser
         )
+        CMRunnerArgsRegistry._reg_arg_output(batch_parser, fit_parser)
         CMRunnerArgsRegistry._reg_arg_show_perf(batch_parser, server_parser)
+
+        CMRunnerArgsRegistry._reg_arg_target_feature_and_filename(fit_parser)
+        CMRunnerArgsRegistry._reg_arg_weights(fit_parser)
+        CMRunnerArgsRegistry._reg_arg_skip_predict(fit_parser)
+        CMRunnerArgsRegistry._reg_arg_num_rows(fit_parser)
 
         CMRunnerArgsRegistry._reg_arg_samples(parser_perf_test)
         CMRunnerArgsRegistry._reg_arg_iterations(parser_perf_test)
