@@ -30,7 +30,7 @@ class TestInferenceModelTemplates(object):
             (
                 "inference/h2o_mojo/regression",
                 "java",
-                "java_drop_in_env",
+                "java_h2o_drop_in_env",
                 "regression_testing_data",
                 "MEDV",
                 None,
@@ -39,7 +39,7 @@ class TestInferenceModelTemplates(object):
             (
                 "inference/h2o_pojo/regression",
                 "java",
-                "java_drop_in_env",
+                "java_h2o_drop_in_env",
                 "regression_testing_data",
                 "MEDV",
                 None,
@@ -120,7 +120,7 @@ class TestInferenceModelTemplates(object):
             (
                 "inference/h2o_pojo/binary",
                 "java",
-                "java_drop_in_env",
+                "java_h2o_drop_in_env",
                 "binary_testing_data",
                 "Species",
                 "Iris-setosa",
@@ -129,7 +129,7 @@ class TestInferenceModelTemplates(object):
             (
                 "inference/h2o_mojo/binary",
                 "java",
-                "java_drop_in_env",
+                "java_h2o_drop_in_env",
                 "binary_testing_data",
                 "Species",
                 "Iris-setosa",
