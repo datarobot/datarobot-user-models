@@ -1,6 +1,6 @@
 import os
 import re
-from datarobot_drum.drum.exceptions import DrumCommonException
+
 from pathlib import Path
 
 import datarobot as dr_client
@@ -82,7 +82,9 @@ def push_training(model_config, code_dir, endpoint=None, token=None):
         ).id
 
     try:
-        dr_client.CustomModelVersion.create_clean(model_id, folder_path=code_dir)
+        dr_client.CustomModelVersion.create_clean(
+            model_id, base_environment_id=model_config["environmentID"], folder_path=code_dir
+        )
     except dr_client.errors.ClientError as e:
         print("Error adding model with ID {} and dir {}: {}".format(model_id, code_dir, str(e)))
         raise SystemExit(1)
@@ -135,7 +137,11 @@ def push_inference(model_config, code_dir, token=None, endpoint=None):
             negative_class_label=model_config["inferenceModel"].get("negativeClassLabel"),
             prediction_threshold=model_config["inferenceModel"].get("predictionThreshold"),
         ).id
-    dr_client.CustomModelVersion.create_clean(custom_model_id=model_id, folder_path=code_dir)
+    dr_client.CustomModelVersion.create_clean(
+        custom_model_id=model_id,
+        base_environment_id=model_config["environmentID"],
+        folder_path=code_dir,
+    )
     print_model_started_dialogue(model_id)
 
 
