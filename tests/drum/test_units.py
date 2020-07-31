@@ -108,9 +108,6 @@ modelID: {modelID}
 environmentID: {environmentID}
 trainingModel:
   trainOnProject: {projectID}
-validation:
-  inputData: hi
-  targetName: MEDV
 """.format(
     modelID=modelID, environmentID=environmentID, projectID=projectID
 )
