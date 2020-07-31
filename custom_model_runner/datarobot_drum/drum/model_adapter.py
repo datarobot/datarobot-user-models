@@ -103,12 +103,21 @@ class PythonModelAdapter:
     def _load_model_via_hook(self):
         self._logger.debug("Load model hook will be used to load the model")
         # noinspection PyCallingNonCallable
-        model = self._custom_hooks[CustomHooks.LOAD_MODEL](self._model_dir)
-        if model:
-            self._logger.debug("Model was successfully loaded by load hook")
-            return model
+
+        try:
+            model = self._custom_hooks[CustomHooks.LOAD_MODEL](self._model_dir)
+        except Exception as exc:
+            raise DrumCommonException(
+                "Model loading hook failed to load model because an error was raised: {!r}".format(
+                    exc
+                )
+            ) from exc
         else:
-            raise DrumCommonException("Model loading hook failed to load model")
+            if model:
+                self._logger.debug("Model was successfully loaded by load hook")
+                return model
+            else:
+                raise DrumCommonException("Model loading hook failed to load model")
 
     def _detect_model_artifact_file(self):
         # No model was loaded - so there is no local hook - so we are using our artifact predictors
