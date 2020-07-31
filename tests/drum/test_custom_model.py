@@ -680,7 +680,8 @@ class TestCMRunner:
     @pytest.mark.parametrize("use_output", [True, False])
     @pytest.mark.parametrize("nested", [True, False])
     def test_fit(self, framework, problem, docker, weights, use_output, tmp_path, nested):
-
+        if docker and framework != SKLEARN:
+            return
         if framework == RDS:
             language = R_FIT
         else:
@@ -793,8 +794,8 @@ class TestCMRunner:
         output = tmp_path / "output"
         output.mkdir()
 
-        cmd = "{} fit --code-dir {} --target {} --input {} --verbose ".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, self.target[REGRESSION], input_dataset
+        cmd = "{} fit --code-dir {} --target {} --input {} --verbose".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, self.target[REGRESSION], input_dataset,
         )
         TestCMRunner._exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
