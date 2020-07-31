@@ -162,7 +162,14 @@ class PythonModelAdapter:
                 pred_that_support_artifact.append(pred)
 
             if pred.can_load_artifact(model_artifact_file):
-                model = pred.load_model_from_artifact(model_artifact_file)
+                try:
+                    model = pred.load_model_from_artifact(model_artifact_file)
+                except Exception as exc:
+                    raise DrumCommonException(
+                        "Could not load model from artifact file because an error was raised: {!r}".format(
+                            exc
+                        )
+                    ) from exc
                 break
 
         if not model:
