@@ -235,7 +235,9 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.DOCKER,
                 default=None,
                 required=False,
-                help="Docker image to use to run {} in the {} mode".format(
+                help="Docker image to use to run {} in the {} mode, "
+                "or a directory, containing a Dockerfile, "
+                "which can be built into a docker image. ".format(
                     ArgumentsOptions.MAIN_COMMAND, prog_name_lst[1]
                 ),
             )
