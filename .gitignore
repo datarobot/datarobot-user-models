@@ -123,3 +123,8 @@ custom-model-templates.Rproj
 
 # java/jar
 custom_model_runner/**/*.jar
+*.class 
+
+# misc
+.metals
+.vscode
