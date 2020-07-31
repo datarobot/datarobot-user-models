@@ -437,7 +437,7 @@ class CMRunner(object):
         Returns: docker command line to run as a string
         """
 
-        options.docker = self.maybe_build_image(options.docker)
+        options.docker = self._maybe_build_image(options.docker)
         in_docker_model = "/opt/model"
         in_docker_input_file = "/opt/input.csv"
         in_docker_output_file = "/opt/output.csv"
@@ -532,33 +532,40 @@ class CMRunner(object):
         self._print_verbose("{bar} retcode: {retcode} {bar}".format(bar="-" * 10, retcode=retcode))
         return retcode
 
-    def maybe_build_image(self, docker_image_or_directory):
+    def _maybe_build_image(self, docker_image_or_directory):
+        ret_docker_image = None
         client = docker.client.from_env()
-        try:
-            client.images.get(docker_image_or_directory)
-            return docker_image_or_directory
-        except docker.errors.ImageNotFound:
-            pass
-        if not os.path.isdir(docker_image_or_directory):
+
+        if os.path.isdir(docker_image_or_directory):
+            docker_image_or_directory = os.path.abspath(docker_image_or_directory)
+            self.logger.info(
+                "Building a docker image from directory {}...".format(docker_image_or_directory)
+            )
+            self.logger.info("This may take some time")
+            try:
+                image, _ = client.images.build(path=docker_image_or_directory)
+                ret_docker_image = image.id
+            except docker.errors.BuildError as e:
+                self.logger.error("Hey something went wrong with image build!")
+                for line in e.build_log:
+                    if "stream" in line:
+                        self.logger.error(line["stream"].strip())
+                raise
+            self.logger.info("Done building image!")
+        else:
+            try:
+                client.images.get(docker_image_or_directory)
+                ret_docker_image = docker_image_or_directory
+            except docker.errors.ImageNotFound:
+                pass
+
+        if not ret_docker_image:
             raise DrumCommonException(
                 "The string '{}' does not represent a docker image "
                 "in your registry or a directory".format(docker_image_or_directory)
             )
-        self.logger.info(
-            "Building a docker image from directory {}...".format(docker_image_or_directory)
-        )
-        self.logger.info("This may take some time")
-        try:
-            image, _ = client.images.build(path=docker_image_or_directory)
-        except docker.errors.BuildError as e:
-            for line in e.build_log:
-                if "stream" in line:
-                    self.logger.error(line["stream"].strip())
-            raise DrumCommonException(
-                "There was an error while building your image. " "Check the above logs to debug. "
-            )
-        self.logger.info("Done building image!")
-        return image.id
+
+        return ret_docker_image
 
 
 def possibly_intuit_order(input_data_file, target_data_file=None, target_col_name=None):
