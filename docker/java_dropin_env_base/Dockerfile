@@ -11,11 +11,26 @@ RUN apt-get update && \
             openjdk-11-jre \
             gcc \
             libc6-dev \
+            build-essential \
+            maven \
+            apt-utils \
+            curl \
+            gpg-agent \
+            software-properties-common \
+            dirmngr \
+            libssl-dev \
+            ca-certificates \
+            locales \
+            libcurl4-openssl-dev \
+            libxml2-dev \
+            libgomp1 \
+            pandoc \
             && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 RUN pip3 install --no-cache-dir setuptools wheel
+
 
 # do the trick to install drum deps
 RUN pip3 install --no-cache-dir datarobot-drum
