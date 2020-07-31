@@ -1,7 +1,7 @@
 # Model Metadata
 The `drum` tool has a verb called `push` which requires the usage of a metadata file in your 
 code directory to configure the creation of a DataRobot model. 
-## Options for either Training or Inference models
+## Options for either training or inference models
 ### Required Arguments
 * name: a string used as the custom model title, try to make this unique so you can search for it 
     later.
@@ -27,14 +27,14 @@ NOTE: All options specific to inference or training models are ignored if modelI
 configure the base `custom model` entity only. However, they are still required to keep in the
 metadata file.
 ### Required Arguments
-targetName: a string with the column of your data that your model tries to predict. 
+* targetName: a string with the column of your data that your model tries to predict. 
 ### Optional Arguments
-positiveClassLabel / negativeClassLabel: Required for binary models. If your model predicts the 
+* positiveClassLabel / negativeClassLabel: Required for binary models. If your model predicts the 
  number 0, the negativeClassLabel dictates of your prediction that corresponds to. 
-predictionThreshold: Optional for binary models. The cutoff point between 0 and 1 that represents
+* predictionThreshold: Optional for binary models. The cutoff point between 0 and 1 that represents
 which label will be chosen as the predicted label. 
 
 ## Options specific to training models
 ### Optional Arguments
-trainOnProject: A hash with the pid of a project you would like to train your new model or version 
+* trainOnProject: A hash with the pid of a project you would like to train your new model or version 
 on. If this is supplied, the code you supplied will start to run against this pid automagically. 
