@@ -82,7 +82,7 @@ def push_training(model_config, code_dir, endpoint=None, token=None):
         ).id
         print(
             "You just created a new custom model. Please add this model ID to your metadata file "
-            "by adding the string modelID:{}".format(model_id)
+            "by adding the line 'modelID:{}'".format(model_id)
         )
 
     try:
