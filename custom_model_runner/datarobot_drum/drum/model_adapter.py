@@ -264,22 +264,48 @@ class PythonModelAdapter:
         pd.DataFrame
         """
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
-            # noinspection PyCallingNonCallable
-            data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
+            try:
+                # noinspection PyCallingNonCallable
+                data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
+            except Exception as exc:
+                raise DrumCommonException(
+                    "Model transform hook failed to transform dataset because an error was raised: {!r}".format(
+                        exc
+                    )
+                ) from exc
             self._validate_data(data, CustomHooks.TRANSFORM)
 
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD, None)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD, None)
 
         if self._custom_hooks.get(CustomHooks.SCORE):
-            # noinspection PyCallingNonCallable
-            predictions = self._custom_hooks[CustomHooks.SCORE](data, model, **kwargs)
+            try:
+                # noinspection PyCallingNonCallable
+                predictions = self._custom_hooks[CustomHooks.SCORE](data, model, **kwargs)
+            except Exception as exc:
+                raise DrumCommonException(
+                    "Model score hook failed to make predictions because an error was raised: {!r}".format(
+                        exc
+                    )
+                ) from exc
         else:
-            predictions = self._predictor_to_use.predict(data, model, **kwargs)
+            try:
+                predictions = self._predictor_to_use.predict(data, model, **kwargs)
+            except Exception as exc:
+                raise DrumCommonException(
+                    "An error was raised when making predictions: {!r}".format(exc)
+                ) from exc
 
         if self._custom_hooks.get(CustomHooks.POST_PROCESS):
-            # noinspection PyCallingNonCallable
-            predictions = self._custom_hooks[CustomHooks.POST_PROCESS](predictions, model)
+            try:
+                # noinspection PyCallingNonCallable
+                predictions = self._custom_hooks[CustomHooks.POST_PROCESS](predictions, model)
+            except Exception as exc:
+                raise DrumCommonException(
+                    "Model post-process hook failed to post-process predictions because an error was raised: {!r}".format(
+                        exc
+                    )
+                ) from exc
 
         self._validate_predictions(predictions, positive_class_label, negative_class_label)
 
