@@ -9,6 +9,7 @@ from distutils.dir_util import copy_tree
 from pathlib import Path
 from tempfile import mkdtemp, NamedTemporaryFile
 
+import docker.errors
 import numpy as np
 import pandas as pd
 from mlpiper.pipeline.executor import Executor
@@ -213,9 +214,10 @@ class CMRunner(object):
         except DrumCommonException as e:
             self.logger.error(e)
             raise
-        except AttributeError:
+        except AttributeError as e:
             # In some parser the options.docker does not exists
-            pass
+            if "docker" not in str(e):
+                raise e
 
         self._print_welcome_header()
 
@@ -435,6 +437,7 @@ class CMRunner(object):
         Returns: docker command line to run as a string
         """
 
+        options.docker = self.maybe_build_image(options.docker)
         in_docker_model = "/opt/model"
         in_docker_input_file = "/opt/input.csv"
         in_docker_output_file = "/opt/output.csv"
@@ -493,8 +496,8 @@ class CMRunner(object):
                 CMRunnerUtils.replace_cmd_argument_value(
                     in_docker_cmd_list, ArgumentsOptions.OUTPUT, in_docker_fit_output_dir
                 )
-                if options.target_filename:
-                    fit_target_filename = os.path.realpath(options.target_filename)
+                if options.target_csv:
+                    fit_target_filename = os.path.realpath(options.target_csv)
                     docker_cmd_args += " -v {}:{}".format(
                         fit_target_filename, in_docker_fit_target_filename
                     )
@@ -503,14 +506,17 @@ class CMRunner(object):
                         ArgumentsOptions.TARGET_FILENAME,
                         in_docker_fit_target_filename,
                     )
-                if options.row_weghts:
-                    fit_row_weights_filename = os.path.realpath(options.row_weghts)
+                # import pydevd_pycharm
+                # pydevd_pycharm.settrace('localhost', port=37931, stdoutToServer=True,
+                #                         stderrToServer=True)
+                if options.row_weights_csv:
+                    fit_row_weights_filename = os.path.realpath(options.row_weights_csv)
                     docker_cmd_args += " -v {}:{}".format(
                         fit_row_weights_filename, in_docker_fit_row_weights_filename
                     )
                     CMRunnerUtils.replace_cmd_argument_value(
                         in_docker_cmd_list,
-                        ArgumentsOptions.WEIGHTS,
+                        ArgumentsOptions.WEIGHTS_CSV,
                         in_docker_fit_row_weights_filename,
                     )
 
@@ -528,6 +534,33 @@ class CMRunner(object):
         retcode = p.wait()
         self._print_verbose("{bar} retcode: {retcode} {bar}".format(bar="-" * 10, retcode=retcode))
         return retcode
+
+    def maybe_build_image(self, docker_image_or_directory):
+        client = docker.client.from_env()
+        try:
+            client.images.get(docker_image_or_directory)
+            return docker_image_or_directory
+        except docker.errors.ImageNotFound:
+            pass
+        if not os.path.isdir(docker_image_or_directory):
+            raise Exception(
+                "The string '{}' does not represent a docker image "
+                "in your registry or a directory".format(docker_image_or_directory)
+            )
+        self.logger.info(
+            "Building a docker image from directory {}...".format(docker_image_or_directory)
+        )
+        self.logger.info("This may take some time")
+        try:
+            image, _ = client.images.build(path=docker_image_or_directory)
+        except docker.errors.BuildError as e:
+            self.logger.error("Hey something went wrong with image build!")
+            for line in e.build_log:
+                if "stream" in line:
+                    self.logger.error(line["stream"].strip())
+            raise
+        self.logger.info("Done building image!")
+        return image.id
 
 
 def possibly_intuit_order(input_data_file, target_data_file=None, target_col_name=None):
