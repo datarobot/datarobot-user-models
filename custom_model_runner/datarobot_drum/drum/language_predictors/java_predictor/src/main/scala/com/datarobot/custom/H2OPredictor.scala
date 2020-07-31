@@ -20,7 +20,6 @@ import java.nio.file.Paths
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
-// used to compile the pojo
 import sys.process._
 
 class H2OPredictor(
@@ -112,11 +111,6 @@ class H2OPredictor(
       .setConvertInvalidNumbersToNa(true)
   }
 
-  // this would work with a properly compiled / packaged pojo
-  // this will work with a compile pojo
-  // the expectation is that we compile the pojo when the container is spun up.
-// s"javac -cp code/h2o-genmodel-3.30.0.6.jar ${pojo.getAbsolutePath}".!
-
   def modelConfigViaPojo(
       pojo: java.io.File
   ): EasyPredictModelWrapper.Config = {
@@ -126,7 +120,7 @@ class H2OPredictor(
         s"javac -cp ${pathOfJar} ${pojo.getAbsolutePath}".!
         Array(pojo.getAbsoluteFile.getParentFile.toURI.toURL)
       }
-      case false => throw new Exception("Pojo not availabe")
+      case false => throw new Exception("While drum was looking for a Pojo none was found.")
     }
 
     val pojoName = pojo.getName.replace(".jar", "").replace(".java", "")
@@ -140,7 +134,6 @@ class H2OPredictor(
       .setModel(h2oRawPredictor)
       .setConvertUnknownCategoricalLevelsToNa(true)
       .setConvertInvalidNumbersToNa(true)
-    // EasyPredictModelWrapper = new EasyPredictModelWrapper(modelConfig)
     modelConfig
   }
 
@@ -168,7 +161,7 @@ class H2OPredictor(
     val modelConfig = fileExt match {
       case ".zip" => modelConfigViaMojo(file)
       case ".java"  => modelConfigViaPojo(file)
-      case _ => throw new Exception("""|no usable H2O model artifact available""".stripMargin)
+      case _ => throw new Exception("no usable H2O model artifact available")
     }
 
     val model = new EasyPredictModelWrapper(modelConfig)

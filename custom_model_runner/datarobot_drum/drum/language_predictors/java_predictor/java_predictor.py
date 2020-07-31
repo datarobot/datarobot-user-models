@@ -21,7 +21,7 @@ from py4j.java_gateway import JavaGateway
 
 class JavaPredictor(BaseLanguagePredictor):
     JAVA_COMPONENT_ENTRY_POINT_CLASS = "com.datarobot.custom.PredictorEntryPoint"
-    JAVA_COMPONENT_CLASS_NAME = "com.datarobot.custom.ScoringCode"
+    JAVA_COMPONENT_CLASS_NAME_DATAROBOT = "com.datarobot.custom.ScoringCode"
     JAVA_COMPONENT_CLASS_NAME_H2O = "com.datarobot.custom.H2OPredictor"
 
     def __init__(self):
@@ -93,7 +93,7 @@ class JavaPredictor(BaseLanguagePredictor):
                 java_cp,
                 JavaPredictor.JAVA_COMPONENT_ENTRY_POINT_CLASS,
                 "--class-name",
-                JavaPredictor.JAVA_COMPONENT_CLASS_NAME
+                JavaPredictor.JAVA_COMPONENT_CLASS_NAME_DATAROBOT
                 if self.model_artifact_extension == ".jar"
                 else JavaPredictor.JAVA_COMPONENT_CLASS_NAME_H2O,
                 "--port",
