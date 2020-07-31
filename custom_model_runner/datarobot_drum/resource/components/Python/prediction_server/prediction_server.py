@@ -4,16 +4,12 @@ import pandas as pd
 from flask import request
 
 from mlpiper.components.connectable_component import ConnectableComponent
+
 from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.memory_monitor import MemoryMonitor
-from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
-    PythonPredictor,
-)
-from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import JavaPredictor
 from datarobot_drum.drum.common import RunLanguage
-from datarobot_drum.drum.exceptions import DrumCommonException
 
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
@@ -47,8 +43,16 @@ class PredictionServer(ConnectableComponent):
         self._memory_monitor = MemoryMonitor()
         self._run_language = RunLanguage(params.get("run_language"))
         if self._run_language == RunLanguage.PYTHON:
+            from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
+                PythonPredictor,
+            )
+
             self._predictor = PythonPredictor()
         elif self._run_language == RunLanguage.JAVA:
+            from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import (
+                JavaPredictor,
+            )
+
             self._predictor = JavaPredictor()
         elif self._run_language == RunLanguage.R:
             # this import is here, because RPredictor imports rpy library,
