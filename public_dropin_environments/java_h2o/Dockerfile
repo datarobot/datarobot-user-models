@@ -23,6 +23,6 @@ RUN apt-get update -y && \
    cd ./datarobot-user-models/custom_model_runner && \ 
    make && \
    cd ../.. && \
-   pip3 install -U ./datarobot-user-models/custom_model_runner/dist/datarobot_drum-*.whl --no-deps && \
+   pip3 install -U ./datarobot-user-models/custom_model_runner/dist/datarobot_drum-*.whl && \
    apt-get clean && \
    rm -rf /var/lib/apt/lists/*
