@@ -24,7 +24,7 @@ class PythonPredictor(BaseLanguagePredictor):
 
         sys.path.append(self._custom_model_path)
         self._model_adapter.load_custom_hooks()
-        self._model = self._model_adapter.load_model_from_artifact()
+        self._model = self._model_adapter.load_model()
         if self._model is None:
             raise Exception("Failed to load model")
 
