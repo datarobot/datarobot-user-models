@@ -77,9 +77,9 @@ class PythonModelAdapter:
                 "Failed loading hooks from [{}] : {}".format(custom_file_path, e)
             )
 
-    def load_model(self):
+    def load_model_from_artifact(self):
         """
-        Load the serialized model from it's artifact or using a hook.
+        Load the serialized model from it's artifact.
         Returns
         -------
         Any
