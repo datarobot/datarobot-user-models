@@ -103,12 +103,19 @@ class PythonModelAdapter:
     def _load_model_via_hook(self):
         self._logger.debug("Load model hook will be used to load the model")
         # noinspection PyCallingNonCallable
-        model = self._custom_hooks[CustomHooks.LOAD_MODEL](self._model_dir)
-        if model:
-            self._logger.debug("Model was successfully loaded by load hook")
-            return model
-        else:
+
+        try:
+            model = self._custom_hooks[CustomHooks.LOAD_MODEL](self._model_dir)
+        except Exception as exc:
+            raise type(exc)(
+                "Model loading hook failed to load model: {}".format(exc)
+            ).with_traceback(sys.exc_info()[2]) from None
+
+        if not model:
             raise DrumCommonException("Model loading hook failed to load model")
+
+        self._logger.debug("Model was successfully loaded by load hook")
+        return model
 
     def _detect_model_artifact_file(self):
         # No model was loaded - so there is no local hook - so we are using our artifact predictors
@@ -153,7 +160,12 @@ class PythonModelAdapter:
                 pred_that_support_artifact.append(pred)
 
             if pred.can_load_artifact(model_artifact_file):
-                model = pred.load_model_from_artifact(model_artifact_file)
+                try:
+                    model = pred.load_model_from_artifact(model_artifact_file)
+                except Exception as exc:
+                    raise type(exc)(
+                        "Could not load model from artifact file: {}".format(exc)
+                    ).with_traceback(sys.exc_info()[2]) from None
                 break
 
         if not model:
@@ -248,22 +260,42 @@ class PythonModelAdapter:
         pd.DataFrame
         """
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
-            # noinspection PyCallingNonCallable
-            data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
+            try:
+                # noinspection PyCallingNonCallable
+                data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
+            except Exception as exc:
+                raise type(exc)(
+                    "Model transform hook failed to transform dataset: {}".format(exc)
+                ).with_traceback(sys.exc_info()[2]) from None
             self._validate_data(data, CustomHooks.TRANSFORM)
 
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD, None)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD, None)
 
         if self._custom_hooks.get(CustomHooks.SCORE):
-            # noinspection PyCallingNonCallable
-            predictions = self._custom_hooks[CustomHooks.SCORE](data, model, **kwargs)
+            try:
+                # noinspection PyCallingNonCallable
+                predictions = self._custom_hooks[CustomHooks.SCORE](data, model, **kwargs)
+            except Exception as exc:
+                raise type(exc)(
+                    "Model score hook failed to make predictions: {}".format(exc)
+                ).with_traceback(sys.exc_info()[2]) from None
         else:
-            predictions = self._predictor_to_use.predict(data, model, **kwargs)
+            try:
+                predictions = self._predictor_to_use.predict(data, model, **kwargs)
+            except Exception as exc:
+                raise type(exc)("Failure when making predictions: {}".format(exc)).with_traceback(
+                    sys.exc_info()[2]
+                ) from None
 
         if self._custom_hooks.get(CustomHooks.POST_PROCESS):
-            # noinspection PyCallingNonCallable
-            predictions = self._custom_hooks[CustomHooks.POST_PROCESS](predictions, model)
+            try:
+                # noinspection PyCallingNonCallable
+                predictions = self._custom_hooks[CustomHooks.POST_PROCESS](predictions, model)
+            except Exception as exc:
+                raise type(exc)(
+                    "Model post-process hook failed to post-process predictions: {}".format(exc)
+                ).with_traceback(sys.exc_info()[2]) from None
 
         self._validate_predictions(predictions, positive_class_label, negative_class_label)
 
