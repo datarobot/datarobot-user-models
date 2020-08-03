@@ -107,7 +107,7 @@ class PythonModelAdapter:
         try:
             model = self._custom_hooks[CustomHooks.LOAD_MODEL](self._model_dir)
         except Exception as exc:
-            raise DrumCommonException(
+            raise type(exc)(
                 "Model loading hook failed to load model because an error was raised: {!r}".format(
                     exc
                 )
@@ -165,7 +165,7 @@ class PythonModelAdapter:
                 try:
                     model = pred.load_model_from_artifact(model_artifact_file)
                 except Exception as exc:
-                    raise DrumCommonException(
+                    raise type(exc)(
                         "Could not load model from artifact file because an error was raised: {!r}".format(
                             exc
                         )
@@ -268,7 +268,7 @@ class PythonModelAdapter:
                 # noinspection PyCallingNonCallable
                 data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
             except Exception as exc:
-                raise DrumCommonException(
+                raise type(exc)(
                     "Model transform hook failed to transform dataset because an error was raised: {!r}".format(
                         exc
                     )
@@ -283,7 +283,7 @@ class PythonModelAdapter:
                 # noinspection PyCallingNonCallable
                 predictions = self._custom_hooks[CustomHooks.SCORE](data, model, **kwargs)
             except Exception as exc:
-                raise DrumCommonException(
+                raise type(exc)(
                     "Model score hook failed to make predictions because an error was raised: {!r}".format(
                         exc
                     )
@@ -292,7 +292,7 @@ class PythonModelAdapter:
             try:
                 predictions = self._predictor_to_use.predict(data, model, **kwargs)
             except Exception as exc:
-                raise DrumCommonException(
+                raise type(exc)(
                     "An error was raised when making predictions: {!r}".format(exc)
                 ) from exc
 
@@ -301,7 +301,7 @@ class PythonModelAdapter:
                 # noinspection PyCallingNonCallable
                 predictions = self._custom_hooks[CustomHooks.POST_PROCESS](predictions, model)
             except Exception as exc:
-                raise DrumCommonException(
+                raise type(exc)(
                     "Model post-process hook failed to post-process predictions because an error was raised: {!r}".format(
                         exc
                     )
