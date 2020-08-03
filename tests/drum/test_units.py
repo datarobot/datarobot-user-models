@@ -1,14 +1,13 @@
 import os
-import re
-import responses
-import strictyaml
-from datarobot_drum.drum.exceptions import DrumCommonException
-import pytest
 from tempfile import NamedTemporaryFile
 
 import pandas as pd
+import pytest
+import responses
+import strictyaml
 
 from datarobot_drum.drum.drum import possibly_intuit_order
+from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.push import push_inference, push_training, schema
 
@@ -78,9 +77,6 @@ targetType: regression
 modelID: {modelID}
 environmentID: {environmentID}
 inferenceModel:
-  targetName: MEDV
-validation:
-  inputData: hi
   targetName: MEDV
 """.format(
     modelID=modelID, environmentID=environmentID
