@@ -199,7 +199,7 @@ and an API token to authenticate the requests.
     export DATAROBOT_ENDPOINT=https://app.datarobot.com/api/v2
     export DATAROBOT_API_TOKEN=<yourtoken>
     ```
-* Option 2: `~/.config/datarobot/drconfig.yaml`  
+* Option 2: Create this file, which we check for: `~/.config/datarobot/drconfig.yaml`  
     Example:
     ```
     endpoint: https://app.datarobot.com/api/v2
