@@ -112,12 +112,12 @@ class PythonModelAdapter:
                     exc
                 )
             ) from exc
-        else:
-            if model:
-                self._logger.debug("Model was successfully loaded by load hook")
-                return model
-            else:
-                raise DrumCommonException("Model loading hook failed to load model")
+
+        if not model:
+            raise DrumCommonException("Model loading hook failed to load model")
+
+        self._logger.debug("Model was successfully loaded by load hook")
+        return model
 
     def _detect_model_artifact_file(self):
         # No model was loaded - so there is no local hook - so we are using our artifact predictors
