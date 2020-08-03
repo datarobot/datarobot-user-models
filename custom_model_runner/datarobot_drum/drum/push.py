@@ -182,8 +182,8 @@ def validate_training(config, options):
     options.num_rows = "ALL"
     options.skip_predict = False
 
-    raw_args_for_docker = "drum fit --input {input} --target {target} --code-dir {code_dir}".format(
-        input=path, target=options.target, code_dir=options.code_dir
+    raw_args_for_docker = "drum {run_mode} --input {input} --target {target} --code-dir {code_dir}".format(
+        run_mode=RunMode.FIT, input=path, target=options.target, code_dir=options.code_dir
     ).split()
 
     return options, RunMode.FIT, raw_args_for_docker
@@ -198,8 +198,8 @@ def validate_inference(config, options):
     options.output = "/dev/null"
     options.negative_class_label = None
     options.positive_class_label = None
-    raw_args_for_docker = "drum validate --input {input} -cd {code_dir}".format(
-        input=path, code_dir=options.code_dir
+    raw_args_for_docker = "drum {run_mode} --input {input} -cd {code_dir}".format(
+        run_mode=RunMode.SCORE, input=path, code_dir=options.code_dir
     ).split()
     return options, RunMode.SCORE, raw_args_for_docker
 

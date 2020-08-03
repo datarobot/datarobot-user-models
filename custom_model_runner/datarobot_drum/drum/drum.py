@@ -46,7 +46,7 @@ class CMRunner(object):
         self.logger = CMRunner._config_logger(runtime.options)
         self.verbose = runtime.options.verbose
         self.run_mode = RunMode(runtime.options.subparser_name)
-        self.raw_arguments = None
+        self.raw_arguments = sys.argv
 
         self._functional_pipelines = {
             (RunMode.FIT, RunLanguage.PYTHON): "python_fit.json.j2",
@@ -460,7 +460,7 @@ class CMRunner(object):
         docker_cmd = "docker run --rm --interactive  --user $(id -u):$(id -g) "
         docker_cmd_args = " -v {}:{}".format(options.code_dir, in_docker_model)
 
-        in_docker_cmd_list = raw_arguments or sys.argv
+        in_docker_cmd_list = raw_arguments
         in_docker_cmd_list[0] = ArgumentsOptions.MAIN_COMMAND
         in_docker_cmd_list[1] = run_mode.value
 
