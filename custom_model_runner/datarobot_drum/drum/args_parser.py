@@ -420,7 +420,12 @@ class CMRunnerArgsRegistry(object):
             batch_parser, server_parser, fit_parser, new_parser, new_model_parser, push_parser
         )
         CMRunnerArgsRegistry._reg_arg_docker(
-            batch_parser, parser_perf_test, server_parser, fit_parser, validation_parser
+            batch_parser,
+            parser_perf_test,
+            server_parser,
+            fit_parser,
+            validation_parser,
+            push_parser,
         )
         CMRunnerArgsRegistry._reg_arg_output(batch_parser, fit_parser)
         CMRunnerArgsRegistry._reg_arg_show_perf(batch_parser, server_parser)

@@ -1,5 +1,6 @@
 import os
 import re
+from datarobot_drum.drum.common import RunMode
 
 from pathlib import Path
 
@@ -18,6 +19,7 @@ schema = Map(
         "type": Str(),
         "environmentID": Str(),
         "targetType": Str(),
+        "validation": Map({"input": Str(), Optional("targetName"): Str()}),
         Optional("modelID"): Str(),
         Optional("description"): Str(),
         Optional("majorVersion"): Bool(),
@@ -162,6 +164,55 @@ def print_model_started_dialogue(new_model_id):
             re.sub(r"/api/v2/?", "", dr_client.client._global_client.endpoint), new_model_id
         )
     )
+
+
+def validate_training(config, options):
+    # Setting default values for most of these :)
+    path = Path(config["validation"]["input"])
+    if not os.path.isabs(path):
+        path = Path(options.code_dir).joinpath(path)
+
+    options.input = path
+    options.output = None
+    options.negative_class_label = None
+    options.positive_class_label = None
+    options.target_csv = None
+    options.target = config["validation"]["targetName"]
+    options.row_weights = None
+    options.row_weights_csv = None
+    options.num_rows = "ALL"
+    options.skip_predict = False
+
+    raw_arguments = "drum fit --input {input} --target {target} --code-dir {code_dir}".format(
+        input=path, target=options.target, code_dir=options.code_dir
+    ).split()
+
+    return options, RunMode.FIT, raw_arguments
+
+
+def validate_inference(config, options):
+    path = Path(config["validation"]["input"])
+    if not os.path.isabs(path):
+        path = Path(options.code_dir).joinpath(path)
+
+    options.input = path
+    options.output = "/dev/null"
+    options.negative_class_label = None
+    options.positive_class_label = None
+    raw_arguments = "drum validate --input {input} -cd {code_dir}".format(
+        input=path, code_dir=options.code_dir
+    ).split()
+    return options, RunMode.SCORE, raw_arguments
+
+
+def setup_validation_options(options):
+    model_config = _read_metadata(options.code_dir)
+    if model_config["type"] == "training":
+        return validate_training(model_config, options)
+    elif model_config["type"] == "inference":
+        return validate_inference(model_config, options)
+    else:
+        raise DrumCommonException("Unsupported type")
 
 
 def drum_push(options):

@@ -78,6 +78,8 @@ modelID: {modelID}
 environmentID: {environmentID}
 inferenceModel:
   targetName: MEDV
+validation:
+  input-
 """.format(
     modelID=modelID, environmentID=environmentID
 )

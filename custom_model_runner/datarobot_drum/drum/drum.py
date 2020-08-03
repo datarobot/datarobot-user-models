@@ -28,7 +28,7 @@ from datarobot_drum.drum.common import (
     TemplateType,
     verbose_stdout,
 )
-from datarobot_drum.drum.push import drum_push
+from datarobot_drum.drum.push import drum_push, setup_validation_options
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
@@ -46,6 +46,7 @@ class CMRunner(object):
         self.logger = CMRunner._config_logger(runtime.options)
         self.verbose = runtime.options.verbose
         self.run_mode = RunMode(runtime.options.subparser_name)
+        self.raw_arguments = None
 
         self._functional_pipelines = {
             (RunMode.FIT, RunLanguage.PYTHON): "python_fit.json.j2",
@@ -205,8 +206,8 @@ class CMRunner(object):
 
     def run(self):
         try:
-            if self.options.docker:
-                ret = self._run_inside_docker(self.options, self.run_mode)
+            if self.options.docker and not self.run_mode == RunMode.PUSH:
+                ret = self._run_inside_docker(self.options, self.run_mode, self.raw_arguments)
                 if ret:
                     raise DrumCommonException("Error from docker process: {}".format(ret))
                 else:
@@ -224,24 +225,7 @@ class CMRunner(object):
         if self.run_mode in [RunMode.SERVER, RunMode.SCORE]:
             self._run_fit_and_predictions_pipelines_in_mlpiper()
         elif self.run_mode == RunMode.FIT:
-            remove_temp_output = None
-            if not self.options.output:
-                self.options.output = mkdtemp()
-                remove_temp_output = self.options.output
-            self._run_fit_and_predictions_pipelines_in_mlpiper()
-            if self.options.output or not self.options.skip_predict:
-                create_custom_inference_model_folder(self.options.code_dir, self.options.output)
-            if not self.options.skip_predict:
-                self.run_test_predict()
-            if remove_temp_output:
-                print(
-                    "Validation Complete 🎉 Your model can be fit to your data, "
-                    "and predictions can be made on the fit model! \n"
-                    "You're ready to add it to DataRobot. "
-                )
-                shutil.rmtree(remove_temp_output)
-            else:
-                print("Success 🎉")
+            self.run_fit()
         elif self.run_mode == RunMode.PERF_TEST:
             CMRunTests(self.options, self.run_mode).performance_test()
         elif self.run_mode == RunMode.VALIDATION:
@@ -249,11 +233,40 @@ class CMRunner(object):
         elif self.run_mode == RunMode.NEW:
             self._generate_template()
         elif self.run_mode == RunMode.PUSH:
+            options, run_mode, raw_arguments = setup_validation_options(self.options)
+            validation_runner = CMRunner(self.runtime)
+            validation_runner.options = options
+            validation_runner.run_mode = run_mode
+            validation_runner.raw_arguments = raw_arguments
+            validation_runner.run()
+            print(
+                "Your model was successfully validated locally! Now we will add it into DataRobot"
+            )
             drum_push(self.options)
         else:
             error_message = "{} mode is not implemented".format(self.run_mode)
             print(error_message)
             raise DrumCommonException(error_message)
+
+    def run_fit(self):
+        remove_temp_output = None
+        if not self.options.output:
+            self.options.output = mkdtemp()
+            remove_temp_output = self.options.output
+        self._run_fit_and_predictions_pipelines_in_mlpiper()
+        if self.options.output or not self.options.skip_predict:
+            create_custom_inference_model_folder(self.options.code_dir, self.options.output)
+        if not self.options.skip_predict:
+            self.run_test_predict()
+        if remove_temp_output:
+            print(
+                "Validation Complete 🎉 Your model can be fit to your data, "
+                "and predictions can be made on the fit model! \n"
+                "You're ready to add it to DataRobot. "
+            )
+            shutil.rmtree(remove_temp_output)
+        else:
+            print("Success 🎉")
 
     def run_test_predict(self):
         self.run_mode = RunMode.SCORE
@@ -429,14 +442,13 @@ class CMRunner(object):
             if tmp_output_filename:
                 print(pd.read_csv(tmp_output_filename))
 
-    def _prepare_docker_command(self, options, run_mode):
+    def _prepare_docker_command(self, options, run_mode, raw_arguments):
         """
         Building a docker command line for running the model inside the docker - this command line can
         be used by the user independently of drum.
         Parameters
         Returns: docker command line to run as a string
         """
-
         options.docker = self._maybe_build_image(options.docker)
         in_docker_model = "/opt/model"
         in_docker_input_file = "/opt/input.csv"
@@ -448,8 +460,9 @@ class CMRunner(object):
         docker_cmd = "docker run --rm --interactive  --user $(id -u):$(id -g) "
         docker_cmd_args = " -v {}:{}".format(options.code_dir, in_docker_model)
 
-        in_docker_cmd_list = sys.argv
+        in_docker_cmd_list = raw_arguments or sys.argv
         in_docker_cmd_list[0] = ArgumentsOptions.MAIN_COMMAND
+        in_docker_cmd_list[1] = run_mode.value
 
         CMRunnerUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.DOCKER)
         CMRunnerUtils.replace_cmd_argument_value(
@@ -524,8 +537,8 @@ class CMRunner(object):
         self._print_verbose("docker command: [{}]".format(docker_cmd))
         return docker_cmd
 
-    def _run_inside_docker(self, options, run_mode):
-        docker_cmd = self._prepare_docker_command(options, run_mode)
+    def _run_inside_docker(self, options, run_mode, raw_arguments):
+        docker_cmd = self._prepare_docker_command(options, run_mode, raw_arguments)
         self._print_verbose("-" * 20)
         p = subprocess.Popen(docker_cmd, shell=True)
         retcode = p.wait()
