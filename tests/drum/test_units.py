@@ -1,14 +1,13 @@
 import os
-import re
-import responses
-import strictyaml
-from datarobot_drum.drum.exceptions import DrumCommonException
-import pytest
 from tempfile import NamedTemporaryFile
 
 import pandas as pd
+import pytest
+import responses
+import strictyaml
 
 from datarobot_drum.drum.drum import possibly_intuit_order
+from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.push import push_inference, push_training, schema
 
@@ -79,9 +78,6 @@ modelID: {modelID}
 environmentID: {environmentID}
 inferenceModel:
   targetName: MEDV
-validation:
-  inputData: hi
-  targetName: MEDV
 """.format(
     modelID=modelID, environmentID=environmentID
 )
@@ -92,9 +88,6 @@ type: training
 targetType: regression
 modelID: {modelID}
 environmentID: {environmentID}
-validation:
-  inputData: hi
-  targetName: MEDV
 """.format(
     modelID=modelID, environmentID=environmentID
 )
@@ -108,9 +101,6 @@ modelID: {modelID}
 environmentID: {environmentID}
 trainingModel:
   trainOnProject: {projectID}
-validation:
-  inputData: hi
-  targetName: MEDV
 """.format(
     modelID=modelID, environmentID=environmentID, projectID=projectID
 )
@@ -195,6 +185,18 @@ def mock_train_model():
         json={},
         adding_headers={"Location": "the/moon"},
     )
+    responses.add(
+        responses.GET,
+        "http://yess/projects/{}/modelJobs/the/".format(projectID),
+        json={
+            "is_blocked": False,
+            "id": "55",
+            "processes": [],
+            "model_type": "fake",
+            "project_id": projectID,
+            "blueprint_id": "1",
+        },
+    )
 
 
 @responses.activate
@@ -232,7 +234,7 @@ def test_push(config_yaml):
                 calls[4].request.path_url == "/projects/abc123/models/"
                 and calls[4].request.method == "POST"
             )
-            assert len(calls) == 5
+            assert len(calls) == 6
         else:
             assert len(calls) == 4
     else:

@@ -506,9 +506,6 @@ class CMRunner(object):
                         ArgumentsOptions.TARGET_FILENAME,
                         in_docker_fit_target_filename,
                     )
-                # import pydevd_pycharm
-                # pydevd_pycharm.settrace('localhost', port=37931, stdoutToServer=True,
-                #                         stderrToServer=True)
                 if options.row_weights_csv:
                     fit_row_weights_filename = os.path.realpath(options.row_weights_csv)
                     docker_cmd_args += " -v {}:{}".format(
@@ -543,7 +540,7 @@ class CMRunner(object):
         except docker.errors.ImageNotFound:
             pass
         if not os.path.isdir(docker_image_or_directory):
-            raise Exception(
+            raise DrumCommonException(
                 "The string '{}' does not represent a docker image "
                 "in your registry or a directory".format(docker_image_or_directory)
             )
@@ -554,11 +551,12 @@ class CMRunner(object):
         try:
             image, _ = client.images.build(path=docker_image_or_directory)
         except docker.errors.BuildError as e:
-            self.logger.error("Hey something went wrong with image build!")
             for line in e.build_log:
                 if "stream" in line:
                     self.logger.error(line["stream"].strip())
-            raise
+            raise DrumCommonException(
+                "There was an error while building your image. " "Check the above logs to debug. "
+            )
         self.logger.info("Done building image!")
         return image.id
 

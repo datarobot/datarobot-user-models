@@ -182,3 +182,29 @@ The following is an example gn how to run **drum** inside of container:
 Alternatively, the argument passed through the `--docker` flag may be a directory containing the unbuilt contents 
 of an image. The DRUM tool will then attempt to build an image using this directory and run your model inside 
 the newly built image.
+
+## Drum Push
+Starting in version 1.1.4, drum includes a new verb called `push`. When the user writes 
+`drum push -cd /dirtopush/` the contents of that directory will be submitted as a custom model 
+to DataRobot. However, for this to work, you must create two types of configuration.
+1. **DataRobot client configuration**
+`push` relies on correct global configuration of the client to access a DataRobot server. 
+There are two options for supplying this configuration, through environment variables or through
+a config file which is read by the DataRobot client. Both of these options will include an endpoint
+and an API token to authenticate the requests. 
+
+* Option 1: Environment variables. 
+    Example: 
+    ```
+    export DATAROBOT_ENDPOINT=https://app.datarobot.com/api/v2
+    export DATAROBOT_API_TOKEN=<yourtoken>
+    ```
+* Option 2: Create this file, which we check for: `~/.config/datarobot/drconfig.yaml`  
+    Example:
+    ```
+    endpoint: https://app.datarobot.com/api/v2
+    token: <yourtoken>
+    ```
+2. **Model Metadata** `push` also relies on a metadata file, which is parsed on drum to create
+the correct sort of model in DataRobot. This metadata file includes quite a few options. You can 
+[read about those options](MODEL-METADATA.md) or [see an example](model_templates/inference/python3_sklearn/model-metadata.yaml)
