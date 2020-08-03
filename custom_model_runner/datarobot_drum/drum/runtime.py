@@ -1,5 +1,4 @@
 import logging
-import os
 import traceback
 from datarobot_drum.drum.server import (
     base_api_blueprint,
@@ -47,7 +46,7 @@ class DrumRuntime:
         else:
             if exc_type == DrumCommonException:
                 print(exc_value)
-                os.exit(1)
+                return True
             else:
                 return False
 
