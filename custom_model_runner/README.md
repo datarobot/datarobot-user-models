@@ -186,7 +186,7 @@ the newly built image.
 ## Drum Push
 Starting in version 1.1.4, drum includes a new verb called `push`. When the user writes 
 `drum push -cd /dirtopush/` the contents of that directory will be submitted as a custom model 
-to DataRobot. However, for this to work, there are two config files which need to be set up. 
+to DataRobot. However, for this to work, you must create two types of configuration.
 1. **DataRobot client configuration**
 `push` relies on correct global configuration of the client to access a DataRobot server. 
 There are two options for supplying this configuration, through environment variables or through
