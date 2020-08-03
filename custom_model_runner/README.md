@@ -184,5 +184,27 @@ of an image. The DRUM tool will then attempt to build an image using this direct
 the newly built image.
 
 ## Drum Push
-Drum also offers functionality, when configured correctly, to add models directly into DataRobot. 
-[Check here](../README.md) for more details. 
+Starting in version 1.1.4, drum includes a new verb called `push`. When the user writes 
+`drum push -cd /dirtopush/` the contents of that directory will be submitted as a custom model 
+to DataRobot. However, for this to work, there are two config files which need to be set up. 
+1. **DataRobot client configuration**
+`push` relies on correct global configuration of the client to access a DataRobot server. 
+There are two options for supplying this configuration, through environment variables or through
+a config file which is read by the DataRobot client. Both of these options will include an endpoint
+and an API token to authenticate the requests. 
+
+* Option 1: Environment variables. 
+    Example: 
+    ```
+    export DATAROBOT_ENDPOINT=https://app.datarobot.com/api/v2
+    export DATAROBOT_API_TOKEN=<yourtoken>
+    ```
+* Option 2: `~/.config/datarobot/drconfig.yaml`  
+    Example:
+    ```
+    endpoint: https://app.datarobot.com/api/v2
+    token: <yourtoken>
+    ```
+2. **Model Metadata** `push` also relies on a metadata file, which is parsed on drum to create
+the correct sort of model in DataRobot. This metadata file includes quite a few options. You can 
+[read about those options](MODEL-METADATA.md) or [see an example](model_templates/inference/python3_sklearn/model-metadata.yaml)
