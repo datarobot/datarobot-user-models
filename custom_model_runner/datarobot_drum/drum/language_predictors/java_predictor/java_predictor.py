@@ -27,8 +27,8 @@ class JavaPredictor(BaseLanguagePredictor):
     java_class_by_ext = {
         JavaArtifacts.JAR_EXTENSION: JAVA_COMPONENT_CLASS_NAME_DATAROBOT,
         JavaArtifacts.POJO_EXTENSION: JAVA_COMPONENT_CLASS_NAME_H2O,
-        JavaArtifacts.MOJO_EXTENSION: JAVA_COMPONENT_CLASS_NAME_H2O
-        }
+        JavaArtifacts.MOJO_EXTENSION: JAVA_COMPONENT_CLASS_NAME_H2O,
+    }
 
     def __init__(self):
         super(JavaPredictor, self).__init__()
