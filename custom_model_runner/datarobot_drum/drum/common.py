@@ -94,13 +94,13 @@ class ArgumentsOptions(object):
     MAIN_COMMAND = "drum"
 
     SCORE = "score"
-    SERVER = "serve"
+    SERVER = "server"
     FIT = "fit"
     PERF_TEST = "perf-test"
     NEW = "new"
     NEW_MODEL = "model"
     NEW_ENV = "env"
-    VALIDATION = "validate"
+    VALIDATION = "validation"
     PUSH = "push"
 
 
