@@ -1,12 +1,11 @@
 import os
 import re
-from datarobot_drum.drum.common import RunMode
-
 from pathlib import Path
 
 import datarobot as dr_client
 from strictyaml import Bool, Int, load, Map, Optional, Str, YAMLError
 
+from datarobot_drum.drum.common import RunMode
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 CONFIG_FILENAME = "model-metadata.yaml"
@@ -183,11 +182,11 @@ def validate_training(config, options):
     options.num_rows = "ALL"
     options.skip_predict = False
 
-    raw_arguments = "drum fit --input {input} --target {target} --code-dir {code_dir}".format(
+    raw_args_for_docker = "drum fit --input {input} --target {target} --code-dir {code_dir}".format(
         input=path, target=options.target, code_dir=options.code_dir
     ).split()
 
-    return options, RunMode.FIT, raw_arguments
+    return options, RunMode.FIT, raw_args_for_docker
 
 
 def validate_inference(config, options):
@@ -199,10 +198,10 @@ def validate_inference(config, options):
     options.output = "/dev/null"
     options.negative_class_label = None
     options.positive_class_label = None
-    raw_arguments = "drum validate --input {input} -cd {code_dir}".format(
+    raw_args_for_docker = "drum validate --input {input} -cd {code_dir}".format(
         input=path, code_dir=options.code_dir
     ).split()
-    return options, RunMode.SCORE, raw_arguments
+    return options, RunMode.SCORE, raw_args_for_docker
 
 
 def setup_validation_options(options):

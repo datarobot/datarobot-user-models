@@ -79,7 +79,7 @@ environmentID: {environmentID}
 inferenceModel:
   targetName: MEDV
 validation:
-  input-
+  input: hello
 """.format(
     modelID=modelID, environmentID=environmentID
 )
@@ -90,6 +90,8 @@ type: training
 targetType: regression
 modelID: {modelID}
 environmentID: {environmentID}
+validation:
+   input: hello 
 """.format(
     modelID=modelID, environmentID=environmentID
 )
@@ -102,7 +104,9 @@ targetType: regression
 modelID: {modelID}
 environmentID: {environmentID}
 trainingModel:
-  trainOnProject: {projectID}
+    trainOnProject: {projectID}
+validation:
+    input: hello 
 """.format(
     modelID=modelID, environmentID=environmentID, projectID=projectID
 )

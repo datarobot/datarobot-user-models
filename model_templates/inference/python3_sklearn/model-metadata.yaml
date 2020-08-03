@@ -6,4 +6,5 @@ environmentID: 5e8c889607389fe0f466c72d
 inferenceModel:
   targetName: MEDV
 validation:
-  input: /home/josh.preuss/workspace/datarobot-user-models/tests/testdata/boston_housing.csv
+  # Path is relative to this file
+  input: ../../../tests/testdata/boston_housing.csv
