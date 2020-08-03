@@ -182,3 +182,7 @@ The following is an example gn how to run **drum** inside of container:
 Alternatively, the argument passed through the `--docker` flag may be a directory containing the unbuilt contents 
 of an image. The DRUM tool will then attempt to build an image using this directory and run your model inside 
 the newly built image.
+
+## Drum Push
+Drum also offers functionality, when configured correctly, to add models directly into DataRobot. 
+[Check here](../README.md) for more details. 
