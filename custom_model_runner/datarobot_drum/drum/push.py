@@ -18,7 +18,6 @@ schema = Map(
         "type": Str(),
         "environmentID": Str(),
         "targetType": Str(),
-        "validation": Map({"inputData": Str(), "targetName": Str()}),
         Optional("modelID"): Str(),
         Optional("description"): Str(),
         Optional("majorVersion"): Bool(),
@@ -66,10 +65,11 @@ def push_training(model_config, code_dir, endpoint=None, token=None):
         from datarobot._experimental import CustomTrainingBlueprint, CustomTrainingModel
     except ImportError:
         raise DrumCommonException(
-            "You tried to run custom training models using a version of the "
-            "datarobot client which doesn't have this beta functionality yet. "
-            "Please pip install datarobot>=2.22.0b0 to access this functionality. "
-            "This requires adding the internal datarobot artifactory index as your pip index. "
+            "You tried to run custom training models using a version of the \n"
+            "datarobot client which doesn't have this beta functionality yet. \n"
+            "Please pip install datarobot>=2.22.0b0 to access this functionality. \n"
+            "This requires adding the internal datarobot artifactory index \n"
+            "as your pip index. "
         )
     dr_client.Client(token=token, endpoint=endpoint)
     if "modelID" in model_config:
@@ -80,10 +80,17 @@ def push_training(model_config, code_dir, endpoint=None, token=None):
             target_type=_convert_target_type(model_config["targetType"]),
             description=model_config.get("description", "Pushed from DRUM"),
         ).id
+        print(
+            "You just created a new custom model. Please add this model ID to your metadata file "
+            "by adding the line 'modelID:{}'".format(model_id)
+        )
 
     try:
         dr_client.CustomModelVersion.create_clean(
-            model_id, base_environment_id=model_config["environmentID"], folder_path=code_dir
+            model_id,
+            base_environment_id=model_config["environmentID"],
+            folder_path=code_dir,
+            is_major_update=model_config.get("majorVersion", True),
         )
     except dr_client.errors.ClientError as e:
         print("Error adding model with ID {} and dir {}: {}".format(model_id, code_dir, str(e)))
@@ -100,7 +107,8 @@ def push_training(model_config, code_dir, endpoint=None, token=None):
     if "trainOnProject" in model_config.get("trainingModel", ""):
         try:
             project = dr_client.Project(model_config["trainingModel"]["trainOnProject"])
-            project.train(blueprint)
+            model_job_id = project.train(blueprint)
+            lid = dr_client.ModelJob.get(project_id=project.id, model_job_id=model_job_id).model_id
         except dr_client.errors.ClientError as e:
             print("There was an error training your model: {}".format(e))
             raise SystemExit()
@@ -109,7 +117,7 @@ def push_training(model_config, code_dir, endpoint=None, token=None):
         print(
             MODEL_LOGS_LINK_FORMAT.format(
                 url=re.sub(r"/api/v2/?", "", dr_client.client._global_client.endpoint),
-                model_id=model_id,
+                model_id=lid,
                 project_id=model_config["trainingModel"]["trainOnProject"],
             )
         )
@@ -141,6 +149,7 @@ def push_inference(model_config, code_dir, token=None, endpoint=None):
         custom_model_id=model_id,
         base_environment_id=model_config["environmentID"],
         folder_path=code_dir,
+        is_major_update=model_config.get("majorVersion", True),
     )
     print_model_started_dialogue(model_id)
 
@@ -165,3 +174,38 @@ def drum_push(options):
         push_inference(model_config, options.code_dir)
     else:
         raise DrumCommonException("Unsupported type")
+
+
+HELP_TEXT = """
+This submits the contents of a directory as a custom model to DataRobot.
+
+To use this functionality, you must create two types of configuration.
+
+1. **DataRobot client configuration**
+    `push` relies on correct global configuration of the client to access 
+    a DataRobot server. There are two options for supplying this configuration, 
+    through environment variables or through a config file which is read 
+    by the DataRobot client. Both of these options will include an endpoint
+    and an API token to authenticate the requests.
+
+    * Option 1: Environment variables.
+
+    Example:
+    ```
+    export DATAROBOT_ENDPOINT=https://app.datarobot.com/api/v2
+    export DATAROBOT_API_TOKEN=<yourtoken>
+    ```
+    * Option 2: Create this file, which we check for: 
+        `~/.config/datarobot/drconfig.yaml`
+        
+    Example:
+    ```
+    endpoint: https://app.datarobot.com/api/v2
+    token: <yourtoken>
+    ```
+2. **Model Metadata** `push` also relies on a metadata file, which is 
+    parsed on drum to create the correct sort of model in DataRobot. 
+    This metadata file includes quite a few options. You can
+    [read about those options](MODEL-METADATA.md) or 
+    [see an example](model_templates/inference/python3_sklearn/model-metadata.yaml)
+"""

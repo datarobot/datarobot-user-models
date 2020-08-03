@@ -1,5 +1,7 @@
 import argparse
+from argparse import RawTextHelpFormatter
 import os
+from datarobot_drum.drum.push import HELP_TEXT
 import sys
 
 from datarobot_drum.drum.description import version
@@ -386,7 +388,10 @@ class CMRunnerArgsRegistry(object):
             ArgumentsOptions.NEW_MODEL, help="Create a new modeling code directory template"
         )
         push_parser = subparsers.add_parser(
-            ArgumentsOptions.PUSH, help="Add your model or modeling code into the DataRobot app"
+            ArgumentsOptions.PUSH,
+            help="Add your modeling code into DataRobot",
+            description=HELP_TEXT,
+            formatter_class=RawTextHelpFormatter,
         )
 
         # Note following args are not supported for perf-test, thus set as default

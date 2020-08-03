@@ -247,3 +247,4 @@ To report a bug, open an issue through the [GitHub board](https://github.com/dat
 
 ### Running tests
 *description is being added*
+
