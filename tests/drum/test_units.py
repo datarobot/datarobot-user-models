@@ -88,9 +88,6 @@ type: training
 targetType: regression
 modelID: {modelID}
 environmentID: {environmentID}
-validation:
-  inputData: hi
-  targetName: MEDV
 """.format(
     modelID=modelID, environmentID=environmentID
 )
@@ -188,6 +185,18 @@ def mock_train_model():
         json={},
         adding_headers={"Location": "the/moon"},
     )
+    responses.add(
+        responses.GET,
+        "http://yess/projects/{}/modelJobs/the/".format(projectID),
+        json={
+            "is_blocked": False,
+            "id": "55",
+            "processes": [],
+            "model_type": "fake",
+            "project_id": projectID,
+            "blueprint_id": "1",
+        },
+    )
 
 
 @responses.activate
@@ -225,7 +234,7 @@ def test_push(config_yaml):
                 calls[4].request.path_url == "/projects/abc123/models/"
                 and calls[4].request.method == "POST"
             )
-            assert len(calls) == 5
+            assert len(calls) == 6
         else:
             assert len(calls) == 4
     else:

@@ -16,9 +16,9 @@ custom model versions when adding code while iterating on your model. To only cr
 instead of a whole new top level model, please include a hash here for the custom model you created.
 * description (optional): A searchable note to your future self about the contents of this model. This is 
 ignored if modelID is set. 
-* majorVersion (optional): Whether the model version you are creating should be a major version update or a 
-minor version update. If the previous model version is 2.3, a major version update would create the
-version 3.3, and a minor version update would create the version 2.4. 
+* majorVersion (optional, default: True): Whether the model version you are creating should be a 
+major version update or a minor version update. If the previous model version is 2.3, a major version 
+update would create the version 3.3, and a minor version update would create the version 2.4. 
 
 ## Options specific to inference models
 NOTE: All options specific to inference or training models are ignored if modelID is set- they

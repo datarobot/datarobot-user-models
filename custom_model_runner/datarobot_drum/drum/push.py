@@ -90,7 +90,7 @@ def push_training(model_config, code_dir, endpoint=None, token=None):
             model_id,
             base_environment_id=model_config["environmentID"],
             folder_path=code_dir,
-            is_major_update=model_config["majorVersion"],
+            is_major_update=model_config.get("majorVersion", True),
         )
     except dr_client.errors.ClientError as e:
         print("Error adding model with ID {} and dir {}: {}".format(model_id, code_dir, str(e)))
@@ -149,7 +149,7 @@ def push_inference(model_config, code_dir, token=None, endpoint=None):
         custom_model_id=model_id,
         base_environment_id=model_config["environmentID"],
         folder_path=code_dir,
-        is_major_update=model_config["majorVersion"],
+        is_major_update=model_config.get("majorVersion", True),
     )
     print_model_started_dialogue(model_id)
 
