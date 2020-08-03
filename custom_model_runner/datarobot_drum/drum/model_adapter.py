@@ -108,10 +108,8 @@ class PythonModelAdapter:
             model = self._custom_hooks[CustomHooks.LOAD_MODEL](self._model_dir)
         except Exception as exc:
             raise type(exc)(
-                "Model loading hook failed to load model because an error was raised: {!r}".format(
-                    exc
-                )
-            ) from exc
+                "Model loading hook failed to load model: {}".format(exc)
+            ).with_traceback(sys.exc_info()[2]) from None
 
         if not model:
             raise DrumCommonException("Model loading hook failed to load model")
@@ -166,10 +164,8 @@ class PythonModelAdapter:
                     model = pred.load_model_from_artifact(model_artifact_file)
                 except Exception as exc:
                     raise type(exc)(
-                        "Could not load model from artifact file because an error was raised: {!r}".format(
-                            exc
-                        )
-                    ) from exc
+                        "Could not load model from artifact file: {}".format(exc)
+                    ).with_traceback(sys.exc_info()[2]) from None
                 break
 
         if not model:
@@ -269,10 +265,8 @@ class PythonModelAdapter:
                 data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
             except Exception as exc:
                 raise type(exc)(
-                    "Model transform hook failed to transform dataset because an error was raised: {!r}".format(
-                        exc
-                    )
-                ) from exc
+                    "Model transform hook failed to transform dataset: {}".format(exc)
+                ).with_traceback(sys.exc_info()[2]) from None
             self._validate_data(data, CustomHooks.TRANSFORM)
 
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD, None)
@@ -284,17 +278,15 @@ class PythonModelAdapter:
                 predictions = self._custom_hooks[CustomHooks.SCORE](data, model, **kwargs)
             except Exception as exc:
                 raise type(exc)(
-                    "Model score hook failed to make predictions because an error was raised: {!r}".format(
-                        exc
-                    )
-                ) from exc
+                    "Model score hook failed to make predictions: {}".format(exc)
+                ).with_traceback(sys.exc_info()[2]) from None
         else:
             try:
                 predictions = self._predictor_to_use.predict(data, model, **kwargs)
             except Exception as exc:
-                raise type(exc)(
-                    "An error was raised when making predictions: {!r}".format(exc)
-                ) from exc
+                raise type(exc)("Failure when making predictions: {}".format(exc)).with_traceback(
+                    sys.exc_info()[2]
+                ) from None
 
         if self._custom_hooks.get(CustomHooks.POST_PROCESS):
             try:
@@ -302,10 +294,8 @@ class PythonModelAdapter:
                 predictions = self._custom_hooks[CustomHooks.POST_PROCESS](predictions, model)
             except Exception as exc:
                 raise type(exc)(
-                    "Model post-process hook failed to post-process predictions because an error was raised: {!r}".format(
-                        exc
-                    )
-                ) from exc
+                    "Model post-process hook failed to post-process predictions: {}".format(exc)
+                ).with_traceback(sys.exc_info()[2]) from None
 
         self._validate_predictions(predictions, positive_class_label, negative_class_label)
 
