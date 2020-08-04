@@ -471,7 +471,9 @@ class CMRunner(object):
         in_docker_fit_target_filename = "/opt/fit_target.csv"
         in_docker_fit_row_weights_filename = "/opt/fit_row_weights.csv"
 
-        docker_cmd = "docker run --rm --interactive  --user $(id -u):$(id -g) "
+        USER_MAPPING_PARAM = "--user $(id -u):$(id -g)"
+
+        docker_cmd = "docker run --rm --interactive {} ".format("")
         docker_cmd_args = " -v {}:{}".format(options.code_dir, in_docker_model)
 
         in_docker_cmd_list = raw_arguments
