@@ -4,9 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-#### [1.1.5rc1] - in progress
+#### [1.1.5rc10] - in progress
 ##### Added
 - optional **--language [python|r|java]** argument to enforce execution framework
+- uwsgi/nginx powered prediction server
+- **-max-workers** argument to limit number of workers in production server mode
+
+##### Removed
+- **--threaded** argument from Flask server mode
 
 ##### Changed
 - dependencies: mlpiper==2.3.0, py4j~=0.10.9
