@@ -68,7 +68,7 @@ class H2OPredictor(
             }
         }
       }
-      case Failure(e) => throw new Exception(e)
+      case Failure(e) => throw new Exception(s"During the course of making a prediction an exception was encountered: ${e}")
     }
 
     csvPrinter.flush()
@@ -114,15 +114,16 @@ class H2OPredictor(
   def modelConfigViaPojo(
       pojo: java.io.File
   ): EasyPredictModelWrapper.Config = {
-    val urls = pojo.getName.endsWith("java") match {
-      case true => {
-        val pathOfJar = classOf[hex.genmodel.GenModel].getProtectionDomain.getCodeSource.getLocation.toURI.getPath
-        s"javac -cp ${pathOfJar} ${pojo.getAbsolutePath}".!
-        Array(pojo.getAbsoluteFile.getParentFile.toURI.toURL)
-      }
-      case false => throw new Exception("While drum was looking for a Pojo none was found.")
-    }
 
+    val pathOfJar = classOf[hex.genmodel.GenModel].getProtectionDomain.getCodeSource.getLocation.toURI.getPath
+    val compilePojo = s"javac -cp ${pathOfJar} ${pojo.getAbsolutePath}"
+    val returnCode = compilePojo.!
+    val urls =  returnCode match { 
+      case 0 => Array(pojo.getAbsoluteFile.getParentFile.toURI.toURL)
+      case _ => throw new Exception(s"executing '${compilePojo}' exited with non-zero code.  " +
+        s"Make sure POJO exists and hasn't been renamed.  If the POJO is > 1GB in size, consider using MOJO")
+    }
+    
     val pojoName = pojo.getName.replace(".jar", "").replace(".java", "")
     val urlClassLoader = URLClassLoader.newInstance(
       urls,
