@@ -9,7 +9,7 @@ import strictyaml
 from datarobot_drum.drum.drum import possibly_intuit_order
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
-from datarobot_drum.drum.push import push_inference, push_training, schema
+from datarobot_drum.drum.push import _push_inference, _push_training, schema
 
 
 class TestOrderIntuition(object):
@@ -218,7 +218,7 @@ def test_push(config_yaml):
     mock_get_model(model_type=config["type"])
     mock_get_env()
     mock_train_model()
-    push_fn = push_training if config["type"] == "training" else push_inference
+    push_fn = _push_training if config["type"] == "training" else _push_inference
     push_fn(config, code_dir="", endpoint="http://Yess", token="okay")
 
     calls = responses.calls
@@ -226,7 +226,7 @@ def test_push(config_yaml):
         calls[1].request.path_url == "/customModels/{}/versions/".format(modelID)
         and calls[1].request.method == "POST"
     )
-    if push_fn == push_training:
+    if push_fn == _push_training:
         assert (
             calls[2].request.path_url == "/customModels/{}/".format(modelID)
             and calls[2].request.method == "GET"

@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import copy
 from distutils.dir_util import copy_tree
 from pathlib import Path
 from tempfile import mkdtemp, NamedTemporaryFile
@@ -28,9 +29,9 @@ from datarobot_drum.drum.common import (
     TemplateType,
     verbose_stdout,
 )
-from datarobot_drum.drum.push import drum_push, setup_validation_options
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.perf_testing import CMRunTests
+from datarobot_drum.drum.push import drum_push, setup_validation_options
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.utils import CMRunnerUtils
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
@@ -233,7 +234,7 @@ class CMRunner(object):
         elif self.run_mode == RunMode.NEW:
             self._generate_template()
         elif self.run_mode == RunMode.PUSH:
-            options, run_mode, raw_arguments = setup_validation_options(self.options)
+            options, run_mode, raw_arguments = setup_validation_options(copy.deepcopy(self.options))
             validation_runner = CMRunner(self.runtime)
             validation_runner.options = options
             validation_runner.run_mode = run_mode
