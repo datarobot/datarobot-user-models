@@ -39,8 +39,10 @@ class DrumRuntime:
         exc_msg = "".join(exc_msg_lines)
 
         run_mode = RunMode(self.options.subparser_name)
-        if self.options.show_stacktrace or (
-            run_mode == RunMode.SERVER and self.options.with_error_server
+        if (
+            not hasattr(self.options, "show_stacktrace")
+            or self.options.show_stacktrace
+            or (run_mode == RunMode.SERVER and self.options.with_error_server)
         ):
             logger.error(exc_msg)
         else:

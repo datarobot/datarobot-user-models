@@ -1,11 +1,11 @@
 import os
 import re
-
 from pathlib import Path
 
 import datarobot as dr_client
 from strictyaml import Bool, Int, load, Map, Optional, Str, YAMLError
 
+from datarobot_drum.drum.common import RunMode
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 CONFIG_FILENAME = "model-metadata.yaml"
@@ -18,6 +18,7 @@ schema = Map(
         "type": Str(),
         "environmentID": Str(),
         "targetType": Str(),
+        "validation": Map({"input": Str(), Optional("targetName"): Str()}),
         Optional("modelID"): Str(),
         Optional("description"): Str(),
         Optional("majorVersion"): Bool(),
@@ -60,7 +61,7 @@ def _convert_target_type(unconverted_target_type):
     raise DrumCommonException("Unsupported target type {}".format(unconverted_target_type))
 
 
-def push_training(model_config, code_dir, endpoint=None, token=None):
+def _push_training(model_config, code_dir, endpoint=None, token=None):
     try:
         from datarobot._experimental import CustomTrainingBlueprint, CustomTrainingModel
     except ImportError:
@@ -102,7 +103,7 @@ def push_training(model_config, code_dir, endpoint=None, token=None):
 
     print("A blueprint was created with the ID {}".format(blueprint.id))
 
-    print_model_started_dialogue(model_id)
+    _print_model_started_dialogue(model_id)
 
     if "trainOnProject" in model_config.get("trainingModel", ""):
         try:
@@ -123,7 +124,7 @@ def push_training(model_config, code_dir, endpoint=None, token=None):
         )
 
 
-def push_inference(model_config, code_dir, token=None, endpoint=None):
+def _push_inference(model_config, code_dir, token=None, endpoint=None):
     dr_client.Client(token=token, endpoint=endpoint)
     if "inferenceModel" not in model_config:
         raise DrumCommonException(
@@ -151,10 +152,10 @@ def push_inference(model_config, code_dir, token=None, endpoint=None):
         folder_path=code_dir,
         is_major_update=model_config.get("majorVersion", True),
     )
-    print_model_started_dialogue(model_id)
+    _print_model_started_dialogue(model_id)
 
 
-def print_model_started_dialogue(new_model_id):
+def _print_model_started_dialogue(new_model_id):
     print("\nYour model was successfully pushed")
     print("\n🏁 Follow this link to get started 🏁")
     print(
@@ -164,14 +165,63 @@ def print_model_started_dialogue(new_model_id):
     )
 
 
+def _setup_training_validation(config, options):
+    # Setting default values for most of these :)
+    path = Path(config["validation"]["input"])
+    if not os.path.isabs(path):
+        path = Path(options.code_dir).joinpath(path)
+
+    options.input = path
+    options.output = None
+    options.negative_class_label = None
+    options.positive_class_label = None
+    options.target_csv = None
+    options.target = config["validation"]["targetName"]
+    options.row_weights = None
+    options.row_weights_csv = None
+    options.num_rows = "ALL"
+    options.skip_predict = False
+
+    raw_args_for_docker = "drum {run_mode} --input {input} --target {target} --code-dir {code_dir}".format(
+        run_mode=RunMode.FIT, input=path, target=options.target, code_dir=options.code_dir
+    ).split()
+
+    return options, RunMode.FIT, raw_args_for_docker
+
+
+def _setup_inference_validation(config, options):
+    path = Path(config["validation"]["input"])
+    if not os.path.isabs(path):
+        path = Path(options.code_dir).joinpath(path)
+
+    options.input = path
+    options.output = "/dev/null"
+    options.negative_class_label = None
+    options.positive_class_label = None
+    raw_args_for_docker = "drum {run_mode} --input {input} -cd {code_dir}".format(
+        run_mode=RunMode.SCORE, input=path, code_dir=options.code_dir
+    ).split()
+    return options, RunMode.SCORE, raw_args_for_docker
+
+
+def setup_validation_options(options):
+    model_config = _read_metadata(options.code_dir)
+    if model_config["type"] == "training":
+        return _setup_training_validation(model_config, options)
+    elif model_config["type"] == "inference":
+        return _setup_inference_validation(model_config, options)
+    else:
+        raise DrumCommonException("Unsupported type")
+
+
 def drum_push(options):
     model_config = _read_metadata(options.code_dir)
 
     if model_config["type"] == "training":
-        push_training(model_config, options.code_dir)
+        _push_training(model_config, options.code_dir)
 
     elif model_config["type"] == "inference":
-        push_inference(model_config, options.code_dir)
+        _push_inference(model_config, options.code_dir)
     else:
         raise DrumCommonException("Unsupported type")
 
