@@ -68,7 +68,9 @@ class RArtifacts(object):
 
 class JavaArtifacts(object):
     JAR_EXTENSION = ".jar"
-    ALL = [JAR_EXTENSION]
+    MOJO_EXTENSION = ".zip"
+    POJO_EXTENSION = ".java"
+    ALL = [JAR_EXTENSION, MOJO_EXTENSION, POJO_EXTENSION]
 
 
 class ArgumentsOptions(object):

@@ -7,11 +7,12 @@ import subprocess
 import time
 import atexit
 import pandas as pd
+import re
 
 from io import StringIO
 from contextlib import closing
 
-from datarobot_drum.drum.common import LOGGER_NAME_PREFIX, EnvVarNames
+from datarobot_drum.drum.common import LOGGER_NAME_PREFIX, EnvVarNames, JavaArtifacts
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 
 from py4j.java_gateway import GatewayParameters, CallbackServerParameters
@@ -20,7 +21,14 @@ from py4j.java_gateway import JavaGateway
 
 class JavaPredictor(BaseLanguagePredictor):
     JAVA_COMPONENT_ENTRY_POINT_CLASS = "com.datarobot.custom.PredictorEntryPoint"
-    JAVA_COMPONENT_CLASS_NAME = "com.datarobot.custom.ScoringCode"
+    JAVA_COMPONENT_CLASS_NAME_DATAROBOT = "com.datarobot.custom.ScoringCode"
+    JAVA_COMPONENT_CLASS_NAME_H2O = "com.datarobot.custom.H2OPredictor"
+
+    java_class_by_ext = {
+        JavaArtifacts.JAR_EXTENSION: JAVA_COMPONENT_CLASS_NAME_DATAROBOT,
+        JavaArtifacts.POJO_EXTENSION: JAVA_COMPONENT_CLASS_NAME_H2O,
+        JavaArtifacts.MOJO_EXTENSION: JAVA_COMPONENT_CLASS_NAME_H2O,
+    }
 
     def __init__(self):
         super(JavaPredictor, self).__init__()
@@ -39,6 +47,14 @@ class JavaPredictor(BaseLanguagePredictor):
     def configure(self, params):
         super(JavaPredictor, self).configure(params)
 
+        ## retrieve the extension of the main java model artifact
+        self.custom_model_path = params["__custom_model_path__"]
+        ext_re = re.search(
+            r"(\{})|(\{})|(\{})".format(*JavaArtifacts.ALL),
+            ",".join(os.listdir(self.custom_model_path)),
+        )
+        self.model_artifact_extension = ext_re.group()
+        ##
         self._init_py4j_and_load_predictor()
 
         m = self._gateway.jvm.java.util.HashMap()
@@ -83,7 +99,7 @@ class JavaPredictor(BaseLanguagePredictor):
                 java_cp,
                 JavaPredictor.JAVA_COMPONENT_ENTRY_POINT_CLASS,
                 "--class-name",
-                JavaPredictor.JAVA_COMPONENT_CLASS_NAME,
+                JavaPredictor.java_class_by_ext[self.model_artifact_extension],
                 "--port",
                 str(self._java_port),
             ]
