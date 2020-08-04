@@ -28,8 +28,13 @@ RUN apt-get update && \
         libgomp1 \
         gcc \
         libc6-dev \
-        pandoc && \
+        pandoc \
+        nginx \
+        git \
+        maven \
+        docker.io && \
     rm -rf /var/lib/apt/lists/*
+
 RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && \
     locale-gen en_US.utf8 && \
     /usr/sbin/update-locale LANG=en_US.UTF-8
@@ -40,6 +45,7 @@ RUN apt-get install -y --no-install-recommends \
         r-base \
         r-base-dev && \
     rm -rf /var/lib/apt/lists/
+
 RUN pip3 install setuptools wheel
 
 ### Save cran as the default repo for R packages
@@ -54,20 +60,12 @@ RUN Rscript -e "install.packages('devtools', Ncpus=4)"
 
 RUN rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 
-RUN apt-get update && \
-    apt-get install --no-install-recommends -y \
-        git \
-        maven \
-        docker.io &&\
-    rm -rf /var/lib/apt/lists/*
-
 RUN apt install software-properties-common && \
     add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
     apt install -y python3.7 python3.7-dev
 
-
-
+RUN python3.7 -m pip install -U pip
 RUN python3.7 -m pip install setuptools
 RUN python3.7 -m pip install wheel
 RUN python3.7 -m pip install virtualenv
@@ -78,5 +76,3 @@ RUN cd /opt && . v3.7/bin/activate && pip install -r /tmp/requirements_drum.txt 
 
 COPY requirements_dropin.txt /tmp/requirements_dropin.txt
 RUN cd /opt && . v3.7/bin/activate && pip install -r /tmp/requirements_dropin.txt && rm -rf /root/.cache/pip
-
-
