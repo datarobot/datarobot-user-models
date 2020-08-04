@@ -34,7 +34,7 @@ If you do not have Java 11 installed, please consider using docker.
 
 You can either provide the path to the Dockerfile
 
-`drum score --code-dir ./h2o_mojo/binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label 1 --negative-class-label 0 --docker /full/path/to/datarobot-user-models/public_dropin_environments/java_h2o/`
+`drum score --code-dir ./h2o_mojo/binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label 1 --negative-class-label 0 --docker ../../public_dropin_environments/java_h2o/`
 
 or provide the name of the docker image that has already been built [Java H2O Drop-In Environment](../../public_dropin_environments/java_h2o/), for example, docker image is `drum_h2o`.
 
