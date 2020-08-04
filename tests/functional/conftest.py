@@ -70,6 +70,7 @@ def uwsgi_env():
     environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
     return environment.id, environment_version.id
 
+
 @pytest.fixture(scope="session")
 def java_drop_in_env():
     env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "java_codegen")
