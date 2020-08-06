@@ -10,3 +10,4 @@ mlpiper==2.2.0
 docker>=4.2.2<5.0.0
 datarobot==2.21.3
 strictyaml==1.0.6
+memory_profiler
