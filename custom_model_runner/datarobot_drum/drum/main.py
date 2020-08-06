@@ -50,6 +50,7 @@ def main():
             if (
                 runtime.options
                 and runtime.options.docker
+                and hasattr(runtime.options, "in_perf_mode_internal")
                 and not runtime.options.in_perf_mode_internal
             ):
                 try:

@@ -1,9 +1,9 @@
-from pathlib import Path
 import logging
 import os
 import pickle
 import sys
 import textwrap
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -21,6 +21,7 @@ from datarobot_drum.drum.common import (
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
     REGRESSION_PRED_COLUMN,
+    reroute_stdout_to_stderr,
 )
 from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -350,20 +351,21 @@ class PythonModelAdapter:
         return False
 
     def fit(self, X, y, output_dir, class_order=None, row_weights=None):
-        if self._custom_hooks.get(CustomHooks.FIT):
-            self._custom_hooks[CustomHooks.FIT](
-                X, y, output_dir, class_order=class_order, row_weights=row_weights
-            )
-        elif self._drum_autofit_internal(X, y, output_dir):
-            return
-        else:
-            hooks = [
-                "{}: {}".format(hook, fn is not None) for hook, fn in self._custom_hooks.items()
-            ]
-            raise DrumCommonException(
-                "\nfit() method must be implemented in a file named 'custom.py' in the provided code_dir: '{}' \n"
-                "Here is a list of files in this dir. {}\n"
-                "Here are the hooks your custom.py file has: {}".format(
-                    self._model_dir, os.listdir(self._model_dir)[:100], hooks
+        with reroute_stdout_to_stderr():
+            if self._custom_hooks.get(CustomHooks.FIT):
+                self._custom_hooks[CustomHooks.FIT](
+                    X, y, output_dir, class_order=class_order, row_weights=row_weights
                 )
-            )
+            elif self._drum_autofit_internal(X, y, output_dir):
+                return
+            else:
+                hooks = [
+                    "{}: {}".format(hook, fn is not None) for hook, fn in self._custom_hooks.items()
+                ]
+                raise DrumCommonException(
+                    "\nfit() method must be implemented in a file named 'custom.py' in the provided code_dir: '{}' \n"
+                    "Here is a list of files in this dir. {}\n"
+                    "Here are the hooks your custom.py file has: {}".format(
+                        self._model_dir, os.listdir(self._model_dir)[:100], hooks
+                    )
+                )

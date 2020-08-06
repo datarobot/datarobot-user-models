@@ -89,7 +89,10 @@ class CMRunnerArgsRegistry(object):
                 help_message = "Path to a csv file to output predictions"
                 type_callback = os.path.abspath
             elif prog_name_lst[1] == ArgumentsOptions.FIT:
-                help_message = "Path to an output directory"
+                help_message = (
+                    "DRUM will copy the contents of code_dir and create "
+                    "the model artifact in the output folder"
+                )
                 type_callback = CMRunnerArgsRegistry._is_valid_output_dir
             else:
                 raise ValueError(
