@@ -10,8 +10,8 @@ The final modeler can be any sklearn-compatible modeler.
 This model is intended to work with the [Python 3 Scikit-Learn Drop-In Environment](../../../public_dropin_environments/python3_sklearn/).
 
 ## Instructions:
-Edit `create_pipeline.py`
-Leave custom.py alone
+You should probably change `create_pipeline.py` to contain the code you want. This is where your modeling code will live
+You don't need to edit custom.py, but you can if you would like to. It mostly is a shim for communicating with DRUM
 
 ## Overview of the pipeline
 

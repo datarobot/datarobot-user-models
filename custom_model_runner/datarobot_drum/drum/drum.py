@@ -1,3 +1,4 @@
+import copy
 import glob
 import logging
 import os
@@ -5,7 +6,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import copy
 from distutils.dir_util import copy_tree
 from pathlib import Path
 from tempfile import mkdtemp, NamedTemporaryFile
@@ -13,6 +13,7 @@ from tempfile import mkdtemp, NamedTemporaryFile
 import docker.errors
 import numpy as np
 import pandas as pd
+from memory_profiler import memory_usage
 from mlpiper.pipeline.executor import Executor
 from mlpiper.pipeline.executor_config import ExecutorConfig
 
@@ -254,16 +255,25 @@ class CMRunner(object):
         if not self.options.output:
             self.options.output = mkdtemp()
             remove_temp_output = self.options.output
-        self._run_fit_and_predictions_pipelines_in_mlpiper()
+        mem_usage = memory_usage(
+            self._run_fit_and_predictions_pipelines_in_mlpiper,
+            interval=1,
+            max_usage=True,
+            max_iterations=1,
+        )
+        if self.options.verbose:
+            print("Maximum memory usage: {}MB".format(int(mem_usage)))
         if self.options.output or not self.options.skip_predict:
             create_custom_inference_model_folder(self.options.code_dir, self.options.output)
         if not self.options.skip_predict:
             self.run_test_predict()
+            pred_str = " and predictions can be made on the fit model! \n "
+        else:
+            pred_str = "however since you specified --skip-predict, predictions were not made \n"
         if remove_temp_output:
             print(
-                "Validation Complete 🎉 Your model can be fit to your data, "
-                "and predictions can be made on the fit model! \n"
-                "You're ready to add it to DataRobot. "
+                "Validation Complete 🎉 Your model can be fit to your data, {}"
+                "You're ready to add it to DataRobot. ".format(pred_str)
             )
             shutil.rmtree(remove_temp_output)
         else:

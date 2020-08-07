@@ -133,6 +133,16 @@ class EnvVarNames:
 
 
 @contextmanager
+def reroute_stdout_to_stderr():
+    keep = sys.stdout
+    sys.stdout = sys.stderr
+    try:
+        yield
+    finally:
+        sys.stdout = keep
+
+
+@contextmanager
 def verbose_stdout(verbose):
     new_target = sys.stdout
     old_target = sys.stdout
