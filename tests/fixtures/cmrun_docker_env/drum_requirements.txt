@@ -6,8 +6,8 @@ jinja2
 progress
 texttable
 argcomplete==1.11.1
-mlpiper==2.2.0
-docker>=4.2.2<5.0.0
+mlpiper==2.2.1rc8
 datarobot==2.21.3
 strictyaml==1.0.6
+docker>=4.2.2<5.0.0
 memory_profiler<1.0.0
