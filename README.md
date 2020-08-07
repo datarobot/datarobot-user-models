@@ -1,5 +1,6 @@
 # DataRobot User Models
 
+>Note: enable git-lfs to properly checkout the repo.
 
 ## Content  
 1. [What is this repository?](#what_is_it)
