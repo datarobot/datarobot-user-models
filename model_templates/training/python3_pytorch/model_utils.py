@@ -110,6 +110,6 @@ def train_regressor(X, y, reg_model, reg_opt, reg_criterion, n_epochs=5):
         train_epoch(reg_model, reg_opt, reg_criterion, reg_t_X, reg_t_y)
 
 
-def save_torch_model(model, output_dir_path, filename='torch_bin.pth'):
+def save_torch_model(model, output_dir_path, filename="torch_bin.pth"):
     output_file_path = Path(output_dir_path) / filename
     torch.save(model, output_file_path)

@@ -7,7 +7,7 @@ from model_utils import (
     build_classifier,
     train_regressor,
     train_classifier,
-    save_torch_model
+    save_torch_model,
 )
 
 
@@ -51,12 +51,11 @@ def fit(
     if class_order:
         estimator, optimizer, criterion = build_classifier(X)
         train_classifier(X, y, estimator, optimizer, criterion)
-        artifact_name = 'torch_bin.pth'
+        artifact_name = "torch_bin.pth"
     else:
         estimator, optimizer, criterion = build_regressor(X)
         train_regressor(X, y, estimator, optimizer, criterion)
-        artifact_name = 'torch_reg.pth'
+        artifact_name = "torch_reg.pth"
 
     # NOTE: We currently set a 10GB limit to the size of the serialized model
     save_torch_model(estimator, output_dir, artifact_name)
-
