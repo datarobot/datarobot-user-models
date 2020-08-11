@@ -278,8 +278,8 @@ class CMRunTests:
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):
             pass
         finally:
-            time.sleep(0.5)
-            self._server_process.kill()
+            os.kill(self._server_process.pid, signal.SIGINT)
+            time.sleep(1)
             os.system("tput init")
 
     def performance_test(self):
