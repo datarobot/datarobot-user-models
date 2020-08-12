@@ -3,6 +3,7 @@ import glob
 import json
 import os
 import pickle
+import psutil
 import re
 import shutil
 import signal
@@ -27,6 +28,7 @@ from datarobot_drum.drum.common import (
     RunMode,
 )
 from datarobot_drum.drum.runtime import DrumRuntime
+from datarobot_drum.drum.utils import CMRunnerUtils
 
 TRAINING = "training"
 INFERENCE = "inference"
@@ -92,8 +94,9 @@ class DrumServerRun:
         docker=None,
         with_error_server=False,
         show_stacktrace=True,
+        nginx=False,
     ):
-        port = 6799
+        port = CMRunnerUtils.find_free_port()
         server_address = "localhost:{}".format(port)
         url_host = os.environ.get("TEST_URL_HOST", "localhost")
         if docker:
@@ -111,10 +114,13 @@ class DrumServerRun:
             cmd += " --with-error-server"
         if show_stacktrace:
             cmd += " --show-stacktrace"
+        if nginx:
+            cmd += " --production"
         self._cmd = cmd
 
         self._process_object_holder = DrumServerProcess()
         self._server_thread = None
+        self._with_nginx = nginx
 
     def __enter__(self):
         self._server_thread = Thread(
@@ -131,11 +137,38 @@ class DrumServerRun:
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # shutdown server
-        response = requests.post(self.url_server_address + "/shutdown/")
-        assert response.ok
-        time.sleep(1)
+        if not self._with_nginx:
+            response = requests.post(self.url_server_address + "/shutdown/")
+            assert response.ok
+            time.sleep(1)
+            self._server_thread.join()
+        else:
+            # When running with nginx:
+            # this test starts drum process with --docker option,
+            # that process starts drum server inside docker.
+            # nginx server doesn't have shutdown API, so we need to kill it
 
-        self._server_thread.join()
+            # This loop kill all the chain except for docker
+            parent = psutil.Process(self._process_object_holder.process.pid)
+            for child in parent.children(recursive=True):
+                child.kill()
+            parent.kill()
+
+            # this kills drum running in the docker
+            for proc in psutil.process_iter():
+                if "{}".format(ArgumentsOptions.MAIN_COMMAND) in proc.name().lower():
+                    print(proc.cmdline())
+                    if "{}".format(ArgumentsOptions.SERVER) in proc.cmdline():
+                        if "--production" in proc.cmdline():
+                            try:
+                                proc.terminate()
+                                time.sleep(0.3)
+                                proc.kill()
+                            except psutil.NoSuchProcess:
+                                pass
+                            break
+
+            self._server_thread.join(timeout=5)
 
     @property
     def process(self):
@@ -644,6 +677,29 @@ class TestCMRunner:
             )
 
             print(response.text)
+            assert response.ok
+            actual_num_predictions = len(json.loads(response.text)[RESPONSE_PREDICTIONS_KEY])
+            in_data = pd.read_csv(input_dataset)
+            assert in_data.shape[0] == actual_num_predictions
+
+    @pytest.mark.parametrize(
+        "framework, problem, language, docker",
+        [(SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),],
+    )
+    def test_custom_models_with_drum_nginx_prediction_server(
+        self, framework, problem, language, docker, tmp_path
+    ):
+        custom_model_dir = tmp_path / "custom_model"
+        TestCMRunner._create_custom_model_dir(custom_model_dir, framework, problem, language)
+
+        with DrumServerRun(framework, problem, custom_model_dir, docker, nginx=True) as run:
+            input_dataset = self._get_dataset_filename(framework, problem)
+
+            # do predictions
+            response = requests.post(
+                run.url_server_address + "/predict/", files={"X": open(input_dataset)}
+            )
+
             assert response.ok
             actual_num_predictions = len(json.loads(response.text)[RESPONSE_PREDICTIONS_KEY])
             in_data = pd.read_csv(input_dataset)
