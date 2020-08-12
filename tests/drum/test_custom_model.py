@@ -159,6 +159,7 @@ class TestCMRunner:
             (PYTHON, KERAS): os.path.join(cls.training_templates_path, "python3_keras_joblib"),
             (PYTHON, XGB): os.path.join(cls.training_templates_path, "python3_xgboost"),
             (R_FIT, RDS): os.path.join(cls.training_templates_path, "r_lang"),
+            (PYTHON, PYTORCH): os.path.join(cls.training_templates_path, "python3_pytorch"),
         }
 
         cls.fixtures = {
@@ -697,7 +698,7 @@ class TestCMRunner:
 
         return "", input_csv, __keep_this_around
 
-    @pytest.mark.parametrize("framework", [RDS, SKLEARN, XGB, KERAS])
+    @pytest.mark.parametrize("framework", [RDS, SKLEARN, XGB, KERAS, PYTORCH])
     @pytest.mark.parametrize("problem", [BINARY, REGRESSION])
     @pytest.mark.parametrize("docker", [DOCKER_PYTHON_SKLEARN, None])
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
