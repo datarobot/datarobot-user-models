@@ -9,7 +9,7 @@ from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.memory_monitor import MemoryMonitor
-from datarobot_drum.drum.common import RunLanguage
+from datarobot_drum.drum.common import RunLanguage, REGRESSION_PRED_COLUMN
 
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
@@ -79,7 +79,6 @@ class PredictionServer(ConnectableComponent):
             response_status = HTTP_200_OK
             file_key = "X"
             logger.debug("Entering predict() endpoint")
-            REGRESSION_PRED_COLUMN = "Predictions"
             filename = request.files[file_key] if file_key in request.files else None
             logger.debug("Filename provided under X key: {}".format(filename))
 
