@@ -81,7 +81,10 @@ class CMRunner(object):
         self._print_verbose(mode_headers[self.run_mode])
 
     def _check_artifacts_and_get_run_language(self):
-        # Get code dir's abs path and add it to the python path
+        lang = getattr(self.options, "language", None)
+        if lang:
+            return RunLanguage(self.options.language)
+
         code_dir_abspath = os.path.abspath(self.options.code_dir)
 
         artifact_language = None

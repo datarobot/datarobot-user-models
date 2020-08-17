@@ -314,14 +314,20 @@ class CMRunnerArgsRegistry(object):
 
     @staticmethod
     def _reg_arg_language(*parsers):
-        langs = [e.value for e in RunLanguage]
-        langs.remove(RunLanguage.JAVA.value)
         for parser in parsers:
+            langs = [e.value for e in RunLanguage]
+            prog_name_lst = CMRunnerArgsRegistry._tokenize_parser_prog(parser)
+            if prog_name_lst[1] == ArgumentsOptions.NEW:
+                langs.remove(RunLanguage.JAVA.value)
+                required_val = True
+            else:
+                required_val = False
+
             parser.add_argument(
                 ArgumentsOptions.LANGUAGE,
                 choices=langs,
                 default=None,
-                required=True,
+                required=required_val,
                 help="Language to use for the new model/env template to create",
             )
 
@@ -449,7 +455,9 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_arg_in_perf_mode_internal(server_parser)
         CMRunnerArgsRegistry._reg_arg_with_error_server(server_parser)
 
-        CMRunnerArgsRegistry._reg_arg_language(new_model_parser)
+        CMRunnerArgsRegistry._reg_arg_language(
+            new_model_parser, server_parser, batch_parser, parser_perf_test, validation_parser
+        )
 
         CMRunnerArgsRegistry._reg_arg_show_stacktrace(
             batch_parser,
