@@ -14,6 +14,7 @@ from contextlib import closing
 
 from datarobot_drum.drum.common import LOGGER_NAME_PREFIX, EnvVarNames, JavaArtifacts
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
+from datarobot_drum.drum.exceptions import DrumCommonException
 
 from py4j.java_gateway import GatewayParameters, CallbackServerParameters
 from py4j.java_gateway import JavaGateway
@@ -53,6 +54,17 @@ class JavaPredictor(BaseLanguagePredictor):
             r"(\{})|(\{})|(\{})".format(*JavaArtifacts.ALL),
             ",".join(os.listdir(self.custom_model_path)),
         )
+        if ext_re is None:
+            files_list = os.listdir(self.custom_model_path)
+            files_list_str = " | ".join(files_list)
+            raise DrumCommonException(
+                "\n\nRunning environment language: Java\n"
+                "Could not find model artifact file in: {} supported by default predictors.\n"
+                "They support filenames with the following extensions {}.\n"
+                "List of files got here are: {}".format(
+                    self.custom_model_path, JavaArtifacts.ALL, files_list_str
+                )
+            )
         self.model_artifact_extension = ext_re.group()
         ##
         self._init_py4j_and_load_predictor()
