@@ -47,7 +47,7 @@ MOJO = "zip"
 POJO = "java"
 ##
 MULTI_ARTIFACT = "multiartifact"
-
+CODEGEN_AND_SKLEARN = "codegen_and_sklearn"
 # Problem keywords, used to mark datasets
 REGRESSION = "regression"
 REGRESSION_INFERENCE = "regression_inference"
@@ -202,6 +202,10 @@ class TestCMRunner:
             (MULTI_ARTIFACT, REGRESSION): [
                 os.path.join(cls.tests_artifacts_path, "sklearn_reg.pkl"),
                 os.path.join(cls.tests_artifacts_path, "keras_reg.h5"),
+            ],
+            (CODEGEN_AND_SKLEARN, REGRESSION): [
+                os.path.join(cls.tests_artifacts_path, "java_reg.jar"),
+                os.path.join(cls.tests_artifacts_path, "sklearn_reg.pkl"),
             ],
             (SKLEARN, BINARY): os.path.join(cls.tests_artifacts_path, "sklearn_bin.pkl"),
             (KERAS, REGRESSION): os.path.join(cls.tests_artifacts_path, "keras_reg.h5"),
@@ -475,6 +479,78 @@ class TestCMRunner:
             != -1
         )
         assert any([cases_1_2_3, case_4, case_5])
+
+    # testing negative cases: no artifact, no custom;
+    @pytest.mark.parametrize(
+        "framework, problem, language, set_language",
+        [
+            (SKLEARN, REGRESSION_INFERENCE, R, "python"),  # python artifact, custom.R
+            (RDS, REGRESSION, PYTHON, "r"),  # R artifact, custom.py
+            (CODEGEN, REGRESSION, PYTHON, "java"),  # java artifact, custom.py
+            (
+                CODEGEN_AND_SKLEARN,
+                REGRESSION,
+                NO_CUSTOM,
+                "java",
+            ),  # java and sklearn artifacts, no custom.py
+            (
+                CODEGEN_AND_SKLEARN,
+                REGRESSION,
+                NO_CUSTOM,
+                "python",
+            ),  # java and sklearn artifacts, no custom.py
+            # Negative cases
+            (SKLEARN, REGRESSION_INFERENCE, R, None),  # python artifact, custom.R
+            (RDS, REGRESSION, PYTHON, None),  # R artifact, custom.py
+            (CODEGEN, REGRESSION, PYTHON, None),  # java artifact, custom.py
+            (
+                CODEGEN_AND_SKLEARN,
+                REGRESSION,
+                NO_CUSTOM,
+                None,
+            ),  # java and sklearn artifacts, no custom.py
+            (
+                CODEGEN_AND_SKLEARN,
+                REGRESSION,
+                NO_CUSTOM,
+                "r",
+            ),  # java and sklearn artifacts, no custom.py
+        ],
+    )
+    def test_set_language(self, framework, problem, language, set_language, tmp_path):
+        custom_model_dir = tmp_path / "custom_model"
+        self._create_custom_model_dir(custom_model_dir, framework, problem, language)
+        input_dataset = self._get_dataset_filename(framework, problem)
+        cmd = "{} score --code-dir {} --input {}".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset
+        )
+        if set_language:
+            cmd += " --language {}".format(set_language)
+        if problem == BINARY:
+            cmd += " --positive-class-label yes --negative-class-label no"
+
+        p, stdo, stde = TestCMRunner._exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+        if not set_language:
+            stdo_stde = str(stdo) + str(stde)
+            cases_4_5_6_7 = (
+                str(stdo_stde).find("Can not detect language by artifacts and/or custom.py/R files")
+                != -1
+            )
+            assert cases_4_5_6_7
+        if framework == CODEGEN_AND_SKLEARN and set_language == "r":
+            stdo_stde = str(stdo) + str(stde)
+            case = (
+                str(stdo_stde).find(
+                    "Could not find a serialized model artifact with .rds extension, supported by default R predictor. "
+                    "If your artifact is not supported by default predictor, implement custom.load_model hook."
+                )
+                != -1
+            )
+            assert case
 
     @pytest.mark.parametrize(
         "framework, language", [(SKLEARN, PYTHON_ALL_HOOKS), (RDS, R_ALL_HOOKS)]
