@@ -26,6 +26,8 @@ from datarobot_drum.drum.common import (
 from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
 from datarobot_drum.drum.exceptions import DrumCommonException
 
+RUNNING_LANG_MSG = "Running environment language: Python."
+
 
 class PythonModelAdapter:
     def __init__(self, model_dir):
@@ -75,7 +77,8 @@ class PythonModelAdapter:
         except ImportError as e:
             self._logger.error("Could not load hooks: {}".format(e))
             raise DrumCommonException(
-                "Failed loading hooks from [{}] : {}".format(custom_file_path, e)
+                "\n\n{}\n"
+                "Failed loading hooks from [{}] : {}".format(RUNNING_LANG_MSG, custom_file_path, e)
             )
 
     def load_model_from_artifact(self):
@@ -132,8 +135,9 @@ class PythonModelAdapter:
             if any(filename.endswith(extension) for extension in all_supported_extensions):
                 if model_artifact_file:
                     raise DrumCommonException(
+                        "\n\n{}\n"
                         "Multiple serialized model files found. Remove extra artifacts "
-                        "or overwrite custom.load_model()"
+                        "or overwrite custom.load_model()".format(RUNNING_LANG_MSG)
                     )
                 model_artifact_file = path
 
@@ -141,11 +145,15 @@ class PythonModelAdapter:
             files_list = os.listdir(self._model_dir)
             files_list_str = " | ".join(files_list)
             raise DrumCommonException(
-                "\n\nCould not find model artifact file in: {} supported by default predictors.\n"
+                "\n\n{}\n"
+                "Could not find model artifact file in: {} supported by default predictors.\n"
                 "They support filenames with the following extensions {}.\n"
                 "If your artifact is not supported by default predictor, implement custom.load_model hook.\n"
                 "List of files got here are: {}".format(
-                    self._model_dir, list(all_supported_extensions), files_list_str
+                    RUNNING_LANG_MSG,
+                    self._model_dir,
+                    list(all_supported_extensions),
+                    files_list_str,
                 )
             )
 
@@ -184,8 +192,11 @@ class PythonModelAdapter:
                 raise DrumCommonException(textwrap.dedent(framework_err))
             else:
                 raise DrumCommonException(
+                    "\n\n{}\n"
                     "Could not load model from artifact file {}."
-                    " No builtin support for this model was detected".format(model_artifact_file)
+                    " No builtin support for this model was detected".format(
+                        RUNNING_LANG_MSG, model_artifact_file
+                    )
                 )
 
         self._model = model
@@ -200,8 +211,9 @@ class PythonModelAdapter:
 
         if not self._predictor_to_use and not self._custom_hooks[CustomHooks.SCORE]:
             raise DrumCommonException(
+                "\n\n{}\n"
                 "Could not find any framework to handle loaded model and a {} "
-                "hook is not provided".format(CustomHooks.SCORE)
+                "hook is not provided".format(RUNNING_LANG_MSG, CustomHooks.SCORE)
             )
 
         self._logger.debug("Predictor to use: {}".format(self._predictor_to_use.name))
@@ -363,9 +375,10 @@ class PythonModelAdapter:
                     "{}: {}".format(hook, fn is not None) for hook, fn in self._custom_hooks.items()
                 ]
                 raise DrumCommonException(
+                    "\n\n{}\n"
                     "\nfit() method must be implemented in a file named 'custom.py' in the provided code_dir: '{}' \n"
                     "Here is a list of files in this dir. {}\n"
                     "Here are the hooks your custom.py file has: {}".format(
-                        self._model_dir, os.listdir(self._model_dir)[:100], hooks
+                        RUNNING_LANG_MSG, self._model_dir, os.listdir(self._model_dir)[:100], hooks
                     )
                 )
