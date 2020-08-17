@@ -282,7 +282,7 @@ class TestDropInEnvironments(object):
         reason=(
             "Test relies on a bug and is invalid unless feature impact is "
             "triggered explicitly. Unskip as soon as FI API is available in the API client"
-        )
+        ),
     )
     @pytest.mark.parametrize(
         "env, model, test_data_id",
