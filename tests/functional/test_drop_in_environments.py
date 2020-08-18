@@ -277,13 +277,6 @@ class TestDropInEnvironments(object):
 
         assert test.overall_status == "succeeded"
 
-    @pytest.mark.skipif(
-        True,
-        reason=(
-            "Test relies on a bug and is invalid unless feature impact is "
-            "triggered explicitly. Unskip as soon as FI API is available in the API client"
-        ),
-    )
     @pytest.mark.parametrize(
         "env, model, test_data_id",
         [
@@ -305,6 +298,7 @@ class TestDropInEnvironments(object):
         )
         model = dr.CustomInferenceModel.get(model_id)
         model.assign_training_data(test_data_id)
+        model_image.calculate_feature_impact()
 
         test_passed = False
         error_message = ""
