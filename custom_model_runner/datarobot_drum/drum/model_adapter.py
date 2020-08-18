@@ -7,7 +7,6 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-import sklearn
 
 from datarobot_drum.drum.artifact_predictors.keras_predictor import KerasPredictor
 from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
@@ -328,6 +327,8 @@ class PythonModelAdapter:
         -------
         Boolean, whether fit was run
         """
+        import sklearn
+
         model_dir_limit = 100
         marked_object = None
         files_in_model_dir = list(Path(self._model_dir).rglob("*.py"))
