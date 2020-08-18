@@ -298,7 +298,7 @@ class TestDropInEnvironments(object):
         )
         model = dr.CustomInferenceModel.get(model_id)
         model.assign_training_data(test_data_id)
-        model.calculate_feature_impact()
+        model_image.calculate_feature_impact()
 
         test_passed = False
         error_message = ""
