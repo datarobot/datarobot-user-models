@@ -129,8 +129,8 @@ class PredictionServer(ConnectableComponent):
         def stats():
             mem_info = self._memory_monitor.collect_memory_info()
             ret_dict = {"mem_info": mem_info._asdict()}
-            self._stats_collector.round()
 
+            self._stats_collector.round()
             ret_dict["time_info"] = {}
             for name in self._stats_collector.get_report_names():
                 d = self._stats_collector.dict_report(name)

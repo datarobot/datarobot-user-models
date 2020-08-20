@@ -10,19 +10,27 @@ from mlpiper.components.restful_component import RESTfulComponent
 from mlpiper.components.restful.metric import Metric, MetricType, MetricRelation
 
 from datarobot_drum.drum.common import RunLanguage, URL_PREFIX_ENV_VAR_NAME, REGRESSION_PRED_COLUMN
+from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
     HTTP_422_UNPROCESSABLE_ENTITY,
 )
+from datarobot_drum.drum.memory_monitor import MemoryMonitor
 
 
 class UwsgiServing(RESTfulComponent):
     def __init__(self, engine):
         super(UwsgiServing, self).__init__(engine)
-        self._params = {}
-        self._verbose = self._logger.isEnabledFor(logging.DEBUG)
+        self._show_perf = False
+        self._stats_collector = None
+        self._memory_monitor = None
         self._run_language = None
+        self._predictor = None
+
+        self._predict_calls_count = 0
+
+        self._verbose = self._logger.isEnabledFor(logging.DEBUG)
 
         self._total_predict_requests = Metric(
             "mlpiper.restful.predict_requests",
@@ -39,20 +47,26 @@ class UwsgiServing(RESTfulComponent):
             ),
             "worker_id": self.get_wid(),
         }
-        self._predictor = None
-        self._predict_calls_count = 0
 
     def configure(self, params):
         """
         @brief      It is called in within the 'deputy' context
         """
         super(UwsgiServing, self).configure(params)
+        self._show_perf = self._params.get("show_perf")
+        self._stats_collector = StatsCollector(disable_instance=not self._show_perf)
+
+        self._stats_collector.register_report(
+            "run_predictor_total", "finish", StatsOperation.SUB, "start"
+        )
+        self._memory_monitor = MemoryMonitor()
+        self._run_language = RunLanguage(params.get("run_language"))
+
         self._logger.info(
             "Configure component with input params, name: {}, params: {}".format(
                 self.name(), params
             )
         )
-        self._run_language = RunLanguage(params.get("run_language"))
 
     def load_model_callback(self, model_path, stream, version):
         self._logger.info(self.get_info())
@@ -83,6 +97,19 @@ class UwsgiServing(RESTfulComponent):
     def health(self, url_params, form_params):
         return 200, {"message": "OK"}
 
+    @FlaskRoute("{}/stats/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
+    def prediction_server_stats(self, url_params, form_params):
+        mem_info = self._memory_monitor.collect_memory_info()
+        ret_dict = {"mem_info": mem_info._asdict()}
+
+        self._stats_collector.round()
+        ret_dict["time_info"] = {}
+        for name in self._stats_collector.get_report_names():
+            d = self._stats_collector.dict_report(name)
+            ret_dict["time_info"][name] = d
+        self._stats_collector.stats_reset()
+        return 200, ret_dict
+
     @FlaskRoute("{}/predict/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["POST"])
     def predict(self, url_params, form_params):
         response_status = HTTP_200_OK
@@ -97,6 +124,8 @@ class UwsgiServing(RESTfulComponent):
             return response_status, {"message": "ERROR: " + wrong_key_error_message}
 
         in_df = pd.read_csv(filename)
+        self._stats_collector.enable()
+        self._stats_collector.mark("start")
         out_df = self._predictor.predict(in_df)
 
         num_columns = len(out_df.columns)
@@ -121,7 +150,10 @@ class UwsgiServing(RESTfulComponent):
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
 
         self._predict_calls_count += 1
+        # this counter is managed by uwsgi
         self._total_predict_requests.increase()
+        self._stats_collector.mark("finish")
+        self._stats_collector.disable()
         return response_status, response_json
 
     def _get_stats_dict(self):

@@ -360,8 +360,6 @@ class CMRunner(object):
                 if json_fields.PIPELINE_SYSTEM_CONFIG_FIELD not in pipeline_json:
                     system_config = {"modelFileSourcePath": os.path.abspath(__file__)}
                 pipeline_json[json_fields.PIPELINE_SYSTEM_CONFIG_FIELD] = system_config
-                if options.max_workers:
-                    pipeline_json["pipe"][0]["arguments"]["uwsgi_max_workers"] = options.max_workers
                 functional_pipeline_str = json.dumps(pipeline_json)
         return functional_pipeline_str
 

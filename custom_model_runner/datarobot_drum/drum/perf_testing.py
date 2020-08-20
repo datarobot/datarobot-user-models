@@ -252,7 +252,7 @@ class CMRunTests:
             if show_mem:
                 if server_stats and "mem_info" in server_stats:
                     mem_info = server_stats["mem_info"]
-                    row.extend([mem_info["predictor_rss"], mem_info["total"]])
+                    row.extend([mem_info["drum_rss"], mem_info["total"]])
                 else:
                     row.extend([CMRunTests.NA_VALUE, CMRunTests.NA_VALUE])
                 rows.append(row)
