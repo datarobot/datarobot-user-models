@@ -9,8 +9,8 @@ export weights="${INPUT_DIRECTORY}/weights.csv"
 CMD="drum fit --input ${X} --num-rows ALL --output ${ARTIFACT_DIRECTORY} \
 --code-dir ${CODEPATH} --verbose"
 
-if [ -n "${ANOMALY_DETECTION}"]; then
-  CMD="${CMD} --anomaly_detection "
+if [ -n "${ANOMALY_DETECTION}" ]; then
+  CMD="${CMD} --anomaly-detection "
 else
   export y="${INPUT_DIRECTORY}/y.csv"
   CMD="${CMD} --target-csv ${y}"
