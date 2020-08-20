@@ -336,7 +336,6 @@ class CMRunner(object):
                 {
                     "host": host,
                     "port": port,
-                    "threaded": str(options.threaded).lower(),
                     "show_perf": str(options.show_perf).lower(),
                     "engine_type": "RestModelServing" if options.production else "Generic",
                     "component_type": "uwsgi_serving"

@@ -33,7 +33,6 @@ class PredictionServer(ConnectableComponent):
 
     def configure(self, params):
         super(PredictionServer, self).configure(params)
-        self._threaded = self._params.get("threaded", False)
         self._show_perf = self._params.get("show_perf")
         self._stats_collector = StatsCollector(disable_instance=not self._show_perf)
 
@@ -148,7 +147,7 @@ class PredictionServer(ConnectableComponent):
         host = self._params.get("host", None)
         port = self._params.get("port", None)
         try:
-            app.run(host, port, threaded=self._threaded)
+            app.run(host, port, threaded=False)
         except OSError as e:
             raise DrumCommonException("{}: host: {}; port: {}".format(e, host, port))
 

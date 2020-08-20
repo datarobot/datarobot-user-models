@@ -88,7 +88,6 @@ class ArgumentsOptions(object):
     WEIGHTS = "--row-weights"
     SKIP_PREDICT = "--skip-predict"
     TIMEOUT = "--timeout"
-    THREADED = "--threaded"
     PRODUCTION = "--production"
     LOGGING_LEVEL = "--logging-level"
     LANGUAGE = "--language"

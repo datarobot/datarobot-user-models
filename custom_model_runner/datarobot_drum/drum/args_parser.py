@@ -248,16 +248,6 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
-    def _reg_arg_threaded(*parsers):
-        for parser in parsers:
-            parser.add_argument(
-                ArgumentsOptions.THREADED,
-                action="store_true",
-                default=False,
-                help="Run prediction server in threaded mode",
-            )
-
-    @staticmethod
     def _reg_arg_production_server(*parsers):
         for parser in parsers:
             parser.add_argument(
@@ -482,7 +472,6 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_arg_url(parser_perf_test)
 
         CMRunnerArgsRegistry._reg_arg_address(server_parser)
-        CMRunnerArgsRegistry._reg_arg_threaded(server_parser)
         CMRunnerArgsRegistry._reg_arg_production_server(server_parser, parser_perf_test)
         CMRunnerArgsRegistry._reg_arg_max_workers(server_parser, parser_perf_test)
         CMRunnerArgsRegistry._reg_arg_in_perf_mode_internal(server_parser)
