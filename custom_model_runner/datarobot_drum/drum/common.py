@@ -92,6 +92,7 @@ class ArgumentsOptions(object):
     LOGGING_LEVEL = "--logging-level"
     LANGUAGE = "--language"
     NUM_ROWS = "--num-rows"
+    UNSUPERVISED_ANOMALY = "--anomaly-detection"
 
     MAIN_COMMAND = "drum"
 

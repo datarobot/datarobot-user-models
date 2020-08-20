@@ -365,7 +365,8 @@ class CMRunner(object):
         return functional_pipeline_str
 
     def _prepare_fit_pipeline(self, run_language):
-        if not self.options.negative_class_label:
+
+        if not self.options.negative_class_label and not self.options.anomaly_detection:
             (
                 self.options.positive_class_label,
                 self.options.negative_class_label,
@@ -378,6 +379,8 @@ class CMRunner(object):
         functional_pipeline_name = self._functional_pipelines[(self.run_mode, run_language)]
         functional_pipeline_filepath = CMRunnerUtils.get_pipeline_filepath(functional_pipeline_name)
         # fields to replace in the functional pipeline (predictor)
+
+        # TODO: here
         replace_data = {
             "customModelPath": os.path.abspath(options.code_dir),
             "input_filename": options.input,

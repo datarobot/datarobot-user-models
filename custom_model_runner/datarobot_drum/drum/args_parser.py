@@ -112,8 +112,8 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.TARGET,
                 type=str,
                 required=False,
-                help="Which column to use as the target. Argument is mutually exclusive with {}".format(
-                    ArgumentsOptions.TARGET_FILENAME
+                help="Which column to use as the target. Argument is mutually exclusive with {} and {}".format(
+                    ArgumentsOptions.TARGET_FILENAME, ArgumentsOptions.UNSUPERVISED_ANOMALY
                 ),
             )
 
@@ -121,9 +121,20 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.TARGET_FILENAME,
                 type=CMRunnerArgsRegistry._is_valid_file,
                 required=False,
-                help="A file containing the target values. Argument is mutually exclusive with {}".format(
-                    ArgumentsOptions.TARGET
+                help="A file containing the target values. Argument is mutually exclusive with {} and {}".format(
+                    ArgumentsOptions.TARGET, ArgumentsOptions.UNSUPERVISED_ANOMALY
                 ),
+            )
+
+            group.add_argument(
+                ArgumentsOptions.UNSUPERVISED_ANOMALY,
+                action='store_true',
+                required=False,
+                default=False,
+                help="If present, indicates that this is an unsupervised anomaly detection model."
+                     " Argument is mutually exclusive with {} and {}".format(
+                        ArgumentsOptions.TARGET, ArgumentsOptions.UNSUPERVISED_ANOMALY
+                     ),
             )
 
     @staticmethod
@@ -136,7 +147,7 @@ class CMRunnerArgsRegistry(object):
                 required=False,
                 default=None,
                 help="A column name of row weights in your training dataframe. "
-                "Argument is mutually exclusive with {}".format(ArgumentsOptions.WEIGHTS_CSV),
+                     "Argument is mutually exclusive with {}".format(ArgumentsOptions.WEIGHTS_CSV),
             )
             group.add_argument(
                 ArgumentsOptions.WEIGHTS_CSV,
@@ -144,7 +155,7 @@ class CMRunnerArgsRegistry(object):
                 required=False,
                 default=None,
                 help="A one column csv file to be parsed as row weights. "
-                "Argument is mutually exclusive with {}".format(ArgumentsOptions.WEIGHTS),
+                     "Argument is mutually exclusive with {}".format(ArgumentsOptions.WEIGHTS),
             )
 
     @staticmethod
@@ -156,7 +167,7 @@ class CMRunnerArgsRegistry(object):
                 default=False,
                 action="store_true",
                 help="By default we will attempt to predict using your model, but we give you the"
-                "option to turn this off",
+                     "option to turn this off",
             )
 
     @staticmethod
@@ -241,8 +252,8 @@ class CMRunnerArgsRegistry(object):
                 default=None,
                 required=False,
                 help="Docker image to use to run {} in the {} mode, "
-                "or a directory, containing a Dockerfile, "
-                "which can be built into a docker image. ".format(
+                     "or a directory, containing a Dockerfile, "
+                     "which can be built into a docker image. ".format(
                     ArgumentsOptions.MAIN_COMMAND, prog_name_lst[1]
                 ),
             )
@@ -347,7 +358,7 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.NUM_ROWS,
                 default="ALL",
                 help="Number of rows to use for testing the fit functionality. "
-                "Set to ALL to use all rows. Default is 100",
+                     "Set to ALL to use all rows. Default is 100",
             )
 
     @staticmethod

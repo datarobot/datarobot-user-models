@@ -129,11 +129,16 @@ def shared_fit_preprocessing(fit_class):
         assert len(y.columns) == 1
         assert len(X) == len(y)
         y = y.iloc[:, 0]
-    else:
+    elif fit_class.target_name:
         X = df.drop(fit_class.target_name, axis=1).sample(
             fit_class.num_rows, random_state=1, replace=True
         )
         y = df[fit_class.target_name].sample(fit_class.num_rows, random_state=1, replace=True)
+    else:
+        X = df.sample(
+            fit_class.num_rows, random_state=1, replace=True
+        )
+        y = None
 
     # extract weights from file or data
     if fit_class.weights_filename:

@@ -41,6 +41,7 @@ SKLEARN = "sklearn"
 SIMPLE = "simple"
 PYTORCH = "pytorch"
 PYPMML = "pypmml"
+SKLEARN_ANOMALY = "sklearn_anomaly_detection"
 
 RDS = "rds"
 CODEGEN = "jar"
@@ -54,6 +55,7 @@ CODEGEN_AND_SKLEARN = "codegen_and_sklearn"
 REGRESSION = "regression"
 REGRESSION_INFERENCE = "regression_inference"
 BINARY = "binary"
+ANOMALY = "anomaly_detection"
 
 # Language keywords
 PYTHON = "python3"
@@ -193,6 +195,7 @@ class TestCMRunner:
             (PYTHON, XGB): os.path.join(cls.training_templates_path, "python3_xgboost"),
             (R_FIT, RDS): os.path.join(cls.training_templates_path, "r_lang"),
             (PYTHON, PYTORCH): os.path.join(cls.training_templates_path, "python3_pytorch"),
+            (PYTHON, SKLEARN_ANOMALY): os.path.join(cls.training_templates_path, "python3_anomaly_detection"),
         }
 
         cls.fixtures = {
@@ -223,6 +226,7 @@ class TestCMRunner:
                 cls.tests_data_path, "boston_housing_inference.csv"
             ),
             (None, BINARY): os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
+            (None, ANOMALY): os.path.join(cls.tests_data_path, "boston_housing.csv"),
         }
 
         cls.artifacts = {
@@ -832,8 +836,8 @@ class TestCMRunner:
 
         return "", input_csv, __keep_this_around
 
-    @pytest.mark.parametrize("framework", [RDS, SKLEARN, XGB, KERAS, PYTORCH])
-    @pytest.mark.parametrize("problem", [BINARY, REGRESSION])
+    @pytest.mark.parametrize("framework", [SKLEARN_ANOMALY, RDS, SKLEARN, XGB, KERAS, PYTORCH])
+    @pytest.mark.parametrize("problem", [ANOMALY, BINARY, REGRESSION])
     @pytest.mark.parametrize("docker", [DOCKER_PYTHON_SKLEARN, None])
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
     @pytest.mark.parametrize("use_output", [True, False])
@@ -845,6 +849,14 @@ class TestCMRunner:
             language = R_FIT
         else:
             language = PYTHON
+
+        # don't try to run anomaly with non-anomaly
+        # TODO: check for graceful failure for these cases
+        if (
+            (framework == SKLEARN_ANOMALY and problem != ANOMALY)
+            or (problem == ANOMALY and framework != SKLEARN_ANOMALY)
+        ):
+            return
 
         custom_model_dir = tmp_path / "custom_model"
         self._create_custom_model_dir(
@@ -865,9 +877,14 @@ class TestCMRunner:
         output = tmp_path / "output"
         output.mkdir()
 
-        cmd = "{} fit --code-dir {} --target {} --input {} --verbose ".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, self.target[problem], input_dataset
+        cmd = "{} fit --code-dir {} --input {} --verbose ".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir,  input_dataset
         )
+        if problem == ANOMALY:
+            cmd += " --anomaly-detection"
+        else:
+            cmd += " --target {}".format(self.target[problem])
+
         if use_output:
             cmd += " --output {}".format(output)
         if problem == BINARY:
