@@ -46,3 +46,17 @@ outer_fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL) {
             stop(sprintf("No Fit method provided."))
         }
 }
+
+
+outer_fit_unsupervised <- function(X, output_dir, row_weights=NULL) {
+    if (!isFALSE(fit_hook)) {
+        kwargs <- list()
+        kwargs <- append(kwargs, list(X=X,
+                                      output_dir=output_dir,
+                                      row_weights=row_weights))
+
+        do.call(fit_hook, kwargs)
+        } else {
+            stop(sprintf("No Fit method provided."))
+        }
+}
