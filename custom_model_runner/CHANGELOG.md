@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Added
 - optional **--language [python|r|java]** argument to enforce execution framework
 
+##### Changed
+- dependencies: mlpiper==2.3.0, py4j~=0.10.9
+
 #### [1.1.4] - 2020-08-04
 ##### Added
 - the docker flag now takes a directory, and will build a docker image
