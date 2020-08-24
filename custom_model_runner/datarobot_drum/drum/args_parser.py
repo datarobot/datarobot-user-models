@@ -113,7 +113,7 @@ class CMRunnerArgsRegistry(object):
                 type=str,
                 required=False,
                 help="Which column to use as the target. Argument is mutually exclusive with {} and {}".format(
-                    ArgumentsOptions.TARGET_FILENAME, ArgumentsOptions.UNSUPERVISED_ANOMALY
+                    ArgumentsOptions.TARGET_FILENAME, ArgumentsOptions.UNSUPERVISED
                 ),
             )
 
@@ -122,18 +122,18 @@ class CMRunnerArgsRegistry(object):
                 type=CMRunnerArgsRegistry._is_valid_file,
                 required=False,
                 help="A file containing the target values. Argument is mutually exclusive with {} and {}".format(
-                    ArgumentsOptions.TARGET, ArgumentsOptions.UNSUPERVISED_ANOMALY
+                    ArgumentsOptions.TARGET, ArgumentsOptions.UNSUPERVISED
                 ),
             )
 
             group.add_argument(
-                ArgumentsOptions.UNSUPERVISED_ANOMALY,
+                ArgumentsOptions.UNSUPERVISED,
                 action='store_true',
                 required=False,
                 default=False,
                 help="If present, indicates that this is an unsupervised anomaly detection model."
                      " Argument is mutually exclusive with {} and {}".format(
-                        ArgumentsOptions.TARGET, ArgumentsOptions.UNSUPERVISED_ANOMALY
+                        ArgumentsOptions.TARGET, ArgumentsOptions.UNSUPERVISED
                      ),
             )
 

@@ -881,7 +881,7 @@ class TestCMRunner:
             ArgumentsOptions.MAIN_COMMAND, custom_model_dir,  input_dataset
         )
         if problem == ANOMALY:
-            cmd += " --anomaly-detection"
+            cmd += " --unsupervised"
         else:
             cmd += " --target {}".format(self.target[problem])
 
@@ -970,9 +970,9 @@ class TestCMRunner:
                 del os.environ["POSITIVE_CLASS_LABEL"]
 
         if problem == ANOMALY:
-            env["ANOMALY_DETECTION"] = "true"
-        elif os.environ.get("ANOMALY_DETECTION"):
-            del os.environ["ANOMALY_DETECTION"]
+            env["UNSUPERVISED"] = "true"
+        elif os.environ.get("UNSUPERVISED"):
+            del os.environ["UNSUPERVISED"]
 
         TestCMRunner._exec_shell_cmd(fit_sh, "Failed cmd {}".format(fit_sh), env=env)
 

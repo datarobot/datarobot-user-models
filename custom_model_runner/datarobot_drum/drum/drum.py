@@ -366,7 +366,7 @@ class CMRunner(object):
 
     def _prepare_fit_pipeline(self, run_language):
 
-        if not self.options.negative_class_label and not self.options.anomaly_detection:
+        if not self.options.negative_class_label and not self.options.unsupervised:
             (
                 self.options.positive_class_label,
                 self.options.negative_class_label,
