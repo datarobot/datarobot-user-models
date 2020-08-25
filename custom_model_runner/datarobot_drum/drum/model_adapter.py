@@ -367,14 +367,9 @@ class PythonModelAdapter:
     def fit(self, X, y, output_dir, class_order=None, row_weights=None):
         with reroute_stdout_to_stderr():
             if self._custom_hooks.get(CustomHooks.FIT):
-                if y is not None:
-                    self._custom_hooks[CustomHooks.FIT](
-                        X, y, output_dir, class_order=class_order, row_weights=row_weights
-                    )
-                else:
-                    self._custom_hooks[CustomHooks.FIT](
-                        X, output_dir, row_weights=row_weights
-                    )
+                self._custom_hooks[CustomHooks.FIT](
+                    X=X, y=y, output_dir=output_dir, class_order=class_order, row_weights=row_weights
+                )
             elif self._drum_autofit_internal(X, y, output_dir):
                 return
             else:
