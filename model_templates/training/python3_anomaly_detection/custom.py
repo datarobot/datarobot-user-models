@@ -17,7 +17,6 @@ def fit(
     Parameters
     ----------
     X: pd.DataFrame - training data to perform fit on
-    y: pd.Series - target data to perform fit on
     output_dir: the path to write output. This is the path provided in '--output' parameter of the
         'drum fit' command.
     row_weights: An array of non-negative numeric values which can be used to dictate how important
