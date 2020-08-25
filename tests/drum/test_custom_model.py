@@ -195,7 +195,9 @@ class TestCMRunner:
             (PYTHON, XGB): os.path.join(cls.training_templates_path, "python3_xgboost"),
             (R_FIT, RDS): os.path.join(cls.training_templates_path, "r_lang"),
             (PYTHON, PYTORCH): os.path.join(cls.training_templates_path, "python3_pytorch"),
-            (PYTHON, SKLEARN_ANOMALY): os.path.join(cls.training_templates_path, "python3_anomaly_detection"),
+            (PYTHON, SKLEARN_ANOMALY): os.path.join(
+                cls.training_templates_path, "python3_anomaly_detection"
+            ),
         }
 
         cls.fixtures = {
@@ -852,9 +854,8 @@ class TestCMRunner:
 
         # don't try to run unsupervised problem in supervised framework and vice versa
         # TODO: check for graceful failure for these cases
-        if (
-            (framework == SKLEARN_ANOMALY and problem != ANOMALY)
-            or (problem == ANOMALY and framework != SKLEARN_ANOMALY)
+        if (framework == SKLEARN_ANOMALY and problem != ANOMALY) or (
+            problem == ANOMALY and framework != SKLEARN_ANOMALY
         ):
             return
 
@@ -878,7 +879,7 @@ class TestCMRunner:
         output.mkdir()
 
         cmd = "{} fit --code-dir {} --input {} --verbose ".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir,  input_dataset
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset
         )
         if problem == ANOMALY:
             cmd += " --unsupervised"
@@ -931,9 +932,8 @@ class TestCMRunner:
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, None])
     def test_fit_sh(self, framework, problem, language, weights, tmp_path):
 
-        if (
-            (framework == SKLEARN_ANOMALY and problem != ANOMALY)
-            or (problem == ANOMALY and framework != SKLEARN_ANOMALY)
+        if (framework == SKLEARN_ANOMALY and problem != ANOMALY) or (
+            problem == ANOMALY and framework != SKLEARN_ANOMALY
         ):
             return
 
@@ -946,8 +946,9 @@ class TestCMRunner:
         fit_sh = os.path.join(
             self.tests_root_path,
             "..",
-            "public_dropin_environments/{}_{}/fit.sh".format(language,
-                                                             framework if framework != SKLEARN_ANOMALY else SKLEARN),
+            "public_dropin_environments/{}_{}/fit.sh".format(
+                language, framework if framework != SKLEARN_ANOMALY else SKLEARN
+            ),
         )
 
         input_dir = tmp_path / "input_dir"

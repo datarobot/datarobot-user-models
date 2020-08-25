@@ -135,9 +135,7 @@ def shared_fit_preprocessing(fit_class):
         )
         y = df[fit_class.target_name].sample(fit_class.num_rows, random_state=1, replace=True)
     else:
-        X = df.sample(
-            fit_class.num_rows, random_state=1, replace=True
-        )
+        X = df.sample(fit_class.num_rows, random_state=1, replace=True)
         y = None
 
     # extract weights from file or data

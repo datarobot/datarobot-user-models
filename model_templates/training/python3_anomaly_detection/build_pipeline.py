@@ -105,7 +105,5 @@ dense_preprocessing_pipeline = Pipeline(
 
 def make_anomaly():
     return Pipeline(
-        steps=[("preprocessing", dense_preprocessing_pipeline),
-        ("model", OneClassSVM())]
+        steps=[("preprocessing", dense_preprocessing_pipeline), ("model", OneClassSVM())]
     )
-
