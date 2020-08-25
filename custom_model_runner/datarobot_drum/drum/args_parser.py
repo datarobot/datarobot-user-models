@@ -131,7 +131,7 @@ class CMRunnerArgsRegistry(object):
                 action='store_true',
                 required=False,
                 default=False,
-                help="If present, indicates that this is an unsupervised anomaly detection model."
+                help="If present, indicates that this is an unsupervised model."
                      " Argument is mutually exclusive with {} and {}".format(
                         ArgumentsOptions.TARGET, ArgumentsOptions.UNSUPERVISED
                      ),

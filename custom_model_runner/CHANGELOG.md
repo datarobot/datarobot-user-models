@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### Changed
 - dependencies: mlpiper==2.3.0, py4j~=0.10.9
-- optional **--anomaly-detection** argument and handling for unsupervised Fit in python
+- optional **--unsupervised** argument and handling for unsupervised Fit in python
 
 #### [1.1.4] - 2020-08-04
 ##### Added
