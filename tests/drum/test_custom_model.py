@@ -850,7 +850,7 @@ class TestCMRunner:
         else:
             language = PYTHON
 
-        # don't try to run anomaly with non-anomaly
+        # don't try to run unsupervised problem in supervised framework and vice versa
         # TODO: check for graceful failure for these cases
         if (
             (framework == SKLEARN_ANOMALY and problem != ANOMALY)
