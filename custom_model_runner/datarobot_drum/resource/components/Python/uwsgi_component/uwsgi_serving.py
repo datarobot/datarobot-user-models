@@ -117,8 +117,8 @@ class UwsgiServing(RESTfulComponent):
         filename = request.files[file_key] if file_key in request.files else None
 
         if not filename:
-            wrong_key_error_message = "Samples should be provided as a csv file under `{}` key.".format(
-                file_key
+            wrong_key_error_message = (
+                "Samples should be provided as a csv file under `{}` key.".format(file_key)
             )
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             return response_status, {"message": "ERROR: " + wrong_key_error_message}

@@ -684,7 +684,9 @@ class TestCMRunner:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [(SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),],
+        [
+            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
+        ],
     )
     def test_custom_models_with_drum_nginx_prediction_server(
         self, framework, problem, language, docker, tmp_path
@@ -952,7 +954,10 @@ class TestCMRunner:
         output.mkdir()
 
         cmd = "{} fit --code-dir {} --target {} --input {} --verbose".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, self.target[REGRESSION], input_dataset,
+            ArgumentsOptions.MAIN_COMMAND,
+            custom_model_dir,
+            self.target[REGRESSION],
+            input_dataset,
         )
         TestCMRunner._exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
@@ -1051,7 +1056,9 @@ class TestDrumRuntime:
         TestCMRunner._create_custom_model_dir(custom_model_dir, framework, problem, language)
 
         server_run_args = dict(
-            framework=framework, problem=problem, custom_model_dir=custom_model_dir,
+            framework=framework,
+            problem=problem,
+            custom_model_dir=custom_model_dir,
         )
 
         return framework, problem, custom_model_dir, server_run_args

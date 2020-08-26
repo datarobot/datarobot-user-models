@@ -16,9 +16,7 @@ class MemoryMonitor:
     MLAPP_RSS_LABEL = "Pipeline RSS"
 
     def __init__(self, pid=None, include_childs=True):
-        """
-
-        """
+        """"""
         self._pid = pid if pid is not None else os.getpid()
         self._include_childs = include_childs
 
