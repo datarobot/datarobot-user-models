@@ -286,18 +286,6 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
-    def _reg_arg_in_perf_mode_internal(*parsers):
-        for parser in parsers:
-            parser.add_argument(
-                "--in-perf-mode-internal",
-                action="store_true",
-                default=False,
-                help="Provide indication that {} is called as part of a performance test run ".format(
-                    ArgumentsOptions.MAIN_COMMAND
-                ),
-            )
-
-    @staticmethod
     def _reg_arg_samples(*parsers):
         for parser in parsers:
             parser.add_argument("-s", "--samples", type=int, default=None, help="Number of samples")
@@ -474,7 +462,6 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_arg_address(server_parser)
         CMRunnerArgsRegistry._reg_arg_production_server(server_parser, parser_perf_test)
         CMRunnerArgsRegistry._reg_arg_max_workers(server_parser, parser_perf_test)
-        CMRunnerArgsRegistry._reg_arg_in_perf_mode_internal(server_parser)
         CMRunnerArgsRegistry._reg_arg_with_error_server(server_parser)
 
         CMRunnerArgsRegistry._reg_arg_language(

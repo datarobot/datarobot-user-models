@@ -33,7 +33,7 @@ import os
 import signal
 import sys
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
-from datarobot_drum.drum.common import config_logging
+from datarobot_drum.drum.common import config_logging, RunMode
 from datarobot_drum.drum.runtime import DrumRuntime
 
 
@@ -50,8 +50,7 @@ def main():
             if (
                 runtime.options
                 and runtime.options.docker
-                and hasattr(runtime.options, "in_perf_mode_internal")
-                and not runtime.options.in_perf_mode_internal
+                and RunMode(runtime.options.subparser_name) == RunMode.SERVER
             ):
                 try:
                     import requests

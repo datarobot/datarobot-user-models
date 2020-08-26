@@ -150,7 +150,6 @@ class CMRunTests:
             "--code-dir",
             self.options.code_dir,
         ]
-        cmd_list.append("--in-perf-mode-internal")
         cmd_list.append("--address")
         cmd_list.append("{}:{}".format(self._server_addr, self._server_port))
         cmd_list.append("--logging-level")
