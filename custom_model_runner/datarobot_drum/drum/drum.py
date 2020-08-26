@@ -354,8 +354,8 @@ class CMRunner(object):
         if self.run_mode == RunMode.SERVER:
             if options.production:
                 pipeline_json = json.loads(functional_pipeline_str)
-                # mlpiper requires model file to be provided in a specific param.
-                # We just provide current file, but never use.
+                # Because of tech debt in MLPiper which requires that the modelFileSourcePath key
+                # be filled with something, we're putting in a dummy file path here
                 if json_fields.PIPELINE_SYSTEM_CONFIG_FIELD not in pipeline_json:
                     system_config = {"modelFileSourcePath": os.path.abspath(__file__)}
                 pipeline_json[json_fields.PIPELINE_SYSTEM_CONFIG_FIELD] = system_config
@@ -433,7 +433,10 @@ class CMRunner(object):
         )
 
         _pipeline_executor = Executor(config).standalone(True).set_verbose(self.options.verbose)
-        _pipeline_executor.set_logger(self.logger)
+        # assign logger with the name drum.mlpiper.Executor to mlpiper Executor
+        _pipeline_executor.set_logger(
+            logging.getLogger(LOGGER_NAME_PREFIX + "." + _pipeline_executor.logger_name())
+        )
 
         self.logger.info(
             ">>> Start {} in the {} mode".format(ArgumentsOptions.MAIN_COMMAND, self.run_mode.value)

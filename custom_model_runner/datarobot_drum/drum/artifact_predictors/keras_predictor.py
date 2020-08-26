@@ -22,7 +22,7 @@ class KerasPredictor(ArtifactPredictor):
             from keras.models import load_model
 
             return True
-        except (ImportError, ValueError):
+        except ImportError:
             return False
 
     def framework_requirements(self):

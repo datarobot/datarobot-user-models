@@ -2,6 +2,7 @@ import os
 import psutil
 
 from mlpiper.common.byte_conv import ByteConv
+from datarobot_drum.drum.common import ArgumentsOptions
 import collections
 
 MemoryInfo = collections.namedtuple("MemoryInfo", "total avail free drum_rss drum_info nginx_rss")
@@ -33,10 +34,18 @@ class MemoryMonitor:
         nginx_rss_mb = 0
         drum_rss_mb = 0
 
-        for proc in psutil.process_iter():
-            if "drum" in proc.name().lower():
-                if "server" in proc.cmdline():
-                    drum_process = proc
+        current_proc = psutil.Process()
+
+        # case with Flask server, there is only one process - drum
+        if current_proc.name() == ArgumentsOptions.MAIN_COMMAND:
+            drum_process = current_proc
+        # case with uwsgi, current proc is uwsgi worker, so looking for parent drum process
+        else:
+            parents = current_proc.parents()
+            for p in parents:
+                if p.name() == ArgumentsOptions.MAIN_COMMAND:
+                    drum_process = p
+                    break
 
         if drum_process:
             drum_rss_mb = ByteConv.from_bytes(drum_process.memory_info().rss).mbytes
@@ -58,8 +67,8 @@ class MemoryMonitor:
             total=total_physical_mem_mb,
             avail=available_mem_mb,
             free=free_mem_mb,
-            drum_rss=drum_rss_mb + nginx_rss_mb if drum_process else "drum process not found",
-            drum_info=drum_info if drum_process else "drum process not found",
+            drum_rss=drum_rss_mb if drum_process else None,
+            drum_info=drum_info if drum_process else None,
             nginx_rss=nginx_rss_mb,
         )
         return mem_info
