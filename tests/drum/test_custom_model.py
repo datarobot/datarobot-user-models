@@ -1045,6 +1045,20 @@ class TestDrumRuntime:
 
         mock_run_error_server.assert_called()
 
+
+class TestDrumServerFailures:
+    @classmethod
+    def setup_class(cls):
+        TestCMRunner.setup_class()
+
+    Options = collections.namedtuple(
+        "Options",
+        "with_error_server {} docker address verbose show_stacktrace".format(
+            CMRunnerArgsRegistry.SUBPARSER_DEST_KEYWORD
+        ),
+        defaults=[RunMode.SERVER, None, "localhost", False, True],
+    )
+
     @pytest.fixture(params=[REGRESSION, BINARY])
     def params(self, request, tmp_path):
         framework = SKLEARN
@@ -1063,10 +1077,14 @@ class TestDrumRuntime:
 
         return framework, problem, custom_model_dir, server_run_args
 
-    def assert_drum_server_run_failure(self, server_run_args, with_error_server, error_message):
-        drum_server_run = DrumServerRun(**server_run_args, with_error_server=with_error_server)
+    def assert_drum_server_run_failure(
+        self, server_run_args, with_error_server, error_message, with_nginx=False, docker=None
+    ):
+        drum_server_run = DrumServerRun(
+            **server_run_args, with_error_server=with_error_server, nginx=with_nginx, docker=docker
+        )
 
-        if with_error_server:
+        if with_error_server or with_nginx:
             # assert that error the server is up and message is propagated via API
             with drum_server_run as run:
                 # check /health/ route
@@ -1085,11 +1103,17 @@ class TestDrumRuntime:
             with pytest.raises(ProcessLookupError), drum_server_run:
                 pass
 
+        # nginx test runs in docker; to stop the process we kill it, so don't check return code
+        if with_nginx:
+            return
         assert drum_server_run.process.returncode == 1
         assert error_message in drum_server_run.process.err_stream
 
-    @pytest.mark.parametrize("with_error_server", [False, True])
-    def test_e2e_no_model_artifact(self, params, with_error_server):
+    @pytest.mark.parametrize(
+        "with_error_server, with_nginx, docker",
+        [(False, False, None), (True, False, None), (False, True, DOCKER_PYTHON_SKLEARN)],
+    )
+    def test_e2e_no_model_artifact(self, params, with_error_server, with_nginx, docker):
         """
         Verify that if an error occurs on drum server initialization if no model artifact is found
           - if '--with-error-server' is not set, drum server process will exit with error
@@ -1105,10 +1129,15 @@ class TestDrumRuntime:
             if item.endswith(PythonArtifacts.PKL_EXTENSION):
                 os.remove(os.path.join(custom_model_dir, item))
 
-        self.assert_drum_server_run_failure(server_run_args, with_error_server, error_message)
+        self.assert_drum_server_run_failure(
+            server_run_args, with_error_server, error_message, with_nginx=with_nginx, docker=docker
+        )
 
-    @pytest.mark.parametrize("with_error_server", [False, True])
-    def test_e2e_model_loading_fails(self, params, with_error_server):
+    @pytest.mark.parametrize(
+        "with_error_server, with_nginx, docker",
+        [(False, False, None), (True, False, None), (False, True, DOCKER_PYTHON_SKLEARN)],
+    )
+    def test_e2e_model_loading_fails(self, params, with_error_server, with_nginx, docker):
         """
         Verify that if an error occurs on drum server initialization if model cannot load properly
           - if '--with-error-server' is not set, drum server process will exit with error
@@ -1127,10 +1156,15 @@ class TestDrumRuntime:
                 with open(os.path.join(custom_model_dir, item), "wb") as f:
                     f.write(pickle.dumps("invalid model content"))
 
-        self.assert_drum_server_run_failure(server_run_args, with_error_server, error_message)
+        self.assert_drum_server_run_failure(
+            server_run_args, with_error_server, error_message, with_nginx=with_nginx, docker=docker
+        )
 
-    @pytest.mark.parametrize("with_error_server", [False, True])
-    def test_e2e_predict_fails(self, params, with_error_server):
+    @pytest.mark.parametrize(
+        "with_error_server, with_nginx, docker",
+        [(False, False, None), (True, False, None), (False, True, DOCKER_PYTHON_SKLEARN)],
+    )
+    def test_e2e_predict_fails(self, params, with_error_server, with_nginx, docker):
         """
         Verify that when drum server is started, if an error occurs on /predict/ route,
         'error server' is not started regardless '--with-error-server' flag.
@@ -1140,7 +1174,9 @@ class TestDrumRuntime:
         # remove a module required during processing of /predict/ request
         os.remove(os.path.join(custom_model_dir, "custom.py"))
 
-        drum_server_run = DrumServerRun(**server_run_args, with_error_server=with_error_server)
+        drum_server_run = DrumServerRun(
+            **server_run_args, with_error_server=with_error_server, nginx=with_nginx, docker=docker
+        )
 
         with drum_server_run as run:
             input_dataset = TestCMRunner._get_dataset_filename(framework, problem)
@@ -1166,4 +1202,7 @@ class TestDrumRuntime:
             assert response.status_code == 422
             assert response.json()["message"] == error_message
 
+        # nginx test runs in docker; to stop the process we kill it, so don't check return code
+        if with_nginx:
+            return
         assert drum_server_run.process.returncode == 0

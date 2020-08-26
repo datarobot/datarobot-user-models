@@ -15,6 +15,7 @@ from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperati
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
     HTTP_422_UNPROCESSABLE_ENTITY,
+    HTTP_513_DRUM_PIPELINE_ERROR,
 )
 from datarobot_drum.drum.memory_monitor import MemoryMonitor
 
@@ -39,6 +40,7 @@ class UwsgiServing(RESTfulComponent):
             value_type=int,
             metric_relation=MetricRelation.SUM_OF,
         )
+        self._error_response = None
 
     def get_info(self):
         return {
@@ -71,31 +73,39 @@ class UwsgiServing(RESTfulComponent):
     def load_model_callback(self, model_path, stream, version):
         self._logger.info(self.get_info())
 
-        if self._run_language == RunLanguage.PYTHON:
-            from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
-                PythonPredictor,
-            )
+        try:
+            if self._run_language == RunLanguage.PYTHON:
+                from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
+                    PythonPredictor,
+                )
 
-            self._predictor = PythonPredictor()
-        elif self._run_language == RunLanguage.JAVA:
-            from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import (
-                JavaPredictor,
-            )
+                self._predictor = PythonPredictor()
+            elif self._run_language == RunLanguage.JAVA:
+                from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import (
+                    JavaPredictor,
+                )
 
-            self._predictor = JavaPredictor()
-        elif self._run_language == RunLanguage.R:
-            from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
+                self._predictor = JavaPredictor()
+            elif self._run_language == RunLanguage.R:
+                from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import (
+                    RPredictor,
+                )
 
-            self._predictor = RPredictor()
-        self._predictor.configure(self._params)
+                self._predictor = RPredictor()
+            self._predictor.configure(self._params)
+        except Exception as e:
+            self._error_response = {"message": "ERROR: {}".format(e)}
 
     @FlaskRoute("{}/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def ping(self, url_params, form_params):
-        return 200, {"message": "OK"}
+        return HTTP_200_OK, {"message": "OK"}
 
     @FlaskRoute("{}/health/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def health(self, url_params, form_params):
-        return 200, {"message": "OK"}
+        if self._error_response:
+            return HTTP_513_DRUM_PIPELINE_ERROR, self._error_response
+        else:
+            return HTTP_200_OK, {"message": "OK"}
 
     @FlaskRoute("{}/stats/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def prediction_server_stats(self, url_params, form_params):
@@ -108,10 +118,13 @@ class UwsgiServing(RESTfulComponent):
             d = self._stats_collector.dict_report(name)
             ret_dict["time_info"][name] = d
         self._stats_collector.stats_reset()
-        return 200, ret_dict
+        return HTTP_200_OK, ret_dict
 
     @FlaskRoute("{}/predict/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["POST"])
     def predict(self, url_params, form_params):
+        if self._error_response:
+            return HTTP_513_DRUM_PIPELINE_ERROR, self._error_response
+
         response_status = HTTP_200_OK
         file_key = "X"
         filename = request.files[file_key] if file_key in request.files else None
