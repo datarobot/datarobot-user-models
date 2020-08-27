@@ -1,4 +1,4 @@
-## Python Unsupevised Anomaly Detection Training Model Template
+## Python Unsupervised Anomaly Detection Training Model Template
 
 This model is intended to work with the [Python 3 Scikit-Learn Drop-In Environment](../../../public_dropin_environments/python3_sklearn/).
 

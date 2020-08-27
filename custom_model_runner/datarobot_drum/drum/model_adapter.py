@@ -358,7 +358,7 @@ class PythonModelAdapter:
             if y is not None:
                 marked_object.fit(X, y)
             else:
-                marked_object.fit(X)
+                marked_object.fit(X, y=None)
             with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
                 pickle.dump(marked_object, fp)
             return True
