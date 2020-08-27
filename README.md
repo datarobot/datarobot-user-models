@@ -170,8 +170,11 @@ The [model_templates](model_templates) folder contains sample models that work w
 
 ##### Training Models
 * [Scikit-Learn sample model](model_templates/training/python3_sklearn)
+* [Scikit-Learn sample unsupervised anomaly detection model](model_templates/training/python3_anomaly_detection)
+> Note: Unsupervised support is limited to anomaly detection models as of release 1.1.5
 * [XGBoost sample model](model_templates/training/python3_xgboost)
 * [Keras sample model + Joblib artifact](model_templates/training/python3_keras_joblib)
+* [R sample model](model_templates/training/r_lang)
 
 
 ## Custom Environment Templates <a name="custom_environment_templates"></a>
