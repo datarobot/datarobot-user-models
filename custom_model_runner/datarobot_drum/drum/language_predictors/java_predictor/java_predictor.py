@@ -57,7 +57,7 @@ class JavaPredictor(BaseLanguagePredictor):
             ",".join(os.listdir(self.custom_model_path)),
         )
         if ext_re is None:
-            files_list = os.listdir(self.custom_model_path)
+            files_list = sorted(os.listdir(self.custom_model_path))
             files_list_str = " | ".join(files_list)
             raise DrumCommonException(
                 "\n\n{}\n"

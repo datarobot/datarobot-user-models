@@ -123,6 +123,7 @@ class PythonModelAdapter:
     def _detect_model_artifact_file(self):
         # No model was loaded - so there is no local hook - so we are using our artifact predictors
         all_supported_extensions = set(p.artifact_extension for p in self._artifact_predictors)
+        all_supported_extensions = list(sorted(all_supported_extensions))
         self._logger.debug("Supported suffixes: {}".format(all_supported_extensions))
         model_artifact_file = None
 
@@ -141,7 +142,7 @@ class PythonModelAdapter:
                 model_artifact_file = path
 
         if not model_artifact_file:
-            files_list = os.listdir(self._model_dir)
+            files_list = sorted(os.listdir(self._model_dir))
             files_list_str = " | ".join(files_list)
             raise DrumCommonException(
                 "\n\n{}\n"
@@ -151,7 +152,7 @@ class PythonModelAdapter:
                 "List of files got here are: {}".format(
                     RUNNING_LANG_MSG,
                     self._model_dir,
-                    list(all_supported_extensions),
+                    all_supported_extensions,
                     files_list_str,
                 )
             )
