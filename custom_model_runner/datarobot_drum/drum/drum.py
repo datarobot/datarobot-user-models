@@ -371,7 +371,10 @@ class CMRunner(object):
                 self.options.positive_class_label,
                 self.options.negative_class_label,
             ) = possibly_intuit_order(
-                self.options.input, self.options.target_csv, self.options.target, self.options.unsupervised
+                self.options.input,
+                self.options.target_csv,
+                self.options.target,
+                self.options.unsupervised,
             )
         options = self.options
         # functional pipeline is predictor pipeline
@@ -620,7 +623,9 @@ class CMRunner(object):
         return ret_docker_image
 
 
-def possibly_intuit_order(input_data_file, target_data_file=None, target_col_name=None, unsupervised=False):
+def possibly_intuit_order(
+    input_data_file, target_data_file=None, target_col_name=None, unsupervised=False
+):
     if unsupervised:
         return None, None
     elif target_data_file:
