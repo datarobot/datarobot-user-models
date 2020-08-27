@@ -149,7 +149,7 @@ class PythonModelAdapter:
                 "Could not find model artifact file in: {} supported by default predictors.\n"
                 "They support filenames with the following extensions {}.\n"
                 "If your artifact is not supported by default predictor, implement custom.load_model hook.\n"
-                "List of files got here are: {}".format(
+                "List of retrieved files are: {}".format(
                     RUNNING_LANG_MSG,
                     self._model_dir,
                     all_supported_extensions,

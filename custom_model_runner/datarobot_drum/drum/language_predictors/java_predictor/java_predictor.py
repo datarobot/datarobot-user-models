@@ -63,7 +63,7 @@ class JavaPredictor(BaseLanguagePredictor):
                 "\n\n{}\n"
                 "Could not find model artifact file in: {} supported by default predictors.\n"
                 "They support filenames with the following extensions {}.\n"
-                "List of files got here are: {}".format(
+                "List of retrieved files are: {}".format(
                     RUNNING_LANG_MSG, self.custom_model_path, JavaArtifacts.ALL, files_list_str
                 )
             )
