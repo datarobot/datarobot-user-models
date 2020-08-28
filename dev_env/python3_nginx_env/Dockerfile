@@ -2,9 +2,7 @@
 # It contains a variety of common useful data-science packages and tools.
 FROM datarobot/python3-dropin-env-base
 
-RUN apt-get update && apt-get install -y vim nginx
-
-RUN chmod 707 /var/lib/nginx
+RUN apt-get update && apt-get install -y vim
 
 # Install the list of core requirements, e.g. sklearn, numpy, pandas, flask.
 # **Don't modify this file!**

@@ -3,6 +3,6 @@
   "name": "[DataRobot] Python 3 PyTorch Drop-In",
   "description": "This template environment can be used to create artifact-only PyTorch custom models. This environment contains PyTorch and requires only your model artifact as a .pth file, any other code needed to deserialize your model, and optionally a custom.py file.",
   "programmingLanguage": "python",
-  "environmentVersionId": "5f4857155f627d7d9dc5a36e",
+  "environmentVersionId": "5f4d075e5f627d316d566dc7",
   "isPublic": true
 }
