@@ -40,6 +40,12 @@ class TestOrderIntuition(object):
         with pytest.raises(DrumCommonException):
             possibly_intuit_order(self.one_target_filename, target_col_name="Species")
 
+    def test_unsupervised(self):
+        classes = possibly_intuit_order(
+            self.regression_filename, target_col_name="MEDV", unsupervised=True
+        )
+        assert set(classes) == {None, None}
+
 
 class TestValidatePredictions(object):
     def test_add_to_one_happy(self):

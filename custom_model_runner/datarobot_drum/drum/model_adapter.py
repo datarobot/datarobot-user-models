@@ -355,7 +355,10 @@ class PythonModelAdapter:
                         break
 
         if marked_object is not None:
-            marked_object.fit(X, y)
+            if y is not None:
+                marked_object.fit(X, y)
+            else:
+                marked_object.fit(X, y=None)
             with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
                 pickle.dump(marked_object, fp)
             return True
@@ -365,7 +368,11 @@ class PythonModelAdapter:
         with reroute_stdout_to_stderr():
             if self._custom_hooks.get(CustomHooks.FIT):
                 self._custom_hooks[CustomHooks.FIT](
-                    X, y, output_dir, class_order=class_order, row_weights=row_weights
+                    X=X,
+                    y=y,
+                    output_dir=output_dir,
+                    class_order=class_order,
+                    row_weights=row_weights,
                 )
             elif self._drum_autofit_internal(X, y, output_dir):
                 return

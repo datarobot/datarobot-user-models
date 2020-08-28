@@ -112,8 +112,8 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.TARGET,
                 type=str,
                 required=False,
-                help="Which column to use as the target. Argument is mutually exclusive with {}".format(
-                    ArgumentsOptions.TARGET_FILENAME
+                help="Which column to use as the target. Argument is mutually exclusive with {} and {}".format(
+                    ArgumentsOptions.TARGET_FILENAME, ArgumentsOptions.UNSUPERVISED
                 ),
             )
 
@@ -121,8 +121,19 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.TARGET_FILENAME,
                 type=CMRunnerArgsRegistry._is_valid_file,
                 required=False,
-                help="A file containing the target values. Argument is mutually exclusive with {}".format(
-                    ArgumentsOptions.TARGET
+                help="A file containing the target values. Argument is mutually exclusive with {} and {}".format(
+                    ArgumentsOptions.TARGET, ArgumentsOptions.UNSUPERVISED
+                ),
+            )
+
+            group.add_argument(
+                ArgumentsOptions.UNSUPERVISED,
+                action="store_true",
+                required=False,
+                default=False,
+                help="If present, indicates that this is an unsupervised model."
+                " Argument is mutually exclusive with {} and {}".format(
+                    ArgumentsOptions.TARGET, ArgumentsOptions.UNSUPERVISED
                 ),
             )
 
