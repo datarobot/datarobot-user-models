@@ -65,8 +65,10 @@ class SKLearnPredictor(ArtifactPredictor):
                 return 1
             labels = [str(label) for label in model.classes_]
             if not all(x in labels for x in [pos_label, neg_label]):
-                error_message = "Wrong class labels. Use class labels detected by sklearn model: {}".format(
-                    labels
+                error_message = (
+                    "Wrong class labels. Use class labels detected by sklearn model: {}".format(
+                        labels
+                    )
                 )
                 raise DrumCommonException(error_message)
 

@@ -9,7 +9,7 @@ from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.memory_monitor import MemoryMonitor
-from datarobot_drum.drum.common import RunLanguage
+from datarobot_drum.drum.common import RunLanguage, REGRESSION_PRED_COLUMN
 
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
@@ -33,7 +33,6 @@ class PredictionServer(ConnectableComponent):
 
     def configure(self, params):
         super(PredictionServer, self).configure(params)
-        self._threaded = self._params.get("threaded", False)
         self._show_perf = self._params.get("show_perf")
         self._stats_collector = StatsCollector(disable_instance=not self._show_perf)
 
@@ -79,13 +78,12 @@ class PredictionServer(ConnectableComponent):
             response_status = HTTP_200_OK
             file_key = "X"
             logger.debug("Entering predict() endpoint")
-            REGRESSION_PRED_COLUMN = "Predictions"
             filename = request.files[file_key] if file_key in request.files else None
             logger.debug("Filename provided under X key: {}".format(filename))
 
             if not filename:
-                wrong_key_error_message = "Samples should be provided as a csv file under `{}` key.".format(
-                    file_key
+                wrong_key_error_message = (
+                    "Samples should be provided as a csv file under `{}` key.".format(file_key)
                 )
                 logger.error(wrong_key_error_message)
                 response_status = HTTP_422_UNPROCESSABLE_ENTITY
@@ -129,8 +127,8 @@ class PredictionServer(ConnectableComponent):
         def stats():
             mem_info = self._memory_monitor.collect_memory_info()
             ret_dict = {"mem_info": mem_info._asdict()}
-            self._stats_collector.round()
 
+            self._stats_collector.round()
             ret_dict["time_info"] = {}
             for name in self._stats_collector.get_report_names():
                 d = self._stats_collector.dict_report(name)
@@ -149,7 +147,7 @@ class PredictionServer(ConnectableComponent):
         host = self._params.get("host", None)
         port = self._params.get("port", None)
         try:
-            app.run(host, port, threaded=self._threaded)
+            app.run(host, port, threaded=False)
         except OSError as e:
             raise DrumCommonException("{}: host: {}; port: {}".format(e, host, port))
 

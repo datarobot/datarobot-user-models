@@ -1,0 +1,8 @@
+{
+  "id": "5f29794a5f627d4da4930f69",
+  "name": "[DataRobot] Java Drop-In + nginx + uwsgi",
+  "description": "Java Drop-In + nginx + uwsgi",
+  "programmingLanguage": "java",
+  "environmentVersionId": "5f29795b5f627d4df5dc0aa9",
+  "isPublic": true
+}

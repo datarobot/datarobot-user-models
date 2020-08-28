@@ -5,6 +5,31 @@ import pytest
 import datarobot as dr
 
 BASE_MODEL_TEMPLATES_DIR = "model_templates"
+BASE_DEV_ENV_DIR = "dev_env"
+
+
+@pytest.fixture(scope="session")
+def java_nginx_env():
+    env_dir = os.path.join(BASE_DEV_ENV_DIR, "java_nginx_env")
+    environment = dr.ExecutionEnvironment.create(name="java_nginx_env")
+    environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
+    return environment.id, environment_version.id
+
+
+@pytest.fixture(scope="session")
+def rlang_nginx_env():
+    env_dir = os.path.join(BASE_DEV_ENV_DIR, "rlang_nginx_env")
+    environment = dr.ExecutionEnvironment.create(name="rlang_nginx_env")
+    environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
+    return environment.id, environment_version.id
+
+
+@pytest.fixture(scope="session")
+def python3_nginx_env():
+    env_dir = os.path.join(BASE_DEV_ENV_DIR, "python3_nginx_env")
+    environment = dr.ExecutionEnvironment.create(name="python3_nginx_env")
+    environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
+    return environment.id, environment_version.id
 
 
 class TestInferenceModelTemplates(object):
@@ -14,7 +39,16 @@ class TestInferenceModelTemplates(object):
             (
                 "inference/java_codegen",
                 "java",
-                "java_drop_in_env",
+                "java_nginx_env",
+                "regression_testing_data",
+                "MEDV",
+                None,
+                None,
+            ),
+            (
+                "inference/h2o_pojo/regression",
+                "java",
+                "java_nginx_env",
                 "regression_testing_data",
                 "MEDV",
                 None,
@@ -23,7 +57,7 @@ class TestInferenceModelTemplates(object):
             (
                 "inference/h2o_pojo/binary",
                 "java",
-                "java_h2o_drop_in_env",
+                "java_nginx_env",
                 "binary_testing_data",
                 "Species",
                 "Iris-setosa",
@@ -32,16 +66,25 @@ class TestInferenceModelTemplates(object):
             (
                 "inference/h2o_mojo/binary",
                 "java",
-                "java_h2o_drop_in_env",
+                "java_nginx_env",
                 "binary_testing_data",
                 "Species",
                 "Iris-setosa",
                 "Iris-versicolor",
             ),
             (
-                "inference/h2o_pojo/regression",
-                "java",
-                "java_h2o_drop_in_env",
+                "inference/python3_pmml",
+                "python",
+                "java_nginx_env",
+                "binary_testing_data",
+                "Species",
+                "Iris-setosa",
+                "Iris-versicolor",
+            ),
+            (
+                "inference/r_lang",
+                "r",
+                "rlang_nginx_env",
                 "regression_testing_data",
                 "MEDV",
                 None,
@@ -50,7 +93,7 @@ class TestInferenceModelTemplates(object):
             (
                 "inference/python3_keras",
                 "python",
-                "keras_drop_in_env",
+                "python3_nginx_env",
                 "regression_testing_data",
                 "MEDV",
                 None,
@@ -59,7 +102,7 @@ class TestInferenceModelTemplates(object):
             (
                 "inference/python3_keras_joblib",
                 "python",
-                "keras_drop_in_env",
+                "python3_nginx_env",
                 "regression_testing_data",
                 "MEDV",
                 None,
@@ -68,7 +111,7 @@ class TestInferenceModelTemplates(object):
             (
                 "inference/python3_keras_vizai_joblib",
                 "python",
-                "keras_drop_in_env",
+                "python3_nginx_env",
                 "binary_vizai_testing_data",
                 "class",
                 "dogs",
@@ -77,7 +120,7 @@ class TestInferenceModelTemplates(object):
             (
                 "inference/python3_pytorch",
                 "python",
-                "pytorch_drop_in_env",
+                "python3_nginx_env",
                 "regression_testing_data",
                 "MEDV",
                 None,
@@ -86,7 +129,7 @@ class TestInferenceModelTemplates(object):
             (
                 "inference/python3_sklearn",
                 "python",
-                "sklearn_drop_in_env",
+                "python3_nginx_env",
                 "regression_testing_data",
                 "MEDV",
                 None,
@@ -95,29 +138,11 @@ class TestInferenceModelTemplates(object):
             (
                 "inference/python3_xgboost",
                 "python",
-                "xgboost_drop_in_env",
+                "python3_nginx_env",
                 "regression_testing_data",
                 "MEDV",
                 None,
                 None,
-            ),
-            (
-                "inference/r_lang",
-                "r",
-                "r_drop_in_env",
-                "regression_testing_data",
-                "MEDV",
-                None,
-                None,
-            ),
-            (
-                "inference/python3_pmml",
-                "python",
-                "pmml_drop_in_env",
-                "binary_testing_data",
-                "Species",
-                "Iris-setosa",
-                "Iris-versicolor",
             ),
         ],
     )

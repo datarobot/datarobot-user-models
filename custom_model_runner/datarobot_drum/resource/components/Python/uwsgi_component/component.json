@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "engineType": "RestModelServing",
+  "userStandalone": false,
+  "language": "Python",
+  "name": "uwsgi_serving",
+  "label": "Uwsgi Serving",
+  "program": "uwsgi_serving.py",
+  "modelBehavior": "ModelConsumer",
+  "componentClass": "UwsgiServing",
+  "group": "Connectors",
+  "inputInfo": [],
+  "outputInfo": [],
+  "arguments": [
+    { "key": "__custom_model_path__",
+      "label": "Custom model code dir",
+      "type": "str",
+      "optional": false,
+      "description": "Custom model code dir",
+      "tag": "input_model_path"
+    },
+    {
+      "key": "port",
+      "label": "Public IP port",
+      "type": "int",
+      "description": "The IP port that is used for RESTful endpoint",
+      "optional": false,
+      "tag": "public_port"
+    },
+    {
+      "key": "stats_reporting_interval_sec",
+      "label": "Statistics reporting interval [Default: 10s]",
+      "type": "int",
+      "description": "Specifies the time span interval at which statistics are collected and reported",
+      "optional": true
+    },
+    { "key": "log_level",
+      "label": "Logging level [Default: 'info']",
+      "type": "str",
+      "description": "One of: 'noset', 'debug', 'info', 'warning', 'error', 'critical'",
+      "optional": true
+    },
+    { "key": "log_format",
+      "label": "Logging format",
+      "type": "str",
+      "description": "Refer to: https://docs.python.org/2/library/logging.html#formatter-objects",
+      "optional": true
+    },
+    {
+      "key": "uwsgi_disable_logging",
+      "label": "Disable uWSGI request logging [Default: True]",
+      "type": "bool",
+      "description": "Disable uWSGI request logging",
+      "optional": true
+    },
+    { "key": "uwsgi_max_workers",
+      "label": "Uwsgi max workers",
+      "type": "int",
+      "description": "Defines maximum number of uwsgi workers to spawn",
+      "optional": true
+    },
+    { "key": "uwsgi_cheaper_rss_limit_soft",
+      "label": "Soft memory limit",
+      "type": "int",
+      "description": "soft limit will prevent cheaper from spawning new workers if workers total rss memory is equal or higher (bytes)",
+      "optional": true
+    },
+    { "key": "uwsgi_cheaper_rss_limit_hard",
+      "label": "Hard memory limit",
+      "type": "int",
+      "description": "hard limit will force cheaper to cheap single worker if workers total rss memory is equal or higher (bytes)",
+      "optional": true
+    },
+    { "key": "memory-report",
+      "label": "Enable memory report",
+      "type": "bool",
+      "description": "Enable memory report (Default: false)",
+      "optional": true
+    },
+    { "key": "__dry_run__",
+      "label": "Dry run [Default: False]",
+      "type": "bool",
+      "description": "Whether to actually run 'uwsgi' and 'nginx' or just prepare the setup",
+      "optional": true
+    },
+    { "key": "run_language",
+      "label": "Run language",
+      "type": "str",
+      "description": "Run language",
+      "optional": false
+    }
+  ]
+}

@@ -25,13 +25,6 @@
       "type": "str",
       "description": "Components repo",
       "optional": false
-    },
-    {
-      "key": "threaded",
-      "label": "Flask threaded mode",
-      "type": "bool",
-      "description": "Run Flask server in threaded mode or not",
-      "optional": false
     }
   ]
 }

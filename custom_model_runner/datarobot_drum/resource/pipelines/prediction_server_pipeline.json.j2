@@ -1,21 +1,21 @@
   {
       "name": "Python Prediction Server",
-      "engineType": "Generic",
+      "engineType": "{{ engine_type }}",
       "pipe": [
           {
               "name": "Prediction Server",
               "id": 1,
-              "type": "prediction_server",
+              "type": "{{ component_type }}",
               "parents": [],
               "arguments": {
                 "host": "{{ host }}",
                 "port": {{ port }},
-                "threaded": {{ threaded }},
                 "show_perf": {{ show_perf }},
                 "run_language": "{{ run_language }}",
                 "positiveClassLabel": {{ positiveClassLabel }},
                 "negativeClassLabel": {{ negativeClassLabel }},
-                "__custom_model_path__": "{{ customModelPath }}"
+                "__custom_model_path__": "{{ customModelPath }}",
+                "uwsgi_max_workers": {{ uwsgi_max_workers }}
               }
           }
       ]

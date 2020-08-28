@@ -208,7 +208,11 @@ def mock_train_model():
 @responses.activate
 @pytest.mark.parametrize(
     "config_yaml",
-    [training_metadata_yaml, training_metadata_yaml_with_proj, inference_metadata_yaml,],
+    [
+        training_metadata_yaml,
+        training_metadata_yaml_with_proj,
+        inference_metadata_yaml,
+    ],
 )
 def test_push(config_yaml):
     config = strictyaml.load(config_yaml, schema).data
