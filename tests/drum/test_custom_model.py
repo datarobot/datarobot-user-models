@@ -41,6 +41,7 @@ SKLEARN = "sklearn"
 SIMPLE = "simple"
 PYTORCH = "pytorch"
 PYPMML = "pypmml"
+SKLEARN_ANOMALY = "sklearn_anomaly_detection"
 
 RDS = "rds"
 CODEGEN = "jar"
@@ -54,6 +55,7 @@ CODEGEN_AND_SKLEARN = "codegen_and_sklearn"
 REGRESSION = "regression"
 REGRESSION_INFERENCE = "regression_inference"
 BINARY = "binary"
+ANOMALY = "anomaly_detection"
 
 # Language keywords
 PYTHON = "python3"
@@ -193,6 +195,9 @@ class TestCMRunner:
             (PYTHON, XGB): os.path.join(cls.training_templates_path, "python3_xgboost"),
             (R_FIT, RDS): os.path.join(cls.training_templates_path, "r_lang"),
             (PYTHON, PYTORCH): os.path.join(cls.training_templates_path, "python3_pytorch"),
+            (PYTHON, SKLEARN_ANOMALY): os.path.join(
+                cls.training_templates_path, "python3_anomaly_detection"
+            ),
         }
 
         cls.fixtures = {
@@ -223,6 +228,7 @@ class TestCMRunner:
                 cls.tests_data_path, "boston_housing_inference.csv"
             ),
             (None, BINARY): os.path.join(cls.tests_data_path, "iris_binary_training.csv"),
+            (None, ANOMALY): os.path.join(cls.tests_data_path, "boston_housing.csv"),
         }
 
         cls.artifacts = {
@@ -832,8 +838,8 @@ class TestCMRunner:
 
         return "", input_csv, __keep_this_around
 
-    @pytest.mark.parametrize("framework", [RDS, SKLEARN, XGB, KERAS, PYTORCH])
-    @pytest.mark.parametrize("problem", [BINARY, REGRESSION])
+    @pytest.mark.parametrize("framework", [SKLEARN_ANOMALY, RDS, SKLEARN, XGB, KERAS, PYTORCH])
+    @pytest.mark.parametrize("problem", [ANOMALY, BINARY, REGRESSION])
     @pytest.mark.parametrize("docker", [DOCKER_PYTHON_SKLEARN, None])
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
     @pytest.mark.parametrize("use_output", [True, False])
@@ -845,6 +851,13 @@ class TestCMRunner:
             language = R_FIT
         else:
             language = PYTHON
+
+        # don't try to run unsupervised problem in supervised framework and vice versa
+        # TODO: check for graceful failure for these cases
+        if (framework == SKLEARN_ANOMALY and problem != ANOMALY) or (
+            problem == ANOMALY and framework != SKLEARN_ANOMALY
+        ):
+            return
 
         custom_model_dir = tmp_path / "custom_model"
         self._create_custom_model_dir(
@@ -865,9 +878,14 @@ class TestCMRunner:
         output = tmp_path / "output"
         output.mkdir()
 
-        cmd = "{} fit --code-dir {} --target {} --input {} --verbose ".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, self.target[problem], input_dataset
+        cmd = "{} fit --code-dir {} --input {} --verbose ".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset
         )
+        if problem == ANOMALY:
+            cmd += " --unsupervised"
+        else:
+            cmd += " --target {}".format(self.target[problem])
+
         if use_output:
             cmd += " --output {}".format(output)
         if problem == BINARY:
@@ -889,13 +907,17 @@ class TestCMRunner:
 
         # Training data
         with open(os.path.join(input_dir, "X.csv"), "w+") as fp:
-            feature_df = df.loc[:, df.columns != self.target[problem]]
+            if problem == ANOMALY:
+                feature_df = df
+            else:
+                feature_df = df.loc[:, df.columns != self.target[problem]]
             feature_df.to_csv(fp, index=False)
 
-        # Target data
-        with open(os.path.join(input_dir, "y.csv"), "w+") as fp:
-            target_series = df[self.target[problem]]
-            target_series.to_csv(fp, index=False, header="Target")
+        if problem != ANOMALY:
+            # Target data
+            with open(os.path.join(input_dir, "y.csv"), "w+") as fp:
+                target_series = df[self.target[problem]]
+                target_series.to_csv(fp, index=False, header="Target")
 
         # Weights data
         if weights:
@@ -904,11 +926,17 @@ class TestCMRunner:
             with open(os.path.join(input_dir, "weights.csv"), "w+") as fp:
                 weights_data.to_csv(fp, header=False)
 
-    @pytest.mark.parametrize("framework", [SKLEARN, XGB, KERAS])
-    @pytest.mark.parametrize("problem", [BINARY, REGRESSION])
+    @pytest.mark.parametrize("framework", [SKLEARN, XGB, KERAS, SKLEARN_ANOMALY])
+    @pytest.mark.parametrize("problem", [BINARY, REGRESSION, ANOMALY])
     @pytest.mark.parametrize("language", [PYTHON])
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, None])
     def test_fit_sh(self, framework, problem, language, weights, tmp_path):
+
+        if (framework == SKLEARN_ANOMALY and problem != ANOMALY) or (
+            problem == ANOMALY and framework != SKLEARN_ANOMALY
+        ):
+            return
+
         custom_model_dir = tmp_path / "custom_model"
         self._create_custom_model_dir(
             custom_model_dir, framework, problem, language, is_training=True
@@ -918,7 +946,9 @@ class TestCMRunner:
         fit_sh = os.path.join(
             self.tests_root_path,
             "..",
-            "public_dropin_environments/{}_{}/fit.sh".format(language, framework),
+            "public_dropin_environments/{}_{}/fit.sh".format(
+                language, framework if framework != SKLEARN_ANOMALY else SKLEARN
+            ),
         )
 
         input_dir = tmp_path / "input_dir"
@@ -939,6 +969,11 @@ class TestCMRunner:
             if os.environ.get("NEGATIVE_CLASS_LABEL"):
                 del os.environ["NEGATIVE_CLASS_LABEL"]
                 del os.environ["POSITIVE_CLASS_LABEL"]
+
+        if problem == ANOMALY:
+            env["UNSUPERVISED"] = "true"
+        elif os.environ.get("UNSUPERVISED"):
+            del os.environ["UNSUPERVISED"]
 
         TestCMRunner._exec_shell_cmd(fit_sh, "Failed cmd {}".format(fit_sh), env=env)
 

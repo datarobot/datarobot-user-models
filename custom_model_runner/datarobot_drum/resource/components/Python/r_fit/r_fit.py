@@ -86,13 +86,17 @@ class RFit(ConnectableComponent):
 
         with localconverter(ro.default_converter + pandas2ri.converter):
             r_X = ro.conversion.py2rpy(X)
-            r_y = ro.conversion.py2rpy(y)
+            if y is not None:
+                r_y = ro.conversion.py2rpy(y)
+                if class_order:
+                    optional_args["class_order"] = ro.conversion.py2rpy(class_order)
             if row_weights is not None:  # pandas complains if we aren't explicit here
                 optional_args["row_weights"] = ro.conversion.py2rpy(row_weights)
-            if class_order:
-                optional_args["class_order"] = ro.conversion.py2rpy(class_order)
 
-        r_handler.outer_fit(X=r_X, y=r_y, output_dir=self.output_dir, **optional_args)
+        if y is not None:
+            r_handler.outer_fit(X=r_X, y=r_y, output_dir=self.output_dir, **optional_args)
+        else:
+            r_handler.outer_fit_unsupervised(X=r_X, output_dir=self.output_dir, **optional_args)
 
         make_sure_artifact_is_small(self.output_dir)
         return []
