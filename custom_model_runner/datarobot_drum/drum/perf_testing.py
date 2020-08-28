@@ -260,11 +260,15 @@ class CMRunTests:
                 if server_stats:
                     time_info = server_stats["time_info"]
                     row.extend(
-                        [time_info["run_predictor_total"]["avg"],]
+                        [
+                            time_info["run_predictor_total"]["avg"],
+                        ]
                     )
                 else:
                     row.extend(
-                        [CMRunTests.NA_VALUE,]
+                        [
+                            CMRunTests.NA_VALUE,
+                        ]
                     )
 
         table.add_rows(rows)

@@ -82,8 +82,8 @@ class PredictionServer(ConnectableComponent):
             logger.debug("Filename provided under X key: {}".format(filename))
 
             if not filename:
-                wrong_key_error_message = "Samples should be provided as a csv file under `{}` key.".format(
-                    file_key
+                wrong_key_error_message = (
+                    "Samples should be provided as a csv file under `{}` key.".format(file_key)
                 )
                 logger.error(wrong_key_error_message)
                 response_status = HTTP_422_UNPROCESSABLE_ENTITY
