@@ -98,7 +98,7 @@ def make_classifier_pipeline(X: pd.DataFrame) -> Pipeline:
     """
     numerics = ["int16", "int32", "int64", "float16", "float32", "float64"]
     # exclude any completely-missing columns when checking for numerics
-    num_features = list(X.dropna(axis=1, how='all').select_dtypes(include=numerics).columns)
+    num_features = list(X.dropna(axis=1, how="all").select_dtypes(include=numerics).columns)
 
     # This example model only uses numeric features and drops the rest
     num_transformer = Pipeline(steps=[("imputer", SimpleImputer(strategy="mean"))])
