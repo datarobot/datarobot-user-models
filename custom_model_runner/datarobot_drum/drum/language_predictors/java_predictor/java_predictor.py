@@ -57,13 +57,13 @@ class JavaPredictor(BaseLanguagePredictor):
             ",".join(os.listdir(self.custom_model_path)),
         )
         if ext_re is None:
-            files_list = os.listdir(self.custom_model_path)
+            files_list = sorted(os.listdir(self.custom_model_path))
             files_list_str = " | ".join(files_list)
             raise DrumCommonException(
                 "\n\n{}\n"
                 "Could not find model artifact file in: {} supported by default predictors.\n"
                 "They support filenames with the following extensions {}.\n"
-                "List of files got here are: {}".format(
+                "List of retrieved files are: {}".format(
                     RUNNING_LANG_MSG, self.custom_model_path, JavaArtifacts.ALL, files_list_str
                 )
             )
