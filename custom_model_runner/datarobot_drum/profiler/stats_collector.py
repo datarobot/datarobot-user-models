@@ -91,8 +91,6 @@ class StatsCollector(object):
         return self._stats_df.round(3).to_csv(index=False)
 
     def round(self):
-        print(self._stats_df)
-        print(len(self._stats_df))
         if self._stats_df is not None:
             self._stats_df = self._stats_df.round(3)
 

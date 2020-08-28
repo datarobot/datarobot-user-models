@@ -13,6 +13,7 @@ TESTS_FIXTURES_PATH = os.path.join(TESTS_ROOT_PATH, "fixtures")
 
 
 BASE_TEMPLATE_ENV_DIR = "public_dropin_environments"
+BASE_DEV_ENV_DIR = "dev_env"
 BASE_DATASET_DIR = "tests/testdata"
 ENDPOINT_URL = "http://localhost/api/v2"
 
