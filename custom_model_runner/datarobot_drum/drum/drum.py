@@ -160,9 +160,7 @@ class CMRunner(object):
                 "Can not detect language by custom.py/R files.\n"
                 "Detected: language by custom - {}.\n"
                 "Code directory must have either a custom.py/R file\n"
-                "Or a python file using the drum_autofit() wrapper.".format(
-                    custom_language,
-                )
+                "Or a python file using the drum_autofit() wrapper.".format(custom_language,)
             )
             all_files_message = "\n\nFiles(100 first) found in {}:\n{}\n".format(
                 code_dir_abspath, "\n".join(sorted(os.listdir(code_dir_abspath))[0:100])

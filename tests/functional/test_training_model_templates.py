@@ -60,36 +60,16 @@ class TestTrainingModelTemplates(object):
                 "xgboost_drop_in_env",
                 "regression",
             ),
-            (
-                "training/python3_xgboost",
-                "project_binary_iris",
-                "xgboost_drop_in_env",
-                "binary",
-            ),
+            ("training/python3_xgboost", "project_binary_iris", "xgboost_drop_in_env", "binary",),
             (
                 "training/python3_sklearn",
                 "project_regression_boston",
                 "sklearn_drop_in_env",
                 "regression",
             ),
-            (
-                "training/python3_sklearn",
-                "project_binary_iris",
-                "sklearn_drop_in_env",
-                "binary",
-            ),
-            (
-                "training/r_lang",
-                "project_regression_boston",
-                "r_drop_in_env",
-                "regression",
-            ),
-            (
-                "training/r_lang",
-                "project_binary_iris",
-                "r_drop_in_env",
-                "binary",
-            ),
+            ("training/python3_sklearn", "project_binary_iris", "sklearn_drop_in_env", "binary",),
+            ("training/r_lang", "project_regression_boston", "r_drop_in_env", "regression",),
+            ("training/r_lang", "project_binary_iris", "r_drop_in_env", "binary",),
         ],
     )
     def test_training_model_templates(self, request, model_template, proj, env, target_type):
