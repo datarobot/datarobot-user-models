@@ -3,6 +3,6 @@
   "name": "[DataRobot] Java Drop-In",
   "description": "This template can be used as an environment for DataRobot generated scoring code or models that implement the either the IClassificationPredictor or IRegressionPredictor interface from the datarobot-prediction package.",
   "programmingLanguage": "java",
-  "environmentVersionId": "5f243e2e5f627d26d01b2f23",
+  "environmentVersionId": "5f4857155f627d7d9dc5a372",
   "isPublic": true
 }
