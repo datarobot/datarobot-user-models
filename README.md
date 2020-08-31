@@ -1,6 +1,15 @@
 # DataRobot User Models
 
->Note: enable git-lfs to properly checkout the repo.
+>Note: enable git-lfs to properly clone the repo.
+>
+>If you don't have git-lfs installed:
+>1. Install git-lfs on you machine (use **apt-get** for Ubuntu and **brew** for Mac)
+>2. Run initialize command `git lfs install`
+>3. If you don't have this repo cloned, clone it
+>4. If you have this repo cloned, you may need to update files:
+>>a. update master branch  
+>>b. do `git lfs fetch`  
+>>c. do `git lfs checkout`
 
 ## Content  
 1. [What is this repository?](#what_is_it)
