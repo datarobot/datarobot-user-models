@@ -25,9 +25,11 @@ RUN apt-get update && \
             libxml2-dev \
             libgomp1 \
             pandoc \
+            nginx \
             && \
     apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    rm -rf /var/lib/apt/lists/* && \
+    chmod 707 /var/lib/nginx
 
 RUN pip3 install --no-cache-dir setuptools wheel
 
