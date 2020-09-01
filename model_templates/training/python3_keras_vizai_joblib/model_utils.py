@@ -8,8 +8,8 @@ from keras.layers import GlobalAveragePooling2D  # CNN layers
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import load_model
 from keras.callbacks import EarlyStopping
-from keras.applications import VGG16
-from keras.applications.vgg16 import preprocess_input
+from keras.applications import MobileNetV2
+from keras.applications.mobilenet_v2 import preprocess_input
 
 # scikit-learn imports
 from sklearn.preprocessing import LabelBinarizer, label_binarize, FunctionTransformer
@@ -91,10 +91,7 @@ def extract_features(
     return features, labels
 
 
-def preprocessing_X_transform(
-    data_df: pd.DataFrame,
-    image_feature_name: str,
-) -> pd.DataFrame:
+def preprocessing_X_transform(data_df: pd.DataFrame, image_feature_name: str) -> pd.DataFrame:
     """ Apply the preprocessing methods on the data before prediction for the model to work on """
 
     data_df = data_df.copy()
@@ -147,13 +144,7 @@ def get_image_augmentation_gen(X_data, y_data, bs, seed) -> Iterator[tuple]:
 
 def get_pretrained_base_model() -> Model:
     """ A base pretrained model to build on top of """
-    curr_path = Path(__file__).parent.resolve()
-    pretrained_model = VGG16(
-        weights=curr_path / "vgg16_weights_tf_dim_ordering_tf_kernels_notop.h5",
-        include_top=False,
-        input_shape=IMG_SHAPE,
-        classes=NUM_CLASSES,
-    )
+    pretrained_model = MobileNetV2(include_top=False, input_shape=IMG_SHAPE, classes=NUM_CLASSES)
     pretrained_model.trainable = False
     return pretrained_model
 
