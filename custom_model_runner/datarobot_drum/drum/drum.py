@@ -290,6 +290,7 @@ class CMRunner(object):
         self.run_mode = RunMode.SCORE
         self.options.code_dir = self.options.output
         self.options.output = os.devnull
+        self.options.monitor = False
         if self.options.target:
             __tempfile = NamedTemporaryFile()
             df = pd.read_csv(self.options.input)
@@ -322,7 +323,12 @@ class CMRunner(object):
             else "null",
             "customModelPath": os.path.abspath(options.code_dir),
             "run_language": run_language.value,
+            "monitor": options.monitor,
+            "model_id": options.model_id,
+            "deployment_id": options.deployment_id,
+            "monitor_settings": options.monitor_settings,
         }
+
         if self.run_mode == RunMode.SCORE:
             replace_data.update(
                 {
