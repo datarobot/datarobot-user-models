@@ -65,7 +65,7 @@ def train_epoch(model, opt, criterion, X, y, batch_size=50):
 
         opt.zero_grad()
         # (1) Forward
-        y_hat = model(x_batch)
+        y_hat = model(x_batch).squeeze(1)  # ensure y_hat dimension is the same as y_batch dim
         # (2) Compute diff
         loss = criterion(y_hat, y_batch)
         # (3) Compute gradients
