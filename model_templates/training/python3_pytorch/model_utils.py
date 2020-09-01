@@ -59,13 +59,14 @@ def train_epoch(model, opt, criterion, X, y, batch_size=50):
     losses = []
     for beg_i in range(0, X.size(0), batch_size):
         x_batch = X[beg_i : beg_i + batch_size, :]
-        y_batch = y[beg_i : beg_i + batch_size]
+        # y_hat will be (batch_size, 1) dim, so coerce target to look the same
+        y_batch = y[beg_i : beg_i + batch_size].reshape(-1, 1)
         x_batch = Variable(x_batch)
         y_batch = Variable(y_batch)
 
         opt.zero_grad()
         # (1) Forward
-        y_hat = model(x_batch).squeeze(1)  # ensure y_hat dimension is the same as y_batch dim
+        y_hat = model(x_batch)
         # (2) Compute diff
         loss = criterion(y_hat, y_batch)
         # (3) Compute gradients
