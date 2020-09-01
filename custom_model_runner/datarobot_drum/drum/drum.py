@@ -672,4 +672,3 @@ def create_custom_inference_model_folder(code_dir, output_dir):
         fp.write(readme)
     if files_in_output & copied_files:
         print("Files were overwritten: {}".format(files_in_output & copied_files))
-
