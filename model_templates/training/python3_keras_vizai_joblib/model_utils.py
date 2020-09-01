@@ -91,7 +91,7 @@ def extract_features(
     return features, labels
 
 
-def preprocessing_X_transform(data_df: pd.DataFrame, image_feature_name: str,) -> pd.DataFrame:
+def preprocessing_X_transform(data_df: pd.DataFrame, image_feature_name: str) -> pd.DataFrame:
     """ Apply the preprocessing methods on the data before prediction for the model to work on """
 
     data_df = data_df.copy()
@@ -144,7 +144,7 @@ def get_image_augmentation_gen(X_data, y_data, bs, seed) -> Iterator[tuple]:
 
 def get_pretrained_base_model() -> Model:
     """ A base pretrained model to build on top of """
-    pretrained_model = MobileNetV2(include_top=False, input_shape=IMG_SHAPE, classes=NUM_CLASSES,)
+    pretrained_model = MobileNetV2(include_top=False, input_shape=IMG_SHAPE, classes=NUM_CLASSES)
     pretrained_model.trainable = False
     return pretrained_model
 
