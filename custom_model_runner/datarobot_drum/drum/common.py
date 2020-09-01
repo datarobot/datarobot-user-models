@@ -94,6 +94,10 @@ class ArgumentsOptions(object):
     LANGUAGE = "--language"
     NUM_ROWS = "--num-rows"
     UNSUPERVISED = "--unsupervised"
+    MONITOR = "--monitor"
+    DEPLOYMENY_ID = "--deployment-id"
+    MODEL_ID = "--model-id"
+    MONITOR_SETTINGS = "--monitor-settings"
 
     MAIN_COMMAND = "drum"
 

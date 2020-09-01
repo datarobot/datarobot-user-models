@@ -382,6 +382,43 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
+    def _reg_arg_monitor(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.MONITOR,
+                action="store_true",
+                default=os.environ.get("MONITOR", False),
+                help="Monitor predictions using DataRobot MLOps. True or False. (env: MONITOR)",
+            )
+
+    @staticmethod
+    def _reg_arg_deployment_id(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.DEPLOYMENY_ID,
+                default=os.environ.get("DEPLOYMENT_ID", None),
+                help="Deployment id to use for monitoring model predictions (env: DEPLOYMENT_ID)",
+            )
+
+    @staticmethod
+    def _reg_arg_model_id(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.MODEL_ID,
+                default=os.environ.get("MODEL_ID", None),
+                help="MLOps model id to use for monitoring predictions (env: MODEL_ID)",
+            )
+
+    @staticmethod
+    def _reg_arg_monitor_settings(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.MONITOR_SETTINGS,
+                default=os.environ.get("MONITOR_SETTINGS", None),
+                help="MLOps setting to use for connecting with the MLOps Agent (env: MONITOR_SETTINGS)",
+            )
+
+    @staticmethod
     def get_arg_parser():
         parser = argparse.ArgumentParser(description="Run user model")
         CMRunnerArgsRegistry._parsers[ArgumentsOptions.MAIN_COMMAND] = parser
@@ -393,35 +430,49 @@ class CMRunnerArgsRegistry(object):
         batch_parser = subparsers.add_parser(
             ArgumentsOptions.SCORE, help="Run predictions in batch mode"
         )
+        CMRunnerArgsRegistry._parsers[ArgumentsOptions.SCORE] = batch_parser
+
         fit_parser = subparsers.add_parser(ArgumentsOptions.FIT, help="Fit your model to your data")
+        CMRunnerArgsRegistry._parsers[ArgumentsOptions.FIT] = fit_parser
+
         parser_perf_test = subparsers.add_parser(
             ArgumentsOptions.PERF_TEST, help="Run performance tests"
         )
+        CMRunnerArgsRegistry._parsers[ArgumentsOptions.PERF_TEST] = parser_perf_test
+
         validation_parser = subparsers.add_parser(
             ArgumentsOptions.VALIDATION, help="Run validation checks"
         )
+        CMRunnerArgsRegistry._parsers[ArgumentsOptions.VALIDATION] = validation_parser
+
         server_parser = subparsers.add_parser(
             ArgumentsOptions.SERVER, help="Run predictions in server"
         )
+        CMRunnerArgsRegistry._parsers[ArgumentsOptions.SERVER] = server_parser
+
         new_parser = subparsers.add_parser(
             ArgumentsOptions.NEW,
             description="Create new model/env template",
             help="Create new model/env template",
         )
+        CMRunnerArgsRegistry._parsers[ArgumentsOptions.NEW] = new_parser
+
         new_subparsers = new_parser.add_subparsers(
             dest=CMRunnerArgsRegistry.NEW_SUBPARSER_DEST_KEYWORD, help="Commands"
         )
-        CMRunnerArgsRegistry._parsers[ArgumentsOptions.NEW] = new_parser
 
         new_model_parser = new_subparsers.add_parser(
             ArgumentsOptions.NEW_MODEL, help="Create a new modeling code directory template"
         )
+        CMRunnerArgsRegistry._parsers[ArgumentsOptions.NEW_MODEL] = new_model_parser
+
         push_parser = subparsers.add_parser(
             ArgumentsOptions.PUSH,
             help="Add your modeling code into DataRobot",
             description=HELP_TEXT,
             formatter_class=RawTextHelpFormatter,
         )
+        CMRunnerArgsRegistry._parsers[ArgumentsOptions.PUSH] = push_parser
 
         # Note following args are not supported for perf-test, thus set as default
         parser_perf_test.set_defaults(logging_level="warning", verbose=False)
@@ -488,7 +539,35 @@ class CMRunnerArgsRegistry(object):
             new_model_parser,
         )
 
+        CMRunnerArgsRegistry._reg_arg_monitor(batch_parser, server_parser)
+        CMRunnerArgsRegistry._reg_arg_deployment_id(batch_parser, server_parser)
+        CMRunnerArgsRegistry._reg_arg_model_id(batch_parser, server_parser)
+        CMRunnerArgsRegistry._reg_arg_monitor_settings(batch_parser, server_parser)
+
         return parser
+
+    @staticmethod
+    def verify_monitoring_options(options, parser_name):
+        if options.monitor:
+            missing_args = []
+            if options.model_id is None:
+                missing_args.append(ArgumentsOptions.MODEL_ID)
+            if options.deployment_id is None:
+                missing_args.append(ArgumentsOptions.DEPLOYMENY_ID)
+            if options.monitor_settings is None:
+                missing_args.append(ArgumentsOptions.MONITOR_SETTINGS)
+
+            if len(missing_args) > 0:
+                print("\n")
+                print("Error: MLOps Monitoring requires all monitoring options to be present.")
+                print("Note: The following MLOps monitoring option(s) is/are missing:")
+                for arg in missing_args:
+                    print("  {}".format(arg))
+                print("\n")
+                print("These options can also be obtained via environment variables")
+                print("\n")
+                CMRunnerArgsRegistry._parsers[parser_name].print_help()
+                exit(1)
 
     @staticmethod
     def verify_options(options):
@@ -499,3 +578,7 @@ class CMRunnerArgsRegistry(object):
             if not options.new_mode:
                 CMRunnerArgsRegistry._parsers[ArgumentsOptions.NEW].print_help()
                 exit(1)
+        elif options.subparser_name == ArgumentsOptions.SERVER:
+            CMRunnerArgsRegistry.verify_monitoring_options(options, ArgumentsOptions.SERVER)
+        elif options.subparser_name == ArgumentsOptions.SCORE:
+            CMRunnerArgsRegistry.verify_monitoring_options(options, ArgumentsOptions.SCORE)

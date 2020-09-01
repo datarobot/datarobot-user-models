@@ -15,11 +15,13 @@ class BaseLanguagePredictor(ABC):
         self._positive_class_label = None
         self._negative_class_label = None
         self._custom_model_path = None
+        self._params = None
 
     def configure(self, params):
         self._custom_model_path = params["__custom_model_path__"]
         self._positive_class_label = params.get("positiveClassLabel")
         self._negative_class_label = params.get("negativeClassLabel")
+        self._params = params
 
     @abstractmethod
     def predict(self, input_filename):
