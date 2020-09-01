@@ -1,6 +1,6 @@
 # keras imports
 from keras.models import load_model
-from keras.applications.vgg16 import preprocess_input
+from keras.applications.mobilenet_v2 import preprocess_input
 
 # scikit-learn imports
 from sklearn.pipeline import Pipeline
@@ -51,10 +51,7 @@ def img_preprocessing(pillowed_img: Image) -> np.ndarray:
     return img_arr
 
 
-def preprocessing_X_transform(
-    data_df: pd.DataFrame,
-    image_feature_name: str,
-) -> pd.DataFrame:
+def preprocessing_X_transform(data_df: pd.DataFrame, image_feature_name: str,) -> pd.DataFrame:
     """ Apply the preprocessing methods on the data before prediction for the model to work on """
 
     data_df = data_df.copy()
