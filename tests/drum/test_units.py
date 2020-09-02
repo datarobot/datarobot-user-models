@@ -262,7 +262,7 @@ def test_output_in_code_dir():
     output_other = "/test/not/code"
     output_code_dir = "/test/code/is/here/output"
     assert not output_in_code_dir(code_dir, output_other)
-    assert output_code_dir(code_dir, output_code_dir)
+    assert output_in_code_dir(code_dir, output_code_dir)
 
 
 def test_output_dir_copy():
