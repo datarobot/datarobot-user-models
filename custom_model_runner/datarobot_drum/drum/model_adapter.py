@@ -251,6 +251,15 @@ class PythonModelAdapter:
             )
 
     @staticmethod
+    def _validate_unstructured_predictions(to_validate):
+        if not isinstance(to_validate, str):
+            raise ValueError(
+                "In unstructured mode predictions must be of type {} ; but received {}".format(
+                    str, type(to_validate)
+                )
+            )
+
+    @staticmethod
     def _read_structured_input(filename):
         try:
             df = pd.read_csv(filename)
@@ -258,7 +267,7 @@ class PythonModelAdapter:
             raise DrumCommonException("Pandas failed to read input csv file: {}".format(filename))
         return df
 
-    def predict(self, input_filename, model=None, **kwargs):
+    def predict(self, input_filename, model=None, unstructured_mode=False, **kwargs):
         """
         Makes predictions against the model using the custom predict
         method and returns a pandas DataFrame
@@ -327,7 +336,10 @@ class PythonModelAdapter:
                     "Model post-process hook failed to post-process predictions: {}".format(exc)
                 ).with_traceback(sys.exc_info()[2]) from None
 
-        self._validate_predictions(predictions, positive_class_label, negative_class_label)
+        if unstructured_mode:
+            PythonModelAdapter._validate_unstructured_predictions(predictions)
+        else:
+            self._validate_predictions(predictions, positive_class_label, negative_class_label)
 
         return predictions
 

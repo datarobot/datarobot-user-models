@@ -135,21 +135,20 @@ model_predict <- function(data, model, positive_class_label=NULL, negative_class
 #' @export
 #'
 #' @examples
-outer_predict <- function(input_filename, model=NULL, positive_class_label=NULL, negative_class_label=NULL){
-    .validate_data <- function(to_validate, hook) {
+outer_predict <- function(input_filename, model=NULL, unstructured_mode=FALSE, positive_class_label=NULL, negative_class_label=NULL){
+    .validate_data <- function(to_validate) {
         if (!is.data.frame(to_validate)) {
-            stop(sprintf("%s must return a data.frame", hook))
+            stop(sprintf("predictions must be of a data.frame type, received %s", typeof(to_validate)))
         }
     }
 
-    .validate_predictions <- function(to_validate, hook) {
-        .validate_data(to_validate, hook)
+    .validate_predictions <- function(to_validate) {
+        .validate_data(to_validate)
         if (!is.null(positive_class_label) & !is.null(negative_class_label)) {
             if (!identical(sort(names(to_validate)), sort(c(positive_class_label, negative_class_label)))) {
                 stop(
                     sprintf(
-                        "Expected %s predictions to have columns [%s], but encountered [%s]",
-                        hook,
+                        "Expected predictions to have columns [%s], but encountered [%s]",
                         paste(c(positive_class_label, negative_class_label), collapse=", "),
                         paste(names(to_validate), collapse=", ")
                     )
@@ -158,12 +157,17 @@ outer_predict <- function(input_filename, model=NULL, positive_class_label=NULL,
         } else if (!identical(names(to_validate), c(REGRESSION_PRED_COLUMN_NAME))) {
             stop(
                 sprintf(
-                    "Expected %s predictions to have columns [%s], but encountered [%s]",
-                    hook,
+                    "Expected predictions to have columns [%s], but encountered [%s]",
                     paste(c(REGRESSION_PRED_COLUMN_NAME), collapse=", "),
                     paste(names(to_validate), collapse=", ")
                 )
             )
+        }
+    }
+
+    .validate_unstructured_predictions <- function(to_validate) {
+        if (!is.character(to_validate)) {
+            stop(sprintf("In unstructured mode predictions must be of type character; but received %s", typeof(to_validate)))
         }
     }
 
@@ -179,7 +183,6 @@ outer_predict <- function(input_filename, model=NULL, positive_class_label=NULL,
 
     if (!isFALSE(transform_hook)) {
         data <- transform_hook(data, model)
-        .validate_data(data, "transform")
     }
 
     if (!isFALSE(score_hook)) {
@@ -189,15 +192,18 @@ outer_predict <- function(input_filename, model=NULL, positive_class_label=NULL,
                                           negative_class_label=negative_class_label))
         }
         predictions <- do.call(score_hook, list(data, model, kwargs))
-        .validate_predictions(predictions, "score")
     } else {
         predictions <- model_predict(data, model, positive_class_label, negative_class_label)
     }
 
     if (!isFALSE(post_process_hook)) {
         predictions <- post_process_hook(predictions, model)
-        .validate_predictions(predictions, "post_process")
     }
 
+    if (isFALSE(unstructured_mode)) {
+        .validate_predictions(predictions)
+    } else {
+        .validate_unstructured_predictions(predictions)
+    }
     predictions
 }

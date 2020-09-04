@@ -39,7 +39,9 @@ class PythonPredictor(BaseLanguagePredictor):
             kwargs[NEGATIVE_CLASS_LABEL_ARG_KEYWORD] = self._negative_class_label
 
         start_predict = time.time()
-        predictions = self._model_adapter.predict(input_filename, model=self._model, **kwargs)
+        predictions = self._model_adapter.predict(
+            input_filename, model=self._model, unstructured_mode=self._unstructured_mode, **kwargs
+        )
         end_predict = time.time()
         execution_time_ms = (end_predict - start_predict) * 1000
 
