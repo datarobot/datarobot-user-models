@@ -14,7 +14,7 @@ import java.util.ArrayList
 import java.net.URLClassLoader;
 import java.lang.Thread
 import java.io.File
-import java.io.{BufferedReader, StringReader, StringWriter}
+import java.io.{BufferedReader, FileReader, StringWriter}
 import java.nio.file.Paths
 
 import org.apache.commons.csv.CSVFormat;
@@ -34,7 +34,7 @@ class H2OPredictor(
   var negativeClassLabel: String = null
   var positiveClassLabel: String = null
 
-  def predict(stringCSV: String): String = {
+  def predict(inputFilename: String): String = {
 
     val csvPrinter: CSVPrinter = this.isRegression match {
       case true =>
@@ -50,7 +50,7 @@ class H2OPredictor(
         )
     }
 
-    val predictions = Try(this.scoreStringCSV(stringCSV))
+    val predictions = Try(this.scoreFileCSV(inputFilename))
 
     predictions match {
       case Success(preds) => {
@@ -78,12 +78,12 @@ class H2OPredictor(
 
   }
 
-  def scoreStringCSV(stringCSV: String) = {
+  def scoreFileCSV(inputFilename: String) = {
 
     val csvFormat = CSVFormat.DEFAULT.withHeader();
 
     val parser =
-      csvFormat.parse(new BufferedReader(new StringReader(stringCSV)))
+      csvFormat.parse(new BufferedReader(new FileReader(new File(inputFilename))))
 
     val sParser = parser.iterator.asScala.map { _.toMap }.map { map2RowData }
 

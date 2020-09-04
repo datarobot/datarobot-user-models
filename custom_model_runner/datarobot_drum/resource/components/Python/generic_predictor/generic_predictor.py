@@ -46,9 +46,8 @@ class GenericPredictorComponent(ConnectableComponent):
         self._predictor.configure(params)
 
     def _materialize(self, parent_data_objs, user_data):
-        input_filename = self._params.get("input_filename", "default-string-value")
-        df = pd.read_csv(input_filename)
-        predictions = self._predictor.predict(df)
+        input_filename = self._params["input_filename"]
+        predictions = self._predictor.predict(input_filename)
         output_filename = self._params.get("output_filename")
         predictions.to_csv(output_filename, index=False)
         return [predictions]

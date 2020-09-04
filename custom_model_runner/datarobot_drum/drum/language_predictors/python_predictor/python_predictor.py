@@ -28,11 +28,11 @@ class PythonPredictor(BaseLanguagePredictor):
         if self._model is None:
             raise Exception("Failed to load model")
 
-    def predict(self, df):
+    def predict(self, input_filename):
         kwargs = {}
         if self._positive_class_label and self._negative_class_label:
             kwargs[POSITIVE_CLASS_LABEL_ARG_KEYWORD] = self._positive_class_label
             kwargs[NEGATIVE_CLASS_LABEL_ARG_KEYWORD] = self._negative_class_label
 
-        predictions = self._model_adapter.predict(data=df, model=self._model, **kwargs)
+        predictions = self._model_adapter.predict(input_filename, model=self._model, **kwargs)
         return predictions

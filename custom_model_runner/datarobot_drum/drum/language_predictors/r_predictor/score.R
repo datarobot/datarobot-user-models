@@ -3,6 +3,7 @@ library(caret)
 library(devtools)
 
 init_hook <- FALSE
+read_input_data_hook <- FALSE
 load_model_hook <- FALSE
 transform_hook <- FALSE
 score_hook <- FALSE
@@ -17,6 +18,7 @@ init <- function(code_dir) {
     custom_loaded <- import(custom_path)
     if (isTRUE(custom_loaded)) {
         init_hook <<- getHookMethod("init")
+        read_input_data_hook <<- getHookMethod("read_input_data")
         load_model_hook <<- getHookMethod("load_model")
         transform_hook <<- getHookMethod("transform")
         score_hook <<- getHookMethod("score")
@@ -133,7 +135,7 @@ model_predict <- function(data, model, positive_class_label=NULL, negative_class
 #' @export
 #'
 #' @examples
-outer_predict <- function(data, model=NULL, positive_class_label=NULL, negative_class_label=NULL){
+outer_predict <- function(input_filename, model=NULL, positive_class_label=NULL, negative_class_label=NULL){
     .validate_data <- function(to_validate, hook) {
         if (!is.data.frame(to_validate)) {
             stop(sprintf("%s must return a data.frame", hook))
@@ -163,6 +165,15 @@ outer_predict <- function(data, model=NULL, positive_class_label=NULL, negative_
                 )
             )
         }
+    }
+
+    if (!isFALSE(read_input_data_hook)) {
+        data <- read_input_data_hook(input_filename)
+    } else {
+        data <- read.csv(input_filename)
+        # pandas DF by default replaces missing values with NaN,
+        # do the same here; check with R people if it is correct.
+        data[is.na(data)] <- NaN
     }
 
     if (is.null(model)) {
