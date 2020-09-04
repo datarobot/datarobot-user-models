@@ -1,4 +1,6 @@
 import os
+import tempfile
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 import pandas as pd
@@ -6,7 +8,11 @@ import pytest
 import responses
 import strictyaml
 
-from datarobot_drum.drum.drum import possibly_intuit_order
+from datarobot_drum.drum.drum import (
+    possibly_intuit_order,
+    output_in_code_dir,
+    create_custom_inference_model_folder,
+)
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.push import _push_inference, _push_training, schema
@@ -255,3 +261,27 @@ def test_push(config_yaml):
             assert len(calls) == 4
     else:
         assert len(calls) == 2
+
+
+def test_output_in_code_dir():
+    code_dir = "/test/code/is/here"
+    output_other = "/test/not/code"
+    output_code_dir = "/test/code/is/here/output"
+    assert not output_in_code_dir(code_dir, output_other)
+    assert output_in_code_dir(code_dir, output_code_dir)
+
+
+def test_output_dir_copy():
+    with tempfile.TemporaryDirectory() as tempdir:
+        # setup
+        file = Path(tempdir, "test.py")
+        file.touch()
+        Path(tempdir, "__pycache__").mkdir()
+        out_dir = Path(tempdir, "out")
+        out_dir.mkdir()
+
+        # test
+        create_custom_inference_model_folder(tempdir, str(out_dir))
+        assert Path(out_dir, "test.py").exists()
+        assert not Path(out_dir, "__pycache__").exists()
+        assert not Path(out_dir, "out").exists()
