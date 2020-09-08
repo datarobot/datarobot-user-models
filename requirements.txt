@@ -12,7 +12,7 @@ tensorflow<2
 keras==2.2.5
 Pillow==7.1.2
 pypmml==0.9.6
-rpy2<=3.2.7
+rpy2<=3.3.0
 strictyaml==1.0.6
 docker>=4.2.2<5.0.0
 flask
