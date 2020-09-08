@@ -22,6 +22,6 @@ class BaseLanguagePredictor(ABC):
         self._negative_class_label = params.get("negativeClassLabel")
 
     @abstractmethod
-    def predict(self, df):
-        """ Predict on dataframe """
+    def predict(self, input_filename):
+        """ Predict on input_filename """
         pass

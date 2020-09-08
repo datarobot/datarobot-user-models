@@ -55,11 +55,12 @@ public class ScoringCode extends BasePredictor
         return Predictors.getPredictor(urlClassLoader);
     }
 
-    public String predict(String stringCSV) throws Exception {
+    public String predict(String inputFilename) throws Exception {
         List<?> predictions = null;
         CSVPrinter csvPrinter = null;
+
         try {
-            predictions = this.scoreStringCSV(stringCSV);
+            predictions = this.scoreFileCSV(inputFilename);
 
             if (this.isRegression) {
                 csvPrinter = new CSVPrinter(new StringWriter(), CSVFormat.DEFAULT.withHeader("Predictions"));
@@ -96,11 +97,11 @@ public class ScoringCode extends BasePredictor
         }
     }
 
-    private List<?> scoreStringCSV(String stringCSV) throws IOException {
+    private List<?> scoreFileCSV(String inputFilename) throws IOException {
         var predictions = new ArrayList<>();
         var csvFormat = CSVFormat.DEFAULT.withHeader();
 
-        try (var parser = csvFormat.parse(new BufferedReader(new StringReader(stringCSV)))) {
+        try (var parser = csvFormat.parse(new BufferedReader(new FileReader(new File(inputFilename))))) {
             for (var csvRow : parser) {
                 var mapRow = csvRow.toMap();
                 predictions.add(scoreRow(mapRow));
@@ -108,6 +109,7 @@ public class ScoringCode extends BasePredictor
         }
         return predictions;
     }
+
 
     private Object scoreRow(Map<String, ?> row) {
         if (isRegression) {

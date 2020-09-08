@@ -3,6 +3,6 @@
   "name": "[DataRobot] R Drop-In + nginx + uwsgi",
   "description": "R Drop-In + nginx + uwsgi",
   "programmingLanguage": "r",
-  "environmentVersionId": "5f370a195f627d41f7a46cca",
+  "environmentVersionId": "5f57d2ba5f627d6c630b633f",
   "isPublic": true
 }

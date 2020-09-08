@@ -1,5 +1,6 @@
 import logging
 import pandas as pd
+import tempfile
 
 from flask import request
 
@@ -78,23 +79,25 @@ class PredictionServer(ConnectableComponent):
             response_status = HTTP_200_OK
             file_key = "X"
             logger.debug("Entering predict() endpoint")
-            filename = request.files[file_key] if file_key in request.files else None
-            logger.debug("Filename provided under X key: {}".format(filename))
+            filestorage = request.files[file_key] if file_key in request.files else None
 
-            if not filename:
+            if not filestorage:
                 wrong_key_error_message = (
                     "Samples should be provided as a csv file under `{}` key.".format(file_key)
                 )
                 logger.error(wrong_key_error_message)
                 response_status = HTTP_422_UNPROCESSABLE_ENTITY
                 return {"message": "ERROR: " + wrong_key_error_message}, response_status
-
-            in_df = pd.read_csv(filename)
+            else:
+                logger.debug("Filename provided under X key: {}".format(filestorage.filename))
 
             # TODO labels have to be provided as command line arguments or within configure endpoint
             self._stats_collector.enable()
             self._stats_collector.mark("start")
-            out_df = self._predictor.predict(in_df)
+            with tempfile.NamedTemporaryFile() as f:
+                filestorage.save(f)
+                f.flush()
+                out_df = self._predictor.predict(f.name)
 
             num_columns = len(out_df.columns)
             # float32 is not JSON serializable, so cast to float, which is float64

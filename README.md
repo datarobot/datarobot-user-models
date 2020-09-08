@@ -94,6 +94,11 @@ include any necessary hooks in a file called `custom.py` for Python models or `c
   - Executed once in the beginning of the run
   - `kwargs` - additional keyword arguments to the method;
     - code_dir - code folder passed in the `--code_dir` parameter
+- `read_input_data(input_filename: str) -> Any`
+  - `input_filename` is a data file, passed in the `--input` parameter
+  - If used, this hook must return a non-None value; if it returns something other than a DF, you'll need to write your own score method.
+  - This hook can be used to customize data file reading, e.g: mode, encoding.
+  **drum** does not natively support
 - `load_model(code_dir: str) -> Any`
   - `code_dir` is the directory where the model artifact and additional code are provided, which is passed in the `--code_dir` parameter
   - If used, this hook must return a non-None value

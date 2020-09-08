@@ -5,6 +5,11 @@ init <- function(...) {
     prediction_value <<- 1
 }
 
+read_input_data <- function(input_filename) {
+    prediction_value <<- prediction_value + 1
+    read.csv(input_filename)
+}
+
 load_model <- function(input_dir) {
     prediction_value <<- prediction_value + 1
     "dummy"

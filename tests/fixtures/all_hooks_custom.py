@@ -8,6 +8,12 @@ def init(**kwargs):
     prediction_value = 1
 
 
+def read_input_data(input_file):
+    global prediction_value
+    prediction_value += 1
+    return pd.read_csv(input_file)
+
+
 def load_model(input_dir):
     global prediction_value
     prediction_value += 1

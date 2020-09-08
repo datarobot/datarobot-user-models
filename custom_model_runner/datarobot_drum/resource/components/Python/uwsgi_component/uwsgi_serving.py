@@ -2,6 +2,7 @@ import logging
 import os
 import pandas as pd
 import sys
+import tempfile
 
 from flask import request
 
@@ -127,19 +128,21 @@ class UwsgiServing(RESTfulComponent):
 
         response_status = HTTP_200_OK
         file_key = "X"
-        filename = request.files[file_key] if file_key in request.files else None
+        filestorage = request.files[file_key] if file_key in request.files else None
 
-        if not filename:
+        if not filestorage:
             wrong_key_error_message = (
                 "Samples should be provided as a csv file under `{}` key.".format(file_key)
             )
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             return response_status, {"message": "ERROR: " + wrong_key_error_message}
 
-        in_df = pd.read_csv(filename)
         self._stats_collector.enable()
         self._stats_collector.mark("start")
-        out_df = self._predictor.predict(in_df)
+        with tempfile.NamedTemporaryFile() as f:
+            filestorage.save(f)
+            f.flush()
+            out_df = self._predictor.predict(f.name)
 
         num_columns = len(out_df.columns)
         # float32 is not JSON serializable, so cast to float, which is float64
