@@ -1,1 +1,1 @@
-datarobot-drum==1.2.0
+datarobot-drum==1.2.1rc4

@@ -58,12 +58,9 @@ class RPredictor(BaseLanguagePredictor):
         r_handler.init(self._custom_model_path)
         self._model = r_handler.load_serialized_model(self._custom_model_path)
 
-    def predict(self, df):
-        with localconverter(ro.default_converter + pandas2ri.converter):
-            r_df = ro.conversion.py2rpy(df)
-
+    def predict(self, input_filename):
         predictions = r_handler.outer_predict(
-            r_df,
+            input_filename,
             model=self._model,
             positive_class_label=self._positive_class_label,
             negative_class_label=self._negative_class_label,

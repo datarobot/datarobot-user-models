@@ -42,13 +42,14 @@ extra_deps = {
 
 class CustomHooks(object):
     INIT = "init"
+    READ_INPUT_DATA = "read_input_data"
     LOAD_MODEL = "load_model"
     TRANSFORM = "transform"
     SCORE = "score"
     POST_PROCESS = "post_process"
     FIT = "fit"
 
-    ALL_PREDICT = [INIT, LOAD_MODEL, TRANSFORM, SCORE, POST_PROCESS]
+    ALL_PREDICT = [INIT, READ_INPUT_DATA, LOAD_MODEL, TRANSFORM, SCORE, POST_PROCESS]
     ALL = ALL_PREDICT + [FIT]
 
 

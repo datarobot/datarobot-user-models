@@ -250,7 +250,15 @@ class PythonModelAdapter:
                 )
             )
 
-    def predict(self, data, model=None, **kwargs):
+    @staticmethod
+    def _read_structured_input(filename):
+        try:
+            df = pd.read_csv(filename)
+        except pd.errors.ParserError as e:
+            raise DrumCommonException("Pandas failed to read input csv file: {}".format(filename))
+        return df
+
+    def predict(self, input_filename, model=None, **kwargs):
         """
         Makes predictions against the model using the custom predict
         method and returns a pandas DataFrame
@@ -269,6 +277,18 @@ class PythonModelAdapter:
         -------
         pd.DataFrame
         """
+        if self._custom_hooks.get(CustomHooks.READ_INPUT_DATA):
+            try:
+                data = self._custom_hooks[CustomHooks.READ_INPUT_DATA](input_filename)
+            except Exception as exc:
+                raise type(exc)(
+                    "Model read_data hook failed to read input file: {} {}".format(
+                        input_filename, exc
+                    )
+                ).with_traceback(sys.exc_info()[2]) from None
+        else:
+            data = PythonModelAdapter._read_structured_input(input_filename)
+
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
             try:
                 # noinspection PyCallingNonCallable

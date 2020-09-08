@@ -78,9 +78,8 @@ class JavaPredictor(BaseLanguagePredictor):
             m[key] = params[key]
         self._predictor_via_py4j.configure(m)
 
-    def predict(self, df):
-        csv_data = self._convert_data_to_csv(df)
-        out_csv = self._predictor_via_py4j.predict(csv_data)
+    def predict(self, input_filename):
+        out_csv = self._predictor_via_py4j.predict(input_filename)
         out_df = pd.read_csv(StringIO(out_csv))
         return out_df
 
@@ -154,14 +153,6 @@ class JavaPredictor(BaseLanguagePredictor):
                 self._predictor_via_py4j
             )
         )
-
-    def _convert_data_to_csv(self, x):
-        if isinstance(x, pd.DataFrame):
-            self.logger.debug("Converting dataframe")
-            return x.to_csv()
-        else:
-            print("[{}]".format(x))
-            raise Exception("does not support other formats then dataframe: {}".format(type(x)))
 
     def _cleanup(self):
         """
