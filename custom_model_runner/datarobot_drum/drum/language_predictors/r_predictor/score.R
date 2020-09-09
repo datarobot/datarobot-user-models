@@ -171,9 +171,6 @@ outer_predict <- function(input_filename, model=NULL, positive_class_label=NULL,
         data <- read_input_data_hook(input_filename)
     } else {
         data <- read.csv(input_filename)
-        # pandas DF by default replaces missing values with NaN,
-        # do the same here; check with R people if it is correct.
-        data[is.na(data)] <- NaN
     }
 
     if (is.null(model)) {

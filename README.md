@@ -37,7 +37,8 @@ The following example shows how to use the [**drum**](https://github.com/datarob
 5. Install the required dependencies: `pip install -r public_dropin_environments/python3_sklearn/requirements.txt`
 6. Install datarobot-drum: `pip install datarobot-drum`
 7. Run the example: `drum score --code-dir model_templates/inference/python3_sklearn --input tests/testdata/boston_housing.csv`  
-    > Note: this command assumes model is regression. For binary classification model provide: _**positive-class-label**_ and _**negative-class-label**_ arguments.
+    > Note: this command assumes model is regression. For binary classification model provide: _**positive-class-label**_ and _**negative-class-label**_ arguments.  
+    Input data is expected to be in CSV format. By default, missing values are indicated with NaN in Python, and NA in R according to `pd.read_csv` and `read.csv` respectively.
 
 For more examples, reference the [Custom Model Templates](#custom_model_templates).
 
@@ -97,15 +98,14 @@ include any necessary hooks in a file called `custom.py` for Python models or `c
 - `read_input_data(input_filename: str) -> Any`
   - `input_filename` is a data file, passed in the `--input` parameter
   - If used, this hook must return a non-None value; if it returns something other than a DF, you'll need to write your own score method.
-  - This hook can be used to customize data file reading, e.g: mode, encoding.
-  **drum** does not natively support
+  - This hook can be used to customize data file reading, e.g: mode, encoding, handle missing values.
 - `load_model(code_dir: str) -> Any`
   - `code_dir` is the directory where the model artifact and additional code are provided, which is passed in the `--code_dir` parameter
   - If used, this hook must return a non-None value
   - This hook can be used to load supported models if your model has multiple artifacts, or for loading models that
   **drum** does not natively support
 - `transform(data: DataFrame, model: Any) -> DataFrame`
-  - `data` is the dataframe given to **drum** to make predictions on
+  - `data` is the dataframe given to **drum** to make predictions on. Missing values are indicated with NaN in Python and NA in R, unless otherwise overridden by the read_input_data hook.
   - `model` is the deserialized model loaded by **drum** or by `load_model` (if provided)
   - This hook is intended to apply transformations to the prediction data before making predictions. It is useful
   if **drum** supports the model's library, but your model requires additional data processing before it can make predictions.
