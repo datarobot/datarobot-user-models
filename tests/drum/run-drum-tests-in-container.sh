@@ -80,7 +80,6 @@ TEST_TIME=$((END_TIME - DONE_PREP_TIME))
 echo "Total test time: $TOTAL_TIME"
 echo "Prep time:     : $PREP_TIME"
 echo "Test time:     : $TEST_TIME"
-#if [ "$A" -ne "0"  -o "$B" -ne "0" ] ; then echo "error"; else echo "all ok"; fi
 
 if [ $TEST_RESULT -ne 0 -o $TEST_RESULT_NO_MLOPS -ne 0 ] ; then
   echo "Got error in one of the tests"
