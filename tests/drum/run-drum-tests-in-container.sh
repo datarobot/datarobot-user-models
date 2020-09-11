@@ -57,9 +57,19 @@ echo "Running pytest:"
 cd $GIT_ROOT || exit 1
 DONE_PREP_TIME=$(date +%s)
 
-#pytest -s tests/drum/test_custom_model.py::TestCMRunner::test_custom_models_with_drum[rds-regression-R-None] \
-#  --junit-xml="$GIT_ROOT/results_integration.xml"
-pytest tests/drum/test_units.py tests/drum/test_custom_model.py --junit-xml="$GIT_ROOT/results_integration.xml"
+# Running mlops monitoring tests without the datarobot-mlops installed
+
+pytest tests/drum/test_mlops_monitoring.py::TestMLOpsMonitoring::test_drum_monitoring_no_mlops_installed
+TEST_RESULT_NO_MLOPS=$?
+
+pip install \
+    --extra-index-url https://artifactory.int.datarobot.com/artifactory/api/pypi/python-all/simple \
+    datarobot-mlops
+
+pytest tests/drum/test_units.py \
+       tests/drum/test_custom_model.py \
+       tests/drum/test_mlops_monitoring.py::TestMLOpsMonitoring::test_drum_monitoring_with_mlops_installed\
+       --junit-xml="$GIT_ROOT/results_integration.xml"
 
 TEST_RESULT=$?
 END_TIME=$(date +%s)
@@ -71,4 +81,11 @@ echo "Total test time: $TOTAL_TIME"
 echo "Prep time:     : $PREP_TIME"
 echo "Test time:     : $TEST_TIME"
 
-exit $TEST_RESULT
+if [ $TEST_RESULT -ne 0 -o $TEST_RESULT_NO_MLOPS -ne 0 ] ; then
+  echo "Got error in one of the tests"
+  echo "NO MLOps Tests: $TEST_RESULT_NO_MLOPS"
+  echo "Rest of tests: $TEST_RESULT"
+  exit 1
+else
+  exit 0
+fi
