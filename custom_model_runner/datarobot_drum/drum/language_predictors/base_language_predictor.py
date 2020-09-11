@@ -34,8 +34,6 @@ class BaseLanguagePredictor(ABC):
         self._negative_class_label = params.get("negativeClassLabel")
         self._params = params
 
-        pprint.pprint(params)
-        # raise Exception("Monitor value #{}# type: {}".format(self._params["monitor"], type(self._params["monitor"])))
         if self._params["monitor"] == "True":
             if not mlops_loaded:
                 raise Exception("MLOps module was not imported: {}".format(mlops_import_error))
@@ -64,7 +62,6 @@ class BaseLanguagePredictor(ABC):
             # In case of classification, class names are also required
             class_names = None
             if len(predictions.columns) == 1:
-                print(predictions.columns[0])
                 mlops_predictions = predictions[predictions.columns[0]].tolist()
             else:
                 mlops_predictions = predictions.values.tolist()

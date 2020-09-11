@@ -38,7 +38,6 @@ class PythonPredictor(BaseLanguagePredictor):
             kwargs[POSITIVE_CLASS_LABEL_ARG_KEYWORD] = self._positive_class_label
             kwargs[NEGATIVE_CLASS_LABEL_ARG_KEYWORD] = self._negative_class_label
 
-        pprint.pprint(self._params)
         start_predict = time.time()
         predictions = self._model_adapter.predict(input_filename, model=self._model, **kwargs)
         end_predict = time.time()
