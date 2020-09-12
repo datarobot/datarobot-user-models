@@ -2,8 +2,13 @@ import pytest
 import pandas as pd
 import os
 
-from test_custom_model import TestCMRunner
-from test_custom_model import SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM
+from .constants import SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, BINARY
+
+from .utils import (
+    _exec_shell_cmd,
+    _cmd_add_class_labels,
+    _create_custom_model_dir,
+)
 
 from datarobot_drum.drum.common import (
     ArgumentsOptions,
@@ -11,26 +16,23 @@ from datarobot_drum.drum.common import (
 
 
 class TestMLOpsMonitoring:
-    @classmethod
-    def setup_class(cls):
-        TestCMRunner.setup_class()
-
-    @classmethod
-    def teardown_class(cls):
-        pass
-
     @staticmethod
-    def _drum_with_monitoring(framework, problem, language, docker, tmp_path):
+    def _drum_with_monitoring(resources, framework, problem, language, docker, tmp_path):
         """
         We expect the run of drum to be ok, since mlops is assumed to be installed.
         """
-        custom_model_dir = tmp_path / "custom_model"
-        TestCMRunner._create_custom_model_dir(custom_model_dir, framework, problem, language)
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
+        )
 
         mlops_spool_dir = tmp_path / "mlops_spool"
         os.mkdir(str(mlops_spool_dir))
 
-        input_dataset = TestCMRunner._get_dataset_filename(framework, problem)
+        input_dataset = resources.datasets(framework, problem)
         output = tmp_path / "output"
 
         cmd = "{} score --code-dir {} --input {} --output {}".format(
@@ -45,7 +47,8 @@ class TestMLOpsMonitoring:
             monitor_settings
         )
 
-        cmd = TestCMRunner._cmd_add_class_labels(cmd, framework, problem)
+        if problem == BINARY:
+            cmd = _cmd_add_class_labels(cmd, resources.class_labels(framework, problem))
         if docker:
             cmd += " --docker {} --verbose ".format(docker)
 
@@ -58,13 +61,13 @@ class TestMLOpsMonitoring:
         ],
     )
     def test_drum_monitoring_with_mlops_installed(
-        self, framework, problem, language, docker, tmp_path
+        self, resources, framework, problem, language, docker, tmp_path
     ):
         cmd, input_file, output_file, mlops_spool_dir = TestMLOpsMonitoring._drum_with_monitoring(
-            framework, problem, language, docker, tmp_path
+            resources, framework, problem, language, docker, tmp_path
         )
 
-        TestCMRunner._exec_shell_cmd(
+        _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
         in_data = pd.read_csv(input_file)
@@ -82,7 +85,7 @@ class TestMLOpsMonitoring:
         ],
     )
     def test_drum_monitoring_no_mlops_installed(
-        self, framework, problem, language, docker, tmp_path
+        self, resources, framework, problem, language, docker, tmp_path
     ):
         """
         We expect the run of drum to fail since the mlops package is assumed to not be installed
@@ -91,9 +94,9 @@ class TestMLOpsMonitoring:
 
         """
         cmd, input_file, output_file, mlops_spool_dir = TestMLOpsMonitoring._drum_with_monitoring(
-            framework, problem, language, docker, tmp_path
+            resources, framework, problem, language, docker, tmp_path
         )
-        p, stdo, stde = TestCMRunner._exec_shell_cmd(
+        p, stdo, stde = _exec_shell_cmd(
             cmd,
             "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
             assert_if_fail=False,
