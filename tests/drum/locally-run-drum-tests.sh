@@ -64,7 +64,9 @@ function test_drum() {
 
     #pytest -s ${SCRIPT_DIR}/test_custom_model.py::TestCMRunner::test_custom_models_with_cmrunner_prediction_server_docker
     #pytest -s ${SCRIPT_DIR}/test_custom_model.py::TestCMRunner::test_custom_models_with_cmrunner[rds-regression-R]
-    pytest -s ${SCRIPT_DIR}/test_units.py ${SCRIPT_DIR}/test_custom_model.py
+
+    # ignore local failures for drum push and mlops
+    pytest -s ${SCRIPT_DIR}/test_*
     deactivate
 }
 #######################################################################################################################
