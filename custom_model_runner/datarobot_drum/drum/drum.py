@@ -312,7 +312,6 @@ class CMRunner(object):
             SERVER_PIPELINE if self.run_mode == RunMode.SERVER else PREDICTOR_PIPELINE
         )
         functional_pipeline_filepath = CMRunnerUtils.get_pipeline_filepath(functional_pipeline_name)
-
         # fields to replace in the pipeline
         replace_data = {
             "positiveClassLabel": '"{}"'.format(options.positive_class_label)
@@ -324,9 +323,9 @@ class CMRunner(object):
             "customModelPath": os.path.abspath(options.code_dir),
             "run_language": run_language.value,
             "monitor": options.monitor,
-            "model_id": options.model_id,
-            "deployment_id": options.deployment_id,
-            "monitor_settings": options.monitor_settings,
+            "model_id": options.model_id if 'model_id' in options else None,
+            "deployment_id": options.deployment_id if 'deployment_id' in options else None,
+            "monitor_settings": options.monitor_settings if 'monitor_settings' in options else None,
         }
 
         if self.run_mode == RunMode.SCORE:
