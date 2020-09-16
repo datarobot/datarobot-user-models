@@ -5,7 +5,7 @@ import pytest
 import yaml
 
 from datarobot_drum.drum.common import ArgumentsOptions
-from tests.conftest import PYTHON, SKLEARN, REGRESSION
+from tests.conftest import PYTHON, SKLEARN, REGRESSION, BINARY
 from ..drum.utils import _create_custom_model_dir, _exec_shell_cmd
 
 BASE_MODEL_TEMPLATES_DIR = "model_templates"
@@ -31,6 +31,7 @@ class TestDrumPush(object):
         "framework, problem, language",
         [
             (SKLEARN, REGRESSION, PYTHON),
+            (SKLEARN, BINARY, PYTHON),
         ],
     )
     def test_drum_push_training(
