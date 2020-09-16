@@ -20,10 +20,9 @@ def get_push_yaml(env_id, data_path, problem):
             environmentID: {environmentID}
             validation:
                 input: {dataPath} 
-        """.format(environmentID=env_id,
-                   problemType=problem,
-                   dataPath=data_path
-        )
+        """.format(
+        environmentID=env_id, problemType=problem, dataPath=data_path
+    )
 
 
 class TestDrumPush(object):
@@ -42,7 +41,6 @@ class TestDrumPush(object):
         language,
         tmp_path,
         sklearn_drop_in_env,
-
     ):
         custom_model_dir = _create_custom_model_dir(
             resources,
@@ -54,7 +52,7 @@ class TestDrumPush(object):
 
         env_id, _ = sklearn_drop_in_env
         yaml_string = get_push_yaml(env_id, resources.datasets(framework, problem), problem)
-        with open(os.path.join(custom_model_dir, 'model-metadata.yaml'), 'w') as outfile:
+        with open(os.path.join(custom_model_dir, "model-metadata.yaml"), "w") as outfile:
             yaml.dump(yaml_string, outfile, default_flow_style=False)
 
         cmd = "{} push --code-dir {} --verbose".format(
