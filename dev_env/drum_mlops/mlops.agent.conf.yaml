@@ -1,0 +1,53 @@
+# This file contains configuration for the MLOps agent
+
+# URL to the DataRobot MLOps service
+mlopsUrl: "fill-by-env"
+
+# DataRobot API token
+apiToken: "fill-by-env"
+
+# Execute the agent once, then exit
+runOnce: false
+
+# When dryrun mode is true, do not report the metrics to MLOps service
+dryRun: false
+
+# Path to the agent's log file
+logPath: "./logs/mlops.agent.log"
+
+# Path to write agent stats
+statsPath: "/tmp/tracking-agent-stats.json"
+
+# Number of times the agent will retry sending a request to the MLOps service on failure.
+httpRetry: 1
+
+# Http client timeout in milliseconds (30sec timeout)
+httpTimeout: 30000
+
+# Comment out and configure the lines below for the spooler type(s) you are using.
+# Note: the spooler configuration must match that used by the MLOps library.
+# Note: Spoolers must be set up before using them.
+#       - For the filesystem spooler, create the directory that will be used.
+#       - For the SQS spooler, create the queue.
+#       - For the PubSub spooler, create the project and topic.
+channelConfigs:
+#  - type: "FS_SPOOL"
+#    details: {name: "filesystem", directory: "/tmp/ta"}
+#  - type: "SQS_SPOOL"
+#    details: {name: "sqs", queueUrl: "<your AWS SQS queue URL>"}
+  - type: "RABBITMQ_SPOOL"
+    details: {name: "rabbit", rabbitmq_queue_name: "drum", rabbitmq_queue_url: "amqp://drum:drum123@rabbit"}
+#  - type: "PUBSUB_SPOOL"
+#    details: {name: "pubsub", projectId: <your project ID>, topicName: <your topic name>}
+
+# The number of threads that the agent will launch to process data records.
+agentThreadPoolSize: 4
+
+# The maximum number of records each thread will process per fetchNewDataFreq interval.
+agentMaxRecordsTask: 100
+
+# Maximum number of records to aggregate before sending to MMM
+agentMaxAggregatedRecords: 500
+
+# A timeout for pending records before aggregating and submitting
+agentPendingRecordsTimeoutMs: 2500

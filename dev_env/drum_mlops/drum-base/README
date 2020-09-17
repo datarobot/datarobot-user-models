@@ -1,0 +1,72 @@
+Here is some info about running drum with monitoring
+
+The docker-compose.yml contains the data I used to run 3 containers.
+
+1. drum container which is serving the model. You can also run drum not inside a container.
+   You should pass the following environment variables to DRUM (also avail as command line 
+   arguments.
+
+    MONITOR: "True"
+    MODEL_ID: "5f5dad02fc8b2f04b186f542"
+    DEPLOYMENT_ID: "5f5dadcfab1dc70055554486"
+    MONITOR_SETTINGS: "spooler_type=filesystem;directory=/opt/mlops_spool;max_files=1;file_max_size=1024000"
+    MONITOR_SETTINGS: "spooler_type=rabbitmq;rabbitmq_queue_url=amqp://drum:drum123@rabbit;rabbitmq_queue_name=drum"
+
+    Note the 2 options on how to pass the agent channel configuration. The first is using a spool file
+    while the second option uses RabbitMQ. 
+    If you intend to use one of the option, make sure to edit it to your configuration. 
+
+    To build a container containing both the model and drum we first build the drum-base container.
+    Take a look on the drum-base directory and build that container.
+
+    cd drum-base
+    docker build -t drum-base ./
+
+    Once this container is built, go into the python3_sklearn directory to see how to embed a model 
+    inside a container (based on the drum-base container).
+
+    The second container is automatically built by docker-compose.
+    Note the use of the build: directive in docker-compose.yml in the drum service.
+
+2. Agent container:
+   You don't have to run the agent inside a container. It is more elegant to do so.
+ 
+   The agent container is not official yet. So you need to clone the Agent repo to get access
+   to the agent container Dockerfile. 
+
+   cd tracking-agent/
+   cd public-tools/
+   cp -a ../lib .
+   cp -a ../conf .
+   make build
+
+   This will result in a docker image built. You will see the name of the image at the end
+   of the "make build" output.
+
+   The docker-compose.yml will show you which environment variables the agent is expecting.
+   The file mlops.agent.conf.yaml contains the rest of the configuration to the agent which
+   can be passed only via the config file.
+
+   Note: the docker-compose is mounting the config file into the agent container.
+
+3. RabbitMQ
+   Running RabbitMQ inside a contaienr, is very simple.. just follow the docker-compose.yml file.
+
+
+
+When running the containers. The docker-compose command will run the rabbitmq container first and 
+will then run the drum and agent containers. The drum and agent containers are configured to sleep
+for 10 seconds before starting. This should be enough time for rabbitmq to start and respond for
+a connection request.
+
+   
+To start all containers: docker-compose up
+To stop all containers: docker-compose down
+
+Running predictions:
+curl -X POST --form "X=@../../tests/testdata/boston_housing_inference.csv" 0.0.0.0:8080/predict/
+
+The above command feed the file boston_housing_inference.csv to the drum webserver. 
+Make sure to use a file the suite your model.
+
+
