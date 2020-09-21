@@ -150,8 +150,6 @@ class PytorchClassifier(BaseEstimator, ClassifierMixin):
         self._train_model(X, y)
 
     def predict(self, X):
-        import pydevd_pycharm
-        pydevd_pycharm.settrace('localhost', port=37825, stdoutToServer=True, stderrToServer=True)
         bin_t_X = torch.from_numpy(X).type(torch.FloatTensor)
         return self.bin_model(bin_t_X).data.numpy()
 
