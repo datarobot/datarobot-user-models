@@ -98,6 +98,11 @@ class ArgumentsOptions(object):
     DEPLOYMENT_ID = "--deployment-id"
     MODEL_ID = "--model-id"
     MONITOR_SETTINGS = "--monitor-settings"
+    WITH_ERROR_SERVER = "--with-error-server"
+    SHOW_STACKTRACE = "--show-stacktrace"
+    MAX_WORKERS = "--max-workers"
+    VERBOSE = "--verbose"
+    VERSION = "--version"
 
     MAIN_COMMAND = "drum"
 
