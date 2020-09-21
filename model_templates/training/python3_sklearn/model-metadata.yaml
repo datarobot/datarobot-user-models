@@ -1,10 +1,10 @@
 name: drumpush-regression
 type: training
 targetType: regression
-modelID: 5f1f15a4d6111f01cb7f91fd
+# modelID: optional
 environmentID: 5e8c889607389fe0f466c72d
-trainingModel:
-  trainOnProject: 5f070cdc80384304ba85164e
+#trainingModel:
+#  trainOnProject: optional project on which to train
 validation:
   # Path is relative to this file
   input: ../../../tests/testdata/boston_housing.csv

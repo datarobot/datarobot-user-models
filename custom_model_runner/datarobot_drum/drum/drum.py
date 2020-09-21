@@ -242,6 +242,10 @@ class CMRunner(object):
         elif self.run_mode == RunMode.NEW:
             self._generate_template()
         elif self.run_mode == RunMode.PUSH:
+            self.options.monitor = False
+            self.options.deployment_id = None
+            self.options.model_id = None
+            self.options.monitor_settings = None
             options, run_mode, raw_arguments = setup_validation_options(copy.deepcopy(self.options))
             validation_runner = CMRunner(self.runtime)
             validation_runner.options = options
@@ -312,7 +316,6 @@ class CMRunner(object):
             SERVER_PIPELINE if self.run_mode == RunMode.SERVER else PREDICTOR_PIPELINE
         )
         functional_pipeline_filepath = CMRunnerUtils.get_pipeline_filepath(functional_pipeline_name)
-
         # fields to replace in the pipeline
         replace_data = {
             "positiveClassLabel": '"{}"'.format(options.positive_class_label)
