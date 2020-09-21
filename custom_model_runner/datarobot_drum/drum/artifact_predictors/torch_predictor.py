@@ -66,7 +66,7 @@ class PyTorchPredictor(ArtifactPredictor):
         # done in the base class
         super(PyTorchPredictor, self).predict(data, model, **kwargs)
 
-        data = Variable(torch.from_numpy(data.values).type(torch.FloatTensor))
+        data = Variable(torch.from_numpy(data.values if type(data) != np.ndarray else data).type(torch.FloatTensor))
         with torch.no_grad():
             predictions = model(data).cpu().data.numpy()
         if self.positive_class_label is not None and self.negative_class_label is not None:
