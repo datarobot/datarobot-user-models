@@ -242,6 +242,10 @@ class CMRunner(object):
         elif self.run_mode == RunMode.NEW:
             self._generate_template()
         elif self.run_mode == RunMode.PUSH:
+            self.options.monitor = False
+            self.options.deployment_id = None
+            self.options.model_id = None
+            self.options.monitor_settings = None
             options, run_mode, raw_arguments = setup_validation_options(copy.deepcopy(self.options))
             validation_runner = CMRunner(self.runtime)
             validation_runner.options = options
