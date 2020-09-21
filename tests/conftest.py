@@ -1,7 +1,7 @@
 import os
 import pytest
 
-from .constants import (
+from tests.drum.constants import (
     TESTS_ARTIFACTS_PATH,
     TESTS_DATA_PATH,
     TESTS_FIXTURES_PATH,
