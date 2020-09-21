@@ -98,27 +98,12 @@ class TestTrainingModelTemplates(object):
                 "r_drop_in_env",
                 "binary",
             ),
-            (
-                "training/python3_pytorch",
-                "project_binary_diabetes",
-                "pytorch_drop_in_env",
-                "binary",
-            ),
-            (
-                    "training/python3_pytorch",
-                    "project_binary_iris",
-                    "pytorch_drop_in_env",
-                    "binary",
-            ),
-            (
-                    "training/python3_pytorch",
-                    "project_regression_boston",
-                    "pytorch_drop_in_env",
-                    "regression",
-            ),
         ],
     )
     def test_training_model_templates(self, request, model_template, proj, env, target_type):
+        import pydevd_pycharm
+        pydevd_pycharm.settrace('localhost', port=35207, stdoutToServer=True, stderrToServer=True)
+
         env_id, env_version_id = request.getfixturevalue(env)
         proj_id = request.getfixturevalue(proj)
         dr_target_type = (

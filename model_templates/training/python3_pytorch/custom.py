@@ -50,7 +50,7 @@ def fit(
     """
     # Feel free to delete which ever one of these you aren't using
     if class_order:
-        preprocessor = preprocess_features(X)
+        preprocessor = build_preprocessor(X)
         preprocessor.fit(X)
         X_preprocessed = preprocessor.transform(X)
 
