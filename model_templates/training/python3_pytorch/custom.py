@@ -2,13 +2,11 @@ from typing import List, Optional
 import pandas as pd
 import numpy as np
 
-from model_utils import (
-    build_regressor,
-    build_classifier,
-    train_regressor,
-    train_classifier,
-    save_torch_model,
-    build_preprocessor,
+import pickle
+
+from pipeline_utils import (
+    make_classifier,
+    make_regressor
 )
 
 
@@ -49,41 +47,15 @@ def fit(
     Nothing
     """
 
-    preprocessor, cols = build_preprocessor(X)
-    preprocessor.fit(X)
-    X_preprocessed = preprocessor.transform(X)
-    X_preprocessed = pd.DataFrame(X_preprocessed, columns=cols)
-
     # Feel free to delete which ever one of these you aren't using
     if class_order:
-        estimator, optimizer, criterion = build_classifier(X_preprocessed)
-        train_classifier(X_preprocessed, y, estimator, optimizer, criterion)
-        artifact_name = "torch_bin.pth"
+        estimator = make_classifier(X)
     else:
-        estimator, optimizer, criterion = build_regressor(X_preprocessed)
-        train_regressor(X_preprocessed, y, estimator, optimizer, criterion)
-        artifact_name = "torch_reg.pth"
+        estimator = make_regressor(X)
 
+    estimator.fit(X, y)
     # NOTE: We currently set a 10GB limit to the size of the serialized model
-    save_torch_model(estimator, output_dir, artifact_name)
+    with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
+        pickle.dump(estimator, fp)
 
 
-def transform(data, model):
-    """
-    Apply the same preprocessing on prediction as on fit
-
-    Parameters
-    ----------
-    data: pd.DataFrame
-    model: object, the deserialized model
-
-    Returns
-    -------
-    pd.DataFrame
-    """
-    # Execute any steps you need to do before scoring
-    # Remove target columns if  they're in the dataset
-    preprocessor, cols = build_preprocessor(data)
-    preprocessor.fit(data)
-    data_transformed = preprocessor.transform(data)
-    return pd.DataFrame(data_transformed, columns=cols)
