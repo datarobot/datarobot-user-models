@@ -48,18 +48,20 @@ def fit(
     -------
     Nothing
     """
+
+    preprocessor, cols = build_preprocessor(X)
+    preprocessor.fit(X)
+    X_preprocessed = preprocessor.transform(X)
+    X_preprocessed = pd.DataFrame(X_preprocessed, columns=cols)
+
     # Feel free to delete which ever one of these you aren't using
     if class_order:
-        preprocessor = build_preprocessor(X)
-        preprocessor.fit(X)
-        X_preprocessed = preprocessor.transform(X)
-
         estimator, optimizer, criterion = build_classifier(X_preprocessed)
         train_classifier(X_preprocessed, y, estimator, optimizer, criterion)
         artifact_name = "torch_bin.pth"
     else:
-        estimator, optimizer, criterion = build_regressor(X)
-        train_regressor(X, y, estimator, optimizer, criterion)
+        estimator, optimizer, criterion = build_regressor(X_preprocessed)
+        train_regressor(X_preprocessed, y, estimator, optimizer, criterion)
         artifact_name = "torch_reg.pth"
 
     # NOTE: We currently set a 10GB limit to the size of the serialized model
@@ -81,6 +83,8 @@ def transform(data, model):
     """
     # Execute any steps you need to do before scoring
     # Remove target columns if  they're in the dataset
-    preprocessor = build_preprocessor(data)
+    preprocessor, cols = build_preprocessor(data)
     preprocessor.fit(data)
-    return preprocessor.transform(data)
+    data_transformed = preprocessor.transform(data)
+    return pd.DataFrame(data_transformed, columns=cols)
+

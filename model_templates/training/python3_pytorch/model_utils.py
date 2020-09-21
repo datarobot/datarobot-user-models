@@ -78,7 +78,7 @@ def build_preprocessor(X):
     # This example model only uses numeric features and drops the rest
     num_transformer = Pipeline(steps=[("imputer", SimpleImputer(strategy="mean"))])
     preprocessor = ColumnTransformer(transformers=[("num", num_transformer, num_features)])
-    return preprocessor
+    return preprocessor, num_features
 
 
 def train_epoch(model, opt, criterion, X, y, batch_size=50):
@@ -123,7 +123,7 @@ def build_regressor(X):
 def train_classifier(X, y, bin_model, bin_opt, bin_criterion, n_epochs=5):
     target_encoder = LabelEncoder()
     target_encoder.fit(y)
-    bin_t_X = torch.from_numpy(X).type(torch.FloatTensor)
+    bin_t_X = torch.from_numpy(X.values).type(torch.FloatTensor)
     bin_t_y = torch.from_numpy(target_encoder.transform(y)).type(torch.FloatTensor)
 
     for e in range(n_epochs):
@@ -131,7 +131,7 @@ def train_classifier(X, y, bin_model, bin_opt, bin_criterion, n_epochs=5):
 
 
 def train_regressor(X, y, reg_model, reg_opt, reg_criterion, n_epochs=5):
-    reg_t_X = torch.from_numpy(X).type(torch.FloatTensor)
+    reg_t_X = torch.from_numpy(X.values).type(torch.FloatTensor)
     reg_t_y = torch.from_numpy(y.values).type(torch.FloatTensor)
 
     for e in range(n_epochs):
