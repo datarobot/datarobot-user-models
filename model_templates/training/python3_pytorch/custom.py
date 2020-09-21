@@ -87,4 +87,3 @@ def transform(data, model):
     preprocessor.fit(data)
     data_transformed = preprocessor.transform(data)
     return pd.DataFrame(data_transformed, columns=cols)
-
