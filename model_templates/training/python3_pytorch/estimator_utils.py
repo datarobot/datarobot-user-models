@@ -9,28 +9,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 
-def train_epoch(model, opt, criterion, X, y, batch_size=50):
-    model.train()
-    losses = []
-    for beg_i in range(0, X.size(0), batch_size):
-        x_batch = X[beg_i : beg_i + batch_size, :]
-        y_batch = y[beg_i : beg_i + batch_size]
-        x_batch = Variable(x_batch)
-        y_batch = Variable(y_batch)
-
-        opt.zero_grad()
-        # (1) Forward
-        y_hat = model(x_batch)
-        # (2) Compute diff
-        loss = criterion(y_hat, y_batch)
-        # (3) Compute gradients
-        loss.backward()
-        # (4) update weights
-        opt.step()
-        losses.append(loss.data.numpy())
-    return losses
-
-
+# Modify this model to update the sample binary classification architecture
 class BinModel(nn.Module):
     def __init__(self, input_size):
         super(BinModel, self).__init__()
@@ -53,6 +32,7 @@ class BinModel(nn.Module):
         return y
 
 
+# Modify this model to update the sample regression architecture
 class RegModel(nn.Module):
     def __init__(self, input_size):
         super(RegModel, self).__init__()
@@ -71,6 +51,28 @@ class RegModel(nn.Module):
         h2 = self.prelu(a2)
         y = self.out(h2)
         return y
+
+
+def train_epoch(model, opt, criterion, X, y, batch_size=50):
+    model.train()
+    losses = []
+    for beg_i in range(0, X.size(0), batch_size):
+        x_batch = X[beg_i : beg_i + batch_size, :]
+        y_batch = y[beg_i : beg_i + batch_size]
+        x_batch = Variable(x_batch)
+        y_batch = Variable(y_batch)
+
+        opt.zero_grad()
+        # (1) Forward
+        y_hat = model(x_batch)
+        # (2) Compute diff
+        loss = criterion(y_hat, y_batch)
+        # (3) Compute gradients
+        loss.backward()
+        # (4) update weights
+        opt.step()
+        losses.append(loss.data.numpy())
+    return losses
 
 
 class PytorchRegressor(BaseEstimator, RegressorMixin):
@@ -139,7 +141,9 @@ class PytorchClassifier(BaseEstimator, ClassifierMixin):
         target_encoder = LabelEncoder()
         target_encoder.fit(y)
         bin_t_X = torch.from_numpy(X).type(torch.FloatTensor)
-        bin_t_y = torch.from_numpy(target_encoder.transform(y)).type(torch.FloatTensor).reshape(-1, 1)
+        bin_t_y = (
+            torch.from_numpy(target_encoder.transform(y)).type(torch.FloatTensor).reshape(-1, 1)
+        )
 
         for e in range(self.n_epochs):
             train_epoch(self.bin_model, self.bin_opt, self.bin_criterion, bin_t_X, bin_t_y)
@@ -160,4 +164,4 @@ class PytorchClassifier(BaseEstimator, ClassifierMixin):
     def predict(self, X):
         bin_t_X = torch.from_numpy(X).type(torch.FloatTensor)
         pos_class_preds = self.bin_model(bin_t_X).data.numpy()
-        return (pos_class_preds > 0.5).astype('int32')
+        return (pos_class_preds > 0.5).astype("int32")

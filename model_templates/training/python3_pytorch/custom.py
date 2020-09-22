@@ -4,10 +4,7 @@ import numpy as np
 
 import pickle
 
-from pipeline_utils import (
-    make_classifier,
-    make_regressor
-)
+from pipeline_utils import make_classifier, make_regressor
 
 
 def fit(
@@ -57,5 +54,3 @@ def fit(
     # NOTE: We currently set a 10GB limit to the size of the serialized model
     with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
         pickle.dump(estimator, fp)
-
-
