@@ -1,52 +1,28 @@
 import os
-import re
-import numpy as np
+from uuid import uuid4
 import pandas as pd
 import pytest
-from uuid import uuid4
+from datarobot_drum.drum.common import ArgumentsOptions, CustomHooks, CUSTOM_FILE_NAME
 
-from .constants import TESTS_ROOT_PATH
 from .utils import (
     _exec_shell_cmd,
     _create_custom_model_dir,
 )
 
-from datarobot_drum.drum.common import ArgumentsOptions, CustomHooks, CUSTOM_FILE_NAME
 
 from .constants import (
-    TRAINING,
-    INFERENCE,
-    XGB,
-    KERAS,
-    KERAS_JOBLIB,
     SKLEARN,
-    SIMPLE,
-    PYTORCH,
-    PYPMML,
-    SKLEARN_ANOMALY,
     RDS,
     CODEGEN,
-    MOJO,
-    POJO,
-    MULTI_ARTIFACT,
     CODEGEN_AND_SKLEARN,
     REGRESSION,
     REGRESSION_INFERENCE,
     BINARY,
-    ANOMALY,
     PYTHON,
     NO_CUSTOM,
     PYTHON_ALL_HOOKS,
-    PYTHON_LOAD_MODEL,
     R,
     R_ALL_HOOKS,
-    R_FIT,
-    JAVA,
-    PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
-    DOCKER_PYTHON_SKLEARN,
-    RESPONSE_PREDICTIONS_KEY,
-    WEIGHTS_ARGS,
-    WEIGHTS_CSV,
 )
 
 
