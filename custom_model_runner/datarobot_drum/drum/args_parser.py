@@ -24,14 +24,19 @@ class CMRunnerArgsRegistry(object):
     def _reg_arg_version(*parsers):
         for parser in parsers:
             parser.add_argument(
-                "--version", action="version", version="%(prog)s {version}".format(version=version)
+                ArgumentsOptions.VERSION,
+                action="version",
+                version="%(prog)s {version}".format(version=version),
             )
 
     @staticmethod
     def _reg_arg_verbose(*parsers):
         for parser in parsers:
             parser.add_argument(
-                "--verbose", action="store_true", default=False, help="Show verbose output"
+                ArgumentsOptions.VERBOSE,
+                action="store_true",
+                default=False,
+                help="Show verbose output",
             )
 
     @staticmethod
@@ -282,7 +287,7 @@ class CMRunnerArgsRegistry(object):
 
         for parser in parsers:
             parser.add_argument(
-                "--max-workers",
+                ArgumentsOptions.MAX_WORKERS,
                 type=type_callback,
                 # default 0 will be mapped into null in pipeline json
                 default=0,
@@ -365,7 +370,7 @@ class CMRunnerArgsRegistry(object):
     def _reg_arg_with_error_server(*parsers):
         for parser in parsers:
             parser.add_argument(
-                "--with-error-server",
+                ArgumentsOptions.WITH_ERROR_SERVER,
                 action="store_true",
                 default=False,
                 help="Start server even if pipeline initialization fails.",
@@ -375,43 +380,34 @@ class CMRunnerArgsRegistry(object):
     def _reg_arg_show_stacktrace(*parsers):
         for parser in parsers:
             parser.add_argument(
-                "--show-stacktrace",
+                ArgumentsOptions.SHOW_STACKTRACE,
                 action="store_true",
                 default=False,
                 help="Show stacktrace when error happens.",
             )
 
     @staticmethod
-    def _reg_arg_monitor(*parsers):
+    def _reg_args_monitoring(*parsers):
         for parser in parsers:
             parser.add_argument(
                 ArgumentsOptions.MONITOR,
                 action="store_true",
-                default=os.environ.get("MONITOR", False),
+                default="MONITOR" in os.environ,
                 help="Monitor predictions using DataRobot MLOps. True or False. (env: MONITOR)",
             )
 
-    @staticmethod
-    def _reg_arg_deployment_id(*parsers):
-        for parser in parsers:
             parser.add_argument(
                 ArgumentsOptions.DEPLOYMENT_ID,
                 default=os.environ.get("DEPLOYMENT_ID", None),
                 help="Deployment id to use for monitoring model predictions (env: DEPLOYMENT_ID)",
             )
 
-    @staticmethod
-    def _reg_arg_model_id(*parsers):
-        for parser in parsers:
             parser.add_argument(
                 ArgumentsOptions.MODEL_ID,
                 default=os.environ.get("MODEL_ID", None),
                 help="MLOps model id to use for monitoring predictions (env: MODEL_ID)",
             )
 
-    @staticmethod
-    def _reg_arg_monitor_settings(*parsers):
-        for parser in parsers:
             parser.add_argument(
                 ArgumentsOptions.MONITOR_SETTINGS,
                 default=os.environ.get("MONITOR_SETTINGS", None),
@@ -539,35 +535,40 @@ class CMRunnerArgsRegistry(object):
             new_model_parser,
         )
 
-        CMRunnerArgsRegistry._reg_arg_monitor(batch_parser, server_parser, fit_parser)
-        CMRunnerArgsRegistry._reg_arg_deployment_id(batch_parser, server_parser, fit_parser)
-        CMRunnerArgsRegistry._reg_arg_model_id(batch_parser, server_parser, fit_parser)
-        CMRunnerArgsRegistry._reg_arg_monitor_settings(batch_parser, server_parser, fit_parser)
+        CMRunnerArgsRegistry._reg_args_monitoring(batch_parser, server_parser)
 
         return parser
 
     @staticmethod
     def verify_monitoring_options(options, parser_name):
-        if options.monitor:
-            missing_args = []
-            if options.model_id is None:
-                missing_args.append(ArgumentsOptions.MODEL_ID)
-            if options.deployment_id is None:
-                missing_args.append(ArgumentsOptions.DEPLOYMENT_ID)
-            if options.monitor_settings is None:
-                missing_args.append(ArgumentsOptions.MONITOR_SETTINGS)
+        if options.subparser_name in [ArgumentsOptions.SERVER, ArgumentsOptions.SCORE]:
+            if options.monitor:
+                missing_args = []
+                if options.model_id is None:
+                    missing_args.append(ArgumentsOptions.MODEL_ID)
+                if options.deployment_id is None:
+                    missing_args.append(ArgumentsOptions.DEPLOYMENT_ID)
+                if options.monitor_settings is None:
+                    missing_args.append(ArgumentsOptions.MONITOR_SETTINGS)
 
-            if len(missing_args) > 0:
-                print("\n")
-                print("Error: MLOps Monitoring requires all monitoring options to be present.")
-                print("Note: The following MLOps monitoring option(s) is/are missing:")
-                for arg in missing_args:
-                    print("  {}".format(arg))
-                print("\n")
-                print("These options can also be obtained via environment variables")
-                print("\n")
-                CMRunnerArgsRegistry._parsers[parser_name].print_help()
-                exit(1)
+                if len(missing_args) > 0:
+                    print("\n")
+                    print("Error: MLOps Monitoring requires all monitoring options to be present.")
+                    print("Note: The following MLOps monitoring option(s) is/are missing:")
+                    for arg in missing_args:
+                        print("  {}".format(arg))
+                    print("\n")
+                    print("These options can also be obtained via environment variables")
+                    print("\n")
+                    CMRunnerArgsRegistry._parsers[parser_name].print_help()
+                    exit(1)
+        # Monitor options are used to fill in pipeline json,
+        # so define them for the modes different from score and server
+        else:
+            options.monitor = False
+            options.model_id = None
+            options.deployment_id = None
+            options.monitor_settings = None
 
     @staticmethod
     def verify_options(options):
@@ -578,7 +579,5 @@ class CMRunnerArgsRegistry(object):
             if not options.new_mode:
                 CMRunnerArgsRegistry._parsers[ArgumentsOptions.NEW].print_help()
                 exit(1)
-        elif options.subparser_name == ArgumentsOptions.SERVER:
-            CMRunnerArgsRegistry.verify_monitoring_options(options, ArgumentsOptions.SERVER)
-        elif options.subparser_name == ArgumentsOptions.SCORE:
-            CMRunnerArgsRegistry.verify_monitoring_options(options, ArgumentsOptions.SCORE)
+
+        CMRunnerArgsRegistry.verify_monitoring_options(options, options.subparser_name)
