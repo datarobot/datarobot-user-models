@@ -1,3 +1,5 @@
+import numpy as np
+
 from sklearn.base import BaseEstimator, RegressorMixin, ClassifierMixin
 from sklearn.preprocessing import LabelEncoder
 
@@ -114,7 +116,7 @@ class PytorchRegressor(BaseEstimator, RegressorMixin):
 
 
 class PytorchClassifier(BaseEstimator, ClassifierMixin):
-    """A pytorch regressor"""
+    """A pytorch binary classifier"""
 
     def __init__(self, n_epochs):
         """
@@ -124,6 +126,7 @@ class PytorchClassifier(BaseEstimator, ClassifierMixin):
         self.bin_model = None
         self.bin_opt = None
         self.bin_criterion = None
+        self.classes_ = None
 
     def _build_model(self, X):
         bin_model = BinModel(X.shape[1])
@@ -136,7 +139,7 @@ class PytorchClassifier(BaseEstimator, ClassifierMixin):
         target_encoder = LabelEncoder()
         target_encoder.fit(y)
         bin_t_X = torch.from_numpy(X).type(torch.FloatTensor)
-        bin_t_y = torch.from_numpy(target_encoder.transform(y)).type(torch.FloatTensor)
+        bin_t_y = torch.from_numpy(target_encoder.transform(y)).type(torch.FloatTensor).reshape(-1, 1)
 
         for e in range(self.n_epochs):
             train_epoch(self.bin_model, self.bin_opt, self.bin_criterion, bin_t_X, bin_t_y)
@@ -145,11 +148,16 @@ class PytorchClassifier(BaseEstimator, ClassifierMixin):
         """
         Trains the pytorch classifier.
         """
-
+        self.classes_ = np.unique(y)
         self.bin_model, self.bin_opt, self.bin_criterion = self._build_model(X)
         self._train_model(X, y)
 
+    def predict_proba(self, X):
+        bin_t_X = torch.from_numpy(X).type(torch.FloatTensor)
+        pos_class_preds = self.bin_model(bin_t_X).data.numpy()
+        return np.hstack([1 - pos_class_preds, pos_class_preds])
+
     def predict(self, X):
         bin_t_X = torch.from_numpy(X).type(torch.FloatTensor)
-        return self.bin_model(bin_t_X).data.numpy()
-
+        pos_class_preds = self.bin_model(bin_t_X).data.numpy()
+        return (pos_class_preds > 0.5).astype('int32')
