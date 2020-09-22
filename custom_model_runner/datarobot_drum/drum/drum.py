@@ -242,10 +242,6 @@ class CMRunner(object):
         elif self.run_mode == RunMode.NEW:
             self._generate_template()
         elif self.run_mode == RunMode.PUSH:
-            self.options.monitor = False
-            self.options.deployment_id = None
-            self.options.model_id = None
-            self.options.monitor_settings = None
             options, run_mode, raw_arguments = setup_validation_options(copy.deepcopy(self.options))
             validation_runner = CMRunner(self.runtime)
             validation_runner.options = options
@@ -294,7 +290,6 @@ class CMRunner(object):
         self.run_mode = RunMode.SCORE
         self.options.code_dir = self.options.output
         self.options.output = os.devnull
-        self.options.monitor = False
         if self.options.target:
             __tempfile = NamedTemporaryFile()
             df = pd.read_csv(self.options.input)
