@@ -1,5 +1,6 @@
 import os
 import pytest
+import json
 
 from tests.drum.constants import (
     TESTS_ARTIFACTS_PATH,
@@ -135,6 +136,10 @@ _custom_filepaths = {
     R_ALL_HOOKS: (os.path.join(TESTS_FIXTURES_PATH, "all_hooks_custom.R"), "custom.R"),
     R_FIT: (os.path.join(TESTS_FIXTURES_PATH, "fit_custom.R"), "custom.R"),
 }
+
+
+with open(os.path.join(TESTS_DATA_PATH, 'variety_samples/variety_data_key.json')) as jsonfile:
+    variety_data_dict = json.load(jsonfile)
 
 
 class Resource:
