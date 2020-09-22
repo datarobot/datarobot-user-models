@@ -114,3 +114,10 @@ def train_regressor(X, y, reg_model, reg_opt, reg_criterion, n_epochs=5):
 def save_torch_model(model, output_dir_path, filename="torch_bin.pth"):
     output_file_path = Path(output_dir_path) / filename
     torch.save(model, output_file_path)
+
+
+def subset_data(X):
+    numerics = ["int16", "int32", "int64", "float16", "float32", "float64"]
+    # exclude any completely-missing columns when checking for numerics
+    num_features = list(X.dropna(axis=1, how="all").select_dtypes(include=numerics).columns)
+    return X[num_features]

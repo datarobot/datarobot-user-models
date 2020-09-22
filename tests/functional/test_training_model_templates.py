@@ -33,9 +33,33 @@ class TestTrainingModelTemplates(object):
         proj.set_target(target="class", mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
+    @pytest.fixture(scope="session")
+    def project_binary_diabetes(self):
+        proj = dr.Project.create(sourcedata=os.path.join(BASE_DATASET_DIR, "10k_diabetes.csv"))
+        proj.set_target(target="readmitted", mode=dr.AUTOPILOT_MODE.MANUAL)
+        return proj.id
+
     @pytest.mark.parametrize(
         "model_template, proj, env, target_type",
         [
+            (
+                "training/python3_pytorch",
+                "project_binary_diabetes",
+                "pytorch_drop_in_env",
+                "binary",
+            ),
+            (
+                "training/python3_pytorch",
+                "project_binary_iris",
+                "pytorch_drop_in_env",
+                "binary",
+            ),
+            (
+                "training/python3_pytorch",
+                "project_regression_boston",
+                "pytorch_drop_in_env",
+                "regression",
+            ),
             (
                 "training/python3_keras_joblib",
                 "project_regression_boston",
