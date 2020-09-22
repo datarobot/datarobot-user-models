@@ -5,9 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-#### [1.2.1rc5] - in progress
+#### [1.2.1rc6] - in progress
 ##### Added
 - `read_input_data` hook
+- unstructured mode
 
 #### [1.2.0] - 2020-08-28
 ##### Added
