@@ -35,6 +35,10 @@ from tests.drum.constants import (
     R_FIT,
     JAVA,
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
+    PYTHON_UNSTRUCTURED,
+    R_UNSTRUCTURED,
+    UNSTRUCTURED,
+    WORDS_COUNT_BASIC,
 )
 
 _datasets = {
@@ -45,6 +49,7 @@ _datasets = {
     (None, REGRESSION_INFERENCE): os.path.join(TESTS_DATA_PATH, "boston_housing_inference.csv"),
     (None, BINARY): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
     (None, ANOMALY): os.path.join(TESTS_DATA_PATH, "boston_housing.csv"),
+    (UNSTRUCTURED, WORDS_COUNT_BASIC): os.path.join(TESTS_DATA_PATH, "unstructured_data.txt"),
 }
 
 _training_models_paths = {
@@ -71,8 +76,10 @@ _class_labels = {
 }
 
 _artifacts = {
+    (None, None): None,
     (None, REGRESSION): None,
     (None, BINARY): None,
+    (UNSTRUCTURED, WORDS_COUNT_BASIC): None,
     (SKLEARN, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_reg.pkl"),
     (SKLEARN, REGRESSION_INFERENCE): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_reg.pkl"),
     (MULTI_ARTIFACT, REGRESSION): [
@@ -134,6 +141,8 @@ _custom_filepaths = {
     R: (os.path.join(TESTS_FIXTURES_PATH, "custom.R"), "custom.R"),
     R_ALL_HOOKS: (os.path.join(TESTS_FIXTURES_PATH, "all_hooks_custom.R"), "custom.R"),
     R_FIT: (os.path.join(TESTS_FIXTURES_PATH, "fit_custom.R"), "custom.R"),
+    PYTHON_UNSTRUCTURED: (os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom.py"), "custom.py"),
+    R_UNSTRUCTURED: (os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom.R"), "custom.R"),
 }
 
 

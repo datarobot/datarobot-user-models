@@ -27,11 +27,13 @@ class BaseLanguagePredictor(ABC):
         self._custom_model_path = None
         self._params = None
         self._mlops = None
+        self._unstructured_mode = False
 
     def configure(self, params):
         self._custom_model_path = params["__custom_model_path__"]
         self._positive_class_label = params.get("positiveClassLabel")
         self._negative_class_label = params.get("negativeClassLabel")
+        self._unstructured_mode = params.get("unstructured_mode")
         self._params = params
 
         if self._params["monitor"] == "True":

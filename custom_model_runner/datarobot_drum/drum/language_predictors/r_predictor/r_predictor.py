@@ -14,6 +14,7 @@ try:
     import rpy2.robjects as ro
     from rpy2.robjects import pandas2ri
     from rpy2.robjects.conversion import localconverter
+
 except ImportError:
     error_message = (
         "rpy2 package is not installed."
@@ -61,24 +62,28 @@ class RPredictor(BaseLanguagePredictor):
     def predict(self, input_filename):
         predictions = r_handler.outer_predict(
             input_filename,
+            unstructured_mode=self._unstructured_mode,
             model=self._model,
             positive_class_label=self._positive_class_label,
             negative_class_label=self._negative_class_label,
         )
         with localconverter(ro.default_converter + pandas2ri.converter):
-            py_df = ro.conversion.rpy2py(predictions)
+            py_data_object = ro.conversion.rpy2py(predictions)
 
-        if isinstance(py_df, numpy.ndarray):
-            py_df = pd.DataFrame({"Predictions": py_df})
+        if self._unstructured_mode:
+            py_data_object = str(py_data_object)
+        else:
+            # in case of regression, array is returned
+            if isinstance(py_data_object, numpy.ndarray):
+                py_data_object = pd.DataFrame({"Predictions": py_data_object})
 
-        if not isinstance(py_df, pd.DataFrame):
-            error_message = (
-                "Expected predictions type: {}, actual: {}. "
-                "Are you trying to run binary classification without class labels provided?".format(
-                    pd.DataFrame, type(py_df)
+            if not isinstance(py_data_object, pd.DataFrame):
+                error_message = (
+                    "Expected predictions type: {}, actual: {}. "
+                    "Are you trying to run binary classification without class labels provided?".format(
+                        pd.DataFrame, type(py_data_object)
+                    )
                 )
-            )
-            logger.error(error_message)
-            raise DrumCommonException(error_message)
-
-        return py_df
+                logger.error(error_message)
+                raise DrumCommonException(error_message)
+        return py_data_object

@@ -19,9 +19,10 @@ from datarobot_drum.drum.server import (
     HTTP_513_DRUM_PIPELINE_ERROR,
 )
 from datarobot_drum.drum.memory_monitor import MemoryMonitor
+from datarobot_drum.resource.predict_mixin import PredictMixin
 
 
-class UwsgiServing(RESTfulComponent):
+class UwsgiServing(RESTfulComponent, PredictMixin):
     def __init__(self, engine):
         super(UwsgiServing, self).__init__(engine)
         self._show_perf = False
@@ -29,6 +30,7 @@ class UwsgiServing(RESTfulComponent):
         self._memory_monitor = None
         self._run_language = None
         self._predictor = None
+        self._unstructured_mode = False
 
         self._predict_calls_count = 0
 
@@ -57,13 +59,15 @@ class UwsgiServing(RESTfulComponent):
         """
         super(UwsgiServing, self).configure(params)
         self._show_perf = self._params.get("show_perf")
+        self._run_language = RunLanguage(params.get("run_language"))
+        self._unstructured_mode = params.get("unstructured_mode", False)
+
         self._stats_collector = StatsCollector(disable_instance=not self._show_perf)
 
         self._stats_collector.register_report(
             "run_predictor_total", "finish", StatsOperation.SUB, "start"
         )
         self._memory_monitor = MemoryMonitor()
-        self._run_language = RunLanguage(params.get("run_language"))
 
         self._logger.info(
             "Configure component with input params, name: {}, params: {}".format(
@@ -126,51 +130,19 @@ class UwsgiServing(RESTfulComponent):
         if self._error_response:
             return HTTP_513_DRUM_PIPELINE_ERROR, self._error_response
 
-        response_status = HTTP_200_OK
-        file_key = "X"
-        filestorage = request.files[file_key] if file_key in request.files else None
-
-        if not filestorage:
-            wrong_key_error_message = (
-                "Samples should be provided as a csv file under `{}` key.".format(file_key)
-            )
-            response_status = HTTP_422_UNPROCESSABLE_ENTITY
-            return response_status, {"message": "ERROR: " + wrong_key_error_message}
-
         self._stats_collector.enable()
         self._stats_collector.mark("start")
-        with tempfile.NamedTemporaryFile() as f:
-            filestorage.save(f)
-            f.flush()
-            out_df = self._predictor.predict(f.name)
 
-        num_columns = len(out_df.columns)
-        # float32 is not JSON serializable, so cast to float, which is float64
-        out_df = out_df.astype("float")
-        if num_columns == 1:
-            # df.to_json() is much faster.
-            # But as it returns string, we have to assemble final json using strings.
-            df_json = out_df[REGRESSION_PRED_COLUMN].to_json(orient="records")
-            response_json = '{{"predictions":{df_json}}}'.format(df_json=df_json)
-        elif num_columns == 2:
-            # df.to_json() is much faster.
-            # But as it returns string, we have to assemble final json using strings.
-            df_json_str = out_df.to_json(orient="records")
-            response_json = '{{"predictions":{df_json}}}'.format(df_json=df_json_str)
-        else:
-            ret_str = (
-                "Predictions dataframe has {} columns; "
-                "Expected: 1 - for regression, 2 - for binary classification.".format(num_columns)
-            )
-            response_json = {"message": "ERROR: " + ret_str}
-            response_status = HTTP_422_UNPROCESSABLE_ENTITY
+        response, response_status = self.do_predict()
 
-        self._predict_calls_count += 1
-        # this counter is managed by uwsgi
-        self._total_predict_requests.increase()
+        if response_status == HTTP_200_OK:
+            # this counter is managed by uwsgi
+            self._total_predict_requests.increase()
+            self._predict_calls_count += 1
+
         self._stats_collector.mark("finish")
         self._stats_collector.disable()
-        return response_status, response_json
+        return response_status, response
 
     def _get_stats_dict(self):
         return {

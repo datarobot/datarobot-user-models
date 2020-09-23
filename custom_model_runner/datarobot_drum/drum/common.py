@@ -103,6 +103,7 @@ class ArgumentsOptions(object):
     MAX_WORKERS = "--max-workers"
     VERBOSE = "--verbose"
     VERSION = "--version"
+    UNSTRUCTURED = "--unstructured"
 
     MAIN_COMMAND = "drum"
 
