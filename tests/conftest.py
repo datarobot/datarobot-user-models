@@ -243,7 +243,7 @@ class VarietyDataResource:
 @pytest.fixture(scope="session")
 def get_variety_dataset():
     def _foo(data_name):
-        return TESTS_DATA_PATH + data_name
+        return TESTS_DATA_PATH + '/variety_samples/' + data_name
     return _foo
 
 
