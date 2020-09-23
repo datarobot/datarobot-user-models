@@ -1,6 +1,7 @@
 import collections
-import pytest
 from unittest import mock
+import pytest
+
 
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.common import RunMode

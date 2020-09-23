@@ -6,7 +6,6 @@ import requests
 
 from datarobot_drum.drum.common import PythonArtifacts, RunMode
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
-from datarobot_drum.drum.runtime import DrumRuntime
 
 from .constants import SKLEARN, REGRESSION, BINARY, DOCKER_PYTHON_SKLEARN, PYTHON
 from .utils import _create_custom_model_dir

@@ -11,9 +11,10 @@ from distutils.dir_util import copy_tree
 from pathlib import Path
 from tempfile import mkdtemp, NamedTemporaryFile
 
-import docker.errors
 import numpy as np
 import pandas as pd
+
+
 from memory_profiler import memory_usage
 from mlpiper.pipeline.executor import Executor
 from mlpiper.pipeline.executor_config import ExecutorConfig
@@ -39,11 +40,13 @@ from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.utils import CMRunnerUtils
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 
+import docker.errors
+
 SERVER_PIPELINE = "prediction_server_pipeline.json.j2"
 PREDICTOR_PIPELINE = "prediction_pipeline.json.j2"
 
 
-class CMRunner(object):
+class CMRunner:
     def __init__(self, runtime):
         self.runtime = runtime
         self.options = runtime.options
@@ -107,11 +110,11 @@ class CMRunner(object):
 
         # if all the artifacts belong to the same language, set it
         if bool(len(python_artifacts)) + bool(len(r_artifacts)) + bool(len(java_artifacts)) == 1:
-            if len(python_artifacts):
+            if len(python_artifacts) > 0:
                 artifact_language = RunLanguage.PYTHON
-            elif len(r_artifacts):
+            elif len(r_artifacts) > 0:
                 artifact_language = RunLanguage.R
-            elif len(java_artifacts):
+            elif len(java_artifacts) > 0:
                 artifact_language = RunLanguage.JAVA
 
         # if only one custom file found, set it:
@@ -198,7 +201,7 @@ class CMRunner(object):
             )
 
             # if we find any py files and no R files set python, otherwise raise
-            if len(other_py) and not len(other_r):
+            if len(other_py) > 0 and len(other_r) == 0:
                 is_py = True
             else:
                 raise_no_language(custom_language)
@@ -215,12 +218,11 @@ class CMRunner(object):
 
     def run(self):
         try:
-            if self.options.docker and not self.run_mode == RunMode.PUSH:
+            if self.options.docker and self.run_mode != RunMode.PUSH:
                 ret = self._run_inside_docker(self.options, self.run_mode, self.raw_arguments)
                 if ret:
                     raise DrumCommonException("Error from docker process: {}".format(ret))
-                else:
-                    return
+                return
         except DrumCommonException as e:
             self.logger.error(e)
             raise

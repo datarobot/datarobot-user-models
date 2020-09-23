@@ -1,6 +1,10 @@
+import os
 import pytest
 import pandas as pd
-import os
+
+from datarobot_drum.drum.common import (
+    ArgumentsOptions,
+)
 
 from .constants import SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, BINARY
 
@@ -8,10 +12,6 @@ from .utils import (
     _exec_shell_cmd,
     _cmd_add_class_labels,
     _create_custom_model_dir,
-)
-
-from datarobot_drum.drum.common import (
-    ArgumentsOptions,
 )
 
 
@@ -93,10 +93,10 @@ class TestMLOpsMonitoring:
         -------
 
         """
-        cmd, input_file, output_file, mlops_spool_dir = TestMLOpsMonitoring._drum_with_monitoring(
+        cmd, _, _, _ = TestMLOpsMonitoring._drum_with_monitoring(
             resources, framework, problem, language, docker, tmp_path
         )
-        p, stdo, stde = _exec_shell_cmd(
+        p, _, _ = _exec_shell_cmd(
             cmd,
             "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
             assert_if_fail=False,
