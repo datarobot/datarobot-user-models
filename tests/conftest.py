@@ -221,7 +221,7 @@ def resources(
 
 
 # fixtures for variety data tests
-with open(os.path.join(TESTS_DATA_PATH, 'variety_samples/variety_data_key.json')) as jsonfile:
+with open(os.path.join(TESTS_DATA_PATH, "variety_samples/variety_data_key.json")) as jsonfile:
     variety_data_dict = json.load(jsonfile)
 
 variety_data_names = [*variety_data_dict]
@@ -243,37 +243,38 @@ class VarietyDataResource:
 @pytest.fixture(scope="session")
 def get_variety_dataset():
     def _foo(data_name):
-        return TESTS_DATA_PATH + '/variety_samples/' + data_name
+        return TESTS_DATA_PATH + "/variety_samples/" + data_name
+
     return _foo
 
 
 @pytest.fixture(scope="session")
 def get_variety_target():
     def _foo(data_name):
-        return variety_data_dict[data_name]['target']
+        return variety_data_dict[data_name]["target"]
+
     return _foo
 
 
 @pytest.fixture(scope="session")
 def get_variety_problem():
     def _foo(data_name):
-        return variety_data_dict[data_name]['problem']
+        return variety_data_dict[data_name]["problem"]
+
     return _foo
 
 
 @pytest.fixture(scope="session")
 def get_variety_classes_labels():
     def _foo(data_name):
-        return variety_data_dict[data_name].get('classes')
+        return variety_data_dict[data_name].get("classes")
+
     return _foo
 
 
 @pytest.fixture(scope="session")
 def variety_resources(
-        get_variety_dataset,
-        get_variety_target,
-        get_variety_problem,
-        get_variety_classes_labels
+    get_variety_dataset, get_variety_target, get_variety_problem, get_variety_classes_labels
 ):
     resource = VarietyDataResource()
     resource.dataset = get_variety_dataset
