@@ -1,5 +1,7 @@
-import pytest
 import re
+import pytest
+
+from datarobot_drum.drum.common import ArgumentsOptions
 
 from .utils import (
     _exec_shell_cmd,
@@ -7,7 +9,6 @@ from .utils import (
     _create_custom_model_dir,
 )
 
-from datarobot_drum.drum.common import ArgumentsOptions
 
 from .constants import (
     SKLEARN,
@@ -57,7 +58,7 @@ class TestValidationCheck:
         if docker:
             cmd += " --docker {}".format(docker)
 
-        p, stdo, stde = _exec_shell_cmd(
+        _, stdo, _ = _exec_shell_cmd(
             cmd,
             "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
             assert_if_fail=False,

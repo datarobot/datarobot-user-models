@@ -18,7 +18,7 @@ from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.push import _push_inference, _push_training, schema
 
 
-class TestOrderIntuition(object):
+class TestOrderIntuition:
     tests_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "testdata"))
     binary_filename = os.path.join(tests_data_path, "iris_binary_training.csv")
     regression_filename = os.path.join(tests_data_path, "boston_housing.csv")
@@ -53,7 +53,7 @@ class TestOrderIntuition(object):
         assert set(classes) == {None, None}
 
 
-class TestValidatePredictions(object):
+class TestValidatePredictions:
     def test_add_to_one_happy(self):
         positive_label = "poslabel"
         negative_label = "neglabel"

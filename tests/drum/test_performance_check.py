@@ -1,5 +1,6 @@
 import pytest
-import re
+
+from datarobot_drum.drum.common import ArgumentsOptions
 
 from .utils import (
     _exec_shell_cmd,
@@ -7,7 +8,6 @@ from .utils import (
     _create_custom_model_dir,
 )
 
-from datarobot_drum.drum.common import ArgumentsOptions
 
 from .constants import (
     SKLEARN,
