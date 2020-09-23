@@ -66,6 +66,11 @@ class PyTorchPredictor(ArtifactPredictor):
         # done in the base class
         super(PyTorchPredictor, self).predict(data, model, **kwargs)
 
+        # We drop non numeric columns in lieu of just failing. Casting to a FloatTensor would fail
+        # if we did not do this
+        if np.dtype("O") in set(data.dtypes):
+            self._logger.warning("Dropping non-numeric columns.")
+            data = data.select_dtypes(exclude=["object"])
         data = Variable(
             torch.from_numpy(data.values if type(data) != np.ndarray else data).type(
                 torch.FloatTensor

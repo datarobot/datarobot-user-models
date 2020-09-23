@@ -174,9 +174,9 @@ outer_predict <- function(input_filename, model=NULL, unstructured_mode=FALSE, p
     if (!isFALSE(read_input_data_hook)) {
         data <- read_input_data_hook(input_filename)
     } else {
-        data <- read.csv(input_filename)
+        tmp = readChar(input_filename, file.info(input_filename)$size)
+        data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE))
     }
-
     if (is.null(model)) {
         model <- load_serialized_model()
     }
@@ -184,7 +184,6 @@ outer_predict <- function(input_filename, model=NULL, unstructured_mode=FALSE, p
     if (!isFALSE(transform_hook)) {
         data <- transform_hook(data, model)
     }
-
     if (!isFALSE(score_hook)) {
         kwargs <- list()
         if (!is.null(positive_class_label) & !is.null(negative_class_label)) {

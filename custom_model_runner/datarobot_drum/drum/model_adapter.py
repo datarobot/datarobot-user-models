@@ -239,7 +239,7 @@ class PythonModelAdapter:
                         to_validate[positive_class_label], to_validate[negative_class_label]
                     )
                 ]
-                np.testing.assert_almost_equal(added_probs, 1)
+                np.testing.assert_array_almost_equal(added_probs, 1)
             except AssertionError:
                 raise ValueError("Your prediction probabilities do not add up to 1.")
 
@@ -262,7 +262,7 @@ class PythonModelAdapter:
     @staticmethod
     def _read_structured_input(filename):
         try:
-            df = pd.read_csv(filename)
+            df = pd.read_csv(filename, lineterminator="\n")
         except pd.errors.ParserError as e:
             raise DrumCommonException("Pandas failed to read input csv file: {}".format(filename))
         return df

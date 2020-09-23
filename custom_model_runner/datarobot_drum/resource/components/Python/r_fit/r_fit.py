@@ -87,6 +87,10 @@ class RFit(ConnectableComponent):
         with localconverter(ro.default_converter + pandas2ri.converter):
             r_X = ro.conversion.py2rpy(X)
             if y is not None:
+                # This is necessary for the R code to work properly, and doesn't transform the
+                # data
+                if y.dtype == bool:
+                    y = y.astype("str")
                 r_y = ro.conversion.py2rpy(y)
                 if class_order:
                     optional_args["class_order"] = ro.conversion.py2rpy(class_order)

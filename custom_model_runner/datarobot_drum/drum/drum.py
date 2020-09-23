@@ -295,7 +295,7 @@ class CMRunner:
         self.options.unstructured = False
         if self.options.target:
             __tempfile = NamedTemporaryFile()
-            df = pd.read_csv(self.options.input)
+            df = pd.read_csv(self.options.input, lineterminator="\n")
             df = df.drop(self.options.target, axis=1)
             df.to_csv(__tempfile.name, index=False)
             self.options.input = __tempfile.name
@@ -317,10 +317,10 @@ class CMRunner:
         # fields to replace in the pipeline
         replace_data = {
             "positiveClassLabel": '"{}"'.format(options.positive_class_label)
-            if options.positive_class_label
+            if options.positive_class_label is not None
             else "null",
             "negativeClassLabel": '"{}"'.format(options.negative_class_label)
-            if options.negative_class_label
+            if options.negative_class_label is not None
             else "null",
             "customModelPath": os.path.abspath(options.code_dir),
             "run_language": run_language.value,
@@ -374,7 +374,7 @@ class CMRunner:
 
     def _prepare_fit_pipeline(self, run_language):
 
-        if not self.options.negative_class_label:
+        if self.options.negative_class_label is None:
             (
                 self.options.positive_class_label,
                 self.options.negative_class_label,
@@ -401,10 +401,10 @@ class CMRunner:
             "target_column": '"{}"'.format(options.target) if options.target else "null",
             "target_filename": '"{}"'.format(options.target_csv) if options.target_csv else "null",
             "positiveClassLabel": '"{}"'.format(options.positive_class_label)
-            if options.positive_class_label
+            if options.positive_class_label is not None
             else "null",
             "negativeClassLabel": '"{}"'.format(options.negative_class_label)
-            if options.negative_class_label
+            if options.negative_class_label is not None
             else "null",
             "output_dir": options.output,
             "num_rows": options.num_rows,
@@ -643,20 +643,21 @@ def possibly_intuit_order(
     elif target_data_file:
         assert target_col_name is None
 
-        y = pd.read_csv(target_data_file, index_col=False).sample(
+        y = pd.read_csv(target_data_file, index_col=False, lineterminator="\n").sample(
             1000, random_state=1, replace=True
         )
         classes = np.unique(y.iloc[:, 0])
     else:
         assert target_data_file is None
-        df = pd.read_csv(input_data_file)
+        df = pd.read_csv(input_data_file, lineterminator="\n")
         if not target_col_name in df.columns:
             e = "The column '{}' does not exist in your dataframe. \nThe columns in your dataframe are these: {}".format(
                 target_col_name, list(df.columns)
             )
             print(e, file=sys.stderr)
             raise DrumCommonException(e)
-        classes = np.unique(df[target_col_name].sample(1000, random_state=1, replace=True))
+        uniq = df[target_col_name].sample(1000, random_state=1, replace=True).unique()
+        classes = set(uniq) - {np.nan}
     if len(classes) == 2:
         return classes
     elif len(classes) == 1:

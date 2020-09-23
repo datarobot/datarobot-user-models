@@ -1,10 +1,10 @@
 import pickle
-from typing import List, Optional, Any, Dict
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
-
 from create_pipeline import make_classifier, make_regressor
+from sklearn.preprocessing import label_binarize
 
 
 def fit(
@@ -45,6 +45,9 @@ def fit(
     """
     # Feel free to delete which ever one of these you aren't using
     if class_order:
+        if y.dtype == np.dtype("bool"):
+            y = y.astype("str")
+        y = label_binarize(y, classes=class_order)
         estimator = make_classifier(X)
     else:
         estimator = make_regressor(X)
