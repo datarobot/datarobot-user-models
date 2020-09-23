@@ -5,9 +5,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from datarobot_drum.drum.common import (
-    ArgumentsOptions,
-)
+from datarobot_drum.drum.common import ArgumentsOptions
 from .constants import (
     ANOMALY,
     BINARY,
