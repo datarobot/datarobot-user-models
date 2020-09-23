@@ -15,10 +15,12 @@ class GenericPredictorComponent(ConnectableComponent):
         self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
         self._run_language = None
         self._predictor = None
+        self._unstructured_mode = False
 
     def configure(self, params):
         super(GenericPredictorComponent, self).configure(params)
         self._run_language = RunLanguage(params.get("run_language"))
+        self._unstructured_mode = params.get("unstructured_mode", False)
 
         if self._run_language == RunLanguage.PYTHON:
             from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
@@ -49,5 +51,9 @@ class GenericPredictorComponent(ConnectableComponent):
         input_filename = self._params["input_filename"]
         predictions = self._predictor.predict(input_filename)
         output_filename = self._params.get("output_filename")
-        predictions.to_csv(output_filename, index=False)
-        return [predictions]
+        if self._unstructured_mode:
+            with open(output_filename, "w") as f:
+                f.write(predictions)
+        else:
+            predictions.to_csv(output_filename, index=False)
+        return []

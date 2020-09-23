@@ -11,6 +11,7 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.memory_monitor import MemoryMonitor
 from datarobot_drum.drum.common import RunLanguage, REGRESSION_PRED_COLUMN
+from datarobot_drum.resource.predict_mixin import PredictMixin
 
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
@@ -23,7 +24,7 @@ from datarobot_drum.drum.server import (
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 
-class PredictionServer(ConnectableComponent):
+class PredictionServer(ConnectableComponent, PredictMixin):
     def __init__(self, engine):
         super(PredictionServer, self).__init__(engine)
         self._show_perf = False
@@ -31,17 +32,21 @@ class PredictionServer(ConnectableComponent):
         self._memory_monitor = None
         self._run_language = None
         self._predictor = None
+        self._unstructured_mode = False
 
     def configure(self, params):
         super(PredictionServer, self).configure(params)
         self._show_perf = self._params.get("show_perf")
+        self._run_language = RunLanguage(params.get("run_language"))
+        self._unstructured_mode = params.get("unstructured_mode", False)
+
         self._stats_collector = StatsCollector(disable_instance=not self._show_perf)
 
         self._stats_collector.register_report(
             "run_predictor_total", "finish", StatsOperation.SUB, "start"
         )
         self._memory_monitor = MemoryMonitor()
-        self._run_language = RunLanguage(params.get("run_language"))
+
         if self._run_language == RunLanguage.PYTHON:
             from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
                 PythonPredictor,
@@ -76,55 +81,16 @@ class PredictionServer(ConnectableComponent):
 
         @model_api.route("/predict/", methods=["POST"])
         def predict():
-            response_status = HTTP_200_OK
-            file_key = "X"
             logger.debug("Entering predict() endpoint")
-            filestorage = request.files[file_key] if file_key in request.files else None
 
-            if not filestorage:
-                wrong_key_error_message = (
-                    "Samples should be provided as a csv file under `{}` key.".format(file_key)
-                )
-                logger.error(wrong_key_error_message)
-                response_status = HTTP_422_UNPROCESSABLE_ENTITY
-                return {"message": "ERROR: " + wrong_key_error_message}, response_status
-            else:
-                logger.debug("Filename provided under X key: {}".format(filestorage.filename))
-
-            # TODO labels have to be provided as command line arguments or within configure endpoint
             self._stats_collector.enable()
             self._stats_collector.mark("start")
-            with tempfile.NamedTemporaryFile() as f:
-                filestorage.save(f)
-                f.flush()
-                out_df = self._predictor.predict(f.name)
 
-            num_columns = len(out_df.columns)
-            # float32 is not JSON serializable, so cast to float, which is float64
-            out_df = out_df.astype("float")
-            if num_columns == 1:
-                # df.to_json() is much faster.
-                # But as it returns string, we have to assemble final json using strings.
-                df_json = out_df[REGRESSION_PRED_COLUMN].to_json(orient="records")
-                response_json = '{{"predictions":{df_json}}}'.format(df_json=df_json)
-            elif num_columns == 2:
-                # df.to_json() is much faster.
-                # But as it returns string, we have to assemble final json using strings.
-                df_json_str = out_df.to_json(orient="records")
-                response_json = '{{"predictions":{df_json}}}'.format(df_json=df_json_str)
-            else:
-                ret_str = (
-                    "Predictions dataframe has {} columns; "
-                    "Expected: 1 - for regression, 2 - for binary classification.".format(
-                        num_columns
-                    )
-                )
-                response_json = {"message": "ERROR: " + ret_str}
-                response_status = HTTP_422_UNPROCESSABLE_ENTITY
+            response, response_status = self.do_predict(logger=logger)
 
             self._stats_collector.mark("finish")
             self._stats_collector.disable()
-            return response_json, response_status
+            return response, response_status
 
         @model_api.route("/stats/", methods=["GET"])
         def stats():

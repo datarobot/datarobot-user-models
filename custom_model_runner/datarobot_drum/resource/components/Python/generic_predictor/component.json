@@ -9,22 +9,8 @@
   "componentClass": "GenericPredictorComponent",
   "useMLOps": false,
   "group": "Connectors",
-  "inputInfo": [
-  {
-    "description": "Pandas Dataframe",
-    "label": "dataframe",
-    "defaultComponent": "",
-    "type": "dataframe",
-    "group": "data"
-  }],
-  "outputInfo": [
-  {
-    "description": "Pandas Dataframe",
-    "label": "dataframe",
-    "defaultComponent": "",
-    "type": "dataframe",
-    "group": "data"
-  }],
+  "inputInfo": [],
+  "outputInfo": [],
   "arguments": [
   {
     "key": "positiveClassLabel",

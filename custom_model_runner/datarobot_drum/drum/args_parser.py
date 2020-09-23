@@ -377,6 +377,16 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
+    def _reg_arg_unstructured_mode(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.UNSTRUCTURED,
+                action="store_true",
+                default=False,
+                help="Run drum in unstructured mode (model expects/produces unstructured input/output).",
+            )
+
+    @staticmethod
     def _reg_arg_show_stacktrace(*parsers):
         for parser in parsers:
             parser.add_argument(
@@ -393,7 +403,8 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.MONITOR,
                 action="store_true",
                 default="MONITOR" in os.environ,
-                help="Monitor predictions using DataRobot MLOps. True or False. (env: MONITOR)",
+                help="Monitor predictions using DataRobot MLOps. True or False. (env: MONITOR)."
+                "Monitoring can not be used in unstructured mode.",
             )
 
             parser.add_argument(
@@ -537,12 +548,19 @@ class CMRunnerArgsRegistry(object):
 
         CMRunnerArgsRegistry._reg_args_monitoring(batch_parser, server_parser)
 
+        CMRunnerArgsRegistry._reg_arg_unstructured_mode(
+            batch_parser, server_parser, parser_perf_test, validation_parser
+        )
+
         return parser
 
     @staticmethod
     def verify_monitoring_options(options, parser_name):
         if options.subparser_name in [ArgumentsOptions.SERVER, ArgumentsOptions.SCORE]:
             if options.monitor:
+                if options.unstructured:
+                    print("Error: MLOps monitoring can not be used in unstructured mode.")
+                    exit(1)
                 missing_args = []
                 if options.model_id is None:
                     missing_args.append(ArgumentsOptions.MODEL_ID)

@@ -15,11 +15,12 @@
 1. [What is this repository?](#what_is_it)
 2. [Quickstart and examples](#quickstart)
 3. [Assembling an inference model code folder](#inference_model_folder)
-4. [Assembling a training model code folder](#training_model_folder)
-5. [Custom Model Templates](#custom_model_templates)
-6. [Custom Environment Templates](#custom_environment_templates)
-7. [Custom Model Runner (drum)](#custom_model_runner)
-8. [Contribution & development](#contribution_development)
+4. [Unstructured inference models](#unstructured_inference_models)
+5. [Assembling a training model code folder](#training_model_folder)
+6. [Custom Model Templates](#custom_model_templates)
+7. [Custom Environment Templates](#custom_environment_templates)
+8. [Custom Model Runner (drum)](#custom_model_runner)
+9. [Contribution & development](#contribution_development)
 
 ## What is this repository? <a name="what_is_it"></a>
 The **DataRobot User Models** repository contains information and tools for assembling,
@@ -143,6 +144,20 @@ Define the DRUM_JAVA_XMX environment variable to set JVM maximum heap memory siz
 The **drum** tool currently supports models with DataRobot-generated Scoring Code or models that implement either the `IClassificationPredictor`
 or `IRegressionPredictor` interface from [datarobot-prediction](https://mvnrepository.com/artifact/com.datarobot/datarobot-prediction).
 The model artifact must have a **jar** extension.
+
+## Unstructured inference models <a name="unstructured_inference_models"></a>
+**UNDER DEVELOPMENT**
+>The feature is under active development.  
+>Available in DRUM only (not in DR App).  
+>Functionality may change.
+
+Inference models support unstructured mode, where input and output are not verified and can be almost anything.
+This is your responsibility to verify correctness.
+
+The only requirement is that predictions must be returned as strings.
+
+> Note R models: rpy2 is used to run R code from python, scalar values returned by R code, are represented as lists in Python.
+>E.g. if your custom score() method returns "Hello World", you'll receive "['Hello World"]" as the result.
 
 ## Assembling a training model code folder <a name="training_model_folder"></a>
 Custom training models are in active development. They include a `fit()` function, can be trained on the Leaderboard, benchmarked against DataRobot AutoML models, and get access to DataRobot's full set of automated insights. Refer to the [quickrun readme](QUICKSTART-FOR-TRAINING.md).
