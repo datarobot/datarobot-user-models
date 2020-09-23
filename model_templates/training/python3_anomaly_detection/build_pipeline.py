@@ -1,12 +1,13 @@
 import numpy as np
-import pandas as pd
 
+from sklearn.pipeline import Pipeline
 from sklearn.svm import OneClassSVM
+from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.decomposition import TruncatedSVD
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+from anomaly_helpers import AnomalyCalibEstimator
 
 
 ##############################
@@ -18,36 +19,8 @@ numeric_selector = make_column_selector(dtype_include=np.number)
 
 # This selector tells sklearn which columns in a pd.DataFrame are categorical
 # Note that it will return True for text columns as well
-# This means that text variables will be be treated as both text AND categoricals
 # This is ok, but if you don't like it, you could write a more complicated is_categorical function
-# that first calls is_text
 categorical_selector = make_column_selector(dtype_include=np.object)
-
-# Helper function to use in text_selector
-def is_text(x):
-    """
-    Decide if a pandas series is text, using a very simple heuristic:
-    1. Count the number of elements in the series that contain 1 or more whitespace character
-    2. If >75% of the elements have whitespace, the Series is text
-
-    Parameters
-    ----------
-    x: pd.Series - Series to be analyzed for text
-
-    Returns
-    -------
-    boolean: True for is text, False for not text
-    """
-    if pd.api.types.is_string_dtype(x):
-        pct_rows_with_whitespace = (x.str.count(r"\s") > 0).sum() / x.shape[0]
-        return pct_rows_with_whitespace > 0.75
-    return False
-
-
-# This selector tells sklearn which columns in a pd.DataFrame are text
-# Returns a list of strings
-def text_selector(X):
-    return X.columns[list(X.apply(is_text, result_type="expand"))]
 
 
 ##############################
@@ -103,7 +76,9 @@ dense_preprocessing_pipeline = Pipeline(
 )
 
 
+# anomaly pipeline
 def make_anomaly():
     return Pipeline(
-        steps=[("preprocessing", dense_preprocessing_pipeline), ("model", OneClassSVM())]
+        steps=[("preprocessing", dense_preprocessing_pipeline),
+        ("model", AnomalyCalibEstimator(estimator=OneClassSVM()))]
     )

@@ -1,11 +1,14 @@
 import pickle
+
 from build_pipeline import make_anomaly
 
 
 def fit(
     X,
+    y,
     output_dir,
-    row_weights=None,
+    class_order = None,
+    row_weights = None,
     **kwargs,
 ):
     """
@@ -17,8 +20,11 @@ def fit(
     Parameters
     ----------
     X: pd.DataFrame - training data to perform fit on
+    y: pd.Series - target data to perform fit on
     output_dir: the path to write output. This is the path provided in '--output' parameter of the
         'drum fit' command.
+    class_order : A two element long list dictating the order of classes which should be used for
+        modeling. This will not be used for anomaly detection models
     row_weights: An array of non-negative numeric values which can be used to dictate how important
         a row is. Row weights is only optionally used, and there will be no filtering for which
         custom models support this. There are two situations when values will be passed into
@@ -29,7 +35,6 @@ def fit(
     -------
     Nothing
     """
-    # Feel free to delete which ever one of these you aren't using
     estimator = make_anomaly()
 
     estimator.fit(X)
@@ -41,3 +46,4 @@ def fit(
     # NOTE: We currently set a 10GB limit to the size of the serialized model
     with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
         pickle.dump(estimator, fp)
+
