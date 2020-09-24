@@ -31,6 +31,7 @@ from datarobot_drum.drum.common import (
     RunLanguage,
     RunMode,
     TemplateType,
+    TargetType,
     verbose_stdout,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -54,6 +55,22 @@ class CMRunner:
         self.verbose = runtime.options.verbose
         self.run_mode = RunMode(runtime.options.subparser_name)
         self.raw_arguments = sys.argv
+        self.target_type = None
+
+        if self.run_mode not in [RunMode.NEW, RunMode.FIT]:
+            self.target_type = TargetType(self.options.target_type)
+
+        # if there is model config file, check that provided target type
+        # doesn't clash with the target type from model config file
+        if self.options.model_config is not None:
+            model_config_target_type = TargetType(self.options.model_config["targetType"])
+            if self.target_type is None:
+                self.target_type = TargetType(model_config_target_type)
+            elif self.target_type != model_config_target_type:
+                raise DrumCommonException(
+                    "Resolved target type doesn't match target type from model config file."
+                    "If model config file is used used, make --target-type values match."
+                )
 
         self._functional_pipelines = {
             (RunMode.FIT, RunLanguage.PYTHON): "python_fit.json.j2",
@@ -65,6 +82,10 @@ class CMRunner:
         logger = logging.getLogger(LOGGER_NAME_PREFIX)
         logger.setLevel(LOG_LEVELS[options.logging_level])
         return logger
+
+    def _set_target_type(self, target_type):
+        self.target_type = target_type
+        self.options.target_type = target_type.value
 
     def get_logger(self):
         return self.logger
@@ -292,7 +313,6 @@ class CMRunner:
         self.run_mode = RunMode.SCORE
         self.options.code_dir = self.options.output
         self.options.output = os.devnull
-        self.options.unstructured = False
         if self.options.target:
             __tempfile = NamedTemporaryFile()
             df = pd.read_csv(self.options.input, lineterminator="\n")
@@ -328,7 +348,7 @@ class CMRunner:
             "model_id": options.model_id,
             "deployment_id": options.deployment_id,
             "monitor_settings": options.monitor_settings,
-            "unstructured_mode": str(options.unstructured).lower(),
+            "target_type": self.target_type.value,
         }
 
         if self.run_mode == RunMode.SCORE:
@@ -384,6 +404,13 @@ class CMRunner:
                 self.options.target,
                 self.options.unsupervised,
             )
+        if self.options.unsupervised:
+            self._set_target_type(TargetType.ANOMALY)
+        elif self.options.negative_class_label is not None:
+            self._set_target_type(TargetType.BINARY)
+        else:
+            self._set_target_type(TargetType.REGRESSION)
+
         options = self.options
         # functional pipeline is predictor pipeline
         # they are a little different for batch and server predictions.
@@ -490,7 +517,7 @@ class CMRunner:
         if self.run_mode == RunMode.SCORE:
             # print result if output is not provided
             if tmp_output_filename:
-                if self.options.unstructured:
+                if self.target_type == TargetType.UNSTRUCTURED:
                     with open(tmp_output_filename) as f:
                         print(f.read())
                 else:

@@ -10,7 +10,12 @@ from mlpiper.components.restful.flask_route import FlaskRoute
 from mlpiper.components.restful_component import RESTfulComponent
 from mlpiper.components.restful.metric import Metric, MetricType, MetricRelation
 
-from datarobot_drum.drum.common import RunLanguage, URL_PREFIX_ENV_VAR_NAME, REGRESSION_PRED_COLUMN
+from datarobot_drum.drum.common import (
+    RunLanguage,
+    URL_PREFIX_ENV_VAR_NAME,
+    REGRESSION_PRED_COLUMN,
+    TARGET_TYPE_ARG_KEYWORD,
+)
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 
 from datarobot_drum.drum.server import (
@@ -30,7 +35,7 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
         self._memory_monitor = None
         self._run_language = None
         self._predictor = None
-        self._unstructured_mode = False
+        self._target_type = None
 
         self._predict_calls_count = 0
 
@@ -60,7 +65,7 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
         super(UwsgiServing, self).configure(params)
         self._show_perf = self._params.get("show_perf")
         self._run_language = RunLanguage(params.get("run_language"))
-        self._unstructured_mode = params.get("unstructured_mode", False)
+        self._target_type = params[TARGET_TYPE_ARG_KEYWORD]
 
         self._stats_collector = StatsCollector(disable_instance=not self._show_perf)
 

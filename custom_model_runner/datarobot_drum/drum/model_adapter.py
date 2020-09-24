@@ -19,8 +19,10 @@ from datarobot_drum.drum.common import (
     LOGGER_NAME_PREFIX,
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
+    TARGET_TYPE_ARG_KEYWORD,
     REGRESSION_PRED_COLUMN,
     reroute_stdout_to_stderr,
+    TargetType,
 )
 from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -267,7 +269,7 @@ class PythonModelAdapter:
             raise DrumCommonException("Pandas failed to read input csv file: {}".format(filename))
         return df
 
-    def predict(self, input_filename, model=None, unstructured_mode=False, **kwargs):
+    def predict(self, input_filename, model=None, **kwargs):
         """
         Makes predictions against the model using the custom predict
         method and returns a pandas DataFrame
@@ -336,7 +338,7 @@ class PythonModelAdapter:
                     "Model post-process hook failed to post-process predictions: {}".format(exc)
                 ).with_traceback(sys.exc_info()[2]) from None
 
-        if unstructured_mode:
+        if kwargs[TARGET_TYPE_ARG_KEYWORD] == TargetType.UNSTRUCTURED:
             PythonModelAdapter._validate_unstructured_predictions(predictions)
         else:
             self._validate_predictions(predictions, positive_class_label, negative_class_label)

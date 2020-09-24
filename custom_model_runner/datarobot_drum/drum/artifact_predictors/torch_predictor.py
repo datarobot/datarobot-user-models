@@ -8,7 +8,9 @@ from datarobot_drum.drum.common import (
     REGRESSION_PRED_COLUMN,
     extra_deps,
     SupportedFrameworks,
+    TargetType,
 )
+from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.artifact_predictors.artifact_predictor import ArtifactPredictor
 
 
@@ -72,7 +74,7 @@ class PyTorchPredictor(ArtifactPredictor):
         )
         with torch.no_grad():
             predictions = model(data).cpu().data.numpy()
-        if self.positive_class_label is not None and self.negative_class_label is not None:
+        if self.target_type == TargetType.BINARY:
             if predictions.shape[1] == 1:
                 predictions = pd.DataFrame(predictions, columns=[self.positive_class_label])
                 predictions[self.negative_class_label] = 1 - predictions[self.positive_class_label]
@@ -80,6 +82,12 @@ class PyTorchPredictor(ArtifactPredictor):
                 predictions = pd.DataFrame(
                     predictions, columns=[self.negative_class_label, self.positive_class_label]
                 )
-        else:
+        elif self.target_type in [TargetType.REGRESSION, TargetType.ANOMALY]:
             predictions = pd.DataFrame(predictions, columns=[REGRESSION_PRED_COLUMN])
+        else:
+            raise DrumCommonException(
+                "Target type '{}' is not supported by '{}' predictor".format(
+                    self.target_type.value, self.__class__.__name__
+                )
+            )
         return predictions

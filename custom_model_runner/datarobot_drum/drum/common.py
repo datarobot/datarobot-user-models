@@ -9,6 +9,7 @@ REGRESSION_PRED_COLUMN = "Predictions"
 CUSTOM_FILE_NAME = "custom"
 POSITIVE_CLASS_LABEL_ARG_KEYWORD = "positive_class_label"
 NEGATIVE_CLASS_LABEL_ARG_KEYWORD = "negative_class_label"
+TARGET_TYPE_ARG_KEYWORD = "target_type"
 
 URL_PREFIX_ENV_VAR_NAME = "URL_PREFIX"
 
@@ -103,7 +104,7 @@ class ArgumentsOptions(object):
     MAX_WORKERS = "--max-workers"
     VERBOSE = "--verbose"
     VERSION = "--version"
-    UNSTRUCTURED = "--unstructured"
+    TARGET_TYPE = "--target-type"
 
     MAIN_COMMAND = "drum"
 
@@ -133,6 +134,13 @@ class RunLanguage(Enum):
     PYTHON = "python"
     R = "r"
     JAVA = "java"
+
+
+class TargetType(Enum):
+    BINARY = "binary"
+    REGRESSION = "regression"
+    ANOMALY = "anomaly"
+    UNSTRUCTURED = "unstructured"
 
 
 class TemplateType(object):

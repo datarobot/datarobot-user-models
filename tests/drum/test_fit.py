@@ -102,7 +102,7 @@ class TestFit:
             ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset
         )
         if problem == ANOMALY:
-            cmd += " --unsupervised"
+            cmd += " --target-type anomaly"
         else:
             cmd += " --target {}".format(resources.targets(problem))
 

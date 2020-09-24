@@ -47,8 +47,11 @@ class TestOtherCases:
         )
 
         input_dataset = resources.datasets(framework, problem)
-        cmd = "{} score --code-dir {} --input {}".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset
+        cmd = "{} score --code-dir {} --input {} --target-type {}".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            custom_model_dir,
+            input_dataset,
+            resources.target_types(problem),
         )
         if problem == BINARY:
             cmd = cmd + " --positive-class-label yes --negative-class-label no"
@@ -104,8 +107,11 @@ class TestOtherCases:
         )
 
         input_dataset = resources.datasets(framework, problem)
-        cmd = "{} score --code-dir {} --input {}".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset
+        cmd = "{} score --code-dir {} --input {} --target-type {}".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            custom_model_dir,
+            input_dataset,
+            resources.target_types(problem),
         )
         if problem == BINARY:
             cmd = cmd + " --positive-class-label yes --negative-class-label no"
@@ -193,8 +199,11 @@ class TestOtherCases:
             language,
         )
         input_dataset = resources.datasets(framework, problem)
-        cmd = "{} score --code-dir {} --input {}".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset
+        cmd = "{} score --code-dir {} --input {} --target-type {}".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            custom_model_dir,
+            input_dataset,
+            resources.target_types(problem),
         )
         if set_language:
             cmd += " --language {}".format(set_language)
@@ -246,7 +255,7 @@ class TestOtherCases:
 
         output = tmp_path / "output"
 
-        cmd = "{} score --code-dir {} --input {} --output {}".format(
+        cmd = "{} score --code-dir {} --input {} --output {} --target-type regression".format(
             ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output
         )
         _exec_shell_cmd(

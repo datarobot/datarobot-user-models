@@ -2,8 +2,12 @@ import logging
 
 import pandas as pd
 
-from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
-from datarobot_drum.drum.common import RunLanguage
+from datarobot_drum.drum.common import (
+    LOGGER_NAME_PREFIX,
+    RunLanguage,
+    TargetType,
+    TARGET_TYPE_ARG_KEYWORD,
+)
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 from mlpiper.components.connectable_component import ConnectableComponent
@@ -15,12 +19,12 @@ class GenericPredictorComponent(ConnectableComponent):
         self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
         self._run_language = None
         self._predictor = None
-        self._unstructured_mode = False
+        self._target_type = None
 
     def configure(self, params):
         super(GenericPredictorComponent, self).configure(params)
         self._run_language = RunLanguage(params.get("run_language"))
-        self._unstructured_mode = params.get("unstructured_mode", False)
+        self._target_type = TargetType(params[TARGET_TYPE_ARG_KEYWORD])
 
         if self._run_language == RunLanguage.PYTHON:
             from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
@@ -51,7 +55,7 @@ class GenericPredictorComponent(ConnectableComponent):
         input_filename = self._params["input_filename"]
         predictions = self._predictor.predict(input_filename)
         output_filename = self._params.get("output_filename")
-        if self._unstructured_mode:
+        if self._target_type == TargetType.UNSTRUCTURED:
             with open(output_filename, "w") as f:
                 f.write(predictions)
         else:

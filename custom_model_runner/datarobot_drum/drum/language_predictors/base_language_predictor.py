@@ -5,7 +5,7 @@ import pprint
 from abc import ABC, abstractmethod
 
 
-from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.common import LOGGER_NAME_PREFIX, TargetType
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -27,13 +27,12 @@ class BaseLanguagePredictor(ABC):
         self._custom_model_path = None
         self._params = None
         self._mlops = None
-        self._unstructured_mode = False
 
     def configure(self, params):
         self._custom_model_path = params["__custom_model_path__"]
         self._positive_class_label = params.get("positiveClassLabel")
         self._negative_class_label = params.get("negativeClassLabel")
-        self._unstructured_mode = params.get("unstructured_mode")
+        self._target_type = TargetType(params.get("target_type"))
         self._params = params
 
         if self._params["monitor"] == "True":

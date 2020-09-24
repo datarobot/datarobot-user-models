@@ -64,12 +64,22 @@ _training_models_paths = {
 
 _targets = {BINARY: "Species", REGRESSION: "MEDV", BINARY_TEXT: "Churn"}
 
+_target_types = {
+    BINARY: "binary",
+    BINARY_TEXT: "binary",
+    REGRESSION: "regression",
+    REGRESSION_INFERENCE: "regression",
+    ANOMALY: "anomaly",
+    WORDS_COUNT_BASIC: "unstructured",
+}
+
 _class_labels = {
     (SKLEARN, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (XGB, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (KERAS, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (RDS, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (PYPMML, BINARY): ["Iris-setosa", "Iris-versicolor"],
+    (PYTORCH, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (CODEGEN, BINARY): ["yes", "no"],
     (MOJO, BINARY): ["yes", "no"],
     (POJO, BINARY): ["yes", "no"],
@@ -186,6 +196,14 @@ def get_target():
 
 
 @pytest.fixture(scope="session")
+def get_target_type():
+    def _foo(problem):
+        return _target_types[problem]
+
+    return _foo
+
+
+@pytest.fixture(scope="session")
 def get_class_labels():
     def _foo(framework, problem):
         return _class_labels.get((framework, problem), None)
@@ -214,6 +232,7 @@ def resources(
     get_dataset_filename,
     get_paths_to_training_models,
     get_target,
+    get_target_type,
     get_class_labels,
     get_artifacts,
     get_custom,
@@ -222,6 +241,7 @@ def resources(
     resource.datasets = get_dataset_filename
     resource.training_models = get_paths_to_training_models
     resource.targets = get_target
+    resource.target_types = get_target_type
     resource.class_labels = get_class_labels
     resource.artifacts = get_artifacts
     resource.custom = get_custom
