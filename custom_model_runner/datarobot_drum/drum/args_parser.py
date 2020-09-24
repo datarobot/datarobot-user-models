@@ -541,6 +541,7 @@ class CMRunnerArgsRegistry(object):
             batch_parser,
             parser_perf_test,
             server_parser,
+            fit_parser,
             validation_parser,
             new_model_parser,
         )
