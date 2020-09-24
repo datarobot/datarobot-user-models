@@ -1,12 +1,12 @@
 import pytest
 
 from datarobot_drum.drum.common import ArgumentsOptions
-from .constants import SKLEARN, BINARY, RDS, R_FIT, PYTHON, ANOMALY
+from .constants import SKLEARN, BINARY, RDS, R_FIT, PYTHON, ANOMALY, PYTORCH, XGB, KERAS
 from .utils import _create_custom_model_dir, _cmd_add_class_labels, _exec_shell_cmd
 
 
 @pytest.mark.skip(reason="currently fails on DR_Demo_Listing_Interest and DR_Demo_Telecomms_Churn")
-@pytest.mark.parametrize("framework", [SKLEARN])
+@pytest.mark.parametrize("framework", [SKLEARN, PYTORCH, KERAS, XGB, RDS ])
 def test_fit_variety(framework, variety_resources, resources, variety_data_names, tmp_path):
 
     # get data info from fixtures
