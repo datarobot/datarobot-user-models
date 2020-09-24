@@ -47,7 +47,6 @@ def fit(
     if class_order:
         if y.dtype == np.dtype("bool"):
             y = y.astype("str")
-        y = label_binarize(y, classes=class_order)
         estimator = make_classifier(X)
     else:
         estimator = make_regressor(X)
