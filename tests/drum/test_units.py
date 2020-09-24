@@ -15,7 +15,8 @@ from datarobot_drum.drum.drum import (
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
-from datarobot_drum.drum.push import _push_inference, _push_training, schema
+from datarobot_drum.drum.push import _push_inference, _push_training
+from datarobot_drum.drum.common import MODEL_CONFIG_SCHEMA
 
 
 class TestOrderIntuition:
@@ -227,7 +228,7 @@ def mock_train_model():
     ],
 )
 def test_push(config_yaml):
-    config = strictyaml.load(config_yaml, schema).data
+    config = strictyaml.load(config_yaml, MODEL_CONFIG_SCHEMA).data
 
     version_mocks()
     mock_post_blueprint()
