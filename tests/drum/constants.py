@@ -31,6 +31,7 @@ MULTI_ARTIFACT = "multiartifact"
 CODEGEN_AND_SKLEARN = "codegen_and_sklearn"
 # Problem keywords, used to mark datasets
 REGRESSION = "regression"
+BINARY_TEXT = "bintxt"
 REGRESSION_INFERENCE = "regression_inference"
 BINARY = "binary"
 ANOMALY = "anomaly_detection"

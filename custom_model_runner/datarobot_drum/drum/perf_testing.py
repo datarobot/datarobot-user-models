@@ -32,7 +32,7 @@ def _get_samples_df(df, samples):
 
 
 def _get_approximate_samples_in_csv_size(file, target_csv_size):
-    df = pd.read_csv(file)
+    df = pd.read_csv(file, lineterminator="\n")
     file_size = os.stat(file).st_size
     lines_multiplier = target_csv_size / file_size
     return int(df.shape[0] * lines_multiplier) + 1
@@ -93,7 +93,7 @@ class CMRunTests:
 
     def _prepare_test_cases(self):
         print("Preparing test data...")
-        df = pd.read_csv(self._input_csv)
+        df = pd.read_csv(self._input_csv, lineterminator="\n")
         file_size = os.stat(self._input_csv).st_size
         sample_size = int(file_size / df.shape[0])
 
@@ -342,7 +342,7 @@ class CMRunTests:
 
         null_datasets_dir = mkdtemp(prefix=DIR_PREFIX, dir=TMP_DIR)
 
-        df = pd.read_csv(self._input_csv)
+        df = pd.read_csv(self._input_csv, lineterminator="\n")
         column_names = list(df.iloc[[0]])
 
         results = {}

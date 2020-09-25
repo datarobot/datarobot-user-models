@@ -65,7 +65,6 @@ class PyTorchPredictor(ArtifactPredictor):
         # checking if positive/negative class labels were provided
         # done in the base class
         super(PyTorchPredictor, self).predict(data, model, **kwargs)
-
         data = Variable(
             torch.from_numpy(data.values if type(data) != np.ndarray else data).type(
                 torch.FloatTensor

@@ -26,7 +26,6 @@ class DrumRuntime:
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
-
         if not exc_type:
             return True  # no exception, just return
 
@@ -34,23 +33,17 @@ class DrumRuntime:
             # exception occurred before args were parsed
             return False  # propagate exception further
 
-        # log exception
-        exc_msg_lines = traceback.format_exception(exc_type, exc_value, exc_traceback)
-        exc_msg = "".join(exc_msg_lines)
-
         run_mode = RunMode(self.options.subparser_name)
+
         if (
-            not hasattr(self.options, "show_stacktrace")
-            or self.options.show_stacktrace
-            or (run_mode == RunMode.SERVER and self.options.with_error_server)
+            hasattr(self.options, "show_stacktrace")
+            and not self.options.show_stacktrace
+            and not (run_mode == RunMode.SERVER and self.options.with_error_server)
         ):
-            logger.error(exc_msg)
-        else:
             if exc_type == DrumCommonException:
                 print(exc_value)
-                return True
-            else:
-                return False
+                exit(1)
+            return False
 
         if run_mode != RunMode.SERVER:
             # drum is not run in server mode
