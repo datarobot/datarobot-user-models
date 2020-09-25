@@ -1,51 +1,50 @@
 import os
+
 import pytest
 import json
 
 from tests.drum.constants import (
+    ANOMALY,
+    BINARY,
+    BINARY_TEXT,
+    CODEGEN,
+    CODEGEN_AND_SKLEARN,
+    KERAS,
+    MOJO,
+    MULTI_ARTIFACT,
+    NO_CUSTOM,
+    POJO,
+    PYPMML,
+    PYTHON,
+    PYTHON_ALL_HOOKS,
+    PYTHON_LOAD_MODEL,
+    PYTHON_UNSTRUCTURED,
+    PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
+    PYTORCH,
+    R,
+    R_ALL_HOOKS,
+    R_FIT,
+    R_UNSTRUCTURED,
+    RDS,
+    REGRESSION,
+    REGRESSION_INFERENCE,
+    SIMPLE,
+    SKLEARN,
+    SKLEARN_ANOMALY,
     TESTS_ARTIFACTS_PATH,
     TESTS_DATA_PATH,
     TESTS_FIXTURES_PATH,
     TRAINING_TEMPLATES_PATH,
-    TRAINING,
-    INFERENCE,
-    XGB,
-    KERAS,
-    KERAS_JOBLIB,
-    SKLEARN,
-    SIMPLE,
-    PYTORCH,
-    PYPMML,
-    SKLEARN_ANOMALY,
-    RDS,
-    CODEGEN,
-    MOJO,
-    POJO,
-    MULTI_ARTIFACT,
-    CODEGEN_AND_SKLEARN,
-    REGRESSION,
-    REGRESSION_INFERENCE,
-    BINARY,
-    ANOMALY,
-    PYTHON,
-    NO_CUSTOM,
-    PYTHON_ALL_HOOKS,
-    PYTHON_LOAD_MODEL,
-    R,
-    R_ALL_HOOKS,
-    R_FIT,
-    JAVA,
-    PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
-    PYTHON_UNSTRUCTURED,
-    R_UNSTRUCTURED,
     UNSTRUCTURED,
     WORDS_COUNT_BASIC,
+    XGB,
 )
 
 _datasets = {
     # If specific dataset should be defined for a framework, use (framework, problem) key.
     # Otherwise default dataset is used (None, problem)
     (None, REGRESSION): os.path.join(TESTS_DATA_PATH, "boston_housing.csv"),
+    (None, BINARY_TEXT): os.path.join(TESTS_DATA_PATH, "telecomms_churn.csv"),
     (PYPMML, REGRESSION): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
     (None, REGRESSION_INFERENCE): os.path.join(TESTS_DATA_PATH, "boston_housing_inference.csv"),
     (None, BINARY): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
@@ -63,7 +62,7 @@ _training_models_paths = {
     (PYTHON, SKLEARN_ANOMALY): os.path.join(TRAINING_TEMPLATES_PATH, "python3_anomaly_detection"),
 }
 
-_targets = {BINARY: "Species", REGRESSION: "MEDV"}
+_targets = {BINARY: "Species", REGRESSION: "MEDV", BINARY_TEXT: "Churn"}
 
 _class_labels = {
     (SKLEARN, BINARY): ["Iris-setosa", "Iris-versicolor"],

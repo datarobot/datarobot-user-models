@@ -53,6 +53,8 @@ def fit(
     # Feel free to delete which ever one of these you aren't using
     if class_order:
         estimator = make_classifier_pipeline(X)
+        if y.dtype == np.dtype("bool"):
+            y = y.astype("str")
         lb = LabelBinarizer()
         y = lb.fit_transform(y).ravel()
     else:

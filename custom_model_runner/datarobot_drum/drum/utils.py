@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 import os
 import socket
 from contextlib import closing
@@ -112,7 +113,7 @@ def shared_fit_preprocessing(fit_class):
         row_weights: pd.Series of row weights, or None
     """
     # read in data
-    df = pd.read_csv(fit_class.input_filename)
+    df = pd.read_csv(fit_class.input_filename, lineterminator="\n")
 
     # get num rows to use
     if fit_class.num_rows == "ALL":
@@ -121,26 +122,27 @@ def shared_fit_preprocessing(fit_class):
         fit_class.num_rows = int(fit_class.num_rows)
 
     # get target and features, resample and modify nrows if needed
-    if fit_class.target_filename:
-        X = df.sample(fit_class.num_rows, random_state=1)
-        y = pd.read_csv(fit_class.target_filename, index_col=False).sample(
-            fit_class.num_rows, random_state=1
-        )
-        assert len(y.columns) == 1
-        assert len(X) == len(y)
-        y = y.iloc[:, 0]
-    elif fit_class.target_name:
+    if fit_class.target_filename or fit_class.target_name:
+        if fit_class.target_filename:
+            y_unsampled = pd.read_csv(fit_class.target_filename, index_col=False)
+            assert len(y_unsampled.columns) == 1
+            assert len(df) == len(y_unsampled)
+            df = df.merge(y_unsampled, left_index=True, right_index=True)
+            assert len(y_unsampled.columns.values) == 1
+            fit_class.target_name = y_unsampled.columns.values[0]
+        df = df.dropna(subset=[fit_class.target_name])
         X = df.drop(fit_class.target_name, axis=1).sample(
             fit_class.num_rows, random_state=1, replace=True
         )
         y = df[fit_class.target_name].sample(fit_class.num_rows, random_state=1, replace=True)
+
     else:
         X = df.sample(fit_class.num_rows, random_state=1, replace=True)
         y = None
 
     # extract weights from file or data
     if fit_class.weights_filename:
-        row_weights = pd.read_csv(fit_class.weights_filename).sample(
+        row_weights = pd.read_csv(fit_class.weights_filename, lineterminator="\n").sample(
             fit_class.num_rows, random_state=1, replace=True
         )
     elif fit_class.weights:
@@ -159,5 +161,4 @@ def shared_fit_preprocessing(fit_class):
         if fit_class.negative_class_label
         else None
     )
-
     return X, y, class_order, row_weights
