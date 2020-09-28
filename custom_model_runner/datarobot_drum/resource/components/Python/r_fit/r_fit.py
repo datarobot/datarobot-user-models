@@ -1,5 +1,6 @@
 import logging
 import os
+import pandas as pd
 
 from mlpiper.components.connectable_component import ConnectableComponent
 
@@ -77,6 +78,13 @@ class RFit(ConnectableComponent):
     def _materialize(self, parent_data_objs, user_data):
 
         X, y, class_order, row_weights = shared_fit_preprocessing(self)
+
+        # replace any errant NaN's in object cols with None
+        X_cols = X.columns
+        X_obj = X.select_dtypes(include=['object'])
+        X_obj = X_obj.where(pd.notnull(X.select_dtypes(include=['object'])), None)
+        X = pd.concat([X.select_dtypes(exclude=['object']), X_obj], axis=1)
+        X = X[X_cols]
 
         optional_args = {}
 
