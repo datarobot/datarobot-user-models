@@ -47,12 +47,13 @@ class KerasPredictor(ArtifactPredictor):
         try:
             import keras
             from sklearn.pipeline import Pipeline
+            from tensorflow import keras as keras_tf
 
             if isinstance(model, Pipeline):
                 # check the final estimator in the pipeline is Keras
-                if isinstance(model[-1], keras.Model):
+                if isinstance(model[-1], (keras.Model, keras_tf.Model)):
                     return True
-            elif isinstance(model, keras.Model):
+            elif isinstance(model, (keras.Model, keras_tf.Model)):
                 return True
         except Exception as e:
             self._logger.debug("Exception: {}".format(e))
