@@ -27,7 +27,7 @@ init <- function(code_dir) {
 
 load_data <- function(input_filename){
     tmp = readChar(input_filename, file.info(input_filename)$size)
-    read.csv(text=gsub("\r","", tmp, fixed=TRUE))
+    read.csv(text=gsub("\r","", tmp, fixed=TRUE), na.strings = c("NA", ""))
 }
 
 
@@ -96,6 +96,7 @@ process_weights <- function(X, weights_filename, weights, num_rows){
 outer_fit <- function(output_dir, input_filename, target_filename,
                       target_name, num_rows, weights_filename, weights,
                       positive_class_label, negative_class_label) {
+
     processed_data <- process_data(input_filename, target_filename, target_name, num_rows)
 
     X <- processed_data$X
