@@ -194,8 +194,8 @@ The [model_templates](model_templates) folder contains sample models that work w
 * [Keras sample model](model_templates/inference/python3_keras)
 * [Keras sample model + Joblib artifact](model_templates/inference/python3_keras_joblib)
 * [PyPMML sample model](model_templates/inference/python3_pmml)
-* [R sample model](model_templates/r_lang)
-* [Java sample model](model_templates/java_codegen)
+* [R sample model](model_templates/inference/r_lang)
+* [Java sample model](model_templates/inference/java_codegen)
 
 ##### Training Models
 * [Scikit-Learn sample model](model_templates/training/python3_sklearn)
