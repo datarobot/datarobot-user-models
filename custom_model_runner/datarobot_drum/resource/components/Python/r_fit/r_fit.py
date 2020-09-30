@@ -76,31 +76,19 @@ class RFit(ConnectableComponent):
 
     def _materialize(self, parent_data_objs, user_data):
 
-        X, y, class_order, row_weights = shared_fit_preprocessing(self)
-
-        optional_args = {}
-
         # make sure our output dir ends with a slash
         if self.output_dir[-1] != "/":
             self.output_dir += "/"
 
-        with localconverter(ro.default_converter + pandas2ri.converter):
-            r_X = ro.conversion.py2rpy(X)
-            if y is not None:
-                # This is necessary for the R code to work properly, and doesn't transform the
-                # data
-                if y.dtype == bool:
-                    y = y.astype("str")
-                r_y = ro.conversion.py2rpy(y)
-                if class_order:
-                    optional_args["class_order"] = ro.conversion.py2rpy(class_order)
-            if row_weights is not None:  # pandas complains if we aren't explicit here
-                optional_args["row_weights"] = ro.conversion.py2rpy(row_weights)
-
-        if y is not None:
-            r_handler.outer_fit(X=r_X, y=r_y, output_dir=self.output_dir, **optional_args)
-        else:
-            r_handler.outer_fit_unsupervised(X=r_X, output_dir=self.output_dir, **optional_args)
+        r_handler.outer_fit_unsupervised(self.output_dir,
+                                         self.input_filename,
+                                         self.target_filename,
+                                         self.target_name,
+                                         self.num_rows,
+                                         self.weights_filename,
+                                         self.weights,
+                                         self.positive_class_label,
+                                         self.negative_class_label)
 
         make_sure_artifact_is_small(self.output_dir)
         return []
