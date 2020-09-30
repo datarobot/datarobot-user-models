@@ -45,8 +45,8 @@ process_data <- function(input_filename, target_filename, target_name, num_rows)
     if (!is.null(target_filename) || !is.null(target_name)){
         if (!is.null(target_filename)){
             y_unsampled = load_data(target_filename)
-            assert( length(colnames(y_unsampled)) == 1)
-            assert( nrow(df) == nrow(y_unsampled))
+            stopifnot( length(colnames(y_unsampled)) == 1)
+            stopifnot( nrow(df) == nrow(y_unsampled))
             df <- cbind(df, y)
             target_name <- colnames(y)
         }
