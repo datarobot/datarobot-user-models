@@ -79,14 +79,24 @@ class RFit(ConnectableComponent):
         if self.output_dir[-1] != "/":
             self.output_dir += "/"
 
+        if self.weights:
+            weights = self.weights.replace('-', '.')
+        else:
+            weights = ro.NULL
+
+        if self.target_name:
+            target_name = self.target_name.replace('-', '.').replace('_', '.')
+        else:
+            target_name = ro.NULL
+
         r_handler.outer_fit(
             self.output_dir,
             self.input_filename,
             self.target_filename or ro.NULL,
-            self.target_name or ro.NULL,
+            target_name,
             self.num_rows,
             self.weights_filename or ro.NULL,
-            self.weights or ro.NULL,
+            weights,
             self.positive_class_label or ro.NULL,
             self.negative_class_label or ro.NULL,
         )
