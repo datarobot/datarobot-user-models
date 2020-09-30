@@ -54,7 +54,7 @@ process_data <- function(input_filename, target_filename, target_name, num_rows)
     X <-  df[,!(names(df) %in% c(target_name))]
     X <- X[sample(nrow(X), size=num_rows, replace=TRUE ), ]
 
-    y <- X[,target_name, drop=FALSE]
+    y <- df[,target_name, drop=FALSE]
     y <- y[sample(nrow(y), size=num_rows, replace=TRUE),]
 
     } else {
@@ -71,6 +71,7 @@ process_data <- function(input_filename, target_filename, target_name, num_rows)
 
 process_weights <- function(X, weights_filename, weights, num_rows){
   if (!is.null(weights_filename)){
+    set.seed(1)
     row_weights <- load_data(weights_filename)
     row_weights <- row_weights[sample(nrow(row_weights), size=num_rows, replace=TRUE ), ]
   } else if(!is.null(weights)){
@@ -99,9 +100,9 @@ outer_fit <- function(output_dir, input_filename, target_filename,
                       positive_class_label, negative_class_label) {
     processed_data <- process_data(input_filename, target_filename, target_name, num_rows)
 
-    X <- processed_data['X']
-    y <- processed_data['y']
-    num_rows <- processed_data['num_rows']
+    X <- processed_data$X
+    y <- processed_data$y
+    num_rows <- processed_data$num_rows
 
     row_weights <- process_weights(X, weights_filename, weights, num_rows )
 
@@ -117,10 +118,8 @@ outer_fit <- function(output_dir, input_filename, target_filename,
                                       output_dir=output_dir,
                                       row_weights=row_weights))
         if (!is.null(y)) {
-            kwargs <- append(kwargs, list(
-                                            y=y,
-                                            class_order=class_order,
-                                            ))
+            kwargs <- append(kwargs, list(y=y,
+                                            class_order=class_order))
         }
 
         do.call(fit_hook, kwargs)

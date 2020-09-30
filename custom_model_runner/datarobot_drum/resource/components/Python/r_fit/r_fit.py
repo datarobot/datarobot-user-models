@@ -75,20 +75,21 @@ class RFit(ConnectableComponent):
         r_handler.init(self.custom_model_path)
 
     def _materialize(self, parent_data_objs, user_data):
-
         # make sure our output dir ends with a slash
         if self.output_dir[-1] != "/":
             self.output_dir += "/"
 
-        r_handler.outer_fit_unsupervised(self.output_dir,
-                                         self.input_filename,
-                                         self.target_filename,
-                                         self.target_name,
-                                         self.num_rows,
-                                         self.weights_filename,
-                                         self.weights,
-                                         self.positive_class_label,
-                                         self.negative_class_label)
+        r_handler.outer_fit(
+            self.output_dir,
+            self.input_filename,
+            self.target_filename or ro.NULL,
+            self.target_name or ro.NULL,
+            self.num_rows,
+            self.weights_filename or ro.NULL,
+            self.weights or ro.NULL,
+            self.positive_class_label or ro.NULL,
+            self.negative_class_label or ro.NULL,
+        )
 
         make_sure_artifact_is_small(self.output_dir)
         return []
