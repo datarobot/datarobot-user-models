@@ -80,12 +80,12 @@ class RFit(ConnectableComponent):
             self.output_dir += "/"
 
         if self.weights:
-            weights = self.weights.replace('-', '.')
+            weights = self.weights.replace("-", ".")
         else:
             weights = ro.NULL
 
         if self.target_name:
-            target_name = self.target_name.replace('-', '.').replace('_', '.')
+            target_name = self.target_name.replace("-", ".").replace("_", ".")
         else:
             target_name = ro.NULL
 
