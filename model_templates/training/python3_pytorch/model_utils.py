@@ -120,4 +120,7 @@ def subset_data(X):
     numerics = ["int16", "int32", "int64", "float16", "float32", "float64"]
     # exclude any completely-missing columns when checking for numerics
     num_features = list(X.dropna(axis=1, how="all").select_dtypes(include=numerics).columns)
-    return X[num_features]
+    # keep numeric features, zero-impute any missing values
+    # obviously this is a very rudimentary approach to handling missing values
+    # a more sophisticated imputer can be implemented by making use of custom transform, load, and predict hooks
+    return X[num_features].fillna(0)
