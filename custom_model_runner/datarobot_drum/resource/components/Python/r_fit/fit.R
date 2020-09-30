@@ -5,6 +5,7 @@ library(devtools)
 init_hook <- FALSE
 fit_hook <- FALSE
 
+set.seed(1)
 
 init <- function(code_dir) {
   if (file.exists(file.path(code_dir, 'custom.R'))){
@@ -26,20 +27,18 @@ init <- function(code_dir) {
 
 load_data <- function(input_filename){
     tmp = readChar(input_filename, file.info(input_filename)$size)
-    data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE))
-    data
+    read.csv(text=gsub("\r","", tmp, fixed=TRUE))
 }
 
 
 process_data <- function(input_filename, target_filename, target_name, num_rows){
-    set.seed(1)
     # read X
     df <- load_data(input_filename)
     # set num_rows
     if (num_rows == 'ALL'){
         num_rows <- nrow(df)
     } else {
-        num_rows <- as.integer(a)
+        num_rows <- as.integer(num_rows)
     }
     # handle target
     if (!is.null(target_filename) || !is.null(target_name)){
@@ -71,7 +70,6 @@ process_data <- function(input_filename, target_filename, target_name, num_rows)
 
 process_weights <- function(X, weights_filename, weights, num_rows){
   if (!is.null(weights_filename)){
-    set.seed(1)
     row_weights <- load_data(weights_filename)
     row_weights <- row_weights[sample(nrow(row_weights), size=num_rows, replace=TRUE ), ]
   } else if(!is.null(weights)){

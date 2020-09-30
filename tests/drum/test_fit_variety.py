@@ -16,7 +16,9 @@ def test_fit_variety(framework, variety_resources, resources, variety_data_names
     target = variety_resources.target(df)
     if problem == BINARY:
         class_labels = variety_resources.class_labels(df)
-
+        if framework == RDS:
+            # there's one annoying dataset where R needs 0 and 1 and python wants 1.0 and 0.0
+            class_labels = [int(x) if type(x) is float else x for x in class_labels]
     # figure out language
     if framework == RDS:
         language = R_FIT
