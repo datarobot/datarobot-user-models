@@ -174,7 +174,7 @@ class PythonModelAdapter:
                     ).with_traceback(sys.exc_info()[2]) from None
                 break
 
-        if not model:
+        if model is None:
             if len(pred_that_support_artifact) > 0:
                 framework_err = """
                     The following frameworks support this model artifact
