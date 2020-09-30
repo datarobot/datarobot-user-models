@@ -47,8 +47,8 @@ process_data <- function(input_filename, target_filename, target_name, num_rows)
             y_unsampled = load_data(target_filename)
             stopifnot( length(colnames(y_unsampled)) == 1)
             stopifnot( nrow(df) == nrow(y_unsampled))
-            df <- cbind(df, y)
-            target_name <- colnames(y)
+            df <- cbind(df, y_unsampled)
+            target_name <- colnames(y_unsampled)
         }
     df <-  df[!(is.na(df[target_name])) , ]
     X <-  df[,!(names(df) %in% c(target_name))]
