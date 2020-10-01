@@ -298,7 +298,8 @@ class CMRunner:
             df = pd.read_csv(self.options.input, lineterminator="\n")
             df = df.drop(self.options.target, axis=1)
             # convert to R-friendly missing fields
-            df = handle_missing_colnames(df)
+            if self._get_fit_run_language() == RunLanguage.R:
+                df = handle_missing_colnames(df)
             df.to_csv(__tempfile.name, index=False)
             self.options.input = __tempfile.name
         self._run_fit_and_predictions_pipelines_in_mlpiper()
