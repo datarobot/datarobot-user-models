@@ -66,6 +66,17 @@ class CMRunner:
         logger.setLevel(LOG_LEVELS[options.logging_level])
         return logger
 
+    @staticmethod
+    def _handle_missing_colnames(df):
+        missing_lookup = {'Unnamed: 1': 'X'}
+        missing_cols = [c for c in df.columns if 'Unnamed' in c]
+        if missing_cols:
+            if len(missing_cols) > 1:
+                missing_lookup.update(
+                    {'Unnamed: {}'.format(x+1): 'X.{}'.format(x) for x in range(1, len(missing_cols))}
+                )
+        return df.rename(columns=missing_lookup)
+
     def get_logger(self):
         return self.logger
 
@@ -297,6 +308,8 @@ class CMRunner:
             __tempfile = NamedTemporaryFile()
             df = pd.read_csv(self.options.input, lineterminator="\n")
             df = df.drop(self.options.target, axis=1)
+            # convert to R-friendly missing fields
+            df = self._handle_missing_colnames(df)
             df.to_csv(__tempfile.name, index=False)
             self.options.input = __tempfile.name
         self._run_fit_and_predictions_pipelines_in_mlpiper()
