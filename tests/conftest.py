@@ -30,6 +30,8 @@ from tests.drum.constants import (
     REGRESSION_INFERENCE,
     SIMPLE,
     SKLEARN,
+    SKLEARN_BINARY,
+    SKLEARN_REGRESSION,
     SKLEARN_ANOMALY,
     TESTS_ARTIFACTS_PATH,
     TESTS_DATA_PATH,
@@ -53,7 +55,10 @@ _datasets = {
 }
 
 _training_models_paths = {
-    (PYTHON, SKLEARN): os.path.join(TRAINING_TEMPLATES_PATH, "python3_sklearn"),
+    (PYTHON, SKLEARN_BINARY): os.path.join(TRAINING_TEMPLATES_PATH, "python3_sklearn_binary"),
+    (PYTHON, SKLEARN_REGRESSION): os.path.join(
+        TRAINING_TEMPLATES_PATH, "python3_sklearn_regression"
+    ),
     (PYTHON, SIMPLE): os.path.join(TRAINING_TEMPLATES_PATH, "simple"),
     (PYTHON, KERAS): os.path.join(TRAINING_TEMPLATES_PATH, "python3_keras_joblib"),
     (PYTHON, XGB): os.path.join(TRAINING_TEMPLATES_PATH, "python3_xgboost"),
@@ -74,6 +79,7 @@ _target_types = {
 }
 
 _class_labels = {
+    (SKLEARN_BINARY, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (SKLEARN, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (XGB, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (KERAS, BINARY): ["Iris-setosa", "Iris-versicolor"],

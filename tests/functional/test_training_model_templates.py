@@ -91,13 +91,13 @@ class TestTrainingModelTemplates(object):
                 "binary",
             ),
             (
-                "training/python3_sklearn",
+                "training/python3_sklearn_regression",
                 "project_regression_boston",
                 "sklearn_drop_in_env",
                 "regression",
             ),
             (
-                "training/python3_sklearn",
+                "training/python3_sklearn_binary",
                 "project_binary_iris",
                 "sklearn_drop_in_env",
                 "binary",
