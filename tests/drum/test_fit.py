@@ -6,6 +6,7 @@ import pandas as pd
 import pytest
 
 from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.drum.utils import handle_missing_colnames
 from .constants import (
     ANOMALY,
     BINARY,
@@ -30,13 +31,15 @@ from .utils import _cmd_add_class_labels, _create_custom_model_dir, _exec_shell_
 
 class TestFit:
     @staticmethod
-    def _add_weights_cmd(weights, input_csv):
+    def _add_weights_cmd(weights, input_csv, r_fit=False):
         df = pd.read_csv(input_csv, lineterminator="\n")
         colname = "some-colname"
         weights_data = pd.Series(np.random.randint(1, 3, len(df)))
         __keep_this_around = NamedTemporaryFile("w")
         if weights == WEIGHTS_ARGS:
             df[colname] = weights_data
+            if r_fit:
+                df = handle_missing_colnames(df)
             df.to_csv(__keep_this_around.name)
             return " --row-weights " + colname, __keep_this_around.name, __keep_this_around
         elif weights == WEIGHTS_CSV:
@@ -92,7 +95,7 @@ class TestFit:
         input_dataset = resources.datasets(framework, problem)
 
         weights_cmd, input_dataset, __keep_this_around = self._add_weights_cmd(
-            weights, input_dataset
+            weights, input_dataset, r_fit=language == R_FIT
         )
 
         output = tmp_path / "output"
