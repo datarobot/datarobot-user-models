@@ -2,7 +2,7 @@
 cd /opt/code/ || exit 1
 export PYTHONPATH=/opt/code
 
-CMD="drum server -cd . --address 0.0.0.0:8080 --production --max-workers 1 --show-stacktrace"
+CMD="drum server -cd . --address 0.0.0.0:8080 --show-stacktrace"
 
 if [ ! -z "${POSITIVE_CLASS_LABEL}" ]; then
     CMD="${CMD} --positive-class-label ${POSITIVE_CLASS_LABEL}"
