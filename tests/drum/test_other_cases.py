@@ -268,7 +268,7 @@ class TestOtherCases:
         )
         preds = pd.read_csv(output)
         assert all(
-            val for val in (preds["Predictions"] == len(CustomHooks.ALL_PREDICT)).values
+            val for val in (preds["Predictions"] == len(CustomHooks.ALL_PREDICT_STRUCTURED)).values
         ), preds
 
     @pytest.mark.parametrize("language, language_suffix", [("python", ".py"), ("r", ".R")])

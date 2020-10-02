@@ -428,6 +428,16 @@ class CMRunnerArgsRegistry(object):
                 help="MLOps setting to use for connecting with the MLOps Agent (env: MONITOR_SETTINGS)",
             )
 
+    # TODO: restrict params to be used with unstructured target type only
+    @staticmethod
+    def _reg_args_params(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.PARAMS,
+                default=None,
+                help="Additional params",
+            )
+
     @staticmethod
     def _reg_arg_target_type(*parsers):
         target_types = [e.value for e in TargetType]
@@ -573,6 +583,10 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_args_monitoring(batch_parser, server_parser)
 
         CMRunnerArgsRegistry._reg_arg_target_type(
+            batch_parser, parser_perf_test, server_parser, validation_parser
+        )
+
+        CMRunnerArgsRegistry._reg_args_params(
             batch_parser, parser_perf_test, server_parser, validation_parser
         )
 

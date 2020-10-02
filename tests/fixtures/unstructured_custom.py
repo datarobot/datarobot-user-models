@@ -1,15 +1,22 @@
-import pandas as pd
-
-
 def load_model(input_dir):
     return "dummy"
 
 
-def read_input_data(input_filename):
-    with open(input_filename) as f:
-        data = f.read()
-    return data
+def score_unstructured(model, **kwargs):
+    print(kwargs)
+    in_data = kwargs.get("data")
 
+    if isinstance(in_data, bytes):
+        in_data = in_data.decode("utf8")
 
-def score(data, model, **kwargs):
-    return str(data.count(" ") + 1)
+    words_count = in_data.count(" ") + 1
+
+    ret_mode = kwargs.get("ret_mode", "")
+    if ret_mode == "binary":
+        ret = {
+            "data": words_count.to_bytes(4, byteorder="big"),
+            "mimetype": "application/octet-stream",
+        }
+    else:
+        ret = {"data": str(words_count)}
+    return ret

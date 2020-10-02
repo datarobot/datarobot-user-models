@@ -19,12 +19,14 @@ from tests.drum.constants import (
     PYTHON_ALL_HOOKS,
     PYTHON_LOAD_MODEL,
     PYTHON_UNSTRUCTURED,
+    PYTHON_UNSTRUCTURED_PARAMS,
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
     PYTORCH,
     R,
     R_ALL_HOOKS,
     R_FIT,
     R_UNSTRUCTURED,
+    R_UNSTRUCTURED_PARAMS,
     RDS,
     REGRESSION,
     REGRESSION_INFERENCE,
@@ -159,6 +161,14 @@ _custom_filepaths = {
     R_FIT: (os.path.join(TESTS_FIXTURES_PATH, "fit_custom.R"), "custom.R"),
     PYTHON_UNSTRUCTURED: (os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom.py"), "custom.py"),
     R_UNSTRUCTURED: (os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom.R"), "custom.R"),
+    PYTHON_UNSTRUCTURED_PARAMS: (
+        os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom_params.py"),
+        "custom.py",
+    ),
+    R_UNSTRUCTURED_PARAMS: (
+        os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom_params.R"),
+        "custom.R",
+    ),
 }
 
 

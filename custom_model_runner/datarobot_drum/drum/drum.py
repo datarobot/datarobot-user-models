@@ -355,6 +355,7 @@ class CMRunner:
             "model_id": options.model_id,
             "deployment_id": options.deployment_id,
             "monitor_settings": options.monitor_settings,
+            "params": options.params if hasattr(options, "params") else "null",
             "target_type": self.target_type.value,
         }
 

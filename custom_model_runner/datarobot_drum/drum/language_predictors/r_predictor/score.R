@@ -7,22 +7,30 @@ read_input_data_hook <- FALSE
 load_model_hook <- FALSE
 transform_hook <- FALSE
 score_hook <- FALSE
+score_unstructured_hook <- FALSE
 post_process_hook <- FALSE
 
 REGRESSION_PRED_COLUMN_NAME <- "Predictions"
 CUSTOM_MODEL_FILE_EXTENSION <- ".rds"
 RUNNING_LANG_MSG <- "Running environment language: R."
 
-init <- function(code_dir) {
+init <- function(code_dir, target_type) {
     custom_path <- file.path(code_dir, "custom.R")
     custom_loaded <- import(custom_path)
+
     if (isTRUE(custom_loaded)) {
-        init_hook <<- getHookMethod("init")
-        read_input_data_hook <<- getHookMethod("read_input_data")
-        load_model_hook <<- getHookMethod("load_model")
-        transform_hook <<- getHookMethod("transform")
-        score_hook <<- getHookMethod("score")
-        post_process_hook <<- getHookMethod("post_process")
+        if (target_type == TargetType$UNSTRUCTURED) {
+            init_hook <<- getHookMethod("init")
+            load_model_hook <<- getHookMethod("load_model")
+            score_unstructured_hook <<- getHookMethod("score_unstructured")
+        } else {
+            init_hook <<- getHookMethod("init")
+            read_input_data_hook <<- getHookMethod("read_input_data")
+            load_model_hook <<- getHookMethod("load_model")
+            transform_hook <<- getHookMethod("transform")
+            score_hook <<- getHookMethod("score")
+            post_process_hook <<- getHookMethod("post_process")
+        }
     }
 
     if (!isFALSE(init_hook)) {
@@ -84,7 +92,7 @@ load_serialized_model <- function(model_dir) {
 }
 
 .predict_binary <- function(data, model, ...) {
-    kwargs <- list(...)[[1]]
+    kwargs <- list(...)
     positive_class_label<-kwargs$positive_class_label
     negative_class_label<-kwargs$negative_class_label
     predictions <- data.frame(stats::predict(model, data, type = "prob"))
@@ -128,15 +136,15 @@ load_serialized_model <- function(model_dir) {
 #' @export
 #'
 #' @examples
-model_predict <- function(data, model, ...) {
-    kwargs <- list(...)[[1]]
+model_predict <- function(...) {
+    kwargs <- list(...)
     target_type<-kwargs$target_type
     kwargs$target_type <- NULL
 
     if (!exists(target_type, .predictors)) {
         stop(sprintf("Target type '%s' is not supported by R predictor", target_type))
     }
-    do.call(.predictors[[target_type]], list(data, model, kwargs))
+    do.call(.predictors[[target_type]], kwargs)
 }
 
 #' Makes predictions against the model using the custom predict
@@ -188,12 +196,6 @@ outer_predict <- function(input_filename, target_type, model=NULL, positive_clas
         }
     }
 
-    .validate_unstructured_predictions <- function(to_validate) {
-        if (!is.character(to_validate)) {
-            stop(sprintf("In unstructured mode predictions must be of type character; but received %s", typeof(to_validate)))
-        }
-    }
-
     if (!isFALSE(read_input_data_hook)) {
         data <- read_input_data_hook(input_filename)
     } else {
@@ -213,22 +215,38 @@ outer_predict <- function(input_filename, target_type, model=NULL, positive_clas
     if (!isFALSE(score_hook)) {
         predictions <- do.call(score_hook, list(data, model, kwargs))
     } else {
-        kwargs <- append(kwargs, list(target_type=target_type))
-        predictions <- do.call(model_predict, list(data, model, kwargs))
+        kwargs <- append(kwargs, list(data, model, target_type=target_type), after=0)
+        predictions <- do.call(model_predict, kwargs)
     }
 
     if (!isFALSE(post_process_hook)) {
         predictions <- post_process_hook(predictions, model)
     }
 
-    if (target_type == TargetType$UNSTRUCTURED) {
-        .validate_unstructured_predictions(predictions)
-    } else if (target_type == TargetType$BINARY) {
+    if (target_type == TargetType$BINARY) {
         .validate_binary_predictions(predictions)
     } else if (target_type == TargetType$REGRESSION) {
         .validate_regression_predictions(predictions)
     } else {
         stop(sprintf("Unsupported target type %s", target_type))
     }
+    predictions
+}
+
+predict_unstructured <- function(model=NULL, ...) {
+    .validate_unstructured_predictions <- function(to_validate) {
+        if (!is.list(to_validate)) {
+            stop(sprintf("In unstructured mode predictions must be of type list; but received %s", typeof(to_validate)))
+        }
+        if (!is.null(to_validate$data)) {
+            if (!is.raw(to_validate$data) && !is.character(to_validate$data)) {
+                stop(sprintf("In unstructured mode predictions data must be of type either character or raw, but received %s", typeof(to_validate$data)))
+            }
+        }
+    }
+    kwargs_list = list(...)
+    kwargs_list <- append(kwargs_list, model, after=0)
+    predictions <- do.call(score_unstructured_hook, kwargs_list)
+    .validate_unstructured_predictions(predictions)
     predictions
 }

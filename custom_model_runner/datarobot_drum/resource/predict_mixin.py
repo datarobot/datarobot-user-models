@@ -1,8 +1,13 @@
 import tempfile
-from flask import request
+from flask import request, Response
 
 
-from datarobot_drum.drum.common import REGRESSION_PRED_COLUMN, TargetType
+from datarobot_drum.drum.common import REGRESSION_PRED_COLUMN, TargetType, UnstructuredDtoKeys
+from datarobot_drum.resource.unstructured_helpers import (
+    _resolve_incoming_unstructured_data,
+    _resolve_outgoing_unstructured_data,
+)
+from datarobot_drum.drum.utils import split_params_to_dict
 
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
@@ -66,4 +71,54 @@ class PredictMixin:
                 )
                 response = {"message": "ERROR: " + ret_str}
                 response_status = HTTP_422_UNPROCESSABLE_ENTITY
+        return response, response_status
+
+    def do_predict_unstructured(self, logger=None):
+        def _validate_content_type(content_type):
+            ct_lst = []
+            if content_type is not None:
+                ct_lst = content_type.split(";", 2)
+            ret_mimetype = "text/plain" if len(ct_lst) == 0 else ct_lst[0]
+            ret_mimetype = ret_mimetype.strip()
+            content_type_params = None if len(ct_lst) <= 1 else ct_lst[1]
+
+            content_type_params_dict = split_params_to_dict(content_type_params)
+            ret_charset = content_type_params_dict.get("charset", "utf8")
+
+            # ret_charset = "utf8" if len(ct_lst) <= 1 else ct_lst[1]
+            return ret_mimetype, ret_charset
+
+        response_status = HTTP_200_OK
+        kwargs_params = {}
+
+        data = request.data
+        mimetype, charset = _validate_content_type(request.content_type)
+
+        data_binary_or_text, mimetype, charset = _resolve_incoming_unstructured_data(
+            data,
+            mimetype,
+            charset,
+        )
+
+        kwargs_params[UnstructuredDtoKeys.DATA] = data_binary_or_text
+        kwargs_params[UnstructuredDtoKeys.MIMETYPE] = mimetype
+        kwargs_params[UnstructuredDtoKeys.CHARSET] = charset
+
+        kwargs_params.update(request.args)
+
+        unstructured_response = self._predictor.predict_unstructured(**kwargs_params)
+
+        response_data, response_mimetype, response_charset = _resolve_outgoing_unstructured_data(
+            unstructured_response
+        )
+
+        response = Response(response_data)
+
+        # TODO: should I be able to set charset without mimetype?
+        if response_mimetype is not None:
+            content_type = response_mimetype
+            if response_charset is not None:
+                content_type += "; charset={}".format(response_charset)
+            response.headers["Content-Type"] = content_type
+
         return response, response_status

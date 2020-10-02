@@ -1,9 +1,9 @@
 import logging
-import numpy as np
 import os
 import socket
 from contextlib import closing
 from pathlib import Path
+from datarobot_drum.drum.exceptions import DrumCommonException
 
 import pandas as pd
 from jinja2 import BaseLoader, DebugUndefined, Environment
@@ -171,3 +171,21 @@ def handle_missing_colnames(df):
         missing_lookup = {pycol: rcol for pycol, rcol in zip(missing_cols, r_vals)}
         return df.rename(columns=missing_lookup)
     return df
+
+
+def split_params_to_dict(params):
+    if params is None:
+        return {}
+    params_dict = {}
+    for pair in params.split(";"):
+        if len(pair) != 0:
+            pp = pair.split("=")
+            if len(pp) != 2:
+                raise DrumCommonException(
+                    "Wrong format for additional params. Given '{}', expected: 'file=binary;charset=utf8'".format(
+                        params
+                    )
+                )
+            key = pp[0].strip()
+            params_dict[key] = pp[1]
+    return params_dict

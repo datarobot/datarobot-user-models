@@ -8,6 +8,7 @@ from datarobot_drum.drum.common import (
     TargetType,
     CustomHooks,
     REGRESSION_PRED_COLUMN,
+    UnstructuredDtoKeys,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
@@ -60,12 +61,11 @@ class RPredictor(BaseLanguagePredictor):
 
         r_handler.source(R_COMMON_PATH)
         r_handler.source(R_SCORE_PATH)
-        r_handler.init(self._custom_model_path)
+        r_handler.init(self._custom_model_path, self._target_type.value)
         if self._target_type == TargetType.UNSTRUCTURED:
             for hook_name in [
-                CustomHooks.READ_INPUT_DATA,
                 CustomHooks.LOAD_MODEL,
-                CustomHooks.SCORE,
+                CustomHooks.SCORE_UNSTRUCTURED,
             ]:
                 if not hasattr(r_handler, hook_name):
                     raise DrumCommonException(
@@ -104,3 +104,42 @@ class RPredictor(BaseLanguagePredictor):
                 logger.error(error_message)
                 raise DrumCommonException(error_message)
         return py_data_object
+
+    def predict_unstructured(self, **kwargs):
+        def _r_is_character(r_val):
+            _is_character = ro.r("is.character")
+            return bool(_is_character(r_val))
+
+        def _rlist_to_dict(rlist):
+
+            dd = {}
+            for k, v in rlist.items():
+                k = str(k)
+                if k == UnstructuredDtoKeys.DATA:
+                    if v == ro.rinterface.NULL:
+                        dd[k] = None
+                    else:
+                        dd[k] = str(v[0]) if _r_is_character(v) else bytes(v)
+                else:
+                    # Any scalar value is returned from R as one element vector,
+                    # so get this value.
+                    dd[k] = str(v[0]) if v != ro.rinterface.NULL else None
+            return dd
+
+        data_binary_or_text = kwargs.get(UnstructuredDtoKeys.DATA, None)
+
+        if UnstructuredDtoKeys.DATA in kwargs:
+            kwargs.pop(UnstructuredDtoKeys.DATA)
+
+        # if data_binary_or_text is str it will be auto converted into R character type;
+        # otherwise if it is bytes, manually convert it into byte vector (raw)
+        r_data_binary_or_text = data_binary_or_text
+        if isinstance(data_binary_or_text, bytes):
+            r_data_binary_or_text = ro.rinterface.ByteSexpVector(data_binary_or_text)
+
+        kwargs_filtered = {k: v for k, v in kwargs.items() if v is not None}
+        kwargs_filtered[UnstructuredDtoKeys.DATA] = r_data_binary_or_text
+        ret_rlist = r_handler.predict_unstructured(model=self._model, **kwargs_filtered)
+        ret_dict = _rlist_to_dict(ret_rlist)
+
+        return ret_dict

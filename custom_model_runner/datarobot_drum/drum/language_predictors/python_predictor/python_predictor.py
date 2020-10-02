@@ -1,6 +1,5 @@
 import logging
 import sys
-import pprint
 import time
 
 from datarobot_drum.drum.common import (
@@ -8,8 +7,6 @@ from datarobot_drum.drum.common import (
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
     TARGET_TYPE_ARG_KEYWORD,
-    TargetType,
-    CustomHooks,
 )
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -27,22 +24,12 @@ class PythonPredictor(BaseLanguagePredictor):
     def configure(self, params):
         super(PythonPredictor, self).configure(params)
 
-        self._model_adapter = PythonModelAdapter(model_dir=self._custom_model_path)
+        self._model_adapter = PythonModelAdapter(
+            model_dir=self._custom_model_path, target_type=self._target_type
+        )
 
         sys.path.append(self._custom_model_path)
         self._model_adapter.load_custom_hooks()
-        if self._target_type == TargetType.UNSTRUCTURED:
-            for hook_name in [
-                CustomHooks.READ_INPUT_DATA,
-                CustomHooks.LOAD_MODEL,
-                CustomHooks.SCORE,
-            ]:
-                if self._model_adapter._custom_hooks[hook_name] is None:
-                    raise DrumCommonException(
-                        "In '{}' mode hook '{}' must be provided.".format(
-                            TargetType.UNSTRUCTURED.value, hook_name
-                        )
-                    )
         self._model = self._model_adapter.load_model_from_artifact()
         if self._model is None:
             raise Exception("Failed to load model")
@@ -61,5 +48,19 @@ class PythonPredictor(BaseLanguagePredictor):
 
         # TODO: call monitor only if we are in structured mode
         self.monitor(input_filename, predictions, execution_time_ms)
+
+        return predictions
+
+    def predict_unstructured(self, **kwargs):
+        # validating_input
+        data_text = kwargs.get("text", None)
+        data_binary = kwargs.get("data", None)
+
+        if data_text is not None and data_binary is not None:
+            raise DrumCommonException(
+                "Unstructured mode: data must be provided in either in 'text' or in 'data' field, but not both."
+            )
+
+        predictions = self._model_adapter.predict_unstructured(model=self._model, **kwargs)
 
         return predictions

@@ -19,10 +19,10 @@ from datarobot_drum.drum.common import (
     LOGGER_NAME_PREFIX,
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
-    TARGET_TYPE_ARG_KEYWORD,
     REGRESSION_PRED_COLUMN,
     reroute_stdout_to_stderr,
     TargetType,
+    UnstructuredDtoKeys,
 )
 from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -31,7 +31,7 @@ RUNNING_LANG_MSG = "Running environment language: Python."
 
 
 class PythonModelAdapter:
-    def __init__(self, model_dir):
+    def __init__(self, model_dir, target_type=None):
         self._logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + self.__class__.__name__)
 
         # Get all the artifact predictors we have
@@ -49,8 +49,9 @@ class PythonModelAdapter:
         self._custom_hooks = {}
         self._model = None
         self._model_dir = model_dir
+        self._target_type = target_type
 
-        for hook in CustomHooks.ALL:
+        for hook in CustomHooks.ALL_PREDICT_FIT_STRUCTURED:
             self._custom_hooks[hook] = None
 
     def load_custom_hooks(self):
@@ -67,8 +68,20 @@ class PythonModelAdapter:
 
         try:
             custom_module = __import__(CUSTOM_FILE_NAME)
-            for hook in CustomHooks.ALL:
-                self._custom_hooks[hook] = getattr(custom_module, hook, None)
+            if self._target_type == TargetType.UNSTRUCTURED:
+                for hook in CustomHooks.ALL_PREDICT_UNSTRUCTURED:
+                    self._custom_hooks[hook] = getattr(custom_module, hook, None)
+
+                if self._custom_hooks[CustomHooks.SCORE_UNSTRUCTURED] is None:
+                    raise DrumCommonException(
+                        "In '{}' mode hook '{}' must be provided.".format(
+                            TargetType.UNSTRUCTURED.value,
+                            self._custom_hooks[CustomHooks.SCORE_UNSTRUCTURED],
+                        )
+                    )
+            else:
+                for hook in CustomHooks.ALL_PREDICT_FIT_STRUCTURED:
+                    self._custom_hooks[hook] = getattr(custom_module, hook, None)
 
             if self._custom_hooks.get(CustomHooks.INIT):
                 # noinspection PyCallingNonCallable
@@ -100,7 +113,10 @@ class PythonModelAdapter:
             self._model = self._load_via_predictors(model_artifact_file)
 
         # If a score hook is not given we need to find a predictor that can handle this model
-        if not self._custom_hooks[CustomHooks.SCORE]:
+        if (
+            self._target_type != TargetType.UNSTRUCTURED
+            and not self._custom_hooks[CustomHooks.SCORE]
+        ):
             self._find_predictor_to_use()
 
         return self._model
@@ -253,15 +269,6 @@ class PythonModelAdapter:
             )
 
     @staticmethod
-    def _validate_unstructured_predictions(to_validate):
-        if not isinstance(to_validate, str):
-            raise ValueError(
-                "In unstructured mode predictions must be of type {} ; but received {}".format(
-                    str, type(to_validate)
-                )
-            )
-
-    @staticmethod
     def _read_structured_input(filename):
         try:
             df = pd.read_csv(filename, lineterminator="\n")
@@ -316,7 +323,7 @@ class PythonModelAdapter:
         if self._custom_hooks.get(CustomHooks.SCORE):
             try:
                 # noinspection PyCallingNonCallable
-                predictions = self._custom_hooks[CustomHooks.SCORE](data, model, **kwargs)
+                predictions = self._custom_hooks.get(CustomHooks.SCORE)(data, model, **kwargs)
             except Exception as exc:
                 raise type(exc)(
                     "Model score hook failed to make predictions: {}".format(exc)
@@ -338,11 +345,32 @@ class PythonModelAdapter:
                     "Model post-process hook failed to post-process predictions: {}".format(exc)
                 ).with_traceback(sys.exc_info()[2]) from None
 
-        if kwargs[TARGET_TYPE_ARG_KEYWORD] == TargetType.UNSTRUCTURED:
-            PythonModelAdapter._validate_unstructured_predictions(predictions)
-        else:
-            self._validate_predictions(predictions, positive_class_label, negative_class_label)
+        self._validate_predictions(predictions, positive_class_label, negative_class_label)
 
+        return predictions
+
+    @staticmethod
+    def _validate_unstructured_predictions(unstructured_response):
+        if not isinstance(unstructured_response, dict):
+            raise ValueError(
+                "In unstructured mode predictions must be of type dict; but received {}".format(
+                    type(unstructured_response)
+                )
+            )
+
+        resp_data = unstructured_response.get(UnstructuredDtoKeys.DATA, None)
+
+        if resp_data is not None:
+            if not isinstance(resp_data, (bytes, str)):
+                raise ValueError(
+                    "In unstructured mode predictions data must be of type bytes or str; but received {}".format(
+                        type(resp_data)
+                    )
+                )
+
+    def predict_unstructured(self, model, **kwargs):
+        predictions = self._custom_hooks.get(CustomHooks.SCORE_UNSTRUCTURED)(model, **kwargs)
+        PythonModelAdapter._validate_unstructured_predictions(predictions)
         return predictions
 
     def _drum_autofit_internal(self, X, y, output_dir):

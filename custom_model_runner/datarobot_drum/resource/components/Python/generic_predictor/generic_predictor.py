@@ -1,14 +1,19 @@
 import logging
 
-import pandas as pd
-
 from datarobot_drum.drum.common import (
     LOGGER_NAME_PREFIX,
     RunLanguage,
     TargetType,
     TARGET_TYPE_ARG_KEYWORD,
+    UnstructuredDtoKeys,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.resource.unstructured_helpers import (
+    _resolve_incoming_unstructured_data,
+    _resolve_outgoing_unstructured_data,
+    _is_text_mimetype,
+)
+from datarobot_drum.drum.utils import split_params_to_dict
 
 from mlpiper.components.connectable_component import ConnectableComponent
 
@@ -53,11 +58,55 @@ class GenericPredictorComponent(ConnectableComponent):
 
     def _materialize(self, parent_data_objs, user_data):
         input_filename = self._params["input_filename"]
-        predictions = self._predictor.predict(input_filename)
         output_filename = self._params.get("output_filename")
+
+        additional_params = self._params.get("params")
+
+        def _resolve_params(params):
+            params_dict = split_params_to_dict(params)
+
+            for key in [UnstructuredDtoKeys.DATA]:
+                if key in params_dict:
+                    raise DrumCommonException(
+                        "Parameter name '{}' is not allowed in the additional params".format(key)
+                    )
+            return params_dict
+
         if self._target_type == TargetType.UNSTRUCTURED:
-            with open(output_filename, "w") as f:
-                f.write(predictions)
+            kwargs_params = {}
+
+            params = _resolve_params(additional_params)
+
+            with open(input_filename, "rb") as f:
+                data_binary = f.read()
+
+            data_binary_or_text, mimetype, charset = _resolve_incoming_unstructured_data(
+                data_binary,
+                params.get(UnstructuredDtoKeys.MIMETYPE, None),
+                params.get(UnstructuredDtoKeys.CHARSET, None),
+            )
+
+            kwargs_params[UnstructuredDtoKeys.DATA] = data_binary_or_text
+
+            kwargs_params.update(params)
+
+            unstructured_response = self._predictor.predict_unstructured(**kwargs_params)
+            _, response_mimetype, response_charset = _resolve_outgoing_unstructured_data(
+                unstructured_response
+            )
+
+            # only for screen printout convenience we take pred data directly from unstructured_response
+            pred_data = unstructured_response.get(UnstructuredDtoKeys.DATA, None)
+            if isinstance(pred_data, bytes):
+                with open(output_filename, "wb") as f:
+                    f.write(pred_data)
+            else:
+                if pred_data is None:
+                    pred_data = "Return value from prediction is: None (NULL in R)"
+                with open(output_filename, "w") as f:
+                    f.write(pred_data)
+
         else:
+            predictions = self._predictor.predict(input_filename)
             predictions.to_csv(output_filename, index=False)
         return []

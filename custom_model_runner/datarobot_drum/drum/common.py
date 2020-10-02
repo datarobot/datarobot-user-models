@@ -51,11 +51,19 @@ class CustomHooks:
     LOAD_MODEL = "load_model"
     TRANSFORM = "transform"
     SCORE = "score"
+    SCORE_UNSTRUCTURED = "score_unstructured"
     POST_PROCESS = "post_process"
     FIT = "fit"
 
-    ALL_PREDICT = [INIT, READ_INPUT_DATA, LOAD_MODEL, TRANSFORM, SCORE, POST_PROCESS]
-    ALL = ALL_PREDICT + [FIT]
+    ALL_PREDICT_STRUCTURED = [INIT, READ_INPUT_DATA, LOAD_MODEL, TRANSFORM, SCORE, POST_PROCESS]
+    ALL_PREDICT_UNSTRUCTURED = [INIT, LOAD_MODEL, SCORE_UNSTRUCTURED]
+    ALL_PREDICT_FIT_STRUCTURED = ALL_PREDICT_STRUCTURED + [FIT]
+
+
+class UnstructuredDtoKeys:
+    DATA = "data"
+    MIMETYPE = "mimetype"
+    CHARSET = "charset"
 
 
 class PythonArtifacts:
@@ -104,6 +112,7 @@ class ArgumentsOptions:
     DEPLOYMENT_ID = "--deployment-id"
     MODEL_ID = "--model-id"
     MONITOR_SETTINGS = "--monitor-settings"
+    PARAMS = "--params"
     WITH_ERROR_SERVER = "--with-error-server"
     SHOW_STACKTRACE = "--show-stacktrace"
     MAX_WORKERS = "--max-workers"

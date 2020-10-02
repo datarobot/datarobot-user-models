@@ -1,21 +1,15 @@
 import logging
-import pandas as pd
-import tempfile
-
-from flask import request
-
 from mlpiper.components.connectable_component import ConnectableComponent
 
 from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.memory_monitor import MemoryMonitor
-from datarobot_drum.drum.common import RunLanguage, REGRESSION_PRED_COLUMN, TARGET_TYPE_ARG_KEYWORD
+from datarobot_drum.drum.common import RunLanguage, TARGET_TYPE_ARG_KEYWORD
 from datarobot_drum.resource.predict_mixin import PredictMixin
 
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
-    HTTP_422_UNPROCESSABLE_ENTITY,
     HTTP_500_INTERNAL_SERVER_ERROR,
     get_flask_app,
     base_api_blueprint,
@@ -87,6 +81,19 @@ class PredictionServer(ConnectableComponent, PredictMixin):
             self._stats_collector.mark("start")
 
             response, response_status = self.do_predict(logger=logger)
+
+            self._stats_collector.mark("finish")
+            self._stats_collector.disable()
+            return response, response_status
+
+        @model_api.route("/predictUnstructured/", methods=["POST"])
+        def predict_unstructured():
+            logger.debug("Entering predict() endpoint")
+
+            self._stats_collector.enable()
+            self._stats_collector.mark("start")
+
+            response, response_status = self.do_predict_unstructured(logger=logger)
 
             self._stats_collector.mark("finish")
             self._stats_collector.disable()
