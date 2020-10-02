@@ -4,6 +4,9 @@ export PYTHONPATH=/opt/code
 
 CMD="drum server -cd . --address 0.0.0.0:8080 --show-stacktrace"
 
+ls -lah .
+ls -lah /opt
+
 if [ ! -z "${POSITIVE_CLASS_LABEL}" ]; then
     CMD="${CMD} --positive-class-label ${POSITIVE_CLASS_LABEL}"
 fi
