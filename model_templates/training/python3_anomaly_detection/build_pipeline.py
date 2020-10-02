@@ -79,6 +79,8 @@ dense_preprocessing_pipeline = Pipeline(
 # anomaly pipeline
 def make_anomaly():
     return Pipeline(
-        steps=[("preprocessing", dense_preprocessing_pipeline),
-        ("model", AnomalyCalibEstimator(estimator=OneClassSVM()))]
+        steps=[
+            ("preprocessing", dense_preprocessing_pipeline),
+            ("model", AnomalyCalibEstimator(estimator=OneClassSVM())),
+        ]
     )

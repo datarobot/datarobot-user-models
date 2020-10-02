@@ -7,8 +7,8 @@ def fit(
     X,
     y,
     output_dir,
-    class_order = None,
-    row_weights = None,
+    class_order=None,
+    row_weights=None,
     **kwargs,
 ):
     """
@@ -46,4 +46,3 @@ def fit(
     # NOTE: We currently set a 10GB limit to the size of the serialized model
     with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
         pickle.dump(estimator, fp)
-

@@ -1,8 +1,9 @@
 import numpy as np
 from sklearn.base import BaseEstimator
 
+
 class MinMaxScaleCapper(object):
-    """ Min max scaler of a one dimensional array
+    """Min max scaler of a one dimensional array
     This class min-max normalizes the scores returned from
     Anomaly Detection algorithms. Please note sklearn's
     MinMaxScaler does not wotk on 1D arrays
