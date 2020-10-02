@@ -9,6 +9,9 @@ class R2D2:
     MEGA = 10 ** 6
     MEGA_STR = ' ' * MEGA
 
+    CMD_COL = "cmd"
+    ARG_COL = "arg"
+
     def __init__(self):
         self._mem_array = []
         print("R2D2 __init__")
@@ -55,6 +58,27 @@ class R2D2:
         print("About to sleep for {} seconds".format(timeout))
         time.sleep(timeout)
 
+    def handle_prediction_request(self, data):
+        if R2D2.CMD_COL not in data.columns:
+            print("{} col is missing in data.. skipping".format(R2D2.CMD_COL))
+            return
+        if R2D2.ARG_COL not in data.columns:
+            print("{} col is missing in data.. skipping".format(R2D2.ARG_COL))
+            return
+
+        cmd = data["cmd"][0]
+        arg = data["arg"][0]
+
+        if cmd == "memory":
+            self.alloc_memory(arg)
+        elif cmd == "exception":
+            self.raise_exception(arg)
+        elif cmd == "timeout":
+            self.consume_time(arg)
+        else:
+            print("Cmd: {} is not supported".format(cmd))
+            raise Exception("Bad CMD provided {}".format(cmd))
+
 
 # Global instance
 r2d2 = R2D2()
@@ -86,20 +110,8 @@ def transform(data, model):
 def score(data, model, **kwargs):
     global prediction_value
 
-    cmd = data["cmd"][0]
-    arg = data["arg"][0]
+    r2d2.handle_prediction_request(data)
 
-    if cmd == "memory":
-        r2d2.alloc_memory(arg)
-    elif cmd == "exception":
-        r2d2.raise_exception(arg)
-    elif cmd == "timeout":
-        r2d2.consume_time(arg)
-    else:
-        print("Cmd: {} is not supported".format(cmd))
-        raise Exception("Bad CMD provided {}".format(cmd))
-
-    print("Done adding memory")
     prediction_value += 1
     predictions = pd.DataFrame(
         [prediction_value for _ in range(data.shape[0])], columns=["Predictions"]
