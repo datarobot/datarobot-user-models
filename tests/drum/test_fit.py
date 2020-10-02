@@ -133,8 +133,16 @@ class TestFit:
         weights,
         tmp_path,
     ):
-        if docker and framework != SKLEARN:
+        # exceptions
+        if docker and framework not in [SKLEARN_BINARY, SKLEARN_REGRESSION]:
             return
+        if (framework, problem) in [
+            (SKLEARN_BINARY, REGRESSION),
+            (SKLEARN_BINARY, ANOMALY),
+            (SKLEARN_REGRESSION, BINARY_TEXT),
+        ]:
+            return
+
         if framework == RDS:
             language = R_FIT
         else:

@@ -3,7 +3,8 @@ import os
 import sys
 from contextlib import contextmanager
 from enum import Enum
-from strictyaml import Bool, Int, Map, Optional, Str
+from strictyaml import Bool, Int, Map, Optional, Str, load, YAMLError
+from pathlib import Path
 
 LOGGER_NAME_PREFIX = "drum"
 REGRESSION_PRED_COLUMN = "Predictions"
@@ -203,3 +204,17 @@ MODEL_CONFIG_SCHEMA = Map(
         Optional("trainingModel"): Map({Optional("trainOnProject"): Str()}),
     }
 )
+
+
+def read_model_metadata_yaml(code_dir):
+    code_dir = Path(code_dir)
+    config_path = code_dir.joinpath(MODEL_CONFIG_FILENAME)
+    if config_path.exists():
+        with open(config_path) as f:
+            try:
+                model_config = load(f.read(), MODEL_CONFIG_SCHEMA).data
+            except YAMLError as e:
+                print(e)
+                raise SystemExit()
+        return model_config
+    return None

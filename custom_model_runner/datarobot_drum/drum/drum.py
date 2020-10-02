@@ -33,8 +33,7 @@ from datarobot_drum.drum.common import (
     TemplateType,
     TargetType,
     verbose_stdout,
-    MODEL_CONFIG_FILENAME,
-    MODEL_CONFIG_SCHEMA,
+    read_model_metadata_yaml,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.perf_testing import CMRunTests
@@ -45,36 +44,29 @@ from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperati
 
 import docker.errors
 
-from strictyaml import Bool, Int, load, Map, Optional, Str, YAMLError
-
 SERVER_PIPELINE = "prediction_server_pipeline.json.j2"
 PREDICTOR_PIPELINE = "prediction_pipeline.json.j2"
 
 
 class CMRunner:
     def __init__(self, runtime):
-        def _read_metadata(code_dir):
-            code_dir = Path(code_dir)
-            config_path = code_dir.joinpath(MODEL_CONFIG_FILENAME)
-            if config_path.exists():
-                with open(config_path) as f:
-                    try:
-                        model_config = load(f.read(), MODEL_CONFIG_SCHEMA).data
-                    except YAMLError as e:
-                        print(e)
-                        raise SystemExit()
-                return model_config
-            return None
-
         self.runtime = runtime
         self.options = runtime.options
-        self.options.model_config = _read_metadata(self.options.code_dir)
+        self.options.model_config = read_model_metadata_yaml(self.options.code_dir)
         self.logger = CMRunner._config_logger(runtime.options)
         self.verbose = runtime.options.verbose
         self.run_mode = RunMode(runtime.options.subparser_name)
         self.raw_arguments = sys.argv
         self.target_type = None
 
+        self._resolve_target_type()
+
+        self._functional_pipelines = {
+            (RunMode.FIT, RunLanguage.PYTHON): "python_fit.json.j2",
+            (RunMode.FIT, RunLanguage.R): "r_fit.json.j2",
+        }
+
+    def _resolve_target_type(self):
         if self.run_mode not in [RunMode.NEW, RunMode.FIT]:
             self.target_type = TargetType(self.options.target_type)
 
@@ -90,11 +82,6 @@ class CMRunner:
                     "If model config file is used used, make --target-type values match."
                 )
 
-        self._functional_pipelines = {
-            (RunMode.FIT, RunLanguage.PYTHON): "python_fit.json.j2",
-            (RunMode.FIT, RunLanguage.R): "r_fit.json.j2",
-        }
-
     @staticmethod
     def _config_logger(options):
         logger = logging.getLogger(LOGGER_NAME_PREFIX)
@@ -103,7 +90,6 @@ class CMRunner:
 
     def _set_target_type(self, target_type):
         self.target_type = target_type
-        self.options.target_type = target_type.value
 
     def get_logger(self):
         return self.logger
