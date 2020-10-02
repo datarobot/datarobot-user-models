@@ -7,7 +7,7 @@ prediction_value = None
 
 class R2D2:
     MEGA = 10 ** 6
-    MEGA_STR = ' ' * MEGA
+    MEGA_STR = " " * MEGA
 
     CMD_COL = "cmd"
     ARG_COL = "arg"
@@ -46,8 +46,11 @@ class R2D2:
                 print("Allocating additional {} mb")
                 self._alloc_additional_memory(additional_mem)
             else:
-                print("No additional memory to allocate, current {} requested {}"
-                      .format(self._mem_size_mb(), memory_mb))
+                print(
+                    "No additional memory to allocate, current {} requested {}".format(
+                        self._mem_size_mb(), memory_mb
+                    )
+                )
 
     def raise_exception(self, arg):
         print("About to raise an exception")
