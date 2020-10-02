@@ -43,14 +43,14 @@ process_data <- function(input_filename, target_filename, target_name, num_rows)
     # handle target
     if (!is.null(target_filename) || !is.null(target_name)){
         if (!is.null(target_filename)){
-            y_unsampled = load_data(target_filename)
-            stopifnot( length(colnames(y_unsampled)) == 1)
-            stopifnot( nrow(df) == nrow(y_unsampled))
+            y_unsampled <- load_data(target_filename)
+            stopifnot(length(colnames(y_unsampled)) == 1)
+            stopifnot(nrow(df) == nrow(y_unsampled))
             df <- cbind(df, y_unsampled)
             target_name <- colnames(y_unsampled)
         }
-    df <-  df[!(is.na(df[target_name])) , ]
-    X <-  df[,!(names(df) %in% c(target_name))]
+    df <- df[!(is.na(df[target_name])), ]
+    X <- df[,!(names(df) %in% c(target_name))]
     X <- X[sample(nrow(X), size=num_rows, replace=TRUE ), ]
 
     y <- df[,target_name, drop=FALSE]
