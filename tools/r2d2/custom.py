@@ -1,8 +1,17 @@
 import pandas as pd
 import sys
 import time
+import argparse
+from enum import Enum
+import requests
 
 prediction_value = None
+
+
+class R2D2Commands(Enum):
+    MEMORY = "memory"
+    EXCEPTION = "exception"
+    TIMEOUT = "timeout"
 
 
 class R2D2:
@@ -69,18 +78,18 @@ class R2D2:
             print("{} col is missing in data.. skipping".format(R2D2.ARG_COL))
             return
 
-        cmd = data["cmd"][0]
-        arg = data["arg"][0]
+        cmd = data[R2D2.CMD_COL][0]
+        arg = data[R2D2.ARG_COL][0]
 
-        if cmd == "memory":
+        if cmd == R2D2Commands.MEMORY:
             self.alloc_memory(arg)
-        elif cmd == "exception":
+        elif cmd == R2D2Commands.EXCEPTION:
             self.raise_exception(arg)
-        elif cmd == "timeout":
+        elif cmd == R2D2Commands.TIMEOUT:
             self.consume_time(arg)
         else:
-            print("Cmd: {} is not supported".format(cmd))
-            raise Exception("Bad CMD provided {}".format(cmd))
+            print("Cmd: [{}] is not supported".format(cmd))
+            raise Exception("Bad CMD provided [{}]".format(cmd))
 
 
 # Global instance
@@ -131,18 +140,25 @@ if __name__ == "__main__":
     print("Running r2d2 main")
     print(sys.argv)
 
-    data_mem = pd.DataFrame({"cmd": ["memory"], "arg": [1000]}, columns=["cmd", "arg"])
-    data_exception = pd.DataFrame({"cmd": ["exception"], "arg": [5]}, columns=["cmd", "arg"])
-    data_timeout = pd.DataFrame({"cmd": ["timeout"], "arg": [10]}, columns=["cmd", "arg"])
+    parser = argparse.ArgumentParser(description="Send actions to a running r2d2 model")
+    parser.add_argument("cmd", help="command to send", choices=[e.value for e in R2D2Commands])
+    parser.add_argument("arg", help="argument for the given command")
+    parser.add_argument("--server", default="0.0.0.0:8080",
+                        help="Server address of r2d2 model running (via drum)")
 
-    print(data_mem)
-    print(data_exception)
-    print(data_timeout)
+    options = parser.parse_args()
+    url = "http://" + options.server + "/predict/"
 
-    init()
-    score(data_mem, None)
-    # This sleep give you some time to check the memory usage using tools like htop/ps
-    time.sleep(30)
+    print("Server: {}".format(options.server))
+    print("URL:    {}".format(url))
+    print("Cmd:    {}".format(options.cmd))
+    print("Arg:    {}".format(options.arg))
 
-    score(data_timeout, None)
-    score(data_exception, None)
+    data = pd.DataFrame({R2D2.CMD_COL: [options.cmd], R2D2.ARG_COL: [options.arg]},
+                        columns=[R2D2.CMD_COL, R2D2.ARG_COL])
+    print("Sending the following data:")
+    print(data)
+
+    csv_data = data.to_csv(index=False)
+    response = requests.post(url, files={"X": csv_data})
+    print(response)
