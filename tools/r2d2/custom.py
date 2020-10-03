@@ -34,7 +34,12 @@ class R2D2:
     def _alloc_additional_memory(self, additional_mb):
         for i in range(0, additional_mb):
             try:
-                self._mem_array.append(R2D2.MEGA_STR + str(i))
+                one_mb_array = bytearray(R2D2.MEGA)
+                # Touching the bytearray every 512 bytes just to make sure we touch memory
+                # and memory is allocated.
+                for data_idx in range(0, len(one_mb_array), 512):
+                    one_mb_array[data_idx] = 55
+                self._mem_array.append(one_mb_array)
                 print("Adding: {}".format(i))
             except MemoryError:
                 print("No more memory here..")
@@ -80,16 +85,17 @@ class R2D2:
 
         cmd = data[R2D2.CMD_COL][0]
         arg = data[R2D2.ARG_COL][0]
-
-        if cmd == R2D2Commands.MEMORY:
+        print("cmd: [{}] arg: [{}]".format(cmd, arg))
+        print(R2D2Commands.MEMORY.value)
+        if cmd == R2D2Commands.MEMORY.value:
             self.alloc_memory(arg)
-        elif cmd == R2D2Commands.EXCEPTION:
+        elif cmd == R2D2Commands.EXCEPTION.value:
             self.raise_exception(arg)
-        elif cmd == R2D2Commands.TIMEOUT:
+        elif cmd == R2D2Commands.TIMEOUT.value:
             self.consume_time(arg)
         else:
             print("Cmd: [{}] is not supported".format(cmd))
-            raise Exception("Bad CMD provided [{}]".format(cmd))
+            raise Exception("Bad CMD provided [{}] [{}]".format(cmd, R2D2Commands.MEMORY.value))
 
 
 # Global instance
@@ -135,8 +141,7 @@ def post_process(predictions, model):
     return predictions + 1
 
 
-# Small main for R2D2 usage.
-if __name__ == "__main__":
+def main():
     print("Running r2d2 main")
     print(sys.argv)
 
@@ -162,3 +167,9 @@ if __name__ == "__main__":
     csv_data = data.to_csv(index=False)
     response = requests.post(url, files={"X": csv_data})
     print(response)
+    print(response.content)
+
+
+# Small main for R2D2 usage.
+if __name__ == "__main__":
+    main()
