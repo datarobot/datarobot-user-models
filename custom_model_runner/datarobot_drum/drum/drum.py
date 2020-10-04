@@ -532,8 +532,8 @@ class CMRunner:
 
     def _prepare_docker_command(self, options, run_mode, raw_arguments):
         """
-        Building a docker command line for running the model inside the docker - this command line can
-        be used by the user independently of drum.
+        Building a docker command line for running the model inside the docker - this command line
+        can be used by the user independently of drum.
         Parameters
         Returns: docker command line to run as a string
         """
@@ -548,11 +548,18 @@ class CMRunner:
         docker_cmd = "docker run --rm --interactive  --user $(id -u):$(id -g) "
         docker_cmd_args = " -v {}:{}".format(options.code_dir, in_docker_model)
 
+
         in_docker_cmd_list = raw_arguments
         in_docker_cmd_list[0] = ArgumentsOptions.MAIN_COMMAND
         in_docker_cmd_list[1] = run_mode.value
 
         CMRunnerUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.DOCKER)
+
+        if options.memory:
+            docker_cmd_args += " --memory {mem_size} --memory-swap {mem_size} " \
+                .format(mem_size=options.memory)
+            CMRunnerUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.MEMORY)
+
         CMRunnerUtils.replace_cmd_argument_value(
             in_docker_cmd_list, ArgumentsOptions.CODE_DIR, in_docker_model
         )
