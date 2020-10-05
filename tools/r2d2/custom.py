@@ -2,11 +2,9 @@ import pandas as pd
 import sys
 import time
 
-prediction_value = None
-
 
 class R2D2:
-    MEGA = 10 ** 6
+    MEGA = 1048576
     MEGA_STR = " " * MEGA
 
     CMD_COL = "cmd"
@@ -14,7 +12,6 @@ class R2D2:
 
     def __init__(self):
         self._mem_array = []
-        print("R2D2 __init__")
 
     def _mem_size_mb(self):
         return len(self._mem_array)
@@ -26,9 +23,14 @@ class R2D2:
         for i in range(0, additional_mb):
             try:
                 self._mem_array.append(R2D2.MEGA_STR + str(i))
-                print("Adding: {}".format(i))
+                if i % 100 == 0:
+                    print("Adding: {}".format(i))
             except MemoryError:
-                print("No more memory here..")
+                print(
+                    "Failed allocating memory, total memory allocated so far {}mb".format(
+                        len(self._mem_array)
+                    )
+                )
                 break
 
             i += 1
@@ -87,27 +89,8 @@ class R2D2:
 r2d2 = R2D2()
 
 
-def init(**kwargs):
-    global prediction_value
-    prediction_value = 1
-
-
-def read_input_data(input_file):
-    global prediction_value
-    prediction_value += 1
-    return pd.read_csv(input_file)
-
-
 def load_model(input_dir):
-    global prediction_value
-    prediction_value += 1
     return "dummy"
-
-
-def transform(data, model):
-    global prediction_value
-    prediction_value += 1
-    return data
 
 
 def score(data, model, **kwargs):
@@ -115,15 +98,11 @@ def score(data, model, **kwargs):
 
     r2d2.handle_prediction_request(data)
 
-    prediction_value += 1
+    prediction_value = 1
     predictions = pd.DataFrame(
         [prediction_value for _ in range(data.shape[0])], columns=["Predictions"]
     )
     return predictions
-
-
-def post_process(predictions, model):
-    return predictions + 1
 
 
 # Small main for R2D2 usage.

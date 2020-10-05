@@ -4,7 +4,7 @@ r2d2 inference model provides a quick way to test your environment.
 r2d2 is not really a model, it is a testing program which interpret 
 the prediction requests as actions to execute inside the drum environment.
 
-r2d2 expects is input dataframe to contain the 2 columns: "cmd" and "arg".
+r2d2 expects an input dataframe to contain the 2 columns: "cmd" and "arg".
 The "cmd" column is supposed to contain the name of the command to run.
 The "arg" column is supposed to contain an argument to pass to the command.
 
@@ -38,7 +38,7 @@ r2d2 supports the following actions:
 * Throw exceptions
 * Sleep for a given amount of time, potentially causing timeout.
 
-###Use memory
+### Use memory
 This action will cause r2d2 to consume memory. The way to trigger that
 action is to send the "memory" as the command in the "cmd" column of the 
 prediction request. And the total amount of memory to consume in megabytes in
@@ -49,6 +49,13 @@ memory:
 
     cmd,arg
     memory,1000
+ 
+Things to note:
+   
+ * Sending an arg value <= 0 in the arg column, will result in releasing the memory allocating so far
+ * Sending the same number again will not allocate additional memory. Memory allocation can
+   only be increased. For example, sending 2000 and then again 2000, will result in a single
+   memory allocation of 2000mb.  
 
 ### Exception throwing
 This action will cause r2d2 to throw an exception. To do that, send the "cmd"
