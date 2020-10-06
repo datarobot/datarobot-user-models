@@ -1,10 +1,13 @@
 from abc import ABC, abstractmethod
 import logging
 
+from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.common import (
     LOGGER_NAME_PREFIX,
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
+    TARGET_TYPE_ARG_KEYWORD,
+    TargetType,
 )
 
 
@@ -14,6 +17,7 @@ class ArtifactPredictor(ABC):
         self._artifact_extension = suffix
         self.positive_class_label = None
         self.negative_class_label = None
+        self.target_type = None
         self._logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + self.__class__.__name__)
 
     @property
@@ -62,3 +66,13 @@ class ArtifactPredictor(ABC):
         """
         self.positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD, None)
         self.negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD, None)
+        self.target_type = kwargs[TARGET_TYPE_ARG_KEYWORD]
+        if self.target_type == TargetType.BINARY and None in [
+            self.positive_class_label,
+            self.negative_class_label,
+        ]:
+            raise DrumCommonException(
+                "For `binary` target both class labels must be provided. Found: {}, {}".format(
+                    self.positive_class_label, self.negative_class_label
+                )
+            )

@@ -44,7 +44,7 @@ class TestUnstructuredMode:
 
         output = tmp_path / "output"
 
-        cmd = "{} score --code-dir {} --input {} --output {} --unstructured".format(
+        cmd = "{} score --code-dir {} --input {} --output {} --target-type unstructured".format(
             ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output
         )
 

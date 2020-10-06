@@ -3,7 +3,7 @@ from typing import List, Optional
 
 import numpy as np
 import pandas as pd
-from create_pipeline import make_classifier, make_regressor
+from create_pipeline import make_classifier
 from sklearn.preprocessing import label_binarize
 
 
@@ -44,12 +44,12 @@ def fit(
     Nothing
     """
     # Feel free to delete which ever one of these you aren't using
-    if class_order:
+    if class_order is not None:
         if y.dtype == np.dtype("bool"):
             y = y.astype("str")
         estimator = make_classifier(X)
     else:
-        estimator = make_regressor(X)
+        raise Exception("Running binary training: class_order expected to be not None")
     estimator.fit(X, y)
 
     # You must serialize out your model to the output_dir given, however if you wish to change this

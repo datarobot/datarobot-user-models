@@ -7,7 +7,9 @@ from datarobot_drum.drum.common import (
     REGRESSION_PRED_COLUMN,
     extra_deps,
     SupportedFrameworks,
+    TargetType,
 )
+from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.artifact_predictors.artifact_predictor import ArtifactPredictor
 
 
@@ -78,7 +80,7 @@ class XGBoostPredictor(ArtifactPredictor):
             xgboost_native = True
             data = xgboost.DMatrix(data)
 
-        if None not in (self.positive_class_label, self.negative_class_label):
+        if self.target_type == TargetType.BINARY:
             if xgboost_native:
                 positive_preds = model.predict(data)
                 negative_preds = 1 - positive_preds
@@ -90,8 +92,14 @@ class XGBoostPredictor(ArtifactPredictor):
             predictions = pd.DataFrame(
                 predictions, columns=[self.negative_class_label, self.positive_class_label]
             )
-        else:
+        elif self.target_type in [TargetType.REGRESSION, TargetType.ANOMALY]:
             preds = model.predict(data)
             predictions = pd.DataFrame(data=preds, columns=[REGRESSION_PRED_COLUMN])
+        else:
+            raise DrumCommonException(
+                "Target type '{}' is not supported by '{}' predictor".format(
+                    self.target_type.value, self.__class__.__name__
+                )
+            )
 
         return predictions

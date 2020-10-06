@@ -77,6 +77,42 @@ load_serialized_model <- function(model_dir) {
     model
 }
 
+.predict_regression <- function(data, model, ...) {
+    predictions <- data.frame(stats::predict(model, data))
+    names(predictions) <- c(REGRESSION_PRED_COLUMN_NAME)
+    predictions
+}
+
+.predict_binary <- function(data, model, ...) {
+    kwargs <- list(...)[[1]]
+    positive_class_label<-kwargs$positive_class_label
+    negative_class_label<-kwargs$negative_class_label
+    predictions <- data.frame(stats::predict(model, data, type = "prob"))
+    labels <- names(predictions)
+    provided_labels <- c(positive_class_label, negative_class_label)
+    provided_labels_sanitized <- make.names(provided_labels)
+    labels_to_use <- NULL
+    # check labels and provided_labels contain the same elements, order doesn't matter
+    if (setequal(labels, provided_labels)) {
+        labels_to_use <- provided_labels
+    } else if (setequal(labels, provided_labels_sanitized)) {
+        labels_to_use <- provided_labels_sanitized
+    } else {
+        stop("Wrong class labels. Use class labels according to your dataset")
+    }
+    # if labels are not on the same order, switch columns
+    if (!identical(labels, labels_to_use)) {
+        predictions <- predictions[, c(2, 1)]
+    }
+    names(predictions) <- provided_labels
+    predictions
+}
+
+.predictors<-list()
+.predictors[[TargetType$BINARY]] <- .predict_binary
+.predictors[[TargetType$REGRESSION]] <- .predict_regression
+.predictors[[TargetType$ANOMALY]] <- .predict_regression
+
 #' Internal prediction method that makes predictions against the model, and returns a data.frame
 #'
 #' If the model is a regression model, the data.frame will have a single column "Predictions"
@@ -92,31 +128,15 @@ load_serialized_model <- function(model_dir) {
 #' @export
 #'
 #' @examples
-model_predict <- function(data, model, positive_class_label=NULL, negative_class_label=NULL) {
-    if (!is.null(positive_class_label) & !is.null(negative_class_label)) {
-        predictions <- data.frame(stats::predict(model, data, type = "prob"))
-        labels <- names(predictions)
-        provided_labels <- c(positive_class_label, negative_class_label)
-        provided_labels_sanitized <- make.names(provided_labels)
-        labels_to_use <- NULL
-        # check labels and provided_labels contain the same elements, order doesn't matter
-        if (setequal(labels, provided_labels)) {
-            labels_to_use <- provided_labels
-        } else if (setequal(labels, provided_labels_sanitized)) {
-            labels_to_use <- provided_labels_sanitized
-        } else {
-            stop("Wrong class labels. Use class labels according to your dataset")
-        }
-        # if labels are not on the same order, switch columns
-        if (!identical(labels, labels_to_use)) {
-            predictions <- predictions[, c(2, 1)]
-        }
-        names(predictions) <- provided_labels
-    } else {
-        predictions <- data.frame(stats::predict(model, data))
-        names(predictions) <- c(REGRESSION_PRED_COLUMN_NAME)
+model_predict <- function(data, model, ...) {
+    kwargs <- list(...)[[1]]
+    target_type<-kwargs$target_type
+    kwargs$target_type <- NULL
+
+    if (!exists(target_type, .predictors)) {
+        stop(sprintf("Target type '%s' is not supported by R predictor", target_type))
     }
-    predictions
+    do.call(.predictors[[target_type]], list(data, model, kwargs))
 }
 
 #' Makes predictions against the model using the custom predict
@@ -135,26 +155,29 @@ model_predict <- function(data, model, positive_class_label=NULL, negative_class
 #' @export
 #'
 #' @examples
-outer_predict <- function(input_filename, model=NULL, unstructured_mode=FALSE, positive_class_label=NULL, negative_class_label=NULL){
+outer_predict <- function(input_filename, target_type, model=NULL, positive_class_label=NULL, negative_class_label=NULL){
     .validate_data <- function(to_validate) {
         if (!is.data.frame(to_validate)) {
             stop(sprintf("predictions must be of a data.frame type, received %s", typeof(to_validate)))
         }
     }
 
-    .validate_predictions <- function(to_validate) {
+    .validate_binary_predictions <- function(to_validate) {
         .validate_data(to_validate)
-        if (!is.null(positive_class_label) & !is.null(negative_class_label)) {
-            if (!identical(sort(names(to_validate)), sort(c(positive_class_label, negative_class_label)))) {
-                stop(
-                    sprintf(
-                        "Expected predictions to have columns [%s], but encountered [%s]",
-                        paste(c(positive_class_label, negative_class_label), collapse=", "),
-                        paste(names(to_validate), collapse=", ")
-                    )
-                )
-            }
-        } else if (!identical(names(to_validate), c(REGRESSION_PRED_COLUMN_NAME))) {
+        if (!identical(sort(names(to_validate)), sort(c(positive_class_label, negative_class_label)))) {
+            stop(
+              sprintf(
+                "Expected predictions to have columns [%s], but encountered [%s]",
+                paste(c(positive_class_label, negative_class_label), collapse=", "),
+                paste(names(to_validate), collapse=", ")
+              )
+            )
+        }
+    }
+
+    .validate_regression_predictions <- function(to_validate) {
+        .validate_data(to_validate)
+         if (!identical(names(to_validate), c(REGRESSION_PRED_COLUMN_NAME))) {
             stop(
                 sprintf(
                     "Expected predictions to have columns [%s], but encountered [%s]",
@@ -184,25 +207,28 @@ outer_predict <- function(input_filename, model=NULL, unstructured_mode=FALSE, p
     if (!isFALSE(transform_hook)) {
         data <- transform_hook(data, model)
     }
+
+    kwargs <- list(positive_class_label=positive_class_label,
+                   negative_class_label=negative_class_label)
     if (!isFALSE(score_hook)) {
-        kwargs <- list()
-        if (!is.null(positive_class_label) & !is.null(negative_class_label)) {
-            kwargs <- append(kwargs, list(positive_class_label=positive_class_label,
-                                          negative_class_label=negative_class_label))
-        }
         predictions <- do.call(score_hook, list(data, model, kwargs))
     } else {
-        predictions <- model_predict(data, model, positive_class_label, negative_class_label)
+        kwargs <- append(kwargs, list(target_type=target_type))
+        predictions <- do.call(model_predict, list(data, model, kwargs))
     }
 
     if (!isFALSE(post_process_hook)) {
         predictions <- post_process_hook(predictions, model)
     }
 
-    if (isFALSE(unstructured_mode)) {
-        .validate_predictions(predictions)
-    } else {
+    if (target_type == TargetType$UNSTRUCTURED) {
         .validate_unstructured_predictions(predictions)
+    } else if (target_type == TargetType$BINARY) {
+        .validate_binary_predictions(predictions)
+    } else if (target_type == TargetType$REGRESSION) {
+        .validate_regression_predictions(predictions)
+    } else {
+        stop(sprintf("Unsupported target type %s", target_type))
     }
     predictions
 }

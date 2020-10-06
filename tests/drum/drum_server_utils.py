@@ -55,6 +55,7 @@ class DrumServerProcess:
 class DrumServerRun:
     def __init__(
         self,
+        target_type,
         labels,
         custom_model_dir,
         docker=None,
@@ -70,8 +71,8 @@ class DrumServerRun:
         else:
             self.url_server_address = "http://localhost:{}".format(port)
 
-        cmd = "{} server --code-dir {} --address {}".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, server_address
+        cmd = "{} server --code-dir {} --target-type {} --address {}".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, target_type, server_address
         )
         if labels:
             cmd = _cmd_add_class_labels(cmd, labels)

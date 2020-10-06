@@ -10,7 +10,7 @@ from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.memory_monitor import MemoryMonitor
-from datarobot_drum.drum.common import RunLanguage, REGRESSION_PRED_COLUMN
+from datarobot_drum.drum.common import RunLanguage, REGRESSION_PRED_COLUMN, TARGET_TYPE_ARG_KEYWORD
 from datarobot_drum.resource.predict_mixin import PredictMixin
 
 from datarobot_drum.drum.server import (
@@ -32,13 +32,13 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         self._memory_monitor = None
         self._run_language = None
         self._predictor = None
-        self._unstructured_mode = False
+        self._target_type = None
 
     def configure(self, params):
         super(PredictionServer, self).configure(params)
         self._show_perf = self._params.get("show_perf")
         self._run_language = RunLanguage(params.get("run_language"))
-        self._unstructured_mode = params.get("unstructured_mode", False)
+        self._target_type = params[TARGET_TYPE_ARG_KEYWORD]
 
         self._stats_collector = StatsCollector(disable_instance=not self._show_perf)
 

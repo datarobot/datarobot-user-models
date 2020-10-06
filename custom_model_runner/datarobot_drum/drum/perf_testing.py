@@ -155,6 +155,8 @@ class CMRunTests:
         cmd_list.append("--logging-level")
         cmd_list.append("warning")
         cmd_list.append("--show-perf")
+        cmd_list.append("--target-type")
+        cmd_list.append(self.options.target_type)
         if self.options.production:
             cmd_list.append("--production")
         if self.options.max_workers:
