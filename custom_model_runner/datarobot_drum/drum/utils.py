@@ -162,3 +162,12 @@ def shared_fit_preprocessing(fit_class):
         else None
     )
     return X, y, class_order, row_weights
+
+
+def handle_missing_colnames(df):
+    missing_cols = [c for c in df.columns if "Unnamed" in c]
+    if missing_cols:
+        r_vals = ["X"] + ["X.{}".format(x) for x in range(1, len(missing_cols))]
+        missing_lookup = {pycol: rcol for pycol, rcol in zip(missing_cols, r_vals)}
+        return df.rename(columns=missing_lookup)
+    return df

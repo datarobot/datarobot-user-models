@@ -37,7 +37,7 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.push import drum_push, setup_validation_options
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
-from datarobot_drum.drum.utils import CMRunnerUtils
+from datarobot_drum.drum.utils import CMRunnerUtils, handle_missing_colnames
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 
 import docker.errors
@@ -297,6 +297,9 @@ class CMRunner:
             __tempfile = NamedTemporaryFile()
             df = pd.read_csv(self.options.input, lineterminator="\n")
             df = df.drop(self.options.target, axis=1)
+            # convert to R-friendly missing fields
+            if self._get_fit_run_language() == RunLanguage.R:
+                df = handle_missing_colnames(df)
             df.to_csv(__tempfile.name, index=False)
             self.options.input = __tempfile.name
         self._run_fit_and_predictions_pipelines_in_mlpiper()
