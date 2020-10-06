@@ -29,7 +29,11 @@ fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, ...){
     #' @param ...: Added for forwards compatibility
     #' @return Nothing
 
-  model <- create_pipeline(X, y)
+  if (!is.null(class_order)){
+    model <- create_pipeline(X, y, 'classification')
+  } else {
+    model <- create_pipeline(X, y, 'regression')
+  }
   # Save model
   model_path <- file.path(output_dir, 'artifact.rds')
   saveRDS(model, file = model_path)

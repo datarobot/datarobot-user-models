@@ -1,7 +1,10 @@
-create_pipeline<-function(X, y) {
+create_pipeline<-function(X, y, model_type='regression') {
   # set up dataframe for modeling
   train_df <- X
   train_df$target <- unlist(y)
+  if (model_type == 'classification'){
+    train_df$target <- as.factor(train_df$target)
+  }
 
   # set up the modeling pipeline
   model_recipe <- recipe(target ~ ., data = train_df) %>%
