@@ -5,7 +5,7 @@ from datarobot_drum.drum.push import HELP_TEXT
 import sys
 
 from datarobot_drum.drum.description import version
-from datarobot_drum.drum.common import LOG_LEVELS, ArgumentsOptions, RunLanguage
+from datarobot_drum.drum.common import LOG_LEVELS, ArgumentsOptions, RunLanguage, TargetType
 
 
 class CMRunnerArgsRegistry(object):
@@ -117,7 +117,7 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.TARGET,
                 type=str,
                 required=False,
-                help="Which column to use as the target. Argument is mutually exclusive with {} and {}".format(
+                help="Which column to use as the target. Argument is mutually exclusive with {} and {}.".format(
                     ArgumentsOptions.TARGET_FILENAME, ArgumentsOptions.UNSUPERVISED
                 ),
             )
@@ -126,7 +126,7 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.TARGET_FILENAME,
                 type=CMRunnerArgsRegistry._is_valid_file,
                 required=False,
-                help="A file containing the target values. Argument is mutually exclusive with {} and {}".format(
+                help="A file containing the target values. Argument is mutually exclusive with {} and {}.".format(
                     ArgumentsOptions.TARGET, ArgumentsOptions.UNSUPERVISED
                 ),
             )
@@ -137,8 +137,8 @@ class CMRunnerArgsRegistry(object):
                 required=False,
                 default=False,
                 help="If present, indicates that this is an unsupervised model."
-                " Argument is mutually exclusive with {} and {}".format(
-                    ArgumentsOptions.TARGET, ArgumentsOptions.UNSUPERVISED
+                " Argument is mutually exclusive with {} and {}.".format(
+                    ArgumentsOptions.TARGET, ArgumentsOptions.TARGET_FILENAME
                 ),
             )
 
@@ -377,16 +377,6 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
-    def _reg_arg_unstructured_mode(*parsers):
-        for parser in parsers:
-            parser.add_argument(
-                ArgumentsOptions.UNSTRUCTURED,
-                action="store_true",
-                default=False,
-                help="Run drum in unstructured mode (model expects/produces unstructured input/output).",
-            )
-
-    @staticmethod
     def _reg_arg_show_stacktrace(*parsers):
         for parser in parsers:
             parser.add_argument(
@@ -423,6 +413,18 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.MONITOR_SETTINGS,
                 default=os.environ.get("MONITOR_SETTINGS", None),
                 help="MLOps setting to use for connecting with the MLOps Agent (env: MONITOR_SETTINGS)",
+            )
+
+    @staticmethod
+    def _reg_arg_target_type(*parsers):
+        target_types = [e.value for e in TargetType]
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.TARGET_TYPE,
+                required=True,
+                choices=target_types,
+                default=None,
+                help="Target type",
             )
 
     @staticmethod
@@ -548,8 +550,8 @@ class CMRunnerArgsRegistry(object):
 
         CMRunnerArgsRegistry._reg_args_monitoring(batch_parser, server_parser)
 
-        CMRunnerArgsRegistry._reg_arg_unstructured_mode(
-            batch_parser, server_parser, parser_perf_test, validation_parser
+        CMRunnerArgsRegistry._reg_arg_target_type(
+            batch_parser, parser_perf_test, server_parser, validation_parser
         )
 
         return parser
@@ -558,7 +560,7 @@ class CMRunnerArgsRegistry(object):
     def verify_monitoring_options(options, parser_name):
         if options.subparser_name in [ArgumentsOptions.SERVER, ArgumentsOptions.SCORE]:
             if options.monitor:
-                if options.unstructured:
+                if options.target_type == TargetType.UNSTRUCTURED.value:
                     print("Error: MLOps monitoring can not be used in unstructured mode.")
                     exit(1)
                 missing_args = []

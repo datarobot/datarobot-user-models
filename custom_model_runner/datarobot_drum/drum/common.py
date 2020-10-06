@@ -3,14 +3,19 @@ import os
 import sys
 from contextlib import contextmanager
 from enum import Enum
+from strictyaml import Bool, Int, Map, Optional, Str, load, YAMLError
+from pathlib import Path
 
 LOGGER_NAME_PREFIX = "drum"
 REGRESSION_PRED_COLUMN = "Predictions"
 CUSTOM_FILE_NAME = "custom"
 POSITIVE_CLASS_LABEL_ARG_KEYWORD = "positive_class_label"
 NEGATIVE_CLASS_LABEL_ARG_KEYWORD = "negative_class_label"
+TARGET_TYPE_ARG_KEYWORD = "target_type"
 
 URL_PREFIX_ENV_VAR_NAME = "URL_PREFIX"
+
+MODEL_CONFIG_FILENAME = "model-metadata.yaml"
 
 LOG_LEVELS = {
     "noset": logging.NOTSET,
@@ -23,7 +28,7 @@ LOG_LEVELS = {
 }
 
 
-class SupportedFrameworks(object):
+class SupportedFrameworks:
     SKLEARN = "scikit-learn"
     TORCH = "torch"
     KERAS = "keras"
@@ -40,7 +45,7 @@ extra_deps = {
 }
 
 
-class CustomHooks(object):
+class CustomHooks:
     INIT = "init"
     READ_INPUT_DATA = "read_input_data"
     LOAD_MODEL = "load_model"
@@ -53,7 +58,7 @@ class CustomHooks(object):
     ALL = ALL_PREDICT + [FIT]
 
 
-class PythonArtifacts(object):
+class PythonArtifacts:
     PKL_EXTENSION = ".pkl"
     TORCH_EXTENSION = ".pth"
     KERAS_EXTENSION = ".h5"
@@ -62,19 +67,19 @@ class PythonArtifacts(object):
     ALL = [PKL_EXTENSION, TORCH_EXTENSION, KERAS_EXTENSION, JOBLIB_EXTENSION, PYPMML_EXTENSION]
 
 
-class RArtifacts(object):
+class RArtifacts:
     RDS_EXTENSION = ".rds"
     ALL = [RDS_EXTENSION]
 
 
-class JavaArtifacts(object):
+class JavaArtifacts:
     JAR_EXTENSION = ".jar"
     MOJO_EXTENSION = ".zip"
     POJO_EXTENSION = ".java"
     ALL = [JAR_EXTENSION, MOJO_EXTENSION, POJO_EXTENSION]
 
 
-class ArgumentsOptions(object):
+class ArgumentsOptions:
     ADDRESS = "--address"
     DIR = "--dir"
     DOCKER = "--docker"
@@ -103,7 +108,7 @@ class ArgumentsOptions(object):
     MAX_WORKERS = "--max-workers"
     VERBOSE = "--verbose"
     VERSION = "--version"
-    UNSTRUCTURED = "--unstructured"
+    TARGET_TYPE = "--target-type"
 
     MAIN_COMMAND = "drum"
 
@@ -135,7 +140,14 @@ class RunLanguage(Enum):
     JAVA = "java"
 
 
-class TemplateType(object):
+class TargetType(Enum):
+    BINARY = "binary"
+    REGRESSION = "regression"
+    ANOMALY = "anomaly"
+    UNSTRUCTURED = "unstructured"
+
+
+class TemplateType:
     MODEL = "model"
     ENV = "environment"
 
@@ -169,3 +181,40 @@ def verbose_stdout(verbose):
 
 def config_logging():
     logging.basicConfig(format="%(asctime)-15s %(levelname)s %(name)s:  %(message)s")
+
+
+MODEL_CONFIG_SCHEMA = Map(
+    {
+        "name": Str(),
+        "type": Str(),
+        "environmentID": Str(),
+        "targetType": Str(),
+        "validation": Map({"input": Str(), Optional("targetName"): Str()}),
+        Optional("modelID"): Str(),
+        Optional("description"): Str(),
+        Optional("majorVersion"): Bool(),
+        Optional("inferenceModel"): Map(
+            {
+                "targetName": Str(),
+                Optional("positiveClassLabel"): Str(),
+                Optional("negativeClassLabel"): Str(),
+                Optional("predictionThreshold"): Int(),
+            }
+        ),
+        Optional("trainingModel"): Map({Optional("trainOnProject"): Str()}),
+    }
+)
+
+
+def read_model_metadata_yaml(code_dir):
+    code_dir = Path(code_dir)
+    config_path = code_dir.joinpath(MODEL_CONFIG_FILENAME)
+    if config_path.exists():
+        with open(config_path) as f:
+            try:
+                model_config = load(f.read(), MODEL_CONFIG_SCHEMA).data
+            except YAMLError as e:
+                print(e)
+                raise SystemExit()
+        return model_config
+    return None

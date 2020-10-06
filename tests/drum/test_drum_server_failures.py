@@ -37,6 +37,7 @@ class TestDrumServerFailures:
         )
 
         server_run_args = dict(
+            target_type=resources.target_types(problem),
             custom_model_dir=custom_model_dir,
             labels=resources.class_labels(framework, problem),
         )

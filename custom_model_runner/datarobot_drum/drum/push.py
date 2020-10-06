@@ -3,60 +3,30 @@ import re
 from pathlib import Path
 
 import datarobot as dr_client
-from strictyaml import Bool, Int, load, Map, Optional, Str, YAMLError
 
-from datarobot_drum.drum.common import RunMode
+from datarobot_drum.drum.common import RunMode, MODEL_CONFIG_FILENAME, TargetType
 from datarobot_drum.drum.exceptions import DrumCommonException
 
-CONFIG_FILENAME = "model-metadata.yaml"
 DR_LINK_FORMAT = "{}/model-registry/custom-models/{}"
 MODEL_LOGS_LINK_FORMAT = "{url}/projects/{project_id}/models/{model_id}/log"
 
-schema = Map(
-    {
-        "name": Str(),
-        "type": Str(),
-        "environmentID": Str(),
-        "targetType": Str(),
-        "validation": Map({"input": Str(), Optional("targetName"): Str()}),
-        Optional("modelID"): Str(),
-        Optional("description"): Str(),
-        Optional("majorVersion"): Bool(),
-        Optional("inferenceModel"): Map(
-            {
-                "targetName": Str(),
-                Optional("positiveClassLabel"): Str(),
-                Optional("negativeClassLabel"): Str(),
-                Optional("predictionThreshold"): Int(),
-            }
-        ),
-        Optional("trainingModel"): Map({Optional("trainOnProject"): Str()}),
-    }
-)
 
-
-def _read_metadata(code_dir):
-    code_dir = Path(code_dir)
-    if not code_dir.joinpath(CONFIG_FILENAME).exists():
+def _get_metadata(options):
+    code_dir = Path(options.code_dir)
+    if options.model_config is None:
         raise DrumCommonException(
             "You must have a file with the name {} in the directory {}. \n"
             "You don't. \nWhat you do have is these files: \n{} ".format(
-                CONFIG_FILENAME, code_dir, os.listdir(code_dir)
+                MODEL_CONFIG_FILENAME, code_dir, os.listdir(code_dir)
             )
         )
-    with open(code_dir.joinpath(CONFIG_FILENAME)) as f:
-        try:
-            model_config = load(f.read(), schema).data
-        except YAMLError as e:
-            print(e)
-            raise SystemExit()
-    return model_config
+    return options.model_config
 
 
 def _convert_target_type(unconverted_target_type):
-    if unconverted_target_type == "regression":
+    if unconverted_target_type == TargetType.REGRESSION.value:
         return dr_client.TARGET_TYPE.REGRESSION
-    elif unconverted_target_type == "binary":
+    elif unconverted_target_type == TargetType.BINARY.value:
         return dr_client.TARGET_TYPE.BINARY
     raise DrumCommonException("Unsupported target type {}".format(unconverted_target_type))
 
@@ -209,7 +179,7 @@ def _setup_inference_validation(config, options):
 
 
 def setup_validation_options(options):
-    model_config = _read_metadata(options.code_dir)
+    model_config = _get_metadata(options)
     if model_config["type"] == "training":
         return _setup_training_validation(model_config, options)
     elif model_config["type"] == "inference":
@@ -219,7 +189,7 @@ def setup_validation_options(options):
 
 
 def drum_push(options):
-    model_config = _read_metadata(options.code_dir)
+    model_config = _get_metadata(options)
 
     if model_config["type"] == "training":
         _push_training(model_config, options.code_dir)

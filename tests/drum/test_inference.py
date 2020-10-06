@@ -79,8 +79,12 @@ class TestInference:
 
         output = tmp_path / "output"
 
-        cmd = "{} score --code-dir {} --input {} --output {}".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output
+        cmd = "{} score --code-dir {} --input {} --output {} --target-type {}".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            custom_model_dir,
+            input_dataset,
+            output,
+            resources.target_types(problem),
         )
         if problem == BINARY:
             cmd = _cmd_add_class_labels(cmd, resources.class_labels(framework, problem))
@@ -136,7 +140,10 @@ class TestInference:
         )
 
         with DrumServerRun(
-            resources.class_labels(framework, problem), custom_model_dir, docker
+            resources.target_types(problem),
+            resources.class_labels(framework, problem),
+            custom_model_dir,
+            docker,
         ) as run:
             input_dataset = resources.datasets(framework, problem)
 
@@ -175,6 +182,7 @@ class TestInference:
         )
 
         with DrumServerRun(
+            resources.target_types(problem),
             resources.class_labels(framework, problem),
             custom_model_dir,
             docker,
@@ -214,7 +222,10 @@ class TestInference:
         )
 
         with DrumServerRun(
-            resources.class_labels(framework, problem), custom_model_dir, docker
+            resources.target_types(problem),
+            resources.class_labels(framework, problem),
+            custom_model_dir,
+            docker,
         ) as run:
             input_dataset = resources.datasets(framework, problem)
 

@@ -3,9 +3,13 @@ import numpy
 import os
 import pandas as pd
 
-from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.common import (
+    LOGGER_NAME_PREFIX,
+    TargetType,
+    CustomHooks,
+    REGRESSION_PRED_COLUMN,
+)
 from datarobot_drum.drum.exceptions import DrumCommonException
-
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
@@ -57,12 +61,25 @@ class RPredictor(BaseLanguagePredictor):
         r_handler.source(R_COMMON_PATH)
         r_handler.source(R_SCORE_PATH)
         r_handler.init(self._custom_model_path)
+        if self._target_type == TargetType.UNSTRUCTURED:
+            for hook_name in [
+                CustomHooks.READ_INPUT_DATA,
+                CustomHooks.LOAD_MODEL,
+                CustomHooks.SCORE,
+            ]:
+                if not hasattr(r_handler, hook_name):
+                    raise DrumCommonException(
+                        "In '{}' mode hook '{}' must be provided.".format(
+                            TargetType.UNSTRUCTURED.value, hook_name
+                        )
+                    )
+
         self._model = r_handler.load_serialized_model(self._custom_model_path)
 
     def predict(self, input_filename):
         predictions = r_handler.outer_predict(
             input_filename,
-            unstructured_mode=self._unstructured_mode,
+            self._target_type.value,
             model=self._model,
             positive_class_label=self._positive_class_label,
             negative_class_label=self._negative_class_label,
@@ -70,12 +87,12 @@ class RPredictor(BaseLanguagePredictor):
         with localconverter(ro.default_converter + pandas2ri.converter):
             py_data_object = ro.conversion.rpy2py(predictions)
 
-        if self._unstructured_mode:
+        if self._target_type == TargetType.UNSTRUCTURED:
             py_data_object = str(py_data_object)
         else:
             # in case of regression, array is returned
             if isinstance(py_data_object, numpy.ndarray):
-                py_data_object = pd.DataFrame({"Predictions": py_data_object})
+                py_data_object = pd.DataFrame({REGRESSION_PRED_COLUMN: py_data_object})
 
             if not isinstance(py_data_object, pd.DataFrame):
                 error_message = (

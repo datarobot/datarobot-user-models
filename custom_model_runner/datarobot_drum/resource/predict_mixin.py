@@ -2,7 +2,7 @@ import tempfile
 from flask import request
 
 
-from datarobot_drum.drum.common import REGRESSION_PRED_COLUMN
+from datarobot_drum.drum.common import REGRESSION_PRED_COLUMN, TargetType
 
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
@@ -41,7 +41,7 @@ class PredictMixin:
             f.flush()
             out_data = self._predictor.predict(f.name)
 
-        if self._unstructured_mode:
+        if self._target_type == TargetType.UNSTRUCTURED:
             response = out_data
         else:
             num_columns = len(out_data.columns)

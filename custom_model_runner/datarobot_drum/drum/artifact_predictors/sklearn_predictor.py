@@ -4,6 +4,7 @@ import pandas as pd
 from datarobot_drum.drum.common import (
     PythonArtifacts,
     REGRESSION_PRED_COLUMN,
+    TargetType,
     extra_deps,
     SupportedFrameworks,
 )
@@ -74,7 +75,7 @@ class SKLearnPredictor(ArtifactPredictor):
 
             return labels.index(pos_label)
 
-        if self.positive_class_label is not None and self.negative_class_label is not None:
+        if self.target_type == TargetType.BINARY:
             predictions = model.predict_proba(data)
             positive_label_index = _determine_positive_class_index(
                 self.positive_class_label, self.negative_class_label
@@ -87,10 +88,16 @@ class SKLearnPredictor(ArtifactPredictor):
             predictions = pd.DataFrame(
                 predictions, columns=[self.positive_class_label, self.negative_class_label]
             )
-        else:
+        elif self.target_type in [TargetType.REGRESSION, TargetType.ANOMALY]:
             predictions = pd.DataFrame(
                 [float(prediction) for prediction in model.predict(data)],
                 columns=[REGRESSION_PRED_COLUMN],
+            )
+        else:
+            raise DrumCommonException(
+                "Target type '{}' is not supported by '{}' predictor".format(
+                    self.target_type.value, self.__class__.__name__
+                )
             )
 
         return predictions

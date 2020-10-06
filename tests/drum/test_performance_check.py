@@ -42,8 +42,11 @@ class TestPerformanceCheck:
 
         input_dataset = resources.datasets(framework, problem)
 
-        cmd = "{} perf-test -i 10 -s 1000 --code-dir {} --input {}".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset
+        cmd = "{} perf-test -i 10 -s 1000 --code-dir {} --input {} --target-type {}".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            custom_model_dir,
+            input_dataset,
+            resources.target_types(problem),
         )
         if problem == BINARY:
             cmd = _cmd_add_class_labels(cmd, resources.class_labels(framework, problem))

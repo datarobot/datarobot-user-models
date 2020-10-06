@@ -198,7 +198,8 @@ The [model_templates](model_templates) folder contains sample models that work w
 * [Java sample model](model_templates/inference/java_codegen)
 
 ##### Training Models
-* [Scikit-Learn sample model](model_templates/training/python3_sklearn)
+* [Scikit-Learn sample regression model](model_templates/training/python3_sklearn_regression)
+* [Scikit-Learn sample binary model](model_templates/training/python3_sklearn_binary)
 * [Scikit-Learn sample unsupervised anomaly detection model](model_templates/training/python3_anomaly_detection)
 > Note: Unsupervised support is limited to anomaly detection models as of release 1.1.5
 * [XGBoost sample model](model_templates/training/python3_xgboost)

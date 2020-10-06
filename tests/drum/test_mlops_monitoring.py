@@ -33,8 +33,12 @@ class TestMLOpsMonitoring:
         input_dataset = resources.datasets(framework, problem)
         output = tmp_path / "output"
 
-        cmd = "{} score --code-dir {} --input {} --output {}".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output
+        cmd = "{} score --code-dir {} --input {} --output {} --target-type {}".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            custom_model_dir,
+            input_dataset,
+            output,
+            resources.target_types(problem),
         )
         monitor_settings = (
             "spooler_type=filesystem;directory={};max_files=1;file_max_size=1024000".format(
@@ -102,3 +106,25 @@ class TestMLOpsMonitoring:
         assert (
             p.returncode != 0
         ), "drum should fail when datarobot-mlops is not installed and monitoring is requested"
+
+    @pytest.mark.parametrize(
+        "framework, problem, language, docker",
+        [
+            (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None),
+        ],
+    )
+    def test_drum_monitoring_fails_in_unstructured_mode(
+        self, resources, framework, problem, language, docker, tmp_path
+    ):
+        cmd, input_file, output_file, mlops_spool_dir = TestMLOpsMonitoring._drum_with_monitoring(
+            resources, framework, problem, language, docker, tmp_path
+        )
+
+        cmd += " --target-type unstructured"
+        _, stdo, _ = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+
+        assert str(stdo).find("MLOps monitoring can not be used in unstructured mode") != -1

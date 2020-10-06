@@ -1,4 +1,15 @@
 
+TargetTypeEnum <- function() {
+    list(
+      REGRESSION = "regression",
+      BINARY = "binary",
+      ANOMALY = "anomaly",
+      UNSTRUCTURED = "unstructured"
+    )
+}
+
+TargetType <- TargetTypeEnum()
+
 #' Import R source files as a named package
 #'
 #' @param srcFiles character, file paths to load as the package
