@@ -257,8 +257,8 @@ class CMRunnerArgsRegistry(object):
                 default=None,
                 required=False,
                 help="Docker image to use to run {} in the {} mode, "
-                     "or a directory, containing a Dockerfile, "
-                     "which can be built into a docker image. ".format(
+                "or a directory, containing a Dockerfile, "
+                "which can be built into a docker image. ".format(
                     ArgumentsOptions.MAIN_COMMAND, prog_name_lst[1]
                 ),
             )
@@ -271,9 +271,9 @@ class CMRunnerArgsRegistry(object):
                 default=None,
                 required=False,
                 help="Amount of memory to allow the docker container to consume. "
-                     "The value will be passed to the docker run command to both the  "
-                     "--memory and --memory-swap parameters. b,k,m,g suffixes are supported"
-                ),
+                "The value will be passed to the docker run command to both the  "
+                "--memory and --memory-swap parameters. b,k,m,g suffixes are supported",
+            ),
 
     @staticmethod
     def _reg_arg_production_server(*parsers):
@@ -534,7 +534,7 @@ class CMRunnerArgsRegistry(object):
             server_parser,
             fit_parser,
             validation_parser,
-            push_parser
+            push_parser,
         )
 
         CMRunnerArgsRegistry._reg_arg_output(batch_parser, fit_parser)

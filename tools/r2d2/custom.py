@@ -128,8 +128,9 @@ def main():
     parser = argparse.ArgumentParser(description="Send actions to a running r2d2 model")
     parser.add_argument("cmd", help="command to send", choices=[e.value for e in R2D2Commands])
     parser.add_argument("arg", help="argument for the given command")
-    parser.add_argument("--server", default="0.0.0.0:8080",
-                        help="Server address of r2d2 model running (via drum)")
+    parser.add_argument(
+        "--server", default="0.0.0.0:8080", help="Server address of r2d2 model running (via drum)"
+    )
 
     options = parser.parse_args()
     url = "http://" + options.server + "/predict/"
@@ -139,8 +140,10 @@ def main():
     print("Cmd:    {}".format(options.cmd))
     print("Arg:    {}".format(options.arg))
 
-    data = pd.DataFrame({R2D2.CMD_COL: [options.cmd], R2D2.ARG_COL: [options.arg]},
-                        columns=[R2D2.CMD_COL, R2D2.ARG_COL])
+    data = pd.DataFrame(
+        {R2D2.CMD_COL: [options.cmd], R2D2.ARG_COL: [options.arg]},
+        columns=[R2D2.CMD_COL, R2D2.ARG_COL],
+    )
     print("Sending the following data:")
     print(data)
 
