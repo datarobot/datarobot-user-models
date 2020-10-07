@@ -170,7 +170,7 @@ class TestFit:
         input_dataset = resources.datasets(framework, problem)
 
         weights_cmd, input_dataset, __keep_this_around = self._add_weights_cmd(
-            weights, input_dataset
+            weights, input_dataset, r_fit=language == R_FIT
         )
 
         cmd = "{} fit --code-dir {} --input {} --verbose ".format(
