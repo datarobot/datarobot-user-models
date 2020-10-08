@@ -62,6 +62,7 @@ class DrumServerRun:
         with_error_server=False,
         show_stacktrace=True,
         nginx=False,
+        memory=None,
     ):
         port = CMRunnerUtils.find_free_port()
         self.server_address = "localhost:{}".format(port)
@@ -79,6 +80,8 @@ class DrumServerRun:
             cmd = _cmd_add_class_labels(cmd, labels)
         if docker:
             cmd += " --docker {}".format(docker)
+            if memory:
+                cmd += " --memory {}".format(memory)
         if with_error_server:
             cmd += " --with-error-server"
         if show_stacktrace:
