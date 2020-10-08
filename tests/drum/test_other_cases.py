@@ -351,7 +351,7 @@ class TestOtherCases:
                 {"cmd": ["exception"], "arg": [1000]}, columns=["cmd", "arg"],
             )
 
-            print("Sending the following data:")
+            print("Sending 1000m data:")
             print(data)
             csv_data = data.to_csv(index=False)
 
@@ -359,8 +359,10 @@ class TestOtherCases:
             print(response)
             assert response.status_code == 500
 
-            print("Second check")
+            print("In sleep")
+            time.sleep(500)
 
+            print("Second check")
             response = requests.get(run.url_server_address)
             print(response)
             assert response.status_code == 500
