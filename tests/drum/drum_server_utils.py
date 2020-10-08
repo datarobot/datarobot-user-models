@@ -64,15 +64,16 @@ class DrumServerRun:
         nginx=False,
     ):
         port = CMRunnerUtils.find_free_port()
-        server_address = "localhost:{}".format(port)
+        self.server_address = "localhost:{}".format(port)
         url_host = os.environ.get("TEST_URL_HOST", "localhost")
+
         if docker:
             self.url_server_address = "http://{}:{}".format(url_host, port)
         else:
             self.url_server_address = "http://localhost:{}".format(port)
 
         cmd = "{} server --code-dir {} --target-type {} --address {}".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, target_type, server_address
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, target_type, self.server_address
         )
         if labels:
             cmd = _cmd_add_class_labels(cmd, labels)

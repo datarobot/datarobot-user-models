@@ -2,8 +2,12 @@ import os
 from uuid import uuid4
 import pandas as pd
 import pytest
+import requests
+import time
+
 from datarobot_drum.drum.common import ArgumentsOptions, CustomHooks, CUSTOM_FILE_NAME
 
+from .drum_server_utils import DrumServerRun
 from .utils import (
     _exec_shell_cmd,
     _create_custom_model_dir,
@@ -23,6 +27,7 @@ from .constants import (
     PYTHON_ALL_HOOKS,
     R,
     R_ALL_HOOKS,
+    DOCKER_PYTHON_SKLEARN,
 )
 
 
@@ -284,3 +289,53 @@ class TestOtherCases:
         assert os.path.isfile(os.path.join(directory, "README.md"))
         custom_file = os.path.join(directory, CUSTOM_FILE_NAME + language_suffix)
         assert os.path.isfile(custom_file)
+
+    def test_r2d2_drum_prediction_server(
+        self,
+        resources,
+        tmp_path,
+    ):
+        print("current dir: {}".format(os.getcwd()))
+
+        custom_model_dir = "tools/r2d2"
+
+        with DrumServerRun(
+            target_type=resources.target_types(REGRESSION_INFERENCE),
+            labels=None,
+            custom_model_dir=custom_model_dir,
+            docker=DOCKER_PYTHON_SKLEARN,
+        ) as run:
+            print("r2d2 is running")
+            cmd = "python tools/r2d2/custom.py memory 200 --server {}"\
+                .format(run.server_address)
+            print(cmd)
+
+            p, stdout, stderr = _exec_shell_cmd(cmd, "Error running r2d2 main")
+            print("CMD result: {}".format(p.returncode))
+            print(stdout)
+            print(stderr)
+            assert p.returncode == 0
+
+            data = pd.DataFrame(
+                {"cmd": ["memory"], "arg": [250]}, columns=["cmd", "arg"],
+            )
+            print("Sending the following data:")
+            print(data)
+
+            csv_data = data.to_csv(index=False)
+            url = "{}/predict/".format(run.url_server_address)
+            response = requests.post(url, files={"X": csv_data})
+            print(response)
+            assert response.ok
+
+            data = pd.DataFrame(
+                {"cmd": ["exception"], "arg": [250]}, columns=["cmd", "arg"],
+            )
+            print("Sending the following data:")
+            print(data)
+
+            csv_data = data.to_csv(index=False)
+            url = "{}/predict/".format(run.url_server_address)
+            response = requests.post(url, files={"X": csv_data})
+            print(response)
+            assert response.status_code == 500
