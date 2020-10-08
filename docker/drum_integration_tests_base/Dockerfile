@@ -2,13 +2,17 @@ FROM rocker/r-apt:bionic
 RUN echo '29 Aug 2019'
 ENV LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -y
-RUN apt-get install -y r-cran-recipes
-RUN apt-get install -y r-cran-glmnet
-RUN apt-get install -y r-cran-rjson
-RUN apt-get install -y r-cran-e1071
-RUN apt-get install -y r-cran-plumber
-RUN apt-get install -y r-cran-caret
-RUN apt-get install -y r-cran-tidyverse
+RUN apt-get install -y \
+        r-cran-recipes \
+        r-cran-glmnet \
+        r-cran-rjson \
+        r-cran-e1071 \
+        r-cran-plumber \
+        r-cran-caret \
+        r-cran-tidyverse \
+        r-cran-devtools \
+        r-cran-pack \
+        r-cran-rook
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
         apt-utils \
@@ -50,13 +54,10 @@ RUN pip3 install setuptools wheel
 
 ### Save cran as the default repo for R packages
 RUN echo "r <- getOption('repos'); r['CRAN'] <- 'http://cran.rstudio.com'; options(repos = r);" > ~/.Rprofile
-# Install R Packages
-RUN Rscript -e "install.packages('Rook', Ncpus=6)"
-RUN Rscript -e "install.packages('tidyverse', Ncpus=6)"
+
 # Install caret models
 RUN Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$forReg, c(1)]), Ncpus=4)'
 RUN Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$forClass, c(1)]), Ncpus=4)'
-RUN Rscript -e "install.packages('devtools', Ncpus=4)"
 
 RUN rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 
@@ -66,9 +67,7 @@ RUN apt install software-properties-common && \
     apt install -y python3.7 python3.7-dev
 
 RUN python3.7 -m pip install -U pip
-RUN python3.7 -m pip install setuptools
-RUN python3.7 -m pip install wheel
-RUN python3.7 -m pip install virtualenv
+RUN python3.7 -m pip install setuptools wheel virtualenv
 
 RUN python3.7 -m virtualenv /opt/v3.7
 COPY requirements_drum.txt /tmp/requirements_drum.txt
