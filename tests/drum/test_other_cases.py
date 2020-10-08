@@ -348,8 +348,13 @@ class TestOtherCases:
 
             print("Sending the following data:")
             print(data)
-
             csv_data = data.to_csv(index=False)
+
+            response = requests.post(url, files={"X": csv_data})
+            print(response)
+            assert response.status_code == 500
+
+            print("Second check")
             response = requests.post(url, files={"X": csv_data})
             print(response)
             assert response.status_code == 500
