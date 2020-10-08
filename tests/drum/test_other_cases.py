@@ -341,6 +341,11 @@ class TestOtherCases:
             print(response)
             assert response.status_code == 500
 
+            # Server should be alive before we kill it with memory
+            response = requests.get(run.url_server_address)
+            print(response)
+            assert response.ok
+
             # Killing the docker allocating too much memory
             data = pd.DataFrame(
                 {"cmd": ["exception"], "arg": [1000]}, columns=["cmd", "arg"],
@@ -355,6 +360,7 @@ class TestOtherCases:
             assert response.status_code == 500
 
             print("Second check")
-            response = requests.post(url, files={"X": csv_data})
+
+            response = requests.get(run.url_server_address)
             print(response)
             assert response.status_code == 500
