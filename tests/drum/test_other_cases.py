@@ -304,7 +304,7 @@ class TestOtherCases:
             labels=None,
             custom_model_dir=custom_model_dir,
             docker=DOCKER_PYTHON_SKLEARN,
-            memory=500
+            memory="500m"
         ) as run:
             print("r2d2 is running")
             cmd = "python tools/r2d2/custom.py memory 200 --server {}"\
