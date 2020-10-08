@@ -99,3 +99,10 @@ You can now trigger r2d2 to consume 2000mb of memory by doing:
  to the endpoint "localhost:8999/predict". DRUM will create a dataframe
  form that file and will forward it to the r2d2 model. The r2d2 will
  parse the incoming data and will consume 2000mb of memory. 
+ 
+ ## Using the r2d2/custom.py to send commands
+ 
+ r2d2/custom.py contains a main() function that if called can be used to send commands
+ to a running r2d2 model. For example
+ 
+     python r2d2/custom.py 
