@@ -348,21 +348,16 @@ class TestOtherCases:
 
             # Killing the docker allocating too much memory
             data = pd.DataFrame(
-                {"cmd": ["exception"], "arg": [1000]}, columns=["cmd", "arg"],
+                {"cmd": ["memory"], "arg": [1000]}, columns=["cmd", "arg"],
             )
 
             print("Sending 1000m data:")
             print(data)
             csv_data = data.to_csv(index=False)
 
-            response = requests.post(url, files={"X": csv_data})
-            print(response)
-            assert response.status_code == 500
-
-            print("In sleep")
-            time.sleep(500)
-
-            print("Second check")
-            response = requests.get(run.url_server_address)
-            print(response)
-            assert response.status_code == 500
+            try:
+                response = requests.post(url, files={"X": csv_data})
+                print(response)
+                assert response.status_code == 500
+            except ConnectionError:
+                print("Expected connection error")
