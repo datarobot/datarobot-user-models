@@ -305,11 +305,10 @@ class TestOtherCases:
             custom_model_dir=custom_model_dir,
             docker=DOCKER_PYTHON_SKLEARN,
             memory="500m",
-            fail_on_shutdown_error=False
+            fail_on_shutdown_error=False,
         ) as run:
             print("r2d2 is running")
-            cmd = "python tools/r2d2/custom.py memory 200 --server {}"\
-                .format(run.server_address)
+            cmd = "python tools/r2d2/custom.py memory 200 --server {}".format(run.server_address)
             print(cmd)
 
             p, stdout, stderr = _exec_shell_cmd(cmd, "Error running r2d2 main")
@@ -319,7 +318,8 @@ class TestOtherCases:
             assert p.returncode == 0
 
             data = pd.DataFrame(
-                {"cmd": ["memory"], "arg": [100]}, columns=["cmd", "arg"],
+                {"cmd": ["memory"], "arg": [100]},
+                columns=["cmd", "arg"],
             )
             print("Sending the following data:")
             print(data)
@@ -332,7 +332,8 @@ class TestOtherCases:
 
             # Sending the exception command.. should get a failed response
             data = pd.DataFrame(
-                {"cmd": ["exception"], "arg": [100]}, columns=["cmd", "arg"],
+                {"cmd": ["exception"], "arg": [100]},
+                columns=["cmd", "arg"],
             )
             print("Sending the following data:")
             print(data)
@@ -349,7 +350,8 @@ class TestOtherCases:
 
             # Killing the docker allocating too much memory
             data = pd.DataFrame(
-                {"cmd": ["memory"], "arg": [1000]}, columns=["cmd", "arg"],
+                {"cmd": ["memory"], "arg": [1000]},
+                columns=["cmd", "arg"],
             )
 
             print("Sending 1000m data:")
