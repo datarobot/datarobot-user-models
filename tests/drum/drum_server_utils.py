@@ -63,6 +63,7 @@ class DrumServerRun:
         show_stacktrace=True,
         nginx=False,
         memory=None,
+        fail_on_shutdown_error=True,
     ):
         port = CMRunnerUtils.find_free_port()
         self.server_address = "localhost:{}".format(port)
@@ -93,6 +94,7 @@ class DrumServerRun:
         self._process_object_holder = DrumServerProcess()
         self._server_thread = None
         self._with_nginx = nginx
+        self._fail_on_shutdown_error = fail_on_shutdown_error
 
     def __enter__(self):
         self._server_thread = Thread(
@@ -107,8 +109,7 @@ class DrumServerRun:
 
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        # shutdown server
+    def _shutdown_server(self):
         if not self._with_nginx:
             response = requests.post(self.url_server_address + "/shutdown/")
             assert response.ok
@@ -141,6 +142,16 @@ class DrumServerRun:
                             break
 
             self._server_thread.join(timeout=5)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # shutdown server
+        if self._fail_on_shutdown_error:
+            self._shutdown_server()
+        else:
+            try:
+                self._shutdown_server()
+            except Exception:
+                pass
 
     @property
     def process(self):
