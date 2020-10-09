@@ -359,5 +359,5 @@ class TestOtherCases:
                 response = requests.post(url, files={"X": csv_data})
                 print(response)
                 assert response.status_code == 500
-            except ConnectionError:
+            except Exception:
                 print("Expected connection error")
