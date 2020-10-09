@@ -83,6 +83,7 @@ class ArgumentsOptions:
     ADDRESS = "--address"
     DIR = "--dir"
     DOCKER = "--docker"
+    MEMORY = "--memory"
     INPUT = "--input"
     OUTPUT = "--output"
     TARGET = "--target"

@@ -264,6 +264,18 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
+    def _reg_arg_memory(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.MEMORY,
+                default=None,
+                required=False,
+                help="Amount of memory to allow the docker container to consume. "
+                "The value will be passed to the docker run command to both the  "
+                "--memory and --memory-swap parameters. b,k,m,g suffixes are supported",
+            ),
+
+    @staticmethod
     def _reg_arg_production_server(*parsers):
         for parser in parsers:
             parser.add_argument(
@@ -516,6 +528,15 @@ class CMRunnerArgsRegistry(object):
             validation_parser,
             push_parser,
         )
+        CMRunnerArgsRegistry._reg_arg_memory(
+            batch_parser,
+            parser_perf_test,
+            server_parser,
+            fit_parser,
+            validation_parser,
+            push_parser,
+        )
+
         CMRunnerArgsRegistry._reg_arg_output(batch_parser, fit_parser)
         CMRunnerArgsRegistry._reg_arg_show_perf(batch_parser, server_parser)
 

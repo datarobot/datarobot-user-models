@@ -62,22 +62,27 @@ class DrumServerRun:
         with_error_server=False,
         show_stacktrace=True,
         nginx=False,
+        memory=None,
+        fail_on_shutdown_error=True,
     ):
         port = CMRunnerUtils.find_free_port()
-        server_address = "localhost:{}".format(port)
+        self.server_address = "localhost:{}".format(port)
         url_host = os.environ.get("TEST_URL_HOST", "localhost")
+
         if docker:
             self.url_server_address = "http://{}:{}".format(url_host, port)
         else:
             self.url_server_address = "http://localhost:{}".format(port)
 
         cmd = "{} server --code-dir {} --target-type {} --address {}".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, target_type, server_address
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, target_type, self.server_address
         )
         if labels:
             cmd = _cmd_add_class_labels(cmd, labels)
         if docker:
             cmd += " --docker {}".format(docker)
+            if memory:
+                cmd += " --memory {}".format(memory)
         if with_error_server:
             cmd += " --with-error-server"
         if show_stacktrace:
@@ -89,6 +94,7 @@ class DrumServerRun:
         self._process_object_holder = DrumServerProcess()
         self._server_thread = None
         self._with_nginx = nginx
+        self._fail_on_shutdown_error = fail_on_shutdown_error
 
     def __enter__(self):
         self._server_thread = Thread(
@@ -103,8 +109,7 @@ class DrumServerRun:
 
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        # shutdown server
+    def _shutdown_server(self):
         if not self._with_nginx:
             response = requests.post(self.url_server_address + "/shutdown/")
             assert response.ok
@@ -137,6 +142,16 @@ class DrumServerRun:
                             break
 
             self._server_thread.join(timeout=5)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        # shutdown server
+        if self._fail_on_shutdown_error:
+            self._shutdown_server()
+        else:
+            try:
+                self._shutdown_server()
+            except Exception:
+                pass
 
     @property
     def process(self):
