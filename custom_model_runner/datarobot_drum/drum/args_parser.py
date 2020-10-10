@@ -3,6 +3,7 @@ from argparse import RawTextHelpFormatter
 import os
 from datarobot_drum.drum.push import HELP_TEXT
 import sys
+import subprocess
 
 from datarobot_drum.drum.description import version
 from datarobot_drum.drum.common import LOG_LEVELS, ArgumentsOptions, RunLanguage, TargetType
@@ -599,5 +600,15 @@ class CMRunnerArgsRegistry(object):
             if not options.new_mode:
                 CMRunnerArgsRegistry._parsers[ArgumentsOptions.NEW].print_help()
                 exit(1)
+        elif options.subparser_name in [ArgumentsOptions.SERVER, ArgumentsOptions.PERF_TEST]:
+            if options.production:
+                ret_code = subprocess.run([sys.executable, "-m", "pip", "show", "uwsgi"]).returncode
+                if ret_code != 0:
+                    print(
+                        "Looks like 'uwsgi` package is missing. Don't use '{}' option when running drum server or try to install 'uwsgi'.".format(
+                            ArgumentsOptions.PRODUCTION
+                        )
+                    )
+                    exit(1)
 
         CMRunnerArgsRegistry.verify_monitoring_options(options, options.subparser_name)

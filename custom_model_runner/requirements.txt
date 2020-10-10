@@ -6,7 +6,7 @@ jinja2
 progress
 texttable
 argcomplete==1.11.1
-mlpiper==2.3.0
+mlpiper~=2.3.0
 datarobot==2.21.3
 strictyaml==1.0.6
 py4j~=0.10.9.0
