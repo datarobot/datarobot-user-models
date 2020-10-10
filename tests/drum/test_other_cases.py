@@ -3,7 +3,6 @@ from uuid import uuid4
 import pandas as pd
 import pytest
 import requests
-import time
 
 from datarobot_drum.drum.common import ArgumentsOptions, CustomHooks, CUSTOM_FILE_NAME
 
@@ -21,12 +20,15 @@ from .constants import (
     CODEGEN_AND_SKLEARN,
     REGRESSION,
     REGRESSION_INFERENCE,
+    UNSTRUCTURED,
     BINARY,
     PYTHON,
     NO_CUSTOM,
-    PYTHON_ALL_HOOKS,
+    PYTHON_ALL_PREDICT_STRUCTURED_HOOKS,
+    PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS,
     R,
-    R_ALL_HOOKS,
+    R_ALL_PREDICT_STRUCTURED_HOOKS,
+    R_ALL_PREDICT_UNSTRUCTURED_HOOKS,
     DOCKER_PYTHON_SKLEARN,
 )
 
@@ -239,20 +241,43 @@ class TestOtherCases:
             assert case
 
     @pytest.mark.parametrize(
-        "framework, language", [(SKLEARN, PYTHON_ALL_HOOKS), (RDS, R_ALL_HOOKS)]
+        "framework, language, hooks_list, target_type",
+        [
+            (
+                None,
+                PYTHON_ALL_PREDICT_STRUCTURED_HOOKS,
+                CustomHooks.ALL_PREDICT_STRUCTURED,
+                REGRESSION,
+            ),
+            (None, R_ALL_PREDICT_STRUCTURED_HOOKS, CustomHooks.ALL_PREDICT_STRUCTURED, REGRESSION),
+            (
+                None,
+                PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS,
+                CustomHooks.ALL_PREDICT_UNSTRUCTURED,
+                UNSTRUCTURED,
+            ),
+            (
+                None,
+                R_ALL_PREDICT_UNSTRUCTURED_HOOKS,
+                CustomHooks.ALL_PREDICT_UNSTRUCTURED,
+                UNSTRUCTURED,
+            ),
+        ],
     )
-    def test_custom_model_with_all_predict_hooks(
+    def test_custom_model_with_all_hooks(
         self,
         resources,
         framework,
         language,
+        hooks_list,
+        target_type,
         tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
             resources,
             tmp_path,
             framework,
-            REGRESSION,
+            None,
             language,
         )
 
@@ -260,16 +285,19 @@ class TestOtherCases:
 
         output = tmp_path / "output"
 
-        cmd = "{} score --code-dir {} --input {} --output {} --target-type regression".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output
+        cmd = "{} score --code-dir {} --input {} --output {} --target-type {}".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output, target_type
         )
         _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
-        preds = pd.read_csv(output)
-        assert all(
-            val for val in (preds["Predictions"] == len(CustomHooks.ALL_PREDICT_STRUCTURED)).values
-        ), preds
+        if hooks_list == CustomHooks.ALL_PREDICT_STRUCTURED:
+            preds = pd.read_csv(output)
+            assert all(val for val in (preds["Predictions"] == len(hooks_list)).values), preds
+        elif hooks_list == CustomHooks.ALL_PREDICT_UNSTRUCTURED:
+            with open(output) as f:
+                all_data = f.read()
+                assert str(len(hooks_list)) in all_data
 
     @pytest.mark.parametrize("language, language_suffix", [("python", ".py"), ("r", ".R")])
     def test_template_creation(self, language, language_suffix, tmp_path):

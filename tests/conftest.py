@@ -16,14 +16,16 @@ from tests.drum.constants import (
     POJO,
     PYPMML,
     PYTHON,
-    PYTHON_ALL_HOOKS,
+    PYTHON_ALL_PREDICT_STRUCTURED_HOOKS,
+    PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS,
     PYTHON_LOAD_MODEL,
     PYTHON_UNSTRUCTURED,
     PYTHON_UNSTRUCTURED_PARAMS,
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
     PYTORCH,
     R,
-    R_ALL_HOOKS,
+    R_ALL_PREDICT_STRUCTURED_HOOKS,
+    R_ALL_PREDICT_UNSTRUCTURED_HOOKS,
     R_FIT,
     R_UNSTRUCTURED,
     R_UNSTRUCTURED_PARAMS,
@@ -40,7 +42,6 @@ from tests.drum.constants import (
     TESTS_FIXTURES_PATH,
     TRAINING_TEMPLATES_PATH,
     UNSTRUCTURED,
-    WORDS_COUNT_BASIC,
     XGB,
 )
 
@@ -53,7 +54,7 @@ _datasets = {
     (None, REGRESSION_INFERENCE): os.path.join(TESTS_DATA_PATH, "boston_housing_inference.csv"),
     (None, BINARY): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
     (None, ANOMALY): os.path.join(TESTS_DATA_PATH, "boston_housing.csv"),
-    (UNSTRUCTURED, WORDS_COUNT_BASIC): os.path.join(TESTS_DATA_PATH, "unstructured_data.txt"),
+    (None, UNSTRUCTURED): os.path.join(TESTS_DATA_PATH, "unstructured_data.txt"),
 }
 
 _training_models_paths = {
@@ -77,7 +78,7 @@ _target_types = {
     REGRESSION: "regression",
     REGRESSION_INFERENCE: "regression",
     ANOMALY: "anomaly",
-    WORDS_COUNT_BASIC: "unstructured",
+    UNSTRUCTURED: "unstructured",
 }
 
 _class_labels = {
@@ -97,7 +98,7 @@ _artifacts = {
     (None, None): None,
     (None, REGRESSION): None,
     (None, BINARY): None,
-    (UNSTRUCTURED, WORDS_COUNT_BASIC): None,
+    (None, UNSTRUCTURED): None,
     (SKLEARN, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_reg.pkl"),
     (SKLEARN, REGRESSION_INFERENCE): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_reg.pkl"),
     (MULTI_ARTIFACT, REGRESSION): [
@@ -144,8 +145,12 @@ _artifacts = {
 _custom_filepaths = {
     PYTHON: (os.path.join(TESTS_FIXTURES_PATH, "custom.py"), "custom.py"),
     NO_CUSTOM: (None, None),
-    PYTHON_ALL_HOOKS: (
-        os.path.join(TESTS_FIXTURES_PATH, "all_hooks_custom.py"),
+    PYTHON_ALL_PREDICT_STRUCTURED_HOOKS: (
+        os.path.join(TESTS_FIXTURES_PATH, "all_predict_structured_hooks_custom.py"),
+        "custom.py",
+    ),
+    PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS: (
+        os.path.join(TESTS_FIXTURES_PATH, "all_predict_unstructured_hooks_custom.py"),
         "custom.py",
     ),
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION: (
@@ -157,7 +162,14 @@ _custom_filepaths = {
         "custom.py",
     ),
     R: (os.path.join(TESTS_FIXTURES_PATH, "custom.R"), "custom.R"),
-    R_ALL_HOOKS: (os.path.join(TESTS_FIXTURES_PATH, "all_hooks_custom.R"), "custom.R"),
+    R_ALL_PREDICT_STRUCTURED_HOOKS: (
+        os.path.join(TESTS_FIXTURES_PATH, "all_predict_structured_hooks_custom.R"),
+        "custom.R",
+    ),
+    R_ALL_PREDICT_UNSTRUCTURED_HOOKS: (
+        os.path.join(TESTS_FIXTURES_PATH, "all_predict_unstructured_hooks_custom.R"),
+        "custom.R",
+    ),
     R_FIT: (os.path.join(TESTS_FIXTURES_PATH, "fit_custom.R"), "custom.R"),
     PYTHON_UNSTRUCTURED: (os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom.py"), "custom.py"),
     R_UNSTRUCTURED: (os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom.R"), "custom.R"),

@@ -444,7 +444,7 @@ class CMRunnerArgsRegistry(object):
         for parser in parsers:
             parser.add_argument(
                 ArgumentsOptions.TARGET_TYPE,
-                required=True,
+                required=False,
                 choices=target_types,
                 default=None,
                 help="Target type",

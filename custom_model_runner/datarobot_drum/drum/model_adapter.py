@@ -46,13 +46,10 @@ class PythonModelAdapter:
             SKLearnPredictor(),
         ]
         self._predictor_to_use = None
-        self._custom_hooks = {}
+        self._custom_hooks = {hook: None for hook in CustomHooks.ALL_PREDICT_FIT_STRUCTURED}
         self._model = None
         self._model_dir = model_dir
         self._target_type = target_type
-
-        for hook in CustomHooks.ALL_PREDICT_FIT_STRUCTURED:
-            self._custom_hooks[hook] = None
 
     def load_custom_hooks(self):
         custom_file_paths = list(Path(self._model_dir).rglob("{}.py".format(CUSTOM_FILE_NAME)))

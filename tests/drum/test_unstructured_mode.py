@@ -16,7 +16,6 @@ from tests.drum.constants import (
     R_UNSTRUCTURED,
     R_UNSTRUCTURED_PARAMS,
     UNSTRUCTURED,
-    WORDS_COUNT_BASIC,
 )
 
 
@@ -26,8 +25,8 @@ class TestUnstructuredMode:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
-            (UNSTRUCTURED, WORDS_COUNT_BASIC, PYTHON_UNSTRUCTURED, None),
-            (UNSTRUCTURED, WORDS_COUNT_BASIC, R_UNSTRUCTURED, None),
+            (None, UNSTRUCTURED, PYTHON_UNSTRUCTURED, None),
+            (None, UNSTRUCTURED, R_UNSTRUCTURED, None),
         ],
     )
     def test_unstructured_models_batch(
@@ -82,8 +81,8 @@ class TestUnstructuredMode:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
-            (UNSTRUCTURED, WORDS_COUNT_BASIC, PYTHON_UNSTRUCTURED, None),
-            (UNSTRUCTURED, WORDS_COUNT_BASIC, R_UNSTRUCTURED, None),
+            (None, UNSTRUCTURED, PYTHON_UNSTRUCTURED, None),
+            (None, UNSTRUCTURED, R_UNSTRUCTURED, None),
         ],
     )
     def test_custom_models_with_drum_prediction_server(
@@ -131,8 +130,8 @@ class TestUnstructuredMode:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
-            (UNSTRUCTURED, WORDS_COUNT_BASIC, PYTHON_UNSTRUCTURED_PARAMS, None),
-            (UNSTRUCTURED, WORDS_COUNT_BASIC, R_UNSTRUCTURED_PARAMS, None),
+            (None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_PARAMS, None),
+            (None, UNSTRUCTURED, R_UNSTRUCTURED_PARAMS, None),
         ],
     )
     def test_response_content_type(

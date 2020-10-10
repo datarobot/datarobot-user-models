@@ -67,20 +67,39 @@ class CMRunner:
         }
 
     def _resolve_target_type(self):
-        if self.run_mode not in [RunMode.NEW, RunMode.FIT]:
-            self.target_type = TargetType(self.options.target_type)
+        target_type_options = None
+        target_type_model_config = None
 
-        # if there is model config file, check that provided target type
-        # doesn't clash with the target type from model config file
+        if hasattr(self.options, "target_type") and self.options.target_type is not None:
+            target_type_options = TargetType(self.options.target_type)
+
         if self.options.model_config is not None:
-            model_config_target_type = TargetType(self.options.model_config["targetType"])
-            if self.target_type is None:
-                self.target_type = TargetType(model_config_target_type)
-            elif self.target_type != model_config_target_type:
+            target_type_model_config = TargetType(self.options.model_config["targetType"])
+
+        if self.run_mode not in [RunMode.NEW, RunMode.FIT]:
+            if target_type_options is None and target_type_model_config is None:
                 raise DrumCommonException(
-                    "Resolved target type doesn't match target type from model config file."
-                    "If model config file is used used, make --target-type values match."
+                    "Target type is missing. It must be provided in either --target-type argument or model config file."
                 )
+            elif (
+                all([target_type_options, target_type_model_config])
+                and target_type_options != target_type_model_config
+            ):
+                raise DrumCommonException(
+                    "Target type provided in --target-type argument doesn't match target type from model config file."
+                    "Use either one of them or make them match."
+                )
+            else:
+                self.target_type = (
+                    target_type_options
+                    if target_type_options is not None
+                    else target_type_model_config
+                )
+
+        if getattr(self.options, "params", None) and self.target_type != TargetType.UNSTRUCTURED:
+            raise DrumCommonException(
+                "--params argument can be used only with --target-type unstructured"
+            )
 
     @staticmethod
     def _config_logger(options):
@@ -355,7 +374,9 @@ class CMRunner:
             "model_id": options.model_id,
             "deployment_id": options.deployment_id,
             "monitor_settings": options.monitor_settings,
-            "params": options.params if hasattr(options, "params") else "null",
+            "params": '"{}"'.format(options.params)
+            if getattr(options, "params", None) is not None
+            else "null",
             "target_type": self.target_type.value,
         }
 
