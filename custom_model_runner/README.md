@@ -150,6 +150,15 @@ For this /predict/ route, provide inference data (for the model to make predicti
 key = X  
 value = filename of the CSV that contains the inference data
 
+#### Starting drum as prediction server in production mode.
+Drum prediction server can be started in *production* mode which has nginx and uwsgi as the backend.
+This provides better stability and scalability - depending on how many CPUs are available several workers will be started to serve predictions.  
+*--max-workers* parameter  can be used to limit number of workers.  
+E.g. ```drum server --code-dir ~/user_code_dir --address localhost:6789 --production --max-workers 2```
+
+> Note: *Production* mode may not be available on Windows-based systems out ot the box, as uwsgi installation requires special handling.
+> Docker container based Linux environment can be used for such cases. 
+
 ### Fit mode
 <a name="fit"></a>
 > Note: Running fit inside of DataRobot is currently in alpha. Check back soon for the opportunity
