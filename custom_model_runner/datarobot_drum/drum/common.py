@@ -62,6 +62,7 @@ class CustomHooks:
 
 class UnstructuredDtoKeys:
     DATA = "data"
+    QUERY = "query"
     MIMETYPE = "mimetype"
     CHARSET = "charset"
 
@@ -112,7 +113,8 @@ class ArgumentsOptions:
     DEPLOYMENT_ID = "--deployment-id"
     MODEL_ID = "--model-id"
     MONITOR_SETTINGS = "--monitor-settings"
-    PARAMS = "--params"
+    QUERY = "--query"
+    CONTENT_TYPE = "--content-type"
     WITH_ERROR_SERVER = "--with-error-server"
     SHOW_STACKTRACE = "--show-stacktrace"
     MAX_WORKERS = "--max-workers"

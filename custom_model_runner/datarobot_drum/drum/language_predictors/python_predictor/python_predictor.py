@@ -9,8 +9,8 @@ from datarobot_drum.drum.common import (
     TARGET_TYPE_ARG_KEYWORD,
 )
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
-from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
+from datarobot_drum.drum.exceptions import DrumCommonException
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -51,16 +51,16 @@ class PythonPredictor(BaseLanguagePredictor):
 
         return predictions
 
-    def predict_unstructured(self, **kwargs):
-        # validating_input
-        data_text = kwargs.get("text", None)
-        data_binary = kwargs.get("data", None)
-
-        if data_text is not None and data_binary is not None:
+    def predict_unstructured(self, data, **kwargs):
+        str_or_tuple = self._model_adapter.predict_unstructured(
+            model=self._model, data=data, **kwargs
+        )
+        if isinstance(str_or_tuple, (str, bytes, type(None))):
+            ret = str_or_tuple, None
+        elif isinstance(str_or_tuple, tuple):
+            ret = str_or_tuple
+        else:
             raise DrumCommonException(
-                "Unstructured mode: data must be provided in either in 'text' or in 'data' field, but not both."
+                "Wrong type returned in unstructured mode: {}".format(type(str_or_tuple))
             )
-
-        predictions = self._model_adapter.predict_unstructured(model=self._model, **kwargs)
-
-        return predictions
+        return ret

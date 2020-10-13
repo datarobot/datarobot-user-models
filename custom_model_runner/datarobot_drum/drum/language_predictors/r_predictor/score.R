@@ -233,20 +233,34 @@ outer_predict <- function(input_filename, target_type, model=NULL, positive_clas
     predictions
 }
 
-predict_unstructured <- function(model=NULL, ...) {
+predict_unstructured <- function(model=NULL, data, ...) {
     .validate_unstructured_predictions <- function(to_validate) {
+        single_input_value <- FALSE
         if (!is.list(to_validate)) {
-            stop(sprintf("In unstructured mode predictions must be of type list; but received %s", typeof(to_validate)))
+            single_input_value <- TRUE
+            to_validate <- list(to_validate, NULL)
         }
-        if (!is.null(to_validate$data)) {
-            if (!is.raw(to_validate$data) && !is.character(to_validate$data)) {
-                stop(sprintf("In unstructured mode predictions data must be of type either character or raw, but received %s", typeof(to_validate$data)))
+
+        if (length(to_validate) != 2) {
+            stop(sprintf("In unstructured mode predictions of type list must have length = 2, but received length = %s", length(to_validate)))
+        }
+
+        data <- to_validate[[1]]
+        kwargs <- to_validate[[2]]
+
+        if (!any(is.character(data), is.raw(data), is.null(data)) || !any(is.list(kwargs), is.null(kwargs))) {
+            if (single_input_value) {
+                error_msg <- sprintf("In unstructured mode single return value can be of type character/raw, but received %s", typeof(data))
+            } else {
+                error_msg <- sprintf("In unstructured mode list return value must be of type (character/raw, list) but received (%s, %s)", typeof(data), typeof(kwargs))
             }
+            stop(error_msg)
         }
+        to_validate
     }
     kwargs_list = list(...)
-    kwargs_list <- append(kwargs_list, model, after=0)
+    kwargs_list <- append(kwargs_list, list(model, data), after=0)
     predictions <- do.call(score_unstructured_hook, kwargs_list)
-    .validate_unstructured_predictions(predictions)
-    predictions
+    validated_pred_list = .validate_unstructured_predictions(predictions)
+    validated_pred_list
 }

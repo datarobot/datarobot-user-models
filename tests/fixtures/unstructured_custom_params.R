@@ -2,16 +2,22 @@ load_model <- function(input_dir) {
     "dummy"
 }
 
-score_unstructured <- function(model, ...) {
-    kwargs <- list(...)
-    ret <- list()
+score_unstructured <- function(model, data, ...) {
+    ret_kwargs <- list()
 
-    if (!is.null(kwargs$ret_mimetype)) {
-        ret <- append(ret, list(mimetype=kwargs$ret_mimetype))
+    kwargs <- list(...)
+    query <- kwargs$query
+    if (query$ret_one_or_two == "one") {
+        return(data)
+    } else if (query$ret_one_or_two == "one-with-none") {
+        return(list(data, NULL))
+    } else {
+        if (!is.null(query$ret_mimetype)) {
+            ret_kwargs <- append(ret_kwargs, list(mimetype=query$ret_mimetype))
+        }
+        if (!is.null(query$ret_charset)) {
+            ret_kwargs <- append(ret_kwargs, list(charset=query$ret_charset))
+        }
+        list(data, ret_kwargs)
     }
-    if (!is.null(kwargs$ret_charset)) {
-        ret <- append(ret, list(charset=kwargs$ret_charset))
-    }
-    ret <- append(ret, list(data=kwargs$ret_text))
-    ret
 }

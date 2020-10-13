@@ -430,12 +430,19 @@ class CMRunnerArgsRegistry(object):
 
     # TODO: restrict params to be used with unstructured target type only
     @staticmethod
-    def _reg_args_params(*parsers):
+    def _reg_args_unstructured_mode(*parsers):
         for parser in parsers:
             parser.add_argument(
-                ArgumentsOptions.PARAMS,
+                ArgumentsOptions.QUERY,
                 default=None,
-                help="Additional params",
+                help="Additional query params unstructured mode. (Simulates http request query params.)",
+            )
+
+            parser.add_argument(
+                ArgumentsOptions.CONTENT_TYPE,
+                default=None,
+                help="Additional content type for unstructured mode. "
+                "(Simulates http request Content-Type header, default: 'text/plain; charset=utf8')",
             )
 
     @staticmethod
@@ -586,7 +593,7 @@ class CMRunnerArgsRegistry(object):
             batch_parser, parser_perf_test, server_parser, validation_parser
         )
 
-        CMRunnerArgsRegistry._reg_args_params(
+        CMRunnerArgsRegistry._reg_args_unstructured_mode(
             batch_parser, parser_perf_test, server_parser, validation_parser
         )
 

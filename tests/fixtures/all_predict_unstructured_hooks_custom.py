@@ -12,7 +12,7 @@ def load_model(input_dir):
     return "dummy"
 
 
-def score_unstructured(model, **kwargs):
+def score_unstructured(model, data, **kwargs):
     global prediction_value
     prediction_value += 1
-    return {"data": str(prediction_value)}
+    return str(prediction_value)

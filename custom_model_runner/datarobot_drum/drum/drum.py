@@ -96,10 +96,18 @@ class CMRunner:
                     else target_type_model_config
                 )
 
-        if getattr(self.options, "params", None) and self.target_type != TargetType.UNSTRUCTURED:
-            raise DrumCommonException(
-                "--params argument can be used only with --target-type unstructured"
-            )
+        if self.target_type != TargetType.UNSTRUCTURED:
+            if getattr(self.options, "query", None):
+                raise DrumCommonException(
+                    "--query argument can be used only with --target-type unstructured"
+                )
+            if getattr(self.options, "content_type", None):
+                raise DrumCommonException(
+                    "--content-type argument can be used only with --target-type unstructured"
+                )
+        else:
+            if self.options.content_type is None:
+                self.options.content_type = "text/plain; charset=utf8"
 
     @staticmethod
     def _config_logger(options):
@@ -374,8 +382,11 @@ class CMRunner:
             "model_id": options.model_id,
             "deployment_id": options.deployment_id,
             "monitor_settings": options.monitor_settings,
-            "params": '"{}"'.format(options.params)
-            if getattr(options, "params", None) is not None
+            "query_params": '"{}"'.format(options.query)
+            if getattr(options, "query", None) is not None
+            else "null",
+            "content_type": '"{}"'.format(options.content_type)
+            if getattr(options, "content_type", None) is not None
             else "null",
             "target_type": self.target_type.value,
         }

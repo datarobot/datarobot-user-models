@@ -348,25 +348,37 @@ class PythonModelAdapter:
 
     @staticmethod
     def _validate_unstructured_predictions(unstructured_response):
-        if not isinstance(unstructured_response, dict):
+        # response can be either str/bytes or tuple
+        # normalize to tuple
+        single_input_value = False
+        if not isinstance(unstructured_response, tuple):
+            single_input_value = True
+            unstructured_response = (unstructured_response, None)
+
+        if len(unstructured_response) != 2:
             raise ValueError(
-                "In unstructured mode predictions must be of type dict; but received {}".format(
-                    type(unstructured_response)
+                "In unstructured mode predictions of type tuple must have length = 2, but received length = {}".format(
+                    len(unstructured_response)
                 )
             )
 
-        resp_data = unstructured_response.get(UnstructuredDtoKeys.DATA, None)
+        data, kwargs = unstructured_response
 
-        if resp_data is not None:
-            if not isinstance(resp_data, (bytes, str)):
-                raise ValueError(
-                    "In unstructured mode predictions data must be of type bytes or str; but received {}".format(
-                        type(resp_data)
-                    )
+        if not isinstance(data, (bytes, str, type(None))) or not isinstance(
+            kwargs, (dict, type(None))
+        ):
+            if single_input_value:
+                error_msg = "In unstructured mode single return value can be of type str/bytes, but received {}".format(
+                    type(data)
                 )
+            else:
+                error_msg = "In unstructured mode tuple return value must be of type (str/bytes, dict) but received ({}, {})".format(
+                    type(data), type(kwargs)
+                )
+            raise ValueError(error_msg)
 
-    def predict_unstructured(self, model, **kwargs):
-        predictions = self._custom_hooks.get(CustomHooks.SCORE_UNSTRUCTURED)(model, **kwargs)
+    def predict_unstructured(self, model, data, **kwargs):
+        predictions = self._custom_hooks.get(CustomHooks.SCORE_UNSTRUCTURED)(model, data, **kwargs)
         PythonModelAdapter._validate_unstructured_predictions(predictions)
         return predictions
 

@@ -105,41 +105,60 @@ class RPredictor(BaseLanguagePredictor):
                 raise DrumCommonException(error_message)
         return py_data_object
 
-    def predict_unstructured(self, **kwargs):
+    # TODO: check test coverage for all possible cases: return None/str/bytes, and casting.
+    def predict_unstructured(self, data, **kwargs):
         def _r_is_character(r_val):
             _is_character = ro.r("is.character")
             return bool(_is_character(r_val))
 
+        def _r_is_raw(r_val):
+            _is_raw = ro.r("is.raw")
+            return bool(_is_raw(r_val))
+
+        def _r_is_null(r_val):
+            return r_val == ro.rinterface.NULL
+
+        def _cast_r_to_py(r_val):
+            # TODO: consider checking type against rpy2 proxy object like: isinstance(list_data_kwargs, ro.vectors.ListVector)
+            # instead of calling R interpreter
+            if _r_is_null(r_val):
+                return None
+            elif _r_is_raw(r_val):
+                return bytes(r_val)
+            elif _r_is_character(r_val):
+                # Any scalar value is returned from R as one element vector,
+                # so get this value.
+                return str(r_val[0])
+            else:
+                raise DrumCommonException(
+                    "Can not convert R value {} type {}".format(r_val, type(r_val))
+                )
+
         def _rlist_to_dict(rlist):
+            if _r_is_null(rlist):
+                return None
+            return {str(k): _cast_r_to_py(v) for k, v in rlist.items()}
 
-            dd = {}
-            for k, v in rlist.items():
-                k = str(k)
-                if k == UnstructuredDtoKeys.DATA:
-                    if v == ro.rinterface.NULL:
-                        dd[k] = None
-                    else:
-                        dd[k] = str(v[0]) if _r_is_character(v) else bytes(v)
-                else:
-                    # Any scalar value is returned from R as one element vector,
-                    # so get this value.
-                    dd[k] = str(v[0]) if v != ro.rinterface.NULL else None
-            return dd
+        data_binary_or_text = data
 
-        data_binary_or_text = kwargs.get(UnstructuredDtoKeys.DATA, None)
-
-        if UnstructuredDtoKeys.DATA in kwargs:
-            kwargs.pop(UnstructuredDtoKeys.DATA)
+        if UnstructuredDtoKeys.QUERY in kwargs:
+            kwargs[UnstructuredDtoKeys.QUERY] = ro.ListVector(kwargs[UnstructuredDtoKeys.QUERY])
 
         # if data_binary_or_text is str it will be auto converted into R character type;
         # otherwise if it is bytes, manually convert it into byte vector (raw)
         r_data_binary_or_text = data_binary_or_text
         if isinstance(data_binary_or_text, bytes):
-            r_data_binary_or_text = ro.rinterface.ByteSexpVector(data_binary_or_text)
+            r_data_binary_or_text = ro.vectors.ByteVector(data_binary_or_text)
 
         kwargs_filtered = {k: v for k, v in kwargs.items() if v is not None}
-        kwargs_filtered[UnstructuredDtoKeys.DATA] = r_data_binary_or_text
-        ret_rlist = r_handler.predict_unstructured(model=self._model, **kwargs_filtered)
-        ret_dict = _rlist_to_dict(ret_rlist)
+        list_data_kwargs = r_handler.predict_unstructured(
+            model=self._model, data=r_data_binary_or_text, **kwargs_filtered
+        )
+        if isinstance(list_data_kwargs, ro.vectors.ListVector):
+            ret = _cast_r_to_py(list_data_kwargs[0]), _rlist_to_dict(list_data_kwargs[1])
+        else:
+            raise DrumCommonException(
+                "Wrong type returned in unstructured mode: {}".format(type(list_data_kwargs))
+            )
 
-        return ret_dict
+        return ret

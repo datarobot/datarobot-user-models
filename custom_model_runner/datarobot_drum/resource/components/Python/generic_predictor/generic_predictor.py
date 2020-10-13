@@ -1,4 +1,6 @@
 import logging
+import urllib
+import werkzeug
 
 from datarobot_drum.drum.common import (
     LOGGER_NAME_PREFIX,
@@ -13,7 +15,6 @@ from datarobot_drum.resource.unstructured_helpers import (
     _resolve_outgoing_unstructured_data,
     _is_text_mimetype,
 )
-from datarobot_drum.drum.utils import split_params_to_dict
 
 from mlpiper.components.connectable_component import ConnectableComponent
 
@@ -60,51 +61,40 @@ class GenericPredictorComponent(ConnectableComponent):
         input_filename = self._params["input_filename"]
         output_filename = self._params.get("output_filename")
 
-        additional_params = self._params.get("params")
-
-        def _resolve_params(params):
-            params_dict = split_params_to_dict(params)
-
-            for key in [UnstructuredDtoKeys.DATA]:
-                if key in params_dict:
-                    raise DrumCommonException(
-                        "Parameter name '{}' is not allowed in the additional params".format(key)
-                    )
-            return params_dict
-
         if self._target_type == TargetType.UNSTRUCTURED:
             kwargs_params = {}
-
-            params = _resolve_params(additional_params)
+            query_params = dict(urllib.parse.parse_qsl(self._params.get("query_params")))
+            mimetype, content_type_params_dict = werkzeug.http.parse_options_header(
+                self._params.get("content_type")
+            )
+            charset = content_type_params_dict.get("charset", "utf8")
 
             with open(input_filename, "rb") as f:
                 data_binary = f.read()
 
             data_binary_or_text, mimetype, charset = _resolve_incoming_unstructured_data(
                 data_binary,
-                params.get(UnstructuredDtoKeys.MIMETYPE, None),
-                params.get(UnstructuredDtoKeys.CHARSET, None),
+                mimetype,
+                charset,
             )
+            kwargs_params[UnstructuredDtoKeys.MIMETYPE] = mimetype
+            kwargs_params[UnstructuredDtoKeys.CHARSET] = charset
+            kwargs_params[UnstructuredDtoKeys.QUERY] = query_params
 
-            kwargs_params[UnstructuredDtoKeys.DATA] = data_binary_or_text
-
-            kwargs_params.update(params)
-
-            unstructured_response = self._predictor.predict_unstructured(**kwargs_params)
-            _, response_mimetype, response_charset = _resolve_outgoing_unstructured_data(
-                unstructured_response
+            ret_data, ret_kwargs = self._predictor.predict_unstructured(
+                data_binary_or_text, **kwargs_params
             )
+            _, _, response_charset = _resolve_outgoing_unstructured_data(ret_data, ret_kwargs)
 
             # only for screen printout convenience we take pred data directly from unstructured_response
-            pred_data = unstructured_response.get(UnstructuredDtoKeys.DATA, None)
-            if isinstance(pred_data, bytes):
+            if isinstance(ret_data, bytes):
                 with open(output_filename, "wb") as f:
-                    f.write(pred_data)
+                    f.write(ret_data)
             else:
-                if pred_data is None:
-                    pred_data = "Return value from prediction is: None (NULL in R)"
-                with open(output_filename, "w") as f:
-                    f.write(pred_data)
+                if ret_data is None:
+                    ret_data = "Return value from prediction is: None (NULL in R)"
+                with open(output_filename, "w", encoding=response_charset) as f:
+                    f.write(ret_data)
 
         else:
             predictions = self._predictor.predict(input_filename)

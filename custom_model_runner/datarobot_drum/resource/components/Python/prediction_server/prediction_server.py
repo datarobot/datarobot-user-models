@@ -80,10 +80,11 @@ class PredictionServer(ConnectableComponent, PredictMixin):
             self._stats_collector.enable()
             self._stats_collector.mark("start")
 
-            response, response_status = self.do_predict(logger=logger)
-
-            self._stats_collector.mark("finish")
-            self._stats_collector.disable()
+            try:
+                response, response_status = self.do_predict(logger=logger)
+            finally:
+                self._stats_collector.mark("finish")
+                self._stats_collector.disable()
             return response, response_status
 
         @model_api.route("/predictUnstructured/", methods=["POST"])
@@ -93,10 +94,11 @@ class PredictionServer(ConnectableComponent, PredictMixin):
             self._stats_collector.enable()
             self._stats_collector.mark("start")
 
-            response, response_status = self.do_predict_unstructured(logger=logger)
-
-            self._stats_collector.mark("finish")
-            self._stats_collector.disable()
+            try:
+                response, response_status = self.do_predict_unstructured(logger=logger)
+            finally:
+                self._stats_collector.mark("finish")
+                self._stats_collector.disable()
             return response, response_status
 
         @model_api.route("/stats/", methods=["GET"])

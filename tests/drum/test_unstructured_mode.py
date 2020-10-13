@@ -52,13 +52,13 @@ class TestUnstructuredMode:
 
         output = tmp_path / "output"
 
-        mimetype_str = "mimetype={}".format(mimetype) if mimetype is not None else ""
-        cmd = "{} score --code-dir {} --input {} --output {} --target-type unstructured --params '{};ret_mode={}'".format(
+        content_type = "--content-type '{};'".format(mimetype) if mimetype is not None else ""
+        cmd = "{} score --code-dir {} --input {} --output {} --target-type unstructured {} --query 'ret_mode={}'".format(
             ArgumentsOptions.MAIN_COMMAND,
             custom_model_dir,
             input_dataset,
             output,
-            mimetype_str,
+            content_type,
             ret_mode,
         )
 
@@ -114,7 +114,6 @@ class TestUnstructuredMode:
             # do predictions
             url = run.url_server_address + "/predictUnstructured/"
             data = open(input_dataset, "rb").read()
-            # headers = {"Content-Type": "text/plain; charset=UTF-8"}
             params = {"ret_mode": ret_mode}
             response = requests.post(url=url, data=data, params=params)
 
@@ -159,20 +158,21 @@ class TestUnstructuredMode:
             custom_model_dir,
             docker,
         ) as run:
-            input_dataset = resources.datasets(framework, problem)
 
             text_data = u"my text, мой текст"
-            params = {"ret_text": text_data}
+            params = {}
+            params["ret_one_or_two"] = "two"
 
             # do predictions
             url = run.url_server_address + "/predictUnstructured/"
-            data = open(input_dataset, "rb").read()
-            # headers = {"Content-Type": "text/plain; charset=UTF-8"}
+            headers = {"Content-Type": "text/plain; charset=UTF-8"}
             if ret_charset is not None:
                 params["ret_charset"] = ret_charset
             if ret_mimetype is not None:
                 params["ret_mimetype"] = ret_mimetype
-            response = requests.post(url=url, data=data, params=params)
+            response = requests.post(
+                url=url, data=text_data.encode("utf8"), params=params, headers=headers
+            )
 
             assert response.ok
             content_type_header = response.headers["Content-Type"]
@@ -185,3 +185,67 @@ class TestUnstructuredMode:
 
             charset_to_decode = "utf8" if ret_charset is None else ret_charset
             assert text_data == response.content.decode(charset_to_decode)
+
+    @pytest.mark.parametrize("one_or_two", ["one", "one-with-none"])
+    @pytest.mark.parametrize(
+        "framework, problem, language, docker",
+        [
+            (None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_PARAMS, None),
+            (None, UNSTRUCTURED, R_UNSTRUCTURED_PARAMS, None),
+        ],
+    )
+    def test_response_one_var_return(
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        one_or_two,
+        tmp_path,
+    ):
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
+        )
+
+        with DrumServerRun(
+            "unstructured",
+            resources.class_labels(framework, problem),
+            custom_model_dir,
+            docker,
+        ) as run:
+            input_dataset = resources.datasets(framework, problem)
+
+            params = {"ret_one_or_two": one_or_two}
+            url = run.url_server_address + "/predictUnstructured/"
+
+            # sending None data
+            data = None
+            headers = {"Content-Type": "text/plain; charset=UTF-8"}
+            response = requests.post(url=url, data=data, params=params, headers=headers)
+            content_type_header = response.headers["Content-Type"]
+            assert response.ok
+            assert "text/plain" in content_type_header
+            assert "charset=utf8" in content_type_header
+            assert len(response.content) == 0
+
+            # sending text data
+            data = open(input_dataset, "rb").read()
+            response = requests.post(url=url, data=data, params=params, headers=headers)
+            assert response.ok
+            content_type_header = response.headers["Content-Type"]
+            assert "text/plain" in content_type_header
+            assert "charset=utf8" in content_type_header
+            assert response.content == data
+
+            # sending binary data
+            headers = {"Content-Type": "application/octet-stream;"}
+            response = requests.post(url=url, data=data, params=params, headers=headers)
+            content_type_header = response.headers["Content-Type"]
+            assert "application/octet-stream" in content_type_header
+            assert "charset=utf8" in content_type_header
+            assert response.content == data

@@ -10,7 +10,7 @@ load_model <- function(input_dir) {
     "dummy"
 }
 
-score_unstructured <- function(model, ...) {
+score_unstructured <- function(model, data, ...) {
     prediction_value <<- prediction_value + 1
-    list(data=toString(prediction_value))
+    toString(prediction_value)
 }
