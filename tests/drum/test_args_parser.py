@@ -26,8 +26,10 @@ class TestMulticlassLabelsParser(object):
     def class_labels_with_spaces(self):
         return ["Label {}".format(i) for i in range(4)]
 
-    @pytest.mark.parametrize('valid_labels', ['class_labels', 'unordered_class_labels', 'class_labels_with_spaces'])
-    @pytest.mark.parametrize('as_file', [True, False])
+    @pytest.mark.parametrize(
+        "valid_labels", ["class_labels", "unordered_class_labels", "class_labels_with_spaces"]
+    )
+    @pytest.mark.parametrize("as_file", [True, False])
     def test_valid_class_labels(self, request, valid_labels, as_file, parser):
         valid_labels = request.getfixturevalue(valid_labels)
         with NamedTemporaryFile() as f:
@@ -41,7 +43,7 @@ class TestMulticlassLabelsParser(object):
 
         assert options.class_labels == valid_labels
 
-    @pytest.mark.parametrize('as_file', [True, False])
+    @pytest.mark.parametrize("as_file", [True, False])
     def test_too_few_labels(self, as_file, parser):
         labels = list("AB")
         with NamedTemporaryFile() as f:

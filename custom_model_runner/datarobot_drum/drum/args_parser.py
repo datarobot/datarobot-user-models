@@ -225,7 +225,7 @@ class CMRunnerArgsRegistry(object):
                     labels = [label for label in f.read().split(os.linesep) if label]
                     if len(labels) < RequiredLength.MIN_LABELS:
                         raise argparse.ArgumentTypeError(RequiredLength.ERROR_MESSAGE)
-                    setattr(namespace, 'class_labels', labels)
+                    setattr(namespace, "class_labels", labels)
 
         def are_labels_double_specified(arg):
             error_message = (
@@ -258,8 +258,8 @@ class CMRunnerArgsRegistry(object):
                 nargs="+",
                 action=RequiredLength,
                 help="The class labels for a multiclass classification case. "
-                     + class_label_order_message
-                     + fit_intuit_message,
+                + class_label_order_message
+                + fit_intuit_message,
             )
 
             parser.add_argument(
@@ -268,8 +268,8 @@ class CMRunnerArgsRegistry(object):
                 type=are_labels_double_specified,
                 action=ParseLabelsFile,
                 help="A file containing newline separated class labels for a multiclass classification case. "
-                     + class_label_order_message
-                     + fit_intuit_message,
+                + class_label_order_message
+                + fit_intuit_message,
             )
 
     @staticmethod
