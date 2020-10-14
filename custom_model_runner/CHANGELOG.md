@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `read_input_data` hook
 - add `target-type` param; make it mandatory for inference and optional for fit
 - unstructured mode
+- add `multiclass` target type
+- add `class-labels` for specifying the class labels of a multiclass model
+- add `class-labels-file` for specifying a file containing the class labels of a multiclass model
 
 #### [1.2.0] - 2020-08-28
 ##### Added

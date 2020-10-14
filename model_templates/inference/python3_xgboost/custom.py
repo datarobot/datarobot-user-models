@@ -1,3 +1,6 @@
+import time
+
+
 def transform(data, model):
     """
     Note: This hook may not have to be implemented for your model.
@@ -22,4 +25,5 @@ def transform(data, model):
     if "Species" in data:
         data.pop("Species")
     data = data.fillna(0)
+    time.sleep(1)
     return data
