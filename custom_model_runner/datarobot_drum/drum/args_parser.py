@@ -209,6 +209,70 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
+    def _reg_arg_multiclass_labels(*parsers):
+        class RequiredLength(argparse.Action):
+            ERROR_MESSAGE = "Multiclass classification requires at least 3 labels."
+            MIN_LABELS = 3
+
+            def __call__(self, parser, namespace, values, option_string=None):
+                if len(values) < self.MIN_LABELS:
+                    raise argparse.ArgumentTypeError(self.ERROR_MESSAGE)
+                setattr(namespace, self.dest, values)
+
+        class ParseLabelsFile(argparse.Action):
+            def __call__(self, parser, namespace, values, option_string=None):
+                with open(values) as f:
+                    labels = [label for label in f.read().split(os.linesep) if label]
+                    if len(labels) < RequiredLength.MIN_LABELS:
+                        raise argparse.ArgumentTypeError(RequiredLength.ERROR_MESSAGE)
+                    setattr(namespace, "class_labels", labels)
+
+        def are_labels_double_specified(arg):
+            error_message = (
+                "\nError - for multiclass classification, either the class labels or"
+                "a class labels file should be provided, but not both.\n"
+                "See --help option for more information"
+            )
+            label_options = [ArgumentsOptions.CLASS_LABELS_FILE, ArgumentsOptions.CLASS_LABELS]
+            if all(opt in sys.argv for opt in label_options):
+                raise argparse.ArgumentTypeError(error_message)
+            return arg
+
+        for parser in parsers:
+            fit_intuit_message = ""
+            class_label_order_message = (
+                "Labels should be in the order as "
+                "the predicted probabilities produced by the model. "
+            )
+            prog_name_lst = CMRunnerArgsRegistry._tokenize_parser_prog(parser)
+            if prog_name_lst[1] == ArgumentsOptions.FIT:
+                fit_intuit_message = (
+                    "If you do not provide these labels, but your dataset is classification, "
+                    "DRUM will choose the labels for you"
+                )
+
+            parser.add_argument(
+                ArgumentsOptions.CLASS_LABELS,
+                default=None,
+                type=are_labels_double_specified,
+                nargs="+",
+                action=RequiredLength,
+                help="The class labels for a multiclass classification case. "
+                + class_label_order_message
+                + fit_intuit_message,
+            )
+
+            parser.add_argument(
+                ArgumentsOptions.CLASS_LABELS_FILE,
+                default=None,
+                type=are_labels_double_specified,
+                action=ParseLabelsFile,
+                help="A file containing newline separated class labels for a multiclass classification case. "
+                + class_label_order_message
+                + fit_intuit_message,
+            )
+
+    @staticmethod
     def _reg_arg_code_dir(*parsers):
         for parser in parsers:
             prog_name_lst = CMRunnerArgsRegistry._tokenize_parser_prog(parser)
@@ -533,6 +597,9 @@ class CMRunnerArgsRegistry(object):
             batch_parser, parser_perf_test, fit_parser, validation_parser
         )
         CMRunnerArgsRegistry._reg_arg_pos_neg_labels(
+            batch_parser, parser_perf_test, server_parser, fit_parser, validation_parser
+        )
+        CMRunnerArgsRegistry._reg_arg_multiclass_labels(
             batch_parser, parser_perf_test, server_parser, fit_parser, validation_parser
         )
         CMRunnerArgsRegistry._reg_arg_logging_level(
