@@ -3,8 +3,11 @@
 
 # pylint: disable-all
 from __future__ import absolute_import
+import os
+
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
+import numpy as np
+from sklearn.preprocessing import LabelEncoder, OneHotEncoder
 
 import torch
 from torch.autograd import Variable
@@ -54,6 +57,22 @@ class RegModel(nn.Module):
         return y
 
 
+class MultiModel(nn.Module):
+    def __init__(self, input_size, output_size):
+        super(MultiModel, self).__init__()
+        self.layer1 = nn.Linear(input_size, 8)
+        self.relu = nn.ReLU()
+        self.layer2 = nn.Linear(8, output_size)
+        self.out = nn.Softmax()
+
+    def forward(self, input_):
+        out = self.layer1(input_)
+        out = self.relu(out)
+        out = self.layer2(out)
+        out = self.out(out)
+        return out
+
+
 def train_epoch(model, opt, criterion, X, y, batch_size=50):
     model.train()
     losses = []
@@ -79,19 +98,30 @@ def train_epoch(model, opt, criterion, X, y, batch_size=50):
 if __name__ == "__main__":
     from PyTorch import BinModel, RegModel
 
-    BINARY_DATA = "iris_binary_training.csv"
-    REGRESSION_DATA = "boston_housing.csv"
+    TEST_DATA_ROOT = '~/workspace/datarobot-user-models/tests/testdata'
+    BINARY_DATA = os.path.join(
+        TEST_DATA_ROOT, 'iris_binary_training.csv'
+    )
+    REGRESSION_DATA = os.path.join(
+        TEST_DATA_ROOT, 'boston_housing.csv'
+    )
+    MULTICLASS_DATA = os.path.join(
+        TEST_DATA_ROOT, 'Skyserver_SQL2_27_2018 6_51_39 PM.csv'
+    )
 
     bin_X = pd.read_csv(BINARY_DATA)
-    bin_y = bin_X.pop("Species")
+    bin_y = bin_X.pop('Species')
 
     reg_X = pd.read_csv(REGRESSION_DATA)
-    reg_y = reg_X.pop("MEDV")
+    reg_y = reg_X.pop('MEDV')
 
-    target_encoder = LabelEncoder()
-    target_encoder.fit(bin_y)
+    multi_X = pd.read_csv(MULTICLASS_DATA)
+    multi_y = multi_X.pop('class')
+
+    bin_target_encoder = LabelEncoder()
+    bin_target_encoder.fit(bin_y)
     bin_t_X = torch.from_numpy(bin_X.values).type(torch.FloatTensor)
-    bin_t_y = torch.from_numpy(target_encoder.transform(bin_y)).type(torch.FloatTensor)
+    bin_t_y = torch.from_numpy(bin_target_encoder.transform(bin_y)).type(torch.FloatTensor)
     bin_model = BinModel(bin_X.shape[1])
     bin_opt = optim.Adam(bin_model.parameters(), lr=0.001)
     bin_criterion = nn.BCELoss()
@@ -102,13 +132,35 @@ if __name__ == "__main__":
     reg_opt = optim.Adam(reg_model.parameters(), lr=0.001)
     reg_criterion = nn.MSELoss()
 
+    multi_target_encoder = LabelEncoder()
+    multi_target_encoder.fit(multi_y)
+    multi_t_X = torch.from_numpy(multi_X.values).type(torch.FloatTensor)
+    multi_t_y = torch.from_numpy(multi_target_encoder.transform(multi_y)).type(torch.LongTensor)
+    multi_model = MultiModel(multi_X.shape[1], len(multi_target_encoder.classes_))
+    multi_opt = optim.Adam(multi_model.parameters(), lr=0.001)
+    multi_criterion = nn.CrossEntropyLoss()
+
     num_epochs = 20
     for e in range(num_epochs):
         train_epoch(bin_model, bin_opt, bin_criterion, bin_t_X, bin_t_y)
         train_epoch(reg_model, reg_opt, reg_criterion, reg_t_X, reg_t_y)
+        train_epoch(multi_model, multi_opt, multi_criterion, multi_t_X, multi_t_y)
 
     bin_model.eval()
     reg_model.eval()
+    multi_model.eval()
 
-    torch.save(bin_model, "torch_bin.pth")
-    torch.save(reg_model, "torch_reg.pth")
+    for model, data in [(bin_model, bin_X), (reg_model, reg_X), (multi_model, multi_X)]:
+        data = Variable(
+            torch.from_numpy(data.values if type(data) != np.ndarray else data).type(
+                torch.FloatTensor
+            )
+        )
+        with torch.no_grad():
+            predictions = model(data).cpu().data.numpy()
+        print(predictions)
+
+    FIXTURE_ROOT = '~/workspace/datarobot-user-models/tests/fixtures/drop_in_model_artifacts'
+    torch.save(bin_model, os.path.expanduser(os.path.join(FIXTURE_ROOT, "torch_bin.pth")))
+    torch.save(reg_model, os.path.expanduser(os.path.join(FIXTURE_ROOT, "torch_reg.pth")))
+    torch.save(multi_model, os.path.expanduser(os.path.join(FIXTURE_ROOT, "multi_multi.pth")))
