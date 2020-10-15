@@ -3,7 +3,7 @@ import os
 import sys
 from contextlib import contextmanager
 from enum import Enum
-from strictyaml import Bool, Int, Map, Optional, Str, load, YAMLError
+from strictyaml import Bool, Int, Map, Optional, Str, load, YAMLError, Seq
 from pathlib import Path
 
 LOGGER_NAME_PREFIX = "drum"
@@ -121,6 +121,8 @@ class ArgumentsOptions:
     VERBOSE = "--verbose"
     VERSION = "--version"
     TARGET_TYPE = "--target-type"
+    CLASS_LABELS = "--class-labels"
+    CLASS_LABELS_FILE = "--class-labels-file"
 
     MAIN_COMMAND = "drum"
 
@@ -157,6 +159,7 @@ class TargetType(Enum):
     REGRESSION = "regression"
     ANOMALY = "anomaly"
     UNSTRUCTURED = "unstructured"
+    MULTICLASS = "multiclass"
 
 
 class TemplateType:
@@ -210,6 +213,8 @@ MODEL_CONFIG_SCHEMA = Map(
                 "targetName": Str(),
                 Optional("positiveClassLabel"): Str(),
                 Optional("negativeClassLabel"): Str(),
+                Optional("classLabels"): Seq(Str()),
+                Optional("classLabelsFile"): Str(),
                 Optional("predictionThreshold"): Int(),
             }
         ),
