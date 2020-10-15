@@ -39,7 +39,7 @@ class SupportedFrameworks:
 extra_deps = {
     SupportedFrameworks.SKLEARN: ["scikit-learn", "scipy", "numpy"],
     SupportedFrameworks.TORCH: ["torch", "numpy", "scikit-learn", "scipy"],
-    SupportedFrameworks.KERAS: ["scipy", "numpy", "h5py", "keras", "tensorflow"],
+    SupportedFrameworks.KERAS: ["scipy", "numpy", "h5py", "tensorflow>=2.2.1"],
     SupportedFrameworks.XGBOOST: ["scipy", "numpy", "xgboost"],
     SupportedFrameworks.PYPMML: ["pypmml"],
 }

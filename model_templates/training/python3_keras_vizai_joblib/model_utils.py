@@ -1,6 +1,7 @@
 from typing import Tuple
 
 # keras imports
+# I was not able to switch this to tensoflow keras as it failed on pickling joblib
 import keras
 from keras.models import Sequential, Model
 from keras.layers import Dense  # core layers
