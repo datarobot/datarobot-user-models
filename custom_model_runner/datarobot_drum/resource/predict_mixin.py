@@ -1,8 +1,14 @@
 import tempfile
-from flask import request
+from flask import request, Response
+import werkzeug
 
 
-from datarobot_drum.drum.common import REGRESSION_PRED_COLUMN, TargetType
+from datarobot_drum.drum.common import REGRESSION_PRED_COLUMN, TargetType, UnstructuredDtoKeys
+from datarobot_drum.resource.unstructured_helpers import (
+    _resolve_incoming_unstructured_data,
+    _resolve_outgoing_unstructured_data,
+)
+
 
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
@@ -66,4 +72,45 @@ class PredictMixin:
                 )
                 response = {"message": "ERROR: " + ret_str}
                 response_status = HTTP_422_UNPROCESSABLE_ENTITY
+        return response, response_status
+
+    def do_predict_unstructured(self, logger=None):
+        def _validate_content_type_header(header):
+            ret_mimetype, content_type_params_dict = werkzeug.http.parse_options_header(header)
+            ret_charset = content_type_params_dict.get("charset", "utf8")
+            return ret_mimetype, ret_charset
+
+        response_status = HTTP_200_OK
+        kwargs_params = {}
+
+        data = request.data
+        mimetype, charset = _validate_content_type_header(request.content_type)
+
+        data_binary_or_text, mimetype, charset = _resolve_incoming_unstructured_data(
+            data,
+            mimetype,
+            charset,
+        )
+
+        kwargs_params[UnstructuredDtoKeys.MIMETYPE] = mimetype
+        kwargs_params[UnstructuredDtoKeys.CHARSET] = charset
+
+        kwargs_params[UnstructuredDtoKeys.QUERY] = request.args
+
+        ret_data, ret_kwargs = self._predictor.predict_unstructured(
+            data_binary_or_text, **kwargs_params
+        )
+
+        response_data, response_mimetype, response_charset = _resolve_outgoing_unstructured_data(
+            ret_data, ret_kwargs
+        )
+
+        response = Response(response_data)
+
+        if response_mimetype is not None:
+            content_type = response_mimetype
+            if response_charset is not None:
+                content_type += "; charset={}".format(response_charset)
+            response.headers["Content-Type"] = content_type
+
         return response, response_status

@@ -16,7 +16,7 @@ from datarobot_drum.drum.drum import (
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.push import _push_inference, _push_training
-from datarobot_drum.drum.common import MODEL_CONFIG_SCHEMA
+from datarobot_drum.drum.common import MODEL_CONFIG_SCHEMA, TargetType
 
 
 class TestOrderIntuition:
@@ -58,7 +58,7 @@ class TestValidatePredictions:
     def test_add_to_one_happy(self):
         positive_label = "poslabel"
         negative_label = "neglabel"
-        adapter = PythonModelAdapter(model_dir=None)
+        adapter = PythonModelAdapter(model_dir=None, target_type=TargetType.BINARY)
         df = pd.DataFrame({positive_label: [0.1, 0.2, 0.3], negative_label: [0.9, 0.8, 0.7]})
         adapter._validate_predictions(
             to_validate=df,
@@ -69,7 +69,7 @@ class TestValidatePredictions:
     def test_add_to_one_sad(self):
         positive_label = "poslabel"
         negative_label = "neglabel"
-        adapter = PythonModelAdapter(model_dir=None)
+        adapter = PythonModelAdapter(model_dir=None, target_type=TargetType.BINARY)
         df = pd.DataFrame({positive_label: [1, 1, 1], negative_label: [-1, 0, 0]})
         with pytest.raises(ValueError):
             adapter._validate_predictions(
