@@ -4,7 +4,7 @@ import shutil
 import subprocess
 
 
-from .constants import PYTHON, R, R_ALL_HOOKS, R_FIT
+from .constants import PYTHON, R, R_ALL_PREDICT_STRUCTURED_HOOKS, R_FIT
 
 
 def _create_custom_model_dir(
@@ -25,7 +25,7 @@ def _create_custom_model_dir(
 
         if language == PYTHON:
             files = glob.glob(r"{}/*.py".format(model_template_dir))
-        elif language in [R, R_ALL_HOOKS, R_FIT]:
+        elif language in [R, R_ALL_PREDICT_STRUCTURED_HOOKS, R_FIT]:
             files = glob.glob(r"{}/*.r".format(model_template_dir)) + glob.glob(
                 r"{}/*.R".format(model_template_dir)
             )

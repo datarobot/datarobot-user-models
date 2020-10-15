@@ -8,6 +8,7 @@ from datarobot_drum.drum.common import (
     TargetType,
     CustomHooks,
     REGRESSION_PRED_COLUMN,
+    UnstructuredDtoKeys,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
@@ -60,12 +61,11 @@ class RPredictor(BaseLanguagePredictor):
 
         r_handler.source(R_COMMON_PATH)
         r_handler.source(R_SCORE_PATH)
-        r_handler.init(self._custom_model_path)
+        r_handler.init(self._custom_model_path, self._target_type.value)
         if self._target_type == TargetType.UNSTRUCTURED:
             for hook_name in [
-                CustomHooks.READ_INPUT_DATA,
                 CustomHooks.LOAD_MODEL,
-                CustomHooks.SCORE,
+                CustomHooks.SCORE_UNSTRUCTURED,
             ]:
                 if not hasattr(r_handler, hook_name):
                     raise DrumCommonException(
@@ -104,3 +104,61 @@ class RPredictor(BaseLanguagePredictor):
                 logger.error(error_message)
                 raise DrumCommonException(error_message)
         return py_data_object
+
+    # TODO: check test coverage for all possible cases: return None/str/bytes, and casting.
+    def predict_unstructured(self, data, **kwargs):
+        def _r_is_character(r_val):
+            _is_character = ro.r("is.character")
+            return bool(_is_character(r_val))
+
+        def _r_is_raw(r_val):
+            _is_raw = ro.r("is.raw")
+            return bool(_is_raw(r_val))
+
+        def _r_is_null(r_val):
+            return r_val == ro.rinterface.NULL
+
+        def _cast_r_to_py(r_val):
+            # TODO: consider checking type against rpy2 proxy object like: isinstance(list_data_kwargs, ro.vectors.ListVector)
+            # instead of calling R interpreter
+            if _r_is_null(r_val):
+                return None
+            elif _r_is_raw(r_val):
+                return bytes(r_val)
+            elif _r_is_character(r_val):
+                # Any scalar value is returned from R as one element vector,
+                # so get this value.
+                return str(r_val[0])
+            else:
+                raise DrumCommonException(
+                    "Can not convert R value {} type {}".format(r_val, type(r_val))
+                )
+
+        def _rlist_to_dict(rlist):
+            if _r_is_null(rlist):
+                return None
+            return {str(k): _cast_r_to_py(v) for k, v in rlist.items()}
+
+        data_binary_or_text = data
+
+        if UnstructuredDtoKeys.QUERY in kwargs:
+            kwargs[UnstructuredDtoKeys.QUERY] = ro.ListVector(kwargs[UnstructuredDtoKeys.QUERY])
+
+        # if data_binary_or_text is str it will be auto converted into R character type;
+        # otherwise if it is bytes, manually convert it into byte vector (raw)
+        r_data_binary_or_text = data_binary_or_text
+        if isinstance(data_binary_or_text, bytes):
+            r_data_binary_or_text = ro.vectors.ByteVector(data_binary_or_text)
+
+        kwargs_filtered = {k: v for k, v in kwargs.items() if v is not None}
+        list_data_kwargs = r_handler.predict_unstructured(
+            model=self._model, data=r_data_binary_or_text, **kwargs_filtered
+        )
+        if isinstance(list_data_kwargs, ro.vectors.ListVector):
+            ret = _cast_r_to_py(list_data_kwargs[0]), _rlist_to_dict(list_data_kwargs[1])
+        else:
+            raise DrumCommonException(
+                "Wrong type returned in unstructured mode: {}".format(type(list_data_kwargs))
+            )
+
+        return ret

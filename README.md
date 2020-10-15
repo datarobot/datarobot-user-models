@@ -154,10 +154,72 @@ The model artifact must have a **jar** extension.
 Inference models support unstructured mode, where input and output are not verified and can be almost anything.
 This is your responsibility to verify correctness.
 
-The only requirement is that predictions must be returned as strings.
+### Custom hooks for Python and R models
+Include any necessary hooks in a file called `custom.py` for Python models or `custom.R` for R models alongside your model artifacts in your model folder:
 
-> Note R models: rpy2 is used to run R code from python, scalar values returned by R code, are represented as lists in Python.
->E.g. if your custom score() method returns "Hello World", you'll receive "['Hello World"]" as the result.
+> Note: The following hook signatures are written with Python 3 type annotations. The Python types match the following R types:
+> - None = NULL
+> - str = character
+> - bytes = raw
+> - dict = list
+> - tuple = list
+> - Any = R Object (the deserialized model)
+> - *args, **kwargs = ... (these aren't types, they're just placeholders for additional parameters)
+
+- `init(**kwargs) -> None`
+  - Executed once in the beginning of the run
+  - `kwargs` - additional keyword arguments to the method;
+    - code_dir - code folder passed in the `--code_dir` parameter
+- `load_model(code_dir: str) -> Any`
+  - `code_dir` is the directory where the model artifact and additional code are provided, which is passed in the `--code_dir` parameter
+  - If used, this hook must return a non-None value
+  - This hook can be used to load supported models if your model has multiple artifacts, or for loading models that
+  **drum** does not natively support
+- `score_unstructured(model: Any, data: str/bytes, **kwargs: Dict[str, Any]) -> str/bytes [, Dict[str, str]]`
+  - `model` is the deserialized model loaded by **drum** or by `load_model`, if supplied
+  - `data` is the data represented as str or bytes, depending on the provided `mimetype`
+  - `kwargs` - additional keyword arguments to the method:
+    - `mimetype: str` - indicates the nature and format of the data, taken from request Content-Type header or `--content-type` CLI arg in batch mode; 
+    - `charset: str` - indicates encoding for text data, taken from request Content-Type header or `--content-type` CLI arg in batch mode;
+    - `query: dict` - params passed as query params in http request or in CLI `--query` argument in batch mode. 
+  - This method should return:
+    - a single value `return data: str/bytes`
+    - a tuple `return data: str/bytes, kwargs: dict[str, str]`
+      - where `kwargs = {"mimetype": "users/mimetype", "charset": "users/charset"}` can be used to return mimetype and charset to be used in response Content-Type header.
+
+#### Incoming data type resolution
+`score_unstructured` hook receives a `data` parameter which can be of either `str` or `bytes` type.
+Type checking methods can be used to verify types: 
+- in Python`isinstance(data, str)` or `isinstance(data, bytes)`
+- in R `is.character(data)` or `is.raw(data)`
+
+DRUM uses `Content-Type` header to determine a type to cast `data` to. Content-Type header can be provided in request or in `--content-type` CLI argument.  
+`Content-Type` header format is `type/subtype;parameter`, e.g. `text/plain;charset=utf8`. Only minetype part `text/plain`, and `charset=utf8` parameter matter for DRUM.  
+Following rules apply:
+- if charset is not defined, default `utf8` charset is used, otherwise provided charset is used to decode data;
+- if content type is not defined, then incoming `kwargs={"mimetype": "text/plain", "charset":"utf8"}`, so data is treated as text, decoded using `utf8` charset and passed as `str`;
+- if mimetype starts with `text/` or `application/json`, data is treated as text, decoded using provided charset and passed as `str`;
+- for all other mimetype values data is treated as binary and passed as `bytes`.
+ 
+#### Outgoing data and kwargs params
+As mentioned above `score_unstructured` can return:
+- a single data value `return data`
+- a tuple - data and additional params `return data, {"mimetype": "some/type", "charset": "some_charset"}  
+
+##### In server mode
+Following rules apply:
+- `return data: str` - data is treated as text, default Content-Type=`"text/plain;charset=utf8"` header will be set in response, data encoded using `utf8` charset and sent;
+- `return data: bytes` - data is treated as binary, default Content-Type=`"application/octet-stream;charset=utf8"` header will be set in response, data is sent as is;
+- `return data, kwargs` - if mimetype value is missing in kwargs, default mimetype will be set according to the data type `str`/`bytes` -> `text/plain`/`application/octet-stream`;
+if charset values is missing, default `utf8` charset will be set; then, if data is of type `str`, it will be encoded using resolved charset and sent.
+
+##### In batch mode
+The best way to debug in batch mode is to provide `--output` file. Returned data will be written into file according to the type of data returned: 
+- `str` data -> text file, using default `utf8` or returned in kwargs charset;
+- `bytes` data -> binary file.  
+(Returned `kwargs` are not shown in the batch mode, but you can still print them during debugging).
+ 
+
 
 ## Assembling a training model code folder <a name="training_model_folder"></a>
 Custom training models are in active development. They include a `fit()` function, can be trained on the Leaderboard, benchmarked against DataRobot AutoML models, and get access to DataRobot's full set of automated insights. Refer to the [quickrun readme](QUICKSTART-FOR-TRAINING.md).

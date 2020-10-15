@@ -428,13 +428,30 @@ class CMRunnerArgsRegistry(object):
                 help="MLOps setting to use for connecting with the MLOps Agent (env: MONITOR_SETTINGS)",
             )
 
+    # TODO: restrict params to be used with unstructured target type only
+    @staticmethod
+    def _reg_args_unstructured_mode(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.QUERY,
+                default=None,
+                help="Additional query params unstructured mode. (Simulates http request query params.)",
+            )
+
+            parser.add_argument(
+                ArgumentsOptions.CONTENT_TYPE,
+                default=None,
+                help="Additional content type for unstructured mode. "
+                "(Simulates http request Content-Type header, default: 'text/plain; charset=utf8')",
+            )
+
     @staticmethod
     def _reg_arg_target_type(*parsers):
         target_types = [e.value for e in TargetType]
         for parser in parsers:
             parser.add_argument(
                 ArgumentsOptions.TARGET_TYPE,
-                required=True,
+                required=False,
                 choices=target_types,
                 default=None,
                 help="Target type",
@@ -573,6 +590,10 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_args_monitoring(batch_parser, server_parser)
 
         CMRunnerArgsRegistry._reg_arg_target_type(
+            batch_parser, parser_perf_test, server_parser, validation_parser
+        )
+
+        CMRunnerArgsRegistry._reg_args_unstructured_mode(
             batch_parser, parser_perf_test, server_parser, validation_parser
         )
 

@@ -31,7 +31,7 @@ case "${unameOut}" in
         exit 1
 esac
 
-# If we are interminal will be true when running the script manually. Via Jenkins it will be false
+# If we are in terminal will be true when running the script manually. Via Jenkins it will be false
 TERMINAM_OPTION=""
 if [ -t 1 ] ; then
   TERMINAM_OPTION="-t"

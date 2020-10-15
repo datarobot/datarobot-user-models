@@ -1,14 +1,20 @@
 import logging
-
-import pandas as pd
+import urllib
+import werkzeug
 
 from datarobot_drum.drum.common import (
     LOGGER_NAME_PREFIX,
     RunLanguage,
     TargetType,
     TARGET_TYPE_ARG_KEYWORD,
+    UnstructuredDtoKeys,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.resource.unstructured_helpers import (
+    _resolve_incoming_unstructured_data,
+    _resolve_outgoing_unstructured_data,
+    _is_text_mimetype,
+)
 
 from mlpiper.components.connectable_component import ConnectableComponent
 
@@ -53,11 +59,44 @@ class GenericPredictorComponent(ConnectableComponent):
 
     def _materialize(self, parent_data_objs, user_data):
         input_filename = self._params["input_filename"]
-        predictions = self._predictor.predict(input_filename)
         output_filename = self._params.get("output_filename")
+
         if self._target_type == TargetType.UNSTRUCTURED:
-            with open(output_filename, "w") as f:
-                f.write(predictions)
+            kwargs_params = {}
+            query_params = dict(urllib.parse.parse_qsl(self._params.get("query_params")))
+            mimetype, content_type_params_dict = werkzeug.http.parse_options_header(
+                self._params.get("content_type")
+            )
+            charset = content_type_params_dict.get("charset", "utf8")
+
+            with open(input_filename, "rb") as f:
+                data_binary = f.read()
+
+            data_binary_or_text, mimetype, charset = _resolve_incoming_unstructured_data(
+                data_binary,
+                mimetype,
+                charset,
+            )
+            kwargs_params[UnstructuredDtoKeys.MIMETYPE] = mimetype
+            kwargs_params[UnstructuredDtoKeys.CHARSET] = charset
+            kwargs_params[UnstructuredDtoKeys.QUERY] = query_params
+
+            ret_data, ret_kwargs = self._predictor.predict_unstructured(
+                data_binary_or_text, **kwargs_params
+            )
+            _, _, response_charset = _resolve_outgoing_unstructured_data(ret_data, ret_kwargs)
+
+            # only for screen printout convenience we take pred data directly from unstructured_response
+            if isinstance(ret_data, bytes):
+                with open(output_filename, "wb") as f:
+                    f.write(ret_data)
+            else:
+                if ret_data is None:
+                    ret_data = "Return value from prediction is: None (NULL in R)"
+                with open(output_filename, "w", encoding=response_charset) as f:
+                    f.write(ret_data)
+
         else:
+            predictions = self._predictor.predict(input_filename)
             predictions.to_csv(output_filename, index=False)
         return []

@@ -1,9 +1,9 @@
 import logging
-import numpy as np
 import os
 import socket
 from contextlib import closing
 from pathlib import Path
+from datarobot_drum.drum.exceptions import DrumCommonException
 
 import pandas as pd
 from jinja2 import BaseLoader, DebugUndefined, Environment
