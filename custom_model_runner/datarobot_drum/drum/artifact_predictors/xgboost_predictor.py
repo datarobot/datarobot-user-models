@@ -80,13 +80,13 @@ class XGBoostPredictor(ArtifactPredictor):
             xgboost_native = True
             data = xgboost.DMatrix(data)
 
-        if self.target_type in TargetType.CLASSIFICATION:
+        if self.target_type.value in TargetType.CLASSIFICATION.value:
             if xgboost_native:
                 predictions = model.predict(data)
                 if self.target_type == TargetType.BINARY:
                     negative_preds = 1 - predictions
                     predictions = np.concatenate(
-                        (negative_preds.reshape(-1, 1)), predictions.reshape(-1, 1), axis=1
+                        (negative_preds.reshape(-1, 1), predictions.reshape(-1, 1)), axis=1
                     )
                 else:
                     if predictions.shape[1] != len(self.class_labels):

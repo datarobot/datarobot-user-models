@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import socket
@@ -35,7 +36,9 @@ class CMRunnerUtils:
 
     @classmethod
     def render_template_keep_undefined(cls, template_str, data):
-        rtemplate = Environment(loader=BaseLoader, undefined=DebugUndefined).from_string(
+        env= Environment(loader=BaseLoader, undefined=DebugUndefined)
+        env.filters["jsonify"] = json.dumps
+        rtemplate = env.from_string(
             template_str
         )
         return rtemplate.render(data)

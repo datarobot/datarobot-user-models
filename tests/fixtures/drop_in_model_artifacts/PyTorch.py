@@ -96,7 +96,7 @@ def train_epoch(model, opt, criterion, X, y, batch_size=50):
 
 
 if __name__ == "__main__":
-    from PyTorch import BinModel, RegModel
+    from PyTorch import BinModel, RegModel, MultiModel
 
     TEST_DATA_ROOT = '~/workspace/datarobot-user-models/tests/testdata'
     BINARY_DATA = os.path.join(

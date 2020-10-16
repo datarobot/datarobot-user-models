@@ -75,7 +75,13 @@ class JavaPredictor(BaseLanguagePredictor):
         for key in params.keys():
             if isinstance(params[key], dict):
                 continue
-            m[key] = params[key]
+            elif isinstance(params[key], list):
+                jlist = self._gateway.jvm.java.util.ArrayList()
+                for val in params[key]:
+                    jlist.append(val)
+                m[key] = jlist
+            else:
+                m[key] = params[key]
         self._predictor_via_py4j.configure(m)
 
     def predict(self, input_filename):

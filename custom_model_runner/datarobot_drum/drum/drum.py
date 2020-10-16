@@ -370,12 +370,9 @@ class CMRunner:
         functional_pipeline_filepath = CMRunnerUtils.get_pipeline_filepath(functional_pipeline_name)
         # fields to replace in the pipeline
         replace_data = {
-            "positiveClassLabel": '"{}"'.format(options.positive_class_label)
-            if options.positive_class_label is not None
-            else "null",
-            "negativeClassLabel": '"{}"'.format(options.negative_class_label)
-            if options.negative_class_label is not None
-            else "null",
+            "positiveClassLabel": options.positive_class_label,
+            "negativeClassLabel": options.negative_class_label,
+            "classLabels": options.class_labels,
             "customModelPath": os.path.abspath(options.code_dir),
             "run_language": run_language.value,
             "monitor": options.monitor,
@@ -420,6 +417,7 @@ class CMRunner:
         functional_pipeline_str = CMRunnerUtils.render_file(
             functional_pipeline_filepath, replace_data
         )
+        print(functional_pipeline_str)
 
         if self.run_mode == RunMode.SERVER:
             if options.production:

@@ -224,7 +224,8 @@ outer_predict <- function(input_filename, target_type, model=NULL, positive_clas
     }
 
     kwargs <- list(positive_class_label=positive_class_label,
-                   negative_class_label=negative_class_label)
+                   negative_class_label=negative_class_label,
+                   class_labels=class_labels)
     if (!isFALSE(score_hook)) {
         predictions <- do.call(score_hook, list(data, model, kwargs))
     } else {

@@ -56,7 +56,7 @@ class PMMLPredictor(ArtifactPredictor):
 
         predictions = model.predict(data)
 
-        if self.target_type in TargetType.CLASSIFICATION:
+        if self.target_type.value in TargetType.CLASSIFICATION.value:
             if predictions.shape[1] >= 2:
                 predictions = pd.DataFrame(
                     predictions, columns=self.class_labels

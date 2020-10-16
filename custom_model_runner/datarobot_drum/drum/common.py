@@ -161,7 +161,6 @@ class TargetType(Enum):
     ANOMALY = "anomaly"
     UNSTRUCTURED = "unstructured"
     MULTICLASS = "multiclass"
-
     CLASSIFICATION = [BINARY, MULTICLASS]
 
 

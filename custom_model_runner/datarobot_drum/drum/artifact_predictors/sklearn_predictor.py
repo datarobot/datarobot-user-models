@@ -56,7 +56,7 @@ class SKLearnPredictor(ArtifactPredictor):
         # done in the base class
         super(SKLearnPredictor, self).predict(data, model, **kwargs)
 
-        if self.target_type in TargetType.CLASSIFICATION:
+        if self.target_type.value in TargetType.CLASSIFICATION.value:
             if hasattr(model, "classes_"):
                 if set(model.classes_) != set(self.class_labels):
                     error_message = (

@@ -74,7 +74,7 @@ class KerasPredictor(ArtifactPredictor):
         # done in the base class
         super(KerasPredictor, self).predict(data, model, **kwargs)
         predictions = model.predict(data)
-        if self.target_type in TargetType.CLASSIFICATION:
+        if self.target_type.value in TargetType.CLASSIFICATION.value:
             if predictions.shape[1] == 1:
                 if self.target_type == TargetType.MULTICLASS:
                     raise DrumCommonException(

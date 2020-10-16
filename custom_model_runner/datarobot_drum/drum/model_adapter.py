@@ -19,6 +19,7 @@ from datarobot_drum.drum.common import (
     LOGGER_NAME_PREFIX,
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
+    CLASS_LABELS_ARG_KEYWORD,
     REGRESSION_PRED_COLUMN,
     reroute_stdout_to_stderr,
     TargetType,
@@ -237,26 +238,21 @@ class PythonModelAdapter:
                 "{} must return a DataFrame; but received {}".format(hook, type(to_validate))
             )
 
-    def _validate_predictions(self, to_validate, positive_class_label, negative_class_label):
+    def _validate_predictions(self, to_validate, class_labels):
         self._validate_data(to_validate, "Predictions")
         columns_to_validate = set(list(to_validate.columns))
-        if positive_class_label and negative_class_label:
-            if columns_to_validate != {positive_class_label, negative_class_label}:
+        if class_labels:
+            if columns_to_validate != set(class_labels):
                 raise ValueError(
                     "Expected predictions to have columns {}, but encountered {}".format(
-                        {positive_class_label, negative_class_label}, columns_to_validate
+                        class_labels, columns_to_validate
                     )
                 )
             try:
-                added_probs = [
-                    a + b
-                    for a, b in zip(
-                        to_validate[positive_class_label], to_validate[negative_class_label]
-                    )
-                ]
+                added_probs = to_validate.sum(axis=1)
                 np.testing.assert_array_almost_equal(added_probs, 1)
             except AssertionError:
-                raise ValueError("Your prediction probabilities do not add up to 1.")
+                raise ValueError("Your prediction probabilities do not add up to 1. {}".format(to_validate))
 
         elif columns_to_validate != {REGRESSION_PRED_COLUMN}:
             raise ValueError(
@@ -314,8 +310,11 @@ class PythonModelAdapter:
                 ).with_traceback(sys.exc_info()[2]) from None
             self._validate_data(data, CustomHooks.TRANSFORM)
 
-        positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD, None)
-        negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD, None)
+        positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
+        negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
+        class_labels = kwargs.get(CLASS_LABELS_ARG_KEYWORD)
+        if positive_class_label and negative_class_label:
+            class_labels = [negative_class_label, positive_class_label]
 
         if self._custom_hooks.get(CustomHooks.SCORE):
             try:
@@ -342,7 +341,7 @@ class PythonModelAdapter:
                     "Model post-process hook failed to post-process predictions: {}".format(exc)
                 ).with_traceback(sys.exc_info()[2]) from None
 
-        self._validate_predictions(predictions, positive_class_label, negative_class_label)
+        self._validate_predictions(predictions, class_labels)
 
         return predictions
 

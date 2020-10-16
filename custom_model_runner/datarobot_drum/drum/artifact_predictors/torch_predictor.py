@@ -74,7 +74,7 @@ class PyTorchPredictor(ArtifactPredictor):
         )
         with torch.no_grad():
             predictions = model(data).cpu().data.numpy()
-        if self.target_type in TargetType.CLASSIFICATION:
+        if self.target_type.value in TargetType.CLASSIFICATION.value:
             if predictions.shape[1] == 1:
                 if self.target_type == TargetType.MULTICLASS:
                     raise DrumCommonException(

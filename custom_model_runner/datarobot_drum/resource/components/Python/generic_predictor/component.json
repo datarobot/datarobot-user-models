@@ -16,15 +16,15 @@
     "key": "positiveClassLabel",
     "label": "Positive class label",
     "type": "str",
-    "description": "Positive class label for the classification model",
+    "description": "Positive class label for a binary classification model",
     "optional": true
   },
   {
     "key": "negativeClassLabel",
     "label": "Negative class label",
     "type": "str",
-    "description": "Negative class label for the classification model",
-    "optional": false
+    "description": "Negative class label for a binary classification model",
+    "optional": true
   },
   {
     "key": "run_language",
