@@ -1,8 +1,8 @@
-from keras.models import Sequential
-from keras.layers import Dense, Dropout
-from keras.constraints import maxnorm
-from keras.models import load_model
-from keras.wrappers.scikit_learn import KerasClassifier, KerasRegressor
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.constraints import MaxNorm as maxnorm
+from tensorflow.keras.models import load_model
+from tensorflow.keras.wrappers.scikit_learn import KerasClassifier, KerasRegressor
 
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer

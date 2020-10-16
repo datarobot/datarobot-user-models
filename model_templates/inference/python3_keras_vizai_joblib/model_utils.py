@@ -1,6 +1,6 @@
 # keras imports
-from keras.models import load_model
-from keras.applications.mobilenet_v2 import preprocess_input
+from tensorflow.keras.models import load_model
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
 # scikit-learn imports
 from sklearn.pipeline import Pipeline

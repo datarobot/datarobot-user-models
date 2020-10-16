@@ -20,8 +20,7 @@ class KerasPredictor(ArtifactPredictor):
 
     def is_framework_present(self):
         try:
-            import keras
-            from keras.models import load_model
+            from tensorflow.keras.models import load_model
 
             return True
         except ImportError:
@@ -35,8 +34,7 @@ class KerasPredictor(ArtifactPredictor):
             return False
 
         try:
-            import keras
-            from keras.models import load_model
+            from tensorflow.keras.models import load_model
 
             return True
         except ImportError:
@@ -47,6 +45,7 @@ class KerasPredictor(ArtifactPredictor):
             return False
 
         try:
+            # TODO: remove this and keras==2.3.1 from requirements once Sukumar check joblib pickling for keras vizai model template
             import keras
             from sklearn.pipeline import Pipeline
             from tensorflow import keras as keras_tf
@@ -55,7 +54,7 @@ class KerasPredictor(ArtifactPredictor):
                 # check the final estimator in the pipeline is Keras
                 if isinstance(model[-1], (keras.Model, keras_tf.Model)):
                     return True
-            elif isinstance(model, (keras.Model, keras_tf.Model)):
+            elif isinstance(model, (keras_tf.Model)):
                 return True
         except Exception as e:
             self._logger.debug("Exception: {}".format(e))
@@ -63,10 +62,9 @@ class KerasPredictor(ArtifactPredictor):
         return False
 
     def load_model_from_artifact(self, artifact_path):
-        from keras.models import load_model
+        from tensorflow.keras.models import load_model
 
         self._model = load_model(artifact_path, compile=False)
-        self._model._make_predict_function()
         return self._model
 
     def predict(self, data, model, **kwargs):

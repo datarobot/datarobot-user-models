@@ -22,7 +22,6 @@ from datarobot_drum.drum.common import (
     REGRESSION_PRED_COLUMN,
     reroute_stdout_to_stderr,
     TargetType,
-    UnstructuredDtoKeys,
 )
 from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
 from datarobot_drum.drum.exceptions import DrumCommonException

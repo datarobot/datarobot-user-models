@@ -1,8 +1,4 @@
-import pandas as pd
-from pathlib import Path
-
 from model_deserializer import deserialize_estimator_pipeline
-
 from sklearn.pipeline import Pipeline
 
 
