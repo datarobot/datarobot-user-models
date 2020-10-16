@@ -80,17 +80,25 @@ class XGBoostPredictor(ArtifactPredictor):
             xgboost_native = True
             data = xgboost.DMatrix(data)
 
-        if self.target_type == TargetType.BINARY:
+        if self.target_type in TargetType.CLASSIFICATION:
             if xgboost_native:
-                positive_preds = model.predict(data)
-                negative_preds = 1 - positive_preds
-                predictions = np.concatenate(
-                    (positive_preds.reshape(-1, 1), negative_preds.reshape(-1, 1)), axis=1
-                )
+                predictions = model.predict(data)
+                if self.target_type == TargetType.BINARY:
+                    negative_preds = 1 - predictions
+                    predictions = np.concatenate(
+                        (negative_preds.reshape(-1, 1)), predictions.reshape(-1, 1), axis=1
+                    )
+                else:
+                    if predictions.shape[1] != len(self.class_labels):
+                        raise DrumCommonException(
+                            "Target type '{}' predictions must return the "
+                            "probability distribution for all class labels".format(self.target_type)
+                        )
+
             else:
                 predictions = model.predict_proba(data)
             predictions = pd.DataFrame(
-                predictions, columns=[self.negative_class_label, self.positive_class_label]
+                predictions, columns=self.class_labels
             )
         elif self.target_type in [TargetType.REGRESSION, TargetType.ANOMALY]:
             preds = model.predict(data)

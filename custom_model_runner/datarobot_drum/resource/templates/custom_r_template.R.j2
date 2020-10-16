@@ -81,8 +81,9 @@ transform <- function(data, model) {
 #' @param model Any, is the deserialized model loaded by drum or by load_model
 #' hook, if supplied
 #' @param ... keyword args, additional params to the method. If model is
-#' classification, positive_class_label and negative_class_label will be
-#' provided as parameters.
+#' binary classification, positive_class_label and negative_class_label will be
+#' provided as parameters. If the model is multiclass classification (at least 3 classes),
+#' a class_labels vector will be provided as a parameter.
 #' @return: data.frame with the structure defined above
 #' @export
 #'

@@ -4,7 +4,8 @@ TargetTypeEnum <- function() {
       REGRESSION = "regression",
       BINARY = "binary",
       ANOMALY = "anomaly",
-      UNSTRUCTURED = "unstructured"
+      UNSTRUCTURED = "unstructured",
+      MULTICLASS = "multiclass"
     )
 }
 

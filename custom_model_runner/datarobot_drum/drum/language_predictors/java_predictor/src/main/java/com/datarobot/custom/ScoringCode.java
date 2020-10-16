@@ -1,43 +1,27 @@
 package com.datarobot.custom;
 
-import com.datarobot.prediction.Predictors;
 import com.datarobot.prediction.IClassificationPredictor;
 import com.datarobot.prediction.IPredictorInfo;
 import com.datarobot.prediction.IRegressionPredictor;
+import com.datarobot.prediction.Predictors;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
-import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import java.io.File;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.StringWriter;
-import java.io.StringReader;
-import java.io.PrintWriter;
-import java.io.IOException;
+import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
-import com.datarobot.custom.BasePredictor;
-
-public class ScoringCode extends BasePredictor
-{
+public class ScoringCode extends BasePredictor {
     private IPredictorInfo model;
     private boolean isRegression;
     private String negativeClassLabel = null;
     private String positiveClassLabel = null;
+    private List<String> classLabels = null;
     private Map<String, Object> params = null;
 
     public ScoringCode(String name) {
@@ -68,10 +52,12 @@ public class ScoringCode extends BasePredictor
                     csvPrinter.printRecord(value);
                 }
             } else {
-                csvPrinter = new CSVPrinter(new StringWriter(), CSVFormat.DEFAULT.withHeader(this.positiveClassLabel, this.negativeClassLabel));
+                var labelsArr = this.classLabels.toArray(new String[this.classLabels.size()]);
+                csvPrinter = new CSVPrinter(new StringWriter(), CSVFormat.DEFAULT.withHeader(labelsArr));
                 for (var val : predictions) {
                     HashMap<String, Double> value = (HashMap<String, Double>) val;
-                    csvPrinter.printRecord(value.get(this.positiveClassLabel), value.get(this.negativeClassLabel));
+                    var predRow = this.classLabels.stream().map(value::get).toArray(Double[]::new);
+                    csvPrinter.printRecord(predRow);
                 }
             }
         } catch (IOException e) {
@@ -88,6 +74,11 @@ public class ScoringCode extends BasePredictor
         String customModelPath = (String) this.params.get("__custom_model_path__");
         this.negativeClassLabel = (String) this.params.get("negativeClassLabel");
         this.positiveClassLabel = (String) this.params.get("positiveClassLabel");
+        this.classLabels = (List) this.params.get("classLabels");
+
+        if (this.negativeClassLabel != null && this.positiveClassLabel != null) {
+            this.classLabels = List.of(this.positiveClassLabel, this.negativeClassLabel);
+        }
 
         try {
             this.model = loadModel(customModelPath);

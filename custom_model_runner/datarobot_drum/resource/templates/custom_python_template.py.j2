@@ -76,8 +76,9 @@ def score(data, model, **kwargs):
     :param data: the dataframe to make predictions against. If transform is supplied, data
         will be the transformed data.
     :param model: is the deserialized model loaded by drum or by load_model hook, if supplied
-    :param kwargs: additional keyword arguments to the function. If model is classification,
-    positive_class_label and negative_class_label will be provided in kwargs.
+    :param kwargs: additional keyword arguments to the function. If model is binary classification,
+    positive_class_label and negative_class_label will be provided in kwargs. If the model is multiclass
+    classification (at least 3 classes), a class_labels list will be provided as a parameter.
     :returns: a dataframe, see documentation above on the structure of the dataframe to return.
     """
 

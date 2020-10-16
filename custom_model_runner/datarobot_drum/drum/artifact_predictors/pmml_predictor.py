@@ -56,12 +56,17 @@ class PMMLPredictor(ArtifactPredictor):
 
         predictions = model.predict(data)
 
-        if self.target_type == TargetType.BINARY:
-            if predictions.shape[1] == 2:
+        if self.target_type in TargetType.CLASSIFICATION:
+            if predictions.shape[1] >= 2:
                 predictions = pd.DataFrame(
-                    predictions, columns=[self.negative_class_label, self.positive_class_label]
+                    predictions, columns=self.class_labels
                 )
             else:
+                if self.target_type == TargetType.MULTICLASS:
+                    raise DrumCommonException(
+                        "Target type '{}' predictions must return the "
+                        "probability distribution for all class labels".format(self.target_type)
+                    )
                 predictions = pd.DataFrame(predictions, columns=[self.positive_class_label])
                 predictions[self.negative_class_label] = 1 - predictions[self.positive_class_label]
         elif self.target_type in [TargetType.REGRESSION, TargetType.ANOMALY]:

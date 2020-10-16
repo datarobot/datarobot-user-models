@@ -76,8 +76,9 @@ The **drum** tool has built-in support for the following libraries. If your mode
 This tool makes the following assumptions about your serialized model:
 - The data sent to a model can be used to make predictions without additional pre-processing.
 - Regression models return a single floating point per row of prediction data.
-- Binary classification models return two floating point values that sum to 1.0 per row of prediction data.
-  - The first value is the positive class probability, the second is the negative class probability
+- Binary classification models return one floating point value <= 1.0 or two floating point values that sum to 1.0 per row of prediction data.
+  - Single value output is assumed to be the positive class probability
+  - Multi value it is assumed that the first value is the negative class probability, the second is the positive class probability
 - There is a single pkl/pth/h5 file present.
 - Your model uses one of the above frameworks.
   

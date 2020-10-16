@@ -58,6 +58,8 @@ class RPredictor(BaseLanguagePredictor):
             self._positive_class_label = ro.rinterface.NULL
         if self._negative_class_label is None:
             self._negative_class_label = ro.rinterface.NULL
+        if self._class_labels is None:
+            self._class_labels = ro.rinterface.NULL
 
         r_handler.source(R_COMMON_PATH)
         r_handler.source(R_SCORE_PATH)
@@ -83,6 +85,7 @@ class RPredictor(BaseLanguagePredictor):
             model=self._model,
             positive_class_label=self._positive_class_label,
             negative_class_label=self._negative_class_label,
+            class_labels=self._class_labels,
         )
         with localconverter(ro.default_converter + pandas2ri.converter):
             py_data_object = ro.conversion.rpy2py(predictions)

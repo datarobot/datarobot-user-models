@@ -6,6 +6,7 @@ from datarobot_drum.drum.common import (
     LOGGER_NAME_PREFIX,
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
+    CLASS_LABELS_ARG_KEYWORD,
     TARGET_TYPE_ARG_KEYWORD,
 )
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
@@ -40,6 +41,8 @@ class PythonPredictor(BaseLanguagePredictor):
         if self._positive_class_label and self._negative_class_label:
             kwargs[POSITIVE_CLASS_LABEL_ARG_KEYWORD] = self._positive_class_label
             kwargs[NEGATIVE_CLASS_LABEL_ARG_KEYWORD] = self._negative_class_label
+        if self._class_labels:
+            kwargs[CLASS_LABELS_ARG_KEYWORD] = self._class_labels
 
         start_predict = time.time()
         predictions = self._model_adapter.predict(input_filename, model=self._model, **kwargs)

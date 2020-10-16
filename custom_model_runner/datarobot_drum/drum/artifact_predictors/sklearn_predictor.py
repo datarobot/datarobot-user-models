@@ -56,37 +56,21 @@ class SKLearnPredictor(ArtifactPredictor):
         # done in the base class
         super(SKLearnPredictor, self).predict(data, model, **kwargs)
 
-        def _determine_positive_class_index(pos_label, neg_label):
-            """Find index of positive class label to interpret predict_proba output"""
-
-            if not hasattr(model, "classes_"):
-                self._logger.warning(
-                    "We were not able to verify you were using the right class labels because your estimator doesn't have a classes_ attribute"
-                )
-                return 1
-            labels = [str(label) for label in model.classes_]
-            if not all(x in labels for x in [pos_label, neg_label]):
-                error_message = (
-                    "Wrong class labels. Use class labels detected by sklearn model: {}".format(
-                        labels
+        if self.target_type in TargetType.CLASSIFICATION:
+            if hasattr(model, "classes_"):
+                if set(model.classes_) != set(self.class_labels):
+                    error_message = (
+                        "Wrong class labels. Use class labels detected by sklearn model: {}".format(
+                            model.classes_
+                        )
                     )
-                )
-                raise DrumCommonException(error_message)
-
-            return labels.index(pos_label)
-
-        if self.target_type == TargetType.BINARY:
+                    raise DrumCommonException(error_message)
+                labels_to_use = model.classes_
+            else:
+                labels_to_use = self.class_labels
             predictions = model.predict_proba(data)
-            positive_label_index = _determine_positive_class_index(
-                self.positive_class_label, self.negative_class_label
-            )
-            negative_label_index = 1 - positive_label_index
-            predictions = [
-                [prediction[positive_label_index], prediction[negative_label_index]]
-                for prediction in predictions
-            ]
             predictions = pd.DataFrame(
-                predictions, columns=[self.positive_class_label, self.negative_class_label]
+                predictions, columns=labels_to_use
             )
         elif self.target_type in [TargetType.REGRESSION, TargetType.ANOMALY]:
             predictions = pd.DataFrame(

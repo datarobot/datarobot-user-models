@@ -24,6 +24,7 @@ class BaseLanguagePredictor(ABC):
         self._model = None
         self._positive_class_label = None
         self._negative_class_label = None
+        self._class_labels = None
         self._custom_model_path = None
         self._params = None
         self._mlops = None
@@ -32,6 +33,7 @@ class BaseLanguagePredictor(ABC):
         self._custom_model_path = params["__custom_model_path__"]
         self._positive_class_label = params.get("positiveClassLabel")
         self._negative_class_label = params.get("negativeClassLabel")
+        self._class_labels = params.get("classLabels")
         self._target_type = TargetType(params.get("target_type"))
         self._params = params
 
@@ -61,7 +63,7 @@ class BaseLanguagePredictor(ABC):
             # Regression: [10, 12, 13]
             # Classification: [[0.5, 0.5], [0.7, 03]]
             # In case of classification, class names are also required
-            class_names = None
+            class_names = self._class_labels
             if len(predictions.columns) == 1:
                 mlops_predictions = predictions[predictions.columns[0]].tolist()
             else:
