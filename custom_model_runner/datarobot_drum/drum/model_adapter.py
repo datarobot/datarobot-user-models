@@ -252,7 +252,9 @@ class PythonModelAdapter:
                 added_probs = to_validate.sum(axis=1)
                 np.testing.assert_array_almost_equal(added_probs, 1)
             except AssertionError:
-                raise ValueError("Your prediction probabilities do not add up to 1. {}".format(to_validate))
+                raise ValueError(
+                    "Your prediction probabilities do not add up to 1. {}".format(to_validate)
+                )
 
         elif columns_to_validate != {REGRESSION_PRED_COLUMN}:
             raise ValueError(

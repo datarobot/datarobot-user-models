@@ -81,7 +81,7 @@ _target_types = {
     REGRESSION_INFERENCE: "regression",
     ANOMALY: "anomaly",
     UNSTRUCTURED: "unstructured",
-    MULTICLASS: "multiclass"
+    MULTICLASS: "multiclass",
 }
 
 _class_labels = {
@@ -153,7 +153,10 @@ _artifacts = {
     (XGB, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "xgb_multi.pkl"),
     (KERAS, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "keras_multi.h5"),
     (RDS, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "r_multi.rds"),
-    (PYTORCH, MULTICLASS): [os.path.join(TESTS_ARTIFACTS_PATH, "torch_multi.pth"), os.path.join(TESTS_ARTIFACTS_PATH, "PyTorch.py")],
+    (PYTORCH, MULTICLASS): [
+        os.path.join(TESTS_ARTIFACTS_PATH, "torch_multi.pth"),
+        os.path.join(TESTS_ARTIFACTS_PATH, "PyTorch.py"),
+    ],
     (CODEGEN, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "java_multi.jar"),
 }
 

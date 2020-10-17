@@ -87,7 +87,7 @@ class TestInference:
 
         output = tmp_path / "output"
 
-        cmd = "{} score --code-dir {} --input \"{}\" --output {} --target-type {}".format(
+        cmd = '{} score --code-dir {} --input "{}" --output {} --target-type {}'.format(
             ArgumentsOptions.MAIN_COMMAND,
             custom_model_dir,
             input_dataset,
@@ -216,7 +216,11 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [(SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN), (SKLEARN, BINARY, PYTHON, None), (SKLEARN, MULTICLASS, PYTHON, None)],
+        [
+            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
+            (SKLEARN, BINARY, PYTHON, None),
+            (SKLEARN, MULTICLASS, PYTHON, None),
+        ],
     )
     def test_custom_models_drum_prediction_server_response(
         self,

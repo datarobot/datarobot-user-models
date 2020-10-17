@@ -38,9 +38,7 @@ class CMRunnerUtils:
     def render_template_keep_undefined(cls, template_str, data):
         env = Environment(loader=BaseLoader, undefined=DebugUndefined)
         env.filters["jsonify"] = json.dumps
-        rtemplate = env.from_string(
-            template_str
-        )
+        rtemplate = env.from_string(template_str)
         return rtemplate.render(data)
 
     @classmethod

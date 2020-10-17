@@ -97,9 +97,7 @@ class XGBoostPredictor(ArtifactPredictor):
 
             else:
                 predictions = model.predict_proba(data)
-            predictions = pd.DataFrame(
-                predictions, columns=self.class_labels
-            )
+            predictions = pd.DataFrame(predictions, columns=self.class_labels)
         elif self.target_type in [TargetType.REGRESSION, TargetType.ANOMALY]:
             preds = model.predict(data)
             predictions = pd.DataFrame(data=preds, columns=[REGRESSION_PRED_COLUMN])

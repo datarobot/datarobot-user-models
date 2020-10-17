@@ -58,9 +58,7 @@ class PMMLPredictor(ArtifactPredictor):
 
         if self.target_type.value in TargetType.CLASSIFICATION.value:
             if predictions.shape[1] >= 2:
-                predictions = pd.DataFrame(
-                    predictions, columns=self.class_labels
-                )
+                predictions = pd.DataFrame(predictions, columns=self.class_labels)
             else:
                 if self.target_type == TargetType.MULTICLASS:
                     raise DrumCommonException(

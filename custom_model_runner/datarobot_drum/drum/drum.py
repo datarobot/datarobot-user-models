@@ -615,7 +615,7 @@ class CMRunner:
             docker_cmd_args += " -p {port}:{port}".format(port=port)
 
         if run_mode in [RunMode.SCORE, RunMode.PERF_TEST, RunMode.VALIDATION, RunMode.FIT]:
-            docker_cmd_args += " -v \"{}\":{}".format(options.input, in_docker_input_file)
+            docker_cmd_args += ' -v "{}":{}'.format(options.input, in_docker_input_file)
 
             if run_mode == RunMode.SCORE and options.output:
                 output_file = os.path.realpath(options.output)
@@ -623,20 +623,22 @@ class CMRunner:
                     # Creating an empty file so the mount command will mount the file correctly -
                     # otherwise docker create an empty directory
                     open(output_file, "a").close()
-                docker_cmd_args += " -v \"{}\":{}".format(output_file, in_docker_output_file)
+                docker_cmd_args += ' -v "{}":{}'.format(output_file, in_docker_output_file)
                 CMRunnerUtils.replace_cmd_argument_value(
                     in_docker_cmd_list, ArgumentsOptions.OUTPUT, in_docker_output_file
                 )
             elif run_mode == RunMode.FIT:
                 if options.output:
                     fit_output_dir = os.path.realpath(options.output)
-                    docker_cmd_args += " -v \"{}\":{}".format(fit_output_dir, in_docker_fit_output_dir)
+                    docker_cmd_args += ' -v "{}":{}'.format(
+                        fit_output_dir, in_docker_fit_output_dir
+                    )
                 CMRunnerUtils.replace_cmd_argument_value(
                     in_docker_cmd_list, ArgumentsOptions.OUTPUT, in_docker_fit_output_dir
                 )
                 if options.target_csv:
                     fit_target_filename = os.path.realpath(options.target_csv)
-                    docker_cmd_args += " -v \"{}\":{}".format(
+                    docker_cmd_args += ' -v "{}":{}'.format(
                         fit_target_filename, in_docker_fit_target_filename
                     )
                     CMRunnerUtils.replace_cmd_argument_value(

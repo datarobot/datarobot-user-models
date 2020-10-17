@@ -69,9 +69,7 @@ class SKLearnPredictor(ArtifactPredictor):
             else:
                 labels_to_use = self.class_labels
             predictions = model.predict_proba(data)
-            predictions = pd.DataFrame(
-                predictions, columns=labels_to_use
-            )
+            predictions = pd.DataFrame(predictions, columns=labels_to_use)
         elif self.target_type in [TargetType.REGRESSION, TargetType.ANOMALY]:
             predictions = pd.DataFrame(
                 [float(prediction) for prediction in model.predict(data)],

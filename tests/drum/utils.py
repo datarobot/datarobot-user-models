@@ -79,6 +79,6 @@ def _cmd_add_class_labels(cmd, labels):
         neg = labels[0] if labels else "no"
         cmd = cmd + " --positive-class-label {} --negative-class-label {}".format(pos, neg)
     elif labels and len(labels) > 2:
-        wrapped_labels = ["\"{}\"".format(label) for label in labels]
+        wrapped_labels = ['"{}"'.format(label) for label in labels]
         cmd += " --class-labels {}".format(" ".join(wrapped_labels))
     return cmd

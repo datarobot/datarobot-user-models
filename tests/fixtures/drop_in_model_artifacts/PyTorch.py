@@ -98,25 +98,19 @@ def train_epoch(model, opt, criterion, X, y, batch_size=50):
 if __name__ == "__main__":
     from PyTorch import BinModel, RegModel, MultiModel
 
-    TEST_DATA_ROOT = '~/workspace/datarobot-user-models/tests/testdata'
-    BINARY_DATA = os.path.join(
-        TEST_DATA_ROOT, 'iris_binary_training.csv'
-    )
-    REGRESSION_DATA = os.path.join(
-        TEST_DATA_ROOT, 'boston_housing.csv'
-    )
-    MULTICLASS_DATA = os.path.join(
-        TEST_DATA_ROOT, 'Skyserver_SQL2_27_2018 6_51_39 PM.csv'
-    )
+    TEST_DATA_ROOT = "~/workspace/datarobot-user-models/tests/testdata"
+    BINARY_DATA = os.path.join(TEST_DATA_ROOT, "iris_binary_training.csv")
+    REGRESSION_DATA = os.path.join(TEST_DATA_ROOT, "boston_housing.csv")
+    MULTICLASS_DATA = os.path.join(TEST_DATA_ROOT, "Skyserver_SQL2_27_2018 6_51_39 PM.csv")
 
     bin_X = pd.read_csv(BINARY_DATA)
-    bin_y = bin_X.pop('Species')
+    bin_y = bin_X.pop("Species")
 
     reg_X = pd.read_csv(REGRESSION_DATA)
-    reg_y = reg_X.pop('MEDV')
+    reg_y = reg_X.pop("MEDV")
 
     multi_X = pd.read_csv(MULTICLASS_DATA)
-    multi_y = multi_X.pop('class')
+    multi_y = multi_X.pop("class")
 
     bin_target_encoder = LabelEncoder()
     bin_target_encoder.fit(bin_y)
@@ -160,7 +154,7 @@ if __name__ == "__main__":
             predictions = model(data).cpu().data.numpy()
         print(predictions)
 
-    FIXTURE_ROOT = '~/workspace/datarobot-user-models/tests/fixtures/drop_in_model_artifacts'
+    FIXTURE_ROOT = "~/workspace/datarobot-user-models/tests/fixtures/drop_in_model_artifacts"
     torch.save(bin_model, os.path.expanduser(os.path.join(FIXTURE_ROOT, "torch_bin.pth")))
     torch.save(reg_model, os.path.expanduser(os.path.join(FIXTURE_ROOT, "torch_reg.pth")))
     torch.save(multi_model, os.path.expanduser(os.path.join(FIXTURE_ROOT, "torch_multi.pth")))

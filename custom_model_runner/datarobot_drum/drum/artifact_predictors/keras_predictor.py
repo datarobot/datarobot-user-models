@@ -84,9 +84,7 @@ class KerasPredictor(ArtifactPredictor):
                 predictions = pd.DataFrame(predictions, columns=[self.positive_class_label])
                 predictions[self.negative_class_label] = 1 - predictions[self.positive_class_label]
             else:
-                predictions = pd.DataFrame(
-                    predictions, columns=self.class_labels
-                )
+                predictions = pd.DataFrame(predictions, columns=self.class_labels)
         elif self.target_type in [TargetType.REGRESSION, TargetType.ANOMALY]:
             predictions = pd.DataFrame(predictions, columns=[REGRESSION_PRED_COLUMN])
         else:
