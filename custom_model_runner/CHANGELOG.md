@@ -12,12 +12,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Changed
 - support only keras built into tensorflow >= 2.2.1
 
-#### Unreleased
-##### Added
-- add `multiclass` target type
-- add `class-labels` for specifying the class labels of a multiclass model
-- add `class-labels-file` for specifying a file containing the class labels of a multiclass model
-
 #### [1.3.0] - 2020-10-15
 ##### Added
 - `read_input_data` hook
