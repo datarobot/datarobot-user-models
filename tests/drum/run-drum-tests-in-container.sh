@@ -65,7 +65,7 @@ pip install \
     --extra-index-url https://artifactory.int.datarobot.com/artifactory/api/pypi/python-all/simple \
     datarobot-mlops
 
-pytest tests/drum/ \
+pytest tests/drum/test_units.py \
        -k "not test_drum_monitoring_no_mlops_installed" \
        --junit-xml="$GIT_ROOT/results_integration.xml"
 

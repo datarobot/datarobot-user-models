@@ -3,6 +3,7 @@ import logging
 import os
 import socket
 from contextlib import closing
+from functools import partial
 from pathlib import Path
 from datarobot_drum.drum.exceptions import DrumCommonException
 
@@ -37,7 +38,7 @@ class CMRunnerUtils:
     @classmethod
     def render_template_keep_undefined(cls, template_str, data):
         env = Environment(loader=BaseLoader, undefined=DebugUndefined)
-        env.filters["jsonify"] = json.dumps
+        env.filters["jsonify"] = partial(json.dumps, default=str)
         rtemplate = env.from_string(template_str)
         return rtemplate.render(data)
 
