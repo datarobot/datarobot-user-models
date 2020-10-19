@@ -298,8 +298,6 @@ class TestDropInEnvironments(object):
         test = dr.CustomModelTest.create(
             custom_model_id=model_id,
             custom_model_version_id=model_version_id,
-            environment_id=env_id,
-            environment_version_id=env_version_id,
             dataset_id=test_data_id,
         )
 
