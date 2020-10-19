@@ -3,6 +3,6 @@
   "name": "[DataRobot] Java Drop-In + nginx + uwsgi",
   "description": "Java Drop-In + nginx + uwsgi",
   "programmingLanguage": "java",
-  "environmentVersionId": "5f58651c5f627d3f9b56632d",
+  "environmentVersionId": "5f8ddc93e9790c4bec80dc01",
   "isPublic": true
 }

@@ -150,3 +150,11 @@ def regression_testing_data():
         file_path=os.path.join(BASE_DATASET_DIR, "boston_housing.csv")
     )
     return dataset.id
+
+
+@pytest.fixture(scope="session")
+def multiclass_testing_data():
+    dataset = dr.Dataset.create_from_file(
+        file_path=os.path.join(BASE_DATASET_DIR, "Skyserver_SQL2_27_2018 6_51_39 PM.csv")
+    )
+    return dataset.id

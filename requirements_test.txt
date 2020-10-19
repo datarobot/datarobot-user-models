@@ -3,5 +3,5 @@ pytest
 pytest-runner
 responses
 urllib3 >= 1.25.0
-datarobot==2.22.0b0
+datarobot==2.23.0b0
 requests >= 2.24.0
