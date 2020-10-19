@@ -99,6 +99,7 @@ _class_labels = {
     (XGB, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (KERAS, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (RDS, MULTICLASS): ["GALAXY", "QSO", "STAR"],
+    (PYPMML, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (PYTORCH, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (CODEGEN, MULTICLASS): ["GALAXY", "QSO", "STAR"],
 }
@@ -149,6 +150,7 @@ _artifacts = {
     (MOJO, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_bin.zip"),
     (PYPMML, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "iris_reg.pmml"),
     (PYPMML, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "iris_bin.pmml"),
+    (PYPMML, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "iris_multi.pmml"),
     (SKLEARN, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_multi.pkl"),
     (XGB, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "xgb_multi.pkl"),
     (KERAS, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "keras_multi.h5"),

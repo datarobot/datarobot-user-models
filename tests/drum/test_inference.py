@@ -64,6 +64,7 @@ class TestInference:
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
             (PYPMML, REGRESSION, NO_CUSTOM, None),
             (PYPMML, BINARY, NO_CUSTOM, None),
+            (PYPMML, MULTICLASS, NO_CUSTOM, None),
         ],
     )
     def test_custom_models_with_drum(
@@ -134,6 +135,7 @@ class TestInference:
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
             (PYPMML, REGRESSION, NO_CUSTOM, None),
             (PYPMML, BINARY, NO_CUSTOM, None),
+            (PYPMML, MULTICLASS, NO_CUSTOM, None),
         ],
     )
     def test_custom_models_with_drum_prediction_server(
