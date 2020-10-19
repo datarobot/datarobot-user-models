@@ -65,7 +65,7 @@ class TestDropInEnvironments(object):
         if positive_class_label and negative_class_label:
             target_type = dr.TARGET_TYPE.BINARY
         elif class_labels:
-            target_name = dr.TARGET_TYPE.MULTICLASS
+            target_type = dr.TARGET_TYPE.MULTICLASS
         else:
             target_type = dr.TARGET_TYPE.REGRESSION
 
