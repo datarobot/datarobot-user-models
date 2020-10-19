@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `multiclass` target type
 - `class-labels` for specifying the class labels of a multiclass model
 - `class-labels-file` for specifying a file containing the class labels of a multiclass model
+- add multiclass classification support for `drum score` and `drum server`
 ##### Changed
 - support only keras built into tensorflow >= 2.2.1
 
