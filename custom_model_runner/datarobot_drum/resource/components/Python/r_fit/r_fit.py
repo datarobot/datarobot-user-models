@@ -50,6 +50,7 @@ class RFit(ConnectableComponent):
         self.estimator = None
         self.positive_class_label = None
         self.negative_class_label = None
+        self.class_labels = None
         self.custom_model_path = None
         self.input_filename = None
         self.weights = None
@@ -65,6 +66,7 @@ class RFit(ConnectableComponent):
         self.output_dir = self._params["outputDir"]
         self.positive_class_label = self._params.get("positiveClassLabel")
         self.negative_class_label = self._params.get("negativeClassLabel")
+        self.class_labels = self._params.get("classLabels")
         self.weights = self._params["weights"]
         self.weights_filename = self._params["weightsFilename"]
         self.target_filename = self._params.get("targetFilename")
@@ -99,6 +101,7 @@ class RFit(ConnectableComponent):
             weights,
             self.positive_class_label or ro.NULL,
             self.negative_class_label or ro.NULL,
+            ro.StrVector(self.class_labels) if self.class_labels else ro.NULL,
         )
 
         make_sure_artifact_is_small(self.output_dir)

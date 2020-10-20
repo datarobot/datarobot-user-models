@@ -458,18 +458,13 @@ class CMRunner:
         replace_data = {
             "customModelPath": os.path.abspath(options.code_dir),
             "input_filename": options.input,
-            "weights": '"{}"'.format(options.row_weights) if options.row_weights else "null",
-            "weights_filename": '"{}"'.format(options.row_weights_csv)
-            if options.row_weights_csv
-            else "null",
-            "target_column": '"{}"'.format(options.target) if options.target else "null",
-            "target_filename": '"{}"'.format(options.target_csv) if options.target_csv else "null",
-            "positiveClassLabel": '"{}"'.format(options.positive_class_label)
-            if options.positive_class_label is not None
-            else "null",
-            "negativeClassLabel": '"{}"'.format(options.negative_class_label)
-            if options.negative_class_label is not None
-            else "null",
+            "weights": options.row_weights,
+            "weights_filename": options.row_weights_csv,
+            "target_column": options.target,
+            "target_filename": options.target_csv,
+            "positiveClassLabel": options.positive_class_label,
+            "negativeClassLabel": options.negative_class_label,
+            "classLabels": options.class_labels,
             "output_dir": options.output,
             "num_rows": options.num_rows,
         }

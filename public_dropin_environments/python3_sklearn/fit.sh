@@ -21,6 +21,10 @@ if [ -n "${POSITIVE_CLASS_LABEL}" ]; then
     CMD="${CMD} --negative-class-label ${NEGATIVE_CLASS_LABEL} \
     --positive-class-label ${POSITIVE_CLASS_LABEL}"
 fi
+if [ ! -z "${CLASS_LABELS_FILE}" ]; then
+    CMD="${CMD} --class-labels-file ${CLASS_LABELS_FILE}"
+    TARGET_TYPE="multiclass"
+fi
 if [ -f "${weights}" ]; then
     CMD="${CMD} --row-weights-csv ${weights}"
 fi

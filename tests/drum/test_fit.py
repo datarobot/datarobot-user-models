@@ -12,6 +12,7 @@ from .constants import (
     BINARY,
     DOCKER_PYTHON_SKLEARN,
     KERAS,
+    MULTICLASS,
     PYTHON,
     PYTORCH,
     R_FIT,
@@ -21,6 +22,7 @@ from .constants import (
     SIMPLE,
     SKLEARN,
     SKLEARN_BINARY,
+    SKLEARN_MULTICLASS,
     SKLEARN_REGRESSION,
     SKLEARN_ANOMALY,
     TESTS_ROOT_PATH,
@@ -122,10 +124,30 @@ class TestFit:
         )
 
     @pytest.mark.parametrize(
-        "framework", [RDS, SKLEARN_BINARY, SKLEARN_REGRESSION, XGB, KERAS, PYTORCH]
+        "framework, problem, docker",
+        [
+            (RDS, BINARY_TEXT, None),
+            (RDS, REGRESSION, None),
+            (RDS, ANOMALY, None),
+            (RDS, MULTICLASS, None),
+            (SKLEARN_BINARY, BINARY_TEXT, DOCKER_PYTHON_SKLEARN),
+            (SKLEARN_REGRESSION, REGRESSION, DOCKER_PYTHON_SKLEARN),
+            (SKLEARN_ANOMALY, ANOMALY, None),
+            (SKLEARN_MULTICLASS, MULTICLASS, None),
+            (XGB, BINARY_TEXT, None),
+            (XGB, REGRESSION, None),
+            (XGB, ANOMALY, None),
+            (XGB, MULTICLASS, None),
+            (KERAS, BINARY_TEXT, None),
+            (KERAS, REGRESSION, None),
+            (KERAS, ANOMALY, None),
+            (KERAS, MULTICLASS, None),
+            (PYTORCH, BINARY_TEXT, None),
+            (PYTORCH, REGRESSION, None),
+            (PYTORCH, ANOMALY, None),
+            (PYTORCH, MULTICLASS, None),
+        ],
     )
-    @pytest.mark.parametrize("problem", [BINARY_TEXT, REGRESSION, ANOMALY])
-    @pytest.mark.parametrize("docker", [DOCKER_PYTHON_SKLEARN, None])
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
     def test_fit(
         self,
@@ -136,16 +158,6 @@ class TestFit:
         weights,
         tmp_path,
     ):
-        # exceptions
-        if docker and framework not in [SKLEARN_BINARY, SKLEARN_REGRESSION]:
-            return
-        if (framework, problem) in [
-            (SKLEARN_BINARY, REGRESSION),
-            (SKLEARN_BINARY, ANOMALY),
-            (SKLEARN_REGRESSION, BINARY_TEXT),
-        ]:
-            return
-
         if framework == RDS:
             language = R_FIT
         else:
@@ -181,7 +193,7 @@ class TestFit:
         else:
             cmd += " --target {}".format(resources.targets(problem))
 
-        if problem == BINARY:
+        if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(cmd, resources.class_labels(framework, problem))
         if docker:
             cmd += " --docker {} ".format(docker)
@@ -221,31 +233,38 @@ class TestFit:
             with open(os.path.join(input_dir, "weights.csv"), "w+") as fp:
                 weights_data.to_csv(fp, header=False)
 
-    @pytest.mark.parametrize("framework", [SKLEARN_BINARY, XGB, KERAS, SKLEARN_ANOMALY])
-    @pytest.mark.parametrize("problem", [BINARY, BINARY_TEXT, ANOMALY])
-    @pytest.mark.parametrize("language", [PYTHON])
+    @pytest.mark.parametrize(
+        "framework, problem",
+        [
+            (SKLEARN_BINARY, BINARY_TEXT),
+            (SKLEARN_BINARY, BINARY),
+            (SKLEARN_ANOMALY, ANOMALY),
+            (SKLEARN_MULTICLASS, MULTICLASS),
+            (XGB, BINARY_TEXT),
+            (XGB, BINARY),
+            (XGB, ANOMALY),
+            (XGB, MULTICLASS),
+            (KERAS, BINARY_TEXT),
+            (KERAS, BINARY),
+            (KERAS, ANOMALY),
+            (KERAS, MULTICLASS),
+        ],
+    )
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, None])
     def test_fit_sh(
         self,
         resources,
         framework,
         problem,
-        language,
         weights,
         tmp_path,
     ):
-
-        if (framework == SKLEARN_ANOMALY and problem != ANOMALY) or (
-            problem == ANOMALY and framework != SKLEARN_ANOMALY
-        ):
-            return
-
         custom_model_dir = _create_custom_model_dir(
             resources,
             tmp_path,
             framework,
             problem,
-            language,
+            PYTHON,
             is_training=True,
         )
 
@@ -254,8 +273,8 @@ class TestFit:
             TESTS_ROOT_PATH,
             "..",
             "public_dropin_environments/{}_{}/fit.sh".format(
-                language,
-                framework if framework not in [SKLEARN_ANOMALY, SKLEARN_BINARY] else SKLEARN,
+                PYTHON,
+                framework if framework not in [SKLEARN_ANOMALY, SKLEARN_BINARY, SKLEARN_MULTICLASS] else SKLEARN,
             ),
         )
 

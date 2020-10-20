@@ -8,15 +8,16 @@
               "type": "python_fit",
               "parents": [],
               "arguments": {
-                "targetColumn": {{ target_column }},
-                "targetFilename": {{ target_filename }},
+                "targetColumn": {{ target_column | jsonify }},
+                "targetFilename": {{ target_filename | jsonify }},
                 "outputDir": "{{ output_dir }}",
                 "numRows": "{{ num_rows }}",
                 "inputFilename": "{{ input_filename }}",
-                "weightsFilename": {{ weights_filename }},
-                "weights": {{ weights }},
-                "positiveClassLabel": {{ positiveClassLabel }},
-                "negativeClassLabel": {{ negativeClassLabel }},
+                "weightsFilename": {{ weights_filename | jsonify }},
+                "weights": {{ weights | jsonify }},
+                "positiveClassLabel": {{ positiveClassLabel | jsonify }},
+                "negativeClassLabel": {{ negativeClassLabel | jsonify }},
+                "classLabels": {{ classLabels | jsonify }},
                 "__custom_model_path__": "{{ customModelPath }}"
               }
           }
