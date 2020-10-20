@@ -77,7 +77,7 @@ class JavaPredictor(BaseLanguagePredictor):
                 continue
             elif isinstance(params[key], list):
                 pylist = params[key]
-                jarray = self._gateway.new_array(self._gateway.jvm.java.String, len(pylist))
+                jarray = self._gateway.new_array(self._gateway.jvm.java.lang.String, len(pylist))
                 for i, val in enumerate(pylist):
                     jarray[i] = str(val)
                 m[key] = jarray
