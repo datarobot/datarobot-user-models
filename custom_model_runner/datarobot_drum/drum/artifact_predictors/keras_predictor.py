@@ -45,14 +45,24 @@ class KerasPredictor(ArtifactPredictor):
             return False
 
         try:
-            # TODO: remove this and keras==2.3.1 from requirements once Sukumar check joblib pickling for keras vizai model template
-            import keras
+            # TODO: remove standalone keras handling and
+            #  keras==2.3.1 from requirements.
+            #  once Sukumar check joblib pickling for keras vizai model template
+            standalone_keras_model = ()
+            # handle the case where standalone Keras is not installed
+            try:
+                import keras
+
+                standalone_keras_model += (keras.Model,)
+            except Exception as e:
+                pass
+
             from sklearn.pipeline import Pipeline
             from tensorflow import keras as keras_tf
 
             if isinstance(model, Pipeline):
                 # check the final estimator in the pipeline is Keras
-                if isinstance(model[-1], (keras.Model, keras_tf.Model)):
+                if isinstance(model[-1], standalone_keras_model + (keras_tf.Model,)):
                     return True
             elif isinstance(model, (keras_tf.Model)):
                 return True
