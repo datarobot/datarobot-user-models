@@ -1,6 +1,6 @@
 # R drop-in environment base image
-Repository name: **datarobot/r-dropin-env-base**
-Latest date: 08-29-2020
+Repository name: **datarobot/r-dropin-env-base**  
+Latest date: 08-29-2020  
 Dockerfile: https://github.com/datarobot/datarobot-user-models/blob/master/docker/r_dropin_env_base/Dockerfile
 
 ## Description
