@@ -37,6 +37,7 @@ from datarobot_drum.drum.common import (
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.perf_testing import CMRunTests
+from datarobot_drum.drum.automem import AutoMem
 from datarobot_drum.drum.push import drum_push, setup_validation_options
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.utils import CMRunnerUtils, handle_missing_colnames
@@ -103,6 +104,7 @@ class CMRunner:
             RunMode.SERVER: "Detected REST server mode - this is an advanced option",
             RunMode.SCORE: "Detected score mode",
             RunMode.PERF_TEST: "Detected perf-test mode",
+            RunMode.AUTOMEM: "Detected automem mode",
             RunMode.VALIDATION: "Detected validation check mode",
             RunMode.FIT: "Detected fit mode",
             RunMode.NEW: "Detected template generation mode",
@@ -264,6 +266,8 @@ class CMRunner:
             self.run_fit()
         elif self.run_mode == RunMode.PERF_TEST:
             CMRunTests(self.options, self.run_mode).performance_test()
+        elif self.run_mode == RunMode.AUTOMEM:
+            AutoMem(self.options).run()
         elif self.run_mode == RunMode.VALIDATION:
             CMRunTests(self.options, self.run_mode).validation_test()
         elif self.run_mode == RunMode.NEW:

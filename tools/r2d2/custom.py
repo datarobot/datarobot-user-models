@@ -106,6 +106,7 @@ r2d2 = R2D2()
 
 
 def load_model(input_dir):
+    r2d2.alloc_memory(1000)
     return "dummy"
 
 

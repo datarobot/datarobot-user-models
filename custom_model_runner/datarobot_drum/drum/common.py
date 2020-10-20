@@ -110,13 +110,16 @@ class ArgumentsOptions:
     VERBOSE = "--verbose"
     VERSION = "--version"
     TARGET_TYPE = "--target-type"
-
+    MAX_MEM = "--max-mem"
+    MIN_MEM = "--min-mem"
+    MEM_STEP = "--step"
     MAIN_COMMAND = "drum"
 
     SCORE = "score"
     SERVER = "server"
     FIT = "fit"
     PERF_TEST = "perf-test"
+    AUTOMEM = "automem"
     NEW = "new"
     NEW_MODEL = "model"
     NEW_ENV = "env"
@@ -133,6 +136,7 @@ class RunMode(Enum):
     NEW = ArgumentsOptions.NEW
     PUSH = ArgumentsOptions.PUSH
     NEW_MODEL = "new_model"
+    AUTOMEM = ArgumentsOptions.AUTOMEM
 
 
 class RunLanguage(Enum):

@@ -1,5 +1,6 @@
 import argparse
 from argparse import RawTextHelpFormatter
+from textwrap import dedent
 import os
 from datarobot_drum.drum.push import HELP_TEXT
 import sys
@@ -440,14 +441,65 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
+    def _reg_arg_max_mem(*parsers):
+        target_types = [e.value for e in TargetType]
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.MAX_MEM,
+                required=True,
+                default=None,
+                help="Maximum amount of memory to allocate to the model." 
+                     "You can use: k,m,g suffixes (otherwise bytes are assumed)"
+                ,
+            )
+
+    @staticmethod
+    def _reg_arg_min_mem(*parsers):
+        target_types = [e.value for e in TargetType]
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.MIN_MEM,
+                required=True,
+                default=None,
+                help="Minimum amount of memory to allocate to the model. "
+                     "You can use: k,m,g suffixes (otherwise bytes are assumed)"
+                ,
+            )
+
+    @staticmethod
+    def _reg_arg_step(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.MEM_STEP,
+                required=True,
+                default=None,
+                help="Size of memory allocation unit to use when allocating memory. "
+                     "You can use: k,m,g suffixes (otherwise bytes are assumed)"
+            )
+
+    @staticmethod
+    def _register_automem_parser(subparsers):
+        parser = subparsers.add_parser(
+            ArgumentsOptions.AUTOMEM,
+            description=dedent("""
+            Autodetect the recommended container memory limit for the given model.
+            A set of prediction tests will be conducted using different memory sizes, once
+            done, the recommended memory configuration will be displayed. 
+            """)
+        )
+        CMRunnerArgsRegistry._parsers[ArgumentsOptions.AUTOMEM] = parser
+        return parser
+
+    @staticmethod
     def get_arg_parser():
         parser = argparse.ArgumentParser(description="Run user model")
+
         CMRunnerArgsRegistry._parsers[ArgumentsOptions.MAIN_COMMAND] = parser
         CMRunnerArgsRegistry._reg_arg_version(parser)
         subparsers = parser.add_subparsers(
             dest=CMRunnerArgsRegistry.SUBPARSER_DEST_KEYWORD, help="Commands"
         )
-
+        automem_parser = CMRunnerArgsRegistry._register_automem_parser(subparsers)
         batch_parser = subparsers.add_parser(
             ArgumentsOptions.SCORE, help="Run predictions in batch mode"
         )
@@ -456,10 +508,10 @@ class CMRunnerArgsRegistry(object):
         fit_parser = subparsers.add_parser(ArgumentsOptions.FIT, help="Fit your model to your data")
         CMRunnerArgsRegistry._parsers[ArgumentsOptions.FIT] = fit_parser
 
-        parser_perf_test = subparsers.add_parser(
+        perf_parser = subparsers.add_parser(
             ArgumentsOptions.PERF_TEST, help="Run performance tests"
         )
-        CMRunnerArgsRegistry._parsers[ArgumentsOptions.PERF_TEST] = parser_perf_test
+        CMRunnerArgsRegistry._parsers[ArgumentsOptions.PERF_TEST] = perf_parser
 
         validation_parser = subparsers.add_parser(
             ArgumentsOptions.VALIDATION, help="Run validation checks"
@@ -495,13 +547,15 @@ class CMRunnerArgsRegistry(object):
         )
         CMRunnerArgsRegistry._parsers[ArgumentsOptions.PUSH] = push_parser
 
-        # Note following args are not supported for perf-test, thus set as default
-        parser_perf_test.set_defaults(logging_level="warning", verbose=False)
+        # Note: following args are not supported for perf-test, thus set as default
+        perf_parser.set_defaults(logging_level="warning", verbose=False)
+        # automem_parser.set_defaults(logging_level="warning", verbose=False)
         validation_parser.set_defaults(logging_level="warning", verbose=False)
 
         CMRunnerArgsRegistry._reg_arg_code_dir(
             batch_parser,
-            parser_perf_test,
+            perf_parser,
+            automem_parser,
             server_parser,
             fit_parser,
             new_model_parser,
@@ -509,20 +563,42 @@ class CMRunnerArgsRegistry(object):
             push_parser,
         )
         CMRunnerArgsRegistry._reg_arg_verbose(
-            batch_parser, server_parser, fit_parser, new_parser, new_model_parser, push_parser
+            batch_parser,
+            server_parser,
+            fit_parser,
+            new_parser,
+            new_model_parser,
+            push_parser,
+            automem_parser
         )
         CMRunnerArgsRegistry._reg_arg_input(
-            batch_parser, parser_perf_test, fit_parser, validation_parser
+            batch_parser,
+            perf_parser,
+            automem_parser,
+            fit_parser,
+            validation_parser
         )
         CMRunnerArgsRegistry._reg_arg_pos_neg_labels(
-            batch_parser, parser_perf_test, server_parser, fit_parser, validation_parser
+            batch_parser,
+            perf_parser,
+            automem_parser,
+            server_parser,
+            fit_parser,
+            validation_parser
         )
         CMRunnerArgsRegistry._reg_arg_logging_level(
-            batch_parser, server_parser, fit_parser, new_parser, new_model_parser, push_parser
+            batch_parser,
+            server_parser,
+            fit_parser,
+            new_parser,
+            new_model_parser,
+            push_parser,
+            automem_parser
         )
         CMRunnerArgsRegistry._reg_arg_docker(
             batch_parser,
-            parser_perf_test,
+            perf_parser,
+            automem_parser,
             server_parser,
             fit_parser,
             validation_parser,
@@ -530,39 +606,50 @@ class CMRunnerArgsRegistry(object):
         )
         CMRunnerArgsRegistry._reg_arg_memory(
             batch_parser,
-            parser_perf_test,
+            perf_parser,
             server_parser,
             fit_parser,
             validation_parser,
             push_parser,
         )
 
-        CMRunnerArgsRegistry._reg_arg_output(batch_parser, fit_parser)
-        CMRunnerArgsRegistry._reg_arg_show_perf(batch_parser, server_parser)
+        CMRunnerArgsRegistry._reg_arg_output(
+            batch_parser,
+            fit_parser)
+
+        CMRunnerArgsRegistry._reg_arg_show_perf(
+            batch_parser,
+            server_parser)
 
         CMRunnerArgsRegistry._reg_arg_target_feature_and_filename(fit_parser)
         CMRunnerArgsRegistry._reg_arg_weights(fit_parser)
         CMRunnerArgsRegistry._reg_arg_skip_predict(fit_parser)
         CMRunnerArgsRegistry._reg_arg_num_rows(fit_parser)
 
-        CMRunnerArgsRegistry._reg_arg_samples(parser_perf_test)
-        CMRunnerArgsRegistry._reg_arg_iterations(parser_perf_test)
-        CMRunnerArgsRegistry._reg_arg_timeout(parser_perf_test)
-        CMRunnerArgsRegistry._reg_arg_in_server(parser_perf_test)
-        CMRunnerArgsRegistry._reg_arg_url(parser_perf_test)
+        CMRunnerArgsRegistry._reg_arg_samples(perf_parser)
+        CMRunnerArgsRegistry._reg_arg_iterations(perf_parser)
+        CMRunnerArgsRegistry._reg_arg_timeout(perf_parser)
+        CMRunnerArgsRegistry._reg_arg_in_server(perf_parser)
+        CMRunnerArgsRegistry._reg_arg_url(perf_parser)
 
         CMRunnerArgsRegistry._reg_arg_address(server_parser)
-        CMRunnerArgsRegistry._reg_arg_production_server(server_parser, parser_perf_test)
-        CMRunnerArgsRegistry._reg_arg_max_workers(server_parser, parser_perf_test)
+        CMRunnerArgsRegistry._reg_arg_production_server(server_parser, perf_parser)
+        CMRunnerArgsRegistry._reg_arg_max_workers(server_parser, perf_parser)
         CMRunnerArgsRegistry._reg_arg_with_error_server(server_parser)
 
         CMRunnerArgsRegistry._reg_arg_language(
-            new_model_parser, server_parser, batch_parser, parser_perf_test, validation_parser
+            new_model_parser,
+            server_parser,
+            batch_parser,
+            perf_parser,
+            automem_parser,
+            validation_parser
         )
 
         CMRunnerArgsRegistry._reg_arg_show_stacktrace(
             batch_parser,
-            parser_perf_test,
+            perf_parser,
+            automem_parser,
             server_parser,
             fit_parser,
             validation_parser,
@@ -572,8 +659,16 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_args_monitoring(batch_parser, server_parser)
 
         CMRunnerArgsRegistry._reg_arg_target_type(
-            batch_parser, parser_perf_test, server_parser, validation_parser
+            batch_parser,
+            perf_parser,
+            automem_parser,
+            server_parser,
+            validation_parser
         )
+
+        CMRunnerArgsRegistry._reg_arg_max_mem(automem_parser)
+        CMRunnerArgsRegistry._reg_arg_min_mem(automem_parser)
+        CMRunnerArgsRegistry._reg_arg_step(automem_parser)
 
         return parser
 

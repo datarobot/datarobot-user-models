@@ -144,6 +144,8 @@ class CMRunTests:
                 raise DrumCommonException(error_message)
 
     def _build_cmrun_cmd(self):
+
+        # noinspection PyListCreation
         cmd_list = [
             "{}".format(ArgumentsOptions.MAIN_COMMAND),
             "server",
@@ -171,7 +173,9 @@ class CMRunTests:
             cmd_list.append(self.options.negative_class_label)
 
         if self.options.docker:
-            cmd_list.extend(["--docker", self.options.docker])
+            cmd_list.extend([ArgumentsOptions.DOCKER, self.options.docker])
+        if self.options.memory:
+            cmd_list.extend([ArgumentsOptions.MEMORY, self.options.memory])
 
         return cmd_list
 
