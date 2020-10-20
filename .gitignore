@@ -120,6 +120,7 @@ custom-model-templates.Rproj
 
 # intellij
 .idea
+*.iml
 
 # java/jar
 custom_model_runner/**/*.jar
