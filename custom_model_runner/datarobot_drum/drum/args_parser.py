@@ -231,7 +231,7 @@ class CMRunnerArgsRegistry(object):
             label_options = [ArgumentsOptions.CLASS_LABELS_FILE, ArgumentsOptions.CLASS_LABELS]
             if all(opt in sys.argv for opt in label_options):
                 error_message = (
-                    "\nError - for multiclass classification, either the class labels or"
+                    "\nError - for multiclass classification, either the class labels or "
                     "a class labels file should be provided, but not both.\n"
                     "See --help option for more information"
                 )
