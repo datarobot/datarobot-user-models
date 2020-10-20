@@ -39,8 +39,8 @@ This environment makes the following assumption about your serialized model:
 additional pre-processing
 - No additional libraries need to be loaded in order to properly use your model.
 - Regression models return a single floating point per row of prediction data
-- Binary classification models return two floating point values that sum to 1.0 per row of prediction data
-  - The first value is the positive class probability, the second is the negative class probability
+- Binary classification models return two floating point values that sum to 1.0 per row of prediction data.
+  - The first value is the negative class probability, the second is the positive class probability
 - There is a single rds file present
   
 If these assumptions are incorrect for your model, you should make a copy of [custom.R](https://github.com/datarobot/datarobot-user-models/blob/master/model_templates/inference/r_lang/custom.R), modify it as needed, and include it in your custom model archive.

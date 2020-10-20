@@ -20,6 +20,7 @@ class TestDropInEnvironments(object):
         base_environment_id,
         positive_class_label=None,
         negative_class_label=None,
+        class_labels=None,
         custom_predict_path=None,
         other_file_names=None,
         artifact_only=False,
@@ -36,6 +37,7 @@ class TestDropInEnvironments(object):
             The base environment for the model version
         positive_class_label: str or None
         negative_class_label: str or None
+        class_labels: List[str] or None
         custom_predict_path: str or None
             path to the custom.py or custom.R file to include
         other_file_names: List[str] or None
@@ -62,6 +64,8 @@ class TestDropInEnvironments(object):
 
         if positive_class_label and negative_class_label:
             target_type = dr.TARGET_TYPE.BINARY
+        elif class_labels:
+            target_type = dr.TARGET_TYPE.MULTICLASS
         else:
             target_type = dr.TARGET_TYPE.REGRESSION
 
@@ -71,6 +75,7 @@ class TestDropInEnvironments(object):
             target_name=target_name,
             positive_class_label=positive_class_label,
             negative_class_label=negative_class_label,
+            class_labels=class_labels,
         )
 
         items = []
@@ -115,6 +120,17 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
+    def sklearn_multiclass_custom_model(self, sklearn_drop_in_env):
+        env_id, _ = sklearn_drop_in_env
+        return self.make_custom_model(
+            "sklearn_multi.pkl",
+            env_id,
+            class_labels=["GALAXY", "QSO", "STAR"],
+            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            target_name="class",
+        )
+
+    @pytest.fixture(scope="session")
     def keras_binary_custom_model(self, keras_drop_in_env):
         env_id, _ = keras_drop_in_env
         return self.make_custom_model(
@@ -136,7 +152,12 @@ class TestDropInEnvironments(object):
     def torch_binary_custom_model(self, pytorch_drop_in_env):
         env_id, _ = pytorch_drop_in_env
         return self.make_custom_model(
-            "torch_bin.pth", env_id, "yes", "no", CUSTOM_PREDICT_PY_PATH, ["PyTorch.py"]
+            "torch_bin.pth",
+            env_id,
+            "yes",
+            "no",
+            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            other_file_names=["PyTorch.py"],
         )
 
     @pytest.fixture(scope="session")
@@ -184,7 +205,7 @@ class TestDropInEnvironments(object):
             env_id,
             "Iris-setosa",
             "Iris-versicolor",
-            CUSTOM_PREDICT_PY_PATH,
+            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
         )
 
     @pytest.fixture(scope="session")
@@ -214,7 +235,7 @@ class TestDropInEnvironments(object):
             env_id,
             "Iris-setosa",
             "Iris-versicolor",
-            CUSTOM_PREDICT_R_PATH,
+            custom_predict_path=CUSTOM_PREDICT_R_PATH,
             target_name="Species",
         )
 
@@ -236,7 +257,7 @@ class TestDropInEnvironments(object):
             env_id,
             "Iris-setosa",
             "Iris-versicolor",
-            CUSTOM_LOAD_PREDICT_R_PATH,
+            custom_predict_path=CUSTOM_LOAD_PREDICT_R_PATH,
         )
 
     @pytest.fixture(scope="session")
@@ -247,7 +268,7 @@ class TestDropInEnvironments(object):
             env_id,
             "Iris-setosa",
             "Iris-versicolor",
-            CUSTOM_PREDICT_R_PATH,
+            custom_predict_path=CUSTOM_PREDICT_R_PATH,
         )
 
     @pytest.mark.parametrize(
@@ -271,6 +292,7 @@ class TestDropInEnvironments(object):
                 "regression_testing_data",
             ),
             ("r_drop_in_env", "r_multi_artifact_binary_custom_model", "binary_testing_data"),
+            ("sklearn_drop_in_env", "sklearn_multiclass_custom_model", "multiclass_testing_data"),
         ],
     )
     def test_drop_in_environments(self, request, env, model, test_data_id):
@@ -281,8 +303,6 @@ class TestDropInEnvironments(object):
         test = dr.CustomModelTest.create(
             custom_model_id=model_id,
             custom_model_version_id=model_version_id,
-            environment_id=env_id,
-            environment_version_id=env_version_id,
             dataset_id=test_data_id,
         )
 

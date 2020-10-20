@@ -74,7 +74,11 @@ def _exec_shell_cmd(cmd, err_msg, assert_if_fail=True, process_obj_holder=None, 
 
 
 def _cmd_add_class_labels(cmd, labels):
-    pos = labels[1] if labels else "yes"
-    neg = labels[0] if labels else "no"
-    cmd = cmd + " --positive-class-label {} --negative-class-label {}".format(pos, neg)
+    if not labels or len(labels) == 2:
+        pos = labels[1] if labels else "yes"
+        neg = labels[0] if labels else "no"
+        cmd = cmd + " --positive-class-label {} --negative-class-label {}".format(pos, neg)
+    elif labels and len(labels) > 2:
+        wrapped_labels = ['"{}"'.format(label) for label in labels]
+        cmd += " --class-labels {}".format(" ".join(wrapped_labels))
     return cmd

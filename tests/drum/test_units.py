@@ -62,8 +62,7 @@ class TestValidatePredictions:
         df = pd.DataFrame({positive_label: [0.1, 0.2, 0.3], negative_label: [0.9, 0.8, 0.7]})
         adapter._validate_predictions(
             to_validate=df,
-            positive_class_label=positive_label,
-            negative_class_label=negative_label,
+            class_labels=[positive_label, negative_label],
         )
 
     def test_add_to_one_sad(self):
@@ -74,8 +73,7 @@ class TestValidatePredictions:
         with pytest.raises(ValueError):
             adapter._validate_predictions(
                 to_validate=df,
-                positive_class_label=positive_label,
-                negative_class_label=negative_label,
+                class_labels=[positive_label, negative_label],
             )
 
 
@@ -159,8 +157,7 @@ def mock_get_model(model_type="training"):
             "id": "1",
             "name": "1",
             "description": "1",
-            "supports_binary_classification": False,
-            "supports_regression": True,
+            "target_type": "Regression",
             "deployments_count": "1",
             "created_by": "1",
             "updated": "1",

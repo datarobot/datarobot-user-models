@@ -14,6 +14,10 @@ if [ ! -z "${NEGATIVE_CLASS_LABEL}" ]; then
     CMD="${CMD} --negative-class-label ${NEGATIVE_CLASS_LABEL}"
     TARGET_TYPE="binary"
 fi
+if [ ! -z "${CLASS_LABELS_FILE}" ]; then
+    CMD="${CMD} --class-labels-file ${CLASS_LABELS_FILE}"
+    TARGET_TYPE="multiclass"
+fi
 
 CMD="${CMD} --target-type ${TARGET_TYPE}"
 

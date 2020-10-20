@@ -37,6 +37,7 @@ REGRESSION_INFERENCE = "regression_inference"
 BINARY = "binary"
 ANOMALY = "anomaly_detection"
 UNSTRUCTURED = "unstructured"
+MULTICLASS = "multiclass"
 
 # Language keywords
 PYTHON = "python3"

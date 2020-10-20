@@ -18,5 +18,7 @@ def transform(data, model):
         data.pop("MEDV")
     if "Species" in data:
         data.pop("Species")
+    if "class" in data:
+        data.pop("class")
     data = data.fillna(0)
     return data

@@ -74,14 +74,17 @@ class PyTorchPredictor(ArtifactPredictor):
         )
         with torch.no_grad():
             predictions = model(data).cpu().data.numpy()
-        if self.target_type == TargetType.BINARY:
+        if self.target_type.value in TargetType.CLASSIFICATION.value:
             if predictions.shape[1] == 1:
+                if self.target_type == TargetType.MULTICLASS:
+                    raise DrumCommonException(
+                        "Target type '{}' predictions must return the "
+                        "probability distribution for all class labels".format(self.target_type)
+                    )
                 predictions = pd.DataFrame(predictions, columns=[self.positive_class_label])
                 predictions[self.negative_class_label] = 1 - predictions[self.positive_class_label]
             else:
-                predictions = pd.DataFrame(
-                    predictions, columns=[self.negative_class_label, self.positive_class_label]
-                )
+                predictions = pd.DataFrame(predictions, columns=self.class_labels)
         elif self.target_type in [TargetType.REGRESSION, TargetType.ANOMALY]:
             predictions = pd.DataFrame(predictions, columns=[REGRESSION_PRED_COLUMN])
         else:

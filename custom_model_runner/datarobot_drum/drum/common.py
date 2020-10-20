@@ -11,6 +11,7 @@ REGRESSION_PRED_COLUMN = "Predictions"
 CUSTOM_FILE_NAME = "custom"
 POSITIVE_CLASS_LABEL_ARG_KEYWORD = "positive_class_label"
 NEGATIVE_CLASS_LABEL_ARG_KEYWORD = "negative_class_label"
+CLASS_LABELS_ARG_KEYWORD = "class_labels"
 TARGET_TYPE_ARG_KEYWORD = "target_type"
 
 URL_PREFIX_ENV_VAR_NAME = "URL_PREFIX"
@@ -160,6 +161,7 @@ class TargetType(Enum):
     ANOMALY = "anomaly"
     UNSTRUCTURED = "unstructured"
     MULTICLASS = "multiclass"
+    CLASSIFICATION = [BINARY, MULTICLASS]
 
 
 class TemplateType:
