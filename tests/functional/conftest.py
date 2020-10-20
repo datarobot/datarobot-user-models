@@ -155,6 +155,6 @@ def regression_testing_data():
 @pytest.fixture(scope="session")
 def multiclass_testing_data():
     dataset = dr.Dataset.create_from_file(
-        file_path=os.path.join(BASE_DATASET_DIR, "Skyserver_SQL2_27_2018 6_51_39 PM.csv")
+        file_path=os.path.join(BASE_DATASET_DIR, "skyserver_sql2_27_2018_6_51_39_pm.csv")
     )
     return dataset.id

@@ -56,7 +56,7 @@ _datasets = {
     (None, BINARY): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
     (None, ANOMALY): os.path.join(TESTS_DATA_PATH, "boston_housing.csv"),
     (None, UNSTRUCTURED): os.path.join(TESTS_DATA_PATH, "unstructured_data.txt"),
-    (None, MULTICLASS): os.path.join(TESTS_DATA_PATH, "Skyserver_SQL2_27_2018 6_51_39 PM.csv"),
+    (None, MULTICLASS): os.path.join(TESTS_DATA_PATH, "skyserver_sql2_27_2018_6_51_39_pm.csv"),
 }
 
 _training_models_paths = {

@@ -101,7 +101,7 @@ if __name__ == "__main__":
     TEST_DATA_ROOT = "~/workspace/datarobot-user-models/tests/testdata"
     BINARY_DATA = os.path.join(TEST_DATA_ROOT, "iris_binary_training.csv")
     REGRESSION_DATA = os.path.join(TEST_DATA_ROOT, "boston_housing.csv")
-    MULTICLASS_DATA = os.path.join(TEST_DATA_ROOT, "Skyserver_SQL2_27_2018 6_51_39 PM.csv")
+    MULTICLASS_DATA = os.path.join(TEST_DATA_ROOT, "skyserver_sql2_27_2018_6_51_39_pm.csv")
 
     bin_X = pd.read_csv(BINARY_DATA)
     bin_y = bin_X.pop("Species")

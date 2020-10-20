@@ -8,7 +8,7 @@ library(glmnet)
 TEST_DATA_ROOT <- "~/workspace/datarobot-user-models/tests/testdata"
 PATH_TO_BIN_DATAFRAME <- file.path(TEST_DATA_ROOT, "iris_binary_training.csv")
 PATH_TO_REG_DATAFRAME <- file.path(TEST_DATA_ROOT, "boston_housing.csv")
-PATH_TO_MULTI_DATAFRAME <- file.path(TEST_DATA_ROOT, "Skyserver_SQL2_27_2018 6_51_39 PM.csv")
+PATH_TO_MULTI_DATAFRAME <- file.path(TEST_DATA_ROOT, "skyserver_sql2_27_2018_6_51_39_pm.csv")
 
 # Reading in dataset
 bin_df <- read.csv(PATH_TO_BIN_DATAFRAME)
