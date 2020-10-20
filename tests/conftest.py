@@ -12,6 +12,7 @@ from tests.drum.constants import (
     KERAS,
     MOJO,
     MULTI_ARTIFACT,
+    MULTICLASS,
     NO_CUSTOM,
     POJO,
     PYPMML,
@@ -55,6 +56,7 @@ _datasets = {
     (None, BINARY): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
     (None, ANOMALY): os.path.join(TESTS_DATA_PATH, "boston_housing.csv"),
     (None, UNSTRUCTURED): os.path.join(TESTS_DATA_PATH, "unstructured_data.txt"),
+    (None, MULTICLASS): os.path.join(TESTS_DATA_PATH, "skyserver_sql2_27_2018_6_51_39_pm.csv"),
 }
 
 _training_models_paths = {
@@ -70,7 +72,7 @@ _training_models_paths = {
     (PYTHON, SKLEARN_ANOMALY): os.path.join(TRAINING_TEMPLATES_PATH, "python3_anomaly_detection"),
 }
 
-_targets = {BINARY: "Species", REGRESSION: "MEDV", BINARY_TEXT: "Churn"}
+_targets = {BINARY: "Species", REGRESSION: "MEDV", BINARY_TEXT: "Churn", MULTICLASS: "class"}
 
 _target_types = {
     BINARY: "binary",
@@ -79,6 +81,7 @@ _target_types = {
     REGRESSION_INFERENCE: "regression",
     ANOMALY: "anomaly",
     UNSTRUCTURED: "unstructured",
+    MULTICLASS: "multiclass",
 }
 
 _class_labels = {
@@ -92,6 +95,13 @@ _class_labels = {
     (CODEGEN, BINARY): ["yes", "no"],
     (MOJO, BINARY): ["yes", "no"],
     (POJO, BINARY): ["yes", "no"],
+    (SKLEARN, MULTICLASS): ["GALAXY", "QSO", "STAR"],
+    (XGB, MULTICLASS): ["GALAXY", "QSO", "STAR"],
+    (KERAS, MULTICLASS): ["GALAXY", "QSO", "STAR"],
+    (RDS, MULTICLASS): ["GALAXY", "QSO", "STAR"],
+    (PYPMML, MULTICLASS): ["GALAXY", "QSO", "STAR"],
+    (PYTORCH, MULTICLASS): ["GALAXY", "QSO", "STAR"],
+    (CODEGEN, MULTICLASS): ["GALAXY", "QSO", "STAR"],
 }
 
 _artifacts = {
@@ -140,6 +150,16 @@ _artifacts = {
     (MOJO, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_bin.zip"),
     (PYPMML, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "iris_reg.pmml"),
     (PYPMML, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "iris_bin.pmml"),
+    (PYPMML, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "iris_multi.pmml"),
+    (SKLEARN, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_multi.pkl"),
+    (XGB, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "xgb_multi.pkl"),
+    (KERAS, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "keras_multi.h5"),
+    (RDS, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "r_multi.rds"),
+    (PYTORCH, MULTICLASS): [
+        os.path.join(TESTS_ARTIFACTS_PATH, "torch_multi.pth"),
+        os.path.join(TESTS_ARTIFACTS_PATH, "PyTorch.py"),
+    ],
+    (CODEGEN, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "java_multi.jar"),
 }
 
 _custom_filepaths = {

@@ -10,8 +10,9 @@
               "arguments": {
                 "input_filename": "{{ input_filename }}",
                 "output_filename": {{ output_filename }},
-                "positiveClassLabel": {{ positiveClassLabel }},
-                "negativeClassLabel": {{ negativeClassLabel }},
+                "positiveClassLabel": {{ positiveClassLabel | jsonify }},
+                "negativeClassLabel": {{ negativeClassLabel | jsonify }},
+                "classLabels": {{ classLabels | jsonify }},
                 "__custom_model_path__": "{{ customModelPath }}",
                 "run_language": "{{ run_language }}",
                 "monitor": "{{ monitor }}",

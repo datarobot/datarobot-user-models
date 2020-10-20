@@ -228,13 +228,13 @@ class CMRunnerArgsRegistry(object):
                     setattr(namespace, "class_labels", labels)
 
         def are_labels_double_specified(arg):
-            error_message = (
-                "\nError - for multiclass classification, either the class labels or"
-                "a class labels file should be provided, but not both.\n"
-                "See --help option for more information"
-            )
             label_options = [ArgumentsOptions.CLASS_LABELS_FILE, ArgumentsOptions.CLASS_LABELS]
             if all(opt in sys.argv for opt in label_options):
+                error_message = (
+                    "\nError - for multiclass classification, either the class labels or "
+                    "a class labels file should be provided, but not both.\n"
+                    "See --help option for more information"
+                )
                 raise argparse.ArgumentTypeError(error_message)
             return arg
 

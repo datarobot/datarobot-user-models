@@ -91,13 +91,20 @@ load_serialized_model <- function(model_dir) {
     predictions
 }
 
-.predict_binary <- function(data, model, ...) {
+.predict_classification <- function(data, model, ...) {
     kwargs <- list(...)
-    positive_class_label<-kwargs$positive_class_label
-    negative_class_label<-kwargs$negative_class_label
+    positive_class_label <- kwargs$positive_class_label
+    negative_class_label <- kwargs$negative_class_label
+    class_labels <- kwargs$class_labels
+    if (!is.null(positive_class_label) && !is.null(negative_class_label)) {
+        provided_labels <- c(positive_class_label, negative_class_label)
+    } else if (!is.null(class_labels)) {
+        provided_labels <- class_labels
+    } else {
+        stop("Class labels were not supplied to .predict_classification")
+    }
     predictions <- data.frame(stats::predict(model, data, type = "prob"))
     labels <- names(predictions)
-    provided_labels <- c(positive_class_label, negative_class_label)
     provided_labels_sanitized <- make.names(provided_labels)
     labels_to_use <- NULL
     # check labels and provided_labels contain the same elements, order doesn't matter
@@ -110,14 +117,15 @@ load_serialized_model <- function(model_dir) {
     }
     # if labels are not on the same order, switch columns
     if (!identical(labels, labels_to_use)) {
-        predictions <- predictions[, c(2, 1)]
+        predictions <- predictions[, labels_to_use]
     }
     names(predictions) <- provided_labels
     predictions
 }
 
 .predictors<-list()
-.predictors[[TargetType$BINARY]] <- .predict_binary
+.predictors[[TargetType$BINARY]] <- .predict_classification
+.predictors[[TargetType$MULTICLASS]] <- .predict_classification
 .predictors[[TargetType$REGRESSION]] <- .predict_regression
 .predictors[[TargetType$ANOMALY]] <- .predict_regression
 
@@ -163,20 +171,25 @@ model_predict <- function(...) {
 #' @export
 #'
 #' @examples
-outer_predict <- function(input_filename, target_type, model=NULL, positive_class_label=NULL, negative_class_label=NULL){
+outer_predict <- function(input_filename, target_type, model=NULL, positive_class_label=NULL, negative_class_label=NULL, class_labels=NULL){
     .validate_data <- function(to_validate) {
         if (!is.data.frame(to_validate)) {
             stop(sprintf("predictions must be of a data.frame type, received %s", typeof(to_validate)))
         }
     }
 
-    .validate_binary_predictions <- function(to_validate) {
+    .validate_classification_predictions <- function(to_validate) {
         .validate_data(to_validate)
-        if (!identical(sort(names(to_validate)), sort(c(positive_class_label, negative_class_label)))) {
+        if (target_type == TargetType$MULTICLASS) {
+            compare_labels <- class_labels
+        } else {
+            compare_labels <- c(positive_class_label, negative_class_label)
+        }
+        if (!identical(sort(names(to_validate)), sort(compare_labels))) {
             stop(
               sprintf(
                 "Expected predictions to have columns [%s], but encountered [%s]",
-                paste(c(positive_class_label, negative_class_label), collapse=", "),
+                paste(compare_labels, collapse=", "),
                 paste(names(to_validate), collapse=", ")
               )
             )
@@ -211,7 +224,8 @@ outer_predict <- function(input_filename, target_type, model=NULL, positive_clas
     }
 
     kwargs <- list(positive_class_label=positive_class_label,
-                   negative_class_label=negative_class_label)
+                   negative_class_label=negative_class_label,
+                   class_labels=class_labels)
     if (!isFALSE(score_hook)) {
         predictions <- do.call(score_hook, list(data, model, kwargs))
     } else {
@@ -223,8 +237,8 @@ outer_predict <- function(input_filename, target_type, model=NULL, positive_clas
         predictions <- post_process_hook(predictions, model)
     }
 
-    if (target_type == TargetType$BINARY) {
-        .validate_binary_predictions(predictions)
+    if (target_type == TargetType$BINARY || target_type == TargetType$MULTICLASS) {
+        .validate_classification_predictions(predictions)
     } else if (target_type == TargetType$REGRESSION) {
         .validate_regression_predictions(predictions)
     } else {

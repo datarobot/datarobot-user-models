@@ -12,6 +12,7 @@ from .constants import (
     KERAS,
     MOJO,
     MULTI_ARTIFACT,
+    MULTICLASS,
     NO_CUSTOM,
     POJO,
     PYPMML,
@@ -38,17 +39,24 @@ class TestInference:
             (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None),
             (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
             (SKLEARN, BINARY, PYTHON, None),
+            (SKLEARN, MULTICLASS, PYTHON, None),
             (KERAS, REGRESSION, PYTHON, None),
             (KERAS, BINARY, PYTHON, None),
+            (KERAS, MULTICLASS, PYTHON, None),
             (XGB, REGRESSION, PYTHON, None),
             (XGB, BINARY, PYTHON, None),
             (XGB, BINARY, PYTHON_XGBOOST_CLASS_LABELS_VALIDATION, None),
+            (XGB, MULTICLASS, PYTHON, None),
+            (XGB, MULTICLASS, PYTHON_XGBOOST_CLASS_LABELS_VALIDATION, None),
             (PYTORCH, REGRESSION, PYTHON, None),
             (PYTORCH, BINARY, PYTHON, None),
+            (PYTORCH, MULTICLASS, PYTHON, None),
             (RDS, REGRESSION, R, None),
             (RDS, BINARY, R, None),
+            (RDS, MULTICLASS, R, None),
             (CODEGEN, REGRESSION, NO_CUSTOM, None),
             (CODEGEN, BINARY, NO_CUSTOM, None),
+            (CODEGEN, MULTICLASS, NO_CUSTOM, None),
             (POJO, REGRESSION, NO_CUSTOM, None),
             (POJO, BINARY, NO_CUSTOM, None),
             (MOJO, REGRESSION, NO_CUSTOM, None),
@@ -56,6 +64,7 @@ class TestInference:
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
             (PYPMML, REGRESSION, NO_CUSTOM, None),
             (PYPMML, BINARY, NO_CUSTOM, None),
+            (PYPMML, MULTICLASS, NO_CUSTOM, None),
         ],
     )
     def test_custom_models_with_drum(
@@ -79,14 +88,14 @@ class TestInference:
 
         output = tmp_path / "output"
 
-        cmd = "{} score --code-dir {} --input {} --output {} --target-type {}".format(
+        cmd = '{} score --code-dir {} --input "{}" --output {} --target-type {}'.format(
             ArgumentsOptions.MAIN_COMMAND,
             custom_model_dir,
             input_dataset,
             output,
             resources.target_types(problem),
         )
-        if problem == BINARY:
+        if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(cmd, resources.class_labels(framework, problem))
         if docker:
             cmd += " --docker {} --verbose ".format(docker)
@@ -103,16 +112,22 @@ class TestInference:
         [
             (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
             (SKLEARN, BINARY, PYTHON, None),
+            (SKLEARN, MULTICLASS, PYTHON, None),
             (KERAS, REGRESSION, PYTHON, None),
             (KERAS, BINARY, PYTHON, None),
+            (KERAS, MULTICLASS, PYTHON, None),
             (XGB, REGRESSION, PYTHON, None),
             (XGB, BINARY, PYTHON, None),
+            (XGB, MULTICLASS, PYTHON, None),
             (PYTORCH, REGRESSION, PYTHON, None),
             (PYTORCH, BINARY, PYTHON, None),
+            (PYTORCH, MULTICLASS, PYTHON, None),
             (RDS, REGRESSION, R, None),
             (RDS, BINARY, R, None),
+            (RDS, MULTICLASS, R, None),
             (CODEGEN, REGRESSION, NO_CUSTOM, None),
             (CODEGEN, BINARY, NO_CUSTOM, None),
+            (CODEGEN, MULTICLASS, NO_CUSTOM, None),
             (MOJO, REGRESSION, NO_CUSTOM, None),
             (MOJO, BINARY, NO_CUSTOM, None),
             (POJO, REGRESSION, NO_CUSTOM, None),
@@ -120,6 +135,7 @@ class TestInference:
             (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
             (PYPMML, REGRESSION, NO_CUSTOM, None),
             (PYPMML, BINARY, NO_CUSTOM, None),
+            (PYPMML, MULTICLASS, NO_CUSTOM, None),
         ],
     )
     def test_custom_models_with_drum_prediction_server(
@@ -202,7 +218,11 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [(SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN), (SKLEARN, BINARY, PYTHON, None)],
+        [
+            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
+            (SKLEARN, BINARY, PYTHON, None),
+            (SKLEARN, MULTICLASS, PYTHON, None),
+        ],
     )
     def test_custom_models_drum_prediction_server_response(
         self,
@@ -242,9 +262,9 @@ class TestInference:
             assert isinstance(predictions_list, list)
             assert len(predictions_list)
             prediction_item = predictions_list[0]
-            if problem == BINARY:
+            if problem in [BINARY, MULTICLASS]:
                 assert isinstance(prediction_item, dict)
-                assert len(prediction_item) == 2
+                assert len(prediction_item) == len(resources.class_labels(framework, problem))
                 assert all([isinstance(x, str) for x in prediction_item.keys()])
                 assert all([isinstance(x, float) for x in prediction_item.values()])
             elif problem == REGRESSION:

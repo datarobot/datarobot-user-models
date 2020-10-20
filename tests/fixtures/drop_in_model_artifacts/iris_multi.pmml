@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+  <PMML version="4.1"
+   xmlns="http://www.dmg.org/PMML-4_1"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <Header copyright="Copyright(c) 2002 SAS Institute Inc., Cary, NC, USA. All Rights Reserved.">
+    <Application name="SAS(r)" version="9.4"/>
+    <Timestamp>2020-10-19 17:02:33</Timestamp>
+    </Header>
+    <DataDictionary numberOfFields="16">
+      <DataField name="camcol" optype="continuous" dataType="double"/>
+      <DataField name="dec" optype="continuous" dataType="double"/>
+      <DataField name="fiberid" optype="continuous" dataType="double"/>
+      <DataField name="field" optype="continuous" dataType="double"/>
+      <DataField name="g" optype="continuous" dataType="double"/>
+      <DataField name="i" optype="continuous" dataType="double"/>
+      <DataField name="mjd" optype="continuous" dataType="double"/>
+      <DataField name="plate" optype="continuous" dataType="double"/>
+      <DataField name="r" optype="continuous" dataType="double"/>
+      <DataField name="ra" optype="continuous" dataType="double"/>
+      <DataField name="redshift" optype="continuous" dataType="double"/>
+      <DataField name="run" optype="continuous" dataType="double"/>
+      <DataField name="specobjid" optype="continuous" dataType="double"/>
+      <DataField name="u" optype="continuous" dataType="double"/>
+      <DataField name="z" optype="continuous" dataType="double"/>
+      <DataField name="class" optype="categorical" dataType="string"/>
+    </DataDictionary>
+    <TransformationDictionary>
+      <DefineFunction name="SAS-EM-String-Normalize" optype="categorical" dataType="string">
+        <ParameterField name="FMTWIDTH" optype="continuous"/>
+        <ParameterField name="AnyCInput" optype="categorical"/>
+        <Apply function="if">
+          <Apply function="isNotMissing">
+            <FieldRef field="AnyCInput"/>
+          </Apply>
+          <Apply function="trimBlanks">
+            <Apply function="uppercase">
+              <Apply function="if">
+                <Apply function="greaterThan">
+                  <Constant>FMTWIDTH</Constant>
+                  <Constant>32</Constant>
+                </Apply>
+                <Apply function="substring">
+                  <FieldRef field="AnyCInput"/>
+                  <Constant>1</Constant>
+                  <Constant>32</Constant>
+                </Apply>
+                <Apply function="substring">
+                  <FieldRef field="AnyCInput"/>
+                  <Constant>1</Constant>
+                  <Constant>FMTWIDTH</Constant>
+                </Apply>
+              </Apply>
+            </Apply>
+          </Apply>
+        </Apply>
+      </DefineFunction>
+      <DefineFunction name="SAS-FORMAT-BESTw" optype="categorical" dataType="string">
+        <ParameterField name="FMTWIDTH" optype="continuous"/>
+        <ParameterField name="AnyNInput" optype="continuous"/>
+        <Apply function="if">
+          <Apply function="isNotMissing">
+            <FieldRef field="AnyNInput"/>
+          </Apply>
+          <Apply function="formatNumber">
+            <FieldRef field="AnyNInput"/>
+            <Constant>%12g</Constant>
+          </Apply>
+        </Apply>
+      </DefineFunction>
+      <DefineFunction name="SAS-FORMAT-$CHARw" optype="categorical" dataType="string">
+        <ParameterField name="FMTWIDTH" optype="continuous"/>
+        <ParameterField name="AnyCInput" optype="continuous"/>
+        <Apply function="if">
+          <Apply function="isNotMissing">
+            <FieldRef field="AnyCInput"/>
+          </Apply>
+          <Apply function="substring">
+            <FieldRef field="AnyCInput"/>
+            <Constant>1</Constant>
+            <Constant>FMTWIDTH</Constant>
+          </Apply>
+        </Apply>
+      </DefineFunction>
+    </TransformationDictionary>
+    <TreeModel functionName="classification" splitCharacteristic="binarySplit">
+      <MiningSchema>
+        <MiningField name="class" usageType="predicted" optype="categorical"/>
+        <MiningField name="redshift" usageType="active" optype="continuous"/>
+      </MiningSchema>
+      <Output>
+        <OutputField name="P_classSTAR" displayName="Predicted: class=STAR" optype="continuous" dataType="double" targetField="class" feature="probability" value="STAR"/>
+        <OutputField name="P_classGALAXY" displayName="Predicted: class=GALAXY" optype="continuous" dataType="double" targetField="class" feature="probability" value="GALAXY"/>
+        <OutputField name="P_classQSO" displayName="Predicted: class=QSO" optype="continuous" dataType="double" targetField="class" feature="probability" value="QSO"/>
+        <OutputField name="Q_classSTAR" displayName="Unadjusted P: class=STAR" optype="continuous" dataType="double" targetField="class" feature="probability" value="STAR"/>
+        <OutputField name="Q_classGALAXY" displayName="Unadjusted P: class=GALAXY" optype="continuous" dataType="double" targetField="class" feature="probability" value="GALAXY"/>
+        <OutputField name="Q_classQSO" displayName="Unadjusted P: class=QSO" optype="continuous" dataType="double" targetField="class" feature="probability" value="QSO"/>
+        <OutputField name="R_classSTAR" displayName="Residual: class=STAR" optype="continuous" dataType="double" targetField="class" feature="residual" value="STAR"/>
+        <OutputField name="R_classGALAXY" displayName="Residual: class=GALAXY" optype="continuous" dataType="double" targetField="class" feature="residual" value="GALAXY"/>
+        <OutputField name="R_classQSO" displayName="Residual: class=QSO" optype="continuous" dataType="double" targetField="class" feature="residual" value="QSO"/>
+        <OutputField name="F_class" displayName="From: class" optype="categorical" dataType="string" targetField="class" feature="predictedValue"/>
+        <OutputField name="I_class" displayName="Into: class" optype="categorical" dataType="string" targetField="class" feature="predictedValue"/>
+        <OutputField name="U_class" displayName="Unnormalized Into: class" optype="categorical" dataType="string" targetField="class" feature="predictedDisplayValue"/>
+      </Output>
+      <Targets>
+        <Target field="class" optype="categorical">
+          <TargetValue value="STAR" displayValue="STAR  "/>
+          <TargetValue value="GALAXY" displayValue="GALAXY"/>
+          <TargetValue value="QSO" displayValue="QSO   "/>
+        </Target>
+      </Targets>
+      <Node id="1" score="GALAXY" recordCount="6997">
+        <True/>
+        <ScoreDistribution value="STAR" recordCount="2905" confidence="0.4151779334"/>
+        <ScoreDistribution value="GALAXY" recordCount="3498" confidence="0.4999285408"/>
+        <ScoreDistribution value="QSO" recordCount="594" confidence="0.0848935258"/>
+        <Node id="2" score="STAR" recordCount="2920">
+          <CompoundPredicate booleanOperator="surrogate">
+            <SimplePredicate field="redshift" operator="lessThan" value="0.00219"/>
+            <False/>
+          </CompoundPredicate>
+          <ScoreDistribution value="STAR" recordCount="2903" confidence="0.9941780822"/>
+          <ScoreDistribution value="GALAXY" recordCount="16" confidence="0.0054794521"/>
+          <ScoreDistribution value="QSO" recordCount="1" confidence="0.0003424658"/>
+        </Node>
+        <Node id="3" score="GALAXY" recordCount="4077">
+          <CompoundPredicate booleanOperator="surrogate">
+            <SimplePredicate field="redshift" operator="greaterOrEqual" value="0.00219"/>
+            <SimplePredicate field="redshift" operator="isMissing"/>
+          </CompoundPredicate>
+          <ScoreDistribution value="STAR" recordCount="2" confidence="0.0004905568"/>
+          <ScoreDistribution value="GALAXY" recordCount="3482" confidence="0.8540593574"/>
+          <ScoreDistribution value="QSO" recordCount="593" confidence="0.1454500858"/>
+          <Node id="7" score="QSO" recordCount="566">
+            <CompoundPredicate booleanOperator="surrogate">
+              <SimplePredicate field="redshift" operator="greaterOrEqual" value="0.21768"/>
+              <False/>
+            </CompoundPredicate>
+            <ScoreDistribution value="STAR" recordCount="0" confidence="0"/>
+            <ScoreDistribution value="GALAXY" recordCount="16" confidence="0.0282685512"/>
+            <ScoreDistribution value="QSO" recordCount="550" confidence="0.9717314488"/>
+          </Node>
+          <Node id="6" score="GALAXY" recordCount="3511">
+            <CompoundPredicate booleanOperator="surrogate">
+              <SimplePredicate field="redshift" operator="lessThan" value="0.21768"/>
+              <SimplePredicate field="redshift" operator="isMissing"/>
+            </CompoundPredicate>
+            <ScoreDistribution value="STAR" recordCount="2" confidence="0.0005696383"/>
+            <ScoreDistribution value="GALAXY" recordCount="3466" confidence="0.9871831387"/>
+            <ScoreDistribution value="QSO" recordCount="43" confidence="0.012247223"/>
+          </Node>
+        </Node>
+      </Node>
+    </TreeModel>
+  </PMML>

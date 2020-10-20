@@ -58,20 +58,12 @@ class PredictMixin:
                 # But as it returns string, we have to assemble final json using strings.
                 df_json = out_data[REGRESSION_PRED_COLUMN].to_json(orient="records")
                 response = '{{"predictions":{df_json}}}'.format(df_json=df_json)
-            elif num_columns == 2:
+            else:
                 # df.to_json() is much faster.
                 # But as it returns string, we have to assemble final json using strings.
                 df_json_str = out_data.to_json(orient="records")
                 response = '{{"predictions":{df_json}}}'.format(df_json=df_json_str)
-            else:
-                ret_str = (
-                    "Predictions dataframe has {} columns; "
-                    "Expected: 1 - for regression, 2 - for binary classification.".format(
-                        num_columns
-                    )
-                )
-                response = {"message": "ERROR: " + ret_str}
-                response_status = HTTP_422_UNPROCESSABLE_ENTITY
+
         return response, response_status
 
     def do_predict_unstructured(self, logger=None):
