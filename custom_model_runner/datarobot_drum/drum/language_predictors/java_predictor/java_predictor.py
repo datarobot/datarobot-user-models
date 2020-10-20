@@ -76,10 +76,11 @@ class JavaPredictor(BaseLanguagePredictor):
             if isinstance(params[key], dict):
                 continue
             elif isinstance(params[key], list):
-                jlist = self._gateway.jvm.java.util.ArrayList()
-                for val in params[key]:
-                    jlist.append(val)
-                m[key] = jlist
+                pylist = params[key]
+                jarray = self._gateway.new_array(self._gateway.jvm.java.String, len(pylist))
+                for i, val in enumerate(pylist):
+                    jarray[i] = str(val)
+                m[key] = jarray
             else:
                 m[key] = params[key]
         self._predictor_via_py4j.configure(m)

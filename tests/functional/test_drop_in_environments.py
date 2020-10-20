@@ -152,7 +152,12 @@ class TestDropInEnvironments(object):
     def torch_binary_custom_model(self, pytorch_drop_in_env):
         env_id, _ = pytorch_drop_in_env
         return self.make_custom_model(
-            "torch_bin.pth", env_id, "yes", "no", CUSTOM_PREDICT_PY_PATH, ["PyTorch.py"]
+            "torch_bin.pth",
+            env_id,
+            "yes",
+            "no",
+            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            other_file_names=["PyTorch.py"],
         )
 
     @pytest.fixture(scope="session")
@@ -200,7 +205,7 @@ class TestDropInEnvironments(object):
             env_id,
             "Iris-setosa",
             "Iris-versicolor",
-            CUSTOM_PREDICT_PY_PATH,
+            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
         )
 
     @pytest.fixture(scope="session")
@@ -230,7 +235,7 @@ class TestDropInEnvironments(object):
             env_id,
             "Iris-setosa",
             "Iris-versicolor",
-            CUSTOM_PREDICT_R_PATH,
+            custom_predict_path=CUSTOM_PREDICT_R_PATH,
             target_name="Species",
         )
 
@@ -252,7 +257,7 @@ class TestDropInEnvironments(object):
             env_id,
             "Iris-setosa",
             "Iris-versicolor",
-            CUSTOM_LOAD_PREDICT_R_PATH,
+            custom_predict_path=CUSTOM_LOAD_PREDICT_R_PATH,
         )
 
     @pytest.fixture(scope="session")
@@ -263,7 +268,7 @@ class TestDropInEnvironments(object):
             env_id,
             "Iris-setosa",
             "Iris-versicolor",
-            CUSTOM_PREDICT_R_PATH,
+            custom_predict_path=CUSTOM_PREDICT_R_PATH,
         )
 
     @pytest.mark.parametrize(

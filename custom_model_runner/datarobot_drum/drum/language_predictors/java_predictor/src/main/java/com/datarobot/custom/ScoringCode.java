@@ -11,17 +11,14 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ScoringCode extends BasePredictor {
     private IPredictorInfo model;
     private boolean isRegression;
     private String negativeClassLabel = null;
     private String positiveClassLabel = null;
-    private List<String> classLabels = null;
+    private String[] classLabels = null;
     private Map<String, Object> params = null;
 
     public ScoringCode(String name) {
@@ -52,11 +49,10 @@ public class ScoringCode extends BasePredictor {
                     csvPrinter.printRecord(value);
                 }
             } else {
-                var labelsArr = this.classLabels.toArray(new String[this.classLabels.size()]);
-                csvPrinter = new CSVPrinter(new StringWriter(), CSVFormat.DEFAULT.withHeader(labelsArr));
+                csvPrinter = new CSVPrinter(new StringWriter(), CSVFormat.DEFAULT.withHeader(this.classLabels));
                 for (var val : predictions) {
                     HashMap<String, Double> value = (HashMap<String, Double>) val;
-                    var predRow = this.classLabels.stream().map(value::get).toArray(Double[]::new);
+                    var predRow = Arrays.stream(this.classLabels).map(value::get).toArray(Double[]::new);
                     csvPrinter.printRecord(predRow);
                 }
             }
@@ -74,10 +70,10 @@ public class ScoringCode extends BasePredictor {
         String customModelPath = (String) this.params.get("__custom_model_path__");
         this.negativeClassLabel = (String) this.params.get("negativeClassLabel");
         this.positiveClassLabel = (String) this.params.get("positiveClassLabel");
-        this.classLabels = (List) this.params.get("classLabels");
+        this.classLabels = (String[]) this.params.get("classLabels");
 
         if (this.negativeClassLabel != null && this.positiveClassLabel != null) {
-            this.classLabels = List.of(this.positiveClassLabel, this.negativeClassLabel);
+            this.classLabels = new String[]{this.positiveClassLabel, this.negativeClassLabel};
         }
 
         try {
