@@ -5,6 +5,7 @@ import hex.genmodel.GenModel
 import hex.genmodel.easy.EasyPredictModelWrapper;
 import hex.genmodel.easy.RowData;
 import hex.genmodel.MojoModel;
+import hex.ModelCategory.{Regression, Binomial, Multinomial}
 
 import scala.util.{Try, Success, Failure}
 import collection.JavaConverters._
@@ -36,39 +37,32 @@ class H2OPredictor(
 
   def predict(inputFilename: String): String = {
 
-    val csvPrinter: CSVPrinter = this.isRegression match {
-      case true =>
-        new CSVPrinter(
-          new StringWriter(),
-          CSVFormat.DEFAULT.withHeader("Predictions")
-        )
-      case false =>
-        new CSVPrinter(
-          new StringWriter(),
-          CSVFormat.DEFAULT
-            .withHeader(this.positiveClassLabel, this.negativeClassLabel)
+    val headers = this.model.getModelCategory match {
+      case Regression  => Array("Predictions")
+      case Binomial    => this.model.getResponseDomainValues
+      case Multinomial => this.model.getResponseDomainValues
+      case _ =>
+        throw new Exception(
+          s"${this.model.getModelCategory} is currently not supported"
         )
     }
+
+    val csvPrinter: CSVPrinter = new CSVPrinter(
+      new StringWriter(),
+      CSVFormat.DEFAULT.withHeader(headers: _*)
+    )
 
     val predictions = Try(this.scoreFileCSV(inputFilename))
 
     predictions match {
-      case Success(preds) => {
-        isRegression match {
-          case true =>
-            preds.foreach(p =>
-              csvPrinter.printRecord(p(0).asInstanceOf[Object])
-            )
-          case false =>
-            preds.foreach { p =>
-              csvPrinter.printRecord(
-                p(1).asInstanceOf[Object],
-                p(0).asInstanceOf[Object]
-              )
-            }
-        }
-      }
-      case Failure(e) => throw new Exception(s"During the course of making a prediction an exception was encountered: ${e}")
+      case Success(preds) =>
+        preds.foreach(p =>
+          csvPrinter.printRecord(p.map { _.asInstanceOf[Object] }: _*)
+        )
+      case Failure(e) =>
+        throw new Exception(
+          s"During the course of making a prediction an exception was encountered: ${e}"
+        )
     }
 
     csvPrinter.flush()
@@ -83,14 +77,22 @@ class H2OPredictor(
     val csvFormat = CSVFormat.DEFAULT.withHeader();
 
     val parser =
-      csvFormat.parse(new BufferedReader(new FileReader(new File(inputFilename))))
+      csvFormat.parse(
+        new BufferedReader(new FileReader(new File(inputFilename)))
+      )
 
     val sParser = parser.iterator.asScala.map { _.toMap }.map { map2RowData }
 
     val predictions = sParser.map { record =>
-      val prediction = this.isRegression match {
-        case true  => Array(this.model.predictRegression(record).value)
-        case false => this.model.predictBinomial(record).classProbabilities
+      val prediction = this.model.getModelCategory match {
+        case Regression => Array(this.model.predictRegression(record).value)
+        case Binomial   => this.model.predictBinomial(record).classProbabilities
+        case Multinomial =>
+          this.model.predictMultinomial(record).classProbabilities
+        case _ =>
+          throw new Exception(
+            s"${this.model.getModelCategory} is currently not supported"
+          )
       }
       prediction
     }.toArray
@@ -115,15 +117,20 @@ class H2OPredictor(
       pojo: java.io.File
   ): EasyPredictModelWrapper.Config = {
 
-    val pathOfJar = classOf[hex.genmodel.GenModel].getProtectionDomain.getCodeSource.getLocation.toURI.getPath
+    val pathOfJar = classOf[
+      hex.genmodel.GenModel
+    ].getProtectionDomain.getCodeSource.getLocation.toURI.getPath
     val compilePojo = s"javac -cp ${pathOfJar} ${pojo.getAbsolutePath}"
     val returnCode = compilePojo.!
-    val urls =  returnCode match { 
+    val urls = returnCode match {
       case 0 => Array(pojo.getAbsoluteFile.getParentFile.toURI.toURL)
-      case _ => throw new Exception(s"executing '${compilePojo}' exited with non-zero code.  " +
-        s"Make sure POJO exists and hasn't been renamed.  If the POJO is > 1GB in size, consider using MOJO")
+      case _ =>
+        throw new Exception(
+          s"executing '${compilePojo}' exited with non-zero code.  " +
+            s"Make sure POJO exists and hasn't been renamed.  If the POJO is > 1GB in size, consider using MOJO"
+        )
     }
-    
+
     val pojoName = pojo.getName.replace(".jar", "").replace(".java", "")
     val urlClassLoader = URLClassLoader.newInstance(
       urls,
@@ -160,9 +167,9 @@ class H2OPredictor(
     val fileExt = re.findAllIn(file.getName).next
 
     val modelConfig = fileExt match {
-      case ".zip" => modelConfigViaMojo(file)
-      case ".java"  => modelConfigViaPojo(file)
-      case _ => throw new Exception("no usable H2O model artifact available")
+      case ".zip"  => modelConfigViaMojo(file)
+      case ".java" => modelConfigViaPojo(file)
+      case _       => throw new Exception("no usable H2O model artifact available")
     }
 
     val model = new EasyPredictModelWrapper(modelConfig)
@@ -182,10 +189,13 @@ class H2OPredictor(
     positiveClassLabel = params.get("positiveClassLabel").asInstanceOf[String]
 
     isRegression = model.m.getModelCategory match {
-      case hex.ModelCategory.Regression => true
-      case hex.ModelCategory.Binomial   => false
+      case Regression  => true
+      case Binomial    => false
+      case Multinomial => false
       case _ =>
-        throw new Exception("model is not regression or binary classification")
+        throw new Exception(
+          s"${this.model.getModelCategory} is currently not supported"
+        )
     }
 
   }
