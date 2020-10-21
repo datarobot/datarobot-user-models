@@ -109,7 +109,6 @@ def make_classifier_pipeline(X: pd.DataFrame, num_labels: int) -> Pipeline:
         if num_labels == 2
         else create_multiclass_classification_model(num_labels)
     )
-    print(estimator)
 
     # pipeline with preprocessor and estimator bundled
     classifier_pipeline = Pipeline(steps=[("preprocessor", preprocessor), ("estimator", estimator)])

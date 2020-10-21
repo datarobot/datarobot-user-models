@@ -80,7 +80,7 @@ def train_epoch(model, opt, criterion, X, y, batch_size=50):
     for beg_i in range(0, X.size(0), batch_size):
         x_batch = X[beg_i : beg_i + batch_size, :]
         # y_hat will be (batch_size, 1) dim, so coerce target to look the same
-        y_batch = y[beg_i : beg_i + batch_size].reshape(-1, 1)
+        y_batch = y[beg_i : beg_i + batch_size].reshape(-1, 1).flatten()
         x_batch = Variable(x_batch)
         y_batch = Variable(y_batch)
 
@@ -116,8 +116,9 @@ def build_regressor(X):
 def train_classifier(X, y, class_model, class_opt, class_criterion, n_epochs=5):
     target_encoder = LabelEncoder()
     target_encoder.fit(y)
+    transformed_y = target_encoder.transform(y)
     bin_t_X = torch.from_numpy(X.values).type(torch.FloatTensor)
-    bin_t_y = torch.from_numpy(target_encoder.transform(y)).type(class_model.expected_target_type)
+    bin_t_y = torch.from_numpy(transformed_y).type(class_model.expected_target_type)
 
     for e in range(n_epochs):
         train_epoch(class_model, class_opt, class_criterion, bin_t_X, bin_t_y)

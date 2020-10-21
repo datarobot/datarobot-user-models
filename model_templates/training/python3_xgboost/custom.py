@@ -3,7 +3,7 @@ import pickle
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from sklearn.preprocessing import LabelBinarizer
+from sklearn.preprocessing import LabelEncoder
 
 from create_pipeline import make_classifier_pipeline, make_regressor_pipeline
 
@@ -55,8 +55,8 @@ def fit(
         estimator = make_classifier_pipeline(X, len(class_order))
         if y.dtype == np.dtype("bool"):
             y = y.astype("str")
-        lb = LabelBinarizer()
-        y = lb.fit_transform(y).ravel()
+        lb = LabelEncoder()
+        y = lb.fit_transform(y)
     else:
         estimator = make_regressor_pipeline(X)
     estimator.fit(X, y)

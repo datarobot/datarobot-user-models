@@ -154,7 +154,7 @@ if __name__ == "__main__":
             predictions = model(data).cpu().data.numpy()
         print(predictions)
 
-    # FIXTURE_ROOT = "~/workspace/datarobot-user-models/tests/fixtures/drop_in_model_artifacts"
-    # torch.save(bin_model, os.path.expanduser(os.path.join(FIXTURE_ROOT, "torch_bin.pth")))
-    # torch.save(reg_model, os.path.expanduser(os.path.join(FIXTURE_ROOT, "torch_reg.pth")))
-    # torch.save(multi_model, os.path.expanduser(os.path.join(FIXTURE_ROOT, "torch_multi.pth")))
+    FIXTURE_ROOT = "~/workspace/datarobot-user-models/tests/fixtures/drop_in_model_artifacts"
+    torch.save(bin_model, os.path.expanduser(os.path.join(FIXTURE_ROOT, "torch_bin.pth")))
+    torch.save(reg_model, os.path.expanduser(os.path.join(FIXTURE_ROOT, "torch_reg.pth")))
+    torch.save(multi_model, os.path.expanduser(os.path.join(FIXTURE_ROOT, "torch_multi.pth")))
