@@ -1,5 +1,6 @@
 import pickle
 import pandas as pd
+import numpy as np
 
 from datarobot_drum.drum.common import (
     PythonArtifacts,
@@ -69,6 +70,13 @@ class SKLearnPredictor(ArtifactPredictor):
             else:
                 labels_to_use = self.class_labels
             predictions = model.predict_proba(data)
+            if predictions.shape[1] == 1:
+                if self.target_type == TargetType.MULTICLASS:
+                    raise DrumCommonException(
+                        "Target type '{}' predictions must return the "
+                        "probability distribution for all class labels".format(self.target_type)
+                    )
+                predictions = np.concatenate((1 - predictions, predictions), axis=1)
             predictions = pd.DataFrame(predictions, columns=labels_to_use)
         elif self.target_type in [TargetType.REGRESSION, TargetType.ANOMALY]:
             predictions = pd.DataFrame(

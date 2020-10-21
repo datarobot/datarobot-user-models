@@ -511,7 +511,7 @@ class CMRunnerArgsRegistry(object):
 
     @staticmethod
     def _reg_arg_target_type(*parsers):
-        target_types = [e.value for e in TargetType]
+        target_types = [e.value for e in TargetType if e != TargetType.CLASSIFICATION]
         for parser in parsers:
             parser.add_argument(
                 ArgumentsOptions.TARGET_TYPE,
@@ -657,7 +657,7 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_args_monitoring(batch_parser, server_parser)
 
         CMRunnerArgsRegistry._reg_arg_target_type(
-            batch_parser, parser_perf_test, server_parser, validation_parser
+            batch_parser, parser_perf_test, server_parser, fit_parser, validation_parser
         )
 
         CMRunnerArgsRegistry._reg_args_unstructured_mode(

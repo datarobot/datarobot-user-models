@@ -51,7 +51,7 @@ def fit(
     # Feel free to delete which ever one of these you aren't using
     if class_order:
         y = label_binarize(y, classes=class_order)
-        estimator = make_classifier_pipeline(X)
+        estimator = make_classifier_pipeline(X, len(class_order))
     else:
         estimator = make_regressor_pipeline(X)
     estimator.fit(X, y)

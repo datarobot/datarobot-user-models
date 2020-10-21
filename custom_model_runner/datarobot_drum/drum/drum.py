@@ -76,7 +76,7 @@ class CMRunner:
         if self.options.model_config is not None:
             target_type_model_config = TargetType(self.options.model_config["targetType"])
 
-        if self.run_mode not in [RunMode.NEW, RunMode.FIT]:
+        if self.run_mode not in [RunMode.NEW]:
             if target_type_options is None and target_type_model_config is None:
                 raise DrumCommonException(
                     "Target type is missing. It must be provided in either --target-type argument or model config file."
@@ -114,9 +114,6 @@ class CMRunner:
         logger = logging.getLogger(LOGGER_NAME_PREFIX)
         logger.setLevel(LOG_LEVELS[options.logging_level])
         return logger
-
-    def _set_target_type(self, target_type):
-        self.target_type = target_type
 
     def get_logger(self):
         return self.logger
@@ -431,22 +428,40 @@ class CMRunner:
 
     def _prepare_fit_pipeline(self, run_language):
 
-        if self.options.negative_class_label is None:
-            (
-                self.options.positive_class_label,
-                self.options.negative_class_label,
-            ) = possibly_intuit_order(
+        if self.target_type.value in TargetType.CLASSIFICATION.value:
+            posible_class_labels = possibly_intuit_order(
                 self.options.input,
                 self.options.target_csv,
                 self.options.target,
                 self.options.unsupervised,
             )
-        if self.options.unsupervised:
-            self._set_target_type(TargetType.ANOMALY)
-        elif self.options.negative_class_label is not None:
-            self._set_target_type(TargetType.BINARY)
-        else:
-            self._set_target_type(TargetType.REGRESSION)
+            if posible_class_labels:
+                if (
+                    self.target_type == TargetType.BINARY
+                    and self.options.negative_class_label is None
+                ):
+                    if len(posible_class_labels) != 2:
+                        raise DrumCommonException(
+                            "Target type {} requires exactly 2 class labels. {} found: {}".format(
+                                TargetType.BINARY, len(posible_class_labels), posible_class_labels
+                            )
+                        )
+                    (
+                        self.options.positive_class_label,
+                        self.options.negative_class_label,
+                    ) = posible_class_labels
+                elif (
+                    self.target_type == TargetType.MULTICLASS and self.options.class_labels is None
+                ):
+                    if len(posible_class_labels) <= 2:
+                        raise DrumCommonException(
+                            "Target type {} requires more than 2 class labels. {} found: {}".format(
+                                TargetType.MULTICLASS,
+                                len(posible_class_labels),
+                                posible_class_labels,
+                            )
+                        )
+                    self.options.class_labels = list(posible_class_labels)
 
         options = self.options
         # functional pipeline is predictor pipeline
@@ -707,7 +722,7 @@ def possibly_intuit_order(
     input_data_file, target_data_file=None, target_col_name=None, unsupervised=False
 ):
     if unsupervised:
-        return None, None
+        return None
     elif target_data_file:
         assert target_col_name is None
 
@@ -726,11 +741,11 @@ def possibly_intuit_order(
             raise DrumCommonException(e)
         uniq = df[target_col_name].sample(1000, random_state=1, replace=True).unique()
         classes = set(uniq) - {np.nan}
-    if len(classes) == 2:
+    if len(classes) >= 2:
         return classes
     elif len(classes) == 1:
         raise DrumCommonException("Only one target label was provided, please revise training data")
-    return None, None
+    return None
 
 
 def output_in_code_dir(code_dir, output_dir):

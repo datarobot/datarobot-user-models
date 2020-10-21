@@ -102,12 +102,10 @@ class TestFit:
         output = tmp_path / "output"
         output.mkdir()
 
-        cmd = "{} fit --code-dir {} --input {} --verbose ".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
+            ArgumentsOptions.MAIN_COMMAND, problem, custom_model_dir, input_dataset
         )
-        if problem == ANOMALY:
-            cmd += " --target-type anomaly"
-        else:
+        if problem != ANOMALY:
             cmd += " --target {}".format(resources.targets(problem))
 
         if use_output:
@@ -132,6 +130,8 @@ class TestFit:
             (RDS, MULTICLASS, None),
             (SKLEARN_BINARY, BINARY_TEXT, DOCKER_PYTHON_SKLEARN),
             (SKLEARN_REGRESSION, REGRESSION, DOCKER_PYTHON_SKLEARN),
+            (SKLEARN_BINARY, BINARY_TEXT, None),
+            (SKLEARN_REGRESSION, REGRESSION, None),
             (SKLEARN_ANOMALY, ANOMALY, None),
             (SKLEARN_MULTICLASS, MULTICLASS, None),
             (XGB, BINARY_TEXT, None),
@@ -185,13 +185,16 @@ class TestFit:
             weights, input_dataset, r_fit=language == R_FIT
         )
 
-        cmd = "{} fit --code-dir {} --input {} --verbose ".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset
+        target_type = problem if problem != BINARY_TEXT else BINARY
+        target_type = "anomaly" if problem == ANOMALY else target_type
+
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
+            ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
         )
-        if problem == ANOMALY:
-            cmd += " --target-type anomaly"
-        else:
+        if problem != ANOMALY:
             cmd += " --target {}".format(resources.targets(problem))
+        else:
+            cmd += " --unsupervised"
 
         if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(cmd, resources.class_labels(framework, problem))
@@ -328,8 +331,9 @@ class TestFit:
         output = tmp_path / "output"
         output.mkdir()
 
-        cmd = "{} fit --code-dir {} --target {} --input {} --verbose".format(
+        cmd = "{} fit --target-type {} --code-dir {} --target {} --input {} --verbose".format(
             ArgumentsOptions.MAIN_COMMAND,
+            REGRESSION,
             custom_model_dir,
             resources.targets(REGRESSION),
             input_dataset,

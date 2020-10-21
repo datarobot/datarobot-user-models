@@ -6,15 +6,15 @@ TARGET_TYPE="regression"
 
 CMD="drum server -cd . --address 0.0.0.0:8080 --production --max-workers 1 --show-stacktrace"
 
-if [ ! -z "${POSITIVE_CLASS_LABEL}" ]; then
+if [ -n "${POSITIVE_CLASS_LABEL}" ]; then
     CMD="${CMD} --positive-class-label ${POSITIVE_CLASS_LABEL}"
     TARGET_TYPE="binary"
 fi
-if [ ! -z "${NEGATIVE_CLASS_LABEL}" ]; then
+if [ -n "${NEGATIVE_CLASS_LABEL}" ]; then
     CMD="${CMD} --negative-class-label ${NEGATIVE_CLASS_LABEL}"
     TARGET_TYPE="binary"
 fi
-if [ ! -z "${CLASS_LABELS_FILE}" ]; then
+if [ -n "${CLASS_LABELS_FILE}" ]; then
     CMD="${CMD} --class-labels-file ${CLASS_LABELS_FILE}"
     TARGET_TYPE="multiclass"
 fi

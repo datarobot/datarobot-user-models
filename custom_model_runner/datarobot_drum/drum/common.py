@@ -6,6 +6,8 @@ from enum import Enum
 from strictyaml import Bool, Int, Map, Optional, Str, load, YAMLError, Seq
 from pathlib import Path
 
+DEBUG = os.environ.get("DEBUG")
+
 LOGGER_NAME_PREFIX = "drum"
 REGRESSION_PRED_COLUMN = "Predictions"
 CUSTOM_FILE_NAME = "custom"
@@ -125,7 +127,7 @@ class ArgumentsOptions:
     CLASS_LABELS = "--class-labels"
     CLASS_LABELS_FILE = "--class-labels-file"
 
-    MAIN_COMMAND = "drum"
+    MAIN_COMMAND = "drum" if not DEBUG else "./custom_model_runner/bin/drum"
 
     SCORE = "score"
     SERVER = "server"
