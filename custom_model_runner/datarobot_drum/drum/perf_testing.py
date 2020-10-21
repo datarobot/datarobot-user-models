@@ -16,7 +16,7 @@ from tempfile import mkdtemp, NamedTemporaryFile
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumPerfTestTimeout
 from datarobot_drum.drum.utils import CMRunnerUtils
-from datarobot_drum.drum.common import RunMode, ArgumentsOptions
+from datarobot_drum.drum.common import RunMode, ArgumentsOptions, PERF_TEST_SERVER_LABEL
 
 
 def _get_samples_df(df, samples):
@@ -38,23 +38,28 @@ def _get_approximate_samples_in_csv_size(file, target_csv_size):
     return int(df.shape[0] * lines_multiplier) + 1
 
 
-def _find_and_kill_cmrun_server_process(verbose=False):
+def _find_drum_perf_test_server_process():
     for proc in psutil.process_iter():
-        if "{}".format(ArgumentsOptions.MAIN_COMMAND) in proc.name().lower():
-            if "{}".format(ArgumentsOptions.SERVER) in proc.cmdline():
-                if verbose:
-                    print(
-                        "Detected older {} process ... stopping it".format(
-                            ArgumentsOptions.MAIN_COMMAND
-                        )
-                    )
-                try:
-                    proc.terminate()
-                    time.sleep(0.3)
-                    proc.kill()
-                except psutil.NoSuchProcess:
-                    pass
-                break
+        try:
+            if proc.environ().get(PERF_TEST_SERVER_LABEL, False):
+                return proc.pid
+        except psutil.AccessDenied:
+            continue
+    return None
+
+
+def _kill_drum_perf_test_server_process(pid, verbose=False):
+    if pid is None:
+        return
+    if verbose:
+        print("Detected running perf test drum server process ... killing it")
+    try:
+        proc = psutil.Process(pid)
+        proc.terminate()
+        time.sleep(0.3)
+        proc.kill()
+    except psutil.NoSuchProcess:
+        pass
 
 
 PerfTestCase = collections.namedtuple("PerfTestCase", "name samples iterations")
@@ -287,14 +292,18 @@ class CMRunTests:
             os.system("tput init")
 
     def performance_test(self):
-        _find_and_kill_cmrun_server_process(self.options.verbose)
+        _kill_drum_perf_test_server_process(
+            _find_drum_perf_test_server_process(), self.options.verbose
+        )
         if CMRunnerUtils.is_port_in_use(self._server_addr, self._server_port):
             error_message = "\nError: address: {} is in use".format(self._url_server_address)
             print(error_message)
             raise DrumCommonException(error_message)
 
         cmd_list = self._build_cmrun_cmd()
-        self._server_process = subprocess.Popen(cmd_list, env=os.environ)
+        env_vars = os.environ
+        env_vars.update({PERF_TEST_SERVER_LABEL: "1"})
+        self._server_process = subprocess.Popen(cmd_list, env=env_vars)
         self._wait_for_server_to_start()
 
         def signal_handler(sig, frame):
@@ -309,7 +318,6 @@ class CMRunTests:
 
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGALRM, testcase_timeout)
-
         results = []
         print("\n\n")
         for tc in self._test_cases_to_run:
