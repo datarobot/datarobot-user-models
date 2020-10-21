@@ -435,7 +435,7 @@ class CMRunner:
                 self.options.target,
                 self.options.unsupervised,
             )
-            if posible_class_labels:
+            if posible_class_labels is not None:
                 if (
                     self.target_type == TargetType.BINARY
                     and self.options.negative_class_label is None

@@ -107,6 +107,9 @@ _class_labels = {
     (PYPMML, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (PYTORCH, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (CODEGEN, MULTICLASS): ["GALAXY", "QSO", "STAR"],
+    (SKLEARN_BINARY, BINARY_TEXT): ["False", "True"],
+    (XGB, BINARY_TEXT): ["False", "True"],
+    (KERAS, BINARY_TEXT): ["False", "True"],
 }
 
 _artifacts = {

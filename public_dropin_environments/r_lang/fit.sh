@@ -11,6 +11,7 @@ CMD="drum fit --input ${X} --num-rows ALL --output ${ARTIFACT_DIRECTORY} \
 
 if [ -n "${UNSUPERVISED}" ]; then
   CMD="${CMD} --unsupervised "
+  TARGET_TYPE="anomaly"
 else
   export y="${INPUT_DIRECTORY}/y.csv"
   CMD="${CMD} --target-csv ${y}"

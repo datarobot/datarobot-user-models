@@ -245,11 +245,9 @@ class TestFit:
             (SKLEARN_MULTICLASS, MULTICLASS),
             (XGB, BINARY_TEXT),
             (XGB, BINARY),
-            (XGB, ANOMALY),
             (XGB, MULTICLASS),
             (KERAS, BINARY_TEXT),
             (KERAS, BINARY),
-            (KERAS, ANOMALY),
             (KERAS, MULTICLASS),
         ],
     )
@@ -295,14 +293,22 @@ class TestFit:
         env["INPUT_DIRECTORY"] = str(input_dir)
         env["ARTIFACT_DIRECTORY"] = str(output)
 
-        if problem == BINARY:
+        # clear env vars
+        if os.environ.get("NEGATIVE_CLASS_LABEL"):
+            del os.environ["NEGATIVE_CLASS_LABEL"]
+            del os.environ["POSITIVE_CLASS_LABEL"]
+        if os.environ.get("CLASS_LABELS_FILE"):
+            del os.environ["CLASS_LABELS_FILE"]
+
+        if problem in [BINARY, BINARY_TEXT]:
             labels = resources.class_labels(framework, problem)
             env["NEGATIVE_CLASS_LABEL"] = labels[0]
             env["POSITIVE_CLASS_LABEL"] = labels[1]
-        else:
-            if os.environ.get("NEGATIVE_CLASS_LABEL"):
-                del os.environ["NEGATIVE_CLASS_LABEL"]
-                del os.environ["POSITIVE_CLASS_LABEL"]
+        elif problem == MULTICLASS:
+            labels = resources.class_labels(framework, problem)
+            with open(os.path.join(tmp_path, "class_labels.txt"), mode="w") as f:
+                f.write("\n".join(labels))
+                env["CLASS_LABELS_FILE"] = f.name
 
         if problem == ANOMALY:
             env["UNSUPERVISED"] = "true"

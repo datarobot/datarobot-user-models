@@ -11,6 +11,7 @@ CMD="drum fit --input ${X} --num-rows ALL --output ${ARTIFACT_DIRECTORY} \
 
 if [ -n "${UNSUPERVISED}" ]; then
   CMD="${CMD} --unsupervised "
+  TARGET_TYPE="anomaly"
 else
   export y="${INPUT_DIRECTORY}/y.csv"
   CMD="${CMD} --target-csv ${y}"
@@ -21,7 +22,7 @@ fi
 if [ -n "${POSITIVE_CLASS_LABEL}" ]; then
     CMD="${CMD} --negative-class-label ${NEGATIVE_CLASS_LABEL} \
     --positive-class-label ${POSITIVE_CLASS_LABEL}"
-    TARGET_TYPE="regression"
+    TARGET_TYPE="binary"
 fi
 if [ -n "${CLASS_LABELS_FILE}" ]; then
     CMD="${CMD} --class-labels-file ${CLASS_LABELS_FILE}"
