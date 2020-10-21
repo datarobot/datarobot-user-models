@@ -15,10 +15,11 @@ class MemoryMonitor:
     FREE_MEMORY_LABEL = "Free"
     MLAPP_RSS_LABEL = "Pipeline RSS"
 
-    def __init__(self, pid=None, include_childs=True):
+    def __init__(self, pid=None, include_childs=True, monitor_current_process=False):
         """"""
         self._pid = pid if pid is not None else os.getpid()
         self._include_childs = include_childs
+        self._monitor_current_process = monitor_current_process
 
     def collect_memory_info(self):
         def get_proc_data(p):
@@ -35,7 +36,7 @@ class MemoryMonitor:
         current_proc = psutil.Process()
 
         # case with Flask server, there is only one process - drum
-        if current_proc.name() == ArgumentsOptions.MAIN_COMMAND:
+        if self._monitor_current_process:
             drum_process = current_proc
         # case with uwsgi, current proc is uwsgi worker, so looking for parent drum process
         else:
