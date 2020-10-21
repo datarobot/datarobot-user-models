@@ -274,7 +274,9 @@ class TestFit:
             "..",
             "public_dropin_environments/{}_{}/fit.sh".format(
                 PYTHON,
-                framework if framework not in [SKLEARN_ANOMALY, SKLEARN_BINARY, SKLEARN_MULTICLASS] else SKLEARN,
+                framework
+                if framework not in [SKLEARN_ANOMALY, SKLEARN_BINARY, SKLEARN_MULTICLASS]
+                else SKLEARN,
             ),
         )
 
