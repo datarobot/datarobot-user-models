@@ -39,6 +39,12 @@ class TestTrainingModelTemplates(object):
         proj.set_target(target="readmitted", mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
+    @pytest.fixture(scope="session")
+    def project_multiclass_skyserver(self):
+        proj = dr.Project.create(sourcedata=os.path.join(BASE_DATASET_DIR, "skyserver_sql2_27_2018_6_51_39_pm.csv"))
+        proj.set_target(target="class", mode=dr.AUTOPILOT_MODE.MANUAL)
+        return proj.id
+
     @pytest.mark.parametrize(
         "model_template, proj, env, target_type",
         [
@@ -61,6 +67,12 @@ class TestTrainingModelTemplates(object):
                 "regression",
             ),
             (
+                "training/python3_pytorch",
+                "project_multiclass_skyserver",
+                "pytorch_drop_in_env",
+                "multiclass",
+            ),
+            (
                 "training/python3_keras_joblib",
                 "project_regression_boston",
                 "keras_drop_in_env",
@@ -71,6 +83,12 @@ class TestTrainingModelTemplates(object):
                 "project_binary_iris",
                 "keras_drop_in_env",
                 "binary",
+            ),
+            (
+                "training/python3_keras_joblib",
+                "project_multiclass_skyserver",
+                "keras_drop_in_env",
+                "multiclass",
             ),
             (
                 "training/python3_keras_vizai_joblib",
@@ -91,6 +109,12 @@ class TestTrainingModelTemplates(object):
                 "binary",
             ),
             (
+                "training/python3_xgboost",
+                "project_multiclass_skyserver",
+                "xgboost_drop_in_env",
+                "multiclass",
+            ),
+            (
                 "training/python3_sklearn_regression",
                 "project_regression_boston",
                 "sklearn_drop_in_env",
@@ -103,6 +127,12 @@ class TestTrainingModelTemplates(object):
                 "binary",
             ),
             (
+                "training/python3_sklearn_multiclass",
+                "project_multiclass_skyserver",
+                "sklearn_drop_in_env",
+                "multiclass",
+            ),
+            (
                 "training/r_lang",
                 "project_regression_boston",
                 "r_drop_in_env",
@@ -113,6 +143,12 @@ class TestTrainingModelTemplates(object):
                 "project_binary_iris",
                 "r_drop_in_env",
                 "binary",
+            ),
+            (
+                "training/r_lang",
+                "project_multiclass_skyserver",
+                "r_drop_in_env",
+                "multiclass",
             ),
         ],
     )
