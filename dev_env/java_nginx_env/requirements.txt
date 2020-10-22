@@ -1,2 +1,0 @@
-pypmml==0.9.6
-scikit-learn==0.23.1
