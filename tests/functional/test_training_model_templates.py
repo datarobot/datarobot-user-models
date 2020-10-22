@@ -157,9 +157,14 @@ class TestTrainingModelTemplates(object):
     def test_training_model_templates(self, request, model_template, proj, env, target_type):
         env_id, env_version_id = request.getfixturevalue(env)
         proj_id = request.getfixturevalue(proj)
-        dr_target_type = (
-            dr.TARGET_TYPE.REGRESSION if target_type == "regression" else dr.TARGET_TYPE.BINARY
-        )
+        if target_type == "regression":
+            dr_target_type = dr.TARGET_TYPE.REGRESSION
+        elif target_type == "binary":
+            dr_target_type = dr.TARGET_TYPE.BINARY
+        elif target_type == "multiclass":
+            dr_target_type = dr.TARGET_TYPE.MULTICLASS
+        else:
+            raise ValueError("Unkown target type {}".format(target_type))
 
         model = CustomTrainingModel.create(name="training model", target_type=dr_target_type)
         model_version = dr.CustomModelVersion.create_clean(
