@@ -177,6 +177,8 @@ class CMRunTests:
 
         if self.options.docker:
             cmd_list.extend(["--docker", self.options.docker])
+        if self.options.memory:
+            cmd_list.extend([ArgumentsOptions.MEMORY, self.options.memory])
 
         return cmd_list
 
