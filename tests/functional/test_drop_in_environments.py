@@ -138,6 +138,7 @@ class TestDropInEnvironments(object):
             env_id,
             class_labels=["GALAXY", "QSO", "STAR"],
             target_name="class",
+            artifact_only=True,
         )
 
     @pytest.fixture(scope="session")
@@ -148,6 +149,7 @@ class TestDropInEnvironments(object):
             env_id,
             class_labels=["GALAXY", "QSO", "STAR"],
             target_name="class",
+            artifact_only=True,
         )
 
     @pytest.fixture(scope="session")
