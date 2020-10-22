@@ -41,7 +41,9 @@ class TestTrainingModelTemplates(object):
 
     @pytest.fixture(scope="session")
     def project_multiclass_skyserver(self):
-        proj = dr.Project.create(sourcedata=os.path.join(BASE_DATASET_DIR, "skyserver_sql2_27_2018_6_51_39_pm.csv"))
+        proj = dr.Project.create(
+            sourcedata=os.path.join(BASE_DATASET_DIR, "skyserver_sql2_27_2018_6_51_39_pm.csv")
+        )
         proj.set_target(target="class", mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
