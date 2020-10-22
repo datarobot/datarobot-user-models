@@ -76,13 +76,6 @@ class TestFit:
         else:
             language = PYTHON
 
-        # don't try to run unsupervised problem in supervised framework and vice versa
-        # TODO: check for graceful failure for these cases
-        if (framework == SKLEARN_ANOMALY and problem != ANOMALY) or (
-            problem == ANOMALY and framework != SKLEARN_ANOMALY
-        ):
-            return
-
         custom_model_dir = _create_custom_model_dir(
             resources,
             tmp_path,
@@ -126,7 +119,6 @@ class TestFit:
         [
             (RDS, BINARY_TEXT, None),
             (RDS, REGRESSION, None),
-            (RDS, ANOMALY, None),
             (RDS, MULTICLASS, None),
             (SKLEARN_BINARY, BINARY_TEXT, DOCKER_PYTHON_SKLEARN),
             (SKLEARN_REGRESSION, REGRESSION, DOCKER_PYTHON_SKLEARN),
@@ -136,15 +128,12 @@ class TestFit:
             (SKLEARN_MULTICLASS, MULTICLASS, None),
             (XGB, BINARY_TEXT, None),
             (XGB, REGRESSION, None),
-            (XGB, ANOMALY, None),
             (XGB, MULTICLASS, None),
             (KERAS, BINARY_TEXT, None),
             (KERAS, REGRESSION, None),
-            (KERAS, ANOMALY, None),
             (KERAS, MULTICLASS, None),
             (PYTORCH, BINARY_TEXT, None),
             (PYTORCH, REGRESSION, None),
-            (PYTORCH, ANOMALY, None),
             (PYTORCH, MULTICLASS, None),
         ],
     )
@@ -162,13 +151,6 @@ class TestFit:
             language = R_FIT
         else:
             language = PYTHON
-
-        # don't try to run unsupervised problem in supervised framework and vice versa
-        # TODO: check for graceful failure for these cases
-        if (framework == SKLEARN_ANOMALY and problem != ANOMALY) or (
-            problem == ANOMALY and framework != SKLEARN_ANOMALY
-        ):
-            return
 
         custom_model_dir = _create_custom_model_dir(
             resources,
