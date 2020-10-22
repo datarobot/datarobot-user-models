@@ -8,7 +8,7 @@ from sklearn.linear_model import Ridge
 
 
 def fit(
-    X: csr_matrix,
+    X: pd.DataFrame,
     y: pd.Series,
     output_dir: str,
     class_order: Optional[List[str]] = None,
@@ -43,7 +43,6 @@ def fit(
     -------
     Nothing
     """
-    # Feel free to delete which ever one of these you aren't using
     estimator = Ridge()
     estimator.fit(X, y)
 
