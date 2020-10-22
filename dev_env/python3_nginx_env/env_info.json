@@ -1,8 +1,0 @@
-{
-  "id": "5f370bfd5f627d47e6e1db19",
-  "name": "[DataRobot] Python Drop-In + nginx + uwsgi",
-  "description": "Python Drop-In + nginx + uwsgi",
-  "programmingLanguage": "python",
-  "environmentVersionId": "5f8ddcb4e9790c4bec80dc02",
-  "isPublic": true
-}
