@@ -1,5 +1,6 @@
 import logging
 import os
+from scipy.io import mmread
 import pickle
 import sys
 import textwrap
@@ -265,10 +266,11 @@ class PythonModelAdapter:
     @staticmethod
     def _read_structured_input(filename):
         try:
-            df = pd.read_csv(filename, lineterminator="\n")
+            if filename.endswith(".mtx"):
+                return pd.DataFrame.sparse.from_spmatrix(mmread(filename))
+            return pd.read_csv(filename, lineterminator="\n")
         except pd.errors.ParserError as e:
             raise DrumCommonException("Pandas failed to read input csv file: {}".format(filename))
-        return df
 
     def predict(self, input_filename, model=None, **kwargs):
         """

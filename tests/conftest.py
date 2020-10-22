@@ -1,13 +1,14 @@
+import json
 import os
 
 import pytest
-import json
 
 from tests.drum.constants import (
     ANOMALY,
     BINARY,
     BINARY_TEXT,
     CODEGEN,
+    SKLEARN_SPARSE,
     CODEGEN_AND_SKLEARN,
     KERAS,
     MOJO,
@@ -35,9 +36,11 @@ from tests.drum.constants import (
     REGRESSION_INFERENCE,
     SIMPLE,
     SKLEARN,
+    SKLEARN_ANOMALY,
     SKLEARN_BINARY,
     SKLEARN_REGRESSION,
-    SKLEARN_ANOMALY,
+    SPARSE,
+    SPARSE_TARGET,
     TESTS_ARTIFACTS_PATH,
     TESTS_DATA_PATH,
     TESTS_FIXTURES_PATH,
@@ -58,6 +61,8 @@ _datasets = {
     (None, ANOMALY): os.path.join(TESTS_DATA_PATH, "boston_housing.csv"),
     (None, UNSTRUCTURED): os.path.join(TESTS_DATA_PATH, "unstructured_data.txt"),
     (None, MULTICLASS): os.path.join(TESTS_DATA_PATH, "skyserver_sql2_27_2018_6_51_39_pm.csv"),
+    (None, SPARSE): os.path.join(TESTS_DATA_PATH, "sparse.mtx"),
+    (None, SPARSE_TARGET): os.path.join(TESTS_DATA_PATH, "sparse_target.csv"),
 }
 
 _training_models_paths = {
@@ -69,6 +74,7 @@ _training_models_paths = {
         TRAINING_TEMPLATES_PATH, "python3_sklearn_multiclass"
     ),
     (PYTHON, SIMPLE): os.path.join(TRAINING_TEMPLATES_PATH, "simple"),
+    (PYTHON, SKLEARN_SPARSE): os.path.join(TRAINING_TEMPLATES_PATH, "python3_sparse"),
     (PYTHON, KERAS): os.path.join(TRAINING_TEMPLATES_PATH, "python3_keras_joblib"),
     (PYTHON, XGB): os.path.join(TRAINING_TEMPLATES_PATH, "python3_xgboost"),
     (R_FIT, RDS): os.path.join(TRAINING_TEMPLATES_PATH, "r_lang"),
@@ -76,7 +82,13 @@ _training_models_paths = {
     (PYTHON, SKLEARN_ANOMALY): os.path.join(TRAINING_TEMPLATES_PATH, "python3_anomaly_detection"),
 }
 
-_targets = {BINARY: "Species", REGRESSION: "MEDV", BINARY_TEXT: "Churn", MULTICLASS: "class"}
+_targets = {
+    BINARY: "Species",
+    REGRESSION: "MEDV",
+    BINARY_TEXT: "Churn",
+    MULTICLASS: "class",
+    SPARSE: "my_target",
+}
 
 _target_types = {
     BINARY: "binary",
