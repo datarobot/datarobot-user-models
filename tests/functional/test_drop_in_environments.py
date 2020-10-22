@@ -137,7 +137,6 @@ class TestDropInEnvironments(object):
             "pojo_multi/XGBoost_3_AutoML_20201016_143029.java",
             env_id,
             class_labels=["GALAXY", "QSO", "STAR"],
-            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
             target_name="class",
         )
 
@@ -148,7 +147,6 @@ class TestDropInEnvironments(object):
             "mojo_multi.zip",
             env_id,
             class_labels=["GALAXY", "QSO", "STAR"],
-            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
             target_name="class",
         )
 
