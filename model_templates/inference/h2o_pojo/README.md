@@ -9,6 +9,8 @@ The models provided in each folder are H2O models exported as POJO (Plain Old Ja
 └── regression
     └── drf_887c2e5b_0941_40b7_ae26_cae274c4b424.java
 
+The H2O Model internals are used to provide the class names for the classification models. So while you must provide them on the command line utilities, they will not be passed through to the model.
+
 
 ### Instructions
 
@@ -17,6 +19,7 @@ Upload H2O Pojo File and use with the [Java H2O Drop-In Environment](../../publi
 ### Examples
 
 * Binary - The binary example is based on the iris dataset `Species`
+* Multiclass - multiclass example based on the galaxy dataset with target `class`
 * regression - boston housing pricing dataset with target `MEDV`. 
 
 ### To run locally using 'drum'
@@ -28,6 +31,10 @@ Paths are relative to `./datarobot-user-models/model_templates/inference` unless
 #### Binary 
 
 `drum score --code-dir ./h2o_pojo/binary --target-type binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label 1 --negative-class-label 0`
+
+#### Multiclass 
+
+`drum score --code-dir ./h2o_pojo/multiclass --target-type multiclass --input ../../tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv` 
 
 #### Regression 
 
