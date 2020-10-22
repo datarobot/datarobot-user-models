@@ -20,6 +20,8 @@ URL_PREFIX_ENV_VAR_NAME = "URL_PREFIX"
 
 MODEL_CONFIG_FILENAME = "model-metadata.yaml"
 
+PERF_TEST_SERVER_LABEL = "__DRUM_PERF_TEST_SERVER__"
+
 LOG_LEVELS = {
     "noset": logging.NOTSET,
     "debug": logging.DEBUG,

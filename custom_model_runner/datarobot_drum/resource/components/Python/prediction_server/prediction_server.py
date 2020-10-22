@@ -39,7 +39,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         self._stats_collector.register_report(
             "run_predictor_total", "finish", StatsOperation.SUB, "start"
         )
-        self._memory_monitor = MemoryMonitor()
+        self._memory_monitor = MemoryMonitor(monitor_current_process=True)
 
         if self._run_language == RunLanguage.PYTHON:
             from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (

@@ -136,6 +136,12 @@ include any necessary hooks in a file called `custom.py` for Python models or `c
 | Library | File Extension | Example |
 | --- | --- | --- |
 | datarobot-prediction | *.jar | dr-regressor.jar |
+| h2o-genmodel | *.java | GBM_model_python_1589382591366_1.java (pojo)| 
+| h2o-genmodel | *.zip | GBM_model_python_1589382591366_1.zip (mojo)| 
+| h2o-genmodel-ext-xgboost | *.java | XGBoost_2_AutoML_20201015_144158.java | 
+| h2o-genmodel-ext-xgboost | *.zip | XGBoost_2_AutoML_20201015_144158.zip | 
+
+If you leverage an H2O model exported as POJO, you cannot rename the file.  This does not apply to models exported as MOJO - they may be named in any fashion.  
 
 #### Additional params
 Define the DRUM_JAVA_XMX environment variable to set JVM maximum heap memory size (-Xmx java parameter), e.g:

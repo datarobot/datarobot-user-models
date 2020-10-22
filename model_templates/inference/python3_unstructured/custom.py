@@ -3,6 +3,12 @@ def load_model(input_dir):
 
 
 def score_unstructured(model, data, query, **kwargs):
+    print("Model: ", model)
+    print("Incoming content type params: ", kwargs)
+    print("Incoming data type: ", type(data))
+    print("Incoming data: ", data)
+
+    print("Incoming query params: ", query)
     if isinstance(data, bytes):
         data = data.decode("utf8")
 
