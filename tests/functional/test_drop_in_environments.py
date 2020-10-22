@@ -134,7 +134,7 @@ class TestDropInEnvironments(object):
     def pojo_multiclass_custom_model(self, java_h2o_drop_in_env):
         env_id, _ = java_h2o_drop_in_env
         return self.make_custom_model(
-            "pojo_multi/XGBoost_3_AutoML_20201016_143029.java",
+            "XGBoost_3_AutoML_20201016_143029.java",
             env_id,
             class_labels=["GALAXY", "QSO", "STAR"],
             target_name="class",
