@@ -45,7 +45,7 @@ def create_regression_model(num_features: int) -> Sequential:
     return model
 
 
-def create_binary_classification_model(num_features: int, num_labels: int) -> Sequential:
+def create_classification_model(num_features: int, num_labels: int) -> Sequential:
     """
     Create a binary classification model.
 
@@ -116,7 +116,7 @@ def make_classifier_pipeline(X: pd.DataFrame, num_labels: int) -> Pipeline:
 
     # create model
     estimator = KerasClassifier(
-        build_fn=create_binary_classification_model,
+        build_fn=create_classification_model,
         num_features=len(num_features),
         num_labels=num_labels,
         epochs=30,

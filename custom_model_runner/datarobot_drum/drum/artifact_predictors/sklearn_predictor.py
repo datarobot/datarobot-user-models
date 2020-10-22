@@ -77,6 +77,14 @@ class SKLearnPredictor(ArtifactPredictor):
                         "probability distribution for all class labels".format(self.target_type)
                     )
                 predictions = np.concatenate((1 - predictions, predictions), axis=1)
+            if predictions.shape[1] != len(labels_to_use):
+                raise DrumCommonException(
+                    "Target type '{}' predictions must return the "
+                    "probability distribution for all class labels. "
+                    "Expected {} columns, but recieved {}".format(
+                        self.target_type, len(labels_to_use), predictions.shape[1]
+                    )
+                )
             predictions = pd.DataFrame(predictions, columns=labels_to_use)
         elif self.target_type in [TargetType.REGRESSION, TargetType.ANOMALY]:
             predictions = pd.DataFrame(

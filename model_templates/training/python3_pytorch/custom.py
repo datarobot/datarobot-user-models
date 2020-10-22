@@ -50,7 +50,6 @@ def fit(
     # Feel free to delete which ever one of these you aren't using
     if class_order:
         estimator, optimizer, criterion = build_classifier(X_train, len(class_order))
-        print(estimator, optimizer, criterion)
         train_classifier(X_train, y, estimator, optimizer, criterion)
         artifact_name = "torch_class.pth"
     else:

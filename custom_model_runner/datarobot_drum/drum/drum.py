@@ -428,40 +428,43 @@ class CMRunner:
 
     def _prepare_fit_pipeline(self, run_language):
 
-        if self.target_type.value in TargetType.CLASSIFICATION.value:
-            posible_class_labels = possibly_intuit_order(
+        if self.target_type.value in TargetType.CLASSIFICATION.value and (
+            self.options.negative_class_label is None or self.options.class_labels is None
+        ):
+            # No class label information was supplied, but we may be able to infer the labels
+            possible_class_labels = possibly_intuit_order(
                 self.options.input,
                 self.options.target_csv,
                 self.options.target,
                 self.options.unsupervised,
             )
-            if posible_class_labels is not None:
-                if (
-                    self.target_type == TargetType.BINARY
-                    and self.options.negative_class_label is None
-                ):
-                    if len(posible_class_labels) != 2:
+            if possible_class_labels is not None:
+                if self.target_type == TargetType.BINARY:
+                    if len(possible_class_labels) != 2:
                         raise DrumCommonException(
-                            "Target type {} requires exactly 2 class labels. {} found: {}".format(
-                                TargetType.BINARY, len(posible_class_labels), posible_class_labels
+                            "Target type {} requires exactly 2 class labels. Detected {}: {}".format(
+                                TargetType.BINARY, len(possible_class_labels), possible_class_labels
                             )
                         )
                     (
                         self.options.positive_class_label,
                         self.options.negative_class_label,
-                    ) = posible_class_labels
-                elif (
-                    self.target_type == TargetType.MULTICLASS and self.options.class_labels is None
-                ):
-                    if len(posible_class_labels) <= 2:
+                    ) = possible_class_labels
+                elif self.target_type == TargetType.MULTICLASS:
+                    if len(possible_class_labels) <= 2:
                         raise DrumCommonException(
-                            "Target type {} requires more than 2 class labels. {} found: {}".format(
+                            "Target type {} requires more than 2 class labels. Detected {}: {}".format(
                                 TargetType.MULTICLASS,
-                                len(posible_class_labels),
-                                posible_class_labels,
+                                len(possible_class_labels),
+                                possible_class_labels,
                             )
                         )
-                    self.options.class_labels = list(posible_class_labels)
+                    self.options.class_labels = list(possible_class_labels)
+            else:
+                raise DrumCommonException(
+                    "Target type {} requires class label information. No labels were supplied and "
+                    "labels could not be inferred from the target."
+                )
 
         options = self.options
         # functional pipeline is predictor pipeline

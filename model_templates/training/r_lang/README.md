@@ -9,6 +9,6 @@ Uncomment and implement provided methods to modify this behavior from the defaul
 
 ### To run locally using 'drum'
 Paths are relative to `datarobot-user-models` root:
-`drum fit --code-dir model_templates/training/r_lang --input tests/testdata/boston_housing.csv --target MEDV`
+`drum fit --code-dir model_templates/training/r_lang --input tests/testdata/boston_housing.csv --target-type regression --target MEDV`
 If the command succeeds, your code is ready to be uploaded.
 
