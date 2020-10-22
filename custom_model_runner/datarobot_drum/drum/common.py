@@ -164,6 +164,7 @@ class TargetType(Enum):
     UNSTRUCTURED = "unstructured"
     MULTICLASS = "multiclass"
     CLASSIFICATION = [BINARY, MULTICLASS]
+    ALL = [BINARY, REGRESSION, ANOMALY, UNSTRUCTURED, MULTICLASS]
 
 
 class TemplateType:
