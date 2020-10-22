@@ -140,17 +140,14 @@ _artifacts = {
     (CODEGEN, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "java_bin.jar"),
     (POJO, REGRESSION): os.path.join(
         TESTS_ARTIFACTS_PATH,
-        "pojo_reg",
         "drf_887c2e5b_0941_40b7_ae26_cae274c4b424.java",
     ),
     (POJO, BINARY): os.path.join(
         TESTS_ARTIFACTS_PATH,
-        "pojo_bin",
         "XGBoost_grid__1_AutoML_20200717_163214_model_159.java",
     ),
     (POJO, MULTICLASS): os.path.join(
         TESTS_ARTIFACTS_PATH,
-        "pojo_multi",
         "XGBoost_3_AutoML_20201016_143029.java",
     ),
     (MOJO, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_reg.zip"),
