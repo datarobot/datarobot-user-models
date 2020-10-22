@@ -315,8 +315,8 @@ class TestDropInEnvironments(object):
             ),
             ("r_drop_in_env", "r_multi_artifact_binary_custom_model", "binary_testing_data"),
             ("sklearn_drop_in_env", "sklearn_multiclass_custom_model", "multiclass_testing_data"),
-            # ("java_h2o_drop_in_env", "pojo_multiclass_custom_model", "multiclass_testing_data"),
-            # ("java_h2o_drop_in_env", "mojo_multiclass_custom_model", "multiclass_testing_data"),
+            ("java_h2o_drop_in_env", "pojo_multiclass_custom_model", "multiclass_testing_data"),
+            ("java_h2o_drop_in_env", "mojo_multiclass_custom_model", "multiclass_testing_data"),
         ],
     )
     def test_drop_in_environments(self, request, env, model, test_data_id):
