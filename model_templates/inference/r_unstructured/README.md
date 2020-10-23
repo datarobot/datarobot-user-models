@@ -83,7 +83,7 @@ The text is unreadable because it has been decoded using the `latin1` charset, w
 This example provides a custom *binary* content type and query params.  
 DRUM handles any data with `mimetype` that does not start with `text/` or `application/json` as binary.  
 Command:   
-`drum score --code-dir model_templates/inference/r_unstructured --target-type unstructured --input tests/testdata/unstructured_data.txt --verbose --content-type "application/octet-stream;charset=utf8" --query "ret_mode=text" --output out_file`
+`drum score --code-dir model_templates/inference/r_unstructured --target-type unstructured --input tests/testdata/unstructured_data.txt --verbose --content-type "application/octet-stream" --query "ret_mode=text" --output out_file`
 
 Output:
 ```
@@ -94,9 +94,6 @@ Output:
 
 $mimetype
 [1] "application/octet-stream"
-
-$charset
-[1] "utf8"
 
 [1] "Incoming data type: " "raw"        
          
@@ -109,9 +106,10 @@ $ret_mode
 [1] "text"
 ```
 
-The values  are`mimetype=application/stream` and `charset=utf8` as was passed.  
-> Note that encoding is not required for binary data. If you don't want to pass the textual mimetype so that DRUM can decode data for you,
-> you can pass mimetype for binary data, charset and decode the data yourself. This depends on the particular task. 
+The values are `mimetype=application/stream` and `charset` is missing as it was not passed, because not required for binary data.  
+> Note: If you don't want to pass the textual mimetype so that DRUM can decode data,
+> you still can pass mimetype for binary data and charset and decode the data yourself, e.g. `application/octet-stream;charset=<your_charset>`.
+> This depends on the particular task. 
 
 The data is treated as binary, so the type is `raw`.
 The incoming query params are `ret_mode=text`, used in `custom.R` to output data as either str or bytes.  

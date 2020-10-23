@@ -63,21 +63,22 @@ The text is unreadable because it has been decoded using the `latin1` charset, w
 This example provides a custom *binary* content type and query params.  
 DRUM handles any data with `mimetype` that does not start with `text/` or `application/json` as binary.  
 Command:   
-`drum score --code-dir model_templates/inference/python3_unstructured --target-type unstructured --input tests/testdata/unstructured_data.txt --verbose --content-type "application/octet-stream;charset=utf8" --query "ret_mode=text" --output out_file`
+`drum score --code-dir model_templates/inference/python3_unstructured --target-type unstructured --input tests/testdata/unstructured_data.txt --verbose --content-type "application/octet-stream" --query "ret_mode=text" --output out_file`
 
 Output:
 ```
 Model:  dummy
-Incoming content type params:  {'mimetype': 'application/octet-stream', 'charset': 'utf8'}
+Incoming content type params:  {'mimetype': 'application/octet-stream'}
 Incoming data type:  <class 'bytes'>
 Incoming data:  b'rough road leads to the stars \n\xd1\x87\xd0\xb5\xd1\x80\xd0\xb5\xd0\xb7 \xd1\x82\xd0\xb5\xd1\x80\xd0\xbd\xd0\xb8\xd0\xb8 \xd0\xba \xd0\xb7\xd0\xb2\xd0\xb5\xd0\xb7\xd0\xb4\xd0\xb0\xd0\xbc\n'
 Incoming query params:  {'ret_mode': 'text'}
 
 ```
 
-The values  are`mimetype=application/stream` and `charset=utf8` as we passed.  
-> Note that encoding is not required for binary data. If you don't want to pass the textual mimetype so that DRUM can decode data for you,
-> you can pass mimetype for binary data, charset and decode the data yourself. This depends on the particular task. 
+The values are `mimetype=application/stream` and `charset` is missing as it was not passed, because not required for binary data.   
+> Note: If you don't want to pass the textual mimetype so that DRUM can decode data,
+> you still can pass mimetype for binary data and charset and decode the data yourself, e.g. `application/octet-stream;charset=<your_charset>`.
+> This depends on the particular task. 
 
 The data is treated as binary, so the type is `bytes`.
 The incoming query params are `ret_mode=text`, used in `custom.py` to output data as either str or bytes.  
