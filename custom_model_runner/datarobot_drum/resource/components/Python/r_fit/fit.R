@@ -23,7 +23,7 @@ get_nested_path <- function(path, file_pattern){
 init <- function(code_dir) {
     custom_path <- get_nested_path(code_dir, 'custom.[Rr]')
     if(length(custom_path) >= 1){
-        custom_loaded <- import(custom_path[0])
+        custom_loaded <- import(custom_path[1])
     } else{
         stop('No custom file found.')
     }

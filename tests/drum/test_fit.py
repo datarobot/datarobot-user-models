@@ -50,7 +50,7 @@ class TestFit:
 
         return "", input_csv, __keep_this_around
 
-    @pytest.mark.parametrize("framework", [XGB])
+    @pytest.mark.parametrize("framework", [XGB, RDS])
     @pytest.mark.parametrize("problem", [REGRESSION])
     @pytest.mark.parametrize("docker", [DOCKER_PYTHON_SKLEARN, None])
     @pytest.mark.parametrize("weights", [None])
@@ -88,7 +88,7 @@ class TestFit:
             problem,
             language,
             is_training=True,
-            nested=nested 
+            nested=nested
         )
 
         input_dataset = resources.datasets(framework, problem)
