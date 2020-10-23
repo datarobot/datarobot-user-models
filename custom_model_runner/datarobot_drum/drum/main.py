@@ -24,10 +24,10 @@ Examples:
     drum server --code-dir ~/custom_model3/ --address host:port
 
     # Run binary classification user model in fit mode.
-    drum fit --code-dir <custom code dir> --input <input.csv> --output <output_dir> --target <target feature> --positive-class-label <class-label-1> --negative-class-label <class-label-0> --verbose
+    drum fit --code-dir <custom code dir> --input <input.csv> --output <output_dir> --target-type binary --target <target feature> --positive-class-label <class-label-1> --negative-class-label <class-label-0> --verbose
 
     # Run regression user model in fit mode.
-    drum fit --code-dir <custom code dir> --input <input.csv> --output <output_dir> --target <target feature> --verbose
+    drum fit --code-dir <custom code dir> --input <input.csv> --output <output_dir> --target-type regression --target <target feature> --verbose
 """
 import os
 import signal

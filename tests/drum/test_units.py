@@ -39,10 +39,6 @@ class TestOrderIntuition:
             classes = possibly_intuit_order(self.binary_filename, target_data_file=target_file.name)
             assert set(classes) == {"Iris-versicolor", "Iris-setosa"}
 
-    def test_regression(self):
-        classes = possibly_intuit_order(self.regression_filename, target_col_name="MEDV")
-        assert set(classes) == {None, None}
-
     def test_badfile(self):
         with pytest.raises(DrumCommonException):
             possibly_intuit_order(self.one_target_filename, target_col_name="Species")
@@ -51,7 +47,7 @@ class TestOrderIntuition:
         classes = possibly_intuit_order(
             self.regression_filename, target_col_name="MEDV", unsupervised=True
         )
-        assert set(classes) == {None, None}
+        assert classes is None
 
 
 class TestValidatePredictions:

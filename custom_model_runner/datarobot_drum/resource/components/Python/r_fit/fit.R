@@ -95,7 +95,7 @@ process_weights <- function(X, weights_filename, weights, num_rows){
 
 outer_fit <- function(output_dir, input_filename, target_filename,
                       target_name, num_rows, weights_filename, weights,
-                      positive_class_label, negative_class_label) {
+                      positive_class_label, negative_class_label, class_labels) {
 
     processed_data <- process_data(input_filename, target_filename, target_name, num_rows)
 
@@ -107,6 +107,8 @@ outer_fit <- function(output_dir, input_filename, target_filename,
 
     if (!is.null(positive_class_label) && !is.null(negative_class_label)){
         class_order <- c(negative_class_label, positive_class_label)
+    } else if (!is.null(class_labels)) {
+        class_order <- class_labels
     } else {
         class_order <- NULL
     }

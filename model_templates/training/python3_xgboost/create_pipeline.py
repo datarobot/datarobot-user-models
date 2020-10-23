@@ -50,7 +50,34 @@ def create_binary_classification_model() -> XGBClassifier:
     return xg_clf
 
 
-def make_classifier_pipeline(X: pd.DataFrame) -> Pipeline:
+def create_multiclass_classification_model(num_labels: int) -> XGBClassifier:
+    """
+    Create a binary classification model.
+
+    Parameters
+    ----------
+    num_labels
+        number of classification labels
+
+    Returns
+    -------
+    XGBClassifier
+        XGBoost classifier model
+    """
+    xg_clf = XGBClassifier(
+        objective="multi:softprob",
+        num_class=num_labels,
+        colsample_bytree=0.5,
+        learning_rate=0.1,
+        max_depth=5,
+        alpha=10,
+        n_estimators=50,
+        seed=123,
+    )
+    return xg_clf
+
+
+def make_classifier_pipeline(X: pd.DataFrame, num_labels: int) -> Pipeline:
     """
     Make the classifier pipeline with the required preprocessor steps and estimator in the end.
 
@@ -58,6 +85,8 @@ def make_classifier_pipeline(X: pd.DataFrame) -> Pipeline:
     ----------
     X
         X containing all the required features for training
+    num_labels
+        number of classification labels
 
     Returns
     -------
@@ -75,7 +104,11 @@ def make_classifier_pipeline(X: pd.DataFrame) -> Pipeline:
     preprocessor = ColumnTransformer(transformers=[("num", num_transformer, num_features)])
 
     # create model
-    estimator = create_binary_classification_model()
+    estimator = (
+        create_binary_classification_model()
+        if num_labels == 2
+        else create_multiclass_classification_model(num_labels)
+    )
 
     # pipeline with preprocessor and estimator bundled
     classifier_pipeline = Pipeline(steps=[("preprocessor", preprocessor), ("estimator", estimator)])

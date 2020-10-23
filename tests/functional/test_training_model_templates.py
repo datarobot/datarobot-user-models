@@ -39,6 +39,14 @@ class TestTrainingModelTemplates(object):
         proj.set_target(target="readmitted", mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
+    @pytest.fixture(scope="session")
+    def project_multiclass_skyserver(self):
+        proj = dr.Project.create(
+            sourcedata=os.path.join(BASE_DATASET_DIR, "skyserver_sql2_27_2018_6_51_39_pm.csv")
+        )
+        proj.set_target(target="class", mode=dr.AUTOPILOT_MODE.MANUAL)
+        return proj.id
+
     @pytest.mark.parametrize(
         "model_template, proj, env, target_type",
         [
@@ -61,6 +69,12 @@ class TestTrainingModelTemplates(object):
                 "regression",
             ),
             (
+                "training/python3_pytorch",
+                "project_multiclass_skyserver",
+                "pytorch_drop_in_env",
+                "multiclass",
+            ),
+            (
                 "training/python3_keras_joblib",
                 "project_regression_boston",
                 "keras_drop_in_env",
@@ -71,6 +85,12 @@ class TestTrainingModelTemplates(object):
                 "project_binary_iris",
                 "keras_drop_in_env",
                 "binary",
+            ),
+            (
+                "training/python3_keras_joblib",
+                "project_multiclass_skyserver",
+                "keras_drop_in_env",
+                "multiclass",
             ),
             (
                 "training/python3_keras_vizai_joblib",
@@ -91,6 +111,12 @@ class TestTrainingModelTemplates(object):
                 "binary",
             ),
             (
+                "training/python3_xgboost",
+                "project_multiclass_skyserver",
+                "xgboost_drop_in_env",
+                "multiclass",
+            ),
+            (
                 "training/python3_sklearn_regression",
                 "project_regression_boston",
                 "sklearn_drop_in_env",
@@ -103,6 +129,12 @@ class TestTrainingModelTemplates(object):
                 "binary",
             ),
             (
+                "training/python3_sklearn_multiclass",
+                "project_multiclass_skyserver",
+                "sklearn_drop_in_env",
+                "multiclass",
+            ),
+            (
                 "training/r_lang",
                 "project_regression_boston",
                 "r_drop_in_env",
@@ -114,14 +146,25 @@ class TestTrainingModelTemplates(object):
                 "r_drop_in_env",
                 "binary",
             ),
+            (
+                "training/r_lang",
+                "project_multiclass_skyserver",
+                "r_drop_in_env",
+                "multiclass",
+            ),
         ],
     )
     def test_training_model_templates(self, request, model_template, proj, env, target_type):
         env_id, env_version_id = request.getfixturevalue(env)
         proj_id = request.getfixturevalue(proj)
-        dr_target_type = (
-            dr.TARGET_TYPE.REGRESSION if target_type == "regression" else dr.TARGET_TYPE.BINARY
-        )
+        if target_type == "regression":
+            dr_target_type = dr.TARGET_TYPE.REGRESSION
+        elif target_type == "binary":
+            dr_target_type = dr.TARGET_TYPE.BINARY
+        elif target_type == "multiclass":
+            dr_target_type = dr.TARGET_TYPE.MULTICLASS
+        else:
+            raise ValueError("Unkown target type {}".format(target_type))
 
         model = CustomTrainingModel.create(name="training model", target_type=dr_target_type)
         model_version = dr.CustomModelVersion.create_clean(
