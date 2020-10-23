@@ -711,13 +711,19 @@ class CMRunnerArgsRegistry(object):
                 exit(1)
         elif options.subparser_name in [ArgumentsOptions.SERVER, ArgumentsOptions.PERF_TEST]:
             if options.production:
-                ret_code = subprocess.run([sys.executable, "-m", "pip", "show", "uwsgi"]).returncode
-                if ret_code != 0:
+                if options.verbose:
+                    print("Checking if uwsgi is installed...")
+                result = subprocess.run(
+                    [sys.executable, "-m", "pip", "show", "uwsgi"], capture_output=True
+                )
+                if result.returncode != 0:
                     print(
                         "Looks like 'uwsgi` package is missing. Don't use '{}' option when running drum server or try to install 'uwsgi'.".format(
                             ArgumentsOptions.PRODUCTION
                         )
                     )
+                    print(result.stdout.decode("utf8"))
+                    print(result.stderr.decode("utf8"))
                     exit(1)
 
         CMRunnerArgsRegistry.verify_monitoring_options(options, options.subparser_name)
