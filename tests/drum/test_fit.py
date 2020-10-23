@@ -82,13 +82,7 @@ class TestFit:
             return
 
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
-            is_training=True,
-            nested=nested
+            resources, tmp_path, framework, problem, language, is_training=True, nested=nested
         )
 
         input_dataset = resources.datasets(framework, problem)
