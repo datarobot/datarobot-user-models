@@ -714,7 +714,9 @@ class CMRunnerArgsRegistry(object):
                 if options.verbose:
                     print("Checking if uwsgi is installed...")
                 result = subprocess.run(
-                    [sys.executable, "-m", "pip", "show", "uwsgi"], capture_output=True
+                    [sys.executable, "-m", "pip", "show", "uwsgi"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
                 )
                 if result.returncode != 0:
                     print(
