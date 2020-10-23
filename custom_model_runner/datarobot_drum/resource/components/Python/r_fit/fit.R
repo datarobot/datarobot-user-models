@@ -7,13 +7,26 @@ fit_hook <- FALSE
 
 set.seed(1)
 
-init <- function(code_dir) {
-  if (file.exists(file.path(code_dir, 'custom.R'))){
-    custom_path <- file.path(code_dir, "custom.R")
-  } else {
-    custom_path <- file.path(code_dir, "custom.r")
+str_right <- function(string, n) {
+  substr(string, nchar(string) - (n - 1), nchar(string))
+}
+
+get_nested_path <- function(path, file_pattern){
+  if(str_right(path, 1) == '/'){
+    path = subbstr(path, 1, nchar(path)-1)
   }
-  custom_loaded <- import(custom_path)
+  return(
+    list.files(path=path, pattern=file_pattern, recursive = TRUE, full.names=TRUE)
+  )
+}
+
+init <- function(code_dir) {
+    custom_path <- get_nested_path(code_dir, 'custom.[Rr]')
+    if(length(custom_path) >= 1){
+        custom_loaded <- import(custom_path[0])
+    } else{
+        stop('No custom file found.')
+    }
   if (isTRUE(custom_loaded)) {
     init_hook <<- getHookMethod("init")
     fit_hook <<- getHookMethod("fit")
