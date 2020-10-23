@@ -337,17 +337,16 @@ class TestFit:
 
     @pytest.mark.parametrize("framework", [SKLEARN_SPARSE, PYTORCH, RDS])
     def test_fit_sparse(self, resources, tmp_path, framework):
-        problem = SPARSE
         custom_model_dir = _create_custom_model_dir(
             resources,
             tmp_path,
             framework,
-            problem,
+            SPARSE,
             language=R_FIT if framework == RDS else PYTHON,
             is_training=True,
         )
 
-        input_dataset = resources.datasets(framework, problem)
+        input_dataset = resources.datasets(framework, SPARSE)
         target_dataset = resources.datasets(framework, SPARSE_TARGET)
 
         output = tmp_path / "output"

@@ -28,6 +28,7 @@ init <- function(code_dir) {
 
 load_data <- function(input_filename){
     if (grepl("\\.mtx$", input_filename, fixed=TRUE)) {
+        eeeeeeeeee
         return(as.data.frame(as.matrix(readMM(input_filename))))
     }
     tmp = readChar(input_filename, file.info(input_filename)$size)
