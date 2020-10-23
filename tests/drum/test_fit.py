@@ -88,7 +88,7 @@ class TestFit:
             problem,
             language,
             is_training=True,
-            nested=nested if language == PYTHON else False,  # TODO: support nested R files
+            nested=nested 
         )
 
         input_dataset = resources.datasets(framework, problem)
