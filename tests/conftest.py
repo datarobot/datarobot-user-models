@@ -44,6 +44,7 @@ from tests.drum.constants import (
     TRAINING_TEMPLATES_PATH,
     UNSTRUCTURED,
     XGB,
+    SKLEARN_MULTICLASS,
 )
 
 _datasets = {
@@ -63,6 +64,9 @@ _training_models_paths = {
     (PYTHON, SKLEARN_BINARY): os.path.join(TRAINING_TEMPLATES_PATH, "python3_sklearn_binary"),
     (PYTHON, SKLEARN_REGRESSION): os.path.join(
         TRAINING_TEMPLATES_PATH, "python3_sklearn_regression"
+    ),
+    (PYTHON, SKLEARN_MULTICLASS): os.path.join(
+        TRAINING_TEMPLATES_PATH, "python3_sklearn_multiclass"
     ),
     (PYTHON, SIMPLE): os.path.join(TRAINING_TEMPLATES_PATH, "simple"),
     (PYTHON, KERAS): os.path.join(TRAINING_TEMPLATES_PATH, "python3_keras_joblib"),
@@ -96,12 +100,16 @@ _class_labels = {
     (MOJO, BINARY): ["yes", "no"],
     (POJO, BINARY): ["yes", "no"],
     (SKLEARN, MULTICLASS): ["GALAXY", "QSO", "STAR"],
+    (SKLEARN_MULTICLASS, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (XGB, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (KERAS, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (RDS, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (PYPMML, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (PYTORCH, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (CODEGEN, MULTICLASS): ["GALAXY", "QSO", "STAR"],
+    (SKLEARN_BINARY, BINARY_TEXT): ["False", "True"],
+    (XGB, BINARY_TEXT): ["False", "True"],
+    (KERAS, BINARY_TEXT): ["False", "True"],
     (POJO, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (MOJO, MULTICLASS): ["GALAXY", "QSO", "STAR"],
 }

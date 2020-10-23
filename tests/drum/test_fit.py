@@ -12,6 +12,7 @@ from .constants import (
     BINARY,
     DOCKER_PYTHON_SKLEARN,
     KERAS,
+    MULTICLASS,
     PYTHON,
     PYTORCH,
     R_FIT,
@@ -21,6 +22,7 @@ from .constants import (
     SIMPLE,
     SKLEARN,
     SKLEARN_BINARY,
+    SKLEARN_MULTICLASS,
     SKLEARN_REGRESSION,
     SKLEARN_ANOMALY,
     TESTS_ROOT_PATH,
@@ -74,13 +76,6 @@ class TestFit:
         else:
             language = PYTHON
 
-        # don't try to run unsupervised problem in supervised framework and vice versa
-        # TODO: check for graceful failure for these cases
-        if (framework == SKLEARN_ANOMALY and problem != ANOMALY) or (
-            problem == ANOMALY and framework != SKLEARN_ANOMALY
-        ):
-            return
-
         custom_model_dir = _create_custom_model_dir(
             resources,
             tmp_path,
@@ -100,12 +95,10 @@ class TestFit:
         output = tmp_path / "output"
         output.mkdir()
 
-        cmd = "{} fit --code-dir {} --input {} --verbose ".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
+            ArgumentsOptions.MAIN_COMMAND, problem, custom_model_dir, input_dataset
         )
-        if problem == ANOMALY:
-            cmd += " --target-type anomaly"
-        else:
+        if problem != ANOMALY:
             cmd += " --target {}".format(resources.targets(problem))
 
         if use_output:
@@ -122,10 +115,30 @@ class TestFit:
         )
 
     @pytest.mark.parametrize(
-        "framework", [RDS, SKLEARN_BINARY, SKLEARN_REGRESSION, XGB, KERAS, PYTORCH]
+        "framework, problem, docker",
+        [
+            (RDS, BINARY_TEXT, None),
+            (RDS, REGRESSION, None),
+            (RDS, MULTICLASS, None),
+            (SKLEARN_BINARY, BINARY_TEXT, DOCKER_PYTHON_SKLEARN),
+            (SKLEARN_REGRESSION, REGRESSION, DOCKER_PYTHON_SKLEARN),
+            (SKLEARN_ANOMALY, ANOMALY, DOCKER_PYTHON_SKLEARN),
+            (SKLEARN_MULTICLASS, MULTICLASS, DOCKER_PYTHON_SKLEARN),
+            (SKLEARN_BINARY, BINARY_TEXT, None),
+            (SKLEARN_REGRESSION, REGRESSION, None),
+            (SKLEARN_ANOMALY, ANOMALY, None),
+            (SKLEARN_MULTICLASS, MULTICLASS, None),
+            (XGB, BINARY_TEXT, None),
+            (XGB, REGRESSION, None),
+            (XGB, MULTICLASS, None),
+            (KERAS, BINARY_TEXT, None),
+            (KERAS, REGRESSION, None),
+            (KERAS, MULTICLASS, None),
+            (PYTORCH, BINARY_TEXT, None),
+            (PYTORCH, REGRESSION, None),
+            (PYTORCH, MULTICLASS, None),
+        ],
     )
-    @pytest.mark.parametrize("problem", [BINARY_TEXT, REGRESSION, ANOMALY])
-    @pytest.mark.parametrize("docker", [DOCKER_PYTHON_SKLEARN, None])
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
     def test_fit(
         self,
@@ -136,27 +149,10 @@ class TestFit:
         weights,
         tmp_path,
     ):
-        # exceptions
-        if docker and framework not in [SKLEARN_BINARY, SKLEARN_REGRESSION]:
-            return
-        if (framework, problem) in [
-            (SKLEARN_BINARY, REGRESSION),
-            (SKLEARN_BINARY, ANOMALY),
-            (SKLEARN_REGRESSION, BINARY_TEXT),
-        ]:
-            return
-
         if framework == RDS:
             language = R_FIT
         else:
             language = PYTHON
-
-        # don't try to run unsupervised problem in supervised framework and vice versa
-        # TODO: check for graceful failure for these cases
-        if (framework == SKLEARN_ANOMALY and problem != ANOMALY) or (
-            problem == ANOMALY and framework != SKLEARN_ANOMALY
-        ):
-            return
 
         custom_model_dir = _create_custom_model_dir(
             resources,
@@ -173,15 +169,18 @@ class TestFit:
             weights, input_dataset, r_fit=language == R_FIT
         )
 
-        cmd = "{} fit --code-dir {} --input {} --verbose ".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset
-        )
-        if problem == ANOMALY:
-            cmd += " --target-type anomaly"
-        else:
-            cmd += " --target {}".format(resources.targets(problem))
+        target_type = problem if problem != BINARY_TEXT else BINARY
+        target_type = "anomaly" if problem == ANOMALY else target_type
 
-        if problem == BINARY:
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
+            ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
+        )
+        if problem != ANOMALY:
+            cmd += " --target {}".format(resources.targets(problem))
+        else:
+            cmd += " --unsupervised"
+
+        if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(cmd, resources.class_labels(framework, problem))
         if docker:
             cmd += " --docker {} ".format(docker)
@@ -221,31 +220,36 @@ class TestFit:
             with open(os.path.join(input_dir, "weights.csv"), "w+") as fp:
                 weights_data.to_csv(fp, header=False)
 
-    @pytest.mark.parametrize("framework", [SKLEARN_BINARY, XGB, KERAS, SKLEARN_ANOMALY])
-    @pytest.mark.parametrize("problem", [BINARY, BINARY_TEXT, ANOMALY])
-    @pytest.mark.parametrize("language", [PYTHON])
+    @pytest.mark.parametrize(
+        "framework, problem",
+        [
+            (SKLEARN_BINARY, BINARY_TEXT),
+            (SKLEARN_BINARY, BINARY),
+            (SKLEARN_ANOMALY, ANOMALY),
+            (SKLEARN_MULTICLASS, MULTICLASS),
+            (XGB, BINARY_TEXT),
+            (XGB, BINARY),
+            (XGB, MULTICLASS),
+            (KERAS, BINARY_TEXT),
+            (KERAS, BINARY),
+            (KERAS, MULTICLASS),
+        ],
+    )
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, None])
     def test_fit_sh(
         self,
         resources,
         framework,
         problem,
-        language,
         weights,
         tmp_path,
     ):
-
-        if (framework == SKLEARN_ANOMALY and problem != ANOMALY) or (
-            problem == ANOMALY and framework != SKLEARN_ANOMALY
-        ):
-            return
-
         custom_model_dir = _create_custom_model_dir(
             resources,
             tmp_path,
             framework,
             problem,
-            language,
+            PYTHON,
             is_training=True,
         )
 
@@ -254,8 +258,10 @@ class TestFit:
             TESTS_ROOT_PATH,
             "..",
             "public_dropin_environments/{}_{}/fit.sh".format(
-                language,
-                framework if framework not in [SKLEARN_ANOMALY, SKLEARN_BINARY] else SKLEARN,
+                PYTHON,
+                framework
+                if framework not in [SKLEARN_ANOMALY, SKLEARN_BINARY, SKLEARN_MULTICLASS]
+                else SKLEARN,
             ),
         )
 
@@ -271,14 +277,22 @@ class TestFit:
         env["INPUT_DIRECTORY"] = str(input_dir)
         env["ARTIFACT_DIRECTORY"] = str(output)
 
-        if problem == BINARY:
+        # clear env vars
+        if os.environ.get("NEGATIVE_CLASS_LABEL"):
+            del os.environ["NEGATIVE_CLASS_LABEL"]
+            del os.environ["POSITIVE_CLASS_LABEL"]
+        if os.environ.get("CLASS_LABELS_FILE"):
+            del os.environ["CLASS_LABELS_FILE"]
+
+        if problem in [BINARY, BINARY_TEXT]:
             labels = resources.class_labels(framework, problem)
             env["NEGATIVE_CLASS_LABEL"] = labels[0]
             env["POSITIVE_CLASS_LABEL"] = labels[1]
-        else:
-            if os.environ.get("NEGATIVE_CLASS_LABEL"):
-                del os.environ["NEGATIVE_CLASS_LABEL"]
-                del os.environ["POSITIVE_CLASS_LABEL"]
+        elif problem == MULTICLASS:
+            labels = resources.class_labels(framework, problem)
+            with open(os.path.join(tmp_path, "class_labels.txt"), mode="w") as f:
+                f.write("\n".join(labels))
+                env["CLASS_LABELS_FILE"] = f.name
 
         if problem == ANOMALY:
             env["UNSUPERVISED"] = "true"
@@ -307,8 +321,9 @@ class TestFit:
         output = tmp_path / "output"
         output.mkdir()
 
-        cmd = "{} fit --code-dir {} --target {} --input {} --verbose".format(
+        cmd = "{} fit --target-type {} --code-dir {} --target {} --input {} --verbose".format(
             ArgumentsOptions.MAIN_COMMAND,
+            REGRESSION,
             custom_model_dir,
             resources.targets(REGRESSION),
             input_dataset,

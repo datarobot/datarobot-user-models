@@ -45,7 +45,7 @@ def create_regression_model(num_features: int) -> Sequential:
     return model
 
 
-def create_binary_classification_model(num_features: int) -> Sequential:
+def create_classification_model(num_features: int, num_labels: int) -> Sequential:
     """
     Create a binary classification model.
 
@@ -59,7 +59,15 @@ def create_binary_classification_model(num_features: int) -> Sequential:
     model: Sequential
         Compiled binary classification model
     """
-    input_dim, output_dim = num_features, 1
+    input_dim, output_dim = num_features, num_labels if num_labels > 2 else 1
+    if num_labels > 2:
+        loss = "categorical_crossentropy"
+        metrics = ["accuracy"]
+        final_activation = "softmax"
+    else:
+        loss = "binary_crossentropy"
+        metrics = ["binary_accuracy"]
+        final_activation = "sigmoid"
 
     # create model
     model = Sequential()
@@ -75,14 +83,14 @@ def create_binary_classification_model(num_features: int) -> Sequential:
     model.add(Dropout(0.2))
 
     # output layer
-    model.add(Dense(output_dim, activation="sigmoid"))
+    model.add(Dense(output_dim, activation=final_activation))
 
     # Compile model
-    model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["binary_accuracy"])
+    model.compile(loss=loss, optimizer="adam", metrics=metrics)
     return model
 
 
-def make_classifier_pipeline(X: pd.DataFrame) -> Pipeline:
+def make_classifier_pipeline(X: pd.DataFrame, num_labels: int) -> Pipeline:
     """
     Make the classifier pipeline with the required preprocessor steps and estimator in the end.
 
@@ -90,6 +98,8 @@ def make_classifier_pipeline(X: pd.DataFrame) -> Pipeline:
     ----------
     X: pd.DataFrame
         X containing all the required features for training
+    num_labels: int
+        The number of output labels
 
     Returns
     -------
@@ -106,8 +116,9 @@ def make_classifier_pipeline(X: pd.DataFrame) -> Pipeline:
 
     # create model
     estimator = KerasClassifier(
-        build_fn=create_binary_classification_model,
+        build_fn=create_classification_model,
         num_features=len(num_features),
+        num_labels=num_labels,
         epochs=30,
         batch_size=8,
         verbose=1,

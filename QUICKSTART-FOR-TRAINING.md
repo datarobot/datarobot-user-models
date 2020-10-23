@@ -44,7 +44,7 @@ engineers to make sure your model is in tip top shape to be uploaded into the
 app. This tool is called DRUM. Here's how to run it
 ```
 drum fit --code-dir model_templates/training/python3_sklearn --input \
-tests/testdata/iris_binary_training.csv --target Species --verbose
+tests/testdata/iris_binary_training.csv --target-type binary --target Species --verbose
 ```
 This is going to build a model with the code in the `training/python3_sklearn` 
 directory, and then use that model to make predictions using the training data 

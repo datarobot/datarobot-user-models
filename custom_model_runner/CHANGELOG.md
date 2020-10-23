@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-#### [1.3.1rc6] - in progress
+#### [1.3.1rc7] - in progress
 ##### Added
 - `multiclass` target type
 - `class-labels` for specifying the class labels of a multiclass model
@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - add multiclass classification support for `drum score` and `drum server`
 ##### Changed
 - support only keras built into tensorflow >= 2.2.1
+- `--target-type` is now required for `drum fit`
 
 #### [1.3.0] - 2020-10-15
 ##### Added

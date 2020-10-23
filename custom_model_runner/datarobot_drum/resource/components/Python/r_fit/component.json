@@ -59,7 +59,7 @@
     "label": "Negative class label",
     "type": "str",
     "description": "Negative class label for the classification model",
-    "optional": false
+    "optional": true
   },
   {
     "key": "outputDir",

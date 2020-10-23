@@ -158,11 +158,13 @@ def shared_fit_preprocessing(fit_class):
         row_weights = None
 
     # get class order obj from class labels
-    class_order = (
-        [fit_class.negative_class_label, fit_class.positive_class_label]
-        if fit_class.negative_class_label
-        else None
-    )
+    if fit_class.negative_class_label and fit_class.positive_class_label:
+        class_order = [fit_class.negative_class_label, fit_class.positive_class_label]
+    elif fit_class.class_labels:
+        class_order = fit_class.class_labels
+    else:
+        class_order = None
+
     return X, y, class_order, row_weights
 
 
