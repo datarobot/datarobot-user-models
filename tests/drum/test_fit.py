@@ -353,8 +353,8 @@ class TestFit:
         output = tmp_path / "output"
         output.mkdir()
 
-        cmd = "{} fit --code-dir {} --input {} --verbose ".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset
+        cmd = "{} fit --code-dir {} --input {} --target-type {} --verbose ".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, REGRESSION
         )
 
         cmd += " --target-csv " + target_dataset
