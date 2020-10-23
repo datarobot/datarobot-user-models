@@ -69,7 +69,7 @@ class PredictMixin:
     def do_predict_unstructured(self, logger=None):
         def _validate_content_type_header(header):
             ret_mimetype, content_type_params_dict = werkzeug.http.parse_options_header(header)
-            ret_charset = content_type_params_dict.get("charset", "utf8")
+            ret_charset = content_type_params_dict.get("charset")
             return ret_mimetype, ret_charset
 
         response_status = HTTP_200_OK
@@ -83,10 +83,9 @@ class PredictMixin:
             mimetype,
             charset,
         )
-
         kwargs_params[UnstructuredDtoKeys.MIMETYPE] = mimetype
-        kwargs_params[UnstructuredDtoKeys.CHARSET] = charset
-
+        if charset is not None:
+            kwargs_params[UnstructuredDtoKeys.CHARSET] = charset
         kwargs_params[UnstructuredDtoKeys.QUERY] = request.args
 
         ret_data, ret_kwargs = self._predictor.predict_unstructured(

@@ -13,7 +13,6 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.resource.unstructured_helpers import (
     _resolve_incoming_unstructured_data,
     _resolve_outgoing_unstructured_data,
-    _is_text_mimetype,
 )
 
 from mlpiper.components.connectable_component import ConnectableComponent
@@ -67,7 +66,7 @@ class GenericPredictorComponent(ConnectableComponent):
             mimetype, content_type_params_dict = werkzeug.http.parse_options_header(
                 self._params.get("content_type")
             )
-            charset = content_type_params_dict.get("charset", "utf8")
+            charset = content_type_params_dict.get("charset")
 
             with open(input_filename, "rb") as f:
                 data_binary = f.read()
@@ -78,7 +77,8 @@ class GenericPredictorComponent(ConnectableComponent):
                 charset,
             )
             kwargs_params[UnstructuredDtoKeys.MIMETYPE] = mimetype
-            kwargs_params[UnstructuredDtoKeys.CHARSET] = charset
+            if charset is not None:
+                kwargs_params[UnstructuredDtoKeys.CHARSET] = charset
             kwargs_params[UnstructuredDtoKeys.QUERY] = query_params
 
             ret_data, ret_kwargs = self._predictor.predict_unstructured(
