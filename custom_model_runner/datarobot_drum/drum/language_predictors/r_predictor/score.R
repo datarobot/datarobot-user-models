@@ -211,7 +211,7 @@ outer_predict <- function(input_filename, target_type, model=NULL, positive_clas
 
     if (!isFALSE(read_input_data_hook)) {
         data <- read_input_data_hook(input_filename)
-    } else if (grepl("\.mtx$", input_filename, fixed=TRUE)) {
+    } else if (grepl("\\.mtx$", input_filename, fixed=TRUE)) {
         data <- as.data.frame(as.matrix(readMM(input_filename)))
     } else {
         tmp = readChar(input_filename, file.info(input_filename)$size)
