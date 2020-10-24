@@ -346,11 +346,14 @@ To get more information, search for `custom models` and `datarobot user models` 
 ### Non-DataRobot developers
 To contribute to the project, use a [regular GitHub process](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork ): fork the repo and create a pull request to the original repository.
 
-
-### Report bugs
-To report a bug, open an issue through the [GitHub board](https://github.com/datarobot/datarobot-user-models/issues).
-
-
 ### Running tests
 *description is being added*
+
+## Communication<a name="communication"></a>
+To report a bug, open an issue through the [GitHub board](https://github.com/datarobot/datarobot-user-models/issues).
+- open an issue through the [GitHub board](https://github.com/datarobot/datarobot-user-models/issues).
+- ask a question on the [#drum (IRC) channel](https://webchat.freenode.net/?channels=#drum).
+
+
+
 

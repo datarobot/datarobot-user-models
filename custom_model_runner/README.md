@@ -1,7 +1,3 @@
-# README
-
-This page provides an overview of the DataRobot User Model runner (**drum**).
-
 ## About
 The DataRobot Model Runner (**drum**) is a tool that allows you to work locally with Python, R, and Java custom models.
 It can be used to verify that a custom model can run and make predictions before it is uploaded to DataRobot.
@@ -11,6 +7,10 @@ However, this testing is only for development purposes. DataRobot recommends tha
 - run performance and memory usage testing for models.
 - perform model validation tests, e.g., checking model functionality on corner cases, like null values imputation.
 - run models in a Docker container.
+
+## Communication
+- open an issue in the [DRUM GitHub repository](https://github.com/datarobot/datarobot-user-models/issues).
+- ask a question on the [#drum (IRC) channel](https://webchat.freenode.net/?channels=#drum).
 
 ## Custom inference models quickstart guide
 View examples [here](https://github.com/datarobot/datarobot-user-models#quickstart).

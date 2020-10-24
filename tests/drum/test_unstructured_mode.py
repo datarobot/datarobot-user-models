@@ -1,5 +1,6 @@
 import pytest
 import requests
+import werkzeug
 
 from datarobot_drum.drum.common import ArgumentsOptions
 
@@ -17,6 +18,9 @@ from tests.drum.constants import (
     R_UNSTRUCTURED_PARAMS,
     UNSTRUCTURED,
 )
+
+UTF8 = "utf8"
+UTF16 = "utf16"
 
 
 class TestUnstructuredMode:
@@ -77,7 +81,6 @@ class TestUnstructuredMode:
                 out_data = f.read()
                 assert "10" in out_data
 
-    @pytest.mark.parametrize("ret_mode", ["text", "binary"])
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
@@ -92,7 +95,6 @@ class TestUnstructuredMode:
         problem,
         language,
         docker,
-        ret_mode,
         tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
@@ -111,21 +113,19 @@ class TestUnstructuredMode:
         ) as run:
             input_dataset = resources.datasets(framework, problem)
 
-            # do predictions
-            url = run.url_server_address + "/predictUnstructured/"
-            data = open(input_dataset, "rb").read()
-            params = {"ret_mode": ret_mode}
-            response = requests.post(url=url, data=data, params=params)
+            for ret_mode in ["text", "binary"]:
+                # do predictions
+                url = run.url_server_address + "/predictUnstructured/"
+                data = open(input_dataset, "rb").read()
+                params = {"ret_mode": ret_mode}
+                response = requests.post(url=url, data=data, params=params)
 
-            assert response.ok
-            if ret_mode == "text":
-                assert response.text == "10"
-            else:
-                assert 10 == int.from_bytes(response.content, byteorder="big")
+                assert response.ok
+                if ret_mode == "text":
+                    assert response.text == "10"
+                else:
+                    assert 10 == int.from_bytes(response.content, byteorder="big")
 
-    @pytest.mark.parametrize("ret_charset", [None, "utf16"])
-    # testcase with "application/octet-stream" is not correct as data is returned as text
-    @pytest.mark.parametrize("ret_mimetype", ["application/octet-stream", "text/plain_drum_test"])
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
@@ -140,8 +140,6 @@ class TestUnstructuredMode:
         problem,
         language,
         docker,
-        ret_charset,
-        ret_mimetype,
         tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
@@ -160,33 +158,40 @@ class TestUnstructuredMode:
         ) as run:
 
             text_data = u"my text, мой текст"
-            params = {}
-            params["ret_one_or_two"] = "two"
 
-            # do predictions
-            url = run.url_server_address + "/predictUnstructured/"
-            headers = {"Content-Type": "text/plain; charset=UTF-8"}
-            if ret_charset is not None:
-                params["ret_charset"] = ret_charset
-            if ret_mimetype is not None:
-                params["ret_mimetype"] = ret_mimetype
-            response = requests.post(
-                url=url, data=text_data.encode("utf8"), params=params, headers=headers
-            )
+            # Fixtures are not used as don't want to spin up server for each test case
+            # Test case with "application/octet-stream" is not very correct as data is returned as text.
+            # In this test data is sent with mimetype=text/plain, so score_unstructured receives data as text.
+            # Hook returns data as text with ret_charset, so response data will be encoded with this charset.
+            for request_charset in [None, UTF8, UTF16]:
+                for ret_charset in [None, UTF8, UTF16]:
+                    for ret_mimetype in ["application/octet-stream", "text/plain_drum_test"]:
+                        params = {}
+                        params["ret_one_or_two"] = "two"
+                        charset_to_encode = UTF8 if request_charset is None else request_charset
+                        # do predictions
+                        url = run.url_server_address + "/predictUnstructured/"
+                        headers = {
+                            "Content-Type": "text/plain; charset={}".format(charset_to_encode)
+                        }
+                        if ret_charset is not None:
+                            params["ret_charset"] = ret_charset
+                        if ret_mimetype is not None:
+                            params["ret_mimetype"] = ret_mimetype
+                        response = requests.post(
+                            url=url,
+                            data=text_data.encode(charset_to_encode),
+                            params=params,
+                            headers=headers,
+                        )
 
-            assert response.ok
-            content_type_header = response.headers["Content-Type"]
-            assert ret_mimetype in content_type_header
-            assert (
-                "charset=utf8"
-                if ret_charset is None
-                else "charset={}".format(ret_charset) in content_type_header
-            )
+                        expected_charset = UTF8 if ret_charset is None else ret_charset
+                        assert response.ok
+                        content_type_header = response.headers["Content-Type"]
+                        assert ret_mimetype in content_type_header
+                        assert "charset={}".format(expected_charset) in content_type_header
+                        assert text_data == response.content.decode(expected_charset)
 
-            charset_to_decode = "utf8" if ret_charset is None else ret_charset
-            assert text_data == response.content.decode(charset_to_decode)
-
-    @pytest.mark.parametrize("one_or_two", ["one", "one-with-none"])
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
@@ -194,6 +199,9 @@ class TestUnstructuredMode:
             (None, UNSTRUCTURED, R_UNSTRUCTURED_PARAMS, None),
         ],
     )
+    # In this test hook returns only data value or a tuple (data, None),
+    # Check Content-Type header value.
+    # Incoming data is sent back.
     def test_response_one_var_return(
         self,
         resources,
@@ -201,7 +209,6 @@ class TestUnstructuredMode:
         problem,
         language,
         docker,
-        one_or_two,
         tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
@@ -218,34 +225,62 @@ class TestUnstructuredMode:
             custom_model_dir,
             docker,
         ) as run:
-            input_dataset = resources.datasets(framework, problem)
-
-            params = {"ret_one_or_two": one_or_two}
             url = run.url_server_address + "/predictUnstructured/"
 
-            # sending None data
-            data = None
-            headers = {"Content-Type": "text/plain; charset=UTF-8"}
-            response = requests.post(url=url, data=data, params=params, headers=headers)
-            content_type_header = response.headers["Content-Type"]
-            assert response.ok
-            assert "text/plain" in content_type_header
-            assert "charset=utf8" in content_type_header
-            assert len(response.content) == 0
+            for one_or_two in ["one", "one-with-none"]:
+                input_dataset = resources.datasets(framework, problem)
+                data_bytes = open(input_dataset, "rb").read()
+                params = {"ret_one_or_two": one_or_two}
 
-            # sending text data
-            data = open(input_dataset, "rb").read()
-            response = requests.post(url=url, data=data, params=params, headers=headers)
-            assert response.ok
-            content_type_header = response.headers["Content-Type"]
-            assert "text/plain" in content_type_header
-            assert "charset=utf8" in content_type_header
-            assert response.content == data
+                # Sending None or text_data encoded with utf8, by default text files are opened using utf8
+                # Content-Type is not used in the hook, but used by drum to decode
+                # Expected response content type is default: "text/plain; charset=UTF-8"
+                for data in [None, data_bytes]:
+                    for ct in ["text/plain; charset=UTF-8", "text/some_other;"]:
+                        headers = {"Content-Type": ct}
+                        response = requests.post(url=url, data=data, params=params, headers=headers)
+                        assert response.ok
+                        content_type_header = response.headers["Content-Type"]
+                        mimetype, content_type_params_dict = werkzeug.http.parse_options_header(
+                            content_type_header
+                        )
+                        assert mimetype == "text/plain"
+                        assert content_type_params_dict["charset"] == UTF8
+                        if data is None:
+                            assert len(response.content) == 0
+                        else:
+                            assert response.content == data_bytes
 
-            # sending binary data
-            headers = {"Content-Type": "application/octet-stream;"}
-            response = requests.post(url=url, data=data, params=params, headers=headers)
-            content_type_header = response.headers["Content-Type"]
-            assert "application/octet-stream" in content_type_header
-            assert "charset=utf8" in content_type_header
-            assert response.content == data
+                # Sending text_data encoded with utf16.
+                # Content-Type is not used in the hook, but used by drum to decode.
+                # Expected response content type is default: "text/plain; charset=UTF-8"
+                data_text = u"some text текст"
+                data_bytes = u"some text текст".encode(UTF16)
+                for data in [data_bytes]:
+                    for ct in ["text/plain; charset={}".format(UTF16)]:
+                        headers = {"Content-Type": ct}
+                        response = requests.post(url=url, data=data, params=params, headers=headers)
+                        assert response.ok
+                        content_type_header = response.headers["Content-Type"]
+                        mimetype, content_type_params_dict = werkzeug.http.parse_options_header(
+                            content_type_header
+                        )
+                        assert mimetype == "text/plain"
+                        assert content_type_params_dict["charset"] == UTF8
+                        if data is None:
+                            assert len(response.content) == 0
+                        else:
+                            assert response.content == data_text.encode(UTF8)
+
+                # sending binary data
+                headers = {"Content-Type": "application/octet-stream;"}
+                response = requests.post(url=url, data=data_bytes, params=params, headers=headers)
+                assert response.ok
+                content_type_header = response.headers["Content-Type"]
+                mimetype, content_type_params_dict = werkzeug.http.parse_options_header(
+                    content_type_header
+                )
+                assert "application/octet-stream" == mimetype
+                # check params dict is empty
+                assert any(content_type_params_dict) == False
+                assert response.content == data_bytes
