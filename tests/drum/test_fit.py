@@ -167,7 +167,6 @@ class TestFit:
         )
 
         target_type = problem if problem != BINARY_TEXT else BINARY
-        target_type = "anomaly" if problem == ANOMALY else target_type
 
         cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
             ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
@@ -273,6 +272,7 @@ class TestFit:
         env["CODEPATH"] = str(custom_model_dir)
         env["INPUT_DIRECTORY"] = str(input_dir)
         env["ARTIFACT_DIRECTORY"] = str(output)
+        env["TARGET_TYPE"] = problem if problem != BINARY_TEXT else BINARY
 
         # clear env vars
         if os.environ.get("NEGATIVE_CLASS_LABEL"):

@@ -3,6 +3,6 @@
   "name": "[DataRobot] H2O Drop-In",
   "description": "This template can be used as an environment for H2O models exported as POJO or MOJO.",
   "programmingLanguage": "java",
-  "environmentVersionId": "5f932a8d1d41c8313814830e",
+  "environmentVersionId": "5f96e2711d41c844ab3982fb",
   "isPublic": true
 }
