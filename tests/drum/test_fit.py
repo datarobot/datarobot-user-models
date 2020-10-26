@@ -10,6 +10,9 @@ from datarobot_drum.drum.utils import handle_missing_colnames
 from .constants import (
     ANOMALY,
     BINARY,
+    SPARSE_TARGET,
+    SKLEARN_SPARSE,
+    SPARSE,
     DOCKER_PYTHON_SKLEARN,
     KERAS,
     MULTICLASS,
@@ -322,6 +325,32 @@ class TestFit:
             resources.targets(REGRESSION),
             input_dataset,
         )
+        _exec_shell_cmd(
+            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+        )
+
+    @pytest.mark.parametrize("framework", [SKLEARN_SPARSE, PYTORCH, RDS])
+    def test_fit_sparse(self, resources, tmp_path, framework):
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            SPARSE,
+            language=R_FIT if framework == RDS else PYTHON,
+            is_training=True,
+        )
+
+        input_dataset = resources.datasets(framework, SPARSE)
+        target_dataset = resources.datasets(framework, SPARSE_TARGET)
+
+        output = tmp_path / "output"
+        output.mkdir()
+
+        cmd = "{} fit --code-dir {} --input {} --target-type {} --verbose ".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, REGRESSION
+        )
+
+        cmd += " --target-csv " + target_dataset
         _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )

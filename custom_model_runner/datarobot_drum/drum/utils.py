@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import socket
+from scipy.io import mmread
 from contextlib import closing
 from functools import partial
 from pathlib import Path
@@ -115,7 +116,10 @@ def shared_fit_preprocessing(fit_class):
         row_weights: pd.Series of row weights, or None
     """
     # read in data
-    df = pd.read_csv(fit_class.input_filename, lineterminator="\n")
+    if fit_class.input_filename.endswith(".mtx"):
+        df = pd.DataFrame.sparse.from_spmatrix(mmread(fit_class.input_filename))
+    else:
+        df = pd.read_csv(fit_class.input_filename, lineterminator="\n")
 
     # get num rows to use
     if fit_class.num_rows == "ALL":
@@ -127,8 +131,16 @@ def shared_fit_preprocessing(fit_class):
     if fit_class.target_filename or fit_class.target_name:
         if fit_class.target_filename:
             y_unsampled = pd.read_csv(fit_class.target_filename, index_col=False)
-            assert len(y_unsampled.columns) == 1
-            assert len(df) == len(y_unsampled)
+            assert (
+                len(y_unsampled.columns) == 1
+            ), "Your target dataset at path {} has {} columns named {}".format(
+                fit_class.target_filename, len(y_unsampled.columns), y_unsampled.columns
+            )
+            assert len(df) == len(
+                y_unsampled
+            ), "Your input data has {} entries, but your target data has {} entries".format(
+                len(df), len(y_unsampled)
+            )
             df = df.merge(y_unsampled, left_index=True, right_index=True)
             assert len(y_unsampled.columns.values) == 1
             fit_class.target_name = y_unsampled.columns.values[0]
@@ -142,6 +154,12 @@ def shared_fit_preprocessing(fit_class):
         X = df.sample(fit_class.num_rows, random_state=1, replace=True)
         y = None
 
+    row_weights = extract_weights(X, fit_class)
+    class_order = extract_class_order(fit_class)
+    return X, y, class_order, row_weights
+
+
+def extract_weights(X, fit_class):
     # extract weights from file or data
     if fit_class.weights_filename:
         row_weights = pd.read_csv(fit_class.weights_filename, lineterminator="\n").sample(
@@ -156,7 +174,10 @@ def shared_fit_preprocessing(fit_class):
         row_weights = X[fit_class.weights]
     else:
         row_weights = None
+    return row_weights
 
+
+def extract_class_order(fit_class):
     # get class order obj from class labels
     if fit_class.negative_class_label and fit_class.positive_class_label:
         class_order = [fit_class.negative_class_label, fit_class.positive_class_label]
@@ -165,7 +186,7 @@ def shared_fit_preprocessing(fit_class):
     else:
         class_order = None
 
-    return X, y, class_order, row_weights
+    return class_order
 
 
 def handle_missing_colnames(df):

@@ -3,7 +3,7 @@
 cd "${CODEPATH}" || exit 1
 export PYTHONPATH="${CODEPATH}":"${PYTHONPATH}"
 
-export X="${INPUT_DIRECTORY}/X.csv"
+export X="${INPUT_DIRECTORY}/X${TRAINING_DATA_EXTENSION:-.csv}"
 export weights="${INPUT_DIRECTORY}/weights.csv"
 
 CMD="drum fit --input ${X} --num-rows ALL --output ${ARTIFACT_DIRECTORY} \

@@ -1,6 +1,7 @@
 # Needed libraries
 library(caret)
 library(devtools)
+library(Matrix)
 
 init_hook <- FALSE
 fit_hook <- FALSE
@@ -39,6 +40,9 @@ init <- function(code_dir) {
 
 
 load_data <- function(input_filename){
+    if (grepl("\\.mtx$", input_filename)) {
+        return(as.data.frame(as.matrix(readMM(input_filename))))
+    }
     tmp = readChar(input_filename, file.info(input_filename)$size)
     read.csv(text=gsub("\r","", tmp, fixed=TRUE), na.strings = c("NA", ""))
 }
@@ -141,3 +145,4 @@ outer_fit <- function(output_dir, input_filename, target_filename,
             stop(sprintf("No Fit method provided."))
         }
 }
+
