@@ -12,6 +12,7 @@
 8. [Custom Environment Templates](#custom_environment_templates)
 9. [Custom Model Runner (drum)](#custom_model_runner)
 10. [Contribution & development](#contribution_development)
+11. [Communication](#communication)
 
 ## What is this repository? <a name="what_is_it"></a>
 The **DataRobot User Models** repository contains information and tools for assembling,
@@ -350,7 +351,7 @@ To contribute to the project, use a [regular GitHub process](https://help.github
 *description is being added*
 
 ## Communication<a name="communication"></a>
-To report a bug, open an issue through the [GitHub board](https://github.com/datarobot/datarobot-user-models/issues).
+Some places to ask for help are:
 - open an issue through the [GitHub board](https://github.com/datarobot/datarobot-user-models/issues).
 - ask a question on the [#drum (IRC) channel](https://webchat.freenode.net/?channels=#drum).
 
