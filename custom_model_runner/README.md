@@ -26,7 +26,8 @@ All models:
 - If you are using a drop-in environment found in this repo, you must pip install these dependencies.
 
 Python models:
-- Python 3 is required unless you are using **drum** with a Docker image. This is because **drum** only runs with Python 3.
+- Python 3.6 or 3.7 is required unless you are using **drum** with a Docker image. 
+- This is because **drum** only runs with Python 3.6 or 3.7.
   
 Java models:
 - JRE >= 11.
