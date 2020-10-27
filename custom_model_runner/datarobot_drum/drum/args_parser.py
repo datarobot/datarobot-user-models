@@ -564,17 +564,14 @@ class CMRunnerArgsRegistry(object):
         """
 
         parser = subparsers.add_parser(
-            ArgumentsOptions.SCORE,
-            help="Run predictions in batch mode",
-            description=desc
+            ArgumentsOptions.SCORE, help="Run predictions in batch mode", description=desc
         )
         CMRunnerArgsRegistry._parsers[ArgumentsOptions.SCORE] = parser
         return parser
 
     @staticmethod
     def _register_subcommand_fit(subparsers):
-        parser = subparsers.add_parser(ArgumentsOptions.FIT,
-                                       help="Fit your model to your data")
+        parser = subparsers.add_parser(ArgumentsOptions.FIT, help="Fit your model to your data")
         CMRunnerArgsRegistry._parsers[ArgumentsOptions.FIT] = parser
         return parser
 
@@ -600,7 +597,7 @@ class CMRunnerArgsRegistry(object):
             ArgumentsOptions.VALIDATION,
             help="Run validation checks against the model",
             description=desc,
-            formatter_class=FlexiFormatter
+            formatter_class=FlexiFormatter,
         )
         CMRunnerArgsRegistry._parsers[ArgumentsOptions.VALIDATION] = parser
         return parser
@@ -706,7 +703,13 @@ class CMRunnerArgsRegistry(object):
             push_parser,
         )
         CMRunnerArgsRegistry._reg_arg_verbose(
-            score_parser, server_parser, fit_parser, new_parser, new_model_parser, push_parser
+            score_parser,
+            server_parser,
+            fit_parser,
+            new_parser,
+            new_model_parser,
+            push_parser,
+            perf_test_parser,
         )
         CMRunnerArgsRegistry._reg_arg_input(
             score_parser, perf_test_parser, fit_parser, validation_parser
@@ -842,5 +845,8 @@ class CMRunnerArgsRegistry(object):
                     print(result.stdout.decode("utf8"))
                     print(result.stderr.decode("utf8"))
                     exit(1)
+                else:
+                    if options.verbose:
+                        print("uwsgi detected")
 
         CMRunnerArgsRegistry.verify_monitoring_options(options, options.subparser_name)

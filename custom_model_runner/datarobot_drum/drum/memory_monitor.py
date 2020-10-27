@@ -21,6 +21,32 @@ class MemoryMonitor:
         self._include_childs = include_childs
         self._monitor_current_process = monitor_current_process
 
+    @staticmethod
+    def _run_inside_docker():
+        """
+        Returns True if running inside a docker container
+        """
+        if os.path.exists("/.dockerenv"):
+            return True
+        else:
+            return False
+
+    def _collect_memory_info_in_docker(self):
+        """
+        In the case we are running inside a docker container then memory collection is
+        simpler. We look directly on the files inside the /sys/fs/cgroup/memory directory
+        and collect the usage/total for all the processes inside the container.
+        Returns
+        -------
+        (total_mb, used_mb)
+        """
+        mem_sysfs_path = "/sys/fs/cgroup/memory/"
+        total_bytes = int(open(os.path.join(mem_sysfs_path, "memory.limit_in_bytes")).read())
+        usage_bytes = int(open(os.path.join(mem_sysfs_path, "memory.usage_in_bytes")).read())
+        total_mb = ByteConv.from_bytes(total_bytes).mbytes
+        used_mb = ByteConv.from_bytes(usage_bytes).mbytes
+        return total_mb, used_mb
+
     def collect_memory_info(self):
         def get_proc_data(p):
             return {
@@ -58,10 +84,16 @@ class MemoryMonitor:
             if "nginx" in proc.name().lower():
                 nginx_rss_mb += ByteConv.from_bytes(proc.memory_info().rss).mbytes
 
-        virtual_mem = psutil.virtual_memory()
-        total_physical_mem_mb = ByteConv.from_bytes(virtual_mem.total).mbytes
-        available_mem_mb = ByteConv.from_bytes(virtual_mem.available).mbytes
-        free_mem_mb = ByteConv.from_bytes(virtual_mem.free).mbytes
+        if self._run_inside_docker():
+            total_physical_mem_mb, used_mb = self._collect_memory_info_in_docker()
+            available_mem_mb = total_physical_mem_mb - used_mb
+            free_mem_mb = available_mem_mb
+        else:
+            virtual_mem = psutil.virtual_memory()
+            total_physical_mem_mb = ByteConv.from_bytes(virtual_mem.total).mbytes
+            available_mem_mb = ByteConv.from_bytes(virtual_mem.available).mbytes
+            free_mem_mb = ByteConv.from_bytes(virtual_mem.free).mbytes
+
         mem_info = MemoryInfo(
             total=total_physical_mem_mb,
             avail=available_mem_mb,
