@@ -67,7 +67,7 @@ def pytest_sessionstart(session):
 @pytest.fixture(scope="session")
 def java_drop_in_env():
     env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "java_codegen")
-    environment = dr.ExecutionEnvironment.create(name="java_drop_in")
+    environment = dr.ExecutionEnvironment.create(name="java_drop_in", programming_language="java")
     environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
     return environment.id, environment_version.id
 
@@ -75,7 +75,9 @@ def java_drop_in_env():
 @pytest.fixture(scope="session")
 def java_h2o_drop_in_env():
     env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "java_h2o")
-    environment = dr.ExecutionEnvironment.create(name="java_h2o_drop_in")
+    environment = dr.ExecutionEnvironment.create(
+        name="java_h2o_drop_in", programming_language="java"
+    )
     environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
     return environment.id, environment_version.id
 
@@ -83,7 +85,9 @@ def java_h2o_drop_in_env():
 @pytest.fixture(scope="session")
 def sklearn_drop_in_env():
     env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "python3_sklearn")
-    environment = dr.ExecutionEnvironment.create(name="python3_sklearn")
+    environment = dr.ExecutionEnvironment.create(
+        name="python3_sklearn", programming_language="python"
+    )
     environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
     return environment.id, environment_version.id
 
@@ -91,7 +95,9 @@ def sklearn_drop_in_env():
 @pytest.fixture(scope="session")
 def xgboost_drop_in_env():
     env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "python3_xgboost")
-    environment = dr.ExecutionEnvironment.create(name="python3_xgboost")
+    environment = dr.ExecutionEnvironment.create(
+        name="python3_xgboost", programming_language="python"
+    )
     environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
     return environment.id, environment_version.id
 
@@ -99,7 +105,9 @@ def xgboost_drop_in_env():
 @pytest.fixture(scope="session")
 def pytorch_drop_in_env():
     env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "python3_pytorch")
-    environment = dr.ExecutionEnvironment.create(name="python3_pytorch")
+    environment = dr.ExecutionEnvironment.create(
+        name="python3_pytorch", programming_language="python"
+    )
     environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
     return environment.id, environment_version.id
 
@@ -107,7 +115,9 @@ def pytorch_drop_in_env():
 @pytest.fixture(scope="session")
 def keras_drop_in_env():
     env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "python3_keras")
-    environment = dr.ExecutionEnvironment.create(name="python3_keras")
+    environment = dr.ExecutionEnvironment.create(
+        name="python3_keras", programming_language="python"
+    )
     environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
     return environment.id, environment_version.id
 
@@ -115,7 +125,7 @@ def keras_drop_in_env():
 @pytest.fixture(scope="session")
 def pmml_drop_in_env():
     env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "python3_pmml")
-    environment = dr.ExecutionEnvironment.create(name="python3_pmml")
+    environment = dr.ExecutionEnvironment.create(name="python3_pmml", programming_language="python")
     environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
     return environment.id, environment_version.id
 
@@ -123,7 +133,7 @@ def pmml_drop_in_env():
 @pytest.fixture(scope="session")
 def r_drop_in_env():
     env_dir = os.path.join(BASE_TEMPLATE_ENV_DIR, "r_lang")
-    environment = dr.ExecutionEnvironment.create(name="r_drop_in")
+    environment = dr.ExecutionEnvironment.create(name="r_drop_in", programming_language="r")
     environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
     return environment.id, environment_version.id
 
