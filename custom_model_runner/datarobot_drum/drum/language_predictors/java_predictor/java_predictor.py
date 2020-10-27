@@ -74,7 +74,7 @@ class JavaPredictor(BaseLanguagePredictor):
                     RUNNING_LANG_MSG, self.custom_model_path, JavaArtifacts.ALL, files_list_str
                 )
             )
-        self.logger.debug("relevant artifact extensions {}".format( ", ".join(ext_re)))
+        self.logger.debug("relevant artifact extensions {}".format(", ".join(ext_re)))
 
         if ".mojo" in ext_re:
             ## check for liscense
@@ -86,12 +86,14 @@ class JavaPredictor(BaseLanguagePredictor):
                 try:
                     os.environ["DRIVERLESS_AI_LICENSE_KEY"]
                 except:
-                    if not os.path.exists(license_location):    
-                        raise DrumCommonException("Cannot find license file for DAI Mojo Pipeline.\n"
-                        "Make sure you have done one of the following:\n"
-                        "\t* provided license.sig file in the artifacts\n"
-                        "\t* set the environment variable DRIVERLESS_AI_LICENSE_FILE : A location of file with a license\n"
-                        "\t* set the environment variable DRIVERLESS_AI_LICENSE_KEY : A license key")
+                    if not os.path.exists(license_location):
+                        raise DrumCommonException(
+                            "Cannot find license file for DAI Mojo Pipeline.\n"
+                            "Make sure you have done one of the following:\n"
+                            "\t* provided license.sig file in the artifacts\n"
+                            "\t* set the environment variable DRIVERLESS_AI_LICENSE_FILE : A location of file with a license\n"
+                            "\t* set the environment variable DRIVERLESS_AI_LICENSE_KEY : A license key"
+                        )
                     else:
                         os.environ["DRIVERLESS_AI_LICENSE_FILE"] = license_location
             self.model_artifact_extension = ".mojo"
@@ -113,7 +115,7 @@ class JavaPredictor(BaseLanguagePredictor):
         except:
             pass
         ##
-    
+
         self._init_py4j_and_load_predictor()
 
         m = self._gateway.jvm.java.util.HashMap()
