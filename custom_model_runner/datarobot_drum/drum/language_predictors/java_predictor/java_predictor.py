@@ -8,6 +8,7 @@ import time
 import atexit
 import pandas as pd
 import re
+from itertools import chain
 
 from io import StringIO
 from contextlib import closing
@@ -26,11 +27,13 @@ class JavaPredictor(BaseLanguagePredictor):
     JAVA_COMPONENT_ENTRY_POINT_CLASS = "com.datarobot.custom.PredictorEntryPoint"
     JAVA_COMPONENT_CLASS_NAME_DATAROBOT = "com.datarobot.custom.ScoringCode"
     JAVA_COMPONENT_CLASS_NAME_H2O = "com.datarobot.custom.H2OPredictor"
+    JAVA_COMPONENT_CLASS_NAME_H2O_PIPELINE = "com.datarobot.custom.H2OPredictorPipeline"
 
     java_class_by_ext = {
         JavaArtifacts.JAR_EXTENSION: JAVA_COMPONENT_CLASS_NAME_DATAROBOT,
         JavaArtifacts.POJO_EXTENSION: JAVA_COMPONENT_CLASS_NAME_H2O,
         JavaArtifacts.MOJO_EXTENSION: JAVA_COMPONENT_CLASS_NAME_H2O,
+        JavaArtifacts.MOJO_PIPELINE_EXTENSION: JAVA_COMPONENT_CLASS_NAME_H2O_PIPELINE,
     }
 
     def __init__(self):
@@ -50,15 +53,19 @@ class JavaPredictor(BaseLanguagePredictor):
     def configure(self, params):
         super(JavaPredictor, self).configure(params)
 
-        ## retrieve the extension of the main java model artifact
+        ## retrieve the relevant extensions of the java predictor
+        ## changed from last verion significantly due to associating
+        ## jars with dr codegen AND h2o dai mojo pipeline
         self.custom_model_path = params["__custom_model_path__"]
-        ext_re = re.search(
-            r"(\{})|(\{})|(\{})".format(*JavaArtifacts.ALL),
-            ",".join(os.listdir(self.custom_model_path)),
-        )
-        if ext_re is None:
-            files_list = sorted(os.listdir(self.custom_model_path))
-            files_list_str = " | ".join(files_list)
+        files_list = sorted(os.listdir(self.custom_model_path))
+        files_list_str = " | ".join(files_list)
+        self.logger.debug("files in custom model path: ".format(files_list_str))
+        reg_exp = r"(\{})|(\{})|(\{})|(\{})".format(*JavaArtifacts.ALL)
+        ext_re = re.findall(reg_exp, files_list_str)
+        ext_re = [[match for match in matches if match != ""] for matches in ext_re]
+        ext_re = list(chain.from_iterable(ext_re))
+
+        if len(ext_re) == 0:
             raise DrumCommonException(
                 "\n\n{}\n"
                 "Could not find model artifact file in: {} supported by default predictors.\n"
@@ -67,8 +74,46 @@ class JavaPredictor(BaseLanguagePredictor):
                     RUNNING_LANG_MSG, self.custom_model_path, JavaArtifacts.ALL, files_list_str
                 )
             )
-        self.model_artifact_extension = ext_re.group()
+        self.logger.debug("relevant artifact extensions {}".format( ", ".join(ext_re)))
+
+        if ".mojo" in ext_re:
+            ## check for liscense
+            license_location = os.path.join(params["__custom_model_path__"], "license.sig")
+            self.logger.debug("license location: {}".format(license_location))
+            try:
+                os.environ["DRIVERLESS_AI_LICENSE_FILE"]
+            except:
+                try:
+                    os.environ["DRIVERLESS_AI_LICENSE_KEY"]
+                except:
+                    if not os.path.exists(license_location):    
+                        raise DrumCommonException("Cannot find license file for DAI Mojo Pipeline.\n"
+                        "Make sure you have done one of the following:\n"
+                        "\t* provided license.sig file in the artifacts\n"
+                        "\t* set the environment variable DRIVERLESS_AI_LICENSE_FILE : A location of file with a license\n"
+                        "\t* set the environment variable DRIVERLESS_AI_LICENSE_KEY : A license key")
+                    else:
+                        os.environ["DRIVERLESS_AI_LICENSE_FILE"] = license_location
+            self.model_artifact_extension = ".mojo"
+        else:
+            self.model_artifact_extension = ext_re[0]
+
+        self.logger.debug("model artifact extension: {}".format(self.model_artifact_extension))
+
+        ## only needed to add mojo runtime jars
+        additional_jars = (
+            None
+            if self.model_artifact_extension != ".mojo"
+            else glob.glob(os.path.join(self.custom_model_path, "*.jar"))
+        )
+
+        ## the mojo runtime jars must be added to self.__jar_files to be passed to gateway
+        try:
+            self._jar_files.extend(additional_jars)
+        except:
+            pass
         ##
+    
         self._init_py4j_and_load_predictor()
 
         m = self._gateway.jvm.java.util.HashMap()

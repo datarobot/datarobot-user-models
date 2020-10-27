@@ -144,8 +144,13 @@ include any necessary hooks in a file called `custom.py` for Python models or `c
 | h2o-genmodel | *.zip | GBM_model_python_1589382591366_1.zip (mojo)| 
 | h2o-genmodel-ext-xgboost | *.java | XGBoost_2_AutoML_20201015_144158.java | 
 | h2o-genmodel-ext-xgboost | *.zip | XGBoost_2_AutoML_20201015_144158.zip | 
+| h2o-ext-mojo-pipeline | *.mojo and *.jar | ...|
 
-If you leverage an H2O model exported as POJO, you cannot rename the file.  This does not apply to models exported as MOJO - they may be named in any fashion.  
+If you leverage an H2O model exported as POJO, you cannot rename the file.  This does not apply to models exported as MOJO - they may be named in any fashion.
+
+To use h2o-ext-mojo-pipeline, this WILL require an h2o driverless ai license.  
+
+Support for DAI Mojo Pipeline has not be incorporated into tests for the build of `datarobot-drum`
 
 #### Additional params
 Define the DRUM_JAVA_XMX environment variable to set JVM maximum heap memory size (-Xmx java parameter), e.g:
