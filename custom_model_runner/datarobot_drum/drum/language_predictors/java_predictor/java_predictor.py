@@ -60,7 +60,7 @@ class JavaPredictor(BaseLanguagePredictor):
         files_list = sorted(os.listdir(self.custom_model_path))
         files_list_str = " | ".join(files_list)
         self.logger.debug("files in custom model path: ".format(files_list_str))
-        reg_exp = r"(\{})|(\{})|(\{})|(\{})".format(*JavaArtifacts.ALL)
+        reg_exp = r"|".join(r"(\{})".format(ext) for ext in JavaArtifacts.ALL)
         ext_re = re.findall(reg_exp, files_list_str)
         ext_re = [[match for match in matches if match != ""] for matches in ext_re]
         ext_re = list(chain.from_iterable(ext_re))
