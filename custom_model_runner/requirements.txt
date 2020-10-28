@@ -1,6 +1,7 @@
 flask
 numpy
 pandas
+scipy>=1.1,<2
 requests
 jinja2
 progress
