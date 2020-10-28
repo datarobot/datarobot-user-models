@@ -17,7 +17,6 @@ import org.apache.commons.csv.CSVPrinter;
 class H2OPredictorPipeline(name: String) extends BasePredictor(name) {
 
   var mojoPipeline: MojoPipeline = null
-  // var model: EasyPredictModelWrapper = null
   var params: java.util.HashMap[String, Any] = null
 
   var isRegression: Boolean = false
@@ -31,7 +30,6 @@ class H2OPredictorPipeline(name: String) extends BasePredictor(name) {
     mojoPipeline = loadModel(
       params.get("__custom_model_path__").asInstanceOf[String]
     )
-    // this.params = params
     customModelPath = params.get("__custom_model_path__").asInstanceOf[String]
     negativeClassLabel = params.get("negativeClassLabel").asInstanceOf[String]
     positiveClassLabel = params.get("positiveClassLabel").asInstanceOf[String]
