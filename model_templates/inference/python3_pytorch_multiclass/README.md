@@ -9,8 +9,7 @@ Because of these extra artifacts and preprocessing, custom.py uses the `load_mod
 at predict time.
 
 The supplied pth file is a PyTorch model trained on [skyserver_sql2_27_2018_6_51_39_pm.csv](../../../tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv)
-with a `class` as the target (multiclass), though any binary or regression model trained using the libraries
-outlined in [Python 3 PyTorch Drop-In Environment](../../../public_dropin_environments/python3_pytorch/) will work.
+with a `class` as the target (multiclass).
 
 The model was trained using:
 `drum fit -cd model_templates/training/python3_pytorch_multiclass/ --target-type multiclass --target class --input tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv --output model_templates/inference/python3_pytorch_multiclass/`
