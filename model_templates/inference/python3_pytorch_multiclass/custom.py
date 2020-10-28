@@ -11,7 +11,6 @@ from preprocessing import dense_preprocessing_pipeline
 from model_utils import build_classifier, train_classifier, save_torch_model
 
 preprocessor = None
-expected_columns = None
 
 
 def load_model(code_dir: str) -> Any:
@@ -28,15 +27,12 @@ def load_model(code_dir: str) -> Any:
     If used, this hook must return a non-None value
     """
     global preprocessor
-    global expected_columns
     with open(os.path.join(code_dir, "preprocessor.pkl"), mode="rb") as f:
         preprocessor = pickle.load(f)
-    with open(os.path.join(code_dir, "expected_columns.pkl"), mode="rb") as f:
-        expected_columns = pickle.load(f)
 
     model = torch.load(os.path.join(code_dir, "artifact.pth"))
     model.eval()
-    return model
+    return model    
 
 
 def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
@@ -56,9 +52,7 @@ def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
     """
     if preprocessor is None:
         raise ValueError("Preprocessor not loaded")
-    if expected_columns is None:
-        raise ValueError("Expected columns not loaded")
-    data = data[expected_columns]
+
     return preprocessor.transform(data)
 
 
@@ -98,7 +92,7 @@ def fit(
     -------
     Nothing
     """
-
+    
     print("Fitting Preprocessing pipeline")
     preprocessor = dense_preprocessing_pipeline.fit(X)
     lb = LabelEncoder().fit(y)
@@ -109,10 +103,6 @@ def fit(
         f.write("\n".join(str(label) for label in lb.classes_))
     with open(os.path.join(output_dir, "preprocessor.pkl"), mode="wb") as f:
         pickle.dump(preprocessor, f)
-    # The model doesn't behave well with unexpected columns, so we'll use
-    # the columns from fit at predict time to make sure we only use expected columns
-    with open(os.path.join(output_dir, "expected_columns.pkl"), mode="wb") as f:
-        pickle.dump(X.columns, f)
 
     print("Transforming input data")
     X = preprocessor.transform(X)

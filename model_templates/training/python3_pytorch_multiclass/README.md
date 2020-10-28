@@ -4,8 +4,7 @@ This model is intended to work with the [Python 3 PyTorch Drop-In Environment](.
 with additional dependencies.  This model includes a requirements file that will be installed
 on top of the base environment specified if added to DataRobot.
 
-In addition to the main model artifact, this model also produces an artifact for the preprocessing pipeline,
-and artifact for the model's expected class labels to prevent errors during predictions, as well as a class_labels.txt
+In addition to the main model artifact, this model also produces an artifact for the preprocessing pipeline as well as a class_labels.txt
 to make scoring with drum easier.
 
 Because of these extra artifacts and preprocessing, custom.py uses the `load_model` and `transform` hooks
