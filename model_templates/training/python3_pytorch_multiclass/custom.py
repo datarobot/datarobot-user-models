@@ -32,7 +32,7 @@ def load_model(code_dir: str) -> Any:
 
     model = torch.load(os.path.join(code_dir, "artifact.pth"))
     model.eval()
-    return model    
+    return model
 
 
 def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
@@ -92,7 +92,7 @@ def fit(
     -------
     Nothing
     """
-    
+
     print("Fitting Preprocessing pipeline")
     preprocessor = dense_preprocessing_pipeline.fit(X)
     lb = LabelEncoder().fit(y)

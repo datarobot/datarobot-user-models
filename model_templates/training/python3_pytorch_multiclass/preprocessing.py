@@ -93,7 +93,7 @@ sparse_preprocessing_pipeline = ColumnTransformer(
         ("cat", categorical_pipeline, categorical_selector),
         ("txt", text_pipeline, text_selector),
     ],
-    remainder="drop"
+    remainder="drop",
 )
 
 # Modified TruncatedSVD that doesn't fail if n_components > ncols
