@@ -3,7 +3,12 @@ from flask import request, Response
 import werkzeug
 
 
-from datarobot_drum.drum.common import REGRESSION_PRED_COLUMN, TargetType, UnstructuredDtoKeys
+from datarobot_drum.drum.common import (
+    REGRESSION_PRED_COLUMN,
+    TargetType,
+    UnstructuredDtoKeys,
+    PredictionServerMimetypes,
+)
 from datarobot_drum.resource.unstructured_helpers import (
     _resolve_incoming_unstructured_data,
     _resolve_outgoing_unstructured_data,
@@ -63,6 +68,8 @@ class PredictMixin:
                 # But as it returns string, we have to assemble final json using strings.
                 df_json_str = out_data.to_json(orient="records")
                 response = '{{"predictions":{df_json}}}'.format(df_json=df_json_str)
+
+        response = Response(response, mimetype=PredictionServerMimetypes.APPLICATION_JSON)
 
         return response, response_status
 

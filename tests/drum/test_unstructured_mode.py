@@ -17,6 +17,7 @@ from tests.drum.constants import (
     R_UNSTRUCTURED,
     R_UNSTRUCTURED_PARAMS,
     UNSTRUCTURED,
+    DOCKER_PYTHON_SKLEARN,
 )
 
 UTF8 = "utf8"
@@ -82,10 +83,11 @@ class TestUnstructuredMode:
                 assert "10" in out_data
 
     @pytest.mark.parametrize(
-        "framework, problem, language, docker",
+        "framework, problem, language, nginx, docker",
         [
-            (None, UNSTRUCTURED, PYTHON_UNSTRUCTURED, None),
-            (None, UNSTRUCTURED, R_UNSTRUCTURED, None),
+            (None, UNSTRUCTURED, PYTHON_UNSTRUCTURED, False, None),
+            (None, UNSTRUCTURED, R_UNSTRUCTURED, False, None),
+            (None, UNSTRUCTURED, PYTHON_UNSTRUCTURED, True, DOCKER_PYTHON_SKLEARN),
         ],
     )
     def test_custom_models_with_drum_prediction_server(
@@ -94,6 +96,7 @@ class TestUnstructuredMode:
         framework,
         problem,
         language,
+        nginx,
         docker,
         tmp_path,
     ):
@@ -110,6 +113,7 @@ class TestUnstructuredMode:
             resources.class_labels(framework, problem),
             custom_model_dir,
             docker,
+            nginx=nginx,
         ) as run:
             input_dataset = resources.datasets(framework, problem)
 
