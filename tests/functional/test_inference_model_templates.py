@@ -180,6 +180,9 @@ class TestInferenceModelTemplates(object):
             folder_path=os.path.join(BASE_MODEL_TEMPLATES_DIR, model_template),
         )
 
+        if model_version.dependencies:
+            dr.CustomModelVersionDependencyBuild.start_build(model.id, model_version.id)
+
         test = dr.CustomModelTest.create(
             custom_model_id=model.id,
             custom_model_version_id=model_version.id,
