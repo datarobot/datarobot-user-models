@@ -53,6 +53,13 @@
             <artifactId>h2o-genmodel-ext-xgboost</artifactId>
             <version>3.30.0.6</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/ai.h2o/h2o-ext-mojo-pipeline -->
+        <dependency>
+            <groupId>ai.h2o</groupId>
+            <artifactId>h2o-ext-mojo-pipeline</artifactId>
+            <version>3.32.0.1</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>org.scala-lang</groupId>
             <artifactId>scala-library</artifactId>
