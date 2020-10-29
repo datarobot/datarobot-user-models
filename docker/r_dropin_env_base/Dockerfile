@@ -43,6 +43,7 @@ RUN apt-get install -y --no-install-recommends \
         r-base-dev && \
     rm -rf /var/lib/apt/lists/
 
+RUN pip3 install -U pip
 RUN pip3 install --no-cache-dir setuptools wheel
 
 ### Save cran as the default repo for R packages

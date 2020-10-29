@@ -17,6 +17,7 @@ RUN apt-get update && \
 
 # Package versions are the latest as of when this script was last updated,
 # unless otherwise noted.
+RUN pip3 install -U pip
 RUN pip3 install --no-cache-dir setuptools wheel
 
 # do the trick to install drum deps

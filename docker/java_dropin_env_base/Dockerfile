@@ -31,6 +31,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     chmod 707 /var/lib/nginx
 
+RUN pip3 install -U pip
 RUN pip3 install --no-cache-dir setuptools wheel
 
 
