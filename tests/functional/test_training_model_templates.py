@@ -75,6 +75,12 @@ class TestTrainingModelTemplates(object):
                 "multiclass",
             ),
             (
+                "training/python3_pytorch_multiclass",
+                "project_multiclass_skyserver",
+                "pytorch_drop_in_env",
+                "multiclass",
+            ),
+            (
                 "training/python3_keras_joblib",
                 "project_regression_boston",
                 "keras_drop_in_env",
@@ -175,8 +181,6 @@ class TestTrainingModelTemplates(object):
         blueprint = CustomTrainingBlueprint.create(
             custom_model_id=model.id,
             custom_model_version_id=model_version.id,
-            environment_id=env_id,
-            environment_version_id=env_version_id,
         )
         proj = dr.Project.get(proj_id)
 
