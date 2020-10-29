@@ -8,7 +8,7 @@ COPY dr_requirements.txt dr_requirements.txt
 
 # '--upgrade-strategy eager' will upgrade dependencies
 # according to package requirements or to the latest
-RUN pip3 install --upgrade-strategy eager -r dr_requirements.txt --no-cache-dir && \
+RUN pip3 install -U --upgrade-strategy eager -r dr_requirements.txt --no-cache-dir && \
     rm -rf dr_requirements.txt
 
 COPY ./ /opt/code/

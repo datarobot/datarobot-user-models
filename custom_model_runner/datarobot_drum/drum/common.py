@@ -72,6 +72,12 @@ class UnstructuredDtoKeys:
     CHARSET = "charset"
 
 
+class PredictionServerMimetypes:
+    APPLICATION_JSON = "application/json"
+    APPLICATION_OCTET_STREAM = "application/octet-stream"
+    TEXT_PLAIN = "text/plain"
+
+
 class PythonArtifacts:
     PKL_EXTENSION = ".pkl"
     TORCH_EXTENSION = ".pth"

@@ -12,6 +12,7 @@ def score_unstructured(model, data, query, **kwargs):
     if isinstance(data, bytes):
         data = data.decode("utf8")
 
+    data = data.strip().replace("  ", " ")
     words_count = data.count(" ") + 1
 
     ret_mode = query.get("ret_mode", "")
@@ -21,5 +22,4 @@ def score_unstructured(model, data, query, **kwargs):
         ret = ret_data, ret_kwargs
     else:
         ret = str(words_count)
-
     return ret
