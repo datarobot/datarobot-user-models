@@ -1,13 +1,13 @@
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.common import UnstructuredDtoKeys
+from datarobot_drum.drum.common import UnstructuredDtoKeys, PredictionServerMimetypes
 
 CHARSET_DEFAULT = "utf8"
-MIMETYPE_TEXT_DEFAULT = "text/plain"
-MIMETYPE_BINARY_DEFAULT = "application/octet-stream"
+MIMETYPE_TEXT_DEFAULT = PredictionServerMimetypes.TEXT_PLAIN
+MIMETYPE_BINARY_DEFAULT = PredictionServerMimetypes.APPLICATION_OCTET_STREAM
 
 
 def _is_text_mimetype(mimetype):
-    return mimetype.startswith("text/") or mimetype.startswith("application/json")
+    return mimetype.startswith("text/") or mimetype == PredictionServerMimetypes.APPLICATION_JSON
 
 
 def _resolve_incoming_unstructured_data(in_data, mimetype, charset):

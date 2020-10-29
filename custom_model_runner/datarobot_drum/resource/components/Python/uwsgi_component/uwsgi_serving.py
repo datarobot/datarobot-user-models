@@ -138,15 +138,39 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
         self._stats_collector.enable()
         self._stats_collector.mark("start")
 
-        response, response_status = self.do_predict()
+        try:
+            response, response_status = self.do_predict()
 
-        if response_status == HTTP_200_OK:
-            # this counter is managed by uwsgi
-            self._total_predict_requests.increase()
-            self._predict_calls_count += 1
+            if response_status == HTTP_200_OK:
+                # this counter is managed by uwsgi
+                self._total_predict_requests.increase()
+                self._predict_calls_count += 1
+        finally:
+            self._stats_collector.mark("finish")
+            self._stats_collector.disable()
+        return response_status, response
 
-        self._stats_collector.mark("finish")
-        self._stats_collector.disable()
+    @FlaskRoute(
+        "{}/predictUnstructured/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")),
+        methods=["POST"],
+    )
+    def predict_unstructured(self, url_params, form_params):
+        if self._error_response:
+            return HTTP_513_DRUM_PIPELINE_ERROR, self._error_response
+
+        self._stats_collector.enable()
+        self._stats_collector.mark("start")
+
+        try:
+            response, response_status = self.do_predict_unstructured()
+
+            if response_status == HTTP_200_OK:
+                # this counter is managed by uwsgi
+                self._total_predict_requests.increase()
+                self._predict_calls_count += 1
+        finally:
+            self._stats_collector.mark("finish")
+            self._stats_collector.disable()
         return response_status, response
 
     def _get_stats_dict(self):
