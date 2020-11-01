@@ -145,6 +145,10 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
                 # this counter is managed by uwsgi
                 self._total_predict_requests.increase()
                 self._predict_calls_count += 1
+        except Exception as ex:
+            self._logger.error(ex)
+            response_status = HTTP_513_DRUM_PIPELINE_ERROR
+            response = {"error": str(ex)}
         finally:
             self._stats_collector.mark("finish")
             self._stats_collector.disable()

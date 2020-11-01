@@ -325,7 +325,7 @@ class PythonModelAdapter:
                 predictions = self._custom_hooks.get(CustomHooks.SCORE)(data, model, **kwargs)
             except Exception as exc:
                 raise type(exc)(
-                    "Model score hook failed to make predictions: {}".format(exc)
+                    "Model score hook failed to make predictions. Exception: {}".format(exc)
                 ).with_traceback(sys.exc_info()[2]) from None
         else:
             try:
