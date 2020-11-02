@@ -168,3 +168,11 @@ def multiclass_testing_data():
         file_path=os.path.join(BASE_DATASET_DIR, "skyserver_sql2_27_2018_6_51_39_pm.csv")
     )
     return dataset.id
+
+
+@pytest.fixture(scope="session")
+def unstructured_testing_data():
+    dataset = dr.Dataset.create_from_file(
+        file_path=os.path.join(BASE_DATASET_DIR, "unstructured_data.txt")
+    )
+    return dataset.id

@@ -9,13 +9,14 @@ BASE_MODEL_TEMPLATES_DIR = "model_templates"
 
 class TestInferenceModelTemplates(object):
     @pytest.mark.parametrize(
-        "model_template, language, env, dataset, target, pos_label, neg_label, class_labels_file",
+        "model_template, language, env, dataset, target_type, target, pos_label, neg_label, class_labels_file",
         [
             (
                 "inference/java_codegen",
                 "java",
                 "java_drop_in_env",
                 "regression_testing_data",
+                dr.TARGET_TYPE.REGRESSION,
                 "MEDV",
                 None,
                 None,
@@ -26,6 +27,7 @@ class TestInferenceModelTemplates(object):
                 "java",
                 "java_h2o_drop_in_env",
                 "binary_testing_data",
+                dr.TARGET_TYPE.BINARY,
                 "Species",
                 "Iris-setosa",
                 "Iris-versicolor",
@@ -36,6 +38,7 @@ class TestInferenceModelTemplates(object):
                 "java",
                 "java_h2o_drop_in_env",
                 "binary_testing_data",
+                dr.TARGET_TYPE.BINARY,
                 "Species",
                 "Iris-setosa",
                 "Iris-versicolor",
@@ -46,6 +49,7 @@ class TestInferenceModelTemplates(object):
                 "java",
                 "java_h2o_drop_in_env",
                 "regression_testing_data",
+                dr.TARGET_TYPE.REGRESSION,
                 "MEDV",
                 None,
                 None,
@@ -56,6 +60,7 @@ class TestInferenceModelTemplates(object):
                 "python",
                 "keras_drop_in_env",
                 "regression_testing_data",
+                dr.TARGET_TYPE.REGRESSION,
                 "MEDV",
                 None,
                 None,
@@ -66,6 +71,7 @@ class TestInferenceModelTemplates(object):
                 "python",
                 "keras_drop_in_env",
                 "regression_testing_data",
+                dr.TARGET_TYPE.REGRESSION,
                 "MEDV",
                 None,
                 None,
@@ -76,6 +82,7 @@ class TestInferenceModelTemplates(object):
                 "python",
                 "keras_drop_in_env",
                 "binary_vizai_testing_data",
+                dr.TARGET_TYPE.BINARY,
                 "class",
                 "dogs",
                 "cats",
@@ -86,6 +93,7 @@ class TestInferenceModelTemplates(object):
                 "python",
                 "pytorch_drop_in_env",
                 "regression_testing_data",
+                dr.TARGET_TYPE.REGRESSION,
                 "MEDV",
                 None,
                 None,
@@ -96,7 +104,20 @@ class TestInferenceModelTemplates(object):
                 "python",
                 "sklearn_drop_in_env",
                 "regression_testing_data",
+                dr.TARGET_TYPE.REGRESSION,
                 "MEDV",
+                None,
+                None,
+                None,
+            ),
+            (
+                "inference/python3_unstructured",
+                "python",
+                "sklearn_drop_in_env",
+                # datafile here is only a stub, as unstructured model testing only performs start up check
+                "regression_testing_data",
+                dr.TARGET_TYPE.UNSTRUCTURED,
+                None,
                 None,
                 None,
                 None,
@@ -106,6 +127,7 @@ class TestInferenceModelTemplates(object):
                 "python",
                 "xgboost_drop_in_env",
                 "regression_testing_data",
+                dr.TARGET_TYPE.REGRESSION,
                 "MEDV",
                 None,
                 None,
@@ -116,6 +138,7 @@ class TestInferenceModelTemplates(object):
                 "r",
                 "r_drop_in_env",
                 "regression_testing_data",
+                dr.TARGET_TYPE.REGRESSION,
                 "MEDV",
                 None,
                 None,
@@ -126,6 +149,7 @@ class TestInferenceModelTemplates(object):
                 "python",
                 "pmml_drop_in_env",
                 "binary_testing_data",
+                dr.TARGET_TYPE.BINARY,
                 "Species",
                 "Iris-setosa",
                 "Iris-versicolor",
@@ -136,6 +160,7 @@ class TestInferenceModelTemplates(object):
                 "python",
                 "pytorch_drop_in_env",
                 "multiclass_testing_data",
+                dr.TARGET_TYPE.MULTICLASS,
                 "class",
                 None,
                 None,
@@ -150,6 +175,7 @@ class TestInferenceModelTemplates(object):
         language,
         env,
         dataset,
+        target_type,
         target,
         pos_label,
         neg_label,
@@ -158,21 +184,24 @@ class TestInferenceModelTemplates(object):
         env_id, env_version_id = request.getfixturevalue(env)
         test_data_id = request.getfixturevalue(dataset)
 
-        dr_target_type = dr.TARGET_TYPE.REGRESSION
-        if pos_label is not None and neg_label is not None:
-            dr_target_type = dr.TARGET_TYPE.BINARY
-        elif class_labels_file:
-            dr_target_type = dr.TARGET_TYPE.MULTICLASS
-        model = dr.CustomInferenceModel.create(
+        create_params = dict(
             name=model_template,
-            target_type=dr_target_type,
-            target_name=target,
+            target_type=target_type,
             description=model_template,
             language=language,
-            positive_class_label=pos_label,
-            negative_class_label=neg_label,
-            class_labels_file=class_labels_file,
         )
+
+        if target is not None:
+            create_params.update({"target_name": target})
+
+        if target_type == dr.TARGET_TYPE.BINARY:
+            create_params.update(
+                {"positive_class_label": pos_label, "negative_class_label": neg_label}
+            )
+        elif target_type == dr.TARGET_TYPE.MULTICLASS:
+            create_params.update({"class_labels_file": class_labels_file})
+
+        model = dr.CustomInferenceModel.create(**create_params)
 
         model_version = dr.CustomModelVersion.create_clean(
             custom_model_id=model.id,
