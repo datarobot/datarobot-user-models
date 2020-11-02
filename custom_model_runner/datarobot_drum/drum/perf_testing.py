@@ -16,7 +16,7 @@ from tempfile import mkdtemp, NamedTemporaryFile
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumPerfTestTimeout
 from datarobot_drum.drum.utils import CMRunnerUtils
-from datarobot_drum.drum.common import RunMode, ArgumentsOptions, PERF_TEST_SERVER_LABEL
+from datarobot_drum.drum.common import ArgumentsOptions, PERF_TEST_SERVER_LABEL
 
 
 def _get_samples_df(df, samples):
