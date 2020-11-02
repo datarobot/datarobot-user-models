@@ -5,7 +5,15 @@ import pytest
 import yaml
 
 from datarobot_drum.drum.common import ArgumentsOptions
-from tests.conftest import PYTHON, REGRESSION, BINARY, ANOMALY, SKLEARN_ANOMALY, SKLEARN_BINARY, SKLEARN_REGRESSION
+from tests.conftest import (
+    PYTHON,
+    REGRESSION,
+    BINARY,
+    ANOMALY,
+    SKLEARN_ANOMALY,
+    SKLEARN_BINARY,
+    SKLEARN_REGRESSION,
+)
 from tests.drum.utils import _create_custom_model_dir, _exec_shell_cmd
 
 BASE_MODEL_TEMPLATES_DIR = "model_templates"
@@ -31,7 +39,7 @@ class TestDrumPush(object):
         [
             (SKLEARN_REGRESSION, REGRESSION, PYTHON),
             (SKLEARN_BINARY, BINARY, PYTHON),
-            (SKLEARN_ANOMALY, ANOMALY, PYTHON)
+            (SKLEARN_ANOMALY, ANOMALY, PYTHON),
         ],
     )
     def test_drum_push_training(
@@ -43,15 +51,10 @@ class TestDrumPush(object):
         tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
-            is_training=True
+            resources, tmp_path, framework, problem, language, is_training=True
         )
 
-        env_id= '5e8c889607389fe0f466c72d'
+        env_id = "5e8c889607389fe0f466c72d"
         yaml_string = get_push_yaml(env_id, resources.datasets(framework, problem), problem)
         with open(os.path.join(custom_model_dir, "model-metadata.yaml"), "w") as outfile:
             yaml.dump(yaml_string, outfile, default_flow_style=False)
