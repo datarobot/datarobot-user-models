@@ -6,7 +6,7 @@ import yaml
 
 from datarobot_drum.drum.common import ArgumentsOptions
 from tests.conftest import PYTHON, SKLEARN, REGRESSION, BINARY
-from ..drum.utils import _create_custom_model_dir, _exec_shell_cmd
+from tests.drum.utils import _create_custom_model_dir, _exec_shell_cmd
 
 BASE_MODEL_TEMPLATES_DIR = "model_templates"
 BASE_DATASET_DIR = "tests/testdata"
@@ -40,7 +40,6 @@ class TestDrumPush(object):
         problem,
         language,
         tmp_path,
-        sklearn_drop_in_env,
     ):
         custom_model_dir = _create_custom_model_dir(
             resources,
@@ -50,7 +49,7 @@ class TestDrumPush(object):
             language,
         )
 
-        env_id, _ = sklearn_drop_in_env
+        env_id= '5e8c889607389fe0f466c72d'
         yaml_string = get_push_yaml(env_id, resources.datasets(framework, problem), problem)
         with open(os.path.join(custom_model_dir, "model-metadata.yaml"), "w") as outfile:
             yaml.dump(yaml_string, outfile, default_flow_style=False)
