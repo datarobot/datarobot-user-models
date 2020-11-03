@@ -247,7 +247,7 @@ class CMRunTests:
                         container_limit_val = mem_info["container_limit"]
                     row.extend([mem_info["drum_rss"], container_limit_val, mem_info["total"]])
                 else:
-                    row.extend([CMRunTests.NA_VALUE, CMRunTests.NA_VALUE])
+                    row.extend([CMRunTests.NA_VALUE, CMRunTests.NA_VALUE, CMRunTests.NA_VALUE])
                 rows.append(row)
 
             if show_inside_server:
