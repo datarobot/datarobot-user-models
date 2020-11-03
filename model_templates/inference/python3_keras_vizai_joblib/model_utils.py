@@ -1,9 +1,10 @@
 # keras imports
-from tensorflow.keras.models import load_model
+from tensorflow.keras.models import load_model, Model
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
 # scikit-learn imports
 from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import FunctionTransformer
 
 # pandas/numpy imports
 import pandas as pd
@@ -66,6 +67,15 @@ def pretrained_preprocess_input(img_arr: np.ndarray) -> np.ndarray:
     return preprocess_input(img_arr)
 
 
+def get_pretrained_base_model() -> Model:
+    """ A base pretrained model to build on top of """
+    from tensorflow.keras.applications import MobileNetV2
+
+    pretrained_model = MobileNetV2(include_top=False, input_shape=IMG_SHAPE, classes=2)
+    pretrained_model.trainable = False
+    return pretrained_model
+
+
 def reshape_numpy_array(data_series: pd.Series) -> np.ndarray:
     """ Convert pd.Series to numpy array and reshape it too """
     return np.asarray(data_series.to_list()).reshape(-1, *IMG_SHAPE)
@@ -102,6 +112,12 @@ def deserialize_estimator_pipeline(input_dir: str) -> Pipeline:
     estimator_dict = joblib.load(joblib_file_path)
     model = estimator_dict["model"]
     prep_pipeline = estimator_dict["preprocessor_pipeline"]
+    prep_pipeline.steps.append(
+        [
+            "feature_extraction",
+            FunctionTransformer(get_pretrained_base_model().predict, validate=False),
+        ]
+    )
     with h5py.File(model, mode="r") as fp:
         keras_model = load_model(fp)
 

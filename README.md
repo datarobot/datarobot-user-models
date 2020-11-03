@@ -68,7 +68,7 @@ The DRUM tool has built-in support for the following libraries. If your model is
 | scikit-learn | *.pkl | sklean-regressor.pkl |
 | xgboost | *.pkl | xgboost-regressor.pkl |
 | PyTorch | *.pth | torch-regressor.pth |
-| keras | *.h5 | keras-regressor.h5 |
+| tf.keras (tensorflow>=2.2.1) | *.h5 | keras-regressor.h5 |
 | pmml | *.pmml | pmml-regressor.pmml |
 
 
