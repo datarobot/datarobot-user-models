@@ -16,7 +16,7 @@ preprocessor = None
 def load_model(code_dir: str) -> Any:
     """
     Can be used to load supported models if your model has multiple artifacts, or for loading
-    models that **drum** does not natively support
+    models that DRUM  does not natively support
 
     Parameters
     ----------
@@ -38,13 +38,13 @@ def load_model(code_dir: str) -> Any:
 def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
     """
     Intended to apply transformations to the prediction data before making predictions. This is
-    most useful if **drum** supports the model's library, but your model requires additional data
+    most useful if DRUM supports the model's library, but your model requires additional data
     processing before it can make predictions
 
     Parameters
     ----------
-    data : is the dataframe given to **drum** to make predictions on
-    model : is the deserialized model loaded by **drum** or by `load_model`, if supplied
+    data : is the dataframe given to DRUM to make predictions on
+    model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
 
     Returns
     -------
@@ -65,7 +65,7 @@ def fit(
     **kwargs,
 ):
     """
-    This hook must be implemented with your fitting code, for running drum in the fit mode.
+    This hook must be implemented with your fitting code, for running DRUM in the fit mode.
 
     This hook MUST ALWAYS be implemented for custom training models.
     For inference models, this hook can stick around unimplemented, and won’t be triggered.

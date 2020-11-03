@@ -1,9 +1,9 @@
 ## About
-The DataRobot Model Runner (**drum**) is a tool that allows you to work locally with Python, R, and Java custom models.
+The DataRobot Model Runner (DRUM) is a tool that allows you to work locally with Python, R, and Java custom models.
 It can be used to verify that a custom model can run and make predictions before it is uploaded to DataRobot.
 However, this testing is only for development purposes. DataRobot recommends that any model you wish to deploy should also be tested in the Custom Model Workshop.
-  
-**drum** can also:
+
+DRUM can also:
 - run performance and memory usage testing for models.
 - perform model validation tests, e.g., checking model functionality on corner cases, like null values imputation.
 - run models in a Docker container.
@@ -22,30 +22,30 @@ View examples [here](https://github.com/datarobot/datarobot-user-models#training
 
 ### Prerequisites:
 All models:
-- Install the dependencies needed to run your code. 
+- Install the dependencies needed to run your code.
 - If you are using a drop-in environment found in this repo, you must pip install these dependencies.
 
 Python models:
-- Python 3.6 or 3.7 is required unless you are using **drum** with a Docker image. 
-- This is because **drum** only runs with Python 3.6 or 3.7.
-  
+- Python 3.6 or 3.7 is required unless you are using DRUM with a Docker image.
+- This is because DRUM only runs with Python 3.6 or 3.7.
+
 Java models:
 - JRE >= 11.
 
 R models:
 - Python >= 3.6.
 - The R framework must be installed.
-- **drum** uses the `rpy2` package (by default the latest version is installed) to run R.
+- DRUM uses the `rpy2` package (by default the latest version is installed) to run R.
 You may need to adjust the **rpy2** and **pandas** versions for compatibility.
 
-To install **drum** with Python/Java models support:  
+To install DRUM with Python/Java models support:  
 ```pip install datarobot-drum```
 
-To install **drum** with R support:  
+To install DRUM with R support:  
 ```pip install datarobot-drum[R]```
 
 ### Autocompletion
-**drum** supports autocompletion based on the `argcomplete` package. Additional configuration is required to use it:
+DRUM supports autocompletion based on the `argcomplete` package. Additional configuration is required to use it:
 - run `activate-global-python-argcomplete --user`; this should create a file: `~/.bash_completion.d/python-argcomplete`,
 - source created file `source ~/.bash_completion.d/python-argcomplete` in your `~/.bashrc` or another profile-related file according to your system.
 
@@ -70,19 +70,19 @@ Help:
 
 
 ### Code Directory *--code-dir*
-The *--code-dir* (code directory) argument is required in all commands and should point to a folder which contains your model artifacts and any other code needed for **drum** to run your model. For example, if you're running **drum** from **testdir** with a test input file at the root and your model in a subdirectory called **model**, you would enter:
+The *--code-dir* (code directory) argument is required in all commands and should point to a folder which contains your model artifacts and any other code needed for DRUM to run your model. For example, if you're running DRUM from **testdir** with a test input file at the root and your model in a subdirectory called **model**, you would enter:
 
 `drum score --code-dir ./model/ --input ./testfile.csv`
 
 ### Model template generation
 <a name="new"></a>
-**drum** can help you to generate a code folder template with the `custom` file described above.  
+DRUM can help you to generate a code folder template with the `custom` file described above.  
 `drum new model --code-dir ~/user_code_dir/ --language r`  
 This command creates a folder with a `custom.py/R` file and a short description: `README.md`.
 
 ### Batch scoring mode
 <a name="score"></a>
-> Note: **drum** doesn't automatically distinguish between regression and classification. When you are using classification model, provide: _**positive-class-label**_ and _**negative-class-label**_ arguments.
+> Note: DRUM doesn't automatically distinguish between regression and classification. When you are using classification model, provide: _**positive-class-label**_ and _**negative-class-label**_ arguments.
 #### Run a binary classification custom model
 Make batch predictions with a binary classification model. Optionally, specify an output file. Otherwise, predictions are returned to the command line:  
 ```drum score --code-dir ~/user_code_dir/ --input 10k.csv  --positive-class-label yes --negative-class-label no --output 10k-results.csv --verbose```
@@ -115,7 +115,7 @@ For more feature options, see:
 <a name="validation"></a>
 You can validate the model on a set of various checks.
 It is highly recommended to run these checks, as they are performed in DataRobot before the model can be deployed.
-   
+
 List of checks:
 - null values imputation: each feature of the provided dataset is set to missing and fed to the model.
 
@@ -134,10 +134,10 @@ In case of check failure more information will be provided.
 ### Prediction server mode
 <a name="server"></a>
 
-**drum** can also run as a prediction server. To do so, provide a server address argument:  
+DRUM can also run as a prediction server. To do so, provide a server address argument:  
 ```drum server --code-dir ~/user_code_dir --address localhost:6789```
 
-The **drum** prediction server provides the following routes. You may provide the environment variable URL_PREFIX. Note that URLs must end with /.
+The DRUM prediction server provides the following routes. You may provide the environment variable URL_PREFIX. Note that URLs must end with /.
 
 * A GET URL_PREFIX/ route, which checks if the server is alive.  
 Example: GET http://localhost:6789/
@@ -158,53 +158,53 @@ This provides better stability and scalability - depending on how many CPUs are 
 E.g. ```drum server --code-dir ~/user_code_dir --address localhost:6789 --production --max-workers 2```
 
 > Note: *Production* mode may not be available on Windows-based systems out ot the box, as uwsgi installation requires special handling.
-> Docker container based Linux environment can be used for such cases. 
+> Docker container based Linux environment can be used for such cases.
 
 ### Fit mode
 <a name="fit"></a>
 > Note: Running fit inside of DataRobot is currently in alpha. Check back soon for the opportunity
 to test out this functionality yourself.
 
-**drum** can run your training model to make sure it can produce a trained model artifact before
-adding the training model into DataRobot. 
+DRUM can run your training model to make sure it can produce a trained model artifact before
+adding the training model into DataRobot.
 
-You can try this out on our sklearn classifier model template this this command: 
+You can try this out on our sklearn classifier model template this this command:
 
 ```
 drum fit --code-dir model_templates/python3_sklearn_binary --target-type binary --target Species --input \
 tests/testdata/iris_binary_training.csv --output . --positive-class-label Iris-setosa \
 --negative-class-label Iris-versicolor
 ```
-> Note: If you don't provide class label, DataRobot tries to autodetect the labels for you. 
+> Note: If you don't provide class label, DataRobot tries to autodetect the labels for you.
 
-You can also use **drum** on regression datasets, and soon you will also be able to provide row weights. Checkout the ```drum fit --help``` output for further details. 
+You can also use DRUM on regression datasets, and soon you will also be able to provide row weights. Checkout the ```drum fit --help``` output for further details.
 
 
 
 ### Running inside a docker container
-In every mode, **drum** can be run inside a docker container by providing the option ```--docker <image_name/directory_path>```.
+In every mode, DRUM can be run inside a docker container by providing the option ```--docker <image_name/directory_path>```.
 The container should implement an environment required to perform desired action.
-**drum** must be installed as a part of this environment.  
-The following is an example gn how to run **drum** inside of container:  
+DRUM must be installed as a part of this environment.  
+The following is an example gn how to run DRUM inside of container:  
 ```drum score --code-dir ~/user_code_dir/ --input dataset.csv --docker <container_name>```  
 ```drum perf-test --code-dir ~/user_code_dir/ --input dataset.csv --docker <container_name>```
 
-Alternatively, the argument passed through the `--docker` flag may be a directory containing the unbuilt contents 
-of an image. The DRUM tool will then attempt to build an image using this directory and run your model inside 
+Alternatively, the argument passed through the `--docker` flag may be a directory containing the unbuilt contents
+of an image. The DRUM tool will then attempt to build an image using this directory and run your model inside
 the newly built image.
 
 ## Drum Push
-Starting in version 1.1.4, drum includes a new verb called `push`. When the user writes 
-`drum push -cd /dirtopush/` the contents of that directory will be submitted as a custom model 
+Starting in version 1.1.4, drum includes a new verb called `push`. When the user writes
+`drum push -cd /dirtopush/` the contents of that directory will be submitted as a custom model
 to DataRobot. However, for this to work, you must create two types of configuration.
 1. **DataRobot client configuration**
-`push` relies on correct global configuration of the client to access a DataRobot server. 
+`push` relies on correct global configuration of the client to access a DataRobot server.
 There are two options for supplying this configuration, through environment variables or through
 a config file which is read by the DataRobot client. Both of these options will include an endpoint
-and an API token to authenticate the requests. 
+and an API token to authenticate the requests.
 
-* Option 1: Environment variables. 
-    Example: 
+* Option 1: Environment variables.
+    Example:
     ```
     export DATAROBOT_ENDPOINT=https://app.datarobot.com/api/v2
     export DATAROBOT_API_TOKEN=<yourtoken>
@@ -216,5 +216,5 @@ and an API token to authenticate the requests.
     token: <yourtoken>
     ```
 2. **Model Metadata** `push` also relies on a metadata file, which is parsed on drum to create
-the correct sort of model in DataRobot. This metadata file includes quite a few options. You can 
+the correct sort of model in DataRobot. This metadata file includes quite a few options. You can
 [read about those options](MODEL-METADATA.md) or [see an example](model_templates/inference/python3_sklearn/model-metadata.yaml)
