@@ -1,7 +1,8 @@
 import argparse
-from argparse import RawTextHelpFormatter
+from argparse_formatter import FlexiFormatter
+
 import os
-from datarobot_drum.drum.push import HELP_TEXT
+from datarobot_drum.drum.push import PUSH_HELP_TEXT
 import sys
 import subprocess
 
@@ -522,6 +523,148 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
+    def _register_subcommand_perf_test(subparsers):
+        desc = """
+        Test the performance of an inference model. This is done by internally using the server
+        sub command to serve the model. Then sending multiple requests to the server and 
+        measuring the time it takes to complete each request. 
+        
+        The test is mixing several requests sizes. The idea is to get a coverage of several
+        sizes, from the smallest request containing only 1 row of data, up to the largest 
+        request containing up to 50MB of data.
+        
+        At the end of the test, a summary of the test will be displayed. For each request size,
+        the following fields will be shown:
+        
+         size: size of the requests in bytes or Megabytes.
+         samples: number of samples this request size contained.
+         iters: number of times this request size was sent
+         min: minimum time measured for this request size (in seconds)
+         avg: average time of the this request size (in seconds)
+         max: maximum time measured for this request size (in seconds)
+         used: amount of memory used by drum at the end of this request size (MB)
+         container limit: if tests run in docker container, memory limit for it (MB)
+         total physical: total amount of physical memory avail on the current machine (MB)
+        """
+        parser = subparsers.add_parser(
+            ArgumentsOptions.PERF_TEST,
+            description=desc,
+            help="Run performance tests",
+            formatter_class=FlexiFormatter,
+        )
+        CMRunnerArgsRegistry._parsers[ArgumentsOptions.PERF_TEST] = parser
+        return parser
+
+    @staticmethod
+    def _register_subcommand_score(subparsers):
+        desc = """
+        Score an input file using the given model. 
+        """
+
+        parser = subparsers.add_parser(
+            ArgumentsOptions.SCORE, help="Run predictions in batch mode", description=desc
+        )
+        CMRunnerArgsRegistry._parsers[ArgumentsOptions.SCORE] = parser
+        return parser
+
+    @staticmethod
+    def _register_subcommand_fit(subparsers):
+        parser = subparsers.add_parser(ArgumentsOptions.FIT, help="Fit your model to your data")
+        CMRunnerArgsRegistry._parsers[ArgumentsOptions.FIT] = parser
+        return parser
+
+    @staticmethod
+    def _register_subcommand_validation(subparsers):
+        desc = """
+        You can validate the model on a set of various checks. 
+        It is highly recommended to run these checks, as they are performed in DataRobot 
+        before the model can be deployed.
+
+        List of checks:
+
+        * null values imputation: each feature of the provided dataset is set to missing 
+          and fed to the model. 
+          
+
+        Example:
+        > drum validation --code-dir ~/user_code_dir/ --input 10k.csv 
+              --positive-class-label yes --negative-class-label no
+        """
+
+        parser = subparsers.add_parser(
+            ArgumentsOptions.VALIDATION,
+            help="Run validation checks against the model",
+            description=desc,
+            formatter_class=FlexiFormatter,
+        )
+        CMRunnerArgsRegistry._parsers[ArgumentsOptions.VALIDATION] = parser
+        return parser
+
+    @staticmethod
+    def _register_subcommand_server(subparsers):
+        desc = """
+        Serve the given model using REST API. A web server will be started and will use 
+        the {address} argument for the host and port to use.
+        
+        The drum prediction server provides the following routes. 
+        You may provide the environment variable URL_PREFIX. 
+        Note that URLs must end with /.
+
+        A GET URL_PREFIX/ route, which checks if the server is alive.
+        Example: GET http://localhost:6789/
+
+        A POST URL_PREFIX/shutdown/ route, which shuts the server down.
+        Example: POST http://localhost:6789/shutdown/
+
+        A POST URL_PREFIX/predict/ route, which returns predictions on data.
+        Example: POST http://localhost:6789/predict/
+        For this /predict/ route, provide inference data 
+        (for the model to make predictions) as form data with a key:value pair, 
+        where: key = X and value = filename of the CSV that contains the inference data
+        
+        Example using curl:
+        curl -X POST --form "X=@data_file.csv" localhost:6789/predict/
+     
+        """
+        parser = subparsers.add_parser(
+            ArgumentsOptions.SERVER,
+            help="serve the model via REST APIs",
+            description=desc,
+            formatter_class=FlexiFormatter,
+        )
+        CMRunnerArgsRegistry._parsers[ArgumentsOptions.SERVER] = parser
+        return parser
+
+    @staticmethod
+    def _register_subcommand_new(subparsers):
+        parser = subparsers.add_parser(
+            ArgumentsOptions.NEW,
+            description="Create new model/env template",
+            help="Create new model/env template",
+        )
+        CMRunnerArgsRegistry._parsers[ArgumentsOptions.NEW] = parser
+        return parser
+
+    @staticmethod
+    def _register_subcommand_new_model(subparsers):
+        parser = subparsers.add_parser(
+            ArgumentsOptions.NEW_MODEL, help="Create a new modeling code directory template"
+        )
+        CMRunnerArgsRegistry._parsers[ArgumentsOptions.NEW_MODEL] = parser
+        return parser
+
+    @staticmethod
+    def _register_subcommand_push(subparsers):
+        parser = subparsers.add_parser(
+            ArgumentsOptions.PUSH,
+            help="Add your modeling code into DataRobot",
+            description=PUSH_HELP_TEXT,
+            formatter_class=FlexiFormatter,
+        )
+        CMRunnerArgsRegistry._parsers[ArgumentsOptions.PUSH] = parser
+        return parser
+
+    @staticmethod
     def get_arg_parser():
         parser = argparse.ArgumentParser(description="Run user model")
         CMRunnerArgsRegistry._parsers[ArgumentsOptions.MAIN_COMMAND] = parser
@@ -530,60 +673,27 @@ class CMRunnerArgsRegistry(object):
             dest=CMRunnerArgsRegistry.SUBPARSER_DEST_KEYWORD, help="Commands"
         )
 
-        batch_parser = subparsers.add_parser(
-            ArgumentsOptions.SCORE, help="Run predictions in batch mode"
-        )
-        CMRunnerArgsRegistry._parsers[ArgumentsOptions.SCORE] = batch_parser
-
-        fit_parser = subparsers.add_parser(ArgumentsOptions.FIT, help="Fit your model to your data")
-        CMRunnerArgsRegistry._parsers[ArgumentsOptions.FIT] = fit_parser
-
-        parser_perf_test = subparsers.add_parser(
-            ArgumentsOptions.PERF_TEST, help="Run performance tests"
-        )
-        CMRunnerArgsRegistry._parsers[ArgumentsOptions.PERF_TEST] = parser_perf_test
-
-        validation_parser = subparsers.add_parser(
-            ArgumentsOptions.VALIDATION, help="Run validation checks"
-        )
-        CMRunnerArgsRegistry._parsers[ArgumentsOptions.VALIDATION] = validation_parser
-
-        server_parser = subparsers.add_parser(
-            ArgumentsOptions.SERVER, help="Run predictions in server"
-        )
-        CMRunnerArgsRegistry._parsers[ArgumentsOptions.SERVER] = server_parser
-
-        new_parser = subparsers.add_parser(
-            ArgumentsOptions.NEW,
-            description="Create new model/env template",
-            help="Create new model/env template",
-        )
-        CMRunnerArgsRegistry._parsers[ArgumentsOptions.NEW] = new_parser
+        score_parser = CMRunnerArgsRegistry._register_subcommand_score(subparsers)
+        fit_parser = CMRunnerArgsRegistry._register_subcommand_fit(subparsers)
+        perf_test_parser = CMRunnerArgsRegistry._register_subcommand_perf_test(subparsers)
+        validation_parser = CMRunnerArgsRegistry._register_subcommand_validation(subparsers)
+        server_parser = CMRunnerArgsRegistry._register_subcommand_server(subparsers)
+        new_parser = CMRunnerArgsRegistry._register_subcommand_new(subparsers)
 
         new_subparsers = new_parser.add_subparsers(
             dest=CMRunnerArgsRegistry.NEW_SUBPARSER_DEST_KEYWORD, help="Commands"
         )
+        new_model_parser = CMRunnerArgsRegistry._register_subcommand_new_model(new_subparsers)
 
-        new_model_parser = new_subparsers.add_parser(
-            ArgumentsOptions.NEW_MODEL, help="Create a new modeling code directory template"
-        )
-        CMRunnerArgsRegistry._parsers[ArgumentsOptions.NEW_MODEL] = new_model_parser
-
-        push_parser = subparsers.add_parser(
-            ArgumentsOptions.PUSH,
-            help="Add your modeling code into DataRobot",
-            description=HELP_TEXT,
-            formatter_class=RawTextHelpFormatter,
-        )
-        CMRunnerArgsRegistry._parsers[ArgumentsOptions.PUSH] = push_parser
+        push_parser = CMRunnerArgsRegistry._register_subcommand_push(subparsers)
 
         # Note following args are not supported for perf-test, thus set as default
-        parser_perf_test.set_defaults(logging_level="warning", verbose=False)
+        perf_test_parser.set_defaults(logging_level="warning", verbose=False)
         validation_parser.set_defaults(logging_level="warning", verbose=False)
 
         CMRunnerArgsRegistry._reg_arg_code_dir(
-            batch_parser,
-            parser_perf_test,
+            score_parser,
+            perf_test_parser,
             server_parser,
             fit_parser,
             new_model_parser,
@@ -591,77 +701,83 @@ class CMRunnerArgsRegistry(object):
             push_parser,
         )
         CMRunnerArgsRegistry._reg_arg_verbose(
-            batch_parser, server_parser, fit_parser, new_parser, new_model_parser, push_parser
+            score_parser,
+            server_parser,
+            fit_parser,
+            new_parser,
+            new_model_parser,
+            push_parser,
+            perf_test_parser,
         )
         CMRunnerArgsRegistry._reg_arg_input(
-            batch_parser, parser_perf_test, fit_parser, validation_parser
+            score_parser, perf_test_parser, fit_parser, validation_parser
         )
         CMRunnerArgsRegistry._reg_arg_pos_neg_labels(
-            batch_parser, parser_perf_test, server_parser, fit_parser, validation_parser
+            score_parser, perf_test_parser, server_parser, fit_parser, validation_parser
         )
         CMRunnerArgsRegistry._reg_arg_multiclass_labels(
-            batch_parser, parser_perf_test, server_parser, fit_parser, validation_parser
+            score_parser, perf_test_parser, server_parser, fit_parser, validation_parser
         )
         CMRunnerArgsRegistry._reg_arg_logging_level(
-            batch_parser, server_parser, fit_parser, new_parser, new_model_parser, push_parser
+            score_parser, server_parser, fit_parser, new_parser, new_model_parser, push_parser
         )
         CMRunnerArgsRegistry._reg_arg_docker(
-            batch_parser,
-            parser_perf_test,
+            score_parser,
+            perf_test_parser,
             server_parser,
             fit_parser,
             validation_parser,
             push_parser,
         )
         CMRunnerArgsRegistry._reg_arg_memory(
-            batch_parser,
-            parser_perf_test,
+            score_parser,
+            perf_test_parser,
             server_parser,
             fit_parser,
             validation_parser,
             push_parser,
         )
 
-        CMRunnerArgsRegistry._reg_arg_output(batch_parser, fit_parser)
-        CMRunnerArgsRegistry._reg_arg_show_perf(batch_parser, server_parser)
+        CMRunnerArgsRegistry._reg_arg_output(score_parser, fit_parser)
+        CMRunnerArgsRegistry._reg_arg_show_perf(score_parser, server_parser)
 
         CMRunnerArgsRegistry._reg_arg_target_feature_and_filename(fit_parser)
         CMRunnerArgsRegistry._reg_arg_weights(fit_parser)
         CMRunnerArgsRegistry._reg_arg_skip_predict(fit_parser)
         CMRunnerArgsRegistry._reg_arg_num_rows(fit_parser)
 
-        CMRunnerArgsRegistry._reg_arg_samples(parser_perf_test)
-        CMRunnerArgsRegistry._reg_arg_iterations(parser_perf_test)
-        CMRunnerArgsRegistry._reg_arg_timeout(parser_perf_test)
-        CMRunnerArgsRegistry._reg_arg_in_server(parser_perf_test)
-        CMRunnerArgsRegistry._reg_arg_url(parser_perf_test)
+        CMRunnerArgsRegistry._reg_arg_samples(perf_test_parser)
+        CMRunnerArgsRegistry._reg_arg_iterations(perf_test_parser)
+        CMRunnerArgsRegistry._reg_arg_timeout(perf_test_parser)
+        CMRunnerArgsRegistry._reg_arg_in_server(perf_test_parser)
+        CMRunnerArgsRegistry._reg_arg_url(perf_test_parser)
 
         CMRunnerArgsRegistry._reg_arg_address(server_parser)
-        CMRunnerArgsRegistry._reg_arg_production_server(server_parser, parser_perf_test)
-        CMRunnerArgsRegistry._reg_arg_max_workers(server_parser, parser_perf_test)
+        CMRunnerArgsRegistry._reg_arg_production_server(server_parser, perf_test_parser)
+        CMRunnerArgsRegistry._reg_arg_max_workers(server_parser, perf_test_parser)
         CMRunnerArgsRegistry._reg_arg_with_error_server(server_parser)
 
         CMRunnerArgsRegistry._reg_arg_language(
-            new_model_parser, server_parser, batch_parser, parser_perf_test, validation_parser
+            new_model_parser, server_parser, score_parser, perf_test_parser, validation_parser
         )
 
         CMRunnerArgsRegistry._reg_arg_show_stacktrace(
-            batch_parser,
-            parser_perf_test,
+            score_parser,
+            perf_test_parser,
             server_parser,
             fit_parser,
             validation_parser,
             new_model_parser,
         )
 
-        CMRunnerArgsRegistry._reg_args_monitoring(batch_parser, server_parser)
+        CMRunnerArgsRegistry._reg_args_monitoring(score_parser, server_parser)
 
         CMRunnerArgsRegistry._reg_arg_target_type(
-            batch_parser, parser_perf_test, server_parser, fit_parser, validation_parser
+            score_parser, perf_test_parser, server_parser, fit_parser, validation_parser
         )
 
         CMRunnerArgsRegistry._reg_args_unstructured_mode(
-            batch_parser, parser_perf_test, server_parser, validation_parser
+            score_parser, perf_test_parser, server_parser, validation_parser
         )
 
         return parser
@@ -727,5 +843,8 @@ class CMRunnerArgsRegistry(object):
                     print(result.stdout.decode("utf8"))
                     print(result.stderr.decode("utf8"))
                     exit(1)
+                else:
+                    if options.verbose:
+                        print("uwsgi detected")
 
         CMRunnerArgsRegistry.verify_monitoring_options(options, options.subparser_name)

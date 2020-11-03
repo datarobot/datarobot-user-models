@@ -200,7 +200,7 @@ def drum_push(options):
         raise DrumCommonException("Unsupported type")
 
 
-HELP_TEXT = """
+PUSH_HELP_TEXT = """
 This submits the contents of a directory as a custom model to DataRobot.
 
 To use this functionality, you must create two types of configuration.

@@ -14,7 +14,6 @@ from tempfile import mkdtemp, NamedTemporaryFile
 import numpy as np
 import pandas as pd
 
-
 from memory_profiler import memory_usage
 from mlpiper.pipeline.executor import Executor
 from mlpiper.pipeline.executor_config import ExecutorConfig
@@ -267,7 +266,9 @@ class CMRunner:
 
     def run(self):
         try:
-            if self.options.docker and self.run_mode != RunMode.PUSH:
+            if self.options.docker and (
+                self.run_mode not in (RunMode.PUSH, RunMode.PERF_TEST, RunMode.VALIDATION)
+            ):
                 ret = self._run_inside_docker(self.options, self.run_mode, self.raw_arguments)
                 if ret:
                     raise DrumCommonException("Error from docker process: {}".format(ret))
@@ -681,7 +682,11 @@ class CMRunner:
         docker_cmd = self._prepare_docker_command(options, run_mode, raw_arguments)
         self._print_verbose("-" * 20)
         p = subprocess.Popen(docker_cmd, shell=True)
-        retcode = p.wait()
+        try:
+            retcode = p.wait()
+        except KeyboardInterrupt:
+            retcode = 0
+
         self._print_verbose("{bar} retcode: {retcode} {bar}".format(bar="-" * 10, retcode=retcode))
         return retcode
 

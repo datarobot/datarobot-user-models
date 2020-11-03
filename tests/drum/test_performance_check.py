@@ -96,6 +96,8 @@ class TestPerformanceCheck:
             resources.target_types(problem),
         )
 
+        # wait for drum perf-test server from prev test case to be stopped
+        time.sleep(0.5)
         assert _find_drum_perf_test_server_process() is None
         p = subprocess.Popen(
             cmd,
