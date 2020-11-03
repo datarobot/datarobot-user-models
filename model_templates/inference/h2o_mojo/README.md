@@ -1,6 +1,6 @@
 ## H2O Mojo Template
 
-These models are intended to work with the [Java H2O Drop-In Environment](../../public_dropin_environments/java_h2o/).
+These models are intended to work with the [Java Drop-In Environment](../../public_dropin_environments/java_codegen/).
 
 The models provided in each folder are H2O models exported as MOJOs.  For more details see [H2O MOJO](http://docs.h2o.ai/h2o/latest-stable/h2o-docs/productionizing.html)
 
@@ -8,7 +8,7 @@ The H2O model internals are used to provide the class names for the classificati
 
 ### Instructions
 
-Upload H2O Mojo file (Modern Object, Optimized) and use the Java H2O Drop-In Environment with it.  Mojo file has a `.zip` extension.  No others files are necessary
+Upload H2O Mojo file (Modern Object, Optimized) and use the Java Drop-In Environment with it.  Mojo file has a `.zip` extension.  No others files are necessary
 
 ### Examples
 
@@ -40,8 +40,8 @@ If you do not have Java 11 installed, please consider using docker.
 
 You can either provide the path to the Dockerfile
 
-`drum score --code-dir ./h2o_mojo/binary --target-type binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label 1 --negative-class-label 0 --docker ../../public_dropin_environments/java_h2o/`
+`drum score --code-dir ./h2o_mojo/binary --target-type binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label 1 --negative-class-label 0 --docker ../../public_dropin_environments/java_codegen/`
 
-or provide the name of the docker image that has already been built [Java H2O Drop-In Environment](../../public_dropin_environments/java_h2o/), for example, docker image is `drum_h2o`.
+or provide the name of the docker image that has already been built [Java Drop-In Environment](../../public_dropin_environments/java_codegen/), for example, docker image is `drum_h2o`.
 
 `drum score --code-dir ./h2o_mojo/binary --target-type binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label 1 --negative-class-label 0 --docker drum_h2o`

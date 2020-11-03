@@ -1,7 +1,7 @@
 
 ## H2O Driverless AI MOJO Pipeline
 
-These models are inteded to work with the [Java H2O Drop-In Environment](../../public_dropin_environments/java_h2o/).
+These models are inteded to work with the [Java Drop-In Environment](../../public_dropin_environments/java_codegen/).
 
  No examples are included.  Users must a have a valid ongoing Driverless AI license to use exported pipelines.  We provide no license and do not include this framework in our automated testing.  
 
@@ -47,8 +47,8 @@ If you do not have Java 11 installed, please consider using docker.
 
 You can either provide the path to the Dockerfile
 
-`drum score --code-dir ./h2o_mojo_pipeline/binary --target-type binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label 1 --negative-class-label 0 --docker ../../public_dropin_environments/java_h2o/`
+`drum score --code-dir ./h2o_mojo_pipeline/binary --target-type binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label 1 --negative-class-label 0 --docker ../../public_dropin_environments/java_codegen/`
 
-or provide the name of the docker image that has already been built [Java H2O Drop-In Environment](../../public_dropin_environments/java_h2o/), for example, docker image is `drum_h2o`.
+or provide the name of the docker image that has already been built [Java Drop-In Environment](../../public_dropin_environments/java_codegen/), for example, docker image is `drum_h2o`.
 
 `drum score --code-dir ./h2o_mojo_pipeline/binary --target-type binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label 1 --negative-class-label 0 --docker drum_h2o`
