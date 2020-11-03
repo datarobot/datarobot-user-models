@@ -5,7 +5,9 @@ from mlpiper.common.byte_conv import ByteConv
 from datarobot_drum.drum.common import ArgumentsOptions
 import collections
 
-MemoryInfo = collections.namedtuple("MemoryInfo", "total avail free drum_rss drum_info nginx_rss")
+MemoryInfo = collections.namedtuple(
+    "MemoryInfo", "total avail free drum_rss drum_info nginx_rss container_limit"
+)
 
 
 class MemoryMonitor:
@@ -20,6 +22,32 @@ class MemoryMonitor:
         self._pid = pid if pid is not None else os.getpid()
         self._include_childs = include_childs
         self._monitor_current_process = monitor_current_process
+
+    @staticmethod
+    def _run_inside_docker():
+        """
+        Returns True if running inside a docker container
+        """
+        if os.path.exists("/.dockerenv"):
+            return True
+        else:
+            return False
+
+    def _collect_memory_info_in_docker(self):
+        """
+        In the case we are running inside a docker container then memory collection is
+        simpler. We look directly on the files inside the /sys/fs/cgroup/memory directory
+        and collect the usage/total for all the processes inside the container.
+        Returns
+        -------
+        (total_mb, used_mb)
+        """
+        mem_sysfs_path = "/sys/fs/cgroup/memory/"
+        total_bytes = int(open(os.path.join(mem_sysfs_path, "memory.limit_in_bytes")).read())
+        usage_bytes = int(open(os.path.join(mem_sysfs_path, "memory.usage_in_bytes")).read())
+        total_mb = ByteConv.from_bytes(total_bytes).mbytes
+        used_mb = ByteConv.from_bytes(usage_bytes).mbytes
+        return total_mb, used_mb
 
     def collect_memory_info(self):
         def get_proc_data(p):
@@ -60,8 +88,15 @@ class MemoryMonitor:
 
         virtual_mem = psutil.virtual_memory()
         total_physical_mem_mb = ByteConv.from_bytes(virtual_mem.total).mbytes
-        available_mem_mb = ByteConv.from_bytes(virtual_mem.available).mbytes
-        free_mem_mb = ByteConv.from_bytes(virtual_mem.free).mbytes
+        if self._run_inside_docker():
+            container_limit_mb, used_mb = self._collect_memory_info_in_docker()
+            available_mem_mb = container_limit_mb - used_mb
+            free_mem_mb = available_mem_mb
+        else:
+            available_mem_mb = ByteConv.from_bytes(virtual_mem.available).mbytes
+            free_mem_mb = ByteConv.from_bytes(virtual_mem.free).mbytes
+            container_limit_mb = None
+
         mem_info = MemoryInfo(
             total=total_physical_mem_mb,
             avail=available_mem_mb,
@@ -69,5 +104,7 @@ class MemoryMonitor:
             drum_rss=drum_rss_mb if drum_process else None,
             drum_info=drum_info if drum_process else None,
             nginx_rss=nginx_rss_mb,
+            container_limit=container_limit_mb,
         )
+
         return mem_info

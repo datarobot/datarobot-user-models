@@ -16,7 +16,7 @@ from tempfile import mkdtemp, NamedTemporaryFile
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumPerfTestTimeout
 from datarobot_drum.drum.utils import CMRunnerUtils
-from datarobot_drum.drum.common import RunMode, ArgumentsOptions, PERF_TEST_SERVER_LABEL
+from datarobot_drum.drum.common import ArgumentsOptions, PERF_TEST_SERVER_LABEL
 
 
 def _get_samples_df(df, samples):
@@ -43,7 +43,7 @@ def _find_drum_perf_test_server_process():
         try:
             if proc.environ().get(PERF_TEST_SERVER_LABEL, False):
                 return proc.pid
-        except psutil.AccessDenied:
+        except (psutil.AccessDenied, psutil.ZombieProcess) as e:
             continue
     return None
 
@@ -71,16 +71,21 @@ class TestCaseResults:
         self.iterations = iterations
         self.samples = samples
         self.stats_obj = stats_obj
+        self.prediction_ok = False
+        self.prediction_error = None
         self.server_stats = None
 
 
 class CMRunTests:
     REPORT_NAME = "Request time (s)"
     NA_VALUE = "NA"
+    TEST_CASE_FAIL_VALUE = "Fail"
 
     def __init__(self, options, run_mode):
         self.options = options
+        self._verbose = self.options.verbose
         self._input_csv = self.options.input
+        self._input_df = pd.read_csv(self._input_csv, lineterminator="\n")
 
         self._server_addr = "localhost"
         self._server_port = CMRunnerUtils.find_free_port()
@@ -93,14 +98,12 @@ class CMRunTests:
 
         self._df_for_test = None
         self._test_cases_to_run = None
-        if run_mode == RunMode.PERF_TEST:
-            self._prepare_test_cases()
 
     def _prepare_test_cases(self):
         print("Preparing test data...")
-        df = pd.read_csv(self._input_csv, lineterminator="\n")
+
         file_size = os.stat(self._input_csv).st_size
-        sample_size = int(file_size / df.shape[0])
+        sample_size = int(file_size / self._input_df.shape[0])
 
         def _get_size_and_units(size):
             if size < 1024:
@@ -113,7 +116,7 @@ class CMRunTests:
 
             # generate 50mb data frame in the beginning,
             # because afterwards it is easier to take only part of it for every test case
-            df_50mb = _get_samples_df(df, samples_in_50mb)
+            df_50mb = _get_samples_df(self._input_df, samples_in_50mb)
 
             _default_test_cases = [
                 PerfTestCase("{} {}".format(*_get_size_and_units(sample_size)), 1, 100),
@@ -125,12 +128,14 @@ class CMRunTests:
             self._df_for_test = df_50mb
         else:
             iters = 1 if self.options.iterations is None else self.options.iterations
-            samples = df.shape[0] if self.options.samples is None else self.options.samples
+            samples = (
+                self._input_df.shape[0] if self.options.samples is None else self.options.samples
+            )
             samples_size = samples * sample_size
             self._test_cases_to_run = [
                 PerfTestCase("{} {}".format(*_get_size_and_units(samples_size)), samples, iters)
             ]
-            self._df_for_test = df
+            self._df_for_test = self._input_df
 
     def _wait_for_server_to_start(self):
         while True:
@@ -148,7 +153,7 @@ class CMRunTests:
                 print(error_message)
                 raise DrumCommonException(error_message)
 
-    def _build_cmrun_cmd(self):
+    def _build_drum_cmd(self):
         cmd_list = [
             "{}".format(ArgumentsOptions.MAIN_COMMAND),
             "server",
@@ -163,22 +168,128 @@ class CMRunTests:
         cmd_list.append("--target-type")
         cmd_list.append(self.options.target_type)
         if self.options.production:
-            cmd_list.append("--production")
+            cmd_list.append(ArgumentsOptions.PRODUCTION)
         if self.options.max_workers:
-            cmd_list.append("--max-workers")
+            cmd_list.append(ArgumentsOptions.MAX_WORKERS)
             cmd_list.append(str(self.options.max_workers))
 
         if self.options.positive_class_label:
-            cmd_list.append("--positive-class-label")
+            cmd_list.append(ArgumentsOptions.POSITIVE_CLASS_LABEL)
             cmd_list.append(self.options.positive_class_label)
         if self.options.negative_class_label:
-            cmd_list.append("--negative-class-label")
+            cmd_list.append(ArgumentsOptions.NEGATIVE_CLASS_LABEL)
             cmd_list.append(self.options.negative_class_label)
 
         if self.options.docker:
-            cmd_list.extend(["--docker", self.options.docker])
+            cmd_list.extend([ArgumentsOptions.DOCKER, self.options.docker])
+        if self.options.memory:
+            cmd_list.extend([ArgumentsOptions.MEMORY, self.options.memory])
 
         return cmd_list
+
+    def _generate_table_report_adv(self, results, show_mem=True, show_inside_server=True):
+
+        tbl_report = "=" * 52 + "\n"
+
+        table = Texttable()
+        table.set_deco(Texttable.HEADER)
+
+        header_names = ["size", "samples", "iters", "min", "avg", "max"]
+        header_types = ["t", "i", "i", "f", "f", "f"]
+        col_allign = ["l", "r", "r", "r", "r", "r"]
+
+        if show_mem:
+            header_names.extend(["used (MB)", "container limit (MB)", "total physical (MB)"])
+            header_types.extend(["f", "f", "f"])
+            col_allign.extend(["r", "r", "r"])
+
+        if show_inside_server:
+            header_names.extend(["prediction"])
+            header_types.extend(["f"])
+            col_allign.extend(["r"])
+
+        table.set_cols_dtype(header_types)
+        table.set_cols_align(col_allign)
+
+        try:
+            terminal_size = shutil.get_terminal_size()
+            table.set_max_width(terminal_size.columns)
+        except Exception as e:
+            pass
+
+        rows = [header_names]
+
+        for res in results:
+            row = [res.name, res.samples, res.iterations]
+
+            server_stats = None
+            if res.prediction_ok:
+                d = res.stats_obj.dict_report(CMRunTests.REPORT_NAME)
+                row.extend([d["min"], d["avg"], d["max"]])
+                server_stats = json.loads(res.server_stats) if res.server_stats else None
+            else:
+                row.extend(
+                    [
+                        CMRunTests.TEST_CASE_FAIL_VALUE,
+                        CMRunTests.TEST_CASE_FAIL_VALUE,
+                        CMRunTests.TEST_CASE_FAIL_VALUE,
+                    ]
+                )
+
+            if show_mem:
+                if server_stats and "mem_info" in server_stats:
+                    mem_info = server_stats["mem_info"]
+                    if self.options.docker is None:
+                        container_limit_val = "running w/o container"
+                    elif self.options.memory is None:
+                        container_limit_val = "no memory limit"
+                    else:
+                        container_limit_val = mem_info["container_limit"]
+                    row.extend([mem_info["drum_rss"], container_limit_val, mem_info["total"]])
+                else:
+                    row.extend([CMRunTests.NA_VALUE, CMRunTests.NA_VALUE, CMRunTests.NA_VALUE])
+                rows.append(row)
+
+            if show_inside_server:
+                if server_stats:
+                    time_info = server_stats["time_info"]
+                    row.extend(
+                        [
+                            time_info["run_predictor_total"]["avg"],
+                        ]
+                    )
+                else:
+                    row.extend(
+                        [
+                            CMRunTests.NA_VALUE,
+                        ]
+                    )
+
+        table.add_rows(rows)
+        tbl_report = table.draw()
+        return tbl_report
+
+    def _start_drum_server(self):
+        cmd_list = self._build_drum_cmd()
+        if self._verbose:
+            print("Running drum using: [{}]".format(" ".join(cmd_list)))
+
+        env_vars = os.environ
+        env_vars.update({PERF_TEST_SERVER_LABEL: "1"})
+        self._server_process = subprocess.Popen(
+            cmd_list, env=env_vars, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
+        self._wait_for_server_to_start()
+
+    def _stop_drum_server(self):
+        print("Test is done stopping drum server")
+        try:
+            requests.post(self._url_server_address + self._shutdown_endpoint, timeout=5)
+        except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):
+            pass
+        finally:
+            os.kill(self._server_process.pid, signal.SIGINT)
+            os.system("tput init")
 
     def _run_test_case(self, tc, results):
         print(
@@ -203,113 +314,61 @@ class CMRunTests:
         for i in range(tc.iterations):
             sc.enable()
             sc.mark("start")
+
+            # TODO: add try catch so no failures..
             response = requests.post(
                 self._url_server_address + self._predict_endpoint, files={"X": df_csv}
             )
+            if self._verbose:
+                print(results)
+
             sc.mark("end")
-            assert response.ok
+            if response.ok:
+                tc_results.prediction_ok = True
+            else:
+                tc_results.prediction_ok = False
+                tc_results.prediction_error = response.text
+                if self._verbose:
+                    print("Failed sending prediction request to server: {}".format(response.text))
+                return
+
             actual_num_predictions = len(json.loads(response.text)["predictions"])
-            assert actual_num_predictions == test_df_nrows
+            if actual_num_predictions != test_df_nrows:
+                print(
+                    "Failed, number of predictions in response: {} is not as expected: {}".format(
+                        actual_num_predictions, test_df_nrows
+                    )
+                )
+                # TODO: do not throw exception here.. all should be in the tc_results.
+                assert actual_num_predictions == test_df_nrows
             sc.disable()
             bar.next()
         bar.finish()
+
+        # TODO: even if prediction request fail we should try and get server stats
         response = requests.get(self._url_server_address + self._stats_endpoint)
+
         if response.ok:
             tc_results.server_stats = response.text
 
-    def _generate_table_report_adv(self, results, show_mem=True, show_inside_server=True):
+    def _run_all_test_cases(self):
+        results = []
+        for tc in self._test_cases_to_run:
+            print("Running test case with timeout: {}".format(self.options.timeout))
+            signal.alarm(self.options.timeout)
+            try:
+                self._run_test_case(tc, results)
+            except DrumPerfTestTimeout:
+                print("... timed out ({}s)".format(self.options.timeout))
+            except Exception as e:
+                print("\ntest case failed with a message: {}".format(e))
+        return results
 
-        tbl_report = "=" * 52 + "\n"
-
-        table = Texttable()
-        table.set_deco(Texttable.HEADER)
-
-        header_names = ["size", "samples", "iters", "min", "avg", "max"]
-        header_types = ["t", "i", "i", "f", "f", "f"]
-        col_allign = ["l", "r", "r", "r", "r", "r"]
-
-        if show_mem:
-            header_names.extend(["used (MB)", "total (MB)"])
-            header_types.extend(["f", "f"])
-            col_allign.extend(["r", "r"])
-
-        if show_inside_server:
-            header_names.extend(["prediction"])
-            header_types.extend(["f"])
-            col_allign.extend(["r"])
-
-        table.set_cols_dtype(header_types)
-        table.set_cols_align(col_allign)
-
-        try:
-            terminal_size = shutil.get_terminal_size()
-            table.set_max_width(terminal_size.columns)
-        except Exception as e:
-            pass
-
-        rows = [header_names]
-
-        for res in results:
-            row = [res.name, res.samples, res.iterations]
-            d = res.stats_obj.dict_report(CMRunTests.REPORT_NAME)
-            row.extend([d["min"], d["avg"], d["max"]])
-            server_stats = json.loads(res.server_stats) if res.server_stats else None
-
-            if show_mem:
-                if server_stats and "mem_info" in server_stats:
-                    mem_info = server_stats["mem_info"]
-                    row.extend([mem_info["drum_rss"], mem_info["total"]])
-                else:
-                    row.extend([CMRunTests.NA_VALUE, CMRunTests.NA_VALUE])
-                rows.append(row)
-
-            if show_inside_server:
-                if server_stats:
-                    time_info = server_stats["time_info"]
-                    row.extend(
-                        [
-                            time_info["run_predictor_total"]["avg"],
-                        ]
-                    )
-                else:
-                    row.extend(
-                        [
-                            CMRunTests.NA_VALUE,
-                        ]
-                    )
-
-        table.add_rows(rows)
-        tbl_report = table.draw()
-        return tbl_report
-
-    def _stop_server(self):
-        try:
-            requests.post(self._url_server_address + self._shutdown_endpoint, timeout=5)
-        except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):
-            pass
-        finally:
-            os.kill(self._server_process.pid, signal.SIGINT)
-            os.system("tput init")
-
-    def performance_test(self):
-        _kill_drum_perf_test_server_process(
-            _find_drum_perf_test_server_process(), self.options.verbose
-        )
-        if CMRunnerUtils.is_port_in_use(self._server_addr, self._server_port):
-            error_message = "\nError: address: {} is in use".format(self._url_server_address)
-            print(error_message)
-            raise DrumCommonException(error_message)
-
-        cmd_list = self._build_cmrun_cmd()
-        env_vars = os.environ
-        env_vars.update({PERF_TEST_SERVER_LABEL: "1"})
-        self._server_process = subprocess.Popen(cmd_list, env=env_vars)
-        self._wait_for_server_to_start()
-
+    def _init_signals(self):
         def signal_handler(sig, frame):
             print("\nCtrl+C pressed, aborting test")
             print("Sending shutdown to server")
-            self._stop_server()
+            self._stop_drum_server()
             os.system("tput init")
             sys.exit(0)
 
@@ -318,18 +377,37 @@ class CMRunTests:
 
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGALRM, testcase_timeout)
-        results = []
-        print("\n\n")
-        for tc in self._test_cases_to_run:
-            signal.alarm(self.options.timeout)
-            try:
-                self._run_test_case(tc, results)
-            except DrumPerfTestTimeout:
-                print("... timed out ({}s)".format(self.options.timeout))
-            except Exception as e:
-                print("\n...test case failed with a message: {}".format(e))
 
-        self._stop_server()
+    def _reset_signals(self):
+        signal.signal(signal.SIGINT, signal.SIG_DFL)
+        signal.signal(signal.SIGALRM, signal.SIG_DFL)
+
+    def _print_perf_test_params(self):
+        print("DRUM performance test")
+        print("Model:      {}".format(self.options.code_dir))
+        print("Data:       {}".format(self._input_csv))
+        print("# Features: {}".format(len(self._input_df.columns)))
+        sys.stdout.flush()
+
+    def performance_test(self):
+        self._print_perf_test_params()
+        self._prepare_test_cases()
+
+        _kill_drum_perf_test_server_process(
+            _find_drum_perf_test_server_process(), self.options.verbose
+        )
+        if CMRunnerUtils.is_port_in_use(self._server_addr, self._server_port):
+            error_message = "\nError: address: {} is in use".format(self._url_server_address)
+            print(error_message)
+            raise DrumCommonException(error_message)
+
+        self._start_drum_server()
+        self._init_signals()
+
+        print("\n\n")
+        results = self._run_all_test_cases()
+        self._reset_signals()
+        self._stop_drum_server()
         str_report = self._generate_table_report_adv(
             results, show_inside_server=self.options.in_server
         )
