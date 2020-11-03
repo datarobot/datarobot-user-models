@@ -120,7 +120,6 @@ class PredictionServer(ConnectableComponent, PredictMixin):
             return {"message": "ERROR: {}".format(e)}, HTTP_500_INTERNAL_SERVER_ERROR
 
         app = get_flask_app(model_api)
-        logging.getLogger("werkzeug").setLevel(logger.getEffectiveLevel())
 
         host = self._params.get("host", None)
         port = self._params.get("port", None)
