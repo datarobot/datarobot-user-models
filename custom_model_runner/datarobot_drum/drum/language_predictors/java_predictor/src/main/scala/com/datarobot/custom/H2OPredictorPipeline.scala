@@ -23,6 +23,9 @@ class H2OPredictorPipeline(name: String) extends BasePredictor(name) {
   var customModelPath: String = null
   var negativeClassLabel: String = null
   var positiveClassLabel: String = null
+  var classLabels: Array[String] = null
+  var targetType: String = null
+  var headers: Array[String] = null 
 
   def configure(
       params: java.util.Map[String, Any] = new java.util.HashMap[String, Any]()
@@ -33,6 +36,22 @@ class H2OPredictorPipeline(name: String) extends BasePredictor(name) {
     customModelPath = params.get("__custom_model_path__").asInstanceOf[String]
     negativeClassLabel = params.get("negativeClassLabel").asInstanceOf[String]
     positiveClassLabel = params.get("positiveClassLabel").asInstanceOf[String]
+    classLabels = params.get("classLabels").asInstanceOf[Array[String]];
+    targetType = params.get("targetType").asInstanceOf[String]
+
+    // output column name clean up.  
+    // dai prepends the column name to the class labels
+
+    val outputColumns = mojoPipeline.getOutputMeta.getColumnNames
+    val origLabels = outputColumns.length match { 
+      case 1 => Array("Predictions")
+      case 2 => Array(positiveClassLabel, negativeClassLabel)
+      case _ => classLabels
+    }
+    headers = outputColumns.length match { 
+      case 1 => Array("Predictions")
+      case _ => outputColumns.map{ c => origLabels.filter{ c.contains(_)}}.flatMap{ x => x}
+    }
 
   }
 
@@ -62,14 +81,7 @@ class H2OPredictorPipeline(name: String) extends BasePredictor(name) {
   }
 
   def predict(inputFilename: String): String = {
-    
-    val outputColumns = this.mojoPipeline.getOutputMeta.getColumnNames
-
-    val headers = outputColumns.length match { 
-      case 1 => Array("Predictions")
-      case _ => outputColumns
-    }
-   
+      
     val csvPrinter: CSVPrinter = new CSVPrinter(
       new StringWriter(),
       CSVFormat.DEFAULT.withHeader(headers: _*)
