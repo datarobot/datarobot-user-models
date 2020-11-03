@@ -5,7 +5,9 @@ from mlpiper.common.byte_conv import ByteConv
 from datarobot_drum.drum.common import ArgumentsOptions
 import collections
 
-MemoryInfo = collections.namedtuple("MemoryInfo", "total avail free drum_rss drum_info nginx_rss")
+MemoryInfo = collections.namedtuple(
+    "MemoryInfo", "total avail free drum_rss drum_info nginx_rss container_limit"
+)
 
 
 class MemoryMonitor:
@@ -84,15 +86,16 @@ class MemoryMonitor:
             if "nginx" in proc.name().lower():
                 nginx_rss_mb += ByteConv.from_bytes(proc.memory_info().rss).mbytes
 
+        virtual_mem = psutil.virtual_memory()
+        total_physical_mem_mb = ByteConv.from_bytes(virtual_mem.total).mbytes
         if self._run_inside_docker():
-            total_physical_mem_mb, used_mb = self._collect_memory_info_in_docker()
-            available_mem_mb = total_physical_mem_mb - used_mb
+            container_limit_mb, used_mb = self._collect_memory_info_in_docker()
+            available_mem_mb = container_limit_mb - used_mb
             free_mem_mb = available_mem_mb
         else:
-            virtual_mem = psutil.virtual_memory()
-            total_physical_mem_mb = ByteConv.from_bytes(virtual_mem.total).mbytes
             available_mem_mb = ByteConv.from_bytes(virtual_mem.available).mbytes
             free_mem_mb = ByteConv.from_bytes(virtual_mem.free).mbytes
+            container_limit_mb = None
 
         mem_info = MemoryInfo(
             total=total_physical_mem_mb,
@@ -101,5 +104,7 @@ class MemoryMonitor:
             drum_rss=drum_rss_mb if drum_process else None,
             drum_info=drum_info if drum_process else None,
             nginx_rss=nginx_rss_mb,
+            container_limit=container_limit_mb,
         )
+
         return mem_info

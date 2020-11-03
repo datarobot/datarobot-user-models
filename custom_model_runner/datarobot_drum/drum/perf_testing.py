@@ -199,9 +199,9 @@ class CMRunTests:
         col_allign = ["l", "r", "r", "r", "r", "r"]
 
         if show_mem:
-            header_names.extend(["used (MB)", "total (MB)"])
-            header_types.extend(["f", "f"])
-            col_allign.extend(["r", "r"])
+            header_names.extend(["used (MB)", "container limit (MB)", "total physical (MB)"])
+            header_types.extend(["f", "f", "f"])
+            col_allign.extend(["r", "r", "r"])
 
         if show_inside_server:
             header_names.extend(["prediction"])
@@ -239,7 +239,13 @@ class CMRunTests:
             if show_mem:
                 if server_stats and "mem_info" in server_stats:
                     mem_info = server_stats["mem_info"]
-                    row.extend([mem_info["drum_rss"], mem_info["total"]])
+                    if self.options.docker is None:
+                        container_limit_val = "running w/o container"
+                    elif self.options.memory is None:
+                        container_limit_val = "no memory limit"
+                    else:
+                        container_limit_val = mem_info["container_limit"]
+                    row.extend([mem_info["drum_rss"], container_limit_val, mem_info["total"]])
                 else:
                     row.extend([CMRunTests.NA_VALUE, CMRunTests.NA_VALUE])
                 rows.append(row)
