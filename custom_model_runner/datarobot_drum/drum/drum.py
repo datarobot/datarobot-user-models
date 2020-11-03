@@ -111,9 +111,9 @@ class CMRunner:
 
     @staticmethod
     def _config_logger(options):
-        logger = logging.getLogger(LOGGER_NAME_PREFIX)
-        logger.setLevel(LOG_LEVELS[options.logging_level])
-        return logger
+        logging.getLogger().setLevel(LOG_LEVELS[options.logging_level])
+        logging.getLogger("werkzeug").setLevel(LOG_LEVELS[options.logging_level])
+        return logging.getLogger(LOGGER_NAME_PREFIX)
 
     def get_logger(self):
         return self.logger
