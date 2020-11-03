@@ -59,7 +59,7 @@ def fit(
 Custom hooks for prediction
 ---------------------------
 
-If drum's standard assumptions are incorrect for your model, **drum** supports several hooks
+If drum's standard assumptions are incorrect for your model, DRUM supports several hooks
 for custom inference code.
 """
 # def init(code_dir : Optional[str], **kwargs) -> None:
@@ -98,13 +98,13 @@ def load_model(input_dir: str) -> Pipeline:
 # def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
 #     """
 #     Intended to apply transformations to the prediction data before making predictions. This is
-#     most useful if **drum** supports the model's library, but your model requires additional data
+#     most useful if DRUM supports the model's library, but your model requires additional data
 #     processing before it can make predictions
 #
 #     Parameters
 #     ----------
-#     data : is the dataframe given to **drum** to make predictions on
-#     model : is the deserialized model loaded by **drum** or by `load_model`, if supplied
+#     data : is the dataframe given to DRUM to make predictions on
+#     model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
 #
 #     Returns
 #     -------
@@ -113,14 +113,14 @@ def load_model(input_dir: str) -> Pipeline:
 
 # def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
 #     """
-#     This hook is only needed if you would like to use **drum** with a framework not natively
+#     This hook is only needed if you would like to use DRUM with a framework not natively
 #     supported by the tool.
 #
 #     Parameters
 #     ----------
 #     data : is the dataframe to make predictions against. If `transform` is supplied,
 #     `data` will be the transformed data.
-#     model : is the deserialized model loaded by **drum** or by `load_model`, if supplied
+#     model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
 #     kwargs : additional keyword arguments to the method
 #     In case of classification model class labels will be provided as the following arguments:
 #     - `positive_class_label` is the positive class label for a binary classification model
@@ -141,9 +141,9 @@ def load_model(input_dir: str) -> Pipeline:
 #
 #     Parameters
 #     ----------
-#     predictions : is the dataframe of predictions produced by **drum** or by
+#     predictions : is the dataframe of predictions produced by DRUM or by
 #       the `score` hook, if supplied
-#     model : is the deserialized model loaded by **drum** or by `load_model`, if supplied
+#     model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
 #
 #     Returns
 #     -------

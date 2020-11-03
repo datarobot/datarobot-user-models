@@ -67,8 +67,8 @@ def transform(data, model):
 
     Parameters
     ----------
-    data : is the dataframe given to **drum** to make predictions on
-    model : is the deserialized model loaded by **drum** or by `load_model`, if supplied
+    data : is the dataframe given to DRUM to make predictions on
+    model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
 
     Returns
     -------
