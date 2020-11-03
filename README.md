@@ -34,7 +34,7 @@ debugging, testing, and running your training and inference models with DataRobo
 This repository address the DataRobot functionality known as `custom models`. The terms `custom model` and `user model` can be used interchangeably, as can `custom model directory` and `code directory`.
 
 ## Quickstart <a name="quickstart"></a>
-The following example shows how to use the [**drum**](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) tool to make predictions on an [sklearn regression model](model_templates/inference/python3_sklearn). For the training model quickstart, please reference [this document](QUICKSTART-FOR-TRAINING.md)
+The following example shows how to use the [DRUM](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) tool to make predictions on an [sklearn regression model](model_templates/inference/python3_sklearn). For the training model quickstart, please reference [this document](QUICKSTART-FOR-TRAINING.md)
 1. Clone the repository
 2. Create a virtual environment: `python3 -m virtualenv <dirname for virtual environment>`
 3. Activate the virtual environment: `source <dirname for virtual environment>/bin/activate`
@@ -48,7 +48,7 @@ The following example shows how to use the [**drum**](https://github.com/datarob
 For more examples, reference the [Custom Model Templates](#custom_model_templates).
 
 ## Assembling an inference model code folder <a name="inference_model_folder"></a>
-> Note: the following information is only relevant you are using [**drum**](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) to run a model. 
+> Note: the following information is only relevant you are using [DRUM](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) to run a model.
 
 Custom inference models are models trained outside of DataRobot. Once they are uploaded to DataRobot, they are deployed as a DataRobot deployment which supports model monitoring and management.
 
@@ -60,7 +60,7 @@ To create a custom inference model, you must provide specific files to use with 
 The `drum new model` command can help you generate a model template. Check [here](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner#model-template-generation) for more information.
 
 ### Built-In Model Support
-The **drum** tool has built-in support for the following libraries. If your model is based on one of these libraries, **drum** expects your model artifact to have a matching file extension.
+The DRUM tool has built-in support for the following libraries. If your model is based on one of these libraries, DRUM expects your model artifact to have a matching file extension.
 
 ### Python libraries
 | Library | File Extension | Example |
@@ -85,9 +85,9 @@ This tool makes the following assumptions about your serialized model:
   - Multi value it is assumed that the first value is the negative class probability, the second is the positive class probability
 - There is a single pkl/pth/h5 file present.
 - Your model uses one of the above frameworks.
-  
+
 ### Custom hooks for Python and R models
-If the assumptions mentioned above are incorrect for your model, **drum** supports several hooks for custom code. If needed,
+If the assumptions mentioned above are incorrect for your model, DRUM supports several hooks for custom code. If needed,
 include any necessary hooks in a file called `custom.py` for Python models or `custom.R` for R models alongside your model artifacts in your model folder:
 
 > Note: The following hook signatures are written with Python 3 type annotations. The Python types match the following R types:
@@ -109,15 +109,15 @@ include any necessary hooks in a file called `custom.py` for Python models or `c
   - `code_dir` is the directory where the model artifact and additional code are provided, which is passed in the `--code_dir` parameter
   - If used, this hook must return a non-None value
   - This hook can be used to load supported models if your model has multiple artifacts, or for loading models that
-  **drum** does not natively support
+  DRUM does not natively support
 - `transform(data: DataFrame, model: Any) -> DataFrame`
-  - `data` is the dataframe given to **drum** to make predictions on. Missing values are indicated with NaN in Python and NA in R, unless otherwise overridden by the read_input_data hook.
-  - `model` is the deserialized model loaded by **drum** or by `load_model` (if provided)
+  - `data` is the dataframe given to DRUM to make predictions on. Missing values are indicated with NaN in Python and NA in R, unless otherwise overridden by the read_input_data hook.
+  - `model` is the deserialized model loaded by DRUM or by `load_model` (if provided)
   - This hook is intended to apply transformations to the prediction data before making predictions. It is useful
-  if **drum** supports the model's library, but your model requires additional data processing before it can make predictions.
+  if DRUM supports the model's library, but your model requires additional data processing before it can make predictions.
 - `score(data: DataFrame, model: Any, **kwargs: Dict[str, Any]) -> DataFrame`
   - `data` is the dataframe to make predictions against. If `transform` is supplied, `data` will be the transformed data.
-  - `model` is the deserialized model loaded by **drum** or by `load_model`, if supplied
+  - `model` is the deserialized model loaded by DRUM or by `load_model`, if supplied
   - `kwargs` - additional keyword arguments to the method; In the case of a binary classification model, contains class labels as the following keys:
     - `positive_class_label` for the positive class label
     - `negative_class_label` for the negative class label
@@ -125,10 +125,10 @@ include any necessary hooks in a file called `custom.py` for Python models or `c
     - Binary classification: requires columns for each class label with floating-point class probabilities as values. Each row
     should sum to 1.0.
     - Regression: requires a single column named `Predictions` with numerical values.
-  - This hook is only needed if you would like to use **drum** with a framework not natively supported by the tool.
+  - This hook is only needed if you would like to use DRUM with a framework not natively supported by the tool.
 - `post_process(predictions: DataFrame, model: Any) -> DataFrame`
-  - `predictions` is the dataframe of predictions produced by **drum** or by the `score` hook, if supplied.
-  - `model` is the deserialized model loaded by **drum** or by `load_model`, if supplied
+  - `predictions` is the dataframe of predictions produced by DRUM or by the `score` hook, if supplied.
+  - `model` is the deserialized model loaded by DRUM or by `load_model`, if supplied
   - This method should return predictions as a dataframe with the following format:
     - Binary classification: requires columns for each class label with floating-point class probabilities as values. Each row
     should sum to 1.0.
@@ -140,10 +140,10 @@ include any necessary hooks in a file called `custom.py` for Python models or `c
 | Library | File Extension | Example |
 | --- | --- | --- |
 | datarobot-prediction | *.jar | dr-regressor.jar |
-| h2o-genmodel | *.java | GBM_model_python_1589382591366_1.java (pojo)| 
-| h2o-genmodel | *.zip | GBM_model_python_1589382591366_1.zip (mojo)| 
-| h2o-genmodel-ext-xgboost | *.java | XGBoost_2_AutoML_20201015_144158.java | 
-| h2o-genmodel-ext-xgboost | *.zip | XGBoost_2_AutoML_20201015_144158.zip | 
+| h2o-genmodel | *.java | GBM_model_python_1589382591366_1.java (pojo)|
+| h2o-genmodel | *.zip | GBM_model_python_1589382591366_1.zip (mojo)|
+| h2o-genmodel-ext-xgboost | *.java | XGBoost_2_AutoML_20201015_144158.java |
+| h2o-genmodel-ext-xgboost | *.zip | XGBoost_2_AutoML_20201015_144158.zip |
 | h2o-ext-mojo-pipeline | *.mojo and *.jar | ...|
 
 If you leverage an H2O model exported as POJO, you cannot rename the file.  This does not apply to models exported as MOJO - they may be named in any fashion.
@@ -157,7 +157,7 @@ Define the DRUM_JAVA_XMX environment variable to set JVM maximum heap memory siz
 
 ```DRUM_JAVA_XMX=512m```
 
-The **drum** tool currently supports models with DataRobot-generated Scoring Code or models that implement either the `IClassificationPredictor`
+The DRUM tool currently supports models with DataRobot-generated Scoring Code or models that implement either the `IClassificationPredictor`
 or `IRegressionPredictor` interface from [datarobot-prediction](https://mvnrepository.com/artifact/com.datarobot/datarobot-prediction).
 The model artifact must have a **jar** extension.
 
@@ -190,14 +190,14 @@ Include any necessary hooks in a file called `custom.py` for Python models or `c
   - `code_dir` is the directory where the model artifact and additional code are provided, which is passed in the `--code_dir` parameter
   - If used, this hook must return a non-None value
   - This hook can be used to load supported models if your model has multiple artifacts, or for loading models that
-  **drum** does not natively support
+  DRUM does not natively support
 - `score_unstructured(model: Any, data: str/bytes, **kwargs: Dict[str, Any]) -> str/bytes [, Dict[str, str]]`
-  - `model` is the deserialized model loaded by **drum** or by `load_model`, if supplied
+  - `model` is the deserialized model loaded by DRUM or by `load_model`, if supplied
   - `data` is the data represented as str or bytes, depending on the provided `mimetype`
   - `kwargs` - additional keyword arguments to the method:
-    - `mimetype: str` - indicates the nature and format of the data, taken from request Content-Type header or `--content-type` CLI arg in batch mode; 
+    - `mimetype: str` - indicates the nature and format of the data, taken from request Content-Type header or `--content-type` CLI arg in batch mode;
     - `charset: str` - indicates encoding for text data, taken from request Content-Type header or `--content-type` CLI arg in batch mode;
-    - `query: dict` - params passed as query params in http request or in CLI `--query` argument in batch mode. 
+    - `query: dict` - params passed as query params in http request or in CLI `--query` argument in batch mode.
   - This method should return:
     - a single value `return data: str/bytes`
     - a tuple `return data: str/bytes, kwargs: dict[str, str]`
@@ -205,7 +205,7 @@ Include any necessary hooks in a file called `custom.py` for Python models or `c
 
 #### Incoming data type resolution
 `score_unstructured` hook receives a `data` parameter which can be of either `str` or `bytes` type.
-Type checking methods can be used to verify types: 
+Type checking methods can be used to verify types:
 - in Python`isinstance(data, str)` or `isinstance(data, bytes)`
 - in R `is.character(data)` or `is.raw(data)`
 
@@ -216,7 +216,7 @@ Following rules apply:
 - if content type is not defined, then incoming `kwargs={"mimetype": "text/plain", "charset":"utf8"}`, so data is treated as text, decoded using `utf8` charset and passed as `str`;
 - if mimetype starts with `text/` or `application/json`, data is treated as text, decoded using provided charset and passed as `str`;
 - for all other mimetype values data is treated as binary and passed as `bytes`.
- 
+
 #### Outgoing data and kwargs params
 As mentioned above `score_unstructured` can return:
 - a single data value `return data`
@@ -230,17 +230,17 @@ Following rules apply:
 if charset values is missing, default `utf8` charset will be set; then, if data is of type `str`, it will be encoded using resolved charset and sent.
 
 ##### In batch mode
-The best way to debug in batch mode is to provide `--output` file. Returned data will be written into file according to the type of data returned: 
+The best way to debug in batch mode is to provide `--output` file. Returned data will be written into file according to the type of data returned:
 - `str` data -> text file, using default `utf8` or returned in kwargs charset;
 - `bytes` data -> binary file.  
 (Returned `kwargs` are not shown in the batch mode, but you can still print them during debugging).
- 
+
 
 
 ## Assembling a training model code folder <a name="training_model_folder"></a>
 Custom training models are in active development. They include a `fit()` function, can be trained on the Leaderboard, benchmarked against DataRobot AutoML models, and get access to DataRobot's full set of automated insights. Refer to the [quickrun readme](QUICKSTART-FOR-TRAINING.md).
 
-The model folder must contain any code required for **drum** to run and train your model.
+The model folder must contain any code required for DRUM to run and train your model.
 
 ### Python
 The model folder must contain a `custom.py` file which defines a `fit` method.
@@ -260,7 +260,7 @@ The model folder must contain a `custom.py` file which defines a `fit` method.
 The [model templates](model_templates) folder provides templates for building and deploying custom models in DataRobot. Use the templates as an example structure for your own custom models.
 
 ### DataRobot User Model Runner
-The examples in this repository use the DataRobot User Model Runner (**drum**).  For more information on how to use and write models with **drum**, reference the [readme](./custom_model_runner/README.md).
+The examples in this repository use the DataRobot User Model Runner (DRUM).  For more information on how to use and write models with DRUM, reference the [readme](./custom_model_runner/README.md).
 
 ### Sample Models
 The [model_templates](model_templates) folder contains sample models that work with the provided template environments. For more information about each model, reference the readme for every example:
@@ -302,7 +302,7 @@ file, if necessary.
 For detailed information on how to create models that work in these environments, reference the links above for each environment.
 
 ## Building your own environment
->Note: DataRobot recommends using an environment template and not building your own environment except for specific use cases. (For example: you don't want to use **drum** but you want to implement your own prediction server.)
+>Note: DataRobot recommends using an environment template and not building your own environment except for specific use cases. (For example: you don't want to use DRUM but you want to implement your own prediction server.)
 
 If you'd like to use a tool/language/framework that is not supported by our template environments, you can make your own. DataRobot recommends modifying the provided environments to suit your needs. However, to make an easy to use, re-usable environment, you should adhere to the following guidelines:
 
@@ -316,14 +316,14 @@ your environment so that you can reuse it with multiple models. The webserver mu
 > Note: `URL_PREFIX` is an environment variable that will be available at runtime.
 
 ## Custom Model Runner <a name="custom_model_runner"></a>
-Custom model runner (**drum**) is a  tool that helps to assemble, test, and run custom models.
-The [custom model runner](custom_model_runner) folder contains its source code. 
+Custom model runner (DRUM) is a  tool that helps to assemble, test, and run custom models.
+The [custom model runner](custom_model_runner) folder contains its source code.
 For more information about how to use it, reference the [pypi docs](https://pypi.org/project/datarobot-drum/).
 
-## Contribution & development <a name="contribution_development"></a> 
+## Contribution & development <a name="contribution_development"></a>
 
 ### Prerequisites for development
-> Note: Only reference this section if you plan to work with **drum**.
+> Note: Only reference this section if you plan to work with DRUM.
 
 To build it, the following packages are required:
 `make`, `Java 11`, `maven`, `docker`, `R`
@@ -359,7 +359,3 @@ To contribute to the project, use a [regular GitHub process](https://help.github
 Some places to ask for help are:
 - open an issue through the [GitHub board](https://github.com/datarobot/datarobot-user-models/issues).
 - ask a question on the [#drum (IRC) channel](https://webchat.freenode.net/?channels=#drum).
-
-
-
-

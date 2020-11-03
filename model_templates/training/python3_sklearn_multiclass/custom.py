@@ -10,13 +10,13 @@ from sklearn.preprocessing import label_binarize
 def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
     """
     Intended to apply transformations to the prediction data before making predictions. This is
-    most useful if **drum** supports the model's library, but your model requires additional data
+    most useful if DRUM supports the model's library, but your model requires additional data
     processing before it can make predictions
 
     Parameters
     ----------
-    data : is the dataframe given to **drum** to make predictions on
-    model : is the deserialized model loaded by **drum** or by `load_model`, if supplied
+    data : is the dataframe given to DRUM to make predictions on
+    model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
 
     Returns
     -------
@@ -86,8 +86,8 @@ def fit(
 Custom hooks for prediction
 ---------------------------
 
-If drum's standard assumptions are incorrect for your model, **drum** supports several hooks 
-for custom inference code. 
+If drum's standard assumptions are incorrect for your model, DRUM supports several hooks
+for custom inference code.
 """
 # def init(code_dir : Optional[str], **kwargs) -> None:
 #     """
@@ -101,7 +101,7 @@ for custom inference code.
 # def load_model(code_dir: str) -> Any:
 #     """
 #     Can be used to load supported models if your model has multiple artifacts, or for loading
-#     models that **drum** does not natively support
+#     models that DRUM does not natively support
 #
 #     Parameters
 #     ----------
@@ -114,14 +114,14 @@ for custom inference code.
 
 # def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
 #     """
-#     This hook is only needed if you would like to use **drum** with a framework not natively
+#     This hook is only needed if you would like to use DRUM with a framework not natively
 #     supported by the tool.
 #
 #     Parameters
 #     ----------
 #     data : is the dataframe to make predictions against. If `transform` is supplied,
 #     `data` will be the transformed data.
-#     model : is the deserialized model loaded by **drum** or by `load_model`, if supplied
+#     model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
 #     kwargs : additional keyword arguments to the method
 #     In case of classification model class labels will be provided as the following arguments:
 #     - `positive_class_label` is the positive class label for a binary classification model
@@ -142,9 +142,9 @@ for custom inference code.
 #
 #     Parameters
 #     ----------
-#     predictions : is the dataframe of predictions produced by **drum** or by
+#     predictions : is the dataframe of predictions produced by DRUM or by
 #       the `score` hook, if supplied
-#     model : is the deserialized model loaded by **drum** or by `load_model`, if supplied
+#     model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
 #
 #     Returns
 #     -------
