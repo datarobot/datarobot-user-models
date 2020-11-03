@@ -25,7 +25,7 @@ class TestInferenceModelTemplates(object):
             (
                 "inference/h2o_pojo/binary",
                 "java",
-                "java_h2o_drop_in_env",
+                "java_drop_in_env",
                 "binary_testing_data",
                 dr.TARGET_TYPE.BINARY,
                 "Species",
@@ -36,7 +36,7 @@ class TestInferenceModelTemplates(object):
             (
                 "inference/h2o_mojo/binary",
                 "java",
-                "java_h2o_drop_in_env",
+                "java_drop_in_env",
                 "binary_testing_data",
                 dr.TARGET_TYPE.BINARY,
                 "Species",
@@ -47,7 +47,7 @@ class TestInferenceModelTemplates(object):
             (
                 "inference/h2o_pojo/regression",
                 "java",
-                "java_h2o_drop_in_env",
+                "java_drop_in_env",
                 "regression_testing_data",
                 dr.TARGET_TYPE.REGRESSION,
                 "MEDV",

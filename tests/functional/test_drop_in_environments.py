@@ -131,8 +131,8 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def pojo_multiclass_custom_model(self, java_h2o_drop_in_env):
-        env_id, _ = java_h2o_drop_in_env
+    def pojo_multiclass_custom_model(self, java_drop_in_env):
+        env_id, _ = java_drop_in_env
         return self.make_custom_model(
             "XGBoost_3_AutoML_20201016_143029.java",
             env_id,
@@ -142,8 +142,8 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def mojo_multiclass_custom_model(self, java_h2o_drop_in_env):
-        env_id, _ = java_h2o_drop_in_env
+    def mojo_multiclass_custom_model(self, java_drop_in_env):
+        env_id, _ = java_drop_in_env
         return self.make_custom_model(
             "mojo_multi.zip",
             env_id,
@@ -315,8 +315,8 @@ class TestDropInEnvironments(object):
             ),
             ("r_drop_in_env", "r_multi_artifact_binary_custom_model", "binary_testing_data"),
             ("sklearn_drop_in_env", "sklearn_multiclass_custom_model", "multiclass_testing_data"),
-            ("java_h2o_drop_in_env", "pojo_multiclass_custom_model", "multiclass_testing_data"),
-            ("java_h2o_drop_in_env", "mojo_multiclass_custom_model", "multiclass_testing_data"),
+            ("java_drop_in_env", "pojo_multiclass_custom_model", "multiclass_testing_data"),
+            ("java_drop_in_env", "mojo_multiclass_custom_model", "multiclass_testing_data"),
         ],
     )
     def test_drop_in_environments(self, request, env, model, test_data_id):
