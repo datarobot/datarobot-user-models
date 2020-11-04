@@ -28,6 +28,8 @@ def _convert_target_type(unconverted_target_type):
         return dr_client.TARGET_TYPE.REGRESSION
     elif unconverted_target_type == TargetType.BINARY.value:
         return dr_client.TARGET_TYPE.BINARY
+    elif unconverted_target_type == TargetType.ANOMALY.value:
+        return dr_client.CUSTOM_MODEL_TARGET_TYPE.ANOMALY
     raise DrumCommonException("Unsupported target type {}".format(unconverted_target_type))
 
 
