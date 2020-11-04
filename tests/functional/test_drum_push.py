@@ -5,7 +5,15 @@ import pytest
 import yaml
 
 from datarobot_drum.drum.common import ArgumentsOptions
-from tests.conftest import PYTHON, SKLEARN, REGRESSION, BINARY
+from tests.conftest import (
+    PYTHON,
+    REGRESSION,
+    BINARY,
+    ANOMALY,
+    SKLEARN_ANOMALY,
+    SKLEARN_BINARY,
+    SKLEARN_REGRESSION,
+)
 from ..drum.utils import _create_custom_model_dir, _exec_shell_cmd
 
 BASE_MODEL_TEMPLATES_DIR = "model_templates"
@@ -29,8 +37,9 @@ class TestDrumPush(object):
     @pytest.mark.parametrize(
         "framework, problem, language",
         [
-            (SKLEARN, REGRESSION, PYTHON),
-            (SKLEARN, BINARY, PYTHON),
+            (SKLEARN_REGRESSION, REGRESSION, PYTHON),
+            (SKLEARN_BINARY, BINARY, PYTHON),
+            (SKLEARN_ANOMALY, ANOMALY, PYTHON),
         ],
     )
     def test_drum_push_training(
@@ -48,6 +57,7 @@ class TestDrumPush(object):
             framework,
             problem,
             language,
+            is_training=True
         )
 
         env_id, _ = sklearn_drop_in_env
