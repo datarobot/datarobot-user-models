@@ -52,12 +52,7 @@ class TestDrumPush(object):
         sklearn_drop_in_env,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
-            is_training=True
+            resources, tmp_path, framework, problem, language, is_training=True
         )
 
         env_id, _ = sklearn_drop_in_env
