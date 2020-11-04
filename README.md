@@ -11,8 +11,9 @@
 7. [Custom Model Templates](#custom_model_templates)
 8. [Custom Environment Templates](#custom_environment_templates)
 9. [Custom Model Runner (drum)](#custom_model_runner)
-10. [Contribution & development](#contribution_development)
-11. [Communication](#communication)
+10. [Deploying model in DataRobot](#best_practices)
+12. [Contribution & development](#contribution_development)
+13. [Communication](#communication)
 
 ## What is this repository? <a name="what_is_it"></a>
 The **DataRobot User Models** repository contains information and tools for assembling,
@@ -320,6 +321,13 @@ your environment so that you can reuse it with multiple models. The webserver mu
 Custom model runner (DRUM) is a  tool that helps to assemble, test, and run custom models.
 The [custom model runner](custom_model_runner) folder contains its source code.
 For more information about how to use it, reference the [pypi docs](https://pypi.org/project/datarobot-drum/).
+
+## Deploying model in DataRobot <a name="best_practices"></a>
+Before uploading the model to DataRobot it is recommended to perform the following checks locally using DRUM:
+1. Run validation tests
+2. Run performance tests to see how much time predictions take for different sample sizes.
+
+Finally upload to DataRobot and run tests before creating deployment.
 
 ## Contribution & development <a name="contribution_development"></a>
 
