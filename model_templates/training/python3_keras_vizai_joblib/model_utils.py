@@ -1,16 +1,14 @@
 from typing import Tuple
 
 # keras imports
-# I was not able to switch this to tensoflow keras as it failed on pickling joblib
-import keras
-from keras.models import Sequential, Model
-from keras.layers import Dense  # core layers
-from keras.layers import GlobalAveragePooling2D  # CNN layers
-from keras.preprocessing.image import ImageDataGenerator
-from keras.models import load_model
-from keras.callbacks import EarlyStopping
-from keras.applications import MobileNetV2
-from keras.applications.mobilenet_v2 import preprocess_input
+import tensorflow
+from tensorflow.keras.models import Sequential, Model, load_model
+from tensorflow.keras.layers import Dense  # core layers
+from tensorflow.keras.layers import GlobalAveragePooling2D  # CNN layers
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
 # scikit-learn imports
 from sklearn.preprocessing import LabelBinarizer, label_binarize, FunctionTransformer
@@ -107,12 +105,21 @@ def pretrained_preprocess_input(img_arr: np.ndarray) -> np.ndarray:
     return preprocess_input(img_arr)
 
 
+def get_pretrained_base_model() -> Model:
+    """ A base pretrained model to build on top of """
+    from tensorflow.keras.applications import MobileNetV2
+
+    pretrained_model = MobileNetV2(include_top=False, input_shape=IMG_SHAPE, classes=2)
+    pretrained_model.trainable = False
+    return pretrained_model
+
+
 def reshape_numpy_array(data_series: pd.Series) -> np.ndarray:
     """ Convert pd.Series to numpy array and reshape it too """
     return np.asarray(data_series.to_list()).reshape(-1, *IMG_SHAPE)
 
 
-def get_all_callbacks() -> List[keras.callbacks.Callback]:
+def get_all_callbacks() -> List[tensorflow.keras.callbacks.Callback]:
     """ List of all keras callbacks """
     es = EarlyStopping(monitor="val_loss", patience=5, verbose=True, mode="auto", min_delta=1e-4)
     return [es]
@@ -159,11 +166,14 @@ def create_image_binary_classification_model() -> Model:
     Model
         Compiled binary classification model
     """
+
     model = Sequential()
     model.add(GlobalAveragePooling2D())
     model.add(Dense(1, activation="sigmoid"))
     model.compile(
-        optimizer=keras.optimizers.Adam(), loss="binary_crossentropy", metrics=["binary_accuracy"]
+        optimizer=tensorflow.keras.optimizers.Adam(),
+        loss="binary_crossentropy",
+        metrics=["binary_accuracy"],
     )
     return model
 
@@ -299,6 +309,12 @@ def deserialize_estimator_pipeline(input_dir: str) -> Pipeline:
     estimator_dict = joblib.load(joblib_file_path)
     model = estimator_dict["model"]
     prep_pipeline = estimator_dict["preprocessor_pipeline"]
+    prep_pipeline.steps.append(
+        [
+            "feature_extraction",
+            FunctionTransformer(get_pretrained_base_model().predict, validate=False),
+        ]
+    )
     with h5py.File(model, mode="r") as fp:
         keras_model = load_model(fp)
 
@@ -340,12 +356,6 @@ def fit_image_classifier_pipeline(
     # append few more steps to the preprocess-pipeline for the final prediction
     X_transformer.steps.append(
         ["preprocess_input", FunctionTransformer(pretrained_preprocess_input, validate=False)]
-    )
-    X_transformer.steps.append(
-        [
-            "feature_extraction",
-            FunctionTransformer(get_pretrained_base_model().predict, validate=False),
-        ]
     )
 
     # append "model" to the pipeline
