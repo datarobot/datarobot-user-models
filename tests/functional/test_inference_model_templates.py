@@ -12,6 +12,16 @@ class TestInferenceModelTemplates(object):
         "model_template, language, env, dataset, target, pos_label, neg_label, class_labels_file",
         [
             (
+                    "inference/python3_sklearn_anomaly",
+                    "python",
+                    "sklearn_drop_in_env",
+                    "regression_testing_data",
+                    None,
+                    None,
+                    None,
+                    None,
+            ),
+            (
                 "inference/java_codegen",
                 "java",
                 "java_drop_in_env",
@@ -158,7 +168,7 @@ class TestInferenceModelTemplates(object):
         env_id, env_version_id = request.getfixturevalue(env)
         test_data_id = request.getfixturevalue(dataset)
 
-        dr_target_type = dr.TARGET_TYPE.REGRESSION
+        dr_target_type = dr.TARGET_TYPE.REGRESSION if target is not None else dr.enums.CUSTOM_MODEL_TARGET_TYPE.ANOMALY
         if pos_label is not None and neg_label is not None:
             dr_target_type = dr.TARGET_TYPE.BINARY
         elif class_labels_file:
