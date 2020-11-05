@@ -409,6 +409,7 @@ class CMRunner:
                     "uwsgi_max_workers": options.max_workers
                     if getattr(options, "max_workers")
                     else "null",
+                    "single_uwsgi_worker": (options.max_workers == 1),
                 }
             )
 
