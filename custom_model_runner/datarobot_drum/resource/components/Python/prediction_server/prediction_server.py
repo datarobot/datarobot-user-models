@@ -69,6 +69,10 @@ class PredictionServer(ConnectableComponent, PredictMixin):
     def _materialize(self, parent_data_objs, user_data):
         model_api = base_api_blueprint()
 
+        @model_api.route("/capabilities/", method=["GET"])
+        def capabilities():
+            return {"supported_payload_formats": ["csv"]}
+
         @model_api.route("/health/", methods=["GET"])
         def health():
             return {"message": "OK"}, HTTP_200_OK

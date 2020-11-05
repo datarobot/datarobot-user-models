@@ -105,6 +105,10 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
     def ping(self, url_params, form_params):
         return HTTP_200_OK, {"message": "OK"}
 
+    @FlaskRoute("{}/capabilities/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
+    def capabilities(self, url_params, form_params):
+        return HTTP_200_OK, {"supported_payload_formats": ["csv"]}
+
     @FlaskRoute("{}/health/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def health(self, url_params, form_params):
         if self._error_response:
