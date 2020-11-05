@@ -11,10 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Set Flask server (no production) logging level to the level from the command line
 
 ##### Added
+- Add support for a single uwsgi process in production mode
+
+#### [1.4.1] - 2020-10-29
+##### Added
 - H2O driverless AI mojo pipeline support
 - fit on sparse data
 - `predictUnstructured` endpoint for uwsgi-based prediction server
-- Add support for a single uwsgi process in production mode
 
 #### [1.4.0] - 2020-10-23
 ##### Added
