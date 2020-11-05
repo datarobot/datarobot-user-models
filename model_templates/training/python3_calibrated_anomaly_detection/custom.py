@@ -5,7 +5,6 @@ from build_pipeline import make_anomaly
 
 def fit(
     X,
-    y,
     output_dir,
     class_order=None,
     row_weights=None,
