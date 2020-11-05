@@ -1,10 +1,6 @@
 import logging
 import os
-import pandas as pd
 import sys
-import tempfile
-
-from flask import request
 
 from mlpiper.components.restful.flask_route import FlaskRoute
 from mlpiper.components.restful_component import RESTfulComponent
@@ -13,14 +9,13 @@ from mlpiper.components.restful.metric import Metric, MetricType, MetricRelation
 from datarobot_drum.drum.common import (
     RunLanguage,
     URL_PREFIX_ENV_VAR_NAME,
-    REGRESSION_PRED_COLUMN,
     TARGET_TYPE_ARG_KEYWORD,
 )
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
-    HTTP_422_UNPROCESSABLE_ENTITY,
+    HTTP_500_INTERNAL_SERVER_ERROR,
     HTTP_513_DRUM_PIPELINE_ERROR,
 )
 from datarobot_drum.drum.memory_monitor import MemoryMonitor
@@ -145,6 +140,8 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
                 # this counter is managed by uwsgi
                 self._total_predict_requests.increase()
                 self._predict_calls_count += 1
+        except Exception as ex:
+            response_status, response = self._handle_exception(ex)
         finally:
             self._stats_collector.mark("finish")
             self._stats_collector.disable()
@@ -168,9 +165,17 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
                 # this counter is managed by uwsgi
                 self._total_predict_requests.increase()
                 self._predict_calls_count += 1
+        except Exception as ex:
+            response_status, response = self._handle_exception(ex)
         finally:
             self._stats_collector.mark("finish")
             self._stats_collector.disable()
+        return response_status, response
+
+    def _handle_exception(self, ex):
+        self._logger.error(ex)
+        response_status = HTTP_500_INTERNAL_SERVER_ERROR
+        response = {"message": "ERROR: {}".format(ex)}
         return response_status, response
 
     def _get_stats_dict(self):
