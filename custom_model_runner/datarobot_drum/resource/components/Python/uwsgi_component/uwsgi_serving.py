@@ -46,7 +46,7 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
         )
         self._error_response = None
 
-        self._capabilities_dict = DRUMCapabilities().to_dict()
+        self._capabilities = DRUMCapabilities()
 
     def get_info(self):
         return {
@@ -110,7 +110,7 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
 
     @FlaskRoute("{}/capabilities/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def capabilities(self, url_params, form_params):
-        return HTTP_200_OK, self._capabilities_dict
+        return HTTP_200_OK, self._capabilities.to_dict()
 
     @FlaskRoute("{}/health/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def health(self, url_params, form_params):

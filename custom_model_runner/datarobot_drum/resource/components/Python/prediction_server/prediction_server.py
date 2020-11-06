@@ -30,7 +30,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         self._run_language = None
         self._predictor = None
         self._target_type = None
-        self._capabilities_dict = DRUMCapabilities().to_dict()
+        self._capabilities = DRUMCapabilities()
 
     def configure(self, params):
         super(PredictionServer, self).configure(params)
@@ -75,7 +75,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
 
         @model_api.route("/capabilities/", methods=["GET"])
         def capabilities():
-            return self._capabilities_dict
+            return self._capabilities.to_dict()
 
         @model_api.route("/health/", methods=["GET"])
         def health():

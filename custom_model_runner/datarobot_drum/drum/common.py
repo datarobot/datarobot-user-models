@@ -251,30 +251,29 @@ def read_model_metadata_yaml(code_dir):
     return None
 
 
+class PayloadFormat(Enum):
+    CSV = 'csv'
+    ARROW = 'arrow'
+
+
 class DRUMCapabilities(object):
-    class PayloadFormat(object):
-        def __init__(self, payload_format, payload_version=None):
-            self._format = payload_format
-            self._version = payload_version
-
-        def to_dict(self):
-            d = {'format': self._format}
-            if self._version is not None:
-                d['version'] = self._version
-            return d
-
     def __init__(self):
-        self._supported_payload_formats = [self.PayloadFormat('csv')]
+        self._supported_payload_formats = [(PayloadFormat.CSV, None)]
 
         # check arrow support
         try:
             import pyarrow
             arrow_version = pyarrow.__version__
-            self._supported_payload_formats.append(self.PayloadFormat('arrow', arrow_version))
+            self._supported_payload_formats.append((PayloadFormat.ARROW, arrow_version))
         except Exception:
             pass
 
+    def is_payload_format_supported(self, payload_format):
+
     def to_dict(self):
         return {
-            'supported_payload_formats': [pf.to_dict() for pf in self._supported_payload_formats]
+            'supported_payload_formats': [
+                {'format': pf[0].value, 'version': pf[1]}
+                for pf in self._supported_payload_formats
+            ]
         }
