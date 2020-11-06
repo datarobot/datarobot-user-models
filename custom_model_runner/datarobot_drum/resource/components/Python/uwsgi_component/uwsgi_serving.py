@@ -10,6 +10,7 @@ from datarobot_drum.drum.common import (
     RunLanguage,
     URL_PREFIX_ENV_VAR_NAME,
     TARGET_TYPE_ARG_KEYWORD,
+    DRUMCapabilities,
 )
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 
@@ -44,6 +45,8 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
             metric_relation=MetricRelation.SUM_OF,
         )
         self._error_response = None
+
+        self._capabilities_dict = DRUMCapabilities().to_dict()
 
     def get_info(self):
         return {
@@ -107,7 +110,7 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
 
     @FlaskRoute("{}/capabilities/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def capabilities(self, url_params, form_params):
-        return HTTP_200_OK, {"supported_payload_formats": ["csv"]}
+        return HTTP_200_OK, self._capabilities_dict
 
     @FlaskRoute("{}/health/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def health(self, url_params, form_params):

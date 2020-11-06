@@ -249,3 +249,32 @@ def read_model_metadata_yaml(code_dir):
                 raise SystemExit()
         return model_config
     return None
+
+
+class DRUMCapabilities(object):
+    class PayloadFormat(object):
+        def __init__(self, payload_format, payload_version=None):
+            self._format = payload_format
+            self._version = payload_version
+
+        def to_dict(self):
+            d = {'format': self._format}
+            if self._version is not None:
+                d['version'] = self._version
+            return d
+
+    def __init__(self):
+        self._supported_payload_formats = [self.PayloadFormat('csv')]
+
+        # check arrow support
+        try:
+            import pyarrow
+            arrow_version = pyarrow.__version__
+            self._supported_payload_formats.append(self.PayloadFormat('arrow', arrow_version))
+        except Exception:
+            pass
+
+    def to_dict(self):
+        return {
+            'supported_payload_formats': [pf.to_dict() for pf in self._supported_payload_formats]
+        }
