@@ -267,6 +267,7 @@ The [model_templates](model_templates) folder contains sample models that work w
 
 ##### Inference Models
 * [Scikit-Learn sample model](model_templates/inference/python3_sklearn)
+* [Scikit-Learn sample unsupervised anomaly detection model](model_templates/inference/python3_sklearn_anomaly)
 * [PyTorch sample model](model_templates/inference/python3_pytorch)
 * [XGBoost sample model](model_templates/inference/python3_xgboost)
 * [Keras sample model](model_templates/inference/python3_keras)
