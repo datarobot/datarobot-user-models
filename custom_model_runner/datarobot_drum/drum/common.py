@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+import pyarrow
 from contextlib import contextmanager
 from enum import Enum
 from strictyaml import Bool, Int, Map, Optional, Str, load, YAMLError, Seq
@@ -251,29 +252,21 @@ def read_model_metadata_yaml(code_dir):
     return None
 
 
-class PayloadFormat(Enum):
+class PayloadFormat:
     CSV = 'csv'
     ARROW = 'arrow'
 
 
-class DRUMCapabilities(object):
-    def __init__(self):
-        self._supported_payload_formats = [(PayloadFormat.CSV, None)]
+PAYLOAD_FORMAT_VERSIONS = {
+    PayloadFormat.CSV: None,
+    PayloadFormat.ARROW: pyarrow.__version__
+}
 
-        # check arrow support
-        try:
-            import pyarrow
-            arrow_version = pyarrow.__version__
-            self._supported_payload_formats.append((PayloadFormat.ARROW, arrow_version))
-        except Exception:
-            pass
 
-    def is_payload_format_supported(self, payload_format):
-
-    def to_dict(self):
-        return {
-            'supported_payload_formats': [
-                {'format': pf[0].value, 'version': pf[1]}
-                for pf in self._supported_payload_formats
-            ]
+def make_predictor_capabilities(supported_payload_formats):
+    return {
+        'supported_payload_formats': {
+            payload_format: PAYLOAD_FORMAT_VERSIONS[payload_format]
+            for payload_format in supported_payload_formats
         }
+    }

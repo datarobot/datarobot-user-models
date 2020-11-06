@@ -4,6 +4,7 @@ from scipy.io import mmread
 import pickle
 import sys
 import textwrap
+import pyarrow
 from pathlib import Path
 
 import numpy as np
@@ -24,6 +25,7 @@ from datarobot_drum.drum.common import (
     REGRESSION_PRED_COLUMN,
     reroute_stdout_to_stderr,
     TargetType,
+    PayloadFormat,
 )
 from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -268,9 +270,17 @@ class PythonModelAdapter:
         try:
             if filename.endswith(".mtx"):
                 return pd.DataFrame.sparse.from_spmatrix(mmread(filename))
+            if filename.endswith(".arrow"):
+                with open(filename) as file, pyarrow.RecordBatchStreamReader(file) as reader:
+                    table = reader.read_all()
+                    return table.to_pandas(use_threads=True)
             return pd.read_csv(filename, lineterminator="\n")
         except pd.errors.ParserError as e:
             raise DrumCommonException("Pandas failed to read input csv file: {}".format(filename))
+
+    @property
+    def supported_payload_formats(self):
+        return [PayloadFormat.CSV, PayloadFormat.ARROW]
 
     def predict(self, input_filename, model=None, **kwargs):
         """

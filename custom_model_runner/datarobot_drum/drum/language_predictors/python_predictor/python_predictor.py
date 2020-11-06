@@ -35,6 +35,10 @@ class PythonPredictor(BaseLanguagePredictor):
         if self._model is None:
             raise Exception("Failed to load model")
 
+    @property
+    def supported_payload_formats(self):
+        return self._model_adapter.supported_payload_formats
+
     def predict(self, input_filename):
         kwargs = {}
         kwargs[TARGET_TYPE_ARG_KEYWORD] = self._target_type

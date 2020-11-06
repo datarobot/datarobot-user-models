@@ -13,7 +13,7 @@ from itertools import chain
 from io import StringIO
 from contextlib import closing
 
-from datarobot_drum.drum.common import LOGGER_NAME_PREFIX, EnvVarNames, JavaArtifacts
+from datarobot_drum.drum.common import LOGGER_NAME_PREFIX, EnvVarNames, JavaArtifacts, PayloadFormat
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.exceptions import DrumCommonException
 
@@ -131,6 +131,10 @@ class JavaPredictor(BaseLanguagePredictor):
             else:
                 m[key] = params[key]
         self._predictor_via_py4j.configure(m)
+
+    @property
+    def supported_payload_formats(self):
+        return [PayloadFormat.CSV]
 
     def predict(self, input_filename):
         out_csv = self._predictor_via_py4j.predict(input_filename)
