@@ -71,10 +71,20 @@ class TestInference:
         ],
     )
     def test_custom_models_with_drum(
-        self, resources, framework, problem, language, docker, tmp_path,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -134,10 +144,20 @@ class TestInference:
         ],
     )
     def test_custom_models_with_drum_prediction_server(
-        self, resources, framework, problem, language, docker, tmp_path,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         with DrumServerRun(
@@ -161,13 +181,25 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [(SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),],
+        [
+            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
+        ],
     )
     def test_custom_models_with_drum_nginx_prediction_server(
-        self, resources, framework, problem, language, docker, tmp_path,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         with DrumServerRun(
@@ -198,10 +230,20 @@ class TestInference:
         ],
     )
     def test_custom_models_drum_prediction_server_response(
-        self, resources, framework, problem, language, docker, tmp_path,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         with DrumServerRun(
@@ -242,10 +284,20 @@ class TestInference:
         ],
     )
     def test_predictors_supported_payload_formats(
-        self, resources, framework, problem, language, supported_payload_formats, tmp_path,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        supported_payload_formats,
+        tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         with DrumServerRun(
@@ -259,14 +311,27 @@ class TestInference:
             assert response.json() == {"supported_payload_formats": supported_payload_formats}
 
     @pytest.mark.parametrize(
-        "framework, problem, language", [(SKLEARN, REGRESSION, PYTHON),],
+        "framework, problem, language",
+        [
+            (SKLEARN, REGRESSION, PYTHON),
+        ],
     )
     @pytest.mark.parametrize("nginx", [False, True])
     def test_predictions_using_arrow(
-        self, resources, framework, problem, language, nginx, tmp_path,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        nginx,
+        tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         with DrumServerRun(
