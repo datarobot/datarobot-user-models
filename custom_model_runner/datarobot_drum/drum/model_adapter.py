@@ -271,9 +271,8 @@ class PythonModelAdapter:
             if filename.endswith(".mtx"):
                 return pd.DataFrame.sparse.from_spmatrix(mmread(filename))
             if filename.endswith(".arrow"):
-                with open(filename) as file, pyarrow.RecordBatchStreamReader(file) as reader:
-                    table = reader.read_all()
-                    return table.to_pandas(use_threads=True)
+                with open(filename, 'rb') as file:
+                    return pyarrow.ipc.deserialize_pandas(file.read())
             return pd.read_csv(filename, lineterminator="\n")
         except pd.errors.ParserError as e:
             raise DrumCommonException("Pandas failed to read input csv file: {}".format(filename))
