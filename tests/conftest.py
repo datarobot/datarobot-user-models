@@ -91,6 +91,7 @@ _targets = {
     REGRESSION: "MEDV",
     BINARY_TEXT: "Churn",
     MULTICLASS: "class",
+    MULTICLASS_NUM_LABELS: "class",
     SPARSE: "my_target",
 }
 
