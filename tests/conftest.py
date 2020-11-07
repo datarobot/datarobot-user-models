@@ -48,6 +48,7 @@ from tests.drum.constants import (
     UNSTRUCTURED,
     XGB,
     SKLEARN_MULTICLASS,
+    MULTICLASS_NUM_LABELS,
 )
 
 _datasets = {
@@ -61,6 +62,9 @@ _datasets = {
     (None, ANOMALY): os.path.join(TESTS_DATA_PATH, "boston_housing.csv"),
     (None, UNSTRUCTURED): os.path.join(TESTS_DATA_PATH, "unstructured_data.txt"),
     (None, MULTICLASS): os.path.join(TESTS_DATA_PATH, "skyserver_sql2_27_2018_6_51_39_pm.csv"),
+    (None, MULTICLASS_NUM_LABELS): os.path.join(
+        TESTS_DATA_PATH, "skyserver_sql2_27_2018_6_51_39_pm_num_class.csv"
+    ),
     (None, SPARSE): os.path.join(TESTS_DATA_PATH, "sparse.mtx"),
     (None, SPARSE_TARGET): os.path.join(TESTS_DATA_PATH, "sparse_target.csv"),
 }
@@ -113,6 +117,7 @@ _class_labels = {
     (POJO, BINARY): ["yes", "no"],
     (SKLEARN, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (SKLEARN_MULTICLASS, MULTICLASS): ["GALAXY", "QSO", "STAR"],
+    (SKLEARN_MULTICLASS, MULTICLASS_NUM_LABELS): ["0", "1", "2"],
     (XGB, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (KERAS, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (RDS, MULTICLASS): ["GALAXY", "QSO", "STAR"],
