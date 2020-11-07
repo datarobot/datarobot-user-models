@@ -62,10 +62,8 @@ class SKLearnPredictor(ArtifactPredictor):
                 if set(str(label) for label in model.classes_) != set(
                     str(label) for label in self.class_labels
                 ):
-                    error_message = (
-                        "Wrong class labels {}. Use class labels detected by sklearn model: {}".format(
-                            self.class_labels, model.classes_
-                        )
+                    error_message = "Wrong class labels {}. Use class labels detected by sklearn model: {}".format(
+                        self.class_labels, model.classes_
                     )
                     raise DrumCommonException(error_message)
                 labels_to_use = model.classes_
