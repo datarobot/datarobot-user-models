@@ -71,20 +71,10 @@ class TestInference:
         ],
     )
     def test_custom_models_with_drum(
-        self,
-        resources,
-        framework,
-        problem,
-        language,
-        docker,
-        tmp_path,
+        self, resources, framework, problem, language, docker, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -144,20 +134,10 @@ class TestInference:
         ],
     )
     def test_custom_models_with_drum_prediction_server(
-        self,
-        resources,
-        framework,
-        problem,
-        language,
-        docker,
-        tmp_path,
+        self, resources, framework, problem, language, docker, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         with DrumServerRun(
@@ -181,25 +161,13 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [
-            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
-        ],
+        [(SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),],
     )
     def test_custom_models_with_drum_nginx_prediction_server(
-        self,
-        resources,
-        framework,
-        problem,
-        language,
-        docker,
-        tmp_path,
+        self, resources, framework, problem, language, docker, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         with DrumServerRun(
@@ -230,20 +198,10 @@ class TestInference:
         ],
     )
     def test_custom_models_drum_prediction_server_response(
-        self,
-        resources,
-        framework,
-        problem,
-        language,
-        docker,
-        tmp_path,
+        self, resources, framework, problem, language, docker, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         with DrumServerRun(
@@ -278,70 +236,44 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, supported_payload_formats",
         [
-            (SKLEARN, REGRESSION, PYTHON, {'csv': None, 'arrow': '0.14.1'}),
-            (RDS, REGRESSION, R, {'csv': None}),
-            (CODEGEN, REGRESSION, NO_CUSTOM, {'csv': None}),
+            (SKLEARN, REGRESSION, PYTHON, {"csv": None, "arrow": "0.14.1"}),
+            (RDS, REGRESSION, R, {"csv": None}),
+            (CODEGEN, REGRESSION, NO_CUSTOM, {"csv": None}),
         ],
     )
     def test_predictors_supported_payload_formats(
-            self,
-            resources,
-            framework,
-            problem,
-            language,
-            supported_payload_formats,
-            tmp_path,
+        self, resources, framework, problem, language, supported_payload_formats, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         with DrumServerRun(
-                resources.target_types(problem),
-                resources.class_labels(framework, problem),
-                custom_model_dir,
+            resources.target_types(problem),
+            resources.class_labels(framework, problem),
+            custom_model_dir,
         ) as run:
             response = requests.get(run.url_server_address + "/capabilities/")
 
             assert response.ok
-            assert response.json() == {
-                'supported_payload_formats': supported_payload_formats
-            }
-
+            assert response.json() == {"supported_payload_formats": supported_payload_formats}
 
     @pytest.mark.parametrize(
-        "framework, problem, language",
-        [
-            (SKLEARN, REGRESSION, PYTHON),
-        ],
+        "framework, problem, language", [(SKLEARN, REGRESSION, PYTHON),],
     )
     @pytest.mark.parametrize("nginx", [False, True])
     def test_predictions_using_arrow(
-            self,
-            resources,
-            framework,
-            problem,
-            language,
-            nginx,
-            tmp_path,
+        self, resources, framework, problem, language, nginx, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         with DrumServerRun(
-                resources.target_types(problem),
-                resources.class_labels(framework, problem),
-                custom_model_dir,
-                nginx=nginx,
+            resources.target_types(problem),
+            resources.class_labels(framework, problem),
+            custom_model_dir,
+            nginx=nginx,
         ) as run:
             input_dataset = resources.datasets(framework, problem)
             df = pd.read_csv(input_dataset)
@@ -349,7 +281,7 @@ class TestInference:
 
             # do predictions
             response = requests.post(
-                run.url_server_address + "/predict/", files={'X': ('X.arrow', dataset_buf)}
+                run.url_server_address + "/predict/", files={"X": ("X.arrow", dataset_buf)}
             )
 
             assert response.ok

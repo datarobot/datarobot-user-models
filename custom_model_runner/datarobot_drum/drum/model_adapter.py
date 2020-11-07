@@ -271,7 +271,7 @@ class PythonModelAdapter:
             if filename.endswith(".mtx"):
                 return pd.DataFrame.sparse.from_spmatrix(mmread(filename))
             if filename.endswith(".arrow"):
-                with open(filename, 'rb') as file:
+                with open(filename, "rb") as file:
                     return pyarrow.ipc.deserialize_pandas(file.read())
             return pd.read_csv(filename, lineterminator="\n")
         except pd.errors.ParserError as e:

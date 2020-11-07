@@ -253,19 +253,16 @@ def read_model_metadata_yaml(code_dir):
 
 
 class PayloadFormat:
-    CSV = 'csv'
-    ARROW = 'arrow'
+    CSV = "csv"
+    ARROW = "arrow"
 
 
-PAYLOAD_FORMAT_VERSIONS = {
-    PayloadFormat.CSV: None,
-    PayloadFormat.ARROW: pyarrow.__version__
-}
+PAYLOAD_FORMAT_VERSIONS = {PayloadFormat.CSV: None, PayloadFormat.ARROW: pyarrow.__version__}
 
 
 def make_predictor_capabilities(supported_payload_formats):
     return {
-        'supported_payload_formats': {
+        "supported_payload_formats": {
             payload_format: PAYLOAD_FORMAT_VERSIONS[payload_format]
             for payload_format in supported_payload_formats
         }
