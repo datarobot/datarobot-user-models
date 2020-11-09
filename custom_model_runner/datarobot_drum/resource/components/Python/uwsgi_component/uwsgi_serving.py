@@ -10,6 +10,7 @@ from datarobot_drum.drum.common import (
     RunLanguage,
     URL_PREFIX_ENV_VAR_NAME,
     TARGET_TYPE_ARG_KEYWORD,
+    make_predictor_capabilities,
 )
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 
@@ -104,6 +105,12 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
     @FlaskRoute("{}/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def ping(self, url_params, form_params):
         return HTTP_200_OK, {"message": "OK"}
+
+    @FlaskRoute(
+        "{}/capabilities/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"]
+    )
+    def capabilities(self, url_params, form_params):
+        return HTTP_200_OK, make_predictor_capabilities(self._predictor.supported_payload_formats)
 
     @FlaskRoute("{}/health/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def health(self, url_params, form_params):

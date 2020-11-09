@@ -249,3 +249,29 @@ def read_model_metadata_yaml(code_dir):
                 raise SystemExit()
         return model_config
     return None
+
+
+class PayloadFormat:
+    CSV = "csv"
+    ARROW = "arrow"
+
+
+class SupportedPayloadFormats:
+    def __init__(self):
+        self._formats = {}
+
+    def add(self, payload_format, format_version=None):
+        self._formats[payload_format] = format_version
+
+    def __iter__(self):
+        for payload_format, format_version in self._formats.items():
+            yield payload_format, format_version
+
+
+def make_predictor_capabilities(supported_payload_formats):
+    return {
+        "supported_payload_formats": {
+            payload_format: format_version
+            for payload_format, format_version in supported_payload_formats
+        }
+    }

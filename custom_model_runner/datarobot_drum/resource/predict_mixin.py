@@ -1,3 +1,4 @@
+import os
 import tempfile
 from flask import request, Response
 import werkzeug
@@ -47,7 +48,8 @@ class PredictMixin:
             if logger is not None:
                 logger.debug("Filename provided under X key: {}".format(filestorage.filename))
 
-        with tempfile.NamedTemporaryFile() as f:
+        _, file_ext = os.path.splitext(filestorage.filename)
+        with tempfile.NamedTemporaryFile(suffix=file_ext) as f:
             filestorage.save(f)
             f.flush()
             out_data = self._predictor.predict(f.name)
