@@ -35,7 +35,7 @@ CODEGEN_AND_SKLEARN = "codegen_and_sklearn"
 # Problem keywords, used to mark datasets
 REGRESSION = "regression"
 BINARY_TEXT = "bintxt"
-BINARY_BOOL = 'binary_bool'
+BINARY_BOOL = "binary_bool"
 REGRESSION_INFERENCE = "regression_inference"
 BINARY = "binary"
 ANOMALY = "anomaly"

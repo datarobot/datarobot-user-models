@@ -211,9 +211,7 @@ class CMRunner:
                 "Can not detect language by custom.py/R files.\n"
                 "Detected: language by custom - {}.\n"
                 "Code directory must have either a custom.py/R file\n"
-                "Or a python file using the drum_autofit() wrapper.".format(
-                    custom_language,
-                )
+                "Or a python file using the drum_autofit() wrapper.".format(custom_language,)
             )
             all_files_message = "\n\nFiles(100 first) found in {}:\n{}\n".format(
                 code_dir_abspath, "\n".join(sorted(os.listdir(code_dir_abspath))[0:100])
@@ -439,7 +437,7 @@ class CMRunner:
                 self.options.target_csv,
                 self.options.target,
                 self.options.unsupervised,
-                r_fit=run_language==RunLanguage.R
+                r_fit=run_language == RunLanguage.R,
             )
             if possible_class_labels is not None:
                 if self.target_type == TargetType.BINARY:
@@ -740,9 +738,9 @@ def possibly_intuit_order(
             1000, random_state=1, replace=True
         )
         if r_fit is True and y.values.dtype == bool:
-            y = pd.read_csv(target_data_file, index_col=False, lineterminator="\n", dtype=str).sample(
-                1000, random_state=1, replace=True
-            )
+            y = pd.read_csv(
+                target_data_file, index_col=False, lineterminator="\n", dtype=str
+            ).sample(1000, random_state=1, replace=True)
         classes = np.unique(y.iloc[:, 0])
     else:
         assert target_data_file is None
