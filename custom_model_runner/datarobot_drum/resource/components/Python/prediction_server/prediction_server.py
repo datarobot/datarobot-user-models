@@ -1,7 +1,7 @@
 import logging
 from mlpiper.components.connectable_component import ConnectableComponent
 
-from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.common import LOGGER_NAME_PREFIX, make_predictor_capabilities
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.memory_monitor import MemoryMonitor
@@ -68,6 +68,10 @@ class PredictionServer(ConnectableComponent, PredictMixin):
 
     def _materialize(self, parent_data_objs, user_data):
         model_api = base_api_blueprint()
+
+        @model_api.route("/capabilities/", methods=["GET"])
+        def capabilities():
+            return make_predictor_capabilities(self._predictor.supported_payload_formats)
 
         @model_api.route("/health/", methods=["GET"])
         def health():

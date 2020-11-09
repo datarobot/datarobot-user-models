@@ -12,3 +12,4 @@ progress
 requests
 strictyaml==1.0.6
 texttable
+pyarrow==0.14.1

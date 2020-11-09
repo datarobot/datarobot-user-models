@@ -1,6 +1,7 @@
 import json
 
 import pandas as pd
+import pyarrow
 import pytest
 import requests
 
@@ -273,3 +274,82 @@ class TestInference:
                 assert all([isinstance(x, float) for x in prediction_item.values()])
             elif problem == REGRESSION:
                 assert isinstance(prediction_item, float)
+
+    @pytest.mark.parametrize(
+        "framework, problem, language, supported_payload_formats",
+        [
+            (SKLEARN, REGRESSION, PYTHON, {"csv": None, "arrow": "0.14.1"}),
+            (RDS, REGRESSION, R, {"csv": None}),
+            (CODEGEN, REGRESSION, NO_CUSTOM, {"csv": None}),
+        ],
+    )
+    def test_predictors_supported_payload_formats(
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        supported_payload_formats,
+        tmp_path,
+    ):
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
+        )
+
+        with DrumServerRun(
+            resources.target_types(problem),
+            resources.class_labels(framework, problem),
+            custom_model_dir,
+        ) as run:
+            response = requests.get(run.url_server_address + "/capabilities/")
+
+            assert response.ok
+            assert response.json() == {"supported_payload_formats": supported_payload_formats}
+
+    @pytest.mark.parametrize(
+        "framework, problem, language",
+        [
+            (SKLEARN, REGRESSION, PYTHON),
+        ],
+    )
+    @pytest.mark.parametrize("nginx", [False, True])
+    def test_predictions_using_arrow(
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        nginx,
+        tmp_path,
+    ):
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
+        )
+
+        with DrumServerRun(
+            resources.target_types(problem),
+            resources.class_labels(framework, problem),
+            custom_model_dir,
+            nginx=nginx,
+        ) as run:
+            input_dataset = resources.datasets(framework, problem)
+            df = pd.read_csv(input_dataset)
+            dataset_buf = pyarrow.ipc.serialize_pandas(df, preserve_index=False).to_pybytes()
+
+            # do predictions
+            response = requests.post(
+                run.url_server_address + "/predict/", files={"X": ("X.arrow", dataset_buf)}
+            )
+
+            assert response.ok
+            actual_num_predictions = len(json.loads(response.text)[RESPONSE_PREDICTIONS_KEY])
+            in_data = pd.read_csv(input_dataset)
+            assert in_data.shape[0] == actual_num_predictions
