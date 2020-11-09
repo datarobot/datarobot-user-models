@@ -10,6 +10,7 @@ from datarobot_drum.drum.common import (
     REGRESSION_PRED_COLUMN,
     UnstructuredDtoKeys,
     PayloadFormat,
+    SupportedPayloadFormats,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
@@ -83,7 +84,9 @@ class RPredictor(BaseLanguagePredictor):
 
     @property
     def supported_payload_formats(self):
-        return [PayloadFormat.CSV]
+        formats = SupportedPayloadFormats()
+        formats.add(PayloadFormat.CSV)
+        return formats
 
     def predict(self, input_filename):
         predictions = r_handler.outer_predict(

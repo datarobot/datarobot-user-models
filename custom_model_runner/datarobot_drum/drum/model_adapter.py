@@ -26,6 +26,7 @@ from datarobot_drum.drum.common import (
     reroute_stdout_to_stderr,
     TargetType,
     PayloadFormat,
+    SupportedPayloadFormats,
 )
 from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -279,7 +280,10 @@ class PythonModelAdapter:
 
     @property
     def supported_payload_formats(self):
-        return [PayloadFormat.CSV, PayloadFormat.ARROW]
+        formats = SupportedPayloadFormats()
+        formats.add(PayloadFormat.CSV)
+        formats.add(PayloadFormat.ARROW, pyarrow.__version__)
+        return formats
 
     def predict(self, input_filename, model=None, **kwargs):
         """

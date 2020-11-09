@@ -1,7 +1,6 @@
 import logging
 import os
 import sys
-import pyarrow
 from contextlib import contextmanager
 from enum import Enum
 from strictyaml import Bool, Int, Map, Optional, Str, load, YAMLError, Seq
@@ -257,13 +256,22 @@ class PayloadFormat:
     ARROW = "arrow"
 
 
-PAYLOAD_FORMAT_VERSIONS = {PayloadFormat.CSV: None, PayloadFormat.ARROW: pyarrow.__version__}
+class SupportedPayloadFormats:
+    def __init__(self):
+        self._formats = {}
+
+    def add(self, payload_format, format_version=None):
+        self._formats[payload_format] = format_version
+
+    def __iter__(self):
+        for payload_format, format_version in self._formats.items():
+            yield payload_format, format_version
 
 
 def make_predictor_capabilities(supported_payload_formats):
     return {
         "supported_payload_formats": {
-            payload_format: PAYLOAD_FORMAT_VERSIONS[payload_format]
-            for payload_format in supported_payload_formats
+            payload_format: format_version
+            for payload_format, format_version in supported_payload_formats
         }
     }
