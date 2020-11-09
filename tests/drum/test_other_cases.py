@@ -74,7 +74,7 @@ class TestOtherCases:
         if framework == SKLEARN:
             assert (
                 str(stdo_stde).find(
-                    "Wrong class labels. Use class labels detected by sklearn model"
+                    "Wrong class labels ['no', 'yes']. Use class labels detected by sklearn model"
                 )
                 != -1
             )
