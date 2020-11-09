@@ -16,6 +16,7 @@ from .constants import (
     DOCKER_PYTHON_SKLEARN,
     KERAS,
     MULTICLASS,
+    MULTICLASS_NUM_LABELS,
     PYTHON,
     PYTORCH,
     R_FIT,
@@ -125,6 +126,7 @@ class TestFit:
             (SKLEARN_REGRESSION, REGRESSION, None),
             (SKLEARN_ANOMALY, ANOMALY, None),
             (SKLEARN_MULTICLASS, MULTICLASS, None),
+            (SKLEARN_MULTICLASS, MULTICLASS_NUM_LABELS, None),
             (XGB, BINARY_TEXT, None),
             (XGB, REGRESSION, None),
             (XGB, MULTICLASS, None),
@@ -166,7 +168,12 @@ class TestFit:
             weights, input_dataset, r_fit=language == R_FIT
         )
 
-        target_type = problem if problem != BINARY_TEXT else BINARY
+        if problem == BINARY_TEXT:
+            target_type = BINARY
+        elif problem == MULTICLASS_NUM_LABELS:
+            target_type = MULTICLASS
+        else:
+            target_type = problem
 
         cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
             ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset

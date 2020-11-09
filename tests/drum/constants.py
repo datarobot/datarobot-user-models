@@ -40,6 +40,7 @@ BINARY = "binary"
 ANOMALY = "anomaly"
 UNSTRUCTURED = "unstructured"
 MULTICLASS = "multiclass"
+MULTICLASS_NUM_LABELS = "multiclass_num_labels"
 SPARSE = "sparse"
 SPARSE_TARGET = "sparse_target"
 
