@@ -59,11 +59,11 @@ class SKLearnPredictor(ArtifactPredictor):
 
         if self.target_type.value in TargetType.CLASSIFICATION.value:
             if hasattr(model, "classes_"):
-                if set(model.classes_) != set(self.class_labels):
-                    error_message = (
-                        "Wrong class labels. Use class labels detected by sklearn model: {}".format(
-                            model.classes_
-                        )
+                if set(str(label) for label in model.classes_) != set(
+                    str(label) for label in self.class_labels
+                ):
+                    error_message = "Wrong class labels {}. Use class labels detected by sklearn model: {}".format(
+                        self.class_labels, model.classes_
                     )
                     raise DrumCommonException(error_message)
                 labels_to_use = model.classes_

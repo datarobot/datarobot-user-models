@@ -240,7 +240,7 @@ class PythonModelAdapter:
 
     def _validate_predictions(self, to_validate, class_labels):
         self._validate_data(to_validate, "Predictions")
-        columns_to_validate = set(list(to_validate.columns))
+        columns_to_validate = set(str(label) for label in to_validate.columns)
         if class_labels:
             if columns_to_validate != set(class_labels):
                 raise ValueError(
