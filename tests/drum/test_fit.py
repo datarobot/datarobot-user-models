@@ -170,7 +170,7 @@ class TestFit:
             weights, input_dataset, r_fit=language == R_FIT
         )
 
-        if problem == BINARY_TEXT:
+        if problem in [BINARY_TEXT, BINARY_BOOL]:
             target_type = BINARY
         elif problem == MULTICLASS_NUM_LABELS:
             target_type = MULTICLASS
