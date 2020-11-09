@@ -439,6 +439,7 @@ class CMRunner:
                 self.options.target_csv,
                 self.options.target,
                 self.options.unsupervised,
+                r_fit=run_language==RunLanguage.R
             )
             if possible_class_labels is not None:
                 if self.target_type == TargetType.BINARY:
@@ -728,7 +729,7 @@ class CMRunner:
 
 
 def possibly_intuit_order(
-    input_data_file, target_data_file=None, target_col_name=None, unsupervised=False
+    input_data_file, target_data_file=None, target_col_name=None, unsupervised=False, r_fit=False,
 ):
     if unsupervised:
         return None
@@ -738,6 +739,10 @@ def possibly_intuit_order(
         y = pd.read_csv(target_data_file, index_col=False, lineterminator="\n").sample(
             1000, random_state=1, replace=True
         )
+        if r_fit is True and y.values.dtype == bool:
+            y = pd.read_csv(target_data_file, index_col=False, lineterminator="\n", dtype=str).sample(
+                1000, random_state=1, replace=True
+            )
         classes = np.unique(y.iloc[:, 0])
     else:
         assert target_data_file is None
@@ -748,6 +753,8 @@ def possibly_intuit_order(
             )
             print(e, file=sys.stderr)
             raise DrumCommonException(e)
+        if r_fit is True and df[target_col_name].dtype == bool:
+            df = pd.read_csv(input_data_file, lineterminator="\n", dtype={target_col_name: str})
         uniq = df[target_col_name].sample(1000, random_state=1, replace=True).unique()
         classes = set(uniq) - {np.nan}
     if len(classes) >= 2:
