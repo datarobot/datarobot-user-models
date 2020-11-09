@@ -33,6 +33,7 @@ from .constants import (
     WEIGHTS_ARGS,
     WEIGHTS_CSV,
     XGB,
+    BINARY_BOOL,
 )
 from .utils import _cmd_add_class_labels, _create_custom_model_dir, _exec_shell_cmd
 
@@ -115,6 +116,7 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, problem, docker",
         [
+            (RDS, BINARY_BOOL, None),
             (RDS, BINARY_TEXT, None),
             (RDS, REGRESSION, None),
             (RDS, MULTICLASS, None),

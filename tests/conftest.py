@@ -7,6 +7,7 @@ from tests.drum.constants import (
     ANOMALY,
     BINARY,
     BINARY_TEXT,
+    BINARY_BOOL,
     CODEGEN,
     SKLEARN_SPARSE,
     CODEGEN_AND_SKLEARN,
@@ -67,6 +68,7 @@ _datasets = {
     ),
     (None, SPARSE): os.path.join(TESTS_DATA_PATH, "sparse.mtx"),
     (None, SPARSE_TARGET): os.path.join(TESTS_DATA_PATH, "sparse_target.csv"),
+    (None, BINARY_BOOL): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
 }
 
 _training_models_paths = {
@@ -93,6 +95,7 @@ _targets = {
     MULTICLASS: "class",
     MULTICLASS_NUM_LABELS: "class",
     SPARSE: "my_target",
+    BINARY_BOOL: "readmitted",
 }
 
 _target_types = {
@@ -103,6 +106,7 @@ _target_types = {
     ANOMALY: "anomaly",
     UNSTRUCTURED: "unstructured",
     MULTICLASS: "multiclass",
+    BINARY_BOOL: "binary",
 }
 
 _class_labels = {
