@@ -12,6 +12,16 @@ class TestInferenceModelTemplates(object):
         "model_template, language, env, dataset, target_type, target, pos_label, neg_label, class_labels_file",
         [
             (
+                    "inference/python3_sklearn_anomaly",
+                    "python",
+                    "sklearn_drop_in_env",
+                    "regression_testing_data",
+                    dr.TARGET_TYPE.ANOMALY,
+                    None,
+                    None,
+                    None,
+            ),
+            (
                 "inference/java_codegen",
                 "java",
                 "java_drop_in_env",
