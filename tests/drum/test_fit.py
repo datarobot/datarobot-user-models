@@ -18,6 +18,7 @@ from .constants import (
     MULTICLASS,
     PYTHON,
     PYTORCH,
+    PYTORCH_MULTICLASS,
     R_FIT,
     RDS,
     REGRESSION,
@@ -133,7 +134,7 @@ class TestFit:
             (KERAS, MULTICLASS, None),
             (PYTORCH, BINARY_TEXT, None),
             (PYTORCH, REGRESSION, None),
-            (PYTORCH, MULTICLASS, None),
+            (PYTORCH_MULTICLASS, MULTICLASS, None),
         ],
     )
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
