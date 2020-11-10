@@ -122,6 +122,7 @@ _class_labels = {
     (RDS, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (PYPMML, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (PYTORCH_MULTICLASS, MULTICLASS): ["GALAXY", "QSO", "STAR"],
+    (PYTORCH, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (CODEGEN, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (SKLEARN_BINARY, BINARY_TEXT): ["False", "True"],
     (XGB, BINARY_TEXT): ["False", "True"],
