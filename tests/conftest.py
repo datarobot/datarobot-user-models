@@ -81,7 +81,9 @@ _training_models_paths = {
     (R_FIT, RDS): os.path.join(TRAINING_TEMPLATES_PATH, "r_lang"),
     (PYTHON, PYTORCH): os.path.join(TRAINING_TEMPLATES_PATH, "python3_pytorch"),
     (PYTHON, SKLEARN_ANOMALY): os.path.join(TRAINING_TEMPLATES_PATH, "python3_anomaly_detection"),
-    (PYTHON, PYTORCH_MULTICLASS): os.path.join(TRAINING_TEMPLATES_PATH, "python3_pytorch_multiclass"),
+    (PYTHON, PYTORCH_MULTICLASS): os.path.join(
+        TRAINING_TEMPLATES_PATH, "python3_pytorch_multiclass"
+    ),
 }
 
 _targets = {
