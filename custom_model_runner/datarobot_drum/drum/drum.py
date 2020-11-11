@@ -439,7 +439,6 @@ class CMRunner:
                 self.options.target_csv,
                 self.options.target,
                 self.options.unsupervised,
-                r_fit=run_language == RunLanguage.R,
             )
             if possible_class_labels is not None:
                 if self.target_type == TargetType.BINARY:
@@ -733,32 +732,25 @@ def possibly_intuit_order(
     target_data_file=None,
     target_col_name=None,
     unsupervised=False,
-    r_fit=False,
 ):
     if unsupervised:
         return None
     elif target_data_file:
         assert target_col_name is None
 
-        y = pd.read_csv(target_data_file, index_col=False, lineterminator="\n").sample(
+        y = pd.read_csv(target_data_file, index_col=False, lineterminator="\n", dtype=str).sample(
             1000, random_state=1, replace=True
         )
-        if r_fit is True and y.values.dtype == bool:
-            y = pd.read_csv(
-                target_data_file, index_col=False, lineterminator="\n", dtype=str
-            ).sample(1000, random_state=1, replace=True)
         classes = np.unique(y.iloc[:, 0])
     else:
         assert target_data_file is None
-        df = pd.read_csv(input_data_file, lineterminator="\n")
+        df = pd.read_csv(input_data_file, lineterminator="\n", dtype={target_col_name: str})
         if not target_col_name in df.columns:
             e = "The column '{}' does not exist in your dataframe. \nThe columns in your dataframe are these: {}".format(
                 target_col_name, list(df.columns)
             )
             print(e, file=sys.stderr)
             raise DrumCommonException(e)
-        if r_fit is True and df[target_col_name].dtype == bool:
-            df = pd.read_csv(input_data_file, lineterminator="\n", dtype={target_col_name: str})
         uniq = df[target_col_name].sample(1000, random_state=1, replace=True).unique()
         classes = set(uniq) - {np.nan}
     if len(classes) >= 2:
