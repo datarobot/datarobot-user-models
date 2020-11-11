@@ -21,6 +21,7 @@ SKLEARN_MULTICLASS = "sklearn_multiclass"
 SKLEARN_SPARSE = "sparse"
 SIMPLE = "simple"
 PYTORCH = "pytorch"
+PYTORCH_MULTICLASS = "pytorch_multiclass"
 PYPMML = "pypmml"
 SKLEARN_ANOMALY = "sklearn_anomaly_detection"
 

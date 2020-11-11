@@ -25,6 +25,7 @@ from tests.drum.constants import (
     PYTHON_UNSTRUCTURED_PARAMS,
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
     PYTORCH,
+    PYTORCH_MULTICLASS,
     R,
     R_ALL_PREDICT_STRUCTURED_HOOKS,
     R_ALL_PREDICT_UNSTRUCTURED_HOOKS,
@@ -84,6 +85,9 @@ _training_models_paths = {
     (R_FIT, RDS): os.path.join(TRAINING_TEMPLATES_PATH, "r_lang"),
     (PYTHON, PYTORCH): os.path.join(TRAINING_TEMPLATES_PATH, "python3_pytorch"),
     (PYTHON, SKLEARN_ANOMALY): os.path.join(TRAINING_TEMPLATES_PATH, "python3_anomaly_detection"),
+    (PYTHON, PYTORCH_MULTICLASS): os.path.join(
+        TRAINING_TEMPLATES_PATH, "python3_pytorch_multiclass"
+    ),
 }
 
 _targets = {
@@ -123,6 +127,7 @@ _class_labels = {
     (KERAS, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (RDS, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (PYPMML, MULTICLASS): ["GALAXY", "QSO", "STAR"],
+    (PYTORCH_MULTICLASS, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (PYTORCH, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (CODEGEN, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (SKLEARN_BINARY, BINARY_TEXT): ["False", "True"],
