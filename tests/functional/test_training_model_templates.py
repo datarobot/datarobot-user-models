@@ -69,12 +69,6 @@ class TestTrainingModelTemplates(object):
                 "regression",
             ),
             (
-                "training/python3_pytorch",
-                "project_multiclass_skyserver",
-                "pytorch_drop_in_env",
-                "multiclass",
-            ),
-            (
                 "training/python3_pytorch_multiclass",
                 "project_multiclass_skyserver",
                 "pytorch_drop_in_env",
