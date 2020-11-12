@@ -77,12 +77,13 @@ class TestCaseResults:
 
 
 class PerfTestResultsFormatter:
-    def __init__(self, results, in_docker, memory_limit=None, show_mem=True,
-                 show_inside_server=False):
+    def __init__(
+        self, results, in_docker, memory_limit=None, show_mem=True, show_inside_server=False
+    ):
         self._results = results
         self._in_docker = in_docker
         self._show_mem = show_mem
-        self._memory_limit = memory_limit,
+        self._memory_limit = (memory_limit,)
         self._show_inside_server = show_inside_server
         self._table = None
         self._rows = None
@@ -96,10 +97,14 @@ class PerfTestResultsFormatter:
 
         if self._show_mem:
             if self._in_docker:
-                header_names.extend(["container\nused (MB)",
-                                     "container\nmax used (MB)",
-                                     "container\nlimit (MB)",
-                                     "total physical (MB)"])
+                header_names.extend(
+                    [
+                        "container\nused (MB)",
+                        "container\nmax used (MB)",
+                        "container\nlimit (MB)",
+                        "total physical (MB)",
+                    ]
+                )
                 header_types.extend(["f", "f", "f", "f"])
                 col_allign.extend(["r", "r", "r", "r"])
             else:
@@ -146,7 +151,7 @@ class PerfTestResultsFormatter:
                     used = mem_info["container_used"]
                 else:
                     used = "N\A"
-                    
+
                 row.extend([used, max_used, container_limit, mem_info["total"]])
             else:
                 row.extend([mem_info["drum_rss"], mem_info["total"]])
@@ -436,10 +441,9 @@ class CMRunTests:
         self._reset_signals()
         self._stop_drum_server()
         in_docker = self.options.docker is not None
-        str_report = PerfTestResultsFormatter(results,
-                                              in_docker=in_docker,
-                                              show_inside_server=self.options.in_server) \
-            .get_tbl_str()
+        str_report = PerfTestResultsFormatter(
+            results, in_docker=in_docker, show_inside_server=self.options.in_server
+        ).get_tbl_str()
 
         print("\n" + str_report)
         return
@@ -467,10 +471,10 @@ class CMRunTests:
 
         for column_name in column_names:
             with NamedTemporaryFile(
-                    mode="w",
-                    dir=null_datasets_dir,
-                    prefix="null_value_imputation_{}_".format(column_name),
-                    delete=False,
+                mode="w",
+                dir=null_datasets_dir,
+                prefix="null_value_imputation_{}_".format(column_name),
+                delete=False,
             ) as temp_f:
                 temp_data_name = temp_f.name
                 df_tmp = df.copy()

@@ -7,7 +7,7 @@ import collections
 
 MemoryInfo = collections.namedtuple(
     "MemoryInfo",
-    "total avail free drum_rss drum_info nginx_rss container_limit container_max_used container_used"
+    "total avail free drum_rss drum_info nginx_rss container_limit container_max_used container_used",
 )
 
 
@@ -51,14 +51,11 @@ class MemoryMonitor:
         usage_mb = ByteConv.from_bytes(usage_bytes).mbytes
 
         max_usage_bytes = int(
-            open(os.path.join(mem_sysfs_path, "memory.max_usage_in_bytes")).read())
+            open(os.path.join(mem_sysfs_path, "memory.max_usage_in_bytes")).read()
+        )
         max_usage_mb = ByteConv.from_bytes(max_usage_bytes).mbytes
 
-        return {
-            "total_mb": total_mb,
-            "usage_mb": usage_mb,
-            "max_usage_mb": max_usage_mb
-        }
+        return {"total_mb": total_mb, "usage_mb": usage_mb, "max_usage_mb": max_usage_mb}
 
     def collect_memory_info(self):
         def get_proc_data(p):
@@ -123,7 +120,7 @@ class MemoryMonitor:
             nginx_rss=nginx_rss_mb,
             container_limit=container_limit_mb,
             container_max_used=container_max_usage_mb,
-            container_used=container_usage_mb
+            container_used=container_usage_mb,
         )
 
         return mem_info
