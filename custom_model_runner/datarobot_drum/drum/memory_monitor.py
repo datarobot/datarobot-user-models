@@ -6,12 +6,12 @@ from datarobot_drum.drum.common import ArgumentsOptions
 import collections
 
 MemoryInfo = collections.namedtuple(
-    "MemoryInfo", "total avail free drum_rss drum_info nginx_rss container_limit"
+    "MemoryInfo",
+    "total avail free drum_rss drum_info nginx_rss container_limit container_max_used container_used"
 )
 
 
 class MemoryMonitor:
-
     TOTAL_MEMORY_LABEL = "Total"
     AVAILABLE_MEMORY_LABEL = "Available"
     FREE_MEMORY_LABEL = "Free"
@@ -40,14 +40,25 @@ class MemoryMonitor:
         and collect the usage/total for all the processes inside the container.
         Returns
         -------
-        (total_mb, used_mb)
+        A dictionary with: {total_mb, usage_mb, max_usage_mb}
         """
+
         mem_sysfs_path = "/sys/fs/cgroup/memory/"
         total_bytes = int(open(os.path.join(mem_sysfs_path, "memory.limit_in_bytes")).read())
-        usage_bytes = int(open(os.path.join(mem_sysfs_path, "memory.usage_in_bytes")).read())
         total_mb = ByteConv.from_bytes(total_bytes).mbytes
-        used_mb = ByteConv.from_bytes(usage_bytes).mbytes
-        return total_mb, used_mb
+
+        usage_bytes = int(open(os.path.join(mem_sysfs_path, "memory.usage_in_bytes")).read())
+        usage_mb = ByteConv.from_bytes(usage_bytes).mbytes
+
+        max_usage_bytes = int(
+            open(os.path.join(mem_sysfs_path, "memory.max_usage_in_bytes")).read())
+        max_usage_mb = ByteConv.from_bytes(max_usage_bytes).mbytes
+
+        return {
+            "total_mb": total_mb,
+            "usage_mb": usage_mb,
+            "max_usage_mb": max_usage_mb
+        }
 
     def collect_memory_info(self):
         def get_proc_data(p):
@@ -88,14 +99,20 @@ class MemoryMonitor:
 
         virtual_mem = psutil.virtual_memory()
         total_physical_mem_mb = ByteConv.from_bytes(virtual_mem.total).mbytes
+
         if self._run_inside_docker():
-            container_limit_mb, used_mb = self._collect_memory_info_in_docker()
-            available_mem_mb = container_limit_mb - used_mb
+            container_mem_info = self._collect_memory_info_in_docker()
+            container_limit_mb = container_mem_info["total_mb"]
+            container_max_usage_mb = container_mem_info["max_usage_mb"]
+            container_usage_mb = container_mem_info["usage_mb"]
+            available_mem_mb = container_limit_mb - container_mem_info["usage_mb"]
             free_mem_mb = available_mem_mb
         else:
             available_mem_mb = ByteConv.from_bytes(virtual_mem.available).mbytes
             free_mem_mb = ByteConv.from_bytes(virtual_mem.free).mbytes
             container_limit_mb = None
+            container_max_usage_mb = None
+            container_usage_mb = None
 
         mem_info = MemoryInfo(
             total=total_physical_mem_mb,
@@ -105,6 +122,8 @@ class MemoryMonitor:
             drum_info=drum_info if drum_process else None,
             nginx_rss=nginx_rss_mb,
             container_limit=container_limit_mb,
+            container_max_used=container_max_usage_mb,
+            container_used=container_usage_mb
         )
 
         return mem_info

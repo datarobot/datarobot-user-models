@@ -76,6 +76,117 @@ class TestCaseResults:
         self.server_stats = None
 
 
+class PerfTestResultsFormatter:
+    def __init__(self, results, in_docker, memory_limit=None, show_mem=True,
+                 show_inside_server=False):
+        self._results = results
+        self._in_docker = in_docker
+        self._show_mem = show_mem
+        self._memory_limit = memory_limit,
+        self._show_inside_server = show_inside_server
+        self._table = None
+        self._rows = None
+
+    def _init_table(self):
+        self._table = Texttable()
+        self._table.set_deco(Texttable.HEADER)
+        header_names = ["size", "samples", "iters", "min", "avg", "max"]
+        header_types = ["t", "i", "i", "f", "f", "f"]
+        col_allign = ["l", "r", "r", "r", "r", "r"]
+
+        if self._show_mem:
+            if self._in_docker:
+                header_names.extend(["container\nused (MB)",
+                                     "container\nmax used (MB)",
+                                     "container\nlimit (MB)",
+                                     "total physical (MB)"])
+                header_types.extend(["f", "f", "f", "f"])
+                col_allign.extend(["r", "r", "r", "r"])
+            else:
+                header_names.extend(["used (MB)", "total physical (MB)"])
+                header_types.extend(["f", "f"])
+                col_allign.extend(["r", "r"])
+
+        if self._show_inside_server:
+            header_names.extend(["prediction"])
+            header_types.extend(["f"])
+            col_allign.extend(["r"])
+
+        self._table.set_cols_dtype(header_types)
+        self._table.set_cols_align(col_allign)
+
+        try:
+            terminal_size = shutil.get_terminal_size()
+            self._table.set_max_width(terminal_size.columns)
+        except Exception as e:
+            pass
+
+        self._rows = [header_names]
+
+    @staticmethod
+    def _same_value_list(value, n):
+        return [value for _ in range(n)]
+
+    def _add_mem_info(self, row, server_stats):
+
+        if server_stats and "mem_info" in server_stats:
+            mem_info = server_stats["mem_info"]
+            if self._in_docker:
+                if self._memory_limit is None:
+                    container_limit = "no memory limit"
+                else:
+                    container_limit = mem_info["container_limit"]
+
+                if "container_max_used" in mem_info:
+                    max_used = mem_info["container_max_used"]
+                else:
+                    max_used = "N/A"
+
+                if "container_used" in mem_info:
+                    used = mem_info["container_used"]
+                else:
+                    used = "N\A"
+                    
+                row.extend([used, max_used, container_limit, mem_info["total"]])
+            else:
+                row.extend([mem_info["drum_rss"], mem_info["total"]])
+        else:
+            row.extend([self._same_value_list(CMRunTests.NA_VALUE, 3)])
+
+    def _add_inside_server_info(self, row, server_stats):
+        if server_stats:
+            time_info = server_stats["time_info"]
+            row.extend([time_info["run_predictor_total"]["avg"]])
+        else:
+            row.extend([CMRunTests.NA_VALUE])
+
+    def get_tbl_str(self):
+        self._init_table()
+
+        for res in self._results:
+            row = [res.name, res.samples, res.iterations]
+
+            server_stats = None
+            if res.prediction_ok:
+                d = res.stats_obj.dict_report(CMRunTests.REPORT_NAME)
+                row.extend([d["min"], d["avg"], d["max"]])
+                server_stats = json.loads(res.server_stats) if res.server_stats else None
+            else:
+                row.extend(self._same_value_list(CMRunTests.TEST_CASE_FAIL_VALUE, 3))
+
+            if self._show_mem:
+                self._add_mem_info(row, server_stats)
+
+            if self._show_inside_server:
+                self._add_inside_server_info(row, server_stats)
+
+            self._rows.append(row)
+
+        self._table.add_rows(self._rows)
+        tbl_report = self._table.draw()
+        return tbl_report
+
+
 class CMRunTests:
     REPORT_NAME = "Request time (s)"
     NA_VALUE = "NA"
@@ -187,88 +298,6 @@ class CMRunTests:
 
         return cmd_list
 
-    def _generate_table_report_adv(self, results, show_mem=True, show_inside_server=True):
-
-        tbl_report = "=" * 52 + "\n"
-
-        table = Texttable()
-        table.set_deco(Texttable.HEADER)
-
-        header_names = ["size", "samples", "iters", "min", "avg", "max"]
-        header_types = ["t", "i", "i", "f", "f", "f"]
-        col_allign = ["l", "r", "r", "r", "r", "r"]
-
-        if show_mem:
-            header_names.extend(["used (MB)", "container limit (MB)", "total physical (MB)"])
-            header_types.extend(["f", "f", "f"])
-            col_allign.extend(["r", "r", "r"])
-
-        if show_inside_server:
-            header_names.extend(["prediction"])
-            header_types.extend(["f"])
-            col_allign.extend(["r"])
-
-        table.set_cols_dtype(header_types)
-        table.set_cols_align(col_allign)
-
-        try:
-            terminal_size = shutil.get_terminal_size()
-            table.set_max_width(terminal_size.columns)
-        except Exception as e:
-            pass
-
-        rows = [header_names]
-
-        for res in results:
-            row = [res.name, res.samples, res.iterations]
-
-            server_stats = None
-            if res.prediction_ok:
-                d = res.stats_obj.dict_report(CMRunTests.REPORT_NAME)
-                row.extend([d["min"], d["avg"], d["max"]])
-                server_stats = json.loads(res.server_stats) if res.server_stats else None
-            else:
-                row.extend(
-                    [
-                        CMRunTests.TEST_CASE_FAIL_VALUE,
-                        CMRunTests.TEST_CASE_FAIL_VALUE,
-                        CMRunTests.TEST_CASE_FAIL_VALUE,
-                    ]
-                )
-
-            if show_mem:
-                if server_stats and "mem_info" in server_stats:
-                    mem_info = server_stats["mem_info"]
-                    if self.options.docker is None:
-                        container_limit_val = "running w/o container"
-                    elif self.options.memory is None:
-                        container_limit_val = "no memory limit"
-                    else:
-                        container_limit_val = mem_info["container_limit"]
-                    row.extend([mem_info["drum_rss"], container_limit_val, mem_info["total"]])
-                else:
-                    row.extend([CMRunTests.NA_VALUE, CMRunTests.NA_VALUE, CMRunTests.NA_VALUE])
-                rows.append(row)
-
-            if show_inside_server:
-                if server_stats:
-                    time_info = server_stats["time_info"]
-                    row.extend(
-                        [
-                            time_info["run_predictor_total"]["avg"],
-                        ]
-                    )
-                else:
-                    row.extend(
-                        [
-                            CMRunTests.NA_VALUE,
-                        ]
-                    )
-
-        table.add_rows(rows)
-        tbl_report = table.draw()
-        return tbl_report
-
     def _start_drum_server(self):
         cmd_list = self._build_drum_cmd()
         if self._verbose:
@@ -319,8 +348,6 @@ class CMRunTests:
             response = requests.post(
                 self._url_server_address + self._predict_endpoint, files={"X": df_csv}
             )
-            if self._verbose:
-                print(results)
 
             sc.mark("end")
             if response.ok:
@@ -408,9 +435,12 @@ class CMRunTests:
         results = self._run_all_test_cases()
         self._reset_signals()
         self._stop_drum_server()
-        str_report = self._generate_table_report_adv(
-            results, show_inside_server=self.options.in_server
-        )
+        in_docker = self.options.docker is not None
+        str_report = PerfTestResultsFormatter(results,
+                                              in_docker=in_docker,
+                                              show_inside_server=self.options.in_server) \
+            .get_tbl_str()
+
         print("\n" + str_report)
         return
 
@@ -437,10 +467,10 @@ class CMRunTests:
 
         for column_name in column_names:
             with NamedTemporaryFile(
-                mode="w",
-                dir=null_datasets_dir,
-                prefix="null_value_imputation_{}_".format(column_name),
-                delete=False,
+                    mode="w",
+                    dir=null_datasets_dir,
+                    prefix="null_value_imputation_{}_".format(column_name),
+                    delete=False,
             ) as temp_f:
                 temp_data_name = temp_f.name
                 df_tmp = df.copy()
