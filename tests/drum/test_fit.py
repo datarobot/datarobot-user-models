@@ -34,6 +34,7 @@ from .constants import (
     WEIGHTS_ARGS,
     WEIGHTS_CSV,
     XGB,
+    BINARY_BOOL,
 )
 from .utils import _cmd_add_class_labels, _create_custom_model_dir, _exec_shell_cmd
 
@@ -116,6 +117,7 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, problem, docker",
         [
+            (RDS, BINARY_BOOL, None),
             (RDS, BINARY_TEXT, None),
             (RDS, REGRESSION, None),
             (RDS, MULTICLASS, None),
@@ -169,7 +171,7 @@ class TestFit:
             weights, input_dataset, r_fit=language == R_FIT
         )
 
-        if problem == BINARY_TEXT:
+        if problem in [BINARY_TEXT, BINARY_BOOL]:
             target_type = BINARY
         elif problem == MULTICLASS_NUM_LABELS:
             target_type = MULTICLASS

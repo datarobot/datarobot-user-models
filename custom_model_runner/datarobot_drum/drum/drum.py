@@ -728,20 +728,23 @@ class CMRunner:
 
 
 def possibly_intuit_order(
-    input_data_file, target_data_file=None, target_col_name=None, unsupervised=False
+    input_data_file,
+    target_data_file=None,
+    target_col_name=None,
+    unsupervised=False,
 ):
     if unsupervised:
         return None
     elif target_data_file:
         assert target_col_name is None
 
-        y = pd.read_csv(target_data_file, index_col=False, lineterminator="\n").sample(
+        y = pd.read_csv(target_data_file, index_col=False, lineterminator="\n", dtype=str).sample(
             1000, random_state=1, replace=True
         )
         classes = np.unique(y.iloc[:, 0])
     else:
         assert target_data_file is None
-        df = pd.read_csv(input_data_file, lineterminator="\n")
+        df = pd.read_csv(input_data_file, lineterminator="\n", dtype={target_col_name: str})
         if not target_col_name in df.columns:
             e = "The column '{}' does not exist in your dataframe. \nThe columns in your dataframe are these: {}".format(
                 target_col_name, list(df.columns)
