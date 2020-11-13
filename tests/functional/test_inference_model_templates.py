@@ -114,7 +114,19 @@ class TestInferenceModelTemplates(object):
                 "inference/python3_unstructured",
                 "python",
                 "sklearn_drop_in_env",
-                # datafile here is only a stub, as unstructured model testing only performs start up check
+                # datafile here is only a stub, because unstructured model testing performs start up check only
+                "regression_testing_data",
+                dr.TARGET_TYPE.UNSTRUCTURED,
+                None,
+                None,
+                None,
+                None,
+            ),
+            (
+                "inference/r_unstructured",
+                "r",
+                "r_drop_in_env",
+                # datafile here is only a stub, because unstructured model testing performs start up check only
                 "regression_testing_data",
                 dr.TARGET_TYPE.UNSTRUCTURED,
                 None,
