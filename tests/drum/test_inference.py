@@ -1,4 +1,5 @@
 import json
+from tempfile import NamedTemporaryFile
 
 import pandas as pd
 import pyarrow
@@ -34,40 +35,48 @@ from .utils import _cmd_add_class_labels, _create_custom_model_dir, _exec_shell_
 
 
 class TestInference:
+    @pytest.fixture
+    def temp_file(self):
+        with NamedTemporaryFile() as f:
+            yield f
+
     @pytest.mark.parametrize(
-        "framework, problem, language, docker",
+        "framework, problem, language, docker, use_labels_file",
         [
-            (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None),
-            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
-            (SKLEARN, BINARY, PYTHON, None),
-            (SKLEARN, MULTICLASS, PYTHON, None),
-            (KERAS, REGRESSION, PYTHON, None),
-            (KERAS, BINARY, PYTHON, None),
-            (KERAS, MULTICLASS, PYTHON, None),
-            (XGB, REGRESSION, PYTHON, None),
-            (XGB, BINARY, PYTHON, None),
-            (XGB, BINARY, PYTHON_XGBOOST_CLASS_LABELS_VALIDATION, None),
-            (XGB, MULTICLASS, PYTHON, None),
-            (XGB, MULTICLASS, PYTHON_XGBOOST_CLASS_LABELS_VALIDATION, None),
-            (PYTORCH, REGRESSION, PYTHON, None),
-            (PYTORCH, BINARY, PYTHON, None),
-            (PYTORCH, MULTICLASS, PYTHON, None),
-            (RDS, REGRESSION, R, None),
-            (RDS, BINARY, R, None),
-            (RDS, MULTICLASS, R, None),
-            (CODEGEN, REGRESSION, NO_CUSTOM, None),
-            (CODEGEN, BINARY, NO_CUSTOM, None),
-            (CODEGEN, MULTICLASS, NO_CUSTOM, None),
-            (POJO, REGRESSION, NO_CUSTOM, None),
-            (POJO, BINARY, NO_CUSTOM, None),
-            (POJO, MULTICLASS, NO_CUSTOM, None),
-            (MOJO, REGRESSION, NO_CUSTOM, None),
-            (MOJO, BINARY, NO_CUSTOM, None),
-            (MOJO, MULTICLASS, NO_CUSTOM, None),
-            (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None),
-            (PYPMML, REGRESSION, NO_CUSTOM, None),
-            (PYPMML, BINARY, NO_CUSTOM, None),
-            (PYPMML, MULTICLASS, NO_CUSTOM, None),
+            (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None, False),
+            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN, False),
+            (SKLEARN, BINARY, PYTHON, None, False),
+            (SKLEARN, MULTICLASS, PYTHON, None, False),
+            (SKLEARN, MULTICLASS, PYTHON, None, True),
+            (SKLEARN, MULTICLASS, PYTHON, DOCKER_PYTHON_SKLEARN, False),
+            (SKLEARN, MULTICLASS, PYTHON, DOCKER_PYTHON_SKLEARN, True),
+            (KERAS, REGRESSION, PYTHON, None, False),
+            (KERAS, BINARY, PYTHON, None, False),
+            (KERAS, MULTICLASS, PYTHON, None, False),
+            (XGB, REGRESSION, PYTHON, None, False),
+            (XGB, BINARY, PYTHON, None, False),
+            (XGB, BINARY, PYTHON_XGBOOST_CLASS_LABELS_VALIDATION, None, False),
+            (XGB, MULTICLASS, PYTHON, None, False),
+            (XGB, MULTICLASS, PYTHON_XGBOOST_CLASS_LABELS_VALIDATION, None, False),
+            (PYTORCH, REGRESSION, PYTHON, None, False),
+            (PYTORCH, BINARY, PYTHON, None, False),
+            (PYTORCH, MULTICLASS, PYTHON, None, False),
+            (RDS, REGRESSION, R, None, False),
+            (RDS, BINARY, R, None, False),
+            (RDS, MULTICLASS, R, None, False),
+            (CODEGEN, REGRESSION, NO_CUSTOM, None, False),
+            (CODEGEN, BINARY, NO_CUSTOM, None, False),
+            (CODEGEN, MULTICLASS, NO_CUSTOM, None, False),
+            (POJO, REGRESSION, NO_CUSTOM, None, False),
+            (POJO, BINARY, NO_CUSTOM, None, False),
+            (POJO, MULTICLASS, NO_CUSTOM, None, False),
+            (MOJO, REGRESSION, NO_CUSTOM, None, False),
+            (MOJO, BINARY, NO_CUSTOM, None, False),
+            (MOJO, MULTICLASS, NO_CUSTOM, None, False),
+            (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None, False),
+            (PYPMML, REGRESSION, NO_CUSTOM, None, False),
+            (PYPMML, BINARY, NO_CUSTOM, None, False),
+            (PYPMML, MULTICLASS, NO_CUSTOM, None, False),
         ],
     )
     def test_custom_models_with_drum(
@@ -78,6 +87,8 @@ class TestInference:
         language,
         docker,
         tmp_path,
+        use_labels_file,
+        temp_file,
     ):
         custom_model_dir = _create_custom_model_dir(
             resources,
@@ -99,7 +110,11 @@ class TestInference:
             resources.target_types(problem),
         )
         if problem in [BINARY, MULTICLASS]:
-            cmd = _cmd_add_class_labels(cmd, resources.class_labels(framework, problem))
+            cmd = _cmd_add_class_labels(
+                cmd,
+                resources.class_labels(framework, problem),
+                multiclass_label_file=temp_file if use_labels_file else None,
+            )
         if docker:
             cmd += " --docker {} --verbose ".format(docker)
 

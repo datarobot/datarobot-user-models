@@ -605,6 +605,14 @@ class CMRunner:
             )
             CMRunnerUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.MEMORY)
 
+        if options.class_labels:
+            CMRunnerUtils.delete_cmd_argument(
+                in_docker_cmd_list, ArgumentsOptions.CLASS_LABELS_FILE
+            )
+            in_docker_cmd_list.append(ArgumentsOptions.CLASS_LABELS)
+            for label in options.class_labels:
+                in_docker_cmd_list.append(label)
+
         CMRunnerUtils.replace_cmd_argument_value(
             in_docker_cmd_list, ArgumentsOptions.CODE_DIR, in_docker_model
         )

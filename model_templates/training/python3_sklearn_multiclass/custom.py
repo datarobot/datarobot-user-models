@@ -80,6 +80,8 @@ def fit(
     # NOTE: We currently set a 10GB limit to the size of the serialized model
     with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
         pickle.dump(estimator, fp)
+    with open("{}/class_labels.txt".format(output_dir), "wb") as fp:
+        fp.write("\n".join(estimator.classes_).encode("utf-8"))
 
 
 """
