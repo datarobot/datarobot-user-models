@@ -605,7 +605,7 @@ class CMRunner:
             )
             CMRunnerUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.MEMORY)
 
-        if options.class_labels:
+        if options.class_labels and ArgumentsOptions.CLASS_LABELS not in in_docker_cmd_list:
             CMRunnerUtils.delete_cmd_argument(
                 in_docker_cmd_list, ArgumentsOptions.CLASS_LABELS_FILE
             )
