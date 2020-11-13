@@ -73,12 +73,20 @@ def _exec_shell_cmd(cmd, err_msg, assert_if_fail=True, process_obj_holder=None, 
     return p, stdout, stderr
 
 
-def _cmd_add_class_labels(cmd, labels):
+def _cmd_add_class_labels(cmd, labels, multiclass_label_file=None):
     if not labels or len(labels) == 2:
         pos = labels[1] if labels else "yes"
         neg = labels[0] if labels else "no"
         cmd = cmd + " --positive-class-label {} --negative-class-label {}".format(pos, neg)
     elif labels and len(labels) > 2:
-        wrapped_labels = ['"{}"'.format(label) for label in labels]
-        cmd += " --class-labels {}".format(" ".join(wrapped_labels))
+        if multiclass_label_file:
+            multiclass_label_file.truncate(0)
+            for label in labels:
+                multiclass_label_file.write(label.encode("utf-8"))
+                multiclass_label_file.write("\n".encode("utf-8"))
+            multiclass_label_file.flush()
+            cmd += " --class-labels-file {}".format(multiclass_label_file.name)
+        else:
+            wrapped_labels = ['"{}"'.format(label) for label in labels]
+            cmd += " --class-labels {}".format(" ".join(wrapped_labels))
     return cmd
