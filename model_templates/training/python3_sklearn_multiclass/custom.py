@@ -81,7 +81,7 @@ def fit(
     with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
         pickle.dump(estimator, fp)
     with open("{}/class_labels.txt".format(output_dir), "wb") as fp:
-        fp.write("\n".join(estimator.classes_).encode("utf-8"))
+        fp.write("\n".join(str(class_) for class_ in estimator.classes_).encode("utf-8"))
 
 
 """
