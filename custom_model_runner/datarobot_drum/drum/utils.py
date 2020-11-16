@@ -118,8 +118,6 @@ def shared_fit_preprocessing(fit_class):
     # read in data
     if fit_class.input_filename.endswith(".mtx"):
         df = pd.DataFrame.sparse.from_spmatrix(mmread(fit_class.input_filename))
-    elif fit_class.target_name:
-        df = pd.read_csv(fit_class.input_filename, dtype={fit_class.target_name: str})
     else:
         df = pd.read_csv(fit_class.input_filename)
 
@@ -132,7 +130,7 @@ def shared_fit_preprocessing(fit_class):
     # get target and features, resample and modify nrows if needed
     if fit_class.target_filename or fit_class.target_name:
         if fit_class.target_filename:
-            y_unsampled = pd.read_csv(fit_class.target_filename, index_col=False, dtype=str)
+            y_unsampled = pd.read_csv(fit_class.target_filename, index_col=False)
             assert (
                 len(y_unsampled.columns) == 1
             ), "Your target dataset at path {} has {} columns named {}".format(

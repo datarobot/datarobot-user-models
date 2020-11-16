@@ -746,13 +746,13 @@ def possibly_intuit_order(
     elif target_data_file:
         assert target_col_name is None
 
-        y = pd.read_csv(target_data_file, index_col=False, dtype=str).sample(
+        y = pd.read_csv(target_data_file, index_col=False).sample(
             1000, random_state=1, replace=True
         )
         classes = np.unique(y.iloc[:, 0])
     else:
         assert target_data_file is None
-        df = pd.read_csv(input_data_file, dtype={target_col_name: str})
+        df = pd.read_csv(input_data_file)
         if not target_col_name in df.columns:
             e = "The column '{}' does not exist in your dataframe. \nThe columns in your dataframe are these: {}".format(
                 target_col_name, list(df.columns)
