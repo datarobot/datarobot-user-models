@@ -98,7 +98,7 @@ class PythonModelAdapter:
 
     def load_model_from_artifact(self):
         """
-        Load the serialized model from it's artifact.
+        Load the serialized model from its artifact.
         Returns
         -------
         Any
@@ -117,6 +117,9 @@ class PythonModelAdapter:
         if (
             self._target_type != TargetType.UNSTRUCTURED
             and not self._custom_hooks[CustomHooks.SCORE]
+        ) and (
+            self._target_type != TargetType.TRANSFORM
+            and not self._custom_hooks[CustomHooks.TRANSFORM]
         ):
             self._find_predictor_to_use()
 
@@ -219,6 +222,7 @@ class PythonModelAdapter:
         return model
 
     def _find_predictor_to_use(self):
+        # TODO: update for transform?
         self._predictor_to_use = None
         for pred in self._artifact_predictors:
             if pred.can_use_model(self._model):
@@ -244,7 +248,10 @@ class PythonModelAdapter:
     def _validate_predictions(self, to_validate, class_labels):
         self._validate_data(to_validate, "Predictions")
         columns_to_validate = set(str(label) for label in to_validate.columns)
-        if class_labels:
+        if self._target_type == TargetType.TRANSFORM:
+            # TODO: something?
+            pass
+        elif class_labels:
             if columns_to_validate != set(class_labels):
                 raise ValueError(
                     "Expected predictions to have columns {}, but encountered {}".format(
@@ -326,6 +333,8 @@ class PythonModelAdapter:
                     "Model transform hook failed to transform dataset: {}".format(exc)
                 ).with_traceback(sys.exc_info()[2]) from None
             self._validate_data(data, CustomHooks.TRANSFORM)
+            if self._target_type == TargetType.TRANSFORM:
+                return data
 
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
