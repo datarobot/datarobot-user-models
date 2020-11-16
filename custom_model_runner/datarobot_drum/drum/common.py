@@ -172,8 +172,9 @@ class TargetType(Enum):
     ANOMALY = "anomaly"
     UNSTRUCTURED = "unstructured"
     MULTICLASS = "multiclass"
+    TRANSFORM = "transform"
     CLASSIFICATION = [BINARY, MULTICLASS]
-    ALL = [BINARY, MULTICLASS, REGRESSION, ANOMALY, UNSTRUCTURED]
+    ALL = [BINARY, MULTICLASS, REGRESSION, ANOMALY, UNSTRUCTURED, TRANSFORM]
 
 
 class TemplateType:
