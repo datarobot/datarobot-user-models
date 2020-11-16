@@ -273,7 +273,10 @@ class PythonModelAdapter:
                 return pd.DataFrame.sparse.from_spmatrix(mmread(filename))
             if filename.endswith(".arrow"):
                 with open(filename, "rb") as file:
-                    return pyarrow.ipc.deserialize_pandas(file.read())
+                    df = pyarrow.ipc.deserialize_pandas(file.read())
+                if (df.dtypes.to_numpy() == np.object).all():
+                    df = pd.read_csv(df.to_csv(encoding='utf-8'), encoding='utf-8')
+                return df
             return pd.read_csv(filename, lineterminator="\n")
         except pd.errors.ParserError as e:
             raise DrumCommonException("Pandas failed to read input csv file: {}".format(filename))
