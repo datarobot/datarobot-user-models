@@ -1,57 +1,22 @@
-import json
 import os
 
 import pytest
+import yaml
 
-from tests.drum.constants import (
-    ANOMALY,
-    BINARY,
-    BINARY_TEXT,
-    BINARY_BOOL,
-    CODEGEN,
-    SKLEARN_SPARSE,
-    CODEGEN_AND_SKLEARN,
-    KERAS,
-    MOJO,
-    MULTI_ARTIFACT,
-    MULTICLASS,
-    NO_CUSTOM,
-    POJO,
-    PYPMML,
-    PYTHON,
-    PYTHON_ALL_PREDICT_STRUCTURED_HOOKS,
-    PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS,
-    PYTHON_LOAD_MODEL,
-    PYTHON_UNSTRUCTURED,
-    PYTHON_UNSTRUCTURED_PARAMS,
-    PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
-    PYTORCH,
-    PYTORCH_MULTICLASS,
-    R,
-    R_ALL_PREDICT_STRUCTURED_HOOKS,
-    R_ALL_PREDICT_UNSTRUCTURED_HOOKS,
-    R_FIT,
-    R_UNSTRUCTURED,
-    R_UNSTRUCTURED_PARAMS,
-    RDS,
-    REGRESSION,
-    REGRESSION_INFERENCE,
-    SIMPLE,
-    SKLEARN,
-    SKLEARN_ANOMALY,
-    SKLEARN_BINARY,
-    SKLEARN_REGRESSION,
-    SPARSE,
-    SPARSE_TARGET,
-    TESTS_ARTIFACTS_PATH,
-    TESTS_DATA_PATH,
-    TESTS_FIXTURES_PATH,
-    TRAINING_TEMPLATES_PATH,
-    UNSTRUCTURED,
-    XGB,
-    SKLEARN_MULTICLASS,
-    MULTICLASS_NUM_LABELS,
-)
+from tests.drum.constants import (ANOMALY, BINARY, BINARY_BOOL, BINARY_TEXT, CODEGEN,
+                                  CODEGEN_AND_SKLEARN, KERAS, MOJO, MULTI_ARTIFACT, MULTICLASS,
+                                  MULTICLASS_NUM_LABELS, NO_CUSTOM, POJO, PYPMML, PYTHON,
+                                  PYTHON_ALL_PREDICT_STRUCTURED_HOOKS,
+                                  PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS, PYTHON_LOAD_MODEL,
+                                  PYTHON_UNSTRUCTURED, PYTHON_UNSTRUCTURED_PARAMS,
+                                  PYTHON_XGBOOST_CLASS_LABELS_VALIDATION, PYTORCH,
+                                  PYTORCH_MULTICLASS, R, R_ALL_PREDICT_STRUCTURED_HOOKS,
+                                  R_ALL_PREDICT_UNSTRUCTURED_HOOKS, R_FIT, R_UNSTRUCTURED,
+                                  R_UNSTRUCTURED_PARAMS, RDS, REGRESSION, REGRESSION_INFERENCE,
+                                  SIMPLE, SKLEARN, SKLEARN_ANOMALY, SKLEARN_BINARY,
+                                  SKLEARN_MULTICLASS, SKLEARN_REGRESSION, SKLEARN_SPARSE, SPARSE,
+                                  SPARSE_TARGET, TESTS_ARTIFACTS_PATH, TESTS_DATA_PATH,
+                                  TESTS_FIXTURES_PATH, TRAINING_TEMPLATES_PATH, UNSTRUCTURED, XGB)
 
 _datasets = {
     # If specific dataset should be defined for a framework, use (framework, problem) key.
@@ -337,8 +302,8 @@ def resources(
 
 
 # fixtures for variety data tests
-with open(os.path.join(TESTS_DATA_PATH, "variety_samples/variety_data_key.json")) as jsonfile:
-    variety_data_dict = json.load(jsonfile)
+with open(os.path.join(TESTS_DATA_PATH, "variety_samples/variety_data_key.yaml")) as yamlfile:
+    variety_data_dict = yaml.load(yamlfile)
 
 variety_data_names = [*variety_data_dict]
 

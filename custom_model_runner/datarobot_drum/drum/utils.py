@@ -118,8 +118,10 @@ def shared_fit_preprocessing(fit_class):
     # read in data
     if fit_class.input_filename.endswith(".mtx"):
         df = pd.DataFrame.sparse.from_spmatrix(mmread(fit_class.input_filename))
+    elif fit_class.target_name:
+        df = pd.read_csv(fit_class.input_filename, dtype={fit_class.target_name: str})
     else:
-        df = pd.read_csv(fit_class.input_filename, lineterminator="\n")
+        df = pd.read_csv(fit_class.input_filename)
 
     # get num rows to use
     if fit_class.num_rows == "ALL":
@@ -130,7 +132,7 @@ def shared_fit_preprocessing(fit_class):
     # get target and features, resample and modify nrows if needed
     if fit_class.target_filename or fit_class.target_name:
         if fit_class.target_filename:
-            y_unsampled = pd.read_csv(fit_class.target_filename, index_col=False)
+            y_unsampled = pd.read_csv(fit_class.target_filename, index_col=False, dtype=str)
             assert (
                 len(y_unsampled.columns) == 1
             ), "Your target dataset at path {} has {} columns named {}".format(
@@ -162,7 +164,7 @@ def shared_fit_preprocessing(fit_class):
 def extract_weights(X, fit_class):
     # extract weights from file or data
     if fit_class.weights_filename:
-        row_weights = pd.read_csv(fit_class.weights_filename, lineterminator="\n").sample(
+        row_weights = pd.read_csv(fit_class.weights_filename).sample(
             fit_class.num_rows, random_state=1, replace=True
         )
     elif fit_class.weights:
