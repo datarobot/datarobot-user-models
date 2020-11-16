@@ -91,7 +91,7 @@ _training_models_paths = {
     (PYTHON, PYTORCH_MULTICLASS): os.path.join(
         TRAINING_TEMPLATES_PATH, "python3_pytorch_multiclass"
     ),
-    (PYTHON, SKLEARN_TRANSFORM): os.path.join(TRAINING_TEMPLATES_PATH, "python3_sklearn_transform")
+    (PYTHON, SKLEARN_TRANSFORM): os.path.join(TRAINING_TEMPLATES_PATH, "python3_sklearn_transform"),
 }
 
 _targets = {
