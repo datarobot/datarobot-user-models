@@ -24,12 +24,14 @@ from .constants import (
     RDS,
     REGRESSION,
     BINARY_TEXT,
+    TRANSFORM,
     SIMPLE,
     SKLEARN,
     SKLEARN_BINARY,
     SKLEARN_MULTICLASS,
     SKLEARN_REGRESSION,
     SKLEARN_ANOMALY,
+    SKLEARN_TRANSFORM,
     TESTS_ROOT_PATH,
     WEIGHTS_ARGS,
     WEIGHTS_CSV,
@@ -130,6 +132,8 @@ class TestFit:
             (SKLEARN_ANOMALY, ANOMALY, None),
             (SKLEARN_MULTICLASS, MULTICLASS, None),
             (SKLEARN_MULTICLASS, MULTICLASS_NUM_LABELS, None),
+            (SKLEARN_TRANSFORM, REGRESSION, None),
+            (SKLEARN_TRANSFORM, BINARY, None),
             (XGB, BINARY_TEXT, None),
             (XGB, REGRESSION, None),
             (XGB, MULTICLASS, None),
@@ -175,6 +179,8 @@ class TestFit:
             target_type = BINARY
         elif problem == MULTICLASS_NUM_LABELS:
             target_type = MULTICLASS
+        elif framework == SKLEARN_TRANSFORM:
+            target_type = TRANSFORM
         else:
             target_type = problem
 
