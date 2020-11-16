@@ -245,6 +245,13 @@ class PythonModelAdapter:
                 "{} must return a DataFrame; but received {}".format(hook, type(to_validate))
             )
 
+    @staticmethod
+    def _validate_transform_rows(nrow_original, to_validate):
+        if to_validate.shape[0] != nrow_original:
+            raise ValueError(
+                "Transformation resulted in different number of rows than original data"
+            )
+
     def _validate_predictions(self, to_validate, class_labels):
         self._validate_data(to_validate, "Predictions")
         columns_to_validate = set(str(label) for label in to_validate.columns)
@@ -326,13 +333,17 @@ class PythonModelAdapter:
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
             try:
                 # noinspection PyCallingNonCallable
+                if self._target_type == TargetType.TRANSFORM:
+                    nrow_original = data.shape[0]
                 data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
+
             except Exception as exc:
                 raise type(exc)(
                     "Model transform hook failed to transform dataset: {}".format(exc)
                 ).with_traceback(sys.exc_info()[2]) from None
             self._validate_data(data, CustomHooks.TRANSFORM)
             if self._target_type == TargetType.TRANSFORM:
+                self._validate_transform_rows(nrow_original, data)
                 return data
 
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
