@@ -182,7 +182,7 @@ class TestTrainingModelTemplates(object):
 
         job = dr.ModelJob.get(proj_id, job_id)
         test_passed = False
-        res = job.get_result_when_complete()
+        res = job.get_result_when_complete(max_wait=900)
         if isinstance(res, dr.Model):
             test_passed = True
 
