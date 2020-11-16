@@ -41,5 +41,5 @@ def fit(
         pickle.dump(transformer, fp)
 
 
-def transform(data, model):
-    return pd.DataFrame(model.transform(data))
+def transform(X, y, model):
+    return pd.DataFrame(model.transform(X)), y

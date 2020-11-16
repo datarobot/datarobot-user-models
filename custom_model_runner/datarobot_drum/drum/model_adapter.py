@@ -318,24 +318,35 @@ class PythonModelAdapter:
         -------
         pd.DataFrame
         """
+        target_input_filename = None
+        if self._target_type == TargetType.TRANSFORM:
+            feature_input_filename, target_input_filename = eval(input_filename)
+
         if self._custom_hooks.get(CustomHooks.READ_INPUT_DATA):
             try:
-                data = self._custom_hooks[CustomHooks.READ_INPUT_DATA](input_filename)
+                data = self._custom_hooks[CustomHooks.READ_INPUT_DATA](feature_input_filename)
+                if target_input_filename:
+                    target = self._custom_hooks[CustomHooks.READ_INPUT_DATA](target_input_filename)
             except Exception as exc:
                 raise type(exc)(
                     "Model read_data hook failed to read input file: {} {}".format(
-                        input_filename, exc
+                        feature_input_filename, exc
                     )
                 ).with_traceback(sys.exc_info()[2]) from None
         else:
-            data = PythonModelAdapter._read_structured_input(input_filename)
+            data = PythonModelAdapter._read_structured_input(feature_input_filename)
+            if target_input_filename:
+                target = PythonModelAdapter._read_structured_input(target_input_filename)
 
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
             try:
                 # noinspection PyCallingNonCallable
                 if self._target_type == TargetType.TRANSFORM:
                     nrow_original = data.shape[0]
-                data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
+                    nrow_target = target.shape[0]
+                    data, target = self._custom_hooks[CustomHooks.TRANSFORM](data, target, model)
+                else:
+                    data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
 
             except Exception as exc:
                 raise type(exc)(
@@ -343,8 +354,10 @@ class PythonModelAdapter:
                 ).with_traceback(sys.exc_info()[2]) from None
             self._validate_data(data, CustomHooks.TRANSFORM)
             if self._target_type == TargetType.TRANSFORM:
+                self._validate_data(target, CustomHooks.TRANSFORM)
                 self._validate_transform_rows(nrow_original, data)
-                return data
+                self._validate_transform_rows(nrow_target, target)
+                return data, target
 
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
