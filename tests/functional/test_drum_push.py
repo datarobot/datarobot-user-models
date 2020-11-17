@@ -21,6 +21,7 @@ BASE_DATASET_DIR = "tests/testdata"
 
 
 def get_push_yaml(env_id, data_path, problem, target_name):
+    target_name = "targetName: {targetName}".format(targetName=target_name) if target_name else ""
     return """
             name: drumpush-{problemType}
             type: training
@@ -28,9 +29,9 @@ def get_push_yaml(env_id, data_path, problem, target_name):
             environmentID: {environmentID}
             validation:
                 input: {dataPath} 
-                targetName: {targetName}
+                {maybeTargetName}
         """.format(
-        environmentID=env_id, problemType=problem, dataPath=data_path, targetName=target_name
+        environmentID=env_id, problemType=problem, dataPath=data_path, maybeTargetName=target_name
     )
 
 
