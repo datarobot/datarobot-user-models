@@ -119,7 +119,7 @@ def shared_fit_preprocessing(fit_class):
     if fit_class.input_filename.endswith(".mtx"):
         df = pd.DataFrame.sparse.from_spmatrix(mmread(fit_class.input_filename))
     else:
-        df = pd.read_csv(fit_class.input_filename, lineterminator="\n")
+        df = pd.read_csv(fit_class.input_filename)
 
     # get num rows to use
     if fit_class.num_rows == "ALL":
@@ -162,7 +162,7 @@ def shared_fit_preprocessing(fit_class):
 def extract_weights(X, fit_class):
     # extract weights from file or data
     if fit_class.weights_filename:
-        row_weights = pd.read_csv(fit_class.weights_filename, lineterminator="\n").sample(
+        row_weights = pd.read_csv(fit_class.weights_filename).sample(
             fit_class.num_rows, random_state=1, replace=True
         )
     elif fit_class.weights:
