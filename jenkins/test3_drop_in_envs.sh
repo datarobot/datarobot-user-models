@@ -34,9 +34,6 @@ RUN pip3 install -U $DRUM_WHEEL_FILENAME && rm -rf $DRUM_WHEEL_FILENAME" >> Dock
 done
 popd
 
-# need to install this first to workaround quantum requirements
-# and missing argparse-formatter wheel in DR artifactory
-pip install pytest-runner
 # installing DRUM into the test env is required for push test
 pip install -U $DRUM_WHEEL_REAL_PATH
 # requirements_test may install newer packages for testing, e.g. `datarobot`
