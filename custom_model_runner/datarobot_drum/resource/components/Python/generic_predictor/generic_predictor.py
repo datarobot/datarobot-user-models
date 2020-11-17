@@ -101,11 +101,11 @@ class GenericPredictorComponent(ConnectableComponent):
             if self._target_type == TargetType.TRANSFORM:
                 # TODO: this is stupid
                 features_transformed, target_transformed = predictions
-                if output_filename.endswith('.csv'):
+                if output_filename.endswith(".csv"):
                     output_base = output_filename[:-4]
-                    feature_output_filename = output_base + '_features_transformed.csv'
-                    target_output_filename = output_base + '_target_transformed.csv'
-                elif output_filename.endswith('null'):
+                    feature_output_filename = output_base + "_features_transformed.csv"
+                    target_output_filename = output_base + "_target_transformed.csv"
+                elif output_filename.endswith("null"):
                     feature_output_filename = target_output_filename = output_filename
                 features_transformed.to_csv(feature_output_filename, index=False)
                 target_transformed.to_csv(target_output_filename, index=False)

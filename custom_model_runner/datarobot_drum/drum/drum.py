@@ -353,7 +353,11 @@ class CMRunner:
             if self._get_fit_run_language() == RunLanguage.R:
                 df = handle_missing_colnames(df)
             df.to_csv(__tempfile.name, index=False)
-            self.options.input = __tempfile.name if self.target_type != TargetType.TRANSFORM else [__tempfile.name, __tempfile2.name]
+            self.options.input = (
+                __tempfile.name
+                if self.target_type != TargetType.TRANSFORM
+                else [__tempfile.name, __tempfile2.name]
+            )
         elif self.target_type == TargetType.TRANSFORM:
             self.options.input = [self.options.input, self.options.target_csv]
         self._run_fit_and_predictions_pipelines_in_mlpiper()

@@ -44,4 +44,4 @@ def fit(
 
 def transform(X, y, model):
     # use preprocessing as trained in fit, and log-transform y var
-    return pd.DataFrame(model.transform(X)), np.log(y+.01)
+    return pd.DataFrame(model.transform(X)), np.log(y + 0.01)

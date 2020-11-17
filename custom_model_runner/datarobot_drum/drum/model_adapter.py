@@ -117,8 +117,8 @@ class PythonModelAdapter:
         if (
             self._target_type != TargetType.UNSTRUCTURED
             and not self._custom_hooks[CustomHooks.SCORE]
-        ) and (
-            self._target_type != TargetType.TRANSFORM
+        ) or (
+            self._target_type == TargetType.TRANSFORM
             and not self._custom_hooks[CustomHooks.TRANSFORM]
         ):
             self._find_predictor_to_use()
