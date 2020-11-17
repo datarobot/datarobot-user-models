@@ -31,14 +31,15 @@ class PredictMixin:
 
     def do_predict(self, logger=None):
         response_status = HTTP_200_OK
-        response = None
 
         file_key = "X"
         filestorage = request.files.get(file_key)
 
         if not filestorage:
             wrong_key_error_message = (
-                "Samples should be provided as a csv file under `{}` key.".format(file_key)
+                "Samples should be provided as a csv, mtx, or arrow file under `{}` key.".format(
+                    file_key
+                )
             )
             if logger is not None:
                 logger.error(wrong_key_error_message)
