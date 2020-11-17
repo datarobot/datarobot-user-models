@@ -169,7 +169,9 @@ class TestDrumServerFailures:
             # check /predict/ route
             response = requests.post(run.url_server_address + "/predict/")
 
-            error_message = "ERROR: Samples should be provided as a csv file under `X` key."
+            error_message = (
+                "ERROR: Samples should be provided as a csv, mtx, or arrow file under `X` key."
+            )
             assert response.status_code == 422
             assert response.json()["message"] == error_message
 
