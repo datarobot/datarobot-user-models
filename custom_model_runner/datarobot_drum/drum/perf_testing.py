@@ -32,7 +32,7 @@ def _get_samples_df(df, samples):
 
 
 def _get_approximate_samples_in_csv_size(file, target_csv_size):
-    df = pd.read_csv(file, lineterminator="\n")
+    df = pd.read_csv(file)
     file_size = os.stat(file).st_size
     lines_multiplier = target_csv_size / file_size
     return int(df.shape[0] * lines_multiplier) + 1
@@ -201,7 +201,7 @@ class CMRunTests:
         self.options = options
         self._verbose = self.options.verbose
         self._input_csv = self.options.input
-        self._input_df = pd.read_csv(self._input_csv, lineterminator="\n")
+        self._input_df = pd.read_csv(self._input_csv)
 
         self._server_addr = "localhost"
         self._server_port = CMRunnerUtils.find_free_port()
@@ -464,7 +464,7 @@ class CMRunTests:
 
         null_datasets_dir = mkdtemp(prefix=DIR_PREFIX, dir=TMP_DIR)
 
-        df = pd.read_csv(self._input_csv, lineterminator="\n")
+        df = pd.read_csv(self._input_csv)
         column_names = list(df.iloc[[0]])
 
         results = {}

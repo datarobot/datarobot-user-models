@@ -35,18 +35,18 @@ eval "$(pyenv init -)"
 5. Now that you're in a brand new virtual env, we're going to go install the 
 dependencies we need to test locally
 ```
-pip install -r public_dropin_environments/python3_sklearn/dr_requirements.txt\
- -r public_dropin_environments/python3_sklearn/dr_requirements.txt
+pip install -r public_dropin_environments/python3_sklearn_binary/dr_requirements.txt\
+ -r public_dropin_environments/python3_sklearn_binary/dr_requirements.txt
 ```
 ### Test that your code works locally
 6. To do this, we're going to be using the tester tool developed by DataRobot 
 engineers to make sure your model is in tip top shape to be uploaded into the 
 app. This tool is called DRUM. Here's how to run it
 ```
-drum fit --code-dir model_templates/training/python3_sklearn --input \
+drum fit --code-dir model_templates/training/python3_sklearn_binary --input \
 tests/testdata/iris_binary_training.csv --target-type binary --target Species --verbose
 ```
-This is going to build a model with the code in the `training/python3_sklearn` 
+This is going to build a model with the code in the `training/python3_sklearn_binary` 
 directory, and then use that model to make predictions using the training data 
 it fit with. 
 ### Upload your code into DataRobot
