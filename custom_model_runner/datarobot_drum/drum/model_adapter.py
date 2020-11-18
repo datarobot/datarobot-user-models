@@ -226,7 +226,7 @@ class PythonModelAdapter:
         return model
 
     def _find_predictor_to_use(self):
-        # TODO: update for transform?
+        # TODO: RAPTOR-4014
         self._predictor_to_use = None
         for pred in self._artifact_predictors:
             if pred.can_use_model(self._model):
@@ -250,8 +250,8 @@ class PythonModelAdapter:
             )
 
     @staticmethod
-    def _validate_transform_rows(nrow_original, to_validate):
-        if to_validate.shape[0] != nrow_original:
+    def _validate_transform_rows(data, output_data):
+        if data.shape[0] != output_data.shape[0]:
             raise ValueError(
                 "Transformation resulted in different number of rows than original data"
             )
@@ -259,10 +259,7 @@ class PythonModelAdapter:
     def _validate_predictions(self, to_validate, class_labels):
         self._validate_data(to_validate, "Predictions")
         columns_to_validate = set(str(label) for label in to_validate.columns)
-        if self._target_type == TargetType.TRANSFORM:
-            # TODO: something?
-            pass
-        elif class_labels:
+        if class_labels:
             if columns_to_validate != set(class_labels):
                 raise ValueError(
                     "Expected predictions to have columns {}, but encountered {}".format(
@@ -304,8 +301,9 @@ class PythonModelAdapter:
         formats.add(PayloadFormat.ARROW)
         return formats
 
-    def _load_and_transform_data(self, input_filename, model):
+    def transform(self, input_filename, model):
         """
+        Load data, either with read hook or built-in method, and apply transform hook if present
 
         Parameters
         ----------
@@ -332,35 +330,19 @@ class PythonModelAdapter:
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
             try:
                 # noinspection PyCallingNonCallable
-                if self._target_type == TargetType.TRANSFORM:
-                    nrow_original = data.shape[0]
-                data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
+                output_data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
 
             except Exception as exc:
                 raise type(exc)(
                     "Model transform hook failed to transform dataset: {}".format(exc)
                 ).with_traceback(sys.exc_info()[2]) from None
-            self._validate_data(data, CustomHooks.TRANSFORM)
+            self._validate_data(output_data, CustomHooks.TRANSFORM)
             if self._target_type == TargetType.TRANSFORM:
-                self._validate_transform_rows(nrow_original, data)
+                self._validate_transform_rows(output_data, data)
+        else:
+            output_data = data
 
-        return data
-
-    def transform(self, input_filename, model=None):
-        """
-        Perform only the transform hook, and return transformed data. Only used by TRANSFORM target type.
-
-        Parameters
-        ----------
-        input_filename: str
-            Path to the feature csv
-        model: Any
-            The model
-        Returns
-        -------
-        pd.DataFrame
-        """
-        return self._load_and_transform_data(input_filename, model)
+        return output_data
 
     def predict(self, input_filename, model=None, **kwargs):
         """
@@ -381,7 +363,7 @@ class PythonModelAdapter:
         -------
         pd.DataFrame
         """
-        data = self._load_and_transform_data(input_filename, model)
+        data = self.transform(input_filename, model)
 
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)

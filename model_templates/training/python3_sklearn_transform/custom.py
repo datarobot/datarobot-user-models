@@ -13,7 +13,9 @@ def fit(
     """
     This hook must be implemented with your fitting code, for running drum in the fit mode.
 
-    This hook MUST ALWAYS be implemented for custom training models.
+    This hook MUST ALWAYS be implemented for custom training models. For custom transform models, the
+    transform hook below is also required.
+
     For inference models, this hook can stick around unimplemented, and won’t be triggered.
 
     Parameters
@@ -31,15 +33,25 @@ def fit(
     transformer = make_pipeline()
     transformer.fit(X, y)
 
-    # You must serialize out your model to the output_dir given, however if you wish to change this
+    # You must serialize out your transformer to the output_dir given, however if you wish to change this
     # code, you will probably have to add a load_model method to read the serialized model back in
     # When prediction is done.
     # Check out this doc for more information on serialization https://github.com/datarobot/custom-\
     # model-templates/tree/master/custom_model_runner#python
-    # NOTE: We currently set a 10GB limit to the size of the serialized model
+    # NOTE: We currently set a 10GB limit to the size of the serialized model or transformer
     with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
         pickle.dump(transformer, fp)
 
 
-def transform(data, model):
-    return pd.DataFrame(model.transform(data))
+def transform(data, transformer):
+    """
+    Parameters
+    ----------
+    data: pd.DataFrame - training data to perform transform on
+    transformer: object - trained transformer object
+
+    Returns
+    -------
+    transformed DataFrame resulting from applying transform to incoming data
+    """
+    return pd.DataFrame(transformer.transform(data))
