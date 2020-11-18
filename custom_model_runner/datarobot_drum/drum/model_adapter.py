@@ -294,7 +294,7 @@ class PythonModelAdapter:
             if filename.endswith(".arrow"):
                 with open(filename, "rb") as file:
                     return pyarrow.ipc.deserialize_pandas(file.read())
-            return pd.read_csv(filename, lineterminator="\n")
+            return pd.read_csv(filename)
         except pd.errors.ParserError as e:
             raise DrumCommonException("Pandas failed to read input csv file: {}".format(filename))
 

@@ -1,20 +1,20 @@
-import json
 import os
 
 import pytest
+import yaml
 
 from tests.drum.constants import (
     ANOMALY,
     BINARY,
-    BINARY_TEXT,
     BINARY_BOOL,
+    BINARY_TEXT,
     CODEGEN,
-    SKLEARN_SPARSE,
     CODEGEN_AND_SKLEARN,
     KERAS,
     MOJO,
     MULTI_ARTIFACT,
     MULTICLASS,
+    MULTICLASS_NUM_LABELS,
     NO_CUSTOM,
     POJO,
     PYPMML,
@@ -40,7 +40,10 @@ from tests.drum.constants import (
     SKLEARN,
     SKLEARN_ANOMALY,
     SKLEARN_BINARY,
+    SKLEARN_MULTICLASS,
     SKLEARN_REGRESSION,
+    SKLEARN_SPARSE,
+    SKLEARN_TRANSFORM,
     SPARSE,
     SPARSE_TARGET,
     TESTS_ARTIFACTS_PATH,
@@ -49,9 +52,6 @@ from tests.drum.constants import (
     TRAINING_TEMPLATES_PATH,
     UNSTRUCTURED,
     XGB,
-    SKLEARN_MULTICLASS,
-    MULTICLASS_NUM_LABELS,
-    SKLEARN_TRANSFORM,
 )
 
 _datasets = {
@@ -339,8 +339,8 @@ def resources(
 
 
 # fixtures for variety data tests
-with open(os.path.join(TESTS_DATA_PATH, "variety_samples/variety_data_key.json")) as jsonfile:
-    variety_data_dict = json.load(jsonfile)
+with open(os.path.join(TESTS_DATA_PATH, "variety_samples/variety_data_key.yaml")) as yamlfile:
+    variety_data_dict = yaml.load(yamlfile)
 
 variety_data_names = [*variety_data_dict]
 
