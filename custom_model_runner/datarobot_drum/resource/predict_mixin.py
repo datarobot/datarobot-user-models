@@ -1,4 +1,5 @@
 import os
+import pandas as pd
 import tempfile
 from flask import request, Response
 import werkzeug
@@ -113,5 +114,57 @@ class PredictMixin:
             if response_charset is not None:
                 content_type += "; charset={}".format(response_charset)
             response.headers["Content-Type"] = content_type
+
+        return response, response_status
+
+    def do_transform(self, logger=None):
+        response_status = HTTP_200_OK
+
+        if self._target_type != TargetType.TRANSFORM:
+            wrong_target_type_error_message = (
+                "transform only applicable to transform target type. This project has target type {}.".format(
+                    self._target_type
+                )
+            )
+            if logger is not None:
+                logger.error(wrong_target_type_error_message)
+            response_status = HTTP_422_UNPROCESSABLE_ENTITY
+            return {"message": "ERROR: " + wrong_target_type_error_message}, response_status
+
+        file_key = "X"
+        filestorage = request.files.get(file_key)
+
+        if not filestorage:
+            wrong_key_error_message = (
+                "Samples should be provided as a csv, mtx, or arrow file under `{}` key.".format(
+                    file_key
+                )
+            )
+            if logger is not None:
+                logger.error(wrong_key_error_message)
+            response_status = HTTP_422_UNPROCESSABLE_ENTITY
+            return {"message": "ERROR: " + wrong_key_error_message}, response_status
+        else:
+            if logger is not None:
+                logger.debug("Filename provided under X key: {}".format(filestorage.filename))
+
+        _, file_ext = os.path.splitext(filestorage.filename)
+        with tempfile.NamedTemporaryFile(suffix=file_ext) as f:
+            filestorage.save(f)
+            f.flush()
+            out_data = self._predictor.transform(f.name)
+
+        # float32 is not JSON serializable, so cast to float, which is float64
+        float_cols = out_data.select_dtypes("float32")
+        if float_cols.shape[1] > 0:
+            float_cols = float_cols.astype("float")
+            non_float_cols = out_data.select_dtypes(exclude="float32")
+            out_data = pd.concat([float_cols, non_float_cols], axis=1)
+        # df.to_json() is much faster.
+        # But as it returns string, we have to assemble final json using strings.
+        df_json_str = out_data.to_json(orient="records")
+        response = '{{"predictions":{df_json}}}'.format(df_json=df_json_str)
+
+        response = Response(response, mimetype=PredictionServerMimetypes.APPLICATION_JSON)
 
         return response, response_status
