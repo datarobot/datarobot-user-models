@@ -117,11 +117,17 @@ class PythonModelAdapter:
         if (
             self._target_type != TargetType.UNSTRUCTURED
             and not self._custom_hooks[CustomHooks.SCORE]
-        ) or (
+        ):
+            self._find_predictor_to_use()
+
+        # TODO: RAPTOR-4014 we eventually won't require this hook for some languages/frameworks
+        if (
             self._target_type == TargetType.TRANSFORM
             and not self._custom_hooks[CustomHooks.TRANSFORM]
         ):
-            self._find_predictor_to_use()
+            raise DrumCommonException(
+                "A transform task requires a user-defined transform hook"
+            )
 
         return self._model
 
@@ -300,21 +306,15 @@ class PythonModelAdapter:
         formats.add(PayloadFormat.ARROW)
         return formats
 
-    def predict(self, input_filename, model=None, **kwargs):
+    def _load_and_transform_data(self, input_filename, model):
         """
-        Makes predictions against the model using the custom predict
-        method and returns a pandas DataFrame
-        If the model is a regression model, the DataFrame will have a single column "Predictions"
-        If the model is a classification model, the DataFrame will have a column for each class label
-            with their respective probabilities. Positive/negative class labels will be passed in kwargs under
-            positive_class_label/negative_class_label keywords.
+
         Parameters
         ----------
-        data: pd.DataFrame
-            Data to make predictions against
+        input_filename: str
+            Path to the feature csv
         model: Any
             The model
-        kwargs
         Returns
         -------
         pd.DataFrame
@@ -345,7 +345,45 @@ class PythonModelAdapter:
             self._validate_data(data, CustomHooks.TRANSFORM)
             if self._target_type == TargetType.TRANSFORM:
                 self._validate_transform_rows(nrow_original, data)
-                return data
+
+        return data
+
+    def transform(self, input_filename, model=None):
+        """
+        Perform only the transform hook, and return transformed data. Only used by TRANSFORM target type.
+
+        Parameters
+        ----------
+        input_filename: str
+            Path to the feature csv
+        model: Any
+            The model
+        Returns
+        -------
+        pd.DataFrame
+        """
+        return self._load_and_transform_data(input_filename, model)
+
+    def predict(self, input_filename, model=None, **kwargs):
+        """
+        Makes predictions against the model using the custom predict
+        method and returns a pandas DataFrame
+        If the model is a regression model, the DataFrame will have a single column "Predictions"
+        If the model is a classification model, the DataFrame will have a column for each class label
+            with their respective probabilities. Positive/negative class labels will be passed in kwargs under
+            positive_class_label/negative_class_label keywords.
+        Parameters
+        ----------
+        data: pd.DataFrame
+            Data to make predictions against
+        model: Any
+            The model
+        kwargs
+        Returns
+        -------
+        pd.DataFrame
+        """
+        data = self._load_and_transform_data(input_filename, model)
 
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
