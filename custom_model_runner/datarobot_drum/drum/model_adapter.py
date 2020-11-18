@@ -282,8 +282,7 @@ class PythonModelAdapter:
     def supported_payload_formats(self):
         formats = SupportedPayloadFormats()
         formats.add(PayloadFormat.CSV)
-        # TODO: figure out why it fails with pyarrow.__version__ and a string "0.14.1"
-        formats.add(PayloadFormat.ARROW)
+        formats.add(PayloadFormat.ARROW, pyarrow.__version__)
         return formats
 
     def predict(self, input_filename, model=None, **kwargs):
