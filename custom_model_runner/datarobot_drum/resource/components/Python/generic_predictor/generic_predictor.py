@@ -95,7 +95,9 @@ class GenericPredictorComponent(ConnectableComponent):
                     ret_data = "Return value from prediction is: None (NULL in R)"
                 with open(output_filename, "w", encoding=response_charset) as f:
                     f.write(ret_data)
-
+        elif self._target_type == TargetType.TRANSFORM:
+            transformed_df = self._predictor.transform(input_filename)
+            transformed_df.to_csv(output_filename, index=False)
         else:
             predictions = self._predictor.predict(input_filename)
             predictions.to_csv(output_filename, index=False)
