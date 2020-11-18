@@ -53,21 +53,12 @@ class PythonPredictor(BaseLanguagePredictor):
         end_predict = time.time()
         execution_time_ms = (end_predict - start_predict) * 1000
 
-        # TODO: call monitor only if we are in structured mode
         self.monitor(input_filename, predictions, execution_time_ms)
 
         return predictions
 
     def transform(self, input_filename):
-        start_predict = time.time()
-        transformed_df = self._model_adapter.transform(input_filename, model=self._model)
-        end_predict = time.time()
-        execution_time_ms = (end_predict - start_predict) * 1000
-
-        # TODO: call monitor only if we are in structured mode
-        self.monitor(input_filename, transformed_df, execution_time_ms)
-
-        return transformed_df
+        return self._model_adapter.transform(input_filename, model=self._model)
 
     def predict_unstructured(self, data, **kwargs):
         str_or_tuple = self._model_adapter.predict_unstructured(
