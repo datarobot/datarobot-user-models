@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from distutils.dir_util import copy_tree
 from pathlib import Path
 from tempfile import mkdtemp, NamedTemporaryFile
@@ -34,6 +35,7 @@ from datarobot_drum.drum.common import (
     verbose_stdout,
     read_model_metadata_yaml,
 )
+from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.push import drum_push, setup_validation_options
@@ -590,7 +592,7 @@ class CMRunner:
         in_docker_fit_target_filename = "/opt/fit_target.csv"
         in_docker_fit_row_weights_filename = "/opt/fit_row_weights.csv"
 
-        docker_cmd = "docker run --rm --interactive  --user $(id -u):$(id -g) "
+        docker_cmd = "docker run --rm --interactive --user $(id -u):$(id -g) "
         docker_cmd_args = " -v {}:{}".format(options.code_dir, in_docker_model)
 
         in_docker_cmd_list = raw_arguments
@@ -689,6 +691,25 @@ class CMRunner:
 
     def _run_inside_docker(self, options, run_mode, raw_arguments):
         docker_cmd = self._prepare_docker_command(options, run_mode, raw_arguments)
+
+        self._print_verbose("Checking DRUM version in container...")
+        result = subprocess.run(
+            ["docker", "run", "-it", options.docker, "sh", "-c", "drum --version"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        container_drum_version = result.stdout.decode("utf8")
+
+        if container_drum_version != drum_version:
+            print(
+                "WARNING: looks like host DRUM version doesn't match container DRUM version. This can lead to unexpected behavior.\n"
+                "Host DRUM version: {}\n"
+                "Container DRUM version: {}".format(drum_version, result.stdout.decode("utf8"))
+            )
+            err = result.stderr.decode("utf8")
+            if len(err):
+                print(err)
+            time.sleep(0.5)
         self._print_verbose("-" * 20)
         p = subprocess.Popen(docker_cmd, shell=True)
         try:

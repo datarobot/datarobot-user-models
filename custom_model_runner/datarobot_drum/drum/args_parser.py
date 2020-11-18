@@ -1,5 +1,4 @@
 import argparse
-from argparse_formatter import FlexiFormatter
 
 import os
 from datarobot_drum.drum.push import PUSH_HELP_TEXT
@@ -550,7 +549,7 @@ class CMRunnerArgsRegistry(object):
             ArgumentsOptions.PERF_TEST,
             description=desc,
             help="Run performance tests",
-            formatter_class=FlexiFormatter,
+            formatter_class=argparse.RawDescriptionHelpFormatter,
         )
         CMRunnerArgsRegistry._parsers[ArgumentsOptions.PERF_TEST] = parser
         return parser
@@ -595,7 +594,7 @@ class CMRunnerArgsRegistry(object):
             ArgumentsOptions.VALIDATION,
             help="Run validation checks against the model",
             description=desc,
-            formatter_class=FlexiFormatter,
+            formatter_class=argparse.RawDescriptionHelpFormatter,
         )
         CMRunnerArgsRegistry._parsers[ArgumentsOptions.VALIDATION] = parser
         return parser
@@ -630,7 +629,7 @@ class CMRunnerArgsRegistry(object):
             ArgumentsOptions.SERVER,
             help="serve the model via REST APIs",
             description=desc,
-            formatter_class=FlexiFormatter,
+            formatter_class=argparse.RawDescriptionHelpFormatter,
         )
         CMRunnerArgsRegistry._parsers[ArgumentsOptions.SERVER] = parser
         return parser
@@ -659,7 +658,7 @@ class CMRunnerArgsRegistry(object):
             ArgumentsOptions.PUSH,
             help="Add your modeling code into DataRobot",
             description=PUSH_HELP_TEXT,
-            formatter_class=FlexiFormatter,
+            formatter_class=argparse.RawDescriptionHelpFormatter,
         )
         CMRunnerArgsRegistry._parsers[ArgumentsOptions.PUSH] = parser
         return parser
