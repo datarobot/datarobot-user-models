@@ -125,9 +125,7 @@ class PythonModelAdapter:
             self._target_type == TargetType.TRANSFORM
             and not self._custom_hooks[CustomHooks.TRANSFORM]
         ):
-            raise DrumCommonException(
-                "A transform task requires a user-defined transform hook"
-            )
+            raise DrumCommonException("A transform task requires a user-defined transform hook")
 
         return self._model
 
