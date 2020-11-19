@@ -4,10 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-#### [1.4.3rc2] - in progress
-
+#### [1.4.3] - 2020-11-17
 ##### Added
-- compare DRUM version on host and container when running in *--docker* mode
+- Compare DRUM version on host and container when running in *--docker* mode
+##### Fixed
+- Arrow format input data support
+
 
 #### [1.4.2] - 2020-11-14
 ##### Added
