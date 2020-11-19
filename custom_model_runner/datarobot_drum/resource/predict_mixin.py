@@ -120,11 +120,9 @@ class PredictMixin:
     def do_transform(self, logger=None):
         response_status = HTTP_200_OK
 
-        if self._target_type != TargetType.TRANSFORM:
-            wrong_target_type_error_message = (
-                "transform only applicable to transform target type. This project has target type {}.".format(
-                    self._target_type
-                )
+        if self._target_type != TargetType.TRANSFORM.value:
+            wrong_target_type_error_message = "transform only applicable to {} target type. This project has target type {}.".format(
+                TargetType.TRANSFORM.value, self._target_type
             )
             if logger is not None:
                 logger.error(wrong_target_type_error_message)
