@@ -48,6 +48,7 @@ def pytest_configure(config):
             unix_user="datarobot_imp",
         )
         os.environ["DATAROBOT_API_TOKEN"] = user_api_token
+        os.environ["DATAROBOT_ENDPOINT"] = ENDPOINT_URL
         config.user_username = user_username
 
 
