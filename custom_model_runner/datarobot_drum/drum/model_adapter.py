@@ -226,7 +226,7 @@ class PythonModelAdapter:
         return model
 
     def _find_predictor_to_use(self):
-        # TODO: RAPTOR-4014
+        # TODO: RAPTOR-4014 need to handle transformers when we don't require transform hook for sklearn pipelines
         self._predictor_to_use = None
         for pred in self._artifact_predictors:
             if pred.can_use_model(self._model):
