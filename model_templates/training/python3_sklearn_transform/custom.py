@@ -13,7 +13,7 @@ def fit(
     """
     This hook must be implemented with your fitting code, for running drum in the fit mode.
 
-    This hook MUST ALWAYS be implemented for custom training models. For custom transform models, the
+    This hook MUST ALWAYS be implemented for custom training models. For custom transformers, the
     transform hook below is also required.
 
     For inference models, this hook can stick around unimplemented, and won’t be triggered.
