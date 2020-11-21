@@ -20,7 +20,8 @@ BASE_MODEL_TEMPLATES_DIR = "model_templates"
 BASE_DATASET_DIR = "tests/testdata"
 
 
-def get_push_yaml(env_id, data_path, problem):
+def get_push_yaml(env_id, data_path, problem, target_name):
+    target_name = "targetName: {targetName}".format(targetName=target_name) if target_name else ""
     return """
             name: drumpush-{problemType}
             type: training
@@ -28,8 +29,9 @@ def get_push_yaml(env_id, data_path, problem):
             environmentID: {environmentID}
             validation:
                 input: {dataPath} 
+                {maybeTargetName}
         """.format(
-        environmentID=env_id, problemType=problem, dataPath=data_path
+        environmentID=env_id, problemType=problem, dataPath=data_path, maybeTargetName=target_name
     )
 
 
@@ -49,6 +51,7 @@ class TestDrumPush(object):
         problem,
         language,
         tmp_path,
+        get_target,
         sklearn_drop_in_env,
     ):
         custom_model_dir = _create_custom_model_dir(
@@ -56,9 +59,11 @@ class TestDrumPush(object):
         )
 
         env_id, _ = sklearn_drop_in_env
-        yaml_string = get_push_yaml(env_id, resources.datasets(framework, problem), problem)
+        yaml_string = get_push_yaml(
+            env_id, resources.datasets(framework, problem), problem, get_target(problem)
+        )
         with open(os.path.join(custom_model_dir, "model-metadata.yaml"), "w") as outfile:
-            yaml.dump(yaml_string, outfile, default_flow_style=False)
+            yaml.dump(yaml.load(yaml_string), outfile)
 
         cmd = "{} push --code-dir {} --verbose".format(
             ArgumentsOptions.MAIN_COMMAND,
