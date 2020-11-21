@@ -15,7 +15,7 @@ import java.util.ArrayList
 import java.net.URLClassLoader;
 import java.lang.Thread
 import java.io.File
-import java.io.{BufferedReader, FileReader, StringWriter}
+import java.io.{BufferedReader, FileReader, StringWriter, StringReader}
 import java.nio.file.Paths
 
 import org.apache.commons.csv.CSVFormat;
@@ -35,7 +35,7 @@ class H2OPredictor(
   var negativeClassLabel: String = null
   var positiveClassLabel: String = null
 
-  def predict(inputFilename: String): String = {
+  def predict(inputFilename: String, inputData: String): String = {
 
     val headers = this.model.getModelCategory match {
       case Regression  => Array("Predictions")
@@ -52,7 +52,7 @@ class H2OPredictor(
       CSVFormat.DEFAULT.withHeader(headers: _*)
     )
 
-    val predictions = Try(this.scoreFileCSV(inputFilename))
+    val predictions = if (inputFilename != null) Try(this.scoreFileCSV(inputFilename)) else Try(this.scoreStringCSV(inputData))
 
     predictions match {
       case Success(preds) =>
@@ -79,6 +79,33 @@ class H2OPredictor(
     val parser =
       csvFormat.parse(
         new BufferedReader(new FileReader(new File(inputFilename)))
+      )
+
+    val sParser = parser.iterator.asScala.map { _.toMap }.map { map2RowData }
+
+    val predictions = sParser.map { record =>
+      val prediction = this.model.getModelCategory match {
+        case Regression => Array(this.model.predictRegression(record).value)
+        case Binomial   => this.model.predictBinomial(record).classProbabilities
+        case Multinomial =>
+          this.model.predictMultinomial(record).classProbabilities
+        case _ =>
+          throw new Exception(
+            s"${this.model.getModelCategory} is currently not supported"
+          )
+      }
+      prediction
+    }.toArray
+    predictions
+  }
+
+  def scoreStringCSV(inputData: String) = {
+
+    val csvFormat = CSVFormat.DEFAULT.withHeader();
+
+    val parser =
+      csvFormat.parse(
+        new BufferedReader(new StringReader(inputData))
       )
 
     val sParser = parser.iterator.asScala.map { _.toMap }.map { map2RowData }

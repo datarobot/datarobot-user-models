@@ -77,6 +77,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         def health():
             return {"message": "OK"}, HTTP_200_OK
 
+        @model_api.route("/predictions/", methods=["POST"])
         @model_api.route("/predict/", methods=["POST"])
         def predict():
             logger.debug("Entering predict() endpoint")
@@ -106,6 +107,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
                 self._stats_collector.disable()
             return response, response_status
 
+        @model_api.route("/predictionsUnstructured/", methods=["POST"])
         @model_api.route("/predictUnstructured/", methods=["POST"])
         def predict_unstructured():
             logger.debug("Entering predict() endpoint")

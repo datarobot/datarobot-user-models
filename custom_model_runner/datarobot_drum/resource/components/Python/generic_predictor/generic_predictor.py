@@ -96,9 +96,9 @@ class GenericPredictorComponent(ConnectableComponent):
                 with open(output_filename, "w", encoding=response_charset) as f:
                     f.write(ret_data)
         elif self._target_type == TargetType.TRANSFORM:
-            transformed_df = self._predictor.transform(input_filename)
+            transformed_df = self._predictor.transform(filename=input_filename)
             transformed_df.to_csv(output_filename, index=False)
         else:
-            predictions = self._predictor.predict(input_filename)
+            predictions = self._predictor.predict(filename=input_filename)
             predictions.to_csv(output_filename, index=False)
         return []
