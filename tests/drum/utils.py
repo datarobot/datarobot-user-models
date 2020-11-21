@@ -64,11 +64,10 @@ def _exec_shell_cmd(cmd, err_msg, assert_if_fail=True, process_obj_holder=None, 
         process_obj_holder.out_stream = stdout
         process_obj_holder.err_stream = stderr
 
-    if p.returncode != 0:
-        print("stdout: {}".format(stdout))
-        print("stderr: {}".format(stderr))
-        if assert_if_fail:
-            assert p.returncode == 0, err_msg
+    print("stdout: {}".format(stdout))
+    print("stderr: {}".format(stderr))
+    if assert_if_fail:
+        assert p.returncode == 0, err_msg
 
     return p, stdout, stderr
 
