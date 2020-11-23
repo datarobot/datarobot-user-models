@@ -29,7 +29,7 @@ def _convert_target_type(unconverted_target_type):
     elif unconverted_target_type == TargetType.BINARY.value:
         return dr_client.TARGET_TYPE.BINARY
     elif unconverted_target_type == TargetType.ANOMALY.value:
-        return dr_client.CUSTOM_MODEL_TARGET_TYPE.ANOMALY
+        return dr_client.enums.CUSTOM_MODEL_TARGET_TYPE.ANOMALY
     raise DrumCommonException("Unsupported target type {}".format(unconverted_target_type))
 
 
@@ -149,7 +149,7 @@ def _setup_training_validation(config, options):
     options.negative_class_label = None
     options.positive_class_label = None
     options.target_csv = None
-    options.target = config["validation"]["targetName"]
+    options.target = config["validation"].get("targetName")
     options.unsupervised = None
     options.row_weights = None
     options.row_weights_csv = None

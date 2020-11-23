@@ -247,7 +247,7 @@ def read_model_metadata_yaml(code_dir):
                 model_config = load(f.read(), MODEL_CONFIG_SCHEMA).data
             except YAMLError as e:
                 print(e)
-                raise SystemExit()
+                raise SystemExit(1)
         return model_config
     return None
 

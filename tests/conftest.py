@@ -102,6 +102,7 @@ _targets = {
     MULTICLASS_NUM_LABELS: "class",
     SPARSE: "my_target",
     BINARY_BOOL: "readmitted",
+    ANOMALY: None,
 }
 
 _target_types = {
