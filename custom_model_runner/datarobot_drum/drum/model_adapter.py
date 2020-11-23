@@ -98,7 +98,7 @@ class PythonModelAdapter:
 
     def load_model_from_artifact(self):
         """
-        Load the serialized model from it's artifact.
+        Load the serialized model from its artifact.
         Returns
         -------
         Any
@@ -119,6 +119,13 @@ class PythonModelAdapter:
             and not self._custom_hooks[CustomHooks.SCORE]
         ):
             self._find_predictor_to_use()
+
+        # TODO: RAPTOR-4014 we eventually won't require this hook for some languages/frameworks
+        if (
+            self._target_type == TargetType.TRANSFORM
+            and not self._custom_hooks[CustomHooks.TRANSFORM]
+        ):
+            raise DrumCommonException("A transform task requires a user-defined transform hook")
 
         return self._model
 
@@ -219,6 +226,7 @@ class PythonModelAdapter:
         return model
 
     def _find_predictor_to_use(self):
+        # TODO: RAPTOR-4014 need to handle transformers when we don't require transform hook for sklearn pipelines
         self._predictor_to_use = None
         for pred in self._artifact_predictors:
             if pred.can_use_model(self._model):
@@ -239,6 +247,13 @@ class PythonModelAdapter:
         if not isinstance(to_validate, (pd.DataFrame, np.ndarray)):
             raise ValueError(
                 "{} must return a DataFrame; but received {}".format(hook, type(to_validate))
+            )
+
+    @staticmethod
+    def _validate_transform_rows(data, output_data):
+        if data.shape[0] != output_data.shape[0]:
+            raise ValueError(
+                "Transformation resulted in different number of rows than original data"
             )
 
     def _validate_predictions(self, to_validate, class_labels):
@@ -285,21 +300,16 @@ class PythonModelAdapter:
         formats.add(PayloadFormat.ARROW, pyarrow.__version__)
         return formats
 
-    def predict(self, input_filename, model=None, **kwargs):
+    def transform(self, input_filename, model):
         """
-        Makes predictions against the model using the custom predict
-        method and returns a pandas DataFrame
-        If the model is a regression model, the DataFrame will have a single column "Predictions"
-        If the model is a classification model, the DataFrame will have a column for each class label
-            with their respective probabilities. Positive/negative class labels will be passed in kwargs under
-            positive_class_label/negative_class_label keywords.
+        Load data, either with read hook or built-in method, and apply transform hook if present
+
         Parameters
         ----------
-        data: pd.DataFrame
-            Data to make predictions against
+        input_filename: str
+            Path to the feature csv
         model: Any
             The model
-        kwargs
         Returns
         -------
         pd.DataFrame
@@ -319,12 +329,40 @@ class PythonModelAdapter:
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
             try:
                 # noinspection PyCallingNonCallable
-                data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
+                output_data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
+
             except Exception as exc:
                 raise type(exc)(
                     "Model transform hook failed to transform dataset: {}".format(exc)
                 ).with_traceback(sys.exc_info()[2]) from None
-            self._validate_data(data, CustomHooks.TRANSFORM)
+            self._validate_data(output_data, CustomHooks.TRANSFORM)
+            if self._target_type == TargetType.TRANSFORM:
+                self._validate_transform_rows(output_data, data)
+        else:
+            output_data = data
+
+        return output_data
+
+    def predict(self, input_filename, model=None, **kwargs):
+        """
+        Makes predictions against the model using the custom predict
+        method and returns a pandas DataFrame
+        If the model is a regression model, the DataFrame will have a single column "Predictions"
+        If the model is a classification model, the DataFrame will have a column for each class label
+            with their respective probabilities. Positive/negative class labels will be passed in kwargs under
+            positive_class_label/negative_class_label keywords.
+        Parameters
+        ----------
+        data: pd.DataFrame
+            Data to make predictions against
+        model: Any
+            The model
+        kwargs
+        Returns
+        -------
+        pd.DataFrame
+        """
+        data = self.transform(input_filename, model)
 
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
