@@ -281,10 +281,10 @@ The [model_templates](model_templates) folder contains sample models that work w
 * [Scikit-Learn sample binary model](model_templates/training/python3_sklearn_binary)
 * [Scikit-Learn sample unsupervised anomaly detection model](model_templates/training/python3_anomaly_detection)
 > Note: Unsupervised support is limited to anomaly detection models as of release 1.1.5
+* [Scikit-Learn sample transformer](model_templates/training/python3_sklearn_transform)
 * [XGBoost sample model](model_templates/training/python3_xgboost)
 * [Keras sample model + Joblib artifact](model_templates/training/python3_keras_joblib)
 * [R sample model](model_templates/training/r_lang)
-
 
 ## Custom Environment Templates <a name="custom_environment_templates"></a>
 The [environment templates folder](#custom_environment_template) contains templates for the base environments used in DataRobot. Dependency requirements can be applied to the base environment to create a runtime environment for custom models.
