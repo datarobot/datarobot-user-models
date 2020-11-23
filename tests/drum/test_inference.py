@@ -20,6 +20,7 @@ from .constants import (
     PYPMML,
     PYTHON,
     PYTHON_LOAD_MODEL,
+    PYTHON_TRANSFORM,
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
     PYTORCH,
     R,
@@ -28,6 +29,7 @@ from .constants import (
     REGRESSION_INFERENCE,
     RESPONSE_PREDICTIONS_KEY,
     SKLEARN,
+    TRANSFORM,
     XGB,
 )
 from .drum_server_utils import DrumServerRun
@@ -128,6 +130,7 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
+            (SKLEARN, TRANSFORM, PYTHON_TRANSFORM, None),
             (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
             (SKLEARN, BINARY, PYTHON, None),
             (SKLEARN, MULTICLASS, PYTHON, None),
@@ -182,10 +185,10 @@ class TestInference:
             docker,
         ) as run:
             input_dataset = resources.datasets(framework, problem)
-
+            endpoint = "/transform/" if problem == TRANSFORM else "/predict/"
             # do predictions
             response = requests.post(
-                run.url_server_address + "/predict/", files={"X": open(input_dataset)}
+                run.url_server_address + endpoint, files={"X": open(input_dataset)}
             )
 
             print(response.text)
@@ -293,7 +296,7 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, supported_payload_formats",
         [
-            (SKLEARN, REGRESSION, PYTHON, {"csv": None, "arrow": "0.14.1"}),
+            (SKLEARN, REGRESSION, PYTHON, {"csv": None, "arrow": None}),
             (RDS, REGRESSION, R, {"csv": None}),
             (CODEGEN, REGRESSION, NO_CUSTOM, {"csv": None}),
         ],

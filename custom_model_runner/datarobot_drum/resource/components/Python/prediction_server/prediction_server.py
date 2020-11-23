@@ -91,6 +91,20 @@ class PredictionServer(ConnectableComponent, PredictMixin):
                 self._stats_collector.disable()
             return response, response_status
 
+        @model_api.route("/transform/", methods=["POST"])
+        def transform():
+            logger.debug("Entering transform() endpoint")
+
+            self._stats_collector.enable()
+            self._stats_collector.mark("start")
+
+            try:
+                response, response_status = self.do_transform(logger=logger)
+            finally:
+                self._stats_collector.mark("finish")
+                self._stats_collector.disable()
+            return response, response_status
+
         @model_api.route("/predictUnstructured/", methods=["POST"])
         def predict_unstructured():
             logger.debug("Entering predict() endpoint")
