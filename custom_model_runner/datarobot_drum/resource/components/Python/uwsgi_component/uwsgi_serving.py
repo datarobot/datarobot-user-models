@@ -179,7 +179,9 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
             self._stats_collector.disable()
         return response_status, response
 
-    @FlaskRoute("{}/transform/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["POST"])
+    @FlaskRoute(
+        "{}/transform/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["POST"]
+    )
     def transform(self, url_params, form_params):
         if self._error_response:
             return HTTP_513_DRUM_PIPELINE_ERROR, self._error_response
