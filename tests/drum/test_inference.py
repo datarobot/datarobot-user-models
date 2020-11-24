@@ -205,6 +205,7 @@ class TestInference:
         "framework, problem, language, docker",
         [
             (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
+            (SKLEARN, TRANSFORM, PYTHON_TRANSFORM, SKLEARN),
         ],
     )
     def test_custom_models_with_drum_nginx_prediction_server(
@@ -232,14 +233,18 @@ class TestInference:
             nginx=True,
         ) as run:
             input_dataset = resources.datasets(framework, problem)
+            endpoint = "/transform/" if problem == TRANSFORM else "/predict/"
 
             # do predictions
             response = requests.post(
-                run.url_server_address + "/predict/", files={"X": open(input_dataset)}
+                run.url_server_address + endpoint, files={"X": open(input_dataset)}
             )
 
             assert response.ok
-            actual_num_predictions = len(json.loads(response.text)[RESPONSE_PREDICTIONS_KEY])
+            response_key = (
+                RESPONSE_TRANSFORM_KEY if problem == TRANSFORM else RESPONSE_PREDICTIONS_KEY
+            )
+            actual_num_predictions = len(json.loads(response.text)[response_key])
             in_data = pd.read_csv(input_dataset)
             assert in_data.shape[0] == actual_num_predictions
 
