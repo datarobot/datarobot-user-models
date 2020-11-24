@@ -30,19 +30,8 @@ class PredictMixin:
 
     """
 
-    def _predict_or_transform(self, logger=None, predict=True):
+    def _predict_or_transform(self, logger=None):
         response_status = HTTP_200_OK
-        if predict is False and self._target_type != TargetType.TRANSFORM.value:
-            wrong_target_type_error_message = (
-                "transform only applicable to {} target type."
-                " This project has target type {}.".format(
-                    TargetType.TRANSFORM.value, self._target_type
-                )
-            )
-            if logger is not None:
-                logger.error(wrong_target_type_error_message)
-            response_status = HTTP_422_UNPROCESSABLE_ENTITY
-            return {"message": "ERROR: " + wrong_target_type_error_message}, response_status
 
         file_key = "X"
         filestorage = request.files.get(file_key)
@@ -65,14 +54,22 @@ class PredictMixin:
         with tempfile.NamedTemporaryFile(suffix=file_ext) as f:
             filestorage.save(f)
             f.flush()
-            if predict is True:
-                out_data = self._predictor.predict(f.name)
-            else:
+            if self._target_type == TargetType.TRANSFORM:
                 out_data = self._predictor.transform(f.name)
+            else:
+                out_data = self._predictor.predict(f.name)
 
         if self._target_type == TargetType.UNSTRUCTURED:
             response = out_data
-        elif predict is True:
+        elif self._target_type == TargetType.TRANSFORM:
+            float_cols = out_data.select_dtypes("float32")
+            if float_cols.shape[1] > 0:
+                float_cols = float_cols.astype("float")
+                non_float_cols = out_data.select_dtypes(exclude="float32")
+                out_data = pd.concat([float_cols, non_float_cols], axis=1)
+            df_json_str = out_data.to_json(orient="records")
+            response = '{{"transformed":{df_json}}}'.format(df_json=df_json_str)
+        else:
             num_columns = len(out_data.columns)
             # float32 is not JSON serializable, so cast to float, which is float64
             out_data = out_data.astype("float")
@@ -86,21 +83,23 @@ class PredictMixin:
                 # But as it returns string, we have to assemble final json using strings.
                 df_json_str = out_data.to_json(orient="records")
                 response = '{{"predictions":{df_json}}}'.format(df_json=df_json_str)
-        else:
-            float_cols = out_data.select_dtypes("float32")
-            if float_cols.shape[1] > 0:
-                float_cols = float_cols.astype("float")
-                non_float_cols = out_data.select_dtypes(exclude="float32")
-                out_data = pd.concat([float_cols, non_float_cols], axis=1)
-            df_json_str = out_data.to_json(orient="records")
-            response = '{{"transformed":{df_json}}}'.format(df_json=df_json_str)
 
         response = Response(response, mimetype=PredictionServerMimetypes.APPLICATION_JSON)
 
         return response, response_status
 
     def do_predict(self, logger=None):
-        return self._predict_or_transform(logger=logger, predict=True)
+        if self._target_type == TargetType.TRANSFORM.value:
+            wrong_target_type_error_message = (
+                "This project has target type {}, "
+                "use the /transform/ endpoint.".format(self._target_type)
+            )
+            if logger is not None:
+                logger.error(wrong_target_type_error_message)
+            response_status = HTTP_422_UNPROCESSABLE_ENTITY
+            return {"message": "ERROR: " + wrong_target_type_error_message}, response_status
+
+        return self._predict_or_transform(logger=logger)
 
     def do_predict_unstructured(self, logger=None):
         def _validate_content_type_header(header):
@@ -143,4 +142,17 @@ class PredictMixin:
         return response, response_status
 
     def do_transform(self, logger=None):
-        return self._predict_or_transform(logger=logger, predict=False)
+        if self._target_type != TargetType.TRANSFORM.value:
+            endpoint = (
+                "predictUnstructured" if self._target_type == TargetType.UNSTRUCTURED else "predict"
+            )
+            wrong_target_type_error_message = (
+                "This project has target type {}, "
+                "use the /{}}/ endpoint.".format(self._target_type, endpoint)
+            )
+            if logger is not None:
+                logger.error(wrong_target_type_error_message)
+            response_status = HTTP_422_UNPROCESSABLE_ENTITY
+            return {"message": "ERROR: " + wrong_target_type_error_message}, response_status
+
+        return self._predict_or_transform(logger=logger)
