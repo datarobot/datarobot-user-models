@@ -28,6 +28,7 @@ from .constants import (
     REGRESSION,
     REGRESSION_INFERENCE,
     RESPONSE_PREDICTIONS_KEY,
+    RESPONSE_TRANSFORM_KEY,
     SKLEARN,
     TRANSFORM,
     XGB,
@@ -193,7 +194,10 @@ class TestInference:
 
             print(response.text)
             assert response.ok
-            actual_num_predictions = len(json.loads(response.text)[RESPONSE_PREDICTIONS_KEY])
+            response_key = (
+                RESPONSE_TRANSFORM_KEY if problem == TRANSFORM else RESPONSE_PREDICTIONS_KEY
+            )
+            actual_num_predictions = len(json.loads(response.text)[response_key])
             in_data = pd.read_csv(input_dataset)
             assert in_data.shape[0] == actual_num_predictions
 
