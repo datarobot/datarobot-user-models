@@ -176,11 +176,11 @@ class TestTrainingModelTemplates(object):
 
         # TODO: Update this once the datarobot client is updated
         payload = dict(custom_mode_version_id=model_version.id)
-        response = dr.client.get_client().post('customTrainingBlueprints/', data=payload)
-        user_blueprint_id = response.json()['userBlueprintId']
+        response = dr.client.get_client().post("customTrainingBlueprints/", data=payload)
+        user_blueprint_id = response.json()["userBlueprintId"]
 
         payload = dict(project_id=proj_id, user_blueprint_ids=[user_blueprint_id])
-        response = dr.client.get_client().post('userBlueprints/addToMenu/', data=payload)
+        response = dr.client.get_client().post("userBlueprints/addToMenu/", data=payload)
         blueprint_id = response.json()[user_blueprint_id]
 
         job_id = proj.train(blueprint_id)
