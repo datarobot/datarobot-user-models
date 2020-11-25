@@ -54,21 +54,21 @@ class PredictMixin:
         with tempfile.NamedTemporaryFile(suffix=file_ext) as f:
             filestorage.save(f)
             f.flush()
-            if self._target_type == TargetType.TRANSFORM:
+            if self._target_type == TargetType.TRANSFORM.value:
                 out_data = self._predictor.transform(f.name)
             else:
                 out_data = self._predictor.predict(f.name)
 
-        if self._target_type == TargetType.UNSTRUCTURED:
+        if self._target_type == TargetType.UNSTRUCTURED.value:
             response = out_data
-        elif self._target_type == TargetType.TRANSFORM:
+        elif self._target_type == TargetType.TRANSFORM.value:
             float_cols = out_data.select_dtypes("float32")
             if float_cols.shape[1] > 0:
                 float_cols = float_cols.astype("float")
                 non_float_cols = out_data.select_dtypes(exclude="float32")
                 out_data = pd.concat([float_cols, non_float_cols], axis=1)
             df_json_str = out_data.to_json(orient="records")
-            response = '{{"transformed":{df_json}}}'.format(df_json=df_json_str)
+            response = '{{"transformations":{df_json}}}'.format(df_json=df_json_str)
         else:
             num_columns = len(out_data.columns)
             # float32 is not JSON serializable, so cast to float, which is float64

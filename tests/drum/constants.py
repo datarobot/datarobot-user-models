@@ -69,7 +69,7 @@ PYTHON_XGBOOST_CLASS_LABELS_VALIDATION = "predictions_and_class_labels_validatio
 DOCKER_PYTHON_SKLEARN = "cmrunner_test_env_python_sklearn"
 
 RESPONSE_PREDICTIONS_KEY = "predictions"
-RESPONSE_TRANSFORM_KEY = "transformed"
+RESPONSE_TRANSFORM_KEY = "transformations"
 
 WEIGHTS_ARGS = "weights-args"
 WEIGHTS_CSV = "weights-csv"
