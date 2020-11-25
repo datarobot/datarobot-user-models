@@ -54,14 +54,14 @@ class PredictMixin:
         with tempfile.NamedTemporaryFile(suffix=file_ext) as f:
             filestorage.save(f)
             f.flush()
-            if self._target_type == TargetType.TRANSFORM.value:
+            if self._target_type == TargetType.TRANSFORM:
                 out_data = self._predictor.transform(f.name)
             else:
                 out_data = self._predictor.predict(f.name)
 
-        if self._target_type == TargetType.UNSTRUCTURED.value:
+        if self._target_type == TargetType.UNSTRUCTURED:
             response = out_data
-        elif self._target_type == TargetType.TRANSFORM.value:
+        elif self._target_type == TargetType.TRANSFORM:
             float_cols = out_data.select_dtypes("float32")
             if float_cols.shape[1] > 0:
                 float_cols = float_cols.astype("float")
@@ -89,7 +89,7 @@ class PredictMixin:
         return response, response_status
 
     def do_predict(self, logger=None):
-        if self._target_type == TargetType.TRANSFORM.value:
+        if self._target_type == TargetType.TRANSFORM:
             wrong_target_type_error_message = (
                 "This project has target type {}, "
                 "use the /transform/ endpoint.".format(self._target_type)
@@ -142,13 +142,13 @@ class PredictMixin:
         return response, response_status
 
     def do_transform(self, logger=None):
-        if self._target_type != TargetType.TRANSFORM.value:
+        if self._target_type != TargetType.TRANSFORM:
             endpoint = (
                 "predictUnstructured" if self._target_type == TargetType.UNSTRUCTURED else "predict"
             )
             wrong_target_type_error_message = (
                 "This project has target type {}, "
-                "use the /{}}/ endpoint.".format(self._target_type, endpoint)
+                "use the /{}/ endpoint.".format(self._target_type, endpoint)
             )
             if logger is not None:
                 logger.error(wrong_target_type_error_message)
