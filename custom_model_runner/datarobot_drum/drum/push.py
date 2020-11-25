@@ -69,18 +69,23 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
         print("Error adding model with ID {} and dir {}: {}".format(model_id, code_dir, str(e)))
         raise SystemExit(1)
 
-    user_blueprint = CustomTrainingBlueprint.create(
-        custom_model_version_id=model_version,
-    )
+    # TODO: Update this once the datarobot client is updated
+    payload = dict(custom_mode_version_id=model_version.id)
+    response = dr_client.client.get_client().post('customTrainingBlueprints/', data=payload)
+    user_blueprint_id = response.json()['userBlueprintId']
 
-    print("A user blueprint was created with the ID {}".format(user_blueprint.id))
+    print("A user blueprint was created with the ID {}".format(user_blueprint_id))
 
     _print_model_started_dialogue(model_id)
 
     if "trainOnProject" in model_config.get("trainingModel", ""):
         try:
             project = dr_client.Project(model_config["trainingModel"]["trainOnProject"])
-            blueprint_id = UserBlueprint.add_to_repository(project_id=project.id, user_blueprint_id=user_blueprint.id)
+
+            # TODO: Update this once the datarobot client is updated
+            payload = dict(project_id=project.id, user_blueprint_ids=[user_blueprint_id])
+            response = dr_client.client.get_client().post('userBlueprints/addToMenu/', data=payload)
+            blueprint_id = response.json()[user_blueprint_id]
 
             model_job_id = project.train(blueprint_id)
             lid = dr_client.ModelJob.get(project_id=project.id, model_job_id=model_job_id).model_id
