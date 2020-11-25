@@ -59,7 +59,7 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
         )
 
     try:
-        dr_client.CustomModelVersion.create_clean(
+        model_version = dr_client.CustomModelVersion.create_clean(
             model_id,
             base_environment_id=model_config["environmentID"],
             folder_path=code_dir,
@@ -69,19 +69,20 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
         print("Error adding model with ID {} and dir {}: {}".format(model_id, code_dir, str(e)))
         raise SystemExit(1)
 
-    blueprint = CustomTrainingBlueprint.create(
-        environment_id=model_config["environmentID"],
-        custom_model_id=model_id,
+    user_blueprint = CustomTrainingBlueprint.create(
+        custom_model_version_id=model_version,
     )
 
-    print("A blueprint was created with the ID {}".format(blueprint.id))
+    print("A user blueprint was created with the ID {}".format(user_blueprint.id))
 
     _print_model_started_dialogue(model_id)
 
     if "trainOnProject" in model_config.get("trainingModel", ""):
         try:
             project = dr_client.Project(model_config["trainingModel"]["trainOnProject"])
-            model_job_id = project.train(blueprint)
+            blueprint_id = UserBlueprint.add_to_repository(project_id=project.id, user_blueprint_id=user_blueprint.id)
+
+            model_job_id = project.train(blueprint_id)
             lid = dr_client.ModelJob.get(project_id=project.id, model_job_id=model_job_id).model_id
         except dr_client.errors.ClientError as e:
             print("There was an error training your model: {}".format(e))
