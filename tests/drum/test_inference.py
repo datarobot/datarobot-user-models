@@ -205,7 +205,7 @@ class TestInference:
         "framework, problem, language, docker",
         [
             (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
-            (SKLEARN, TRANSFORM, PYTHON_TRANSFORM, SKLEARN),
+            (SKLEARN, TRANSFORM, PYTHON_TRANSFORM, DOCKER_PYTHON_SKLEARN),
         ],
     )
     def test_custom_models_with_drum_nginx_prediction_server(
