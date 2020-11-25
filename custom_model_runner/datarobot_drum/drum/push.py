@@ -72,7 +72,7 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
     # TODO: Update this once the datarobot client is updated
     payload = dict(custom_mode_version_id=model_version.id)
     response = dr_client.client.get_client().post("customTrainingBlueprints/", data=payload)
-    user_blueprint_id = response.json()["userBlueprintId"]
+    user_blueprint_id = response.json()["user_blueprint_id"]
 
     print("A user blueprint was created with the ID {}".format(user_blueprint_id))
 
