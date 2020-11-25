@@ -21,6 +21,7 @@ from .constants import (
     PYTHON,
     PYTHON_LOAD_MODEL,
     PYTHON_TRANSFORM,
+    PYTHON_TRANSFORM_DENSE,
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
     PYTORCH,
     R,
@@ -30,6 +31,8 @@ from .constants import (
     RESPONSE_PREDICTIONS_KEY,
     RESPONSE_TRANSFORM_KEY,
     SKLEARN,
+    SKLEARN_TRANSFORM,
+    SKLEARN_TRANSFORM_DENSE,
     TRANSFORM,
     XGB,
 )
@@ -131,7 +134,9 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
-            (SKLEARN, TRANSFORM, PYTHON_TRANSFORM, None),
+            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None),
+            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM, None),
+            (SKLEARN, TRANSFORM, PYTHON_TRANSFORM_DENSE, None),
             (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
             (SKLEARN, BINARY, PYTHON, None),
             (SKLEARN, MULTICLASS, PYTHON, None),

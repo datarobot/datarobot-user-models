@@ -54,4 +54,4 @@ def transform(data, transformer):
     -------
     transformed DataFrame resulting from applying transform to incoming data
     """
-    return pd.DataFrame(transformer.transform(data))
+    return pd.DataFrame.sparse.from_spmatrix(transformer.transform(data))

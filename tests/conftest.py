@@ -23,6 +23,7 @@ from tests.drum.constants import (
     PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS,
     PYTHON_LOAD_MODEL,
     PYTHON_TRANSFORM,
+    PYTHON_TRANSFORM_DENSE,
     PYTHON_UNSTRUCTURED,
     PYTHON_UNSTRUCTURED_PARAMS,
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
@@ -45,6 +46,7 @@ from tests.drum.constants import (
     SKLEARN_REGRESSION,
     SKLEARN_SPARSE,
     SKLEARN_TRANSFORM,
+    SKLEARN_TRANSFORM_DENSE,
     SPARSE,
     SPARSE_TARGET,
     TESTS_ARTIFACTS_PATH,
@@ -74,6 +76,8 @@ _datasets = {
     (None, SPARSE_TARGET): os.path.join(TESTS_DATA_PATH, "sparse_target.csv"),
     (None, BINARY_BOOL): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
     (SKLEARN, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
+    (SKLEARN_TRANSFORM, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
+    (SKLEARN_TRANSFORM_DENSE, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
 }
 
 _training_models_paths = {
@@ -207,7 +211,8 @@ _artifacts = {
         os.path.join(TESTS_ARTIFACTS_PATH, "PyTorch.py"),
     ],
     (CODEGEN, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "java_multi.jar"),
-    (SKLEARN, TRANSFORM): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_transform.pkl"),
+    (SKLEARN_TRANSFORM, TRANSFORM): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_transform.pkl"),
+    (SKLEARN_TRANSFORM_DENSE, TRANSFORM): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_transform_dense.pkl"),
 }
 
 _custom_filepaths = {
@@ -250,6 +255,7 @@ _custom_filepaths = {
         "custom.R",
     ),
     PYTHON_TRANSFORM: (os.path.join(TESTS_FIXTURES_PATH, "transform_custom.py"), "custom.py"),
+    PYTHON_TRANSFORM_DENSE: (os.path.join(TESTS_FIXTURES_PATH, "transform_custom_dense.py"), "custom.py"),
 }
 
 

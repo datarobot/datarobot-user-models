@@ -1,6 +1,8 @@
 import os
+import pyarrow as pa
 import pandas as pd
 import tempfile
+from pyarrow.feather import write_feather
 from flask import request, Response
 import werkzeug
 
@@ -62,13 +64,13 @@ class PredictMixin:
         if self._target_type == TargetType.UNSTRUCTURED:
             response = out_data
         elif self._target_type == TargetType.TRANSFORM:
-            float_cols = out_data.select_dtypes("float32")
-            if float_cols.shape[1] > 0:
-                float_cols = float_cols.astype("float")
-                non_float_cols = out_data.select_dtypes(exclude="float32")
-                out_data = pd.concat([float_cols, non_float_cols], axis=1)
-            df_json_str = out_data.to_json(orient="records")
-            response = '{{"transformations":{df_json}}}'.format(df_json=df_json_str)
+            try:
+                output_stream = pa.BufferOutputStream()
+                write_feather(out_data, output_stream)
+                response = output_stream
+            except TypeError:
+                df_json_str = out_data.to_json(orient="records")
+                response = '{{"transformations":{df_json}}}'.format(df_json=df_json_str)
         else:
             num_columns = len(out_data.columns)
             # float32 is not JSON serializable, so cast to float, which is float64
