@@ -175,7 +175,7 @@ class TestTrainingModelTemplates(object):
         proj = dr.Project.get(proj_id)
 
         # TODO: Update this once the datarobot client is updated
-        payload = dict(custom_mode_version_id=model_version.id)
+        payload = dict(custom_model_version_id=model_version.id)
         response = dr.client.get_client().post("customTrainingBlueprints/", data=payload)
         user_blueprint_id = response.json()["user_blueprint_id"]
 
