@@ -59,7 +59,7 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
         )
 
     try:
-        dr_client.CustomModelVersion.create_clean(
+        model_version = dr_client.CustomModelVersion.create_clean(
             model_id,
             base_environment_id=model_config["environmentID"],
             folder_path=code_dir,
@@ -69,19 +69,25 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
         print("Error adding model with ID {} and dir {}: {}".format(model_id, code_dir, str(e)))
         raise SystemExit(1)
 
-    blueprint = CustomTrainingBlueprint.create(
-        environment_id=model_config["environmentID"],
-        custom_model_id=model_id,
-    )
+    # TODO: Update this once the datarobot client is updated
+    payload = dict(custom_model_version_id=model_version.id)
+    response = dr_client.client.get_client().post("customTrainingBlueprints/", data=payload)
+    user_blueprint_id = response.json()["userBlueprintId"]
 
-    print("A blueprint was created with the ID {}".format(blueprint.id))
+    print("A user blueprint was created with the ID {}".format(user_blueprint_id))
 
     _print_model_started_dialogue(model_id)
 
     if "trainOnProject" in model_config.get("trainingModel", ""):
         try:
             project = dr_client.Project(model_config["trainingModel"]["trainOnProject"])
-            model_job_id = project.train(blueprint)
+
+            # TODO: Update this once the datarobot client is updated
+            payload = dict(project_id=project.id, user_blueprint_ids=[user_blueprint_id])
+            response = dr_client.client.get_client().post("userBlueprints/addToMenu/", data=payload)
+            blueprint_id = response.json()[user_blueprint_id]
+
+            model_job_id = project.train(blueprint_id)
             lid = dr_client.ModelJob.get(project_id=project.id, model_job_id=model_job_id).model_id
         except dr_client.errors.ClientError as e:
             print("There was an error training your model: {}".format(e))

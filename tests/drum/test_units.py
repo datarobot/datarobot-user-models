@@ -168,7 +168,7 @@ def mock_post_blueprint():
         responses.POST,
         "http://yess/customTrainingBlueprints/",
         json={
-            "blueprint_id": "1",
+            "userBlueprintId": "2",
             "custom_model": {"id": "1", "name": "1"},
             "custom_model_version": {"id": "1", "label": "1"},
             "execution_environment": {"id": "1", "name": "1"},
@@ -176,6 +176,10 @@ def mock_post_blueprint():
             "training_history": [],
         },
     )
+
+
+def mock_post_add_to_repository():
+    responses.add(responses.POST, "http://yess/userBlueprints/addToMenu/", json={"2": "1"})
 
 
 def mock_get_env():
@@ -225,6 +229,7 @@ def test_push(config_yaml):
 
     version_mocks()
     mock_post_blueprint()
+    mock_post_add_to_repository()
     mock_get_model(model_type=config["type"])
     mock_get_env()
     mock_train_model()
@@ -238,21 +243,21 @@ def test_push(config_yaml):
     )
     if push_fn == _push_training:
         assert (
-            calls[2].request.path_url == "/customModels/{}/".format(modelID)
-            and calls[2].request.method == "GET"
-        )
-        assert (
-            calls[3].request.path_url == "/customTrainingBlueprints/"
-            and calls[3].request.method == "POST"
+            calls[2].request.path_url == "/customTrainingBlueprints/"
+            and calls[2].request.method == "POST"
         )
         if "trainingModel" in config:
+            assert (
+                calls[3].request.path_url == "/userBlueprints/addToMenu/"
+                and calls[3].request.method == "POST"
+            )
             assert (
                 calls[4].request.path_url == "/projects/abc123/models/"
                 and calls[4].request.method == "POST"
             )
             assert len(calls) == 6
         else:
-            assert len(calls) == 4
+            assert len(calls) == 3
     else:
         assert len(calls) == 2
 

@@ -172,13 +172,18 @@ class TestTrainingModelTemplates(object):
             base_environment_id=env_id,
             folder_path=os.path.join(BASE_MODEL_TEMPLATES_DIR, model_template),
         )
-        blueprint = CustomTrainingBlueprint.create(
-            custom_model_id=model.id,
-            custom_model_version_id=model_version.id,
-        )
         proj = dr.Project.get(proj_id)
 
-        job_id = proj.train(blueprint)
+        # TODO: Update this once the datarobot client is updated
+        payload = dict(custom_model_version_id=model_version.id)
+        response = dr.client.get_client().post("customTrainingBlueprints/", data=payload)
+        user_blueprint_id = response.json()["userBlueprintId"]
+
+        payload = dict(project_id=proj_id, user_blueprint_ids=[user_blueprint_id])
+        response = dr.client.get_client().post("userBlueprints/addToMenu/", data=payload)
+        blueprint_id = response.json()[user_blueprint_id]
+
+        job_id = proj.train(blueprint_id)
 
         job = dr.ModelJob.get(proj_id, job_id)
         test_passed = False
