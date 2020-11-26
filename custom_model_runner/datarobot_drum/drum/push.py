@@ -70,7 +70,7 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
         raise SystemExit(1)
 
     # TODO: Update this once the datarobot client is updated
-    payload = dict(custom_mode_version_id=model_version.id)
+    payload = dict(custom_model_version_id=model_version.id)
     response = dr_client.client.get_client().post("customTrainingBlueprints/", data=payload)
     user_blueprint_id = response.json()["userBlueprintId"]
 
