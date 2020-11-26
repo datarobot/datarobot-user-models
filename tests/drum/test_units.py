@@ -168,7 +168,7 @@ def mock_post_blueprint():
         responses.POST,
         "http://yess/customTrainingBlueprints/",
         json={
-            "user_blueprint_id": "2",
+            "userBlueprintId": "2",
             "custom_model": {"id": "1", "name": "1"},
             "custom_model_version": {"id": "1", "label": "1"},
             "execution_environment": {"id": "1", "name": "1"},
