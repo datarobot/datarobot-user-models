@@ -7,6 +7,7 @@ import pytest
 import requests
 
 from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.resource.transform_helpers import read_arrow_payload
 from .constants import (
     BINARY,
     CODEGEN,
@@ -134,8 +135,8 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
+            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None),
             (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None),
-            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM, None),
             (SKLEARN, TRANSFORM, PYTHON_TRANSFORM_DENSE, None),
             (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
             (SKLEARN, BINARY, PYTHON, None),
@@ -196,7 +197,7 @@ class TestInference:
             response = requests.post(
                 run.url_server_address + endpoint, files={"X": open(input_dataset)}
             )
-
+            # TODO: transform will need different handling
             print(response.text)
             assert response.ok
             response_key = (

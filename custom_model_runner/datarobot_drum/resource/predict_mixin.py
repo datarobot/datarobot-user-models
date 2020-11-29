@@ -1,8 +1,5 @@
 import os
-import pyarrow as pa
-import pandas as pd
 import tempfile
-from pyarrow.feather import write_feather
 from flask import request, Response
 import werkzeug
 
@@ -12,6 +9,11 @@ from datarobot_drum.drum.common import (
     TargetType,
     UnstructuredDtoKeys,
     PredictionServerMimetypes,
+)
+from datarobot_drum.resource.transform_helpers import (
+    make_arrow_payload,
+    is_sparse
+
 )
 from datarobot_drum.resource.unstructured_helpers import (
     _resolve_incoming_unstructured_data,
@@ -64,13 +66,11 @@ class PredictMixin:
         if self._target_type == TargetType.UNSTRUCTURED:
             response = out_data
         elif self._target_type == TargetType.TRANSFORM:
-            try:
-                output_stream = pa.BufferOutputStream()
-                write_feather(out_data, output_stream)
-                response = output_stream
-            except TypeError:
+            if is_sparse(out_data):
                 df_json_str = out_data.to_json(orient="records")
                 response = '{{"transformations":{df_json}}}'.format(df_json=df_json_str)
+            else:
+                response = make_arrow_payload(out_data)
         else:
             num_columns = len(out_data.columns)
             # float32 is not JSON serializable, so cast to float, which is float64
