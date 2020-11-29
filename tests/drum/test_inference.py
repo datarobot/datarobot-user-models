@@ -293,7 +293,7 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, supported_payload_formats",
         [
-            (SKLEARN, REGRESSION, PYTHON, {"csv": None, "arrow": "0.14.1"}),
+            (SKLEARN, REGRESSION, PYTHON, {"csv": None, "arrow": pyarrow.__version__}),
             (RDS, REGRESSION, R, {"csv": None}),
             (CODEGEN, REGRESSION, NO_CUSTOM, {"csv": None}),
         ],
