@@ -7,7 +7,7 @@ import pytest
 import requests
 
 from datarobot_drum.drum.common import ArgumentsOptions
-from datarobot_drum.resource.transform_helpers import read_arrow_payload
+from datarobot_drum.resource.transform_helpers import read_arrow_payload, read_mtx_payload
 from .constants import (
     BINARY,
     CODEGEN,
@@ -135,9 +135,6 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
-            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None),
-            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None),
-            (SKLEARN, TRANSFORM, PYTHON_TRANSFORM_DENSE, None),
             (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
             (SKLEARN, BINARY, PYTHON, None),
             (SKLEARN, MULTICLASS, PYTHON, None),
@@ -192,31 +189,20 @@ class TestInference:
             docker,
         ) as run:
             input_dataset = resources.datasets(framework, problem)
-            endpoint = "/transform/" if problem == TRANSFORM else "/predict/"
             # do predictions
             response = requests.post(
-                run.url_server_address + endpoint, files={"X": open(input_dataset)}
+                run.url_server_address +  "/predict/", files={"X": open(input_dataset)}
             )
             print(response.text)
             assert response.ok
-            response_key = (
-                RESPONSE_TRANSFORM_KEY if problem == TRANSFORM else RESPONSE_PREDICTIONS_KEY
-            )
+            actual_num_predictions = len(json.loads(response.text)[RESPONSE_PREDICTIONS_KEY])
             in_data = pd.read_csv(input_dataset)
-
-            if problem == TRANSFORM:
-                if framework == SKLEARN_TRANSFORM_DENSE:
-                    transformed_df = read_arrow_payload(eval(response.text))
-                    actual_num_predictions = transformed_df.shape[0]
-            else:
-                actual_num_predictions = len(json.loads(response.text)[response_key])
             assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
             (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
-            (SKLEARN, TRANSFORM, PYTHON_TRANSFORM, DOCKER_PYTHON_SKLEARN),
         ],
     )
     def test_custom_models_with_drum_nginx_prediction_server(
@@ -244,19 +230,108 @@ class TestInference:
             nginx=True,
         ) as run:
             input_dataset = resources.datasets(framework, problem)
-            endpoint = "/transform/" if problem == TRANSFORM else "/predict/"
 
             # do predictions
             response = requests.post(
-                run.url_server_address + endpoint, files={"X": open(input_dataset)}
+                run.url_server_address + '/predict/', files={"X": open(input_dataset)}
             )
 
             assert response.ok
-            response_key = (
-                RESPONSE_TRANSFORM_KEY if problem == TRANSFORM else RESPONSE_PREDICTIONS_KEY
-            )
-            actual_num_predictions = len(json.loads(response.text)[response_key])
+            actual_num_predictions = len(json.loads(response.text)[RESPONSE_PREDICTIONS_KEY])
             in_data = pd.read_csv(input_dataset)
+            assert in_data.shape[0] == actual_num_predictions
+
+
+    @pytest.mark.parametrize(
+        "framework, problem, language, docker",
+        [
+            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None),
+            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None),
+        ]
+    )
+    def test_custom_transform_server(
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        tmp_path,
+    ):
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
+        )
+
+        with DrumServerRun(
+            resources.target_types(problem),
+            resources.class_labels(framework, problem),
+            custom_model_dir,
+            docker,
+        ) as run:
+            input_dataset = resources.datasets(framework, problem)
+            # do predictions
+            response = requests.post(
+                run.url_server_address + '/transform/', files={"X": open(input_dataset)}
+            )
+            print(response.text)
+            assert response.ok
+
+            in_data = pd.read_csv(input_dataset)
+
+            if framework == SKLEARN_TRANSFORM_DENSE:
+                transformed_df = read_arrow_payload(eval(response.text))
+                actual_num_predictions = transformed_df.shape[0]
+            else:
+                transformed_mat = read_mtx_payload(eval(response.text))
+                actual_num_predictions = transformed_mat.shape[0]
+            assert in_data.shape[0] == actual_num_predictions
+
+    @pytest.mark.parametrize(
+        "framework, problem, language, docker",
+        [
+            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, DOCKER_PYTHON_SKLEARN),
+        ],
+    )
+    def test_custom_transforms_with_drum_nginx_prediction_server(
+            self,
+            resources,
+            framework,
+            problem,
+            language,
+            docker,
+            tmp_path,
+    ):
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
+        )
+
+        with DrumServerRun(
+                resources.target_types(problem),
+                resources.class_labels(framework, problem),
+                custom_model_dir,
+                docker,
+                nginx=True,
+        ) as run:
+            input_dataset = resources.datasets(framework, problem)
+            # do predictions
+            response = requests.post(
+                run.url_server_address + '/transform/', files={"X": open(input_dataset)}
+            )
+            print(response.text)
+            assert response.ok
+
+            in_data = pd.read_csv(input_dataset)
+
+            transformed_df = read_arrow_payload(eval(response.text))
+            actual_num_predictions = transformed_df.shape[0]
             assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(

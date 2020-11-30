@@ -12,7 +12,8 @@ from datarobot_drum.drum.common import (
 )
 from datarobot_drum.resource.transform_helpers import (
     make_arrow_payload,
-    is_sparse
+    is_sparse,
+    make_mtx_payload,
 
 )
 from datarobot_drum.resource.unstructured_helpers import (
@@ -67,8 +68,8 @@ class PredictMixin:
             response = out_data
         elif self._target_type == TargetType.TRANSFORM:
             if is_sparse(out_data):
-                df_json_str = out_data.to_json(orient="records")
-                response = '{{"transformations":{df_json}}}'.format(df_json=df_json_str)
+                mtx_payload = make_mtx_payload(out_data)
+                response = '{{"transformations":{mtx_payload}}}'.format(mtx_payload=mtx_payload)
             else:
                 arrow_payload = make_arrow_payload(out_data)
                 response = '{{"transformations":{arrow_payload}}}'.format(arrow_payload=arrow_payload)
