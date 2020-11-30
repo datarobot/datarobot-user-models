@@ -293,7 +293,7 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
-            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, DOCKER_PYTHON_SKLEARN),
+            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, DOCKER_PYTHON_SKLEARN),
         ],
     )
     def test_custom_transforms_with_drum_nginx_prediction_server(
@@ -330,8 +330,8 @@ class TestInference:
 
             in_data = pd.read_csv(input_dataset)
 
-            transformed_df = read_arrow_payload(eval(response.text))
-            actual_num_predictions = transformed_df.shape[0]
+            transformed_mat = (json.loads(response.text))['transformations']
+            actual_num_predictions = len(transformed_mat)
             assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(
