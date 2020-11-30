@@ -1,11 +1,13 @@
 import pyarrow as pa
 
-from io import BytesIO, StringIO
+from io import BytesIO
 
 from scipy.io import mmwrite, mmread
 from scipy.sparse.csr import csr_matrix
 from scipy.sparse import vstack
 
+
+X_TRANSFORM_KEY = 'X.transformed'
 
 def is_sparse(df):
     return hasattr(df, "sparse") or type(df.iloc[0].values[0]) == csr_matrix
@@ -16,7 +18,7 @@ def make_arrow_payload(df):
 
 
 def read_arrow_payload(response_dict):
-    bytes = response_dict["transformations"]
+    bytes = response_dict[X_TRANSFORM_KEY]
     df = pa.ipc.deserialize_pandas(bytes)
     return df
 
@@ -32,6 +34,6 @@ def make_mtx_payload(df):
 
 
 def read_mtx_payload(response_dict):
-    bytes = response_dict["transformations"]
+    bytes = response_dict[X_TRANSFORM_KEY]
     sparse_mat = mmread(BytesIO(bytes))
     return csr_matrix(sparse_mat)

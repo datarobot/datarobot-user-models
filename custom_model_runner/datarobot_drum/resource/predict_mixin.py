@@ -68,10 +68,10 @@ class PredictMixin:
         elif self._target_type == TargetType.TRANSFORM:
             if is_sparse(out_data):
                 mtx_payload = make_mtx_payload(out_data)
-                response = '{{"transformations":{mtx_payload}}}'.format(mtx_payload=mtx_payload)
+                response = '{{"X.transformed":{mtx_payload}}}'.format(mtx_payload=mtx_payload)
             else:
                 arrow_payload = make_arrow_payload(out_data)
-                response = '{{"transformations":{arrow_payload}}}'.format(
+                response = '{{"X.transformed":{arrow_payload}}}'.format(
                     arrow_payload=arrow_payload
                 )
         else:
