@@ -197,14 +197,19 @@ class TestInference:
             response = requests.post(
                 run.url_server_address + endpoint, files={"X": open(input_dataset)}
             )
-            # TODO: transform will need different handling
             print(response.text)
             assert response.ok
             response_key = (
                 RESPONSE_TRANSFORM_KEY if problem == TRANSFORM else RESPONSE_PREDICTIONS_KEY
             )
-            actual_num_predictions = len(json.loads(response.text)[response_key])
             in_data = pd.read_csv(input_dataset)
+
+            if problem == TRANSFORM:
+                if framework == SKLEARN_TRANSFORM_DENSE:
+                    transformed_df = read_arrow_payload(eval(response.text))
+                    actual_num_predictions = transformed_df.shape[0]
+            else:
+                actual_num_predictions = len(json.loads(response.text)[response_key])
             assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(

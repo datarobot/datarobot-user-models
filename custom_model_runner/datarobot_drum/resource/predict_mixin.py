@@ -70,7 +70,8 @@ class PredictMixin:
                 df_json_str = out_data.to_json(orient="records")
                 response = '{{"transformations":{df_json}}}'.format(df_json=df_json_str)
             else:
-                response = make_arrow_payload(out_data)
+                arrow_payload = make_arrow_payload(out_data)
+                response = '{{"transformations":{arrow_payload}}}'.format(arrow_payload=arrow_payload)
         else:
             num_columns = len(out_data.columns)
             # float32 is not JSON serializable, so cast to float, which is float64

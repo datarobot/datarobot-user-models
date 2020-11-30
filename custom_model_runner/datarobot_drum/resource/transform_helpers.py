@@ -13,23 +13,13 @@ def is_sparse(df):
 
 
 # Dense dataframe handling
-def _create_chunks_dense(df, num_splits):
-    return np.array_split(df, num_splits)
+def make_arrow_payload(df):
+    return pa.ipc.serialize_pandas(df, preserve_index=False).to_pybytes()
 
 
-# TODO: make this private, implement chunking to deal with bigger datasets (?)
-def make_arrow_payload(chunk):
-    sink = BytesIO()
-    batch = pa.RecordBatch.from_pandas(chunk)
-    with pa.RecordBatchStreamWriter(sink, batch.schema) as writer:
-        writer.write_batch(batch)
-    return sink.getvalue()
-
-
-def read_arrow_payload(sink):
-    # TODO: this doesn't work
-    buf = sink.getvalue()
-    df = pa.ipc.open_stream(buf).read_pandas()
+def read_arrow_payload(response_dict):
+    bytes = response_dict['transformations']
+    df = pa.ipc.deserialize_pandas(bytes)
     return df
 
 
