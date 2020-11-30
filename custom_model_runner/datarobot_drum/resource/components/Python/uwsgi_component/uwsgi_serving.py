@@ -11,6 +11,7 @@ from datarobot_drum.drum.common import (
     URL_PREFIX_ENV_VAR_NAME,
     TARGET_TYPE_ARG_KEYWORD,
     make_predictor_capabilities,
+    TargetType,
 )
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 
@@ -59,9 +60,10 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
         @brief      It is called in within the 'deputy' context
         """
         super(UwsgiServing, self).configure(params)
+
         self._show_perf = self._params.get("show_perf")
         self._run_language = RunLanguage(params.get("run_language"))
-        self._target_type = params[TARGET_TYPE_ARG_KEYWORD]
+        self._target_type = TargetType(params[TARGET_TYPE_ARG_KEYWORD])
 
         self._stats_collector = StatsCollector(disable_instance=not self._show_perf)
 
