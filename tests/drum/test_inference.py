@@ -329,8 +329,10 @@ class TestInference:
 
             in_data = pd.read_csv(input_dataset)
 
-            transformed_mat = (json.loads(response.text))["transformations"]
-            actual_num_predictions = len(transformed_mat)
+            #transformed_mat = (json.loads(response.text))["transformations"]
+            #actual_num_predictions = len(transformed_mat)
+            transformed_mat = read_mtx_payload(eval(response.text))
+            actual_num_predictions = transformed_mat.shape[0]
             assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(
