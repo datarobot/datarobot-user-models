@@ -71,9 +71,7 @@ class PredictMixin:
                 response = '{{"X.transformed":{mtx_payload}}}'.format(mtx_payload=mtx_payload)
             else:
                 arrow_payload = make_arrow_payload(out_data)
-                response = '{{"X.transformed":{arrow_payload}}}'.format(
-                    arrow_payload=arrow_payload
-                )
+                response = '{{"X.transformed":{arrow_payload}}}'.format(arrow_payload=arrow_payload)
         else:
             num_columns = len(out_data.columns)
             # float32 is not JSON serializable, so cast to float, which is float64

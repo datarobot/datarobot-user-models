@@ -7,7 +7,8 @@ from scipy.sparse.csr import csr_matrix
 from scipy.sparse import vstack
 
 
-X_TRANSFORM_KEY = 'X.transformed'
+X_TRANSFORM_KEY = "X.transformed"
+
 
 def is_sparse(df):
     return hasattr(df, "sparse") or type(df.iloc[0].values[0]) == csr_matrix
