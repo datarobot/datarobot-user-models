@@ -258,7 +258,7 @@ _custom_filepaths = {
     ),
     PYTHON_TRANSFORM: (os.path.join(TESTS_FIXTURES_PATH, "transform_custom.py"), "custom.py"),
     PYTHON_TRANSFORM_DENSE: (
-        os.path.join(TESTS_FIXTURES_PATH, "transform_custom_dense.py"),
+        os.path.join(TESTS_FIXTURES_PATH, "transform_custom.py"),
         "custom.py",
     ),
 }
