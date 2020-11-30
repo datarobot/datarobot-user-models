@@ -8,7 +8,7 @@ from scipy.sparse import vstack
 
 
 def is_sparse(df):
-    return hasattr(df, 'sparse') or type(df.iloc[0].values[0]) == csr_matrix
+    return hasattr(df, "sparse") or type(df.iloc[0].values[0]) == csr_matrix
 
 
 def make_arrow_payload(df):
@@ -16,13 +16,13 @@ def make_arrow_payload(df):
 
 
 def read_arrow_payload(response_dict):
-    bytes = response_dict['transformations']
+    bytes = response_dict["transformations"]
     df = pa.ipc.deserialize_pandas(bytes)
     return df
 
 
 def make_mtx_payload(df):
-    if hasattr(df, 'sparse'):
+    if hasattr(df, "sparse"):
         sparse_mat = csr_matrix(df.sparse.to_coo())
     else:
         sparse_mat = vstack(x[0] for x in df.values)
@@ -32,9 +32,6 @@ def make_mtx_payload(df):
 
 
 def read_mtx_payload(response_dict):
-    bytes = response_dict['transformations']
+    bytes = response_dict["transformations"]
     sparse_mat = mmread(BytesIO(bytes))
     return csr_matrix(sparse_mat)
-
-
-

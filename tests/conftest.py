@@ -212,7 +212,9 @@ _artifacts = {
     ],
     (CODEGEN, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "java_multi.jar"),
     (SKLEARN_TRANSFORM, TRANSFORM): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_transform.pkl"),
-    (SKLEARN_TRANSFORM_DENSE, TRANSFORM): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_transform_dense.pkl"),
+    (SKLEARN_TRANSFORM_DENSE, TRANSFORM): os.path.join(
+        TESTS_ARTIFACTS_PATH, "sklearn_transform_dense.pkl"
+    ),
 }
 
 _custom_filepaths = {
@@ -255,7 +257,10 @@ _custom_filepaths = {
         "custom.R",
     ),
     PYTHON_TRANSFORM: (os.path.join(TESTS_FIXTURES_PATH, "transform_custom.py"), "custom.py"),
-    PYTHON_TRANSFORM_DENSE: (os.path.join(TESTS_FIXTURES_PATH, "transform_custom_dense.py"), "custom.py"),
+    PYTHON_TRANSFORM_DENSE: (
+        os.path.join(TESTS_FIXTURES_PATH, "transform_custom_dense.py"),
+        "custom.py",
+    ),
 }
 
 

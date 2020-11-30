@@ -14,7 +14,6 @@ from datarobot_drum.resource.transform_helpers import (
     make_arrow_payload,
     is_sparse,
     make_mtx_payload,
-
 )
 from datarobot_drum.resource.unstructured_helpers import (
     _resolve_incoming_unstructured_data,
@@ -72,7 +71,9 @@ class PredictMixin:
                 response = '{{"transformations":{mtx_payload}}}'.format(mtx_payload=mtx_payload)
             else:
                 arrow_payload = make_arrow_payload(out_data)
-                response = '{{"transformations":{arrow_payload}}}'.format(arrow_payload=arrow_payload)
+                response = '{{"transformations":{arrow_payload}}}'.format(
+                    arrow_payload=arrow_payload
+                )
         else:
             num_columns = len(out_data.columns)
             # float32 is not JSON serializable, so cast to float, which is float64

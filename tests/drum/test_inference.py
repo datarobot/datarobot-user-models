@@ -191,7 +191,7 @@ class TestInference:
             input_dataset = resources.datasets(framework, problem)
             # do predictions
             response = requests.post(
-                run.url_server_address +  "/predict/", files={"X": open(input_dataset)}
+                run.url_server_address + "/predict/", files={"X": open(input_dataset)}
             )
             print(response.text)
             assert response.ok
@@ -233,7 +233,7 @@ class TestInference:
 
             # do predictions
             response = requests.post(
-                run.url_server_address + '/predict/', files={"X": open(input_dataset)}
+                run.url_server_address + "/predict/", files={"X": open(input_dataset)}
             )
 
             assert response.ok
@@ -241,13 +241,12 @@ class TestInference:
             in_data = pd.read_csv(input_dataset)
             assert in_data.shape[0] == actual_num_predictions
 
-
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
             (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None),
             (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None),
-        ]
+        ],
     )
     def test_custom_transform_server(
         self,
@@ -275,7 +274,7 @@ class TestInference:
             input_dataset = resources.datasets(framework, problem)
             # do predictions
             response = requests.post(
-                run.url_server_address + '/transform/', files={"X": open(input_dataset)}
+                run.url_server_address + "/transform/", files={"X": open(input_dataset)}
             )
             print(response.text)
             assert response.ok
@@ -297,13 +296,13 @@ class TestInference:
         ],
     )
     def test_custom_transforms_with_drum_nginx_prediction_server(
-            self,
-            resources,
-            framework,
-            problem,
-            language,
-            docker,
-            tmp_path,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
             resources,
@@ -314,23 +313,23 @@ class TestInference:
         )
 
         with DrumServerRun(
-                resources.target_types(problem),
-                resources.class_labels(framework, problem),
-                custom_model_dir,
-                docker,
-                nginx=True,
+            resources.target_types(problem),
+            resources.class_labels(framework, problem),
+            custom_model_dir,
+            docker,
+            nginx=True,
         ) as run:
             input_dataset = resources.datasets(framework, problem)
             # do predictions
             response = requests.post(
-                run.url_server_address + '/transform/', files={"X": open(input_dataset)}
+                run.url_server_address + "/transform/", files={"X": open(input_dataset)}
             )
             print(response.text)
             assert response.ok
 
             in_data = pd.read_csv(input_dataset)
 
-            transformed_mat = (json.loads(response.text))['transformations']
+            transformed_mat = (json.loads(response.text))["transformations"]
             actual_num_predictions = len(transformed_mat)
             assert in_data.shape[0] == actual_num_predictions
 
