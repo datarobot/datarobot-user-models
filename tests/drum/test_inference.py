@@ -11,6 +11,7 @@ from datarobot_drum.resource.transform_helpers import (
     read_arrow_payload,
     read_mtx_payload,
     read_csv_payload,
+    validate_transformed_output,
 )
 from .constants import (
     BINARY,
@@ -34,7 +35,6 @@ from .constants import (
     REGRESSION,
     REGRESSION_INFERENCE,
     RESPONSE_PREDICTIONS_KEY,
-    RESPONSE_TRANSFORM_KEY,
     SKLEARN,
     SKLEARN_TRANSFORM,
     SKLEARN_TRANSFORM_DENSE,
@@ -291,16 +291,17 @@ class TestInference:
 
             if framework == SKLEARN_TRANSFORM_DENSE:
                 if use_arrow:
-                    transformed_df = read_arrow_payload(eval(response.text))
+                    transformed_out = read_arrow_payload(eval(response.text))
                     assert eval(response.text)["out.format"] == "arrow"
                 else:
-                    transformed_df = read_csv_payload(eval(response.text))
+                    transformed_out = read_csv_payload(eval(response.text))
                     assert eval(response.text)["out.format"] == "csv"
-                actual_num_predictions = transformed_df.shape[0]
+                actual_num_predictions = transformed_out.shape[0]
             else:
-                transformed_mat = read_mtx_payload(eval(response.text))
-                actual_num_predictions = transformed_mat.shape[0]
+                transformed_out = read_mtx_payload(eval(response.text))
+                actual_num_predictions = transformed_out.shape[0]
                 assert eval(response.text)["out.format"] == "sparse"
+            validate_transformed_output(transformed_out, should_be_sparse=framework == SKLEARN_TRANSFORM)
             assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(

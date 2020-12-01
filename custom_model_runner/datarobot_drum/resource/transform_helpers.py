@@ -49,3 +49,12 @@ def read_mtx_payload(response_dict):
     bytes = response_dict[X_TRANSFORM_KEY]
     sparse_mat = mmread(BytesIO(bytes))
     return csr_matrix(sparse_mat)
+
+
+def validate_transformed_output(transformed_output, should_be_sparse=False):
+    if should_be_sparse:
+        assert type(transformed_output) == csr_matrix
+        assert transformed_output.shape[1] == 714
+    else:
+        assert type(transformed_output) == pd.DataFrame
+        assert transformed_output.shape[1] == 1
