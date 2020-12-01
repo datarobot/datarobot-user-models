@@ -301,7 +301,9 @@ class TestInference:
                 transformed_out = read_mtx_payload(eval(response.text))
                 actual_num_predictions = transformed_out.shape[0]
                 assert eval(response.text)["out.format"] == "sparse"
-            validate_transformed_output(transformed_out, should_be_sparse=framework == SKLEARN_TRANSFORM)
+            validate_transformed_output(
+                transformed_out, should_be_sparse=framework == SKLEARN_TRANSFORM
+            )
             assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(
