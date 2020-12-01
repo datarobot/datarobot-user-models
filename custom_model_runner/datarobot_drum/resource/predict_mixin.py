@@ -43,8 +43,11 @@ class PredictMixin:
         filestorage = request.files.get(file_key)
 
         if self._target_type == TargetType.TRANSFORM:
-            arrow_key = "arrow"
-            use_arrow = request.files.get(arrow_key) or False
+            arrow_key = "arrow_version"
+            arrow_version = request.files.get(arrow_key)
+            if arrow_version is not None:
+                arrow_version = eval(arrow_version.getvalue())
+            use_arrow = arrow_version is not None
 
         if not filestorage:
             wrong_key_error_message = (
@@ -81,7 +84,7 @@ class PredictMixin:
                 )
             else:
                 if use_arrow:
-                    arrow_payload = make_arrow_payload(out_data)
+                    arrow_payload = make_arrow_payload(out_data, arrow_version)
                     response = (
                         '{{"{transform_key}":{arrow_payload}, "out.format":"{out_format}"}}'.format(
                             transform_key=X_TRANSFORM_KEY,

@@ -14,8 +14,18 @@ def is_sparse(df):
     return hasattr(df, "sparse") or type(df.iloc[0].values[0]) == csr_matrix
 
 
-def make_arrow_payload(df):
-    return pa.ipc.serialize_pandas(df, preserve_index=False).to_pybytes()
+def make_arrow_payload(df, arrow_version):
+    if arrow_version != pa.__version__ and arrow_version < 0.2:
+        batch = pa.RecordBatch.from_pandas(df, nthreads=None, preserve_index=False)
+        sink = pa.BufferOutputStream()
+        options = pa.ipc.IpcWriteOptions(
+            metadata_version=pa.MetadataVersion.V4, use_legacy_format=True
+        )
+        with pa.RecordBatchStreamWriter(sink, batch.schema, options=options) as writer:
+            writer.write_batch(batch)
+        return sink.getvalue().to_pybytes()
+    else:
+        return pa.ipc.serialize_pandas(df, preserve_index=False).to_pybytes()
 
 
 def make_csv_payload(df):

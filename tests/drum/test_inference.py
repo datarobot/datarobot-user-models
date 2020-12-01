@@ -248,9 +248,9 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker, use_arrow",
         [
+            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, True),
             (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None, False),
             (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, False),
-            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, True),
         ],
     )
     def test_custom_transform_server(
@@ -281,7 +281,7 @@ class TestInference:
             # do predictions
             files = {"X": open(input_dataset)}
             if use_arrow:
-                files["arrow"] = True
+                files["arrow_version"] = ".2"
 
             response = requests.post(run.url_server_address + "/transform/", files=files)
             print(response.text)
