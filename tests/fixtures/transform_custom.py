@@ -1,4 +1,5 @@
 import pandas as pd
+from scipy.sparse.csr import csr_matrix
 
 
 def transform(data, transformer):
@@ -11,4 +12,8 @@ def transform(data, transformer):
     -------
     transformed DataFrame resulting from applying transform to incoming data
     """
-    return pd.DataFrame(transformer.transform(data))
+    transformed = transformer.transform(data)
+    if type(transform) == csr_matrix:
+        return pd.DataFrame.sparse.from_spmatrix(transformed)
+    else:
+        return pd.DataFrame(transformed)
