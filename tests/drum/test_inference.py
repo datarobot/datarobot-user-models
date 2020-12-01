@@ -7,7 +7,11 @@ import pytest
 import requests
 
 from datarobot_drum.drum.common import ArgumentsOptions
-from datarobot_drum.resource.transform_helpers import read_arrow_payload, read_mtx_payload
+from datarobot_drum.resource.transform_helpers import (
+    read_arrow_payload,
+    read_mtx_payload,
+    read_csv_payload,
+)
 from .constants import (
     BINARY,
     CODEGEN,
@@ -242,10 +246,11 @@ class TestInference:
             assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(
-        "framework, problem, language, docker",
+        "framework, problem, language, docker, use_arrow",
         [
-            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None),
-            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None),
+            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None, False),
+            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, False),
+            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, True),
         ],
     )
     def test_custom_transform_server(
@@ -256,6 +261,7 @@ class TestInference:
         language,
         docker,
         tmp_path,
+        use_arrow,
     ):
         custom_model_dir = _create_custom_model_dir(
             resources,
@@ -273,22 +279,28 @@ class TestInference:
         ) as run:
             input_dataset = resources.datasets(framework, problem)
             # do predictions
-            response = requests.post(
-                run.url_server_address + "/transform/", files={"X": open(input_dataset)}
-            )
+            files = {"X": open(input_dataset)}
+            if use_arrow:
+                files["arrow"] = True
+
+            response = requests.post(run.url_server_address + "/transform/", files=files)
             print(response.text)
             assert response.ok
 
             in_data = pd.read_csv(input_dataset)
 
             if framework == SKLEARN_TRANSFORM_DENSE:
-                transformed_df = read_arrow_payload(eval(response.text))
+                if use_arrow:
+                    transformed_df = read_arrow_payload(eval(response.text))
+                    assert eval(response.text)["out.format"] == "arrow"
+                else:
+                    transformed_df = read_csv_payload(eval(response.text))
+                    assert eval(response.text)["out.format"] == "csv"
                 actual_num_predictions = transformed_df.shape[0]
-                assert eval(response.text)['is.sparse'] is False
             else:
                 transformed_mat = read_mtx_payload(eval(response.text))
                 actual_num_predictions = transformed_mat.shape[0]
-                assert eval(response.text)['is.sparse'] is True
+                assert eval(response.text)["out.format"] == "sparse"
             assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(

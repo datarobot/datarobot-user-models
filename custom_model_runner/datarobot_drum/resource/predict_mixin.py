@@ -15,6 +15,7 @@ from datarobot_drum.resource.transform_helpers import (
     make_arrow_payload,
     is_sparse,
     make_mtx_payload,
+    make_csv_payload,
 )
 from datarobot_drum.resource.unstructured_helpers import (
     _resolve_incoming_unstructured_data,
@@ -40,6 +41,10 @@ class PredictMixin:
 
         file_key = "X"
         filestorage = request.files.get(file_key)
+
+        if self._target_type == TargetType.TRANSFORM:
+            arrow_key = "arrow"
+            use_arrow = request.files.get(arrow_key) or False
 
         if not filestorage:
             wrong_key_error_message = (
@@ -69,14 +74,28 @@ class PredictMixin:
         elif self._target_type == TargetType.TRANSFORM:
             if is_sparse(out_data):
                 mtx_payload = make_mtx_payload(out_data)
-                response = '{{"{transform_key}":{mtx_payload}, "is.sparse":{is_sparse}}}'.format(
-                    transform_key=X_TRANSFORM_KEY, mtx_payload=mtx_payload, is_sparse=True
+                response = (
+                    '{{"{transform_key}":{mtx_payload}, "out.format":"{out_format}"}}'.format(
+                        transform_key=X_TRANSFORM_KEY, mtx_payload=mtx_payload, out_format="sparse"
+                    )
                 )
             else:
-                arrow_payload = make_arrow_payload(out_data)
-                response = '{{"{transform_key}":{arrow_payload}, "is.sparse":{is_sparse}}}'.format(
-                    transform_key=X_TRANSFORM_KEY, arrow_payload=arrow_payload, is_sparse=False
-                )
+                if use_arrow:
+                    arrow_payload = make_arrow_payload(out_data)
+                    response = (
+                        '{{"{transform_key}":{arrow_payload}, "out.format":"{out_format}"}}'.format(
+                            transform_key=X_TRANSFORM_KEY,
+                            arrow_payload=arrow_payload,
+                            out_format="arrow",
+                        )
+                    )
+                else:
+                    csv_payload = make_csv_payload(out_data)
+                    response = (
+                        '{{"{transform_key}":{csv_payload}, "out.format":"{out_format}"}}'.format(
+                            transform_key=X_TRANSFORM_KEY, csv_payload=csv_payload, out_format="csv"
+                        )
+                    )
         else:
             num_columns = len(out_data.columns)
             # float32 is not JSON serializable, so cast to float, which is float64
