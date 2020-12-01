@@ -284,9 +284,11 @@ class TestInference:
             if framework == SKLEARN_TRANSFORM_DENSE:
                 transformed_df = read_arrow_payload(eval(response.text))
                 actual_num_predictions = transformed_df.shape[0]
+                assert eval(response.text)['is.sparse'] is False
             else:
                 transformed_mat = read_mtx_payload(eval(response.text))
                 actual_num_predictions = transformed_mat.shape[0]
+                assert eval(response.text)['is.sparse'] is True
             assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(

@@ -69,13 +69,13 @@ class PredictMixin:
         elif self._target_type == TargetType.TRANSFORM:
             if is_sparse(out_data):
                 mtx_payload = make_mtx_payload(out_data)
-                response = '{{"{transform_key}":{mtx_payload}}}'.format(
-                    transform_key=X_TRANSFORM_KEY, mtx_payload=mtx_payload
+                response = '{{"{transform_key}":{mtx_payload}, "is.sparse":{is_sparse}}}'.format(
+                    transform_key=X_TRANSFORM_KEY, mtx_payload=mtx_payload, is_sparse=True
                 )
             else:
                 arrow_payload = make_arrow_payload(out_data)
-                response = '{{"{transform_key}":{arrow_payload}}}'.format(
-                    transform_key=X_TRANSFORM_KEY, arrow_payload=arrow_payload
+                response = '{{"{transform_key}":{arrow_payload}, "is.sparse":{is_sparse}}}'.format(
+                    transform_key=X_TRANSFORM_KEY, arrow_payload=arrow_payload, is_sparse=False
                 )
         else:
             num_columns = len(out_data.columns)
