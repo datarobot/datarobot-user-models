@@ -211,8 +211,8 @@ class CMRunnerArgsRegistry(object):
     @staticmethod
     def _reg_arg_multiclass_labels(*parsers):
         class RequiredLength(argparse.Action):
-            ERROR_MESSAGE = "Multiclass classification requires at least 3 labels."
-            MIN_LABELS = 3
+            ERROR_MESSAGE = "Multiclass classification requires at least 2 labels."
+            MIN_LABELS = 2
 
             def __call__(self, parser, namespace, values, option_string=None):
                 if len(values) < self.MIN_LABELS:

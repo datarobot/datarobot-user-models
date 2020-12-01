@@ -52,6 +52,7 @@ public class ScoringCode extends BasePredictor {
                 csvPrinter = new CSVPrinter(new StringWriter(), CSVFormat.DEFAULT.withHeader(this.classLabels));
                 for (var val : predictions) {
                     HashMap<String, Double> value = (HashMap<String, Double>) val;
+                    System.out.printf("*** %s %s %s\n", this.classLabels, this.positiveClassLabel, this.negativeClassLabel);
                     var predRow = Arrays.stream(this.classLabels).map(value::get).toArray(Double[]::new);
                     csvPrinter.printRecord(predRow);
                 }
