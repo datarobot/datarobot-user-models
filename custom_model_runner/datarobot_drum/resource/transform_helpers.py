@@ -57,4 +57,4 @@ def validate_transformed_output(transformed_output, should_be_sparse=False):
         assert transformed_output.shape[1] == 714
     else:
         assert type(transformed_output) == pd.DataFrame
-        assert transformed_output.shape[1] == 1
+        assert transformed_output.shape[1] == 10
