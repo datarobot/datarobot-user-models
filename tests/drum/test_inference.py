@@ -6,7 +6,7 @@ import pyarrow
 import pytest
 import requests
 
-from datarobot_drum.drum.common import ArgumentsOptions, X_TRANSFORM_KEY
+from datarobot_drum.drum.common import ArgumentsOptions
 from datarobot_drum.resource.transform_helpers import read_arrow_payload, read_mtx_payload
 from .constants import (
     BINARY,
