@@ -6,8 +6,7 @@ from scipy.io import mmwrite, mmread
 from scipy.sparse.csr import csr_matrix
 from scipy.sparse import vstack
 
-
-X_TRANSFORM_KEY = "X.transformed"
+from datarobot_drum.drum.common import X_TRANSFORM_KEY
 
 
 def is_sparse(df):
