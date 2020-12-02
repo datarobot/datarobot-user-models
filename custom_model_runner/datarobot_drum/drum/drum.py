@@ -286,6 +286,7 @@ class CMRunner:
         self._print_welcome_header()
 
         if self.run_mode in [RunMode.SERVER, RunMode.SCORE]:
+            # TODO
             self._run_fit_and_predictions_pipelines_in_mlpiper()
         elif self.run_mode == RunMode.FIT:
             self.run_fit()
@@ -389,7 +390,7 @@ class CMRunner:
             "target_type": self.target_type.value,
         }
 
-        if self.target_type == TargetType.TRANSFORM:
+        if self.target_type == TargetType.TRANSFORM and self.run_mode != RunMode.SERVER:
             replace_data.update(
                 {
                     "target_name": options.target,

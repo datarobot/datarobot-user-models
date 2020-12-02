@@ -27,7 +27,9 @@ class PythonPredictor(BaseLanguagePredictor):
         super(PythonPredictor, self).configure(params)
 
         self._model_adapter = PythonModelAdapter(
-            model_dir=self._custom_model_path, target_type=self._target_type, target_name=params.get(TARGET_NAME_ARG_KEYWORD)
+            model_dir=self._custom_model_path,
+            target_type=self._target_type,
+            target_name=params.get(TARGET_NAME_ARG_KEYWORD),
         )
 
         sys.path.append(self._custom_model_path)
@@ -59,7 +61,9 @@ class PythonPredictor(BaseLanguagePredictor):
         return predictions
 
     def transform(self, input_filename, target_filename=None):
-        return self._model_adapter.transform(input_filename, model=self._model, target_filename=target_filename)
+        return self._model_adapter.transform(
+            input_filename, model=self._model, target_filename=target_filename
+        )
 
     def predict_unstructured(self, data, **kwargs):
         str_or_tuple = self._model_adapter.predict_unstructured(

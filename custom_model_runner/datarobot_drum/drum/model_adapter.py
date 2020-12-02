@@ -345,7 +345,9 @@ class PythonModelAdapter:
             try:
                 # noinspection PyCallingNonCallable
                 if self._target_type == TargetType.TRANSFORM:
-                    output_data, output_target = self._custom_hooks[CustomHooks.TRANSFORM](data, target, model)
+                    output_data, output_target = self._custom_hooks[CustomHooks.TRANSFORM](
+                        data, target, model
+                    )
                 else:
                     output_data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
                     output_target = None
