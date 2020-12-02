@@ -4,7 +4,7 @@ import shutil
 import subprocess
 
 
-from .constants import PYTHON, R, R_ALL_PREDICT_STRUCTURED_HOOKS, R_FIT
+from .constants import PYTHON, R, R_ALL_PREDICT_STRUCTURED_HOOKS, R_FIT, BINARY, MULTICLASS
 
 
 def _create_custom_model_dir(
@@ -72,12 +72,12 @@ def _exec_shell_cmd(cmd, err_msg, assert_if_fail=True, process_obj_holder=None, 
     return p, stdout, stderr
 
 
-def _cmd_add_class_labels(cmd, labels, multiclass_label_file=None):
-    if not labels or len(labels) == 2:
+def _cmd_add_class_labels(cmd, labels, target_type, multiclass_label_file=None):
+    if not labels or target_type == BINARY:
         pos = labels[1] if labels else "yes"
         neg = labels[0] if labels else "no"
         cmd = cmd + " --positive-class-label {} --negative-class-label {}".format(pos, neg)
-    elif labels and len(labels) > 2:
+    elif labels and target_type == MULTICLASS:
         if multiclass_label_file:
             multiclass_label_file.truncate(0)
             for label in labels:

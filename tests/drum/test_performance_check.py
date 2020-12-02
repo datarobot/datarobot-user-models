@@ -56,7 +56,11 @@ class TestPerformanceCheck:
             resources.target_types(problem),
         )
         if problem == BINARY:
-            cmd = _cmd_add_class_labels(cmd, resources.class_labels(framework, problem))
+            cmd = _cmd_add_class_labels(
+                cmd,
+                resources.class_labels(framework, problem),
+                target_type=resources.target_types(problem),
+            )
         if docker:
             cmd += " --docker {}".format(docker)
 

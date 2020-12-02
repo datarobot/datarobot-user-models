@@ -45,7 +45,7 @@ class TestMulticlassLabelsParser(object):
 
     @pytest.mark.parametrize("as_file", [True, False])
     def test_too_few_labels(self, as_file, parser):
-        labels = list("AB")
+        labels = list("A")
         with NamedTemporaryFile() as f:
             if as_file:
                 f.write("\n".join(labels).encode("utf-8"))
@@ -54,5 +54,5 @@ class TestMulticlassLabelsParser(object):
             else:
                 args = ["dummy", "--class-labels", *labels]
 
-            with pytest.raises(argparse.ArgumentTypeError, match="at least 3"):
+            with pytest.raises(argparse.ArgumentTypeError, match="at least 2"):
                 parser.parse_args(args)
