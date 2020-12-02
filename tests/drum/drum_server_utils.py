@@ -78,7 +78,7 @@ class DrumServerRun:
             ArgumentsOptions.MAIN_COMMAND, custom_model_dir, target_type, self.server_address
         )
         if labels:
-            cmd = _cmd_add_class_labels(cmd, labels)
+            cmd = _cmd_add_class_labels(cmd, labels, target_type=target_type)
         if docker:
             cmd += " --docker {}".format(docker)
             if memory:

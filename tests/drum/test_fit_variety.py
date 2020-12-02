@@ -47,7 +47,7 @@ def test_fit_variety(framework, variety_resources, resources, variety_data_names
         cmd += " --target {}".format(target)
 
     if problem == BINARY:
-        cmd = _cmd_add_class_labels(cmd, class_labels)
+        cmd = _cmd_add_class_labels(cmd, class_labels, target_type=problem)
 
     p, _, err = _exec_shell_cmd(
         cmd,

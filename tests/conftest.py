@@ -15,6 +15,7 @@ from tests.drum.constants import (
     MULTI_ARTIFACT,
     MULTICLASS,
     MULTICLASS_NUM_LABELS,
+    MULTICLASS_BINARY,
     NO_CUSTOM,
     POJO,
     PYPMML,
@@ -72,6 +73,7 @@ _datasets = {
     (None, MULTICLASS_NUM_LABELS): os.path.join(
         TESTS_DATA_PATH, "skyserver_sql2_27_2018_6_51_39_pm_num_class.csv"
     ),
+    (None, MULTICLASS_BINARY): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
     (None, SPARSE): os.path.join(TESTS_DATA_PATH, "sparse.mtx"),
     (None, SPARSE_TARGET): os.path.join(TESTS_DATA_PATH, "sparse_target.csv"),
     (None, BINARY_BOOL): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
@@ -106,6 +108,7 @@ _targets = {
     REGRESSION: "MEDV",
     BINARY_TEXT: "Churn",
     MULTICLASS: "class",
+    MULTICLASS_BINARY: "Species",
     MULTICLASS_NUM_LABELS: "class",
     SPARSE: "my_target",
     BINARY_BOOL: "readmitted",
@@ -120,6 +123,8 @@ _target_types = {
     ANOMALY: "anomaly",
     UNSTRUCTURED: "unstructured",
     MULTICLASS: "multiclass",
+    MULTICLASS_BINARY: "multiclass",
+    MULTICLASS_NUM_LABELS: "multiclass",
     BINARY_BOOL: "binary",
     TRANSFORM: "transform",
 }
@@ -150,6 +155,16 @@ _class_labels = {
     (KERAS, BINARY_TEXT): ["False", "True"],
     (POJO, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (MOJO, MULTICLASS): ["GALAXY", "QSO", "STAR"],
+    (SKLEARN_BINARY, MULTICLASS_BINARY): ["Iris-setosa", "Iris-versicolor"],
+    (SKLEARN, MULTICLASS_BINARY): ["Iris-setosa", "Iris-versicolor"],
+    (XGB, MULTICLASS_BINARY): ["Iris-setosa", "Iris-versicolor"],
+    (KERAS, MULTICLASS_BINARY): ["Iris-setosa", "Iris-versicolor"],
+    (RDS, MULTICLASS_BINARY): ["Iris-setosa", "Iris-versicolor"],
+    (PYPMML, MULTICLASS_BINARY): ["Iris-setosa", "Iris-versicolor"],
+    (PYTORCH, MULTICLASS_BINARY): ["Iris-setosa", "Iris-versicolor"],
+    (CODEGEN, MULTICLASS_BINARY): ["yes", "no"],
+    (MOJO, MULTICLASS_BINARY): ["yes", "no"],
+    (POJO, MULTICLASS_BINARY): ["yes", "no"],
 }
 
 _artifacts = {
@@ -215,6 +230,21 @@ _artifacts = {
     (SKLEARN_TRANSFORM_DENSE, TRANSFORM): os.path.join(
         TESTS_ARTIFACTS_PATH, "sklearn_transform_dense.pkl"
     ),
+    (SKLEARN, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_bin.pkl"),
+    (KERAS, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "keras_bin.h5"),
+    (XGB, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "xgb_bin.pkl"),
+    (PYTORCH, MULTICLASS_BINARY): [
+        os.path.join(TESTS_ARTIFACTS_PATH, "torch_bin.pth"),
+        os.path.join(TESTS_ARTIFACTS_PATH, "PyTorch.py"),
+    ],
+    (RDS, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "r_bin.rds"),
+    (CODEGEN, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "java_bin.jar"),
+    (POJO, MULTICLASS_BINARY): os.path.join(
+        TESTS_ARTIFACTS_PATH,
+        "XGBoost_grid__1_AutoML_20200717_163214_model_159.java",
+    ),
+    (MOJO, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_bin.zip"),
+    (PYPMML, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "iris_bin.pmml"),
 }
 
 _custom_filepaths = {
@@ -306,7 +336,7 @@ def get_target():
 @pytest.fixture(scope="session")
 def get_target_type():
     def _foo(problem):
-        return _target_types[problem]
+        return _target_types.get(problem, problem)
 
     return _foo
 

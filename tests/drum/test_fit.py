@@ -17,6 +17,7 @@ from .constants import (
     KERAS,
     MULTICLASS,
     MULTICLASS_NUM_LABELS,
+    MULTICLASS_BINARY,
     PYTHON,
     PYTORCH,
     PYTORCH_MULTICLASS,
@@ -24,7 +25,6 @@ from .constants import (
     RDS,
     REGRESSION,
     BINARY_TEXT,
-    TRANSFORM,
     SIMPLE,
     SKLEARN,
     SKLEARN_BINARY,
@@ -37,6 +37,7 @@ from .constants import (
     WEIGHTS_CSV,
     XGB,
     BINARY_BOOL,
+    TRANSFORM,
 )
 from .utils import _cmd_add_class_labels, _create_custom_model_dir, _exec_shell_cmd
 
@@ -106,7 +107,9 @@ class TestFit:
         if use_output:
             cmd += " --output {}".format(output)
         if problem == BINARY:
-            cmd = _cmd_add_class_labels(cmd, resources.class_labels(framework, problem))
+            cmd = _cmd_add_class_labels(
+                cmd, resources.class_labels(framework, problem), target_type=problem
+            )
         if docker:
             cmd += " --docker {} ".format(docker)
 
@@ -123,6 +126,7 @@ class TestFit:
             (RDS, BINARY_TEXT, None),
             (RDS, REGRESSION, None),
             (RDS, MULTICLASS, None),
+            (RDS, MULTICLASS_BINARY, None),
             (SKLEARN_BINARY, BINARY_TEXT, DOCKER_PYTHON_SKLEARN),
             (SKLEARN_REGRESSION, REGRESSION, DOCKER_PYTHON_SKLEARN),
             (SKLEARN_ANOMALY, ANOMALY, DOCKER_PYTHON_SKLEARN),
@@ -131,18 +135,22 @@ class TestFit:
             (SKLEARN_REGRESSION, REGRESSION, None),
             (SKLEARN_ANOMALY, ANOMALY, None),
             (SKLEARN_MULTICLASS, MULTICLASS, None),
+            (SKLEARN_MULTICLASS, MULTICLASS_BINARY, None),
             (SKLEARN_MULTICLASS, MULTICLASS_NUM_LABELS, None),
             (SKLEARN_TRANSFORM, REGRESSION, None),
             (SKLEARN_TRANSFORM, BINARY, None),
             (XGB, BINARY_TEXT, None),
             (XGB, REGRESSION, None),
             (XGB, MULTICLASS, None),
+            (XGB, MULTICLASS_BINARY, None),
             (KERAS, BINARY_TEXT, None),
             (KERAS, REGRESSION, None),
             (KERAS, MULTICLASS, None),
+            (KERAS, MULTICLASS_BINARY, None),
             (PYTORCH, BINARY_TEXT, None),
             (PYTORCH, REGRESSION, None),
             (PYTORCH_MULTICLASS, MULTICLASS, None),
+            (PYTORCH_MULTICLASS, MULTICLASS_BINARY, None),
         ],
     )
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
@@ -175,14 +183,9 @@ class TestFit:
             weights, input_dataset, r_fit=language == R_FIT
         )
 
-        if problem in [BINARY_TEXT, BINARY_BOOL]:
-            target_type = BINARY
-        elif problem == MULTICLASS_NUM_LABELS:
-            target_type = MULTICLASS
-        elif framework == SKLEARN_TRANSFORM:
-            target_type = TRANSFORM
-        else:
-            target_type = problem
+        target_type = (
+            resources.target_types(problem) if framework != SKLEARN_TRANSFORM else TRANSFORM
+        )
 
         cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
             ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
@@ -193,7 +196,9 @@ class TestFit:
             cmd += " --unsupervised"
 
         if problem in [BINARY, MULTICLASS]:
-            cmd = _cmd_add_class_labels(cmd, resources.class_labels(framework, problem))
+            cmd = _cmd_add_class_labels(
+                cmd, resources.class_labels(framework, problem), target_type=target_type
+            )
         if docker:
             cmd += " --docker {} ".format(docker)
 

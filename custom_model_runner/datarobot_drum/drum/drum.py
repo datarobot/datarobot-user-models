@@ -455,7 +455,7 @@ class CMRunner:
                         self.options.negative_class_label,
                     ) = possible_class_labels
                 elif self.target_type == TargetType.MULTICLASS:
-                    if len(possible_class_labels) <= 2:
+                    if len(possible_class_labels) < 2:
                         raise DrumCommonException(
                             "Target type {} requires more than 2 class labels. Detected {}: {}".format(
                                 TargetType.MULTICLASS,
