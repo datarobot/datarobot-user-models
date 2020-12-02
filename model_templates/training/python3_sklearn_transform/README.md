@@ -30,11 +30,7 @@ Categoricals:
 - Impute missing values with the string "missing"
 - One hot encode the data (ignoring new categorical levels at prediction time)
 
-SVD:
-After all the above is done, run SVD to reduce the dimensionality of the dataset to 10.
-
-This makes a dataset that can be used with basically any sklearn model.  This step could be removed for models that support sparse data.
-
+This makes a dataset that can be used with any sklearn model that supports sparse data.
 
 ### To run locally using 'drum'
 Paths are relative to `datarobot-user-models` root:
