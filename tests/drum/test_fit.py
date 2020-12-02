@@ -37,6 +37,7 @@ from .constants import (
     WEIGHTS_CSV,
     XGB,
     BINARY_BOOL,
+    TRANSFORM,
 )
 from .utils import _cmd_add_class_labels, _create_custom_model_dir, _exec_shell_cmd
 
@@ -182,7 +183,9 @@ class TestFit:
             weights, input_dataset, r_fit=language == R_FIT
         )
 
-        target_type = resources.target_types(problem)
+        target_type = (
+            resources.target_types(problem) if framework != SKLEARN_TRANSFORM else TRANSFORM
+        )
 
         cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
             ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
