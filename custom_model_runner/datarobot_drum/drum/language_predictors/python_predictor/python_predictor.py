@@ -58,8 +58,8 @@ class PythonPredictor(BaseLanguagePredictor):
 
         return predictions
 
-    def transform(self, input_filename):
-        return self._model_adapter.transform(input_filename, model=self._model)
+    def transform(self, input_filename, target_filename=None):
+        return self._model_adapter.transform(input_filename, model=self._model, target_filename=target_filename)
 
     def predict_unstructured(self, data, **kwargs):
         str_or_tuple = self._model_adapter.predict_unstructured(

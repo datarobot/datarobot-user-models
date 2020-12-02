@@ -301,7 +301,22 @@ class PythonModelAdapter:
         formats.add(PayloadFormat.ARROW, pyarrow.__version__)
         return formats
 
-    def transform(self, input_filename, model):
+    def _read_input_file(self, input_filename):
+        if self._custom_hooks.get(CustomHooks.READ_INPUT_DATA):
+            try:
+                data = self._custom_hooks[CustomHooks.READ_INPUT_DATA](input_filename)
+            except Exception as exc:
+                raise type(exc)(
+                    "Model read_data hook failed to read input file: {} {}".format(
+                        input_filename, exc
+                    )
+                ).with_traceback(sys.exc_info()[2]) from None
+        else:
+            data = PythonModelAdapter._read_structured_input(input_filename)
+
+        return data
+
+    def transform(self, input_filename, model, target_filename=None):
         """
         Load data, either with read hook or built-in method, and apply transform hook if present
 
@@ -316,23 +331,15 @@ class PythonModelAdapter:
         pd.DataFrame
         """
         target = None
+        data = self._read_input_file(input_filename)
 
-        if self._custom_hooks.get(CustomHooks.READ_INPUT_DATA):
-            try:
-                data = self._custom_hooks[CustomHooks.READ_INPUT_DATA](input_filename)
-            except Exception as exc:
-                raise type(exc)(
-                    "Model read_data hook failed to read input file: {} {}".format(
-                        input_filename, exc
-                    )
-                ).with_traceback(sys.exc_info()[2]) from None
-        else:
-            data = PythonModelAdapter._read_structured_input(input_filename)
-
-            if self._target_type == TargetType.TRANSFORM:
+        if self._target_type == TargetType.TRANSFORM:
+            if self._target_name is not None:
                 target = data.get(self._target_name)
                 if target is not None:
                     data = data.drop(self._target_name, axis=1)
+            elif target_filename is not None:
+                target = self._read_input_file(target_filename)
 
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
             try:
