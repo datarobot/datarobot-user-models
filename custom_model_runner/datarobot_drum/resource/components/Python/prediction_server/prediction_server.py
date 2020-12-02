@@ -5,7 +5,7 @@ from datarobot_drum.drum.common import LOGGER_NAME_PREFIX, make_predictor_capabi
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.memory_monitor import MemoryMonitor
-from datarobot_drum.drum.common import RunLanguage, TARGET_TYPE_ARG_KEYWORD
+from datarobot_drum.drum.common import RunLanguage, TARGET_TYPE_ARG_KEYWORD, TargetType
 from datarobot_drum.resource.predict_mixin import PredictMixin
 
 from datarobot_drum.drum.server import (
@@ -32,7 +32,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         super(PredictionServer, self).configure(params)
         self._show_perf = self._params.get("show_perf")
         self._run_language = RunLanguage(params.get("run_language"))
-        self._target_type = params[TARGET_TYPE_ARG_KEYWORD]
+        self._target_type = TargetType(params[TARGET_TYPE_ARG_KEYWORD])
 
         self._stats_collector = StatsCollector(disable_instance=not self._show_perf)
 
@@ -86,6 +86,21 @@ class PredictionServer(ConnectableComponent, PredictMixin):
 
             try:
                 response, response_status = self.do_predict(logger=logger)
+            finally:
+                self._stats_collector.mark("finish")
+                self._stats_collector.disable()
+            return response, response_status
+
+        @model_api.route("/transform/", methods=["POST"])
+        def transform():
+
+            logger.debug("Entering transform() endpoint")
+
+            self._stats_collector.enable()
+            self._stats_collector.mark("start")
+
+            try:
+                response, response_status = self.do_transform(logger=logger)
             finally:
                 self._stats_collector.mark("finish")
                 self._stats_collector.disable()

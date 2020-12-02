@@ -11,6 +11,7 @@ from datarobot_drum.drum.common import (
     URL_PREFIX_ENV_VAR_NAME,
     TARGET_TYPE_ARG_KEYWORD,
     make_predictor_capabilities,
+    TargetType,
 )
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 
@@ -61,7 +62,7 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
         super(UwsgiServing, self).configure(params)
         self._show_perf = self._params.get("show_perf")
         self._run_language = RunLanguage(params.get("run_language"))
-        self._target_type = params[TARGET_TYPE_ARG_KEYWORD]
+        self._target_type = TargetType(params[TARGET_TYPE_ARG_KEYWORD])
 
         self._stats_collector = StatsCollector(disable_instance=not self._show_perf)
 
@@ -167,6 +168,30 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
 
         try:
             response, response_status = self.do_predict_unstructured()
+
+            if response_status == HTTP_200_OK:
+                # this counter is managed by uwsgi
+                self._total_predict_requests.increase()
+                self._predict_calls_count += 1
+        except Exception as ex:
+            response_status, response = self._handle_exception(ex)
+        finally:
+            self._stats_collector.mark("finish")
+            self._stats_collector.disable()
+        return response_status, response
+
+    @FlaskRoute(
+        "{}/transform/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["POST"]
+    )
+    def transform(self, url_params, form_params):
+        if self._error_response:
+            return HTTP_513_DRUM_PIPELINE_ERROR, self._error_response
+
+        self._stats_collector.enable()
+        self._stats_collector.mark("start")
+
+        try:
+            response, response_status = self.do_transform()
 
             if response_status == HTTP_200_OK:
                 # this counter is managed by uwsgi

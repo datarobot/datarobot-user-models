@@ -7,6 +7,12 @@ import pytest
 import requests
 
 from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.resource.transform_helpers import (
+    read_arrow_payload,
+    read_mtx_payload,
+    read_csv_payload,
+    validate_transformed_output,
+)
 from .constants import (
     BINARY,
     CODEGEN,
@@ -20,6 +26,8 @@ from .constants import (
     PYPMML,
     PYTHON,
     PYTHON_LOAD_MODEL,
+    PYTHON_TRANSFORM,
+    PYTHON_TRANSFORM_DENSE,
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
     PYTORCH,
     R,
@@ -28,6 +36,9 @@ from .constants import (
     REGRESSION_INFERENCE,
     RESPONSE_PREDICTIONS_KEY,
     SKLEARN,
+    SKLEARN_TRANSFORM,
+    SKLEARN_TRANSFORM_DENSE,
+    TRANSFORM,
     XGB,
 )
 from .drum_server_utils import DrumServerRun
@@ -182,12 +193,10 @@ class TestInference:
             docker,
         ) as run:
             input_dataset = resources.datasets(framework, problem)
-
             # do predictions
             response = requests.post(
                 run.url_server_address + "/predict/", files={"X": open(input_dataset)}
             )
-
             print(response.text)
             assert response.ok
             actual_num_predictions = len(json.loads(response.text)[RESPONSE_PREDICTIONS_KEY])
@@ -234,6 +243,111 @@ class TestInference:
             assert response.ok
             actual_num_predictions = len(json.loads(response.text)[RESPONSE_PREDICTIONS_KEY])
             in_data = pd.read_csv(input_dataset)
+            assert in_data.shape[0] == actual_num_predictions
+
+    @pytest.mark.parametrize(
+        "framework, problem, language, docker, use_arrow",
+        [
+            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, True),
+            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None, False),
+            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, False),
+        ],
+    )
+    def test_custom_transform_server(
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        tmp_path,
+        use_arrow,
+    ):
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
+        )
+
+        with DrumServerRun(
+            resources.target_types(problem),
+            resources.class_labels(framework, problem),
+            custom_model_dir,
+            docker,
+        ) as run:
+            input_dataset = resources.datasets(framework, problem)
+            # do predictions
+            files = {"X": open(input_dataset)}
+            if use_arrow:
+                files["arrow_version"] = ".2"
+
+            response = requests.post(run.url_server_address + "/transform/", files=files)
+            print(response.text)
+            assert response.ok
+
+            in_data = pd.read_csv(input_dataset)
+
+            if framework == SKLEARN_TRANSFORM_DENSE:
+                if use_arrow:
+                    transformed_out = read_arrow_payload(eval(response.text))
+                    assert eval(response.text)["out.format"] == "arrow"
+                else:
+                    transformed_out = read_csv_payload(eval(response.text))
+                    assert eval(response.text)["out.format"] == "csv"
+                actual_num_predictions = transformed_out.shape[0]
+            else:
+                transformed_out = read_mtx_payload(eval(response.text))
+                actual_num_predictions = transformed_out.shape[0]
+                assert eval(response.text)["out.format"] == "sparse"
+            validate_transformed_output(
+                transformed_out, should_be_sparse=framework == SKLEARN_TRANSFORM
+            )
+            assert in_data.shape[0] == actual_num_predictions
+
+    @pytest.mark.parametrize(
+        "framework, problem, language, docker",
+        [
+            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, DOCKER_PYTHON_SKLEARN),
+        ],
+    )
+    def test_custom_transforms_with_drum_nginx_prediction_server(
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        tmp_path,
+    ):
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
+        )
+
+        with DrumServerRun(
+            resources.target_types(problem),
+            resources.class_labels(framework, problem),
+            custom_model_dir,
+            docker,
+            nginx=True,
+        ) as run:
+            input_dataset = resources.datasets(framework, problem)
+            # do predictions
+            response = requests.post(
+                run.url_server_address + "/transform/", files={"X": open(input_dataset)}
+            )
+            print(response.text)
+            assert response.ok
+
+            in_data = pd.read_csv(input_dataset)
+
+            transformed_mat = read_mtx_payload(eval(response.text))
+            actual_num_predictions = transformed_mat.shape[0]
             assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(

@@ -22,6 +22,8 @@ from tests.drum.constants import (
     PYTHON_ALL_PREDICT_STRUCTURED_HOOKS,
     PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS,
     PYTHON_LOAD_MODEL,
+    PYTHON_TRANSFORM,
+    PYTHON_TRANSFORM_DENSE,
     PYTHON_UNSTRUCTURED,
     PYTHON_UNSTRUCTURED_PARAMS,
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
@@ -43,15 +45,17 @@ from tests.drum.constants import (
     SKLEARN_MULTICLASS,
     SKLEARN_REGRESSION,
     SKLEARN_SPARSE,
+    SKLEARN_TRANSFORM,
+    SKLEARN_TRANSFORM_DENSE,
     SPARSE,
     SPARSE_TARGET,
     TESTS_ARTIFACTS_PATH,
     TESTS_DATA_PATH,
     TESTS_FIXTURES_PATH,
     TRAINING_TEMPLATES_PATH,
+    TRANSFORM,
     UNSTRUCTURED,
     XGB,
-    SKLEARN_TRANSFORM,
 )
 
 _datasets = {
@@ -71,6 +75,9 @@ _datasets = {
     (None, SPARSE): os.path.join(TESTS_DATA_PATH, "sparse.mtx"),
     (None, SPARSE_TARGET): os.path.join(TESTS_DATA_PATH, "sparse_target.csv"),
     (None, BINARY_BOOL): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
+    (SKLEARN, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
+    (SKLEARN_TRANSFORM, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
+    (SKLEARN_TRANSFORM_DENSE, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
 }
 
 _training_models_paths = {
@@ -114,6 +121,7 @@ _target_types = {
     UNSTRUCTURED: "unstructured",
     MULTICLASS: "multiclass",
     BINARY_BOOL: "binary",
+    TRANSFORM: "transform",
 }
 
 _class_labels = {
@@ -203,6 +211,10 @@ _artifacts = {
         os.path.join(TESTS_ARTIFACTS_PATH, "PyTorch.py"),
     ],
     (CODEGEN, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "java_multi.jar"),
+    (SKLEARN_TRANSFORM, TRANSFORM): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_transform.pkl"),
+    (SKLEARN_TRANSFORM_DENSE, TRANSFORM): os.path.join(
+        TESTS_ARTIFACTS_PATH, "sklearn_transform_dense.pkl"
+    ),
 }
 
 _custom_filepaths = {
@@ -243,6 +255,11 @@ _custom_filepaths = {
     R_UNSTRUCTURED_PARAMS: (
         os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom_params.R"),
         "custom.R",
+    ),
+    PYTHON_TRANSFORM: (os.path.join(TESTS_FIXTURES_PATH, "transform_custom.py"), "custom.py"),
+    PYTHON_TRANSFORM_DENSE: (
+        os.path.join(TESTS_FIXTURES_PATH, "transform_custom.py"),
+        "custom.py",
     ),
 }
 

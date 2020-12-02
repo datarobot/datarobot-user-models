@@ -9,6 +9,13 @@ from datarobot_drum.drum.common import (
     TargetType,
     UnstructuredDtoKeys,
     PredictionServerMimetypes,
+    X_TRANSFORM_KEY,
+)
+from datarobot_drum.resource.transform_helpers import (
+    make_arrow_payload,
+    is_sparse,
+    make_mtx_payload,
+    make_csv_payload,
 )
 from datarobot_drum.resource.unstructured_helpers import (
     _resolve_incoming_unstructured_data,
@@ -29,11 +36,18 @@ class PredictMixin:
 
     """
 
-    def do_predict(self, logger=None):
+    def _predict_or_transform(self, logger=None):
         response_status = HTTP_200_OK
 
         file_key = "X"
         filestorage = request.files.get(file_key)
+
+        if self._target_type == TargetType.TRANSFORM:
+            arrow_key = "arrow_version"
+            arrow_version = request.files.get(arrow_key)
+            if arrow_version is not None:
+                arrow_version = eval(arrow_version.getvalue())
+            use_arrow = arrow_version is not None
 
         if not filestorage:
             wrong_key_error_message = (
@@ -53,10 +67,38 @@ class PredictMixin:
         with tempfile.NamedTemporaryFile(suffix=file_ext) as f:
             filestorage.save(f)
             f.flush()
-            out_data = self._predictor.predict(f.name)
+            if self._target_type == TargetType.TRANSFORM:
+                out_data = self._predictor.transform(f.name)
+            else:
+                out_data = self._predictor.predict(f.name)
 
         if self._target_type == TargetType.UNSTRUCTURED:
             response = out_data
+        elif self._target_type == TargetType.TRANSFORM:
+            if is_sparse(out_data):
+                mtx_payload = make_mtx_payload(out_data)
+                response = (
+                    '{{"{transform_key}":{mtx_payload}, "out.format":"{out_format}"}}'.format(
+                        transform_key=X_TRANSFORM_KEY, mtx_payload=mtx_payload, out_format="sparse"
+                    )
+                )
+            else:
+                if use_arrow:
+                    arrow_payload = make_arrow_payload(out_data, arrow_version)
+                    response = (
+                        '{{"{transform_key}":{arrow_payload}, "out.format":"{out_format}"}}'.format(
+                            transform_key=X_TRANSFORM_KEY,
+                            arrow_payload=arrow_payload,
+                            out_format="arrow",
+                        )
+                    )
+                else:
+                    csv_payload = make_csv_payload(out_data)
+                    response = (
+                        '{{"{transform_key}":{csv_payload}, "out.format":"{out_format}"}}'.format(
+                            transform_key=X_TRANSFORM_KEY, csv_payload=csv_payload, out_format="csv"
+                        )
+                    )
         else:
             num_columns = len(out_data.columns)
             # float32 is not JSON serializable, so cast to float, which is float64
@@ -75,6 +117,19 @@ class PredictMixin:
         response = Response(response, mimetype=PredictionServerMimetypes.APPLICATION_JSON)
 
         return response, response_status
+
+    def do_predict(self, logger=None):
+        if self._target_type == TargetType.TRANSFORM:
+            wrong_target_type_error_message = (
+                "This project has target type {}, "
+                "use the /transform/ endpoint.".format(self._target_type)
+            )
+            if logger is not None:
+                logger.error(wrong_target_type_error_message)
+            response_status = HTTP_422_UNPROCESSABLE_ENTITY
+            return {"message": "ERROR: " + wrong_target_type_error_message}, response_status
+
+        return self._predict_or_transform(logger=logger)
 
     def do_predict_unstructured(self, logger=None):
         def _validate_content_type_header(header):
@@ -115,3 +170,19 @@ class PredictMixin:
             response.headers["Content-Type"] = content_type
 
         return response, response_status
+
+    def do_transform(self, logger=None):
+        if self._target_type != TargetType.TRANSFORM:
+            endpoint = (
+                "predictUnstructured" if self._target_type == TargetType.UNSTRUCTURED else "predict"
+            )
+            wrong_target_type_error_message = (
+                "This project has target type {}, "
+                "use the /{}/ endpoint.".format(self._target_type, endpoint)
+            )
+            if logger is not None:
+                logger.error(wrong_target_type_error_message)
+            response_status = HTTP_422_UNPROCESSABLE_ENTITY
+            return {"message": "ERROR: " + wrong_target_type_error_message}, response_status
+
+        return self._predict_or_transform(logger=logger)

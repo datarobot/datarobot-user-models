@@ -1,5 +1,6 @@
 import pickle
 import pandas as pd
+from scipy.sparse.csr import csr_matrix
 
 from create_transform_pipeline import make_pipeline
 
@@ -54,4 +55,8 @@ def transform(data, transformer):
     -------
     transformed DataFrame resulting from applying transform to incoming data
     """
-    return pd.DataFrame(transformer.transform(data))
+    transformed = transformer.transform(data)
+    if type(transform) == csr_matrix:
+        return pd.DataFrame.sparse.from_spmatrix(transformed)
+    else:
+        return pd.DataFrame(transformed)
