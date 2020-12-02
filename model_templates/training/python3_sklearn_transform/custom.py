@@ -1,5 +1,6 @@
 import pickle
 import pandas as pd
+import numpy as np
 from scipy.sparse.csr import csr_matrix
 
 from create_transform_pipeline import make_pipeline
@@ -44,19 +45,20 @@ def fit(
         pickle.dump(transformer, fp)
 
 
-def transform(data, transformer):
+def transform(X, y, transformer):
     """
     Parameters
     ----------
-    data: pd.DataFrame - training data to perform transform on
+    X: pd.DataFrame - training data to perform transform on
+    y: pd.Series - target data to perform transform on
     transformer: object - trained transformer object
 
     Returns
     -------
     transformed DataFrame resulting from applying transform to incoming data
     """
-    transformed = transformer.transform(data)
+    transformed = transformer.transform(X)
     if type(transform) == csr_matrix:
-        return pd.DataFrame.sparse.from_spmatrix(transformed)
+        return pd.DataFrame.sparse.from_spmatrix(transformed), y
     else:
-        return pd.DataFrame(transformed)
+        return pd.DataFrame(transformed),  y

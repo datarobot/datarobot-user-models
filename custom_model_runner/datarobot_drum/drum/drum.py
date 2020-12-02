@@ -347,7 +347,8 @@ class CMRunner:
         if self.options.target:
             __tempfile = NamedTemporaryFile()
             df = pd.read_csv(self.options.input)
-            df = df.drop(self.options.target, axis=1)
+            if self.target_type != TargetType.TRANSFORM:
+                df = df.drop(self.options.target, axis=1)
             # convert to R-friendly missing fields
             if self._get_fit_run_language() == RunLanguage.R:
                 df = handle_missing_colnames(df)
@@ -388,6 +389,13 @@ class CMRunner:
             "target_type": self.target_type.value,
         }
 
+        if self.target_type == TargetType.TRANSFORM:
+            replace_data.update(
+                {
+                    "target_name": options.target,
+                }
+            )
+
         if self.run_mode == RunMode.SCORE:
             replace_data.update(
                 {
@@ -414,7 +422,6 @@ class CMRunner:
                     "single_uwsgi_worker": (options.max_workers == 1),
                 }
             )
-
         functional_pipeline_str = CMRunnerUtils.render_file(
             functional_pipeline_filepath, replace_data
         )

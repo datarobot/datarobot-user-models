@@ -7,6 +7,7 @@ from datarobot_drum.drum.common import (
     RunLanguage,
     TargetType,
     TARGET_TYPE_ARG_KEYWORD,
+    TARGET_NAME_ARG_KEYWORD,
     UnstructuredDtoKeys,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -25,11 +26,14 @@ class GenericPredictorComponent(ConnectableComponent):
         self._run_language = None
         self._predictor = None
         self._target_type = None
+        self._target_name = None
 
     def configure(self, params):
         super(GenericPredictorComponent, self).configure(params)
         self._run_language = RunLanguage(params.get("run_language"))
         self._target_type = TargetType(params[TARGET_TYPE_ARG_KEYWORD])
+        if self._target_type == TargetType.TRANSFORM:
+            self._target_name = params.get(TARGET_NAME_ARG_KEYWORD)
 
         if self._run_language == RunLanguage.PYTHON:
             from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
@@ -96,8 +100,15 @@ class GenericPredictorComponent(ConnectableComponent):
                 with open(output_filename, "w", encoding=response_charset) as f:
                     f.write(ret_data)
         elif self._target_type == TargetType.TRANSFORM:
-            transformed_df = self._predictor.transform(input_filename)
-            transformed_df.to_csv(output_filename, index=False)
+            features_transformed, target_transformed = self._predictor.transform(input_filename)
+            if output_filename.endswith(".csv"):
+                output_base = output_filename[:-4]
+                feature_output_filename = output_base + "_features_transformed.csv"
+                target_output_filename = output_base + "_target_transformed.csv"
+            elif output_filename.endswith("null"):
+                feature_output_filename = target_output_filename = output_filename
+            features_transformed.to_csv(feature_output_filename, index=False)
+            target_transformed.to_csv(target_output_filename, index=False)
         else:
             predictions = self._predictor.predict(input_filename)
             predictions.to_csv(output_filename, index=False)

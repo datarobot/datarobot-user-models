@@ -8,6 +8,7 @@ from datarobot_drum.drum.common import (
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
     CLASS_LABELS_ARG_KEYWORD,
     TARGET_TYPE_ARG_KEYWORD,
+    TARGET_NAME_ARG_KEYWORD,
 )
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
@@ -26,7 +27,7 @@ class PythonPredictor(BaseLanguagePredictor):
         super(PythonPredictor, self).configure(params)
 
         self._model_adapter = PythonModelAdapter(
-            model_dir=self._custom_model_path, target_type=self._target_type
+            model_dir=self._custom_model_path, target_type=self._target_type, target_name=params.get(TARGET_NAME_ARG_KEYWORD)
         )
 
         sys.path.append(self._custom_model_path)
