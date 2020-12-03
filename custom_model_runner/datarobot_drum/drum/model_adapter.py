@@ -464,13 +464,13 @@ class PythonModelAdapter:
         samplesize = min(1000, max(int(len(predictions) * 0.1), 10))
         rtol = 2e-02
         atol = 1e-06
-
         if type(data) == pd.DataFrame:
             data_subset = data.sample(n=samplesize, random_state=42)
+            subset_predictions = self._perform_prediction(data_subset, model, **kwargs)
         else:
             data_subset = pd.DataFrame(data).sample(n=samplesize, random_state=42)
+            subset_predictions = self._perform_prediction(data_subset.to_numpy(), model, **kwargs)
         original_predictions = predictions.iloc[data_subset.index]
-        subset_predictions = self._perform_prediction(data_subset.to_numpy(), model, **kwargs)
 
         matches = np.isclose(original_predictions, subset_predictions, rtol=rtol, atol=atol)
         if not np.all(matches):
@@ -481,7 +481,7 @@ class PythonModelAdapter:
                 However when we reran predictions on the same data, we got: {}""".format(
                 original_predictions[~matches][:10], subset_predictions[~matches][:10]
             )
-            raise DrumCommonException(message)
+            raise ValueError(message)
 
     @staticmethod
     def _validate_unstructured_predictions(unstructured_response):
