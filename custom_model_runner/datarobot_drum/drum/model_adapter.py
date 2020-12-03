@@ -307,7 +307,9 @@ class PythonModelAdapter:
             if mimetype == PredictionServerMimetypes.TEXT_MTX:
                 return pd.DataFrame.sparse.from_spmatrix(mmread(io.BytesIO(binary_data)))
             elif mimetype == PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM:
-                return pyarrow.ipc.deserialize_pandas(binary_data)
+                df = pyarrow.ipc.deserialize_pandas(binary_data)
+                df.fillna(value=np.nan, inplace=True)
+                return df
             else:
                 return pd.read_csv(io.BytesIO(binary_data))
         except pd.errors.ParserError as e:
