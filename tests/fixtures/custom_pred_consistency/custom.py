@@ -128,8 +128,7 @@ def load_model(code_dir):
 
 
 def score(data, model, **kwargs):
-    # doctored so predictions are random (but still sum to one)
-    results = model.predict_proba(data) + np.random.randn()
-    predictions = pd.DataFrame({"True": results[:, 0], "False": 1 - results[:, 0]})
+    results = model.predict_proba(data)
+    predictions = pd.DataFrame({"True": results[:, 0], "False": results[:, 1]})
 
     return predictions
