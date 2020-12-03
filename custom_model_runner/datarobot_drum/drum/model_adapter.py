@@ -464,10 +464,13 @@ class PythonModelAdapter:
         samplesize = min(1000, max(int(len(predictions) * 0.1), 10))
         rtol = 2e-02
         atol = 1e-06
-        # TODO: replace? set seed?
-        data_subset = data.subset(n=samplesize)
-        original_predictions = predictions[data_subset.index]
-        subset_predictions = self._perform_prediction(data_subset, model, **kwargs)
+
+        if type(data) == pd.DataFrame:
+            data_subset = data.sample(n=samplesize, random_state=42)
+        else:
+            data_subset = pd.DataFrame(data).sample(n=samplesize, random_state=42)
+        original_predictions = predictions.iloc[data_subset.index]
+        subset_predictions = self._perform_prediction(data_subset.to_numpy(), model, **kwargs)
 
         matches = np.isclose(original_predictions, subset_predictions, rtol=rtol, atol=atol)
         if not np.all(matches):
