@@ -108,7 +108,8 @@ class GenericPredictorComponent(ConnectableComponent):
             elif output_filename.endswith("null"):
                 feature_output_filename = target_output_filename = output_filename
             features_transformed.to_csv(feature_output_filename, index=False)
-            target_transformed.to_csv(target_output_filename, index=False)
+            if target_transformed is not None:
+                target_transformed.to_csv(target_output_filename, index=False)
         else:
             predictions = self._predictor.predict(input_filename)
             predictions.to_csv(output_filename, index=False)
