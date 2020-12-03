@@ -3,6 +3,7 @@ import glob
 import json
 import logging
 import os
+import requests
 import shutil
 import subprocess
 import sys
@@ -34,6 +35,7 @@ from datarobot_drum.drum.common import (
     TargetType,
     verbose_stdout,
     read_model_metadata_yaml,
+    RESPONSE_PREDICTIONS_KEY,
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -42,6 +44,7 @@ from datarobot_drum.drum.push import drum_push, setup_validation_options
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.utils import CMRunnerUtils, handle_missing_colnames
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
+from datarobot_drum.resource.drum_server_utils import DrumServerRun
 
 import docker.errors
 
@@ -353,7 +356,48 @@ class CMRunner:
                 df = handle_missing_colnames(df)
             df.to_csv(__tempfile.name, index=False)
             self.options.input = __tempfile.name
+        self._check_prediction_side_effects()
         self._run_fit_and_predictions_pipelines_in_mlpiper()
+
+    def _check_prediction_side_effects(self):
+        rtol = 2e-02
+        atol = 1e-06
+        df = pd.read_csv(self.options.input)
+        samplesize = min(1000, max(int(len(df) * 0.1), 10))
+        data_subset = df.sample(n=samplesize, random_state=42)
+
+        __tempfile_sample = NamedTemporaryFile()
+        data_subset.to_csv(__tempfile_sample.name, index=False)
+
+        with DrumServerRun(
+            self.options.target_type,
+            self.options.class_labels,
+            self.options.code_dir,
+        ) as run:
+            response_full = requests.post(
+                run.url_server_address + "/predict/", files={"X": open(self.options.input)}
+            )
+
+            preds_full = json.loads(response_full.text)[RESPONSE_PREDICTIONS_KEY]
+
+            response_sample = requests.post(
+                run.url_server_address + "/predict/", files={"X": open(__tempfile_sample.name)}
+            )
+
+            preds_sample = json.loads(response_sample.text)[RESPONSE_PREDICTIONS_KEY]
+
+            preds_full_subset = preds_full.iloc[data_subset.index]
+
+            matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)
+            if not np.all(matches):
+                message = """
+                            Error: Your predictions were different when we tried to predict twice.
+                            No randomness is allowed.
+                            The last 10 predictions from the main predict run were: {}
+                            However when we reran predictions on the same data, we got: {}""".format(
+                    preds_full_subset[~matches][:10], preds_sample[~matches][:10]
+                )
+                raise ValueError(message)
 
     def _generate_template(self):
         CMTemplateGenerator(

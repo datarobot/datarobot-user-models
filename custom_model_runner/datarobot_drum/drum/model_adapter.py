@@ -325,7 +325,6 @@ class PythonModelAdapter:
     def transform(self, model=None, **kwargs):
         """
         Load data, either with read hook or built-in method, and apply transform hook if present
-
         Parameters
         ----------
         model: Any
@@ -397,28 +396,6 @@ class PythonModelAdapter:
         if positive_class_label and negative_class_label:
             class_labels = [negative_class_label, positive_class_label]
 
-        predictions = self._perform_prediction(data, model, **kwargs)
-
-        self._validate_predictions(predictions, class_labels)
-        self._check_prediction_consistency(predictions, data, model, **kwargs)
-
-        return predictions
-
-    def _perform_prediction(self, data, model, **kwargs):
-        """
-        Call score and post-process hook, as available, or use built-in predictor.
-
-        Parameters
-        ----------
-        data: pd.DataFrame
-            Data to make predictions against
-        model: Any
-            The model
-        kwargs
-        Returns
-        -------
-        pd.DataFrame
-        """
         if self._custom_hooks.get(CustomHooks.SCORE):
             try:
                 # noinspection PyCallingNonCallable
@@ -444,44 +421,9 @@ class PythonModelAdapter:
                     "Model post-process hook failed to post-process predictions: {}".format(exc)
                 ).with_traceback(sys.exc_info()[2]) from None
 
+        self._validate_predictions(predictions, class_labels)
+
         return predictions
-
-    def _check_prediction_consistency(self, predictions, data, model, **kwargs):
-        """
-        Check predictions on a subset of data against subset of predictions
-
-        Parameters
-        ----------
-        data: pd.DataFrame
-            Data to make predictions against
-        model: Any
-            The model
-        kwargs
-        Returns
-        -------
-        Raise if consistency issue
-        """
-        samplesize = min(1000, max(int(len(predictions) * 0.1), 10))
-        rtol = 2e-02
-        atol = 1e-06
-        if type(data) == pd.DataFrame:
-            data_subset = data.sample(n=samplesize, random_state=42)
-            subset_predictions = self._perform_prediction(data_subset, model, **kwargs)
-        else:
-            data_subset = pd.DataFrame(data).sample(n=samplesize, random_state=42)
-            subset_predictions = self._perform_prediction(data_subset.to_numpy(), model, **kwargs)
-        original_predictions = predictions.iloc[data_subset.index]
-
-        matches = np.isclose(original_predictions, subset_predictions, rtol=rtol, atol=atol)
-        if not np.all(matches):
-            message = """
-                Error: Your predictions were different when we tried to predict twice.
-                No randomness is allowed.
-                The last 10 predictions from the main predict run were: {}
-                However when we reran predictions on the same data, we got: {}""".format(
-                original_predictions[~matches][:10], subset_predictions[~matches][:10]
-            )
-            raise ValueError(message)
 
     @staticmethod
     def _validate_unstructured_predictions(unstructured_response):
@@ -528,7 +470,6 @@ class PythonModelAdapter:
         load the object here, and call fit on it. Then, it will serialize the fit model out
         to the output directory. If it can't find the wrapper, it will return False, if it
         successfully runs fit, it will return True, otherwise it will throw a DrumCommonException.
-
         Returns
         -------
         Boolean, whether fit was run
