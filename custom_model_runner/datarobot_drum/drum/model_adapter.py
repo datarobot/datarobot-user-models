@@ -308,7 +308,19 @@ class PythonModelAdapter:
                 return pd.DataFrame.sparse.from_spmatrix(mmread(io.BytesIO(binary_data)))
             elif mimetype == PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM:
                 df = pyarrow.ipc.deserialize_pandas(binary_data)
+
+                # After CSV serialization+deserialization,
+                # original dataframe's None and np.nan values
+                # become np.nan values.
+                # After Arrow serialization+deserialization,
+                # original dataframe's None and np.nan values
+                # become np.nan for numeric columns and None for 'object' columns.
+                #
+                # Since we are supporting both CSV and Arrow,
+                # to be consistent with CSV serialization/deserialization,
+                # it is required to replace all None with np.nan for Arrow.
                 df.fillna(value=np.nan, inplace=True)
+
                 return df
             else:
                 return pd.read_csv(io.BytesIO(binary_data))
