@@ -125,10 +125,3 @@ def load_model(code_dir):
     model_path = "model.pkl"
     model = joblib.load(os.path.join(code_dir, model_path))
     return model
-
-
-def score(data, model, **kwargs):
-    results = model.predict_proba(data)
-    predictions = pd.DataFrame({"True": results[:, 0], "False": results[:, 1]})
-
-    return predictions

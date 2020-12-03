@@ -371,20 +371,20 @@ class CMRunner:
 
         with DrumServerRun(
             self.options.target_type,
-            self.options.class_labels,
+            [self.options.negative_class_label, self.options.positive_class_label],
             self.options.code_dir,
         ) as run:
             response_full = requests.post(
                 run.url_server_address + "/predict/", files={"X": open(self.options.input)}
             )
 
-            preds_full = json.loads(response_full.text)[RESPONSE_PREDICTIONS_KEY]
+            preds_full = pd.DataFrame(json.loads(response_full.text)[RESPONSE_PREDICTIONS_KEY])
 
             response_sample = requests.post(
                 run.url_server_address + "/predict/", files={"X": open(__tempfile_sample.name)}
             )
 
-            preds_sample = json.loads(response_sample.text)[RESPONSE_PREDICTIONS_KEY]
+            preds_sample = pd.DataFrame(json.loads(response_sample.text)[RESPONSE_PREDICTIONS_KEY])
 
             preds_full_subset = preds_full.iloc[data_subset.index]
 

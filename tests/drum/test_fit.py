@@ -400,6 +400,9 @@ class TestFit:
         )
         cmd += " --target {}".format(resources.targets(problem))
 
+        if target_type in [BINARY, MULTICLASS]:
+            cmd = _cmd_add_class_labels(cmd, resources.class_labels(framework, problem))
+
         _, _, stderr = _exec_shell_cmd(
             cmd,
             "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
