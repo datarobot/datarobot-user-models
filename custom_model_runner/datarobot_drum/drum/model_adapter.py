@@ -461,7 +461,7 @@ class PythonModelAdapter:
         -------
         Raise if consistency issue
         """
-        samplesize = min(1000, max(int(predictions.nrow * 0.1), 10))
+        samplesize = min(1000, max(int(len(predictions) * 0.1), 10))
         rtol = 2e-02
         atol = 1e-06
         # TODO: replace? set seed?
