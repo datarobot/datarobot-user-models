@@ -318,5 +318,7 @@ def test_read_structured_input_arrow_csv_na_consistency(tmp_path):
     is_none = lambda x: x is None
 
     assert_frame_equal(csv_df, arrow_df)
+    # `assert_frame_equal` doesn't make a difference between None and np.nan.
+    # To do an exact comparison, compare None and np.nan "masks".
     assert_frame_equal(csv_df.applymap(is_nan), arrow_df.applymap(is_nan))
     assert_frame_equal(csv_df.applymap(is_none), arrow_df.applymap(is_none))
