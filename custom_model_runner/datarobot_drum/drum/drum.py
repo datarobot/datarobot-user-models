@@ -698,13 +698,14 @@ class CMRunner:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        container_drum_version = result.stdout.decode("utf8")
+        container_drum_version = result.stdout.decode("utf8").strip()
 
-        if container_drum_version != drum_version:
+        host_drum_version = "{} {}".format(ArgumentsOptions.MAIN_COMMAND, drum_version)
+        if container_drum_version != host_drum_version:
             print(
                 "WARNING: looks like host DRUM version doesn't match container DRUM version. This can lead to unexpected behavior.\n"
                 "Host DRUM version: {}\n"
-                "Container DRUM version: {}".format(drum_version, result.stdout.decode("utf8"))
+                "Container DRUM version: {}".format(host_drum_version, result.stdout.decode("utf8"))
             )
             err = result.stderr.decode("utf8")
             if len(err):
