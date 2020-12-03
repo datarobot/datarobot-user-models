@@ -80,18 +80,22 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
 
     if "trainOnProject" in model_config.get("trainingModel", ""):
         try:
-            project = dr_client.Project(model_config["trainingModel"]["trainOnProject"])
+            pid = model_config["trainingModel"]["trainOnProject"]
+            current_task = "fetching the specified project {}".format(pid)
+            project = dr_client.Project(pid)
 
             # TODO: Update this once the datarobot client is updated
-            payload = dict(project_id=project.id, user_blueprint_ids=[user_blueprint_id])
+            payload = dict(project_id=pid, user_blueprint_ids=[user_blueprint_id])
+            current_task = "adding your model to the menu"
             response = dr_client.client.get_client().post("userBlueprints/addToMenu/", data=payload)
             blueprint_id = response.json()[user_blueprint_id]
 
+            current_task = "actually training of blueprint {}".format(blueprint_id)
             model_job_id = project.train(blueprint_id)
-            lid = dr_client.ModelJob.get(project_id=project.id, model_job_id=model_job_id).model_id
+            lid = dr_client.ModelJob.get(project_id=pid, model_job_id=model_job_id).model_id
         except dr_client.errors.ClientError as e:
-            print("There was an error training your model: {}".format(e))
-            raise SystemExit()
+            print("There was an error training your model while {}: {}".format(current_task, e))
+            raise SystemExit(1)
         print("\nIn addition...")
         print("Model training has started! Follow along at this link: ")
         print(
