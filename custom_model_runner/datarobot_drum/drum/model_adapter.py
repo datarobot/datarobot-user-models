@@ -397,6 +397,28 @@ class PythonModelAdapter:
         if positive_class_label and negative_class_label:
             class_labels = [negative_class_label, positive_class_label]
 
+        predictions = self._perform_prediction(data, model, **kwargs)
+
+        self._validate_predictions(predictions, class_labels)
+        self._check_prediction_consistency(predictions, data, model, **kwargs)
+
+        return predictions
+
+    def _perform_prediction(self, data, model, **kwargs):
+        """
+        Call score and post-process hook, as available, or use built-in predictor.
+
+        Parameters
+        ----------
+        data: pd.DataFrame
+            Data to make predictions against
+        model: Any
+            The model
+        kwargs
+        Returns
+        -------
+        pd.DataFrame
+        """
         if self._custom_hooks.get(CustomHooks.SCORE):
             try:
                 # noinspection PyCallingNonCallable
@@ -422,9 +444,41 @@ class PythonModelAdapter:
                     "Model post-process hook failed to post-process predictions: {}".format(exc)
                 ).with_traceback(sys.exc_info()[2]) from None
 
-        self._validate_predictions(predictions, class_labels)
-
         return predictions
+
+    def _check_prediction_consistency(self, predictions, data, model, **kwargs):
+        """
+        Check predictions on a subset of data against subset of predictions
+
+        Parameters
+        ----------
+        data: pd.DataFrame
+            Data to make predictions against
+        model: Any
+            The model
+        kwargs
+        Returns
+        -------
+        Raise if consistency issue
+        """
+        samplesize = min(1000, max(int(predictions.nrow * 0.1), 10))
+        rtol = 2e-02
+        atol = 1e-06
+        # TODO: replace? set seed?
+        data_subset = data.subset(n=samplesize)
+        original_predictions = predictions[data_subset.index]
+        subset_predictions = self._perform_prediction(data_subset, model, **kwargs)
+
+        matches = np.isclose(original_predictions, subset_predictions, rtol=rtol, atol=atol)
+        if not np.all(matches):
+            message = """
+                Error: Your predictions were different when we tried to predict twice.
+                No randomness is allowed.
+                The last 10 predictions from the main predict run were: {}
+                However when we reran predictions on the same data, we got: {}""".format(
+                original_predictions[~matches][:10], subset_predictions[~matches][:10]
+            )
+            raise DrumCommonException(message)
 
     @staticmethod
     def _validate_unstructured_predictions(unstructured_response):
