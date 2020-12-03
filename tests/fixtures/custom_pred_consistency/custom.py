@@ -23,7 +23,7 @@ def init(code_dir):
 def read_input_data(input_filename):
     data = pd.read_csv(input_filename)
     try:
-        data.drop(['diag_1_desc'], axis=1, inplace=True)
+        data.drop(["diag_1_desc"], axis=1, inplace=True)
     except:
         pass
 
@@ -34,44 +34,49 @@ def read_input_data(input_filename):
 
 
 def fit(
-        X: pd.DataFrame,
-        y: pd.Series,
-        output_dir=str,
-        class_order: Optional[List[str]] = None,
-        row_weights: Optional[np.ndarray] = None,
-        **kwargs,
+    X: pd.DataFrame,
+    y: pd.Series,
+    output_dir=str,
+    class_order: Optional[List[str]] = None,
+    row_weights: Optional[np.ndarray] = None,
+    **kwargs,
 ) -> None:
     # Drop diag_1_desc columns
     try:
-        X.drop(['diag_1_desc'], axis=1, inplace=True)
+        X.drop(["diag_1_desc"], axis=1, inplace=True)
     except:
         pass
 
-    X['race'] = X['race'].astype('object')
-    X['diag_1'] = X['diag_1'].astype('str')
-    X['diag_2'] = X['diag_2'].astype('str')
-    X['diag_3'] = X['diag_3'].astype('str')
+    X["race"] = X["race"].astype("object")
+    X["diag_1"] = X["diag_1"].astype("str")
+    X["diag_2"] = X["diag_2"].astype("str")
+    X["diag_3"] = X["diag_3"].astype("str")
 
     # Preprocessing for numerical features
-    numeric_features = list(X.select_dtypes('int64').columns)
-    numeric_transformer = Pipeline(steps=[
-        ('imputer', SimpleImputer(strategy='median')),
-        ('scaler', StandardScaler())])
+    numeric_features = list(X.select_dtypes("int64").columns)
+    numeric_transformer = Pipeline(
+        steps=[("imputer", SimpleImputer(strategy="median")), ("scaler", StandardScaler())]
+    )
 
     # Preprocessing for categorical features
-    categorical_features = list(X.select_dtypes('object').columns)
-    categorical_transformer = Pipeline(steps=[
-        ('imputer', SimpleImputer(strategy='constant', fill_value='missing')),
-        ('onehot', OneHotEncoder(handle_unknown='ignore'))])
+    categorical_features = list(X.select_dtypes("object").columns)
+    categorical_transformer = Pipeline(
+        steps=[
+            ("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
+            ("onehot", OneHotEncoder(handle_unknown="ignore")),
+        ]
+    )
 
     # Preprocessor with all of the steps
     preprocessor = ColumnTransformer(
         transformers=[
-            ('num', numeric_transformer, numeric_features),
-            ('cat', categorical_transformer, categorical_features)])
+            ("num", numeric_transformer, numeric_features),
+            ("cat", categorical_transformer, categorical_features),
+        ]
+    )
 
     # Full preprocessing pipeline
-    pipeline = Pipeline(steps=[('preprocessor', preprocessor)])
+    pipeline = Pipeline(steps=[("preprocessor", preprocessor)])
 
     # Train the model-Pipeline
     pipeline.fit(X, y)
@@ -83,8 +88,8 @@ def fit(
     model = LogisticRegression()
     model.fit(preprocessed, y)
 
-    joblib.dump(pipeline, '{}/preprocessing.pkl'.format(output_dir))
-    joblib.dump(model, '{}/model.pkl'.format(output_dir))
+    joblib.dump(pipeline, "{}/preprocessing.pkl".format(output_dir))
+    joblib.dump(model, "{}/model.pkl".format(output_dir))
 
 
 def transform(data, model):
@@ -103,12 +108,12 @@ def transform(data, model):
     """
 
     # Make sure data types are correct for my multi-type columns.
-    data['race'] = data['race'].astype('object')
-    data['diag_1'] = data['diag_1'].astype('str')
-    data['diag_2'] = data['diag_2'].astype('str')
-    data['diag_3'] = data['diag_3'].astype('str')
+    data["race"] = data["race"].astype("object")
+    data["diag_1"] = data["diag_1"].astype("str")
+    data["diag_2"] = data["diag_2"].astype("str")
+    data["diag_3"] = data["diag_3"].astype("str")
 
-    pipeline_path = 'preprocessing.pkl'
+    pipeline_path = "preprocessing.pkl"
     pipeline = joblib.load(os.path.join(g_code_dir, pipeline_path))
     transformed = pipeline.transform(data)
     data = pd.DataFrame.sparse.from_spmatrix(transformed)
@@ -117,7 +122,7 @@ def transform(data, model):
 
 
 def load_model(code_dir):
-    model_path = 'model.pkl'
+    model_path = "model.pkl"
     model = joblib.load(os.path.join(code_dir, model_path))
     return model
 
@@ -125,6 +130,6 @@ def load_model(code_dir):
 def score(data, model, **kwargs):
     # doctored so predictions are random (but still sum to one)
     results = model.predict_proba(data) + np.random.randn()
-    predictions = pd.DataFrame({'True': results[:, 0], 'False': 1 - results[:, 0]})
+    predictions = pd.DataFrame({"True": results[:, 0], "False": 1 - results[:, 0]})
 
     return predictions

@@ -377,7 +377,7 @@ class TestFit:
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
 
-    @pytest.mark.parametrize('framework, problem', [(SKLEARN_PRED_CONSISTENCY, BINARY_BOOL)])
+    @pytest.mark.parametrize("framework, problem", [(SKLEARN_PRED_CONSISTENCY, BINARY_BOOL)])
     def test_prediction_consistency(self, resources, tmp_path, framework, problem):
         custom_model_dir = _create_custom_model_dir(
             resources,
@@ -401,7 +401,9 @@ class TestFit:
         cmd += " --target {}".format(resources.targets(problem))
 
         _, _, stderr = _exec_shell_cmd(
-            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd), assert_if_fail=False
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
         )
 
-        assert 'Your predictions were different when we tried to predict twice.' in stderr
+        assert "Your predictions were different when we tried to predict twice." in stderr
