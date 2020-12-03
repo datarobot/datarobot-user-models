@@ -1,6 +1,6 @@
 #!/bin/sh
 cd /opt/code/ || exit 1
-export PYTHONPATH=/opt/code
+export PYTHONPATH=$PYTHONPATH:/opt/code
 
 CMD="drum server -cd . --target-type ${TARGET_TYPE} --address 0.0.0.0:8080"
 
