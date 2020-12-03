@@ -290,6 +290,14 @@ def test_output_dir_copy():
 
 
 def test_read_structured_input_arrow_csv_na_consistency(tmp_path):
+    """
+    Test that N/A values (None, numpy.nan) are handled consistently when using
+    CSV vs Arrow as a prediction payload format.
+    1. Make CSV and Arrow prediction payloads from the same dataframe
+    2. Read both payloads
+    3. Assert the resulting dataframes are equal
+    """
+
     # arrange
     df = pd.DataFrame({"col_int": [1, np.nan, None], "col_obj": ["a", np.nan, None]})
 
