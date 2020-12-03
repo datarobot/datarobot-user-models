@@ -178,3 +178,6 @@ class RPredictor(BaseLanguagePredictor):
             )
 
         return ret
+
+    def transform(self, **kwargs):
+        raise DrumCommonException("Transform feature is not supported for R")

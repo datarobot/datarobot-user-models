@@ -154,6 +154,9 @@ class JavaPredictor(BaseLanguagePredictor):
         out_df = pd.read_csv(StringIO(out_csv))
         return out_df
 
+    def transform(self, **kwargs):
+        raise DrumCommonException("Transform feature is not supported for Java/Scala")
+
     def _init_py4j_and_load_predictor(self):
         self._run_java_server_entry_point()
         self._setup_py4j_client_connection()

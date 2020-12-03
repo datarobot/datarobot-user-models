@@ -1,6 +1,4 @@
 import logging
-import pandas as pd
-import pprint
 
 from abc import ABC, abstractmethod
 
@@ -84,5 +82,10 @@ class BaseLanguagePredictor(ABC):
 
     @abstractmethod
     def predict(self, **kwargs):
+        """ Predict on input_filename or binary_data """
+        pass
+
+    @abstractmethod
+    def transform(self, **kwargs):
         """ Predict on input_filename or binary_data """
         pass
