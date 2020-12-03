@@ -340,6 +340,8 @@ class PythonModelAdapter:
                     data = data.drop(self._target_name, axis=1)
             elif target_filename is not None:
                 target = self._read_input_file(target_filename)
+            else:
+                target = None
 
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
             try:

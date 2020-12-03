@@ -6,7 +6,7 @@ import pyarrow
 import pytest
 import requests
 
-from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.drum.common import ArgumentsOptions, X_TRANSFORM_KEY, Y_TRANSFORM_KEY
 from datarobot_drum.resource.transform_helpers import (
     read_arrow_payload,
     read_mtx_payload,
@@ -273,6 +273,7 @@ class TestInference:
             (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, False),
         ],
     )
+    @pytest.mark.parametrize("pass_target", [True, False])
     def test_custom_transform_server(
         self,
         resources,
@@ -282,6 +283,7 @@ class TestInference:
         docker,
         tmp_path,
         use_arrow,
+        pass_target,
     ):
         custom_model_dir = _create_custom_model_dir(
             resources,
@@ -298,8 +300,13 @@ class TestInference:
             docker,
         ) as run:
             input_dataset = resources.datasets(framework, problem)
-            # do predictions
+            in_data = pd.read_csv(input_dataset)
             files = {"X": open(input_dataset)}
+
+            if pass_target:
+                target_dataset = resources.targets(problem)
+                files["y"] = open(target_dataset)
+            # do predictions
             if use_arrow:
                 files["arrow_version"] = ".2"
 
@@ -307,23 +314,30 @@ class TestInference:
             print(response.text)
             assert response.ok
 
-            in_data = pd.read_csv(input_dataset)
-
             if framework == SKLEARN_TRANSFORM_DENSE:
                 if use_arrow:
-                    transformed_out = read_arrow_payload(eval(response.text))
+                    transformed_out = read_arrow_payload(eval(response.text), X_TRANSFORM_KEY)
+                    if pass_target:
+                        target_out = read_arrow_payload(eval(response.text), Y_TRANSFORM_KEY)
                     assert eval(response.text)["out.format"] == "arrow"
                 else:
-                    transformed_out = read_csv_payload(eval(response.text))
+                    transformed_out = read_csv_payload(eval(response.text), X_TRANSFORM_KEY)
+                    if pass_target:
+                        target_out = read_csv_payload(eval(response.text), Y_TRANSFORM_KEY)
                     assert eval(response.text)["out.format"] == "csv"
                 actual_num_predictions = transformed_out.shape[0]
             else:
-                transformed_out = read_mtx_payload(eval(response.text))
+                transformed_out = read_mtx_payload(eval(response.text), X_TRANSFORM_KEY)
+                if pass_target:
+                    # this shouldn't be sparse even though features are
+                    target_out = read_csv_payload(eval(response.text), Y_TRANSFORM_KEY)
                 actual_num_predictions = transformed_out.shape[0]
                 assert eval(response.text)["out.format"] == "sparse"
             validate_transformed_output(
                 transformed_out, should_be_sparse=framework == SKLEARN_TRANSFORM
             )
+            if pass_target:
+                assert all(pd.read_csv(target_dataset) == target_out)
             assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(
@@ -366,7 +380,7 @@ class TestInference:
 
             in_data = pd.read_csv(input_dataset)
 
-            transformed_mat = read_mtx_payload(eval(response.text))
+            transformed_mat = read_mtx_payload(eval(response.text), X_TRANSFORM_KEY)
             actual_num_predictions = transformed_mat.shape[0]
             assert in_data.shape[0] == actual_num_predictions
 
