@@ -369,9 +369,16 @@ class CMRunner:
         __tempfile_sample = NamedTemporaryFile()
         data_subset.to_csv(__tempfile_sample.name, index=False)
 
+        if self.target_type == TargetType.BINARY:
+            labels = [self.options.negative_class_label, self.options.positive_class_label]
+        elif self.target_type == TargetType.MULTICLASS:
+            labels = self.options.class_labels
+        else:
+            labels = None
+
         with DrumServerRun(
             self.options.target_type,
-            [self.options.negative_class_label, self.options.positive_class_label],
+            labels,
             self.options.code_dir,
         ) as run:
             response_full = requests.post(
