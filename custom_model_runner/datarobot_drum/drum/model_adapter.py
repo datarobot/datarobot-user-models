@@ -306,7 +306,7 @@ class PythonModelAdapter:
         try:
             if mimetype == PredictionServerMimetypes.TEXT_MTX:
                 return pd.DataFrame.sparse.from_spmatrix(mmread(io.BytesIO(binary_data)))
-            elif mimetype == PredictionServerMimetypes.TEXT_ARROW:
+            elif mimetype == PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM:
                 return pyarrow.ipc.deserialize_pandas(binary_data)
             else:
                 return pd.read_csv(io.BytesIO(binary_data))

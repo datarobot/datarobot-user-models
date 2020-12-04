@@ -524,7 +524,9 @@ class TestInference:
                     {
                         "data": arrow_dataset_buf,
                         "headers": {
-                            "Content-Type": "{};".format(PredictionServerMimetypes.TEXT_ARROW)
+                            "Content-Type": "{};".format(
+                                PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM
+                            )
                         },
                     },
                     {

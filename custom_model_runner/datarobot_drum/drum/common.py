@@ -84,7 +84,7 @@ class PredictionServerMimetypes:
     APPLICATION_JSON = "application/json"
     APPLICATION_OCTET_STREAM = "application/octet-stream"
     TEXT_PLAIN = "text/plain"
-    TEXT_ARROW = "text/arrow"
+    APPLICATION_X_APACHE_ARROW_STREAM = "application/x-apache-arrow-stream"
     TEXT_MTX = "text/mtx"
 
 
@@ -95,7 +95,7 @@ class InputFormatExtension:
 
 InputFormatToMimetype = {
     InputFormatExtension.MTX: PredictionServerMimetypes.TEXT_MTX,
-    InputFormatExtension.ARROW: PredictionServerMimetypes.TEXT_ARROW,
+    InputFormatExtension.ARROW: PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM,
 }
 
 

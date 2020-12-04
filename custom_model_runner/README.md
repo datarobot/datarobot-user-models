@@ -154,7 +154,7 @@ For these routes data can be posted in two ways:
   * as form data parameter with a <key:value> pair, where:  
 key = X  
 value = filename of the `csv/arrow/mtx` format, that contains the inference data.
-  * as binary data; in case of `arrow` or `mtx` formats, mimetype `text/arrow` or `text/mtx` must be set.
+  * as binary data; in case of `arrow` or `mtx` formats, mimetype `application/x-apache-arrow-stream` or `text/mtx` must be set.
    
 * Structured transform route (for Python predictor only):   
 A POST **URL_PREFIX/transform/** route, which returns transformed data.  
@@ -163,7 +163,7 @@ For this route data can be posted in two ways:
   * as form data parameter with a <key:value> pair, where:  
 key = X  
 value = filename of the `csv/arrow/mtx` format, that contains the inference data.
-  * as binary data; in case of `arrow` or `mtx` formats, mimetype `text/arrow` or `text/mtx` must be set.
+  * as binary data; in case of `arrow` or `mtx` formats, mimetype `application/x-apache-arrow-stream` or `text/mtx` must be set.
  
 * Unstructured predictions routes:  
 A POST **URL_PREFIX/predictUnstructured/** and **URL_PREFIX/predictionsUnstructured/** routes, which returns predictions on data.  
