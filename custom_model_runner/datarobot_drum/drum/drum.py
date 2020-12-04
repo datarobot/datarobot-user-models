@@ -356,7 +356,8 @@ class CMRunner:
                 df = handle_missing_colnames(df)
             df.to_csv(__tempfile.name, index=False)
             self.options.input = __tempfile.name
-        self._check_prediction_side_effects()
+        if self.target_type != TargetType.TRANSFORM:
+            self._check_prediction_side_effects()
         self._run_fit_and_predictions_pipelines_in_mlpiper()
 
     def _check_prediction_side_effects(self):
