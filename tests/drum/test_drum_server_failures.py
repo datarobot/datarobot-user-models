@@ -9,7 +9,7 @@ from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 
 from .constants import SKLEARN, REGRESSION, BINARY, DOCKER_PYTHON_SKLEARN, PYTHON
 from .utils import _create_custom_model_dir
-from datarobot_drum.resource.drum_server_utils import DrumServerRun
+from tests.drum.drum_server_utils import DrumServerRun
 
 
 class TestDrumServerFailures:

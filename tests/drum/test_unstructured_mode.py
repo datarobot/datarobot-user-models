@@ -4,7 +4,7 @@ import werkzeug
 
 from datarobot_drum.drum.common import ArgumentsOptions
 
-from datarobot_drum.resource.drum_server_utils import DrumServerRun
+from tests.drum.drum_server_utils import DrumServerRun
 
 from tests.drum.utils import (
     _exec_shell_cmd,
