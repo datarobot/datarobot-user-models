@@ -4,14 +4,12 @@ import shutil
 import subprocess
 
 
-from tests.drum.constants import (
-    PYTHON,
-    R,
-    R_ALL_PREDICT_STRUCTURED_HOOKS,
-    R_FIT,
-    BINARY,
-    MULTICLASS,
-)
+PYTHON = "python3"
+R = "R"
+R_ALL_PREDICT_STRUCTURED_HOOKS = "R_all_predict_structured_hooks"
+R_FIT = "R_fit"
+BINARY = "binary"
+MULTICLASS = "multiclass"
 
 
 def _create_custom_model_dir(
