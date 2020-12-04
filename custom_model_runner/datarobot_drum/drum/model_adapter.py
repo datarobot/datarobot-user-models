@@ -366,7 +366,11 @@ class PythonModelAdapter:
 
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
-        class_labels = [str(label) for label in kwargs.get(CLASS_LABELS_ARG_KEYWORD)]
+        class_labels = (
+            [str(label) for label in kwargs.get(CLASS_LABELS_ARG_KEYWORD)]
+            if kwargs.get(CLASS_LABELS_ARG_KEYWORD)
+            else None
+        )
         if positive_class_label and negative_class_label:
             class_labels = [negative_class_label, positive_class_label]
 
