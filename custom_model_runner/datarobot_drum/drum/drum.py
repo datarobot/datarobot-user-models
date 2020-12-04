@@ -44,7 +44,7 @@ from datarobot_drum.drum.push import drum_push, setup_validation_options
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.utils import CMRunnerUtils, handle_missing_colnames
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
-from tests.drum.drum_server_utils import DrumServerRun
+from datarobot_drum.resource.drum_server_helpers import DrumServerRun
 
 import docker.errors
 

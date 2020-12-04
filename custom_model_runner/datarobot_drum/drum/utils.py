@@ -6,7 +6,6 @@ from scipy.io import mmread
 from contextlib import closing
 from functools import partial
 from pathlib import Path
-from datarobot_drum.drum.exceptions import DrumCommonException
 
 import pandas as pd
 from jinja2 import BaseLoader, DebugUndefined, Environment
