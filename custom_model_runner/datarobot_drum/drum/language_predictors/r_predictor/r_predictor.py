@@ -11,6 +11,7 @@ from datarobot_drum.drum.common import (
     UnstructuredDtoKeys,
     PayloadFormat,
     SupportedPayloadFormats,
+    StructuredDtoKeys,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
@@ -88,10 +89,15 @@ class RPredictor(BaseLanguagePredictor):
         formats.add(PayloadFormat.CSV)
         return formats
 
-    def predict(self, input_filename):
+    def predict(self, **kwargs):
+        input_filename = kwargs.get(StructuredDtoKeys.FILENAME)
+        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         predictions = r_handler.outer_predict(
-            input_filename,
             self._target_type.value,
+            input_filename=ro.rinterface.NULL if input_filename is None else input_filename,
+            binary_data=ro.rinterface.NULL
+            if input_binary_data is None
+            else ro.vectors.ByteVector(input_binary_data),
             model=self._model,
             positive_class_label=self._positive_class_label,
             negative_class_label=self._negative_class_label,
@@ -100,22 +106,19 @@ class RPredictor(BaseLanguagePredictor):
         with localconverter(ro.default_converter + pandas2ri.converter):
             py_data_object = ro.conversion.rpy2py(predictions)
 
-        if self._target_type == TargetType.UNSTRUCTURED:
-            py_data_object = str(py_data_object)
-        else:
-            # in case of regression, array is returned
-            if isinstance(py_data_object, numpy.ndarray):
-                py_data_object = pd.DataFrame({REGRESSION_PRED_COLUMN: py_data_object})
+        # in case of regression, array is returned
+        if isinstance(py_data_object, numpy.ndarray):
+            py_data_object = pd.DataFrame({REGRESSION_PRED_COLUMN: py_data_object})
 
-            if not isinstance(py_data_object, pd.DataFrame):
-                error_message = (
-                    "Expected predictions type: {}, actual: {}. "
-                    "Are you trying to run binary classification without class labels provided?".format(
-                        pd.DataFrame, type(py_data_object)
-                    )
+        if not isinstance(py_data_object, pd.DataFrame):
+            error_message = (
+                "Expected predictions type: {}, actual: {}. "
+                "Are you trying to run binary classification without class labels provided?".format(
+                    pd.DataFrame, type(py_data_object)
                 )
-                logger.error(error_message)
-                raise DrumCommonException(error_message)
+            )
+            logger.error(error_message)
+            raise DrumCommonException(error_message)
         return py_data_object
 
     # TODO: check test coverage for all possible cases: return None/str/bytes, and casting.
@@ -175,3 +178,6 @@ class RPredictor(BaseLanguagePredictor):
             )
 
         return ret
+
+    def transform(self, **kwargs):
+        raise DrumCommonException("Transform feature is not supported for R")
