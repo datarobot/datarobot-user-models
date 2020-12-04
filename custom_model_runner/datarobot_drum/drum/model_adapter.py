@@ -5,6 +5,7 @@ import pickle
 import sys
 import textwrap
 import pyarrow
+import io
 from pathlib import Path
 
 import numpy as np
@@ -27,6 +28,9 @@ from datarobot_drum.drum.common import (
     TargetType,
     PayloadFormat,
     SupportedPayloadFormats,
+    PredictionServerMimetypes,
+    StructuredDtoKeys,
+    InputFormatToMimetype,
 )
 from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -282,16 +286,34 @@ class PythonModelAdapter:
             )
 
     @staticmethod
-    def _read_structured_input(filename):
+    def read_structured_input(filename, binary_data, mimetype=None, charset=None):
+        if not None in [filename, binary_data]:
+            raise DrumCommonException("Either filename or binary data should be provided")
+        if filename is not None:
+            binary_data, mimetype = PythonModelAdapter._read_structured_input_file(filename)
+        data = PythonModelAdapter._read_structured_input_data(binary_data, mimetype, charset)
+        return data
+
+    @staticmethod
+    def _read_structured_input_file(filename):
+        mimetype = InputFormatToMimetype.get(os.path.splitext(filename)[1])
+        with open(filename, "rb") as file:
+            binary_data = file.read()
+        return binary_data, mimetype
+
+    @staticmethod
+    def _read_structured_input_data(binary_data, mimetype, charset):
         try:
-            if filename.endswith(".mtx"):
-                return pd.DataFrame.sparse.from_spmatrix(mmread(filename))
-            if filename.endswith(".arrow"):
-                with open(filename, "rb") as file:
-                    return pyarrow.ipc.deserialize_pandas(file.read())
-            return pd.read_csv(filename)
+            if mimetype == PredictionServerMimetypes.TEXT_MTX:
+                return pd.DataFrame.sparse.from_spmatrix(mmread(io.BytesIO(binary_data)))
+            elif mimetype == PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM:
+                return pyarrow.ipc.deserialize_pandas(binary_data)
+            else:
+                return pd.read_csv(io.BytesIO(binary_data))
         except pd.errors.ParserError as e:
-            raise DrumCommonException("Pandas failed to read input csv file: {}".format(filename))
+            raise DrumCommonException(
+                "Pandas failed to read input binary data {}".format(binary_data)
+            )
 
     @property
     def supported_payload_formats(self):
@@ -300,23 +322,25 @@ class PythonModelAdapter:
         formats.add(PayloadFormat.ARROW, pyarrow.__version__)
         return formats
 
-    def transform(self, input_filename, model):
+    def transform(self, model=None, **kwargs):
         """
         Load data, either with read hook or built-in method, and apply transform hook if present
 
         Parameters
         ----------
-        input_filename: str
-            Path to the feature csv
         model: Any
             The model
         Returns
         -------
         pd.DataFrame
         """
+        input_filename = kwargs.get(StructuredDtoKeys.FILENAME)
+        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         if self._custom_hooks.get(CustomHooks.READ_INPUT_DATA):
             try:
-                data = self._custom_hooks[CustomHooks.READ_INPUT_DATA](input_filename)
+                data = self._custom_hooks[CustomHooks.READ_INPUT_DATA](
+                    input_filename if input_filename is not None else input_binary_data
+                )
             except Exception as exc:
                 raise type(exc)(
                     "Model read_data hook failed to read input file: {} {}".format(
@@ -324,7 +348,12 @@ class PythonModelAdapter:
                     )
                 ).with_traceback(sys.exc_info()[2]) from None
         else:
-            data = PythonModelAdapter._read_structured_input(input_filename)
+            data = PythonModelAdapter.read_structured_input(
+                input_filename,
+                input_binary_data,
+                kwargs.get(StructuredDtoKeys.MIMETYPE),
+                kwargs.get(StructuredDtoKeys.CHARSET),
+            )
 
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
             try:
@@ -343,7 +372,7 @@ class PythonModelAdapter:
 
         return output_data
 
-    def predict(self, input_filename, model=None, **kwargs):
+    def predict(self, model=None, **kwargs):
         """
         Makes predictions against the model using the custom predict
         method and returns a pandas DataFrame
@@ -353,8 +382,6 @@ class PythonModelAdapter:
             positive_class_label/negative_class_label keywords.
         Parameters
         ----------
-        data: pd.DataFrame
-            Data to make predictions against
         model: Any
             The model
         kwargs
@@ -362,7 +389,7 @@ class PythonModelAdapter:
         -------
         pd.DataFrame
         """
-        data = self.transform(input_filename, model)
+        data = self.transform(model, **kwargs)
 
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)

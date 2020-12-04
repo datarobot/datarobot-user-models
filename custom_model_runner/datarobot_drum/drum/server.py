@@ -28,8 +28,9 @@ def base_api_blueprint():
         return "Server shutting down...", HTTP_200_OK
 
     @model_api.route("/", methods=["GET"])
+    @model_api.route("/ping/", methods=["GET"])
     def ping():
         """This route is used to ensure that server has started"""
-        return {"message": "OK"}, 200
+        return {"message": "OK"}, HTTP_200_OK
 
     return model_api

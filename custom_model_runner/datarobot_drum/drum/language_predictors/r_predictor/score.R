@@ -1,6 +1,7 @@
 # Needed libraries
 library(caret)
 library(devtools)
+library(stringi)
 
 init_hook <- FALSE
 read_input_data_hook <- FALSE
@@ -171,7 +172,7 @@ model_predict <- function(...) {
 #' @export
 #'
 #' @examples
-outer_predict <- function(input_filename, target_type, model=NULL, positive_class_label=NULL, negative_class_label=NULL, class_labels=NULL){
+outer_predict <- function(target_type, input_filename=NULL, binary_data=NULL, model=NULL, positive_class_label=NULL, negative_class_label=NULL, class_labels=NULL){
     .validate_data <- function(to_validate) {
         if (!is.data.frame(to_validate)) {
             stop(sprintf("predictions must be of a data.frame type, received %s", typeof(to_validate)))
@@ -209,12 +210,17 @@ outer_predict <- function(input_filename, target_type, model=NULL, positive_clas
         }
     }
 
-    if (!isFALSE(read_input_data_hook)) {
-        data <- read_input_data_hook(input_filename)
-    } else if (grepl("\\.mtx$", input_filename)) {
-        data <- as.data.frame(as.matrix(readMM(input_filename)))
+    if (!is.null(input_filename)) {
+        if (!isFALSE(read_input_data_hook)) {
+            data <- read_input_data_hook(input_filename)
+        } else if (grepl("\\.mtx$", input_filename)) {
+            data <- as.data.frame(as.matrix(readMM(input_filename)))
+        } else {
+            tmp = readChar(input_filename, file.info(input_filename)$size)
+            data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE))
+        }
     } else {
-        tmp = readChar(input_filename, file.info(input_filename)$size)
+        tmp <- stri_conv(binary_data, "utf8")
         data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE))
     }
     if (is.null(model)) {

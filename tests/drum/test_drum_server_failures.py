@@ -80,6 +80,31 @@ class TestDrumServerFailures:
         "with_error_server, with_nginx, docker",
         [(False, False, None), (True, False, None), (False, True, DOCKER_PYTHON_SKLEARN)],
     )
+    def test_ping_endpoints(self, params, with_error_server, with_nginx, docker):
+        _, _, custom_model_dir, server_run_args = params
+
+        # remove a module required during processing of /predict/ request
+        os.remove(os.path.join(custom_model_dir, "custom.py"))
+
+        drum_server_run = DrumServerRun(
+            **server_run_args, with_error_server=with_error_server, nginx=with_nginx, docker=docker
+        )
+
+        with drum_server_run as run:
+            response = requests.get(run.url_server_address + "/")
+            assert response.status_code == 200
+            response = requests.get(run.url_server_address + "/ping/")
+            assert response.status_code == 200
+
+        # nginx test runs in docker; to stop the process we kill it, so don't check return code
+        if with_nginx:
+            return
+        assert drum_server_run.process.returncode == 0
+
+    @pytest.mark.parametrize(
+        "with_error_server, with_nginx, docker",
+        [(False, False, None), (True, False, None), (False, True, DOCKER_PYTHON_SKLEARN)],
+    )
     def test_e2e_no_model_artifact(self, params, with_error_server, with_nginx, docker):
         """
         Verify that if an error occurs on drum server initialization if no model artifact is found
@@ -170,7 +195,9 @@ class TestDrumServerFailures:
             response = requests.post(run.url_server_address + "/predict/")
 
             error_message = (
-                "ERROR: Samples should be provided as a csv, mtx, or arrow file under `X` key."
+                "ERROR: Samples should be provided as: "
+                "  - a csv, mtx, or arrow file under `X` form-data param key."
+                "  - binary data"
             )
             assert response.status_code == 422
             assert response.json()["message"] == error_message

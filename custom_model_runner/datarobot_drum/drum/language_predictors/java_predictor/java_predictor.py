@@ -19,6 +19,7 @@ from datarobot_drum.drum.common import (
     JavaArtifacts,
     PayloadFormat,
     SupportedPayloadFormats,
+    StructuredDtoKeys,
 )
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -144,10 +145,17 @@ class JavaPredictor(BaseLanguagePredictor):
         formats.add(PayloadFormat.CSV)
         return formats
 
-    def predict(self, input_filename):
-        out_csv = self._predictor_via_py4j.predict(input_filename)
+    def predict(self, **kwargs):
+        input_filename = kwargs.get(StructuredDtoKeys.FILENAME)
+        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
+        if input_binary_data is not None:
+            input_binary_data = input_binary_data.decode("utf-8")
+        out_csv = self._predictor_via_py4j.predict(input_filename, input_binary_data)
         out_df = pd.read_csv(StringIO(out_csv))
         return out_df
+
+    def transform(self, **kwargs):
+        raise DrumCommonException("Transform feature is not supported for Java/Scala")
 
     def _init_py4j_and_load_predictor(self):
         self._run_java_server_entry_point()

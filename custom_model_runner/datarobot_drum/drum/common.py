@@ -73,10 +73,30 @@ class UnstructuredDtoKeys:
     CHARSET = "charset"
 
 
+class StructuredDtoKeys:
+    FILENAME = "filename"
+    BINARY_DATA = "binary_data"
+    MIMETYPE = "mimetype"
+    CHARSET = "charset"
+
+
 class PredictionServerMimetypes:
     APPLICATION_JSON = "application/json"
     APPLICATION_OCTET_STREAM = "application/octet-stream"
     TEXT_PLAIN = "text/plain"
+    APPLICATION_X_APACHE_ARROW_STREAM = "application/x-apache-arrow-stream"
+    TEXT_MTX = "text/mtx"
+
+
+class InputFormatExtension:
+    MTX = ".mtx"
+    ARROW = ".arrow"
+
+
+InputFormatToMimetype = {
+    InputFormatExtension.MTX: PredictionServerMimetypes.TEXT_MTX,
+    InputFormatExtension.ARROW: PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM,
+}
 
 
 class PythonArtifacts:
