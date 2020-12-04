@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Added
 - **/predictions** and **/predictionsUnstructured** endpoints as aliases for **/predict** and **/predictUnstructured**
 - handling the case when input sent as binary data
+##### Fixed
+- Validation of numeric multiclass class labels should always compare as strings
 
 #### [1.4.5] - 2020-12-02
 ##### Changes
