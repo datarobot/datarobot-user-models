@@ -40,7 +40,11 @@ from .constants import (
     BINARY_BOOL,
     TRANSFORM,
 )
-from .utils import _cmd_add_class_labels, _create_custom_model_dir, _exec_shell_cmd
+from datarobot_drum.resource.utils import (
+    _cmd_add_class_labels,
+    _create_custom_model_dir,
+    _exec_shell_cmd,
+)
 
 
 class TestFit:
