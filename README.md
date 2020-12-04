@@ -3,35 +3,22 @@
 
 ## Content  
 1. [What is this repository?](#what_is_it)
-2. [Enable git LFS](#lfs)
-3. [Quickstart and examples](#quickstart)
-4. [Assembling an inference model code folder](#inference_model_folder)
-5. [Unstructured inference models](#unstructured_inference_models)
-6. [Assembling a training model code folder](#training_model_folder)
-7. [Custom Model Templates](#custom_model_templates)
-8. [Custom Environment Templates](#custom_environment_templates)
-9. [Custom Model Runner (drum)](#custom_model_runner)
-10. [Contribution & development](#contribution_development)
-11. [Communication](#communication)
+2. [Quickstart and examples](#quickstart)
+3. [Assembling an inference model code folder](#inference_model_folder)
+4. [Unstructured inference models](#unstructured_inference_models)
+5. [Assembling a training model code folder](#training_model_folder)
+6. [Custom Model Templates](#custom_model_templates)
+7. [Custom Environment Templates](#custom_environment_templates)
+8. [Custom Model Runner (drum)](#custom_model_runner)
+9. [Contribution & development](#contribution_development)
+10. [Communication](#communication)
 
 ## What is this repository? <a name="what_is_it"></a>
 The **DataRobot User Models** repository contains information and tools for assembling,
 debugging, testing, and running your training and inference models with DataRobot.
 
-## Enable Git LFS <a name="lfs"></a>
->Note: enable git-lfs to properly clone the repo.
->
->If you don't have git-lfs installed:
->1. Install git-lfs on you machine (use **apt-get** for Ubuntu and **brew** for Mac)
->2. Run initialize command `git lfs install`
->3. If you don't have this repo cloned, clone it
->4. If you have this repo cloned, you may need to update files:
->>a. update master branch  
->>b. do `git lfs fetch`  
->>c. do `git lfs checkout`
-
-#### Terminology
-This repository address the DataRobot functionality known as `custom models`. The terms `custom model` and `user model` can be used interchangeably, as can `custom model directory` and `code directory`.
+### Terminology
+This repository addresses the DataRobot functionality known as `custom models`. The terms `custom model` and `user model` can be used interchangeably, as can `custom model directory` and `code directory`.
 
 ## Quickstart <a name="quickstart"></a>
 The following example shows how to use the [DRUM](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) tool to make predictions on an [sklearn regression model](model_templates/inference/python3_sklearn). For the training model quickstart, please reference [this document](QUICKSTART-FOR-TRAINING.md)
