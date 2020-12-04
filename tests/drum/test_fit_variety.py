@@ -2,7 +2,11 @@ import pytest
 
 from datarobot_drum.drum.common import ArgumentsOptions
 from .constants import SKLEARN, BINARY, RDS, R_FIT, PYTHON, ANOMALY, PYTORCH, XGB, KERAS
-from datarobot_drum.resource.utils import _create_custom_model_dir, _cmd_add_class_labels, _exec_shell_cmd
+from datarobot_drum.resource.utils import (
+    _create_custom_model_dir,
+    _cmd_add_class_labels,
+    _exec_shell_cmd,
+)
 
 
 @pytest.mark.skip(reason="This test has fallen into disrepair unfortunately")
