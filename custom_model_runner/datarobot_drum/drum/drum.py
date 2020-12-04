@@ -365,20 +365,20 @@ class CMRunner:
     def _check_prediction_side_effects(self):
         rtol = 2e-02
         atol = 1e-06
-        if self.options.input.endswith(".csv"):
-            df = pd.read_csv(self.options.input)
-        elif self.options.input.endswith(".mtx"):
+        if self.options.input.endswith(".mtx"):
             df = pd.DataFrame(mmread(self.options.input).tocsr())
+        else:
+            df = pd.read_csv(self.options.input)
         samplesize = min(1000, max(int(len(df) * 0.1), 10))
         data_subset = df.sample(n=samplesize, random_state=42)
 
-        if self.options.input.endswith(".csv"):
-            __tempfile_sample = NamedTemporaryFile(suffix=".csv")
-            data_subset.to_csv(__tempfile_sample.name, index=False)
-        else:
+        if self.options.input.endswith(".mtx"):
             __tempfile_sample = NamedTemporaryFile(suffix=".mtx")
             sparse_mat = vstack(x[0] for x in data_subset.values)
             mmwrite(__tempfile_sample.name, sparse_mat)
+        else:
+            __tempfile_sample = NamedTemporaryFile(suffix=".csv")
+            data_subset.to_csv(__tempfile_sample.name, index=False)
 
         if self.target_type == TargetType.BINARY:
             labels = [self.options.negative_class_label, self.options.positive_class_label]
