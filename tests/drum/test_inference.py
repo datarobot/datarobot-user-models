@@ -1,12 +1,15 @@
 import json
 from tempfile import NamedTemporaryFile
 
+import io
 import pandas as pd
 import pyarrow
 import pytest
 import requests
+import scipy
 
-from datarobot_drum.drum.common import ArgumentsOptions
+
+from datarobot_drum.drum.common import ArgumentsOptions, PredictionServerMimetypes
 from datarobot_drum.resource.transform_helpers import (
     read_arrow_payload,
     read_mtx_payload,
@@ -214,14 +217,20 @@ class TestInference:
         ) as run:
             input_dataset = resources.datasets(framework, problem)
             # do predictions
-            response = requests.post(
-                run.url_server_address + "/predict/", files={"X": open(input_dataset)}
-            )
-            print(response.text)
-            assert response.ok
-            actual_num_predictions = len(json.loads(response.text)[RESPONSE_PREDICTIONS_KEY])
-            in_data = pd.read_csv(input_dataset)
-            assert in_data.shape[0] == actual_num_predictions
+            for endpoint in ["/predict/", "/predictions/"]:
+                for post_args in [
+                    {"files": {"X": open(input_dataset)}},
+                    {"data": open(input_dataset, "rb")},
+                ]:
+                    response = requests.post(run.url_server_address + endpoint, **post_args)
+
+                    print(response.text)
+                    assert response.ok
+                    actual_num_predictions = len(
+                        json.loads(response.text)[RESPONSE_PREDICTIONS_KEY]
+                    )
+                    in_data = pd.read_csv(input_dataset)
+                    assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
@@ -256,14 +265,19 @@ class TestInference:
             input_dataset = resources.datasets(framework, problem)
 
             # do predictions
-            response = requests.post(
-                run.url_server_address + "/predict/", files={"X": open(input_dataset)}
-            )
+            for endpoint in ["/predict/", "/predictions/"]:
+                for post_args in [
+                    {"files": {"X": open(input_dataset)}},
+                    {"data": open(input_dataset, "rb")},
+                ]:
+                    response = requests.post(run.url_server_address + endpoint, **post_args)
 
-            assert response.ok
-            actual_num_predictions = len(json.loads(response.text)[RESPONSE_PREDICTIONS_KEY])
-            in_data = pd.read_csv(input_dataset)
-            assert in_data.shape[0] == actual_num_predictions
+                    assert response.ok
+                    actual_num_predictions = len(
+                        json.loads(response.text)[RESPONSE_PREDICTIONS_KEY]
+                    )
+                    in_data = pd.read_csv(input_dataset)
+                    assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker, use_arrow",
@@ -404,25 +418,30 @@ class TestInference:
             input_dataset = resources.datasets(framework, problem)
 
             # do predictions
-            response = requests.post(
-                run.url_server_address + "/predict/", files={"X": open(input_dataset)}
-            )
+            for endpoint in ["/predict/", "/predictions/"]:
+                for post_args in [
+                    {"files": {"X": open(input_dataset)}},
+                    {"data": open(input_dataset, "rb")},
+                ]:
+                    response = requests.post(run.url_server_address + endpoint, **post_args)
 
-            assert response.ok
-            response_json = json.loads(response.text)
-            assert isinstance(response_json, dict)
-            assert RESPONSE_PREDICTIONS_KEY in response_json
-            predictions_list = response_json[RESPONSE_PREDICTIONS_KEY]
-            assert isinstance(predictions_list, list)
-            assert len(predictions_list)
-            prediction_item = predictions_list[0]
-            if problem in [BINARY, MULTICLASS]:
-                assert isinstance(prediction_item, dict)
-                assert len(prediction_item) == len(resources.class_labels(framework, problem))
-                assert all([isinstance(x, str) for x in prediction_item.keys()])
-                assert all([isinstance(x, float) for x in prediction_item.values()])
-            elif problem == REGRESSION:
-                assert isinstance(prediction_item, float)
+                    assert response.ok
+                    response_json = json.loads(response.text)
+                    assert isinstance(response_json, dict)
+                    assert RESPONSE_PREDICTIONS_KEY in response_json
+                    predictions_list = response_json[RESPONSE_PREDICTIONS_KEY]
+                    assert isinstance(predictions_list, list)
+                    assert len(predictions_list)
+                    prediction_item = predictions_list[0]
+                    if problem in [BINARY, MULTICLASS]:
+                        assert isinstance(prediction_item, dict)
+                        assert len(prediction_item) == len(
+                            resources.class_labels(framework, problem)
+                        )
+                        assert all([isinstance(x, str) for x in prediction_item.keys()])
+                        assert all([isinstance(x, float) for x in prediction_item.values()])
+                    elif problem == REGRESSION:
+                        assert isinstance(prediction_item, float)
 
     @pytest.mark.parametrize(
         "framework, problem, language, supported_payload_formats",
@@ -462,11 +481,11 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language",
         [
-            (SKLEARN, REGRESSION, PYTHON),
+            (SKLEARN, REGRESSION_INFERENCE, PYTHON),
         ],
     )
     @pytest.mark.parametrize("nginx", [False, True])
-    def test_predictions_using_arrow(
+    def test_predictions_using_arrow_and_mtx(
         self,
         resources,
         framework,
@@ -491,14 +510,37 @@ class TestInference:
         ) as run:
             input_dataset = resources.datasets(framework, problem)
             df = pd.read_csv(input_dataset)
-            dataset_buf = pyarrow.ipc.serialize_pandas(df, preserve_index=False).to_pybytes()
+            arrow_dataset_buf = pyarrow.ipc.serialize_pandas(df, preserve_index=False).to_pybytes()
+
+            sink = io.BytesIO()
+            scipy.io.mmwrite(sink, scipy.sparse.csr_matrix(df.values))
+            mtx_dataset_buf = sink.getvalue()
 
             # do predictions
-            response = requests.post(
-                run.url_server_address + "/predict/", files={"X": ("X.arrow", dataset_buf)}
-            )
+            for endpoint in ["/predict/", "/predictions/"]:
+                for post_args in [
+                    {"files": {"X": ("X.arrow", arrow_dataset_buf)}},
+                    {"files": {"X": ("X.mtx", mtx_dataset_buf)}},
+                    {
+                        "data": arrow_dataset_buf,
+                        "headers": {
+                            "Content-Type": "{};".format(
+                                PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM
+                            )
+                        },
+                    },
+                    {
+                        "data": mtx_dataset_buf,
+                        "headers": {
+                            "Content-Type": "{};".format(PredictionServerMimetypes.TEXT_MTX)
+                        },
+                    },
+                ]:
+                    response = requests.post(run.url_server_address + endpoint, **post_args)
 
-            assert response.ok
-            actual_num_predictions = len(json.loads(response.text)[RESPONSE_PREDICTIONS_KEY])
-            in_data = pd.read_csv(input_dataset)
-            assert in_data.shape[0] == actual_num_predictions
+                    assert response.ok
+                    actual_num_predictions = len(
+                        json.loads(response.text)[RESPONSE_PREDICTIONS_KEY]
+                    )
+                    in_data = pd.read_csv(input_dataset)
+                    assert in_data.shape[0] == actual_num_predictions

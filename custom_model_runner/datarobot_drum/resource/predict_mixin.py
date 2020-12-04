@@ -36,6 +36,12 @@ class PredictMixin:
 
     """
 
+    @staticmethod
+    def _validate_content_type_header(header):
+        ret_mimetype, content_type_params_dict = werkzeug.http.parse_options_header(header)
+        ret_charset = content_type_params_dict.get("charset")
+        return ret_mimetype, ret_charset
+
     def _predict_or_transform(self, logger=None):
         response_status = HTTP_200_OK
 
@@ -49,28 +55,41 @@ class PredictMixin:
                 arrow_version = eval(arrow_version.getvalue())
             use_arrow = arrow_version is not None
 
-        if not filestorage:
-            wrong_key_error_message = (
-                "Samples should be provided as a csv, mtx, or arrow file under `{}` key.".format(
-                    file_key
+        if filestorage is not None:
+            _, file_ext = os.path.splitext(filestorage.filename)
+            with tempfile.NamedTemporaryFile(suffix=file_ext) as f:
+                filestorage.save(f)
+                f.flush()
+                if self._target_type == TargetType.TRANSFORM:
+                    out_data = self._predictor.transform(filename=f.name)
+                else:
+                    out_data = self._predictor.predict(filename=f.name)
+
+            if logger is not None:
+                logger.debug("Filename provided under X key: {}".format(filestorage.filename))
+
+        # TODO: probably need to return empty response in case of empty request
+        elif len(request.data):
+            mimetype, charset = PredictMixin._validate_content_type_header(request.content_type)
+
+            if self._target_type == TargetType.TRANSFORM:
+                out_data = self._predictor.transform(
+                    binary_data=request.data, mimetype=mimetype, charset=charset
                 )
+            else:
+                out_data = self._predictor.predict(
+                    binary_data=request.data, mimetype=mimetype, charset=charset
+                )
+        else:
+            wrong_key_error_message = (
+                "Samples should be provided as: "
+                "  - a csv, mtx, or arrow file under `{}` form-data param key."
+                "  - binary data".format(file_key)
             )
             if logger is not None:
                 logger.error(wrong_key_error_message)
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             return {"message": "ERROR: " + wrong_key_error_message}, response_status
-        else:
-            if logger is not None:
-                logger.debug("Filename provided under X key: {}".format(filestorage.filename))
-
-        _, file_ext = os.path.splitext(filestorage.filename)
-        with tempfile.NamedTemporaryFile(suffix=file_ext) as f:
-            filestorage.save(f)
-            f.flush()
-            if self._target_type == TargetType.TRANSFORM:
-                out_data = self._predictor.transform(f.name)
-            else:
-                out_data = self._predictor.predict(f.name)
 
         if self._target_type == TargetType.UNSTRUCTURED:
             response = out_data
@@ -132,16 +151,11 @@ class PredictMixin:
         return self._predict_or_transform(logger=logger)
 
     def do_predict_unstructured(self, logger=None):
-        def _validate_content_type_header(header):
-            ret_mimetype, content_type_params_dict = werkzeug.http.parse_options_header(header)
-            ret_charset = content_type_params_dict.get("charset")
-            return ret_mimetype, ret_charset
-
         response_status = HTTP_200_OK
         kwargs_params = {}
 
         data = request.data
-        mimetype, charset = _validate_content_type_header(request.content_type)
+        mimetype, charset = PredictMixin._validate_content_type_header(request.content_type)
 
         data_binary_or_text, mimetype, charset = _resolve_incoming_unstructured_data(
             data,

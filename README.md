@@ -101,8 +101,11 @@ include any necessary hooks in a file called `custom.py` for Python models or `c
   - Executed once in the beginning of the run
   - `kwargs` - additional keyword arguments to the method;
     - code_dir - code folder passed in the `--code_dir` parameter
-- `read_input_data(input_filename: str) -> Any`
-  - `input_filename` is a data file, passed in the `--input` parameter
+- `read_input_data(input_filename_or_binary_data: str/bytes) -> Any`
+  - `input_filename_or_binary_data` is a data filepath of the `str`type, when input data:
+    - is passed as `--input` parameter in `drum score` mode, or;
+    - is posted as a form-data `X` parameter in a post request to the `drum server` `/predict` endpoint;
+  - `input_filename_or_binary_data` is a binary data of the `bytes` type, when data is posted as binary data in a post  request to the `drum server` `/predict` endpoint;
   - If used, this hook must return a non-None value; if it returns something other than a DF, you'll need to write your own score method.
   - This hook can be used to customize data file reading, e.g: mode, encoding, handle missing values.
 - `load_model(code_dir: str) -> Any`

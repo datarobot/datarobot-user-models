@@ -1,11 +1,10 @@
 import logging
-import pandas as pd
-import pprint
 
 from abc import ABC, abstractmethod
 
 
-from datarobot_drum.drum.common import LOGGER_NAME_PREFIX, TargetType
+from datarobot_drum.drum.common import LOGGER_NAME_PREFIX, TargetType, StructuredDtoKeys
+from datarobot_drum.drum.model_adapter import PythonModelAdapter
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -49,7 +48,7 @@ class BaseLanguagePredictor(ABC):
                 .init()
             )
 
-    def monitor(self, features_file, predictions, predict_time_ms):
+    def monitor(self, kwargs, predictions, predict_time_ms):
         if self._params["monitor"] == "True":
             self._mlops.report_deployment_stats(
                 num_predictions=len(predictions), execution_time_ms=predict_time_ms
@@ -71,12 +70,22 @@ class BaseLanguagePredictor(ABC):
                 if self._positive_class_label and self._negative_class_label:
                     class_names = [self._negative_class_label, self._positive_class_label]
 
-            df = pd.read_csv(features_file)
+            df = PythonModelAdapter.read_structured_input(
+                kwargs.get(StructuredDtoKeys.FILENAME),
+                kwargs.get(StructuredDtoKeys.BINARY_DATA),
+                kwargs.get(StructuredDtoKeys.MIMETYPE),
+                kwargs.get(StructuredDtoKeys.CHARSET),
+            )
             self._mlops.report_predictions_data(
                 features_df=df, predictions=mlops_predictions, class_names=class_names
             )
 
     @abstractmethod
-    def predict(self, input_filename):
-        """ Predict on input_filename """
+    def predict(self, **kwargs):
+        """ Predict on input_filename or binary_data """
+        pass
+
+    @abstractmethod
+    def transform(self, **kwargs):
+        """ Predict on input_filename or binary_data """
         pass

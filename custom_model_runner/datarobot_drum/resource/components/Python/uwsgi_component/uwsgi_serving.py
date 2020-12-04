@@ -107,6 +107,10 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
     def ping(self, url_params, form_params):
         return HTTP_200_OK, {"message": "OK"}
 
+    @FlaskRoute("{}/ping/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
+    def ping2(self, url_params, form_params):
+        return HTTP_200_OK, {"message": "OK"}
+
     @FlaskRoute(
         "{}/capabilities/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"]
     )
@@ -133,6 +137,12 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
         self._stats_collector.stats_reset()
         return HTTP_200_OK, ret_dict
 
+    @FlaskRoute(
+        "{}/predictions/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["POST"]
+    )
+    def predictions(self, url_params, form_params):
+        return self.predict(url_params, form_params)
+
     @FlaskRoute("{}/predict/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["POST"])
     def predict(self, url_params, form_params):
         if self._error_response:
@@ -154,6 +164,13 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
             self._stats_collector.mark("finish")
             self._stats_collector.disable()
         return response_status, response
+
+    @FlaskRoute(
+        "{}/predictionsUnstructured/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")),
+        methods=["POST"],
+    )
+    def predictions_unstructured(self, url_params, form_params):
+        return self.predict_unstructured(url_params, form_params)
 
     @FlaskRoute(
         "{}/predictUnstructured/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")),

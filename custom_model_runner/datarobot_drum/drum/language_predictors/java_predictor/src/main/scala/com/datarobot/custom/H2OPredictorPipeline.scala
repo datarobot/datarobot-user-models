@@ -6,7 +6,7 @@ import ai.h2o.mojos.runtime.frame.MojoFrameBuilder;
 import ai.h2o.mojos.runtime.frame.MojoRowBuilder;
 import ai.h2o.mojos.runtime.lic.LicenseException;
 import java.nio.file.{Path, Paths}
-import java.io.{File, BufferedReader, FileReader, StringWriter}
+import java.io.{File, BufferedReader, FileReader, StringWriter, StringReader}
 
 import scala.util.{Try, Success, Failure}
 
@@ -80,14 +80,39 @@ class H2OPredictorPipeline(name: String) extends BasePredictor(name) {
     }.transpose
   }
 
-  def predict(inputFilename: String): String = {
+  def scoreStringCSV(inputData: String) = {
+    val csvFormat = CSVFormat.DEFAULT.withHeader();
+    val parser = csvFormat.parse(
+      new BufferedReader(new StringReader(inputData))
+    )
+    val sParser = parser.iterator.asScala.map { _.toMap }
+
+    val frameBuilder = this.mojoPipeline.getInputFrameBuilder();
+
+    sParser.map { row =>
+      val rowBuilder = frameBuilder.getMojoRowBuilder();
+      row.asScala.map { case (k, v) => rowBuilder.setValue(k, v) }
+      frameBuilder.addRow(rowBuilder);
+    }.toArray
+
+    val iframe = frameBuilder.toMojoFrame();
+    val oframe = this.mojoPipeline.transform(iframe);
+
+    val outColumns = oframe.getColumnNames
+    outColumns.zipWithIndex.map {
+      case (name, index) =>
+        oframe.getColumn(index).getDataAsStrings
+    }.transpose
+  }
+
+  def predict(inputFilename: String, inputData: String): String = {
       
     val csvPrinter: CSVPrinter = new CSVPrinter(
       new StringWriter(),
       CSVFormat.DEFAULT.withHeader(headers: _*)
     )
 
-    val predictions = Try(this.scoreFileCSV(inputFilename))
+    val predictions = if (inputFilename != null) Try(this.scoreFileCSV(inputFilename)) else Try(this.scoreStringCSV(inputData))
 
     predictions match {
       case Success(preds) =>
