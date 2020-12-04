@@ -3,7 +3,10 @@ import tempfile
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
+import numpy as np
 import pandas as pd
+from pandas.testing import assert_frame_equal
+import pyarrow
 import pytest
 import responses
 import strictyaml
@@ -284,3 +287,38 @@ def test_output_dir_copy():
         assert Path(out_dir, "test.py").exists()
         assert not Path(out_dir, "__pycache__").exists()
         assert not Path(out_dir, "out").exists()
+
+
+def test_read_structured_input_arrow_csv_na_consistency(tmp_path):
+    """
+    Test that N/A values (None, numpy.nan) are handled consistently when using
+    CSV vs Arrow as a prediction payload format.
+    1. Make CSV and Arrow prediction payloads from the same dataframe
+    2. Read both payloads
+    3. Assert the resulting dataframes are equal
+    """
+
+    # arrange
+    df = pd.DataFrame({"col_int": [1, np.nan, None], "col_obj": ["a", np.nan, None]})
+
+    csv_filename = os.path.join(tmp_path, "X.csv")
+    with open(csv_filename, "w") as f:
+        f.write(df.to_csv(index=False))
+
+    arrow_filename = os.path.join(tmp_path, "X.arrow")
+    with open(arrow_filename, "wb") as f:
+        f.write(pyarrow.ipc.serialize_pandas(df).to_pybytes())
+
+    # act
+    csv_df = PythonModelAdapter.read_structured_input(csv_filename, None)
+    arrow_df = PythonModelAdapter.read_structured_input(arrow_filename, None)
+
+    # assert
+    is_nan = lambda x: isinstance(x, float) and np.isnan(x)
+    is_none = lambda x: x is None
+
+    assert_frame_equal(csv_df, arrow_df)
+    # `assert_frame_equal` doesn't make a difference between None and np.nan.
+    # To do an exact comparison, compare None and np.nan "masks".
+    assert_frame_equal(csv_df.applymap(is_nan), arrow_df.applymap(is_nan))
+    assert_frame_equal(csv_df.applymap(is_none), arrow_df.applymap(is_none))
