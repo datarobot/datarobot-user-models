@@ -4,9 +4,9 @@ import werkzeug
 
 from datarobot_drum.drum.common import ArgumentsOptions
 
-from tests.drum.drum_server_utils import DrumServerRun
+from datarobot_drum.resource.drum_server_utils import DrumServerRun
 
-from tests.drum.utils import (
+from datarobot_drum.resource.utils import (
     _exec_shell_cmd,
     _create_custom_model_dir,
 )

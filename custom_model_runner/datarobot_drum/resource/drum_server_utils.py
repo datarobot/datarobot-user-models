@@ -7,7 +7,7 @@ from threading import Thread
 
 from datarobot_drum.drum.utils import CMRunnerUtils
 from datarobot_drum.drum.common import ArgumentsOptions
-from .utils import _exec_shell_cmd, _cmd_add_class_labels
+from datarobot_drum.resource.utils import _exec_shell_cmd, _cmd_add_class_labels
 
 
 def _wait_for_server(url, timeout, process_holder):
