@@ -310,8 +310,8 @@ def test_read_structured_input_arrow_csv_na_consistency(tmp_path):
         f.write(pyarrow.ipc.serialize_pandas(df).to_pybytes())
 
     # act
-    csv_df = PythonModelAdapter._read_structured_input(csv_filename)
-    arrow_df = PythonModelAdapter._read_structured_input(arrow_filename)
+    csv_df = PythonModelAdapter.read_structured_input(csv_filename, None)
+    arrow_df = PythonModelAdapter.read_structured_input(arrow_filename, None)
 
     # assert
     is_nan = lambda x: isinstance(x, float) and np.isnan(x)
