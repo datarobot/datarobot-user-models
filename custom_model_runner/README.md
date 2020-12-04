@@ -139,17 +139,37 @@ DRUM can also run as a prediction server. To do so, provide a server address arg
 
 The DRUM prediction server provides the following routes. You may provide the environment variable URL_PREFIX. Note that URLs must end with /.
 
-* A GET URL_PREFIX/ route, which checks if the server is alive.  
+* Status routes:   
+A GET **URL_PREFIX/** and **URL_PREFIX/ping/** routes, which checks if the server is alive.  
 Example: GET http://localhost:6789/
 
-* A POST URL_PREFIX/shutdown/ route, which shuts the server down.  
+* Shutdown route:   
+A POST **URL_PREFIX/shutdown/** route, which shuts the server down.  
 Example: POST http://localhost:6789/shutdown/
 
-* A POST URL_PREFIX/predict/ route, which returns predictions on data.  
-Example: POST http://localhost:6789/predict/  
-For this /predict/ route, provide inference data (for the model to make predictions) as form data with a <key:value> pair, where:  
+* Structured predictions routes:   
+A POST **URL_PREFIX/predict/** and **URL_PREFIX/predictions/** routes, which returns predictions on data.  
+Example: POST http://localhost:6789/predict/; POST http://localhost:6789/predictions/  
+For these routes data can be posted in two ways:
+  * as form data parameter with a <key:value> pair, where:  
 key = X  
-value = filename of the CSV that contains the inference data
+value = filename of the `csv/arrow/mtx` format, that contains the inference data.
+  * as binary data; in case of `arrow` or `mtx` formats, mimetype `text/arrow` or `text/mtx` must be set.
+   
+* Structured transform route (for Python predictor only):   
+A POST **URL_PREFIX/transform/** route, which returns transformed data.  
+Example: POST http://localhost:6789/transfor/;  
+For this route data can be posted in two ways:
+  * as form data parameter with a <key:value> pair, where:  
+key = X  
+value = filename of the `csv/arrow/mtx` format, that contains the inference data.
+  * as binary data; in case of `arrow` or `mtx` formats, mimetype `text/arrow` or `text/mtx` must be set.
+ 
+* Unstructured predictions routes:  
+A POST **URL_PREFIX/predictUnstructured/** and **URL_PREFIX/predictionsUnstructured/** routes, which returns predictions on data.  
+Example: POST http://localhost:6789/predictUnstructured/; POST http://localhost:6789/predictionsUnstructured/  
+For these routes data is posted as binary data. Provide mimetype and charset to properly handle the data.
+For more detailed information please go [here](https://github.com/datarobot/datarobot-user-models#unstructured_inference_models).  
 
 #### Starting drum as prediction server in production mode.
 Drum prediction server can be started in *production* mode which has nginx and uwsgi as the backend.
@@ -215,6 +235,6 @@ and an API token to authenticate the requests.
     endpoint: https://app.datarobot.com/api/v2
     token: <yourtoken>
     ```
-2. **Model Metadata** `push` also relies on a metadata file, which is parsed on drum to create
+2. **Model Metadata** `push` also relies on a metadata file, which is parsed on DRUM to create
 the correct sort of model in DataRobot. This metadata file includes quite a few options. You can
-[read about those options](MODEL-METADATA.md) or [see an example](model_templates/inference/python3_sklearn/model-metadata.yaml)
+[read about those options](https://github.com/datarobot/datarobot-user-models/blob/master/MODEL-METADATA.md) or [see an example](https://github.com/datarobot/datarobot-user-models/blob/master/model_templates/inference/python3_sklearn/model-metadata.yaml).
