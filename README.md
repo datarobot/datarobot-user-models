@@ -10,8 +10,9 @@
 6. [Custom Model Templates](#custom_model_templates)
 7. [Custom Environment Templates](#custom_environment_templates)
 8. [Custom Model Runner (drum)](#custom_model_runner)
-9. [Contribution & development](#contribution_development)
-10. [Communication](#communication)
+9. [Deploying model in DataRobot](#best_practices)
+10. [Contribution & development](#contribution_development)
+11. [Communication](#communication)
 
 ## What is this repository? <a name="what_is_it"></a>
 The **DataRobot User Models** repository contains information and tools for assembling,
