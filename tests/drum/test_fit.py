@@ -401,7 +401,9 @@ class TestFit:
         cmd += " --target {}".format(resources.targets(problem))
 
         if target_type in [BINARY, MULTICLASS]:
-            cmd = _cmd_add_class_labels(cmd, resources.class_labels(framework, problem))
+            cmd = _cmd_add_class_labels(
+                cmd, resources.class_labels(framework, problem), target_type
+            )
 
         _, _, stderr = _exec_shell_cmd(
             cmd,
