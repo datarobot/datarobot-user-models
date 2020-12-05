@@ -392,7 +392,7 @@ class CMRunner:
             labels = None
 
         with DrumServerRun(
-            self.options.target_type,
+            self.target_type.value,
             labels,
             self.options.code_dir,
         ) as run:
