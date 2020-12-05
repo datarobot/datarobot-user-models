@@ -21,6 +21,9 @@ from mlpiper.pipeline.executor import Executor
 from mlpiper.pipeline.executor_config import ExecutorConfig
 from mlpiper.pipeline import json_fields
 
+from scipy.io import mmwrite, mmread
+from scipy.sparse import vstack
+
 from datarobot_drum.drum.common import (
     ArgumentsOptions,
     CUSTOM_FILE_NAME,
@@ -363,14 +366,17 @@ class CMRunner:
     def _check_prediction_side_effects(self):
         rtol = 2e-02
         atol = 1e-06
-        if self.options.input.endswith(".mtx"):
+        input_extension = os.path.splitext(self.options.input)
+        is_sparse = input_extension[1] == ".mtx"
+
+        if is_sparse:
             df = pd.DataFrame(mmread(self.options.input).tocsr())
         else:
             df = pd.read_csv(self.options.input)
         samplesize = min(1000, max(int(len(df) * 0.1), 10))
         data_subset = df.sample(n=samplesize, random_state=42)
 
-        if self.options.input.endswith(".mtx"):
+        if is_sparse:
             __tempfile_sample = NamedTemporaryFile(suffix=".mtx")
             sparse_mat = vstack(x[0] for x in data_subset.values)
             mmwrite(__tempfile_sample.name, sparse_mat)
