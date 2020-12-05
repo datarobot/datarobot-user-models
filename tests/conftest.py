@@ -48,6 +48,7 @@ from tests.drum.constants import (
     SKLEARN_SPARSE,
     SKLEARN_TRANSFORM,
     SKLEARN_TRANSFORM_DENSE,
+    SKLEARN_PRED_CONSISTENCY,
     SPARSE,
     SPARSE_TARGET,
     TESTS_ARTIFACTS_PATH,
@@ -80,6 +81,9 @@ _datasets = {
     (SKLEARN, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
     (SKLEARN_TRANSFORM, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
     (SKLEARN_TRANSFORM_DENSE, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
+(SKLEARN_PRED_CONSISTENCY, BINARY_BOOL): os.path.join(
+        TESTS_DATA_PATH, "10k_diabetes_sample.csv"
+    ),
 }
 
 _training_models_paths = {
@@ -101,6 +105,9 @@ _training_models_paths = {
         TRAINING_TEMPLATES_PATH, "python3_pytorch_multiclass"
     ),
     (PYTHON, SKLEARN_TRANSFORM): os.path.join(TRAINING_TEMPLATES_PATH, "python3_sklearn_transform"),
+(PYTHON, SKLEARN_PRED_CONSISTENCY): os.path.join(
+        TESTS_FIXTURES_PATH, "custom_pred_consistency"
+    ),
 }
 
 _targets = {
@@ -166,6 +173,7 @@ _class_labels = {
     (CODEGEN, MULTICLASS_BINARY): ["yes", "no"],
     (MOJO, MULTICLASS_BINARY): ["yes", "no"],
     (POJO, MULTICLASS_BINARY): ["yes", "no"],
+(SKLEARN_PRED_CONSISTENCY, BINARY_BOOL): ["False", "True"],
 }
 
 _artifacts = {
