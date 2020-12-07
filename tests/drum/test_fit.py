@@ -139,6 +139,7 @@ class TestFit:
             (SKLEARN_MULTICLASS, MULTICLASS_NUM_LABELS, None),
             (SKLEARN_TRANSFORM, REGRESSION, None),
             (SKLEARN_TRANSFORM, BINARY, None),
+            (SKLEARN_TRANSFORM, ANOMALY, None),
             (XGB, BINARY_TEXT, None),
             (XGB, REGRESSION, None),
             (XGB, MULTICLASS, None),
