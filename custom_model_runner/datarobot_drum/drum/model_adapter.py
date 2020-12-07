@@ -337,22 +337,8 @@ class PythonModelAdapter:
         formats.add(PayloadFormat.ARROW, pyarrow.__version__)
         return formats
 
-    def transform(self, model=None, **kwargs):
-        """
-        Load data, either with read hook or built-in method, and apply transform hook if present
+    def _read_input_file(self, input_filename, input_binary_data, **kwargs):
 
-        Parameters
-        ----------
-        model: Any
-            The model
-        Returns
-        -------
-        pd.DataFrame
-        """
-        target = None
-
-        input_filename = kwargs.get(StructuredDtoKeys.FILENAME)
-        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         if self._custom_hooks.get(CustomHooks.READ_INPUT_DATA):
             try:
                 data = self._custom_hooks[CustomHooks.READ_INPUT_DATA](
@@ -371,10 +357,36 @@ class PythonModelAdapter:
                 kwargs.get(StructuredDtoKeys.MIMETYPE),
                 kwargs.get(StructuredDtoKeys.CHARSET),
             )
+
+        return data
+
+    def transform(self, model=None, target_filename=None, **kwargs):
+        """
+        Load data, either with read hook or built-in method, and apply transform hook if present
+
+        Parameters
+        ----------
+        model: Any
+            The model
+        Returns
+        -------
+        pd.DataFrame
+        """
+        target = None
+        input_filename = kwargs.get(StructuredDtoKeys.FILENAME)
+        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
+
+        data = self._read_input_file(input_filename, input_binary_data, **kwargs)
+
         if self._target_type == TargetType.TRANSFORM:
             target = data.get(self._target_name)
+            # TODO: wrap this up in the DTO keys as above
             if target is not None:
                 data = data.drop(self._target_name, axis=1)
+            elif target_filename is not None:
+                target = self._read_input_file(target_filename, input_binary_data, **kwargs)
+            else:
+                target = None
 
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
             try:

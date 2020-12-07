@@ -10,6 +10,7 @@ from datarobot_drum.drum.common import (
     UnstructuredDtoKeys,
     PredictionServerMimetypes,
     X_TRANSFORM_KEY,
+    Y_TRANSFORM_KEY,
 )
 from datarobot_drum.resource.transform_helpers import (
     make_arrow_payload,
@@ -48,6 +49,9 @@ class PredictMixin:
         file_key = "X"
         filestorage = request.files.get(file_key)
 
+        target_key = "y"
+        target_filestorage = request.files.get(target_key)
+
         if self._target_type == TargetType.TRANSFORM:
             arrow_key = "arrow_version"
             arrow_version = request.files.get(arrow_key)
@@ -61,7 +65,16 @@ class PredictMixin:
                 filestorage.save(f)
                 f.flush()
                 if self._target_type == TargetType.TRANSFORM:
-                    out_data = self._predictor.transform(filename=f.name)
+                    if target_filestorage is not None:
+                        # TODO: this doesn't work
+                        _, target_file_ext = os.path.splitext(target_filestorage.filename)
+                        with tempfile.NamedTemporaryFile(suffix=target_file_ext) as fy:
+                            target_filestorage.save(fy)
+                            fy.flush()
+                            out_data, out_target = self._predictor.transform(f.name, fy.name)
+                    else:
+                        out_data, _ = self._predictor.transform(f.name)
+                        out_target = None
                 else:
                     out_data = self._predictor.predict(filename=f.name)
 
@@ -95,27 +108,48 @@ class PredictMixin:
             response = out_data
         elif self._target_type == TargetType.TRANSFORM:
             if is_sparse(out_data):
+                target_csv = make_csv_payload(out_target) if out_target is not None else {}
                 mtx_payload = make_mtx_payload(out_data)
                 response = (
-                    '{{"{transform_key}":{mtx_payload}, "out.format":"{out_format}"}}'.format(
-                        transform_key=X_TRANSFORM_KEY, mtx_payload=mtx_payload, out_format="sparse"
+                    '{{"{transform_key}":{mtx_payload},'
+                    ' "out.format":"{out_format}", "{y_transform_key}":{y_payload}}}'.format(
+                        transform_key=X_TRANSFORM_KEY,
+                        mtx_payload=mtx_payload,
+                        out_format="sparse",
+                        y_transform_key=Y_TRANSFORM_KEY,
+                        y_payload=target_csv,
                     )
                 )
             else:
                 if use_arrow:
+                    target_arrow = (
+                        make_arrow_payload(out_target, arrow_version)
+                        if out_target is not None
+                        else {}
+                    )
                     arrow_payload = make_arrow_payload(out_data, arrow_version)
                     response = (
-                        '{{"{transform_key}":{arrow_payload}, "out.format":"{out_format}"}}'.format(
+                        '{{"{transform_key}":{arrow_payload},'
+                        ' "out.format":"{out_format}", "{y_transform_key}":{y_payload}}}'.format(
                             transform_key=X_TRANSFORM_KEY,
                             arrow_payload=arrow_payload,
                             out_format="arrow",
+                            y_transform_key=Y_TRANSFORM_KEY,
+                            y_payload=target_arrow,
                         )
                     )
                 else:
                     csv_payload = make_csv_payload(out_data)
+                    target_csv = make_csv_payload(out_target) if out_target is not None else {}
+
                     response = (
-                        '{{"{transform_key}":{csv_payload}, "out.format":"{out_format}"}}'.format(
-                            transform_key=X_TRANSFORM_KEY, csv_payload=csv_payload, out_format="csv"
+                        '{{"{transform_key}":{csv_payload}, '
+                        '"out.format":"{out_format}", "{y_transform_key}":{y_payload}}}'.format(
+                            transform_key=X_TRANSFORM_KEY,
+                            csv_payload=csv_payload,
+                            out_format="csv",
+                            y_transform_key=Y_TRANSFORM_KEY,
+                            y_payload=target_csv,
                         )
                     )
         else:
