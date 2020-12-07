@@ -80,6 +80,7 @@ class StructuredDtoKeys:
     BINARY_DATA = "binary_data"
     MIMETYPE = "mimetype"
     CHARSET = "charset"
+    TARGET_FILENAME = "target_filename"
 
 
 class PredictionServerMimetypes:

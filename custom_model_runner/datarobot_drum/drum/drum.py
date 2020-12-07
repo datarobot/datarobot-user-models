@@ -389,13 +389,6 @@ class CMRunner:
             "target_type": self.target_type.value,
         }
 
-        if self.target_type == TargetType.TRANSFORM:
-            replace_data.update(
-                {
-                    "target_name": options.target,
-                }
-            )
-
         if self.run_mode == RunMode.SCORE:
             replace_data.update(
                 {

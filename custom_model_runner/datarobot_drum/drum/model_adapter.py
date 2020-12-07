@@ -360,7 +360,7 @@ class PythonModelAdapter:
 
         return data
 
-    def transform(self, model=None, target_filename=None, **kwargs):
+    def transform(self, model=None, **kwargs):
         """
         Load data, either with read hook or built-in method, and apply transform hook if present
 
@@ -375,12 +375,12 @@ class PythonModelAdapter:
         target = None
         input_filename = kwargs.get(StructuredDtoKeys.FILENAME)
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
+        target_filename = kwargs.get(StructuredDtoKeys.TARGET_FILENAME)
 
         data = self._read_input_file(input_filename, input_binary_data, **kwargs)
 
         if self._target_type == TargetType.TRANSFORM:
             target = data.get(self._target_name)
-            # TODO: wrap this up in the DTO keys as above
             if target is not None:
                 data = data.drop(self._target_name, axis=1)
             elif target_filename is not None:

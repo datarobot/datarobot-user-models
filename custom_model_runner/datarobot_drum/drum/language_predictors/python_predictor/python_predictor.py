@@ -9,6 +9,7 @@ from datarobot_drum.drum.common import (
     CLASS_LABELS_ARG_KEYWORD,
     TARGET_TYPE_ARG_KEYWORD,
     TARGET_NAME_ARG_KEYWORD,
+    StructuredDtoKeys
 )
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
@@ -60,8 +61,11 @@ class PythonPredictor(BaseLanguagePredictor):
         return predictions
 
     def transform(self, input_filename, target_filename=None):
+        kwargs = {StructuredDtoKeys.FILENAME: input_filename}
+        if target_filename is not None:
+            kwargs.update({StructuredDtoKeys.TARGET_FILENAME: target_filename})
         return self._model_adapter.transform(
-            input_filename, model=self._model, target_filename=target_filename
+            model=self._model, **kwargs
         )
 
     def predict_unstructured(self, data, **kwargs):
