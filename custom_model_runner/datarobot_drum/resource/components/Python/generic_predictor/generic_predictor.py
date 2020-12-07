@@ -63,6 +63,10 @@ class GenericPredictorComponent(ConnectableComponent):
     def _materialize(self, parent_data_objs, user_data):
         input_filename = self._params["input_filename"]
         output_filename = self._params.get("output_filename")
+        if self._target_type == TargetType.TRANSFORM:
+            target_filename = self._params.get('target_csv')
+        else:
+            target_filename = None
 
         if self._target_type == TargetType.UNSTRUCTURED:
             kwargs_params = {}
@@ -100,7 +104,7 @@ class GenericPredictorComponent(ConnectableComponent):
                 with open(output_filename, "w", encoding=response_charset) as f:
                     f.write(ret_data)
         elif self._target_type == TargetType.TRANSFORM:
-            features_transformed, target_transformed = self._predictor.transform(input_filename)
+            features_transformed, target_transformed = self._predictor.transform(input_filename, target_filename)
             if output_filename.endswith(".csv"):
                 output_base = output_filename[:-4]
                 feature_output_filename = output_base + "_features_transformed.csv"

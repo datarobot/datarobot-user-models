@@ -396,6 +396,12 @@ class CMRunner:
                     "output_filename": '"{}"'.format(options.output) if options.output else "null",
                 }
             )
+            if self.target_type == TargetType.TRANSFORM and options.target_csv is not None:
+                replace_data.update(
+                    {
+                        "target_csv": options.target_csv,
+                    }
+                )
         else:
             host_port_list = options.address.split(":", 1)
             host = host_port_list[0]
