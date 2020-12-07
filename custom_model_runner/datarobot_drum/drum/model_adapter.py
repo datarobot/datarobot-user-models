@@ -39,7 +39,7 @@ RUNNING_LANG_MSG = "Running environment language: Python."
 
 
 class PythonModelAdapter:
-    def __init__(self, model_dir, target_type=None):
+    def __init__(self, model_dir, target_type=None, target_name=None):
         self._logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + self.__class__.__name__)
 
         # Get all the artifact predictors we have
@@ -58,6 +58,7 @@ class PythonModelAdapter:
         self._model = None
         self._model_dir = model_dir
         self._target_type = target_type
+        self._target_name = target_name
 
     def load_custom_hooks(self):
         custom_file_paths = list(Path(self._model_dir).rglob("{}.py".format(CUSTOM_FILE_NAME)))
@@ -348,6 +349,8 @@ class PythonModelAdapter:
         -------
         pd.DataFrame
         """
+        target = None
+
         input_filename = kwargs.get(StructuredDtoKeys.FILENAME)
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         if self._custom_hooks.get(CustomHooks.READ_INPUT_DATA):
@@ -368,11 +371,21 @@ class PythonModelAdapter:
                 kwargs.get(StructuredDtoKeys.MIMETYPE),
                 kwargs.get(StructuredDtoKeys.CHARSET),
             )
+        if self._target_type == TargetType.TRANSFORM:
+            target = data.get(self._target_name)
+            if target is not None:
+                data = data.drop(self._target_name, axis=1)
 
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
             try:
                 # noinspection PyCallingNonCallable
-                output_data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
+                if self._target_type == TargetType.TRANSFORM:
+                    output_data, output_target = self._custom_hooks[CustomHooks.TRANSFORM](
+                        data, target, model
+                    )
+                else:
+                    output_data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
+                    output_target = None
 
             except Exception as exc:
                 raise type(exc)(
@@ -381,6 +394,9 @@ class PythonModelAdapter:
             self._validate_data(output_data, CustomHooks.TRANSFORM)
             if self._target_type == TargetType.TRANSFORM:
                 self._validate_transform_rows(output_data, data)
+                if output_target is not None and target is not None:
+                    self._validate_transform_rows(output_target, target)
+                return output_data, output_target
         else:
             output_data = data
 
