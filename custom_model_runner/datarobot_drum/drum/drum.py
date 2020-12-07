@@ -396,10 +396,10 @@ class CMRunner:
                     "output_filename": '"{}"'.format(options.output) if options.output else "null",
                 }
             )
-            if self.target_type == TargetType.TRANSFORM and options.target_csv is not None:
+            if self.target_type == TargetType.TRANSFORM:
                 replace_data.update(
                     {
-                        "target_csv": options.target_csv,
+                        "target_csv": options.target_csv if options.target_csv else "null",
                     }
                 )
         else:

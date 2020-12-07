@@ -65,6 +65,8 @@ class GenericPredictorComponent(ConnectableComponent):
         output_filename = self._params.get("output_filename")
         if self._target_type == TargetType.TRANSFORM:
             target_filename = self._params.get('target_csv')
+            if target_filename == "null":
+                target_filename = None
         else:
             target_filename = None
 
