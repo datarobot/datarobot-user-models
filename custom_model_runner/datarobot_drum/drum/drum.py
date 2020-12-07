@@ -468,7 +468,7 @@ class CMRunner:
             else:
                 raise DrumCommonException(
                     "Target type {} requires class label information. No labels were supplied and "
-                    "labels could not be inferred from the target."
+                    "labels could not be inferred from the target.".format(self.target_type.value)
                 )
 
         options = self.options
