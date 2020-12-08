@@ -40,6 +40,21 @@ def load_model(input_dir):
     return "dummy"
 
 
+def read_input_data(input_binary_data):
+    """
+    This hook can be implemented to modify reading input data, e.g. decode using custom charset.
+
+    This function should return a dataframe, which will be passed into the transform hook.
+    If it returns something other than a DF, you'll need to write your own score method.
+
+    :param input_binary_data: input data as bytes
+    :returns: a dataframe
+    """
+    import io
+    # Returning dataframe
+    return pd.read_csv(io.BytesIO(input_binary_data))
+
+
 def transform(data, model):
     """
     This hook can be implemented to adjust logic in the scoring mode.

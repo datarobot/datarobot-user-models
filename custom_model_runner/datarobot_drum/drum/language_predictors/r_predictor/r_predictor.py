@@ -91,15 +91,15 @@ class RPredictor(BaseLanguagePredictor):
         return formats
 
     def predict(self, **kwargs):
-        input_filename = kwargs.get(StructuredDtoKeys.FILENAME)
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
+        mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
         start_predict = time.time()
         predictions = r_handler.outer_predict(
             self._target_type.value,
-            input_filename=ro.rinterface.NULL if input_filename is None else input_filename,
             binary_data=ro.rinterface.NULL
             if input_binary_data is None
             else ro.vectors.ByteVector(input_binary_data),
+            mimetype=ro.rinterface.NULL if mimetype is None else mimetype,
             model=self._model,
             positive_class_label=self._positive_class_label,
             negative_class_label=self._negative_class_label,

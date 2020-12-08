@@ -1,3 +1,4 @@
+import io
 import pandas as pd
 
 prediction_value = None
@@ -8,10 +9,10 @@ def init(**kwargs):
     prediction_value = 1
 
 
-def read_input_data(input_file):
+def read_input_data(input_binary_data):
     global prediction_value
     prediction_value += 1
-    return pd.read_csv(input_file)
+    return pd.read_csv(io.BytesIO(input_binary_data))
 
 
 def load_model(input_dir):

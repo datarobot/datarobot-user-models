@@ -15,6 +15,8 @@ from datarobot_drum.resource.unstructured_helpers import (
     _resolve_outgoing_unstructured_data,
 )
 
+from datarobot_drum.drum.utils import StructuredInputReadUtils
+
 from mlpiper.components.connectable_component import ConnectableComponent
 
 
@@ -96,9 +98,15 @@ class GenericPredictorComponent(ConnectableComponent):
                 with open(output_filename, "w", encoding=response_charset) as f:
                     f.write(ret_data)
         elif self._target_type == TargetType.TRANSFORM:
-            transformed_df = self._predictor.transform(filename=input_filename)
+            binary_data, mimetype = StructuredInputReadUtils.read_structured_input_file_as_binary(
+                input_filename
+            )
+            transformed_df = self._predictor.transform(binary_data=binary_data, mimetype=mimetype)
             transformed_df.to_csv(output_filename, index=False)
         else:
-            predictions = self._predictor.predict(filename=input_filename)
+            binary_data, mimetype = StructuredInputReadUtils.read_structured_input_file_as_binary(
+                input_filename
+            )
+            predictions = self._predictor.predict(binary_data=binary_data, mimetype=mimetype)
             predictions.to_csv(output_filename, index=False)
         return []

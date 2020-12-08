@@ -20,6 +20,7 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.push import _push_inference, _push_training
 from datarobot_drum.drum.common import MODEL_CONFIG_SCHEMA, TargetType
+from datarobot_drum.drum.utils import StructuredInputReadUtils
 
 
 class TestOrderIntuition:
@@ -310,8 +311,8 @@ def test_read_structured_input_arrow_csv_na_consistency(tmp_path):
         f.write(pyarrow.ipc.serialize_pandas(df).to_pybytes())
 
     # act
-    csv_df = PythonModelAdapter.read_structured_input(csv_filename, None)
-    arrow_df = PythonModelAdapter.read_structured_input(arrow_filename, None)
+    csv_df = StructuredInputReadUtils.read_structured_input_file_as_df(csv_filename)
+    arrow_df = StructuredInputReadUtils.read_structured_input_file_as_df(arrow_filename)
 
     # assert
     is_nan = lambda x: isinstance(x, float) and np.isnan(x)

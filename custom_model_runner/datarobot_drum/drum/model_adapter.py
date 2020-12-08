@@ -1,15 +1,14 @@
 import logging
 import os
-from scipy.io import mmread
 import pickle
 import sys
 import textwrap
 import pyarrow
-import io
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
+from pathlib import Path
 
 from datarobot_drum.drum.artifact_predictors.keras_predictor import KerasPredictor
 from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
@@ -28,10 +27,9 @@ from datarobot_drum.drum.common import (
     TargetType,
     PayloadFormat,
     SupportedPayloadFormats,
-    PredictionServerMimetypes,
     StructuredDtoKeys,
-    InputFormatToMimetype,
 )
+from datarobot_drum.drum.utils import StructuredInputReadUtils
 from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
 from datarobot_drum.drum.exceptions import DrumCommonException
 
@@ -285,50 +283,6 @@ class PythonModelAdapter:
                 )
             )
 
-    @staticmethod
-    def read_structured_input(filename, binary_data, mimetype=None, charset=None):
-        if not None in [filename, binary_data]:
-            raise DrumCommonException("Either filename or binary data should be provided")
-        if filename is not None:
-            binary_data, mimetype = PythonModelAdapter._read_structured_input_file(filename)
-        data = PythonModelAdapter._read_structured_input_data(binary_data, mimetype, charset)
-        return data
-
-    @staticmethod
-    def _read_structured_input_file(filename):
-        mimetype = InputFormatToMimetype.get(os.path.splitext(filename)[1])
-        with open(filename, "rb") as file:
-            binary_data = file.read()
-        return binary_data, mimetype
-
-    @staticmethod
-    def _read_structured_input_data(binary_data, mimetype, charset):
-        try:
-            if mimetype == PredictionServerMimetypes.TEXT_MTX:
-                return pd.DataFrame.sparse.from_spmatrix(mmread(io.BytesIO(binary_data)))
-            elif mimetype == PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM:
-                df = pyarrow.ipc.deserialize_pandas(binary_data)
-
-                # After CSV serialization+deserialization,
-                # original dataframe's None and np.nan values
-                # become np.nan values.
-                # After Arrow serialization+deserialization,
-                # original dataframe's None and np.nan values
-                # become np.nan for numeric columns and None for 'object' columns.
-                #
-                # Since we are supporting both CSV and Arrow,
-                # to be consistent with CSV serialization/deserialization,
-                # it is required to replace all None with np.nan for Arrow.
-                df.fillna(value=np.nan, inplace=True)
-
-                return df
-            else:
-                return pd.read_csv(io.BytesIO(binary_data))
-        except pd.errors.ParserError as e:
-            raise DrumCommonException(
-                "Pandas failed to read input binary data {}".format(binary_data)
-            )
-
     @property
     def supported_payload_formats(self):
         formats = SupportedPayloadFormats()
@@ -348,25 +302,20 @@ class PythonModelAdapter:
         -------
         pd.DataFrame
         """
-        input_filename = kwargs.get(StructuredDtoKeys.FILENAME)
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         if self._custom_hooks.get(CustomHooks.READ_INPUT_DATA):
             try:
-                data = self._custom_hooks[CustomHooks.READ_INPUT_DATA](
-                    input_filename if input_filename is not None else input_binary_data
-                )
+                data = self._custom_hooks[CustomHooks.READ_INPUT_DATA](input_binary_data)
             except Exception as exc:
                 raise type(exc)(
-                    "Model read_data hook failed to read input file: {} {}".format(
-                        input_filename, exc
+                    "Model read_data hook failed to read input data: {} {}".format(
+                        input_binary_data, exc
                     )
                 ).with_traceback(sys.exc_info()[2]) from None
         else:
-            data = PythonModelAdapter.read_structured_input(
-                input_filename,
+            data = StructuredInputReadUtils.read_structured_input_data_as_df(
                 input_binary_data,
                 kwargs.get(StructuredDtoKeys.MIMETYPE),
-                kwargs.get(StructuredDtoKeys.CHARSET),
             )
 
         if self._custom_hooks.get(CustomHooks.TRANSFORM):

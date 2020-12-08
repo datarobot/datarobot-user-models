@@ -1,5 +1,3 @@
-import os
-import tempfile
 from flask import request, Response
 import werkzeug
 
@@ -11,6 +9,7 @@ from datarobot_drum.drum.common import (
     PredictionServerMimetypes,
     X_TRANSFORM_KEY,
 )
+from datarobot_drum.drum.utils import StructuredInputReadUtils
 from datarobot_drum.resource.transform_helpers import (
     make_arrow_payload,
     is_sparse,
@@ -55,31 +54,18 @@ class PredictMixin:
                 arrow_version = eval(arrow_version.getvalue())
             use_arrow = arrow_version is not None
 
+        charset = None
         if filestorage is not None:
-            _, file_ext = os.path.splitext(filestorage.filename)
-            with tempfile.NamedTemporaryFile(suffix=file_ext) as f:
-                filestorage.save(f)
-                f.flush()
-                if self._target_type == TargetType.TRANSFORM:
-                    out_data = self._predictor.transform(filename=f.name)
-                else:
-                    out_data = self._predictor.predict(filename=f.name)
+            binary_data = filestorage.stream.read()
+            mimetype = StructuredInputReadUtils.resolve_mimetype_by_filename(filestorage.filename)
 
             if logger is not None:
                 logger.debug("Filename provided under X key: {}".format(filestorage.filename))
 
         # TODO: probably need to return empty response in case of empty request
         elif len(request.data):
+            binary_data = request.data
             mimetype, charset = PredictMixin._validate_content_type_header(request.content_type)
-
-            if self._target_type == TargetType.TRANSFORM:
-                out_data = self._predictor.transform(
-                    binary_data=request.data, mimetype=mimetype, charset=charset
-                )
-            else:
-                out_data = self._predictor.predict(
-                    binary_data=request.data, mimetype=mimetype, charset=charset
-                )
         else:
             wrong_key_error_message = (
                 "Samples should be provided as: "
@@ -90,6 +76,15 @@ class PredictMixin:
                 logger.error(wrong_key_error_message)
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             return {"message": "ERROR: " + wrong_key_error_message}, response_status
+
+        if self._target_type == TargetType.TRANSFORM:
+            out_data = self._predictor.transform(
+                binary_data=binary_data, mimetype=mimetype, charset=charset
+            )
+        else:
+            out_data = self._predictor.predict(
+                binary_data=binary_data, mimetype=mimetype, charset=charset
+            )
 
         if self._target_type == TargetType.UNSTRUCTURED:
             response = out_data
