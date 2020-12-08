@@ -21,6 +21,10 @@ def _create_custom_model_dir(
     is_training=False,
     nested=False,
 ):
+    """
+    Helper function for tests and validation to create temp custom model directory
+    with relevant files and/or artifacts
+    """
     custom_model_dir = tmp_dir / "custom_model"
     if nested:
         custom_model_dir = custom_model_dir.joinpath("nested_dir")
@@ -52,6 +56,11 @@ def _create_custom_model_dir(
 
 
 def _exec_shell_cmd(cmd, err_msg, assert_if_fail=True, process_obj_holder=None, env=os.environ):
+    """
+    Wrapper used by tests and validation to run shell command.
+    Can assert that the command does not fail (usually used for tests)
+    or return process, stdout and stderr
+    """
     p = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
@@ -78,6 +87,10 @@ def _exec_shell_cmd(cmd, err_msg, assert_if_fail=True, process_obj_holder=None, 
 
 
 def _cmd_add_class_labels(cmd, labels, target_type, multiclass_label_file=None):
+    """
+    utility used by tests and validation to add class label information to a drum command
+    for binary or multiclass cases
+    """
     if not labels or target_type == BINARY:
         pos = labels[1] if labels else "yes"
         neg = labels[0] if labels else "no"

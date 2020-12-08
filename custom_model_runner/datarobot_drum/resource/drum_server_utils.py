@@ -53,6 +53,9 @@ class DrumServerProcess:
 
 
 class DrumServerRun:
+    """
+    Utility to help run a local drum prediction server for tests and prediction validation
+    """
     def __init__(
         self,
         target_type,
