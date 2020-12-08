@@ -11,7 +11,7 @@ import tempfile
 import time
 from distutils.dir_util import copy_tree
 from pathlib import Path
-from tempfile import mkdtemp, NamedTemporaryFile
+from tempfile import mkdtemp, NamedTemporaryFile, mkstemp
 
 import numpy as np
 import pandas as pd
@@ -21,7 +21,8 @@ from mlpiper.pipeline.executor import Executor
 from mlpiper.pipeline.executor_config import ExecutorConfig
 from mlpiper.pipeline import json_fields
 
-from scipy.io import mmread
+from scipy.io import mmread, mmwrite
+from scipy.sparse import vstack
 
 from datarobot_drum.drum.common import (
     ArgumentsOptions,
@@ -378,12 +379,15 @@ class CMRunner:
             df = pd.DataFrame(mmread(self.options.input).tocsr())
             samplesize = min(1000, max(int(len(df) * 0.1), 10))
             data_subset = df.sample(n=samplesize, random_state=42)
-            subset_bytes = make_mtx_payload(data_subset)
+            _, __tempfile_sample = mkstemp(suffix=".mtx")
+            sparse_mat = vstack(x[0] for x in data_subset.values)
+            mmwrite(__tempfile_sample, sparse_mat)
         else:
             df = pd.read_csv(self.options.input)
             samplesize = min(1000, max(int(len(df) * 0.1), 10))
             data_subset = df.sample(n=samplesize, random_state=42)
-            subset_bytes = make_csv_payload(data_subset)
+            _, __tempfile_sample = mkstemp(suffix=".csv")
+            data_subset.to_csv(__tempfile_sample, index=False)
 
         if self.target_type == TargetType.BINARY:
             labels = [self.options.negative_class_label, self.options.positive_class_label]
@@ -397,15 +401,19 @@ class CMRunner:
             labels,
             self.options.code_dir,
         ) as run:
-            response_key = X_TRANSFORM_KEY if self.target_type == TargetType.TRANSFORM else RESPONSE_PREDICTIONS_KEY
-            endpoint = '/transform/' if self.target_type == TargetType.TRANSFORM else '/predict/'
+            response_key = (
+                X_TRANSFORM_KEY
+                if self.target_type == TargetType.TRANSFORM
+                else RESPONSE_PREDICTIONS_KEY
+            )
+            endpoint = "/transform/" if self.target_type == TargetType.TRANSFORM else "/predict/"
 
             response_full = requests.post(
                 run.url_server_address + endpoint, files={"X": open(self.options.input)}
             )
 
             response_sample = requests.post(
-                run.url_server_address + endpoint, files={"X": subset_bytes}
+                run.url_server_address + endpoint, files={"X": open(__tempfile_sample)}
             )
 
             if self.target_type == TargetType.TRANSFORM:
@@ -427,10 +435,13 @@ class CMRunner:
                             Error: Your predictions were different when we tried to predict twice.
                             No randomness is allowed.
                             The last 10 predictions from the main predict run were: {}
-                            However when we reran predictions on the same data, we got: {}""".format(
-                    preds_full_subset[~matches][:10], preds_sample[~matches][:10]
+                            However when we reran predictions on the same data, we got: {}.
+                            The sample used to calculate prediction reruns can be found in this file: {}""".format(
+                    preds_full_subset[~matches][:10], preds_sample[~matches][:10], __tempfile_sample
                 )
                 raise ValueError(message)
+            else:
+                os.remove(__tempfile_sample)
 
     def _generate_template(self):
         CMTemplateGenerator(
