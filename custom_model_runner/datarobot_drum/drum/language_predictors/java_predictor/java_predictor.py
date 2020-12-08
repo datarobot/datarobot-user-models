@@ -150,8 +150,13 @@ class JavaPredictor(BaseLanguagePredictor):
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         if input_binary_data is not None:
             input_binary_data = input_binary_data.decode("utf-8")
+
+        start_predict = time.time()
         out_csv = self._predictor_via_py4j.predict(input_filename, input_binary_data)
         out_df = pd.read_csv(StringIO(out_csv))
+        end_predict = time.time()
+        execution_time_ms = (end_predict - start_predict) * 1000
+        self.monitor(kwargs, out_df, execution_time_ms)
         return out_df
 
     def transform(self, **kwargs):

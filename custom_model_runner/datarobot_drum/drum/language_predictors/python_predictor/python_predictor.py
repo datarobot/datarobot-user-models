@@ -52,7 +52,6 @@ class PythonPredictor(BaseLanguagePredictor):
         end_predict = time.time()
         execution_time_ms = (end_predict - start_predict) * 1000
 
-        # TODO: plumb dataset reading into monitoring
         self.monitor(kwargs, predictions, execution_time_ms)
 
         return predictions
