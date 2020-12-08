@@ -16,11 +16,18 @@ g_code_dir = None
 
 
 def init(code_dir):
+    """
+    bookeeping to set code dir so we can separately dump preprocessing and model
+    """
     global g_code_dir
     g_code_dir = code_dir
 
 
 def read_input_data(input_filename):
+    """
+    read input data. Drops diag_1_desc if present,
+     sets global input filename to filename passed to this function
+    """
     data = pd.read_csv(input_filename)
     try:
         data.drop(["diag_1_desc"], axis=1, inplace=True)
@@ -33,14 +40,15 @@ def read_input_data(input_filename):
     return data
 
 
-def fit(
-    X: pd.DataFrame,
-    y: pd.Series,
-    output_dir=str,
-    class_order: Optional[List[str]] = None,
-    row_weights: Optional[np.ndarray] = None,
-    **kwargs,
-) -> None:
+def create_preprocessing_pipeline(X):
+    """
+    perform preprocessing on X:
+        - drop diag_1_desc
+        - convert all diag vars to string
+        - convert race of obj
+        - median impute and scale numeric features
+        - constant impute and one-hot encode categorical features
+    """
     # Drop diag_1_desc columns
     try:
         X.drop(["diag_1_desc"], axis=1, inplace=True)
@@ -77,7 +85,22 @@ def fit(
 
     # Full preprocessing pipeline
     pipeline = Pipeline(steps=[("preprocessor", preprocessor)])
+    return pipeline
 
+
+def fit(
+    X: pd.DataFrame,
+    y: pd.Series,
+    output_dir=str,
+    class_order: Optional[List[str]] = None,
+    row_weights: Optional[np.ndarray] = None,
+    **kwargs,
+) -> None:
+    """
+    Fit preprocessing pipeline and model.
+    Dump as two separate pickle files to output dir.
+    """
+    pipeline = create_preprocessing_pipeline(X)
     # Train the model-Pipeline
     pipeline.fit(X, y)
 
@@ -94,10 +117,10 @@ def fit(
 
 def transform(data, model):
     """
-    Note: This hook may not have to be implemented for your model.
-    In this case implemented for the model used in the example.
-    Modify this method to add data transformation before scoring calls. For example, this can be
-    used to implement one-hot encoding for models that don't include it on their own.
+    Specifically grab the path of preprocessing pipeline, using global code dir set earlier
+    Same preprocessing as performed above: change some data types, run the pipeline, and return
+    the transformed data
+
     Parameters
     ----------
     data: pd.DataFrame
@@ -122,6 +145,10 @@ def transform(data, model):
 
 
 def load_model(code_dir):
+    """
+    We need this hook because we're dumping two pickle files: the model
+    and the preprocessing pipeline, so need to tell DRUM which is the model
+    """
     model_path = "model.pkl"
     model = joblib.load(os.path.join(code_dir, model_path))
     return model
