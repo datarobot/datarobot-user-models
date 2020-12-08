@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 import joblib
-from sklearn.linear_model import LogisticRegression  # DELETE
+from sklearn.linear_model import LogisticRegression
 
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
