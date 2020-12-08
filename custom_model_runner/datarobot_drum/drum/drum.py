@@ -3,7 +3,6 @@ import glob
 import json
 import logging
 import os
-import requests
 import shutil
 import subprocess
 import sys
@@ -11,7 +10,7 @@ import tempfile
 import time
 from distutils.dir_util import copy_tree
 from pathlib import Path
-from tempfile import mkdtemp, NamedTemporaryFile, mkstemp
+from tempfile import mkdtemp, NamedTemporaryFile
 
 import numpy as np
 import pandas as pd
@@ -20,9 +19,6 @@ from memory_profiler import memory_usage
 from mlpiper.pipeline.executor import Executor
 from mlpiper.pipeline.executor_config import ExecutorConfig
 from mlpiper.pipeline import json_fields
-
-from scipy.io import mmread, mmwrite
-from scipy.sparse import vstack
 
 from datarobot_drum.drum.common import (
     ArgumentsOptions,
@@ -38,8 +34,6 @@ from datarobot_drum.drum.common import (
     TargetType,
     verbose_stdout,
     read_model_metadata_yaml,
-    RESPONSE_PREDICTIONS_KEY,
-    X_TRANSFORM_KEY,
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -48,13 +42,6 @@ from datarobot_drum.drum.push import drum_push, setup_validation_options
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.utils import CMRunnerUtils, handle_missing_colnames
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
-from datarobot_drum.resource.drum_server_utils import DrumServerRun
-from datarobot_drum.resource.transform_helpers import (
-    make_csv_payload,
-    make_mtx_payload,
-    read_csv_payload,
-    read_mtx_payload,
-)
 
 import docker.errors
 
@@ -366,82 +353,8 @@ class CMRunner:
                 df = handle_missing_colnames(df)
             df.to_csv(__tempfile.name, index=False)
             self.options.input = __tempfile.name
-        self._check_prediction_side_effects()
+        CMRunTests(self.options, self.run_mode, self.target_type).check_prediction_side_effects()
         self._run_fit_and_predictions_pipelines_in_mlpiper()
-
-    def _check_prediction_side_effects(self):
-        rtol = 2e-02
-        atol = 1e-06
-        input_extension = os.path.splitext(self.options.input)
-        is_sparse = input_extension[1] == ".mtx"
-
-        if is_sparse:
-            df = pd.DataFrame(mmread(self.options.input).tocsr())
-            samplesize = min(1000, max(int(len(df) * 0.1), 10))
-            data_subset = df.sample(n=samplesize, random_state=42)
-            _, __tempfile_sample = mkstemp(suffix=".mtx")
-            sparse_mat = vstack(x[0] for x in data_subset.values)
-            mmwrite(__tempfile_sample, sparse_mat)
-        else:
-            df = pd.read_csv(self.options.input)
-            samplesize = min(1000, max(int(len(df) * 0.1), 10))
-            data_subset = df.sample(n=samplesize, random_state=42)
-            _, __tempfile_sample = mkstemp(suffix=".csv")
-            data_subset.to_csv(__tempfile_sample, index=False)
-
-        if self.target_type == TargetType.BINARY:
-            labels = [self.options.negative_class_label, self.options.positive_class_label]
-        elif self.target_type == TargetType.MULTICLASS:
-            labels = self.options.class_labels
-        else:
-            labels = None
-
-        with DrumServerRun(
-            self.target_type.value,
-            labels,
-            self.options.code_dir,
-        ) as run:
-            response_key = (
-                X_TRANSFORM_KEY
-                if self.target_type == TargetType.TRANSFORM
-                else RESPONSE_PREDICTIONS_KEY
-            )
-            endpoint = "/transform/" if self.target_type == TargetType.TRANSFORM else "/predict/"
-
-            response_full = requests.post(
-                run.url_server_address + endpoint, files={"X": open(self.options.input)}
-            )
-
-            response_sample = requests.post(
-                run.url_server_address + endpoint, files={"X": open(__tempfile_sample)}
-            )
-
-            if self.target_type == TargetType.TRANSFORM:
-                if is_sparse:
-                    preds_full = pd.DataFrame(read_mtx_payload(eval(response_full.text)))
-                    preds_sample = pd.DataFrame(read_mtx_payload(eval(response_sample.text)))
-                else:
-                    preds_full = read_csv_payload(eval(response_full.text))
-                    preds_sample = read_csv_payload(eval(response_sample.text))
-            else:
-                preds_full = pd.DataFrame(json.loads(response_full.text)[response_key])
-                preds_sample = pd.DataFrame(json.loads(response_sample.text)[response_key])
-
-            preds_full_subset = preds_full.iloc[data_subset.index]
-
-            matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)
-            if not np.all(matches):
-                message = """
-                            Error: Your predictions were different when we tried to predict twice.
-                            No randomness is allowed.
-                            The last 10 predictions from the main predict run were: {}
-                            However when we reran predictions on the same data, we got: {}.
-                            The sample used to calculate prediction reruns can be found in this file: {}""".format(
-                    preds_full_subset[~matches][:10], preds_sample[~matches][:10], __tempfile_sample
-                )
-                raise ValueError(message)
-            else:
-                os.remove(__tempfile_sample)
 
     def _generate_template(self):
         CMTemplateGenerator(
