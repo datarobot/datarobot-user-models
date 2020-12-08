@@ -21,8 +21,7 @@ from mlpiper.pipeline.executor import Executor
 from mlpiper.pipeline.executor_config import ExecutorConfig
 from mlpiper.pipeline import json_fields
 
-from scipy.io import mmwrite, mmread
-from scipy.sparse import vstack
+from scipy.io import mmread
 
 from datarobot_drum.drum.common import (
     ArgumentsOptions,
@@ -39,6 +38,7 @@ from datarobot_drum.drum.common import (
     verbose_stdout,
     read_model_metadata_yaml,
     RESPONSE_PREDICTIONS_KEY,
+    X_TRANSFORM_KEY,
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -48,6 +48,12 @@ from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.utils import CMRunnerUtils, handle_missing_colnames
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
+from datarobot_drum.resource.transform_helpers import (
+    make_csv_payload,
+    make_mtx_payload,
+    read_csv_payload,
+    read_mtx_payload,
+)
 
 import docker.errors
 
@@ -359,8 +365,7 @@ class CMRunner:
                 df = handle_missing_colnames(df)
             df.to_csv(__tempfile.name, index=False)
             self.options.input = __tempfile.name
-        if self.target_type != TargetType.TRANSFORM:
-            self._check_prediction_side_effects()
+        self._check_prediction_side_effects()
         self._run_fit_and_predictions_pipelines_in_mlpiper()
 
     def _check_prediction_side_effects(self):
@@ -371,18 +376,14 @@ class CMRunner:
 
         if is_sparse:
             df = pd.DataFrame(mmread(self.options.input).tocsr())
+            samplesize = min(1000, max(int(len(df) * 0.1), 10))
+            data_subset = df.sample(n=samplesize, random_state=42)
+            subset_bytes = make_mtx_payload(data_subset)
         else:
             df = pd.read_csv(self.options.input)
-        samplesize = min(1000, max(int(len(df) * 0.1), 10))
-        data_subset = df.sample(n=samplesize, random_state=42)
-
-        if is_sparse:
-            __tempfile_sample = NamedTemporaryFile(suffix=".mtx")
-            sparse_mat = vstack(x[0] for x in data_subset.values)
-            mmwrite(__tempfile_sample.name, sparse_mat)
-        else:
-            __tempfile_sample = NamedTemporaryFile(suffix=".csv")
-            data_subset.to_csv(__tempfile_sample.name, index=False)
+            samplesize = min(1000, max(int(len(df) * 0.1), 10))
+            data_subset = df.sample(n=samplesize, random_state=42)
+            subset_bytes = make_csv_payload(data_subset)
 
         if self.target_type == TargetType.BINARY:
             labels = [self.options.negative_class_label, self.options.positive_class_label]
@@ -396,17 +397,27 @@ class CMRunner:
             labels,
             self.options.code_dir,
         ) as run:
-            response_full = requests.post(
-                run.url_server_address + "/predict/", files={"X": open(self.options.input)}
-            )
+            response_key = X_TRANSFORM_KEY if self.target_type == TargetType.TRANSFORM else RESPONSE_PREDICTIONS_KEY
+            endpoint = '/transform/' if self.target_type == TargetType.TRANSFORM else '/predict/'
 
-            preds_full = pd.DataFrame(json.loads(response_full.text)[RESPONSE_PREDICTIONS_KEY])
+            response_full = requests.post(
+                run.url_server_address + endpoint, files={"X": open(self.options.input)}
+            )
 
             response_sample = requests.post(
-                run.url_server_address + "/predict/", files={"X": open(__tempfile_sample.name)}
+                run.url_server_address + endpoint, files={"X": subset_bytes}
             )
 
-            preds_sample = pd.DataFrame(json.loads(response_sample.text)[RESPONSE_PREDICTIONS_KEY])
+            if self.target_type == TargetType.TRANSFORM:
+                if is_sparse:
+                    preds_full = pd.DataFrame(read_mtx_payload(eval(response_full.text)))
+                    preds_sample = pd.DataFrame(read_mtx_payload(eval(response_sample.text)))
+                else:
+                    preds_full = read_csv_payload(eval(response_full.text))
+                    preds_sample = read_csv_payload(eval(response_sample.text))
+            else:
+                preds_full = pd.DataFrame(json.loads(response_full.text)[response_key])
+                preds_sample = pd.DataFrame(json.loads(response_sample.text)[response_key])
 
             preds_full_subset = preds_full.iloc[data_subset.index]
 
