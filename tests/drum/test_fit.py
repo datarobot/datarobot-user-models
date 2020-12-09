@@ -417,8 +417,7 @@ class TestFit:
 
         assert "Your predictions were different when we tried to predict twice." in stderr
         # clean up
-        sample_dir = stderr.split(':')[-1]
-        if sample_dir.endswith('\n'):
+        sample_dir = stderr.split(":")[-1]
+        if sample_dir.endswith("\n"):
             sample_dir = sample_dir[:-1]
         os.remove(sample_dir.strip())
-
