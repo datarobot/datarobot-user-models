@@ -16,6 +16,7 @@ NEGATIVE_CLASS_LABEL_ARG_KEYWORD = "negative_class_label"
 CLASS_LABELS_ARG_KEYWORD = "class_labels"
 TARGET_TYPE_ARG_KEYWORD = "target_type"
 X_TRANSFORM_KEY = "X.transformed"
+RESPONSE_PREDICTIONS_KEY = "predictions"
 
 URL_PREFIX_ENV_VAR_NAME = "URL_PREFIX"
 

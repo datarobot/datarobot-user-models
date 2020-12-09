@@ -32,6 +32,7 @@ from .constants import (
     SKLEARN_REGRESSION,
     SKLEARN_ANOMALY,
     SKLEARN_TRANSFORM,
+    SKLEARN_PRED_CONSISTENCY,
     TESTS_ROOT_PATH,
     WEIGHTS_ARGS,
     WEIGHTS_CSV,
@@ -39,7 +40,11 @@ from .constants import (
     BINARY_BOOL,
     TRANSFORM,
 )
-from .utils import _cmd_add_class_labels, _create_custom_model_dir, _exec_shell_cmd
+from datarobot_drum.resource.utils import (
+    _cmd_add_class_labels,
+    _create_custom_model_dir,
+    _exec_shell_cmd,
+)
 
 
 class TestFit:
@@ -375,3 +380,44 @@ class TestFit:
         _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
+
+    @pytest.mark.parametrize("framework, problem", [(SKLEARN_PRED_CONSISTENCY, BINARY_BOOL)])
+    def test_prediction_consistency(self, resources, tmp_path, framework, problem):
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            SPARSE,
+            language=PYTHON,
+            is_training=True,
+        )
+
+        input_dataset = resources.datasets(framework, problem)
+
+        if problem in [BINARY_TEXT, BINARY_BOOL]:
+            target_type = BINARY
+        else:
+            target_type = problem
+
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
+            ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
+        )
+        cmd += " --target {}".format(resources.targets(problem))
+
+        if target_type in [BINARY, MULTICLASS]:
+            cmd = _cmd_add_class_labels(
+                cmd, resources.class_labels(framework, problem), target_type
+            )
+
+        _, _, stderr = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+
+        assert "Your predictions were different when we tried to predict twice." in stderr
+        # clean up
+        sample_dir = stderr.split(":")[-1]
+        if sample_dir.endswith("\n"):
+            sample_dir = sample_dir[:-1]
+        os.remove(sample_dir.strip())

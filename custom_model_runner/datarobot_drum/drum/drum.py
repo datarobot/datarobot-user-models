@@ -353,6 +353,7 @@ class CMRunner:
                 df = handle_missing_colnames(df)
             df.to_csv(__tempfile.name, index=False)
             self.options.input = __tempfile.name
+        CMRunTests(self.options, self.run_mode, self.target_type).check_prediction_side_effects()
         self._run_fit_and_predictions_pipelines_in_mlpiper()
 
     def _generate_template(self):

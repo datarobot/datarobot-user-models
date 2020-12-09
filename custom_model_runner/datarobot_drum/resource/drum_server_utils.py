@@ -7,7 +7,7 @@ from threading import Thread
 
 from datarobot_drum.drum.utils import CMRunnerUtils
 from datarobot_drum.drum.common import ArgumentsOptions
-from .utils import _exec_shell_cmd, _cmd_add_class_labels
+from datarobot_drum.resource.utils import _exec_shell_cmd, _cmd_add_class_labels
 
 
 def _wait_for_server(url, timeout, process_holder):
@@ -53,6 +53,10 @@ class DrumServerProcess:
 
 
 class DrumServerRun:
+    """
+    Utility to help run a local drum prediction server for tests and prediction validation
+    """
+
     def __init__(
         self,
         target_type,

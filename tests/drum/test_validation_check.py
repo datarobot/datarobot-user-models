@@ -3,7 +3,7 @@ import pytest
 
 from datarobot_drum.drum.common import ArgumentsOptions
 
-from .utils import (
+from datarobot_drum.resource.utils import (
     _exec_shell_cmd,
     _cmd_add_class_labels,
     _create_custom_model_dir,

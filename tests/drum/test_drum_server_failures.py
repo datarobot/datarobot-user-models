@@ -8,8 +8,8 @@ from datarobot_drum.drum.common import PythonArtifacts, RunMode
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 
 from .constants import SKLEARN, REGRESSION, BINARY, DOCKER_PYTHON_SKLEARN, PYTHON
-from .utils import _create_custom_model_dir
-from .drum_server_utils import DrumServerRun
+from datarobot_drum.resource.utils import _create_custom_model_dir
+from datarobot_drum.resource.drum_server_utils import DrumServerRun
 
 
 class TestDrumServerFailures:

@@ -45,8 +45,12 @@ from .constants import (
     TRANSFORM,
     XGB,
 )
-from .drum_server_utils import DrumServerRun
-from .utils import _cmd_add_class_labels, _create_custom_model_dir, _exec_shell_cmd
+from datarobot_drum.resource.drum_server_utils import DrumServerRun
+from datarobot_drum.resource.utils import (
+    _cmd_add_class_labels,
+    _create_custom_model_dir,
+    _exec_shell_cmd,
+)
 
 
 class TestInference:

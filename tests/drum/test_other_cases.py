@@ -6,8 +6,8 @@ import requests
 
 from datarobot_drum.drum.common import ArgumentsOptions, CustomHooks, CUSTOM_FILE_NAME
 
-from .drum_server_utils import DrumServerRun
-from .utils import (
+from datarobot_drum.resource.drum_server_utils import DrumServerRun
+from datarobot_drum.resource.utils import (
     _exec_shell_cmd,
     _create_custom_model_dir,
 )

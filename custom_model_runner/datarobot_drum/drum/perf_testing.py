@@ -3,6 +3,7 @@ import json
 import os
 import psutil
 import pandas as pd
+import numpy as np
 import shutil
 from progress.bar import Bar
 import requests
@@ -10,13 +11,26 @@ import subprocess
 import signal
 import sys
 import time
+from scipy.io import mmread, mmwrite
+from scipy.sparse import vstack
 from texttable import Texttable
-from tempfile import mkdtemp, NamedTemporaryFile
+from tempfile import mkdtemp, NamedTemporaryFile, mkstemp
 
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumPerfTestTimeout
 from datarobot_drum.drum.utils import CMRunnerUtils
-from datarobot_drum.drum.common import ArgumentsOptions, PERF_TEST_SERVER_LABEL
+from datarobot_drum.drum.common import (
+    ArgumentsOptions,
+    PERF_TEST_SERVER_LABEL,
+    RESPONSE_PREDICTIONS_KEY,
+    X_TRANSFORM_KEY,
+    TargetType,
+)
+from datarobot_drum.resource.drum_server_utils import DrumServerRun
+from datarobot_drum.resource.transform_helpers import (
+    read_csv_payload,
+    read_mtx_payload,
+)
 
 
 def _get_samples_df(df, samples):
@@ -197,8 +211,9 @@ class CMRunTests:
     NA_VALUE = "NA"
     TEST_CASE_FAIL_VALUE = "Fail"
 
-    def __init__(self, options, run_mode):
+    def __init__(self, options, run_mode, target_type=None):
         self.options = options
+        self.target_type = target_type
         self._verbose = self.options.verbose
         self._input_csv = self.options.input
         self._input_df = pd.read_csv(self._input_csv)
@@ -551,3 +566,77 @@ class CMRunTests:
         tbl_report = table.draw()
         print("\n\nValidation checks results")
         print(tbl_report)
+
+    def check_prediction_side_effects(self):
+        rtol = 2e-02
+        atol = 1e-06
+        input_extension = os.path.splitext(self.options.input)
+        is_sparse = input_extension[1] == ".mtx"
+
+        if is_sparse:
+            df = pd.DataFrame(mmread(self.options.input).tocsr())
+            samplesize = min(1000, max(int(len(df) * 0.1), 10))
+            data_subset = df.sample(n=samplesize, random_state=42)
+            _, __tempfile_sample = mkstemp(suffix=".mtx")
+            sparse_mat = vstack(x[0] for x in data_subset.values)
+            mmwrite(__tempfile_sample, sparse_mat)
+        else:
+            df = pd.read_csv(self.options.input)
+            samplesize = min(1000, max(int(len(df) * 0.1), 10))
+            data_subset = df.sample(n=samplesize, random_state=42)
+            _, __tempfile_sample = mkstemp(suffix=".csv")
+            data_subset.to_csv(__tempfile_sample, index=False)
+
+        if self.target_type == TargetType.BINARY:
+            labels = [self.options.negative_class_label, self.options.positive_class_label]
+        elif self.target_type == TargetType.MULTICLASS:
+            labels = self.options.class_labels
+        else:
+            labels = None
+
+        with DrumServerRun(
+            self.target_type.value,
+            labels,
+            self.options.code_dir,
+        ) as run:
+            response_key = (
+                X_TRANSFORM_KEY
+                if self.target_type == TargetType.TRANSFORM
+                else RESPONSE_PREDICTIONS_KEY
+            )
+            endpoint = "/transform/" if self.target_type == TargetType.TRANSFORM else "/predict/"
+
+            response_full = requests.post(
+                run.url_server_address + endpoint, files={"X": open(self.options.input)}
+            )
+
+            response_sample = requests.post(
+                run.url_server_address + endpoint, files={"X": open(__tempfile_sample)}
+            )
+
+            if self.target_type == TargetType.TRANSFORM:
+                if is_sparse:
+                    preds_full = pd.DataFrame(read_mtx_payload(eval(response_full.text)))
+                    preds_sample = pd.DataFrame(read_mtx_payload(eval(response_sample.text)))
+                else:
+                    preds_full = read_csv_payload(eval(response_full.text))
+                    preds_sample = read_csv_payload(eval(response_sample.text))
+            else:
+                preds_full = pd.DataFrame(json.loads(response_full.text)[response_key])
+                preds_sample = pd.DataFrame(json.loads(response_sample.text)[response_key])
+
+            preds_full_subset = preds_full.iloc[data_subset.index]
+
+            matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)
+            if not np.all(matches):
+                message = """
+                            Error: Your predictions were different when we tried to predict twice.
+                            No randomness is allowed.
+                            The last 10 predictions from the main predict run were: {}
+                            However when we reran predictions on the same data, we got: {}.
+                            The sample used to calculate prediction reruns can be found in this file: {}""".format(
+                    preds_full_subset[~matches][:10], preds_sample[~matches][:10], __tempfile_sample
+                )
+                raise ValueError(message)
+            else:
+                os.remove(__tempfile_sample)

@@ -2,6 +2,7 @@
 library(caret)
 library(devtools)
 library(stringi)
+library(Matrix)
 
 init_hook <- FALSE
 read_input_data_hook <- FALSE

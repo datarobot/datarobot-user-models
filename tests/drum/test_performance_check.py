@@ -9,7 +9,7 @@ from datarobot_drum.drum.perf_testing import (
     _kill_drum_perf_test_server_process,
 )
 
-from .utils import (
+from datarobot_drum.resource.utils import (
     _exec_shell_cmd,
     _cmd_add_class_labels,
     _create_custom_model_dir,
