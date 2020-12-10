@@ -6,7 +6,7 @@ import pandas as pd
 import pytest
 
 from datarobot_drum.drum.common import ArgumentsOptions
-from datarobot_drum.drum.utils import handle_missing_colnames
+from datarobot_drum.drum.utils import handle_missing_colnames, unset_drum_supported_env_vars
 from .constants import (
     ANOMALY,
     BINARY,
@@ -349,17 +349,12 @@ class TestFit:
         output = tmp_path / "output"
         output.mkdir()
 
+        unset_drum_supported_env_vars()
+
         env["CODEPATH"] = str(custom_model_dir)
         env["INPUT_DIRECTORY"] = str(input_dir)
         env["ARTIFACT_DIRECTORY"] = str(output)
         env["TARGET_TYPE"] = problem if problem != BINARY_TEXT else BINARY
-
-        # clear env vars
-        if os.environ.get("NEGATIVE_CLASS_LABEL"):
-            del os.environ["NEGATIVE_CLASS_LABEL"]
-            del os.environ["POSITIVE_CLASS_LABEL"]
-        if os.environ.get("CLASS_LABELS_FILE"):
-            del os.environ["CLASS_LABELS_FILE"]
 
         if problem in [BINARY, BINARY_TEXT]:
             labels = resources.class_labels(framework, problem)
@@ -373,10 +368,11 @@ class TestFit:
 
         if problem == ANOMALY:
             env["UNSUPERVISED"] = "true"
-        elif os.environ.get("UNSUPERVISED"):
-            del os.environ["UNSUPERVISED"]
 
         _exec_shell_cmd(fit_sh, "Failed cmd {}".format(fit_sh), env=env)
+
+        # clear env vars as it may affect next test cases
+        unset_drum_supported_env_vars(additional_unset_vars=["UNSUPERVISED"])
 
     def test_fit_simple(
         self,

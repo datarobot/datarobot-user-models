@@ -6,7 +6,13 @@ import sys
 import subprocess
 
 from datarobot_drum.drum.description import version
-from datarobot_drum.drum.common import LOG_LEVELS, ArgumentsOptions, RunLanguage, TargetType
+from datarobot_drum.drum.common import (
+    LOG_LEVELS,
+    ArgumentsOptions,
+    RunLanguage,
+    TargetType,
+    ArgumentOptionsEnvVars,
+)
 
 
 class CMRunnerArgsRegistry(object):
@@ -193,19 +199,25 @@ class CMRunnerArgsRegistry(object):
             fit_intuit_message = ""
             prog_name_lst = CMRunnerArgsRegistry._tokenize_parser_prog(parser)
             if prog_name_lst[1] == ArgumentsOptions.FIT:
-                fit_intuit_message = "If you do not provide these labels, but your dataset is classification, DRUM will choose the labels for you"
+                fit_intuit_message = "If you do not provide these labels, but your dataset is classification, DRUM will choose the labels for you."
 
             parser.add_argument(
                 ArgumentsOptions.POSITIVE_CLASS_LABEL,
                 default=None,
                 type=are_both_labels_present,
-                help="Positive class label for a binary classification case. " + fit_intuit_message,
+                help="Positive class label for a binary classification case. The argument can also be provided by setting {} env var. ".format(
+                    ArgumentOptionsEnvVars.POSITIVE_CLASS_LABEL
+                )
+                + fit_intuit_message,
             )
             parser.add_argument(
                 ArgumentsOptions.NEGATIVE_CLASS_LABEL,
                 default=None,
                 type=are_both_labels_present,
-                help="Negative class label for a binary classification case. " + fit_intuit_message,
+                help="Negative class label for a binary classification case. The argument can also be provided by setting {} env var. ".format(
+                    ArgumentOptionsEnvVars.NEGATIVE_CLASS_LABEL
+                )
+                + fit_intuit_message,
             )
 
     @staticmethod
@@ -267,7 +279,9 @@ class CMRunnerArgsRegistry(object):
                 default=None,
                 type=are_labels_double_specified,
                 action=ParseLabelsFile,
-                help="A file containing newline separated class labels for a multiclass classification case. "
+                help="A file containing newline separated class labels for a multiclass classification case. The argument can also be provided by setting {} env var. ".format(
+                    ArgumentOptionsEnvVars.CLASS_LABELS_FILE
+                )
                 + class_label_order_message
                 + fit_intuit_message,
             )
@@ -299,7 +313,9 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.ADDRESS,
                 default=None,
                 required=True,
-                help="Prediction server address host[:port]. Default Flask port is: 5000",
+                help="Prediction server address host[:port]. Default Flask port is: 5000. The argument can also be provided by setting {} env var.".format(
+                    ArgumentOptionsEnvVars.ADDRESS
+                ),
             )
 
     @staticmethod
@@ -347,7 +363,9 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.PRODUCTION,
                 action="store_true",
                 default=False,
-                help="Run prediction server in production mode uwsgi + nginx",
+                help="Run prediction server in production mode uwsgi + nginx. The argument can also be provided by setting {} env var.".format(
+                    ArgumentOptionsEnvVars.PRODUCTION
+                ),
             )
 
     @staticmethod
@@ -366,9 +384,11 @@ class CMRunnerArgsRegistry(object):
             parser.add_argument(
                 ArgumentsOptions.MAX_WORKERS,
                 type=type_callback,
-                # default 0 will be mapped into null in pipeline json
+                # default 0 is mapped into null in pipeline json
                 default=0,
-                help="Max number of uwsgi workers in server production mode",
+                help="Max number of uwsgi workers in server production mode. The argument can also be provided by setting {} env var.".format(
+                    ArgumentOptionsEnvVars.MAX_WORKERS
+                ),
             )
 
     @staticmethod
@@ -450,7 +470,9 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.WITH_ERROR_SERVER,
                 action="store_true",
                 default=False,
-                help="Start server even if pipeline initialization fails.",
+                help="Start server even if pipeline initialization fails. The argument can also be provided by setting {} env var.".format(
+                    ArgumentOptionsEnvVars.WITH_ERROR_SERVER
+                ),
             )
 
     @staticmethod
@@ -460,7 +482,9 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.SHOW_STACKTRACE,
                 action="store_true",
                 default=False,
-                help="Show stacktrace when error happens.",
+                help="Show stacktrace when error happens. The argument can also be provided by setting {} env var.".format(
+                    ArgumentOptionsEnvVars.SHOW_STACKTRACE
+                ),
             )
 
     @staticmethod
@@ -469,9 +493,10 @@ class CMRunnerArgsRegistry(object):
             parser.add_argument(
                 ArgumentsOptions.MONITOR,
                 action="store_true",
-                default="MONITOR" in os.environ,
-                help="Monitor predictions using DataRobot MLOps. True or False. (env: MONITOR)."
-                "Monitoring can not be used in unstructured mode.",
+                help="Monitor predictions using DataRobot MLOps. The argument can also be provided by setting {} env var. "
+                "Monitoring can not be used in unstructured mode.".format(
+                    ArgumentOptionsEnvVars.MONITOR
+                ),
             )
 
             parser.add_argument(
@@ -518,7 +543,9 @@ class CMRunnerArgsRegistry(object):
                 required=False,
                 choices=target_types,
                 default=None,
-                help="Target type",
+                help="Target type. The argument can also be provided by setting {} env var.".format(
+                    ArgumentOptionsEnvVars.TARGET_TYPE
+                ),
             )
 
     @staticmethod
