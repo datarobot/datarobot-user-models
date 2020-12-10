@@ -357,6 +357,8 @@ class CMRunner:
                 df = handle_missing_colnames(df)
             df.to_csv(__tempfile.name, index=False)
             self.options.input = __tempfile.name
+        else:
+            __target_temp = None
         CMRunTests(self.options, self.run_mode, self.target_type).check_prediction_side_effects()
         if self.target_type == TargetType.TRANSFORM:
             CMRunTests(self.options, self.run_mode, self.target_type).test_transform_server(

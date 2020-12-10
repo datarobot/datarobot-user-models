@@ -681,7 +681,7 @@ class CMRunTests:
             payload = {"X": open(self.options.input)}
 
             if self.options.target:
-                target_location = target_temp_location
+                target_location = target_temp_location.name
                 payload.update({"y": open(target_location)})
             elif self.options.target_csv:
                 target_location = self.options.target_csv
