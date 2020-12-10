@@ -622,9 +622,7 @@ class CMRunTests:
         labels = self.set_labels(self.target_type, self.options)
 
         with DrumServerRun(
-            self.target_type.value,
-            labels,
-            self.options.code_dir,
+            self.target_type.value, labels, self.options.code_dir, verbose=False
         ) as run:
             response_key = (
                 X_TRANSFORM_KEY
@@ -670,13 +668,9 @@ class CMRunTests:
 
     def test_transform_server(self, target_temp_location):
         labels = self.set_labels(self.target_type, self.options)
-        input_extension = os.path.splitext(self.options.input)
-        is_sparse = input_extension[1] == ".mtx"
 
         with DrumServerRun(
-            self.target_type.value,
-            labels,
-            self.options.code_dir,
+            self.target_type.value, labels, self.options.code_dir, verbose=False
         ) as run:
             payload = {"X": open(self.options.input)}
 

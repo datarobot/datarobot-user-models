@@ -32,12 +32,13 @@ def _wait_for_server(url, timeout, process_holder):
             assert timeout, "Server failed to start: url: {}".format(url)
 
 
-def _run_server_thread(cmd, process_obj_holder):
+def _run_server_thread(cmd, process_obj_holder, verbose=True):
     _exec_shell_cmd(
         cmd,
         "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
         assert_if_fail=False,
         process_obj_holder=process_obj_holder,
+        verbose=verbose,
     )
 
 
@@ -68,6 +69,7 @@ class DrumServerRun:
         nginx=False,
         memory=None,
         fail_on_shutdown_error=True,
+        verbose=True,
     ):
         port = CMRunnerUtils.find_free_port()
         self.server_address = "localhost:{}".format(port)
@@ -99,10 +101,11 @@ class DrumServerRun:
         self._server_thread = None
         self._with_nginx = nginx
         self._fail_on_shutdown_error = fail_on_shutdown_error
+        self._verbose = verbose
 
     def __enter__(self):
         self._server_thread = Thread(
-            target=_run_server_thread, args=(self._cmd, self._process_object_holder)
+            target=_run_server_thread, args=(self._cmd, self._process_object_holder, self._verbose)
         )
         self._server_thread.start()
         time.sleep(0.5)
