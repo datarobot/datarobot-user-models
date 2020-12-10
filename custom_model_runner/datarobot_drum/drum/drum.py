@@ -341,7 +341,6 @@ class CMRunner:
             print("Success 🎉")
 
     def run_test_predict(self):
-        self.run_mode = RunMode.SCORE
         self.options.code_dir = self.options.output
         self.options.output = os.devnull
         __target_temp = None
@@ -361,6 +360,9 @@ class CMRunner:
         CMRunTests(self.options, self.run_mode, self.target_type).check_prediction_side_effects(
             __target_temp
         )
+        if self.target_type != TargetType.TRANSFORM:
+            self.run_mode = RunMode.SCORE
+            self._run_fit_and_predictions_pipelines_in_mlpiper()
 
     def _generate_template(self):
         CMTemplateGenerator(
