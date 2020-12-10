@@ -347,6 +347,10 @@ class CMRunner:
         if self.options.target:
             __tempfile = NamedTemporaryFile()
             df = pd.read_csv(self.options.input)
+            if self.target_type == TargetType.TRANSFORM:
+                target_df = df[self.options.target]
+                __target_temp = NamedTemporaryFile()
+                target_df.to_csv(__target_temp.name, index=False)
             df = df.drop(self.options.target, axis=1)
             # convert to R-friendly missing fields
             if self._get_fit_run_language() == RunLanguage.R:
@@ -354,7 +358,12 @@ class CMRunner:
             df.to_csv(__tempfile.name, index=False)
             self.options.input = __tempfile.name
         CMRunTests(self.options, self.run_mode, self.target_type).check_prediction_side_effects()
-        self._run_fit_and_predictions_pipelines_in_mlpiper()
+        if self.target_type == TargetType.TRANSFORM:
+            CMRunTests(self.options, self.run_mode, self.target_type).test_transform_server(
+                __target_temp
+            )
+        else:
+            self._run_fit_and_predictions_pipelines_in_mlpiper()
 
     def _generate_template(self):
         CMTemplateGenerator(
@@ -468,7 +477,7 @@ class CMRunner:
             else:
                 raise DrumCommonException(
                     "Target type {} requires class label information. No labels were supplied and "
-                    "labels could not be inferred from the target."
+                    "labels could not be inferred from the target.".format(self.target_type.value)
                 )
 
         options = self.options

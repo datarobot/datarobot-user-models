@@ -24,6 +24,7 @@ from datarobot_drum.drum.common import (
     PERF_TEST_SERVER_LABEL,
     RESPONSE_PREDICTIONS_KEY,
     X_TRANSFORM_KEY,
+    Y_TRANSFORM_KEY,
     TargetType,
 )
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
@@ -229,6 +230,23 @@ class CMRunTests:
 
         self._df_for_test = None
         self._test_cases_to_run = None
+
+    @staticmethod
+    def set_labels(target_type, options):
+        if target_type == TargetType.BINARY:
+            labels = [options.negative_class_label, options.positive_class_label]
+        elif target_type == TargetType.MULTICLASS:
+            labels = options.class_labels
+        else:
+            labels = None
+        return labels
+
+    @staticmethod
+    def load_transform_output(response, is_sparse, request_key):
+        if is_sparse:
+            return pd.DataFrame(read_mtx_payload(eval(response.text), request_key))
+        else:
+            return pd.DataFrame(read_csv_payload(eval(response.text), request_key))
 
     def _prepare_test_cases(self):
         print("Preparing test data...")
@@ -601,12 +619,7 @@ class CMRunTests:
             _, __tempfile_sample = mkstemp(suffix=".csv")
             data_subset.to_csv(__tempfile_sample, index=False)
 
-        if self.target_type == TargetType.BINARY:
-            labels = [self.options.negative_class_label, self.options.positive_class_label]
-        elif self.target_type == TargetType.MULTICLASS:
-            labels = self.options.class_labels
-        else:
-            labels = None
+        labels = self.set_labels(self.target_type, self.options)
 
         with DrumServerRun(
             self.target_type.value,
@@ -629,12 +642,12 @@ class CMRunTests:
             )
 
             if self.target_type == TargetType.TRANSFORM:
-                if is_sparse:
-                    preds_full = pd.DataFrame(read_mtx_payload(eval(response_full.text)))
-                    preds_sample = pd.DataFrame(read_mtx_payload(eval(response_sample.text)))
-                else:
-                    preds_full = read_csv_payload(eval(response_full.text))
-                    preds_sample = read_csv_payload(eval(response_sample.text))
+                preds_full = self.load_transform_output(
+                    response=response_full, is_sparse=is_sparse, request_key=X_TRANSFORM_KEY
+                )
+                preds_sample = self.load_transform_output(
+                    response=response_sample, is_sparse=is_sparse, request_key=X_TRANSFORM_KEY
+                )
             else:
                 preds_full = pd.DataFrame(json.loads(response_full.text)[response_key])
                 preds_sample = pd.DataFrame(json.loads(response_sample.text)[response_key])
@@ -654,3 +667,54 @@ class CMRunTests:
                 raise ValueError(message)
             else:
                 os.remove(__tempfile_sample)
+
+    def test_transform_server(self, target_temp_location):
+        labels = self.set_labels(self.target_type, self.options)
+        input_extension = os.path.splitext(self.options.input)
+        is_sparse = input_extension[1] == ".mtx"
+
+        with DrumServerRun(
+            self.target_type.value,
+            labels,
+            self.options.code_dir,
+        ) as run:
+            payload = {"X": open(self.options.input)}
+
+            if self.options.target:
+                target_location = target_temp_location
+                payload.update({"y": open(target_location)})
+            elif self.options.target_csv:
+                target_location = self.options.target_csv
+                payload.update({"y": open(target_location)})
+            else:
+                target_location = None
+
+            response = requests.post(run.url_server_address + "/transform/", files=payload)
+            features_transformed = self.load_transform_output(
+                response=response, is_sparse=is_sparse, request_key=X_TRANSFORM_KEY
+            )
+
+            if "y" in payload.keys():
+                target_transformed = self.load_transform_output(
+                    response=response, is_sparse=False, request_key=Y_TRANSFORM_KEY
+                )
+
+            if not response.ok:
+                raise DrumCommonException("Failure in transform server: {}".format(response.text))
+
+            original_df = pd.read_csv(self.options.input)
+
+            if features_transformed.shape[0] != original_df.shape[0]:
+                raise DrumCommonException(
+                    "Transformed features must have the same"
+                    "number of rows as original. Transformed rows: {}; "
+                    "Original rows: {} ".format(features_transformed.shape[0], original_df.shape[0])
+                )
+            if target_location is not None:
+                original_target = pd.read_csv(target_location)
+                if len(target_transformed) != original_target:
+                    raise DrumCommonException(
+                        "Transformed target must have the same"
+                        "number of rows as original. Transformed rows: {}; "
+                        "Original rows: {} ".format(len(target_transformed), len(original_target))
+                    )

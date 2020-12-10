@@ -16,8 +16,9 @@ POSITIVE_CLASS_LABEL_ARG_KEYWORD = "positive_class_label"
 NEGATIVE_CLASS_LABEL_ARG_KEYWORD = "negative_class_label"
 CLASS_LABELS_ARG_KEYWORD = "class_labels"
 TARGET_TYPE_ARG_KEYWORD = "target_type"
-X_TRANSFORM_KEY = "X.transformed"
 RESPONSE_PREDICTIONS_KEY = "predictions"
+X_TRANSFORM_KEY = "X.transformed"
+Y_TRANSFORM_KEY = "y.transformed"
 
 URL_PREFIX_ENV_VAR_NAME = "URL_PREFIX"
 
@@ -78,6 +79,8 @@ class UnstructuredDtoKeys:
 class StructuredDtoKeys:
     BINARY_DATA = "binary_data"
     MIMETYPE = "mimetype"
+    TARGET_BINARY_DATA = "target_binary_data"
+    TARGET_MIMETYPE = "target_mimetype"
 
 
 class PredictionServerMimetypes:
