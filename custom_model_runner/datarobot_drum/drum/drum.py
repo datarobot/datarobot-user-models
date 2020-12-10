@@ -360,9 +360,6 @@ class CMRunner:
         CMRunTests(self.options, self.run_mode, self.target_type).check_prediction_side_effects(
             __target_temp
         )
-        if self.target_type != TargetType.TRANSFORM:
-            self.run_mode = RunMode.SCORE
-            self._run_fit_and_predictions_pipelines_in_mlpiper()
 
     def _generate_template(self):
         CMTemplateGenerator(
