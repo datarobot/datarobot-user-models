@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+
 from contextlib import contextmanager
 from enum import Enum
 from strictyaml import Bool, Int, Map, Optional, Str, load, YAMLError, Seq
@@ -75,10 +76,8 @@ class UnstructuredDtoKeys:
 
 
 class StructuredDtoKeys:
-    FILENAME = "filename"
     BINARY_DATA = "binary_data"
     MIMETYPE = "mimetype"
-    CHARSET = "charset"
 
 
 class PredictionServerMimetypes:

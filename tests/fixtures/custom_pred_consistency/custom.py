@@ -9,9 +9,9 @@ from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.impute import SimpleImputer
 
 import os
+import io
 from typing import List, Optional
 
-g_input_filename = None
 g_code_dir = None
 
 
@@ -23,20 +23,17 @@ def init(code_dir):
     g_code_dir = code_dir
 
 
-def read_input_data(input_filename):
+def read_input_data(input_binary_data):
     """
     read input data. Drops diag_1_desc if present,
      sets global input filename to filename passed to this function
     """
-    data = pd.read_csv(input_filename)
+    data = pd.read_csv(io.BytesIO(input_binary_data))
     try:
         data.drop(["diag_1_desc"], axis=1, inplace=True)
     except:
         pass
 
-    # Saving this for later
-    global g_input_filename
-    g_input_filename = input_filename
     return data
 
 

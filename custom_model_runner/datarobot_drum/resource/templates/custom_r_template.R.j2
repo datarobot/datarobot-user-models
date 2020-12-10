@@ -42,6 +42,22 @@ load_model <- function(input_dir) {
     "dummy"
 }
 
+#' This hook can be implemented to modify reading input data, e.g. decode using custom charset.
+#'
+#' This function should return a dataframe, which will be passed into the transform hook.
+#' If it returns something other than a DF, you'll need to write your own score method.
+#'
+#' @return a data.frame
+#' @export
+#'
+#' @examples
+read_input_data <- function(input_binary_data) {
+    # Returning a string with value "dummy" as the model.
+    library(stringi)
+    input_text_data <- stri_conv(input_binary_data, "utf8")
+    read.csv(text=gsub("\r","", input_text_data, fixed=TRUE))
+}
+
 #' This hook can be implemented to adjust logic in the scoring mode.
 #'
 #' Intended to apply transformations to the prediction data before making

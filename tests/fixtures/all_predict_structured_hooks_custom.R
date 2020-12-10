@@ -3,11 +3,13 @@ prediction_value <- NaN
 
 init <- function(...) {
     prediction_value <<- 1
+    library(stringi)
 }
 
-read_input_data <- function(input_filename) {
+read_input_data <- function(input_binary_data) {
     prediction_value <<- prediction_value + 1
-    read.csv(input_filename)
+    input_text_data <- stri_conv(input_binary_data, "utf8")
+    read.csv(text=gsub("\r","", input_text_data, fixed=TRUE))
 }
 
 load_model <- function(input_dir) {
