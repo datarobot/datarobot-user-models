@@ -95,6 +95,7 @@ class PredictMixin:
                             target_filestorage.filename
                         )
                     )
+
                 out_data, out_target = self._predictor.transform(
                     binary_data=binary_data,
                     mimetype=mimetype,
@@ -103,7 +104,7 @@ class PredictMixin:
                     target_mimetype=target_mimetype,
                 )
             else:
-                out_data = self._predictor.transform(
+                out_data, _ = self._predictor.transform(
                     binary_data=binary_data, mimetype=mimetype, charset=charset
                 )
                 out_target = None

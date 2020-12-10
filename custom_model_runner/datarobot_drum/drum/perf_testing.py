@@ -686,35 +686,8 @@ class CMRunTests:
             elif self.options.target_csv:
                 target_location = self.options.target_csv
                 payload.update({"y": open(target_location)})
-            else:
-                target_location = None
 
             response = requests.post(run.url_server_address + "/transform/", files=payload)
-            features_transformed = self.load_transform_output(
-                response=response, is_sparse=is_sparse, request_key=X_TRANSFORM_KEY
-            )
-
-            if "y" in payload.keys():
-                target_transformed = self.load_transform_output(
-                    response=response, is_sparse=False, request_key=Y_TRANSFORM_KEY
-                )
 
             if not response.ok:
                 raise DrumCommonException("Failure in transform server: {}".format(response.text))
-
-            original_df = pd.read_csv(self.options.input)
-
-            if features_transformed.shape[0] != original_df.shape[0]:
-                raise DrumCommonException(
-                    "Transformed features must have the same"
-                    "number of rows as original. Transformed rows: {}; "
-                    "Original rows: {} ".format(features_transformed.shape[0], original_df.shape[0])
-                )
-            if target_location is not None:
-                original_target = pd.read_csv(target_location)
-                if len(target_transformed) != original_target:
-                    raise DrumCommonException(
-                        "Transformed target must have the same"
-                        "number of rows as original. Transformed rows: {}; "
-                        "Original rows: {} ".format(len(target_transformed), len(original_target))
-                    )

@@ -303,6 +303,7 @@ class PythonModelAdapter:
         pd.DataFrame
         """
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
+        target_binary_data = kwargs.get(StructuredDtoKeys.TARGET_BINARY_DATA)
         if self._custom_hooks.get(CustomHooks.READ_INPUT_DATA):
             try:
                 data = self._custom_hooks[CustomHooks.READ_INPUT_DATA](input_binary_data)
@@ -317,11 +318,23 @@ class PythonModelAdapter:
                 input_binary_data,
                 kwargs.get(StructuredDtoKeys.MIMETYPE),
             )
+            if target_binary_data is not None:
+                target_data = StructuredInputReadUtils.read_structured_input_data_as_df(
+                    target_binary_data, kwargs.get(StructuredDtoKeys.TARGET_MIMETYPE)
+                )
+            else:
+                target_data = None
 
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
             try:
-                # noinspection PyCallingNonCallable
-                output_data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
+                if self._target_type == TargetType.TRANSFORM:
+                    output_data, output_target = self._custom_hooks[CustomHooks.TRANSFORM](
+                        data, model, target_data
+                    )
+                else:
+                    # noinspection PyCallingNonCallable
+                    output_data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
+                    output_target = None
 
             except Exception as exc:
                 raise type(exc)(
@@ -330,6 +343,9 @@ class PythonModelAdapter:
             self._validate_data(output_data, CustomHooks.TRANSFORM)
             if self._target_type == TargetType.TRANSFORM:
                 self._validate_transform_rows(output_data, data)
+                if output_target is not None:
+                    self._validate_transform_rows(output_target, target_data)
+                return output_data, output_target
         else:
             output_data = data
 
