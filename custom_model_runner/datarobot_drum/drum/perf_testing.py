@@ -232,7 +232,7 @@ class CMRunTests:
         self._test_cases_to_run = None
 
     @staticmethod
-    def set_labels(target_type, options):
+    def resolve_labels(target_type, options):
         if target_type == TargetType.BINARY:
             labels = [options.negative_class_label, options.positive_class_label]
         elif target_type == TargetType.MULTICLASS:
@@ -619,7 +619,7 @@ class CMRunTests:
             _, __tempfile_sample = mkstemp(suffix=".csv")
             data_subset.to_csv(__tempfile_sample, index=False)
 
-        labels = self.set_labels(self.target_type, self.options)
+        labels = self.resolve_labels(self.target_type, self.options)
 
         with DrumServerRun(
             self.target_type.value, labels, self.options.code_dir, verbose=False

@@ -102,6 +102,12 @@ include any necessary hooks in a file called `custom.py` for Python models or `c
   - `model` is the deserialized model loaded by DRUM or by `load_model` (if provided)
   - This hook is intended to apply transformations to the prediction data before making predictions. It is useful
   if DRUM supports the model's library, but your model requires additional data processing before it can make predictions.
+- The transform hook will behave differently when running with a `transform` target type:
+    - `transform(X: DataFrame, transformer: Any, y: Series) -> Tuple[DataFrame, Series]`
+        - `X` can be identical to `data` defined above, but optionally this can only contain the raw features to be transformed
+        - `transformer` deserialized transformation pipeline loaded by DRUM or `load_model` 
+        - `y` is optional, defaults to None. Contains the target labels. Transform can simply pass the raw values on, may transform the values (i.e perform a log transform), 
+        or use the `y` values in the transformation of `X` if needed.
 - `score(data: DataFrame, model: Any, **kwargs: Dict[str, Any]) -> DataFrame`
   - `data` is the dataframe to make predictions against. If `transform` is supplied, `data` will be the transformed data.
   - `model` is the deserialized model loaded by DRUM or by `load_model`, if supplied

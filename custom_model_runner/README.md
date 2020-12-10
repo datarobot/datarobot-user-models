@@ -161,10 +161,16 @@ A POST **URL_PREFIX/transform/** route, which returns transformed data.
 Example: POST http://localhost:6789/transfor/;  
 For this route data can be posted in two ways:
   * as form data parameter with a <key:value> pair, where:  
-key = X  
+key = X.  
 value = filename of the `csv/arrow/mtx` format, that contains the inference data.
-  * as binary data; in case of `arrow` or `mtx` formats, mimetype `application/x-apache-arrow-stream` or `text/mtx` must be set.
  
+    optionally a second key, y, can be passed with value = a second filename containing target data. 
+    
+    if key = y is passed, the route will return both X.transformed and y.transformed keys.
+
+  * as binary data; in case of `arrow` or `mtx` formats, mimetype `application/x-apache-arrow-stream` or `text/mtx` must be set.
+  
+  
 * Unstructured predictions routes:  
 A POST **URL_PREFIX/predictUnstructured/** and **URL_PREFIX/predictionsUnstructured/** routes, which returns predictions on data.  
 Example: POST http://localhost:6789/predictUnstructured/; POST http://localhost:6789/predictionsUnstructured/  
