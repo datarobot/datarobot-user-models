@@ -344,6 +344,7 @@ class CMRunner:
         self.run_mode = RunMode.SCORE
         self.options.code_dir = self.options.output
         self.options.output = os.devnull
+        __target_temp = None
         if self.options.target:
             __tempfile = NamedTemporaryFile()
             df = pd.read_csv(self.options.input)
@@ -357,15 +358,9 @@ class CMRunner:
                 df = handle_missing_colnames(df)
             df.to_csv(__tempfile.name, index=False)
             self.options.input = __tempfile.name
-        else:
-            __target_temp = None
-        CMRunTests(self.options, self.run_mode, self.target_type).check_prediction_side_effects()
-        if self.target_type == TargetType.TRANSFORM:
-            CMRunTests(self.options, self.run_mode, self.target_type).test_transform_server(
-                __target_temp
-            )
-        else:
-            self._run_fit_and_predictions_pipelines_in_mlpiper()
+        CMRunTests(self.options, self.run_mode, self.target_type).check_prediction_side_effects(
+            __target_temp
+        )
 
     def _generate_template(self):
         CMTemplateGenerator(

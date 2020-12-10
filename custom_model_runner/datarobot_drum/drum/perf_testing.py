@@ -599,7 +599,7 @@ class CMRunTests:
         print("\n\nValidation checks results")
         print(tbl_report)
 
-    def check_prediction_side_effects(self):
+    def check_prediction_side_effects(self, target_temp_location=None):
         rtol = 2e-02
         atol = 1e-06
         input_extension = os.path.splitext(self.options.input)
@@ -630,10 +630,20 @@ class CMRunTests:
                 else RESPONSE_PREDICTIONS_KEY
             )
             endpoint = "/transform/" if self.target_type == TargetType.TRANSFORM else "/predict/"
+            payload = {"X": open(self.options.input)}
+            if self.target_type == TargetType.TRANSFORM:
+                if self.options.target:
+                    target_location = target_temp_location.name
+                    payload.update({"y": open(target_location)})
+                elif self.options.target_csv:
+                    target_location = self.options.target_csv
+                    payload.update({"y": open(target_location)})
 
-            response_full = requests.post(
-                run.url_server_address + endpoint, files={"X": open(self.options.input)}
-            )
+            response_full = requests.post(run.url_server_address + endpoint, files=payload)
+            if not response_full.ok:
+                raise DrumCommonException(
+                    "Failure in transform server: {}".format(response_full.text)
+                )
 
             response_sample = requests.post(
                 run.url_server_address + endpoint, files={"X": open(__tempfile_sample)}
@@ -665,23 +675,3 @@ class CMRunTests:
                 raise ValueError(message)
             else:
                 os.remove(__tempfile_sample)
-
-    def test_transform_server(self, target_temp_location):
-        labels = self.set_labels(self.target_type, self.options)
-
-        with DrumServerRun(
-            self.target_type.value, labels, self.options.code_dir, verbose=False
-        ) as run:
-            payload = {"X": open(self.options.input)}
-
-            if self.options.target:
-                target_location = target_temp_location.name
-                payload.update({"y": open(target_location)})
-            elif self.options.target_csv:
-                target_location = self.options.target_csv
-                payload.update({"y": open(target_location)})
-
-            response = requests.post(run.url_server_address + "/transform/", files=payload)
-
-            if not response.ok:
-                raise DrumCommonException("Failure in transform server: {}".format(response.text))
