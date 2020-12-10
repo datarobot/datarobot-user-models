@@ -280,8 +280,12 @@ class CMRunTests:
             time.sleep(1)
             self._timeout = self._timeout - 1
             if self._timeout == 0:
-                error_message = "Error: server failed to start while running performance testing"
-                print(error_message)
+                error_message = "Error: server failed to start while running performance testing."
+                (stdout, stderr) = self._server_process.communicate()
+                if len(stdout):
+                    error_message += "\n{}".format(stdout)
+                if len(stderr):
+                    error_message += "\n{}".format(stderr)
                 raise DrumCommonException(error_message)
 
     def _build_drum_cmd(self):
@@ -305,11 +309,17 @@ class CMRunTests:
             cmd_list.append(str(self.options.max_workers))
 
         if self.options.positive_class_label:
-            cmd_list.append(ArgumentsOptions.POSITIVE_CLASS_LABEL)
-            cmd_list.append(self.options.positive_class_label)
+            cmd_list.extend(
+                [ArgumentsOptions.POSITIVE_CLASS_LABEL, self.options.positive_class_label]
+            )
         if self.options.negative_class_label:
-            cmd_list.append(ArgumentsOptions.NEGATIVE_CLASS_LABEL)
-            cmd_list.append(self.options.negative_class_label)
+            cmd_list.extend(
+                [ArgumentsOptions.NEGATIVE_CLASS_LABEL, self.options.negative_class_label]
+            )
+
+        if self.options.class_labels:
+            cmd_list.append(ArgumentsOptions.CLASS_LABELS)
+            cmd_list.extend(self.options.class_labels)
 
         if self.options.docker:
             cmd_list.extend([ArgumentsOptions.DOCKER, self.options.docker])
@@ -326,7 +336,11 @@ class CMRunTests:
         env_vars = os.environ
         env_vars.update({PERF_TEST_SERVER_LABEL: "1"})
         self._server_process = subprocess.Popen(
-            cmd_list, env=env_vars, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            cmd_list,
+            env=env_vars,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            encoding="utf-8",
         )
         self._wait_for_server_to_start()
 

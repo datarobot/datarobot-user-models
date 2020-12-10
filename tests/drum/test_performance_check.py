@@ -20,6 +20,8 @@ from .constants import (
     SKLEARN,
     REGRESSION,
     BINARY,
+    MULTICLASS,
+    MULTICLASS_BINARY,
     PYTHON,
     DOCKER_PYTHON_SKLEARN,
 )
@@ -28,7 +30,12 @@ from .constants import (
 class TestPerformanceCheck:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [(SKLEARN, BINARY, PYTHON, None), (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN)],
+        [
+            (SKLEARN, BINARY, PYTHON, None),
+            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
+            (SKLEARN, MULTICLASS, PYTHON, None),
+            (SKLEARN, MULTICLASS_BINARY, PYTHON, None),
+        ],
     )
     def test_custom_models_perf_test(
         self,
@@ -49,18 +56,20 @@ class TestPerformanceCheck:
 
         input_dataset = resources.datasets(framework, problem)
 
-        cmd = "{} perf-test -i 10 -s 1000 --code-dir {} --input {} --target-type {}".format(
+        cmd = "{} perf-test -i 200 -s 1000 --code-dir {} --input {} --target-type {}".format(
             ArgumentsOptions.MAIN_COMMAND,
             custom_model_dir,
             input_dataset,
             resources.target_types(problem),
         )
-        if problem == BINARY:
+
+        if resources.target_types(problem) in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
                 cmd,
                 resources.class_labels(framework, problem),
                 target_type=resources.target_types(problem),
             )
+
         if docker:
             cmd += " --docker {}".format(docker)
 
