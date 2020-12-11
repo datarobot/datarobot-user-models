@@ -187,7 +187,7 @@ def extract_weights(X, fit_class):
 
 def extract_class_order(fit_class):
     # get class order obj from class labels
-    if fit_class.negative_class_label and fit_class.positive_class_label:
+    if fit_class.negative_class_label is not None and fit_class.positive_class_label is not None:
         class_order = [fit_class.negative_class_label, fit_class.positive_class_label]
     elif fit_class.class_labels:
         class_order = fit_class.class_labels
