@@ -22,7 +22,7 @@ def init(**kwargs):
     pass
 
 
-def load_model(input_dir):
+def load_model(code_dir):
     """
     This hook can be implemented to adjust logic in the scoring mode.
 
@@ -32,7 +32,7 @@ def load_model(input_dir):
     This hook can be used to load supported models if your model has multiple artifacts, or
     for loading models that drum does not natively support
 
-    :param input_dir: the directory to load serialized models from
+    :param code_dir: the directory to load serialized models from
     :returns: Object containing the model - the predict hook will get this object as a parameter
     """
 
