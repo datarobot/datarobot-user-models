@@ -624,11 +624,7 @@ class CMRunTests:
         with DrumServerRun(
             self.target_type.value, labels, self.options.code_dir, verbose=False
         ) as run:
-            response_key = (
-                X_TRANSFORM_KEY
-                if self.target_type == TargetType.TRANSFORM
-                else RESPONSE_PREDICTIONS_KEY
-            )
+
             endpoint = "/transform/" if self.target_type == TargetType.TRANSFORM else "/predict/"
             payload = {"X": open(self.options.input)}
             if self.target_type == TargetType.TRANSFORM:
@@ -657,8 +653,10 @@ class CMRunTests:
                     response=response_sample, is_sparse=is_sparse, request_key=X_TRANSFORM_KEY
                 )
             else:
-                preds_full = pd.DataFrame(json.loads(response_full.text)[response_key])
-                preds_sample = pd.DataFrame(json.loads(response_sample.text)[response_key])
+                preds_full = pd.DataFrame(json.loads(response_full.text)[RESPONSE_PREDICTIONS_KEY])
+                preds_sample = pd.DataFrame(
+                    json.loads(response_sample.text)[RESPONSE_PREDICTIONS_KEY]
+                )
 
             preds_full_subset = preds_full.iloc[data_subset.index]
 
