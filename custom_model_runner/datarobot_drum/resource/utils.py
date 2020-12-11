@@ -68,6 +68,7 @@ def _exec_shell_cmd(cmd, err_msg, assert_if_fail=True, process_obj_holder=None, 
         shell=True,
         env=env,
         universal_newlines=True,
+        encoding="utf-8",
     )
     if process_obj_holder is not None:
         process_obj_holder.process = p
@@ -78,8 +79,10 @@ def _exec_shell_cmd(cmd, err_msg, assert_if_fail=True, process_obj_holder=None, 
         process_obj_holder.out_stream = stdout
         process_obj_holder.err_stream = stderr
 
-    print("stdout: {}".format(stdout))
-    print("stderr: {}".format(stderr))
+    if len(stdout):
+        print("stdout: {}".format(stdout))
+    if len(stderr):
+        print("stderr: {}".format(stderr))
     if assert_if_fail:
         assert p.returncode == 0, err_msg
 
