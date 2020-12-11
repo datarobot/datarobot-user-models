@@ -162,6 +162,8 @@ def shared_fit_preprocessing(fit_class):
         X = df.sample(fit_class.num_rows, random_state=1, replace=True)
         y = None
 
+    print('X head {}'.format(X.head()))
+    print('y head {}'.format(y.head()))
     row_weights = extract_weights(X, fit_class)
     class_order = extract_class_order(fit_class)
     return X, y, class_order, row_weights
@@ -186,12 +188,16 @@ def extract_weights(X, fit_class):
 
 
 def extract_class_order(fit_class):
+    print(fit_class.negative_class_label, fit_class.positive_class_label)
     # get class order obj from class labels
     if fit_class.negative_class_label and fit_class.positive_class_label:
+        print("class order from pos/neg labels")
         class_order = [fit_class.negative_class_label, fit_class.positive_class_label]
     elif fit_class.class_labels:
+        print("class order from class labels")
         class_order = fit_class.class_labels
     else:
+        print("no class order being extracted")
         class_order = None
 
     return class_order

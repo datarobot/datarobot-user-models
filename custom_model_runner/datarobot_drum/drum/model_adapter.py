@@ -356,14 +356,16 @@ class PythonModelAdapter:
 
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
+        print('pos: {} neg: {}'.format(positive_class_label, negative_class_label))
         class_labels = (
             [str(label) for label in kwargs.get(CLASS_LABELS_ARG_KEYWORD)]
             if kwargs.get(CLASS_LABELS_ARG_KEYWORD)
             else None
         )
+        print('labels in model adapter {}'. format(class_labels))
         if positive_class_label and negative_class_label:
             class_labels = [negative_class_label, positive_class_label]
-
+        print('labels in model adapter pt 2 {}'.format(class_labels))
         if self._custom_hooks.get(CustomHooks.SCORE):
             try:
                 # noinspection PyCallingNonCallable

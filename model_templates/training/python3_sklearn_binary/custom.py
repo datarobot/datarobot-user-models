@@ -44,6 +44,8 @@ def fit(
     Nothing
     """
     # Feel free to delete which ever one of these you aren't using
+    print("class order in fit {}".format(class_order))
+    print("kwargs in fit {}".format(kwargs))
     if class_order is not None:
         if y.dtype == np.dtype("bool"):
             y = y.astype("str")

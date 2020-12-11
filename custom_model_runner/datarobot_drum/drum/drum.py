@@ -492,6 +492,8 @@ class CMRunner:
             "num_rows": options.num_rows,
         }
 
+        print('fit pipeline options {}'.format(options))
+
         functional_pipeline_str = CMRunnerUtils.render_file(
             functional_pipeline_filepath, replace_data
         )
