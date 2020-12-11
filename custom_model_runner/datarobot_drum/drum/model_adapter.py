@@ -290,9 +290,58 @@ class PythonModelAdapter:
         formats.add(PayloadFormat.ARROW, pyarrow.__version__)
         return formats
 
+    def load_data(self, binary_data, mimetype, try_hook=True):
+
+        if self._custom_hooks.get(CustomHooks.READ_INPUT_DATA) and try_hook:
+            try:
+                data = self._custom_hooks[CustomHooks.READ_INPUT_DATA](binary_data)
+            except Exception as exc:
+                raise type(exc)(
+                    "Model read_data hook failed to read input data: {} {}".format(binary_data, exc)
+                ).with_traceback(sys.exc_info()[2]) from None
+        else:
+            data = StructuredInputReadUtils.read_structured_input_data_as_df(
+                binary_data,
+                mimetype,
+            )
+
+        return data
+
+    def preprocess(self, model=None, **kwargs):
+        """
+        Preprocess data and then pass on to predict method.
+        Loads data, either with read hook or built-in method, and applies transform hook if present
+
+        Parameters
+        ----------
+        model: Any
+            The model
+        Returns
+        -------
+        pd.DataFrame
+        """
+        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
+        data = self.load_data(input_binary_data, kwargs.get(StructuredDtoKeys.MIMETYPE))
+
+        if self._custom_hooks.get(CustomHooks.TRANSFORM):
+            try:
+                output_data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
+
+            except Exception as exc:
+                raise type(exc)(
+                    "Model transform hook failed to transform dataset: {}".format(exc)
+                ).with_traceback(sys.exc_info()[2]) from None
+
+            self._validate_data(output_data, CustomHooks.TRANSFORM)
+
+        else:
+            output_data = data
+
+        return output_data
+
     def transform(self, model=None, **kwargs):
         """
-        Load data, either with read hook or built-in method, and apply transform hook if present
+        Standalone transform method, only used for custom transforms.
 
         Parameters
         ----------
@@ -304,52 +353,32 @@ class PythonModelAdapter:
         """
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         target_binary_data = kwargs.get(StructuredDtoKeys.TARGET_BINARY_DATA)
-        if self._custom_hooks.get(CustomHooks.READ_INPUT_DATA):
-            try:
-                data = self._custom_hooks[CustomHooks.READ_INPUT_DATA](input_binary_data)
-            except Exception as exc:
-                raise type(exc)(
-                    "Model read_data hook failed to read input data: {} {}".format(
-                        input_binary_data, exc
-                    )
-                ).with_traceback(sys.exc_info()[2]) from None
-        else:
-            data = StructuredInputReadUtils.read_structured_input_data_as_df(
-                input_binary_data,
-                kwargs.get(StructuredDtoKeys.MIMETYPE),
+
+        data = self.load_data(input_binary_data, kwargs.get(StructuredDtoKeys.MIMETYPE))
+        target_data = None
+
+        if target_binary_data:
+            target_data = self.load_data(
+                target_binary_data, kwargs.get(StructuredDtoKeys.TARGET_MIMETYPE), try_hook=False
             )
-            if target_binary_data is not None:
-                target_data = StructuredInputReadUtils.read_structured_input_data_as_df(
-                    target_binary_data, kwargs.get(StructuredDtoKeys.TARGET_MIMETYPE)
-                )
-            else:
-                target_data = None
 
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
             try:
-                if self._target_type == TargetType.TRANSFORM:
-                    output_data, output_target = self._custom_hooks[CustomHooks.TRANSFORM](
-                        data, model, target_data
-                    )
-                else:
-                    # noinspection PyCallingNonCallable
-                    output_data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
-                    output_target = None
+                output_data, output_target = self._custom_hooks[CustomHooks.TRANSFORM](
+                    data, model, target_data
+                )
 
             except Exception as exc:
                 raise type(exc)(
                     "Model transform hook failed to transform dataset: {}".format(exc)
                 ).with_traceback(sys.exc_info()[2]) from None
             self._validate_data(output_data, CustomHooks.TRANSFORM)
-            if self._target_type == TargetType.TRANSFORM:
-                self._validate_transform_rows(output_data, data)
-                if output_target is not None:
-                    self._validate_transform_rows(output_target, target_data)
-                return output_data, output_target
+            self._validate_transform_rows(output_data, data)
+            if output_target is not None:
+                self._validate_transform_rows(output_target, target_data)
+            return output_data, output_target
         else:
-            output_data = data
-
-        return output_data
+            raise ValueError("Transform hook must be implemented for custom transforms.")
 
     def predict(self, model=None, **kwargs):
         """
@@ -368,7 +397,7 @@ class PythonModelAdapter:
         -------
         pd.DataFrame
         """
-        data = self.transform(model, **kwargs)
+        data = self.preprocess(model, **kwargs)
 
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
