@@ -43,7 +43,9 @@ class PredictMixin:
         return ret_mimetype, ret_charset
 
     @staticmethod
-    def _fetch_data(file_key, filestorage, logger=None):
+    def _fetch_data_from_request(file_key, logger=None):
+        filestorage = request.files.get(file_key)
+
         charset = None
         if filestorage is not None:
             binary_data = filestorage.stream.read()
@@ -72,11 +74,8 @@ class PredictMixin:
     def _predict(self, logger=None):
         response_status = HTTP_200_OK
 
-        file_key = "X"
-        filestorage = request.files.get(file_key)
-
         try:
-            binary_data, mimetype, charset = self._fetch_data(file_key, filestorage, logger=logger)
+            binary_data, mimetype, charset = self._fetch_data_from_request("X", logger=logger)
         except ValueError as e:
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             return {"message": "ERROR: " + str(e)}, response_status
@@ -110,12 +109,6 @@ class PredictMixin:
     def _transform(self, logger=None):
         response_status = HTTP_200_OK
 
-        feature_key = "X"
-        feature_filestorage = request.files.get(feature_key)
-
-        target_key = "y"
-        target_filestorage = request.files.get(target_key)
-
         arrow_key = "arrow_version"
         arrow_version = request.files.get(arrow_key)
         if arrow_version is not None:
@@ -123,17 +116,17 @@ class PredictMixin:
         use_arrow = arrow_version is not None
 
         try:
-            feature_binary_data, feature_mimetype, feature_charset = self._fetch_data(
-                feature_key, feature_filestorage, logger=logger
+            feature_binary_data, feature_mimetype, feature_charset = self._fetch_data_from_request(
+                "X", logger=logger
             )
         except ValueError as e:
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             return {"message": "ERROR: " + str(e)}, response_status
 
-        if target_filestorage is not None:
+        if "y" in request.files.keys():
             try:
-                target_binary_data, target_mimetype, target_charset = self._fetch_data(
-                    target_key, target_filestorage, logger=logger
+                target_binary_data, target_mimetype, target_charset = self._fetch_data_from_request(
+                    "y", logger=logger
                 )
             except ValueError as e:
                 response_status = HTTP_422_UNPROCESSABLE_ENTITY
