@@ -1,5 +1,7 @@
 import argparse
+import sys
 from tempfile import NamedTemporaryFile
+from unittest.mock import patch
 
 import pytest
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
@@ -56,3 +58,40 @@ class TestMulticlassLabelsParser(object):
 
             with pytest.raises(argparse.ArgumentTypeError, match="at least 2"):
                 parser.parse_args(args)
+
+
+class TestPosNegLabelsParser(object):
+    @pytest.fixture
+    def parser(self):
+        test_parser = argparse.ArgumentParser()
+        subparsers = test_parser.add_subparsers(dest="command")
+        label_parser = subparsers.add_parser("dummy")
+        CMRunnerArgsRegistry._reg_arg_pos_neg_labels(label_parser)
+        return test_parser
+
+    @pytest.fixture
+    def numeric_class_labels(self):
+        return [1.0, 0.0]
+
+    @pytest.fixture
+    def bool_class_labels(self):
+        return [True, False]
+
+    @pytest.fixture
+    def str_class_labels(self):
+        return ["Yes", "No"]
+
+    @pytest.mark.parametrize(
+        "valid_labels", ["numeric_class_labels", "bool_class_labels", "str_class_labels"]
+    )
+    def test_valid_class_labels(self, request, valid_labels, parser):
+        valid_labels = request.getfixturevalue(valid_labels)
+        args = "dummy --positive-class-label {} --negative-class-label {}".format(
+            valid_labels[0], valid_labels[1]
+        ).split()
+        with patch.object(sys, "argv", args):
+            options = parser.parse_args(args)
+
+        actual_labels = [options.positive_class_label, options.negative_class_label]
+        assert all(isinstance(label, str) for label in actual_labels)
+        assert actual_labels == [str(label) for label in valid_labels]

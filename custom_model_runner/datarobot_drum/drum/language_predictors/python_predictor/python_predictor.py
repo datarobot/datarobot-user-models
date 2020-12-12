@@ -41,7 +41,7 @@ class PythonPredictor(BaseLanguagePredictor):
 
     def predict(self, **kwargs):
         kwargs[TARGET_TYPE_ARG_KEYWORD] = self._target_type
-        if self._positive_class_label and self._negative_class_label:
+        if self._positive_class_label is not None and self._negative_class_label is not None:
             kwargs[POSITIVE_CLASS_LABEL_ARG_KEYWORD] = self._positive_class_label
             kwargs[NEGATIVE_CLASS_LABEL_ARG_KEYWORD] = self._negative_class_label
         if self._class_labels:
