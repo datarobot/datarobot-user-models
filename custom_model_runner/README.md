@@ -161,12 +161,14 @@ A POST **URL_PREFIX/transform/** route, which returns transformed data.
 Example: POST http://localhost:6789/transfor/;  
 For this route data can be posted in two ways:
   * as form data parameter with a <key:value> pair, where:  
-key = X.  
+key = `X`.  
 value = filename of the `csv/arrow/mtx` format, that contains the inference data.
  
-    optionally a second key, y, can be passed with value = a second filename containing target data. 
+    optionally a second key, `y`, can be passed with value = a second filename containing target data. 
     
-    if key = y is passed, the route will return both X.transformed and y.transformed keys.
+    if `y` is passed, the route will return both `X.transformed` and `y.transformed` keys, along with `X.out.format`
+    and `y.out.format`, indicating the format of the transformed outputs. These will take a value of `csv`, 
+    `sparse` or `arrow`. Note that `y.transformed` is never returned in sparse format, even if `X.transformed` is sparse.
 
   * as binary data; in case of `arrow` or `mtx` formats, mimetype `application/x-apache-arrow-stream` or `text/mtx` must be set.
   
