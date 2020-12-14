@@ -27,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validation of numeric multiclass class labels should always compare as strings
 
 #### [1.4.5] - 2020-12-02
+##### Added
+-  **/transform** endpoint added to prediction server 
 ##### Changes
 - Allow multiclass to function with only 2 labels
 
