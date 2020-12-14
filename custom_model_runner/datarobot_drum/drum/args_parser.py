@@ -187,7 +187,7 @@ class CMRunnerArgsRegistry(object):
             labels = [ArgumentsOptions.POSITIVE_CLASS_LABEL, ArgumentsOptions.NEGATIVE_CLASS_LABEL]
             if not all([x in sys.argv for x in labels]):
                 raise argparse.ArgumentTypeError(error_message)
-            return arg
+            return str(arg)
 
         for parser in parsers:
             fit_intuit_message = ""

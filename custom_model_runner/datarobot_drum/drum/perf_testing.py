@@ -308,11 +308,11 @@ class CMRunTests:
             cmd_list.append(ArgumentsOptions.MAX_WORKERS)
             cmd_list.append(str(self.options.max_workers))
 
-        if self.options.positive_class_label:
+        if self.options.positive_class_label is not None:
             cmd_list.extend(
                 [ArgumentsOptions.POSITIVE_CLASS_LABEL, self.options.positive_class_label]
             )
-        if self.options.negative_class_label:
+        if self.options.negative_class_label is not None:
             cmd_list.extend(
                 [ArgumentsOptions.NEGATIVE_CLASS_LABEL, self.options.negative_class_label]
             )

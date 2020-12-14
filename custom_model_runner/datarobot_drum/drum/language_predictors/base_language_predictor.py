@@ -71,7 +71,10 @@ class BaseLanguagePredictor(ABC):
                 mlops_predictions = predictions[predictions.columns[0]].tolist()
             else:
                 mlops_predictions = predictions.values.tolist()
-                if self._positive_class_label and self._negative_class_label:
+                if (
+                    self._positive_class_label is not None
+                    and self._negative_class_label is not None
+                ):
                     class_names = [self._negative_class_label, self._positive_class_label]
 
             df = StructuredInputReadUtils.read_structured_input_data_as_df(

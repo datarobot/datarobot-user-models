@@ -262,7 +262,7 @@ class PythonModelAdapter:
         self._validate_data(to_validate, "Predictions")
         columns_to_validate = set(str(label) for label in to_validate.columns)
         if class_labels:
-            if columns_to_validate != set(class_labels):
+            if columns_to_validate != set(str(label) for label in class_labels):
                 raise ValueError(
                     "Expected predictions to have columns {}, but encountered {}".format(
                         class_labels, columns_to_validate
@@ -361,7 +361,7 @@ class PythonModelAdapter:
             if kwargs.get(CLASS_LABELS_ARG_KEYWORD)
             else None
         )
-        if positive_class_label and negative_class_label:
+        if positive_class_label is not None and negative_class_label is not None:
             class_labels = [negative_class_label, positive_class_label]
 
         if self._custom_hooks.get(CustomHooks.SCORE):
