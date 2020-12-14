@@ -104,9 +104,9 @@ include any necessary hooks in a file called `custom.py` for Python models or `c
   if DRUM supports the model's library, but your model requires additional data processing before it can make predictions.
 - The transform hook will behave differently when running with a `transform` target type:
     - `transform(X: DataFrame, transformer: Any, y: Series) -> Tuple[DataFrame, Series]`
-        - `X` is the dataframe given to DRUM to make predictions on. If `y` is defined, it should contain the raw features to be transformed (omitting the target).
+        - `X` is the dataframe given to DRUM to make predictions on. If `y` is defined, it will contain the raw features to be transformed (omitting the target).
         - `transformer` deserialized transformer loaded by DRUM or `load_model` 
-        - `y` defaults to None, and should not be used for unsupervised downstream problems. Contains the target labels. Transform can simply pass the raw values on, may transform the values (i.e perform a log transform), 
+        - `y` defaults to None, and will not be used for unsupervised downstream problems. Contains the target labels. Transform can simply pass the raw values on, may transform the values (i.e perform a log transform), 
         or use the `y` values in the transformation of `X` if needed.
 - `score(data: DataFrame, model: Any, **kwargs: Dict[str, Any]) -> DataFrame`
   - `data` is the dataframe to make predictions against. If `transform` is supplied, `data` will be the transformed data.
