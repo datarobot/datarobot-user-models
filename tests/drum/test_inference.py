@@ -342,20 +342,23 @@ class TestInference:
                     transformed_out = read_arrow_payload(eval(response.text), X_TRANSFORM_KEY)
                     if pass_target:
                         target_out = read_arrow_payload(eval(response.text), Y_TRANSFORM_KEY)
-                    assert eval(response.text)["X.out.format"] == "arrow"
+                    assert eval(response.text)["out.format"] == "arrow"
                 else:
                     transformed_out = read_csv_payload(eval(response.text), X_TRANSFORM_KEY)
                     if pass_target:
                         target_out = read_csv_payload(eval(response.text), Y_TRANSFORM_KEY)
-                    assert eval(response.text)["X.out.format"] == "csv"
+                    assert eval(response.text)["out.format"] == "csv"
                 actual_num_predictions = transformed_out.shape[0]
             else:
                 transformed_out = read_mtx_payload(eval(response.text), X_TRANSFORM_KEY)
                 if pass_target:
                     # this shouldn't be sparse even though features are
-                    target_out = read_csv_payload(eval(response.text), Y_TRANSFORM_KEY)
+                    if use_arrow:
+                        target_out = read_arrow_payload(eval(response.text), Y_TRANSFORM_KEY)
+                    else:
+                        target_out = read_csv_payload(eval(response.text), Y_TRANSFORM_KEY)
                 actual_num_predictions = transformed_out.shape[0]
-                assert eval(response.text)["X.out.format"] == "sparse"
+                assert eval(response.text)["out.format"] == "sparse"
             validate_transformed_output(
                 transformed_out, should_be_sparse=framework == SKLEARN_TRANSFORM
             )
