@@ -73,7 +73,6 @@ class PredictMixin:
 
     def _predict(self, logger=None):
         response_status = HTTP_200_OK
-
         try:
             binary_data, mimetype, charset = self._fetch_data_from_request("X", logger=logger)
         except ValueError as e:

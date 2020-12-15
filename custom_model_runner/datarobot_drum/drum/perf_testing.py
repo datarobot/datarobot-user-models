@@ -643,7 +643,7 @@ class CMRunTests:
                 subset_payload = ("X.mtx", subset_payload)
 
             response_sample = requests.post(
-                run.url_server_address + endpoint, files={'X': subset_payload}
+                run.url_server_address + endpoint, files={"X": subset_payload}
             )
 
             if self.target_type == TargetType.TRANSFORM:
