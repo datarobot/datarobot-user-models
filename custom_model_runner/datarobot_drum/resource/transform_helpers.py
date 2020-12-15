@@ -7,8 +7,6 @@ from scipy.io import mmwrite, mmread
 from scipy.sparse.csr import csr_matrix
 from scipy.sparse import vstack
 
-from datarobot_drum.drum.common import X_TRANSFORM_KEY
-
 
 def is_sparse(df):
     return hasattr(df, "sparse") or type(df.iloc[0].values[0]) == csr_matrix
@@ -34,14 +32,14 @@ def make_csv_payload(df):
     return s_buf.getvalue().encode("utf-8")
 
 
-def read_arrow_payload(response_dict):
-    bytes = response_dict[X_TRANSFORM_KEY]
+def read_arrow_payload(response_dict, transform_key):
+    bytes = response_dict[transform_key]
     df = pa.ipc.deserialize_pandas(bytes)
     return df
 
 
-def read_csv_payload(response_dict):
-    bytes = response_dict[X_TRANSFORM_KEY]
+def read_csv_payload(response_dict, transform_key):
+    bytes = response_dict[transform_key]
     return pd.read_csv(BytesIO(bytes))
 
 
@@ -55,8 +53,8 @@ def make_mtx_payload(df):
     return sink.getvalue()
 
 
-def read_mtx_payload(response_dict):
-    bytes = response_dict[X_TRANSFORM_KEY]
+def read_mtx_payload(response_dict, transform_key):
+    bytes = response_dict[transform_key]
     sparse_mat = mmread(BytesIO(bytes))
     return csr_matrix(sparse_mat)
 

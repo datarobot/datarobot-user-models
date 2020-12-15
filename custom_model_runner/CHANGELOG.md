@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+#### [1.4.9] 
+##### Changes
+- `transform` mode now takes and returns both X and y, although passing y is optional.
+
 #### [1.4.8] - 2020-12-11
 ##### Fixed
 - Force class labels to be strings
@@ -22,6 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Validation of numeric multiclass class labels should always compare as strings
 
 #### [1.4.5] - 2020-12-02
+##### Added
+-  **/transform** endpoint added to prediction server 
 ##### Changes
 - Allow multiclass to function with only 2 labels
 

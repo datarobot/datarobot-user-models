@@ -120,6 +120,7 @@ _targets = {
     SPARSE: "my_target",
     BINARY_BOOL: "readmitted",
     ANOMALY: None,
+    TRANSFORM: os.path.join(TESTS_DATA_PATH, "transform_target.csv"),
 }
 
 _target_types = {

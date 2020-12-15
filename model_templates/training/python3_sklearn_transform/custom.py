@@ -44,19 +44,19 @@ def fit(
         pickle.dump(transformer, fp)
 
 
-def transform(data, transformer):
+def transform(X, transformer, y=None):
     """
     Parameters
     ----------
-    data: pd.DataFrame - training data to perform transform on
+    X: pd.DataFrame - training data to perform transform on
     transformer: object - trained transformer object
-
+    y: pd.Series (optional) - target data to perform transform on
     Returns
     -------
     transformed DataFrame resulting from applying transform to incoming data
     """
-    transformed = transformer.transform(data)
+    transformed = transformer.transform(X)
     if type(transform) == csr_matrix:
-        return pd.DataFrame.sparse.from_spmatrix(transformed)
+        return pd.DataFrame.sparse.from_spmatrix(transformed), y
     else:
-        return pd.DataFrame(transformed)
+        return pd.DataFrame(transformed), y
