@@ -639,8 +639,11 @@ class CMRunTests:
                     "Failure in transform server: {}".format(response_full.text)
                 )
 
+            if is_sparse:
+                subset_payload = ("X.mtx", subset_payload)
+
             response_sample = requests.post(
-                run.url_server_address + endpoint, files={"X": subset_payload}
+                run.url_server_address + endpoint, files={'X': subset_payload}
             )
 
             if self.target_type == TargetType.TRANSFORM:
