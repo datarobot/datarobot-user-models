@@ -24,13 +24,14 @@ from datarobot_drum.drum.common import (
     PERF_TEST_SERVER_LABEL,
     RESPONSE_PREDICTIONS_KEY,
     X_TRANSFORM_KEY,
-    Y_TRANSFORM_KEY,
     TargetType,
 )
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
 from datarobot_drum.resource.transform_helpers import (
     read_csv_payload,
     read_mtx_payload,
+    make_csv_payload,
+    make_mtx_payload,
 )
 
 
@@ -609,15 +610,12 @@ class CMRunTests:
             df = pd.DataFrame(mmread(self.options.input).tocsr())
             samplesize = min(1000, max(int(len(df) * 0.1), 10))
             data_subset = df.sample(n=samplesize, random_state=42)
-            _, __tempfile_sample = mkstemp(suffix=".mtx")
-            sparse_mat = vstack(x[0] for x in data_subset.values)
-            mmwrite(__tempfile_sample, sparse_mat)
+            subset_payload = make_mtx_payload(data_subset)
         else:
             df = pd.read_csv(self.options.input)
             samplesize = min(1000, max(int(len(df) * 0.1), 10))
             data_subset = df.sample(n=samplesize, random_state=42)
-            _, __tempfile_sample = mkstemp(suffix=".csv")
-            data_subset.to_csv(__tempfile_sample, index=False)
+            subset_payload = make_csv_payload(data_subset)
 
         labels = self.resolve_labels(self.target_type, self.options)
 
@@ -642,7 +640,7 @@ class CMRunTests:
                 )
 
             response_sample = requests.post(
-                run.url_server_address + endpoint, files={"X": open(__tempfile_sample)}
+                run.url_server_address + endpoint, files={"X": subset_payload}
             )
 
             if self.target_type == TargetType.TRANSFORM:
@@ -662,6 +660,14 @@ class CMRunTests:
 
             matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)
             if not np.all(matches):
+                if is_sparse:
+                    _, __tempfile_sample = mkstemp(suffix=".mtx")
+                    sparse_mat = vstack(x[0] for x in data_subset.values)
+                    mmwrite(__tempfile_sample, sparse_mat)
+                else:
+                    _, __tempfile_sample = mkstemp(suffix=".csv")
+                    data_subset.to_csv(__tempfile_sample, index=False)
+
                 message = """
                             Error: Your predictions were different when we tried to predict twice.
                             No randomness is allowed.
@@ -671,5 +677,3 @@ class CMRunTests:
                     preds_full_subset[~matches][:10], preds_sample[~matches][:10], __tempfile_sample
                 )
                 raise ValueError(message)
-            else:
-                os.remove(__tempfile_sample)
