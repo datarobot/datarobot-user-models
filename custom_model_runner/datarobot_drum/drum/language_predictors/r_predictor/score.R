@@ -40,6 +40,10 @@ init <- function(code_dir, target_type) {
     }
 }
 
+has_read_input_data_hook <- function() {
+    !isFALSE(read_input_data_hook)
+}
+
 #' Load a serialized model.  The model should have the extension .rds
 #'
 #' @return the deserialized model

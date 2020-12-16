@@ -39,6 +39,9 @@ class PythonPredictor(BaseLanguagePredictor):
     def supported_payload_formats(self):
         return self._model_adapter.supported_payload_formats
 
+    def has_read_input_data_hook(self):
+        return self._model_adapter.has_read_input_data_hook()
+
     def predict(self, **kwargs):
         kwargs[TARGET_TYPE_ARG_KEYWORD] = self._target_type
         if self._positive_class_label is not None and self._negative_class_label is not None:

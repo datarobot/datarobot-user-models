@@ -89,6 +89,8 @@ class PredictionServerMimetypes:
     TEXT_PLAIN = "text/plain"
     APPLICATION_X_APACHE_ARROW_STREAM = "application/x-apache-arrow-stream"
     TEXT_MTX = "text/mtx"
+    TEXT_CSV = "text/csv"
+    EMPTY = ""
 
 
 class InputFormatExtension:
@@ -279,14 +281,30 @@ def read_model_metadata_yaml(code_dir):
 class PayloadFormat:
     CSV = "csv"
     ARROW = "arrow"
+    MTX = "mtx"
 
 
 class SupportedPayloadFormats:
     def __init__(self):
         self._formats = {}
+        self._mimetype_to_payload_format = {
+            None: PayloadFormat.CSV,
+            PredictionServerMimetypes.EMPTY: PayloadFormat.CSV,
+            PredictionServerMimetypes.TEXT_CSV: PayloadFormat.CSV,
+            PredictionServerMimetypes.TEXT_PLAIN: PayloadFormat.CSV,
+            PredictionServerMimetypes.TEXT_MTX: PayloadFormat.MTX,
+            PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM: PayloadFormat.ARROW,
+        }
 
     def add(self, payload_format, format_version=None):
         self._formats[payload_format] = format_version
+
+    def is_mimetype_supported(self, mimetype):
+        payload_format = self._mimetype_to_payload_format.get(mimetype)
+        if payload_format is None:
+            return False
+
+        return payload_format in self._formats
 
     def __iter__(self):
         for payload_format, format_version in self._formats.items():
@@ -300,3 +318,19 @@ def make_predictor_capabilities(supported_payload_formats):
             for payload_format, format_version in supported_payload_formats
         }
     }
+
+
+try:
+    import pyarrow
+except ImportError:
+    pyarrow = None
+
+
+def get_pyarrow_module():
+    return pyarrow
+
+
+def verify_pyarrow_module():
+    if pyarrow is None:
+        raise ModuleNotFoundError("Please install pyarrow to support Arrow format")
+    return pyarrow

@@ -10,6 +10,7 @@ from datarobot_drum.drum.common import (
     PredictionServerMimetypes,
     X_TRANSFORM_KEY,
     Y_TRANSFORM_KEY,
+    get_pyarrow_module,
 )
 from datarobot_drum.drum.utils import StructuredInputReadUtils
 from datarobot_drum.resource.transform_helpers import (
@@ -72,10 +73,31 @@ class PredictMixin:
             raise ValueError(wrong_key_error_message)
         return binary_data, mimetype, charset
 
+    def _check_mimetype_support(self, mimetype):
+        # TODO: self._predictor.supported_payload_formats is property so gets initialized on every call, make it a method?
+        mimetype_supported = self._predictor.supported_payload_formats.is_mimetype_supported(
+            mimetype
+        )
+        if not mimetype_supported and not self._predictor.has_read_input_data_hook():
+            error_message = (
+                "ERROR: payload format `{}` is not supported by predictor/transformer. ".format(
+                    mimetype
+                )
+                + "Make DRUM support the format or implement `read_input_data` hook to read the data. "
+            )
+            if mimetype == PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM:
+                error_message += "pyarrow package may be missing, try to install."
+            return {"message": error_message}, HTTP_422_UNPROCESSABLE_ENTITY
+        return None
+
     def _predict(self, logger=None):
         response_status = HTTP_200_OK
         try:
             binary_data, mimetype, charset = self._fetch_data_from_request("X", logger=logger)
+
+            mimetype_support_error_response = self._check_mimetype_support(mimetype)
+            if mimetype_support_error_response is not None:
+                return mimetype_support_error_response
         except ValueError as e:
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             return {"message": "ERROR: " + str(e)}, response_status
@@ -119,6 +141,9 @@ class PredictMixin:
             feature_binary_data, feature_mimetype, feature_charset = self._fetch_data_from_request(
                 "X", logger=logger
             )
+            mimetype_support_error_response = self._check_mimetype_support(feature_mimetype)
+            if mimetype_support_error_response is not None:
+                return mimetype_support_error_response
         except ValueError as e:
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             return {"message": "ERROR: " + str(e)}, response_status
@@ -128,6 +153,9 @@ class PredictMixin:
                 target_binary_data, target_mimetype, target_charset = self._fetch_data_from_request(
                     "y", logger=logger
                 )
+                mimetype_support_error_response = self._check_mimetype_support(feature_mimetype)
+                if mimetype_support_error_response is not None:
+                    return mimetype_support_error_response
             except ValueError as e:
                 response_status = HTTP_422_UNPROCESSABLE_ENTITY
                 return {"message": "ERROR: " + str(e)}, response_status

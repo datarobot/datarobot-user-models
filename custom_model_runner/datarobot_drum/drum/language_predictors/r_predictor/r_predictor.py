@@ -88,7 +88,11 @@ class RPredictor(BaseLanguagePredictor):
     def supported_payload_formats(self):
         formats = SupportedPayloadFormats()
         formats.add(PayloadFormat.CSV)
+        formats.add(PayloadFormat.MTX)
         return formats
+
+    def has_read_input_data_hook(self):
+        return bool(r_handler.has_read_input_data_hook()[0])
 
     def predict(self, **kwargs):
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)

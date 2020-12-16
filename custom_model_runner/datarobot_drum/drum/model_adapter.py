@@ -3,7 +3,6 @@ import os
 import pickle
 import sys
 import textwrap
-import pyarrow
 
 import numpy as np
 import pandas as pd
@@ -30,6 +29,7 @@ from datarobot_drum.drum.common import (
     PayloadFormat,
     SupportedPayloadFormats,
     StructuredDtoKeys,
+    get_pyarrow_module,
 )
 from datarobot_drum.drum.utils import StructuredInputReadUtils
 from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
@@ -307,7 +307,10 @@ class PythonModelAdapter:
     def supported_payload_formats(self):
         formats = SupportedPayloadFormats()
         formats.add(PayloadFormat.CSV)
-        formats.add(PayloadFormat.ARROW, pyarrow.__version__)
+        formats.add(PayloadFormat.MTX)
+        pa = get_pyarrow_module()
+        if pa is not None:
+            formats.add(PayloadFormat.ARROW, pa.__version__)
         return formats
 
     def load_data(self, binary_data, mimetype, try_hook=True):
@@ -418,6 +421,9 @@ class PythonModelAdapter:
                 "Transform hook must be implemented for custom transforms, "
                 "for non-sklearn transformer."
             )
+
+    def has_read_input_data_hook(self):
+        return self._custom_hooks.get(CustomHooks.READ_INPUT_DATA) is not None
 
     def predict(self, model=None, **kwargs):
         """
