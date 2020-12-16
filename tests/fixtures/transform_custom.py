@@ -14,7 +14,7 @@ def transform(X, transformer, y=None):
     transformed DataFrame resulting from applying transform to incoming data
     """
     transformed = transformer.transform(X)
-    if type(transform) == csr_matrix:
+    if type(transformed) == csr_matrix:
         return pd.DataFrame.sparse.from_spmatrix(transformed), y
     else:
         return pd.DataFrame(transformed), y
