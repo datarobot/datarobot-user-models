@@ -108,7 +108,7 @@ include any necessary hooks in a file called `custom.py` for Python models or `c
         - `transformer` deserialized transformer loaded by DRUM or `load_model` 
         - `y` defaults to None, and will not be used for unsupervised downstream problems. Contains the target labels. Transform can simply pass the raw values on, may transform the values (i.e perform a log transform), 
         or use the `y` values in the transformation of `X` if needed.
-        - As of version 1.4.9, the transform hook need not return `y` if no changes are made to the target. `y` is still a required argument to this hook for custom transforms.
+        - As of version 1.4.9, the transform hook need not return `y` if no changes are made to the target. You may define a transform hook that does not take a `y` argument.
 - `score(data: DataFrame, model: Any, **kwargs: Dict[str, Any]) -> DataFrame`
   - `data` is the dataframe to make predictions against. If `transform` is supplied, `data` will be the transformed data.
   - `model` is the deserialized model loaded by DRUM or by `load_model`, if supplied

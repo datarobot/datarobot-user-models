@@ -8,6 +8,7 @@ import pyarrow
 import numpy as np
 import pandas as pd
 from scipy.sparse import csr_matrix
+from inspect import signature
 
 from pathlib import Path
 
@@ -382,7 +383,15 @@ class PythonModelAdapter:
 
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
             try:
-                transform_out = self._custom_hooks[CustomHooks.TRANSFORM](data, model, target_data)
+                transform_hook = self._custom_hooks[CustomHooks.TRANSFORM]
+                transform_params = signature(transform_hook).parameters
+                if len(transform_params) == 3:
+                    transform_out = transform_hook(data, model, target_data)
+                elif len(transform_params) == 2:
+                    transform_out = transform_hook(data, model)
+                else:
+                    raise ValueError("Transform hook must take 2 or 3 arguments; "
+                                     "hook provided takes {}".format(len(transform_params)))
                 if type(transform_out) == tuple:
                     output_data, output_target = transform_out
                 else:

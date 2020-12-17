@@ -230,8 +230,7 @@ class TestFit:
             tmp_path,
             framework,
             problem,
-            language,
-            is_training=True,
+            language=framework,
         )
 
         input_dataset = resources.datasets(framework, problem)
