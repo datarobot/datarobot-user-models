@@ -88,5 +88,9 @@ def run_error_server(host, port, exc_value):
     def predict():
         return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR
 
+    @model_api.route("/transform/", methods=["POST"])
+    def predict():
+        return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR
+
     app = get_flask_app(model_api)
     app.run(host, port)
