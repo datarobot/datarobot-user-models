@@ -24,11 +24,11 @@ Paths are relative to `./datarobot-user-models/model_templates/inference` unless
 
 #### Binary 
 
-`drum score --code-dir ./h2o_mojo/binary --target-type binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label 1 --negative-class-label 0` 
+`drum score --code-dir ./h2o_mojo/binary --target-type binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor` 
 
 #### Multiclass 
 
-`drum score --code-dir ./h2o_mojo/multiclass --target-type multiclass --input ../../tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv` 
+`drum score --code-dir ./h2o_mojo/multiclass --target-type multiclass --class-labels GALAXY QSO STAR --input ../../tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv` 
 
 #### Regression 
 
@@ -40,8 +40,8 @@ If you do not have Java 11 installed, please consider using docker.
 
 You can either provide the path to the Dockerfile
 
-`drum score --code-dir ./h2o_mojo/binary --target-type binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label 1 --negative-class-label 0 --docker ../../public_dropin_environments/java_codegen/`
+`drum score --code-dir ./h2o_mojo/binary --target-type binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor --docker ../../public_dropin_environments/java_codegen/`
 
 or provide the name of the docker image that has already been built [Java Drop-In Environment](../../public_dropin_environments/java_codegen/), for example, docker image is `drum_h2o`.
 
-`drum score --code-dir ./h2o_mojo/binary --target-type binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label 1 --negative-class-label 0 --docker drum_h2o`
+`drum score --code-dir ./h2o_mojo/binary --target-type binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor --docker drum_h2o`
