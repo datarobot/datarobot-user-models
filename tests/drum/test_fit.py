@@ -32,6 +32,7 @@ from .constants import (
     SKLEARN_REGRESSION,
     SKLEARN_ANOMALY,
     SKLEARN_TRANSFORM,
+    SKLEARN_TRANSFORM_WITH_Y,
     SKLEARN_PRED_CONSISTENCY,
     TESTS_ROOT_PATH,
     WEIGHTS_ARGS,
@@ -145,6 +146,9 @@ class TestFit:
             (SKLEARN_TRANSFORM, REGRESSION, None),
             (SKLEARN_TRANSFORM, BINARY, None),
             (SKLEARN_TRANSFORM, ANOMALY, None),
+            (SKLEARN_TRANSFORM_WITH_Y, REGRESSION, None),
+            (SKLEARN_TRANSFORM_WITH_Y, BINARY, None),
+            (SKLEARN_TRANSFORM_WITH_Y, ANOMALY, None),
             (XGB, BINARY_TEXT, None),
             (XGB, REGRESSION, None),
             (XGB, MULTICLASS, None),
@@ -190,7 +194,9 @@ class TestFit:
         )
 
         target_type = (
-            resources.target_types(problem) if framework != SKLEARN_TRANSFORM else TRANSFORM
+            resources.target_types(problem)
+            if framework not in [SKLEARN_TRANSFORM, SKLEARN_TRANSFORM_WITH_Y]
+            else TRANSFORM
         )
 
         cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(

@@ -622,7 +622,6 @@ class CMRunTests:
         with DrumServerRun(
             self.target_type.value, labels, self.options.code_dir, verbose=False
         ) as run:
-
             endpoint = "/transform/" if self.target_type == TargetType.TRANSFORM else "/predict/"
             payload = {"X": open(self.options.input)}
             if self.target_type == TargetType.TRANSFORM:
@@ -636,7 +635,7 @@ class CMRunTests:
             response_full = requests.post(run.url_server_address + endpoint, files=payload)
             if not response_full.ok:
                 raise DrumCommonException(
-                    "Failure in transform server: {}".format(response_full.text)
+                    "Failure in {} server: {}".format(endpoint[1:-1], response_full.text)
                 )
 
             if is_sparse:

@@ -48,6 +48,9 @@ from tests.drum.constants import (
     SKLEARN_SPARSE,
     SKLEARN_TRANSFORM,
     SKLEARN_TRANSFORM_DENSE,
+    SKLEARN_TRANSFORM_WITH_Y,
+    PYTHON_TRANSFORM_NO_Y,
+    PYTHON_TRANSFORM_NO_Y_DENSE,
     SKLEARN_PRED_CONSISTENCY,
     SPARSE,
     SPARSE_TARGET,
@@ -107,6 +110,9 @@ _training_models_paths = {
     (PYTHON, SKLEARN_TRANSFORM): os.path.join(TRAINING_TEMPLATES_PATH, "python3_sklearn_transform"),
     (PYTHON, SKLEARN_PRED_CONSISTENCY): os.path.join(
         TESTS_FIXTURES_PATH, "custom_pred_consistency"
+    ),
+    (PYTHON, SKLEARN_TRANSFORM_WITH_Y): os.path.join(
+        TRAINING_TEMPLATES_PATH, "python3_sklearn_transform_with_y"
     ),
 }
 
@@ -299,6 +305,14 @@ _custom_filepaths = {
     PYTHON_TRANSFORM: (os.path.join(TESTS_FIXTURES_PATH, "transform_custom.py"), "custom.py"),
     PYTHON_TRANSFORM_DENSE: (
         os.path.join(TESTS_FIXTURES_PATH, "transform_custom.py"),
+        "custom.py",
+    ),
+    PYTHON_TRANSFORM_NO_Y: (
+        os.path.join(TESTS_FIXTURES_PATH, "transform_custom_no_y.py"),
+        "custom.py",
+    ),
+    PYTHON_TRANSFORM_NO_Y_DENSE: (
+        os.path.join(TESTS_FIXTURES_PATH, "transform_custom_no_y.py"),
         "custom.py",
     ),
 }

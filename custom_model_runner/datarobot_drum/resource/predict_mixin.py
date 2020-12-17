@@ -147,7 +147,9 @@ class PredictMixin:
         # make output
         if is_sparse(out_data):
             if use_arrow:
-                target_payload = make_arrow_payload(out_target) if out_target is not None else {}
+                target_payload = (
+                    make_arrow_payload(out_target, arrow_version) if out_target is not None else {}
+                )
             else:
                 target_payload = make_csv_payload(out_target) if out_target is not None else {}
             mtx_payload = make_mtx_payload(out_data)
