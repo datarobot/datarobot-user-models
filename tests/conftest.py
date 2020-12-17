@@ -259,7 +259,7 @@ _artifacts = {
     (MOJO, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_bin.zip"),
     (PYPMML, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "iris_bin.pmml"),
     (SKLEARN_TRANSFORM_WITH_Y, REGRESSION): None,
-    (SKLEARN_TRANSFORM_WITH_Y, BINARY ): None,
+    (SKLEARN_TRANSFORM_WITH_Y, BINARY): None,
     (SKLEARN_TRANSFORM_WITH_Y, ANOMALY): None,
     (SKLEARN_TRANSFORM_NO_HOOK, REGRESSION): None,
     (SKLEARN_TRANSFORM_NO_HOOK, BINARY): None,
@@ -323,15 +323,15 @@ _custom_filepaths = {
     ),
     SKLEARN_TRANSFORM_WITH_Y: (
         os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom.py"),
-        "custom.py"
+        "custom.py",
     ),
     SKLEARN_TRANSFORM_NO_HOOK: (
         os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_no_hook.py"),
-        "custom.py"
+        "custom.py",
     ),
     SKLEARN_TRANSFORM: (
         os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_no_y.py"),
-        "custom.py"
+        "custom.py",
     ),
 }
 

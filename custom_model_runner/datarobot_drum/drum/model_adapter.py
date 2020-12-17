@@ -390,8 +390,10 @@ class PythonModelAdapter:
                 elif len(transform_params) == 2:
                     transform_out = transform_hook(data, model)
                 else:
-                    raise ValueError("Transform hook must take 2 or 3 arguments; "
-                                     "hook provided takes {}".format(len(transform_params)))
+                    raise ValueError(
+                        "Transform hook must take 2 or 3 arguments; "
+                        "hook provided takes {}".format(len(transform_params))
+                    )
                 if type(transform_out) == tuple:
                     output_data, output_target = transform_out
                 else:
