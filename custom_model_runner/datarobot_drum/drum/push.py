@@ -30,6 +30,8 @@ def _convert_target_type(unconverted_target_type):
         return dr_client.TARGET_TYPE.BINARY
     elif unconverted_target_type == TargetType.ANOMALY.value:
         return dr_client.enums.CUSTOM_MODEL_TARGET_TYPE.ANOMALY
+    elif unconverted_target_type == TargetType.MULTICLASS.value:
+        return dr_client.enums.TARGET_TYPE.MULTICLASS
     raise DrumCommonException("Unsupported target type {}".format(unconverted_target_type))
 
 
@@ -120,15 +122,32 @@ def _push_inference(model_config, code_dir, token=None, endpoint=None):
     if "modelID" in model_config:
         model_id = model_config["modelID"]
     else:
-        model_id = dr_client.CustomInferenceModel.create(
+        create_params = dict(
             name=model_config["name"],
             target_type=_convert_target_type(model_config["targetType"]),
             target_name=model_config["inferenceModel"]["targetName"],
             description=model_config.get("description", "Pushed from DRUM"),
-            positive_class_label=model_config["inferenceModel"].get("positiveClassLabel"),
-            negative_class_label=model_config["inferenceModel"].get("negativeClassLabel"),
-            prediction_threshold=model_config["inferenceModel"].get("predictionThreshold"),
-        ).id
+        )
+        if model_config["targetType"] == TargetType.BINARY.value:
+            create_params.update(
+                dict(
+                    positive_class_label=model_config["inferenceModel"].get("positiveClassLabel"),
+                    negative_class_label=model_config["inferenceModel"].get("negativeClassLabel"),
+                    prediction_threshold=model_config["inferenceModel"].get("predictionThreshold"),
+                )
+            )
+        elif model_config["targetType"] == TargetType.MULTICLASS.value:
+            class_labels = model_config["inferenceModel"].get("classLabels")
+            class_labels_file = model_config["inferenceModel"].get("classLabelsFile")
+            if not ((class_labels is None) ^ (class_labels_file is None)):
+                raise DrumCommonException(
+                    "Multiclass inference models must specify either classLabels or classLabelsFile"
+                )
+            if class_labels_file:
+                with open(class_labels_file) as f:
+                    class_labels = f.read().split(os.linesep)
+            create_params.update(dict(class_labels=class_labels))
+        model_id = dr_client.CustomInferenceModel.create(**create_params).id
     dr_client.CustomModelVersion.create_clean(
         custom_model_id=model_id,
         base_environment_id=model_config["environmentID"],

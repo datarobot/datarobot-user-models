@@ -1,7 +1,9 @@
+import json
 import os
 import tempfile
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from textwrap import dedent
 
 import numpy as np
 import pandas as pd
@@ -81,46 +83,96 @@ modelID = "5f1f15a4d6111f01cb7f91f"
 environmentID = "5e8c889607389fe0f466c72d"
 projectID = "abc123"
 
-inference_metadata_yaml = """
-name: drumpush-regression
-type: inference
-targetType: regression
-modelID: {modelID}
-environmentID: {environmentID}
-inferenceModel:
-  targetName: MEDV
-validation:
-  input: hello
-""".format(
-    modelID=modelID, environmentID=environmentID
-)
 
-training_metadata_yaml = """
-name: drumpush-regression
-type: training
-targetType: regression
-modelID: {modelID}
-environmentID: {environmentID}
-validation:
-   input: hello 
-""".format(
-    modelID=modelID, environmentID=environmentID
-)
+@pytest.fixture
+def inference_metadata_yaml():
+    return dedent(
+        """
+        name: drumpush-regression
+        type: inference
+        targetType: regression
+        environmentID: {environmentID}
+        inferenceModel:
+          targetName: MEDV
+        validation:
+          input: hello
+        """
+    ).format(environmentID=environmentID)
 
 
-training_metadata_yaml_with_proj = """
-name: drumpush-regression
-type: training
-targetType: regression
-modelID: {modelID}
-environmentID: {environmentID}
-trainingModel:
-    trainOnProject: {projectID}
-validation:
-    input: hello 
-""".format(
-    modelID=modelID, environmentID=environmentID, projectID=projectID
-)
+@pytest.fixture
+def multiclass_labels():
+    return ["GALAXY", "QSO", "STAR"]
+
+
+@pytest.fixture
+def inference_multiclass_metadata_yaml(multiclass_labels):
+    return dedent(
+        """
+        name: drumpush-multiclass
+        type: inference
+        targetType: multiclass
+        environmentID: {}
+        inferenceModel:
+          targetName: class
+          classLabels:
+            - {}
+            - {}
+            - {}
+        validation:
+          input: hello
+        """
+    ).format(environmentID, *multiclass_labels)
+
+
+@pytest.fixture
+def inference_multiclass_metadata_yaml_label_file(multiclass_labels):
+    with NamedTemporaryFile(mode="w+") as f:
+        f.write("\n".join(multiclass_labels))
+        f.flush()
+        yield dedent(
+            """
+            name: drumpush-multiclass
+            type: inference
+            targetType: multiclass
+            environmentID: {}
+            inferenceModel:
+              targetName: class
+              classLabelsFile: {}
+            validation:
+              input: hello
+            """
+        ).format(environmentID, f.name)
+
+
+@pytest.fixture
+def training_metadata_yaml():
+    return dedent(
+        """
+        name: drumpush-regression
+        type: training
+        targetType: regression
+        environmentID: {environmentID}
+        validation:
+           input: hello 
+        """
+    ).format(environmentID=environmentID)
+
+
+@pytest.fixture
+def training_metadata_yaml_with_proj():
+    return dedent(
+        """
+        name: drumpush-regression
+        type: training
+        targetType: regression
+        environmentID: {environmentID}
+        trainingModel:
+            trainOnProject: {projectID}
+        validation:
+            input: hello 
+        """
+    ).format(environmentID=environmentID, projectID=projectID)
 
 
 version_response = {
@@ -148,22 +200,31 @@ def version_mocks():
     )
 
 
-def mock_get_model(model_type="training"):
+def mock_get_model(model_type="training", target_type="Regression"):
+    body = {
+        "customModelType": model_type,
+        "id": modelID,
+        "name": "1",
+        "description": "1",
+        "targetType": target_type,
+        "deployments_count": "1",
+        "created_by": "1",
+        "updated": "1",
+        "created": "1",
+        "latestVersion": version_response,
+    }
+    if model_type == "inference":
+        body["language"] = "Python"
+        body["trainingDataAssignmentInProgress"] = False
     responses.add(
         responses.GET,
         "http://yess/customModels/{}/".format(modelID),
-        json={
-            "customModelType": model_type,
-            "id": "1",
-            "name": "1",
-            "description": "1",
-            "target_type": "Regression",
-            "deployments_count": "1",
-            "created_by": "1",
-            "updated": "1",
-            "created": "1",
-            "latestVersion": version_response,
-        },
+        json=body,
+    )
+    responses.add(
+        responses.POST,
+        "http://yess/customModels/".format(modelID),
+        json=body,
     )
 
 
@@ -223,47 +284,61 @@ def mock_train_model():
 @pytest.mark.parametrize(
     "config_yaml",
     [
-        training_metadata_yaml,
-        training_metadata_yaml_with_proj,
-        inference_metadata_yaml,
+        "training_metadata_yaml",
+        "training_metadata_yaml_with_proj",
+        "inference_metadata_yaml",
+        "inference_multiclass_metadata_yaml",
+        "inference_multiclass_metadata_yaml_label_file",
     ],
 )
-def test_push(config_yaml):
+@pytest.mark.parametrize("existing_model_id", [None, modelID])
+def test_push(request, config_yaml, existing_model_id, multiclass_labels):
+    config_yaml = request.getfixturevalue(config_yaml)
+    if existing_model_id:
+        config_yaml = config_yaml + "\nmodelID: {}".format(existing_model_id)
     config = strictyaml.load(config_yaml, MODEL_CONFIG_SCHEMA).data
 
     version_mocks()
     mock_post_blueprint()
     mock_post_add_to_repository()
-    mock_get_model(model_type=config["type"])
+    mock_get_model(model_type=config["type"], target_type=config["targetType"].capitalize())
     mock_get_env()
     mock_train_model()
     push_fn = _push_training if config["type"] == "training" else _push_inference
     push_fn(config, code_dir="", endpoint="http://Yess", token="okay")
 
     calls = responses.calls
+    if existing_model_id is None:
+        assert calls[1].request.path_url == "/customModels/" and calls[1].request.method == "POST"
+        if config["targetType"] == TargetType.MULTICLASS.value:
+            sent_labels = json.loads(calls[1].request.body)["classLabels"]
+            assert sent_labels == multiclass_labels
+        call_shift = 1
+    else:
+        call_shift = 0
     assert (
-        calls[1].request.path_url == "/customModels/{}/versions/".format(modelID)
-        and calls[1].request.method == "POST"
+        calls[call_shift + 1].request.path_url == "/customModels/{}/versions/".format(modelID)
+        and calls[call_shift + 1].request.method == "POST"
     )
     if push_fn == _push_training:
         assert (
-            calls[2].request.path_url == "/customTrainingBlueprints/"
-            and calls[2].request.method == "POST"
+            calls[call_shift + 2].request.path_url == "/customTrainingBlueprints/"
+            and calls[call_shift + 2].request.method == "POST"
         )
         if "trainingModel" in config:
             assert (
-                calls[3].request.path_url == "/userBlueprints/addToMenu/"
-                and calls[3].request.method == "POST"
+                calls[call_shift + 3].request.path_url == "/userBlueprints/addToMenu/"
+                and calls[call_shift + 3].request.method == "POST"
             )
             assert (
-                calls[4].request.path_url == "/projects/abc123/models/"
-                and calls[4].request.method == "POST"
+                calls[call_shift + 4].request.path_url == "/projects/abc123/models/"
+                and calls[call_shift + 4].request.method == "POST"
             )
-            assert len(calls) == 6
+            assert len(calls) == 6 + call_shift
         else:
-            assert len(calls) == 3
+            assert len(calls) == 3 + call_shift
     else:
-        assert len(calls) == 2
+        assert len(calls) == 2 + call_shift
 
 
 def test_output_in_code_dir():
