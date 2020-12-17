@@ -601,6 +601,7 @@ class CMRunTests:
         print(tbl_report)
 
     def check_prediction_side_effects(self, target_temp_location=None):
+
         rtol = 2e-02
         atol = 1e-06
         input_extension = os.path.splitext(self.options.input)
@@ -646,11 +647,16 @@ class CMRunTests:
             )
 
             if self.target_type == TargetType.TRANSFORM:
+                output_format = eval(response_full.text)["out.format"]
                 preds_full = self.load_transform_output(
-                    response=response_full, is_sparse=is_sparse, request_key=X_TRANSFORM_KEY
+                    response=response_full,
+                    is_sparse=output_format == "sparse",
+                    request_key=X_TRANSFORM_KEY,
                 )
                 preds_sample = self.load_transform_output(
-                    response=response_sample, is_sparse=is_sparse, request_key=X_TRANSFORM_KEY
+                    response=response_sample,
+                    is_sparse=output_format == "sparse",
+                    request_key=X_TRANSFORM_KEY,
                 )
             else:
                 preds_full = pd.DataFrame(json.loads(response_full.text)[RESPONSE_PREDICTIONS_KEY])

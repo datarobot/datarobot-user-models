@@ -106,6 +106,7 @@ class PredictMixin:
         return response, response_status
 
     def _transform(self, logger=None):
+
         response_status = HTTP_200_OK
 
         arrow_key = "arrow_version"

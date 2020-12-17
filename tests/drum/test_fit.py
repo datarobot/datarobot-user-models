@@ -35,6 +35,7 @@ from .constants import (
     SKLEARN_TRANSFORM_WITH_Y,
     SKLEARN_PRED_CONSISTENCY,
     SKLEARN_TRANSFORM_NO_HOOK,
+    SKLEARN_TRANSFORM_SPARSE,
     TESTS_ROOT_PATH,
     WEIGHTS_ARGS,
     WEIGHTS_CSV,
@@ -403,7 +404,7 @@ class TestFit:
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
 
-    @pytest.mark.parametrize("framework", [SKLEARN_SPARSE, PYTORCH, RDS])
+    @pytest.mark.parametrize("framework", [SKLEARN_TRANSFORM_SPARSE, SKLEARN_SPARSE, PYTORCH, RDS])
     def test_fit_sparse(self, resources, tmp_path, framework):
         custom_model_dir = _create_custom_model_dir(
             resources,
@@ -416,12 +417,13 @@ class TestFit:
 
         input_dataset = resources.datasets(framework, SPARSE)
         target_dataset = resources.datasets(framework, SPARSE_TARGET)
+        target_type = TRANSFORM if framework == SKLEARN_TRANSFORM_SPARSE else REGRESSION
 
         output = tmp_path / "output"
         output.mkdir()
 
         cmd = "{} fit --code-dir {} --input {} --target-type {} --verbose ".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, REGRESSION
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, target_type
         )
 
         cmd += " --target-csv " + target_dataset

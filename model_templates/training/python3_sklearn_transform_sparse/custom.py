@@ -31,7 +31,7 @@ def fit(
     Nothing
     """
     transformer = make_pipeline()
-    transformer.fit(X, y)
+    transformer.fit(X)
 
     # You must serialize out your transformer to the output_dir given, however if you wish to change this
     # code, you will probably have to add a load_model method to read the serialized model back in

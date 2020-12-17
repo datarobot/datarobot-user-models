@@ -1,6 +1,4 @@
 import numpy as np
-import pandas as pd
-from sagemaker_sklearn_extension.feature_extraction.text import MultiColumnTfidfVectorizer
 from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
