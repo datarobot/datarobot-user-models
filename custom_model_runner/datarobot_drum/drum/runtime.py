@@ -2,6 +2,8 @@ import logging
 import traceback
 from datarobot_drum.drum.server import (
     base_api_blueprint,
+
+
     get_flask_app,
     HTTP_513_DRUM_PIPELINE_ERROR,
 )
@@ -85,6 +87,10 @@ def run_error_server(host, port, exc_value):
         return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR
 
     @model_api.route("/predict/", methods=["POST"])
+    def predict():
+        return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR
+
+    @model_api.route("/transform/", methods=["POST"])
     def predict():
         return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR
 

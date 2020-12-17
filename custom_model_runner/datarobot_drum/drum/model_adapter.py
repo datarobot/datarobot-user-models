@@ -118,7 +118,7 @@ class PythonModelAdapter:
         # If a score hook is not given we need to find a predictor that can handle this model
         if (
             self._target_type != TargetType.UNSTRUCTURED
-            and not self._custom_hooks[CustomHooks.SCORE]
+            and not (self._custom_hooks[CustomHooks.SCORE] or self._custom_hooks[CustomHooks.TRANSFORM])
         ):
             self._find_predictor_to_use()
 
@@ -235,7 +235,7 @@ class PythonModelAdapter:
                 self._predictor_to_use = pred
                 break
 
-        if not self._predictor_to_use and not self._custom_hooks[CustomHooks.SCORE]:
+        if not self._predictor_to_use:
             raise DrumCommonException(
                 "\n\n{}\n"
                 "Could not find any framework to handle loaded model and a {} "
