@@ -34,6 +34,7 @@ from .constants import (
     SKLEARN_TRANSFORM,
     SKLEARN_TRANSFORM_WITH_Y,
     SKLEARN_PRED_CONSISTENCY,
+    SKLEARN_TRANSFORM_NO_HOOK,
     TESTS_ROOT_PATH,
     WEIGHTS_ARGS,
     WEIGHTS_CSV,
@@ -143,12 +144,6 @@ class TestFit:
             (SKLEARN_MULTICLASS, MULTICLASS, None),
             (SKLEARN_MULTICLASS, MULTICLASS_BINARY, None),
             (SKLEARN_MULTICLASS, MULTICLASS_NUM_LABELS, None),
-            (SKLEARN_TRANSFORM, REGRESSION, None),
-            (SKLEARN_TRANSFORM, BINARY, None),
-            (SKLEARN_TRANSFORM, ANOMALY, None),
-            (SKLEARN_TRANSFORM_WITH_Y, REGRESSION, None),
-            (SKLEARN_TRANSFORM_WITH_Y, BINARY, None),
-            (SKLEARN_TRANSFORM_WITH_Y, ANOMALY, None),
             (XGB, BINARY_TEXT, None),
             (XGB, REGRESSION, None),
             (XGB, MULTICLASS, None),
@@ -193,11 +188,7 @@ class TestFit:
             weights, input_dataset, r_fit=language == R_FIT
         )
 
-        target_type = (
-            resources.target_types(problem)
-            if framework not in [SKLEARN_TRANSFORM, SKLEARN_TRANSFORM_WITH_Y]
-            else TRANSFORM
-        )
+        target_type = resources.target_types(problem)
 
         cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
             ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
@@ -213,6 +204,56 @@ class TestFit:
             )
         if docker:
             cmd += " --docker {} ".format(docker)
+
+        cmd += weights_cmd
+
+        _exec_shell_cmd(
+            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+        )
+
+    @pytest.mark.parametrize(
+        "framework", [SKLEARN_TRANSFORM, SKLEARN_TRANSFORM_WITH_Y, SKLEARN_TRANSFORM_NO_HOOK]
+    )
+    @pytest.mark.parametrize("problem", [REGRESSION, BINARY, ANOMALY])
+    @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
+    def test_transform_fit(
+        self,
+        resources,
+        framework,
+        problem,
+        weights,
+        tmp_path,
+    ):
+        language = PYTHON
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
+            is_training=True,
+        )
+
+        input_dataset = resources.datasets(framework, problem)
+
+        weights_cmd, input_dataset, __keep_this_around = self._add_weights_cmd(
+            weights, input_dataset, r_fit=language == R_FIT
+        )
+
+        target_type = TRANSFORM
+
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
+            ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
+        )
+        if problem != ANOMALY:
+            cmd += " --target {}".format(resources.targets(problem))
+        else:
+            cmd += " --unsupervised"
+
+        if problem in [BINARY, MULTICLASS]:
+            cmd = _cmd_add_class_labels(
+                cmd, resources.class_labels(framework, problem), target_type=target_type
+            )
 
         cmd += weights_cmd
 

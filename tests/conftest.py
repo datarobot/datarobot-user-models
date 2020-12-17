@@ -51,6 +51,7 @@ from tests.drum.constants import (
     SKLEARN_TRANSFORM_WITH_Y,
     PYTHON_TRANSFORM_NO_Y,
     PYTHON_TRANSFORM_NO_Y_DENSE,
+    SKLEARN_TRANSFORM_NO_HOOK,
     SKLEARN_PRED_CONSISTENCY,
     SPARSE,
     SPARSE_TARGET,
@@ -113,6 +114,9 @@ _training_models_paths = {
     ),
     (PYTHON, SKLEARN_TRANSFORM_WITH_Y): os.path.join(
         TRAINING_TEMPLATES_PATH, "python3_sklearn_transform_with_y"
+    ),
+    (PYTHON, SKLEARN_TRANSFORM_NO_HOOK): os.path.join(
+        TRAINING_TEMPLATES_PATH, "python3_sklearn_transform_no_hook"
     ),
 }
 
