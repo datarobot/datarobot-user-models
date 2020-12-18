@@ -1,4 +1,4 @@
-from flask import request, Response, jsonify
+from flask import request, Response
 import werkzeug
 
 
