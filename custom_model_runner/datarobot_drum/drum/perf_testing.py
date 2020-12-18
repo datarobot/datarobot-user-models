@@ -648,11 +648,17 @@ class CMRunTests:
             )
 
             if self.target_type == TargetType.TRANSFORM:
+                output_format = parse_multi_part_response(response_full)["out.format"]
+
                 preds_full = self.load_transform_output(
-                    response=response_full, is_sparse=is_sparse, request_key=X_TRANSFORM_KEY
+                    response=response_full,
+                    is_sparse=output_format == "sparse",
+                    request_key=X_TRANSFORM_KEY,
                 )
                 preds_sample = self.load_transform_output(
-                    response=response_sample, is_sparse=is_sparse, request_key=X_TRANSFORM_KEY
+                    response=response_sample,
+                    is_sparse=output_format == "sparse",
+                    request_key=X_TRANSFORM_KEY,
                 )
             else:
                 preds_full = pd.DataFrame(json.loads(response_full.text)[RESPONSE_PREDICTIONS_KEY])

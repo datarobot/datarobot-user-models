@@ -35,6 +35,7 @@ from .constants import (
     SKLEARN_TRANSFORM_WITH_Y,
     SKLEARN_PRED_CONSISTENCY,
     SKLEARN_TRANSFORM_NO_HOOK,
+    SKLEARN_TRANSFORM_SPARSE,
     TESTS_ROOT_PATH,
     WEIGHTS_ARGS,
     WEIGHTS_CSV,
@@ -212,7 +213,13 @@ class TestFit:
         )
 
     @pytest.mark.parametrize(
-        "framework", [SKLEARN_TRANSFORM, SKLEARN_TRANSFORM_WITH_Y, SKLEARN_TRANSFORM_NO_HOOK]
+        "framework",
+        [
+            SKLEARN_TRANSFORM,
+            SKLEARN_TRANSFORM_WITH_Y,
+            SKLEARN_TRANSFORM_NO_HOOK,
+            SKLEARN_TRANSFORM_SPARSE,
+        ],
     )
     @pytest.mark.parametrize("problem", [REGRESSION, BINARY, ANOMALY])
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
