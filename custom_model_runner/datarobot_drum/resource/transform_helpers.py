@@ -2,6 +2,7 @@ import pyarrow as pa
 import pandas as pd
 
 from io import BytesIO, StringIO
+from requests_toolbelt.multipart import decoder
 
 from scipy.io import mmwrite, mmread
 from scipy.sparse.csr import csr_matrix
@@ -66,3 +67,16 @@ def validate_transformed_output(transformed_output, should_be_sparse=False):
     else:
         assert type(transformed_output) == pd.DataFrame
         assert transformed_output.shape[1] == 10
+
+
+def parse_multi_part_response(response):
+    parsed_response = {}
+    multipart_data = decoder.MultipartDecoder.from_response(response)
+    for part in multipart_data.parts:
+        for i, v in part.headers.lower_items():
+            key = v.decode().split("=")[1].strip('"')
+        value = part.content
+        if key == "out.format":
+            value = value.decode()
+        parsed_response.update({key: value})
+    return parsed_response

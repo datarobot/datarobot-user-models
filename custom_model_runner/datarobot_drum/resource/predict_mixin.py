@@ -1,4 +1,5 @@
 from flask import request, Response
+from requests_toolbelt import MultipartEncoder
 import werkzeug
 
 
@@ -149,36 +150,37 @@ class PredictMixin:
         if is_sparse(out_data):
             if use_arrow:
                 target_payload = (
-                    make_arrow_payload(out_target, arrow_version) if out_target is not None else {}
+                    make_arrow_payload(out_target, arrow_version)
+                    if out_target is not None
+                    else None
                 )
             else:
-                target_payload = make_csv_payload(out_target) if out_target is not None else {}
+                target_payload = make_csv_payload(out_target) if out_target is not None else None
             feature_payload = make_mtx_payload(out_data)
             out_format = "sparse"
         else:
             if use_arrow:
                 feature_payload = make_arrow_payload(out_data, arrow_version)
                 target_payload = (
-                    make_arrow_payload(out_target, arrow_version) if out_target is not None else {}
+                    make_arrow_payload(out_target, arrow_version)
+                    if out_target is not None
+                    else None
                 )
                 out_format = "arrow"
             else:
                 feature_payload = make_csv_payload(out_data)
-                target_payload = make_csv_payload(out_target) if out_target is not None else {}
+                target_payload = make_csv_payload(out_target) if out_target is not None else None
                 out_format = "csv"
 
-        response = (
-            '{{"{transform_key}":{feature_payload},'
-            '"out.format":"{out_format}",'
-            ' "{y_transform_key}":{y_payload}}}'.format(
-                transform_key=X_TRANSFORM_KEY,
-                feature_payload=feature_payload,
-                out_format=out_format,
-                y_transform_key=Y_TRANSFORM_KEY,
-                y_payload=target_payload,
-            )
+        m = MultipartEncoder(
+            fields={
+                "out.format": out_format,
+                X_TRANSFORM_KEY: feature_payload,
+                Y_TRANSFORM_KEY: target_payload,
+            }
         )
-        response = Response(response, mimetype=PredictionServerMimetypes.APPLICATION_JSON)
+
+        response = Response(m.to_string(), mimetype=m.content_type)
 
         return response, response_status
 

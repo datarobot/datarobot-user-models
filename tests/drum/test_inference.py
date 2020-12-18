@@ -20,6 +20,7 @@ from datarobot_drum.resource.transform_helpers import (
     read_mtx_payload,
     read_csv_payload,
     validate_transformed_output,
+    parse_multi_part_response,
 )
 from .constants import (
     BINARY,
@@ -338,31 +339,32 @@ class TestInference:
                 files["arrow_version"] = ".2"
 
             response = requests.post(run.url_server_address + "/transform/", files=files)
-            print(response.text)
             assert response.ok
+
+            parsed_response = parse_multi_part_response(response)
 
             if framework == SKLEARN_TRANSFORM_DENSE:
                 if use_arrow:
-                    transformed_out = read_arrow_payload(eval(response.text), X_TRANSFORM_KEY)
+                    transformed_out = read_arrow_payload(parsed_response, X_TRANSFORM_KEY)
                     if pass_target:
-                        target_out = read_arrow_payload(eval(response.text), Y_TRANSFORM_KEY)
-                    assert eval(response.text)["out.format"] == "arrow"
+                        target_out = read_arrow_payload(parsed_response, Y_TRANSFORM_KEY)
+                    assert parsed_response["out.format"] == "arrow"
                 else:
-                    transformed_out = read_csv_payload(eval(response.text), X_TRANSFORM_KEY)
+                    transformed_out = read_csv_payload(parsed_response, X_TRANSFORM_KEY)
                     if pass_target:
-                        target_out = read_csv_payload(eval(response.text), Y_TRANSFORM_KEY)
-                    assert eval(response.text)["out.format"] == "csv"
+                        target_out = read_csv_payload(parsed_response, Y_TRANSFORM_KEY)
+                    assert parsed_response["out.format"] == "csv"
                 actual_num_predictions = transformed_out.shape[0]
             else:
-                transformed_out = read_mtx_payload(eval(response.text), X_TRANSFORM_KEY)
+                transformed_out = read_mtx_payload(parsed_response, X_TRANSFORM_KEY)
                 if pass_target:
                     # this shouldn't be sparse even though features are
                     if use_arrow:
-                        target_out = read_arrow_payload(eval(response.text), Y_TRANSFORM_KEY)
+                        target_out = read_arrow_payload(parsed_response, Y_TRANSFORM_KEY)
                     else:
-                        target_out = read_csv_payload(eval(response.text), Y_TRANSFORM_KEY)
+                        target_out = read_csv_payload(parsed_response, Y_TRANSFORM_KEY)
                 actual_num_predictions = transformed_out.shape[0]
-                assert eval(response.text)["out.format"] == "sparse"
+                assert parsed_response["out.format"] == "sparse"
             validate_transformed_output(
                 transformed_out, should_be_sparse=framework == SKLEARN_TRANSFORM
             )
@@ -405,12 +407,14 @@ class TestInference:
             response = requests.post(
                 run.url_server_address + "/transform/", files={"X": open(input_dataset)}
             )
-            print(response.text)
+
             assert response.ok
 
             in_data = pd.read_csv(input_dataset)
 
-            transformed_mat = read_mtx_payload(eval(response.text), X_TRANSFORM_KEY)
+            parsed_response = parse_multi_part_response(response)
+
+            transformed_mat = read_mtx_payload(parsed_response, X_TRANSFORM_KEY)
             actual_num_predictions = transformed_mat.shape[0]
             assert in_data.shape[0] == actual_num_predictions
 

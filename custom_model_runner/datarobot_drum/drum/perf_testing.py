@@ -32,6 +32,7 @@ from datarobot_drum.resource.transform_helpers import (
     read_mtx_payload,
     make_csv_payload,
     make_mtx_payload,
+    parse_multi_part_response,
 )
 
 
@@ -244,10 +245,11 @@ class CMRunTests:
 
     @staticmethod
     def load_transform_output(response, is_sparse, request_key):
+        parsed_response = parse_multi_part_response(response)
         if is_sparse:
-            return pd.DataFrame(read_mtx_payload(eval(response.text), request_key))
+            return pd.DataFrame(read_mtx_payload(parsed_response, request_key))
         else:
-            return pd.DataFrame(read_csv_payload(eval(response.text), request_key))
+            return pd.DataFrame(read_csv_payload(parsed_response, request_key))
 
     def _prepare_test_cases(self):
         print("Preparing test data...")
