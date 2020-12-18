@@ -1,4 +1,4 @@
-from flask import request, Response
+from flask import request, Response, jsonify
 import werkzeug
 
 
@@ -144,6 +144,7 @@ class PredictMixin:
                 binary_data=feature_binary_data, mimetype=feature_mimetype, charset=feature_charset
             )
             out_target = None
+
         # make output
         if is_sparse(out_data):
             if use_arrow:
@@ -152,48 +153,31 @@ class PredictMixin:
                 )
             else:
                 target_payload = make_csv_payload(out_target) if out_target is not None else {}
-            mtx_payload = make_mtx_payload(out_data)
-            response = (
-                '{{"{transform_key}":{mtx_payload},'
-                ' "out.format":"{out_format}", "{y_transform_key}":{y_payload}}}'.format(
-                    transform_key=X_TRANSFORM_KEY,
-                    mtx_payload=mtx_payload,
-                    out_format="sparse",
-                    y_transform_key=Y_TRANSFORM_KEY,
-                    y_payload=target_payload,
-                )
-            )
+            feature_payload = make_mtx_payload(out_data)
+            out_format = "sparse"
         else:
             if use_arrow:
-                arrow_payload = make_arrow_payload(out_data, arrow_version)
-                target_arrow = (
+                feature_payload = make_arrow_payload(out_data, arrow_version)
+                target_payload = (
                     make_arrow_payload(out_target, arrow_version) if out_target is not None else {}
                 )
-                response = (
-                    '{{"{transform_key}":{arrow_payload},'
-                    '"out.format":"{out_format}", "{y_transform_key}":{y_payload}}}'.format(
-                        transform_key=X_TRANSFORM_KEY,
-                        arrow_payload=arrow_payload,
-                        out_format="arrow",
-                        y_transform_key=Y_TRANSFORM_KEY,
-                        y_payload=target_arrow,
-                    )
-                )
+                out_format = "arrow"
             else:
-                csv_payload = make_csv_payload(out_data)
-                target_csv = make_csv_payload(out_target) if out_target is not None else {}
-                response = (
-                    '{{"{transform_key}":{csv_payload},'
-                    " "
-                    '"out.format":"{out_format}", "{y_transform_key}":{y_payload}}}'.format(
-                        transform_key=X_TRANSFORM_KEY,
-                        csv_payload=csv_payload,
-                        out_format="csv",
-                        y_transform_key=Y_TRANSFORM_KEY,
-                        y_payload=target_csv,
-                    )
-                )
+                feature_payload = make_csv_payload(out_data)
+                target_payload = make_csv_payload(out_target) if out_target is not None else {}
+                out_format = "csv"
 
+        response = (
+            '{{"{transform_key}":{feature_payload},'
+            '"out.format":"{out_format}",'
+            ' "{y_transform_key}":{y_payload}}}'.format(
+                transform_key=X_TRANSFORM_KEY,
+                feature_payload=feature_payload,
+                out_format=out_format,
+                y_transform_key=Y_TRANSFORM_KEY,
+                y_payload=target_payload,
+            )
+        )
         response = Response(response, mimetype=PredictionServerMimetypes.APPLICATION_JSON)
 
         return response, response_status
