@@ -172,13 +172,26 @@ class PredictMixin:
                 target_payload = make_csv_payload(out_target) if out_target is not None else None
                 out_format = "csv"
 
-        m = MultipartEncoder(
-            fields={
-                "out.format": out_format,
-                X_TRANSFORM_KEY: feature_payload,
-                Y_TRANSFORM_KEY: target_payload,
-            }
-        )
+        out_fields = {
+            "out.format": out_format,
+            X_TRANSFORM_KEY: (
+                X_TRANSFORM_KEY,
+                feature_payload,
+                PredictionServerMimetypes.APPLICATION_OCTET_STREAM,
+            ),
+        }
+        if target_payload is not None:
+            out_fields.update(
+                {
+                    Y_TRANSFORM_KEY: (
+                        Y_TRANSFORM_KEY,
+                        target_payload,
+                        PredictionServerMimetypes.APPLICATION_OCTET_STREAM,
+                    ),
+                }
+            )
+
+        m = MultipartEncoder(fields=out_fields)
 
         response = Response(m.to_string(), mimetype=m.content_type)
 

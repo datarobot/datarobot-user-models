@@ -1,6 +1,7 @@
 import pyarrow as pa
 import pandas as pd
 
+from cgi import FieldStorage
 from io import BytesIO, StringIO
 from requests_toolbelt.multipart import decoder
 
@@ -71,12 +72,17 @@ def validate_transformed_output(transformed_output, should_be_sparse=False):
 
 def parse_multi_part_response(response):
     parsed_response = {}
-    multipart_data = decoder.MultipartDecoder.from_response(response)
-    for part in multipart_data.parts:
-        for i, v in part.headers.lower_items():
-            key = v.decode().split("=")[1].strip('"')
-        value = part.content
-        if key == "out.format":
-            value = value.decode()
+    fs = FieldStorage(
+        fp=BytesIO(response.content),
+        headers=response.headers,
+        environ={
+            "REQUEST_METHOD": "POST",
+            "CONTENT_TYPE": response.headers["Content-Type"],
+        },
+    )
+    for child in fs.list:
+        key = child.name
+        value = child.file.read()
         parsed_response.update({key: value})
+
     return parsed_response
