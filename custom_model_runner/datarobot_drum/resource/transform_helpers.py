@@ -3,7 +3,6 @@ import pandas as pd
 
 from cgi import FieldStorage
 from io import BytesIO, StringIO
-from requests_toolbelt.multipart import decoder
 
 from scipy.io import mmwrite, mmread
 from scipy.sparse.csr import csr_matrix
