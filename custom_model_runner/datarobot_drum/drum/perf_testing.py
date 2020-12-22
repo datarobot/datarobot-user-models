@@ -33,6 +33,7 @@ from datarobot_drum.resource.transform_helpers import (
     make_csv_payload,
     make_mtx_payload,
     parse_multi_part_response,
+    filter_urllib3_logging,
 )
 
 
@@ -627,6 +628,9 @@ class CMRunTests:
             endpoint = "/transform/" if self.target_type == TargetType.TRANSFORM else "/predict/"
             payload = {"X": open(self.options.input)}
             if self.target_type == TargetType.TRANSFORM:
+                # there is a known bug in urllib3 that needlessly gives a header warning
+                # this will supress the warning for better user experience when running performance test
+                filter_urllib3_logging()
                 if self.options.target:
                     target_location = target_temp_location.name
                     payload.update({"y": open(target_location)})
