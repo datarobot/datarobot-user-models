@@ -133,7 +133,7 @@ class PythonModelAdapter:
 
         # If a score hook is not given we need to find a predictor that can handle this model
         if (
-            self._target_type != TargetType.UNSTRUCTURED
+            self._target_type not in [TargetType.UNSTRUCTURED, TargetType.TRANSFORM]
             and not self._custom_hooks[CustomHooks.SCORE]
         ):
             self._find_predictor_to_use()
@@ -145,7 +145,7 @@ class PythonModelAdapter:
             and "sklearn" not in str(type(self._model))
         ):
             raise DrumCommonException(
-                "A transform task requires a user-defined transform hook,"
+                "A transform task requires a user-defined transform hook "
                 "for non-sklearn transformers"
             )
 
