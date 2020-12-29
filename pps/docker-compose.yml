@@ -1,0 +1,47 @@
+version: '3'
+services:
+  drum:
+    # build: python3_sklearn
+    image: pps_env:latest
+    depends_on:
+      - rabbit
+    ports:
+      - "6788:6788"
+    environment:
+      ADDRESS: "0.0.0.0:6788"
+      TARGET_TYPE: "regression"
+      MONITOR: "True"
+      MODEL_ID: "5feacda9891c642877de8f42"
+      # ext env deployment
+      DEPLOYMENT_ID: "5feacf55b6cc027fccfd298b"
+      # MONITOR_SETTINGS: "spooler_type=filesystem;directory=/opt/mlops_spool;max_files=1;file_max_size=1024000"
+      MONITOR_SETTINGS: "spooler_type=rabbitmq;rabbitmq_queue_url=amqp://drum:drum123@rabbit;rabbitmq_queue_name=drum"
+    entrypoint: ""
+    command: >
+            /bin/bash -c "
+                sleep 10
+                /opt/code/start_server.sh
+            "
+  mlops:
+    image: "agent_docker/mlops-agent:latest"
+    depends_on:
+      - rabbit
+    volumes:
+      - ./mlops.agent.conf.yaml:/opt/datarobot/mlops/agent/conf/mlops.agent.conf.yaml
+    environment:
+      MLOPS_SERVICE_URL: "https://staging.datarobot.com"
+      MLOPS_API_TOKEN: "NWQzZjM1NjU1YWZjOGE0NTcxYzBiMmNkOmhPSTFWYjl1OUxheldRRW1qa2FkbE9XR3FjYUFjRERZ"
+      START_DELAY: "10"
+  rabbit:
+    image: "rabbitmq:3-management"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:15672"]
+        interval: 30s
+        timeout: 10s
+        retries: 5
+    environment:
+      RABBITMQ_DEFAULT_USER: "drum"
+      RABBITMQ_DEFAULT_PASS: "drum123"

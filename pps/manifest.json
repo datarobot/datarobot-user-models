@@ -1,0 +1,5 @@
+{
+  "model": "model-5feacd941d6acbe8a07eccb5-version-5feacda9891c642877de8f42.zip",
+  "env": "py_dropin.tar.gz",
+  "mlops": "datarobot_mlops_package-7.0.0-785.tar.gz"
+}
