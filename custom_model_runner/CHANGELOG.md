@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-#### [1.4.9] - in progress
+#### [1.4.9] - 2020-12-29
 ##### Changes
 - `transform` mode now takes and returns both `X` and `y`. The `transform` hook must use both arguments for custom transforms,
  but need only return `X` (if `y` is not returned, it will not be transformed)
