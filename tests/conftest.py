@@ -48,6 +48,11 @@ from tests.drum.constants import (
     SKLEARN_SPARSE,
     SKLEARN_TRANSFORM,
     SKLEARN_TRANSFORM_DENSE,
+    SKLEARN_TRANSFORM_WITH_Y,
+    PYTHON_TRANSFORM_NO_Y,
+    PYTHON_TRANSFORM_NO_Y_DENSE,
+    SKLEARN_TRANSFORM_NO_HOOK,
+    SKLEARN_TRANSFORM_SPARSE_INPUT,
     SKLEARN_PRED_CONSISTENCY,
     SPARSE,
     SPARSE_TARGET,
@@ -104,7 +109,6 @@ _training_models_paths = {
     (PYTHON, PYTORCH_MULTICLASS): os.path.join(
         TRAINING_TEMPLATES_PATH, "python3_pytorch_multiclass"
     ),
-    (PYTHON, SKLEARN_TRANSFORM): os.path.join(TRAINING_TEMPLATES_PATH, "python3_sklearn_transform"),
     (PYTHON, SKLEARN_PRED_CONSISTENCY): os.path.join(
         TESTS_FIXTURES_PATH, "custom_pred_consistency"
     ),
@@ -255,6 +259,18 @@ _artifacts = {
     ),
     (MOJO, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_bin.zip"),
     (PYPMML, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "iris_bin.pmml"),
+    (SKLEARN_TRANSFORM_WITH_Y, REGRESSION): None,
+    (SKLEARN_TRANSFORM_WITH_Y, BINARY): None,
+    (SKLEARN_TRANSFORM_WITH_Y, ANOMALY): None,
+    (SKLEARN_TRANSFORM_NO_HOOK, REGRESSION): None,
+    (SKLEARN_TRANSFORM_NO_HOOK, BINARY): None,
+    (SKLEARN_TRANSFORM_NO_HOOK, ANOMALY): None,
+    (SKLEARN_TRANSFORM, REGRESSION): None,
+    (SKLEARN_TRANSFORM, BINARY): None,
+    (SKLEARN_TRANSFORM, ANOMALY): None,
+    (SKLEARN_TRANSFORM_SPARSE_INPUT, REGRESSION): None,
+    (SKLEARN_TRANSFORM_SPARSE_INPUT, BINARY): None,
+    (SKLEARN_TRANSFORM_SPARSE_INPUT, ANOMALY): None,
 }
 
 _custom_filepaths = {
@@ -299,6 +315,30 @@ _custom_filepaths = {
     PYTHON_TRANSFORM: (os.path.join(TESTS_FIXTURES_PATH, "transform_custom.py"), "custom.py"),
     PYTHON_TRANSFORM_DENSE: (
         os.path.join(TESTS_FIXTURES_PATH, "transform_custom.py"),
+        "custom.py",
+    ),
+    PYTHON_TRANSFORM_NO_Y: (
+        os.path.join(TESTS_FIXTURES_PATH, "transform_custom_no_y.py"),
+        "custom.py",
+    ),
+    PYTHON_TRANSFORM_NO_Y_DENSE: (
+        os.path.join(TESTS_FIXTURES_PATH, "transform_custom_no_y.py"),
+        "custom.py",
+    ),
+    SKLEARN_TRANSFORM_WITH_Y: (
+        os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom.py"),
+        "custom.py",
+    ),
+    SKLEARN_TRANSFORM_NO_HOOK: (
+        os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_no_hook.py"),
+        "custom.py",
+    ),
+    SKLEARN_TRANSFORM: (
+        os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_no_y.py"),
+        "custom.py",
+    ),
+    SKLEARN_TRANSFORM_SPARSE_INPUT: (
+        os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_sparse_input.py"),
         "custom.py",
     ),
 }

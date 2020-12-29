@@ -32,6 +32,8 @@ from datarobot_drum.resource.transform_helpers import (
     read_mtx_payload,
     make_csv_payload,
     make_mtx_payload,
+    parse_multi_part_response,
+    filter_urllib3_logging,
 )
 
 
@@ -244,10 +246,11 @@ class CMRunTests:
 
     @staticmethod
     def load_transform_output(response, is_sparse, request_key):
+        parsed_response = parse_multi_part_response(response)
         if is_sparse:
-            return pd.DataFrame(read_mtx_payload(eval(response.text), request_key))
+            return pd.DataFrame(read_mtx_payload(parsed_response, request_key))
         else:
-            return pd.DataFrame(read_csv_payload(eval(response.text), request_key))
+            return pd.DataFrame(read_csv_payload(parsed_response, request_key))
 
     def _prepare_test_cases(self):
         print("Preparing test data...")
@@ -622,10 +625,12 @@ class CMRunTests:
         with DrumServerRun(
             self.target_type.value, labels, self.options.code_dir, verbose=False
         ) as run:
-
             endpoint = "/transform/" if self.target_type == TargetType.TRANSFORM else "/predict/"
             payload = {"X": open(self.options.input)}
             if self.target_type == TargetType.TRANSFORM:
+                # there is a known bug in urllib3 that needlessly gives a header warning
+                # this will supress the warning for better user experience when running performance test
+                filter_urllib3_logging()
                 if self.options.target:
                     target_location = target_temp_location.name
                     payload.update({"y": open(target_location)})
@@ -636,7 +641,7 @@ class CMRunTests:
             response_full = requests.post(run.url_server_address + endpoint, files=payload)
             if not response_full.ok:
                 raise DrumCommonException(
-                    "Failure in transform server: {}".format(response_full.text)
+                    "Failure in {} server: {}".format(endpoint[1:-1], response_full.text)
                 )
 
             if is_sparse:
@@ -647,11 +652,17 @@ class CMRunTests:
             )
 
             if self.target_type == TargetType.TRANSFORM:
+                output_format = parse_multi_part_response(response_full)["out.format"]
+
                 preds_full = self.load_transform_output(
-                    response=response_full, is_sparse=is_sparse, request_key=X_TRANSFORM_KEY
+                    response=response_full,
+                    is_sparse=output_format == "sparse",
+                    request_key=X_TRANSFORM_KEY,
                 )
                 preds_sample = self.load_transform_output(
-                    response=response_sample, is_sparse=is_sparse, request_key=X_TRANSFORM_KEY
+                    response=response_sample,
+                    is_sparse=output_format == "sparse",
+                    request_key=X_TRANSFORM_KEY,
                 )
             else:
                 preds_full = pd.DataFrame(json.loads(response_full.text)[RESPONSE_PREDICTIONS_KEY])

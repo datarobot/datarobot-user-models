@@ -10,7 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### [1.4.9] 
 ##### Changes
-- `transform` mode now takes and returns both X and y, although passing y is optional.
+- `transform` mode now takes and returns both `X` and `y`. The `transform` hook must use both arguments for custom transforms,
+ but need only return `X` (if `y` is not returned, it will not be transformed)
+- The user may forgo a `transform` hook for custom transforms if they use an sklearn artifact. If the user does not define
+`transform`, the target will not be used in transforming the fatures and will remain un-transformed.
 
 #### [1.4.8] - 2020-12-11
 ##### Fixed

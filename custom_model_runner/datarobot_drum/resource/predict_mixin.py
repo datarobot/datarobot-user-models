@@ -1,4 +1,5 @@
 from flask import request, Response
+from requests_toolbelt import MultipartEncoder
 import werkzeug
 
 
@@ -144,55 +145,55 @@ class PredictMixin:
                 binary_data=feature_binary_data, mimetype=feature_mimetype, charset=feature_charset
             )
             out_target = None
+
         # make output
         if is_sparse(out_data):
             if use_arrow:
-                target_payload = make_arrow_payload(out_target) if out_target is not None else {}
-            else:
-                target_payload = make_csv_payload(out_target) if out_target is not None else {}
-            mtx_payload = make_mtx_payload(out_data)
-            response = (
-                '{{"{transform_key}":{mtx_payload},'
-                ' "out.format":"{out_format}", "{y_transform_key}":{y_payload}}}'.format(
-                    transform_key=X_TRANSFORM_KEY,
-                    mtx_payload=mtx_payload,
-                    out_format="sparse",
-                    y_transform_key=Y_TRANSFORM_KEY,
-                    y_payload=target_payload,
+                target_payload = (
+                    make_arrow_payload(out_target, arrow_version)
+                    if out_target is not None
+                    else None
                 )
-            )
+            else:
+                target_payload = make_csv_payload(out_target) if out_target is not None else None
+            feature_payload = make_mtx_payload(out_data)
+            out_format = "sparse"
         else:
             if use_arrow:
-                arrow_payload = make_arrow_payload(out_data, arrow_version)
-                target_arrow = (
-                    make_arrow_payload(out_target, arrow_version) if out_target is not None else {}
+                feature_payload = make_arrow_payload(out_data, arrow_version)
+                target_payload = (
+                    make_arrow_payload(out_target, arrow_version)
+                    if out_target is not None
+                    else None
                 )
-                response = (
-                    '{{"{transform_key}":{arrow_payload},'
-                    '"out.format":"{out_format}", "{y_transform_key}":{y_payload}}}'.format(
-                        transform_key=X_TRANSFORM_KEY,
-                        arrow_payload=arrow_payload,
-                        out_format="arrow",
-                        y_transform_key=Y_TRANSFORM_KEY,
-                        y_payload=target_arrow,
-                    )
-                )
+                out_format = "arrow"
             else:
-                csv_payload = make_csv_payload(out_data)
-                target_csv = make_csv_payload(out_target) if out_target is not None else {}
-                response = (
-                    '{{"{transform_key}":{csv_payload},'
-                    " "
-                    '"out.format":"{out_format}", "{y_transform_key}":{y_payload}}}'.format(
-                        transform_key=X_TRANSFORM_KEY,
-                        csv_payload=csv_payload,
-                        out_format="csv",
-                        y_transform_key=Y_TRANSFORM_KEY,
-                        y_payload=target_csv,
-                    )
-                )
+                feature_payload = make_csv_payload(out_data)
+                target_payload = make_csv_payload(out_target) if out_target is not None else None
+                out_format = "csv"
 
-        response = Response(response, mimetype=PredictionServerMimetypes.APPLICATION_JSON)
+        out_fields = {
+            "out.format": out_format,
+            X_TRANSFORM_KEY: (
+                X_TRANSFORM_KEY,
+                feature_payload,
+                PredictionServerMimetypes.APPLICATION_OCTET_STREAM,
+            ),
+        }
+        if target_payload is not None:
+            out_fields.update(
+                {
+                    Y_TRANSFORM_KEY: (
+                        Y_TRANSFORM_KEY,
+                        target_payload,
+                        PredictionServerMimetypes.APPLICATION_OCTET_STREAM,
+                    ),
+                }
+            )
+
+        m = MultipartEncoder(fields=out_fields)
+
+        response = Response(m.to_string(), mimetype=m.content_type)
 
         return response, response_status
 

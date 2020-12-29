@@ -1,11 +1,28 @@
 import pyarrow as pa
 import pandas as pd
+import logging
 
+from cgi import FieldStorage
 from io import BytesIO, StringIO
 
 from scipy.io import mmwrite, mmread
 from scipy.sparse.csr import csr_matrix
 from scipy.sparse import vstack
+
+
+def filter_urllib3_logging():
+    """Filter header errors from urllib3 due to a urllib3 bug."""
+    urllib3_logger = logging.getLogger("urllib3.connectionpool")
+    if not any(isinstance(x, NoHeaderErrorFilter) for x in urllib3_logger.filters):
+        urllib3_logger.addFilter(NoHeaderErrorFilter())
+
+
+class NoHeaderErrorFilter(logging.Filter):
+    """Filter out urllib3 Header Parsing Errors due to a urllib3 bug."""
+
+    def filter(self, record):
+        """Filter out Header Parsing Errors."""
+        return "Failed to parse headers" not in record.getMessage()
 
 
 def is_sparse(df):
@@ -66,3 +83,21 @@ def validate_transformed_output(transformed_output, should_be_sparse=False):
     else:
         assert type(transformed_output) == pd.DataFrame
         assert transformed_output.shape[1] == 10
+
+
+def parse_multi_part_response(response):
+    parsed_response = {}
+    fs = FieldStorage(
+        fp=BytesIO(response.content),
+        headers=response.headers,
+        environ={
+            "REQUEST_METHOD": "POST",
+            "CONTENT_TYPE": response.headers["Content-Type"],
+        },
+    )
+    for child in fs.list:
+        key = child.name
+        value = child.file.read()
+        parsed_response.update({key: value})
+
+    return parsed_response

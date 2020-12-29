@@ -7,6 +7,8 @@ import pyarrow
 
 import numpy as np
 import pandas as pd
+from scipy.sparse import csr_matrix
+from inspect import signature
 
 from pathlib import Path
 
@@ -56,6 +58,20 @@ class PythonModelAdapter:
         self._model = None
         self._model_dir = model_dir
         self._target_type = target_type
+
+    @staticmethod
+    def _apply_sklearn_transformer(data, model):
+        try:
+            transformed = model.transform(data)
+            if type(transformed) == csr_matrix:
+                output_data = pd.DataFrame.sparse.from_spmatrix(transformed)
+            else:
+                output_data = pd.DataFrame(transformed)
+        except Exception as e:
+            raise type(e)("Couldn't naively apply transformer:" " {}".format(e)).with_traceback(
+                sys.exc_info()[2]
+            ) from None
+        return output_data
 
     def load_custom_hooks(self):
         custom_file_paths = list(Path(self._model_dir).rglob("{}.py".format(CUSTOM_FILE_NAME)))
@@ -117,17 +133,21 @@ class PythonModelAdapter:
 
         # If a score hook is not given we need to find a predictor that can handle this model
         if (
-            self._target_type != TargetType.UNSTRUCTURED
+            self._target_type not in [TargetType.UNSTRUCTURED, TargetType.TRANSFORM]
             and not self._custom_hooks[CustomHooks.SCORE]
         ):
             self._find_predictor_to_use()
 
-        # TODO: RAPTOR-4014 we eventually won't require this hook for some languages/frameworks
         if (
             self._target_type == TargetType.TRANSFORM
             and not self._custom_hooks[CustomHooks.TRANSFORM]
+            # don't require transform hook if sklearn transformer
+            and "sklearn" not in str(type(self._model))
         ):
-            raise DrumCommonException("A transform task requires a user-defined transform hook")
+            raise DrumCommonException(
+                "A transform task requires a user-defined transform hook "
+                "for non-sklearn transformers"
+            )
 
         return self._model
 
@@ -364,9 +384,22 @@ class PythonModelAdapter:
 
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
             try:
-                output_data, output_target = self._custom_hooks[CustomHooks.TRANSFORM](
-                    data, model, target_data
-                )
+                transform_hook = self._custom_hooks[CustomHooks.TRANSFORM]
+                transform_params = signature(transform_hook).parameters
+                if len(transform_params) == 3:
+                    transform_out = transform_hook(data, model, target_data)
+                elif len(transform_params) == 2:
+                    transform_out = transform_hook(data, model)
+                else:
+                    raise ValueError(
+                        "Transform hook must take 2 or 3 arguments; "
+                        "hook provided takes {}".format(len(transform_params))
+                    )
+                if type(transform_out) == tuple:
+                    output_data, output_target = transform_out
+                else:
+                    output_data = transform_out
+                    output_target = target_data
 
             except Exception as exc:
                 raise type(exc)(
@@ -377,8 +410,14 @@ class PythonModelAdapter:
             if output_target is not None:
                 self._validate_transform_rows(output_target, target_data)
             return output_data, output_target
+        elif "sklearn" in str(type(model)):
+            # we don't touch y if user doesn't pass a hook
+            return self._apply_sklearn_transformer(data, model), target_data
         else:
-            raise ValueError("Transform hook must be implemented for custom transforms.")
+            raise ValueError(
+                "Transform hook must be implemented for custom transforms, "
+                "for non-sklearn transformer."
+            )
 
     def predict(self, model=None, **kwargs):
         """
