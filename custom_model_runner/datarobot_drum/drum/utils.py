@@ -5,7 +5,6 @@ import socket
 import io
 import numpy as np
 import pandas as pd
-import pyarrow
 
 from scipy.io import mmread
 from contextlib import closing
@@ -19,6 +18,7 @@ from datarobot_drum.drum.common import (
     LOGGER_NAME_PREFIX,
     PredictionServerMimetypes,
     InputFormatToMimetype,
+    get_pyarrow_module,
 )
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
@@ -231,7 +231,7 @@ class StructuredInputReadUtils:
             if mimetype == PredictionServerMimetypes.TEXT_MTX:
                 return pd.DataFrame.sparse.from_spmatrix(mmread(io.BytesIO(binary_data)))
             elif mimetype == PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM:
-                df = pyarrow.ipc.deserialize_pandas(binary_data)
+                df = get_pyarrow_module().ipc.deserialize_pandas(binary_data)
 
                 # After CSV serialization+deserialization,
                 # original dataframe's None and np.nan values

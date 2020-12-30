@@ -94,3 +94,8 @@ class BaseLanguagePredictor(ABC):
     def transform(self, **kwargs):
         """ Predict on input_filename or binary_data """
         pass
+
+    @abstractmethod
+    def has_read_input_data_hook(self):
+        """ Check if read_input_data hook defined in predictor """
+        pass

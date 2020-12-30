@@ -145,6 +145,9 @@ class JavaPredictor(BaseLanguagePredictor):
         formats.add(PayloadFormat.CSV)
         return formats
 
+    def has_read_input_data_hook(self):
+        return False
+
     def predict(self, **kwargs):
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA).decode("utf-8")
 

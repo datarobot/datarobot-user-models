@@ -43,13 +43,16 @@ from .constants import (
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
     PYTORCH,
     R,
+    R_FIT,
     RDS,
+    RDS_SPARSE,
     REGRESSION,
     REGRESSION_INFERENCE,
     RESPONSE_PREDICTIONS_KEY,
     SKLEARN,
     SKLEARN_TRANSFORM,
     SKLEARN_TRANSFORM_DENSE,
+    SPARSE,
     TRANSFORM,
     XGB,
 )
@@ -59,6 +62,8 @@ from datarobot_drum.resource.utils import (
     _create_custom_model_dir,
     _exec_shell_cmd,
 )
+
+from datarobot_drum.drum.utils import StructuredInputReadUtils
 
 
 class TestInference:
@@ -480,8 +485,8 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, supported_payload_formats",
         [
-            (SKLEARN, REGRESSION, PYTHON, {"csv": None, "arrow": pyarrow.__version__}),
-            (RDS, REGRESSION, R, {"csv": None}),
+            (SKLEARN, REGRESSION, PYTHON, {"csv": None, "mtx": None, "arrow": pyarrow.__version__}),
+            (RDS, REGRESSION, R, {"csv": None, "mtx": None}),
             (CODEGEN, REGRESSION, NO_CUSTOM, {"csv": None}),
         ],
     )
@@ -518,8 +523,9 @@ class TestInference:
             (SKLEARN, REGRESSION_INFERENCE, PYTHON),
         ],
     )
-    @pytest.mark.parametrize("nginx", [False, True])
-    def test_predictions_using_arrow_and_mtx(
+    # Don't run this test case with nginx as it still running from the prev test case.
+    @pytest.mark.parametrize("nginx", [False])
+    def test_predictions_python_arrow_mtx(
         self,
         resources,
         framework,
@@ -577,4 +583,58 @@ class TestInference:
                         json.loads(response.text)[RESPONSE_PREDICTIONS_KEY]
                     )
                     in_data = pd.read_csv(input_dataset)
+                    assert in_data.shape[0] == actual_num_predictions
+
+    @pytest.mark.parametrize(
+        "framework, problem, language",
+        [
+            (RDS_SPARSE, REGRESSION, R_FIT),
+        ],
+    )
+    @pytest.mark.parametrize("nginx", [False, True])
+    def test_predictions_r_mtx(
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        nginx,
+        tmp_path,
+    ):
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
+        )
+
+        with DrumServerRun(
+            resources.target_types(problem),
+            resources.class_labels(framework, problem),
+            custom_model_dir,
+            nginx=nginx,
+        ) as run:
+            input_dataset = resources.datasets(framework, SPARSE)
+
+            # do predictions
+            for endpoint in ["/predict/", "/predictions/"]:
+                for post_args in [
+                    {"files": {"X": ("X.mtx", open(input_dataset))}},
+                    {
+                        "data": open(input_dataset),
+                        "headers": {
+                            "Content-Type": "{};".format(PredictionServerMimetypes.TEXT_MTX)
+                        },
+                    },
+                ]:
+                    response = requests.post(run.url_server_address + endpoint, **post_args)
+
+                    assert response.ok
+                    actual_num_predictions = len(
+                        json.loads(response.text)[RESPONSE_PREDICTIONS_KEY]
+                    )
+                    in_data = StructuredInputReadUtils.read_structured_input_file_as_df(
+                        input_dataset
+                    )
                     assert in_data.shape[0] == actual_num_predictions

@@ -1,4 +1,3 @@
-import pyarrow as pa
 import pandas as pd
 import logging
 
@@ -8,6 +7,8 @@ from io import BytesIO, StringIO
 from scipy.io import mmwrite, mmread
 from scipy.sparse.csr import csr_matrix
 from scipy.sparse import vstack
+
+from datarobot_drum.drum.common import verify_pyarrow_module
 
 
 def filter_urllib3_logging():
@@ -30,6 +31,8 @@ def is_sparse(df):
 
 
 def make_arrow_payload(df, arrow_version):
+    pa = verify_pyarrow_module()
+
     if arrow_version != pa.__version__ and arrow_version < 0.2:
         batch = pa.RecordBatch.from_pandas(df, nthreads=None, preserve_index=False)
         sink = pa.BufferOutputStream()
@@ -50,6 +53,8 @@ def make_csv_payload(df):
 
 
 def read_arrow_payload(response_dict, transform_key):
+    pa = verify_pyarrow_module()
+
     bytes = response_dict[transform_key]
     df = pa.ipc.deserialize_pandas(bytes)
     return df

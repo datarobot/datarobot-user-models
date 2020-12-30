@@ -4,16 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-#### [1.4.10] 
-##### Changes
-- Added support for multiclass to drum push in anticipation of the release of datarobot client v2.22
-
-#### [1.4.9] 
+#### [1.4.9] - 2020-12-29
 ##### Changes
 - `transform` mode now takes and returns both `X` and `y`. The `transform` hook must use both arguments for custom transforms,
  but need only return `X` (if `y` is not returned, it will not be transformed)
 - The user may forgo a `transform` hook for custom transforms if they use an sklearn artifact. If the user does not define
 `transform`, the target will not be used in transforming the fatures and will remain un-transformed.
+- Added support for multiclass to drum push in anticipation of the release of datarobot client v2.22
+- check if payload format (csv/mtx/arrow) is supported
 
 #### [1.4.8] - 2020-12-11
 ##### Fixed

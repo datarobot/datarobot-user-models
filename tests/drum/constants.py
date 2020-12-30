@@ -32,6 +32,7 @@ PYPMML = "pypmml"
 SKLEARN_ANOMALY = "sklearn_anomaly_detection"
 
 RDS = "rds"
+RDS_SPARSE = "rds_sparse"
 CODEGEN = "jar"
 ## adding h2o pojo and mojo
 MOJO = "zip"
