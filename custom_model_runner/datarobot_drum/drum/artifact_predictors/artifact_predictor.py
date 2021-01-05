@@ -75,7 +75,7 @@ class ArtifactPredictor(ABC):
             self.negative_class_label,
         ]:
             raise DrumCommonException(
-                "For `{}` target both class labels must be provided. Found: {}, {}".format(
+                "For `{}` target type both class labels must be provided. Found: {}, {}".format(
                     self.target_type.value, self.positive_class_label, self.negative_class_label
                 )
             )

@@ -63,7 +63,7 @@ from datarobot_drum.resource.utils import (
     _exec_shell_cmd,
 )
 
-from datarobot_drum.drum.utils import StructuredInputReadUtils
+from datarobot_drum.drum.utils import StructuredInputReadUtils, unset_drum_supported_env_vars
 
 
 class TestInference:
@@ -209,6 +209,7 @@ class TestInference:
             (PYPMML, MULTICLASS_BINARY, NO_CUSTOM, None),
         ],
     )
+    @pytest.mark.parametrize("pass_args_as_env_vars", [False])
     def test_custom_models_with_drum_prediction_server(
         self,
         resources,
@@ -216,6 +217,7 @@ class TestInference:
         problem,
         language,
         docker,
+        pass_args_as_env_vars,
         tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
@@ -226,11 +228,13 @@ class TestInference:
             language,
         )
 
+        unset_drum_supported_env_vars()
         with DrumServerRun(
             resources.target_types(problem),
             resources.class_labels(framework, problem),
             custom_model_dir,
             docker,
+            pass_args_as_env_vars=pass_args_as_env_vars,
         ) as run:
             input_dataset = resources.datasets(framework, problem)
             # do predictions
@@ -248,6 +252,31 @@ class TestInference:
                     )
                     in_data = pd.read_csv(input_dataset)
                     assert in_data.shape[0] == actual_num_predictions
+        unset_drum_supported_env_vars()
+
+    @pytest.mark.parametrize(
+        "framework, problem, language, docker",
+        [
+            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
+            (SKLEARN, BINARY, PYTHON, None),
+            (SKLEARN, MULTICLASS, PYTHON, None),
+            (SKLEARN, MULTICLASS_BINARY, PYTHON, None),
+        ],
+    )
+    @pytest.mark.parametrize("pass_args_as_env_vars", [True])
+    def test_custom_models_with_drum_prediction_server_with_args_passed_as_env_vars(
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        pass_args_as_env_vars,
+        tmp_path,
+    ):
+        self.test_custom_models_with_drum_prediction_server(
+            resources, framework, problem, language, docker, pass_args_as_env_vars, tmp_path
+        )
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",

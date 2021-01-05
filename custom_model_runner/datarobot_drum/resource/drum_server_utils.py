@@ -6,7 +6,7 @@ import time
 from threading import Thread
 
 from datarobot_drum.drum.utils import CMRunnerUtils
-from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.drum.common import ArgumentsOptions, ArgumentOptionsEnvVars
 from datarobot_drum.resource.utils import _exec_shell_cmd, _cmd_add_class_labels
 
 
@@ -69,6 +69,7 @@ class DrumServerRun:
         nginx=False,
         memory=None,
         fail_on_shutdown_error=True,
+        pass_args_as_env_vars=False,
         verbose=True,
     ):
         port = CMRunnerUtils.find_free_port()
@@ -80,21 +81,40 @@ class DrumServerRun:
         else:
             self.url_server_address = "http://localhost:{}".format(port)
 
-        cmd = "{} server --code-dir {} --target-type {} --address {}".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, target_type, self.server_address
-        )
+        cmd = "{} server".format(ArgumentsOptions.MAIN_COMMAND)
+
+        if pass_args_as_env_vars:
+            os.environ[ArgumentOptionsEnvVars.CODE_DIR] = str(custom_model_dir)
+            os.environ[ArgumentOptionsEnvVars.TARGET_TYPE] = target_type
+            os.environ[ArgumentOptionsEnvVars.ADDRESS] = self.server_address
+        else:
+            cmd += " --code-dir {} --target-type {} --address {}".format(
+                custom_model_dir, target_type, self.server_address
+            )
+
         if labels:
-            cmd = _cmd_add_class_labels(cmd, labels, target_type=target_type)
+            cmd = _cmd_add_class_labels(
+                cmd, labels, target_type=target_type, pass_args_as_env_vars=pass_args_as_env_vars
+            )
         if docker:
             cmd += " --docker {}".format(docker)
             if memory:
                 cmd += " --memory {}".format(memory)
         if with_error_server:
-            cmd += " --with-error-server"
+            if pass_args_as_env_vars:
+                os.environ[ArgumentOptionsEnvVars.WITH_ERROR_SERVER] = "1"
+            else:
+                cmd += " --with-error-server"
         if show_stacktrace:
-            cmd += " --show-stacktrace"
+            if pass_args_as_env_vars:
+                os.environ[ArgumentOptionsEnvVars.SHOW_STACKTRACE] = "1"
+            else:
+                cmd += " --show-stacktrace"
         if nginx:
-            cmd += " --production"
+            if pass_args_as_env_vars:
+                os.environ[ArgumentOptionsEnvVars.PRODUCTION] = "1"
+            else:
+                cmd += " --production"
         self._cmd = cmd
 
         self._process_object_holder = DrumServerProcess()

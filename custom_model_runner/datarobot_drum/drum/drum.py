@@ -22,6 +22,7 @@ from mlpiper.pipeline import json_fields
 
 from datarobot_drum.drum.common import (
     ArgumentsOptions,
+    ArgumentOptionsEnvVars,
     CUSTOM_FILE_NAME,
     JavaArtifacts,
     LOG_LEVELS,
@@ -80,7 +81,9 @@ class CMRunner:
         if self.run_mode not in [RunMode.NEW]:
             if target_type_options is None and target_type_model_config is None:
                 raise DrumCommonException(
-                    "Target type is missing. It must be provided in either --target-type argument or model config file."
+                    "Target type is missing. It must be provided in --target-type argument, {} env var or model config file.".format(
+                        ArgumentOptionsEnvVars.TARGET_TYPE
+                    )
                 )
             elif (
                 all([target_type_options, target_type_model_config])

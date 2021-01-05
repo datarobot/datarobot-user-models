@@ -3,6 +3,8 @@ import glob
 import shutil
 import subprocess
 
+from datarobot_drum.drum.common import ArgumentOptionsEnvVars
+
 
 PYTHON = "python3"
 R = "R"
@@ -92,7 +94,9 @@ def _exec_shell_cmd(
     return p, stdout, stderr
 
 
-def _cmd_add_class_labels(cmd, labels, target_type, multiclass_label_file=None):
+def _cmd_add_class_labels(
+    cmd, labels, target_type, multiclass_label_file=None, pass_args_as_env_vars=False
+):
     """
     utility used by tests and validation to add class label information to a drum command
     for binary or multiclass cases
@@ -100,7 +104,11 @@ def _cmd_add_class_labels(cmd, labels, target_type, multiclass_label_file=None):
     if not labels or target_type == BINARY:
         pos = labels[1] if labels else "yes"
         neg = labels[0] if labels else "no"
-        cmd = cmd + " --positive-class-label {} --negative-class-label {}".format(pos, neg)
+        if pass_args_as_env_vars:
+            os.environ[ArgumentOptionsEnvVars.POSITIVE_CLASS_LABEL] = pos
+            os.environ[ArgumentOptionsEnvVars.NEGATIVE_CLASS_LABEL] = neg
+        else:
+            cmd = cmd + " --positive-class-label {} --negative-class-label {}".format(pos, neg)
     elif labels and target_type == MULTICLASS:
         if multiclass_label_file:
             multiclass_label_file.truncate(0)
@@ -108,8 +116,15 @@ def _cmd_add_class_labels(cmd, labels, target_type, multiclass_label_file=None):
                 multiclass_label_file.write(label.encode("utf-8"))
                 multiclass_label_file.write("\n".encode("utf-8"))
             multiclass_label_file.flush()
-            cmd += " --class-labels-file {}".format(multiclass_label_file.name)
+            if pass_args_as_env_vars:
+                os.environ[ArgumentOptionsEnvVars.CLASS_LABELS_FILE] = multiclass_label_file.name
+            else:
+                cmd += " --class-labels-file {}".format(multiclass_label_file.name)
         else:
-            wrapped_labels = ['"{}"'.format(label) for label in labels]
-            cmd += " --class-labels {}".format(" ".join(wrapped_labels))
+            # stringify(for numeric) and join labels
+            labels_str = " ".join(["{}".format(label) for label in labels])
+            if pass_args_as_env_vars:
+                os.environ[ArgumentOptionsEnvVars.CLASS_LABELS] = labels_str
+            else:
+                cmd += " --class-labels {}".format(labels_str)
     return cmd

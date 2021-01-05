@@ -19,6 +19,7 @@ from datarobot_drum.drum.common import (
     PredictionServerMimetypes,
     InputFormatToMimetype,
     get_pyarrow_module,
+    ArgumentOptionsEnvVars,
 )
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
@@ -204,6 +205,13 @@ def handle_missing_colnames(df):
         missing_lookup = {pycol: rcol for pycol, rcol in zip(missing_cols, r_vals)}
         return df.rename(columns=missing_lookup)
     return df
+
+
+def unset_drum_supported_env_vars(additional_unset_vars=[]):
+    for env_var_key in (
+        ArgumentOptionsEnvVars.VALUE_VARS + ArgumentOptionsEnvVars.BOOL_VARS + additional_unset_vars
+    ):
+        os.environ.pop(env_var_key, None)
 
 
 class StructuredInputReadUtils:
