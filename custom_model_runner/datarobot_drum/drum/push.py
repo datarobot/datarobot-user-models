@@ -179,7 +179,6 @@ def _setup_training_validation(config, options):
     options.positive_class_label = None
     options.target_csv = None
     options.target = config["validation"].get("targetName")
-    options.unsupervised = None
     options.row_weights = None
     options.row_weights_csv = None
     options.num_rows = "ALL"

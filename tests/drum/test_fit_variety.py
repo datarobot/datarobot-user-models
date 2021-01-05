@@ -45,9 +45,7 @@ def test_fit_variety(framework, variety_resources, resources, variety_data_names
     cmd = "{} fit --code-dir {} --input {} --verbose ".format(
         ArgumentsOptions.MAIN_COMMAND, custom_model_dir, df_path
     )
-    if problem == ANOMALY:
-        cmd += " --unsupervised"
-    else:
+    if problem != ANOMALY:
         cmd += " --target {}".format(target)
 
     if problem == BINARY:

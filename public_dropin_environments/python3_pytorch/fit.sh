@@ -9,13 +9,10 @@ export weights="${INPUT_DIRECTORY}/weights.csv"
 CMD="drum fit --target-type ${TARGET_TYPE} --input ${X} --num-rows ALL --output ${ARTIFACT_DIRECTORY} \
 --code-dir ${CODEPATH} --verbose"
 
-if [ -n "${UNSUPERVISED}" ]; then
-  CMD="${CMD} --unsupervised "
-else
+if [ "${TARGET_TYPE}" != "anomaly" ]; then
   export y="${INPUT_DIRECTORY}/y.csv"
   CMD="${CMD} --target-csv ${y}"
 fi
-
 
 if [ -n "${POSITIVE_CLASS_LABEL}" ]; then
     CMD="${CMD} --negative-class-label ${NEGATIVE_CLASS_LABEL} \
