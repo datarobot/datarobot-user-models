@@ -93,7 +93,9 @@ class DrumServerRun:
             )
 
         if labels:
-            cmd = _cmd_add_class_labels(cmd, labels, target_type=target_type)
+            cmd = _cmd_add_class_labels(
+                cmd, labels, target_type=target_type, pass_args_as_env_vars=pass_args_as_env_vars
+            )
         if docker:
             cmd += " --docker {}".format(docker)
             if memory:

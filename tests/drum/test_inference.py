@@ -209,7 +209,7 @@ class TestInference:
             (PYPMML, MULTICLASS_BINARY, NO_CUSTOM, None),
         ],
     )
-    @pytest.mark.parametrize("pass_args_as_env_vars", [False, True])
+    @pytest.mark.parametrize("pass_args_as_env_vars", [False])
     def test_custom_models_with_drum_prediction_server(
         self,
         resources,
@@ -253,6 +253,30 @@ class TestInference:
                     in_data = pd.read_csv(input_dataset)
                     assert in_data.shape[0] == actual_num_predictions
         unset_drum_supported_env_vars()
+
+    @pytest.mark.parametrize(
+        "framework, problem, language, docker",
+        [
+            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
+            (SKLEARN, BINARY, PYTHON, None),
+            (SKLEARN, MULTICLASS, PYTHON, None),
+            (SKLEARN, MULTICLASS_BINARY, PYTHON, None),
+        ],
+    )
+    @pytest.mark.parametrize("pass_args_as_env_vars", [True])
+    def test_custom_models_with_drum_prediction_server_with_args_passed_as_env_vars(
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        pass_args_as_env_vars,
+        tmp_path,
+    ):
+        self.test_custom_models_with_drum_prediction_server(
+            resources, framework, problem, language, docker, pass_args_as_env_vars, tmp_path
+        )
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",

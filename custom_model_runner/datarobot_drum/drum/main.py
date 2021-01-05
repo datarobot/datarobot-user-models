@@ -133,12 +133,19 @@ def main():
                     if (
                         env_var_key == ArgumentOptionsEnvVars.CLASS_LABELS_FILE
                         and ArgumentsOptions.CLASS_LABELS in sys.argv
+                        or env_var_key == ArgumentOptionsEnvVars.CLASS_LABELS
+                        and ArgumentsOptions.CLASS_LABELS_FILE in sys.argv
                     ):
                         continue
+
+                    args_to_add = [ArgumentsOptions.__dict__[env_var_key]]
                     if env_var_key in ArgumentOptionsEnvVars.VALUE_VARS:
-                        sys.argv.extend([ArgumentsOptions.__dict__[env_var_key], env_var_value])
-                    else:
-                        sys.argv.append(ArgumentsOptions.__dict__[env_var_key])
+                        if env_var_key == ArgumentOptionsEnvVars.CLASS_LABELS:
+                            args_to_add.extend(env_var_value.split())
+                        else:
+                            args_to_add.extend([env_var_value])
+
+                    sys.argv.extend(args_to_add)
 
         _extend_sys_argv_with_env_vars()
 

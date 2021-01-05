@@ -269,7 +269,9 @@ class CMRunnerArgsRegistry(object):
                 type=are_labels_double_specified,
                 nargs="+",
                 action=RequiredLength,
-                help="The class labels for a multiclass classification case. "
+                help="The class labels for a multiclass classification case.  The argument can also be provided by setting {} env var. ".format(
+                    ArgumentOptionsEnvVars.CLASS_LABELS
+                )
                 + class_label_order_message
                 + fit_intuit_message,
             )
