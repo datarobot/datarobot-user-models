@@ -672,7 +672,16 @@ class CMRunTests:
 
             preds_full_subset = preds_full.iloc[data_subset.index]
 
-            matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)
+            if output_format == "sparse" and self.target_type == TargetType.TRANSFORM:
+                # need to check differently if output is sparse matrices
+                matches = np.isclose(
+                    vstack([x[0] for x in preds_full_subset.values]).data,
+                    vstack([x[0] for x in preds_sample.values]).data,
+                    rtol=rtol,
+                    atol=atol,
+                )
+            else:
+                matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)
             if not np.all(matches):
                 if is_sparse:
                     _, __tempfile_sample = mkstemp(suffix=".mtx")
