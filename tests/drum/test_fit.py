@@ -239,7 +239,6 @@ class TestFit:
             problem,
             language=framework,
         )
-
         input_dataset = resources.datasets(framework, problem)
 
         weights_cmd, input_dataset, __keep_this_around = self._add_weights_cmd(
@@ -251,10 +250,10 @@ class TestFit:
         cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
             ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
         )
-        if problem != ANOMALY:
-            cmd += " --target {}".format(resources.targets(problem))
-        else:
+        if problem == ANOMALY:
             cmd += " --unsupervised"
+        else:
+            cmd += " --target {}".format(resources.targets(problem))
 
         if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
@@ -262,6 +261,42 @@ class TestFit:
             )
 
         cmd += weights_cmd
+
+        _exec_shell_cmd(
+            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+        )
+
+    @pytest.mark.parametrize(
+        "framework",
+        [
+            SKLEARN_TRANSFORM_SPARSE_IN_OUT,
+            SKLEARN_TRANSFORM_SPARSE_INPUT,
+        ],
+    )
+    def test_sparse_transform_fit(
+        self,
+        framework,
+        resources,
+        tmp_path,
+    ):
+        input_dataset = resources.datasets(None, SPARSE)
+        target_dataset = resources.datasets(None, SPARSE_TARGET)
+
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            REGRESSION,
+            language=framework,
+        )
+
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose --target-csv {}".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            TRANSFORM,
+            custom_model_dir,
+            input_dataset,
+            target_dataset,
+        )
 
         _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
@@ -411,8 +446,6 @@ class TestFit:
             SKLEARN_SPARSE,
             PYTORCH,
             RDS,
-            SKLEARN_TRANSFORM_SPARSE_INPUT,
-            SKLEARN_TRANSFORM_SPARSE_IN_OUT,
         ],
     )
     def test_fit_sparse(self, resources, tmp_path, framework):
@@ -427,17 +460,12 @@ class TestFit:
 
         input_dataset = resources.datasets(framework, SPARSE)
         target_dataset = resources.datasets(framework, SPARSE_TARGET)
-        target_type = (
-            TRANSFORM
-            if framework in [SKLEARN_TRANSFORM_SPARSE_INPUT, SKLEARN_TRANSFORM_SPARSE_IN_OUT]
-            else REGRESSION
-        )
 
         output = tmp_path / "output"
         output.mkdir()
 
         cmd = "{} fit --code-dir {} --input {} --target-type {} --verbose ".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, target_type
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, REGRESSION
         )
 
         cmd += " --target-csv " + target_dataset
