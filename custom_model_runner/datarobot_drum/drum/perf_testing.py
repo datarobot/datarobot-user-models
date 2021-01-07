@@ -608,17 +608,20 @@ class CMRunTests:
         atol = 1e-06
         input_extension = os.path.splitext(self.options.input)
         is_sparse = input_extension[1] == ".mtx"
+        is_transform = self.target_type == TargetType.TRANSFORM
 
         if is_sparse:
             df = pd.DataFrame(mmread(self.options.input).tocsr())
-            samplesize = min(1000, max(int(len(df) * 0.1), 10))
-            data_subset = df.sample(n=samplesize, random_state=42)
-            subset_payload = make_mtx_payload(data_subset)
+            if not is_transform:
+                samplesize = min(1000, max(int(len(df) * 0.1), 10))
+                data_subset = df.sample(n=samplesize, random_state=42)
+                subset_payload = make_mtx_payload(data_subset)
         else:
             df = pd.read_csv(self.options.input)
-            samplesize = min(1000, max(int(len(df) * 0.1), 10))
-            data_subset = df.sample(n=samplesize, random_state=42)
-            subset_payload = make_csv_payload(data_subset)
+            if not is_transform:
+                samplesize = min(1000, max(int(len(df) * 0.1), 10))
+                data_subset = df.sample(n=samplesize, random_state=42)
+                subset_payload = make_csv_payload(data_subset)
 
         labels = self.resolve_labels(self.target_type, self.options)
 
@@ -627,7 +630,7 @@ class CMRunTests:
         ) as run:
             endpoint = "/transform/" if self.target_type == TargetType.TRANSFORM else "/predict/"
             payload = {"X": open(self.options.input)}
-            if self.target_type == TargetType.TRANSFORM:
+            if is_transform:
                 # there is a known bug in urllib3 that needlessly gives a header warning
                 # this will supress the warning for better user experience when running performance test
                 filter_urllib3_logging()
@@ -643,63 +646,40 @@ class CMRunTests:
                 raise DrumCommonException(
                     "Failure in {} server: {}".format(endpoint[1:-1], response_full.text)
                 )
+            if not is_transform:
 
-            if is_sparse:
-                subset_payload = ("X.mtx", subset_payload)
+                if is_sparse:
+                    subset_payload = ("X.mtx", subset_payload)
 
-            response_sample = requests.post(
-                run.url_server_address + endpoint, files={"X": subset_payload}
-            )
-
-            if self.target_type == TargetType.TRANSFORM:
-                output_format = parse_multi_part_response(response_full)["out.format"]
-
-                preds_full_subset = self.load_transform_output(
-                    response=response_full,
-                    is_sparse=output_format == "sparse",
-                    request_key=X_TRANSFORM_KEY,
-                ).iloc[data_subset.index]
-                preds_sample = self.load_transform_output(
-                    response=response_sample,
-                    is_sparse=output_format == "sparse",
-                    request_key=X_TRANSFORM_KEY,
+                response_sample = requests.post(
+                    run.url_server_address + endpoint, files={"X": subset_payload}
                 )
-                if output_format == "sparse":
-                    # need to check differently if output is sparse matrices
-                    matches = np.isclose(
-                        vstack([x[0] for x in preds_full_subset.values]).data,
-                        vstack([x[0] for x in preds_sample.values]).data,
-                        rtol=rtol,
-                        atol=atol,
-                    )
-                else:
-                    matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)
 
-            else:
-                preds_full_subset = pd.DataFrame(
-                    json.loads(response_full.text)[RESPONSE_PREDICTIONS_KEY]
-                ).iloc[data_subset.index]
+                preds_full = pd.DataFrame(json.loads(response_full.text)[RESPONSE_PREDICTIONS_KEY])
                 preds_sample = pd.DataFrame(
                     json.loads(response_sample.text)[RESPONSE_PREDICTIONS_KEY]
                 )
 
+                preds_full_subset = preds_full.iloc[data_subset.index]
+
                 matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)
+                if not np.all(matches):
+                    if is_sparse:
+                        _, __tempfile_sample = mkstemp(suffix=".mtx")
+                        sparse_mat = vstack(x[0] for x in data_subset.values)
+                        mmwrite(__tempfile_sample, sparse_mat)
+                    else:
+                        _, __tempfile_sample = mkstemp(suffix=".csv")
+                        data_subset.to_csv(__tempfile_sample, index=False)
 
-            if not np.all(matches):
-                if is_sparse:
-                    _, __tempfile_sample = mkstemp(suffix=".mtx")
-                    sparse_mat = vstack(x[0] for x in data_subset.values)
-                    mmwrite(__tempfile_sample, sparse_mat)
-                else:
-                    _, __tempfile_sample = mkstemp(suffix=".csv")
-                    data_subset.to_csv(__tempfile_sample, index=False)
-
-                message = """
-                            Error: Your predictions were different when we tried to predict twice.
-                            No randomness is allowed.
-                            The last 10 predictions from the main predict run were: {}
-                            However when we reran predictions on the same data, we got: {}.
-                            The sample used to calculate prediction reruns can be found in this file: {}""".format(
-                    preds_full_subset[~matches][:10], preds_sample[~matches][:10], __tempfile_sample
-                )
-                raise ValueError(message)
+                    message = """
+                                Error: Your predictions were different when we tried to predict twice.
+                                No randomness is allowed.
+                                The last 10 predictions from the main predict run were: {}
+                                However when we reran predictions on the same data, we got: {}.
+                                The sample used to calculate prediction reruns can be found in this file: {}""".format(
+                        preds_full_subset[~matches][:10],
+                        preds_sample[~matches][:10],
+                        __tempfile_sample,
+                    )
+                    raise ValueError(message)
