@@ -9,24 +9,15 @@ export weights="${INPUT_DIRECTORY}/weights.csv"
 CMD="drum fit --target-type ${TARGET_TYPE} --input ${X} --num-rows ALL --output ${ARTIFACT_DIRECTORY} \
 --code-dir ${CODEPATH} --verbose"
 
-if [ -n "${UNSUPERVISED}" ]; then
-  CMD="${CMD} --unsupervised "
-else
-  export y="${INPUT_DIRECTORY}/y.csv"
-  CMD="${CMD} --target-csv ${y}"
+if [ "${TARGET_TYPE}" != "anomaly" ]; then
+    CMD="${CMD} --target-csv ${INPUT_DIRECTORY}/y.csv"
 fi
 
-
-if [ -n "${POSITIVE_CLASS_LABEL}" ]; then
-    CMD="${CMD} --negative-class-label ${NEGATIVE_CLASS_LABEL} \
-    --positive-class-label ${POSITIVE_CLASS_LABEL}"
-fi
-if [ -n "${CLASS_LABELS_FILE}" ]; then
-    CMD="${CMD} --class-labels-file ${CLASS_LABELS_FILE}"
-fi
 if [ -f "${weights}" ]; then
     CMD="${CMD} --row-weights-csv ${weights}"
 fi
 
+echo "Environment variables:"
+env
 echo "${CMD}"
 sh -c "${CMD}"

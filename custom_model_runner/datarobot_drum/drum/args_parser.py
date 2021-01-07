@@ -119,33 +119,22 @@ class CMRunnerArgsRegistry(object):
     @staticmethod
     def _reg_arg_target_feature_and_filename(*parsers):
         for parser in parsers:
-            group = parser.add_mutually_exclusive_group(required=True)
+            group = parser.add_mutually_exclusive_group(required=False)
             group.add_argument(
                 ArgumentsOptions.TARGET,
                 type=str,
                 required=False,
-                help="Which column to use as the target. Argument is mutually exclusive with {} and {}.".format(
-                    ArgumentsOptions.TARGET_FILENAME, ArgumentsOptions.UNSUPERVISED
+                help="Which column to use as the target. Argument is mutually exclusive with {}.".format(
+                    ArgumentsOptions.TARGET_CSV
                 ),
             )
 
             group.add_argument(
-                ArgumentsOptions.TARGET_FILENAME,
+                ArgumentsOptions.TARGET_CSV,
                 type=CMRunnerArgsRegistry._is_valid_file,
                 required=False,
-                help="A file containing the target values. Argument is mutually exclusive with {} and {}.".format(
-                    ArgumentsOptions.TARGET, ArgumentsOptions.UNSUPERVISED
-                ),
-            )
-
-            group.add_argument(
-                ArgumentsOptions.UNSUPERVISED,
-                action="store_true",
-                required=False,
-                default=False,
-                help="If present, indicates that this is an unsupervised model."
-                " Argument is mutually exclusive with {} and {}.".format(
-                    ArgumentsOptions.TARGET, ArgumentsOptions.TARGET_FILENAME
+                help="A file containing the target values. Argument is mutually exclusive with {}.".format(
+                    ArgumentsOptions.TARGET
                 ),
             )
 
@@ -879,5 +868,26 @@ class CMRunnerArgsRegistry(object):
                 else:
                     if options.verbose:
                         print("uwsgi detected")
+        elif options.subparser_name in [ArgumentsOptions.FIT]:
+            if options.target_type == TargetType.ANOMALY.value:
+                if any([options.target, options.target_csv]):
+                    print(
+                        "Arguments '{}' and '{}' are mutually exclusive with '{}' target type.".format(
+                            ArgumentsOptions.TARGET,
+                            ArgumentsOptions.TARGET_CSV,
+                            options.target_type,
+                        )
+                    )
+                    exit(1)
+            elif options.target_type != TargetType.TRANSFORM.value:
+                if not any([options.target, options.target_csv]):
+                    print(
+                        "With target type '{}', target feature has to be provided using '{}' or '{}' argument.".format(
+                            options.target_type,
+                            ArgumentsOptions.TARGET,
+                            ArgumentsOptions.TARGET_CSV,
+                        )
+                    )
+                    exit(1)
 
         CMRunnerArgsRegistry.verify_monitoring_options(options, options.subparser_name)
