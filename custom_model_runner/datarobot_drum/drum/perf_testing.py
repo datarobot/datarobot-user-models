@@ -654,34 +654,37 @@ class CMRunTests:
             if self.target_type == TargetType.TRANSFORM:
                 output_format = parse_multi_part_response(response_full)["out.format"]
 
-                preds_full = self.load_transform_output(
+                preds_full_subset = self.load_transform_output(
                     response=response_full,
                     is_sparse=output_format == "sparse",
                     request_key=X_TRANSFORM_KEY,
-                )
+                ).iloc[data_subset.index]
                 preds_sample = self.load_transform_output(
                     response=response_sample,
                     is_sparse=output_format == "sparse",
                     request_key=X_TRANSFORM_KEY,
                 )
+                if output_format == "sparse":
+                    # need to check differently if output is sparse matrices
+                    matches = np.isclose(
+                        vstack([x[0] for x in preds_full_subset.values]).data,
+                        vstack([x[0] for x in preds_sample.values]).data,
+                        rtol=rtol,
+                        atol=atol,
+                    )
+                else:
+                    matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)
+
             else:
-                preds_full = pd.DataFrame(json.loads(response_full.text)[RESPONSE_PREDICTIONS_KEY])
+                preds_full_subset = pd.DataFrame(
+                    json.loads(response_full.text)[RESPONSE_PREDICTIONS_KEY]
+                ).iloc[data_subset.index]
                 preds_sample = pd.DataFrame(
                     json.loads(response_sample.text)[RESPONSE_PREDICTIONS_KEY]
                 )
 
-            preds_full_subset = preds_full.iloc[data_subset.index]
-
-            if output_format == "sparse" and self.target_type == TargetType.TRANSFORM:
-                # need to check differently if output is sparse matrices
-                matches = np.isclose(
-                    vstack([x[0] for x in preds_full_subset.values]).data,
-                    vstack([x[0] for x in preds_sample.values]).data,
-                    rtol=rtol,
-                    atol=atol,
-                )
-            else:
                 matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)
+
             if not np.all(matches):
                 if is_sparse:
                     _, __tempfile_sample = mkstemp(suffix=".mtx")
