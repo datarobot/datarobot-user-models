@@ -10,8 +10,7 @@ CMD="drum fit --target-type ${TARGET_TYPE} --input ${X} --num-rows ALL --output 
 --code-dir ${CODEPATH} --verbose"
 
 if [ "${TARGET_TYPE}" != "anomaly" ]; then
-  export y="${INPUT_DIRECTORY}/y.csv"
-  CMD="${CMD} --target-csv ${y}"
+    CMD="${CMD} --target-csv ${INPUT_DIRECTORY}/y.csv"
 fi
 
 if [ -f "${weights}" ]; then
