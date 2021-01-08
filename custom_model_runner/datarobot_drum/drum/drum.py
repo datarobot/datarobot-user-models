@@ -454,7 +454,7 @@ class CMRunner:
                 self.options.input,
                 self.options.target_csv,
                 self.options.target,
-                self.options.unsupervised,
+                self.target_type == TargetType.ANOMALY,
             )
             if possible_class_labels is not None:
                 if self.target_type == TargetType.BINARY:
@@ -682,7 +682,7 @@ class CMRunner:
                     )
                     CMRunnerUtils.replace_cmd_argument_value(
                         in_docker_cmd_list,
-                        ArgumentsOptions.TARGET_FILENAME,
+                        ArgumentsOptions.TARGET_CSV,
                         in_docker_fit_target_filename,
                     )
                 if options.row_weights_csv:
@@ -775,9 +775,9 @@ def possibly_intuit_order(
     input_data_file,
     target_data_file=None,
     target_col_name=None,
-    unsupervised=False,
+    is_anomaly=False,
 ):
-    if unsupervised:
+    if is_anomaly:
         return None
     elif target_data_file:
         assert target_col_name is None
