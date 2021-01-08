@@ -37,6 +37,7 @@ from .constants import (
     SKLEARN_TRANSFORM_NO_HOOK,
     SKLEARN_TRANSFORM_SPARSE_INPUT,
     SKLEARN_TRANSFORM_SPARSE_IN_OUT,
+    SKLEARN_TRANSFORM_NON_NUMERIC,
     TESTS_ROOT_PATH,
     WEIGHTS_ARGS,
     WEIGHTS_CSV,
@@ -219,6 +220,7 @@ class TestFit:
             SKLEARN_TRANSFORM,
             SKLEARN_TRANSFORM_WITH_Y,
             SKLEARN_TRANSFORM_NO_HOOK,
+            SKLEARN_TRANSFORM_NON_NUMERIC,
         ],
     )
     @pytest.mark.parametrize("problem", [REGRESSION, BINARY, ANOMALY])
@@ -239,6 +241,7 @@ class TestFit:
             problem,
             language=framework,
         )
+
         input_dataset = resources.datasets(framework, problem)
 
         weights_cmd, input_dataset, __keep_this_around = self._add_weights_cmd(

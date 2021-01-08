@@ -55,6 +55,7 @@ from tests.drum.constants import (
     SKLEARN_TRANSFORM_NO_HOOK,
     SKLEARN_TRANSFORM_SPARSE_INPUT,
     SKLEARN_TRANSFORM_SPARSE_IN_OUT,
+    SKLEARN_TRANSFORM_NON_NUMERIC,
     SKLEARN_PRED_CONSISTENCY,
     SPARSE,
     SPARSE_TARGET,
@@ -277,6 +278,9 @@ _artifacts = {
     (SKLEARN_TRANSFORM_SPARSE_IN_OUT, REGRESSION): None,
     (SKLEARN_TRANSFORM_SPARSE_IN_OUT, BINARY): None,
     (SKLEARN_TRANSFORM_SPARSE_IN_OUT, ANOMALY): None,
+    (SKLEARN_TRANSFORM_NON_NUMERIC, REGRESSION): None,
+    (SKLEARN_TRANSFORM_NON_NUMERIC, BINARY): None,
+    (SKLEARN_TRANSFORM_NON_NUMERIC, ANOMALY): None,
 }
 
 _custom_filepaths = {
@@ -349,6 +353,10 @@ _custom_filepaths = {
     ),
     SKLEARN_TRANSFORM_SPARSE_IN_OUT: (
         os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_sparse_in_out.py"),
+        "custom.py",
+    ),
+    SKLEARN_TRANSFORM_NON_NUMERIC: (
+        os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_non_numeric.py"),
         "custom.py",
     ),
 }
