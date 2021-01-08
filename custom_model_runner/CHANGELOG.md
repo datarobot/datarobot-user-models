@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Added
 - support providing arguments via env vars, e.g `TARGET_TYPE regression` is the same as `--target-type regression`
 
+##### Removed
+-- `--unsupervised` arg support
+
 #### [1.4.9] - 2020-12-29
 ##### Changes
 - `transform` mode now takes and returns both `X` and `y`. The `transform` hook must use both arguments for custom transforms,

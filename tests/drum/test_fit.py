@@ -197,8 +197,6 @@ class TestFit:
         )
         if problem != ANOMALY:
             cmd += " --target {}".format(resources.targets(problem))
-        else:
-            cmd += " --unsupervised"
 
         if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
@@ -250,9 +248,7 @@ class TestFit:
         cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
             ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
         )
-        if problem == ANOMALY:
-            cmd += " --unsupervised"
-        else:
+        if problem != ANOMALY:
             cmd += " --target {}".format(resources.targets(problem))
 
         if problem in [BINARY, MULTICLASS]:
@@ -401,13 +397,10 @@ class TestFit:
                 f.write("\n".join(labels))
                 env["CLASS_LABELS_FILE"] = f.name
 
-        if problem == ANOMALY:
-            env["UNSUPERVISED"] = "true"
-
         _exec_shell_cmd(fit_sh, "Failed cmd {}".format(fit_sh), env=env)
 
         # clear env vars as it may affect next test cases
-        unset_drum_supported_env_vars(additional_unset_vars=["UNSUPERVISED"])
+        unset_drum_supported_env_vars()
 
     def test_fit_simple(
         self,

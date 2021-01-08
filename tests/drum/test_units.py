@@ -51,7 +51,7 @@ class TestOrderIntuition:
 
     def test_unsupervised(self):
         classes = possibly_intuit_order(
-            self.regression_filename, target_col_name="MEDV", unsupervised=True
+            self.regression_filename, target_col_name="MEDV", is_anomaly=True
         )
         assert classes is None
 

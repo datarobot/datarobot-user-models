@@ -8,8 +8,7 @@ This transformer is intended to work with the [Python 3 Scikit-Learn Drop-In Env
 
 Note that transformers differ from custom models in that the end product is not a trained model, but a transformation of the dataset.
 As such, the fit method will train only a preprocessing pipeline on your data. The transform hook must be implemented by the user for now.
-You will also have to pass target info, or the --unsupervised flag if there is no target in the downstream modeling task that will be used by
-this transformer.
+You will also have to pass target info according to the downstream modeling task that will be used by this transformer.
 
 ## Instructions:
 You should probably change `create_pipeline.py` to contain the code you want. This is where your modeling code will live
