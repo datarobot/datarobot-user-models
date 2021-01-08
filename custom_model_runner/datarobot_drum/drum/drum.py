@@ -360,9 +360,14 @@ class CMRunner:
                 df = handle_missing_colnames(df)
             df.to_csv(__tempfile.name, index=False)
             self.options.input = __tempfile.name
-        CMRunTests(self.options, self.run_mode, self.target_type).check_prediction_side_effects(
-            __target_temp
-        )
+        if self.target_type == TargetType.TRANSFORM:
+            CMRunTests(self.options, self.run_mode, self.target_type).check_transform_server(
+                __target_temp
+            )
+        else:
+            CMRunTests(
+                self.options, self.run_mode, self.target_type
+            ).check_prediction_side_effects()
 
     def _generate_template(self):
         CMTemplateGenerator(

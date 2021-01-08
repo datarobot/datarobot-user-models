@@ -603,83 +603,94 @@ class CMRunTests:
         print("\n\nValidation checks results")
         print(tbl_report)
 
-    def check_prediction_side_effects(self, target_temp_location=None):
+    def check_transform_server(self, target_temp_location=None):
+
+        with DrumServerRun(
+            self.target_type.value,
+            self.resolve_labels(self.target_type, self.options),
+            self.options.code_dir,
+            verbose=False,
+        ) as run:
+            endpoint = "/transform/"
+            payload = {"X": open(self.options.input)}
+
+            # there is a known bug in urllib3 that needlessly gives a header warning
+            # this will supress the warning for better user experience when running performance test
+            filter_urllib3_logging()
+            if self.options.target:
+                target_location = target_temp_location.name
+                payload.update({"y": open(target_location)})
+            elif self.options.target_csv:
+                target_location = self.options.target_csv
+                payload.update({"y": open(target_location)})
+
+            response = requests.post(run.url_server_address + endpoint, files=payload)
+            if not response.ok:
+                raise DrumCommonException(
+                    "Failure in {} server: {}".format(endpoint[1:-1], response.text)
+                )
+
+    def check_prediction_side_effects(self):
         rtol = 2e-02
         atol = 1e-06
         input_extension = os.path.splitext(self.options.input)
         is_sparse = input_extension[1] == ".mtx"
-        is_transform = self.target_type == TargetType.TRANSFORM
 
         if is_sparse:
             df = pd.DataFrame(mmread(self.options.input).tocsr())
-            if not is_transform:
-                samplesize = min(1000, max(int(len(df) * 0.1), 10))
-                data_subset = df.sample(n=samplesize, random_state=42)
-                subset_payload = make_mtx_payload(data_subset)
+            samplesize = min(1000, max(int(len(df) * 0.1), 10))
+            data_subset = df.sample(n=samplesize, random_state=42)
+            subset_payload = make_mtx_payload(data_subset)
         else:
             df = pd.read_csv(self.options.input)
-            if not is_transform:
-                samplesize = min(1000, max(int(len(df) * 0.1), 10))
-                data_subset = df.sample(n=samplesize, random_state=42)
-                subset_payload = make_csv_payload(data_subset)
+            samplesize = min(1000, max(int(len(df) * 0.1), 10))
+            data_subset = df.sample(n=samplesize, random_state=42)
+            subset_payload = make_csv_payload(data_subset)
 
         labels = self.resolve_labels(self.target_type, self.options)
 
         with DrumServerRun(
             self.target_type.value, labels, self.options.code_dir, verbose=False
         ) as run:
-            endpoint = "/transform/" if self.target_type == TargetType.TRANSFORM else "/predict/"
+            endpoint = "/predict/"
             payload = {"X": open(self.options.input)}
-            if is_transform:
-                # there is a known bug in urllib3 that needlessly gives a header warning
-                # this will supress the warning for better user experience when running performance test
-                filter_urllib3_logging()
-                if self.options.target:
-                    target_location = target_temp_location.name
-                    payload.update({"y": open(target_location)})
-                elif self.options.target_csv:
-                    target_location = self.options.target_csv
-                    payload.update({"y": open(target_location)})
 
             response_full = requests.post(run.url_server_address + endpoint, files=payload)
             if not response_full.ok:
                 raise DrumCommonException(
                     "Failure in {} server: {}".format(endpoint[1:-1], response_full.text)
                 )
-            if not is_transform:
 
+            if is_sparse:
+                subset_payload = ("X.mtx", subset_payload)
+
+            response_sample = requests.post(
+                run.url_server_address + endpoint, files={"X": subset_payload}
+            )
+
+            preds_full = pd.DataFrame(json.loads(response_full.text)[RESPONSE_PREDICTIONS_KEY])
+            preds_sample = pd.DataFrame(json.loads(response_sample.text)[RESPONSE_PREDICTIONS_KEY])
+
+            preds_full_subset = preds_full.iloc[data_subset.index]
+
+            matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)
+            if not np.all(matches):
                 if is_sparse:
-                    subset_payload = ("X.mtx", subset_payload)
+                    _, __tempfile_sample = mkstemp(suffix=".mtx")
+                    sparse_mat = vstack(x[0] for x in data_subset.values)
+                    mmwrite(__tempfile_sample, sparse_mat)
+                else:
+                    _, __tempfile_sample = mkstemp(suffix=".csv")
+                    data_subset.to_csv(__tempfile_sample, index=False)
 
-                response_sample = requests.post(
-                    run.url_server_address + endpoint, files={"X": subset_payload}
+                message = """
+                            Error: Your predictions were different when we tried to predict twice.
+                            No randomness is allowed.
+                            The last 10 predictions from the main predict run were: {}
+                            However when we reran predictions on the same data, we got: {}.
+                            The sample used to calculate prediction reruns can be found in this file: {}""".format(
+                    preds_full_subset[~matches][:10],
+                    preds_sample[~matches][:10],
+                    __tempfile_sample,
                 )
-
-                preds_full = pd.DataFrame(json.loads(response_full.text)[RESPONSE_PREDICTIONS_KEY])
-                preds_sample = pd.DataFrame(
-                    json.loads(response_sample.text)[RESPONSE_PREDICTIONS_KEY]
-                )
-
-                preds_full_subset = preds_full.iloc[data_subset.index]
-
-                matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)
-                if not np.all(matches):
-                    if is_sparse:
-                        _, __tempfile_sample = mkstemp(suffix=".mtx")
-                        sparse_mat = vstack(x[0] for x in data_subset.values)
-                        mmwrite(__tempfile_sample, sparse_mat)
-                    else:
-                        _, __tempfile_sample = mkstemp(suffix=".csv")
-                        data_subset.to_csv(__tempfile_sample, index=False)
-
-                    message = """
-                                Error: Your predictions were different when we tried to predict twice.
-                                No randomness is allowed.
-                                The last 10 predictions from the main predict run were: {}
-                                However when we reran predictions on the same data, we got: {}.
-                                The sample used to calculate prediction reruns can be found in this file: {}""".format(
-                        preds_full_subset[~matches][:10],
-                        preds_sample[~matches][:10],
-                        __tempfile_sample,
-                    )
-                    raise ValueError(message)
+                raise ValueError(message)
