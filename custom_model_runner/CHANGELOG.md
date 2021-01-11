@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### [1.4.10] - in progress
 ##### Added
 - support providing arguments via env vars, e.g `TARGET_TYPE regression` is the same as `--target-type regression`
-
+##### Changes
+- prediction side effects check no longer run for custom transforms; still assert that transform server launches and returns 200 response
+- test coverage confirming support of sparse input and output for custom transforms and transform server
 ##### Removed
 -- `--unsupervised` arg support
 
