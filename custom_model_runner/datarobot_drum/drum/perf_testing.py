@@ -603,7 +603,34 @@ class CMRunTests:
         print("\n\nValidation checks results")
         print(tbl_report)
 
-    def check_prediction_side_effects(self, target_temp_location=None):
+    def check_transform_server(self, target_temp_location=None):
+
+        with DrumServerRun(
+            self.target_type.value,
+            self.resolve_labels(self.target_type, self.options),
+            self.options.code_dir,
+            verbose=False,
+        ) as run:
+            endpoint = "/transform/"
+            payload = {"X": open(self.options.input)}
+
+            # there is a known bug in urllib3 that needlessly gives a header warning
+            # this will supress the warning for better user experience when running performance test
+            filter_urllib3_logging()
+            if self.options.target:
+                target_location = target_temp_location.name
+                payload.update({"y": open(target_location)})
+            elif self.options.target_csv:
+                target_location = self.options.target_csv
+                payload.update({"y": open(target_location)})
+
+            response = requests.post(run.url_server_address + endpoint, files=payload)
+            if not response.ok:
+                raise DrumCommonException(
+                    "Failure in {} server: {}".format(endpoint[1:-1], response.text)
+                )
+
+    def check_prediction_side_effects(self):
         rtol = 2e-02
         atol = 1e-06
         input_extension = os.path.splitext(self.options.input)
@@ -625,18 +652,8 @@ class CMRunTests:
         with DrumServerRun(
             self.target_type.value, labels, self.options.code_dir, verbose=False
         ) as run:
-            endpoint = "/transform/" if self.target_type == TargetType.TRANSFORM else "/predict/"
+            endpoint = "/predict/"
             payload = {"X": open(self.options.input)}
-            if self.target_type == TargetType.TRANSFORM:
-                # there is a known bug in urllib3 that needlessly gives a header warning
-                # this will supress the warning for better user experience when running performance test
-                filter_urllib3_logging()
-                if self.options.target:
-                    target_location = target_temp_location.name
-                    payload.update({"y": open(target_location)})
-                elif self.options.target_csv:
-                    target_location = self.options.target_csv
-                    payload.update({"y": open(target_location)})
 
             response_full = requests.post(run.url_server_address + endpoint, files=payload)
             if not response_full.ok:
@@ -651,24 +668,8 @@ class CMRunTests:
                 run.url_server_address + endpoint, files={"X": subset_payload}
             )
 
-            if self.target_type == TargetType.TRANSFORM:
-                output_format = parse_multi_part_response(response_full)["out.format"]
-
-                preds_full = self.load_transform_output(
-                    response=response_full,
-                    is_sparse=output_format == "sparse",
-                    request_key=X_TRANSFORM_KEY,
-                )
-                preds_sample = self.load_transform_output(
-                    response=response_sample,
-                    is_sparse=output_format == "sparse",
-                    request_key=X_TRANSFORM_KEY,
-                )
-            else:
-                preds_full = pd.DataFrame(json.loads(response_full.text)[RESPONSE_PREDICTIONS_KEY])
-                preds_sample = pd.DataFrame(
-                    json.loads(response_sample.text)[RESPONSE_PREDICTIONS_KEY]
-                )
+            preds_full = pd.DataFrame(json.loads(response_full.text)[RESPONSE_PREDICTIONS_KEY])
+            preds_sample = pd.DataFrame(json.loads(response_sample.text)[RESPONSE_PREDICTIONS_KEY])
 
             preds_full_subset = preds_full.iloc[data_subset.index]
 
@@ -688,6 +689,8 @@ class CMRunTests:
                             The last 10 predictions from the main predict run were: {}
                             However when we reran predictions on the same data, we got: {}.
                             The sample used to calculate prediction reruns can be found in this file: {}""".format(
-                    preds_full_subset[~matches][:10], preds_sample[~matches][:10], __tempfile_sample
+                    preds_full_subset[~matches][:10],
+                    preds_sample[~matches][:10],
+                    __tempfile_sample,
                 )
                 raise ValueError(message)
