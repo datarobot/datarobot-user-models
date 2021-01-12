@@ -36,6 +36,7 @@ from .constants import (
     SKLEARN_PRED_CONSISTENCY,
     SKLEARN_TRANSFORM_NO_HOOK,
     SKLEARN_TRANSFORM_SPARSE_INPUT,
+    SKLEARN_TRANSFORM_SPARSE_IN_OUT,
     SKLEARN_TRANSFORM_NON_NUMERIC,
     TESTS_ROOT_PATH,
     WEIGHTS_ARGS,
@@ -218,7 +219,6 @@ class TestFit:
             SKLEARN_TRANSFORM_WITH_Y,
             SKLEARN_TRANSFORM_NO_HOOK,
             SKLEARN_TRANSFORM_NON_NUMERIC,
-            SKLEARN_TRANSFORM_SPARSE_INPUT,
         ],
     )
     @pytest.mark.parametrize("problem", [REGRESSION, BINARY, ANOMALY])
@@ -260,6 +260,42 @@ class TestFit:
             )
 
         cmd += weights_cmd
+
+        _exec_shell_cmd(
+            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+        )
+
+    @pytest.mark.parametrize(
+        "framework",
+        [
+            SKLEARN_TRANSFORM_SPARSE_IN_OUT,
+            SKLEARN_TRANSFORM_SPARSE_INPUT,
+        ],
+    )
+    def test_sparse_transform_fit(
+        self,
+        framework,
+        resources,
+        tmp_path,
+    ):
+        input_dataset = resources.datasets(None, SPARSE)
+        target_dataset = resources.datasets(None, SPARSE_TARGET)
+
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            REGRESSION,
+            language=framework,
+        )
+
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose --target-csv {}".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            TRANSFORM,
+            custom_model_dir,
+            input_dataset,
+            target_dataset,
+        )
 
         _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
@@ -400,7 +436,14 @@ class TestFit:
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
 
-    @pytest.mark.parametrize("framework", [SKLEARN_SPARSE, PYTORCH, RDS])
+    @pytest.mark.parametrize(
+        "framework",
+        [
+            SKLEARN_SPARSE,
+            PYTORCH,
+            RDS,
+        ],
+    )
     def test_fit_sparse(self, resources, tmp_path, framework):
         custom_model_dir = _create_custom_model_dir(
             resources,
