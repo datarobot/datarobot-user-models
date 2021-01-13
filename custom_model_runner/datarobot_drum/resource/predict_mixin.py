@@ -182,8 +182,10 @@ class PredictMixin:
                     if out_target is not None
                     else None
                 )
+                target_out_format = 'arrow'
             else:
                 target_payload = make_csv_payload(out_target) if out_target is not None else None
+                target_out_format = 'csv'
             feature_payload = make_mtx_payload(out_data)
             out_format = "sparse"
         else:
@@ -199,9 +201,10 @@ class PredictMixin:
                 feature_payload = make_csv_payload(out_data)
                 target_payload = make_csv_payload(out_target) if out_target is not None else None
                 out_format = "csv"
+            target_out_format = out_format
 
         out_fields = {
-            "out.format": out_format,
+            "X.format": out_format,
             X_TRANSFORM_KEY: (
                 X_TRANSFORM_KEY,
                 feature_payload,
@@ -211,6 +214,7 @@ class PredictMixin:
         if target_payload is not None:
             out_fields.update(
                 {
+                    "y.format": target_out_format,
                     Y_TRANSFORM_KEY: (
                         Y_TRANSFORM_KEY,
                         target_payload,
