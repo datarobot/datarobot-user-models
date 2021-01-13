@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+#### [1.4.11]
+##### Changes
+- transform server passes back formats for both transformed X and y
+- transform server passes back column names if transformed X is sparse
+
 #### [1.4.10] - 2021-01-11
 ##### Added
 - support providing arguments via env vars, e.g `TARGET_TYPE regression` is the same as `--target-type regression`
