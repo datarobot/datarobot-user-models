@@ -1,3 +1,4 @@
+import csv
 import pandas as pd
 import logging
 
@@ -66,13 +67,19 @@ def read_csv_payload(response_dict, transform_key):
 
 
 def make_mtx_payload(df):
+
     if hasattr(df, "sparse"):
         sparse_mat = csr_matrix(df.sparse.to_coo())
+        colnames = df.columns.values
     else:
         sparse_mat = vstack(x[0] for x in df.values)
+        colnames = [i for i in range(sparse_mat.shape[1])]
     sink = BytesIO()
     mmwrite(sink, sparse_mat)
-    return sink.getvalue()
+
+    column_payload = make_csv_payload(pd.DataFrame(colnames))
+
+    return sink.getvalue(), column_payload
 
 
 def read_mtx_payload(response_dict, transform_key):

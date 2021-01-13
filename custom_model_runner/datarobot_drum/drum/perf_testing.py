@@ -23,7 +23,6 @@ from datarobot_drum.drum.common import (
     ArgumentsOptions,
     PERF_TEST_SERVER_LABEL,
     RESPONSE_PREDICTIONS_KEY,
-    X_TRANSFORM_KEY,
     TargetType,
 )
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
@@ -640,7 +639,7 @@ class CMRunTests:
             df = pd.DataFrame(mmread(self.options.input).tocsr())
             samplesize = min(1000, max(int(len(df) * 0.1), 10))
             data_subset = df.sample(n=samplesize, random_state=42)
-            subset_payload = make_mtx_payload(data_subset)
+            subset_payload, _ = make_mtx_payload(data_subset)
         else:
             df = pd.read_csv(self.options.input)
             samplesize = min(1000, max(int(len(df) * 0.1), 10))

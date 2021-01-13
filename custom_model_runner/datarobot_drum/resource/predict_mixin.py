@@ -10,7 +10,6 @@ from datarobot_drum.drum.common import (
     PredictionServerMimetypes,
     X_TRANSFORM_KEY,
     Y_TRANSFORM_KEY,
-    get_pyarrow_module,
 )
 from datarobot_drum.drum.utils import StructuredInputReadUtils
 from datarobot_drum.resource.transform_helpers import (
@@ -182,11 +181,11 @@ class PredictMixin:
                     if out_target is not None
                     else None
                 )
-                target_out_format = 'arrow'
+                target_out_format = "arrow"
             else:
                 target_payload = make_csv_payload(out_target) if out_target is not None else None
-                target_out_format = 'csv'
-            feature_payload = make_mtx_payload(out_data)
+                target_out_format = "csv"
+            feature_payload, colnames = make_mtx_payload(out_data)
             out_format = "sparse"
         else:
             if use_arrow:
@@ -211,6 +210,18 @@ class PredictMixin:
                 PredictionServerMimetypes.APPLICATION_OCTET_STREAM,
             ),
         }
+
+        if is_sparse(out_data):
+            out_fields.update(
+                {
+                    "X.colnames": (
+                        "X.colnames",
+                        colnames,
+                        PredictionServerMimetypes.APPLICATION_OCTET_STREAM,
+                    )
+                }
+            )
+
         if target_payload is not None:
             out_fields.update(
                 {
