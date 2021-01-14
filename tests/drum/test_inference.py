@@ -382,23 +382,33 @@ class TestInference:
                     transformed_out = read_arrow_payload(parsed_response, X_TRANSFORM_KEY)
                     if pass_target:
                         target_out = read_arrow_payload(parsed_response, Y_TRANSFORM_KEY)
-                    assert parsed_response["out.format"] == "arrow"
+                    assert parsed_response["X.format"] == "arrow"
+                    if pass_target:
+                        assert parsed_response["y.format"] == "arrow"
                 else:
                     transformed_out = read_csv_payload(parsed_response, X_TRANSFORM_KEY)
                     if pass_target:
                         target_out = read_csv_payload(parsed_response, Y_TRANSFORM_KEY)
-                    assert parsed_response["out.format"] == "csv"
+                    assert parsed_response["X.format"] == "csv"
+                    if pass_target:
+                        assert parsed_response["y.format"] == "csv"
                 actual_num_predictions = transformed_out.shape[0]
             else:
                 transformed_out = read_mtx_payload(parsed_response, X_TRANSFORM_KEY)
+                colnames = read_csv_payload(parsed_response, "X.colnames")
+                assert len(colnames) == transformed_out.shape[1]
                 if pass_target:
                     # this shouldn't be sparse even though features are
                     if use_arrow:
                         target_out = read_arrow_payload(parsed_response, Y_TRANSFORM_KEY)
+                        if pass_target:
+                            assert parsed_response["y.format"] == "arrow"
                     else:
                         target_out = read_csv_payload(parsed_response, Y_TRANSFORM_KEY)
+                        if pass_target:
+                            assert parsed_response["y.format"] == "csv"
                 actual_num_predictions = transformed_out.shape[0]
-                assert parsed_response["out.format"] == "sparse"
+                assert parsed_response["X.format"] == "sparse"
             validate_transformed_output(
                 transformed_out, should_be_sparse=framework == SKLEARN_TRANSFORM
             )
