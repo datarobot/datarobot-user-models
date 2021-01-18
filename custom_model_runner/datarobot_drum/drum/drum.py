@@ -794,7 +794,7 @@ def possibly_intuit_order(
             )
             print(e, file=sys.stderr)
             raise DrumCommonException(e)
-        uniq = df[target_col_name].sample(min(1000, len(target_col_name)), random_state=1).unique()
+        uniq = df[target_col_name].sample(min(1000, len(df)), random_state=1).unique()
         classes = set(uniq) - {np.nan}
     if len(classes) >= 2:
         return classes
