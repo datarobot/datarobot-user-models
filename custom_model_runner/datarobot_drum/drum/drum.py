@@ -236,7 +236,7 @@ class CMRunner:
                 "output directories or code directories.\n\n"
                 "The following custom model files were found:\n"
             )
-            error_mes +='\n'.join([str(path) for path in files_found])
+            error_mes += "\n".join([str(path) for path in files_found])
             self.logger.error(error_mes)
             raise DrumCommonException(error_mes)
 
