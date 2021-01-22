@@ -68,15 +68,15 @@ process_data <- function(input_filename, target_filename, target_name, num_rows)
         }
     df <- df[!(is.na(df[target_name])), ]
     X <- df[,!(names(df) %in% c(target_name))]
-    X <- X[sample(nrow(X), size=num_rows, replace=TRUE ), ]
+    X <- X[sample(nrow(X), size=num_rows ), ]
 
     y <- df[,target_name, drop=FALSE]
-    y <- y[sample(nrow(y), size=num_rows, replace=TRUE),]
+    y <- y[sample(nrow(y), size=num_rows),]
 
     } else {
 
         y <- NULL
-        X <- df[sample(nrow(df), size=num_rows, replace=TRUE ), ]
+        X <- df[sample(nrow(df), size=num_rows), ]
 
     }
 

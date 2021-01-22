@@ -228,6 +228,18 @@ class CMRunner:
             self.logger.error(error_mes)
             raise DrumCommonException(error_mes)
 
+        def raise_multiple_custom_files(py_paths, r_paths):
+            files_found = py_paths + r_paths
+            error_mes = (
+                "Multiple custom.py/R files were identified in the code directories sub directories.\n"
+                "If using the output directory option select a directory that does not contain additional "
+                "output directories or code directories.\n\n"
+                "The following custom model files were found:\n"
+            )
+            error_mes += "\n".join([str(path) for path in files_found])
+            self.logger.error(error_mes)
+            raise DrumCommonException(error_mes)
+
         code_dir_abspath = os.path.abspath(self.options.code_dir)
 
         custom_language = None
@@ -258,6 +270,10 @@ class CMRunner:
                 is_py = True
             else:
                 raise_no_language(custom_language)
+
+        # subdirectories also contain custom py/R files, likely an incorrectly selected output dir.
+        elif len(custom_py_paths) + len(custom_r_paths) > 1:
+            raise_multiple_custom_files(custom_py_paths, custom_r_paths)
 
         # otherwise, we're in trouble
         else:
@@ -785,9 +801,8 @@ def possibly_intuit_order(
     elif target_data_file:
         assert target_col_name is None
 
-        y = pd.read_csv(target_data_file, index_col=False).sample(
-            1000, random_state=1, replace=True
-        )
+        y = pd.read_csv(target_data_file, index_col=False)
+        y = y.sample(min(1000, len(y)), random_state=1)
         classes = np.unique(y.iloc[:, 0])
     else:
         assert target_data_file is None
@@ -798,7 +813,7 @@ def possibly_intuit_order(
             )
             print(e, file=sys.stderr)
             raise DrumCommonException(e)
-        uniq = df[target_col_name].sample(1000, random_state=1, replace=True).unique()
+        uniq = df[target_col_name].sample(min(1000, len(df)), random_state=1).unique()
         classes = set(uniq) - {np.nan}
     if len(classes) >= 2:
         return classes

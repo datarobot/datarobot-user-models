@@ -134,6 +134,12 @@ def shared_fit_preprocessing(fit_class):
     if fit_class.num_rows == "ALL":
         fit_class.num_rows = len(df)
     else:
+        if fit_class.num_rows > len(df):
+            raise DrumCommonException(
+                "Requested number of rows greater than data length {} > {}".format(
+                    fit_class.num_rows, len(df)
+                )
+            )
         fit_class.num_rows = int(fit_class.num_rows)
 
     # get target and features, resample and modify nrows if needed
@@ -154,13 +160,11 @@ def shared_fit_preprocessing(fit_class):
             assert len(y_unsampled.columns.values) == 1
             fit_class.target_name = y_unsampled.columns.values[0]
         df = df.dropna(subset=[fit_class.target_name])
-        X = df.drop(fit_class.target_name, axis=1).sample(
-            fit_class.num_rows, random_state=1, replace=True
-        )
-        y = df[fit_class.target_name].sample(fit_class.num_rows, random_state=1, replace=True)
+        X = df.drop(fit_class.target_name, axis=1).sample(fit_class.num_rows, random_state=1)
+        y = df[fit_class.target_name].sample(fit_class.num_rows, random_state=1)
 
     else:
-        X = df.sample(fit_class.num_rows, random_state=1, replace=True)
+        X = df.sample(fit_class.num_rows, random_state=1)
         y = None
 
     row_weights = extract_weights(X, fit_class)
@@ -172,7 +176,7 @@ def extract_weights(X, fit_class):
     # extract weights from file or data
     if fit_class.weights_filename:
         row_weights = pd.read_csv(fit_class.weights_filename).sample(
-            fit_class.num_rows, random_state=1, replace=True
+            fit_class.num_rows, random_state=1
         )
     elif fit_class.weights:
         if fit_class.weights not in X.columns:

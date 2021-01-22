@@ -2,7 +2,7 @@ package com.datarobot.custom;
 
 import java.io.IOException;
 
-abstract class BasePredictor {
+public abstract class BasePredictor {
     protected String name;
 
     public BasePredictor(String name) {
