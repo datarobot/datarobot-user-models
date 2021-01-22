@@ -17,7 +17,7 @@ from texttable import Texttable
 from tempfile import mkdtemp, NamedTemporaryFile, mkstemp
 
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
-from datarobot_drum.drum.exceptions import DrumCommonException, DrumPerfTestTimeout
+from datarobot_drum.drum.exceptions import DrumCommonException, DrumPerfTestTimeout, DrumPredException
 from datarobot_drum.drum.utils import CMRunnerUtils
 from datarobot_drum.drum.common import (
     ArgumentsOptions,
@@ -691,4 +691,4 @@ class CMRunTests:
                     preds_sample[~matches][:10],
                     __tempfile_sample,
                 )
-                raise ValueError(message)
+                raise DrumPredException(message)
