@@ -26,4 +26,3 @@ class DrumPredException(DrumException):
     """ Raised when prediction consistency check fails"""
 
     pass
-
