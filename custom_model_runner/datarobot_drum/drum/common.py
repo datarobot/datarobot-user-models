@@ -368,5 +368,5 @@ def verify_pyarrow_module():
 def generate_temp_target_name(target_name, colnames):
     temp_name = target_name
     while temp_name in colnames:
-        temp_name = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+        temp_name = "".join(random.choices(string.ascii_uppercase + string.digits, k=5))
     return temp_name
