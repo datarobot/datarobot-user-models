@@ -20,6 +20,7 @@ from datarobot_drum.drum.common import (
     InputFormatToMimetype,
     get_pyarrow_module,
     ArgumentOptionsEnvVars,
+    generate_temp_target_name,
 )
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
@@ -156,6 +157,9 @@ def shared_fit_preprocessing(fit_class):
             ), "Your input data has {} entries, but your target data has {} entries".format(
                 len(df), len(y_unsampled)
             )
+            if y_unsampled.columns[0] in df.columns:
+                temp_target_name = generate_temp_target_name(y_unsampled.columns[0], df.columns)
+                y_unsampled.columns = [temp_target_name]
             df = df.merge(y_unsampled, left_index=True, right_index=True)
             assert len(y_unsampled.columns.values) == 1
             fit_class.target_name = y_unsampled.columns.values[0]

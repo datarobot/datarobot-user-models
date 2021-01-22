@@ -45,6 +45,8 @@ from .constants import (
     BINARY_BOOL,
     TRANSFORM,
     BINARY_SPACES,
+    TARGET_NAME_DUPLICATED_X,
+    TARGET_NAME_DUPLICATED_Y,
 )
 from datarobot_drum.resource.utils import (
     _cmd_add_class_labels,
@@ -517,3 +519,28 @@ class TestFit:
         if sample_dir.endswith("\n"):
             sample_dir = sample_dir[:-1]
         os.remove(sample_dir.strip())
+
+    def test_duplicate_target_name(self, resources, tmp_path):
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            SKLEARN_REGRESSION,
+            SPARSE,
+            language=PYTHON,
+            is_training=True,
+        )
+
+        input_dataset = resources.datasets(SKLEARN_REGRESSION, TARGET_NAME_DUPLICATED_X)
+        target_dataset = resources.datasets(SKLEARN_REGRESSION, TARGET_NAME_DUPLICATED_Y)
+
+        output = tmp_path / "output"
+        output.mkdir()
+
+        cmd = "{} fit --code-dir {} --input {} --target-type {} --verbose ".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, REGRESSION
+        )
+
+        cmd += " --target-csv " + target_dataset
+        _exec_shell_cmd(
+            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+        )
