@@ -683,8 +683,7 @@ class CMRunTests:
                     data_subset.to_csv(__tempfile_sample, index=False)
 
                 message = """
-                            Error: Your predictions were different when we tried to predict twice.
-                            No randomness is allowed.
+                            Warning: Your predictions were different when we tried to predict twice.
                             The last 10 predictions from the main predict run were: {}
                             However when we reran predictions on the same data, we got: {}.
                             The sample used to calculate prediction reruns can be found in this file: {}""".format(

@@ -365,9 +365,12 @@ class CMRunner:
                 __target_temp
             )
         else:
-            CMRunTests(
-                self.options, self.run_mode, self.target_type
-            ).check_prediction_side_effects()
+            try:
+                CMRunTests(
+                    self.options, self.run_mode, self.target_type
+                ).check_prediction_side_effects()
+            except ValueError as e:
+                self.logger.warning(e)
 
     def _generate_template(self):
         CMTemplateGenerator(
