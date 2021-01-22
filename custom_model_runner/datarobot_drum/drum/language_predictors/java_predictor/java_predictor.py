@@ -54,6 +54,7 @@ class JavaPredictor(BaseLanguagePredictor):
         self._proc = None
         # JVM the maximum heap size
         self._java_Xmx = os.environ.get(EnvVarNames.DRUM_JAVA_XMX)
+        self._custom_predictor_class = os.environ.get(EnvVarNames.DRUM_JAVA_CUSTOM_PREDICTOR_CLASS)
 
         self._jar_files = glob.glob(os.path.join(os.path.dirname(__file__), "*.jar"))
 
@@ -149,10 +150,10 @@ class JavaPredictor(BaseLanguagePredictor):
         return False
 
     def predict(self, **kwargs):
-        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA).decode("utf-8")
+        input_text_data = kwargs.get(StructuredDtoKeys.BINARY_DATA).decode("utf-8")
 
         start_predict = time.time()
-        out_csv = self._predictor_via_py4j.predict(input_binary_data)
+        out_csv = self._predictor_via_py4j.predict(input_text_data)
         out_df = pd.read_csv(StringIO(out_csv))
         end_predict = time.time()
         execution_time_ms = (end_predict - start_predict) * 1000
@@ -176,22 +177,31 @@ class JavaPredictor(BaseLanguagePredictor):
         self._cleanup()
 
     def _run_java_server_entry_point(self):
-
         java_cp = ":".join(self._jar_files)
+        custom_class_path = os.environ.get(EnvVarNames.DRUM_JAVA_CUSTOM_CLASS_PATH)
+        if custom_class_path is not None:
+            java_cp = "{}:{}".format(java_cp, custom_class_path)
+            self.logger.debug("Custom class path: {}".format(custom_class_path))
 
-        self.logger.debug("java_cp: {}".format(java_cp))
+        self.logger.debug("Full Java class path: {}".format(java_cp))
 
         self._java_port = JavaPredictor.find_free_port()
         cmd = ["java"]
         if self._java_Xmx:
             cmd.append("-Xmx{}".format(self._java_Xmx))
+
+        class_to_load = (
+            self._custom_predictor_class
+            or JavaPredictor.java_class_by_ext[self.model_artifact_extension]
+        )
+        self.logger.info("Loading predictor class: {}", class_to_load)
         cmd.extend(
             [
                 "-cp",
                 java_cp,
                 JavaPredictor.JAVA_COMPONENT_ENTRY_POINT_CLASS,
                 "--class-name",
-                JavaPredictor.java_class_by_ext[self.model_artifact_extension],
+                class_to_load,
                 "--port",
                 str(self._java_port),
             ]

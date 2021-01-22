@@ -18,7 +18,7 @@ pwd
 GIT_ROOT=$(git rev-parse --show-toplevel)
 echo "GIT_ROOT: $GIT_ROOT"
 
-cd $GIT_ROOT/custom_model_runner || exit 1
+pushd $GIT_ROOT/custom_model_runner || exit 1
 
 echo
 echo "--> Building wheel"
@@ -33,6 +33,21 @@ echo
 echo "--> Installing wheel"
 echo
 pip install "${CMRUNNER_WHEEL}[R]"
+popd
+
+echo
+echo "--> Installing DRUM Java BasePredictor into Maven repo"
+echo
+pushd $GIT_ROOT/custom_model_runner/datarobot_drum/drum/language_predictors/java_predictor/
+mvn install
+popd
+
+echo
+echo "--> Compiling jar for TestCustomPredictor "
+echo
+pushd $GIT_ROOT/tests/drum/custom_java_predictor
+mvn package
+popd
 
 source $GIT_ROOT/tests/drum/integration-helpers.sh
 

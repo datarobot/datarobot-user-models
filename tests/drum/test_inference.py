@@ -2,6 +2,7 @@ import json
 from tempfile import NamedTemporaryFile
 
 import io
+import os
 import pandas as pd
 import pyarrow
 import pytest
@@ -11,6 +12,7 @@ import scipy
 
 from datarobot_drum.drum.common import (
     ArgumentsOptions,
+    EnvVarNames,
     PredictionServerMimetypes,
     X_TRANSFORM_KEY,
     Y_TRANSFORM_KEY,
@@ -252,6 +254,53 @@ class TestInference:
                     )
                     in_data = pd.read_csv(input_dataset)
                     assert in_data.shape[0] == actual_num_predictions
+        unset_drum_supported_env_vars()
+
+    @pytest.mark.parametrize(
+        "problem, class_labels",
+        [
+            (REGRESSION, None),
+            (BINARY, ["no", "yes"]),
+        ],
+    )
+    # current test case returns hardcoded predictions:
+    # - for regression: [1, 2, .., N samples]
+    # - for binary: [{0.3, 0,7}, {0.3, 0.7}, ...]
+    def test_custom_model_with_custom_java_predictor(
+        self,
+        resources,
+        class_labels,
+        problem,
+    ):
+        unset_drum_supported_env_vars()
+        cur_file_dir = os.path.dirname(os.path.abspath(__file__))
+        # have to point model dir to a folder with jar, so drum could detect the language
+        model_dir = os.path.join(cur_file_dir, "custom_java_predictor")
+        os.environ[
+            EnvVarNames.DRUM_JAVA_CUSTOM_PREDICTOR_CLASS
+        ] = "com.datarobot.test.TestCustomPredictor"
+        os.environ[EnvVarNames.DRUM_JAVA_CUSTOM_CLASS_PATH] = os.path.join(model_dir, "*")
+        with DrumServerRun(
+            resources.target_types(problem),
+            class_labels,
+            model_dir,
+        ) as run:
+            input_dataset = resources.datasets(None, problem)
+            # do predictions
+            post_args = {"data": open(input_dataset, "rb")}
+            response = requests.post(run.url_server_address + "/predict", **post_args)
+            print(response.text)
+            assert response.ok
+            predictions = json.loads(response.text)[RESPONSE_PREDICTIONS_KEY]
+            actual_num_predictions = len(predictions)
+            in_data = pd.read_csv(input_dataset)
+            assert in_data.shape[0] == actual_num_predictions
+            if problem == REGRESSION:
+                assert list(range(1, actual_num_predictions + 1)) == predictions
+            else:
+                single_prediction = {"yes": 0.7, "no": 0.3}
+                assert [single_prediction] * actual_num_predictions == predictions
+
         unset_drum_supported_env_vars()
 
     @pytest.mark.parametrize(
