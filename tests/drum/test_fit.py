@@ -55,7 +55,7 @@ from datarobot_drum.resource.utils import (
 class TestFit:
     @staticmethod
     def _add_weights_cmd(weights, input_csv, r_fit=False):
-        df = pd.read_csv(input_csv, lineterminator="\n")
+        df = pd.read_csv(input_csv)
         colname = "some-colname"
         weights_data = pd.Series(np.random.randint(1, 3, len(df)))
         __keep_this_around = NamedTemporaryFile("w")
@@ -328,7 +328,7 @@ class TestFit:
             df = pd.read_csv(input_dataset)
             weights_data = pd.Series(np.random.randint(1, 3, len(df)))
             with open(os.path.join(input_dir, "weights.csv"), "w+") as fp:
-                weights_data.to_csv(fp, header=False)
+                weights_data.to_csv(fp)
 
     @pytest.mark.parametrize(
         "framework, problem",
