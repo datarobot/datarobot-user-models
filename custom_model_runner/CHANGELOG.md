@@ -4,9 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
 #### [1.4.12]
 ##### Changes
 - bugfix to prevent resampling of data
+- surface warning but don't error out if prediction consistency check fails
 
 #### [1.4.11]
 ##### Changes

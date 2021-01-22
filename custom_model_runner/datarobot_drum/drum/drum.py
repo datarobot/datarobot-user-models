@@ -37,7 +37,7 @@ from datarobot_drum.drum.common import (
     read_model_metadata_yaml,
 )
 from datarobot_drum.drum.description import version as drum_version
-from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.exceptions import DrumCommonException, DrumPredException
 from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.push import drum_push, setup_validation_options
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
@@ -381,9 +381,12 @@ class CMRunner:
                 __target_temp
             )
         else:
-            CMRunTests(
-                self.options, self.run_mode, self.target_type
-            ).check_prediction_side_effects()
+            try:
+                CMRunTests(
+                    self.options, self.run_mode, self.target_type
+                ).check_prediction_side_effects()
+            except DrumPredException as e:
+                self.logger.warning(e)
 
     def _generate_template(self):
         CMTemplateGenerator(

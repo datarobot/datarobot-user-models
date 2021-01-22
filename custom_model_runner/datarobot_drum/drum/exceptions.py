@@ -20,3 +20,9 @@ class DrumPerfTestOOM(DrumException):
     """ Raised when the container running drum during perf test is OOM """
 
     pass
+
+
+class DrumPredException(DrumException):
+    """ Raised when prediction consistency check fails"""
+
+    pass

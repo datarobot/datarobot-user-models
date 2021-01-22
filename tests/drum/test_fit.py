@@ -497,13 +497,19 @@ class TestFit:
                 cmd, resources.class_labels(framework, problem), target_type
             )
 
-        _, _, stderr = _exec_shell_cmd(
+        _, stdout, stderr = _exec_shell_cmd(
             cmd,
             "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
-            assert_if_fail=False,
+            assert_if_fail=True,
         )
 
+        # we should throw a warning, not an error
         assert "Your predictions were different when we tried to predict twice." in stderr
+        # but don't error out
+        assert (
+            "Your model can be fit to your data,  and predictions can be made on the fit model!"
+            in stdout
+        )
         # clean up
         sample_dir = stderr.split(":")[-1]
         if sample_dir.endswith("\n"):

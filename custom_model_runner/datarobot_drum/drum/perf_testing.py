@@ -17,7 +17,11 @@ from texttable import Texttable
 from tempfile import mkdtemp, NamedTemporaryFile, mkstemp
 
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
-from datarobot_drum.drum.exceptions import DrumCommonException, DrumPerfTestTimeout
+from datarobot_drum.drum.exceptions import (
+    DrumCommonException,
+    DrumPerfTestTimeout,
+    DrumPredException,
+)
 from datarobot_drum.drum.utils import CMRunnerUtils
 from datarobot_drum.drum.common import (
     ArgumentsOptions,
@@ -683,13 +687,12 @@ class CMRunTests:
                     data_subset.to_csv(__tempfile_sample, index=False)
 
                 message = """
-                            Error: Your predictions were different when we tried to predict twice.
-                            No randomness is allowed.
+                            Warning: Your predictions were different when we tried to predict twice.
                             The last 10 predictions from the main predict run were: {}
                             However when we reran predictions on the same data, we got: {}.
                             The sample used to calculate prediction reruns can be found in this file: {}""".format(
-                    preds_full_subset[~matches][:10],
-                    preds_sample[~matches][:10],
+                    preds_full_subset[~matches][:10].to_string(index=False),
+                    preds_sample[~matches][:10].to_string(index=False),
                     __tempfile_sample,
                 )
-                raise ValueError(message)
+                raise DrumPredException(message)
