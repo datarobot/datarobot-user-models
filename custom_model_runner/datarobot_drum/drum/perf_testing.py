@@ -691,8 +691,8 @@ class CMRunTests:
                             The last 10 predictions from the main predict run were: {}
                             However when we reran predictions on the same data, we got: {}.
                             The sample used to calculate prediction reruns can be found in this file: {}""".format(
-                    preds_full_subset[~matches][:10],
-                    preds_sample[~matches][:10],
+                    preds_full_subset[~matches][:10].to_string(index=False),
+                    preds_sample[~matches][:10].to_string(index=False),
                     __tempfile_sample,
                 )
                 raise DrumPredException(message)
