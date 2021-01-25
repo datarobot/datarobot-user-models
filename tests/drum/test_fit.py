@@ -44,6 +44,7 @@ from .constants import (
     XGB,
     BINARY_BOOL,
     TRANSFORM,
+    BINARY_SPACES,
 )
 from datarobot_drum.resource.utils import (
     _cmd_add_class_labels,
@@ -132,6 +133,7 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, problem, docker",
         [
+            (SKLEARN_BINARY, BINARY_SPACES, None),
             (RDS, BINARY_BOOL, None),
             (RDS, BINARY_TEXT, None),
             (RDS, REGRESSION, None),
