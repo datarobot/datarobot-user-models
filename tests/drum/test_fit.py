@@ -133,7 +133,6 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, problem, docker",
         [
-            (SKLEARN_BINARY, BINARY_SPACES, None),
             (RDS, BINARY_BOOL, None),
             (RDS, BINARY_TEXT, None),
             (RDS, REGRESSION, None),
@@ -144,6 +143,7 @@ class TestFit:
             (SKLEARN_ANOMALY, ANOMALY, DOCKER_PYTHON_SKLEARN),
             (SKLEARN_MULTICLASS, MULTICLASS, DOCKER_PYTHON_SKLEARN),
             (SKLEARN_BINARY, BINARY_TEXT, None),
+            (SKLEARN_BINARY, BINARY_SPACES, None),
             (SKLEARN_REGRESSION, REGRESSION, None),
             (SKLEARN_ANOMALY, ANOMALY, None),
             (SKLEARN_MULTICLASS, MULTICLASS, None),

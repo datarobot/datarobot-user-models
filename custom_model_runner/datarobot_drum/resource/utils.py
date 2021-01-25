@@ -104,17 +104,11 @@ def _cmd_add_class_labels(
     if not labels or target_type == BINARY:
         pos = labels[1] if labels else "yes"
         neg = labels[0] if labels else "no"
-        if type(pos) is str:
-            if " " in pos:
-                pos = "'{}'".format(pos)
-        if type(neg) is str:
-            if " " in neg:
-                neg = "'{}'".format(neg)
         if pass_args_as_env_vars:
             os.environ[ArgumentOptionsEnvVars.POSITIVE_CLASS_LABEL] = pos
             os.environ[ArgumentOptionsEnvVars.NEGATIVE_CLASS_LABEL] = neg
         else:
-            cmd = cmd + " --positive-class-label {} --negative-class-label {}".format(pos, neg)
+            cmd = cmd + " --positive-class-label '{}' --negative-class-label '{}'".format(pos, neg)
     elif labels and target_type == MULTICLASS:
         if multiclass_label_file:
             multiclass_label_file.truncate(0)
