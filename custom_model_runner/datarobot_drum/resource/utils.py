@@ -104,9 +104,9 @@ def _cmd_add_class_labels(
     if not labels or target_type == BINARY:
         pos = labels[1] if labels else "yes"
         neg = labels[0] if labels else "no"
-        if ' ' in pos:
+        if " " in pos:
             pos = "'{}'".format(pos)
-        if ' ' in neg:
+        if " " in neg:
             neg = "'{}'".format(neg)
         if pass_args_as_env_vars:
             os.environ[ArgumentOptionsEnvVars.POSITIVE_CLASS_LABEL] = pos
