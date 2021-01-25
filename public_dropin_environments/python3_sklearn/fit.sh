@@ -17,6 +17,10 @@ if [ -f "${weights}" ]; then
     CMD="${CMD} --row-weights-csv ${weights}"
 fi
 
+if [ -n "${SKIP_PREDICT}" ]; then
+  CMD = "${CMD} --skip-predict"
+fi
+
 echo "Environment variables:"
 env
 echo "${CMD}"
