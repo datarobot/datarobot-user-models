@@ -8,6 +8,7 @@ from tests.drum.constants import (
     BINARY,
     BINARY_BOOL,
     BINARY_TEXT,
+    BINARY_SPACES,
     CODEGEN,
     CODEGEN_AND_SKLEARN,
     KERAS,
@@ -92,6 +93,7 @@ _datasets = {
     (SKLEARN_PRED_CONSISTENCY, BINARY_BOOL): os.path.join(
         TESTS_DATA_PATH, "10k_diabetes_sample.csv"
     ),
+    (None, BINARY_SPACES): os.path.join(TESTS_DATA_PATH, "iris_with_spaces.csv"),
 }
 
 _training_models_paths = {
@@ -128,11 +130,13 @@ _targets = {
     BINARY_BOOL: "readmitted",
     ANOMALY: None,
     TRANSFORM: os.path.join(TESTS_DATA_PATH, "transform_target.csv"),
+    BINARY_SPACES: "Species",
 }
 
 _target_types = {
     BINARY: "binary",
     BINARY_TEXT: "binary",
+    BINARY_SPACES: "binary",
     REGRESSION: "regression",
     REGRESSION_INFERENCE: "regression",
     ANOMALY: "anomaly",
@@ -146,6 +150,7 @@ _target_types = {
 
 _class_labels = {
     (SKLEARN_BINARY, BINARY): ["Iris-setosa", "Iris-versicolor"],
+    (SKLEARN_BINARY, BINARY_SPACES): ["Iris setosa", "Iris versicolor"],
     (SKLEARN, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (XGB, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (KERAS, BINARY): ["Iris-setosa", "Iris-versicolor"],

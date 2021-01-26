@@ -44,6 +44,7 @@ from .constants import (
     XGB,
     BINARY_BOOL,
     TRANSFORM,
+    BINARY_SPACES,
 )
 from datarobot_drum.resource.utils import (
     _cmd_add_class_labels,
@@ -142,6 +143,7 @@ class TestFit:
             (SKLEARN_ANOMALY, ANOMALY, DOCKER_PYTHON_SKLEARN),
             (SKLEARN_MULTICLASS, MULTICLASS, DOCKER_PYTHON_SKLEARN),
             (SKLEARN_BINARY, BINARY_TEXT, None),
+            (SKLEARN_BINARY, BINARY_SPACES, None),
             (SKLEARN_REGRESSION, REGRESSION, None),
             (SKLEARN_ANOMALY, ANOMALY, None),
             (SKLEARN_MULTICLASS, MULTICLASS, None),
