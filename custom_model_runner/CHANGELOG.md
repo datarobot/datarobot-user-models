@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Changes
 - bugfix to prevent resampling of data
 - surface warning but don't error out if prediction consistency check fails
+- apply --skip-predict if SKIP_PREDICT env var is present
 ##### Fixed
 - don't fail on spaces in binary class labels in prediction checks
 
