@@ -115,6 +115,13 @@ def main():
             if sub_parser is None:
                 return
 
+            import pydevd_pycharm
+            pydevd_pycharm.settrace('localhost', port=40099, stdoutToServer=True, stderrToServer=True)
+
+            skip_predict = os.environ.get('SKIP_PREDICT')
+            if skip_predict is not None:
+                sys.argv.extend([ArgumentsOptions.SKIP_PREDICT])
+
             for env_var_key in ArgumentOptionsEnvVars.VALUE_VARS + ArgumentOptionsEnvVars.BOOL_VARS:
                 env_var_value = os.environ.get(env_var_key)
                 if env_var_value is not None and len(env_var_value) == 0:
