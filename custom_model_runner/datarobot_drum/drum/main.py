@@ -115,12 +115,6 @@ def main():
             if sub_parser is None:
                 return
 
-            import pydevd_pycharm
-
-            pydevd_pycharm.settrace(
-                "localhost", port=40099, stdoutToServer=True, stderrToServer=True
-            )
-
             skip_predict = os.environ.get("SKIP_PREDICT")
             if skip_predict is not None:
                 sys.argv.extend([ArgumentsOptions.SKIP_PREDICT])
