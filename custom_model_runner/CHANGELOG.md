@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - bugfix to prevent resampling of data
 - surface warning but don't error out if prediction consistency check fails
 - SKIP_PREDICT env var in fit.sh to bypass pred checks
+##### Fixed
+- don't fail on spaces in binary class labels in prediction checks
 
 #### [1.4.11]
 ##### Changes
