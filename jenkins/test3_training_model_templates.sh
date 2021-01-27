@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -ex
+
 CDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
 DRUM_BUILDER_IMAGE="datarobot/drum-builder"
 echo $CDIR
@@ -30,8 +32,7 @@ do
   cp $DRUM_WHEEL_REAL_PATH .
 
   # check if DRUM is installed with R option
-  grep "datarobot-drum\[R\]" dr_requirements.txt
-  if [ $? -eq 0 ]
+  if grep -q "datarobot-drum\[R\]" dr_requirements.txt
   then
     WITH_R="[R]"
   fi
