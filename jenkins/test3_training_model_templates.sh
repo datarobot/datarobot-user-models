@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-set -ex
-
 CDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
 DRUM_BUILDER_IMAGE="datarobot/drum-builder"
 echo $CDIR
