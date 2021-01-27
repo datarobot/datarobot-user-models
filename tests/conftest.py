@@ -96,8 +96,12 @@ _datasets = {
         TESTS_DATA_PATH, "10k_diabetes_sample.csv"
     ),
     (None, BINARY_SPACES): os.path.join(TESTS_DATA_PATH, "iris_with_spaces.csv"),
-    (SKLEARN_REGRESSION, TARGET_NAME_DUPLICATED_X): os.path.join(TESTS_DATA_PATH, 'target_name_duplicated_X.csv'),
-    (SKLEARN_REGRESSION, TARGET_NAME_DUPLICATED_Y): os.path.join(TESTS_DATA_PATH, 'target_name_duplicated_y.csv'),
+    (SKLEARN_REGRESSION, TARGET_NAME_DUPLICATED_X): os.path.join(
+        TESTS_DATA_PATH, "target_name_duplicated_X.csv"
+    ),
+    (SKLEARN_REGRESSION, TARGET_NAME_DUPLICATED_Y): os.path.join(
+        TESTS_DATA_PATH, "target_name_duplicated_y.csv"
+    ),
 }
 
 _training_models_paths = {
