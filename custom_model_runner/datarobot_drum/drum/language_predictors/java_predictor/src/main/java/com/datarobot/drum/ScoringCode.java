@@ -1,4 +1,4 @@
-package com.datarobot.custom;
+package com.datarobot.drum;
 
 import com.datarobot.prediction.IClassificationPredictor;
 import com.datarobot.prediction.IPredictorInfo;

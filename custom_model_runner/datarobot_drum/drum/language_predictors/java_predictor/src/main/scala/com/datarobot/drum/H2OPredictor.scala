@@ -1,4 +1,4 @@
-package com.datarobot.custom
+package com.datarobot.drum
 
 // h2o dependencies
 import hex.genmodel.GenModel

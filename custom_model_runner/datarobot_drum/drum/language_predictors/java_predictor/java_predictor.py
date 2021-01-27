@@ -31,10 +31,10 @@ RUNNING_LANG_MSG = "Running environment language: Java."
 
 
 class JavaPredictor(BaseLanguagePredictor):
-    JAVA_COMPONENT_ENTRY_POINT_CLASS = "com.datarobot.custom.PredictorEntryPoint"
-    JAVA_COMPONENT_CLASS_NAME_DATAROBOT = "com.datarobot.custom.ScoringCode"
-    JAVA_COMPONENT_CLASS_NAME_H2O = "com.datarobot.custom.H2OPredictor"
-    JAVA_COMPONENT_CLASS_NAME_H2O_PIPELINE = "com.datarobot.custom.H2OPredictorPipeline"
+    JAVA_COMPONENT_ENTRY_POINT_CLASS = "com.datarobot.drum.PredictorEntryPoint"
+    JAVA_COMPONENT_CLASS_NAME_DATAROBOT = "com.datarobot.drum.ScoringCode"
+    JAVA_COMPONENT_CLASS_NAME_H2O = "com.datarobot.drum.H2OPredictor"
+    JAVA_COMPONENT_CLASS_NAME_H2O_PIPELINE = "com.datarobot.drum.H2OPredictorPipeline"
 
     java_class_by_ext = {
         JavaArtifacts.JAR_EXTENSION: JAVA_COMPONENT_CLASS_NAME_DATAROBOT,

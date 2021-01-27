@@ -1,7 +1,7 @@
-package com.datarobot.custom;
+package com.datarobot.drum;
 
 import org.apache.log4j.PatternLayout;
-import com.datarobot.custom.BasePredictor;
+import com.datarobot.drum.BasePredictor;
 import py4j.GatewayServer;
 
 import net.sourceforge.argparse4j.ArgumentParsers;

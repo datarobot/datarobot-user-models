@@ -1,4 +1,4 @@
-package com.datarobot.custom
+package com.datarobot.drum
 
 import ai.h2o.mojos.runtime.MojoPipeline;
 import ai.h2o.mojos.runtime.frame.MojoFrame;
