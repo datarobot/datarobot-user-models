@@ -44,8 +44,6 @@ do
 done
 popd
 
-export PYTHONPATH=$PYTHONPATH:./custom_model_runner
-
 # installing DRUM into the test env is required for push test
 pip install -U $DRUM_WHEEL_REAL_PATH
 # requirements_test may install newer packages for testing, e.g. `datarobot`
