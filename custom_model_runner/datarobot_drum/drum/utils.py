@@ -156,6 +156,8 @@ def shared_fit_preprocessing(fit_class):
             ), "Your input data has {} entries, but your target data has {} entries".format(
                 len(df), len(y_unsampled)
             )
+            if y_unsampled.columns[0] in df.columns:
+                y_unsampled.columns = ["__target__"]
             df = df.merge(y_unsampled, left_index=True, right_index=True)
             assert len(y_unsampled.columns.values) == 1
             fit_class.target_name = y_unsampled.columns.values[0]

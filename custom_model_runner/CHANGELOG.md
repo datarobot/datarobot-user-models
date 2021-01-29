@@ -9,11 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - apply --skip-predict if SKIP_PREDICT env var is present
 ##### Fixed
 - don't fail on spaces in binary class labels in prediction checks
+- fix error where X has colname '0' and target is unnamed
 
 #### [1.4.12] - 2021-01-19
 ##### Changes
 - bugfix to prevent resampling of data
 - surface warning but don't error out if prediction consistency check fails
+##### Fixed
+- don't fail on spaces in binary class labels in prediction checks
 
 #### [1.4.11] - 2021-01-14
 ##### Changes
