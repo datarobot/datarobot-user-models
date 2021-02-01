@@ -1,15 +1,15 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.datarobot.custom</groupId>
-    <artifactId>custom-scoring-code</artifactId>
+    <groupId>com.datarobot.drum</groupId>
+    <artifactId>predictors</artifactId>
     <packaging>jar</packaging>
     <build>
         <finalName>${project.artifactId}</finalName>
     </build>
 
     <version>1.0</version>
-    <name>custom-scoring-code</name>
+    <name>predictors</name>
     <url>http://maven.apache.org</url>
     <properties>
         <componentDirectory>${basedir}</componentDirectory>
