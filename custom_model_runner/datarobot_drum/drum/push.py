@@ -4,7 +4,13 @@ from pathlib import Path
 
 import datarobot as dr_client
 
-from datarobot_drum.drum.common import RunMode, MODEL_CONFIG_FILENAME, TargetType
+from datarobot_drum.drum.common import (
+    RunMode,
+    MODEL_CONFIG_FILENAME,
+    TargetType,
+    validate_config_fields,
+    ModelMetadataKeys,
+)
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 DR_LINK_FORMAT = "{}/model-registry/custom-models/{}"
@@ -47,12 +53,12 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
             "as your pip index. "
         )
     dr_client.Client(token=token, endpoint=endpoint)
-    if "modelID" in model_config:
-        model_id = model_config["modelID"]
+    if ModelMetadataKeys.MODEL_ID in model_config:
+        model_id = model_config[ModelMetadataKeys.MODEL_ID]
     else:
         model_id = CustomTrainingModel.create(
-            name=model_config["name"],
-            target_type=_convert_target_type(model_config["targetType"]),
+            name=model_config[ModelMetadataKeys.NAME],
+            target_type=_convert_target_type(model_config[ModelMetadataKeys.TARGET_TYPE]),
             description=model_config.get("description", "Pushed from DRUM"),
         ).id
         print(
@@ -63,9 +69,9 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
     try:
         model_version = dr_client.CustomModelVersion.create_clean(
             model_id,
-            base_environment_id=model_config["environmentID"],
+            base_environment_id=model_config[ModelMetadataKeys.ENVIRONMENT_ID],
             folder_path=code_dir,
-            is_major_update=model_config.get("majorVersion", True),
+            is_major_update=model_config.get(ModelMetadataKeys.MAJOR_VERSION, True),
         )
     except dr_client.errors.ClientError as e:
         print("Error adding model with ID {} and dir {}: {}".format(model_id, code_dir, str(e)))
@@ -111,34 +117,34 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
 
 def _push_inference(model_config, code_dir, token=None, endpoint=None):
     dr_client.Client(token=token, endpoint=endpoint)
-    if "inferenceModel" not in model_config:
-        raise DrumCommonException(
-            "You must include the inferenceModel top level key for custom infernece models"
-        )
-    if "targetName" not in model_config["inferenceModel"]:
-        raise DrumCommonException(
-            "For inference models, you must include targetName under the inferenceModel key"
-        )
-    if "modelID" in model_config:
-        model_id = model_config["modelID"]
+    if ModelMetadataKeys.MODEL_ID in model_config:
+        model_id = model_config[ModelMetadataKeys.MODEL_ID]
     else:
         create_params = dict(
-            name=model_config["name"],
-            target_type=_convert_target_type(model_config["targetType"]),
-            target_name=model_config["inferenceModel"]["targetName"],
-            description=model_config.get("description", "Pushed from DRUM"),
+            name=model_config[ModelMetadataKeys.NAME],
+            target_type=_convert_target_type(model_config[ModelMetadataKeys.TARGET_TYPE]),
+            target_name=model_config[ModelMetadataKeys.INFERENCE_MODEL]["targetName"],
+            description=model_config.get(ModelMetadataKeys.DESCRIPTION, "Pushed from DRUM"),
         )
-        if model_config["targetType"] == TargetType.BINARY.value:
+        if model_config[ModelMetadataKeys.TARGET_TYPE] == TargetType.BINARY.value:
             create_params.update(
                 dict(
-                    positive_class_label=model_config["inferenceModel"].get("positiveClassLabel"),
-                    negative_class_label=model_config["inferenceModel"].get("negativeClassLabel"),
-                    prediction_threshold=model_config["inferenceModel"].get("predictionThreshold"),
+                    positive_class_label=model_config[ModelMetadataKeys.INFERENCE_MODEL].get(
+                        "positiveClassLabel"
+                    ),
+                    negative_class_label=model_config[ModelMetadataKeys.INFERENCE_MODEL].get(
+                        "negativeClassLabel"
+                    ),
+                    prediction_threshold=model_config[ModelMetadataKeys.INFERENCE_MODEL].get(
+                        "predictionThreshold"
+                    ),
                 )
             )
-        elif model_config["targetType"] == TargetType.MULTICLASS.value:
-            class_labels = model_config["inferenceModel"].get("classLabels")
-            class_labels_file = model_config["inferenceModel"].get("classLabelsFile")
+        elif model_config[ModelMetadataKeys.TARGET_TYPE] == TargetType.MULTICLASS.value:
+            class_labels = model_config[ModelMetadataKeys.INFERENCE_MODEL].get("classLabels")
+            class_labels_file = model_config[ModelMetadataKeys.INFERENCE_MODEL].get(
+                "classLabelsFile"
+            )
             if not ((class_labels is None) ^ (class_labels_file is None)):
                 raise DrumCommonException(
                     "Multiclass inference models must specify either classLabels or classLabelsFile"
@@ -150,9 +156,9 @@ def _push_inference(model_config, code_dir, token=None, endpoint=None):
         model_id = dr_client.CustomInferenceModel.create(**create_params).id
     dr_client.CustomModelVersion.create_clean(
         custom_model_id=model_id,
-        base_environment_id=model_config["environmentID"],
+        base_environment_id=model_config[ModelMetadataKeys.ENVIRONMENT_ID],
         folder_path=code_dir,
-        is_major_update=model_config.get("majorVersion", True),
+        is_major_update=model_config.get(ModelMetadataKeys.MAJOR_VERSION, True),
     )
     _print_model_started_dialogue(model_id)
 
@@ -210,6 +216,7 @@ def _setup_inference_validation(config, options):
 
 def setup_validation_options(options):
     model_config = _get_metadata(options)
+    validate_config_fields(model_config, ModelMetadataKeys.VALIDATION)
     if model_config["type"] == "training":
         return _setup_training_validation(model_config, options)
     elif model_config["type"] == "inference":
@@ -222,9 +229,12 @@ def drum_push(options):
     model_config = _get_metadata(options)
 
     if model_config["type"] == "training":
+        validate_config_fields(model_config, ModelMetadataKeys.ENVIRONMENT_ID)
         _push_training(model_config, options.code_dir)
-
     elif model_config["type"] == "inference":
+        validate_config_fields(
+            model_config, ModelMetadataKeys.ENVIRONMENT_ID, ModelMetadataKeys.INFERENCE_MODEL
+        )
         _push_inference(model_config, options.code_dir)
     else:
         raise DrumCommonException("Unsupported type")

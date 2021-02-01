@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import tempfile
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -11,7 +12,6 @@ from pandas.testing import assert_frame_equal
 import pyarrow
 import pytest
 import responses
-import strictyaml
 
 from datarobot_drum.drum.drum import (
     possibly_intuit_order,
@@ -21,7 +21,13 @@ from datarobot_drum.drum.drum import (
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.push import _push_inference, _push_training
-from datarobot_drum.drum.common import MODEL_CONFIG_SCHEMA, TargetType
+from datarobot_drum.drum.common import (
+    read_model_metadata_yaml,
+    MODEL_CONFIG_FILENAME,
+    TargetType,
+    validate_config_fields,
+    ModelMetadataKeys,
+)
 from datarobot_drum.drum.utils import StructuredInputReadUtils
 
 
@@ -175,6 +181,19 @@ def training_metadata_yaml_with_proj():
     ).format(environmentID=environmentID, projectID=projectID)
 
 
+@pytest.fixture
+def custom_predictor_metadata_yaml():
+    return dedent(
+        """
+        name: model-with-custom-java-predictor
+        type: inference
+        targetType: regression
+        customPredictor:
+           arbitraryField: This info is read directly by a custom predictor
+        """
+    )
+
+
 version_response = {
     "id": "1",
     "custom_model_id": "1",
@@ -183,6 +202,51 @@ version_response = {
     "is_frozen": False,
     "items": [{"id": "1", "file_name": "hi", "file_path": "hi", "file_source": "hi"}],
 }
+
+
+@pytest.mark.parametrize(
+    "config_yaml",
+    [
+        "custom_predictor_metadata_yaml",
+        "training_metadata_yaml",
+        "training_metadata_yaml_with_proj",
+        "inference_metadata_yaml",
+        "inference_multiclass_metadata_yaml",
+        "inference_multiclass_metadata_yaml_label_file",
+    ],
+)
+@pytest.mark.parametrize("existing_model_id", [None, modelID])
+def test_yaml_metadata(request, config_yaml, existing_model_id):
+    config_yaml = request.getfixturevalue(config_yaml)
+    if existing_model_id:
+        config_yaml = config_yaml + "\nmodelID: {}".format(existing_model_id)
+
+    try:
+        temp_dir = tempfile.mkdtemp()
+        with open(os.path.join(temp_dir, MODEL_CONFIG_FILENAME), mode="w") as f:
+            f.write(config_yaml)
+        read_model_metadata_yaml(temp_dir)
+    finally:
+        shutil.rmtree(temp_dir)
+
+
+def test_yaml_metadata_missing_fields(custom_predictor_metadata_yaml):
+    try:
+        temp_dir = tempfile.mkdtemp()
+        with open(os.path.join(temp_dir, MODEL_CONFIG_FILENAME), mode="w") as f:
+            f.write(custom_predictor_metadata_yaml)
+        conf = read_model_metadata_yaml(temp_dir)
+        with pytest.raises(
+            DrumCommonException, match="Missing keys: \['validation', 'environmentID'\]"
+        ):
+            validate_config_fields(
+                conf,
+                ModelMetadataKeys.CUSTOM_PREDICTOR,
+                ModelMetadataKeys.VALIDATION,
+                ModelMetadataKeys.ENVIRONMENT_ID,
+            )
+    finally:
+        shutil.rmtree(temp_dir)
 
 
 def version_mocks():
@@ -296,7 +360,14 @@ def test_push(request, config_yaml, existing_model_id, multiclass_labels):
     config_yaml = request.getfixturevalue(config_yaml)
     if existing_model_id:
         config_yaml = config_yaml + "\nmodelID: {}".format(existing_model_id)
-    config = strictyaml.load(config_yaml, MODEL_CONFIG_SCHEMA).data
+
+    try:
+        temp_dir = tempfile.mkdtemp()
+        with open(os.path.join(temp_dir, MODEL_CONFIG_FILENAME), mode="w") as f:
+            f.write(config_yaml)
+        config = read_model_metadata_yaml(temp_dir)
+    finally:
+        shutil.rmtree(temp_dir)
 
     version_mocks()
     mock_post_blueprint()

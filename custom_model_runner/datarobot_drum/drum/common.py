@@ -4,8 +4,9 @@ import sys
 
 from contextlib import contextmanager
 from enum import Enum
-from strictyaml import Bool, Int, Map, Optional, Str, load, YAMLError, Seq
+from strictyaml import Bool, Int, Map, Optional, Str, load, YAMLError, Seq, Any
 from pathlib import Path
+from datarobot_drum.drum.exceptions import DrumCommonException
 
 DEBUG = os.environ.get("DEBUG")
 
@@ -270,17 +271,35 @@ def config_logging():
     logging.basicConfig(format="%(asctime)-15s %(levelname)s %(name)s:  %(message)s")
 
 
+class ModelMetadataKeys(object):
+    NAME = "name"
+    TYPE = "type"
+    TARGET_TYPE = "targetType"
+    ENVIRONMENT_ID = "environmentID"
+    VALIDATION = "validation"
+    MODEL_ID = "modelID"
+    DESCRIPTION = "description"
+    MAJOR_VERSION = "majorVersion"
+    INFERENCE_MODEL = "inferenceModel"
+    TRAINING_MODEL = "trainingModel"
+    # customPredictor section is not used by DRUM,
+    # it is a place holder if user wants to add some fields and read them on his own
+    CUSTOM_PREDICTOR = "customPredictor"
+
+
 MODEL_CONFIG_SCHEMA = Map(
     {
-        "name": Str(),
-        "type": Str(),
-        "environmentID": Str(),
-        "targetType": Str(),
-        "validation": Map({"input": Str(), Optional("targetName"): Str()}),
-        Optional("modelID"): Str(),
-        Optional("description"): Str(),
-        Optional("majorVersion"): Bool(),
-        Optional("inferenceModel"): Map(
+        ModelMetadataKeys.NAME: Str(),
+        ModelMetadataKeys.TYPE: Str(),
+        ModelMetadataKeys.TARGET_TYPE: Str(),
+        Optional(ModelMetadataKeys.ENVIRONMENT_ID): Str(),
+        Optional(ModelMetadataKeys.VALIDATION): Map(
+            {"input": Str(), Optional("targetName"): Str()}
+        ),
+        Optional(ModelMetadataKeys.MODEL_ID): Str(),
+        Optional(ModelMetadataKeys.DESCRIPTION): Str(),
+        Optional(ModelMetadataKeys.MAJOR_VERSION): Bool(),
+        Optional(ModelMetadataKeys.INFERENCE_MODEL): Map(
             {
                 "targetName": Str(),
                 Optional("positiveClassLabel"): Str(),
@@ -290,9 +309,23 @@ MODEL_CONFIG_SCHEMA = Map(
                 Optional("predictionThreshold"): Int(),
             }
         ),
-        Optional("trainingModel"): Map({Optional("trainOnProject"): Str()}),
+        Optional(ModelMetadataKeys.TRAINING_MODEL): Map({Optional("trainOnProject"): Str()}),
+        Optional(ModelMetadataKeys.CUSTOM_PREDICTOR): Any(),
     }
 )
+
+
+def validate_config_fields(model_config, *fields):
+    missing_sections = []
+    for f in fields:
+        if f not in model_config:
+            missing_sections.append(f)
+
+    if len(missing_sections):
+        raise DrumCommonException(
+            "The following keys are missing in {} file.\n"
+            "Missing keys: {}".format(MODEL_CONFIG_FILENAME, missing_sections)
+        )
 
 
 def read_model_metadata_yaml(code_dir):
