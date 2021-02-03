@@ -405,7 +405,7 @@ class CMRunnerArgsRegistry(object):
     def _reg_arg_timeout(*parsers):
         for parser in parsers:
             parser.add_argument(
-                ArgumentsOptions.TIMEOUT, type=int, default=180, help="Test case timeout"
+                ArgumentsOptions.TIMEOUT, type=int, default=600, help="Test case timeout"
             )
 
     @staticmethod
