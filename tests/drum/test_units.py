@@ -1,6 +1,5 @@
 import json
 import os
-import shutil
 import tempfile
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -215,38 +214,30 @@ version_response = {
         "inference_multiclass_metadata_yaml_label_file",
     ],
 )
-@pytest.mark.parametrize("existing_model_id", [None, modelID])
-def test_yaml_metadata(request, config_yaml, existing_model_id):
+@pytest.mark.parametrize("existing_model_id", [None])
+def test_yaml_metadata(request, config_yaml, existing_model_id, tmp_path):
     config_yaml = request.getfixturevalue(config_yaml)
     if existing_model_id:
         config_yaml = config_yaml + "\nmodelID: {}".format(existing_model_id)
 
-    try:
-        temp_dir = tempfile.mkdtemp()
-        with open(os.path.join(temp_dir, MODEL_CONFIG_FILENAME), mode="w") as f:
-            f.write(config_yaml)
-        read_model_metadata_yaml(temp_dir)
-    finally:
-        shutil.rmtree(temp_dir)
+    with open(os.path.join(tmp_path, MODEL_CONFIG_FILENAME), mode="w") as f:
+        f.write(config_yaml)
+    read_model_metadata_yaml(tmp_path)
 
 
-def test_yaml_metadata_missing_fields(custom_predictor_metadata_yaml):
-    try:
-        temp_dir = tempfile.mkdtemp()
-        with open(os.path.join(temp_dir, MODEL_CONFIG_FILENAME), mode="w") as f:
-            f.write(custom_predictor_metadata_yaml)
-        conf = read_model_metadata_yaml(temp_dir)
-        with pytest.raises(
-            DrumCommonException, match="Missing keys: \['validation', 'environmentID'\]"
-        ):
-            validate_config_fields(
-                conf,
-                ModelMetadataKeys.CUSTOM_PREDICTOR,
-                ModelMetadataKeys.VALIDATION,
-                ModelMetadataKeys.ENVIRONMENT_ID,
-            )
-    finally:
-        shutil.rmtree(temp_dir)
+def test_yaml_metadata_missing_fields(custom_predictor_metadata_yaml, tmp_path):
+    with open(os.path.join(tmp_path, MODEL_CONFIG_FILENAME), mode="w") as f:
+        f.write(custom_predictor_metadata_yaml)
+    conf = read_model_metadata_yaml(tmp_path)
+    with pytest.raises(
+        DrumCommonException, match="Missing keys: \['validation', 'environmentID'\]"
+    ):
+        validate_config_fields(
+            conf,
+            ModelMetadataKeys.CUSTOM_PREDICTOR,
+            ModelMetadataKeys.VALIDATION,
+            ModelMetadataKeys.ENVIRONMENT_ID,
+        )
 
 
 def version_mocks():
@@ -356,18 +347,14 @@ def mock_train_model():
     ],
 )
 @pytest.mark.parametrize("existing_model_id", [None, modelID])
-def test_push(request, config_yaml, existing_model_id, multiclass_labels):
+def test_push(request, config_yaml, existing_model_id, multiclass_labels, tmp_path):
     config_yaml = request.getfixturevalue(config_yaml)
     if existing_model_id:
         config_yaml = config_yaml + "\nmodelID: {}".format(existing_model_id)
 
-    try:
-        temp_dir = tempfile.mkdtemp()
-        with open(os.path.join(temp_dir, MODEL_CONFIG_FILENAME), mode="w") as f:
-            f.write(config_yaml)
-        config = read_model_metadata_yaml(temp_dir)
-    finally:
-        shutil.rmtree(temp_dir)
+    with open(os.path.join(tmp_path, MODEL_CONFIG_FILENAME), mode="w") as f:
+        f.write(config_yaml)
+    config = read_model_metadata_yaml(tmp_path)
 
     version_mocks()
     mock_post_blueprint()

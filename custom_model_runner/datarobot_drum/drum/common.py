@@ -321,7 +321,7 @@ def validate_config_fields(model_config, *fields):
         if f not in model_config:
             missing_sections.append(f)
 
-    if len(missing_sections):
+    if missing_sections:
         raise DrumCommonException(
             "The following keys are missing in {} file.\n"
             "Missing keys: {}".format(MODEL_CONFIG_FILENAME, missing_sections)
