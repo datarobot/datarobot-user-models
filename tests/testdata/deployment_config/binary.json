@@ -1,0 +1,18 @@
+{
+    "target": {
+        "class_mapping": [
+            [
+                "Iris-setosa", 
+                1
+            ], 
+            [
+                "Iris-versicolor", 
+                0
+            ]
+        ], 
+        "missing_maps_to": null, 
+        "name": "Species", 
+        "prediction_threshold": 0.5, 
+        "type": "Binary"
+    }
+}

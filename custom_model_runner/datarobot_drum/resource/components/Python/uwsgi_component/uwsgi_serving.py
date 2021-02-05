@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import sys
@@ -22,6 +23,7 @@ from datarobot_drum.drum.server import (
 )
 from datarobot_drum.drum.memory_monitor import MemoryMonitor
 from datarobot_drum.resource.predict_mixin import PredictMixin
+from datarobot_drum.resource.deployment_config_helpers import parse_validate_deployment_config_file
 
 
 class UwsgiServing(RESTfulComponent, PredictMixin):
@@ -33,6 +35,7 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
         self._run_language = None
         self._predictor = None
         self._target_type = None
+        self._deployment_config = None
 
         self._predict_calls_count = 0
 
@@ -70,6 +73,9 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
             "run_predictor_total", "finish", StatsOperation.SUB, "start"
         )
         self._memory_monitor = MemoryMonitor()
+        self._deployment_config = parse_validate_deployment_config_file(
+            self._params["deployment_config"]
+        )
 
         self._logger.info(
             "Configure component with input params, name: {}, params: {}".format(

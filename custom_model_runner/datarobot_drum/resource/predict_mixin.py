@@ -1,5 +1,6 @@
 from flask import request, Response
 from requests_toolbelt import MultipartEncoder
+
 import werkzeug
 
 
@@ -18,6 +19,8 @@ from datarobot_drum.resource.transform_helpers import (
     make_mtx_payload,
     make_csv_payload,
 )
+from datarobot_drum.resource.deployment_config_helpers import build_pps_response_json_str
+
 from datarobot_drum.resource.unstructured_helpers import (
     _resolve_incoming_unstructured_data,
     _resolve_outgoing_unstructured_data,
@@ -109,19 +112,24 @@ class PredictMixin:
             response = out_data
 
         else:
-            num_columns = len(out_data.columns)
-            # float32 is not JSON serializable, so cast to float, which is float64
-            out_data = out_data.astype("float")
-            if num_columns == 1:
-                # df.to_json() is much faster.
-                # But as it returns string, we have to assemble final json using strings.
-                df_json = out_data[REGRESSION_PRED_COLUMN].to_json(orient="records")
-                response = '{{"predictions":{df_json}}}'.format(df_json=df_json)
-            else:
+
+            def _build_drum_response_json_str(out_data):
+                if len(out_data.columns) == 1:
+                    out_data = out_data[REGRESSION_PRED_COLUMN]
                 # df.to_json() is much faster.
                 # But as it returns string, we have to assemble final json using strings.
                 df_json_str = out_data.to_json(orient="records")
                 response = '{{"predictions":{df_json}}}'.format(df_json=df_json_str)
+                return response
+
+            # float32 is not JSON serializable, so cast to float, which is float64
+            out_data = out_data.astype("float")
+            if self._deployment_config is not None:
+                response = build_pps_response_json_str(
+                    out_data, self._deployment_config, self._target_type
+                )
+            else:
+                response = _build_drum_response_json_str(out_data)
 
         response = Response(response, mimetype=PredictionServerMimetypes.APPLICATION_JSON)
 

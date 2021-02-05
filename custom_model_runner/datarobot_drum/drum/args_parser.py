@@ -508,6 +508,18 @@ class CMRunnerArgsRegistry(object):
                 help="MLOps setting to use for connecting with the MLOps Agent (env: MONITOR_SETTINGS)",
             )
 
+    @staticmethod
+    def _reg_args_deployment_config(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.DEPLOYMENT_CONFIG,
+                default=None,
+                type=CMRunnerArgsRegistry._is_valid_file,
+                help="Provide deployment configuration file to return prediction response in DR PPS format. The argument can also be provided by setting {} env var.".format(
+                    ArgumentOptionsEnvVars.DEPLOYMENT_CONFIG
+                ),
+            )
+
     # TODO: restrict params to be used with unstructured target type only
     @staticmethod
     def _reg_args_unstructured_mode(*parsers):
@@ -801,6 +813,8 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_args_unstructured_mode(
             score_parser, perf_test_parser, server_parser, validation_parser
         )
+
+        CMRunnerArgsRegistry._reg_args_deployment_config(server_parser)
 
         return parser
 

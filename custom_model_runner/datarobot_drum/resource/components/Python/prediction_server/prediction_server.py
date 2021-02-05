@@ -6,7 +6,9 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.memory_monitor import MemoryMonitor
 from datarobot_drum.drum.common import RunLanguage, TARGET_TYPE_ARG_KEYWORD, TargetType
+from datarobot_drum.resource.deployment_config_helpers import parse_validate_deployment_config_file
 from datarobot_drum.resource.predict_mixin import PredictMixin
+
 
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
@@ -27,6 +29,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         self._run_language = None
         self._predictor = None
         self._target_type = None
+        self._deployment_config = None
 
     def configure(self, params):
         super(PredictionServer, self).configure(params)
@@ -40,6 +43,9 @@ class PredictionServer(ConnectableComponent, PredictMixin):
             "run_predictor_total", "finish", StatsOperation.SUB, "start"
         )
         self._memory_monitor = MemoryMonitor(monitor_current_process=True)
+        self._deployment_config = parse_validate_deployment_config_file(
+            self._params["deployment_config"]
+        )
 
         if self._run_language == RunLanguage.PYTHON:
             from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (

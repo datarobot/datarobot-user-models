@@ -71,6 +71,7 @@ class DrumServerRun:
         fail_on_shutdown_error=True,
         pass_args_as_env_vars=False,
         verbose=True,
+        append_cmd=None,
     ):
         port = CMRunnerUtils.find_free_port()
         self.server_address = "localhost:{}".format(port)
@@ -115,6 +116,10 @@ class DrumServerRun:
                 os.environ[ArgumentOptionsEnvVars.PRODUCTION] = "1"
             else:
                 cmd += " --production"
+
+        if append_cmd is not None:
+            cmd += " " + append_cmd
+
         self._cmd = cmd
 
         self._process_object_holder = DrumServerProcess()

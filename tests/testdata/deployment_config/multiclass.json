@@ -1,0 +1,22 @@
+{
+    "target": {
+        "class_mapping": [
+            [
+                "GALAXY", 
+                0
+            ], 
+            [
+                "QSO", 
+                1
+            ], 
+            [
+                "STAR", 
+                2
+            ]
+        ], 
+        "missing_maps_to": null, 
+        "name": "class", 
+        "prediction_threshold": 0.5, 
+        "type": "Multiclass"
+    }
+}
