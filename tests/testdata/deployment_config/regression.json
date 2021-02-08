@@ -1,0 +1,9 @@
+{
+    "target": {
+        "class_mapping": null, 
+        "missing_maps_to": null, 
+        "name": "MEDV", 
+        "prediction_threshold": 0.5, 
+        "type": "Regression"
+    }
+}

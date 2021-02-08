@@ -151,6 +151,7 @@ class ArgumentsOptions:
     DEPLOYMENT_ID = "--deployment-id"
     MODEL_ID = "--model-id"
     MONITOR_SETTINGS = "--monitor-settings"
+    DEPLOYMENT_CONFIG = "--deployment-config"
     QUERY = "--query"
     CONTENT_TYPE = "--content-type"
     WITH_ERROR_SERVER = "--with-error-server"
@@ -184,6 +185,7 @@ class ArgumentOptionsEnvVars:
     CLASS_LABELS = "CLASS_LABELS"
     ADDRESS = "ADDRESS"
     MAX_WORKERS = "MAX_WORKERS"
+    DEPLOYMENT_CONFIG = "DEPLOYMENT_CONFIG"
 
     MONITOR = "MONITOR"
     WITH_ERROR_SERVER = "WITH_ERROR_SERVER"
@@ -201,6 +203,7 @@ class ArgumentOptionsEnvVars:
         CLASS_LABELS,
         ADDRESS,
         MAX_WORKERS,
+        DEPLOYMENT_CONFIG,
     ]
     BOOL_VARS = [WITH_ERROR_SERVER, SHOW_STACKTRACE, PRODUCTION, MONITOR, SKIP_PREDICT]
 
