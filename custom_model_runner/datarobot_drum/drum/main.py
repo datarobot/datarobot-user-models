@@ -110,6 +110,8 @@ def main():
                         return True
                 return False
 
+            if len(sys.argv) == 1:
+                return
             sub_parser_command = sys.argv[1]
             sub_parser = CMRunnerArgsRegistry._parsers.get(sub_parser_command)
             if sub_parser is None:

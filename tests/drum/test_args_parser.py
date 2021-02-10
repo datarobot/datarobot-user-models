@@ -4,7 +4,36 @@ from tempfile import NamedTemporaryFile
 from unittest.mock import patch
 
 import pytest
+
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
+from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.resource.utils import _exec_shell_cmd
+
+
+class TestDrumHelp:
+    @pytest.mark.parametrize(
+        "cmd",
+        [
+            "{}".format(ArgumentsOptions.MAIN_COMMAND),
+            "{} --help".format(ArgumentsOptions.MAIN_COMMAND),
+        ],
+    )
+    def test_drum_help(self, cmd):
+        _, stdo, _ = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+        assert "usage: drum" in str(stdo)
+
+    def test_drum_bad_subparser(self):
+        cmd = ("{} some_command".format(ArgumentsOptions.MAIN_COMMAND),)
+        _, _, stde = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+        assert "argument subparser_name: invalid choice: 'some_command'" in str(stde)
 
 
 class TestMulticlassLabelsParser(object):

@@ -523,25 +523,21 @@ class CMRunTests:
 
         results = {}
 
-        for column_name in column_names:
-            with NamedTemporaryFile(
-                mode="w",
-                dir=null_datasets_dir,
-                prefix="null_value_imputation_{}_".format(column_name),
-                delete=False,
-            ) as temp_f:
-                temp_data_name = temp_f.name
-                df_tmp = df.copy()
-                df_tmp[column_name] = None
-                df_tmp.to_csv(temp_data_name, index=False)
-                CMRunnerUtils.replace_cmd_argument_value(
-                    cmd_list, ArgumentsOptions.INPUT, temp_data_name
-                )
+        for i, column_name in enumerate(column_names):
+            tmp_dataset_file_path = os.path.join(
+                null_datasets_dir, "null_value_imputation_column{}".format(i)
+            )
+            df_tmp = df.copy()
+            df_tmp[column_name] = None
+            df_tmp.to_csv(tmp_dataset_file_path, index=False)
+            CMRunnerUtils.replace_cmd_argument_value(
+                cmd_list, ArgumentsOptions.INPUT, tmp_dataset_file_path
+            )
 
-                p = subprocess.Popen(cmd_list, env=os.environ)
-                retcode = p.wait()
-                if retcode != 0:
-                    results[column_name] = ValidationTestResult(temp_data_name, retcode)
+            p = subprocess.Popen(cmd_list, env=os.environ)
+            retcode = p.wait()
+            if retcode != 0:
+                results[column_name] = ValidationTestResult(tmp_dataset_file_path, retcode)
 
         table = Texttable()
         table.set_deco(Texttable.HEADER)
