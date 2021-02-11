@@ -23,6 +23,7 @@ from tests.drum.constants import (
     PYTHON,
     PYTHON_ALL_PREDICT_STRUCTURED_HOOKS,
     PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS,
+    PYTHON_NO_ARTIFACT_REGRESSION_HOOKS,
     PYTHON_LOAD_MODEL,
     PYTHON_TRANSFORM,
     PYTHON_TRANSFORM_DENSE,
@@ -313,6 +314,10 @@ _custom_filepaths = {
     ),
     PYTHON_LOAD_MODEL: (
         os.path.join(TESTS_FIXTURES_PATH, "load_model_custom.py"),
+        "custom.py",
+    ),
+    PYTHON_NO_ARTIFACT_REGRESSION_HOOKS: (
+        os.path.join(TESTS_FIXTURES_PATH, "no_artifact_regression_custom.py"),
         "custom.py",
     ),
     R: (os.path.join(TESTS_FIXTURES_PATH, "custom.R"), "custom.R"),
