@@ -694,6 +694,20 @@ class CMRunnerArgsRegistry(object):
         return parser
 
     @staticmethod
+    def _register_subcommand_check_docker(subparsers):
+        description = """
+        Verify that expected entries are present in the Docker file for your custom environment.  
+        """
+        parser = subparsers.add_parser(
+            ArgumentsOptions.CHECK_DOCKER,
+            help="Check for required entries in a docker file for a custom environment.",
+            description=description,
+            formatter_class=argparse.RawDescriptionHelpFormatter,
+        )
+        CMRunnerArgsRegistry._parsers[ArgumentsOptions.CHECK_DOCKER] = parser
+        return parser
+
+    @staticmethod
     def get_arg_parser():
         parser = argparse.ArgumentParser(description="Run user model")
         CMRunnerArgsRegistry._parsers[ArgumentsOptions.MAIN_COMMAND] = parser
@@ -708,6 +722,7 @@ class CMRunnerArgsRegistry(object):
         validation_parser = CMRunnerArgsRegistry._register_subcommand_validation(subparsers)
         server_parser = CMRunnerArgsRegistry._register_subcommand_server(subparsers)
         new_parser = CMRunnerArgsRegistry._register_subcommand_new(subparsers)
+        check_docker_parser = CMRunnerArgsRegistry._register_subcommand_check_docker(subparsers)
 
         new_subparsers = new_parser.add_subparsers(
             dest=CMRunnerArgsRegistry.NEW_SUBPARSER_DEST_KEYWORD, help="Commands"
@@ -762,6 +777,7 @@ class CMRunnerArgsRegistry(object):
             fit_parser,
             validation_parser,
             push_parser,
+            check_docker_parser,
         )
         CMRunnerArgsRegistry._reg_arg_memory(
             score_parser,
@@ -903,5 +919,9 @@ class CMRunnerArgsRegistry(object):
                         )
                     )
                     exit(1)
-
+        elif options.subparser_name == ArgumentsOptions.CHECK_DOCKER:
+            if not options.docker or options.docker is None:
+                CMRunnerArgsRegistry._parsers[ArgumentsOptions.CHECK_DOCKER].print_help()
+                exit(1)
+            options.code_dir = None
         CMRunnerArgsRegistry.verify_monitoring_options(options, options.subparser_name)

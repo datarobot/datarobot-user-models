@@ -174,6 +174,7 @@ class ArgumentsOptions:
     NEW_ENV = "env"
     VALIDATION = "validation"
     PUSH = "push"
+    CHECK_DOCKER = "docker-check"
 
 
 class ArgumentOptionsEnvVars:
@@ -217,6 +218,7 @@ class RunMode(Enum):
     NEW = ArgumentsOptions.NEW
     PUSH = ArgumentsOptions.PUSH
     NEW_MODEL = "new_model"
+    CHECK_DOCKER = ArgumentsOptions.CHECK_DOCKER
 
 
 class RunLanguage(Enum):

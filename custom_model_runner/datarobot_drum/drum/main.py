@@ -41,6 +41,8 @@ from datarobot_drum.drum.common import (
 )
 from datarobot_drum.drum.runtime import DrumRuntime
 
+from custom_model_runner.datarobot_drum.drum.docker_validation import validate_docker_file
+
 
 def main():
     with DrumRuntime() as runtime:
@@ -160,9 +162,13 @@ def main():
         else:
             signal.signal(signal.SIGINT, signal_handler)
 
-        from datarobot_drum.drum.drum import CMRunner
+        if runtime.options.subparser_name == ArgumentsOptions.CHECK_DOCKER:
+            # To verify the docker file the CMRunner is not needed.
+            validate_docker_file(runtime.options.docker)
+        else:
+            from datarobot_drum.drum.drum import CMRunner
 
-        CMRunner(runtime).run()
+            CMRunner(runtime).run()
 
 
 if __name__ == "__main__":
