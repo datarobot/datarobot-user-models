@@ -54,18 +54,18 @@ class RPredictor(BaseLanguagePredictor):
         self,
     ):
         super(RPredictor, self).__init__()
+        self._r_positive_class_label = ro.rinterface.NULL
+        self._r_negative_class_label = ro.rinterface.NULL
+        self._r_class_labels = ro.rinterface.NULL
 
     def configure(self, params):
         super(RPredictor, self).configure(params)
 
-        if self._positive_class_label is None:
-            self._positive_class_label = ro.rinterface.NULL
-        if self._negative_class_label is None:
-            self._negative_class_label = ro.rinterface.NULL
-        if self._class_labels is None:
-            self._class_labels = ro.rinterface.NULL
-        else:
-            self._class_labels = StrVector(self._class_labels)
+        self._r_positive_class_label = self._positive_class_label or ro.rinterface.NULL
+        self._r_negative_class_label = self._negative_class_label or ro.rinterface.NULL
+        self._r_class_labels = (
+            ro.rinterface.NULL if self._class_labels is None else StrVector(self._class_labels)
+        )
 
         r_handler.source(R_COMMON_PATH)
         r_handler.source(R_SCORE_PATH)
@@ -105,9 +105,9 @@ class RPredictor(BaseLanguagePredictor):
             else ro.vectors.ByteVector(input_binary_data),
             mimetype=ro.rinterface.NULL if mimetype is None else mimetype,
             model=self._model,
-            positive_class_label=self._positive_class_label,
-            negative_class_label=self._negative_class_label,
-            class_labels=self._class_labels,
+            positive_class_label=self._r_positive_class_label,
+            negative_class_label=self._r_negative_class_label,
+            class_labels=self._r_class_labels,
         )
         with localconverter(ro.default_converter + pandas2ri.converter):
             py_data_object = ro.conversion.rpy2py(predictions)
