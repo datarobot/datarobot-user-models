@@ -28,12 +28,12 @@ class BaseLanguagePredictor(ABC):
         self._positive_class_label = None
         self._negative_class_label = None
         self._class_labels = None
-        self._custom_model_path = None
+        self._code_dir = None
         self._params = None
         self._mlops = None
 
     def configure(self, params):
-        self._custom_model_path = params["__custom_model_path__"]
+        self._code_dir = params["__custom_model_path__"]
         self._positive_class_label = params.get("positiveClassLabel")
         self._negative_class_label = params.get("negativeClassLabel")
         self._class_labels = params.get("classLabels")

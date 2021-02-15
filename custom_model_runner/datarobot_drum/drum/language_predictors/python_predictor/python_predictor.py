@@ -26,10 +26,10 @@ class PythonPredictor(BaseLanguagePredictor):
         super(PythonPredictor, self).configure(params)
 
         self._model_adapter = PythonModelAdapter(
-            model_dir=self._custom_model_path, target_type=self._target_type
+            model_dir=self._code_dir, target_type=self._target_type
         )
 
-        sys.path.append(self._custom_model_path)
+        sys.path.append(self._code_dir)
         self._model_adapter.load_custom_hooks()
         self._model = self._model_adapter.load_model_from_artifact()
         if self._model is None:
