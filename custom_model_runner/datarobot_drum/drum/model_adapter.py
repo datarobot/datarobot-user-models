@@ -30,6 +30,7 @@ from datarobot_drum.drum.common import (
     SupportedPayloadFormats,
     StructuredDtoKeys,
     get_pyarrow_module,
+    ModelInfoKeys,
 )
 from datarobot_drum.drum.utils import StructuredInputReadUtils
 from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
@@ -312,6 +313,13 @@ class PythonModelAdapter:
         if pa is not None:
             formats.add(PayloadFormat.ARROW, pa.__version__)
         return formats
+
+    def model_info(self):
+        return {
+            ModelInfoKeys.PREDICTOR: None
+            if self._predictor_to_use is None
+            else self._predictor_to_use.name,
+        }
 
     def load_data(self, binary_data, mimetype, try_hook=True):
 

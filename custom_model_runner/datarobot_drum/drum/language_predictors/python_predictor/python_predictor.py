@@ -39,6 +39,11 @@ class PythonPredictor(BaseLanguagePredictor):
     def supported_payload_formats(self):
         return self._model_adapter.supported_payload_formats
 
+    def model_info(self):
+        model_info = super(PythonPredictor, self).model_info()
+        model_info.update(self._model_adapter.model_info())
+        return model_info
+
     def has_read_input_data_hook(self):
         return self._model_adapter.has_read_input_data_hook()
 

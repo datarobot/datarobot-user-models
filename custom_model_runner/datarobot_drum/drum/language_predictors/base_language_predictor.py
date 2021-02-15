@@ -7,6 +7,7 @@ from datarobot_drum.drum.common import (
     LOGGER_NAME_PREFIX,
     TargetType,
     StructuredDtoKeys,
+    ModelInfoKeys,
 )
 from datarobot_drum.drum.utils import StructuredInputReadUtils
 
@@ -99,3 +100,17 @@ class BaseLanguagePredictor(ABC):
     def has_read_input_data_hook(self):
         """ Check if read_input_data hook defined in predictor """
         pass
+
+    def model_info(self):
+        model_info = {
+            ModelInfoKeys.TARGET_TYPE: self._target_type.value,
+            ModelInfoKeys.CODE_DIR: self._code_dir,
+        }
+
+        if self._target_type == TargetType.BINARY:
+            model_info.update({ModelInfoKeys.POSITIVE_CLASS_LABEL: self._positive_class_label})
+            model_info.update({ModelInfoKeys.NEGATIVE_CLASS_LABEL: self._negative_class_label})
+        elif self._target_type == TargetType.MULTICLASS:
+            model_info.update({ModelInfoKeys.CLASS_LABELS: self._class_labels})
+
+        return model_info

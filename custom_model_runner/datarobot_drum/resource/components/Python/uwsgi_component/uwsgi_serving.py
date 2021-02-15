@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import sys
@@ -7,14 +6,17 @@ from mlpiper.components.restful.flask_route import FlaskRoute
 from mlpiper.components.restful_component import RESTfulComponent
 from mlpiper.components.restful.metric import Metric, MetricType, MetricRelation
 
+
 from datarobot_drum.drum.common import (
     RunLanguage,
     URL_PREFIX_ENV_VAR_NAME,
     TARGET_TYPE_ARG_KEYWORD,
     make_predictor_capabilities,
     TargetType,
+    read_model_metadata_yaml,
 )
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
+from datarobot_drum.drum.description import version as drum_version
 
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
@@ -122,6 +124,16 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
     )
     def capabilities(self, url_params, form_params):
         return HTTP_200_OK, make_predictor_capabilities(self._predictor.supported_payload_formats)
+
+    @FlaskRoute("{}/info/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
+    def info(self, url_params, form_params):
+        model_info = self._predictor.model_info()
+        model_info.update({"language": self._run_language.value})
+        model_info.update({"drum version": drum_version})
+        model_info.update({"drum server": "nginx + uwsgi"})
+        model_info.update({"model metadata": read_model_metadata_yaml(self._code_dir)})
+
+        return HTTP_200_OK, model_info
 
     @FlaskRoute("{}/health/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def health(self, url_params, form_params):

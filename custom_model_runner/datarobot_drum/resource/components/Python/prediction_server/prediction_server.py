@@ -1,11 +1,20 @@
 import logging
 from mlpiper.components.connectable_component import ConnectableComponent
 
-from datarobot_drum.drum.common import LOGGER_NAME_PREFIX, make_predictor_capabilities
+from datarobot_drum.drum.common import (
+    LOGGER_NAME_PREFIX,
+    make_predictor_capabilities,
+    RunLanguage,
+    TARGET_TYPE_ARG_KEYWORD,
+    TargetType,
+    read_model_metadata_yaml,
+    ModelInfoKeys,
+)
+from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.memory_monitor import MemoryMonitor
-from datarobot_drum.drum.common import RunLanguage, TARGET_TYPE_ARG_KEYWORD, TargetType
+
 from datarobot_drum.resource.deployment_config_helpers import parse_validate_deployment_config_file
 from datarobot_drum.resource.predict_mixin import PredictMixin
 
@@ -29,10 +38,12 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         self._run_language = None
         self._predictor = None
         self._target_type = None
+        self._code_dir = None
         self._deployment_config = None
 
     def configure(self, params):
         super(PredictionServer, self).configure(params)
+        self._code_dir = self._params.get("__custom_model_path__")
         self._show_perf = self._params.get("show_perf")
         self._run_language = RunLanguage(params.get("run_language"))
         self._target_type = TargetType(params[TARGET_TYPE_ARG_KEYWORD])
@@ -78,6 +89,18 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         @model_api.route("/capabilities/", methods=["GET"])
         def capabilities():
             return make_predictor_capabilities(self._predictor.supported_payload_formats)
+
+        @model_api.route("/info/", methods=["GET"])
+        def info():
+            model_info = self._predictor.model_info()
+            model_info.update({ModelInfoKeys.LANGUANGE: self._run_language.value})
+            model_info.update({ModelInfoKeys.DRUM_VERSION: drum_version})
+            model_info.update({ModelInfoKeys.DRUM_SERVER: "flask"})
+            model_info.update(
+                {ModelInfoKeys.MODEL_METADATA: read_model_metadata_yaml(self._code_dir)}
+            )
+
+            return model_info, HTTP_200_OK
 
         @model_api.route("/health/", methods=["GET"])
         def health():

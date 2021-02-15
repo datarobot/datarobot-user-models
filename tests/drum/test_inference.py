@@ -16,7 +16,10 @@ from datarobot_drum.drum.common import (
     PredictionServerMimetypes,
     X_TRANSFORM_KEY,
     Y_TRANSFORM_KEY,
+    ModelInfoKeys,
+    TargetType,
 )
+from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.resource.transform_helpers import (
     read_arrow_payload,
     read_mtx_payload,
@@ -173,6 +176,7 @@ class TestInference:
         "framework, problem, language, docker",
         [
             (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
+            (SKLEARN, REGRESSION, PYTHON, None),
             (SKLEARN, BINARY, PYTHON, None),
             (SKLEARN, MULTICLASS, PYTHON, None),
             (SKLEARN, MULTICLASS_BINARY, PYTHON, None),
@@ -254,6 +258,30 @@ class TestInference:
                     )
                     in_data = pd.read_csv(input_dataset)
                     assert in_data.shape[0] == actual_num_predictions
+            # test model info
+            response = requests.get(run.url_server_address + "/info/")
+
+            assert response.ok
+            response_dict = response.json()
+            for key in ModelInfoKeys.REQUIRED:
+                assert key in response_dict
+            assert response_dict[ModelInfoKeys.TARGET_TYPE] == resources.target_types(problem)
+            # Don't verify code dir when running with Docker.
+            # Local code dir is mapped into user-defined location within docker.
+            if docker is None:
+                assert response_dict[ModelInfoKeys.CODE_DIR] == str(custom_model_dir)
+            assert response_dict[ModelInfoKeys.DRUM_SERVER] == "flask"
+            assert response_dict[ModelInfoKeys.DRUM_VERSION] == drum_version
+
+            if resources.target_types(problem) == TargetType.BINARY.value:
+                assert ModelInfoKeys.POSITIVE_CLASS_LABEL in response_dict
+                assert ModelInfoKeys.NEGATIVE_CLASS_LABEL in response_dict
+            elif resources.target_types(problem) == TargetType.MULTICLASS.value:
+                assert ModelInfoKeys.CLASS_LABELS in response_dict
+
+            if framework == SKLEARN and problem == REGRESSION:
+                assert ModelInfoKeys.MODEL_METADATA in response_dict
+
         unset_drum_supported_env_vars()
 
     @pytest.mark.parametrize(
