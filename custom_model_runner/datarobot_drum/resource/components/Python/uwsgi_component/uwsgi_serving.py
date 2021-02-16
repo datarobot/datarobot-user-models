@@ -38,6 +38,7 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
         self._run_language = None
         self._predictor = None
         self._target_type = None
+        self._code_dir = None
         self._deployment_config = None
 
         self._predict_calls_count = 0
@@ -66,6 +67,7 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
         @brief      It is called in within the 'deputy' context
         """
         super(UwsgiServing, self).configure(params)
+        self._code_dir = self._params.get("__custom_model_path__")
         self._show_perf = self._params.get("show_perf")
         self._run_language = RunLanguage(params.get("run_language"))
         self._target_type = TargetType(params[TARGET_TYPE_ARG_KEYWORD])
