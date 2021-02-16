@@ -100,18 +100,18 @@ class InputFormatExtension:
 
 
 class ModelInfoKeys:
-    CODE_DIR = "code_dir"
-    TARGET_TYPE = "target_type"
+    CODE_DIR = "codeDir"
+    TARGET_TYPE = "targetType"
     PREDICTOR = "predictor"
-    LANGUANGE = "language"
-    DRUM_VERSION = "DRUM version"
-    DRUM_SERVER = "DRUM server"
-    MODEL_METADATA = "model metadata"
-    POSITIVE_CLASS_LABEL = "positive class label"
-    NEGATIVE_CLASS_LABEL = "negative class label"
-    CLASS_LABELS = "class labels"
+    LANGUAGE = "language"
+    DRUM_VERSION = "drumVersion"
+    DRUM_SERVER = "drumServer"
+    MODEL_METADATA = "modelMetadata"
+    POSITIVE_CLASS_LABEL = "positiveClassLabel"
+    NEGATIVE_CLASS_LABEL = "negativeClassLabel"
+    CLASS_LABELS = "classLabels"
 
-    REQUIRED = [CODE_DIR, TARGET_TYPE, LANGUANGE, DRUM_VERSION, DRUM_SERVER]
+    REQUIRED = [CODE_DIR, TARGET_TYPE, LANGUAGE, DRUM_VERSION, DRUM_SERVER]
 
 
 InputFormatToMimetype = {

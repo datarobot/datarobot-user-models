@@ -14,6 +14,7 @@ from datarobot_drum.drum.common import (
     make_predictor_capabilities,
     TargetType,
     read_model_metadata_yaml,
+    ModelInfoKeys,
 )
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.description import version as drum_version
@@ -128,10 +129,10 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
     @FlaskRoute("{}/info/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def info(self, url_params, form_params):
         model_info = self._predictor.model_info()
-        model_info.update({"language": self._run_language.value})
-        model_info.update({"drum version": drum_version})
-        model_info.update({"drum server": "nginx + uwsgi"})
-        model_info.update({"model metadata": read_model_metadata_yaml(self._code_dir)})
+        model_info.update({ModelInfoKeys.LANGUAGE: self._run_language.value})
+        model_info.update({ModelInfoKeys.DRUM_VERSION: drum_version})
+        model_info.update({ModelInfoKeys.DRUM_SERVER: "nginx + uwsgi"})
+        model_info.update({ModelInfoKeys.MODEL_METADATA: read_model_metadata_yaml(self._code_dir)})
 
         return HTTP_200_OK, model_info
 

@@ -402,6 +402,19 @@ class TestInference:
                     in_data = pd.read_csv(input_dataset)
                     assert in_data.shape[0] == actual_num_predictions
 
+            # test model info
+            response = requests.get(run.url_server_address + "/info/")
+
+            assert response.ok
+            response_dict = response.json()
+            for key in ModelInfoKeys.REQUIRED:
+                assert key in response_dict
+            assert response_dict[ModelInfoKeys.TARGET_TYPE] == resources.target_types(problem)
+            assert response_dict[ModelInfoKeys.DRUM_SERVER] == "nginx + uwsgi"
+            assert response_dict[ModelInfoKeys.DRUM_VERSION] == drum_version
+
+            assert ModelInfoKeys.MODEL_METADATA in response_dict
+
     @pytest.mark.parametrize(
         "framework, problem, language, docker, use_arrow",
         [

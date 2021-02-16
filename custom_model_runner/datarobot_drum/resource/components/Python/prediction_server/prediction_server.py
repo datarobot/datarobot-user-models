@@ -93,7 +93,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         @model_api.route("/info/", methods=["GET"])
         def info():
             model_info = self._predictor.model_info()
-            model_info.update({ModelInfoKeys.LANGUANGE: self._run_language.value})
+            model_info.update({ModelInfoKeys.LANGUAGE: self._run_language.value})
             model_info.update({ModelInfoKeys.DRUM_VERSION: drum_version})
             model_info.update({ModelInfoKeys.DRUM_SERVER: "flask"})
             model_info.update(
