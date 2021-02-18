@@ -629,7 +629,7 @@ class CMRunner:
         in_docker_fit_target_filename = "/opt/fit_target.csv"
         in_docker_fit_row_weights_filename = "/opt/fit_row_weights.csv"
 
-        docker_cmd = "docker run --rm --interactive --user $(id -u):$(id -g) "
+        docker_cmd = "docker run --rm --entrypoint '' --interactive --user $(id -u):$(id -g)"
         docker_cmd_args = " -v {}:{}".format(options.code_dir, in_docker_model)
 
         in_docker_cmd_list = raw_arguments
@@ -731,7 +731,17 @@ class CMRunner:
 
         self._print_verbose("Checking DRUM version in container...")
         result = subprocess.run(
-            ["docker", "run", "-it", options.docker, "sh", "-c", "drum --version"],
+            [
+                "docker",
+                "run",
+                "-it",
+                "--entrypoint",
+                "",
+                options.docker,
+                "sh",
+                "-c",
+                "drum --version",
+            ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
@@ -748,6 +758,10 @@ class CMRunner:
             if len(err):
                 print(err)
             time.sleep(0.5)
+        else:
+            self._print_verbose(
+                "Host DRUM version matches container DRUM version: {}".format(host_drum_version)
+            )
         self._print_verbose("-" * 20)
         p = subprocess.Popen(docker_cmd, shell=True)
         try:
@@ -777,8 +791,10 @@ class CMRunner:
                 # If image with the tag `my_env` exists, it will be untagged.
                 tag = os.path.basename(docker_image_or_directory)
                 client_docker_low_level = docker.APIClient()
-                spinner = Spinner('Building docker image: ')
-                for _ in client_docker_low_level.build(path=docker_image_or_directory, rm=True, tag=tag):
+                spinner = Spinner("Building docker image: ")
+                for _ in client_docker_low_level.build(
+                    path=docker_image_or_directory, rm=True, tag=tag
+                ):
                     spinner.next()
                 print("\nImage built, tag: {}\n".format(tag))
 
