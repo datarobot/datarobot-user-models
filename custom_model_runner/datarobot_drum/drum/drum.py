@@ -10,6 +10,7 @@ import tempfile
 import time
 from distutils.dir_util import copy_tree
 from pathlib import Path
+from progress.spinner import Spinner
 from tempfile import mkdtemp, NamedTemporaryFile
 
 import numpy as np
@@ -759,7 +760,6 @@ class CMRunner:
 
     def _maybe_build_image(self, docker_image_or_directory):
         ret_docker_image = None
-        client = docker.client.from_env()
 
         if os.path.isdir(docker_image_or_directory):
             docker_image_or_directory = os.path.abspath(docker_image_or_directory)
@@ -768,8 +768,21 @@ class CMRunner:
             )
             self.logger.info("This may take some time")
             try:
-                image, _ = client.images.build(path=docker_image_or_directory)
-                ret_docker_image = image.id
+                # Set image tag to the dirname of the docker context.
+                # This may be confusing if try to build different images from different contexts,
+                # with the same folder name:
+                # /path1/my_env
+                # /path2/my_env
+                #
+                # If image with the tag `my_env` exists, it will be untagged.
+                tag = os.path.basename(docker_image_or_directory)
+                client_docker_low_level = docker.APIClient()
+                spinner = Spinner('Building docker image: ')
+                for _ in client_docker_low_level.build(path=docker_image_or_directory, rm=True, tag=tag):
+                    spinner.next()
+                print("\nImage built, tag: {}\n".format(tag))
+
+                ret_docker_image = tag
             except docker.errors.BuildError as e:
                 self.logger.error("Hey something went wrong with image build!")
                 for line in e.build_log:
@@ -779,6 +792,7 @@ class CMRunner:
             self.logger.info("Done building image!")
         else:
             try:
+                client = docker.client.from_env()
                 client.images.get(docker_image_or_directory)
                 ret_docker_image = docker_image_or_directory
             except docker.errors.ImageNotFound:
