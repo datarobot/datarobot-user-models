@@ -1,4 +1,3 @@
-import json
 import logging
 import os
 import sys
@@ -7,14 +6,18 @@ from mlpiper.components.restful.flask_route import FlaskRoute
 from mlpiper.components.restful_component import RESTfulComponent
 from mlpiper.components.restful.metric import Metric, MetricType, MetricRelation
 
+
 from datarobot_drum.drum.common import (
     RunLanguage,
     URL_PREFIX_ENV_VAR_NAME,
     TARGET_TYPE_ARG_KEYWORD,
     make_predictor_capabilities,
     TargetType,
+    read_model_metadata_yaml,
+    ModelInfoKeys,
 )
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
+from datarobot_drum.drum.description import version as drum_version
 
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
@@ -35,6 +38,7 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
         self._run_language = None
         self._predictor = None
         self._target_type = None
+        self._code_dir = None
         self._deployment_config = None
 
         self._predict_calls_count = 0
@@ -63,6 +67,7 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
         @brief      It is called in within the 'deputy' context
         """
         super(UwsgiServing, self).configure(params)
+        self._code_dir = self._params.get("__custom_model_path__")
         self._show_perf = self._params.get("show_perf")
         self._run_language = RunLanguage(params.get("run_language"))
         self._target_type = TargetType(params[TARGET_TYPE_ARG_KEYWORD])
@@ -122,6 +127,16 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
     )
     def capabilities(self, url_params, form_params):
         return HTTP_200_OK, make_predictor_capabilities(self._predictor.supported_payload_formats)
+
+    @FlaskRoute("{}/info/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
+    def info(self, url_params, form_params):
+        model_info = self._predictor.model_info()
+        model_info.update({ModelInfoKeys.LANGUAGE: self._run_language.value})
+        model_info.update({ModelInfoKeys.DRUM_VERSION: drum_version})
+        model_info.update({ModelInfoKeys.DRUM_SERVER: "nginx + uwsgi"})
+        model_info.update({ModelInfoKeys.MODEL_METADATA: read_model_metadata_yaml(self._code_dir)})
+
+        return HTTP_200_OK, model_info
 
     @FlaskRoute("{}/health/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def health(self, url_params, form_params):

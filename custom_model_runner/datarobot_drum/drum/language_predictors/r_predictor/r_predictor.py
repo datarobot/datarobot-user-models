@@ -69,7 +69,7 @@ class RPredictor(BaseLanguagePredictor):
 
         r_handler.source(R_COMMON_PATH)
         r_handler.source(R_SCORE_PATH)
-        r_handler.init(self._custom_model_path, self._target_type.value)
+        r_handler.init(self._code_dir, self._target_type.value)
         if self._target_type == TargetType.UNSTRUCTURED:
             for hook_name in [
                 CustomHooks.LOAD_MODEL,
@@ -82,7 +82,7 @@ class RPredictor(BaseLanguagePredictor):
                         )
                     )
 
-        self._model = r_handler.load_serialized_model(self._custom_model_path)
+        self._model = r_handler.load_serialized_model(self._code_dir)
 
     @property
     def supported_payload_formats(self):

@@ -99,6 +99,21 @@ class InputFormatExtension:
     ARROW = ".arrow"
 
 
+class ModelInfoKeys:
+    CODE_DIR = "codeDir"
+    TARGET_TYPE = "targetType"
+    PREDICTOR = "predictor"
+    LANGUAGE = "language"
+    DRUM_VERSION = "drumVersion"
+    DRUM_SERVER = "drumServer"
+    MODEL_METADATA = "modelMetadata"
+    POSITIVE_CLASS_LABEL = "positiveClassLabel"
+    NEGATIVE_CLASS_LABEL = "negativeClassLabel"
+    CLASS_LABELS = "classLabels"
+
+    REQUIRED = [CODE_DIR, TARGET_TYPE, LANGUAGE, DRUM_VERSION, DRUM_SERVER]
+
+
 InputFormatToMimetype = {
     InputFormatExtension.MTX: PredictionServerMimetypes.TEXT_MTX,
     InputFormatExtension.ARROW: PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM,
