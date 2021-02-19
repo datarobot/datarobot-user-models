@@ -3,6 +3,7 @@ import glob
 import json
 import logging
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -777,9 +778,10 @@ class CMRunner:
 
         if os.path.isdir(docker_image_or_directory):
             docker_image_or_directory = os.path.abspath(docker_image_or_directory)
-            self.logger.info(
-                "Building a docker image from directory {}...".format(docker_image_or_directory)
+            docker_build_msg = "Building a docker image from directory: {}...".format(
+                docker_image_or_directory
             )
+            self.logger.info(docker_build_msg)
             self.logger.info("This may take some time")
             try:
                 # Set image tag to the dirname of the docker context.
@@ -791,19 +793,42 @@ class CMRunner:
                 # If image with the tag `my_env` exists, it will be untagged.
                 tag = os.path.basename(docker_image_or_directory)
                 client_docker_low_level = docker.APIClient()
-                spinner = Spinner("Building docker image: ")
-                for _ in client_docker_low_level.build(
+                spinner = Spinner(docker_build_msg + "  ")
+                json_lines = []
+                # Build docker, rotate spinner according to build progress
+                # and save status messages from docker build.
+                for line in client_docker_low_level.build(
                     path=docker_image_or_directory, rm=True, tag=tag
                 ):
+                    json_lines.append(json.loads(line.decode("utf-8").strip()))
                     spinner.next()
-                print("\nImage built, tag: {}\n".format(tag))
+                # skip a line after spinner
+                print()
 
-                ret_docker_image = tag
-            except docker.errors.BuildError as e:
-                self.logger.error("Hey something went wrong with image build!")
-                for line in e.build_log:
+                image_id = None
+                build_error = False
+                for line in json_lines:
+                    if "error" in line:
+                        build_error = True
+                        break
                     if "stream" in line:
-                        self.logger.error(line["stream"].strip())
+                        match = re.search(
+                            r"(^Successfully built |sha256:)([0-9a-f]+)$", line["stream"]
+                        )
+                        if match:
+                            image_id = match.group(2)
+                if image_id is None or build_error:
+                    all_lines = "   \n".join([json.dumps(l) for l in json_lines])
+                    raise DrumCommonException(
+                        "Failed to build a docker image:\n{}".format(all_lines)
+                    )
+
+                print("\nImage successfully built; tag: {}; image id: {}\n".format(tag, image_id))
+
+                ret_docker_image = image_id
+            except docker.errors.APIError as e:
+                self.logger.error("Hey something went wrong with image build!")
+                self.logger.error(str(e))
                 raise
             self.logger.info("Done building image!")
         else:
