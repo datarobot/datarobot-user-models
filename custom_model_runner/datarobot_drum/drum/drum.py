@@ -737,6 +737,7 @@ class CMRunner:
                 "run",
                 "-it",
                 "--entrypoint",
+                # provide emtpy entrypoint value to unset the one that could be set within the image
                 "",
                 options.docker,
                 "sh",
@@ -827,8 +828,7 @@ class CMRunner:
 
                 ret_docker_image = image_id
             except docker.errors.APIError as e:
-                self.logger.error("Hey something went wrong with image build!")
-                self.logger.error(str(e))
+                self.logger.exception("Image build failed because of unknown to DRUM reason!")
                 raise
             self.logger.info("Done building image!")
         else:
