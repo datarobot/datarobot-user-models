@@ -3,6 +3,7 @@ import glob
 import json
 import logging
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -10,6 +11,7 @@ import tempfile
 import time
 from distutils.dir_util import copy_tree
 from pathlib import Path
+from progress.spinner import Spinner
 from tempfile import mkdtemp, NamedTemporaryFile
 
 import numpy as np
@@ -628,7 +630,7 @@ class CMRunner:
         in_docker_fit_target_filename = "/opt/fit_target.csv"
         in_docker_fit_row_weights_filename = "/opt/fit_row_weights.csv"
 
-        docker_cmd = "docker run --rm --interactive --user $(id -u):$(id -g) "
+        docker_cmd = "docker run --rm --entrypoint '' --interactive --user $(id -u):$(id -g)"
         docker_cmd_args = " -v {}:{}".format(options.code_dir, in_docker_model)
 
         in_docker_cmd_list = raw_arguments
@@ -730,7 +732,18 @@ class CMRunner:
 
         self._print_verbose("Checking DRUM version in container...")
         result = subprocess.run(
-            ["docker", "run", "-it", options.docker, "sh", "-c", "drum --version"],
+            [
+                "docker",
+                "run",
+                "-it",
+                "--entrypoint",
+                # provide emtpy entrypoint value to unset the one that could be set within the image
+                "",
+                options.docker,
+                "sh",
+                "-c",
+                "drum --version",
+            ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
@@ -747,6 +760,10 @@ class CMRunner:
             if len(err):
                 print(err)
             time.sleep(0.5)
+        else:
+            self._print_verbose(
+                "Host DRUM version matches container DRUM version: {}".format(host_drum_version)
+            )
         self._print_verbose("-" * 20)
         p = subprocess.Popen(docker_cmd, shell=True)
         try:
@@ -759,26 +776,64 @@ class CMRunner:
 
     def _maybe_build_image(self, docker_image_or_directory):
         ret_docker_image = None
-        client = docker.client.from_env()
 
         if os.path.isdir(docker_image_or_directory):
             docker_image_or_directory = os.path.abspath(docker_image_or_directory)
-            self.logger.info(
-                "Building a docker image from directory {}...".format(docker_image_or_directory)
+            docker_build_msg = "Building a docker image from directory: {}...".format(
+                docker_image_or_directory
             )
+            self.logger.info(docker_build_msg)
             self.logger.info("This may take some time")
             try:
-                image, _ = client.images.build(path=docker_image_or_directory)
-                ret_docker_image = image.id
-            except docker.errors.BuildError as e:
-                self.logger.error("Hey something went wrong with image build!")
-                for line in e.build_log:
+                # Set image tag to the dirname of the docker context.
+                # This may be confusing if try to build different images from different contexts,
+                # with the same folder name:
+                # /path1/my_env
+                # /path2/my_env
+                #
+                # If image with the tag `my_env` exists, it will be untagged.
+                tag = os.path.basename(docker_image_or_directory)
+                client_docker_low_level = docker.APIClient()
+                spinner = Spinner(docker_build_msg + "  ")
+                json_lines = []
+                # Build docker, rotate spinner according to build progress
+                # and save status messages from docker build.
+                for line in client_docker_low_level.build(
+                    path=docker_image_or_directory, rm=True, tag=tag
+                ):
+                    json_lines.append(json.loads(line.decode("utf-8").strip()))
+                    spinner.next()
+                # skip a line after spinner
+                print()
+
+                image_id = None
+                build_error = False
+                for line in json_lines:
+                    if "error" in line:
+                        build_error = True
+                        break
                     if "stream" in line:
-                        self.logger.error(line["stream"].strip())
+                        match = re.search(
+                            r"(^Successfully built |sha256:)([0-9a-f]+)$", line["stream"]
+                        )
+                        if match:
+                            image_id = match.group(2)
+                if image_id is None or build_error:
+                    all_lines = "   \n".join([json.dumps(l) for l in json_lines])
+                    raise DrumCommonException(
+                        "Failed to build a docker image:\n{}".format(all_lines)
+                    )
+
+                print("\nImage successfully built; tag: {}; image id: {}\n".format(tag, image_id))
+
+                ret_docker_image = image_id
+            except docker.errors.APIError as e:
+                self.logger.exception("Image build failed because of unknown to DRUM reason!")
                 raise
             self.logger.info("Done building image!")
         else:
             try:
+                client = docker.client.from_env()
                 client.images.get(docker_image_or_directory)
                 ret_docker_image = docker_image_or_directory
             except docker.errors.ImageNotFound:

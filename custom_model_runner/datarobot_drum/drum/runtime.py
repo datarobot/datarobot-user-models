@@ -41,6 +41,7 @@ class DrumRuntime:
             and not (run_mode == RunMode.SERVER and self.options.with_error_server)
         ):
             if exc_type == DrumCommonException:
+                print()
                 print(exc_value)
                 exit(1)
             return False
