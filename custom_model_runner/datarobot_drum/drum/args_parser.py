@@ -330,9 +330,24 @@ class CMRunnerArgsRegistry(object):
                 required=False,
                 help="Docker image to use to run {} in the {} mode, "
                 "or a directory, containing a Dockerfile, "
-                "which can be built into a docker image. ".format(
-                    ArgumentsOptions.MAIN_COMMAND, prog_name_lst[1]
+                "which can be built into a docker image. "
+                "If code dir contains requirements.txt file, DRUM tries to install dependencies during image build. "
+                "For Python/R models only. Use {} to skip installation.".format(
+                    ArgumentsOptions.MAIN_COMMAND,
+                    prog_name_lst[1],
+                    ArgumentsOptions.SKIP_DEPS_INSTALL,
                 ),
+            )
+
+    @staticmethod
+    def _reg_arg_skip_deps_install(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.SKIP_DEPS_INSTALL,
+                default=False,
+                action="store_true",
+                required=False,
+                help="Skip dependencies installation during image build.",
             )
 
     @staticmethod
@@ -756,6 +771,14 @@ class CMRunnerArgsRegistry(object):
             score_parser, server_parser, fit_parser, new_parser, new_model_parser, push_parser
         )
         CMRunnerArgsRegistry._reg_arg_docker(
+            score_parser,
+            perf_test_parser,
+            server_parser,
+            fit_parser,
+            validation_parser,
+            push_parser,
+        )
+        CMRunnerArgsRegistry._reg_arg_skip_deps_install(
             score_parser,
             perf_test_parser,
             server_parser,

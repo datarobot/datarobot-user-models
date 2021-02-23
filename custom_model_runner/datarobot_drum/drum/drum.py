@@ -182,8 +182,6 @@ class CMRunner:
             or bool(custom_language) + bool(artifact_language) == 2
             and custom_language != artifact_language
         ):
-            artifact_language = "None" if artifact_language is None else artifact_language.value
-            custom_language = "None" if custom_language is None else custom_language.value
             error_mes = (
                 "Can not detect language by artifacts and/or custom.py/R files.\n"
                 "Detected: language by artifacts - {}; language by custom - {}.\n"
@@ -193,8 +191,8 @@ class CMRunner:
                 "R models: {}\n"
                 "Java models: {}.\n"
                 "Or one of custom.py/R files.".format(
-                    artifact_language,
-                    custom_language,
+                    "None" if artifact_language is None else artifact_language.value,
+                    "None" if custom_language is None else custom_language.value,
                     PythonArtifacts.ALL,
                     RArtifacts.ALL,
                     JavaArtifacts.ALL,
@@ -209,6 +207,7 @@ class CMRunner:
             raise DrumCommonException(error_mes)
 
         run_language = custom_language if custom_language is not None else artifact_language
+        self.options.language = run_language.value
         return run_language
 
     def _get_fit_run_language(self):
@@ -638,6 +637,7 @@ class CMRunner:
         in_docker_cmd_list[1] = run_mode.value
 
         CMRunnerUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.DOCKER)
+        CMRunnerUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.SKIP_DEPS_INSTALL)
 
         if options.memory:
             docker_cmd_args += " --memory {mem_size} --memory-swap {mem_size} ".format(
@@ -728,6 +728,7 @@ class CMRunner:
         return docker_cmd
 
     def _run_inside_docker(self, options, run_mode, raw_arguments):
+        self._check_artifacts_and_get_run_language()
         docker_cmd = self._prepare_docker_command(options, run_mode, raw_arguments)
 
         self._print_verbose("Checking DRUM version in container...")
@@ -775,24 +776,65 @@ class CMRunner:
         return retcode
 
     def _maybe_build_image(self, docker_image_or_directory):
-        ret_docker_image = None
+        def _get_requirements_lines(reqs_file_path):
+            if not os.path.exists(reqs_file_path):
+                return None
 
+            with open(reqs_file_path) as f:
+                lines = f.readlines()
+                lines = [l.strip() for l in lines]
+            return lines
+
+        ret_docker_image = None
         if os.path.isdir(docker_image_or_directory):
             docker_image_or_directory = os.path.abspath(docker_image_or_directory)
+            # Set image tag to the dirname of the docker context.
+            # This may be confusing if try to build different images from different contexts,
+            # with the same folder name:
+            # /path1/my_env
+            # /path2/my_env
+            #
+            # If image with the tag `my_env` exists, it will be untagged.
+            tag = os.path.basename(os.path.abspath(docker_image_or_directory))
+
+            lines = _get_requirements_lines(os.path.join(self.options.code_dir, "requirements.txt"))
+            temp_context_dir = None
+            if lines is not None and not self.options.skip_deps_install:
+                temp_context_dir = tempfile.mkdtemp()
+                shutil.rmtree(temp_context_dir)
+                shutil.copytree(docker_image_or_directory, temp_context_dir)
+                print(
+                    "Requirements file has been found in the code dir. DRUM will try to install dependencies into a docker image."
+                )
+                print(
+                    "Docker context has been copied from: {} to: {}".format(
+                        docker_image_or_directory, temp_context_dir
+                    )
+                )
+                docker_image_or_directory = temp_context_dir
+
+                with open(os.path.join(temp_context_dir, "Dockerfile"), mode="a") as f:
+                    if self.options.language == RunLanguage.PYTHON.value:
+                        f.write("\nRUN pip3 install {}".format(" ".join(lines)))
+                    elif self.options.language == RunLanguage.R.value:
+                        l1 = "\nRUN echo \"r <- getOption('repos'); r['CRAN'] <- 'http://cran.rstudio.com/'; options(repos = r);\" > ~/.Rprofile"
+                        l2 = "\nRUN Rscript -e \"withCallingHandlers(install.packages(c('stringi', 'stringr', 'pack'), Ncpus=4), warning = function(w) stop(w))\""
+                        f.write(l1)
+                        f.write(l2)
+                    else:
+                        msg = "Dependencies management is not supported for the '{}' language and will not be installed into an image".format(
+                            self.options.language
+                        )
+                        self.logger.warning(msg)
+                        print(msg)
+
             docker_build_msg = "Building a docker image from directory: {}...".format(
                 docker_image_or_directory
             )
             self.logger.info(docker_build_msg)
             self.logger.info("This may take some time")
+
             try:
-                # Set image tag to the dirname of the docker context.
-                # This may be confusing if try to build different images from different contexts,
-                # with the same folder name:
-                # /path1/my_env
-                # /path2/my_env
-                #
-                # If image with the tag `my_env` exists, it will be untagged.
-                tag = os.path.basename(docker_image_or_directory)
                 client_docker_low_level = docker.APIClient()
                 spinner = Spinner(docker_build_msg + "  ")
                 json_lines = []
@@ -826,12 +868,20 @@ class CMRunner:
                         "Failed to build a docker image:\n{}".format(all_lines)
                     )
 
-                print("\nImage successfully built; tag: {}; image id: {}\n".format(tag, image_id))
+                print("\nImage successfully built; tag: {}; image id: {}".format(tag, image_id))
+                print(
+                    "It is recommended to use --docker {}, if you don't need to rebuild the image.\n".format(
+                        tag
+                    )
+                )
 
                 ret_docker_image = image_id
             except docker.errors.APIError as e:
                 self.logger.exception("Image build failed because of unknown to DRUM reason!")
                 raise
+            finally:
+                if temp_context_dir is not None:
+                    shutil.rmtree(temp_context_dir)
             self.logger.info("Done building image!")
         else:
             try:

@@ -1,18 +1,36 @@
+import os
+import pandas as pd
 import pytest
 import re
+import shutil
 from textwrap import dedent
+
+from tempfile import NamedTemporaryFile
 
 
 from datarobot_drum.drum.common import (
     ArgumentsOptions,
 )
 
+
 from datarobot_drum.resource.utils import (
+    _cmd_add_class_labels,
     _exec_shell_cmd,
 )
 
+from tests.drum.constants import (
+    BINARY,
+    CODEGEN,
+    UNSTRUCTURED,
+    PYTORCH,
+    REGRESSION,
+    MULTICLASS,
+    MODEL_TEMPLATES_PATH,
+    PUBLIC_DROPIN_ENVS_PATH,
+)
 
-class TestInference:
+
+class TestDrumDocker:
     @pytest.mark.parametrize(
         "docker_build_fails",
         [True, False],
@@ -75,3 +93,89 @@ class TestInference:
                 ),
                 stdo,
             )
+
+    @pytest.mark.parametrize(
+        "framework, problem, code_dir, env_dir, skip_deps_install",
+        [
+            (PYTORCH, MULTICLASS, "inference/python3_pytorch_multiclass", "python3_pytorch", False),
+            (PYTORCH, MULTICLASS, "inference/python3_pytorch_multiclass", "python3_pytorch", True),
+            (None, UNSTRUCTURED, "inference/r_unstructured", "r_lang", False),
+            (None, UNSTRUCTURED, "inference/r_unstructured", "r_lang", True),
+            (CODEGEN, REGRESSION, "inference/java_codegen", "java_codegen", False),
+            (CODEGEN, REGRESSION, "inference/java_codegen", "java_codegen", True),
+        ],
+    )
+    def test_docker_image_with_deps_install(
+        self,
+        resources,
+        framework,
+        problem,
+        code_dir,
+        env_dir,
+        skip_deps_install,
+        tmp_path,
+    ):
+
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, code_dir)
+        if framework == CODEGEN and not skip_deps_install:
+            tmp_dir = tmp_path / "docker_context"
+            custom_model_dir = shutil.copytree(custom_model_dir, tmp_dir)
+            with open(os.path.join(custom_model_dir, "requirements.txt"), mode="w") as f:
+                f.write("deps_are_not_supported_in_java")
+        docker_env = os.path.join(PUBLIC_DROPIN_ENVS_PATH, env_dir)
+        input_dataset = resources.datasets(framework, problem)
+
+        output = tmp_path / "output"
+
+        cmd = '{} score --code-dir {} --input "{}" --output {} --target-type {}'.format(
+            ArgumentsOptions.MAIN_COMMAND,
+            custom_model_dir,
+            input_dataset,
+            output,
+            resources.target_types(problem),
+        )
+        if resources.target_types(problem) in [BINARY, MULTICLASS]:
+            cmd = _cmd_add_class_labels(
+                cmd,
+                resources.class_labels(framework, problem),
+                target_type=resources.target_types(problem),
+                multiclass_label_file=None,
+            )
+        cmd += " --docker {} --verbose ".format(docker_env)
+
+        if skip_deps_install:
+            cmd += " --skip-deps-install"
+
+        _, stdo, stde = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+
+        if skip_deps_install:
+            # requirements.txt is not supported for java models, so test should pass
+            if framework == CODEGEN:
+                in_data = pd.read_csv(input_dataset)
+                out_data = pd.read_csv(output)
+                assert in_data.shape[0] == out_data.shape[0]
+            else:
+                assert re.search(
+                    r"ERROR drum:  Error from docker process:",
+                    stde,
+                )
+        else:
+            if framework is None and problem == UNSTRUCTURED:
+                with open(output) as f:
+                    out_data = f.read()
+                    assert "10" in out_data
+            elif framework == PYTORCH and problem == MULTICLASS:
+                in_data = pd.read_csv(input_dataset)
+                out_data = pd.read_csv(output)
+                assert in_data.shape[0] == out_data.shape[0]
+            elif framework == CODEGEN and problem == REGRESSION:
+                assert re.search(
+                    r"WARNING drum:  Dependencies management is not supported for the 'java' language and will not be installed into an image",
+                    stde,
+                )
+            else:
+                assert False
