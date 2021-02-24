@@ -98,7 +98,7 @@ class CMRunnerUtils:
     def delete_cmd_argument(cls, cmd_list, arg_name):
         try:
             ind = cmd_list.index(arg_name)
-            # Handle case when no value argument, like --slip-deps-install,
+            # Handle case when no value argument, like --skip-deps-install,
             # has to be deleted and it is the last in the list
             if len(cmd_list) == ind + 1 or cmd_list[ind + 1].startswith("--"):
                 del cmd_list[ind : ind + 1]
