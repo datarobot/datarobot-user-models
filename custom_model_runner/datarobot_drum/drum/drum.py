@@ -801,8 +801,10 @@ class CMRunner:
                 for line in client_docker_low_level.build(
                     path=docker_image_or_directory, rm=True, tag=tag
                 ):
-                    json_lines.append(json.loads(line.decode("utf-8").strip()))
+                    line = line.decode("utf-8").strip()
+                    json_lines.extend([json.loads(ll) for ll in line.split("\n")])
                     spinner.next()
+                spinner.finish()
                 # skip a line after spinner
                 print()
 
