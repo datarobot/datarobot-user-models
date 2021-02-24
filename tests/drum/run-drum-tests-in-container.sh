@@ -24,15 +24,39 @@ echo
 echo "--> Building wheel"
 echo
 make clean && make
-CMRUNNER_WHEEL=$(find dist/datarobot_drum*.whl)
-CMRUNNER_WHEEL_REAL_PATH=$(realpath $CMRUNNER_WHEEL)
+DRUM_WHEEL=$(find dist/datarobot_drum*.whl)
+DRUM_WHEEL_FILENAME=$(basename $DRUM_WHEEL)
+DRUM_WHEEL_REAL_PATH=$(realpath $DRUM_WHEEL)
 
-echo "CMRUNNER_WHEEL_REAL_PATH: $CMRUNNER_WHEEL_REAL_PATH"
+echo "DRUM_WHEEL_REAL_PATH: $DRUM_WHEEL_REAL_PATH"
 
 echo
 echo "--> Installing wheel"
 echo
-pip install "${CMRUNNER_WHEEL}[R]"
+pip install "${DRUM_WHEEL}[R]"
+popd
+
+
+# Change every environment Dockerfile to install freshly built DRUM wheel
+WITH_R=""
+pushd $GIT_ROOT/public_dropin_environments
+DIRS=$(ls)
+for d in $DIRS
+do
+  pushd $d
+  cp $DRUM_WHEEL_REAL_PATH .
+
+  # check if DRUM is installed with R option
+  if grep "datarobot-drum\[R\]" dr_requirements.txt
+  then
+    WITH_R="[R]"
+  fi
+  # insert 'COPY wheel wheel' after 'COPY dr_requirements.txt dr_requirements.txt'
+  sed -i "/COPY \+dr_requirements.txt \+dr_requirements.txt/a COPY ${DRUM_WHEEL_FILENAME} ${DRUM_WHEEL_FILENAME}" Dockerfile
+  # replace 'datarobot-drum' requirement with a wheel
+  sed -i "s/^datarobot-drum.*/${DRUM_WHEEL_FILENAME}${WITH_R}/" dr_requirements.txt
+  popd
+done
 popd
 
 echo
@@ -58,7 +82,7 @@ CMRUNNER_REQUIREMENT_PATH=$GIT_ROOT/custom_model_runner/requirements_dev.txt
 # shellcheck disable=SC2218
 build_docker_image_with_cmrun tests/fixtures/cmrun_docker_env \
                                cmrunner_test_env_python_sklearn \
-                               $CMRUNNER_WHEEL_REAL_PATH \
+                               $DRUM_WHEEL_REAL_PATH \
                                $CMRUNNER_REQUIREMENT_PATH || exit 1
 
 echo

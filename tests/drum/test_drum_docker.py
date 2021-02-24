@@ -75,6 +75,10 @@ class TestDrumDocker:
             docker_context_path,
         )
 
+        # In docker mode we try to resolve language.
+        # As code dir is a fake, explicitly provide language.
+        cmd += " --language python"
+
         _, stdo, _ = _exec_shell_cmd(
             cmd,
             "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
