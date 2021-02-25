@@ -788,14 +788,17 @@ class CMRunner:
         ret_docker_image = None
         if os.path.isdir(docker_image_or_directory):
             docker_image_or_directory = os.path.abspath(docker_image_or_directory)
-            # Set image tag to the dirname of the docker context.
-            # This may be confusing if try to build different images from different contexts,
-            # with the same folder name:
-            # /path1/my_env
-            # /path2/my_env
+            # Set image tag to the dirname/dirname of the docker context.
+            # E.g. for two folders:
+            # /home/path1/my_env
+            # /home/path2/my_env
+            # tags will be 'path1/my_env', 'path2/my_env'
             #
-            # If image with the tag `my_env` exists, it will be untagged.
-            tag = os.path.basename(os.path.abspath(docker_image_or_directory))
+            # If tag already exists, older image will be untagged.
+            context_path = os.path.abspath(docker_image_or_directory)
+            tag = "{}/{}".format(
+                os.path.basename(os.path.dirname(context_path)), os.path.basename(context_path)
+            )
 
             lines = _get_requirements_lines(os.path.join(self.options.code_dir, "requirements.txt"))
             temp_context_dir = None

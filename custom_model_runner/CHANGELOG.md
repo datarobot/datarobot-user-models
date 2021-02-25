@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### [1.4.17] - 2021-02-24
 ##### Added
-- install dependencies if there is requirements.tx in model folder
+- install dependencies into an image if there is a requirements.txt file in the code dir
 
 #### [1.4.16] - 2021-02-18
 ##### Added

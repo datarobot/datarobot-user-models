@@ -329,10 +329,10 @@ class CMRunnerArgsRegistry(object):
                 default=None,
                 required=False,
                 help="Docker image to use to run {} in the {} mode, "
-                "or a directory, containing a Dockerfile, "
-                "which can be built into a docker image. "
-                "If code dir contains requirements.txt file, DRUM tries to install dependencies during image build. "
-                "For Python/R models only. Use {} to skip installation.".format(
+                "or a directory, containing a Dockerfile, which can be built into a docker image. "
+                "If code dir contains requirements.txt file, DRUM tries to install dependencies during image build. (Reflects the DR App behavior.) "
+                "Requirements installation is supported for Python/R models only. "
+                "Use {} to skip installation.".format(
                     ArgumentsOptions.MAIN_COMMAND,
                     prog_name_lst[1],
                     ArgumentsOptions.SKIP_DEPS_INSTALL,
@@ -347,8 +347,10 @@ class CMRunnerArgsRegistry(object):
                 default=False,
                 action="store_true",
                 required=False,
-                help="Skip dependencies installation during image build.",
-            )
+                help="Skip dependencies installation during the image build. "
+                "If code dir contains requirements.txt file, DRUM tries to install dependencies during image build. (Reflects the DR App behavior.) "
+                "Provide this argument to skip dependencies installation.",
+            ),
 
     @staticmethod
     def _reg_arg_memory(*parsers):
