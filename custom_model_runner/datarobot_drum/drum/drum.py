@@ -803,14 +803,15 @@ class CMRunner:
                 temp_context_dir = tempfile.mkdtemp()
                 shutil.rmtree(temp_context_dir)
                 shutil.copytree(docker_image_or_directory, temp_context_dir)
-                print(
-                    "Requirements file has been found in the code dir. DRUM will try to install dependencies into a docker image."
-                )
-                print(
+                msg = (
+                    "Requirements file has been found in the code dir. DRUM will try to install dependencies into a docker image.\n"
                     "Docker context has been copied from: {} to: {}".format(
                         docker_image_or_directory, temp_context_dir
                     )
                 )
+
+                print(msg)
+                self.logger.debug(msg)
                 docker_image_or_directory = temp_context_dir
 
                 with open(os.path.join(temp_context_dir, "Dockerfile"), mode="a") as f:

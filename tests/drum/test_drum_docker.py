@@ -122,7 +122,7 @@ class TestDrumDocker:
 
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, code_dir)
         if framework == CODEGEN and not skip_deps_install:
-            tmp_dir = tmp_path / "docker_context"
+            tmp_dir = tmp_path / "tmp_code_dir"
             custom_model_dir = shutil.copytree(custom_model_dir, tmp_dir)
             with open(os.path.join(custom_model_dir, "requirements.txt"), mode="w") as f:
                 f.write("deps_are_not_supported_in_java")
@@ -183,3 +183,62 @@ class TestDrumDocker:
                 )
             else:
                 assert False
+
+    @pytest.mark.parametrize(
+        "framework, problem, code_dir, env_dir",
+        [
+            (PYTORCH, MULTICLASS, "inference/python3_pytorch_multiclass", "python3_pytorch"),
+        ],
+    )
+    def test_docker_image_with_wrong_dep_install(
+        self,
+        resources,
+        framework,
+        problem,
+        code_dir,
+        env_dir,
+        tmp_path,
+    ):
+
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, code_dir)
+
+        tmp_dir = tmp_path / "tmp_code_dir"
+        custom_model_dir = shutil.copytree(custom_model_dir, tmp_dir)
+        with open(os.path.join(custom_model_dir, "requirements.txt"), mode="w") as f:
+            f.write("\nnon_existing_dep")
+
+        docker_env = os.path.join(PUBLIC_DROPIN_ENVS_PATH, env_dir)
+        input_dataset = resources.datasets(framework, problem)
+
+        output = tmp_path / "output"
+
+        cmd = '{} score --code-dir {} --input "{}" --output {} --target-type {}'.format(
+            ArgumentsOptions.MAIN_COMMAND,
+            custom_model_dir,
+            input_dataset,
+            output,
+            resources.target_types(problem),
+        )
+        cmd = _cmd_add_class_labels(
+            cmd,
+            resources.class_labels(framework, problem),
+            target_type=resources.target_types(problem),
+            multiclass_label_file=None,
+        )
+        cmd += " --docker {} --verbose ".format(docker_env)
+
+        _, _, stde = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+
+        assert re.search(
+            r"ERROR drum:  Failed to build a docker image",
+            stde,
+        )
+
+        assert re.search(
+            r"Could not find a version that satisfies the requirement non_existing_dep",
+            stde,
+        )
