@@ -817,8 +817,12 @@ class CMRunner:
                     if self.options.language == RunLanguage.PYTHON.value:
                         f.write("\nRUN pip3 install {}".format(" ".join(lines)))
                     elif self.options.language == RunLanguage.R.value:
+                        quoted_lines = ["'{}'".format(ll) for ll in lines]
+                        deps_str = ", ".join(quoted_lines)
                         l1 = "\nRUN echo \"r <- getOption('repos'); r['CRAN'] <- 'http://cran.rstudio.com/'; options(repos = r);\" > ~/.Rprofile"
-                        l2 = "\nRUN Rscript -e \"withCallingHandlers(install.packages(c('stringi', 'stringr', 'pack'), Ncpus=4), warning = function(w) stop(w))\""
+                        l2 = '\nRUN Rscript -e "withCallingHandlers(install.packages(c({}), Ncpus=4), warning = function(w) stop(w))"'.format(
+                            deps_str
+                        )
                         f.write(l1)
                         f.write(l2)
                     else:
