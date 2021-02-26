@@ -250,7 +250,7 @@ class PredictMixin:
 
     def do_predict(self, logger=None):
         wrong_target_type_error_message = (
-            "This project has target type '{}', use the {{}} endpoint.".format(
+            "This model has target type '{}', use the {{}} endpoint.".format(
                 self._target_type.value
             )
         )
@@ -278,7 +278,7 @@ class PredictMixin:
         if self._target_type != TargetType.UNSTRUCTURED:
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             wrong_target_type_error_message = (
-                "This project has target type {}, "
+                "This model has target type {}, "
                 "use either /predict/ or /predictions/ endpoint.".format(self._target_type)
             )
             if logger is not None:
@@ -325,7 +325,7 @@ class PredictMixin:
                 "predictUnstructured" if self._target_type == TargetType.UNSTRUCTURED else "predict"
             )
             wrong_target_type_error_message = (
-                "This project has target type {}, "
+                "This model has target type {}, "
                 "use the /{}/ endpoint.".format(self._target_type, endpoint)
             )
             if logger is not None:
