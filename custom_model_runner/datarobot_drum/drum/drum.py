@@ -798,7 +798,7 @@ class CMRunner:
             context_path = os.path.abspath(docker_image_or_directory)
             tag = "{}/{}".format(
                 os.path.basename(os.path.dirname(context_path)), os.path.basename(context_path)
-            )
+            ).lower()
 
             lines = _get_requirements_lines(os.path.join(self.options.code_dir, "requirements.txt"))
             temp_context_dir = None

@@ -59,6 +59,9 @@ class TestDrumDocker:
 
         docker_context_dir_name_to_be_used_as_a_tag = "docker_image_built_by_drum"
         docker_context_path = tmp_path / docker_context_dir_name_to_be_used_as_a_tag
+        expected_tag = "{}/{}".format(
+            os.path.basename(tmp_path), docker_context_dir_name_to_be_used_as_a_tag
+        ).lower()
         docker_context_path.mkdir(parents=True, exist_ok=True)
 
         dockerfile_path = docker_context_path / "Dockerfile"
@@ -92,9 +95,7 @@ class TestDrumDocker:
             )
         else:
             assert re.search(
-                r"Image successfully built; tag: {};".format(
-                    docker_context_dir_name_to_be_used_as_a_tag
-                ),
+                r"Image successfully built; tag: {};".format(expected_tag),
                 stdo,
             )
 
