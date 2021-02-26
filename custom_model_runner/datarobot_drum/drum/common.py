@@ -177,6 +177,7 @@ class ArgumentsOptions:
     TARGET_TYPE = "--target-type"
     CLASS_LABELS = "--class-labels"
     CLASS_LABELS_FILE = "--class-labels-file"
+    SKIP_DEPS_INSTALL = "--skip-deps-install"
 
     MAIN_COMMAND = "drum" if not DEBUG else "./custom_model_runner/bin/drum"
 

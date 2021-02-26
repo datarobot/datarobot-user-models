@@ -258,7 +258,7 @@ class CMRunnerArgsRegistry(object):
                 type=are_labels_double_specified,
                 nargs="+",
                 action=RequiredLength,
-                help="The class labels for a multiclass classification case.  The argument can also be provided by setting {} env var. ".format(
+                help="The class labels for a multiclass classification case. The argument can also be provided by setting {} env var. ".format(
                     ArgumentOptionsEnvVars.CLASS_LABELS
                 )
                 + class_label_order_message
@@ -329,11 +329,29 @@ class CMRunnerArgsRegistry(object):
                 default=None,
                 required=False,
                 help="Docker image to use to run {} in the {} mode, "
-                "or a directory, containing a Dockerfile, "
-                "which can be built into a docker image. ".format(
-                    ArgumentsOptions.MAIN_COMMAND, prog_name_lst[1]
+                "or a directory, containing a Dockerfile, which can be built into a docker image. "
+                "If code dir contains requirements.txt file, DRUM tries to install dependencies during image build. (Reflects the DR App behavior.) "
+                "Requirements installation is supported for Python/R models only. "
+                "Use {} to skip installation."
+                "Note: DRUM attempts to install dependencies only if docker context folder is provided, not already built image from the registry.".format(
+                    ArgumentsOptions.MAIN_COMMAND,
+                    prog_name_lst[1],
+                    ArgumentsOptions.SKIP_DEPS_INSTALL,
                 ),
             )
+
+    @staticmethod
+    def _reg_arg_skip_deps_install(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.SKIP_DEPS_INSTALL,
+                default=False,
+                action="store_true",
+                required=False,
+                help="Skip dependencies installation during the image build. "
+                "If code dir contains requirements.txt file, DRUM tries to install dependencies during image build. (Reflects the DR App behavior.) "
+                "Provide this argument to skip dependencies installation.",
+            ),
 
     @staticmethod
     def _reg_arg_memory(*parsers):
@@ -763,6 +781,14 @@ class CMRunnerArgsRegistry(object):
             validation_parser,
             push_parser,
         )
+        CMRunnerArgsRegistry._reg_arg_skip_deps_install(
+            score_parser,
+            perf_test_parser,
+            server_parser,
+            fit_parser,
+            validation_parser,
+            push_parser,
+        )
         CMRunnerArgsRegistry._reg_arg_memory(
             score_parser,
             perf_test_parser,
@@ -904,4 +930,12 @@ class CMRunnerArgsRegistry(object):
                     )
                     exit(1)
 
+        if getattr(options, "skip_deps_install", False) and options.docker is None:
+            print(
+                "Argument '{}' can only be used together with '{}'.".format(
+                    ArgumentsOptions.SKIP_DEPS_INSTALL,
+                    ArgumentsOptions.DOCKER,
+                )
+            )
+            exit(1)
         CMRunnerArgsRegistry.verify_monitoring_options(options, options.subparser_name)

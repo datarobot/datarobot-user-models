@@ -74,6 +74,15 @@ The *--code-dir* (code directory) argument is required in all commands and shoul
 
 `drum score --code-dir ./model/ --input ./testfile.csv`
 
+#### Additional model code dependencies
+Code dir may contain a `requirements.txt` file, listing dependency packages which are required by code. Only Python and R models are supported.
+
+**Format of requirements.txt file**
+* for Python: pip requrements file format
+* for R: a package per line
+
+DRUM will attempt to install dependencies only when running with [`--docker`](#docker) option.
+
 ### Model template generation
 <a name="new"></a>
 DRUM can help you to generate a code folder template with the `custom` file described above.  
@@ -214,16 +223,20 @@ You can also use DRUM on regression datasets, and soon you will also be able to 
 
 
 ### Running inside a docker container
+<a name="docker"></a>
 In every mode, DRUM can be run inside a docker container by providing the option ```--docker <image_name/directory_path>```.
 The container should implement an environment required to perform desired action.
 DRUM must be installed as a part of this environment.  
-The following is an example gn how to run DRUM inside of container:  
+The following is an example on how to run DRUM inside of container:  
 ```drum score --code-dir ~/user_code_dir/ --input dataset.csv --docker <container_name>```  
 ```drum perf-test --code-dir ~/user_code_dir/ --input dataset.csv --docker <container_name>```
 
 Alternatively, the argument passed through the `--docker` flag may be a directory containing the unbuilt contents
 of an image. The DRUM tool will then attempt to build an image using this directory and run your model inside
 the newly built image.
+
+If the argument passed to `--docker` is a docker context directory, and code dir contains dependencies file `requirements.txt`, DRUM will try to install the packages during the image build.  
+To skip dependencies installation you can use `--skip-deps-install` flag. 
 
 ## Drum Push
 Starting in version 1.1.4, drum includes a new verb called `push`. When the user writes

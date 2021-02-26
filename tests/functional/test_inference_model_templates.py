@@ -4,7 +4,7 @@ import os
 import pytest
 import datarobot as dr
 
-BASE_MODEL_TEMPLATES_DIR = "model_templates"
+from tests.drum.constants import MODEL_TEMPLATES_PATH
 
 
 class TestInferenceModelTemplates(object):
@@ -218,7 +218,7 @@ class TestInferenceModelTemplates(object):
         model_version = dr.CustomModelVersion.create_clean(
             custom_model_id=model.id,
             base_environment_id=env_id,
-            folder_path=os.path.join(BASE_MODEL_TEMPLATES_DIR, model_template),
+            folder_path=os.path.join(MODEL_TEMPLATES_PATH, model_template),
         )
 
         if model_version.dependencies:

@@ -1,11 +1,16 @@
 import os
 
-TESTS_ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+REPO_ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+
+TESTS_ROOT_PATH = os.path.join(REPO_ROOT_PATH, "tests")
 TESTS_FIXTURES_PATH = os.path.join(TESTS_ROOT_PATH, "fixtures")
 TESTS_ARTIFACTS_PATH = os.path.join(TESTS_FIXTURES_PATH, "drop_in_model_artifacts")
 TESTS_DATA_PATH = os.path.join(TESTS_ROOT_PATH, "testdata")
 TESTS_DEPLOYMENT_CONFIG_PATH = os.path.join(TESTS_DATA_PATH, "deployment_config")
 TRAINING_TEMPLATES_PATH = os.path.join(TESTS_ROOT_PATH, "..", "model_templates", "training")
+
+MODEL_TEMPLATES_PATH = os.path.join(REPO_ROOT_PATH, "model_templates")
+PUBLIC_DROPIN_ENVS_PATH = os.path.join(REPO_ROOT_PATH, "public_dropin_environments")
 
 
 TRAINING = "training"
