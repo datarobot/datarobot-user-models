@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### [1.5.0] - 2021-02-26
 ##### Added
 - install dependencies into an image if there is a requirements.txt file in the code dir
-- release 1.5.0
+- release v1.5.0
 
 #### [1.4.16] - 2021-02-18
 ##### Added
