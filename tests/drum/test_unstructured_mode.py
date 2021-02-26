@@ -162,7 +162,7 @@ class TestUnstructuredMode:
             for endpoint in ["/predict/", "/predictions/"]:
                 response = requests.post(url=run.url_server_address + endpoint)
                 assert response.status_code == HTTP_422_UNPROCESSABLE_ENTITY
-                expected_msg = "ERROR: This project has target type 'unstructured', use the /predictUnstructured/ or /predictionsUnstructured/ endpoint."
+                expected_msg = "ERROR: This model has target type 'unstructured', use the /predictUnstructured/ or /predictionsUnstructured/ endpoint."
                 assert response.json()["message"] == expected_msg
 
     @pytest.mark.parametrize(
