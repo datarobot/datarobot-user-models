@@ -249,19 +249,42 @@ class PredictMixin:
         return response, response_status
 
     def do_predict(self, logger=None):
-        if self._target_type == TargetType.TRANSFORM:
-            wrong_target_type_error_message = (
-                "This project has target type {}, "
-                "use the /transform/ endpoint.".format(self._target_type)
+        wrong_target_type_error_message = (
+            "This model has target type '{}', use the {{}} endpoint.".format(
+                self._target_type.value
             )
+        )
+
+        return_error = False
+        if self._target_type == TargetType.TRANSFORM:
+            wrong_target_type_error_message = wrong_target_type_error_message.format("/transform/")
+            return_error = True
+        elif self._target_type == TargetType.UNSTRUCTURED:
+            wrong_target_type_error_message = wrong_target_type_error_message.format(
+                "/predictUnstructured/ or /predictionsUnstructured/"
+            )
+            return_error = True
+
+        if return_error:
             if logger is not None:
                 logger.error(wrong_target_type_error_message)
-            response_status = HTTP_422_UNPROCESSABLE_ENTITY
-            return {"message": "ERROR: " + wrong_target_type_error_message}, response_status
+            return {
+                "message": "ERROR: " + wrong_target_type_error_message
+            }, HTTP_422_UNPROCESSABLE_ENTITY
 
         return self._predict(logger=logger)
 
     def do_predict_unstructured(self, logger=None):
+        if self._target_type != TargetType.UNSTRUCTURED:
+            response_status = HTTP_422_UNPROCESSABLE_ENTITY
+            wrong_target_type_error_message = (
+                "This model has target type {}, "
+                "use either /predict/ or /predictions/ endpoint.".format(self._target_type)
+            )
+            if logger is not None:
+                logger.error(wrong_target_type_error_message)
+            return {"message": "ERROR: " + wrong_target_type_error_message}, response_status
+
         response_status = HTTP_200_OK
         kwargs_params = {}
 
@@ -302,7 +325,7 @@ class PredictMixin:
                 "predictUnstructured" if self._target_type == TargetType.UNSTRUCTURED else "predict"
             )
             wrong_target_type_error_message = (
-                "This project has target type {}, "
+                "This model has target type {}, "
                 "use the /{}/ endpoint.".format(self._target_type, endpoint)
             )
             if logger is not None:

@@ -14,7 +14,7 @@ import time
 from scipy.io import mmread, mmwrite
 from scipy.sparse import vstack
 from texttable import Texttable
-from tempfile import mkdtemp, NamedTemporaryFile, mkstemp
+from tempfile import mkdtemp, mkstemp
 
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.exceptions import (
@@ -155,7 +155,7 @@ class PerfTestResultsFormatter:
 
     def _add_mem_info(self, row, server_stats):
 
-        if server_stats and "mem_info" in server_stats:
+        if server_stats is not None and "mem_info" in server_stats:
             mem_info = server_stats["mem_info"]
             if self._in_docker:
                 if self._memory_limit is None:
@@ -171,13 +171,13 @@ class PerfTestResultsFormatter:
                 if "container_used" in mem_info:
                     used = mem_info["container_used"]
                 else:
-                    used = "N\A"
+                    used = "N/A"
 
                 row.extend([used, max_used, container_limit, mem_info["total"]])
             else:
                 row.extend([mem_info["drum_rss"], mem_info["total"]])
         else:
-            row.extend([self._same_value_list(CMRunTests.NA_VALUE, 3)])
+            row.extend(self._same_value_list(CMRunTests.NA_VALUE, 4 if self._in_docker else 2))
 
     def _add_inside_server_info(self, row, server_stats):
         if server_stats:

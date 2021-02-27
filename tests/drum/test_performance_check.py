@@ -29,12 +29,14 @@ from .constants import (
 
 class TestPerformanceCheck:
     @pytest.mark.parametrize(
-        "framework, problem, language, docker",
+        "framework, problem, language, docker, timeout",
         [
-            (SKLEARN, BINARY, PYTHON, None),
-            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
-            (SKLEARN, MULTICLASS, PYTHON, None),
-            (SKLEARN, MULTICLASS_BINARY, PYTHON, None),
+            (SKLEARN, BINARY, PYTHON, None, None),
+            (SKLEARN, BINARY, PYTHON, None, 5),
+            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN, None),
+            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN, 5),
+            (SKLEARN, MULTICLASS, PYTHON, None, None),
+            (SKLEARN, MULTICLASS_BINARY, PYTHON, None, None),
         ],
     )
     def test_custom_models_perf_test(
@@ -44,6 +46,7 @@ class TestPerformanceCheck:
         problem,
         language,
         docker,
+        timeout,
         tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
@@ -63,6 +66,9 @@ class TestPerformanceCheck:
             resources.target_types(problem),
         )
 
+        if timeout is not None:
+            cmd += " --timeout {}".format(timeout)
+
         if resources.target_types(problem) in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
                 cmd,
@@ -73,9 +79,15 @@ class TestPerformanceCheck:
         if docker:
             cmd += " --docker {}".format(docker)
 
-        _exec_shell_cmd(
+        _, stdo, _ = _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
+        if timeout is not None:
+            expected_str = "timed out ({}s)".format(timeout)
+            assert expected_str in stdo
+            assert "NA" in stdo
+        else:
+            assert "NA" not in stdo
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",

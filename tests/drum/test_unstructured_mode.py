@@ -3,6 +3,7 @@ import requests
 import werkzeug
 
 from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.drum.server import HTTP_422_UNPROCESSABLE_ENTITY
 
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
 
@@ -130,6 +131,39 @@ class TestUnstructuredMode:
                         assert response.text == "10"
                     else:
                         assert 10 == int.from_bytes(response.content, byteorder="big")
+
+    @pytest.mark.parametrize(
+        "framework, problem, language",
+        [
+            (None, UNSTRUCTURED, PYTHON_UNSTRUCTURED),
+        ],
+    )
+    def test_unstructured_mode_prediction_server_wrong_endpoint(
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        tmp_path,
+    ):
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
+        )
+
+        with DrumServerRun(
+            "unstructured",
+            resources.class_labels(framework, problem),
+            custom_model_dir,
+        ) as run:
+            for endpoint in ["/predict/", "/predictions/"]:
+                response = requests.post(url=run.url_server_address + endpoint)
+                assert response.status_code == HTTP_422_UNPROCESSABLE_ENTITY
+                expected_msg = "ERROR: This model has target type 'unstructured', use the /predictUnstructured/ or /predictionsUnstructured/ endpoint."
+                assert response.json()["message"] == expected_msg
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",

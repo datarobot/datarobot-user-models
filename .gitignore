@@ -124,6 +124,7 @@ custom-model-templates.Rproj
 
 # java/jar
 custom_model_runner/**/*.jar
+tests/drum/custom_java_predictor/**/*.jar
 *.class 
 
 # misc
