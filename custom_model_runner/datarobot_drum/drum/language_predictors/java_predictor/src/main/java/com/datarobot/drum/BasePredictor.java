@@ -13,4 +13,18 @@ public abstract class BasePredictor {
         this.name = name;
         return this;
     }
+
+    /**
+    * Make predictions on input scoring data.
+    * @param inputBytes Input data as binary.
+    * @return predictions as CSV string.
+    */
+    public abstract String predict(byte[] inputBytes) throws Exception;
+
+    /**
+    * Make predictions on input CSV.
+    * @param inputFilename Input data as a temporary CSV file.
+    * @return predictions as CSV string.
+    */
+    public abstract String predictCSV(String inputFilename) throws Exception;
 }

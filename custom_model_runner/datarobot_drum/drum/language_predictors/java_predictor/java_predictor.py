@@ -9,6 +9,7 @@ import atexit
 import pandas as pd
 import re
 from itertools import chain
+import tempfile
 
 from io import StringIO
 from contextlib import closing
@@ -24,8 +25,7 @@ from datarobot_drum.drum.common import (
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.exceptions import DrumCommonException
 
-from py4j.java_gateway import GatewayParameters, CallbackServerParameters
-from py4j.java_gateway import JavaGateway
+from py4j.java_gateway import GatewayParameters, CallbackServerParameters, JavaGateway
 
 RUNNING_LANG_MSG = "Running environment language: Java."
 
@@ -150,10 +150,20 @@ class JavaPredictor(BaseLanguagePredictor):
         return False
 
     def predict(self, **kwargs):
-        input_text_data = kwargs.get(StructuredDtoKeys.BINARY_DATA).decode("utf-8")
+        input_text_bytes = kwargs.get(StructuredDtoKeys.BINARY_DATA)
 
         start_predict = time.time()
-        out_csv = self._predictor_via_py4j.predict(input_text_data)
+        # If data size is more than 33K, pass it as a file to Java,
+        # as passing big chunks to py4j as an array is 10% slower
+        DATA_BUFFER_LIMIT_33K = 33792
+        if len(input_text_bytes) > DATA_BUFFER_LIMIT_33K:
+            with tempfile.NamedTemporaryFile(mode="wb") as tf:
+                tf.write(input_text_bytes)
+                tf.flush()
+                out_csv = self._predictor_via_py4j.predictCSV(tf.name)
+        else:
+            out_csv = self._predictor_via_py4j.predict(input_text_bytes)
+
         out_df = pd.read_csv(StringIO(out_csv))
         end_predict = time.time()
         execution_time_ms = (end_predict - start_predict) * 1000
