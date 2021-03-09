@@ -11,7 +11,6 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class ScoringCode extends BasePredictor {
@@ -42,17 +41,6 @@ public class ScoringCode extends BasePredictor {
 
         try {
             ret = this.scoreReader(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(inputBytes))));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return ret;
-    }
-
-    public String predictCSV(String inputFilename) throws Exception {
-        String ret = null;
-
-        try {
-            ret = this.scoreReader(new BufferedReader(new FileReader(new File(inputFilename))));
         } catch (IOException e) {
             e.printStackTrace();
         }

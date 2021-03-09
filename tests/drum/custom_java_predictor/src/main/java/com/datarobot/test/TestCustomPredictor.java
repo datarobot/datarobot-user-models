@@ -73,10 +73,6 @@ public class TestCustomPredictor extends BasePredictor {
         return this.predictReader(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(inputBytes))));
     }
 
-    public String predictCSV(String inputFilename) throws IOException {
-        return this.predictReader(new BufferedReader(new FileReader(new File(inputFilename))));
-    }
-
     public static void main(String[] args) throws IOException {
         Map<String, Object> params = new HashMap<String, Object>();
         ArgumentParser parser = ArgumentParsers.newFor("TestCustomPredictor").build()

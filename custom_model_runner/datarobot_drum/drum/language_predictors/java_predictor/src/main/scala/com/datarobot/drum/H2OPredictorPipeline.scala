@@ -82,11 +82,6 @@ class H2OPredictorPipeline(name: String) extends BasePredictor(name) {
     this.predictionsToString(predictions)
   }
 
-  def predictCSV(inputFilename: String): String = {
-    val predictions = Try(this.scoreReader(new BufferedReader(new FileReader(new File(inputFilename)))))
-    this.predictionsToString(predictions)
-  }
-
   def predictionsToString[T](predictions: Try[Array[Array[T]]]): String = {
     val csvPrinter: CSVPrinter = new CSVPrinter(
       new StringWriter(),
