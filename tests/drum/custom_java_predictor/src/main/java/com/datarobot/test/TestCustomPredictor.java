@@ -73,7 +73,7 @@ public class TestCustomPredictor extends BasePredictor {
         return this.predictReader(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(inputBytes))));
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, Exception {
         Map<String, Object> params = new HashMap<String, Object>();
         ArgumentParser parser = ArgumentParsers.newFor("TestCustomPredictor").build()
                 .defaultHelp(true)
