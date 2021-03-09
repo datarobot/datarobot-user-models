@@ -41,27 +41,24 @@ public class TestCustomPredictor extends BasePredictor {
         this.classLabels = (String[]) this.params.get("classLabels");
     }
 
-    public String predict(String inputData) throws IOException {
+    public String predictReader(Reader in) throws IOException {
         CSVPrinter csvPrinter = null;
 
         try {
             var csvFormat = CSVFormat.DEFAULT.withHeader();
+            var parser = csvFormat.parse(in);
 
             if (this.isRegression) {
                 csvPrinter = new CSVPrinter(new StringWriter(), CSVFormat.DEFAULT.withHeader("Predictions"));
                 int i = 0;
-                try (var parser = csvFormat.parse(new BufferedReader(new StringReader(inputData)))) {
-                    for (var csvRow : parser) {
-                        csvPrinter.printRecord(++i);
-                    }
+                for (var csvRow : parser) {
+                    csvPrinter.printRecord(++i);
                 }
             } else {
                 this.classLabels = new String[]{this.positiveClassLabel, this.negativeClassLabel};
                 csvPrinter = new CSVPrinter(new StringWriter(), CSVFormat.DEFAULT.withHeader(this.classLabels));
-                try (var parser = csvFormat.parse(new BufferedReader(new StringReader(inputData)))) {
-                    for (var csvRow : parser) {
-                        csvPrinter.printRecord(0.7, 0.3);
-                    }
+                for (var csvRow : parser) {
+                    csvPrinter.printRecord(0.7, 0.3);
                 }
             }
         } catch (IOException e) {
@@ -72,8 +69,11 @@ public class TestCustomPredictor extends BasePredictor {
         return outStream.toString();
     }
 
+    public String predict(byte[] inputBytes) throws IOException {
+        return this.predictReader(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(inputBytes))));
+    }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, Exception {
         Map<String, Object> params = new HashMap<String, Object>();
         ArgumentParser parser = ArgumentParsers.newFor("TestCustomPredictor").build()
                 .defaultHelp(true)
@@ -105,18 +105,11 @@ public class TestCustomPredictor extends BasePredictor {
         var outFile = (String) optionsMap.getOrDefault("output", null);
         var inputDataset = (String) optionsMap.getOrDefault("input", "");
 
-        FileInputStream inputStream = new FileInputStream(inputDataset);
-        String csvString = null;
         OutputStream out;
-        try {
-            csvString = IOUtils.toString(inputStream, "UTF-8");
-        } finally {
-            inputStream.close();
-        }
 
         var predictor = new TestCustomPredictor("test custom predictor");
         predictor.configure(params);
-        var ret = predictor.predict(csvString);
+        var ret = predictor.predictCSV(inputDataset);
         if (outFile != null) {
             out = new FileOutputStream(outFile);
             out.write(ret.getBytes(StandardCharsets.UTF_8));

@@ -456,3 +456,20 @@ def test_read_structured_input_arrow_csv_na_consistency(tmp_path):
     # To do an exact comparison, compare None and np.nan "masks".
     assert_frame_equal(csv_df.applymap(is_nan), arrow_df.applymap(is_nan))
     assert_frame_equal(csv_df.applymap(is_none), arrow_df.applymap(is_none))
+
+
+class TestJavaPredictor:
+    # Verifying that correct code branch is taken depending on the data size.
+    # As jp object is not properly configured, just check for the expected error message.
+    @pytest.mark.parametrize(
+        "data_size, error_message",
+        [(2, "object has no attribute 'predict'"), (40000, "object has no attribute 'predictCSV'")],
+    )
+    def test_java_predictor_py4j_data(self, data_size, error_message):
+        from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import (
+            JavaPredictor,
+        )
+
+        jp = JavaPredictor()
+        with pytest.raises(AttributeError, match=error_message):
+            jp.predict(binary_data=b"d" * data_size)

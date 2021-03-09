@@ -36,13 +36,21 @@ public class ScoringCode extends BasePredictor {
         return Predictors.getPredictor(urlClassLoader);
     }
 
-    public String predict(String inputData) throws Exception {
-        List<?> predictions = null;
+    public String predict(byte[] inputBytes) throws Exception {
+        String ret = null;
+
+        try {
+            ret = this.scoreReader(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(inputBytes))));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return ret;
+    }
+
+    private String predictionsToString(List<?> predictions) throws Exception {
         CSVPrinter csvPrinter = null;
 
         try {
-            predictions = this.scoreStringCSV(inputData);
-
             if (this.isRegression) {
                 csvPrinter = new CSVPrinter(new StringWriter(), CSVFormat.DEFAULT.withHeader("Predictions"));
                 for (var value : predictions) {
@@ -84,19 +92,18 @@ public class ScoringCode extends BasePredictor {
         }
     }
 
-    private List<?> scoreStringCSV(String inputData) throws IOException {
+    private String scoreReader(Reader in) throws IOException, Exception {
         var predictions = new ArrayList<>();
         var csvFormat = CSVFormat.DEFAULT.withHeader();
 
-        try (var parser = csvFormat.parse(new BufferedReader(new StringReader(inputData)))) {
+        try (var parser = csvFormat.parse(in)) {
             for (var csvRow : parser) {
                 var mapRow = csvRow.toMap();
                 predictions.add(scoreRow(mapRow));
             }
         }
-        return predictions;
+        return this.predictionsToString(predictions);
     }
-
 
     private Object scoreRow(Map<String, ?> row) {
         if (isRegression) {

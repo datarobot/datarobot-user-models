@@ -14,8 +14,7 @@ import java.util.ServiceLoader
 import java.util.ArrayList
 import java.net.URLClassLoader;
 import java.lang.Thread
-import java.io.File
-import java.io.{BufferedReader, FileReader, StringWriter, StringReader}
+import java.io.{Reader, File, BufferedReader, FileReader, StringWriter, InputStreamReader, ByteArrayInputStream}
 import java.nio.file.Paths
 
 import org.apache.commons.csv.CSVFormat;
@@ -34,25 +33,18 @@ class H2OPredictor(
   var customModelPath: String = null
   var negativeClassLabel: String = null
   var positiveClassLabel: String = null
+  var headers: Array[String] = null
 
-  def predict(inputData: String): String = {
+  def predict(inputBytes: Array[Byte]): String = {
+    val predictions = Try(this.scoreReader(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(inputBytes)))))
+    this.predictionsToString(predictions)
+  }
 
-    val headers = this.model.getModelCategory match {
-      case Regression  => Array("Predictions")
-      case Binomial    => this.model.getResponseDomainValues
-      case Multinomial => this.model.getResponseDomainValues
-      case _ =>
-        throw new Exception(
-          s"${this.model.getModelCategory} is currently not supported"
-        )
-    }
-
+  def predictionsToString[T](predictions: Try[Array[Array[T]]]): String = {
     val csvPrinter: CSVPrinter = new CSVPrinter(
       new StringWriter(),
       CSVFormat.DEFAULT.withHeader(headers: _*)
     )
-
-    val predictions = Try(this.scoreStringCSV(inputData))
 
     predictions match {
       case Success(preds) =>
@@ -69,18 +61,11 @@ class H2OPredictor(
     val outStream: StringWriter =
       csvPrinter.getOut().asInstanceOf[StringWriter];
     outStream.toString()
-
   }
 
-  def scoreStringCSV(inputData: String) = {
-
+  def scoreReader(in: Reader) = {
     val csvFormat = CSVFormat.DEFAULT.withHeader();
-
-    val parser =
-      csvFormat.parse(
-        new BufferedReader(new StringReader(inputData))
-      )
-
+    val parser = csvFormat.parse(in)
     val sParser = parser.iterator.asScala.map { _.toMap }.map { map2RowData }
 
     val predictions = sParser.map { record =>
@@ -197,7 +182,15 @@ class H2OPredictor(
           s"${this.model.getModelCategory} is currently not supported"
         )
     }
-
+    headers = this.model.getModelCategory match {
+    case Regression  => Array("Predictions")
+    case Binomial    => this.model.getResponseDomainValues
+    case Multinomial => this.model.getResponseDomainValues
+    case _ =>
+      throw new Exception(
+        s"${this.model.getModelCategory} is currently not supported"
+      )
+    }
   }
 
 }
