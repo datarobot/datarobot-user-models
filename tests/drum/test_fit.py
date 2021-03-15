@@ -81,15 +81,7 @@ class TestFit:
     @pytest.mark.parametrize("use_output", [True, False])
     @pytest.mark.parametrize("nested", [True, False])
     def test_fit_for_use_output_and_nested(
-        self,
-        resources,
-        framework,
-        problem,
-        docker,
-        weights,
-        use_output,
-        tmp_path,
-        nested,
+        self, resources, framework, problem, docker, weights, use_output, tmp_path, nested,
     ):
         if docker and framework != SKLEARN:
             return
@@ -167,13 +159,7 @@ class TestFit:
     )
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
     def test_fit(
-        self,
-        resources,
-        framework,
-        problem,
-        docker,
-        weights,
-        tmp_path,
+        self, resources, framework, problem, docker, weights, tmp_path,
     ):
         if framework == RDS:
             language = R_FIT
@@ -181,12 +167,7 @@ class TestFit:
             language = PYTHON
 
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
-            is_training=True,
+            resources, tmp_path, framework, problem, language, is_training=True,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -228,20 +209,11 @@ class TestFit:
     @pytest.mark.parametrize("problem", [REGRESSION, BINARY, ANOMALY])
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
     def test_transform_fit(
-        self,
-        resources,
-        framework,
-        problem,
-        weights,
-        tmp_path,
+        self, resources, framework, problem, weights, tmp_path,
     ):
         language = PYTHON
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language=framework,
+            resources, tmp_path, framework, problem, language=framework,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -270,27 +242,16 @@ class TestFit:
         )
 
     @pytest.mark.parametrize(
-        "framework",
-        [
-            SKLEARN_TRANSFORM_SPARSE_IN_OUT,
-            SKLEARN_TRANSFORM_SPARSE_INPUT,
-        ],
+        "framework", [SKLEARN_TRANSFORM_SPARSE_IN_OUT, SKLEARN_TRANSFORM_SPARSE_INPUT,],
     )
     def test_sparse_transform_fit(
-        self,
-        framework,
-        resources,
-        tmp_path,
+        self, framework, resources, tmp_path,
     ):
         input_dataset = resources.datasets(None, SPARSE)
         target_dataset = resources.datasets(None, SPARSE_TARGET)
 
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            REGRESSION,
-            language=framework,
+            resources, tmp_path, framework, REGRESSION, language=framework,
         )
 
         cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose --target-csv {}".format(
@@ -351,20 +312,10 @@ class TestFit:
     )
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, None])
     def test_fit_sh(
-        self,
-        resources,
-        framework,
-        problem,
-        weights,
-        tmp_path,
+        self, resources, framework, problem, weights, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            PYTHON,
-            is_training=True,
+            resources, tmp_path, framework, problem, PYTHON, is_training=True,
         )
 
         env = os.environ
@@ -410,18 +361,10 @@ class TestFit:
         unset_drum_supported_env_vars()
 
     def test_fit_simple(
-        self,
-        resources,
-        tmp_path,
+        self, resources, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            SIMPLE,
-            REGRESSION,
-            PYTHON,
-            is_training=True,
-            nested=True,
+            resources, tmp_path, SIMPLE, REGRESSION, PYTHON, is_training=True, nested=True,
         )
 
         input_dataset = resources.datasets(SKLEARN, REGRESSION)
@@ -441,12 +384,7 @@ class TestFit:
         )
 
     @pytest.mark.parametrize(
-        "framework",
-        [
-            SKLEARN_SPARSE,
-            PYTORCH,
-            RDS,
-        ],
+        "framework", [SKLEARN_SPARSE, PYTORCH, RDS,],
     )
     def test_fit_sparse(self, resources, tmp_path, framework):
         custom_model_dir = _create_custom_model_dir(
@@ -476,12 +414,7 @@ class TestFit:
     @pytest.mark.parametrize("framework, problem", [(SKLEARN_PRED_CONSISTENCY, BINARY_BOOL)])
     def test_prediction_consistency(self, resources, tmp_path, framework, problem):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            SPARSE,
-            language=PYTHON,
-            is_training=True,
+            resources, tmp_path, framework, SPARSE, language=PYTHON, is_training=True,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -522,12 +455,7 @@ class TestFit:
 
     def test_duplicate_target_name(self, resources, tmp_path):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            SKLEARN_REGRESSION,
-            SPARSE,
-            language=PYTHON,
-            is_training=True,
+            resources, tmp_path, SKLEARN_REGRESSION, SPARSE, language=PYTHON, is_training=True,
         )
 
         input_dataset = resources.datasets(SKLEARN_REGRESSION, TARGET_NAME_DUPLICATED_X)

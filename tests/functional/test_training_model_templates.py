@@ -56,12 +56,7 @@ class TestTrainingModelTemplates(object):
                 "pytorch_drop_in_env",
                 "binary",
             ),
-            (
-                "training/python3_pytorch",
-                "project_binary_iris",
-                "pytorch_drop_in_env",
-                "binary",
-            ),
+            ("training/python3_pytorch", "project_binary_iris", "pytorch_drop_in_env", "binary",),
             (
                 "training/python3_pytorch",
                 "project_regression_boston",
@@ -107,12 +102,7 @@ class TestTrainingModelTemplates(object):
                 "xgboost_drop_in_env",
                 "regression",
             ),
-            (
-                "training/python3_xgboost",
-                "project_binary_iris",
-                "xgboost_drop_in_env",
-                "binary",
-            ),
+            ("training/python3_xgboost", "project_binary_iris", "xgboost_drop_in_env", "binary",),
             (
                 "training/python3_xgboost",
                 "project_multiclass_skyserver",
@@ -137,24 +127,9 @@ class TestTrainingModelTemplates(object):
                 "sklearn_drop_in_env",
                 "multiclass",
             ),
-            (
-                "training/r_lang",
-                "project_regression_boston",
-                "r_drop_in_env",
-                "regression",
-            ),
-            (
-                "training/r_lang",
-                "project_binary_iris",
-                "r_drop_in_env",
-                "binary",
-            ),
-            (
-                "training/r_lang",
-                "project_multiclass_skyserver",
-                "r_drop_in_env",
-                "multiclass",
-            ),
+            ("training/r_lang", "project_regression_boston", "r_drop_in_env", "regression",),
+            ("training/r_lang", "project_binary_iris", "r_drop_in_env", "binary",),
+            ("training/r_lang", "project_multiclass_skyserver", "r_drop_in_env", "multiclass",),
         ],
     )
     def test_training_model_templates(self, request, model_template, proj, env, target_type):

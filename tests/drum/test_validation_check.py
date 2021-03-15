@@ -26,25 +26,13 @@ from .constants import (
 
 class TestValidationCheck:
     @pytest.mark.parametrize(
-        "framework, problem, language",
-        [
-            (None, REGRESSION, PYTHON_NO_ARTIFACT_REGRESSION_HOOKS),
-        ],
+        "framework, problem, language", [(None, REGRESSION, PYTHON_NO_ARTIFACT_REGRESSION_HOOKS),],
     )
     def test_validation_check_with_bad_column_names(
-        self,
-        resources,
-        framework,
-        problem,
-        language,
-        tmp_path,
+        self, resources, framework, problem, language, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         column_names = [
@@ -90,20 +78,10 @@ class TestValidationCheck:
         ],
     )
     def test_validation_check(
-        self,
-        resources,
-        framework,
-        problem,
-        language,
-        docker,
-        tmp_path,
+        self, resources, framework, problem, language, docker, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         input_dataset = resources.datasets(framework, problem)

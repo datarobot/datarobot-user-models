@@ -232,16 +232,13 @@ _artifacts = {
     (CODEGEN, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "java_reg.jar"),
     (CODEGEN, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "java_bin.jar"),
     (POJO, REGRESSION): os.path.join(
-        TESTS_ARTIFACTS_PATH,
-        "drf_887c2e5b_0941_40b7_ae26_cae274c4b424.java",
+        TESTS_ARTIFACTS_PATH, "drf_887c2e5b_0941_40b7_ae26_cae274c4b424.java",
     ),
     (POJO, BINARY): os.path.join(
-        TESTS_ARTIFACTS_PATH,
-        "XGBoost_grid__1_AutoML_20200717_163214_model_159.java",
+        TESTS_ARTIFACTS_PATH, "XGBoost_grid__1_AutoML_20200717_163214_model_159.java",
     ),
     (POJO, MULTICLASS): os.path.join(
-        TESTS_ARTIFACTS_PATH,
-        "XGBoost_3_AutoML_20201016_143029.java",
+        TESTS_ARTIFACTS_PATH, "XGBoost_3_AutoML_20201016_143029.java",
     ),
     (MOJO, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_reg.zip"),
     (MOJO, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_bin.zip"),
@@ -272,8 +269,7 @@ _artifacts = {
     (RDS, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "r_bin.rds"),
     (CODEGEN, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "java_bin.jar"),
     (POJO, MULTICLASS_BINARY): os.path.join(
-        TESTS_ARTIFACTS_PATH,
-        "XGBoost_grid__1_AutoML_20200717_163214_model_159.java",
+        TESTS_ARTIFACTS_PATH, "XGBoost_grid__1_AutoML_20200717_163214_model_159.java",
     ),
     (MOJO, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_bin.zip"),
     (PYPMML, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "iris_bin.pmml"),
@@ -312,10 +308,7 @@ _custom_filepaths = {
         os.path.join(TESTS_FIXTURES_PATH, "pred_validation_custom.py"),
         "custom.py",
     ),
-    PYTHON_LOAD_MODEL: (
-        os.path.join(TESTS_FIXTURES_PATH, "load_model_custom.py"),
-        "custom.py",
-    ),
+    PYTHON_LOAD_MODEL: (os.path.join(TESTS_FIXTURES_PATH, "load_model_custom.py"), "custom.py",),
     PYTHON_NO_ARTIFACT_REGRESSION_HOOKS: (
         os.path.join(TESTS_FIXTURES_PATH, "no_artifact_regression_custom.py"),
         "custom.py",

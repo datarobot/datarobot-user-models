@@ -249,10 +249,8 @@ class PredictMixin:
         return response, response_status
 
     def do_predict(self, logger=None):
-        wrong_target_type_error_message = (
-            "This model has target type '{}', use the {{}} endpoint.".format(
-                self._target_type.value
-            )
+        wrong_target_type_error_message = "This model has target type '{}', use the {{}} endpoint.".format(
+            self._target_type.value
         )
 
         return_error = False
@@ -268,9 +266,10 @@ class PredictMixin:
         if return_error:
             if logger is not None:
                 logger.error(wrong_target_type_error_message)
-            return {
-                "message": "ERROR: " + wrong_target_type_error_message
-            }, HTTP_422_UNPROCESSABLE_ENTITY
+            return (
+                {"message": "ERROR: " + wrong_target_type_error_message},
+                HTTP_422_UNPROCESSABLE_ENTITY,
+            )
 
         return self._predict(logger=logger)
 
@@ -292,9 +291,7 @@ class PredictMixin:
         mimetype, charset = PredictMixin._validate_content_type_header(request.content_type)
 
         data_binary_or_text, mimetype, charset = _resolve_incoming_unstructured_data(
-            data,
-            mimetype,
-            charset,
+            data, mimetype, charset,
         )
         kwargs_params[UnstructuredDtoKeys.MIMETYPE] = mimetype
         if charset is not None:

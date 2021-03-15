@@ -30,13 +30,7 @@ def test_fit_variety(framework, variety_resources, resources, variety_data_names
         language = PYTHON
 
     custom_model_dir = _create_custom_model_dir(
-        resources,
-        tmp_path,
-        framework,
-        problem,
-        language,
-        is_training=True,
-        nested=False,
+        resources, tmp_path, framework, problem, language, is_training=True, nested=False,
     )
 
     output = tmp_path / "output"

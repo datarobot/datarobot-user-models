@@ -40,21 +40,10 @@ class TestPerformanceCheck:
         ],
     )
     def test_custom_models_perf_test(
-        self,
-        resources,
-        framework,
-        problem,
-        language,
-        docker,
-        timeout,
-        tmp_path,
+        self, resources, framework, problem, language, docker, timeout, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -90,26 +79,13 @@ class TestPerformanceCheck:
             assert "NA" not in stdo
 
     @pytest.mark.parametrize(
-        "framework, problem, language, docker",
-        [
-            (SKLEARN, REGRESSION, PYTHON, None),
-        ],
+        "framework, problem, language, docker", [(SKLEARN, REGRESSION, PYTHON, None),],
     )
     def test_perf_test_drum_server_kill(
-        self,
-        resources,
-        framework,
-        problem,
-        language,
-        docker,
-        tmp_path,
+        self, resources, framework, problem, language, docker, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -124,12 +100,7 @@ class TestPerformanceCheck:
         # wait for drum perf-test server from prev test case to be stopped
         time.sleep(0.5)
         assert _find_drum_perf_test_server_process() is None
-        p = subprocess.Popen(
-            cmd,
-            shell=True,
-            env=os.environ,
-            universal_newlines=True,
-        )
+        p = subprocess.Popen(cmd, shell=True, env=os.environ, universal_newlines=True,)
         time.sleep(1)
         # kill drum perf-test process, child server should be running
         p.kill()

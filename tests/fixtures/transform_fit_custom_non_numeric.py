@@ -46,10 +46,7 @@ def random_str_generator(size=4, chars=string.ascii_uppercase):
 
 
 def fit(
-    X: pd.DataFrame,
-    y: pd.Series,
-    output_dir: str,
-    **kwargs,
+    X: pd.DataFrame, y: pd.Series, output_dir: str, **kwargs,
 ):
     """
     train something to make drum happy

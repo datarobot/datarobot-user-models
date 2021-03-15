@@ -15,13 +15,7 @@ MULTICLASS = "multiclass"
 
 
 def _create_custom_model_dir(
-    resources,
-    tmp_dir,
-    framework,
-    problem,
-    language,
-    is_training=False,
-    nested=False,
+    resources, tmp_dir, framework, problem, language, is_training=False, nested=False,
 ):
     """
     Helper function for tests and validation to create temp custom model directory

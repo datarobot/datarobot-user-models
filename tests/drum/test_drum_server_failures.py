@@ -29,11 +29,7 @@ class TestDrumServerFailures:
         problem = request.param
 
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         server_run_args = dict(
@@ -122,11 +118,7 @@ class TestDrumServerFailures:
                 os.remove(os.path.join(custom_model_dir, item))
 
         self.assert_drum_server_run_failure(
-            server_run_args,
-            with_error_server,
-            error_message,
-            with_nginx=with_nginx,
-            docker=docker,
+            server_run_args, with_error_server, error_message, with_nginx=with_nginx, docker=docker,
         )
 
     @pytest.mark.parametrize(

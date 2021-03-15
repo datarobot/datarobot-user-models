@@ -331,10 +331,7 @@ class PythonModelAdapter:
                     "Model read_data hook failed to read input data: {} {}".format(binary_data, exc)
                 ).with_traceback(sys.exc_info()[2]) from None
         else:
-            data = StructuredInputReadUtils.read_structured_input_data_as_df(
-                binary_data,
-                mimetype,
-            )
+            data = StructuredInputReadUtils.read_structured_input_data_as_df(binary_data, mimetype,)
 
         return data
 
