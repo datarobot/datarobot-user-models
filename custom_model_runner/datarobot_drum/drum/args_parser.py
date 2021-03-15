@@ -933,8 +933,7 @@ class CMRunnerArgsRegistry(object):
         if getattr(options, "skip_deps_install", False) and options.docker is None:
             print(
                 "Argument '{}' can only be used together with '{}'.".format(
-                    ArgumentsOptions.SKIP_DEPS_INSTALL,
-                    ArgumentsOptions.DOCKER,
+                    ArgumentsOptions.SKIP_DEPS_INSTALL, ArgumentsOptions.DOCKER,
                 )
             )
             exit(1)

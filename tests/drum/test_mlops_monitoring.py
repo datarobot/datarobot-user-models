@@ -20,11 +20,7 @@ class TestMLOpsMonitoring:
         We expect the run of drum to be ok, since mlops is assumed to be installed.
         """
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         mlops_spool_dir = tmp_path / "mlops_spool"
@@ -40,10 +36,8 @@ class TestMLOpsMonitoring:
             output,
             resources.target_types(problem),
         )
-        monitor_settings = (
-            "spooler_type=filesystem;directory={};max_files=1;file_max_size=1024000".format(
-                mlops_spool_dir
-            )
+        monitor_settings = "spooler_type=filesystem;directory={};max_files=1;file_max_size=1024000".format(
+            mlops_spool_dir
         )
         cmd += ' --monitor --model-id 555 --deployment-id 777 --monitor-settings="{}"'.format(
             monitor_settings
@@ -61,10 +55,7 @@ class TestMLOpsMonitoring:
         return cmd, input_dataset, output, mlops_spool_dir
 
     @pytest.mark.parametrize(
-        "framework, problem, language, docker",
-        [
-            (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None),
-        ],
+        "framework, problem, language, docker", [(SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None),],
     )
     def test_drum_monitoring_with_mlops_installed(
         self, resources, framework, problem, language, docker, tmp_path
@@ -85,10 +76,7 @@ class TestMLOpsMonitoring:
         assert os.path.isfile(os.path.join(mlops_spool_dir, "fs_spool.1"))
 
     @pytest.mark.parametrize(
-        "framework, problem, language, docker",
-        [
-            (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None),
-        ],
+        "framework, problem, language, docker", [(SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None),],
     )
     def test_drum_monitoring_no_mlops_installed(
         self, resources, framework, problem, language, docker, tmp_path
@@ -112,10 +100,7 @@ class TestMLOpsMonitoring:
         ), "drum should fail when datarobot-mlops is not installed and monitoring is requested"
 
     @pytest.mark.parametrize(
-        "framework, problem, language, docker",
-        [
-            (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None),
-        ],
+        "framework, problem, language, docker", [(SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None),],
     )
     def test_drum_monitoring_fails_in_unstructured_mode(
         self, resources, framework, problem, language, docker, tmp_path

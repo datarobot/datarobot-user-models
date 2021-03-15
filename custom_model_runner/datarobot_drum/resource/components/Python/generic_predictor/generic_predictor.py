@@ -74,9 +74,7 @@ class GenericPredictorComponent(ConnectableComponent):
                 data_binary = f.read()
 
             data_binary_or_text, mimetype, charset = _resolve_incoming_unstructured_data(
-                data_binary,
-                mimetype,
-                charset,
+                data_binary, mimetype, charset,
             )
             kwargs_params[UnstructuredDtoKeys.MIMETYPE] = mimetype
             if charset is not None:

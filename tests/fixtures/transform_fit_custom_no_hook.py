@@ -40,10 +40,7 @@ def make_pipeline():
 
 
 def fit(
-    X: pd.DataFrame,
-    y: pd.Series,
-    output_dir: str,
-    **kwargs,
+    X: pd.DataFrame, y: pd.Series, output_dir: str, **kwargs,
 ):
     """
     This hook must be implemented with your fitting code, for running drum in the fit mode.

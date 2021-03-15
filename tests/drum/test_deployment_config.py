@@ -22,9 +22,7 @@ from tests.drum.constants import (
     SKLEARN,
 )
 
-from datarobot_drum.resource.utils import (
-    _create_custom_model_dir,
-)
+from datarobot_drum.resource.utils import _create_custom_model_dir
 
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
 from datarobot_drum.drum.utils import unset_drum_supported_env_vars
@@ -235,11 +233,7 @@ class TestDeploymentConfig:
         tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         append_cmd = None

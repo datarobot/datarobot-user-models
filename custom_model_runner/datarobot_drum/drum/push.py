@@ -190,11 +190,9 @@ def _setup_training_validation(config, options):
     options.num_rows = "ALL"
     options.skip_predict = False
 
-    raw_args_for_docker = (
-        "drum {run_mode} --input {input} --target {target} --code-dir {code_dir}".format(
-            run_mode=RunMode.FIT, input=path, target=options.target, code_dir=options.code_dir
-        ).split()
-    )
+    raw_args_for_docker = "drum {run_mode} --input {input} --target {target} --code-dir {code_dir}".format(
+        run_mode=RunMode.FIT, input=path, target=options.target, code_dir=options.code_dir
+    ).split()
 
     return options, RunMode.FIT, raw_args_for_docker
 

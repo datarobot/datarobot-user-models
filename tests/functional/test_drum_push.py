@@ -45,14 +45,7 @@ class TestDrumPush(object):
         ],
     )
     def test_drum_push_training(
-        self,
-        resources,
-        framework,
-        problem,
-        language,
-        tmp_path,
-        get_target,
-        sklearn_drop_in_env,
+        self, resources, framework, problem, language, tmp_path, get_target, sklearn_drop_in_env,
     ):
         custom_model_dir = _create_custom_model_dir(
             resources, tmp_path, framework, problem, language, is_training=True
@@ -66,8 +59,7 @@ class TestDrumPush(object):
             yaml.dump(yaml.load(yaml_string), outfile)
 
         cmd = "{} push --code-dir {} --verbose".format(
-            ArgumentsOptions.MAIN_COMMAND,
-            custom_model_dir,
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir,
         )
         _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)

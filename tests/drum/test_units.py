@@ -68,8 +68,7 @@ class TestValidatePredictions:
         adapter = PythonModelAdapter(model_dir=None, target_type=TargetType.BINARY)
         df = pd.DataFrame({positive_label: [0.1, 0.2, 0.3], negative_label: [0.9, 0.8, 0.7]})
         adapter._validate_predictions(
-            to_validate=df,
-            class_labels=[positive_label, negative_label],
+            to_validate=df, class_labels=[positive_label, negative_label],
         )
 
     def test_add_to_one_sad(self):
@@ -79,8 +78,7 @@ class TestValidatePredictions:
         df = pd.DataFrame({positive_label: [1, 1, 1], negative_label: [-1, 0, 0]})
         with pytest.raises(ValueError):
             adapter._validate_predictions(
-                to_validate=df,
-                class_labels=[positive_label, negative_label],
+                to_validate=df, class_labels=[positive_label, negative_label],
             )
 
 
@@ -272,14 +270,10 @@ def mock_get_model(model_type="training", target_type="Regression"):
         body["language"] = "Python"
         body["trainingDataAssignmentInProgress"] = False
     responses.add(
-        responses.GET,
-        "http://yess/customModels/{}/".format(modelID),
-        json=body,
+        responses.GET, "http://yess/customModels/{}/".format(modelID), json=body,
     )
     responses.add(
-        responses.POST,
-        "http://yess/customModels/".format(modelID),
-        json=body,
+        responses.POST, "http://yess/customModels/".format(modelID), json=body,
     )
 
 

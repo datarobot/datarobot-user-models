@@ -38,19 +38,10 @@ class TestOtherCases:
         "framework, problem, language", [(SKLEARN, BINARY, PYTHON), (RDS, BINARY, R)]
     )
     def test_bin_models_with_wrong_labels(
-        self,
-        resources,
-        framework,
-        problem,
-        language,
-        tmp_path,
+        self, resources, framework, problem, language, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -98,19 +89,10 @@ class TestOtherCases:
         ],
     )
     def test_detect_language(
-        self,
-        resources,
-        framework,
-        problem,
-        language,
-        tmp_path,
+        self, resources, framework, problem, language, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -190,20 +172,10 @@ class TestOtherCases:
         ],
     )
     def test_set_language(
-        self,
-        resources,
-        framework,
-        problem,
-        language,
-        set_language,
-        tmp_path,
+        self, resources, framework, problem, language, set_language, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
         input_dataset = resources.datasets(framework, problem)
         cmd = "{} score --code-dir {} --input {} --target-type {}".format(
@@ -265,21 +237,9 @@ class TestOtherCases:
         ],
     )
     def test_custom_model_with_all_hooks(
-        self,
-        resources,
-        framework,
-        language,
-        hooks_list,
-        target_type,
-        tmp_path,
+        self, resources, framework, language, hooks_list, target_type, tmp_path,
     ):
-        custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            None,
-            language,
-        )
+        custom_model_dir = _create_custom_model_dir(resources, tmp_path, framework, None, language,)
 
         input_dataset = resources.datasets(framework, REGRESSION)
 
@@ -319,9 +279,7 @@ class TestOtherCases:
         assert os.path.isfile(custom_file)
 
     def test_r2d2_drum_prediction_server(
-        self,
-        resources,
-        tmp_path,
+        self, resources, tmp_path,
     ):
         print("current dir: {}".format(os.getcwd()))
 
@@ -345,10 +303,7 @@ class TestOtherCases:
             print(stderr)
             assert p.returncode == 0
 
-            data = pd.DataFrame(
-                {"cmd": ["memory"], "arg": [100]},
-                columns=["cmd", "arg"],
-            )
+            data = pd.DataFrame({"cmd": ["memory"], "arg": [100]}, columns=["cmd", "arg"],)
             print("Sending the following data:")
             print(data)
 
@@ -359,10 +314,7 @@ class TestOtherCases:
             assert response.ok
 
             # Sending the exception command.. should get a failed response
-            data = pd.DataFrame(
-                {"cmd": ["exception"], "arg": [100]},
-                columns=["cmd", "arg"],
-            )
+            data = pd.DataFrame({"cmd": ["exception"], "arg": [100]}, columns=["cmd", "arg"],)
             print("Sending the following data:")
             print(data)
 
@@ -377,10 +329,7 @@ class TestOtherCases:
             assert response.ok
 
             # Killing the docker allocating too much memory
-            data = pd.DataFrame(
-                {"cmd": ["memory"], "arg": [1000]},
-                columns=["cmd", "arg"],
-            )
+            data = pd.DataFrame({"cmd": ["memory"], "arg": [1000]}, columns=["cmd", "arg"],)
 
             print("Sending 1000m data:")
             print(data)

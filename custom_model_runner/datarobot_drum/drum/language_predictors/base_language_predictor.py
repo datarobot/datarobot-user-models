@@ -79,8 +79,7 @@ class BaseLanguagePredictor(ABC):
                     class_names = [self._negative_class_label, self._positive_class_label]
 
             df = StructuredInputReadUtils.read_structured_input_data_as_df(
-                kwargs.get(StructuredDtoKeys.BINARY_DATA),
-                kwargs.get(StructuredDtoKeys.MIMETYPE),
+                kwargs.get(StructuredDtoKeys.BINARY_DATA), kwargs.get(StructuredDtoKeys.MIMETYPE),
             )
             self._mlops.report_predictions_data(
                 features_df=df, predictions=mlops_predictions, class_names=class_names

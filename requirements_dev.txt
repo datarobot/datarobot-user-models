@@ -3,4 +3,3 @@
 -r requirements_test.txt
 
 datarobot-oss-java-jdk==11.0.2.7.post1+dr
-black

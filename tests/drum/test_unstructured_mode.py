@@ -36,22 +36,10 @@ class TestUnstructuredMode:
         ],
     )
     def test_unstructured_models_batch(
-        self,
-        resources,
-        framework,
-        problem,
-        language,
-        docker,
-        mimetype,
-        ret_mode,
-        tmp_path,
+        self, resources, framework, problem, language, docker, mimetype, ret_mode, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -92,21 +80,10 @@ class TestUnstructuredMode:
         ],
     )
     def test_custom_models_with_drum_prediction_server(
-        self,
-        resources,
-        framework,
-        problem,
-        language,
-        nginx,
-        docker,
-        tmp_path,
+        self, resources, framework, problem, language, nginx, docker, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         with DrumServerRun(
@@ -133,31 +110,17 @@ class TestUnstructuredMode:
                         assert 10 == int.from_bytes(response.content, byteorder="big")
 
     @pytest.mark.parametrize(
-        "framework, problem, language",
-        [
-            (None, UNSTRUCTURED, PYTHON_UNSTRUCTURED),
-        ],
+        "framework, problem, language", [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED),],
     )
     def test_unstructured_mode_prediction_server_wrong_endpoint(
-        self,
-        resources,
-        framework,
-        problem,
-        language,
-        tmp_path,
+        self, resources, framework, problem, language, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         with DrumServerRun(
-            "unstructured",
-            resources.class_labels(framework, problem),
-            custom_model_dir,
+            "unstructured", resources.class_labels(framework, problem), custom_model_dir,
         ) as run:
             for endpoint in ["/predict/", "/predictions/"]:
                 response = requests.post(url=run.url_server_address + endpoint)
@@ -173,27 +136,14 @@ class TestUnstructuredMode:
         ],
     )
     def test_response_content_type(
-        self,
-        resources,
-        framework,
-        problem,
-        language,
-        docker,
-        tmp_path,
+        self, resources, framework, problem, language, docker, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         with DrumServerRun(
-            "unstructured",
-            resources.class_labels(framework, problem),
-            custom_model_dir,
-            docker,
+            "unstructured", resources.class_labels(framework, problem), custom_model_dir, docker,
         ) as run:
 
             text_data = u"my text, мой текст"
@@ -243,27 +193,14 @@ class TestUnstructuredMode:
     # Check Content-Type header value.
     # Incoming data is sent back.
     def test_response_one_var_return(
-        self,
-        resources,
-        framework,
-        problem,
-        language,
-        docker,
-        tmp_path,
+        self, resources, framework, problem, language, docker, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
+            resources, tmp_path, framework, problem, language,
         )
 
         with DrumServerRun(
-            "unstructured",
-            resources.class_labels(framework, problem),
-            custom_model_dir,
-            docker,
+            "unstructured", resources.class_labels(framework, problem), custom_model_dir, docker,
         ) as run:
             url = run.url_server_address + "/predictUnstructured/"
 
