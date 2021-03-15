@@ -572,7 +572,7 @@ class TestInference:
             arrow_dataset_buf = pyarrow.ipc.serialize_pandas(df, preserve_index=False).to_pybytes()
 
             sink = io.BytesIO()
-            scipy.io.mmwrite(sink, scipy.sparse.csr_matrix(df.values))
+            scipy.io.mmwrite(sink, df.sparse.to_coo())
             mtx_dataset_buf = sink.getvalue()
 
             # do predictions

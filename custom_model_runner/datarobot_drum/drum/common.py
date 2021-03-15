@@ -82,6 +82,7 @@ class StructuredDtoKeys:
     MIMETYPE = "mimetype"
     TARGET_BINARY_DATA = "target_binary_data"
     TARGET_MIMETYPE = "target_mimetype"
+    SPARSE_COLNAMES = "sparse_colnames"
 
 
 class PredictionServerMimetypes:
@@ -178,6 +179,7 @@ class ArgumentsOptions:
     CLASS_LABELS = "--class-labels"
     CLASS_LABELS_FILE = "--class-labels-file"
     SKIP_DEPS_INSTALL = "--skip-deps-install"
+    SPARSE_COLFILE = "--sparse-column-file"
 
     MAIN_COMMAND = "drum" if not DEBUG else "./custom_model_runner/bin/drum"
 

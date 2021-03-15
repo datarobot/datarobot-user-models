@@ -47,7 +47,7 @@ class PredictMixin:
         return ret_mimetype, ret_charset
 
     @staticmethod
-    def _fetch_data_from_request(file_key, logger=None):
+    def _fetch_data_from_request(file_key, logger=None, optional=False):
         filestorage = request.files.get(file_key)
 
         charset = None
@@ -64,7 +64,7 @@ class PredictMixin:
         elif len(request.data):
             binary_data = request.data
             mimetype, charset = PredictMixin._validate_content_type_header(request.content_type)
-        else:
+        elif not optional:
             wrong_key_error_message = (
                 "Samples should be provided as: "
                 "  - a csv, mtx, or arrow file under `{}` form-data param key."
@@ -73,6 +73,8 @@ class PredictMixin:
             if logger is not None:
                 logger.error(wrong_key_error_message)
             raise ValueError(wrong_key_error_message)
+        else:
+            return None, None, None
         return binary_data, mimetype, charset
 
     def _check_mimetype_support(self, mimetype):
@@ -95,7 +97,11 @@ class PredictMixin:
     def _predict(self, logger=None):
         response_status = HTTP_200_OK
         try:
+
             binary_data, mimetype, charset = self._fetch_data_from_request("X", logger=logger)
+            sparse_data, _, _ = self._fetch_data_from_request(
+                "X.colnames", logger=logger, optional=True
+            )
 
             mimetype_support_error_response = self._check_mimetype_support(mimetype)
             if mimetype_support_error_response is not None:
@@ -105,7 +111,7 @@ class PredictMixin:
             return {"message": "ERROR: " + str(e)}, response_status
 
         out_data = self._predictor.predict(
-            binary_data=binary_data, mimetype=mimetype, charset=charset
+            binary_data=binary_data, mimetype=mimetype, charset=charset, sparse_colnames=sparse_data
         )
 
         if self._target_type == TargetType.UNSTRUCTURED:
@@ -155,12 +161,26 @@ class PredictMixin:
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             return {"message": "ERROR: " + str(e)}, response_status
 
+        try:
+            if "X.colnames" in request.files.keys():
+                (
+                    colnames_bin_data,
+                    colnames_mimetype,
+                    colnames_charset,
+                ) = self._fetch_data_from_request("X.colnames", logger=logger, optional=True)
+                err = self._check_mimetype_support(colnames_mimetype)
+                if err is not None:
+                    return err
+        except ValueError as e:
+            response_status = HTTP_422_UNPROCESSABLE_ENTITY
+            return {"message": "ERROR: " + str(e)}, response_status
+
         if "y" in request.files.keys():
             try:
                 target_binary_data, target_mimetype, target_charset = self._fetch_data_from_request(
                     "y", logger=logger
                 )
-                mimetype_support_error_response = self._check_mimetype_support(feature_mimetype)
+                mimetype_support_error_response = self._check_mimetype_support(target_mimetype)
                 if mimetype_support_error_response is not None:
                     return mimetype_support_error_response
             except ValueError as e:
@@ -174,6 +194,7 @@ class PredictMixin:
                 target_binary_data=target_binary_data,
                 target_mimetype=target_mimetype,
                 target_charset=target_charset,
+                sparse_colnames=colnames_bin_data,
             )
         else:
             out_data, _ = self._predictor.transform(

@@ -24,6 +24,7 @@ from datarobot_drum.drum.exceptions import (
 )
 from datarobot_drum.drum.utils import CMRunnerUtils
 from datarobot_drum.drum.common import (
+    PredictionServerMimetypes,
     ArgumentsOptions,
     PERF_TEST_SERVER_LABEL,
     RESPONSE_PREDICTIONS_KEY,
@@ -612,6 +613,8 @@ class CMRunTests:
         ) as run:
             endpoint = "/transform/"
             payload = {"X": open(self.options.input)}
+            if self.options.sparse_column_file:
+                payload.update({"X.colnames": open(self.options.sparse_column_file)})
 
             # there is a known bug in urllib3 that needlessly gives a header warning
             # this will supress the warning for better user experience when running performance test
@@ -636,15 +639,28 @@ class CMRunTests:
         is_sparse = input_extension[1] == ".mtx"
 
         if is_sparse:
-            df = pd.DataFrame(mmread(self.options.input).tocsr())
+            columns = [
+                column.strip() for column in open(self.options.sparse_column_file).readlines()
+            ]
+            df = pd.DataFrame.sparse.from_spmatrix(mmread(self.options.input), columns=columns)
             samplesize = min(1000, max(int(len(df) * 0.1), 10))
             data_subset = df.sample(n=samplesize, random_state=42)
-            subset_payload, _ = make_mtx_payload(data_subset)
+            subset_payload, colnames = make_mtx_payload(data_subset)
+            subset_payload = ("X.mtx", subset_payload)
+            files = {
+                "X": subset_payload,
+                "X.colnames": (
+                    "X.colnames",
+                    colnames,
+                    PredictionServerMimetypes.APPLICATION_OCTET_STREAM,
+                ),
+            }
         else:
             df = pd.read_csv(self.options.input)
             samplesize = min(1000, max(int(len(df) * 0.1), 10))
             data_subset = df.sample(n=samplesize, random_state=42)
             subset_payload = make_csv_payload(data_subset)
+            files = {"X": subset_payload}
 
         labels = self.resolve_labels(self.target_type, self.options)
 
@@ -653,6 +669,16 @@ class CMRunTests:
         ) as run:
             endpoint = "/predict/"
             payload = {"X": open(self.options.input)}
+            if is_sparse:
+                payload.update(
+                    {
+                        "X.colnames": (
+                            "X.colnames",
+                            open(self.options.sparse_column_file),
+                            PredictionServerMimetypes.APPLICATION_OCTET_STREAM,
+                        )
+                    }
+                )
 
             response_full = requests.post(run.url_server_address + endpoint, files=payload)
             if not response_full.ok:
@@ -660,12 +686,7 @@ class CMRunTests:
                     "Failure in {} server: {}".format(endpoint[1:-1], response_full.text)
                 )
 
-            if is_sparse:
-                subset_payload = ("X.mtx", subset_payload)
-
-            response_sample = requests.post(
-                run.url_server_address + endpoint, files={"X": subset_payload}
-            )
+            response_sample = requests.post(run.url_server_address + endpoint, files=files)
 
             preds_full = pd.DataFrame(json.loads(response_full.text)[RESPONSE_PREDICTIONS_KEY])
             preds_sample = pd.DataFrame(json.loads(response_sample.text)[RESPONSE_PREDICTIONS_KEY])
@@ -677,7 +698,7 @@ class CMRunTests:
                 if is_sparse:
                     _, __tempfile_sample = mkstemp(suffix=".mtx")
                     sparse_mat = vstack(x[0] for x in data_subset.values)
-                    mmwrite(__tempfile_sample, sparse_mat)
+                    mmwrite(__tempfile_sample, sparse_mat.sparse.to_coo())
                 else:
                     _, __tempfile_sample = mkstemp(suffix=".csv")
                     data_subset.to_csv(__tempfile_sample, index=False)

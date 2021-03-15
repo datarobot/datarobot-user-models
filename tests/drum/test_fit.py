@@ -10,6 +10,7 @@ from datarobot_drum.drum.utils import handle_missing_colnames, unset_drum_suppor
 from .constants import (
     ANOMALY,
     BINARY,
+    SPARSE_COLUMNS,
     SPARSE_TARGET,
     SKLEARN_SPARSE,
     SPARSE,
@@ -253,13 +254,15 @@ class TestFit:
         custom_model_dir = _create_custom_model_dir(
             resources, tmp_path, framework, REGRESSION, language=framework,
         )
+        columns = resources.datasets(framework, SPARSE_COLUMNS)
 
-        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose --target-csv {}".format(
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose --target-csv {} --sparse-column-file {}".format(
             ArgumentsOptions.MAIN_COMMAND,
             TRANSFORM,
             custom_model_dir,
             input_dataset,
             target_dataset,
+            columns,
         )
 
         _exec_shell_cmd(
@@ -398,12 +401,13 @@ class TestFit:
 
         input_dataset = resources.datasets(framework, SPARSE)
         target_dataset = resources.datasets(framework, SPARSE_TARGET)
+        columns = resources.datasets(framework, SPARSE_COLUMNS)
 
         output = tmp_path / "output"
         output.mkdir()
 
-        cmd = "{} fit --code-dir {} --input {} --target-type {} --verbose ".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, REGRESSION
+        cmd = "{} fit --code-dir {} --input {} --target-type {} --verbose --sparse-column-file {}".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, REGRESSION, columns
         )
 
         cmd += " --target-csv " + target_dataset
