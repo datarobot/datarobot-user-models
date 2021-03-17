@@ -1,4 +1,5 @@
 import os
+import shutil
 from tempfile import NamedTemporaryFile
 
 import numpy as np
@@ -7,52 +8,52 @@ import pytest
 
 from datarobot_drum.drum.common import ArgumentsOptions
 from datarobot_drum.drum.utils import handle_missing_colnames, unset_drum_supported_env_vars
+from datarobot_drum.resource.utils import (
+    _cmd_add_class_labels,
+    _create_custom_model_dir,
+    _exec_shell_cmd,
+)
 from .constants import (
     ANOMALY,
     BINARY,
-    SPARSE_COLUMNS,
-    SPARSE_TARGET,
-    SKLEARN_SPARSE,
-    SPARSE,
+    BINARY_BOOL,
+    BINARY_SPACES,
+    BINARY_TEXT,
     DOCKER_PYTHON_SKLEARN,
     KERAS,
     MULTICLASS,
-    MULTICLASS_NUM_LABELS,
     MULTICLASS_BINARY,
+    MULTICLASS_NUM_LABELS,
     PYTHON,
     PYTORCH,
     PYTORCH_MULTICLASS,
     R_FIT,
     RDS,
     REGRESSION,
-    BINARY_TEXT,
     SIMPLE,
     SKLEARN,
+    SKLEARN_ANOMALY,
     SKLEARN_BINARY,
     SKLEARN_MULTICLASS,
-    SKLEARN_REGRESSION,
-    SKLEARN_ANOMALY,
-    SKLEARN_TRANSFORM,
-    SKLEARN_TRANSFORM_WITH_Y,
     SKLEARN_PRED_CONSISTENCY,
+    SKLEARN_REGRESSION,
+    SKLEARN_SPARSE,
+    SKLEARN_TRANSFORM,
     SKLEARN_TRANSFORM_NO_HOOK,
-    SKLEARN_TRANSFORM_SPARSE_INPUT,
-    SKLEARN_TRANSFORM_SPARSE_IN_OUT,
     SKLEARN_TRANSFORM_NON_NUMERIC,
+    SKLEARN_TRANSFORM_SPARSE_IN_OUT,
+    SKLEARN_TRANSFORM_SPARSE_INPUT,
+    SKLEARN_TRANSFORM_WITH_Y,
+    SPARSE,
+    SPARSE_COLUMNS,
+    SPARSE_TARGET,
+    TARGET_NAME_DUPLICATED_X,
+    TARGET_NAME_DUPLICATED_Y,
     TESTS_ROOT_PATH,
+    TRANSFORM,
     WEIGHTS_ARGS,
     WEIGHTS_CSV,
     XGB,
-    BINARY_BOOL,
-    TRANSFORM,
-    BINARY_SPACES,
-    TARGET_NAME_DUPLICATED_X,
-    TARGET_NAME_DUPLICATED_Y,
-)
-from datarobot_drum.resource.utils import (
-    _cmd_add_class_labels,
-    _create_custom_model_dir,
-    _exec_shell_cmd,
 )
 
 
@@ -270,26 +271,39 @@ class TestFit:
         )
 
     def _create_fit_input_data_dir(
-        self, get_target, get_dataset_filename, input_dir, problem, weights
+        self, get_target, get_dataset_filename, input_dir, problem, weights, is_sparse=False
     ):
         input_dir.mkdir(parents=True, exist_ok=True)
 
-        input_dataset = get_dataset_filename(None, problem)
-        df = pd.read_csv(input_dataset, lineterminator="\n")
-
         # Training data
-        with open(os.path.join(input_dir, "X.csv"), "w+") as fp:
-            if problem == ANOMALY:
-                feature_df = df
-            else:
-                feature_df = df.loc[:, df.columns != get_target(problem)]
-            feature_df.to_csv(fp, index=False)
+        if is_sparse:
+            X_file = os.path.join(input_dir, "X.mtx")
+            input_dataset = get_dataset_filename(None, SPARSE)
+            shutil.copyfile(input_dataset, X_file)
+        else:
+            X_file = os.path.join(input_dir, "X.csv")
+            input_dataset = get_dataset_filename(None, problem)
+            with open(X_file, "w+") as fp:
+                df = pd.read_csv(input_dataset)
+                if problem == ANOMALY or is_sparse:
+                    feature_df = df
+                else:
+                    feature_df = df.loc[:, df.columns != get_target(problem)]
+                feature_df.to_csv(fp, index=False)
 
         if problem != ANOMALY:
             # Target data
-            with open(os.path.join(input_dir, "y.csv"), "w+") as fp:
-                target_series = df[get_target(problem)]
+            target_file = os.path.join(input_dir, "y.csv")
+            if not is_sparse:
+                with open(target_file, "w+") as fp:
+                    target_series = df[get_target(problem)]
                 target_series.to_csv(fp, index=False, header="Target")
+            if is_sparse:
+                shutil.copyfile(get_dataset_filename(None, SPARSE_TARGET), target_file)
+
+        if is_sparse:
+            columns = get_dataset_filename(None, SPARSE_COLUMNS)
+            shutil.copyfile(columns, input_dir / "X.colnames")
 
         # Weights data
         if weights:
@@ -305,6 +319,7 @@ class TestFit:
             (SKLEARN_BINARY, BINARY),
             (SKLEARN_ANOMALY, ANOMALY),
             (SKLEARN_MULTICLASS, MULTICLASS),
+            (SKLEARN_SPARSE, REGRESSION),
             (XGB, BINARY_TEXT),
             (XGB, BINARY),
             (XGB, MULTICLASS),
@@ -328,14 +343,20 @@ class TestFit:
             "public_dropin_environments/{}_{}/fit.sh".format(
                 PYTHON,
                 framework
-                if framework not in [SKLEARN_ANOMALY, SKLEARN_BINARY, SKLEARN_MULTICLASS]
+                if framework
+                not in [SKLEARN_ANOMALY, SKLEARN_BINARY, SKLEARN_MULTICLASS, SKLEARN_SPARSE]
                 else SKLEARN,
             ),
         )
 
         input_dir = tmp_path / "input_dir"
         self._create_fit_input_data_dir(
-            resources.targets, resources.datasets, input_dir, problem, weights
+            resources.targets,
+            resources.datasets,
+            input_dir,
+            problem,
+            weights,
+            is_sparse=framework == SKLEARN_SPARSE,
         )
 
         output = tmp_path / "output"
@@ -347,6 +368,8 @@ class TestFit:
         env["INPUT_DIRECTORY"] = str(input_dir)
         env["ARTIFACT_DIRECTORY"] = str(output)
         env["TARGET_TYPE"] = problem if problem != BINARY_TEXT else BINARY
+        if framework == SKLEARN_SPARSE:
+            env["TRAINING_DATA_EXTENSION"] = ".mtx"
 
         if problem in [BINARY, BINARY_TEXT]:
             labels = resources.class_labels(framework, problem)
