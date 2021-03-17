@@ -297,7 +297,7 @@ class TestFit:
             if not is_sparse:
                 with open(target_file, "w+") as fp:
                     target_series = df[get_target(problem)]
-                target_series.to_csv(fp, index=False, header="Target")
+                    target_series.to_csv(fp, index=False, header="Target")
             if is_sparse:
                 shutil.copyfile(get_dataset_filename(None, SPARSE_TARGET), target_file)
 
@@ -370,6 +370,8 @@ class TestFit:
         env["TARGET_TYPE"] = problem if problem != BINARY_TEXT else BINARY
         if framework == SKLEARN_SPARSE:
             env["TRAINING_DATA_EXTENSION"] = ".mtx"
+        else:
+            env["TRAINING_DATA_EXTENSION"] = ".csv"
 
         if problem in [BINARY, BINARY_TEXT]:
             labels = resources.class_labels(framework, problem)

@@ -61,7 +61,7 @@ class PredictMixin:
                 )
 
         # TODO: probably need to return empty response in case of empty request
-        elif len(request.data):
+        elif len(request.data) and file_key == "X":
             binary_data = request.data
             mimetype, charset = PredictMixin._validate_content_type_header(request.content_type)
         elif not optional:
