@@ -162,12 +162,11 @@ class PredictMixin:
             return {"message": "ERROR: " + str(e)}, response_status
 
         try:
+            colnames_bin_data = None
             if "X.colnames" in request.files.keys():
-                (
-                    colnames_bin_data,
-                    colnames_mimetype,
-                    colnames_charset,
-                ) = self._fetch_data_from_request("X.colnames", logger=logger, optional=True)
+                colnames_bin_data, colnames_mimetype, _ = self._fetch_data_from_request(
+                    "X.colnames", logger=logger, optional=True
+                )
                 err = self._check_mimetype_support(colnames_mimetype)
                 if err is not None:
                     return err

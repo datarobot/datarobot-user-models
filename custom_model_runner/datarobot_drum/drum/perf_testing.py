@@ -687,6 +687,10 @@ class CMRunTests:
                 )
 
             response_sample = requests.post(run.url_server_address + endpoint, files=files)
+            if not response_sample.ok:
+                raise DrumCommonException(
+                    "Failure in {} server: {}".format(endpoint[1:-1], response_sample.text)
+                )
 
             preds_full = pd.DataFrame(json.loads(response_full.text)[RESPONSE_PREDICTIONS_KEY])
             preds_sample = pd.DataFrame(json.loads(response_sample.text)[RESPONSE_PREDICTIONS_KEY])

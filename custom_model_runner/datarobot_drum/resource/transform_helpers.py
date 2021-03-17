@@ -71,7 +71,7 @@ def make_mtx_payload(df):
     colnames = df.columns.values
     sink = BytesIO()
     mmwrite(sink, sparse_mat.sparse.to_coo())
-    column_payload = "\n".join(str(colnames))
+    column_payload = "\n".join(str(colname) for colname in colnames)
 
     return sink.getvalue(), column_payload
 

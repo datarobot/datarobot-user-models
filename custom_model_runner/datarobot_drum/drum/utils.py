@@ -248,15 +248,17 @@ class StructuredInputReadUtils:
         return InputFormatToMimetype.get(os.path.splitext(filename)[1])
 
     @staticmethod
-    def read_structured_input_data_as_df(binary_data, mimetype, sparse_colnames):
+    def read_structured_input_data_as_df(binary_data, mimetype, sparse_colnames=None):
         try:
             if mimetype == PredictionServerMimetypes.TEXT_MTX:
-                colnames = [
-                    column.strip().decode("utf-8")
-                    for column in io.BytesIO(sparse_colnames).readlines()
-                ]
+                columns = None
+                if sparse_colnames:
+                    columns = [
+                        column.strip().decode("utf-8")
+                        for column in io.BytesIO(sparse_colnames).readlines()
+                    ]
                 return pd.DataFrame.sparse.from_spmatrix(
-                    mmread(io.BytesIO(binary_data)), columns=colnames
+                    mmread(io.BytesIO(binary_data)), columns=columns
                 )
             elif mimetype == PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM:
                 df = get_pyarrow_module().ipc.deserialize_pandas(binary_data)
