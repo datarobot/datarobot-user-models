@@ -478,6 +478,7 @@ class CMRunnerArgsRegistry(object):
             parser.add_argument(
                 ArgumentsOptions.SPARSE_COLFILE,
                 default=None,
+                type=CMRunnerArgsRegistry._is_valid_file,
                 help="Drum ingests sparse data as .mtx files, which don't have support for column"
                 "names. We allow a second file which addresses this. Please do this by"
                 "specifying one column name per line in the file. The number of lines should "
