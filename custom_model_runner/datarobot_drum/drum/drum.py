@@ -511,7 +511,6 @@ class CMRunner:
         functional_pipeline_name = self._functional_pipelines[(self.run_mode, run_language)]
         functional_pipeline_filepath = CMRunnerUtils.get_pipeline_filepath(functional_pipeline_name)
         # fields to replace in the functional pipeline (predictor)
-
         replace_data = {
             "customModelPath": os.path.abspath(options.code_dir),
             "input_filename": options.input,
@@ -524,6 +523,7 @@ class CMRunner:
             "classLabels": options.class_labels,
             "output_dir": options.output,
             "num_rows": options.num_rows,
+            "sparse_column_file": options.sparse_column_file,
         }
 
         functional_pipeline_str = CMRunnerUtils.render_file(

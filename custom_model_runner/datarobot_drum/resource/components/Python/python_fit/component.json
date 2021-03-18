@@ -34,6 +34,13 @@
       "optional": true
     },
     {
+      "key": "sparseColfile",
+      "label": "sparseColfile",
+      "type": "str",
+      "description": "A file with the column names for sparse data",
+      "optional": true
+    },
+    {
       "key": "targetColumn",
       "label": "targetColumn",
       "type": "str",

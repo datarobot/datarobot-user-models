@@ -473,6 +473,19 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
+    def _reg_arg_sparse_colfile(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.SPARSE_COLFILE,
+                default=None,
+                type=CMRunnerArgsRegistry._is_valid_file,
+                help="Drum ingests sparse data as .mtx files, which don't have support for column"
+                "names. We allow a second file which addresses this. Please do this by"
+                "specifying one column name per line in the file. The number of lines should "
+                "match the number of columns in your mtx file exactly. ",
+            )
+
+    @staticmethod
     def _reg_arg_with_error_server(*parsers):
         for parser in parsers:
             parser.add_argument(
@@ -805,6 +818,7 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_arg_weights(fit_parser)
         CMRunnerArgsRegistry._reg_arg_skip_predict(fit_parser)
         CMRunnerArgsRegistry._reg_arg_num_rows(fit_parser)
+        CMRunnerArgsRegistry._reg_arg_sparse_colfile(fit_parser)
 
         CMRunnerArgsRegistry._reg_arg_samples(perf_test_parser)
         CMRunnerArgsRegistry._reg_arg_iterations(perf_test_parser)

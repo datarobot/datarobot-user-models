@@ -14,6 +14,7 @@
                 "numRows": "{{ num_rows }}",
                 "inputFilename": "{{ input_filename }}",
                 "weightsFilename": {{ weights_filename | jsonify }},
+                "sparse_column_file": {{sparse_column_file | jsonify }},
                 "weights": {{ weights | jsonify }},
                 "positiveClassLabel": {{ positiveClassLabel | jsonify }},
                 "negativeClassLabel": {{ negativeClassLabel | jsonify }},

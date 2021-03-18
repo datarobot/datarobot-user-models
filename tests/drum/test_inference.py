@@ -420,7 +420,7 @@ class TestInference:
                 actual_num_predictions = transformed_out.shape[0]
             else:
                 transformed_out = read_mtx_payload(parsed_response, X_TRANSFORM_KEY)
-                colnames = read_csv_payload(parsed_response, "X.colnames")
+                colnames = parsed_response["X.colnames"].decode("utf-8").split("\n")
                 assert len(colnames) == transformed_out.shape[1]
                 if pass_target:
                     # this shouldn't be sparse even though features are

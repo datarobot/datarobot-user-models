@@ -23,6 +23,7 @@ class PythonFit(ConnectableComponent):
         self.custom_model_path = None
         self.input_filename = None
         self.weights = None
+        self.sparse_column_file = None
         self.weights_filename = None
         self.target_filename = None
         self._model_adapter = None
@@ -32,6 +33,7 @@ class PythonFit(ConnectableComponent):
         super(PythonFit, self).configure(params)
         self.custom_model_path = self._params["__custom_model_path__"]
         self.input_filename = self._params["inputFilename"]
+        self.sparse_column_file = self._params["sparse_column_file"]
         self.target_name = self._params.get("targetColumn")
         self.output_dir = self._params["outputDir"]
         self.positive_class_label = self._params.get("positiveClassLabel")

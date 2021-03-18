@@ -62,6 +62,7 @@ TRANSFORM = "transform"
 MULTICLASS_NUM_LABELS = "multiclass_num_labels"
 MULTICLASS_BINARY = "multiclass_binary"  # special case for testing multiclass with only 2 classes
 SPARSE = "sparse"
+SPARSE_COLUMNS = "sparse_columns"
 SPARSE_TARGET = "sparse_target"
 TARGET_NAME_DUPLICATED_X = "target_name_duplicated_x"
 TARGET_NAME_DUPLICATED_Y = "target_name_duplicated_y"

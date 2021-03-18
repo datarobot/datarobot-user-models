@@ -321,7 +321,7 @@ class PythonModelAdapter:
             else self._predictor_to_use.name,
         }
 
-    def load_data(self, binary_data, mimetype, try_hook=True):
+    def load_data(self, binary_data, mimetype, try_hook=True, sparse_colnames=None):
 
         if self._custom_hooks.get(CustomHooks.READ_INPUT_DATA) and try_hook:
             try:
@@ -331,7 +331,9 @@ class PythonModelAdapter:
                     "Model read_data hook failed to read input data: {} {}".format(binary_data, exc)
                 ).with_traceback(sys.exc_info()[2]) from None
         else:
-            data = StructuredInputReadUtils.read_structured_input_data_as_df(binary_data, mimetype,)
+            data = StructuredInputReadUtils.read_structured_input_data_as_df(
+                binary_data, mimetype, sparse_colnames
+            )
 
         return data
 
@@ -349,7 +351,12 @@ class PythonModelAdapter:
         pd.DataFrame
         """
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
-        data = self.load_data(input_binary_data, kwargs.get(StructuredDtoKeys.MIMETYPE))
+        sparse_colnames = kwargs.get(StructuredDtoKeys.SPARSE_COLNAMES)
+        data = self.load_data(
+            input_binary_data,
+            kwargs.get(StructuredDtoKeys.MIMETYPE),
+            sparse_colnames=sparse_colnames,
+        )
 
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
             try:
@@ -381,8 +388,13 @@ class PythonModelAdapter:
         """
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         target_binary_data = kwargs.get(StructuredDtoKeys.TARGET_BINARY_DATA)
+        sparse_colnames_bin_data = kwargs.get(StructuredDtoKeys.SPARSE_COLNAMES)
 
-        data = self.load_data(input_binary_data, kwargs.get(StructuredDtoKeys.MIMETYPE))
+        data = self.load_data(
+            input_binary_data,
+            kwargs.get(StructuredDtoKeys.MIMETYPE),
+            sparse_colnames=sparse_colnames_bin_data,
+        )
         target_data = None
 
         if target_binary_data:

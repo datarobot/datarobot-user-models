@@ -131,7 +131,10 @@ def shared_fit_preprocessing(fit_class):
     """
     # read in data
     if fit_class.input_filename.endswith(".mtx"):
-        df = pd.DataFrame.sparse.from_spmatrix(mmread(fit_class.input_filename))
+        colnames = None
+        if fit_class.sparse_column_file:
+            colnames = [column.strip() for column in open(fit_class.sparse_column_file).readlines()]
+        df = pd.DataFrame.sparse.from_spmatrix(mmread(fit_class.input_filename), columns=colnames)
     else:
         df = pd.read_csv(fit_class.input_filename)
 
@@ -245,10 +248,18 @@ class StructuredInputReadUtils:
         return InputFormatToMimetype.get(os.path.splitext(filename)[1])
 
     @staticmethod
-    def read_structured_input_data_as_df(binary_data, mimetype):
+    def read_structured_input_data_as_df(binary_data, mimetype, sparse_colnames=None):
         try:
             if mimetype == PredictionServerMimetypes.TEXT_MTX:
-                return pd.DataFrame.sparse.from_spmatrix(mmread(io.BytesIO(binary_data)))
+                columns = None
+                if sparse_colnames:
+                    columns = [
+                        column.strip().decode("utf-8")
+                        for column in io.BytesIO(sparse_colnames).readlines()
+                    ]
+                return pd.DataFrame.sparse.from_spmatrix(
+                    mmread(io.BytesIO(binary_data)), columns=columns
+                )
             elif mimetype == PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM:
                 df = get_pyarrow_module().ipc.deserialize_pandas(binary_data)
 
