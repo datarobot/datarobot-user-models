@@ -306,6 +306,7 @@ class ModelMetadataKeys(object):
     # customPredictor section is not used by DRUM,
     # it is a place holder if user wants to add some fields and read them on his own
     CUSTOM_PREDICTOR = "customPredictor"
+    PARAMETERS = 'parameters'
 
 
 MODEL_CONFIG_SCHEMA = Map(
@@ -332,6 +333,7 @@ MODEL_CONFIG_SCHEMA = Map(
         ),
         Optional(ModelMetadataKeys.TRAINING_MODEL): Map({Optional("trainOnProject"): Str()}),
         Optional(ModelMetadataKeys.CUSTOM_PREDICTOR): Any(),
+        Optional(ModelMetadataKeys.PARAMETERS): Any(),
     }
 )
 
