@@ -27,6 +27,7 @@ from datarobot_drum.drum.common import (
     PredictionServerMimetypes,
     ArgumentsOptions,
     PERF_TEST_SERVER_LABEL,
+    SPARSE_COLNAMES,
     RESPONSE_PREDICTIONS_KEY,
     TargetType,
 )
@@ -614,7 +615,7 @@ class CMRunTests:
             endpoint = "/transform/"
             payload = {"X": open(self.options.input)}
             if self.options.sparse_column_file:
-                payload.update({"X.colnames": open(self.options.sparse_column_file)})
+                payload.update({SPARSE_COLNAMES: open(self.options.sparse_column_file)})
 
             # there is a known bug in urllib3 that needlessly gives a header warning
             # this will supress the warning for better user experience when running performance test
@@ -649,8 +650,8 @@ class CMRunTests:
             subset_payload = ("X.mtx", subset_payload)
             files = {
                 "X": subset_payload,
-                "X.colnames": (
-                    "X.colnames",
+                SPARSE_COLNAMES: (
+                    SPARSE_COLNAMES,
                     colnames,
                     PredictionServerMimetypes.APPLICATION_OCTET_STREAM,
                 ),
@@ -672,8 +673,8 @@ class CMRunTests:
             if is_sparse:
                 payload.update(
                     {
-                        "X.colnames": (
-                            "X.colnames",
+                        SPARSE_COLNAMES: (
+                            SPARSE_COLNAMES,
                             open(self.options.sparse_column_file),
                             PredictionServerMimetypes.APPLICATION_OCTET_STREAM,
                         )

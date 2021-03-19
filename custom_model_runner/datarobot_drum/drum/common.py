@@ -20,6 +20,7 @@ TARGET_TYPE_ARG_KEYWORD = "target_type"
 RESPONSE_PREDICTIONS_KEY = "predictions"
 X_TRANSFORM_KEY = "X.transformed"
 Y_TRANSFORM_KEY = "y.transformed"
+SPARSE_COLNAMES = "X.colnames"
 
 URL_PREFIX_ENV_VAR_NAME = "URL_PREFIX"
 
