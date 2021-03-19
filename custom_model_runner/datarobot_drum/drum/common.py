@@ -304,6 +304,7 @@ class ModelMetadataKeys(object):
     INFERENCE_MODEL = "inferenceModel"
     TRAINING_MODEL = "trainingModel"
     HYPERPARAMETERS = "hyperparameters"
+    VALIDATION_SCHEMA = "validation_schema"
     # customPredictor section is not used by DRUM,
     # it is a place holder if user wants to add some fields and read them on his own
     CUSTOM_PREDICTOR = "customPredictor"
@@ -333,6 +334,7 @@ MODEL_CONFIG_SCHEMA = Map(
         ),
         Optional(ModelMetadataKeys.TRAINING_MODEL): Map({Optional("trainOnProject"): Str()}),
         Optional(ModelMetadataKeys.HYPERPARAMETERS): Any(),
+        Optional(ModelMetadataKeys.VALIDATION_SCHEMA): Any(),
         Optional(ModelMetadataKeys.CUSTOM_PREDICTOR): Any(),
     }
 )
