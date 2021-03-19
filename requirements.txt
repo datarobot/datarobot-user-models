@@ -9,7 +9,7 @@ xgboost==1.1.1
 torch==1.2.0
 grpcio==1.27.2
 # tensorflow==2.2.1
-Pillow==7.1.2
+Pillow==8.1.1
 pypmml==0.9.6
 rpy2==3.3.6
 strictyaml==1.0.6
