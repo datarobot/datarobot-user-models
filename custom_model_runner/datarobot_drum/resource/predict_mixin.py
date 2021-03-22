@@ -8,6 +8,7 @@ from datarobot_drum.drum.common import (
     REGRESSION_PRED_COLUMN,
     TargetType,
     UnstructuredDtoKeys,
+    SPARSE_COLNAMES,
     PredictionServerMimetypes,
     X_TRANSFORM_KEY,
     Y_TRANSFORM_KEY,
@@ -47,7 +48,7 @@ class PredictMixin:
         return ret_mimetype, ret_charset
 
     @staticmethod
-    def _fetch_data_from_request(file_key, logger=None, optional=False):
+    def _fetch_data_from_request(file_key, logger=None):
         filestorage = request.files.get(file_key)
 
         charset = None
@@ -64,7 +65,7 @@ class PredictMixin:
         elif len(request.data) and file_key == "X":
             binary_data = request.data
             mimetype, charset = PredictMixin._validate_content_type_header(request.content_type)
-        elif not optional:
+        else:
             wrong_key_error_message = (
                 "Samples should be provided as: "
                 "  - a csv, mtx, or arrow file under `{}` form-data param key."
@@ -73,9 +74,21 @@ class PredictMixin:
             if logger is not None:
                 logger.error(wrong_key_error_message)
             raise ValueError(wrong_key_error_message)
-        else:
-            return None, None, None
         return binary_data, mimetype, charset
+
+    @staticmethod
+    def _fetch_additional_files_from_request(file_key, logger=None):
+        filestorage = request.files.get(file_key)
+
+        if filestorage is not None:
+            binary_data = filestorage.stream.read()
+
+            if logger is not None:
+                logger.debug(
+                    "Filename provided under {} key: {}".format(file_key, filestorage.filename)
+                )
+            return binary_data
+        return None
 
     def _check_mimetype_support(self, mimetype):
         # TODO: self._predictor.supported_payload_formats is property so gets initialized on every call, make it a method?
@@ -99,9 +112,7 @@ class PredictMixin:
         try:
 
             binary_data, mimetype, charset = self._fetch_data_from_request("X", logger=logger)
-            sparse_data, _, _ = self._fetch_data_from_request(
-                "X.colnames", logger=logger, optional=True
-            )
+            sparse_data = self._fetch_additional_files_from_request(SPARSE_COLNAMES, logger=logger)
 
             mimetype_support_error_response = self._check_mimetype_support(mimetype)
             if mimetype_support_error_response is not None:
@@ -163,13 +174,10 @@ class PredictMixin:
 
         try:
             colnames_bin_data = None
-            if "X.colnames" in request.files.keys():
-                colnames_bin_data, colnames_mimetype, _ = self._fetch_data_from_request(
-                    "X.colnames", logger=logger, optional=True
+            if SPARSE_COLNAMES in request.files.keys():
+                colnames_bin_data = self._fetch_additional_files_from_request(
+                    SPARSE_COLNAMES, logger=logger
                 )
-                err = self._check_mimetype_support(colnames_mimetype)
-                if err is not None:
-                    return err
         except ValueError as e:
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             return {"message": "ERROR: " + str(e)}, response_status
@@ -242,8 +250,8 @@ class PredictMixin:
         if is_sparse(out_data):
             out_fields.update(
                 {
-                    "X.colnames": (
-                        "X.colnames",
+                    SPARSE_COLNAMES: (
+                        SPARSE_COLNAMES,
                         colnames,
                         PredictionServerMimetypes.APPLICATION_OCTET_STREAM,
                     )
