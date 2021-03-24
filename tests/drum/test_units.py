@@ -19,7 +19,7 @@ from datarobot_drum.drum.drum import (
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
-from datarobot_drum.drum.push import _push_inference, _push_training
+from datarobot_drum.drum.push import _push_inference, _push_training, drum_push
 from datarobot_drum.drum.common import (
     read_model_metadata_yaml,
     MODEL_CONFIG_FILENAME,
@@ -97,6 +97,23 @@ def inference_metadata_yaml():
         environmentID: {environmentID}
         inferenceModel:
           targetName: MEDV
+        validation:
+          input: hello
+        """
+    ).format(environmentID=environmentID)
+
+
+@pytest.fixture
+def inference_binary_metadata_yaml_no_target_name():
+    return dedent(
+        """
+        name: drumpush-regression
+        type: inference
+        targetType: binary
+        environmentID: {environmentID}
+        inferenceModel:
+          positiveClassLabel: yes
+          negativeClassLabel: no
         validation:
           input: hello
         """
@@ -391,6 +408,26 @@ def test_push(request, config_yaml, existing_model_id, multiclass_labels, tmp_pa
             assert len(calls) == 3 + call_shift
     else:
         assert len(calls) == 2 + call_shift
+
+
+@responses.activate
+@pytest.mark.parametrize(
+    "config_yaml", ["inference_binary_metadata_yaml_no_target_name",],
+)
+def test_push_no_target_name_in_yaml(request, config_yaml, tmp_path):
+    config_yaml = request.getfixturevalue(config_yaml)
+    config_yaml = config_yaml + "\nmodelID: {}".format(modelID)
+
+    with open(os.path.join(tmp_path, MODEL_CONFIG_FILENAME), mode="w") as f:
+        f.write(config_yaml)
+    config = read_model_metadata_yaml(tmp_path)
+    print(config)
+
+    from argparse import Namespace
+
+    options = Namespace(code_dir=tmp_path, model_config=config)
+    with pytest.raises(DrumCommonException, match="Missing keys: \['targetName'\]"):
+        drum_push(options)
 
 
 def test_output_in_code_dir():
