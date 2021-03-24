@@ -421,7 +421,6 @@ def test_push_no_target_name_in_yaml(request, config_yaml, tmp_path):
     with open(os.path.join(tmp_path, MODEL_CONFIG_FILENAME), mode="w") as f:
         f.write(config_yaml)
     config = read_model_metadata_yaml(tmp_path)
-    print(config)
 
     from argparse import Namespace
 
