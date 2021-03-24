@@ -773,15 +773,10 @@ class CMRunnerArgsRegistry(object):
             score_parser, perf_test_parser, fit_parser, validation_parser
         )
         CMRunnerArgsRegistry._reg_arg_pos_neg_labels(
-            score_parser, perf_test_parser, server_parser, fit_parser, validation_parser
+            score_parser, perf_test_parser, server_parser, fit_parser, validation_parser,
         )
         CMRunnerArgsRegistry._reg_arg_multiclass_labels(
-            score_parser,
-            perf_test_parser,
-            server_parser,
-            fit_parser,
-            validation_parser,
-            push_parser,
+            score_parser, perf_test_parser, server_parser, fit_parser, validation_parser,
         )
         CMRunnerArgsRegistry._reg_arg_logging_level(
             score_parser, server_parser, fit_parser, new_parser, new_model_parser, push_parser

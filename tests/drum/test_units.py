@@ -107,7 +107,7 @@ def inference_metadata_yaml():
 def inference_binary_metadata_yaml_no_target_name():
     return dedent(
         """
-        name: drumpush-regression
+        name: drumpush-binary
         type: inference
         targetType: binary
         environmentID: {environmentID}
@@ -121,8 +121,37 @@ def inference_binary_metadata_yaml_no_target_name():
 
 
 @pytest.fixture
+def inference_binary_metadata_no_label():
+    return dedent(
+        """
+        name: drumpush-binary
+        type: inference
+        targetType: binary
+        inferenceModel:
+          positiveClassLabel: yes
+        """
+    )
+
+
+@pytest.fixture
 def multiclass_labels():
     return ["GALAXY", "QSO", "STAR"]
+
+
+@pytest.fixture
+def inference_multiclass_metadata_yaml_no_labels():
+    return dedent(
+        """
+        name: drumpush-multiclass
+        type: inference
+        targetType: multiclass
+        environmentID: {}
+        inferenceModel:
+          targetName: class
+        validation:
+          input: hello
+        """
+    ).format(environmentID)
 
 
 @pytest.fixture
@@ -163,6 +192,30 @@ def inference_multiclass_metadata_yaml_label_file(multiclass_labels):
               input: hello
             """
         ).format(environmentID, f.name)
+
+
+@pytest.fixture
+def inference_multiclass_metadata_yaml_labels_and_label_file(multiclass_labels):
+    with NamedTemporaryFile(mode="w+") as f:
+        f.write("\n".join(multiclass_labels))
+        f.flush()
+        yield dedent(
+            """
+            name: drumpush-multiclass
+            type: inference
+            targetType: multiclass
+            environmentID: {}
+            inferenceModel:
+              targetName: class
+              classLabelsFile: {}
+              classLabels:
+                - {}
+                - {}
+                - {}
+            validation:
+              input: hello
+            """
+        ).format(environmentID, f.name, *multiclass_labels)
 
 
 @pytest.fixture
@@ -240,19 +293,50 @@ def test_yaml_metadata(request, config_yaml, existing_model_id, tmp_path):
     read_model_metadata_yaml(tmp_path)
 
 
-def test_yaml_metadata_missing_fields(custom_predictor_metadata_yaml, tmp_path):
+@pytest.mark.parametrize(
+    "config_yaml, test_case_number",
+    [
+        ("custom_predictor_metadata_yaml", 1),
+        ("inference_binary_metadata_no_label", 2),
+        ("inference_multiclass_metadata_yaml_no_labels", 3),
+        ("inference_multiclass_metadata_yaml_labels_and_label_file", 4),
+        ("inference_multiclass_metadata_yaml", 100),
+        ("inference_multiclass_metadata_yaml_label_file", 100),
+    ],
+)
+def test_yaml_metadata_missing_fields(tmp_path, config_yaml, request, test_case_number):
+    config_yaml = request.getfixturevalue(config_yaml)
     with open(os.path.join(tmp_path, MODEL_CONFIG_FILENAME), mode="w") as f:
-        f.write(custom_predictor_metadata_yaml)
-    conf = read_model_metadata_yaml(tmp_path)
-    with pytest.raises(
-        DrumCommonException, match="Missing keys: \['validation', 'environmentID'\]"
-    ):
-        validate_config_fields(
-            conf,
-            ModelMetadataKeys.CUSTOM_PREDICTOR,
-            ModelMetadataKeys.VALIDATION,
-            ModelMetadataKeys.ENVIRONMENT_ID,
-        )
+        f.write(config_yaml)
+
+    if test_case_number == 1:
+        conf = read_model_metadata_yaml(tmp_path)
+        with pytest.raises(
+            DrumCommonException, match="Missing keys: \['validation', 'environmentID'\]"
+        ):
+            validate_config_fields(
+                conf,
+                ModelMetadataKeys.CUSTOM_PREDICTOR,
+                ModelMetadataKeys.VALIDATION,
+                ModelMetadataKeys.ENVIRONMENT_ID,
+            )
+    elif test_case_number == 2:
+        with pytest.raises(DrumCommonException, match="Missing keys: \['negativeClassLabel'\]"):
+            read_model_metadata_yaml(tmp_path)
+    elif test_case_number == 3:
+        with pytest.raises(
+            DrumCommonException,
+            match="Error - for multiclass classification, either the class labels or a class labels file must be provided in model-metadata.yaml file",
+        ):
+            read_model_metadata_yaml(tmp_path)
+    elif test_case_number == 4:
+        with pytest.raises(
+            DrumCommonException,
+            match="Error - for multiclass classification, either the class labels or a class labels file should be provided in model-metadata.yaml file, but not both",
+        ):
+            read_model_metadata_yaml(tmp_path)
+    elif test_case_number == 100:
+        read_model_metadata_yaml(tmp_path)
 
 
 def version_mocks():

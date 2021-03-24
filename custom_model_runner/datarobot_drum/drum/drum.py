@@ -37,6 +37,8 @@ from datarobot_drum.drum.common import (
     TargetType,
     verbose_stdout,
     read_model_metadata_yaml,
+    ModelMetadataKeys,
+    get_metadata,
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumPredException
@@ -64,43 +66,48 @@ class CMRunner:
         self.target_type = None
 
         self._resolve_target_type()
+        self._resolve_class_labels()
 
         self._functional_pipelines = {
             (RunMode.FIT, RunLanguage.PYTHON): "python_fit.json.j2",
             (RunMode.FIT, RunLanguage.R): "r_fit.json.j2",
         }
 
-    def _resolve_target_type(self):
-        target_type_options = None
-        target_type_model_config = None
+        # require metadata for push mode
+        if self.run_mode == RunMode.PUSH:
+            get_metadata(self.options)
 
-        if hasattr(self.options, "target_type") and self.options.target_type is not None:
-            target_type_options = TargetType(self.options.target_type)
+    def _resolve_target_type(self):
+        if self.run_mode == RunMode.NEW:
+            return
+
+        target_type_options = getattr(self.options, "target_type", None)
+        target_type_options = (
+            None if target_type_options is None else TargetType(target_type_options)
+        )
+        target_type_model_config = None
 
         if self.options.model_config is not None:
             target_type_model_config = TargetType(self.options.model_config["targetType"])
 
-        if self.run_mode not in [RunMode.NEW]:
-            if target_type_options is None and target_type_model_config is None:
-                raise DrumCommonException(
-                    "Target type is missing. It must be provided in --target-type argument, {} env var or model config file.".format(
-                        ArgumentOptionsEnvVars.TARGET_TYPE
-                    )
+        if target_type_options is None and target_type_model_config is None:
+            raise DrumCommonException(
+                "Target type is missing. It must be provided in --target-type argument, {} env var or model config file.".format(
+                    ArgumentOptionsEnvVars.TARGET_TYPE
                 )
-            elif (
-                all([target_type_options, target_type_model_config])
-                and target_type_options != target_type_model_config
-            ):
-                raise DrumCommonException(
-                    "Target type provided in --target-type argument doesn't match target type from model config file."
-                    "Use either one of them or make them match."
-                )
-            else:
-                self.target_type = (
-                    target_type_options
-                    if target_type_options is not None
-                    else target_type_model_config
-                )
+            )
+        elif (
+            all([target_type_options, target_type_model_config])
+            and target_type_options != target_type_model_config
+        ):
+            raise DrumCommonException(
+                "Target type provided in --target-type argument doesn't match target type from model config file. "
+                "Use either one of them or make them match."
+            )
+        else:
+            self.target_type = (
+                target_type_options if target_type_options is not None else target_type_model_config
+            )
 
         if self.target_type != TargetType.UNSTRUCTURED:
             if getattr(self.options, "query", None):
@@ -114,6 +121,95 @@ class CMRunner:
         else:
             if self.options.content_type is None:
                 self.options.content_type = "text/plain; charset=utf8"
+
+    def _resolve_class_labels(self):
+        if (
+            self.run_mode in [RunMode.NEW]
+            or self.run_mode == RunMode.PUSH
+            and self.options.model_config[ModelMetadataKeys.TYPE] == "training"
+        ):
+            self.options.positive_class_label = None
+            self.options.negative_class_label = None
+            self.options.class_labels = None
+            self.options.class_labels_file = None
+            return
+
+        if self.target_type == TargetType.BINARY:
+            pos_options = getattr(self.options, "positive_class_label", None)
+            neg_options = getattr(self.options, "negative_class_label", None)
+
+            try:
+                pos_model_config = self.options.model_config.get(
+                    ModelMetadataKeys.INFERENCE_MODEL
+                ).get("positiveClassLabel")
+                neg_model_config = self.options.model_config.get(
+                    ModelMetadataKeys.INFERENCE_MODEL
+                ).get("negativeClassLabel")
+            except AttributeError:
+                pos_model_config = neg_model_config = None
+
+            if (
+                not all([pos_options, neg_options])
+                and not all([pos_model_config, neg_model_config])
+                and self.run_mode != RunMode.FIT
+            ):
+                raise DrumCommonException(
+                    "Positive/negative class labels are missing. They must be provided with either one: {}/{} arguments, environment variables, model config file.".format(
+                        ArgumentsOptions.POSITIVE_CLASS_LABEL, ArgumentsOptions.NEGATIVE_CLASS_LABEL
+                    )
+                )
+            elif all([pos_options, neg_options, pos_model_config, neg_model_config]) and (
+                pos_options != pos_model_config or neg_options != neg_model_config
+            ):
+                raise DrumCommonException(
+                    "Positive/negative class labels provided with command arguments or environment variable don't match values from model config file. "
+                    "Use either one of them or make them match."
+                )
+            else:
+                self.options.positive_class_label = (
+                    pos_options if pos_options is not None else pos_model_config
+                )
+
+                self.options.negative_class_label = (
+                    neg_options if neg_options is not None else neg_model_config
+                )
+
+        elif self.target_type == TargetType.MULTICLASS:
+            labels_options = getattr(self.options, "class_labels", None)
+            try:
+                labels_model_config = self.options.model_config.get(
+                    ModelMetadataKeys.INFERENCE_MODEL
+                ).get("classLabels")
+            except AttributeError:
+                labels_model_config = None
+
+            if (
+                labels_options is None
+                and labels_model_config is None
+                and self.run_mode != RunMode.FIT
+            ):
+                raise DrumCommonException(
+                    "Class labels are missing. They must be provided with either one: {}/{} arguments, environment variables, model config file.".format(
+                        ArgumentsOptions.CLASS_LABELS, ArgumentsOptions.CLASS_LABELS_FILE
+                    )
+                )
+            # both not None but not set() equal
+            elif all([labels_options, labels_model_config]) and set(labels_options) != set(
+                labels_model_config
+            ):
+                raise DrumCommonException(
+                    "Class labels provided with command arguments or environment variable don't match values from model config file. "
+                    "Use either one of them or make them match."
+                )
+            else:
+                self.options.class_labels = (
+                    labels_options if labels_options is not None else labels_model_config
+                )
+        else:
+            self.options.positive_class_label = None
+            self.options.negative_class_label = None
+            self.options.class_labels = None
+            self.options.class_labels_file = None
 
     @staticmethod
     def _config_logger(options):

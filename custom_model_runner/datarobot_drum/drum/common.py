@@ -293,6 +293,18 @@ def config_logging():
     logging.basicConfig(format="%(asctime)-15s %(levelname)s %(name)s:  %(message)s")
 
 
+def get_metadata(options):
+    code_dir = Path(options.code_dir)
+    if options.model_config is None:
+        raise DrumCommonException(
+            "You must have a file with the name {} in the directory {}. \n"
+            "You don't. \nWhat you do have is these files: \n{} ".format(
+                MODEL_CONFIG_FILENAME, code_dir, os.listdir(code_dir)
+            )
+        )
+    return options.model_config
+
+
 class ModelMetadataKeys(object):
     NAME = "name"
     TYPE = "type"
@@ -362,6 +374,51 @@ def read_model_metadata_yaml(code_dir):
             except YAMLError as e:
                 print(e)
                 raise SystemExit(1)
+
+        if model_config[ModelMetadataKeys.TARGET_TYPE] == TargetType.BINARY.value:
+            if model_config[ModelMetadataKeys.TYPE] == "inference":
+                validate_config_fields(model_config, ModelMetadataKeys.INFERENCE_MODEL)
+                validate_config_fields(
+                    model_config[ModelMetadataKeys.INFERENCE_MODEL],
+                    *["positiveClassLabel", "negativeClassLabel"]
+                )
+
+        if model_config[ModelMetadataKeys.TARGET_TYPE] == TargetType.MULTICLASS.value:
+            if model_config[ModelMetadataKeys.TYPE] == "inference":
+                validate_config_fields(model_config, ModelMetadataKeys.INFERENCE_MODEL)
+                classLabelsKeyIn = "classLabels" in model_config[ModelMetadataKeys.INFERENCE_MODEL]
+                classLabelFileKeyIn = (
+                    "classLabelsFile" in model_config[ModelMetadataKeys.INFERENCE_MODEL]
+                )
+                if all([classLabelsKeyIn, classLabelFileKeyIn]):
+                    raise DrumCommonException(
+                        "\nError - for multiclass classification, either the class labels or "
+                        "a class labels file should be provided in {} file, but not both.".format(
+                            MODEL_CONFIG_FILENAME
+                        )
+                    )
+                elif not any([classLabelsKeyIn, classLabelFileKeyIn]):
+                    raise DrumCommonException(
+                        "\nError - for multiclass classification, either the class labels or "
+                        "a class labels file must be provided in {} file.".format(
+                            MODEL_CONFIG_FILENAME
+                        )
+                    )
+
+                if classLabelFileKeyIn:
+                    classLabelsFile = model_config[ModelMetadataKeys.INFERENCE_MODEL][
+                        "classLabelsFile"
+                    ]
+
+                    with open(classLabelsFile) as f:
+                        labels = [label for label in f.read().split(os.linesep) if label]
+                        if len(labels) < 2:
+                            raise DrumCommonException(
+                                "Multiclass classification requires at least 2 labels."
+                            )
+                        model_config[ModelMetadataKeys.INFERENCE_MODEL]["classLabels"] = labels
+                        model_config[ModelMetadataKeys.INFERENCE_MODEL]["classLabelsFile"] = None
+
         return model_config
     return None
 
