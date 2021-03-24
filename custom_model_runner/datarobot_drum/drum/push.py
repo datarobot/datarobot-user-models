@@ -234,6 +234,7 @@ def drum_push(options):
         validate_config_fields(
             model_config, ModelMetadataKeys.ENVIRONMENT_ID, ModelMetadataKeys.INFERENCE_MODEL
         )
+        validate_config_fields(model_config[ModelMetadataKeys.INFERENCE_MODEL], "targetName")
         _push_inference(model_config, options.code_dir)
     else:
         raise DrumCommonException("Unsupported type")

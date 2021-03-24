@@ -324,7 +324,7 @@ MODEL_CONFIG_SCHEMA = Map(
         Optional(ModelMetadataKeys.MAJOR_VERSION): Bool(),
         Optional(ModelMetadataKeys.INFERENCE_MODEL): Map(
             {
-                "targetName": Str(),
+                Optional("targetName"): Str(),
                 Optional("positiveClassLabel"): Str(),
                 Optional("negativeClassLabel"): Str(),
                 Optional("classLabels"): Seq(Str()),
