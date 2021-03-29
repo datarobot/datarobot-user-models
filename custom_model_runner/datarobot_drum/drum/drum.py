@@ -123,9 +123,8 @@ class CMRunner:
                 self.options.content_type = "text/plain; charset=utf8"
 
     def _resolve_class_labels(self):
-        if (
-            self.run_mode in [RunMode.NEW]
-            or self.run_mode == RunMode.PUSH
+        if self.run_mode in [RunMode.NEW] or (
+            self.run_mode == RunMode.PUSH
             and self.options.model_config[ModelMetadataKeys.TYPE] == "training"
         ):
             self.options.positive_class_label = None
