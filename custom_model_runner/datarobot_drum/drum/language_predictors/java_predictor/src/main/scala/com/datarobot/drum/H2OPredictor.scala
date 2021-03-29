@@ -163,7 +163,7 @@ class H2OPredictor(
   }
 
   def configure(
-      params: java.util.Map[String, Any] = new java.util.HashMap[String, Any]()
+      params: java.util.Map[String, AnyRef] = new java.util.HashMap[String, AnyRef]()
   ) = {
 
     model = loadModel(

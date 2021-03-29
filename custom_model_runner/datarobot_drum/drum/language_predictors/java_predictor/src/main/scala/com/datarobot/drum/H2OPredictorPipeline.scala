@@ -28,7 +28,7 @@ class H2OPredictorPipeline(name: String) extends BasePredictor(name) {
   var headers: Array[String] = null 
 
   def configure(
-      params: java.util.Map[String, Any] = new java.util.HashMap[String, Any]()
+      params: java.util.Map[String, AnyRef] = new java.util.HashMap[String, AnyRef]()
   ) = {
     mojoPipeline = loadModel(
       params.get("__custom_model_path__").asInstanceOf[String]
