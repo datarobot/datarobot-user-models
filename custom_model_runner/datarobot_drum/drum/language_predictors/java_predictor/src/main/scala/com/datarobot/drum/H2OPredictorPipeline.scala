@@ -27,8 +27,8 @@ class H2OPredictorPipeline(name: String) extends BasePredictor(name) {
   var targetType: String = null
   var headers: Array[String] = null 
 
-  def configure(
-      params: java.util.Map[String, Any] = new java.util.HashMap[String, Any]()
+  override def configure(
+      params: java.util.Map[String, AnyRef] = new java.util.HashMap[String, AnyRef]()
   ) = {
     mojoPipeline = loadModel(
       params.get("__custom_model_path__").asInstanceOf[String]
@@ -77,7 +77,7 @@ class H2OPredictorPipeline(name: String) extends BasePredictor(name) {
     }.transpose
   }
 
-  def predict(inputBytes: Array[Byte]): String = {
+  override def predict(inputBytes: Array[Byte]): String = {
     val predictions = Try(this.scoreReader(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(inputBytes)))))
     this.predictionsToString(predictions)
   }

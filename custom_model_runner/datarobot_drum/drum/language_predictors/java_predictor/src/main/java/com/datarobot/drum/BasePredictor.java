@@ -3,6 +3,7 @@ package com.datarobot.drum;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Map;
 
 public abstract class BasePredictor {
     protected String name;
@@ -15,6 +16,13 @@ public abstract class BasePredictor {
         this.name = name;
         return this;
     }
+
+    /**
+    * Called once to configure predictor.
+    * E.g. use it to load a model.
+    * @param params Configuration parameters passed from DRUM.
+    */
+    public abstract void configure(Map<String, Object> params) throws Exception;
 
     /**
     * Make predictions on input scoring data.
