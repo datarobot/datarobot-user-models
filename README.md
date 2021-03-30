@@ -304,11 +304,13 @@ If you'd like to use a tool/language/framework that is not supported by our temp
 1) Your environment must include a Dockerfile that installs any requirements you may want.
 2) Custom models require a simple webserver in order to make predictions. We recommend putting this in
 your environment so that you can reuse it with multiple models. The webserver must be listening on port 8080 and implement the following routes:
-    1) `GET /{URL_PREFIX}/` This route is used to check if your model's server is running.
-    2) `POST /URL_PREFIX/predict/` This route is used to make predictions.
+   > **Note: `URL_PREFIX` is an environment variable that will be available at runtime. It has to be read and pasted into the routes.**
+    1) `GET /URL_PREFIX/` and `GET /URL_PREFIX/ping/` These routes are used to check if your model's server is running.
+    2) `GET /URL_PREFIX/health/` This route is used to check if model is loaded and functioning properly.
+    3) `POST /URL_PREFIX/predict/` This route is used to make predictions.
 3) An executable `start_server.sh` file is required to start the model server.
 4) Any code and `start_server.sh` should be copied to `/opt/code/` by your Dockerfile
-> Note: `URL_PREFIX` is an environment variable that will be available at runtime.
+
 
 ## Custom Model Runner <a name="custom_model_runner"></a>
 Custom model runner (DRUM) is a  tool that helps to assemble, test, and run custom models.

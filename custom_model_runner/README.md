@@ -149,11 +149,27 @@ DRUM can also run as a prediction server. To do so, provide a server address arg
 The DRUM prediction server provides the following routes. You may provide the environment variable URL_PREFIX. Note that URLs must end with /.
 
 * Status routes:   
-A GET **URL_PREFIX/** and **URL_PREFIX/ping/** routes, which checks if the server is alive.  
+A GET **URL_PREFIX/** and **URL_PREFIX/ping/** routes, shows server status - if the server is alive.  
+Example: GET http://localhost:6789/
+
+* Health route:  
+A GET **URL_PREFIX/health/** route, shows functional health. E.g. model is loaded and functioning properly.  
+Example: GET http://localhost:6789/
+  
+* Info route:  
+A GET **URL_PREFIX/info/** route, shows information about running model (metadata, paths, predictor type, etc.).  
+Example: GET http://localhost:6789/
+
+* Statistics route:  
+A GET **URL_PREFIX/stats/** route, shows running model statistics (memory).  
+Example: GET http://localhost:6789/
+
+* Capabilities route:  
+A GET **URL_PREFIX/capabilities/** route, shows payload formats supported by running model.  
 Example: GET http://localhost:6789/
 
 * Shutdown route:   
-A POST **URL_PREFIX/shutdown/** route, which shuts the server down.  
+A POST **URL_PREFIX/shutdown/** route, shuts the server down.  
 Example: POST http://localhost:6789/shutdown/
 
 * Structured predictions routes:   
