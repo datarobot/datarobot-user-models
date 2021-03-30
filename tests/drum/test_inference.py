@@ -1,5 +1,6 @@
 import json
 from tempfile import NamedTemporaryFile
+from textwrap import dedent
 
 import io
 import os
@@ -18,6 +19,7 @@ from datarobot_drum.drum.common import (
     Y_TRANSFORM_KEY,
     ModelInfoKeys,
     TargetType,
+    MODEL_CONFIG_FILENAME,
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.resource.transform_helpers import (
@@ -644,3 +646,265 @@ class TestInference:
                         input_dataset
                     )
                     assert in_data.shape[0] == actual_num_predictions
+
+    @pytest.fixture
+    def inference_metadata_yaml(self):
+        return dedent(
+            """
+            name: custom_model
+            type: inference
+            targetType: {target_type}
+            inferenceModel:
+              targetName: this field is not used for inference
+            """
+        )
+
+    @pytest.mark.parametrize(
+        "framework, problem, language, use_labels_file",
+        [
+            (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, False),
+            (SKLEARN, BINARY, PYTHON, False),
+            (SKLEARN, MULTICLASS_BINARY, PYTHON, False),
+            (SKLEARN, MULTICLASS, PYTHON, False),
+            (SKLEARN, MULTICLASS, PYTHON, True),
+        ],
+    )
+    def test_custom_models_with_drum_with_model_yaml_labels(
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        tmp_path,
+        use_labels_file,
+        temp_file,
+        inference_metadata_yaml,
+    ):
+        config_yaml = inference_metadata_yaml.format(target_type=resources.target_types(problem))
+        resolved_target_type = resources.target_types(problem)
+        if resolved_target_type in [BINARY, MULTICLASS]:
+            labels = resources.class_labels(framework, problem)
+            if resolved_target_type == BINARY:
+                config_yaml += "\n  positiveClassLabel: {}\n  negativeClassLabel: {}".format(
+                    *labels
+                )
+            else:
+                if use_labels_file:
+                    for label in labels:
+                        temp_file.write(label.encode("utf-8"))
+                        temp_file.write("\n".encode("utf-8"))
+                    temp_file.flush()
+                    config_yaml += "\n  classLabelsFile: {}".format(temp_file.name)
+                else:
+                    config_yaml += "\n  classLabels:"
+                    for label in labels:
+                        config_yaml += "\n    - {}".format(label)
+
+        custom_model_dir = _create_custom_model_dir(
+            resources, tmp_path, framework, problem, language,
+        )
+
+        with open(os.path.join(custom_model_dir, MODEL_CONFIG_FILENAME), mode="w") as f:
+            f.write(config_yaml)
+
+        input_dataset = resources.datasets(framework, problem)
+
+        output = tmp_path / "output"
+
+        cmd = '{} score --code-dir {} --input "{}" --output {}'.format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output,
+        )
+
+        _exec_shell_cmd(
+            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+        )
+        in_data = pd.read_csv(input_dataset)
+        out_data = pd.read_csv(output)
+        assert in_data.shape[0] == out_data.shape[0]
+
+    @pytest.mark.parametrize(
+        "framework, problem, language, use_labels_file, save_yaml, add_to_cmd",
+        [
+            # No yaml, no class labels in cli arguments
+            (SKLEARN, BINARY, PYTHON, False, False, "--target-type binary"),
+            # labels in cli and yaml are provided but don't match
+            (
+                SKLEARN,
+                BINARY,
+                PYTHON,
+                False,
+                True,
+                " --positive-class-label random1 --negative-class-label random2",
+            ),
+            # No yaml, no class labels in cli arguments
+            (SKLEARN, MULTICLASS, PYTHON, False, False, "--target-type multiclass"),
+            # labels in cli and yaml are provided but don't match
+            (SKLEARN, MULTICLASS, PYTHON, False, True, "--class-labels a b c"),
+            (SKLEARN, MULTICLASS, PYTHON, True, True, "--class-labels a b c"),
+        ],
+    )
+    def test_custom_models_with_drum_with_model_yaml_labels_negative(
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        tmp_path,
+        use_labels_file,
+        save_yaml,
+        add_to_cmd,
+        temp_file,
+        inference_metadata_yaml,
+    ):
+        custom_model_dir = _create_custom_model_dir(
+            resources, tmp_path, framework, problem, language,
+        )
+
+        input_dataset = resources.datasets(framework, problem)
+
+        output = tmp_path / "output"
+
+        cmd = '{} score --code-dir {} --input "{}" --output {}'.format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output,
+        )
+
+        if add_to_cmd is not None:
+            cmd += " " + add_to_cmd
+
+        config_yaml = inference_metadata_yaml.format(target_type=resources.target_types(problem))
+        resolved_target_type = resources.target_types(problem)
+
+        if resolved_target_type in [BINARY, MULTICLASS]:
+            labels = resources.class_labels(framework, problem)
+            if resolved_target_type == BINARY:
+                config_yaml += "\n  positiveClassLabel: {}\n  negativeClassLabel: {}".format(
+                    *labels
+                )
+            else:
+                if use_labels_file:
+                    for label in labels:
+                        temp_file.write(label.encode("utf-8"))
+                        temp_file.write("\n".encode("utf-8"))
+                    temp_file.flush()
+                    config_yaml += "\n  classLabelsFile: {}".format(temp_file.name)
+                else:
+                    config_yaml += "\n  classLabels:"
+                    for label in labels:
+                        config_yaml += "\n    - {}".format(label)
+
+        if save_yaml:
+            with open(os.path.join(custom_model_dir, MODEL_CONFIG_FILENAME), mode="w") as f:
+                f.write(config_yaml)
+
+        p, stdo, stde = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+
+        stdo_stde = str(stdo) + str(stde)
+        case_1 = (
+            "Positive/negative class labels are missing. They must be provided with either one: --positive-class-label/--negative-class-label arguments, environment variables, model config file."
+            in stdo_stde
+        )
+        case_2 = (
+            "Positive/negative class labels provided with command arguments or environment variable don't match values from model config file. Use either one of them or make them match."
+            in stdo_stde
+        )
+        case_3 = (
+            "Class labels are missing. They must be provided with either one: --class-labels/--class-labels-file arguments, environment variables, model config file."
+            in stdo_stde
+        )
+        case_4 = (
+            "Class labels provided with command arguments or environment variable don't match values from model config file. Use either one of them or make them match."
+            in stdo_stde
+        )
+        assert any([case_1, case_2, case_3, case_4])
+
+    @pytest.mark.parametrize(
+        "framework, problem, language, target_type_test_case",
+        [
+            (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, "no target type, no yaml"),
+            (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, "no target type in yaml"),
+            (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, "target types don't match"),
+            (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, "target type only in yaml"),
+            (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, "target type only in cmd"),
+        ],
+    )
+    def test_custom_models_with_drum_with_model_yaml_target(
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        tmp_path,
+        target_type_test_case,
+        temp_file,
+        inference_metadata_yaml,
+    ):
+
+        config_yaml = dedent(
+            """
+            name: custom_model
+            type: inference
+            """
+        )
+
+        custom_model_dir = _create_custom_model_dir(
+            resources, tmp_path, framework, problem, language,
+        )
+
+        input_dataset = resources.datasets(framework, problem)
+
+        output = tmp_path / "output"
+
+        cmd = '{} score --code-dir {} --input "{}" --output {}'.format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output,
+        )
+
+        def _write_yaml(conf_yaml):
+            with open(os.path.join(custom_model_dir, MODEL_CONFIG_FILENAME), mode="w") as f:
+                f.write(config_yaml)
+
+        assert_on_failure = False
+        if target_type_test_case == "no target type, no yaml":
+            pass
+        elif target_type_test_case == "no target type in yaml":
+            _write_yaml(config_yaml)
+        elif target_type_test_case == "target types don't match":
+            config_yaml += "targetType: {}".format(resources.target_types(problem))
+            _write_yaml(config_yaml)
+            cmd += " --target-type binary"
+        elif target_type_test_case == "target type only in yaml":
+            config_yaml += "targetType: {}".format(resources.target_types(problem))
+            _write_yaml(config_yaml)
+            assert_on_failure = True
+        elif target_type_test_case == "target type only in cmd":
+            cmd += " --target-type {}".format(resources.target_types(problem))
+            assert_on_failure = True
+        else:
+            assert False
+
+        _, stdo, stde = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=assert_on_failure,
+        )
+
+        # positive path: target type is in either cmd or yaml
+        if assert_on_failure:
+            in_data = pd.read_csv(input_dataset)
+            out_data = pd.read_csv(output)
+            assert in_data.shape[0] == out_data.shape[0]
+        else:
+            stdo_stde = str(stdo) + str(stde)
+            case_1 = (
+                "Target type is missing. It must be provided in --target-type argument, TARGET_TYPE env var or model config file."
+                in stdo_stde
+            )
+            case_2 = "required key(s) 'targetType' not found" in stdo_stde
+            case_3 = (
+                "Target type provided in --target-type argument doesn't match target type from model config file. Use either one of them or make them match."
+                in stdo_stde
+            )
+            assert any([case_1, case_2, case_3])

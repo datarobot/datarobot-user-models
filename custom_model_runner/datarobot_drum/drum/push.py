@@ -6,7 +6,7 @@ import datarobot as dr_client
 
 from datarobot_drum.drum.common import (
     RunMode,
-    MODEL_CONFIG_FILENAME,
+    get_metadata,
     TargetType,
     validate_config_fields,
     ModelMetadataKeys,
@@ -15,18 +15,6 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 
 DR_LINK_FORMAT = "{}/model-registry/custom-models/{}"
 MODEL_LOGS_LINK_FORMAT = "{url}/projects/{project_id}/models/{model_id}/log"
-
-
-def _get_metadata(options):
-    code_dir = Path(options.code_dir)
-    if options.model_config is None:
-        raise DrumCommonException(
-            "You must have a file with the name {} in the directory {}. \n"
-            "You don't. \nWhat you do have is these files: \n{} ".format(
-                MODEL_CONFIG_FILENAME, code_dir, os.listdir(code_dir)
-            )
-        )
-    return options.model_config
 
 
 def _convert_target_type(unconverted_target_type):
@@ -214,7 +202,7 @@ def _setup_inference_validation(config, options):
 
 
 def setup_validation_options(options):
-    model_config = _get_metadata(options)
+    model_config = get_metadata(options)
     validate_config_fields(model_config, ModelMetadataKeys.VALIDATION)
     if model_config["type"] == "training":
         return _setup_training_validation(model_config, options)
@@ -225,7 +213,7 @@ def setup_validation_options(options):
 
 
 def drum_push(options):
-    model_config = _get_metadata(options)
+    model_config = get_metadata(options)
 
     if model_config["type"] == "training":
         validate_config_fields(model_config, ModelMetadataKeys.ENVIRONMENT_ID)
