@@ -36,6 +36,7 @@ public class ScoringCode extends BasePredictor {
         return Predictors.getPredictor(urlClassLoader);
     }
 
+    @Override
     public String predict(byte[] inputBytes) throws Exception {
         String ret = null;
 
@@ -72,6 +73,7 @@ public class ScoringCode extends BasePredictor {
         return outStream.toString();
     }
 
+    @Override
     public void configure(Map<String, Object> params) {
         this.params = params;
 

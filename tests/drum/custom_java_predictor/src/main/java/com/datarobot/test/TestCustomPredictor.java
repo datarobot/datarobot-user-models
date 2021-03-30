@@ -30,6 +30,7 @@ public class TestCustomPredictor extends BasePredictor {
         super(name);
     }
 
+    @Override
     public void configure(Map<String, Object> params) {
         this.params = params;
 
@@ -69,6 +70,7 @@ public class TestCustomPredictor extends BasePredictor {
         return outStream.toString();
     }
 
+    @Override
     public String predict(byte[] inputBytes) throws IOException {
         return this.predictReader(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(inputBytes))));
     }

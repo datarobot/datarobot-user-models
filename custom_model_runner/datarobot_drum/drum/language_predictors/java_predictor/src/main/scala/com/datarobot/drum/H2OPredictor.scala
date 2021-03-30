@@ -35,7 +35,7 @@ class H2OPredictor(
   var positiveClassLabel: String = null
   var headers: Array[String] = null
 
-  def predict(inputBytes: Array[Byte]): String = {
+  override def predict(inputBytes: Array[Byte]): String = {
     val predictions = Try(this.scoreReader(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(inputBytes)))))
     this.predictionsToString(predictions)
   }
@@ -162,7 +162,7 @@ class H2OPredictor(
     model
   }
 
-  def configure(
+  override def configure(
       params: java.util.Map[String, AnyRef] = new java.util.HashMap[String, AnyRef]()
   ) = {
 
