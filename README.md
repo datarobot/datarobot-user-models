@@ -305,9 +305,13 @@ If you'd like to use a tool/language/framework that is not supported by our temp
 2) Custom models require a simple webserver in order to make predictions. We recommend putting this in
 your environment so that you can reuse it with multiple models. The webserver must be listening on port 8080 and implement the following routes:
    > **Note: `URL_PREFIX` is an environment variable that will be available at runtime. It has to be read and pasted into the routes.**
-    1) `GET /URL_PREFIX/` and `GET /URL_PREFIX/ping/` These routes are used to check if your model's server is running.
-    2) `GET /URL_PREFIX/health/` This route is used to check if model is loaded and functioning properly.
-    3) `POST /URL_PREFIX/predict/` This route is used to make predictions.
+    1) Mandatory endpoints:
+        1) `GET /URL_PREFIX/` This route is used to check if your model's server is running.
+        2) `POST /URL_PREFIX/predict/` This route is used to make predictions.
+    2) Nice-to-have extensions endpoints:  
+        1) `GET /URL_PREFIX/stats/` This route is used to check if model is loaded and functioning properly.
+        2) `GET /URL_PREFIX/health/` This route is used to check if model is loaded and functioning properly. If model loading fails error with 513 response code should be returned.  
+           Failing to handle this case may cause backend k8s container to enter crash/restart loop for several minutes.
 3) An executable `start_server.sh` file is required to start the model server.
 4) Any code and `start_server.sh` should be copied to `/opt/code/` by your Dockerfile
 
