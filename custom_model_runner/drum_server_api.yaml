@@ -1,0 +1,360 @@
+openapi: 3.0.1
+info:
+  title: DRUM prediction server.
+  description: DRUM prediction server.
+  version: "1.5.3"
+paths:
+  /URL_PREFIX/:
+    $ref: "#/paths/~1URL_PREFIX~1ping~1"
+  /URL_PREFIX/ping/:
+    get:
+      description: Check whether server is alive.
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Status message.
+              example: 
+                message: OK
+  /URL_PREFIX/health/:
+    get:
+      description: Get functional health status, e.g. whether model is loaded and functioning properly.
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Status message.
+              example:
+                message: OK
+        513:
+          description: 'Not healthy. Requires DRUM server has to be started with --with-error-server option'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Status message
+              example:
+                message: "ERROR: \n\nRunning environment language: Python.\n Failed loading hooks from [/tmp/model/python3_sklearn/custom.py] : No module named 'andas'"
+  /URL_PREFIX/info/:
+    get:
+      description: Get information about running model (metadata, paths, predictor type, etc.).
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  codeDir:
+                    type: string
+                    description: Custom code (model) location.
+                  drumServer:
+                    type: string
+                    description: DRUM server backend.
+                  drumVersion:
+                    type: string
+                    description: DRUM version.
+                  language:
+                    type: string
+                    description: Custom code (model) language.
+                  modelMetadata:
+                    type: object
+                    description: Model metadata taken from model-metadata.yaml, if exists in the code dir. May have arbitrary structure.
+                  predictor:
+                    type: string
+                    description: Internal predictor used to load a model.
+                  targetType:
+                    type: string
+                    description: Model target type
+              example:
+                codeDir: /tmp/model/python3_sklearn
+                drumServer: flask
+                drumVersion: 1.5.3
+                language: python
+                modelMetadata:
+                  environmentID: 5e8c889607389fe0f466c72d
+                  inferenceModel:
+                    targetName: MEDV
+                  modelId: 5f1f15a4d6111f01cb7f91fd
+                  name: regression model
+                  targetType: regression
+                  type: inference
+                  validation:
+                    input: ../../../tests/testdata/boston_housing.csv
+                predictor: scikit-learn
+                targetType: regression
+  /URL_PREFIX/stats/:
+    get:
+      description: Shows running model statistics (memory).
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mem_info:
+                    type: object
+                    properties:
+                      avail:
+                        type: number
+                        description: Total available memory on the system.
+                      container_limit:
+                        type: number
+                        description: Value is not null when starting drum server in container, using --docker argument.
+                      container_max_used:
+                        type: number
+                        description: Value is not null when starting drum server in container, using --docker argument.
+                      container_used:
+                        type: number
+                      drum_info:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            cmdline: 
+                              type: array
+                              items:
+                                type: string
+                            mem:
+                              type: number
+                              description: Memory used by drum.
+                            pid:
+                              type: number
+                              description: DRUM server process PID.
+                      drum_rss:
+                        type: number
+                        description: Resident memory occupied by DRUM.
+                      free:
+                        type: number
+                        description: Free memory in system.
+                      nginx_rss:
+                        type: number
+                        description: Resident memory occupied by nginx. Meaningfull when running DRUM with --production option, which enables to use nginx as backend server.
+                      total:
+                        type: number
+                        description: DRUM server process PID.
+                  time_info:
+                    type: object
+                    properties:
+                      run_predictor_total:
+                        type: object
+                        properties:
+                          avg:
+                            type: number
+                            description: Average requeest time (s)
+                          max:
+                            type: number
+                            description: Maximum request time (s)
+                          min:
+                            type: number
+                            description: Minimum request time (s)
+              example: 
+                mem_info:
+                  avail: 17670.828125
+                  container_limit: null
+                  container_max_used: null
+                  container_used: null
+                  drum_info: [cmdline: ["/tmp/drum_tests_virtual_environment/bin/python3",
+                        "/tmp/drum_tests_virtual_environment/bin/drum",
+                        "server",
+                        "--code-dir",
+                        "/tmp/model/python3_sklearn",
+                        "--target-type",
+                        "regression",
+                        "--address",
+                        "localhost:6789",
+                        "--with-error-server",
+                        "--show-perf"], mem: 256.71484375, pid: 342391]
+                  drum_rss: 256.71484375
+                  free: 312.33203125
+                  nginx_rss: 0
+                  total: 31442.73046875
+                time_info:
+                  run_predictor_total:
+                    avg: 0.0165
+                    max: 0.023
+                    min: 0.013
+  /URL_PREFIX/capabilities/:
+    get:
+      description: Get payload formats supported by the internal predictor in use. Predictor selection depends on the model.
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  supported_payload_formats:
+                    type: object
+                    description: If format is supported, property present in the object. Property's value is a package version. If version is not pinned, value is null.
+                    properties:
+                      arrow:
+                        type: string
+                      csv:
+                        type: string
+                      mtx:
+                        type: string
+              example:
+                supported_payload_formats:
+                  arrow: 2.0.0
+                  csv: null
+                  mtx: null
+  /URL_PREFIX/predict/:
+    post:
+      description: Make predictions on regression, binary or multiclassification models.
+      requestBody:
+        description: Scoring data to predict on.
+        content:
+          text/plain:
+            schema:
+              description: Scoring data.
+              type: string
+              format: text
+          text/csv:
+            schema:
+              description: Scoring data.
+              type: string
+              format: text
+          text/mtx:
+            schema:
+              description: Scoring data.
+              type: string
+              format: text
+          application/x-apache-arrow-stream:
+            schema:
+              description: Scoring data.
+              type: string
+              format: binary
+          multipart/form-data:
+            schema:
+              description: Scoring data.
+              type: object
+              properties:
+                X:
+                  type: string
+                  format: filename
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/regression"
+                  - $ref: "#/components/schemas/binary"
+                  - $ref: "#/components/schemas/multiclass"
+        422:
+          description: "Unprocessable entity"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Status message
+              example:
+                message: "ERROR: Samples should be provided as:   - a csv, mtx, or arrow file under `X` form-data param key.  - binary data."
+  /URL_PREFIX/predictions/:
+    $ref: "#/paths/~1URL_PREFIX~1predict~1"
+                  
+  /URL_PREFIX/predictUnstructured/:
+    post:
+      description: Make unstructured predictions on arbitrary data.
+      requestBody:
+        description: Scoring data to predict on.
+        content:
+          text/*:
+            schema:
+              description: Any textual scoring data.
+              type: string
+              format: text
+          application/json:
+            schema:
+              description: Scoring data in json format.
+              type: string
+              format: text
+          <other>:
+            schema:
+              description: Any other mimetype provided assumes binary data is sent.
+              type: string
+              format: binary
+      responses:
+        200:
+          description: OK
+          content:
+            text/plain:
+              schema:
+                type: string
+                format: text
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+            <other>:
+              schema:
+                description: Any other mimetype returned assumes user returns data in a proper format.
+                type: string
+        422:
+          description: "Unprocessable entity"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Status message
+  /URL_PREFIX/predictionsUnstructured/:
+    $ref: "#/paths/~1URL_PREFIX~1predictUnstructured~1"
+components:
+  schemas:
+    regression:
+      type: object
+      properties:
+        predictions:
+          type: array
+          description: List of regression predictions.
+          items:
+            type: number
+      example:
+        predictions: [2.4, 3.2, 6.1]
+    binary:
+      type: object
+      properties:
+        predictions:
+          type: array
+          description: List of binary classification predictions.
+          items:
+            type: object
+      example:
+        predictions: [{positiveClassLabel: 0.85, negativeClassLabel: 0.15}, {positiveClassLabel: 0.25, negativeClassLabel: 0.75}]
+    multiclass:
+      type: object
+      properties:
+        predictions:
+          type: array
+          description: List of multiclass classification predictions.
+          items:
+            type: object
+      example:
+        predictions: [{classLabel1: 0.75, classLabel2: 0.15, classLabel3: 0.1}, {classLabel1: 0.2, classLabel2: 0.5, classLabel3: 0.3}]
