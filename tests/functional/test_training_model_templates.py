@@ -157,7 +157,7 @@ class TestTrainingModelTemplates(object):
         response = dr.client.get_client().post("customTrainingBlueprints/", data=payload)
         user_blueprint_id = response.json()["userBlueprintId"]
 
-        payload = dict(project_id=proj_id, user_blueprint_ids=[user_blueprint_id])
+        payload = dict(user_blueprint_id=user_blueprint_id)
         response = dr.client.get_client().post(
             "projects/{}/blueprints/fromUserBlueprint/".format(proj_id), data=payload
         )

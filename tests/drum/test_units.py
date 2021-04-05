@@ -296,7 +296,7 @@ def mock_post_add_to_repository():
     responses.add(
         responses.POST,
         "http://yess/projects/{}/blueprints/fromUserBlueprint/".format(projectID),
-        json={"2": "1"},
+        json={"id": "1"},
     )
 
 
