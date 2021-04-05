@@ -394,7 +394,11 @@ def mock_post_blueprint():
 
 
 def mock_post_add_to_repository():
-    responses.add(responses.POST, "http://yess/userBlueprints/addToMenu/", json={"2": "1"})
+    responses.add(
+        responses.POST,
+        "http://yess/projects/{}/blueprints/fromUserBlueprint/".format(projectID),
+        json={"id": "1"},
+    )
 
 
 def mock_get_env():
@@ -480,7 +484,8 @@ def test_push(request, config_yaml, existing_model_id, multiclass_labels, tmp_pa
         )
         if "trainingModel" in config:
             assert (
-                calls[call_shift + 3].request.path_url == "/userBlueprints/addToMenu/"
+                calls[call_shift + 3].request.path_url
+                == "/projects/{}/blueprints/fromUserBlueprint/".format(projectID)
                 and calls[call_shift + 3].request.method == "POST"
             )
             assert (

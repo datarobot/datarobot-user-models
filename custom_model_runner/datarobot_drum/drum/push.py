@@ -81,10 +81,12 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
             project = dr_client.Project(pid)
 
             # TODO: Update this once the datarobot client is updated
-            payload = dict(project_id=pid, user_blueprint_ids=[user_blueprint_id])
+            payload = dict(user_blueprint_id=user_blueprint_id)
             current_task = "adding your model to the menu"
-            response = dr_client.client.get_client().post("userBlueprints/addToMenu/", data=payload)
-            blueprint_id = response.json()[user_blueprint_id]
+            response = dr_client.client.get_client().post(
+                "projects/{}/blueprints/fromUserBlueprint/".format(pid), data=payload
+            )
+            blueprint_id = response.json()["id"]
 
             current_task = "actually training of blueprint {}".format(blueprint_id)
             model_job_id = project.train(blueprint_id)
