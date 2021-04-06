@@ -147,7 +147,7 @@ DRUM can also run as a prediction server. To do so, provide a server address arg
 ```drum server --code-dir ~/user_code_dir --address localhost:6789```
 
 The DRUM prediction server provides the following routes. You may provide the environment variable URL_PREFIX. Note that URLs must end with /.  
-For complete API specification in Openapi 3.0 format check here [drum_server_api.yaml](drum_server_api.yaml), you can also open it rendered in the [Swagger Editor](https://editor.swagger.io/?url=https://raw.githubusercontent.com/datarobot/datarobot-user-models/master/custom_model_runner/drum_server_api.yaml).
+For complete API specification in Openapi 3.0 format check here [drum_server_api.yaml](https://raw.githubusercontent.com/datarobot/datarobot-user-models/master/custom_model_runner/drum_server_api.yaml), you can also open it rendered in the [Swagger Editor](https://editor.swagger.io/?url=https://raw.githubusercontent.com/datarobot/datarobot-user-models/master/custom_model_runner/drum_server_api.yaml).
 
 * Status routes:   
 A GET **URL_PREFIX/** and **URL_PREFIX/ping/** routes, shows server status - if the server is alive.  
