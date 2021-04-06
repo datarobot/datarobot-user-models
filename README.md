@@ -305,7 +305,7 @@ If you'd like to use a tool/language/framework that is not supported by our temp
 2) Custom models require a simple webserver in order to make predictions. We recommend putting this in
 your environment so that you can reuse it with multiple models. The webserver must be listening on port 8080 and implement the following routes:
    > **Note: `URL_PREFIX` is an environment variable that will be available at runtime. It has to be read and pasted into the routes.**  
-   > **Note: Refer to the complete API specification: [drum_server_api.yaml](drum_server_api.yaml), you can also open it rendered in the [Swagger Editor](https://editor.swagger.io/?url=https://raw.githubusercontent.com/datarobot/datarobot-user-models/master/custom_model_runner/drum_server_api.yaml).**
+   > **Note: Refer to the complete API specification: [drum_server_api.yaml](custom_model_runner/drum_server_api.yaml), you can also open it rendered in the [Swagger Editor](https://editor.swagger.io/?url=https://raw.githubusercontent.com/datarobot/datarobot-user-models/master/custom_model_runner/drum_server_api.yaml).**
     1) Mandatory endpoints:
         1) `GET /URL_PREFIX/` This route is used to check if your model's server is running.
         2) `POST /URL_PREFIX/predict/` This route is used to make predictions.
