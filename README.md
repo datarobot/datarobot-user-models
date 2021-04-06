@@ -204,7 +204,7 @@ Type checking methods can be used to verify types:
 - in R `is.character(data)` or `is.raw(data)`
 
 DRUM uses `Content-Type` header to determine a type to cast `data` to. Content-Type header can be provided in request or in `--content-type` CLI argument.  
-`Content-Type` header format is `type/subtype;parameter`, e.g. `text/plain;charset=utf8`. Only minetype part `text/plain`, and `charset=utf8` parameter matter for DRUM.  
+`Content-Type` header format is `type/subtype;parameter`, e.g. `text/plain;charset=utf8`. Only mimetype part `text/plain`, and `charset=utf8` parameter matter for DRUM.  
 Following rules apply:
 - if charset is not defined, default `utf8` charset is used, otherwise provided charset is used to decode data;
 - if content type is not defined, then incoming `kwargs={"mimetype": "text/plain", "charset":"utf8"}`, so data is treated as text, decoded using `utf8` charset and passed as `str`;
@@ -304,11 +304,18 @@ If you'd like to use a tool/language/framework that is not supported by our temp
 1) Your environment must include a Dockerfile that installs any requirements you may want.
 2) Custom models require a simple webserver in order to make predictions. We recommend putting this in
 your environment so that you can reuse it with multiple models. The webserver must be listening on port 8080 and implement the following routes:
-    1) `GET /{URL_PREFIX}/` This route is used to check if your model's server is running.
-    2) `POST /URL_PREFIX/predict/` This route is used to make predictions.
+   > **Note: `URL_PREFIX` is an environment variable that will be available at runtime. It has to be read and pasted into the routes.**  
+   > **Note: Refer to the complete API specification: [drum_server_api.yaml](drum_server_api.yaml), you can also open it rendered in the [Swagger Editor](https://editor.swagger.io/?url=https://raw.githubusercontent.com/datarobot/datarobot-user-models/master/custom_model_runner/drum_server_api.yaml).**
+    1) Mandatory endpoints:
+        1) `GET /URL_PREFIX/` This route is used to check if your model's server is running.
+        2) `POST /URL_PREFIX/predict/` This route is used to make predictions.
+    2) Nice-to-have extensions endpoints:  
+        1) `GET /URL_PREFIX/stats/` This route is used to fetch memory usage data for DataRobot Custom Model Testing.
+        2) `GET /URL_PREFIX/health/` This route is used to check if model is loaded and functioning properly. If model loading fails error with 513 response code should be returned.  
+           Failing to handle this case may cause backend k8s container to enter crash/restart loop for several minutes.
 3) An executable `start_server.sh` file is required to start the model server.
 4) Any code and `start_server.sh` should be copied to `/opt/code/` by your Dockerfile
-> Note: `URL_PREFIX` is an environment variable that will be available at runtime.
+
 
 ## Custom Model Runner <a name="custom_model_runner"></a>
 Custom model runner (DRUM) is a  tool that helps to assemble, test, and run custom models.

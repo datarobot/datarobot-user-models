@@ -146,14 +146,109 @@ In case of check failure more information will be provided.
 DRUM can also run as a prediction server. To do so, provide a server address argument:  
 ```drum server --code-dir ~/user_code_dir --address localhost:6789```
 
-The DRUM prediction server provides the following routes. You may provide the environment variable URL_PREFIX. Note that URLs must end with /.
+The DRUM prediction server provides the following routes. You may provide the environment variable URL_PREFIX. Note that URLs must end with /.  
+For complete API specification in Openapi 3.0 format check here [drum_server_api.yaml](drum_server_api.yaml), you can also open it rendered in the [Swagger Editor](https://editor.swagger.io/?url=https://raw.githubusercontent.com/datarobot/datarobot-user-models/master/custom_model_runner/drum_server_api.yaml).
 
 * Status routes:   
-A GET **URL_PREFIX/** and **URL_PREFIX/ping/** routes, which checks if the server is alive.  
-Example: GET http://localhost:6789/
+A GET **URL_PREFIX/** and **URL_PREFIX/ping/** routes, shows server status - if the server is alive.  
+Example: GET http://localhost:6789/  
+Response:
+```json
+   {"message": "OK"}
+```
+
+* Health route:  
+A GET **URL_PREFIX/health/** route, shows functional health. E.g. model is loaded and functioning properly.  
+Example: GET http://localhost:6789/health/  
+Response:
+  * Success:
+    ```json
+    {"message": "OK"}
+    ```
+  * Error:
+    ```json
+    {
+      "message": "ERROR: \n\nRunning environment language: Python.\n Failed loading hooks from [/tmp/model/python3_sklearn/custom.py] : No module named 'andas'"
+    }
+    ```
+  
+* Info route:  
+A GET **URL_PREFIX/info/** route, shows information about running model (metadata, paths, predictor type, etc.).  
+Example: GET http://localhost:6789/info/  
+Response:
+  ```json
+  {
+     "codeDir": "/tmp/model/python3_sklearn",
+     "drumServer": "flask",
+     "drumVersion": "1.5.3",
+     "language": "python",
+     "modelMetadata": {
+       "environmentID": "5e8c889607389fe0f466c72d",
+       "inferenceModel": {
+         "targetName": "MEDV"
+       },
+       "modelID": "5f1f15a4d6111f01cb7f91fd",
+       "name": "regression model",
+       "targetType": "regression",
+       "type": "inference",
+       "validation": {
+         "input": "../../../tests/testdata/boston_housing.csv"
+       }
+     },
+     "predictor": "scikit-learn",
+     "targetType": "regression"
+  }
+        ```  
+
+* Statistics route:  
+A GET **URL_PREFIX/stats/** route, shows running model statistics (memory).  
+Example: GET http://localhost:6789/stats/  
+Response:
+    ```json
+  {
+      "mem_info": {
+          "avail": 17670.828125,
+          "container_limit": null,
+          "container_max_used": null,
+          "container_used": null,
+          "drum_info": [{
+              "cmdline": [
+                  "/tmp/drum_tests_virtual_environment/bin/python3",
+                  "/tmp/drum_tests_virtual_environment/bin/drum",
+                  "server",
+                  "--code-dir",
+                  "/tmp/model/python3_sklearn",
+                  "--target-type",
+                  "regression",
+                  "--address",
+                  "localhost:6789",
+                  "--with-error-server",
+                  "--show-perf"
+              ],
+              "mem": 256.71484375,
+              "pid": 342391
+          }],
+          "drum_rss": 256.71484375,
+          "free": 312.33203125,
+          "nginx_rss": 0,
+          "total": 31442.73046875
+      },
+      "time_info": {
+        "run_predictor_total": {
+          "avg": 0.0165,
+          "max": 0.023,
+          "min": 0.013
+        }
+      }
+  }
+    ```  
+
+* Capabilities route:  
+A GET **URL_PREFIX/capabilities/** route, shows payload formats supported by the running model.  
+Example: GET http://localhost:6789/capabilities/
 
 * Shutdown route:   
-A POST **URL_PREFIX/shutdown/** route, which shuts the server down.  
+A POST **URL_PREFIX/shutdown/** route, shuts the server down.  
 Example: POST http://localhost:6789/shutdown/
 
 * Structured predictions routes:   
@@ -167,7 +262,7 @@ value = filename of the `csv/arrow/mtx` format, that contains the inference data
    
 * Structured transform route (for Python predictor only):   
 A POST **URL_PREFIX/transform/** route, which returns transformed data.  
-Example: POST http://localhost:6789/transfor/;  
+Example: POST http://localhost:6789/transform/;  
 For this route data can be posted in two ways:
   * as form data parameter with a <key:value> pair, where:  
 key = `X`.  
