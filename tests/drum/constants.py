@@ -66,6 +66,7 @@ SPARSE_COLUMNS = "sparse_columns"
 SPARSE_TARGET = "sparse_target"
 TARGET_NAME_DUPLICATED_X = "target_name_duplicated_x"
 TARGET_NAME_DUPLICATED_Y = "target_name_duplicated_y"
+PARAMETERS = 'parameters'
 
 # Language keywords
 PYTHON = "python3"

@@ -1,0 +1,6 @@
+{
+  "int_param": 2,
+  "float_param": 5.8,
+  "select_param": "select_1",
+  "string_param": "this is a string 💩"
+}

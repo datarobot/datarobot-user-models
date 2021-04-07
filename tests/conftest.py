@@ -71,7 +71,7 @@ from tests.drum.constants import (
     XGB,
     TARGET_NAME_DUPLICATED_X,
     TARGET_NAME_DUPLICATED_Y,
-)
+    PARAMETERS)
 
 _datasets = {
     # If specific dataset should be defined for a framework, use (framework, problem) key.
@@ -91,6 +91,7 @@ _datasets = {
     (None, SPARSE): os.path.join(TESTS_DATA_PATH, "sparse.mtx"),
     (None, SPARSE_TARGET): os.path.join(TESTS_DATA_PATH, "sparse_target.csv"),
     (None, SPARSE_COLUMNS): os.path.join(TESTS_DATA_PATH, "sparse.columns"),
+    (None, PARAMETERS): os.path.join(TESTS_DATA_PATH, "parameters.json"),
     (None, BINARY_BOOL): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
     (SKLEARN, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
     (SKLEARN_TRANSFORM, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),

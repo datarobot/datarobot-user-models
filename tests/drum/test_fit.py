@@ -54,7 +54,7 @@ from .constants import (
     WEIGHTS_ARGS,
     WEIGHTS_CSV,
     XGB,
-)
+    PARAMETERS)
 
 
 class TestFit:
@@ -502,31 +502,27 @@ class TestFit:
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
 
-    @pytest.mark.parametrize(
-        "framework", [SKLEARN_SPARSE, PYTORCH, RDS, ],
-    )
-    def test_fit_with_parameters(self, resources, tmp_path, framework):
+    def test_fit_with_parameters(
+        self, resources, tmp_path,
+    ):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            SPARSE,
-            language=R_FIT if framework == RDS else PYTHON,
-            is_training=True,
+            resources, tmp_path, SIMPLE, REGRESSION, PYTHON, is_training=True, nested=True,
         )
 
-        input_dataset = resources.datasets(framework, SPARSE)
-        target_dataset = resources.datasets(framework, SPARSE_TARGET)
-        columns = resources.datasets(framework, SPARSE_COLUMNS)
+        input_dataset = resources.datasets(SKLEARN, REGRESSION)
+        parameters = resources.datasets(SKLEARN, PARAMETERS)
 
         output = tmp_path / "output"
         output.mkdir()
 
-        cmd = "{} fit --code-dir {} --input {} --target-type {} --verbose --sparse-column-file {}".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, REGRESSION, columns
+        cmd = "{} fit --target-type {} --code-dir {} --target {} --input {} --parameter-file {} --verbose".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            REGRESSION,
+            custom_model_dir,
+            resources.targets(REGRESSION),
+            input_dataset,
+            parameters,
         )
-
-        cmd += " --target-csv " + target_dataset
         _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
