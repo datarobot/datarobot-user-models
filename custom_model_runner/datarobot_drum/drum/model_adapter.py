@@ -591,7 +591,10 @@ class PythonModelAdapter:
             return True
         return False
 
-    def fit(self, X, y, output_dir, class_order=None, row_weights=None):
+    def fit(self, X, y, output_dir, class_order=None, row_weights=None, parameters=None):
+        import pydevd_pycharm
+
+        pydevd_pycharm.settrace("localhost", port=1234, stdoutToServer=True, stderrToServer=True)
         with reroute_stdout_to_stderr():
             if self._custom_hooks.get(CustomHooks.FIT):
                 self._custom_hooks[CustomHooks.FIT](
@@ -600,6 +603,7 @@ class PythonModelAdapter:
                     output_dir=output_dir,
                     class_order=class_order,
                     row_weights=row_weights,
+                    parameters=parameters,
                 )
             elif self._drum_autofit_internal(X, y, output_dir):
                 return

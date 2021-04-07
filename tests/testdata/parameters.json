@@ -1,6 +1,6 @@
 {
-  "int_param": 2,
-  "float_param": 5.8,
-  "select_param": "select_1",
-  "string_param": "this is a string 💩"
+  "penalty": "l1",
+  "dual": 0.0,
+  "tol": 1e-5,
+  "solver": "lbfgs"
 }

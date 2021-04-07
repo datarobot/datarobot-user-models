@@ -119,7 +119,7 @@ def make_sure_artifact_is_small(output_dir):
 
 def shared_fit_preprocessing(fit_class):
     """
-    Shared preprocessing to get X, y, class_order, and row_weights.
+    Shared preprocessing to get X, y, class_order, row_weights, and parameters.
     Used by _materialize method for both python and R fitting.
 
     :param fit_class: PythonFit or RFit class
@@ -177,9 +177,12 @@ def shared_fit_preprocessing(fit_class):
         X = df.sample(fit_class.num_rows, random_state=1)
         y = None
 
+    if fit_class.parameter_file:
+        parameters = json.loads(open(fit_class.parameter_file))
+
     row_weights = extract_weights(X, fit_class)
     class_order = extract_class_order(fit_class)
-    return X, y, class_order, row_weights
+    return X, y, class_order, row_weights, parameters
 
 
 def extract_weights(X, fit_class):

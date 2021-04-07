@@ -1,0 +1,32 @@
+name: drumpush-binary-logistic-regression
+type: training
+targetType: binary
+# modelID: optional
+environmentID: 5e8c889607389fe0f466c72d
+#trainingModel:
+#  trainOnProject: optional project on which to train
+validation:
+  # Path is relative to this file
+  input: ../../../tests/testdata/iris_binary_training.csv
+  targetName: Species
+hyperparameters:
+  - name: penalty
+    type: select
+    values:
+      - l1
+      - l2
+      - elasticnet
+    default: l2
+  - name: dual
+    type: int
+    min: 0
+    max: 1
+    default: 0
+  - name: tol
+    type: float
+    min: 0
+    max: 1
+    default: 1e-4
+  - name: solver
+    type: string
+    default: lbfgs

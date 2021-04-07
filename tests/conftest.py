@@ -71,7 +71,9 @@ from tests.drum.constants import (
     XGB,
     TARGET_NAME_DUPLICATED_X,
     TARGET_NAME_DUPLICATED_Y,
-    PARAMETERS)
+    PARAMETERS,
+    SKLEARN_BINARY_HYPERPARAMETERS,
+)
 
 _datasets = {
     # If specific dataset should be defined for a framework, use (framework, problem) key.
@@ -110,6 +112,9 @@ _datasets = {
 
 _training_models_paths = {
     (PYTHON, SKLEARN_BINARY): os.path.join(TRAINING_TEMPLATES_PATH, "python3_sklearn_binary"),
+    (PYTHON, SKLEARN_BINARY_HYPERPARAMETERS): os.path.join(
+        TRAINING_TEMPLATES_PATH, "python3_sklearn_binary_hyperparameters"
+    ),
     (PYTHON, SKLEARN_REGRESSION): os.path.join(
         TRAINING_TEMPLATES_PATH, "python3_sklearn_regression"
     ),
