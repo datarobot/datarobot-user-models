@@ -4,7 +4,11 @@ from build_pipeline import make_anomaly
 
 
 def fit(
-    X, output_dir, class_order=None, row_weights=None, **kwargs,
+    X,
+    output_dir,
+    class_order=None,
+    row_weights=None,
+    **kwargs,
 ):
     """
     This hook must be implemented with your fitting code, for running drum in the fit mode.
