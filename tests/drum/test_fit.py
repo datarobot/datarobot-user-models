@@ -501,3 +501,32 @@ class TestFit:
         _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
+
+    @pytest.mark.parametrize(
+        "framework", [SKLEARN_SPARSE, PYTORCH, RDS, ],
+    )
+    def test_fit_with_parameters(self, resources, tmp_path, framework):
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            SPARSE,
+            language=R_FIT if framework == RDS else PYTHON,
+            is_training=True,
+        )
+
+        input_dataset = resources.datasets(framework, SPARSE)
+        target_dataset = resources.datasets(framework, SPARSE_TARGET)
+        columns = resources.datasets(framework, SPARSE_COLUMNS)
+
+        output = tmp_path / "output"
+        output.mkdir()
+
+        cmd = "{} fit --code-dir {} --input {} --target-type {} --verbose --sparse-column-file {}".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, REGRESSION, columns
+        )
+
+        cmd += " --target-csv " + target_dataset
+        _exec_shell_cmd(
+            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+        )

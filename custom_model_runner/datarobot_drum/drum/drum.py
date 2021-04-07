@@ -619,6 +619,7 @@ class CMRunner:
             "output_dir": options.output,
             "num_rows": options.num_rows,
             "sparse_column_file": options.sparse_column_file,
+            "parameter_file": options.parameter_file,
         }
 
         functional_pipeline_str = CMRunnerUtils.render_file(

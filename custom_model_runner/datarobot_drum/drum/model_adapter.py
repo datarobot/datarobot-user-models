@@ -358,6 +358,8 @@ class PythonModelAdapter:
             sparse_colnames=sparse_colnames,
         )
 
+        parameters = kwargs.get(StructuredDtoKeys.PARAMETERS)
+
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
             try:
                 output_data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
