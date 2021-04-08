@@ -44,7 +44,7 @@ class PythonFit(ConnectableComponent):
         self.weights_filename = self._params["weightsFilename"]
         self.target_filename = self._params.get("targetFilename")
         self.num_rows = self._params["numRows"]
-        self.parameter_file = self._params.get("parameter_file")
+        self.parameter_file = self._params.get("parameterFile")
 
         self._model_adapter = PythonModelAdapter(self.custom_model_path)
         sys.path.append(self.custom_model_path)

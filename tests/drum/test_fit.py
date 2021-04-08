@@ -207,7 +207,6 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, problem, docker, parameters",
         [
-            (SKLEARN_BINARY_HYPERPARAMETERS, BINARY_TEXT, DOCKER_PYTHON_SKLEARN, PARAMETERS),
             (SKLEARN_BINARY_HYPERPARAMETERS, BINARY_TEXT, None, PARAMETERS),
             (SKLEARN_BINARY_HYPERPARAMETERS, BINARY_SPACES, None, PARAMETERS),
         ],

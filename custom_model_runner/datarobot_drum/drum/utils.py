@@ -177,8 +177,9 @@ def shared_fit_preprocessing(fit_class):
         X = df.sample(fit_class.num_rows, random_state=1)
         y = None
 
+    parameters = None
     if fit_class.parameter_file:
-        parameters = json.loads(open(fit_class.parameter_file))
+        parameters = json.load(open(fit_class.parameter_file))
 
     row_weights = extract_weights(X, fit_class)
     class_order = extract_class_order(fit_class)
