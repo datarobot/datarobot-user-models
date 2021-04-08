@@ -56,6 +56,8 @@ def fit(
     if not parameters:
         raise ValueError("Did not receive parameters")
 
+    # Parameters are provided during fit as a dict with names set according to your model-metadata.yaml file.
+    # In this example, we set the 'model' parameters in our sklearn pipeline.
     estimator.set_params(
         **{
             "model__penalty": parameters["penalty"],

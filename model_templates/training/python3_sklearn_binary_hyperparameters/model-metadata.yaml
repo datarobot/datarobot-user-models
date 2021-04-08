@@ -9,7 +9,11 @@ validation:
   # Path is relative to this file
   input: ../../../tests/testdata/iris_binary_training.csv
   targetName: Species
+# There are four parameter types available to define for a model.
+# This example implements one parameter of each type.
 hyperparameters:
+  # select: Discrete set of unique values, similar to an enum. Default is optional, will use the first value if
+  # not provided.
   - name: penalty
     type: select
     values:
@@ -17,16 +21,19 @@ hyperparameters:
       - l2
       - elasticnet
     default: l2
+  # int: Integer value, must provide a min and max. Default is optional, will use the min value if not provided
   - name: dual
     type: int
     min: 0
     max: 1
     default: 0
+  # float: Floating point value, must provide a min and max. Default is optional, will use the min value if not provided
   - name: tol
     type: float
     min: 0
     max: 1
     default: 1e-4
+  # string: Unicode string. Default is optional, will be an empty string if not provided.
   - name: solver
     type: string
     default: lbfgs
