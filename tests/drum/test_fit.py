@@ -54,8 +54,10 @@ from .constants import (
     WEIGHTS_ARGS,
     WEIGHTS_CSV,
     XGB,
-    PARAMETERS,
+    SKLEARN_BINARY_PARAMETERS,
     SKLEARN_BINARY_HYPERPARAMETERS,
+    SKLEARN_TRANSFORM_HYPERPARAMETERS,
+    SKLEARN_TRANSFORM_PARAMETERS,
 )
 
 
@@ -204,8 +206,9 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, problem, docker, parameters",
         [
-            (SKLEARN_BINARY_HYPERPARAMETERS, BINARY_TEXT, None, PARAMETERS),
-            (SKLEARN_BINARY_HYPERPARAMETERS, BINARY_SPACES, None, PARAMETERS),
+            (SKLEARN_BINARY_HYPERPARAMETERS, BINARY_TEXT, None, SKLEARN_BINARY_PARAMETERS),
+            (SKLEARN_BINARY_HYPERPARAMETERS, BINARY_SPACES, None, SKLEARN_BINARY_PARAMETERS),
+            (SKLEARN_TRANSFORM_HYPERPARAMETERS, REGRESSION, None, SKLEARN_TRANSFORM_PARAMETERS),
         ],
     )
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
@@ -228,7 +231,7 @@ class TestFit:
             weights, input_dataset, r_fit=language == R_FIT
         )
 
-        target_type = resources.target_types(problem)
+        target_type = resources.target_types(problem) if "transform" not in framework else TRANSFORM
 
         cmd = "{} fit --target-type {} --code-dir {} --input {} --parameter-file {} --verbose ".format(
             ArgumentsOptions.MAIN_COMMAND,

@@ -38,7 +38,8 @@ def fit(
         a row is. Row weights is only optionally used, and there will be no filtering for which
         custom models support this. There are two situations when values will be passed into
         row_weights, during smart downsampling and when weights are explicitly provided by the user
-    parameters: A dictionary of parameters defined within the model-metadata.yaml file.
+    parameters: dict
+        A dictionary of parameters defined within the model-metadata.yaml file.
     kwargs: Added for forwards compatibility
 
     Returns

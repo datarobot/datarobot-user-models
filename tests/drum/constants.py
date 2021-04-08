@@ -39,6 +39,7 @@ PYTORCH_MULTICLASS = "pytorch_multiclass"
 PYPMML = "pypmml"
 SKLEARN_ANOMALY = "sklearn_anomaly_detection"
 SKLEARN_BINARY_HYPERPARAMETERS = "sklearn_binary_hyperparameters"
+SKLEARN_TRANSFORM_HYPERPARAMETERS = "sklearn_transform_hyperparameters"
 
 RDS = "rds"
 RDS_SPARSE = "rds_sparse"
@@ -67,7 +68,8 @@ SPARSE_COLUMNS = "sparse_columns"
 SPARSE_TARGET = "sparse_target"
 TARGET_NAME_DUPLICATED_X = "target_name_duplicated_x"
 TARGET_NAME_DUPLICATED_Y = "target_name_duplicated_y"
-PARAMETERS = "parameters"
+SKLEARN_BINARY_PARAMETERS = "sklearn_binary_parameters"
+SKLEARN_TRANSFORM_PARAMETERS = "sklearn_transform_parameters"
 
 # Language keywords
 PYTHON = "python3"

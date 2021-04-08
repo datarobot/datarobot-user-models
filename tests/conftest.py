@@ -71,8 +71,10 @@ from tests.drum.constants import (
     XGB,
     TARGET_NAME_DUPLICATED_X,
     TARGET_NAME_DUPLICATED_Y,
-    PARAMETERS,
+    SKLEARN_BINARY_PARAMETERS,
     SKLEARN_BINARY_HYPERPARAMETERS,
+    SKLEARN_TRANSFORM_PARAMETERS,
+    SKLEARN_TRANSFORM_HYPERPARAMETERS,
 )
 
 _datasets = {
@@ -93,7 +95,12 @@ _datasets = {
     (None, SPARSE): os.path.join(TESTS_DATA_PATH, "sparse.mtx"),
     (None, SPARSE_TARGET): os.path.join(TESTS_DATA_PATH, "sparse_target.csv"),
     (None, SPARSE_COLUMNS): os.path.join(TESTS_DATA_PATH, "sparse.columns"),
-    (None, PARAMETERS): os.path.join(TESTS_DATA_PATH, "parameters.json"),
+    (None, SKLEARN_BINARY_PARAMETERS): os.path.join(
+        TESTS_DATA_PATH, "sklearn_binary_parameters.json"
+    ),
+    (None, SKLEARN_TRANSFORM_PARAMETERS): os.path.join(
+        TESTS_DATA_PATH, "sklearn_transform_parameters.json"
+    ),
     (None, BINARY_BOOL): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
     (SKLEARN, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
     (SKLEARN_TRANSFORM, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
@@ -120,6 +127,9 @@ _training_models_paths = {
     ),
     (PYTHON, SKLEARN_MULTICLASS): os.path.join(
         TRAINING_TEMPLATES_PATH, "python3_sklearn_multiclass"
+    ),
+    (PYTHON, SKLEARN_TRANSFORM_HYPERPARAMETERS): os.path.join(
+        TRAINING_TEMPLATES_PATH, "python3_sklearn_transform_hyperparameters"
     ),
     (PYTHON, SIMPLE): os.path.join(TRAINING_TEMPLATES_PATH, "simple"),
     (PYTHON, SKLEARN_SPARSE): os.path.join(TESTS_FIXTURES_PATH, "validate_sparse_columns"),
