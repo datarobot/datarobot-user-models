@@ -6,8 +6,7 @@ from sklearn.decomposition import TruncatedSVD
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression, Ridge
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
-
+from sklearn.preprocessing import OneHotEncoder, StandardScaler, FunctionTransformer
 
 ##############################
 ### Preprocessing tools
@@ -38,7 +37,7 @@ def is_text(x):
     -------
     boolean: True for is text, False for not text
     """
-    if pd.api.types.is_string_dtype(x):
+    if pd.api.types.is_string_dtype(x) and pd.api.types.infer_dtype(x) != "boolean":
         pct_rows_with_whitespace = (x.str.count(r"\s") > 0).sum() / x.shape[0]
         return pct_rows_with_whitespace > 0.75
     return False
@@ -48,6 +47,12 @@ def is_text(x):
 # Returns a list of strings
 def text_selector(X):
     return X.columns[list(X.apply(is_text, result_type="expand"))]
+
+
+def to_string(x):
+    """Handle boolean values as string.  They are treated as an object otherwise, and will not work with categorical
+    when no missing values are present.  If there are missing values they are already correctly treated as a string."""
+    return x.astype(str)
 
 
 ##############################
@@ -65,12 +70,14 @@ numeric_pipeline = Pipeline(
 )
 
 # For categoricals, we:
-# 1. Impute missing values with the string "missing"
-# 2. One hot encode the data (ignoring new categorical levels at prediction time)
+# 1. Convert boolean values to strings
+# 2. Impute missing values with the string "missing"
+# 3. One hot encode the data (ignoring new categorical levels at prediction time)
 # You can set `handle_unknown='error'` to make your model raise an error at prediction time if
 # it encounters a new categorical level
 categorical_pipeline = Pipeline(
     steps=[
+        ("bool_to_string", FunctionTransformer(to_string)),
         ("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
         ("onehot", OneHotEncoder(handle_unknown="ignore")),
     ]
@@ -111,5 +118,6 @@ dense_preprocessing_pipeline = Pipeline(
     steps=[
         ("preprocessing", sparse_preprocessing_pipeline),
         ("SVD", MyTruncatedSVD(n_components=10, random_state=42, algorithm="randomized")),
-    ]
+    ],
+    verbose=True,
 )

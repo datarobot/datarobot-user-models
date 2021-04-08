@@ -82,5 +82,6 @@ def make_anomaly():
         steps=[
             ("preprocessing", dense_preprocessing_pipeline),
             ("model", AnomalyCalibEstimator(estimator=OneClassSVM())),
-        ]
+        ],
+        verbose=True,
     )
