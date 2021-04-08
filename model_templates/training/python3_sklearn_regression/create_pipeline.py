@@ -127,4 +127,6 @@ dense_preprocessing_pipeline = Pipeline(
 
 
 def make_regressor(X):
-    return Pipeline(steps=[("preprocessing", dense_preprocessing_pipeline), ("model", Ridge())])
+    return Pipeline(
+        steps=[("preprocessing", dense_preprocessing_pipeline), ("model", Ridge())], verbose=True
+    )

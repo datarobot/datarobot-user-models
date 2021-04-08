@@ -128,5 +128,6 @@ dense_preprocessing_pipeline = Pipeline(
 
 def make_classifier(X):
     return Pipeline(
-        steps=[("preprocessing", dense_preprocessing_pipeline), ("model", LogisticRegression())]
+        steps=[("preprocessing", dense_preprocessing_pipeline), ("model", LogisticRegression())],
+        verbose=True,
     )

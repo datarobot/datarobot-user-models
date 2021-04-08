@@ -118,5 +118,6 @@ dense_preprocessing_pipeline = Pipeline(
     steps=[
         ("preprocessing", sparse_preprocessing_pipeline),
         ("SVD", MyTruncatedSVD(n_components=10, random_state=42, algorithm="randomized")),
-    ]
+    ],
+    verbose=True,
 )
