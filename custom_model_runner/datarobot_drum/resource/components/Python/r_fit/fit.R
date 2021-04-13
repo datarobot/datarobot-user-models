@@ -2,6 +2,7 @@
 library(caret)
 library(devtools)
 library(Matrix)
+library(rjson)
 
 init_hook <- FALSE
 fit_hook <- FALSE
@@ -102,6 +103,16 @@ process_weights <- function(X, weights_filename, weights, num_rows){
   row_weights
 }
 
+
+process_parameters <- function(parameter_filename){
+    if (!is.null(parameter_filename)){
+        parameters = fromJSON(file=parameter_filename)
+    } else {
+        parameters = NULL
+    }
+    parameters
+}
+
 #' Fits and saves a model using user-provided Fit method
 #'
 #' @param data data.frame from which to train model
@@ -112,7 +123,7 @@ process_weights <- function(X, weights_filename, weights, num_rows){
 
 outer_fit <- function(output_dir, input_filename, target_filename,
                       target_name, num_rows, weights_filename, weights,
-                      positive_class_label, negative_class_label, class_labels) {
+                      positive_class_label, negative_class_label, class_labels, parameter_filename) {
 
     processed_data <- process_data(input_filename, target_filename, target_name, num_rows)
 
@@ -121,6 +132,8 @@ outer_fit <- function(output_dir, input_filename, target_filename,
     num_rows <- processed_data$num_rows
 
     row_weights <- process_weights(X, weights_filename, weights, num_rows )
+
+    parameters <- process_parameters(parameter_filename)
 
     if (!is.null(positive_class_label) && !is.null(negative_class_label)){
         class_order <- c(negative_class_label, positive_class_label)
@@ -134,7 +147,8 @@ outer_fit <- function(output_dir, input_filename, target_filename,
         kwargs <- list()
         kwargs <- append(kwargs, list(X=X,
                                       output_dir=output_dir,
-                                      row_weights=row_weights))
+                                      row_weights=row_weights,
+                                      parameters=parameters))
         if (!is.null(y)) {
             kwargs <- append(kwargs, list(y=y,
                                             class_order=class_order))

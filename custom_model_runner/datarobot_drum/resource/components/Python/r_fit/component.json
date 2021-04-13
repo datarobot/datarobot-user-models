@@ -74,6 +74,13 @@
     "type": "str or int",
     "description": "Number of rows to fit on",
     "optional": false
+  },
+  {
+    "key": "parameterFile",
+    "label": "parameterFile",
+    "type": "str",
+    "description": "A JSON file containing parameters for the model",
+    "optional": true
   }
   ]
 }

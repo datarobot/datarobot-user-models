@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### [1.5.4] - 2021-04-13
 ##### Added
-- parameter support for python training models and transformers
+- parameter support for training models and transformers
 
 #### [1.5.3] - 2021-04-03
 ##### Fixed

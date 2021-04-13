@@ -43,6 +43,7 @@ SKLEARN_TRANSFORM_HYPERPARAMETERS = "sklearn_transform_hyperparameters"
 
 RDS = "rds"
 RDS_SPARSE = "rds_sparse"
+RDS_HYPERPARAMETERS = "rds_hyperparameters"
 CODEGEN = "jar"
 ## adding h2o pojo and mojo
 MOJO = "zip"
@@ -70,6 +71,7 @@ TARGET_NAME_DUPLICATED_X = "target_name_duplicated_x"
 TARGET_NAME_DUPLICATED_Y = "target_name_duplicated_y"
 SKLEARN_BINARY_PARAMETERS = "sklearn_binary_parameters"
 SKLEARN_TRANSFORM_PARAMETERS = "sklearn_transform_parameters"
+RDS_PARAMETERS = "r_parameters"
 
 # Language keywords
 PYTHON = "python3"
