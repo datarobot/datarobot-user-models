@@ -2,5 +2,5 @@
   "numeric_imputer_strategy": "constant",
   "numeric_imputer_constant_fill": -50.0,
   "numeric_standardize_with_mean": 0,
-  "categorical_fill": "unicode compatibility: \uD83D\uDE80🚀"
+  "categorical_fill": "unicode compatibility: 🚀"
 }
