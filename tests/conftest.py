@@ -177,6 +177,7 @@ _target_types = {
 
 _class_labels = {
     (SKLEARN_BINARY, BINARY): ["Iris-setosa", "Iris-versicolor"],
+    (SKLEARN_BINARY_HYPERPARAMETERS, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (SKLEARN_BINARY, BINARY_SPACES): ["Iris setosa", "Iris versicolor"],
     (SKLEARN, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (XGB, BINARY): ["Iris-setosa", "Iris-versicolor"],

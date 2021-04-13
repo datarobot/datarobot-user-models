@@ -6,6 +6,7 @@ export PYTHONPATH="${CODEPATH}":"${PYTHONPATH}"
 export X="${INPUT_DIRECTORY}/X${TRAINING_DATA_EXTENSION:-.csv}"
 export weights="${INPUT_DIRECTORY}/weights.csv"
 export sparse_colnames="${INPUT_DIRECTORY}/X.colnames"
+export parameters="${INPUT_DIRECTORY}/parameters.json"
 
 CMD="drum fit --target-type ${TARGET_TYPE} --input ${X} --num-rows ALL --output ${ARTIFACT_DIRECTORY} \
 --code-dir ${CODEPATH} --verbose"
@@ -20,6 +21,10 @@ fi
 
 if [ -f "${sparse_colnames}" ]; then
     CMD="${CMD} --sparse-column-file ${sparse_colnames}"
+fi
+
+if [ -f "${parameters}" ]; then
+    CMD="${CMD} --parameter-file ${parameters}"
 fi
 
 echo "Environment variables:"

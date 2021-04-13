@@ -370,24 +370,25 @@ class TestFit:
                 weights_data.to_csv(fp)
 
     @pytest.mark.parametrize(
-        "framework, problem",
+        "framework, problem, parameters",
         [
-            (SKLEARN_BINARY, BINARY_TEXT),
-            (SKLEARN_BINARY, BINARY),
-            (SKLEARN_ANOMALY, ANOMALY),
-            (SKLEARN_MULTICLASS, MULTICLASS),
-            (SKLEARN_SPARSE, REGRESSION),
-            (XGB, BINARY_TEXT),
-            (XGB, BINARY),
-            (XGB, MULTICLASS),
-            (KERAS, BINARY_TEXT),
-            (KERAS, BINARY),
-            (KERAS, MULTICLASS),
+            (SKLEARN_BINARY, BINARY_TEXT, None),
+            (SKLEARN_BINARY, BINARY, None),
+            (SKLEARN_BINARY_HYPERPARAMETERS, BINARY, SKLEARN_BINARY_PARAMETERS),
+            (SKLEARN_ANOMALY, ANOMALY, None),
+            (SKLEARN_MULTICLASS, MULTICLASS, None),
+            (SKLEARN_SPARSE, REGRESSION, None),
+            (XGB, BINARY_TEXT, None),
+            (XGB, BINARY, None),
+            (XGB, MULTICLASS, None),
+            (KERAS, BINARY_TEXT, None),
+            (KERAS, BINARY, None),
+            (KERAS, MULTICLASS, None),
         ],
     )
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, None])
     def test_fit_sh(
-        self, resources, framework, problem, weights, tmp_path,
+        self, resources, framework, problem, parameters, weights, tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
             resources, tmp_path, framework, problem, PYTHON, is_training=True,
@@ -401,7 +402,13 @@ class TestFit:
                 PYTHON,
                 framework
                 if framework
-                not in [SKLEARN_ANOMALY, SKLEARN_BINARY, SKLEARN_MULTICLASS, SKLEARN_SPARSE]
+                not in [
+                    SKLEARN_ANOMALY,
+                    SKLEARN_BINARY,
+                    SKLEARN_MULTICLASS,
+                    SKLEARN_SPARSE,
+                    SKLEARN_BINARY_HYPERPARAMETERS,
+                ]
                 else SKLEARN,
             ),
         )
@@ -439,6 +446,11 @@ class TestFit:
             with open(os.path.join(tmp_path, "class_labels.txt"), mode="w") as f:
                 f.write("\n".join(labels))
                 env["CLASS_LABELS_FILE"] = f.name
+
+        if parameters:
+            parameter_file = resources.datasets(framework, parameters)
+            parameter_input_file = os.path.join(input_dir, "parameters.json")
+            shutil.copyfile(parameter_file, parameter_input_file)
 
         _exec_shell_cmd(fit_sh, "Failed cmd {}".format(fit_sh), env=env)
 
