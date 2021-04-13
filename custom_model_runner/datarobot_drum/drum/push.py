@@ -180,6 +180,7 @@ def _setup_training_validation(config, options):
     options.num_rows = "ALL"
     options.skip_predict = False
     options.sparse_column_file = None
+    options.parameter_file = None
 
     raw_args_for_docker = "drum {run_mode} --input {input} --target {target} --code-dir {code_dir}".format(
         run_mode=RunMode.FIT, input=path, target=options.target, code_dir=options.code_dir

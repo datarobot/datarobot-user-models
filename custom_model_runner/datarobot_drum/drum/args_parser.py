@@ -486,6 +486,16 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
+    def _reg_arg_parameter_file(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.PARAMETER_FILE,
+                default=None,
+                type=CMRunnerArgsRegistry._is_valid_file,
+                help="Model parameters stored in a JSON file",
+            )
+
+    @staticmethod
     def _reg_arg_with_error_server(*parsers):
         for parser in parsers:
             parser.add_argument(
@@ -814,6 +824,7 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_arg_skip_predict(fit_parser)
         CMRunnerArgsRegistry._reg_arg_num_rows(fit_parser)
         CMRunnerArgsRegistry._reg_arg_sparse_colfile(fit_parser)
+        CMRunnerArgsRegistry._reg_arg_parameter_file(fit_parser)
 
         CMRunnerArgsRegistry._reg_arg_samples(perf_test_parser)
         CMRunnerArgsRegistry._reg_arg_iterations(perf_test_parser)

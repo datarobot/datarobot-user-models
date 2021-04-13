@@ -28,6 +28,7 @@ class PythonFit(ConnectableComponent):
         self.target_filename = None
         self._model_adapter = None
         self.num_rows = None
+        self.parameter_file = None
 
     def configure(self, params):
         super(PythonFit, self).configure(params)
@@ -43,6 +44,7 @@ class PythonFit(ConnectableComponent):
         self.weights_filename = self._params["weightsFilename"]
         self.target_filename = self._params.get("targetFilename")
         self.num_rows = self._params["numRows"]
+        self.parameter_file = self._params.get("parameterFile")
 
         self._model_adapter = PythonModelAdapter(self.custom_model_path)
         sys.path.append(self.custom_model_path)
@@ -50,10 +52,15 @@ class PythonFit(ConnectableComponent):
 
     def _materialize(self, parent_data_objs, user_data):
 
-        X, y, class_order, row_weights = shared_fit_preprocessing(self)
+        X, y, class_order, row_weights, parameters = shared_fit_preprocessing(self)
 
         self._model_adapter.fit(
-            X, y, output_dir=self.output_dir, class_order=class_order, row_weights=row_weights
+            X,
+            y,
+            output_dir=self.output_dir,
+            class_order=class_order,
+            row_weights=row_weights,
+            parameters=parameters,
         )
 
         make_sure_artifact_is_small(self.output_dir)
