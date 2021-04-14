@@ -1,19 +1,8 @@
 FROM rocker/r-apt:bionic
-RUN echo '29 Aug 2019'
+RUN echo '13 Apr 2021'
 ENV LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive
-RUN apt-get update -y
-RUN apt-get install -y \
-        r-cran-recipes \
-        r-cran-glmnet \
-        r-cran-rjson \
-        r-cran-e1071 \
-        r-cran-plumber \
-        r-cran-caret \
-        r-cran-tidyverse \
-        r-cran-devtools \
-        r-cran-pack \
-        r-cran-rook
-RUN apt-get update && \
+
+RUN apt-get update -y && \
     apt-get install --no-install-recommends -y \
         apt-utils \
         curl \
@@ -44,11 +33,24 @@ RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && \
     /usr/sbin/update-locale LANG=en_US.UTF-8
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9 && \
     add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/'
+
+
 RUN apt-get install -y --no-install-recommends \
         r-cran-littler \
         r-base \
-        r-base-dev && \
+        r-base-dev \
+        r-cran-recipes \
+        r-cran-glmnet \
+        r-cran-rjson \
+        r-cran-e1071 \
+        r-cran-plumber \
+        r-cran-caret \
+        r-cran-tidyverse \
+        r-cran-pack \
+        r-cran-rook && \
     rm -rf /var/lib/apt/lists/
+
+RUN Rscript -e "install.packages(c('gert', 'usethis', 'devtools'), Ncpus=4)"
 
 RUN pip3 install setuptools wheel
 
@@ -75,3 +77,5 @@ RUN cd /opt && . v3.7/bin/activate && pip install -r /tmp/requirements_drum.txt 
 
 COPY requirements_dropin.txt /tmp/requirements_dropin.txt
 RUN cd /opt && . v3.7/bin/activate && pip install -r /tmp/requirements_dropin.txt && rm -rf /root/.cache/pip
+
+USER root
