@@ -169,7 +169,7 @@ class DrumServerRun:
                                 proc.terminate()
                                 time.sleep(0.3)
                                 proc.kill()
-                            except psutil.NoSuchProcess:
+                            except (psutil.NoSuchProcess, psutil.AccessDenied):
                                 pass
                             break
 
