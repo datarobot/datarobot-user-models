@@ -49,6 +49,7 @@ class RFit(ConnectableComponent):
         self.weights_filename = None
         self.target_filename = None
         self.num_rows = None
+        self.parameter_file = None
 
     def configure(self, params):
         super(RFit, self).configure(params)
@@ -63,6 +64,7 @@ class RFit(ConnectableComponent):
         self.weights_filename = self._params["weightsFilename"]
         self.target_filename = self._params.get("targetFilename")
         self.num_rows = self._params["numRows"]
+        self.parameter_file = self._params.get("parameterFile")
 
         r_handler.source(R_COMMON_PATH)
         r_handler.source(R_FIT_PATH)
@@ -73,15 +75,13 @@ class RFit(ConnectableComponent):
         if self.output_dir[-1] != "/":
             self.output_dir += "/"
 
+        weights = ro.NULL
         if self.weights:
             weights = self.weights.replace("-", ".")
-        else:
-            weights = ro.NULL
 
+        target_name = ro.NULL
         if self.target_name:
             target_name = self.target_name.replace("-", ".").replace("_", ".")
-        else:
-            target_name = ro.NULL
 
         r_handler.outer_fit(
             self.output_dir,
@@ -94,6 +94,7 @@ class RFit(ConnectableComponent):
             self.positive_class_label or ro.NULL,
             self.negative_class_label or ro.NULL,
             ro.StrVector(self.class_labels) if self.class_labels else ro.NULL,
+            self.parameter_file or ro.NULL,
         )
 
         make_sure_artifact_is_small(self.output_dir)

@@ -75,6 +75,8 @@ from tests.drum.constants import (
     SKLEARN_BINARY_HYPERPARAMETERS,
     SKLEARN_TRANSFORM_PARAMETERS,
     SKLEARN_TRANSFORM_HYPERPARAMETERS,
+    RDS_PARAMETERS,
+    RDS_HYPERPARAMETERS,
 )
 
 _datasets = {
@@ -101,6 +103,7 @@ _datasets = {
     (None, SKLEARN_TRANSFORM_PARAMETERS): os.path.join(
         TESTS_DATA_PATH, "sklearn_transform_parameters.json"
     ),
+    (None, RDS_PARAMETERS): os.path.join(TESTS_DATA_PATH, "r_parameters.json"),
     (None, BINARY_BOOL): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
     (SKLEARN, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
     (SKLEARN_TRANSFORM, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
@@ -136,6 +139,7 @@ _training_models_paths = {
     (PYTHON, KERAS): os.path.join(TRAINING_TEMPLATES_PATH, "python3_keras_joblib"),
     (PYTHON, XGB): os.path.join(TRAINING_TEMPLATES_PATH, "python3_xgboost"),
     (R_FIT, RDS): os.path.join(TRAINING_TEMPLATES_PATH, "r_lang"),
+    (R_FIT, RDS_HYPERPARAMETERS): os.path.join(TRAINING_TEMPLATES_PATH, "r_lang_hyperparameters"),
     (PYTHON, PYTORCH): os.path.join(TRAINING_TEMPLATES_PATH, "python3_pytorch"),
     (PYTHON, SKLEARN_ANOMALY): os.path.join(TRAINING_TEMPLATES_PATH, "python3_anomaly_detection"),
     (PYTHON, PYTORCH_MULTICLASS): os.path.join(
@@ -177,6 +181,7 @@ _target_types = {
 
 _class_labels = {
     (SKLEARN_BINARY, BINARY): ["Iris-setosa", "Iris-versicolor"],
+    (SKLEARN_BINARY_HYPERPARAMETERS, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (SKLEARN_BINARY, BINARY_SPACES): ["Iris setosa", "Iris versicolor"],
     (SKLEARN, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (XGB, BINARY): ["Iris-setosa", "Iris-versicolor"],

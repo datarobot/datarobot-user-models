@@ -15,6 +15,7 @@
                 "inputFilename": "{{ input_filename }}",
                 "weightsFilename": {{ weights_filename | jsonify }},
                 "weights": {{ weights | jsonify }},
+                "parameterFile": {{parameter_file | jsonify }},
                 "positiveClassLabel": {{ positiveClassLabel | jsonify }},
                 "negativeClassLabel": {{ negativeClassLabel | jsonify }},
                 "classLabels": {{ classLabels | jsonify }},
