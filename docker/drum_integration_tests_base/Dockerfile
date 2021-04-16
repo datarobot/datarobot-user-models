@@ -63,11 +63,22 @@ RUN Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLooku
 
 RUN rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 
+## install python 3.7.10
 RUN apt install software-properties-common && \
     add-apt-repository ppa:deadsnakes/ppa && \
     apt-get update && \
-    apt install -y python3.7 python3.7-dev
-
+    apt-get install libffi-dev && \
+    wget https://www.python.org/ftp/python/3.7.10/Python-3.7.10.tgz && \
+    tar zxvf Python-3.7.10.tgz && \ 
+    cd Python-3.7.10 && \
+    ./configure --enable-shared && \
+    make install
+# By default, `make install' will install all the files in
+# `/usr/local/bin', `/usr/local/lib' etc.  You can specify
+# an installation prefix other than `/usr/local' using `--prefix',
+# for instance `--prefix=$HOME'.
+RUN apt install -y python3.7-dev 
+# python3.7 
 RUN python3.7 -m pip install -U pip
 RUN python3.7 -m pip install setuptools wheel virtualenv
 
@@ -77,5 +88,23 @@ RUN cd /opt && . v3.7/bin/activate && pip install -r /tmp/requirements_drum.txt 
 
 COPY requirements_dropin.txt /tmp/requirements_dropin.txt
 RUN cd /opt && . v3.7/bin/activate && pip install -r /tmp/requirements_dropin.txt && rm -rf /root/.cache/pip
+
+# # install julia 1.5.4
+ENV HOME /opt
+RUN wget https://julialang-s3.julialang.org/bin/linux/x64/1.5/julia-1.5.4-linux-x86_64.tar.gz && \
+    tar zxvf julia-1.5.4-linux-x86_64.tar.gz && \
+    mkdir $HOME/.julia && \
+    mkdir $HOME/julia
+
+ENV JULIA_HOME /julia-1.5.4
+ENV JULIA_SYS_IMAGE $HOME/julia/sys.so
+ENV JULIA_PROJECT $HOME/julia
+ENV PATH $PATH:$JULIA_HOME/bin
+COPY sysim.jl $HOME/julia/sysim.jl
+ENV PYTHON /opt/v3.7/bin/python
+RUN julia "$HOME/julia/sysim.jl" && \
+    chmod -R 777 $HOME/.julia/logs/manifest_usage.toml && \
+    rm julia-1.5.4-linux-x86_64.tar.gz && \
+    rm Python-3.7.10.tgz
 
 USER root

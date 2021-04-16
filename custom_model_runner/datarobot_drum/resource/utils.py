@@ -7,6 +7,7 @@ from datarobot_drum.drum.common import ArgumentOptionsEnvVars
 
 
 PYTHON = "python3"
+JULIA = "julia"
 R = "R"
 R_ALL_PREDICT_STRUCTURED_HOOKS = "R_all_predict_structured_hooks"
 R_FIT = "R_fit"
@@ -30,6 +31,8 @@ def _create_custom_model_dir(
 
         if language == PYTHON:
             files = glob.glob(r"{}/*.py".format(model_template_dir))
+        elif language == JULIA:
+            files = glob.glob(r"{}/*.jl".format(model_template_dir))
         elif language in [R, R_ALL_PREDICT_STRUCTURED_HOOKS, R_FIT]:
             files = glob.glob(r"{}/*.r".format(model_template_dir)) + glob.glob(
                 r"{}/*.R".format(model_template_dir)

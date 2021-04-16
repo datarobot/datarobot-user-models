@@ -49,7 +49,7 @@ setup(
     include_package_data=True,
     packages=find_packages("."),
     package_data={
-        "": ["*.json", "*.jar", "*.R", "*.j2"],
+        "": ["*.json", "*.jar", "*.R", "*.j2", "*.jl", "*.toml"],
         "datarobot_drum.resource.pipelines": ["*"],
     },
     scripts=["bin/drum"],

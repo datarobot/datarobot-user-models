@@ -41,6 +41,11 @@ SKLEARN_ANOMALY = "sklearn_anomaly_detection"
 SKLEARN_BINARY_HYPERPARAMETERS = "sklearn_binary_hyperparameters"
 SKLEARN_TRANSFORM_HYPERPARAMETERS = "sklearn_transform_hyperparameters"
 
+MLJ = "mlj"
+MLJ_BINARY = "mlj_binary"
+MLJ_REGRESSION = "mlj_regression"
+MLJ_MULTICLASS = "mlj_multiclass"
+
 RDS = "rds"
 RDS_SPARSE = "rds_sparse"
 RDS_HYPERPARAMETERS = "rds_hyperparameters"
@@ -48,6 +53,9 @@ CODEGEN = "jar"
 ## adding h2o pojo and mojo
 MOJO = "zip"
 POJO = "java"
+##
+## adding julia
+JLSO = "jlso"
 ##
 MULTI_ARTIFACT = "multiartifact"
 CODEGEN_AND_SKLEARN = "codegen_and_sklearn"
@@ -89,6 +97,7 @@ R_ALL_PREDICT_STRUCTURED_HOOKS = "R_all_predict_structured_hooks"
 R_ALL_PREDICT_UNSTRUCTURED_HOOKS = "R_all_predict_unstructured_hooks"
 R_FIT = "R_fit"
 JAVA = "java"
+JULIA = "julia"
 PYTHON_UNSTRUCTURED = "python_unstructured"
 PYTHON_UNSTRUCTURED_PARAMS = "python_unstructured_params"
 R_UNSTRUCTURED = "r_unstructured"
