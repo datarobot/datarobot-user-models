@@ -1,5 +1,5 @@
 argcomplete==1.11.1
-datarobot==2.21.3
+datarobot==2.24.0
 docker>=4.2.2<5.0.0
 flask
 jinja2
