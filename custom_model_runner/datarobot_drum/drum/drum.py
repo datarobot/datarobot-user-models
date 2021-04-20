@@ -27,6 +27,7 @@ from datarobot_drum.drum.common import (
     ArgumentOptionsEnvVars,
     CUSTOM_FILE_NAME,
     JavaArtifacts,
+    JuliaArtifacts,
     LOG_LEVELS,
     LOGGER_NAME_PREFIX,
     PythonArtifacts,
@@ -271,24 +272,42 @@ class CMRunner:
 
         java_artifacts = CMRunnerUtils.find_files_by_extensions(code_dir_abspath, JavaArtifacts.ALL)
 
+        julia_artifacts = CMRunnerUtils.find_files_by_extensions(
+            code_dir_abspath, JuliaArtifacts.ALL
+        )
+
         # check which custom code files present in the code dir
         is_custom_py = CMRunnerUtils.filename_exists_and_is_file(code_dir_abspath, "custom.py")
         is_custom_r = CMRunnerUtils.filename_exists_and_is_file(
             code_dir_abspath, "custom.R"
         ) or CMRunnerUtils.filename_exists_and_is_file(code_dir_abspath, "custom.r")
+        is_custom_jl = CMRunnerUtils.filename_exists_and_is_file(code_dir_abspath, "custom.jl")
 
         # if all the artifacts belong to the same language, set it
-        if bool(len(python_artifacts)) + bool(len(r_artifacts)) + bool(len(java_artifacts)) == 1:
+        if (
+            bool(len(python_artifacts))
+            + bool(len(r_artifacts))
+            + bool(len(java_artifacts))
+            + bool(len(julia_artifacts))
+            == 1
+        ):
             if len(python_artifacts) > 0:
                 artifact_language = RunLanguage.PYTHON
             elif len(r_artifacts) > 0:
                 artifact_language = RunLanguage.R
             elif len(java_artifacts) > 0:
                 artifact_language = RunLanguage.JAVA
+            elif len(julia_artifacts) > 0:
+                artifact_language = RunLanguage.JULIA
 
         # if only one custom file found, set it:
-        if is_custom_py + is_custom_r == 1:
-            custom_language = RunLanguage.PYTHON if is_custom_py else RunLanguage.R
+        if is_custom_py + is_custom_r + is_custom_jl == 1:
+            if is_custom_py:
+                custom_language = RunLanguage.PYTHON
+            elif is_custom_r:
+                custom_language = RunLanguage.R
+            else:
+                custom_language = RunLanguage.JULIA
 
         # if both language values are None, or both are not None and not equal
         if (
@@ -300,16 +319,18 @@ class CMRunner:
                 "Can not detect language by artifacts and/or custom.py/R files.\n"
                 "Detected: language by artifacts - {}; language by custom - {}.\n"
                 "Code directory must have one or more model artifacts belonging to the same language:\n"
-                "Python/R/Java, with an extension:\n"
+                "Python/R/Java/Julia, with an extension:\n"
                 "Python models: {}\n"
                 "R models: {}\n"
                 "Java models: {}.\n"
+                "Julia models: {}.\n"
                 "Or one of custom.py/R files.".format(
                     "None" if artifact_language is None else artifact_language.value,
                     "None" if custom_language is None else custom_language.value,
                     PythonArtifacts.ALL,
                     RArtifacts.ALL,
                     JavaArtifacts.ALL,
+                    JuliaArtifacts.ALL,
                 )
             )
             all_files_message = "\n\nFiles(100 first) found in {}:\n{}\n".format(
@@ -328,7 +349,7 @@ class CMRunner:
         def raise_no_language(custom_language):
             custom_language = "None" if custom_language is None else custom_language.value
             error_mes = (
-                "Can not detect language by custom.py/R files.\n"
+                "Can not detect language by custom.py/R/jl files.\n"
                 "Detected: language by custom - {}.\n"
                 "Code directory must have either a custom.py/R file\n"
                 "Or a python file using the drum_autofit() wrapper.".format(custom_language,)
@@ -344,7 +365,7 @@ class CMRunner:
         def raise_multiple_custom_files(py_paths, r_paths):
             files_found = py_paths + r_paths
             error_mes = (
-                "Multiple custom.py/R files were identified in the code directories sub directories.\n"
+                "Multiple custom.py/R/jl files were identified in the code directories sub directories.\n"
                 "If using the output directory option select a directory that does not contain additional "
                 "output directories or code directories.\n\n"
                 "The following custom model files were found:\n"
@@ -364,11 +385,13 @@ class CMRunner:
         custom_r_paths = list(Path(code_dir_abspath).rglob("{}.r".format(CUSTOM_FILE_NAME))) + list(
             Path(code_dir_abspath).rglob("{}.R".format(CUSTOM_FILE_NAME))
         )
+        custom_jl_paths = list(Path(code_dir_abspath).rglob("{}.jl".format(CUSTOM_FILE_NAME)))
 
         # if only one custom file found, set it:
         if len(custom_py_paths) + len(custom_r_paths) == 1:
             custom_language = RunLanguage.PYTHON if custom_py_paths else RunLanguage.R
-
+        elif len(custom_jl_paths) == 1:
+            custom_language = RunLanguage.Julia
         # if no custom files, look for any other python file to use
         elif len(custom_py_paths) + len(custom_r_paths) == 0:
 
@@ -385,8 +408,8 @@ class CMRunner:
                 raise_no_language(custom_language)
 
         # subdirectories also contain custom py/R files, likely an incorrectly selected output dir.
-        elif len(custom_py_paths) + len(custom_r_paths) > 1:
-            raise_multiple_custom_files(custom_py_paths, custom_r_paths)
+        elif len(custom_py_paths) + len(custom_r_paths) + len(custom_jl_paths) > 1:
+            raise_multiple_custom_files(custom_py_paths, custom_r_paths, custom_jl_paths)
 
         # otherwise, we're in trouble
         else:

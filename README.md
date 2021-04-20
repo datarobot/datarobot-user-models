@@ -64,6 +64,11 @@ The DRUM tool has built-in support for the following libraries. If your model is
 | --- | --- | --- |
 | caret | *.rds | brnn-regressor.rds |
 
+### Julia Libraries
+| Library | File Extension | Example |
+| --- | --- | --- |
+| MLJ | *.jlso | boston_rf.jlso |
+
 This tool makes the following assumptions about your serialized model:
 - The data sent to a model can be used to make predictions without additional pre-processing.
 - Regression models return a single floating point per row of prediction data.
@@ -75,14 +80,14 @@ This tool makes the following assumptions about your serialized model:
 
 ### Custom hooks for Python and R models
 If the assumptions mentioned above are incorrect for your model, DRUM supports several hooks for custom code. If needed,
-include any necessary hooks in a file called `custom.py` for Python models or `custom.R` for R models alongside your model artifacts in your model folder:
+include any necessary hooks in a file called `custom.py` for Python models,`custom.R` for R models, or `custom.jl  for Julia models alongside your model artifacts in your model folder:
 
-> Note: The following hook signatures are written with Python 3 type annotations. The Python types match the following R types:
-> - DataFrame = data.frame
-> - None = NULL
-> - str = character
+> Note: The following hook signatures are written with Python 3 type annotations. The Python types match the following R types and Julia types:
+> - DataFrame = data.frame = DataFrames.DataFrame
+> - None = NULL = nothing
+> - str = character = String
 > - Any = R Object (the deserialized model)
-> - *args, **kwargs = ... (these aren't types, they're just placeholders for additional parameters)
+> - *args, **kwargs = ... = kwargs** (these aren't types, they're just placeholders for additional parameters)
 
 - `init(**kwargs) -> None`
   - Executed once in the beginning of the run
@@ -130,6 +135,16 @@ include any necessary hooks in a file called `custom.py` for Python models or `c
   - This method is only needed if your model's output does not match the above expectations.
 > Note: training and inference hooks can be defined in the same file.
 
+#### Details on Julia
+
+Julia models are supported by usage of [pyjulia](https://pyjulia.readthedocs.io/en/latest/api.html).  
+
+pyjulia does NOT work with statically linked libpython.  See this trouble shooting [article](https://pyjulia.readthedocs.io/en/latest/troubleshooting.html).  Other issues arise when using a different versions of python to build Julia PyCall vs what currently being called with (often seen with pyenv).
+
+The simplest way to getting DRUM working with Julia is to leverage the [Julia Dropin Environment](public_dropin_environments/julia_mlj)
+
+See details [here](model_templates/inference/julia/README.md) on setting up Julia for use with DRUM
+
 ### Java
 | Library | File Extension | Example |
 | --- | --- | --- |
@@ -138,7 +153,7 @@ include any necessary hooks in a file called `custom.py` for Python models or `c
 | h2o-genmodel | *.zip | GBM_model_python_1589382591366_1.zip (mojo)|
 | h2o-genmodel-ext-xgboost | *.java | XGBoost_2_AutoML_20201015_144158.java |
 | h2o-genmodel-ext-xgboost | *.zip | XGBoost_2_AutoML_20201015_144158.zip |
-| h2o-ext-mojo-pipeline | *.mojo and *.jar | ...|
+| h2o-ext-mojo-pipeline | *.mojo | ...|
 
 If you leverage an H2O model exported as POJO, you cannot rename the file.  This does not apply to models exported as MOJO - they may be named in any fashion.
 
@@ -159,8 +174,8 @@ The model artifact must have a **jar** extension.
 Inference models support unstructured mode, where input and output are not verified and can be almost anything.
 This is your responsibility to verify correctness.
 
-### Custom hooks for Python and R models
-Include any necessary hooks in a file called `custom.py` for Python models or `custom.R` for R models alongside your model artifacts in your model folder:
+### Custom hooks for Python, R, and Julia models
+Include any necessary hooks in a file called `custom.py` for Python models, `custom.R` for R models, or `custom.jl` for Julia models alongside your model artifacts in your model folder:
 
 > Note: The following hook signatures are written with Python 3 type annotations. The Python types match the following R types:
 > - None = NULL
@@ -170,6 +185,7 @@ Include any necessary hooks in a file called `custom.py` for Python models or `c
 > - tuple = list
 > - Any = R Object (the deserialized model)
 > - *args, **kwargs = ... (these aren't types, they're just placeholders for additional parameters)
+
 
 - `init(**kwargs) -> None`
   - Executed once in the beginning of the run
@@ -197,6 +213,8 @@ Include any necessary hooks in a file called `custom.py` for Python models or `c
 Type checking methods can be used to verify types:
 - in Python`isinstance(data, str)` or `isinstance(data, bytes)`
 - in R `is.character(data)` or `is.raw(data)`
+- in Julia `data isa String` or `data is Base.CodeUnits`
+
 
 DRUM uses `Content-Type` header to determine a type to cast `data` to. Content-Type header can be provided in request or in `--content-type` CLI argument.  
 `Content-Type` header format is `type/subtype;parameter`, e.g. `text/plain;charset=utf8`. Only mimetype part `text/plain`, and `charset=utf8` parameter matter for DRUM.  
@@ -264,6 +282,7 @@ The [model_templates](model_templates) folder contains sample models that work w
 * [PyPMML sample model](model_templates/inference/python3_pmml)
 * [R sample model](model_templates/inference/r_lang)
 * [Java sample model](model_templates/inference/java_codegen)
+* [Julia sample models](model_templates/inference/julia)
 
 ##### Training Models
 * [Scikit-Learn sample regression model](model_templates/training/python3_sklearn_regression)
@@ -285,6 +304,7 @@ A custom environment defines the runtime environment for a custom model. In this
 * [Python 3 + pmml](public_dropin_environments/python3_pmml)
 * [R + caret](public_dropin_environments/r_lang)
 * [Java Scoring Code](public_dropin_environments/java_codegen)
+* [Julia + MLJ](public_dropin_environments/julia_mlj)
 
 These sample environments each define the libraries available in the environment and are designed to allow for simple custom models to be made that consist solely of your model's artifacts and an optional custom code
 file, if necessary.

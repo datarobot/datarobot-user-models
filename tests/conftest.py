@@ -78,6 +78,9 @@ from tests.drum.constants import (
     RDS_PARAMETERS,
     RDS_HYPERPARAMETERS,
     SKLEARN_BINARY_SCHEMA_VALIDATION,
+    MLJ,
+    JLSO,
+    JULIA,
 )
 
 _datasets = {
@@ -223,6 +226,8 @@ _class_labels = {
     (MOJO, MULTICLASS_BINARY): ["yes", "no"],
     (POJO, MULTICLASS_BINARY): ["yes", "no"],
     (SKLEARN_PRED_CONSISTENCY, BINARY_BOOL): ["False", "True"],
+    (MLJ, BINARY): ["Iris-setosa", "Iris-versicolor"],
+    (MLJ, MULTICLASS): ["GALAXY", "QSO", "STAR"],
 }
 
 _artifacts = {
@@ -270,6 +275,9 @@ _artifacts = {
     (MOJO, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_reg.zip"),
     (MOJO, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_bin.zip"),
     (MOJO, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_multi.zip"),
+    (MLJ, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "boston_rf.jlso"),
+    (MLJ, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "iris_binary.jlso"),
+    (MLJ, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "galaxy.jlso"),
     (PYPMML, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "iris_reg.pmml"),
     (PYPMML, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "iris_bin.pmml"),
     (PYPMML, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "iris_multi.pmml"),
@@ -322,6 +330,7 @@ _artifacts = {
 
 _custom_filepaths = {
     PYTHON: (os.path.join(TESTS_FIXTURES_PATH, "custom.py"), "custom.py"),
+    JULIA: (os.path.join(TESTS_FIXTURES_PATH, "custom.jl"), "custom.jl"),
     NO_CUSTOM: (None, None),
     PYTHON_ALL_PREDICT_STRUCTURED_HOOKS: (
         os.path.join(TESTS_FIXTURES_PATH, "all_predict_structured_hooks_custom.py"),

@@ -150,6 +150,11 @@ class JavaArtifacts:
     ALL = [JAR_EXTENSION, MOJO_EXTENSION, POJO_EXTENSION, MOJO_PIPELINE_EXTENSION]
 
 
+class JuliaArtifacts:
+    JLSO_EXTENSION = ".jlso"
+    ALL = [JLSO_EXTENSION]
+
+
 class ArgumentsOptions:
     ADDRESS = "--address"
     DIR = "--dir"
@@ -250,6 +255,7 @@ class RunLanguage(Enum):
     PYTHON = "python"
     R = "r"
     JAVA = "java"
+    JULIA = "julia"
 
 
 class TargetType(Enum):
