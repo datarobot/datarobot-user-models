@@ -105,7 +105,7 @@ def fit(
     preprocessed = pipeline.transform(X)
     preprocessed = pd.DataFrame.sparse.from_spmatrix(preprocessed)
 
-    model = LogisticRegression()
+    model = LogisticRegression(solver="liblinear")
     model.fit(preprocessed, y)
 
     joblib.dump(pipeline, "{}/preprocessing.pkl".format(output_dir))
