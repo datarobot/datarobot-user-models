@@ -62,15 +62,13 @@ RUN rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 
 ## Install python 3.7.10 from source with --enabled-shared flag.
 ## In this case python will be dynamically linked to libpython.so, which is required for Julia.
-## WHen python is installed as a package it is staically linked to libpython.a, which Julia doesn't like.
-RUN apt install software-properties-common && \
+## When python is installed as a package it is statically linked to libpython.a, which Julia doesn't like.
+RUN apt update -y && apt install -y software-properties-common libsqlite3-dev libffi-dev && \
     add-apt-repository ppa:deadsnakes/ppa && \
-    apt-get update && \
-    apt-get install libffi-dev && \
     wget https://www.python.org/ftp/python/3.7.10/Python-3.7.10.tgz && \
     tar zxvf Python-3.7.10.tgz && \
     cd Python-3.7.10 && \
-    ./configure --enable-shared && \
+    ./configure --enable-shared --enable-loadable-sqlite-extensions && \
     make install
 # By default, `make install' will install all the files in
 # `/usr/local/bin', `/usr/local/lib' etc. You can specify
