@@ -101,7 +101,7 @@ class TestPerformanceCheck:
         time.sleep(0.5)
         assert _find_drum_perf_test_server_process() is None
         p = subprocess.Popen(cmd, shell=True, env=os.environ, universal_newlines=True,)
-        time.sleep(1)
+        time.sleep(2)
         # kill drum perf-test process, child server should be running
         p.kill()
         pid = _find_drum_perf_test_server_process()
