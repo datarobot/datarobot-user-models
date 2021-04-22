@@ -11,6 +11,7 @@ from pandas.testing import assert_frame_equal
 import pyarrow
 import pytest
 import responses
+from strictyaml import load, YAMLValidationError
 
 from datarobot_drum.drum.drum import (
     possibly_intuit_order,
@@ -28,6 +29,11 @@ from datarobot_drum.drum.common import (
     ModelMetadataKeys,
 )
 from datarobot_drum.drum.utils import StructuredInputReadUtils
+
+from custom_model_runner.datarobot_drum.drum.typeschema_validation import (
+    get_type_schema_yaml_validator,
+    revalidate_typeschema,
+)
 
 
 class TestOrderIntuition:
@@ -592,3 +598,103 @@ class TestJavaPredictor:
         jp = JavaPredictor()
         with pytest.raises(AttributeError, match=error_message):
             jp.predict(binary_data=b"d" * data_size)
+
+
+class TestTypeSchemaValidation:
+    @pytest.fixture
+    def valid_schema_yaml_types_only(self):
+        yield """input_requirements:
+- field: data_types
+  condition: IN
+  value:
+    - NUM
+    - TXT
+    - CAT
+
+output_requirements:
+    - field: data_types
+      condition: EQUALS
+      value: NUM"""
+
+    @pytest.fixture
+    def invalid_schema_yaml_types_only(self):
+        yield """input_requirements:
+- field: data_types
+  condition: IN
+  value:
+    - NUM
+    - TXT
+    - NOPE
+
+output_requirements:
+- field: data_types
+  condition: EQUALS
+  value: NUM"""
+
+    @pytest.fixture
+    def valid_schema_yaml(self):
+        yield """input_requirements:
+- field: data_types
+  condition: IN
+  value:
+    - NUM
+    - TXT
+    - CAT
+- field: sparse
+  condition: EQUALS
+  value: FORBIDDEN
+- field: number_of_columns
+  condition: GREATER_THAN
+  value: 1
+
+output_requirements:
+- field: data_types
+  condition: EQUALS
+  value: NUM
+- field: sparse
+  condition: EQUALS
+  value: NEVER
+- field: number_of_columns
+  condition: EQUALS
+  value: 1"""
+
+    @pytest.fixture
+    def missing_values_schema_yaml(self):
+        yield """input_requirements:
+- field: data_types
+  value:
+    - NUM
+    - TXT
+    - CAT
+- field: sparse
+  condition: EQUALS
+  value: WHAT
+- field: number_of_columns
+  condition: GREATER_THAN
+  value: 1
+
+output_requirements:
+- field: data_types
+  condition: EQUALS
+  value: NUM
+- field: sparse
+  condition: EQUALS
+  value: NEVER
+- field: numbers
+  condition: EQUALS
+  value: 1"""
+
+    @pytest.mark.parametrize("yaml_txt", ["valid_schema_yaml", "valid_schema_yaml_types_only"])
+    def test_valid_revalidation(self, request, yaml_txt):
+        yaml_txt = request.getfixturevalue(yaml_txt)
+        parsed = load(yaml_txt, get_type_schema_yaml_validator())
+        revalidate_typeschema(parsed)
+
+    @pytest.mark.parametrize(
+        "yaml_txt", ["invalid_schema_yaml_types_only", "missing_values_schema_yaml"]
+    )
+    def test_invalid_revalidation(self, request, yaml_txt):
+        yaml_txt = request.getfixturevalue(yaml_txt)
+        with pytest.raises(YAMLValidationError):
+            parsed = load(yaml_txt, get_type_schema_yaml_validator())
+            revalidate_typeschema(parsed)
