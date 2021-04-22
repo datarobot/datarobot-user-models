@@ -307,7 +307,7 @@ adding the training model into DataRobot.
 You can try this out on our sklearn classifier model template this this command:
 
 ```
-drum fit --code-dir model_templates/python3_sklearn_binary --target-type binary --target Species --input \
+drum fit --code-dir model_templates/training/python3_sklearn_binary --target-type binary --target Species --input \
 tests/testdata/iris_binary_training.csv --output . --positive-class-label Iris-setosa \
 --negative-class-label Iris-versicolor
 ```

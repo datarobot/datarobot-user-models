@@ -1,4 +1,5 @@
 import logging
+import sys
 from mlpiper.components.connectable_component import ConnectableComponent
 
 from datarobot_drum.drum.common import (
@@ -168,6 +169,10 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         def handle_exception(e):
             logger.exception(e)
             return {"message": "ERROR: {}".format(e)}, HTTP_500_INTERNAL_SERVER_ERROR
+
+        # Disables warning for development server
+        cli = sys.modules["flask.cli"]
+        cli.show_server_banner = lambda *x: None
 
         app = get_flask_app(model_api)
 

@@ -116,6 +116,8 @@ class DrumServerRun:
                 os.environ[ArgumentOptionsEnvVars.PRODUCTION] = "1"
             else:
                 cmd += " --production"
+        if verbose:
+            cmd += " --verbose"
 
         if append_cmd is not None:
             cmd += " " + append_cmd
