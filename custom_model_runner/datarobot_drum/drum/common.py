@@ -9,6 +9,7 @@ from pathlib import Path
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 from datarobot_drum.drum.typeschema_validation import (
+
     get_type_schema_yaml_validator,
     revalidate_typeschema,
 )

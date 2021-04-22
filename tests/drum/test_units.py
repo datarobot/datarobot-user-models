@@ -40,7 +40,6 @@ from datarobot_drum.drum.typeschema_validation import (
     SparsityOutput,
 )
 
-
 class TestOrderIntuition:
     tests_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "testdata"))
     binary_filename = os.path.join(tests_data_path, "iris_binary_training.csv")
@@ -843,3 +842,4 @@ output_requirements:
             assert dense_results == 0
         else:
             assert dense_results > 0
+

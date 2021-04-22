@@ -26,6 +26,7 @@ class DataTypes(object):
             if len(self.values) > 1:
                 raise (Exception("Multiple values not supported, use EQUALS/NOT_EQUALS instead."))
 
+
     @classmethod
     def get_yaml_validator(cls):
         return Map(
