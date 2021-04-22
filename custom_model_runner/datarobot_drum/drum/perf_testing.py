@@ -610,7 +610,7 @@ class CMRunTests:
             self.target_type.value,
             self.resolve_labels(self.target_type, self.options),
             self.options.code_dir,
-            verbose=False,
+            verbose=self._verbose,
         ) as run:
             endpoint = "/transform/"
             payload = {"X": open(self.options.input)}
@@ -666,7 +666,7 @@ class CMRunTests:
         labels = self.resolve_labels(self.target_type, self.options)
 
         with DrumServerRun(
-            self.target_type.value, labels, self.options.code_dir, verbose=False
+            self.target_type.value, labels, self.options.code_dir, verbose=self._verbose
         ) as run:
             endpoint = "/predict/"
             payload = {"X": open(self.options.input)}
