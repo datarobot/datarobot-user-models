@@ -8,6 +8,11 @@ from strictyaml import Bool, Int, Map, Optional, Str, load, YAMLError, Seq, Any
 from pathlib import Path
 from datarobot_drum.drum.exceptions import DrumCommonException
 
+from custom_model_runner.datarobot_drum.drum.typeschema_validation import (
+    get_type_schema_yaml_validator,
+    revalidate_typeschema,
+)
+
 DEBUG = os.environ.get("DEBUG")
 
 LOGGER_NAME_PREFIX = "drum"
@@ -349,7 +354,7 @@ MODEL_CONFIG_SCHEMA = Map(
         ),
         Optional(ModelMetadataKeys.TRAINING_MODEL): Map({Optional("trainOnProject"): Str()}),
         Optional(ModelMetadataKeys.HYPERPARAMETERS): Any(),
-        Optional(ModelMetadataKeys.VALIDATION_SCHEMA): Any(),
+        Optional(ModelMetadataKeys.VALIDATION_SCHEMA): get_type_schema_yaml_validator(),
         Optional(ModelMetadataKeys.CUSTOM_PREDICTOR): Any(),
     }
 )
@@ -374,7 +379,10 @@ def read_model_metadata_yaml(code_dir):
     if config_path.exists():
         with open(config_path) as f:
             try:
-                model_config = load(f.read(), MODEL_CONFIG_SCHEMA).data
+                model_config = load(f.read(), MODEL_CONFIG_SCHEMA)
+                if "typeSchema" in model_config:
+                    revalidate_typeschema(model_config["typeSchema"])
+                model_config = model_config.data
             except YAMLError as e:
                 print(e)
                 raise SystemExit(1)
