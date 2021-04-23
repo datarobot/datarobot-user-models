@@ -33,3 +33,32 @@ which label will be chosen as the predicted label.
 ## Options specific to training models
 * trainOnProject (optional): A hash with the pid of a project you would like to train your new model or version 
 on. If this is supplied, the code you supplied will start to run against this pid automagically. 
+
+### Validation Schema
+The validation schema is used to define input and output requirements for the training model.  The validation is used to
+communicate the acceptable inputs for the model along with the expected output.  This will be verified when running `drum fit`
+* typeSchema (optional): Contains the type schema information
+  * input_requirements (optional):  Specifications that apply to the models input.  The specifications provided as a list.
+  * output_requirements (optional): Specifications that define the expected output of the model. The specifications provided as a list.
+    
+All specifications contain the following fields:
+* field: which specification is being defined, one of `data_types`, `sparse`, `number_of_columns`
+* condition: defines how the values in the `value` field are used
+* value: A list or single value, depending upon the condition used
+
+#### data_types allowed values:
+- condition: "EQUALS", "IN", "NOT_EQUALS", "NOT_IN"
+- value: "NUM", "TXT", "CAT", "IMG", "DATE"
+
+#### sparse (input) allowed values:
+- condition: "EQUALS"
+- value: "FORBIDDEN", "SUPPORTED", "REQUIRED", "UNKNOWN"
+
+#### sparse (output) allowed values:
+- condition: "EQUALS"
+- value: "NEVER", "DYNAMIC", "ALWAYS", "UNKNOWN", "IDENTITY"
+
+#### number_of_columns allowed values:
+- condition: "EQUALS", "IN", "NOT_EQUALS", "NOT_IN", "GREATER_THAN", "LESS_THAN"
+- value: Integer value > 0
+
