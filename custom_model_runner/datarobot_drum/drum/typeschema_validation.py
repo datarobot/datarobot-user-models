@@ -6,7 +6,6 @@ from strictyaml import Map, Optional, Seq, Int, Enum, Str
 import numpy as np
 import pandas as pd
 
-
 class DataTypes(object):
     """Validation related to data types.  This is common between input and output."""
 
@@ -22,10 +21,9 @@ class DataTypes(object):
             self.values = [values]
         else:
             self.values = values
-        if condition == "EQUALS" or condition == "NOT_EQUALS":
+        if condition == 'EQUALS' or condition == 'NOT_EQUALS':
             if len(self.values) > 1:
-                raise (Exception("Multiple values not supported, use EQUALS/NOT_EQUALS instead."))
-
+                raise(Exception("Multiple values not supported, use EQUALS/NOT_EQUALS instead."))
 
     @classmethod
     def get_yaml_validator(cls):
@@ -141,6 +139,10 @@ class SparsityInput(object):
         self.condition = condition
         self.values = values
 
+    def __init__(self, condition, values):
+        self.condition = condition
+        self.values = values
+
     @classmethod
     def get_yaml_validator(cls):
         return Map(
@@ -164,6 +166,10 @@ class SparsityInput(object):
 class SparsityOutput(object):
     FIELD = "sparse"
     VALUES = ["NEVER", "DYNAMIC", "ALWAYS", "IDENTITY"]
+
+    def __init__(self, condition, values):
+        self.condition = condition
+        self.values = values
 
     def __init__(self, condition, values):
         self.condition = condition
@@ -206,6 +212,13 @@ class NumColumns(object):
         self.condition = condition
         if not isinstance(values, list):
             self.values = [values]
+        else:
+            self.values = values
+
+    def __init__(self, condition, values):
+        self.condition = condition
+        if not isinstance(values, list):
+            self.values = list(values)
         else:
             self.values = values
 
