@@ -32,7 +32,7 @@ from datarobot_drum.drum.utils import StructuredInputReadUtils
 
 from custom_model_runner.datarobot_drum.drum.typeschema_validation import (
     get_type_schema_yaml_validator,
-    revalidate_typeschema,
+    revalidate_typeschema, DataTypes,
 )
 
 
@@ -698,3 +698,23 @@ output_requirements:
         with pytest.raises(YAMLValidationError):
             parsed = load(yaml_txt, get_type_schema_yaml_validator())
             revalidate_typeschema(parsed)
+
+    @pytest.mark.parametrize(
+        'condition, value, passing_dataset, passing_target, failing_dataset, failing_target' ,
+        [
+            ('IN', ['CAT', 'NUM'], 'iris_binary_training.csv', 'SepalLengthCm', '10k_diabetes.csv', 'readmitted'),
+            ('EQUALS', 'NUM', 'iris_binary_training.csv', 'Species', '10k_diabetes.csv', 'readmitted'),
+            ('NOT_IN', 'TXT', 'iris_binary_training.csv', 'SepalLengthCm', '10k_diabetes.csv', 'readmitted'),
+            ('NOT_EQUALS', 'CAT',  'iris_binary_training.csv', 'Species', 'lending_club_reduced.csv', 'is_bad'),
+            ('EQUALS', 'IMG', 'cats_dogs_small_training.csv', 'class', '10k_diabetes.csv', 'readmitted')
+        ]
+    )
+    def test_data_types(self, condition, value, passing_dataset, passing_target, failing_dataset, failing_target):
+        tests_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "testdata"))
+        validator = DataTypes(condition, value)
+        good_data = pd.read_csv(os.path.join(tests_data_path, passing_dataset))
+        good_data.drop(passing_target, inplace=True, axis=1)
+        assert len(validator.validate(good_data))==0
+        bad_data = pd.read_csv(os.path.join(tests_data_path, failing_dataset))
+        bad_data.drop(failing_target, inplace=True, axis=1)
+        assert len(validator.validate(bad_data)) > 0
