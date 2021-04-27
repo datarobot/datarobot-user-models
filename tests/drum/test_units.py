@@ -789,13 +789,10 @@ output_requirements:
             ("NOT_EQUALS", 6, True),
             ("NOT_IN", [1, 2, 3], False),
             ("NOT_IN", [2, 4, 6], True),
-<<<<<<< HEAD
             ("NOT_GREATER_THAN", 6, False),
             ("NOT_GREATER_THAN", 2, True),
             ("NOT_LESS_THAN", 3, False),
             ("NOT_LESS_THAN", 100, True),
-=======
->>>>>>> test  schema
         ],
     )
     def test_num_columns(self, data, condition, value, fail_expected):
@@ -808,16 +805,7 @@ output_requirements:
 
     @pytest.mark.parametrize(
         "value, sparse_ok, dense_ok",
-<<<<<<< HEAD
         [("FORBIDDEN", False, True), ("SUPPORTED", True, True), ("REQUIRED", True, False),],
-=======
-        [
-            ("FORBIDDEN", False, True),
-            ("SUPPORTED", True, True),
-            ("REQUIRED", True, False),
-            ("UNKNOWN", True, True),
-        ],
->>>>>>> test  schema
     )
     def test_sparse_input(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
         validator = SparsityInput("EQUALS", value)
@@ -834,10 +822,6 @@ output_requirements:
             ("NEVER", False, True),
             ("DYNAMIC", True, True),
             ("ALWAYS", True, False),
-<<<<<<< HEAD
-=======
-            ("UNKNOWN", True, True),
->>>>>>> test  schema
             ("IDENTITY", False, True),
         ],
     )
@@ -859,7 +843,4 @@ output_requirements:
             assert dense_results == 0
         else:
             assert dense_results > 0
-<<<<<<< HEAD
 
-=======
->>>>>>> test  schema
