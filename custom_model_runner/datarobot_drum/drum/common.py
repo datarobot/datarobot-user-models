@@ -8,7 +8,7 @@ from strictyaml import Bool, Int, Map, Optional, Str, load, YAMLError, Seq, Any
 from pathlib import Path
 from datarobot_drum.drum.exceptions import DrumCommonException
 
-from custom_model_runner.datarobot_drum.drum.typeschema_validation import (
+from datarobot_drum.drum.typeschema_validation import (
     get_type_schema_yaml_validator,
     revalidate_typeschema,
 )
