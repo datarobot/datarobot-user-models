@@ -30,7 +30,7 @@ from datarobot_drum.drum.common import (
 )
 from datarobot_drum.drum.utils import StructuredInputReadUtils
 
-from custom_model_runner.datarobot_drum.drum.typeschema_validation import (
+from datarobot_drum.drum.typeschema_validation import (
     get_type_schema_yaml_validator,
     revalidate_typeschema,
 )
