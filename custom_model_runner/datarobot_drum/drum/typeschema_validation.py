@@ -6,6 +6,7 @@ from strictyaml import Map, Optional, Seq, Int, Enum, Str
 import numpy as np
 import pandas as pd
 
+
 class DataTypes(object):
     """Validation related to data types.  This is common between input and output."""
 
@@ -21,9 +22,9 @@ class DataTypes(object):
             self.values = [values]
         else:
             self.values = values
-        if condition == 'EQUALS' or condition == 'NOT_EQUALS':
+        if condition == "EQUALS" or condition == "NOT_EQUALS":
             if len(self.values) > 1:
-                raise(Exception("Multiple values not supported, use EQUALS/NOT_EQUALS instead."))
+                raise (Exception("Multiple values not supported, use EQUALS/NOT_EQUALS instead."))
 
     @classmethod
     def get_yaml_validator(cls):
@@ -66,52 +67,70 @@ class DataTypes(object):
         except:
             return False
 
-
     @staticmethod
     def has_txt(X):
         return len(X.columns[list(X.apply(DataTypes.is_text, result_type="expand"))])
 
     @staticmethod
     def has_img(X):
-        return len(X.columns[list(X.apply(DataTypes.is_img, result_type='expand'))])
+        return len(X.columns[list(X.apply(DataTypes.is_img, result_type="expand"))])
 
     def validate(self, dataframe):
         types = dict()
-        types['NUM'] = dataframe.select_dtypes(np.number).shape[1] > 0
+        types["NUM"] = dataframe.select_dtypes(np.number).shape[1] > 0
         txt_len = self.has_txt(dataframe)
         img_len = self.has_img(dataframe)
-        types['TXT'] = txt_len > 0
-        types['IMG'] = img_len > 0
-        types['CAT'] = dataframe.select_dtypes('O').shape[1] - (txt_len + img_len) + dataframe.select_dtypes('boolean').shape[1] > 0
-        types['DATE'] = dataframe.select_dtypes('datetime').shape[1] > 0
+        types["TXT"] = txt_len > 0
+        types["IMG"] = img_len > 0
+        types["CAT"] = (
+            dataframe.select_dtypes("O").shape[1]
+            - (txt_len + img_len)
+            + dataframe.select_dtypes("boolean").shape[1]
+            > 0
+        )
+        types["DATE"] = dataframe.select_dtypes("datetime").shape[1] > 0
 
         validation_errors = []
 
-        if self.condition == 'EQUALS':
+        if self.condition == "EQUALS":
             for dtype in self.VALUES:
                 if dtype == self.values[0]:
                     if not types[dtype]:
-                        validation_errors.append('Datatypes incorrect, expected data to have {}'.format(self.values))
+                        validation_errors.append(
+                            "Datatypes incorrect, expected data to have {}".format(self.values)
+                        )
                 else:
                     if types[dtype]:
-                        validation_errors.append('Datatypes incorrect, unexpected type {} found, expected {}'.format(dtype, self.values))
-        elif self.condition == 'NOT_EQUALS':
+                        validation_errors.append(
+                            "Datatypes incorrect, unexpected type {} found, expected {}".format(
+                                dtype, self.values
+                            )
+                        )
+        elif self.condition == "NOT_EQUALS":
             if types[self.values[0]]:
-                validation_errors.append("Datatypes incorrect, {} was expected to not be present".format(self.values))
-        elif self.condition == 'NOT_IN':
+                validation_errors.append(
+                    "Datatypes incorrect, {} was expected to not be present".format(self.values)
+                )
+        elif self.condition == "NOT_IN":
             for dtype in self.values:
                 if types[dtype]:
                     validation_errors.append(
-                        "Datatypes incorrect, {} was expected to not be present".format(self.values))
+                        "Datatypes incorrect, {} was expected to not be present".format(self.values)
+                    )
 
-        elif self.condition == 'IN':
+        elif self.condition == "IN":
             for dtype in self.VALUES:
                 if dtype in self.values:
                     if not types[dtype]:
-                        validation_errors.append('Datatypes incorrect, expected {} to be present'.format(dtype))
+                        validation_errors.append(
+                            "Datatypes incorrect, expected {} to be present".format(dtype)
+                        )
                 elif types[dtype]:
-                    validation_errors.append('Datatypes incorrect, {} is not  expected to be present'.format(dtype))
+                    validation_errors.append(
+                        "Datatypes incorrect, {} is not  expected to be present".format(dtype)
+                    )
         return validation_errors
+
 
 class SparsityInput(object):
     FIELD = "sparse"
@@ -129,12 +148,17 @@ class SparsityInput(object):
 
     def validate(self, dataframe):
         errors = []
-        if pd.api.types.is_sparse(dataframe):
-            if self.values not in ['SUPPORTED', 'REQUIRED', 'UNKNOWN']:
-                errors.append("Sparse input data found, however value is set to {}, expecting dense".format(self.values))
-        elif self.values not in ['FORBIDDEN', 'SUPPORTED', 'UNKNOWN']:
+        if dataframe.dtypes.apply(pd.api.types.is_sparse).any():
+            if self.values not in ["SUPPORTED", "REQUIRED", "UNKNOWN"]:
+                errors.append(
+                    "Sparse input data found, however value is set to {}, expecting dense".format(
+                        self.values
+                    )
+                )
+        elif self.values not in ["FORBIDDEN", "SUPPORTED", "UNKNOWN"]:
             errors.append("Dense input data found, however value is set to {}, expecting sparse")
         return errors
+
 
 class SparsityOutput(object):
     FIELD = "sparse"
@@ -152,10 +176,14 @@ class SparsityOutput(object):
 
     def validate(self, dataframe):
         errors = []
-        if pd.api.types.is_sparse(dataframe):
-            if self.values not in ['DYNAMIC', 'ALWAYS', 'UNKNOWN']:
-                errors.append("Sparse output data found, however value is set to {}, expecting dense".format(self.values))
-        elif self.values not in ['NEVER', 'DYNAMIC', 'UNKNOWN']:
+        if dataframe.dtypes.apply(pd.api.types.is_sparse).any():
+            if self.values not in ["DYNAMIC", "ALWAYS", "UNKNOWN"]:
+                errors.append(
+                    "Sparse output data found, however value is set to {}, expecting dense".format(
+                        self.values
+                    )
+                )
+        elif self.values not in ["NEVER", "DYNAMIC", "UNKNOWN", "IDENTITY"]:
             errors.append("Dense output data found, however value is set to {}, expecting sparse")
         return errors
 
@@ -167,7 +195,7 @@ class NumColumns(object):
     def __init__(self, condition, values):
         self.condition = condition
         if not isinstance(values, list):
-            self.values = list(values)
+            self.values = [values]
         else:
             self.values = values
 
@@ -186,30 +214,50 @@ class NumColumns(object):
         n_columns = len(dataframe.columns)
         if self.condition == "EQUALS":
             if len(self.values) > 1:
-                errors.append('Num columns error, only one value can be accepted for EQUALS')
+                errors.append("Num columns error, only one value can be accepted for EQUALS")
             elif n_columns != self.values[0]:
-                errors.append("Num columns error, found {} but expected {} columns".format(n_columns, self.values[0]))
+                errors.append(
+                    "Num columns error, found {} but expected {} columns".format(
+                        n_columns, self.values[0]
+                    )
+                )
         elif self.condition == "IN":
             if not any([n_columns == value for value in self.values]):
-                errors.append("Num columns error, found {} but expected number of columns to be in {}".format(n_columns, self.values))
+                errors.append(
+                    "Num columns error, found {} but expected number of columns to be in {}".format(
+                        n_columns, self.values
+                    )
+                )
         elif self.condition == "NOT_EQUALS":
             if len(self.values) > 1:
-                errors.append('Num columns error, only one value can be accepted for EQUALS')
+                errors.append("Num columns error, only one value can be accepted for EQUALS")
             elif n_columns == self.values[0]:
-                errors.append("Num columns error, found {} columns, which is not supported".format(n_columns))
+                errors.append(
+                    "Num columns error, found {} columns, which is not supported".format(n_columns)
+                )
         elif self.condition == "NOT_IN":
             if any([n_columns == value for value in self.values]):
-                errors.append('Num columns error, found {} columns, which is not supported'.format(n_columns))
+                errors.append(
+                    "Num columns error, found {} columns, which is not supported".format(n_columns)
+                )
         elif self.condition == "GREATER_THAN":
             if len(self.values) > 1:
-                errors.append('Num columns error, only one value can be accepted for EQUALS')
+                errors.append("Num columns error, only one value can be accepted for EQUALS")
             elif n_columns <= self.values[0]:
-                errors.append("Num columns error, found {} columns, but expected greater than {}".format(n_columns, self.values[0]))
+                errors.append(
+                    "Num columns error, found {} columns, but expected greater than {}".format(
+                        n_columns, self.values[0]
+                    )
+                )
         elif self.condition == "LESS_THAN":
             if len(self.values) > 1:
-                errors.append('Num columns error, only one value can be accepted for EQUALS')
+                errors.append("Num columns error, only one value can be accepted for EQUALS")
             elif n_columns >= self.values[0]:
-                errors.append("Num columns error, found {} columns but expected less than {}".format(n_columns, self.values[0]))
+                errors.append(
+                    "Num columns error, found {} columns but expected less than {}".format(
+                        n_columns, self.values[0]
+                    )
+                )
         else:
             errors.append("Num columns error, unrecognized condition {}".format(self.condition))
         return errors
