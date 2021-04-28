@@ -6,6 +6,8 @@ from strictyaml import Map, Optional, Seq, Int, Enum, Str
 import numpy as np
 import pandas as pd
 
+from datarobot_drum.drum.exceptions import DrumSchemaValidationException
+
 
 class DataTypes(object):
     """Validation related to data types.  This is common between input and output."""
@@ -339,3 +341,40 @@ def revalidate_typeschema(type_schema):
     if "output_requirements" in type_schema:
         for req in type_schema["output_requirements"]:
             req.revalidate(output_validation[req.data["field"]])
+
+
+class SchemaValidator:
+    _input_validator_mapping = {DataTypes.FIELD: DataTypes, SparsityInput.FIELD: SparsityInput, NumColumns.FIELD: NumColumns }
+    _output_validator_mapping = {DataTypes.FIELD: DataTypes, SparsityOutput.FIELD: SparsityOutput, NumColumns.FIELD: NumColumns}
+
+    def __init__(self, type_schema, strict=True):
+        self._input_validators = [self._get_validator(schema, self._input_validator_mapping) for schema in type_schema.get('input_requirements', [])]
+        self._output_validators = [self._get_validator(schema, self._output_validator_mapping) for schema in type_schema.get('output_requirements', [])]
+        self.strict = strict
+
+    def _get_validator(self, schema, mapping):
+        return mapping[schema['field']](schema['condition'], schema['value'])
+
+    def validate_inputs(self, dataframe):
+        return self._run_validate(dataframe, self._input_validators, 'input')
+
+    def validate_outputs(self, dataframe):
+        return self._run_validate(dataframe, self._output_validators, 'output')
+
+    def _run_validate(self, dataframe, validators, step_label):
+        errors = []
+        for validator in validators:
+            errors.extend(validator.validate(dataframe))
+        if len(validators) == 0:
+            print("No type schema for {} provided.".format(step_label))
+        if len(errors) == 0:
+            print('Schema validation completed for model {}.'.format(step_label))
+            return True
+        else:
+            print('Schema validation found mismatch between dataset and the supplied schema')
+            for error in errors:
+                print(error)
+            if self.strict:
+                raise DrumSchemaValidationException("schema validation failed for {}:\n {}".format(step_label, errors))
+            return False
+

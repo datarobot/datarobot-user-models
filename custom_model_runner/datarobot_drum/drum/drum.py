@@ -45,6 +45,7 @@ from datarobot_drum.drum.exceptions import DrumCommonException, DrumPredExceptio
 from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.push import drum_push, setup_validation_options
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
+from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils import CMRunnerUtils, handle_missing_colnames
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 
@@ -76,6 +77,10 @@ class CMRunner:
         # require metadata for push mode
         if self.run_mode == RunMode.PUSH:
             get_metadata(self.options)
+
+        if self.run_mode in [RunMode.FIT, RunMode.PUSH]:
+            self.schema_validator = SchemaValidator(self.options.model_config.get('typeSchema', {}),
+                                                    self.options.disable_strict)
 
     def _resolve_target_type(self):
         if self.run_mode == RunMode.NEW:
@@ -425,6 +430,7 @@ class CMRunner:
             raise DrumCommonException(error_message)
 
     def run_fit(self):
+        self.schema_validator.validate_inputs(pd.read_csv(self.options.input))
         remove_temp_output = None
         if not self.options.output:
             self.options.output = mkdtemp()
@@ -477,7 +483,7 @@ class CMRunner:
         else:
             try:
                 CMRunTests(
-                    self.options, self.run_mode, self.target_type
+                    self.options, self.run_mode, self.target_type, self.schema_validator
                 ).check_prediction_side_effects()
             except DrumPredException as e:
                 self.logger.warning(e)
