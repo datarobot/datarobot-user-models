@@ -156,11 +156,6 @@ or `IRegressionPredictor` interface from [datarobot-prediction](https://mvnrepos
 The model artifact must have a **jar** extension.
 
 ## Unstructured inference models <a name="unstructured_inference_models"></a>
-**UNDER DEVELOPMENT**
->The feature is under active development.  
->Available in DRUM only (not in DR App).  
->Functionality may change.
-
 Inference models support unstructured mode, where input and output are not verified and can be almost anything.
 This is your responsibility to verify correctness.
 
