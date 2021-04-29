@@ -79,8 +79,14 @@ class CMRunner:
             get_metadata(self.options)
 
         if self.run_mode in [RunMode.FIT, RunMode.PUSH]:
-            self.schema_validator = SchemaValidator(self.options.model_config.get('typeSchema', {}),
-                                                    self.options.disable_strict)
+            # always populate the validator, even if info isn't provided.  If no info then the validators will be empty
+            # and pass by default.
+            self.schema_validator = SchemaValidator(
+                self.options.model_config.get("typeSchema", {})
+                if self.options.model_config is not None
+                else {},
+                self.options.disable_strict,
+            )
 
     def _resolve_target_type(self):
         if self.run_mode == RunMode.NEW:
@@ -430,7 +436,10 @@ class CMRunner:
             raise DrumCommonException(error_message)
 
     def run_fit(self):
-        self.schema_validator.validate_inputs(pd.read_csv(self.options.input))
+        input_data = pd.read_csv(self.options.input)
+        if self.options.target:
+            input_data.drop(self.options.target, inplace=True, axis=1)
+        self.schema_validator.validate_inputs(input_data)
         remove_temp_output = None
         if not self.options.output:
             self.options.output = mkdtemp()

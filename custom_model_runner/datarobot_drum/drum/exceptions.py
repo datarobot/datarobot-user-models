@@ -27,5 +27,6 @@ class DrumPredException(DrumException):
 
     pass
 
+
 class DrumSchemaValidationException(DrumException):
     """ Raised when the supplied schema in model_metadata does not match actual input or output data."""

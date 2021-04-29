@@ -599,7 +599,7 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.STRICT_VALIDATION,
                 action="store_false",
                 default=True,
-                help="Disable strict schema validation and only warn if issues are found."
+                help="Disable strict schema validation and only warn if issues are found.",
             )
 
     @staticmethod

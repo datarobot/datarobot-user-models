@@ -93,7 +93,6 @@ class DataTypes(object):
         types["DATE"] = dataframe.select_dtypes("datetime").shape[1] > 0
 
         validation_errors = []
-
         if self.condition == "EQUALS":
             for dtype in self.VALUES:
                 if dtype == self.values[0]:
@@ -344,22 +343,36 @@ def revalidate_typeschema(type_schema):
 
 
 class SchemaValidator:
-    _input_validator_mapping = {DataTypes.FIELD: DataTypes, SparsityInput.FIELD: SparsityInput, NumColumns.FIELD: NumColumns }
-    _output_validator_mapping = {DataTypes.FIELD: DataTypes, SparsityOutput.FIELD: SparsityOutput, NumColumns.FIELD: NumColumns}
+    _input_validator_mapping = {
+        DataTypes.FIELD: DataTypes,
+        SparsityInput.FIELD: SparsityInput,
+        NumColumns.FIELD: NumColumns,
+    }
+    _output_validator_mapping = {
+        DataTypes.FIELD: DataTypes,
+        SparsityOutput.FIELD: SparsityOutput,
+        NumColumns.FIELD: NumColumns,
+    }
 
     def __init__(self, type_schema, strict=True):
-        self._input_validators = [self._get_validator(schema, self._input_validator_mapping) for schema in type_schema.get('input_requirements', [])]
-        self._output_validators = [self._get_validator(schema, self._output_validator_mapping) for schema in type_schema.get('output_requirements', [])]
+        self._input_validators = [
+            self._get_validator(schema, self._input_validator_mapping)
+            for schema in type_schema.get("input_requirements", [])
+        ]
+        self._output_validators = [
+            self._get_validator(schema, self._output_validator_mapping)
+            for schema in type_schema.get("output_requirements", [])
+        ]
         self.strict = strict
 
     def _get_validator(self, schema, mapping):
-        return mapping[schema['field']](schema['condition'], schema['value'])
+        return mapping[schema["field"]](schema["condition"], schema["value"])
 
     def validate_inputs(self, dataframe):
-        return self._run_validate(dataframe, self._input_validators, 'input')
+        return self._run_validate(dataframe, self._input_validators, "input")
 
     def validate_outputs(self, dataframe):
-        return self._run_validate(dataframe, self._output_validators, 'output')
+        return self._run_validate(dataframe, self._output_validators, "output")
 
     def _run_validate(self, dataframe, validators, step_label):
         errors = []
@@ -367,14 +380,16 @@ class SchemaValidator:
             errors.extend(validator.validate(dataframe))
         if len(validators) == 0:
             print("No type schema for {} provided.".format(step_label))
-        if len(errors) == 0:
-            print('Schema validation completed for model {}.'.format(step_label))
+            return True
+        elif len(errors) == 0:
+            print("Schema validation completed for model {}.".format(step_label))
             return True
         else:
-            print('Schema validation found mismatch between dataset and the supplied schema')
+            print("Schema validation found mismatch between dataset and the supplied schema")
             for error in errors:
                 print(error)
             if self.strict:
-                raise DrumSchemaValidationException("schema validation failed for {}:\n {}".format(step_label, errors))
+                raise DrumSchemaValidationException(
+                    "schema validation failed for {}:\n {}".format(step_label, errors)
+                )
             return False
-
