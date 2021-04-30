@@ -7,10 +7,12 @@ from textwrap import dedent
 
 import numpy as np
 import pandas as pd
+import scipy.sparse
 from pandas.testing import assert_frame_equal
 import pyarrow
 import pytest
 import responses
+from strictyaml import load, YAMLValidationError
 
 from datarobot_drum.drum.drum import (
     possibly_intuit_order,
@@ -28,6 +30,15 @@ from datarobot_drum.drum.common import (
     ModelMetadataKeys,
 )
 from datarobot_drum.drum.utils import StructuredInputReadUtils
+
+from datarobot_drum.drum.typeschema_validation import (
+    get_type_schema_yaml_validator,
+    revalidate_typeschema,
+    DataTypes,
+    NumColumns,
+    SparsityInput,
+    SparsityOutput,
+)
 
 
 class TestOrderIntuition:
@@ -592,3 +603,243 @@ class TestJavaPredictor:
         jp = JavaPredictor()
         with pytest.raises(AttributeError, match=error_message):
             jp.predict(binary_data=b"d" * data_size)
+
+
+class TestTypeSchemaValidation:
+    tests_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "testdata"))
+
+    @pytest.fixture
+    def data(self):
+        yield pd.read_csv(os.path.join(self.tests_data_path, "iris_binary_training.csv"))
+
+    @pytest.fixture
+    def sparse_df(self):
+        yield pd.DataFrame.sparse.from_spmatrix(scipy.sparse.eye(10))
+
+    @pytest.fixture
+    def dense_df(self):
+        yield pd.DataFrame(np.zeros((10, 10)))
+
+    @pytest.fixture
+    def valid_schema_yaml_types_only(self):
+        yield """input_requirements:
+- field: data_types
+  condition: IN
+  value:
+    - NUM
+    - TXT
+    - CAT
+
+output_requirements:
+    - field: data_types
+      condition: EQUALS
+      value: NUM"""
+
+    @pytest.fixture
+    def invalid_schema_yaml_types_only(self):
+        yield """input_requirements:
+- field: data_types
+  condition: IN
+  value:
+    - NUM
+    - TXT
+    - NOPE
+
+output_requirements:
+- field: data_types
+  condition: EQUALS
+  value: NUM"""
+
+    @pytest.fixture
+    def valid_schema_yaml(self):
+        yield """input_requirements:
+- field: data_types
+  condition: IN
+  value:
+    - NUM
+    - TXT
+    - CAT
+- field: sparse
+  condition: EQUALS
+  value: FORBIDDEN
+- field: number_of_columns
+  condition: GREATER_THAN
+  value: 1
+
+output_requirements:
+- field: data_types
+  condition: EQUALS
+  value: NUM
+- field: sparse
+  condition: EQUALS
+  value: NEVER
+- field: number_of_columns
+  condition: EQUALS
+  value: 1"""
+
+    @pytest.fixture
+    def missing_values_schema_yaml(self):
+        yield """input_requirements:
+- field: data_types
+  value:
+    - NUM
+    - TXT
+    - CAT
+- field: sparse
+  condition: EQUALS
+  value: WHAT
+- field: number_of_columns
+  condition: GREATER_THAN
+  value: 1
+
+output_requirements:
+- field: data_types
+  condition: EQUALS
+  value: NUM
+- field: sparse
+  condition: EQUALS
+  value: NEVER
+- field: numbers
+  condition: EQUALS
+  value: 1"""
+
+    @pytest.mark.parametrize("yaml_txt", ["valid_schema_yaml", "valid_schema_yaml_types_only"])
+    def test_valid_revalidation(self, request, yaml_txt):
+        yaml_txt = request.getfixturevalue(yaml_txt)
+        parsed = load(yaml_txt, get_type_schema_yaml_validator())
+        revalidate_typeschema(parsed)
+
+    @pytest.mark.parametrize(
+        "yaml_txt", ["invalid_schema_yaml_types_only", "missing_values_schema_yaml"]
+    )
+    def test_invalid_revalidation(self, request, yaml_txt):
+        yaml_txt = request.getfixturevalue(yaml_txt)
+        with pytest.raises(YAMLValidationError):
+            parsed = load(yaml_txt, get_type_schema_yaml_validator())
+            revalidate_typeschema(parsed)
+
+    @pytest.mark.parametrize(
+        "condition, value, passing_dataset, passing_target, failing_dataset, failing_target",
+        [
+            (
+                "IN",
+                ["CAT", "NUM"],
+                "iris_binary_training.csv",
+                "SepalLengthCm",
+                "10k_diabetes.csv",
+                "readmitted",
+            ),
+            (
+                "EQUALS",
+                "NUM",
+                "iris_binary_training.csv",
+                "Species",
+                "10k_diabetes.csv",
+                "readmitted",
+            ),
+            (
+                "NOT_IN",
+                "TXT",
+                "iris_binary_training.csv",
+                "SepalLengthCm",
+                "10k_diabetes.csv",
+                "readmitted",
+            ),
+            (
+                "NOT_EQUALS",
+                "CAT",
+                "iris_binary_training.csv",
+                "Species",
+                "lending_club_reduced.csv",
+                "is_bad",
+            ),
+            (
+                "EQUALS",
+                "IMG",
+                "cats_dogs_small_training.csv",
+                "class",
+                "10k_diabetes.csv",
+                "readmitted",
+            ),
+        ],
+    )
+    def test_data_types(
+        self, condition, value, passing_dataset, passing_target, failing_dataset, failing_target
+    ):
+        validator = DataTypes(condition, value)
+        good_data = pd.read_csv(os.path.join(self.tests_data_path, passing_dataset))
+        good_data.drop(passing_target, inplace=True, axis=1)
+        assert len(validator.validate(good_data)) == 0
+        bad_data = pd.read_csv(os.path.join(self.tests_data_path, failing_dataset))
+        bad_data.drop(failing_target, inplace=True, axis=1)
+        assert len(validator.validate(bad_data)) > 0
+
+    @pytest.mark.parametrize(
+        "condition, value, fail_expected",
+        [
+            ("EQUALS", 6, False),
+            ("EQUALS", 3, True),
+            ("IN", [2, 4, 6], False),
+            ("IN", [1, 2, 3], True),
+            ("LESS_THAN", 7, False),
+            ("LESS_THAN", 3, True),
+            ("GREATER_THAN", 4, False),
+            ("GREATER_THAN", 10, True),
+            ("NOT_EQUALS", 5, False),
+            ("NOT_EQUALS", 6, True),
+            ("NOT_IN", [1, 2, 3], False),
+            ("NOT_IN", [2, 4, 6], True),
+            ("NOT_GREATER_THAN", 6, False),
+            ("NOT_GREATER_THAN", 2, True),
+            ("NOT_LESS_THAN", 3, False),
+            ("NOT_LESS_THAN", 100, True),
+        ],
+    )
+    def test_num_columns(self, data, condition, value, fail_expected):
+        validator = NumColumns(condition, value)
+        errors = len(validator.validate(data))
+        if fail_expected:
+            assert errors > 0
+        else:
+            assert errors == 0
+
+    @pytest.mark.parametrize(
+        "value, sparse_ok, dense_ok",
+        [("FORBIDDEN", False, True), ("SUPPORTED", True, True), ("REQUIRED", True, False),],
+    )
+    def test_sparse_input(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
+        validator = SparsityInput("EQUALS", value)
+        self._check_sparsity_results(
+            sparse_ok,
+            dense_ok,
+            len(validator.validate(sparse_df)),
+            len(validator.validate(dense_df)),
+        )
+
+    @pytest.mark.parametrize(
+        "value, sparse_ok, dense_ok",
+        [
+            ("NEVER", False, True),
+            ("DYNAMIC", True, True),
+            ("ALWAYS", True, False),
+            ("IDENTITY", False, True),
+        ],
+    )
+    def test_sparse_output(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
+        validator = SparsityOutput("EQUALS", value)
+        self._check_sparsity_results(
+            sparse_ok,
+            dense_ok,
+            len(validator.validate(sparse_df)),
+            len(validator.validate(dense_df)),
+        )
+
+    def _check_sparsity_results(self, sparse_ok, dense_ok, sparse_results, dense_results):
+        if sparse_ok:
+            assert sparse_results == 0
+        else:
+            assert sparse_results > 0
+        if dense_ok:
+            assert dense_results == 0
+        else:
+            assert dense_results > 0
