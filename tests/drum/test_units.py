@@ -789,6 +789,10 @@ output_requirements:
             ("NOT_EQUALS", 6, True),
             ("NOT_IN", [1, 2, 3], False),
             ("NOT_IN", [2, 4, 6], True),
+            ("NOT_GREATER_THAN", 6, False),
+            ("NOT_GREATER_THAN", 2, True),
+            ("NOT_LESS_THAN", 3, False),
+            ("NOT_LESS_THAN", 100, True),
         ],
     )
     def test_num_columns(self, data, condition, value, fail_expected):

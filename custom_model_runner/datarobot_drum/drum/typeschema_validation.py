@@ -134,7 +134,7 @@ class DataTypes(object):
 
 class SparsityInput(object):
     FIELD = "sparse"
-    VALUES = ["FORBIDDEN", "SUPPORTED", "REQUIRED", "UNKNOWN"]
+    VALUES = ["FORBIDDEN", "SUPPORTED", "REQUIRED"]
 
     def __init__(self, condition, values):
         self.condition = condition
@@ -149,20 +149,20 @@ class SparsityInput(object):
     def validate(self, dataframe):
         errors = []
         if dataframe.dtypes.apply(pd.api.types.is_sparse).any():
-            if self.values not in ["SUPPORTED", "REQUIRED", "UNKNOWN"]:
+            if self.values not in ["SUPPORTED", "REQUIRED"]:
                 errors.append(
                     "Sparse input data found, however value is set to {}, expecting dense".format(
                         self.values
                     )
                 )
-        elif self.values not in ["FORBIDDEN", "SUPPORTED", "UNKNOWN"]:
+        elif self.values not in ["FORBIDDEN", "SUPPORTED"]:
             errors.append("Dense input data found, however value is set to {}, expecting sparse")
         return errors
 
 
 class SparsityOutput(object):
     FIELD = "sparse"
-    VALUES = ["NEVER", "DYNAMIC", "ALWAYS", "UNKNOWN", "IDENTITY"]
+    VALUES = ["NEVER", "DYNAMIC", "ALWAYS", "IDENTITY"]
 
     def __init__(self, condition, values):
         self.condition = condition
@@ -177,20 +177,29 @@ class SparsityOutput(object):
     def validate(self, dataframe):
         errors = []
         if dataframe.dtypes.apply(pd.api.types.is_sparse).any():
-            if self.values not in ["DYNAMIC", "ALWAYS", "UNKNOWN"]:
+            if self.values not in ["DYNAMIC", "ALWAYS"]:
                 errors.append(
                     "Sparse output data found, however value is set to {}, expecting dense".format(
                         self.values
                     )
                 )
-        elif self.values not in ["NEVER", "DYNAMIC", "UNKNOWN", "IDENTITY"]:
+        elif self.values not in ["NEVER", "DYNAMIC", "IDENTITY"]:
             errors.append("Dense output data found, however value is set to {}, expecting sparse")
         return errors
 
 
 class NumColumns(object):
     FIELD = "number_of_columns"
-    CONDITIONS = ["EQUALS", "IN", "NOT_EQUALS", "NOT_IN", "GREATER_THAN", "LESS_THAN"]
+    CONDITIONS = [
+        "EQUALS",
+        "IN",
+        "NOT_EQUALS",
+        "NOT_IN",
+        "GREATER_THAN",
+        "LESS_THAN",
+        "NOT_LESS_THAN",
+        "NOT_GREATER_THAN",
+    ]
 
     def __init__(self, condition, values):
         self.condition = condition
@@ -249,10 +258,28 @@ class NumColumns(object):
                         n_columns, self.values[0]
                     )
                 )
+        elif self.condition == "NOT_GREATER_THAN":
+            if len(self.values) > 1:
+                errors.append("Num columns error, only one value can be accepted for EQUALS")
+            elif n_columns > self.values[0]:
+                errors.append(
+                    "Num columns error, found {} columns, but expected greater than {}".format(
+                        n_columns, self.values[0]
+                    )
+                )
         elif self.condition == "LESS_THAN":
             if len(self.values) > 1:
                 errors.append("Num columns error, only one value can be accepted for EQUALS")
             elif n_columns >= self.values[0]:
+                errors.append(
+                    "Num columns error, found {} columns but expected less than {}".format(
+                        n_columns, self.values[0]
+                    )
+                )
+        elif self.condition == "NOT_LESS_THAN":
+            if len(self.values) > 1:
+                errors.append("Num columns error, only one value can be accepted for EQUALS")
+            elif n_columns < self.values[0]:
                 errors.append(
                     "Num columns error, found {} columns but expected less than {}".format(
                         n_columns, self.values[0]
@@ -282,8 +309,8 @@ def get_type_schema_yaml_validator():
 
 
 def revalidate_typeschema(type_schema):
-    """Revalidation of the elements in the lists for input and output requirements is required because there are
-    multiple valid sets of parameters and how the strictyaml validation works.  This checks that the provided values
+    """Perform validation on each dictionary in the both lists.  This is required due to limitations in strictyaml.  See
+    the strictyaml documentation on revalidation for details.  This checks that the provided values
     are valid together while the initial validation only checks that the map is in the right general format."""
     input_validation = {
         d.FIELD: d.get_yaml_validator() for d in [DataTypes, SparsityInput, NumColumns]
