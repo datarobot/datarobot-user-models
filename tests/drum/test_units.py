@@ -38,8 +38,8 @@ from datarobot_drum.drum.typeschema_validation import (
     NumColumns,
     SparsityInput,
     SparsityOutput,
-
 )
+
 
 class TestOrderIntuition:
     tests_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "testdata"))
@@ -843,4 +843,3 @@ output_requirements:
             assert dense_results == 0
         else:
             assert dense_results > 0
-
