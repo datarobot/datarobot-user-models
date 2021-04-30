@@ -805,12 +805,7 @@ output_requirements:
 
     @pytest.mark.parametrize(
         "value, sparse_ok, dense_ok",
-        [
-            ("FORBIDDEN", False, True),
-            ("SUPPORTED", True, True),
-            ("REQUIRED", True, False),
-            ("UNKNOWN", True, True),
-        ],
+        [("FORBIDDEN", False, True), ("SUPPORTED", True, True), ("REQUIRED", True, False),],
     )
     def test_sparse_input(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
         validator = SparsityInput("EQUALS", value)
@@ -827,7 +822,6 @@ output_requirements:
             ("NEVER", False, True),
             ("DYNAMIC", True, True),
             ("ALWAYS", True, False),
-            ("UNKNOWN", True, True),
             ("IDENTITY", False, True),
         ],
     )
