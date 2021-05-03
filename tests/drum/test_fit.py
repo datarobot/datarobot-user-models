@@ -614,8 +614,6 @@ class TestFit:
         )
 
         input_dataset = resources.datasets(SKLEARN, BINARY_TEXT)
-        print(input_dataset)
-        # raise Exception
         output = tmp_path / "output"
         output.mkdir()
 

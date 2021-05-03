@@ -37,11 +37,7 @@ on. If this is supplied, the code you supplied will start to run against this pi
 ### Validation Schema
 The validation schema is used to define input and output requirements for the training model.  The validation is used to
 communicate the acceptable inputs for the model along with the expected output.  This will be verified when running `drum fit`
-<<<<<<< HEAD
 * typeSchema (optional): Top level dictionary that contains the input and output schema definitions
-=======
-* typeSchema (optional): Contains the type schema information
->>>>>>> Validation schema documentation.
   * input_requirements (optional):  Specifications that apply to the models input.  The specifications provided as a list.
   * output_requirements (optional): Specifications that define the expected output of the model. The specifications provided as a list.
     

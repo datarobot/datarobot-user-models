@@ -343,6 +343,10 @@ def revalidate_typeschema(type_schema):
 
 
 class SchemaValidator:
+    """
+
+    """
+
     _input_validator_mapping = {
         DataTypes.FIELD: DataTypes,
         SparsityInput.FIELD: SparsityInput,
@@ -354,7 +358,7 @@ class SchemaValidator:
         NumColumns.FIELD: NumColumns,
     }
 
-    def __init__(self, type_schema, strict=True):
+    def __init__(self, type_schema, strict=True, verbose=False):
         self._input_validators = [
             self._get_validator(schema, self._input_validator_mapping)
             for schema in type_schema.get("input_requirements", [])
@@ -364,6 +368,7 @@ class SchemaValidator:
             for schema in type_schema.get("output_requirements", [])
         ]
         self.strict = strict
+        self._verbose = verbose
 
     def _get_validator(self, schema, mapping):
         return mapping[schema["field"]](schema["condition"], schema["value"])
@@ -379,10 +384,12 @@ class SchemaValidator:
         for validator in validators:
             errors.extend(validator.validate(dataframe))
         if len(validators) == 0:
-            print("No type schema for {} provided.".format(step_label))
+            if self._verbose:
+                print("No type schema for {} provided.".format(step_label))
             return True
         elif len(errors) == 0:
-            print("Schema validation completed for model {}.".format(step_label))
+            if self._verbose:
+                print("Schema validation completed for model {}.".format(step_label))
             return True
         else:
             print("Schema validation found mismatch between dataset and the supplied schema")
