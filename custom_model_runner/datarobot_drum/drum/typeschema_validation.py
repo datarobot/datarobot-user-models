@@ -1,4 +1,5 @@
 import base64
+import logging
 from io import BytesIO
 
 from PIL import Image
@@ -6,7 +7,10 @@ from strictyaml import Map, Optional, Seq, Int, Enum, Str
 import numpy as np
 import pandas as pd
 
+from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
+
+logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 
 class DataTypes(object):
@@ -385,16 +389,16 @@ class SchemaValidator:
             errors.extend(validator.validate(dataframe))
         if len(validators) == 0:
             if self._verbose:
-                print("No type schema for {} provided.".format(step_label))
+                logger.info("No type schema for {} provided.".format(step_label))
             return True
         elif len(errors) == 0:
             if self._verbose:
-                print("Schema validation completed for model {}.".format(step_label))
+                logger.info("Schema validation completed for model {}.".format(step_label))
             return True
         else:
-            print("Schema validation found mismatch between dataset and the supplied schema")
+            logger.error("Schema validation found mismatch between dataset and the supplied schema")
             for error in errors:
-                print(error)
+                logger.error(error)
             if self.strict:
                 raise DrumSchemaValidationException(
                     "schema validation failed for {}:\n {}".format(step_label, errors)
