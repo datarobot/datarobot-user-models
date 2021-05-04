@@ -1,7 +1,7 @@
 import logging
+import time
 
 from abc import ABC, abstractmethod
-
 
 from datarobot_drum.drum.common import (
     LOGGER_NAME_PREFIX,
@@ -84,6 +84,14 @@ class BaseLanguagePredictor(ABC):
             self._mlops.report_predictions_data(
                 features_df=df, predictions=mlops_predictions, class_names=class_names
             )
+
+    def do_predict(self, **kwargs):
+        start_predict = time.time()
+        predictions = self.predict(**kwargs)
+        end_predict = time.time()
+        execution_time_ms = (end_predict - start_predict) * 1000
+        self.monitor(kwargs, predictions, execution_time_ms)
+        return predictions
 
     @abstractmethod
     def predict(self, **kwargs):

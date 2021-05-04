@@ -107,7 +107,7 @@ class PredictMixin:
             return {"message": error_message}, HTTP_422_UNPROCESSABLE_ENTITY
         return None
 
-    def _predict(self, logger=None):
+    def _do_predict(self, logger=None):
         response_status = HTTP_200_OK
         try:
 
@@ -121,7 +121,7 @@ class PredictMixin:
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             return {"message": "ERROR: " + str(e)}, response_status
 
-        out_data = self._predictor.predict(
+        out_data = self._predictor.do_predict(
             binary_data=binary_data, mimetype=mimetype, charset=charset, sparse_colnames=sparse_data
         )
 
@@ -299,7 +299,7 @@ class PredictMixin:
                 HTTP_422_UNPROCESSABLE_ENTITY,
             )
 
-        return self._predict(logger=logger)
+        return self._do_predict(logger=logger)
 
     def do_predict_unstructured(self, logger=None):
         if self._target_type != TargetType.UNSTRUCTURED:
