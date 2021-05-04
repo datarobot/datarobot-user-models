@@ -699,8 +699,9 @@ class CMRunTests:
 
             preds_full_subset = preds_full.iloc[data_subset.index]
 
-            # Validate that the predictions are of the type and shape the user specified in the schema
-            self._schema_validator.validate_outputs(preds_sample)
+            if self._schema_validator:
+                # Validate that the predictions are of the type and shape the user specified in the schema
+                self._schema_validator.validate_outputs(preds_sample)
 
             matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)
             if not np.all(matches):

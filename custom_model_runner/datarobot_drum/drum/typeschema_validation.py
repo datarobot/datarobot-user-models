@@ -7,10 +7,9 @@ from strictyaml import Map, Optional, Seq, Int, Enum, Str
 import numpy as np
 import pandas as pd
 
-from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 
-logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
+logger = logging.getLogger("drum." + __name__)
 
 
 class DataTypes(object):

@@ -85,7 +85,7 @@ class CMRunner:
                 self.options.model_config.get("typeSchema", {})
                 if self.options.model_config is not None
                 else {},
-                self.options.disable_strict,
+                self.options.disable_strict_validation,
             )
 
     def _resolve_target_type(self):
