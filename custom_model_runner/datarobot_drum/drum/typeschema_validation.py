@@ -211,7 +211,7 @@ class SparsityOutput(object):
     def validate(self, dataframe):
         errors = []
         if dataframe.dtypes.apply(pd.api.types.is_sparse).any():
-            if self.values not in [Values.DataTypes, Values.ALWAYS]:
+            if self.values not in [Values.DYNAMIC, Values.ALWAYS]:
                 errors.append(
                     "Sparse output data found, however value is set to {}, expecting dense".format(
                         self.values
@@ -326,7 +326,7 @@ class NumColumns(object):
 
 class InputContainsMissing(object):
     FIELD = "contains_missing"
-    VALUES = ["FORBIDDEN", "SUPPORTED"]
+    VALUES = [Values.FORBIDDEN, Values.SUPPORTED]
 
     def __init__(self, condition, values):
         self.condition = condition

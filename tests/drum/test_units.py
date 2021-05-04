@@ -37,7 +37,7 @@ from datarobot_drum.drum.typeschema_validation import (
     DataTypes,
     NumColumns,
     SparsityInput,
-    SparsityOutput,
+    SparsityOutput, InputContainsMissing, OutputContainsMissing,
 )
 
 
@@ -613,6 +613,13 @@ class TestTypeSchemaValidation:
         yield pd.read_csv(os.path.join(self.tests_data_path, "iris_binary_training.csv"))
 
     @pytest.fixture
+    def missing_data(self, data):
+        df = data.copy(deep=True)
+        for col in df.columns:
+            df.loc[df.sample(frac=0.1).index, col] = pd.np.nan
+        yield df
+
+    @pytest.fixture
     def sparse_df(self):
         yield pd.DataFrame.sparse.from_spmatrix(scipy.sparse.eye(10))
 
@@ -805,7 +812,7 @@ output_requirements:
 
     @pytest.mark.parametrize(
         "value, sparse_ok, dense_ok",
-        [("FORBIDDEN", False, True), ("SUPPORTED", True, True), ("REQUIRED", True, False),],
+        [("FORBIDDEN", False, True), ("SUPPORTED", True, True), ("REQUIRED", True, False)],
     )
     def test_sparse_input(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
         validator = SparsityInput("EQUALS", value)
@@ -845,3 +852,28 @@ output_requirements:
             assert dense_results > 0
 
 
+    @pytest.mark.parametrize(
+        'value, missing_ok',
+        [['FORBIDDEN', False],
+        ['SUPPORTED', True]]
+    )
+    def test_missing_input(self, data, missing_data, value, missing_ok):
+        validator = InputContainsMissing("EQUALS", value)
+        assert len(validator.validate(data)) == 0
+        if missing_ok:
+            assert len(validator.validate(missing_data)) == 0
+        else:
+            assert len(validator.validate(missing_data)) > 0
+
+    @pytest.mark.parametrize(
+        'value, missing_ok',
+        [['NEVER', False],
+        ['DYNAMIC', True]]
+    )
+    def test_missing_output(self, data, missing_data, value, missing_ok):
+        validator = OutputContainsMissing("EQUALS", value)
+        assert len(validator.validate(data)) == 0
+        if missing_ok:
+            assert len(validator.validate(missing_data)) == 0
+        else:
+            assert len(validator.validate(missing_data)) > 0
