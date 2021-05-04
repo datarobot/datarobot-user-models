@@ -87,6 +87,14 @@ class CMRunner:
                 else {},
                 self.options.disable_strict_validation,
             )
+        self._input_df = None
+
+    @property
+    def input_df(self):
+        if self._input_df is None:
+            # Lazy load df
+            self._input_df = pd.read_csv(self.options.input)
+        return self._input_df
 
     def _resolve_target_type(self):
         if self.run_mode == RunMode.NEW:
@@ -436,9 +444,9 @@ class CMRunner:
             raise DrumCommonException(error_message)
 
     def run_fit(self):
-        input_data = pd.read_csv(self.options.input)
+        input_data = self.input_df
         if self.options.target:
-            input_data.drop(self.options.target, inplace=True, axis=1)
+            input_data = input_data.drop(self.options.target, axis=1)
         self.schema_validator.validate_inputs(input_data)
         remove_temp_output = None
         if not self.options.output:
@@ -474,7 +482,7 @@ class CMRunner:
         __target_temp = None
         if self.options.target:
             __tempfile = NamedTemporaryFile()
-            df = pd.read_csv(self.options.input)
+            df = self.input_df
             if self.target_type == TargetType.TRANSFORM:
                 target_df = df[self.options.target]
                 __target_temp = NamedTemporaryFile()

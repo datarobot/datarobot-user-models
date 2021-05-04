@@ -347,7 +347,9 @@ def revalidate_typeschema(type_schema):
 
 class SchemaValidator:
     """
-
+    SchemaValidator transforms the typeschema definition into usable validation objects to be used to verify the data
+    meets the schema requirements.  Two methods, validate_inputs and validate_outputs are provided to perform the
+    actual validation on the respective dataframes.
     """
 
     _input_validator_mapping = {
