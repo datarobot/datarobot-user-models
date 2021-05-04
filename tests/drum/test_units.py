@@ -37,7 +37,9 @@ from datarobot_drum.drum.typeschema_validation import (
     DataTypes,
     NumColumns,
     SparsityInput,
-    SparsityOutput, InputContainsMissing, OutputContainsMissing,
+    SparsityOutput,
+    InputContainsMissing,
+    OutputContainsMissing,
 )
 
 
@@ -851,12 +853,7 @@ output_requirements:
         else:
             assert dense_results > 0
 
-
-    @pytest.mark.parametrize(
-        'value, missing_ok',
-        [['FORBIDDEN', False],
-        ['SUPPORTED', True]]
-    )
+    @pytest.mark.parametrize("value, missing_ok", [["FORBIDDEN", False], ["SUPPORTED", True]])
     def test_missing_input(self, data, missing_data, value, missing_ok):
         validator = InputContainsMissing("EQUALS", value)
         assert len(validator.validate(data)) == 0
@@ -865,11 +862,7 @@ output_requirements:
         else:
             assert len(validator.validate(missing_data)) > 0
 
-    @pytest.mark.parametrize(
-        'value, missing_ok',
-        [['NEVER', False],
-        ['DYNAMIC', True]]
-    )
+    @pytest.mark.parametrize("value, missing_ok", [["NEVER", False], ["DYNAMIC", True]])
     def test_missing_output(self, data, missing_data, value, missing_ok):
         validator = OutputContainsMissing("EQUALS", value)
         assert len(validator.validate(data)) == 0
