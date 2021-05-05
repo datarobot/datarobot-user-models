@@ -103,8 +103,8 @@ class TestDrumServerFailures:
     )
     def test_e2e_no_model_artifact(self, params, with_error_server, with_nginx, docker):
         """
-        Verify that if an error occurs on drum server initialization if no model artifact is found
-          - if '--with-error-server' is not set, drum server process will exit with error
+        Verify that if an error occurs on DRUM server initialization if no model artifact is found
+          - if '--with-error-server' is not set, DRUM server process will exit with error
           - if '--with-error-server' is set, 'error server' will still be started, and
             will be serving initialization error
         """
@@ -127,7 +127,7 @@ class TestDrumServerFailures:
     )
     def test_e2e_model_loading_fails(self, params, with_error_server, with_nginx, docker):
         """
-        Verify that if an error occurs on drum server initialization if model cannot load properly
+        Verify that if an error occurs on DRUM server initialization if model cannot load properly
           - if '--with-error-server' is not set, drum server process will exit with error
           - if '--with-error-server' is set, 'error server' will still be started, and
             will be serving initialization error

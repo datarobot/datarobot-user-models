@@ -65,7 +65,7 @@ def fit(
     **kwargs,
 ):
     """
-    This hook must be implemented with your fitting code, for running drum in the fit mode.
+    This hook must be implemented with your fitting code, for running DRUM in the fit mode.
 
     This hook MUST ALWAYS be implemented for custom training models.
     For inference models, this hook can stick around unimplemented, and won’t be triggered.
