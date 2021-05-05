@@ -8,6 +8,8 @@ import pandas as pd
 
 
 class Conditions:
+    """All acceptable values for the 'condition' field."""
+
     EQUALS = "EQUALS"
     IN = "IN"
     NOT_EQUALS = "NOT_EQUALS"
@@ -19,6 +21,8 @@ class Conditions:
 
 
 class Values:
+    """All acceptable values for the 'value' field. """
+
     NUM = "NUM"
     TXT = "TXT"
     CAT = "CAT"
@@ -33,7 +37,30 @@ class Values:
     IDENTITY = "IDENTITY"
 
 
-class DataTypes(object):
+class BaseValidator(object):
+    FIELD = None
+    CONDITIONS = None
+    VALUE = None
+
+    def __init__(self, condition, values):
+        self.condition = condition
+        self.values = values
+
+    @classmethod
+    def get_yaml_validator(cls):
+        return Map(
+            {
+                "field": Enum(cls.FIELD),
+                "condition": Enum(cls.CONDITIONS),
+                "value": Enum(cls.VALUES),
+            }
+        )
+
+    def validate(self, dataframe: pd.DataFrame):
+        raise NotImplementedError
+
+
+class DataTypes(BaseValidator):
     """Validation related to data types.  This is common between input and output."""
 
     FIELD = "data_types"
@@ -43,11 +70,9 @@ class DataTypes(object):
     _DTYPE_MAPPING = {}
 
     def __init__(self, condition, values):
-        self.condition = condition
+        super().__init__(condition, values)
         if not isinstance(values, list):
             self.values = [values]
-        else:
-            self.values = values
         if condition == "EQUALS" or condition == "NOT_EQUALS":
             if len(self.values) > 1:
                 raise (Exception("Multiple values not supported, use EQUALS/NOT_EQUALS instead."))
@@ -158,23 +183,10 @@ class DataTypes(object):
         return validation_errors
 
 
-class SparsityInput(object):
+class SparsityInput(BaseValidator):
     FIELD = "sparse"
+    CONDITIONS = Conditions.EQUALS
     VALUES = [Values.FORBIDDEN, Values.SUPPORTED, Values.REQUIRED]
-
-    def __init__(self, condition, values):
-        self.condition = condition
-        self.values = values
-
-    @classmethod
-    def get_yaml_validator(cls):
-        return Map(
-            {
-                "field": Enum(cls.FIELD),
-                "condition": Enum(Conditions.EQUALS),
-                "value": Enum(cls.VALUES),
-            }
-        )
 
     def validate(self, dataframe):
         errors = []
@@ -190,23 +202,10 @@ class SparsityInput(object):
         return errors
 
 
-class SparsityOutput(object):
+class SparsityOutput(BaseValidator):
     FIELD = "sparse"
+    CONDITIONS = Conditions.EQUALS
     VALUES = [Values.NEVER, Values.DYNAMIC, Values.ALWAYS, Values.IDENTITY]
-
-    def __init__(self, condition, values):
-        self.condition = condition
-        self.values = values
-
-    @classmethod
-    def get_yaml_validator(cls):
-        return Map(
-            {
-                "field": Enum(cls.FIELD),
-                "condition": Enum(Conditions.EQUALS),
-                "value": Enum(cls.VALUES),
-            }
-        )
 
     def validate(self, dataframe):
         errors = []
@@ -222,7 +221,7 @@ class SparsityOutput(object):
         return errors
 
 
-class NumColumns(object):
+class NumColumns(BaseValidator):
     FIELD = "number_of_columns"
     CONDITIONS = [
         Conditions.EQUALS,
@@ -236,11 +235,9 @@ class NumColumns(object):
     ]
 
     def __init__(self, condition, values):
-        self.condition = condition
+        super().__init__(condition, values)
         if not isinstance(values, list):
             self.values = [values]
-        else:
-            self.values = values
 
     @classmethod
     def get_yaml_validator(cls):
@@ -324,23 +321,10 @@ class NumColumns(object):
         return errors
 
 
-class InputContainsMissing(object):
+class InputContainsMissing(BaseValidator):
     FIELD = "contains_missing"
+    CONDITIONs = Conditions.EQUALS
     VALUES = [Values.FORBIDDEN, Values.SUPPORTED]
-
-    def __init__(self, condition, values):
-        self.condition = condition
-        self.values = values
-
-    @classmethod
-    def get_yaml_validator(cls):
-        return Map(
-            {
-                "field": Enum(cls.FIELD),
-                "condition": Enum(Conditions.EQUALS),
-                "value": Enum(cls.VALUES),
-            }
-        )
 
     def validate(self, dataframe):
         any_missing = dataframe.isna().any().any()
@@ -349,23 +333,9 @@ class InputContainsMissing(object):
         return []
 
 
-class OutputContainsMissing(object):
+class OutputContainsMissing(BaseValidator):
     FIELD = "contains_missing"
     VALUES = [Values.NEVER, Values.DYNAMIC]
-
-    def __init__(self, condition, values):
-        self.condition = condition
-        self.values = values
-
-    @classmethod
-    def get_yaml_validator(cls):
-        return Map(
-            {
-                "field": Enum(cls.FIELD),
-                "condition": Enum(Conditions.EQUALS),
-                "value": Enum(cls.VALUES),
-            }
-        )
 
     def validate(self, dataframe):
         any_missing = dataframe.isna().any().any()
