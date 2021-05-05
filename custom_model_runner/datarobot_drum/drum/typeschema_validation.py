@@ -1,10 +1,15 @@
 import base64
+import logging
 from io import BytesIO
 
 from PIL import Image
 from strictyaml import Map, Optional, Seq, Int, Enum, Str
 import numpy as np
 import pandas as pd
+
+from datarobot_drum.drum.exceptions import DrumSchemaValidationException
+
+logger = logging.getLogger("drum." + __name__)
 
 
 class DataTypes(object):
@@ -91,7 +96,6 @@ class DataTypes(object):
         types["DATE"] = dataframe.select_dtypes("datetime").shape[1] > 0
 
         validation_errors = []
-
         if self.condition == "EQUALS":
             for dtype in self.VALUES:
                 if dtype == self.values[0]:
@@ -140,6 +144,10 @@ class SparsityInput(object):
         self.condition = condition
         self.values = values
 
+    def __init__(self, condition, values):
+        self.condition = condition
+        self.values = values
+
     @classmethod
     def get_yaml_validator(cls):
         return Map(
@@ -163,6 +171,10 @@ class SparsityInput(object):
 class SparsityOutput(object):
     FIELD = "sparse"
     VALUES = ["NEVER", "DYNAMIC", "ALWAYS", "IDENTITY"]
+
+    def __init__(self, condition, values):
+        self.condition = condition
+        self.values = values
 
     def __init__(self, condition, values):
         self.condition = condition
@@ -200,6 +212,13 @@ class NumColumns(object):
         "NOT_LESS_THAN",
         "NOT_GREATER_THAN",
     ]
+
+    def __init__(self, condition, values):
+        self.condition = condition
+        if not isinstance(values, list):
+            self.values = [values]
+        else:
+            self.values = values
 
     def __init__(self, condition, values):
         self.condition = condition
@@ -324,3 +343,65 @@ def revalidate_typeschema(type_schema):
     if "output_requirements" in type_schema:
         for req in type_schema["output_requirements"]:
             req.revalidate(output_validation[req.data["field"]])
+
+
+class SchemaValidator:
+    """
+    SchemaValidator transforms the typeschema definition into usable validation objects to be used to verify the data
+    meets the schema requirements.  Two methods, validate_inputs and validate_outputs are provided to perform the
+    actual validation on the respective dataframes.
+    """
+
+    _input_validator_mapping = {
+        DataTypes.FIELD: DataTypes,
+        SparsityInput.FIELD: SparsityInput,
+        NumColumns.FIELD: NumColumns,
+    }
+    _output_validator_mapping = {
+        DataTypes.FIELD: DataTypes,
+        SparsityOutput.FIELD: SparsityOutput,
+        NumColumns.FIELD: NumColumns,
+    }
+
+    def __init__(self, type_schema, strict=True, verbose=False):
+        self._input_validators = [
+            self._get_validator(schema, self._input_validator_mapping)
+            for schema in type_schema.get("input_requirements", [])
+        ]
+        self._output_validators = [
+            self._get_validator(schema, self._output_validator_mapping)
+            for schema in type_schema.get("output_requirements", [])
+        ]
+        self.strict = strict
+        self._verbose = verbose
+
+    def _get_validator(self, schema, mapping):
+        return mapping[schema["field"]](schema["condition"], schema["value"])
+
+    def validate_inputs(self, dataframe):
+        return self._run_validate(dataframe, self._input_validators, "input")
+
+    def validate_outputs(self, dataframe):
+        return self._run_validate(dataframe, self._output_validators, "output")
+
+    def _run_validate(self, dataframe, validators, step_label):
+        errors = []
+        for validator in validators:
+            errors.extend(validator.validate(dataframe))
+        if len(validators) == 0:
+            if self._verbose:
+                logger.info("No type schema for {} provided.".format(step_label))
+            return True
+        elif len(errors) == 0:
+            if self._verbose:
+                logger.info("Schema validation completed for model {}.".format(step_label))
+            return True
+        else:
+            logger.error("Schema validation found mismatch between dataset and the supplied schema")
+            for error in errors:
+                logger.error(error)
+            if self.strict:
+                raise DrumSchemaValidationException(
+                    "schema validation failed for {}:\n {}".format(step_label, errors)
+                )
+            return False
