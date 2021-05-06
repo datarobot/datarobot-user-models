@@ -593,6 +593,16 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
+    def _reg_arg_strict_validation(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.STRICT_VALIDATION,
+                action="store_false",
+                default=True,
+                help="Disable strict schema validation and only warn if issues are found.",
+            )
+
+    @staticmethod
     def _register_subcommand_perf_test(subparsers):
         desc = """
         Test the performance of an inference model. This is done by internally using the server
@@ -861,6 +871,8 @@ class CMRunnerArgsRegistry(object):
         )
 
         CMRunnerArgsRegistry._reg_args_deployment_config(server_parser)
+
+        CMRunnerArgsRegistry._reg_arg_strict_validation(fit_parser, push_parser)
 
         return parser
 

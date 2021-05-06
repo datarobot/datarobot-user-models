@@ -26,3 +26,7 @@ class DrumPredException(DrumException):
     """ Raised when prediction consistency check fails"""
 
     pass
+
+
+class DrumSchemaValidationException(DrumException):
+    """ Raised when the supplied schema in model_metadata does not match actual input or output data."""

@@ -60,6 +60,7 @@ from .constants import (
     SKLEARN_TRANSFORM_PARAMETERS,
     RDS_HYPERPARAMETERS,
     RDS_PARAMETERS,
+    SKLEARN_BINARY_SCHEMA_VALIDATION,
 )
 
 
@@ -573,3 +574,58 @@ class TestFit:
         _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
+
+    def test_fit_schema_validation(self, resources, tmp_path):
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            SKLEARN_BINARY_SCHEMA_VALIDATION,
+            BINARY,
+            PYTHON,
+            is_training=True,
+            include_metadata=True,
+        )
+
+        input_dataset = resources.datasets(SKLEARN, BINARY)
+
+        output = tmp_path / "output"
+        output.mkdir()
+
+        cmd = "{} fit --target-type {} --code-dir {} --target {} --input {} --verbose".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            BINARY,
+            custom_model_dir,
+            resources.targets(BINARY),
+            input_dataset,
+        )
+        _exec_shell_cmd(
+            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+        )
+
+    def test_fit_schema_failure(self, resources, tmp_path):
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            SKLEARN_BINARY_SCHEMA_VALIDATION,
+            BINARY,
+            PYTHON,
+            is_training=True,
+            include_metadata=True,
+        )
+
+        input_dataset = resources.datasets(SKLEARN, BINARY_TEXT)
+        output = tmp_path / "output"
+        output.mkdir()
+
+        cmd = "{} fit --target-type {} --code-dir {} --target {} --input {} --verbose".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            BINARY,
+            custom_model_dir,
+            resources.targets(BINARY_TEXT),
+            input_dataset,
+        )
+        with pytest.raises(AssertionError):
+            _, _, stderr = _exec_shell_cmd(
+                cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+            )
+            assert "DrumSchemaValidationException" in stderr

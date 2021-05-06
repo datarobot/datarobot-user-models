@@ -45,6 +45,7 @@ from datarobot_drum.drum.exceptions import DrumCommonException, DrumPredExceptio
 from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.push import drum_push, setup_validation_options
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
+from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils import CMRunnerUtils, handle_missing_colnames
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 
@@ -76,6 +77,24 @@ class CMRunner:
         # require metadata for push mode
         if self.run_mode == RunMode.PUSH:
             get_metadata(self.options)
+
+        if self.run_mode in [RunMode.FIT, RunMode.PUSH]:
+            # always populate the validator, even if info isn't provided.  If no info then the validators will be empty
+            # and pass by default.
+            self.schema_validator = SchemaValidator(
+                self.options.model_config.get("typeSchema", {})
+                if self.options.model_config is not None
+                else {},
+                self.options.disable_strict_validation,
+            )
+        self._input_df = None
+
+    @property
+    def input_df(self):
+        if self._input_df is None:
+            # Lazy load df
+            self._input_df = pd.read_csv(self.options.input)
+        return self._input_df
 
     def _resolve_target_type(self):
         if self.run_mode == RunMode.NEW:
@@ -425,6 +444,10 @@ class CMRunner:
             raise DrumCommonException(error_message)
 
     def run_fit(self):
+        input_data = self.input_df
+        if self.options.target:
+            input_data = input_data.drop(self.options.target, axis=1)
+        self.schema_validator.validate_inputs(input_data)
         remove_temp_output = None
         if not self.options.output:
             self.options.output = mkdtemp()
@@ -459,7 +482,7 @@ class CMRunner:
         __target_temp = None
         if self.options.target:
             __tempfile = NamedTemporaryFile()
-            df = pd.read_csv(self.options.input)
+            df = self.input_df
             if self.target_type == TargetType.TRANSFORM:
                 target_df = df[self.options.target]
                 __target_temp = NamedTemporaryFile()
@@ -477,7 +500,7 @@ class CMRunner:
         else:
             try:
                 CMRunTests(
-                    self.options, self.run_mode, self.target_type
+                    self.options, self.run_mode, self.target_type, self.schema_validator
                 ).check_prediction_side_effects()
             except DrumPredException as e:
                 self.logger.warning(e)

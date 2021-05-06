@@ -77,6 +77,7 @@ from tests.drum.constants import (
     SKLEARN_TRANSFORM_HYPERPARAMETERS,
     RDS_PARAMETERS,
     RDS_HYPERPARAMETERS,
+    SKLEARN_BINARY_SCHEMA_VALIDATION,
 )
 
 _datasets = {
@@ -124,6 +125,9 @@ _training_models_paths = {
     (PYTHON, SKLEARN_BINARY): os.path.join(TRAINING_TEMPLATES_PATH, "python3_sklearn_binary"),
     (PYTHON, SKLEARN_BINARY_HYPERPARAMETERS): os.path.join(
         TRAINING_TEMPLATES_PATH, "python3_sklearn_binary_hyperparameters"
+    ),
+    (PYTHON, SKLEARN_BINARY_SCHEMA_VALIDATION): os.path.join(
+        TRAINING_TEMPLATES_PATH, "python3_sklearn_binary_schema_validation"
     ),
     (PYTHON, SKLEARN_REGRESSION): os.path.join(
         TRAINING_TEMPLATES_PATH, "python3_sklearn_regression"

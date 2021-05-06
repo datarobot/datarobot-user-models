@@ -15,7 +15,14 @@ MULTICLASS = "multiclass"
 
 
 def _create_custom_model_dir(
-    resources, tmp_dir, framework, problem, language, is_training=False, nested=False,
+    resources,
+    tmp_dir,
+    framework,
+    problem,
+    language,
+    is_training=False,
+    nested=False,
+    include_metadata=False,
 ):
     """
     Helper function for tests and validation to create temp custom model directory
@@ -27,14 +34,14 @@ def _create_custom_model_dir(
     custom_model_dir.mkdir(parents=True, exist_ok=True)
     if is_training:
         model_template_dir = resources.training_models(language, framework)
-
         if language == PYTHON:
             files = glob.glob(r"{}/*.py".format(model_template_dir))
         elif language in [R, R_ALL_PREDICT_STRUCTURED_HOOKS, R_FIT]:
             files = glob.glob(r"{}/*.r".format(model_template_dir)) + glob.glob(
                 r"{}/*.R".format(model_template_dir)
             )
-
+        if include_metadata:
+            files.extend(glob.glob(r"{}/model-metadata.yaml".format(model_template_dir)))
         for filename in files:
             shutil.copy2(filename, custom_model_dir)
     else:

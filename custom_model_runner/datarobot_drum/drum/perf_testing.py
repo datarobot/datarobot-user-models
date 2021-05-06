@@ -220,9 +220,10 @@ class CMRunTests:
     NA_VALUE = "NA"
     TEST_CASE_FAIL_VALUE = "Fail"
 
-    def __init__(self, options, run_mode, target_type=None):
+    def __init__(self, options, run_mode, target_type=None, schema_validator=None):
         self.options = options
         self.target_type = target_type
+        self._schema_validator = schema_validator
         self._verbose = self.options.verbose
         self._input_csv = self.options.input
         self._input_df = pd.read_csv(self._input_csv)
@@ -697,6 +698,10 @@ class CMRunTests:
             preds_sample = pd.DataFrame(json.loads(response_sample.text)[RESPONSE_PREDICTIONS_KEY])
 
             preds_full_subset = preds_full.iloc[data_subset.index]
+
+            if self._schema_validator:
+                # Validate that the predictions are of the type and shape the user specified in the schema
+                self._schema_validator.validate_outputs(preds_sample)
 
             matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)
             if not np.all(matches):
