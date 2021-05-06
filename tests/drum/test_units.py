@@ -674,6 +674,9 @@ output_requirements:
 - field: number_of_columns
   condition: GREATER_THAN
   value: 1
+- field: contains_missing
+  condition: EQUALS
+  value: FORBIDDEN
 
 output_requirements:
 - field: data_types
@@ -684,7 +687,10 @@ output_requirements:
   value: NEVER
 - field: number_of_columns
   condition: EQUALS
-  value: 1"""
+  value: 1
+- field: contains_missing
+  condition: EQUALS
+  value: NEVER"""
 
     @pytest.fixture
     def missing_values_schema_yaml(self):

@@ -45,7 +45,7 @@ class Values:
 class BaseValidator(object):
     FIELD = None
     CONDITIONS = None
-    VALUE = None
+    VALUES = None
 
     def __init__(self, condition, values):
         self.condition = condition
@@ -72,7 +72,6 @@ class DataTypes(BaseValidator):
     VALUES = [Values.NUM, Values.TXT, Values.CAT, Values.IMG, Values.DATE]
     CONDITIONS = [Conditions.EQUALS, Conditions.IN, Conditions.NOT_EQUALS, Conditions.NOT_IN]
     _TYPES = Enum(VALUES)
-    _DTYPE_MAPPING = {}
 
     def __init__(self, condition, values):
         super().__init__(condition, values)
@@ -335,7 +334,7 @@ class NumColumns(BaseValidator):
 
 class InputContainsMissing(BaseValidator):
     FIELD = "contains_missing"
-    CONDITIONs = Conditions.EQUALS
+    CONDITIONS = Conditions.EQUALS
     VALUES = [Values.FORBIDDEN, Values.SUPPORTED]
 
     def validate(self, dataframe):
@@ -347,6 +346,7 @@ class InputContainsMissing(BaseValidator):
 
 class OutputContainsMissing(BaseValidator):
     FIELD = "contains_missing"
+    CONDITIONS = Conditions.EQUALS
     VALUES = [Values.NEVER, Values.DYNAMIC]
 
     def validate(self, dataframe):
@@ -360,7 +360,7 @@ def get_type_schema_yaml_validator():
     seq_validator = Seq(
         Map(
             {
-                "field": Enum(["data_types", "sparse", "number_of_columns"]),
+                "field": Enum(["data_types", "sparse", "number_of_columns", "contains_missing"]),
                 "condition": Str(),
                 "value": Str() | Seq(Str()),
             }
@@ -391,6 +391,7 @@ def revalidate_typeschema(type_schema):
             req.revalidate(input_validation[req.data["field"]])
     if "output_requirements" in type_schema:
         for req in type_schema["output_requirements"]:
+            print(req.data)
             req.revalidate(output_validation[req.data["field"]])
 
 
@@ -405,11 +406,13 @@ class SchemaValidator:
         DataTypes.FIELD: DataTypes,
         SparsityInput.FIELD: SparsityInput,
         NumColumns.FIELD: NumColumns,
+        InputContainsMissing.FIELD: InputContainsMissing,
     }
     _output_validator_mapping = {
         DataTypes.FIELD: DataTypes,
         SparsityOutput.FIELD: SparsityOutput,
         NumColumns.FIELD: NumColumns,
+        OutputContainsMissing.FIELD: OutputContainsMissing,
     }
 
     def __init__(self, type_schema, strict=True, verbose=False):
