@@ -85,7 +85,7 @@ class BaseLanguagePredictor(ABC):
                 features_df=df, predictions=mlops_predictions, class_names=class_names
             )
 
-    def do_predict(self, **kwargs):
+    def do_predict_predictor(self, **kwargs):
         start_predict = time.time()
         predictions = self.predict(**kwargs)
         end_predict = time.time()

@@ -105,6 +105,8 @@ class GenericPredictorComponent(ConnectableComponent):
             binary_data, mimetype = StructuredInputReadUtils.read_structured_input_file_as_binary(
                 input_filename
             )
-            predictions = self._predictor.do_predict(binary_data=binary_data, mimetype=mimetype)
+            predictions = self._predictor.do_predict_predictor(
+                binary_data=binary_data, mimetype=mimetype
+            )
             predictions.to_csv(output_filename, index=False)
         return []

@@ -173,7 +173,7 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
         self._stats_collector.mark("start")
 
         try:
-            response, response_status = self.do_predict()
+            response, response_status = self.do_predict_structured()
 
             if response_status == HTTP_200_OK:
                 # this counter is managed by uwsgi
