@@ -602,7 +602,7 @@ class TestJavaPredictor:
 
         jp = JavaPredictor()
         with pytest.raises(AttributeError, match=error_message):
-            jp.predict(binary_data=b"d" * data_size)
+            jp._predict(binary_data=b"d" * data_size)
 
 
 class TestTypeSchemaValidation:

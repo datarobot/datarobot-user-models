@@ -149,7 +149,7 @@ class JavaPredictor(BaseLanguagePredictor):
     def has_read_input_data_hook(self):
         return False
 
-    def predict(self, **kwargs):
+    def _predict(self, **kwargs):
         input_text_bytes = kwargs.get(StructuredDtoKeys.BINARY_DATA)
 
         # If data size is more than 33K, pass it as a file to Java,

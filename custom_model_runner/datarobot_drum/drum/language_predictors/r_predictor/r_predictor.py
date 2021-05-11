@@ -84,7 +84,7 @@ class RPredictor(BaseLanguagePredictor):
     def has_read_input_data_hook(self):
         return bool(r_handler.has_read_input_data_hook()[0])
 
-    def predict(self, **kwargs):
+    def _predict(self, **kwargs):
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
         predictions = r_handler.outer_predict(

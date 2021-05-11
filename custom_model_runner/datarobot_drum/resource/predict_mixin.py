@@ -121,7 +121,7 @@ class PredictMixin:
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             return {"message": "ERROR: " + str(e)}, response_status
 
-        out_data = self._predictor.do_predict_predictor(
+        out_data = self._predictor.predict(
             binary_data=binary_data, mimetype=mimetype, charset=charset, sparse_colnames=sparse_data
         )
 
