@@ -2,7 +2,6 @@ import logging
 import numpy
 import os
 import pandas as pd
-import time
 
 from datarobot_drum.drum.common import (
     LOGGER_NAME_PREFIX,
@@ -85,10 +84,9 @@ class RPredictor(BaseLanguagePredictor):
     def has_read_input_data_hook(self):
         return bool(r_handler.has_read_input_data_hook()[0])
 
-    def predict(self, **kwargs):
+    def _predict(self, **kwargs):
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
-        start_predict = time.time()
         predictions = r_handler.outer_predict(
             self._target_type.value,
             binary_data=ro.rinterface.NULL
@@ -107,9 +105,6 @@ class RPredictor(BaseLanguagePredictor):
         if isinstance(py_data_object, numpy.ndarray):
             py_data_object = pd.DataFrame({REGRESSION_PRED_COLUMN: py_data_object})
 
-        end_predict = time.time()
-        execution_time_ms = (end_predict - start_predict) * 1000
-
         if not isinstance(py_data_object, pd.DataFrame):
             error_message = (
                 "Expected predictions type: {}, actual: {}. "
@@ -120,7 +115,6 @@ class RPredictor(BaseLanguagePredictor):
             logger.error(error_message)
             raise DrumCommonException(error_message)
 
-        self.monitor(kwargs, py_data_object, execution_time_ms)
         return py_data_object
 
     # TODO: check test coverage for all possible cases: return None/str/bytes, and casting.

@@ -1,6 +1,5 @@
 import logging
 import sys
-import time
 
 from datarobot_drum.drum.common import (
     LOGGER_NAME_PREFIX,
@@ -47,7 +46,7 @@ class PythonPredictor(BaseLanguagePredictor):
     def has_read_input_data_hook(self):
         return self._model_adapter.has_read_input_data_hook()
 
-    def predict(self, **kwargs):
+    def _predict(self, **kwargs):
         kwargs[TARGET_TYPE_ARG_KEYWORD] = self._target_type
         if self._positive_class_label is not None and self._negative_class_label is not None:
             kwargs[POSITIVE_CLASS_LABEL_ARG_KEYWORD] = self._positive_class_label
@@ -55,13 +54,7 @@ class PythonPredictor(BaseLanguagePredictor):
         if self._class_labels:
             kwargs[CLASS_LABELS_ARG_KEYWORD] = self._class_labels
 
-        start_predict = time.time()
         predictions = self._model_adapter.predict(model=self._model, **kwargs)
-        end_predict = time.time()
-        execution_time_ms = (end_predict - start_predict) * 1000
-
-        self.monitor(kwargs, predictions, execution_time_ms)
-
         return predictions
 
     def transform(self, **kwargs):

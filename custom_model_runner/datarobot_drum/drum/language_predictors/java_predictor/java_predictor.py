@@ -149,10 +149,9 @@ class JavaPredictor(BaseLanguagePredictor):
     def has_read_input_data_hook(self):
         return False
 
-    def predict(self, **kwargs):
+    def _predict(self, **kwargs):
         input_text_bytes = kwargs.get(StructuredDtoKeys.BINARY_DATA)
 
-        start_predict = time.time()
         # If data size is more than 33K, pass it as a file to Java,
         # as passing big chunks to py4j as an array is 10% slower
         DATA_BUFFER_LIMIT_33K = 33792
@@ -165,9 +164,6 @@ class JavaPredictor(BaseLanguagePredictor):
             out_csv = self._predictor_via_py4j.predict(input_text_bytes)
 
         out_df = pd.read_csv(StringIO(out_csv))
-        end_predict = time.time()
-        execution_time_ms = (end_predict - start_predict) * 1000
-        self.monitor(kwargs, out_df, execution_time_ms)
         return out_df
 
     def transform(self, **kwargs):

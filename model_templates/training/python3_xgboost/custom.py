@@ -17,7 +17,7 @@ def fit(
     **kwargs,
 ) -> None:
     """
-    This hook must be implemented with your fitting code, for running cmrun in the fit mode.
+    This hook must be implemented with your fitting code, for running DRUM in the fit mode.
 
     This hook MUST ALWAYS be implemented for custom training models.
     For inference models, this hook can stick around unimplemented, and won’t be triggered.
@@ -30,7 +30,7 @@ def fit(
         target data to perform fit on
     output_dir
         the path to write output.
-        This is the path provided in '--output' parameter of the 'cmrun fit' command.
+        This is the path provided in '--output' parameter of the 'drum fit' command.
     class_order
         A two element long list dictating the order of classes which should be used for
         modeling. Class order will always be passed to fit by DataRobot for classification tasks,

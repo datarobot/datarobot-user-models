@@ -1,7 +1,7 @@
 import logging
+import time
 
 from abc import ABC, abstractmethod
-
 
 from datarobot_drum.drum.common import (
     LOGGER_NAME_PREFIX,
@@ -85,8 +85,16 @@ class BaseLanguagePredictor(ABC):
                 features_df=df, predictions=mlops_predictions, class_names=class_names
             )
 
-    @abstractmethod
     def predict(self, **kwargs):
+        start_predict = time.time()
+        predictions = self._predict(**kwargs)
+        end_predict = time.time()
+        execution_time_ms = (end_predict - start_predict) * 1000
+        self.monitor(kwargs, predictions, execution_time_ms)
+        return predictions
+
+    @abstractmethod
+    def _predict(self, **kwargs):
         """ Predict on input_filename or binary_data """
         pass
 

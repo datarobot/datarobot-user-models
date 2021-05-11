@@ -116,7 +116,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
             self._stats_collector.mark("start")
 
             try:
-                response, response_status = self.do_predict(logger=logger)
+                response, response_status = self.do_predict_structured(logger=logger)
             finally:
                 self._stats_collector.mark("finish")
                 self._stats_collector.disable()
