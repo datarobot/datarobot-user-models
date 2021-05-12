@@ -3,7 +3,7 @@ import logging
 from enum import auto, Enum
 from enum import Enum as PythonNativeEnum
 from io import BytesIO
-from typing import List
+from typing import List, Type
 
 from PIL import Image
 from strictyaml import Map, Optional, Seq, Int, Enum, Str, YAML
@@ -71,11 +71,6 @@ class BaseValidator(object):
 class DataTypes(BaseValidator):
     """Validation related to data types.  This is common between input and output."""
 
-    FIELD = "data_types"
-    VALUES = [Values.NUM, Values.TXT, Values.CAT, Values.IMG, Values.DATE]
-    CONDITIONS = [Conditions.EQUALS, Conditions.IN, Conditions.NOT_EQUALS, Conditions.NOT_IN]
-    _TYPES = Enum(VALUES)
-
     def __init__(self, condition, values):
         super().__init__(condition, values)
         if not isinstance(values, list):
@@ -83,16 +78,6 @@ class DataTypes(BaseValidator):
         if condition == "EQUALS" or condition == "NOT_EQUALS":
             if len(self.values) > 1:
                 raise (Exception("Multiple values not supported, use EQUALS/NOT_EQUALS instead."))
-
-    @classmethod
-    def get_yaml_validator(cls):
-        return Map(
-            {
-                "field": Enum(cls.FIELD),
-                "condition": Enum(cls.CONDITIONS),
-                "value": Seq(cls._TYPES) | cls._TYPES,
-            }
-        )
 
     @staticmethod
     def is_text(x):
@@ -151,7 +136,7 @@ class DataTypes(BaseValidator):
         validation_errors = []
 
         if self.condition == Conditions.EQUALS:
-            for dtype in self.VALUES:
+            for dtype in types.keys():
                 if dtype == self.values[0]:
                     if not types[dtype]:
                         validation_errors.append(
@@ -177,7 +162,7 @@ class DataTypes(BaseValidator):
                     )
 
         elif self.condition == Conditions.IN:
-            for dtype in self.VALUES:
+            for dtype in types.keys():
                 if dtype in self.values:
                     if not types[dtype]:
                         validation_errors.append(
@@ -190,12 +175,31 @@ class DataTypes(BaseValidator):
         return validation_errors
 
 
+# TODO
 class SparsityInput(BaseValidator):
-    FIELD = "sparse"
-    CONDITIONS = Conditions.EQUALS
-    VALUES = [Values.FORBIDDEN, Values.SUPPORTED, Values.REQUIRED]
-
     def validate(self, dataframe):
+
+        is_sparse = dataframe.dtypes.apply(pd.api.types.is_sparse).any()
+
+        sparse_input_allowed_values = [Values.SUPPORTED, Values.REQUIRED]
+        sparse_output_allowed_values = [Values.DYNAMIC, Values.ALWAYS]
+
+        dense_input_allowed_values = [Values.FORBIDDEN, Values.SUPPORTED]
+        dense_output_allowed_values = [Values.NEVER, Values.DYNAMIC, Values.IDENTITY]
+
+        if (
+            is_sparse
+            and self.values not in sparse_output_allowed_values + sparse_input_allowed_values
+        ):
+            return ["oops"]
+        elif (
+            not is_sparse
+            and self.values not in dense_output_allowed_values + dense_input_allowed_values
+        ):
+            return ["oooooops"]
+        else:
+            return []
+
         errors = []
         if dataframe.dtypes.apply(pd.api.types.is_sparse).any():
             if self.values not in [Values.SUPPORTED, Values.REQUIRED]:
@@ -205,47 +209,13 @@ class SparsityInput(BaseValidator):
                     )
                 )
         elif self.values not in [Values.FORBIDDEN, Values.SUPPORTED]:
-            errors.append("Dense input data found, however value is set to {}, expecting sparse")
-        return errors
-
-
-class SparsityOutput(BaseValidator):
-    FIELD = "sparse"
-    CONDITIONS = Conditions.EQUALS
-    VALUES = [Values.NEVER, Values.DYNAMIC, Values.ALWAYS, Values.IDENTITY]
-
-    def validate(self, dataframe):
-        errors = []
-        if dataframe.dtypes.apply(pd.api.types.is_sparse).any():
-            if self.values not in [Values.DYNAMIC, Values.ALWAYS]:
-                errors.append(
-                    "Sparse output data found, however value is set to {}, expecting dense".format(
-                        self.values
-                    )
-                )
-        elif self.values not in [Values.NEVER, Values.DYNAMIC, Values.IDENTITY]:
-            errors.append("Dense output data found, however value is set to {}, expecting sparse")
+            errors.append(
+                f"Dense input data found, however value is set to {self.values}, expecting sparse"
+            )
         return errors
 
 
 class NumColumns(BaseValidator):
-    FIELD = "number_of_columns"
-    CONDITIONS = [
-        Conditions.EQUALS,
-        Conditions.IN,
-        Conditions.NOT_EQUALS,
-        Conditions.NOT_IN,
-        Conditions.GREATER_THAN,
-        Conditions.LESS_THAN,
-        Conditions.NOT_GREATER_THAN,
-        Conditions.NOT_LESS_THAN,
-    ]
-
-    def __init__(self, condition, values):
-        super().__init__(condition, values)
-        if not isinstance(values, list):
-            self.values = [values]
-
     def __init__(self, condition, values):
         self.condition = condition
         if not isinstance(values, list):
@@ -253,16 +223,6 @@ class NumColumns(BaseValidator):
         else:
             self.values = values
         self.values = [int(value) for value in self.values]
-
-    @classmethod
-    def get_yaml_validator(cls):
-        return Map(
-            {
-                "field": Enum(cls.FIELD),
-                "condition": Enum(cls.CONDITIONS),
-                "value": Int() | Seq(Int()),
-            }
-        )
 
     def validate(self, dataframe):
         errors = []
@@ -336,26 +296,13 @@ class NumColumns(BaseValidator):
         return errors
 
 
-class InputContainsMissing(BaseValidator):
-    FIELD = "contains_missing"
-    CONDITIONS = Conditions.EQUALS
-    VALUES = [Values.FORBIDDEN, Values.SUPPORTED]
-
-    def validate(self, dataframe):
-        any_missing = dataframe.isna().any().any()
-        if any_missing and self.values == Values.FORBIDDEN:
-            return ["Input contains missing values, the model does not support missing."]
-        return []
-
-
+# TODO
 class OutputContainsMissing(BaseValidator):
-    FIELD = "contains_missing"
-    CONDITIONS = Conditions.EQUALS
-    VALUES = [Values.NEVER, Values.DYNAMIC]
-
     def validate(self, dataframe):
+        missing_output_disallowed = Values.NEVER
+        missing_input_disallowed = Values.FORBIDDEN
         any_missing = dataframe.isna().any().any()
-        if any_missing and self.values == Values.NEVER:
+        if any_missing and self.values in [missing_output_disallowed, missing_input_disallowed]:
             return ["Input contains missing values, the model does not support missing."]
         return []
 
@@ -382,24 +329,14 @@ def revalidate_typeschema(type_schema: YAML):
     """Perform validation on each dictionary in the both lists.  This is required due to limitations in strictyaml.  See
     the strictyaml documentation on revalidation for details.  This checks that the provided values
     are valid together while the initial validation only checks that the map is in the right general format."""
-    input_validation = {
-        d.FIELD: d.get_yaml_validator()
-        for d in [DataTypes, SparsityInput, NumColumns, InputContainsMissing]
-    }
-    output_validation = {
-        d.FIELD: d.get_yaml_validator()
-        for d in [DataTypes, SparsityOutput, NumColumns, OutputContainsMissing]
-    }
-    if "input_requirements" in type_schema:
-        for req in type_schema["input_requirements"]:
-            field = EricFields.from_string(req.data["field"])
-            req.revalidate(field.to_input_requirments())
-            # req.revalidate(input_validation[req.data["field"]])
-    if "output_requirements" in type_schema:
-        for req in type_schema["output_requirements"]:
-            print(req.data)
-            field = EricFields.from_string(req.data["field"])
-            req.revalidate(field.to_output_requiremenst())
+
+    for input_req in type_schema.get("input_requirements", []):
+        field = EricFields.from_string(input_req.data["field"])
+        input_req.revalidate(field.to_input_requirements())
+
+    for output_req in type_schema.get("output_requirements", []):
+        field = EricFields.from_string(output_req.data["field"])
+        output_req.revalidate(field.to_output_requirements())
 
 
 class SchemaValidator:
@@ -409,33 +346,19 @@ class SchemaValidator:
     actual validation on the respective dataframes.
     """
 
-    _input_validator_mapping = {
-        DataTypes.FIELD: DataTypes,
-        SparsityInput.FIELD: SparsityInput,
-        NumColumns.FIELD: NumColumns,
-        InputContainsMissing.FIELD: InputContainsMissing,
-    }
-    _output_validator_mapping = {
-        DataTypes.FIELD: DataTypes,
-        SparsityOutput.FIELD: SparsityOutput,
-        NumColumns.FIELD: NumColumns,
-        OutputContainsMissing.FIELD: OutputContainsMissing,
-    }
-
     def __init__(self, type_schema: dict, strict=True, verbose=False):
         self._input_validators = [
-            self._get_validator(schema, self._input_validator_mapping)
-            for schema in type_schema.get("input_requirements", [])
+            self._get_validator(schema) for schema in type_schema.get("input_requirements", [])
         ]
         self._output_validators = [
-            self._get_validator(schema, self._output_validator_mapping)
-            for schema in type_schema.get("output_requirements", [])
+            self._get_validator(schema) for schema in type_schema.get("output_requirements", [])
         ]
         self.strict = strict
         self._verbose = verbose
 
-    def _get_validator(self, schema, mapping):
-        return mapping[schema["field"]](schema["condition"], schema["value"])
+    def _get_validator(self, schema):
+        field = EricFields.from_string(schema["field"])
+        return field.to_validator_class()(schema["condition"], schema["value"])
 
     def validate_inputs(self, dataframe):
         return self._run_validate(dataframe, self._input_validators, "input")
@@ -568,11 +491,20 @@ class EricFields(PythonNativeEnum):
         }
         return values[self]
 
-    def to_input_requirments(self):
+    def to_input_requirements(self):
         return get_mapping(self, self.input_values())
 
-    def to_output_requiremenst(self):
+    def to_output_requirements(self):
         return get_mapping(self, self.output_values())
+
+    def to_validator_class(self) -> Type[BaseValidator]:
+        classes = {
+            EricFields.DATA_TYPES: DataTypes,
+            EricFields.SPARSE: SparsityInput,
+            EricFields.NUMBER_OF_COLUMNS: NumColumns,
+            EricFields.CONTAINS_MISSING: OutputContainsMissing,
+        }
+        return classes[self]
 
 
 def get_mapping(field: EricFields, values: List[EricValues]):
