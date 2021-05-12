@@ -76,12 +76,12 @@ class JlPredictor(BaseLanguagePredictor):
     def has_read_input_data_hook(self):
         return Main.defined_hooks["read_input_data"]
 
-    def predict(self, **kwargs):
+    def _predict(self, **kwargs):
         from julia import Main
 
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
-        start_predict = time.time()
+
         predictions = Main.outer_predict(
             self._target_type.value,
             binary_data=input_binary_data,
@@ -92,10 +92,6 @@ class JlPredictor(BaseLanguagePredictor):
             class_labels=self._class_labels,
         )
 
-        end_predict = time.time()
-        execution_time_ms = (end_predict - start_predict) * 1000
-
-        self.monitor(kwargs, predictions, execution_time_ms)
         return predictions
 
     # # TODO: check test coverage for all possible cases: return None/str/bytes, and casting.
