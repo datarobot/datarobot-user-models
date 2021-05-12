@@ -2,6 +2,7 @@ import logging
 import time
 
 from abc import ABC, abstractmethod
+import numpy as np
 
 from datarobot_drum.drum.common import (
     LOGGER_NAME_PREFIX,
@@ -85,9 +86,20 @@ class BaseLanguagePredictor(ABC):
                 features_df=df, predictions=mlops_predictions, class_names=class_names
             )
 
+    def validate_predictions(self, predictions_df):
+        if self._target_type.value in TargetType.CLASSIFICATION.value:
+            try:
+                added_probs = predictions_df.sum(axis=1)
+                np.testing.assert_array_almost_equal(added_probs, 1)
+            except AssertionError:
+                raise ValueError(
+                    "Your prediction probabilities do not add up to 1. \n{}".format(predictions_df)
+                )
+
     def predict(self, **kwargs):
         start_predict = time.time()
         predictions = self._predict(**kwargs)
+        self.validate_predictions(predictions)
         end_predict = time.time()
         execution_time_ms = (end_predict - start_predict) * 1000
         self.monitor(kwargs, predictions, execution_time_ms)

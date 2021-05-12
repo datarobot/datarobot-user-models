@@ -51,6 +51,7 @@ from .constants import (
     PYTORCH,
     R,
     R_FIT,
+    R_FAIL_CLASSIFICATION_VALIDATION_HOOKS,
     RDS,
     RDS_SPARSE,
     REGRESSION,
@@ -916,3 +917,33 @@ class TestInference:
                 in stdo_stde
             )
             assert any([case_1, case_2, case_3])
+
+    @pytest.mark.parametrize(
+        "framework, language, target_type",
+        [(None, R_FAIL_CLASSIFICATION_VALIDATION_HOOKS, BINARY,),],
+    )
+    def test_classification_validation_fails(
+        self, resources, framework, language, target_type, tmp_path,
+    ):
+        custom_model_dir = _create_custom_model_dir(resources, tmp_path, framework, None, language,)
+
+        input_dataset = resources.datasets(framework, BINARY)
+
+        cmd = "{} score --code-dir {} --input {} --target-type {}".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, target_type
+        )
+
+        if resources.target_types(target_type) in [BINARY, MULTICLASS]:
+            cmd = _cmd_add_class_labels(
+                cmd,
+                resources.class_labels(framework, target_type),
+                target_type=resources.target_types(target_type),
+            )
+
+        _, _, stde = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+
+        assert "Your prediction probabilities do not add up to 1." in str(stde)

@@ -21,6 +21,13 @@ from datarobot_drum.drum.drum import (
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
+from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
+    PythonPredictor,
+)
+from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
+from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import JavaPredictor
+
+
 from datarobot_drum.drum.push import _push_inference, _push_training, drum_push
 from datarobot_drum.drum.common import (
     read_model_metadata_yaml,
@@ -75,7 +82,7 @@ class TestOrderIntuition:
 
 
 class TestValidatePredictions:
-    def test_add_to_one_happy(self):
+    def test_class_labels(self):
         positive_label = "poslabel"
         negative_label = "neglabel"
         adapter = PythonModelAdapter(model_dir=None, target_type=TargetType.BINARY)
@@ -83,16 +90,37 @@ class TestValidatePredictions:
         adapter._validate_predictions(
             to_validate=df, class_labels=[positive_label, negative_label],
         )
+        with pytest.raises(ValueError):
+            df = pd.DataFrame({positive_label: [0.1, 0.2, 0.3], negative_label: [0.9, 0.8, 0.7]})
+            adapter._validate_predictions(
+                to_validate=df, class_labels=["yes", "no"],
+            )
 
-    def test_add_to_one_sad(self):
+    def test_regression_predictions_header(self):
+        adapter = PythonModelAdapter(model_dir=None, target_type=TargetType.REGRESSION)
+        df = pd.DataFrame({"Predictions": [0.1, 0.2, 0.3]})
+        adapter._validate_predictions(
+            to_validate=df, class_labels=None,
+        )
+        with pytest.raises(ValueError):
+            df = pd.DataFrame({"other_name": [0.1, 0.2, 0.3]})
+            adapter._validate_predictions(
+                to_validate=df, class_labels=None,
+            )
+
+    def test_add_to_one(self):
         positive_label = "poslabel"
         negative_label = "neglabel"
-        adapter = PythonModelAdapter(model_dir=None, target_type=TargetType.BINARY)
-        df = pd.DataFrame({positive_label: [1, 1, 1], negative_label: [-1, 0, 0]})
-        with pytest.raises(ValueError):
-            adapter._validate_predictions(
-                to_validate=df, class_labels=[positive_label, negative_label],
+        for predictor in [PythonPredictor(), RPredictor(), JavaPredictor()]:
+            predictor._target_type = TargetType.BINARY
+            df_good = pd.DataFrame(
+                {positive_label: [0.1, 0.2, 0.3], negative_label: [0.9, 0.8, 0.7]}
             )
+            predictor.validate_predictions(df_good)
+
+            df_bad = pd.DataFrame({positive_label: [1, 1, 1], negative_label: [-1, 0, 0]})
+            with pytest.raises(ValueError):
+                predictor.validate_predictions(df_bad)
 
 
 modelID = "5f1f15a4d6111f01cb7f91f"

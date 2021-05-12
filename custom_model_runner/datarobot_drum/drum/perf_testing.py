@@ -524,16 +524,6 @@ class CMRunTests:
         if retcode != 0:
             test_passed = False
             failure_message = "Test failed on provided dataset: {}".format(self._input_csv)
-        else:
-            if self.target_type.value in TargetType.CLASSIFICATION.value:
-                df_tmp = pd.read_csv(output_filename)
-                try:
-                    np.testing.assert_array_almost_equal(df_tmp.sum(axis=1), 1)
-                except AssertionError:
-                    test_passed = False
-                    failure_message = "Test failed on provided dataset: {}\n\nPrediction probabilities do not add up to 1. \n{}".format(
-                        self._input_csv, df_tmp
-                    )
 
         return test_name, test_passed, failure_message
 
@@ -576,19 +566,6 @@ class CMRunTests:
             if retcode != 0:
                 test_passed = False
                 results[column_name] = ValidationTestResult(tmp_dataset_file_path, retcode, "")
-            else:
-                if self.target_type.value in TargetType.CLASSIFICATION.value:
-                    df_tmp = pd.read_csv(output_filename)
-                    try:
-                        np.testing.assert_array_almost_equal(df_tmp.sum(axis=1), 1)
-                    except AssertionError:
-                        test_passed = False
-                        error_msg = "Prediction probabilities do not add up to 1. \n{}".format(
-                            df_tmp
-                        )
-                        results[column_name] = ValidationTestResult(
-                            tmp_dataset_file_path, 1, error_msg
-                        )
 
         # process results
         if test_passed:
