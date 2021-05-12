@@ -6,7 +6,7 @@ from io import BytesIO
 from typing import List
 
 from PIL import Image
-from strictyaml import Map, Optional, Seq, Int, Enum, Str
+from strictyaml import Map, Optional, Seq, Int, Enum, Str, YAML
 import numpy as np
 import pandas as pd
 
@@ -359,7 +359,7 @@ class OutputContainsMissing(BaseValidator):
         return []
 
 
-def get_type_schema_yaml_validator():
+def get_type_schema_yaml_validator() -> Map:
     seq_validator = Seq(
         Map(
             {
@@ -377,7 +377,7 @@ def get_type_schema_yaml_validator():
     )
 
 
-def revalidate_typeschema(type_schema):
+def revalidate_typeschema(type_schema: YAML):
     """Perform validation on each dictionary in the both lists.  This is required due to limitations in strictyaml.  See
     the strictyaml documentation on revalidation for details.  This checks that the provided values
     are valid together while the initial validation only checks that the map is in the right general format."""
@@ -421,7 +421,7 @@ class SchemaValidator:
         OutputContainsMissing.FIELD: OutputContainsMissing,
     }
 
-    def __init__(self, type_schema, strict=True, verbose=False):
+    def __init__(self, type_schema: dict, strict=True, verbose=False):
         self._input_validators = [
             self._get_validator(schema, self._input_validator_mapping)
             for schema in type_schema.get("input_requirements", [])

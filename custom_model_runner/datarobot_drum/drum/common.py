@@ -1,6 +1,7 @@
 import logging
 import os
 import sys
+from typing import Optional as PythonTypingOptional
 
 from contextlib import contextmanager
 from enum import Enum
@@ -374,7 +375,7 @@ def validate_config_fields(model_config, *fields):
         )
 
 
-def read_model_metadata_yaml(code_dir):
+def read_model_metadata_yaml(code_dir) -> PythonTypingOptional[dict]:
     code_dir = Path(code_dir)
     config_path = code_dir.joinpath(MODEL_CONFIG_FILENAME)
     if config_path.exists():

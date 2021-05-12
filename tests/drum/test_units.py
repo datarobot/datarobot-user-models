@@ -631,110 +631,6 @@ class TestTypeSchemaValidation:
     def dense_df(self):
         yield pd.DataFrame(np.zeros((10, 10)))
 
-    @pytest.fixture
-    def valid_schema_yaml_types_only(self):
-        yield """input_requirements:
-- field: data_types
-  condition: IN
-  value:
-    - NUM
-    - TXT
-    - CAT
-
-output_requirements:
-    - field: data_types
-      condition: EQUALS
-      value: NUM"""
-
-    @pytest.fixture
-    def invalid_schema_yaml_types_only(self):
-        yield """input_requirements:
-- field: data_types
-  condition: IN
-  value:
-    - NUM
-    - TXT
-    - NOPE
-
-output_requirements:
-- field: data_types
-  condition: EQUALS
-  value: NUM"""
-
-    @pytest.fixture
-    def valid_schema_yaml(self):
-        yield """input_requirements:
-- field: data_types
-  condition: IN
-  value:
-    - NUM
-    - TXT
-    - CAT
-- field: sparse
-  condition: EQUALS
-  value: FORBIDDEN
-- field: number_of_columns
-  condition: GREATER_THAN
-  value: 1
-- field: contains_missing
-  condition: EQUALS
-  value: FORBIDDEN
-
-output_requirements:
-- field: data_types
-  condition: EQUALS
-  value: NUM
-- field: sparse
-  condition: EQUALS
-  value: NEVER
-- field: number_of_columns
-  condition: EQUALS
-  value: 1
-- field: contains_missing
-  condition: EQUALS
-  value: NEVER"""
-
-    @pytest.fixture
-    def missing_values_schema_yaml(self):
-        yield """input_requirements:
-- field: data_types
-  value:
-    - NUM
-    - TXT
-    - CAT
-- field: sparse
-  condition: EQUALS
-  value: WHAT
-- field: number_of_columns
-  condition: GREATER_THAN
-  value: 1
-
-output_requirements:
-- field: data_types
-  condition: EQUALS
-  value: NUM
-- field: sparse
-  condition: EQUALS
-  value: NEVER
-- field: numbers
-  condition: EQUALS
-  value: 1"""
-
-    @pytest.mark.parametrize("yaml_txt", ["valid_schema_yaml", "valid_schema_yaml_types_only"])
-    def test_valid_revalidation(self, request, yaml_txt):
-        yaml_txt = request.getfixturevalue(yaml_txt)
-        parsed = load(yaml_txt, get_type_schema_yaml_validator())
-        revalidate_typeschema(parsed)
-
-    @pytest.mark.parametrize(
-        "yaml_txt", ["invalid_schema_yaml_types_only", "missing_values_schema_yaml"]
-    )
-    def test_invalid_revalidation(self, request, yaml_txt):
-        yaml_txt = request.getfixturevalue(yaml_txt)
-        with pytest.raises(YAMLValidationError):
-            parsed = load(yaml_txt, get_type_schema_yaml_validator())
-            revalidate_typeschema(parsed)
-
     @pytest.mark.parametrize(
         "condition, value, passing_dataset, passing_target, failing_dataset, failing_target",
         [
@@ -1089,7 +985,6 @@ class TestRevalidateTypeSchemaNumberOfColumns:
 
     field = EricFields.NUMBER_OF_COLUMNS
 
-    # NUMBER_OF_COLUMNS
     @pytest.mark.parametrize('condition', list(EricConditions))
     def test_number_of_columns_can_use_all_conditions(self, condition):
         sparse_yaml_input_str = input_requirements_yaml(self.field, condition, [1])
