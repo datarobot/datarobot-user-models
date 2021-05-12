@@ -45,13 +45,13 @@
         <dependency>
             <groupId>ai.h2o</groupId>
             <artifactId>h2o-genmodel</artifactId>
-            <version>3.30.0.6</version>
+            <version>3.32.1.2</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/ai.h2o/h2o-genmodel-ext-xgboost -->
         <dependency>
             <groupId>ai.h2o</groupId>
             <artifactId>h2o-genmodel-ext-xgboost</artifactId>
-            <version>3.30.0.6</version>
+            <version>3.32.1.2</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/ai.h2o/h2o-ext-mojo-pipeline -->
         <dependency>
