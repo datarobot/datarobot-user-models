@@ -252,6 +252,7 @@ class NumColumns(BaseValidator):
             self.values = [values]
         else:
             self.values = values
+        self.values = [int(value) for value in self.values]
 
     @classmethod
     def get_yaml_validator(cls):
