@@ -479,7 +479,7 @@ class EricConditions(PythonNativeEnum):
     NOT_LESS_THAN = auto()
 
     @classmethod
-    def non_numeric(cls) -> List['EricConditions']:
+    def non_numeric(cls) -> List["EricConditions"]:
         return [
             cls.EQUALS,
             cls.NOT_EQUALS,
@@ -510,31 +510,16 @@ class EricValues(PythonNativeEnum):
     IDENTITY = auto()
 
     @classmethod
-    def data_values(cls) -> List['EricValues']:
-        return [
-            cls.NUM,
-            cls.TXT,
-            cls.IMG,
-            cls.DATE,
-            cls.CAT
-        ]
+    def data_values(cls) -> List["EricValues"]:
+        return [cls.NUM, cls.TXT, cls.IMG, cls.DATE, cls.CAT]
 
     @classmethod
-    def input_values(cls) -> List['EricValues']:
-        return [
-            cls.FORBIDDEN,
-            cls.SUPPORTED,
-            cls.REQUIRED
-        ]
+    def input_values(cls) -> List["EricValues"]:
+        return [cls.FORBIDDEN, cls.SUPPORTED, cls.REQUIRED]
 
     @classmethod
-    def output_values(cls) -> List['EricValues']:
-        return [
-            cls.NEVER,
-            cls.DYNAMIC,
-            cls.ALWAYS,
-            cls.IDENTITY
-        ]
+    def output_values(cls) -> List["EricValues"]:
+        return [cls.NEVER, cls.DYNAMIC, cls.ALWAYS, cls.IDENTITY]
 
     def __str__(self) -> str:
         return self.name
@@ -549,9 +534,8 @@ class EricFields(PythonNativeEnum):
     def __str__(self) -> str:
         return self.name.lower()
 
-
     @classmethod
-    def from_string(cls, field: str) -> 'EricFields':
+    def from_string(cls, field: str) -> "EricFields":
         for el in list(cls):
             if str(el) == field:
                 return el
@@ -562,7 +546,7 @@ class EricFields(PythonNativeEnum):
             EricFields.SPARSE: [EricConditions.EQUALS],
             EricFields.DATA_TYPES: EricConditions.non_numeric(),
             EricFields.NUMBER_OF_COLUMNS: list(EricConditions),
-            EricFields.CONTAINS_MISSING: [EricConditions.EQUALS]
+            EricFields.CONTAINS_MISSING: [EricConditions.EQUALS],
         }
         return conditions[self]
 
@@ -571,7 +555,7 @@ class EricFields(PythonNativeEnum):
             EricFields.DATA_TYPES: EricValues.data_values(),
             EricFields.SPARSE: EricValues.input_values(),
             EricFields.NUMBER_OF_COLUMNS: [],
-            EricFields.CONTAINS_MISSING: [EricValues.FORBIDDEN, EricValues.SUPPORTED]
+            EricFields.CONTAINS_MISSING: [EricValues.FORBIDDEN, EricValues.SUPPORTED],
         }
         return values[self]
 
@@ -580,7 +564,7 @@ class EricFields(PythonNativeEnum):
             EricFields.DATA_TYPES: EricValues.data_values(),
             EricFields.SPARSE: EricValues.output_values(),
             EricFields.NUMBER_OF_COLUMNS: [],
-            EricFields.CONTAINS_MISSING:[EricValues.NEVER, EricValues.DYNAMIC]
+            EricFields.CONTAINS_MISSING: [EricValues.NEVER, EricValues.DYNAMIC],
         }
         return values[self]
 
@@ -601,10 +585,4 @@ def get_mapping(field: EricFields, values: List[EricValues]):
         value_enum = base_value_enum
 
     conditions = Enum((str(el) for el in field.conditions()))
-    return Map(
-        {
-            "field": Enum(str(field)),
-            "condition": conditions,
-            "value": value_enum
-        }
-    )
+    return Map({"field": Enum(str(field)), "condition": conditions, "value": value_enum})
