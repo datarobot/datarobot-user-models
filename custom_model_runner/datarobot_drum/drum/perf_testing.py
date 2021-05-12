@@ -505,19 +505,50 @@ class CMRunTests:
         print("\n" + str_report)
         return
 
-    def validation_test(self):
-
-        # TODO: create infrastructure to easily add more checks
-        # NullValueImputationCheck
-        test_name = "Null value imputation"
-        ValidationTestResult = collections.namedtuple("ValidationTestResult", "filename retcode")
-
+    def _basic_batch_prediction_check(self):
+        test_name = "Basic batch prediction"
+        test_passed = True
+        failure_message = ""
         cmd_list = sys.argv
-        cmd_list[0] = ArgumentsOptions.MAIN_COMMAND
-        cmd_list[1] = ArgumentsOptions.SCORE
+
+        TMP_DIR = "/tmp"
+        DIR_PREFIX = "drum_validation_check_"
+
+        output_dir = mkdtemp(prefix=DIR_PREFIX, dir=TMP_DIR)
+        output_filename = os.path.join(output_dir, "output")
+
+        CMRunnerUtils.replace_cmd_argument_value(cmd_list, ArgumentsOptions.OUTPUT, output_filename)
+
+        p = subprocess.Popen(cmd_list, env=os.environ)
+        retcode = p.wait()
+        if retcode != 0:
+            test_passed = False
+            failure_message = "Test failed on provided dataset: {}".format(self._input_csv)
+        else:
+            if self.target_type.value in TargetType.CLASSIFICATION.value:
+                df_tmp = pd.read_csv(output_filename)
+                try:
+                    np.testing.assert_array_almost_equal(df_tmp.sum(axis=1), 1)
+                except AssertionError:
+                    test_passed = False
+                    failure_message = "Test failed on provided dataset: {}\n\nPrediction probabilities do not add up to 1. \n{}".format(
+                        self._input_csv, df_tmp
+                    )
+
+        return test_name, test_passed, failure_message
+
+    def _null_value_imputation_check(self):
+        test_name = "Null value imputation"
+        test_passed = True
+        failure_message = ""
+        cmd_list = sys.argv
 
         TMP_DIR = "/tmp"
         DIR_PREFIX = "drum_validation_checks_"
+
+        ValidationTestResult = collections.namedtuple(
+            "ValidationTestResult", "filename retcode message"
+        )
 
         null_datasets_dir = mkdtemp(prefix=DIR_PREFIX, dir=TMP_DIR)
 
@@ -525,8 +556,8 @@ class CMRunTests:
         column_names = list(df.iloc[[0]])
 
         results = {}
-
         for i, column_name in enumerate(column_names):
+            output_filename = os.path.join(null_datasets_dir, "output{}".format(i))
             tmp_dataset_file_path = os.path.join(
                 null_datasets_dir, "null_value_imputation_column{}".format(i)
             )
@@ -536,11 +567,80 @@ class CMRunTests:
             CMRunnerUtils.replace_cmd_argument_value(
                 cmd_list, ArgumentsOptions.INPUT, tmp_dataset_file_path
             )
+            CMRunnerUtils.replace_cmd_argument_value(
+                cmd_list, ArgumentsOptions.OUTPUT, output_filename
+            )
 
             p = subprocess.Popen(cmd_list, env=os.environ)
             retcode = p.wait()
             if retcode != 0:
-                results[column_name] = ValidationTestResult(tmp_dataset_file_path, retcode)
+                test_passed = False
+                results[column_name] = ValidationTestResult(tmp_dataset_file_path, retcode, "")
+            else:
+                if self.target_type.value in TargetType.CLASSIFICATION.value:
+                    df_tmp = pd.read_csv(output_filename)
+                    try:
+                        np.testing.assert_array_almost_equal(df_tmp.sum(axis=1), 1)
+                    except AssertionError:
+                        test_passed = False
+                        error_msg = "Prediction probabilities do not add up to 1. \n{}".format(
+                            df_tmp
+                        )
+                        results[column_name] = ValidationTestResult(
+                            tmp_dataset_file_path, 1, error_msg
+                        )
+
+        # process results
+        if test_passed:
+            shutil.rmtree(null_datasets_dir)
+        else:
+            for test_result in results.values():
+                if not test_result.retcode:
+                    os.remove(test_result.filename)
+
+            table = Texttable()
+            table.set_deco(Texttable.HEADER)
+
+            headers = ["Failed feature", "Message", "Dataset filename"]
+
+            table.set_cols_dtype(["t", "t", "t"])
+            table.set_cols_align(["l", "l", "l"])
+
+            rows = [headers]
+
+            for key, test_result in results.items():
+                if test_result.retcode:
+                    rows.append([key, test_result.message, test_result.filename])
+
+            table.add_rows(rows)
+            table_res = table.draw()
+
+            message = (
+                "Null value imputation check performs check by imputing each feature with NaN value. "
+                "If check fails for a feature, test dataset is saved in {}/{}* "
+                "Make sure to delete those folders if it takes too much space.".format(
+                    TMP_DIR, DIR_PREFIX
+                )
+            )
+            failure_message = "{}\n\n{}".format(message, table_res)
+
+        return test_name, test_passed, failure_message
+
+    def validation_test(self):
+        # TODO: create infrastructure to easily add more checks
+
+        cmd_list = sys.argv
+        cmd_list[1] = ArgumentsOptions.SCORE
+
+        if ArgumentsOptions.OUTPUT not in cmd_list:
+            cmd_list.extend(
+                [ArgumentsOptions.OUTPUT, "placeholder_to_replace_later_during_test_case"]
+            )
+
+        test_cases_results = [
+            self._basic_batch_prediction_check(),
+            self._null_value_imputation_check(),
+        ]
 
         table = Texttable()
         table.set_deco(Texttable.HEADER)
@@ -551,52 +651,20 @@ class CMRunTests:
         except Exception as e:
             pass
 
-        header_names = ["Test case", "Status"]
-        col_types = ["t", "t"]
-        col_align = ["l", "l"]
+        header_names = ["Test case", "Status", "Details"]
+        col_types = ["t", "t", "t"]
+        col_align = ["l", "l", "l"]
 
         rows = []
-
-        if len(results) == 0:
-            rows.append(header_names)
-            rows.append([test_name, "PASSED"])
-            shutil.rmtree(null_datasets_dir)
-        else:
-            col_types.append("t")
-            col_align.append("l")
-            header_names.append("Details")
-            rows.append(header_names)
-            for test_result in results.values():
-                if not test_result.retcode:
-                    os.remove(test_result.filename)
-
-            table2 = Texttable()
-            table2.set_deco(Texttable.HEADER)
-
-            message = (
-                "Null value imputation check performs check by imputing each feature with NaN value. "
-                "If check fails for a feature, test dataset is saved in {}/{}. "
-                "Make sure to delete those folders if it takes too much space.".format(
-                    TMP_DIR, DIR_PREFIX
-                )
+        rows.append(header_names)
+        for test_name, test_passed, failure_message in test_cases_results:
+            rows.append(
+                [
+                    test_name,
+                    "PASSED" if test_passed else "FAILED",
+                    "" if test_passed else failure_message,
+                ]
             )
-            rows.append([test_name, "FAILED", message])
-
-            header_names2 = ["Failed feature", "Dataset filename"]
-
-            table2.set_cols_dtype(["t", "t"])
-            table2.set_cols_align(["l", "l"])
-
-            rows2 = [header_names2]
-
-            for key, test_result in results.items():
-                if test_result.retcode:
-                    rows2.append([key, test_result.filename])
-                    pass
-
-            table2.add_rows(rows2)
-            table_res = table2.draw()
-            rows.append(["", "", "\n{}".format(table_res)])
 
         table.set_cols_dtype(col_types)
         table.set_cols_align(col_align)

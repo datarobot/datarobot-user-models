@@ -21,6 +21,7 @@ from .constants import (
     NO_CUSTOM,
     DOCKER_PYTHON_SKLEARN,
     PYTHON_NO_ARTIFACT_REGRESSION_HOOKS,
+    R_FAIL_CLASSIFICATION_VALIDATION_HOOKS,
 )
 
 
@@ -111,3 +112,38 @@ class TestValidationCheck:
             assert re.search(r"Null value imputation\s+FAILED", stdo)
         else:
             assert re.search(r"Null value imputation\s+PASSED", stdo)
+
+    @pytest.mark.parametrize(
+        "framework, problem, language", [(None, BINARY, R_FAIL_CLASSIFICATION_VALIDATION_HOOKS),],
+    )
+    def test_classification_validation_fails_on_add_up_to_one(
+        self, resources, framework, problem, language, tmp_path,
+    ):
+        custom_model_dir = _create_custom_model_dir(
+            resources, tmp_path, framework, problem, language,
+        )
+
+        input_dataset = resources.datasets(framework, problem)
+
+        cmd = "{} validation --code-dir {} --input {} --target-type {}".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            custom_model_dir,
+            input_dataset,
+            resources.target_types(problem),
+        )
+        if problem == BINARY:
+            cmd = _cmd_add_class_labels(
+                cmd,
+                resources.class_labels(framework, problem),
+                target_type=resources.target_types(problem),
+            )
+
+        _, stdo, _ = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+
+        assert re.search(r"Basic batch prediction\s+FAILED", stdo)
+        assert re.search(r"Null value imputation\s+FAILED", stdo)
+        assert "Prediction probabilities do not add up to 1" in stdo

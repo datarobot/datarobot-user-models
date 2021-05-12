@@ -85,7 +85,7 @@ source $GIT_ROOT/tests/drum/integration-helpers.sh
 
 cd $GIT_ROOT || exit 1
 
-CMRUNNER_REQUIREMENT_PATH=$GIT_ROOT/custom_model_runner/requirements_dev.txt
+CMRUNNER_REQUIREMENT_PATH=$GIT_ROOT/custom_model_runner/requirements.txt
 
 # shellcheck disable=SC2218
 build_docker_image_with_cmrun tests/fixtures/cmrun_docker_env \

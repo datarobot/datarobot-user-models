@@ -447,7 +447,7 @@ class CMRunner:
         elif self.run_mode == RunMode.PERF_TEST:
             CMRunTests(self.options, self.run_mode).performance_test()
         elif self.run_mode == RunMode.VALIDATION:
-            CMRunTests(self.options, self.run_mode).validation_test()
+            CMRunTests(self.options, self.run_mode, self.target_type).validation_test()
         elif self.run_mode == RunMode.NEW:
             self._generate_template()
         elif self.run_mode == RunMode.PUSH:

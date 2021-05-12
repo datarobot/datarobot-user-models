@@ -35,6 +35,7 @@ from tests.drum.constants import (
     PYTORCH_MULTICLASS,
     R,
     R_ALL_PREDICT_STRUCTURED_HOOKS,
+    R_FAIL_CLASSIFICATION_VALIDATION_HOOKS,
     R_ALL_PREDICT_UNSTRUCTURED_HOOKS,
     R_FIT,
     R_UNSTRUCTURED,
@@ -352,6 +353,10 @@ _custom_filepaths = {
     R: (os.path.join(TESTS_FIXTURES_PATH, "custom.R"), "custom.R"),
     R_ALL_PREDICT_STRUCTURED_HOOKS: (
         os.path.join(TESTS_FIXTURES_PATH, "all_predict_structured_hooks_custom.R"),
+        "custom.R",
+    ),
+    R_FAIL_CLASSIFICATION_VALIDATION_HOOKS: (
+        os.path.join(TESTS_FIXTURES_PATH, "fail_classification_validation_custom.R"),
         "custom.R",
     ),
     R_ALL_PREDICT_UNSTRUCTURED_HOOKS: (
