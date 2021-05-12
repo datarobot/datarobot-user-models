@@ -794,47 +794,6 @@ class TestSchemaValidator:
             assert validator.validate_inputs(data)
 
     @pytest.mark.parametrize(
-        "value, sparse_ok, dense_ok",
-        [
-            (EricValues.FORBIDDEN, False, True),
-            (EricValues.SUPPORTED, True, True),
-            (EricValues.REQUIRED, True, False),
-        ],
-    )
-    def test_sparse_input(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
-        yaml_str = input_requirements_yaml(EricFields.SPARSE, EricConditions.EQUALS, [value])
-        schema_dict = load(yaml_str, get_type_schema_yaml_validator()).data
-        validator = SchemaValidator(schema_dict)
-
-        self._assert_validation(validator.validate_inputs, sparse_df, should_pass=sparse_ok)
-        self._assert_validation(validator.validate_inputs, dense_df, should_pass=dense_ok)
-
-    @pytest.mark.parametrize(
-        "value, sparse_ok, dense_ok",
-        [
-            (EricValues.NEVER, False, True),
-            (EricValues.DYNAMIC, True, True),
-            (EricValues.ALWAYS, True, False),
-            (EricValues.IDENTITY, False, True),
-        ],
-    )
-    def test_sparse_output(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
-        yaml_str = output_requirements_yaml(EricFields.SPARSE, EricConditions.EQUALS, [value])
-        schema_dict = load(yaml_str, get_type_schema_yaml_validator()).data
-        validator = SchemaValidator(schema_dict)
-
-        self._assert_validation(validator.validate_outputs, sparse_df, should_pass=sparse_ok)
-        self._assert_validation(validator.validate_outputs, dense_df, should_pass=dense_ok)
-
-    @staticmethod
-    def _assert_validation(validator_method, data_frame, should_pass):
-        if should_pass:
-            assert validator_method(data_frame)
-        else:
-            with pytest.raises(DrumSchemaValidationException):
-                validator_method(data_frame)
-
-    @pytest.mark.parametrize(
         "value, missing_ok", [(EricValues.FORBIDDEN, False), (EricValues.SUPPORTED, True)]
     )
     def test_missing_input(self, data, missing_data, value, missing_ok):
@@ -868,9 +827,89 @@ class TestSchemaValidator:
             with pytest.raises(DrumSchemaValidationException):
                 validator.validate_outputs(missing_data)
 
+    @pytest.mark.parametrize(
+        "value, sparse_ok, dense_ok",
+        [
+            (EricValues.FORBIDDEN, False, True),
+            (EricValues.SUPPORTED, True, True),
+            (EricValues.REQUIRED, True, False),
+        ],
+    )
+    def test_sparse_input(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
+        yaml_str = input_requirements_yaml(EricFields.SPARSE, EricConditions.EQUALS, [value])
+        schema_dict = load(yaml_str, get_type_schema_yaml_validator()).data
+        validator = SchemaValidator(schema_dict)
+
+        self._assert_validation(validator.validate_inputs, sparse_df, should_pass=sparse_ok)
+        self._assert_validation(validator.validate_inputs, dense_df, should_pass=dense_ok)
+
+    @pytest.mark.parametrize(
+        "value, sparse_ok, dense_ok",
+        [
+            (EricValues.NEVER, False, True),
+            (EricValues.DYNAMIC, True, True),
+            (EricValues.ALWAYS, True, False),
+            (EricValues.IDENTITY, False, True),
+        ],
+    )
+    def test_sparse_output(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
+        yaml_str = output_requirements_yaml(EricFields.SPARSE, EricConditions.EQUALS, [value])
+        schema_dict = load(yaml_str, get_type_schema_yaml_validator()).data
+        validator = SchemaValidator(schema_dict)
+
+        self._assert_validation(validator.validate_outputs, sparse_df, should_pass=sparse_ok)
+        self._assert_validation(validator.validate_outputs, dense_df, should_pass=dense_ok)
+
+    @pytest.mark.parametrize(
+        "value, sparse_ok, dense_ok",
+        [(EricValues.FORBIDDEN, False, True), (EricValues.REQUIRED, True, False),],
+    )
+    def test_multiple_input_requirements(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
+        yaml_str = input_requirements_yaml(EricFields.SPARSE, EricConditions.EQUALS, [value])
+        num_input = input_requirements_yaml(
+            EricFields.DATA_TYPES, EricConditions.EQUALS, [EricValues.NUM]
+        ).replace("input_requirements:\n", "")
+        random_output = output_requirements_yaml(
+            EricFields.NUMBER_OF_COLUMNS, EricConditions.EQUALS, [10000]
+        )
+        yaml_str += num_input
+        yaml_str += random_output
+        schema_dict = load(yaml_str, get_type_schema_yaml_validator()).data
+        validator = SchemaValidator(schema_dict)
+
+        self._assert_validation(validator.validate_inputs, sparse_df, should_pass=sparse_ok)
+        self._assert_validation(validator.validate_inputs, dense_df, should_pass=dense_ok)
+
+    @pytest.mark.parametrize(
+        "value, sparse_ok, dense_ok",
+        [(EricValues.NEVER, False, True), (EricValues.ALWAYS, True, False),],
+    )
+    def test_multiple_output_requirements(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
+        yaml_str = output_requirements_yaml(EricFields.SPARSE, EricConditions.EQUALS, [value])
+        num_output = output_requirements_yaml(
+            EricFields.DATA_TYPES, EricConditions.EQUALS, [EricValues.NUM]
+        ).replace("output_requirements:\n", "")
+        random_input = input_requirements_yaml(
+            EricFields.NUMBER_OF_COLUMNS, EricConditions.EQUALS, [10000]
+        )
+        yaml_str += num_output
+        yaml_str += random_input
+        schema_dict = load(yaml_str, get_type_schema_yaml_validator()).data
+        validator = SchemaValidator(schema_dict)
+
+        self._assert_validation(validator.validate_outputs, sparse_df, should_pass=sparse_ok)
+        self._assert_validation(validator.validate_outputs, dense_df, should_pass=dense_ok)
+
+    @staticmethod
+    def _assert_validation(validator_method, data_frame, should_pass):
+        if should_pass:
+            assert validator_method(data_frame)
+        else:
+            with pytest.raises(DrumSchemaValidationException):
+                validator_method(data_frame)
+
 
 class TestRevalidateTypeSchemaDataTypes:
-
     field = EricFields.DATA_TYPES
 
     @pytest.mark.parametrize("condition", EricConditions.non_numeric())
@@ -1074,7 +1113,6 @@ class TestRevalidateTypeSchemaContainsMissing:
 
 
 class TestRevalidateTypeSchemaNumberOfColumns:
-
     field = EricFields.NUMBER_OF_COLUMNS
 
     @pytest.mark.parametrize("condition", list(EricConditions))
