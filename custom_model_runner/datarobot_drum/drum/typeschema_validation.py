@@ -1,6 +1,9 @@
 import base64
 import logging
+from enum import auto, Enum
+from enum import Enum as PythonNativeEnum
 from io import BytesIO
+from typing import List
 
 from PIL import Image
 from strictyaml import Map, Optional, Seq, Int, Enum, Str
@@ -388,11 +391,14 @@ def revalidate_typeschema(type_schema):
     }
     if "input_requirements" in type_schema:
         for req in type_schema["input_requirements"]:
-            req.revalidate(input_validation[req.data["field"]])
+            field = EricFields.from_string(req.data["field"])
+            req.revalidate(field.to_input_requirments())
+            # req.revalidate(input_validation[req.data["field"]])
     if "output_requirements" in type_schema:
         for req in type_schema["output_requirements"]:
             print(req.data)
-            req.revalidate(output_validation[req.data["field"]])
+            field = EricFields.from_string(req.data["field"])
+            req.revalidate(field.to_output_requiremenst())
 
 
 class SchemaValidator:
@@ -457,3 +463,147 @@ class SchemaValidator:
                     "schema validation failed for {}:\n {}".format(step_label, errors)
                 )
             return False
+
+
+class EricConditions(PythonNativeEnum):
+    """All acceptable values for the 'condition' field."""
+
+    EQUALS = auto()
+    IN = auto()
+    NOT_EQUALS = auto()
+    NOT_IN = auto()
+    GREATER_THAN = auto()
+    LESS_THAN = auto()
+    NOT_GREATER_THAN = auto()
+    NOT_LESS_THAN = auto()
+
+    @classmethod
+    def non_numeric(cls) -> List['EricConditions']:
+        return [
+            cls.EQUALS,
+            cls.NOT_EQUALS,
+            cls.IN,
+            cls.NOT_IN,
+        ]
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class EricValues(PythonNativeEnum):
+    """All acceptable values for the 'value' field. """
+
+    NUM = auto()
+    TXT = auto()
+    CAT = auto()
+    IMG = auto()
+    DATE = auto()
+
+    FORBIDDEN = auto()
+    SUPPORTED = auto()
+    REQUIRED = auto()
+
+    NEVER = auto()
+    DYNAMIC = auto()
+    ALWAYS = auto()
+    IDENTITY = auto()
+
+    @classmethod
+    def data_values(cls) -> List['EricValues']:
+        return [
+            cls.NUM,
+            cls.TXT,
+            cls.IMG,
+            cls.DATE,
+            cls.CAT
+        ]
+
+    @classmethod
+    def input_values(cls) -> List['EricValues']:
+        return [
+            cls.FORBIDDEN,
+            cls.SUPPORTED,
+            cls.REQUIRED
+        ]
+
+    @classmethod
+    def output_values(cls) -> List['EricValues']:
+        return [
+            cls.NEVER,
+            cls.DYNAMIC,
+            cls.ALWAYS,
+            cls.IDENTITY
+        ]
+
+    def __str__(self) -> str:
+        return self.name
+
+
+class EricFields(PythonNativeEnum):
+    DATA_TYPES = auto()
+    SPARSE = auto()
+    NUMBER_OF_COLUMNS = auto()
+    CONTAINS_MISSING = auto()
+
+    def __str__(self) -> str:
+        return self.name.lower()
+
+
+    @classmethod
+    def from_string(cls, field: str) -> 'EricFields':
+        for el in list(cls):
+            if str(el) == field:
+                return el
+        raise ValueError(f"No field matches: {field!r}")
+
+    def conditions(self) -> List[EricConditions]:
+        conditions = {
+            EricFields.SPARSE: [EricConditions.EQUALS],
+            EricFields.DATA_TYPES: EricConditions.non_numeric(),
+            EricFields.NUMBER_OF_COLUMNS: list(EricConditions),
+            EricFields.CONTAINS_MISSING: [EricConditions.EQUALS]
+        }
+        return conditions[self]
+
+    def input_values(self) -> List[EricValues]:
+        values = {
+            EricFields.DATA_TYPES: EricValues.data_values(),
+            EricFields.SPARSE: EricValues.input_values(),
+            EricFields.NUMBER_OF_COLUMNS: [],
+            EricFields.CONTAINS_MISSING: [EricValues.FORBIDDEN, EricValues.SUPPORTED]
+        }
+        return values[self]
+
+    def output_values(self) -> List[EricValues]:
+        values = {
+            EricFields.DATA_TYPES: EricValues.data_values(),
+            EricFields.SPARSE: EricValues.output_values(),
+            EricFields.NUMBER_OF_COLUMNS: [],
+            EricFields.CONTAINS_MISSING:[EricValues.NEVER, EricValues.DYNAMIC]
+        }
+        return values[self]
+
+    def to_input_requirments(self):
+        return get_mapping(self, self.input_values())
+
+    def to_output_requiremenst(self):
+        return get_mapping(self, self.output_values())
+
+
+def get_mapping(field: EricFields, values: List[EricValues]):
+    base_value_enum = Enum((str(el) for el in values))
+    if field == EricFields.DATA_TYPES:
+        value_enum = base_value_enum | Seq(base_value_enum)
+    elif field == EricFields.NUMBER_OF_COLUMNS:
+        value_enum = Int() | Seq(Int())
+    else:
+        value_enum = base_value_enum
+
+    conditions = Enum((str(el) for el in field.conditions()))
+    return Map(
+        {
+            "field": Enum(str(field)),
+            "condition": conditions,
+            "value": value_enum
+        }
+    )
