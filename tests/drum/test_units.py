@@ -36,12 +36,7 @@ from datarobot_drum.drum.utils import StructuredInputReadUtils
 from datarobot_drum.drum.typeschema_validation import (
     get_type_schema_yaml_validator,
     revalidate_typeschema,
-    DataTypes,
-    NumColumns,
-    SparsityInput,
-    SparsityOutput,
-    InputContainsMissing,
-    OutputContainsMissing, EricConditions, EricValues, EricFields, SchemaValidator,
+    EricConditions, EricValues, EricFields, SchemaValidator,
 )
 
 
@@ -635,12 +630,42 @@ def get_yaml_dict(condition, field, values, top_requirements):
     return yaml_dict
 
 
+def get_data(dataset_name: str) -> pd.DataFrame:
+    tests_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "testdata"))
+    return pd.read_csv(os.path.join(tests_data_path, dataset_name))
+
+CATS_AND_DOGS = get_data("cats_dogs_small_training.csv")
+TEN_K_DIABETES = get_data("10k_diabetes.csv")
+IRIS_BINARY = get_data("iris_binary_training.csv")
+LENDING_CLUB = get_data("lending_club_reduced.csv")
+
+
+@pytest.fixture
+def lending_club():
+    return LENDING_CLUB.copy()
+
+
+@pytest.fixture
+def iris_binary():
+    return IRIS_BINARY.copy()
+
+
+@pytest.fixture
+def ten_k_diabetes():
+    return TEN_K_DIABETES.copy()
+
+
+@pytest.fixture
+def cats_and_dogs():
+    return CATS_AND_DOGS.copy()
+
+
 class TestSchemaValidator:
     tests_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "testdata"))
 
     @pytest.fixture
-    def data(self):
-        yield pd.read_csv(os.path.join(self.tests_data_path, "iris_binary_training.csv"))
+    def data(self, iris_binary):
+        yield iris_binary
 
     @pytest.fixture
     def missing_data(self, data):
@@ -663,57 +688,59 @@ class TestSchemaValidator:
             (
                     EricConditions.IN,
                     [EricValues.CAT, EricValues.NUM],
-                    "iris_binary_training.csv",
+                    "iris_binary",
                     "SepalLengthCm",
-                    "10k_diabetes.csv",
+                    "ten_k_diabetes",
                     "readmitted",
             ),
             (
                     EricConditions.EQUALS,
                     [EricValues.NUM],
-                    "iris_binary_training.csv",
+                    "iris_binary",
                     "Species",
-                    "10k_diabetes.csv",
+                    "ten_k_diabetes",
                     "readmitted",
             ),
             (
                     EricConditions.NOT_IN,
                     [EricValues.TXT],
-                    "iris_binary_training.csv",
+                    "iris_binary",
                     "SepalLengthCm",
-                    "10k_diabetes.csv",
+                    "ten_k_diabetes",
                     "readmitted",
             ),
             (
                     EricConditions.NOT_EQUALS,
                     [EricValues.CAT],
-                    "iris_binary_training.csv",
+                    "iris_binary",
                     "Species",
-                    "lending_club_reduced.csv",
+                    "lending_club",
                     "is_bad",
             ),
             (
                     EricConditions.EQUALS,
                     [EricValues.IMG],
-                    "cats_dogs_small_training.csv",
+                    "cats_and_dogs",
                     "class",
-                    "10k_diabetes.csv",
+                    "ten_k_diabetes",
                     "readmitted",
             ),
-        ],
+        ], ids=lambda x: str([str(el) for el in x]) if isinstance(x, list) else str(x)
     )
     def test_data_types(
-            self, condition, value, passing_dataset, passing_target, failing_dataset, failing_target
+            self, condition, value, passing_dataset, passing_target, failing_dataset, failing_target, request
     ):
         yaml_str = input_requirements_yaml(EricFields.DATA_TYPES, condition, value)
         schema_dict = load(yaml_str, get_type_schema_yaml_validator()).data
         validator = SchemaValidator(schema_dict)
 
-        good_data = pd.read_csv(os.path.join(self.tests_data_path, passing_dataset))
+        # good_data = pd.read_csv(os.path.join(self.tests_data_path, passing_dataset))
+        good_data = request.getfixturevalue(passing_dataset)
         good_data.drop(passing_target, inplace=True, axis=1)
         assert validator.validate_inputs(good_data)
 
-        bad_data = pd.read_csv(os.path.join(self.tests_data_path, failing_dataset))
+        # bad_data = pd.read_csv(os.path.join(self.tests_data_path, failing_dataset))
+        bad_data = request.getfixturevalue(failing_dataset)
         bad_data.drop(failing_target, inplace=True, axis=1)
         with pytest.raises(DrumSchemaValidationException):
             validator.validate_inputs(bad_data)
@@ -737,7 +764,7 @@ class TestSchemaValidator:
             (EricConditions.NOT_GREATER_THAN, [2], True),
             (EricConditions.NOT_LESS_THAN, [3], False),
             (EricConditions.NOT_LESS_THAN, [100], True),
-        ],
+        ], ids=lambda x: str(x)
     )
     def test_num_columns(self, data, condition, value, fail_expected):
         yaml_str = input_requirements_yaml(EricFields.NUMBER_OF_COLUMNS, condition, value)
@@ -749,231 +776,68 @@ class TestSchemaValidator:
         else:
             assert validator.validate_inputs(data)
 
-    # TODO start here!
     @pytest.mark.parametrize(
         "value, sparse_ok, dense_ok",
-        [("FORBIDDEN", False, True), ("SUPPORTED", True, True), ("REQUIRED", True, False)],
+        [(EricValues.FORBIDDEN, False, True), (EricValues.SUPPORTED, True, True), (EricValues.REQUIRED, True, False)],
     )
     def test_sparse_input(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
-        validator = SparsityInput("EQUALS", value)
-        self._check_sparsity_results(
-            sparse_ok,
-            dense_ok,
-            len(validator.validate(sparse_df)),
-            len(validator.validate(dense_df)),
-        )
+        yaml_str = input_requirements_yaml(EricFields.SPARSE, EricConditions.EQUALS, [value])
+        schema_dict = load(yaml_str, get_type_schema_yaml_validator()).data
+        validator = SchemaValidator(schema_dict)
+
+        self._assert_validation(validator.validate_inputs, sparse_df, should_pass=sparse_ok)
+        self._assert_validation(validator.validate_inputs, dense_df, should_pass=dense_ok)
 
     @pytest.mark.parametrize(
         "value, sparse_ok, dense_ok",
         [
-            ("NEVER", False, True),
-            ("DYNAMIC", True, True),
-            ("ALWAYS", True, False),
-            ("IDENTITY", False, True),
+            (EricValues.NEVER, False, True),
+            (EricValues.DYNAMIC, True, True),
+            (EricValues.ALWAYS, True, False),
+            (EricValues.IDENTITY, False, True),
         ],
     )
     def test_sparse_output(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
-        validator = SparsityOutput("EQUALS", value)
-        self._check_sparsity_results(
-            sparse_ok,
-            dense_ok,
-            len(validator.validate(sparse_df)),
-            len(validator.validate(dense_df)),
-        )
+        yaml_str = output_requirements_yaml(EricFields.SPARSE, EricConditions.EQUALS, [value])
+        schema_dict = load(yaml_str, get_type_schema_yaml_validator()).data
+        validator = SchemaValidator(schema_dict)
 
-    def _check_sparsity_results(self, sparse_ok, dense_ok, sparse_results, dense_results):
-        if sparse_ok:
-            assert sparse_results == 0
-        else:
-            assert sparse_results > 0
-        if dense_ok:
-            assert dense_results == 0
-        else:
-            assert dense_results > 0
+        self._assert_validation(validator.validate_outputs, sparse_df, should_pass=sparse_ok)
+        self._assert_validation(validator.validate_outputs, dense_df, should_pass=dense_ok)
 
-    @pytest.mark.parametrize("value, missing_ok", [["FORBIDDEN", False], ["SUPPORTED", True]])
+    @staticmethod
+    def _assert_validation(validator_method, data_frame, should_pass):
+        if should_pass:
+            assert validator_method(data_frame)
+        else:
+            with pytest.raises(DrumSchemaValidationException):
+                validator_method(data_frame)
+
+    @pytest.mark.parametrize("value, missing_ok", [(EricValues.FORBIDDEN, False), (EricValues.SUPPORTED, True)])
     def test_missing_input(self, data, missing_data, value, missing_ok):
-        validator = InputContainsMissing("EQUALS", value)
-        assert len(validator.validate(data)) == 0
-        if missing_ok:
-            assert len(validator.validate(missing_data)) == 0
-        else:
-            assert len(validator.validate(missing_data)) > 0
+        yaml_str = input_requirements_yaml(EricFields.CONTAINS_MISSING, EricConditions.EQUALS, [value])
+        schema_dict = load(yaml_str, get_type_schema_yaml_validator()).data
+        validator = SchemaValidator(schema_dict)
 
-    @pytest.mark.parametrize("value, missing_ok", [["NEVER", False], ["DYNAMIC", True]])
+        assert validator.validate_inputs(data)
+        if missing_ok:
+            assert validator.validate_inputs(missing_data)
+        else:
+            with pytest.raises(DrumSchemaValidationException):
+                validator.validate_inputs(missing_data)
+
+    @pytest.mark.parametrize("value, missing_ok", [(EricValues.NEVER, False), (EricValues.DYNAMIC, True)])
     def test_missing_output(self, data, missing_data, value, missing_ok):
-        validator = OutputContainsMissing("EQUALS", value)
-        assert len(validator.validate(data)) == 0
+        yaml_str = output_requirements_yaml(EricFields.CONTAINS_MISSING, EricConditions.EQUALS, [value])
+        schema_dict = load(yaml_str, get_type_schema_yaml_validator()).data
+        validator = SchemaValidator(schema_dict)
+
+        assert validator.validate_outputs(data)
         if missing_ok:
-            assert len(validator.validate(missing_data)) == 0
+            assert validator.validate_outputs(missing_data)
         else:
-            assert len(validator.validate(missing_data)) > 0
-
-class TestTypeSchemaValidation:
-    tests_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "testdata"))
-
-    @pytest.fixture
-    def data(self):
-        yield pd.read_csv(os.path.join(self.tests_data_path, "iris_binary_training.csv"))
-
-    @pytest.fixture
-    def missing_data(self, data):
-        df = data.copy(deep=True)
-        for col in df.columns:
-            df.loc[df.sample(frac=0.1).index, col] = pd.np.nan
-        yield df
-
-    @pytest.fixture
-    def sparse_df(self):
-        yield pd.DataFrame.sparse.from_spmatrix(scipy.sparse.eye(10))
-
-    @pytest.fixture
-    def dense_df(self):
-        yield pd.DataFrame(np.zeros((10, 10)))
-
-    @pytest.mark.parametrize(
-        "condition, value, passing_dataset, passing_target, failing_dataset, failing_target",
-        [
-            (
-                "IN",
-                ["CAT", "NUM"],
-                "iris_binary_training.csv",
-                "SepalLengthCm",
-                "10k_diabetes.csv",
-                "readmitted",
-            ),
-            (
-                "EQUALS",
-                "NUM",
-                "iris_binary_training.csv",
-                "Species",
-                "10k_diabetes.csv",
-                "readmitted",
-            ),
-            (
-                "NOT_IN",
-                "TXT",
-                "iris_binary_training.csv",
-                "SepalLengthCm",
-                "10k_diabetes.csv",
-                "readmitted",
-            ),
-            (
-                "NOT_EQUALS",
-                "CAT",
-                "iris_binary_training.csv",
-                "Species",
-                "lending_club_reduced.csv",
-                "is_bad",
-            ),
-            (
-                "EQUALS",
-                "IMG",
-                "cats_dogs_small_training.csv",
-                "class",
-                "10k_diabetes.csv",
-                "readmitted",
-            ),
-        ],
-    )
-    def test_data_types(
-        self, condition, value, passing_dataset, passing_target, failing_dataset, failing_target
-    ):
-        validator = DataTypes(condition, value)
-        good_data = pd.read_csv(os.path.join(self.tests_data_path, passing_dataset))
-        good_data.drop(passing_target, inplace=True, axis=1)
-        assert len(validator.validate(good_data)) == 0
-        bad_data = pd.read_csv(os.path.join(self.tests_data_path, failing_dataset))
-        bad_data.drop(failing_target, inplace=True, axis=1)
-        assert len(validator.validate(bad_data)) > 0
-
-    @pytest.mark.parametrize(
-        "condition, value, fail_expected",
-        [
-            ("EQUALS", 6, False),
-            ("EQUALS", 3, True),
-            ("IN", [2, 4, 6], False),
-            ("IN", [1, 2, 3], True),
-            ("LESS_THAN", 7, False),
-            ("LESS_THAN", 3, True),
-            ("GREATER_THAN", 4, False),
-            ("GREATER_THAN", 10, True),
-            ("NOT_EQUALS", 5, False),
-            ("NOT_EQUALS", 6, True),
-            ("NOT_IN", [1, 2, 3], False),
-            ("NOT_IN", [2, 4, 6], True),
-            ("NOT_GREATER_THAN", 6, False),
-            ("NOT_GREATER_THAN", 2, True),
-            ("NOT_LESS_THAN", 3, False),
-            ("NOT_LESS_THAN", 100, True),
-        ],
-    )
-    def test_num_columns(self, data, condition, value, fail_expected):
-        validator = NumColumns(condition, value)
-        errors = len(validator.validate(data))
-        if fail_expected:
-            assert errors > 0
-        else:
-            assert errors == 0
-
-    @pytest.mark.parametrize(
-        "value, sparse_ok, dense_ok",
-        [("FORBIDDEN", False, True), ("SUPPORTED", True, True), ("REQUIRED", True, False)],
-    )
-    def test_sparse_input(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
-        validator = SparsityInput("EQUALS", value)
-        self._check_sparsity_results(
-            sparse_ok,
-            dense_ok,
-            len(validator.validate(sparse_df)),
-            len(validator.validate(dense_df)),
-        )
-
-    @pytest.mark.parametrize(
-        "value, sparse_ok, dense_ok",
-        [
-            ("NEVER", False, True),
-            ("DYNAMIC", True, True),
-            ("ALWAYS", True, False),
-            ("IDENTITY", False, True),
-        ],
-    )
-    def test_sparse_output(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
-        validator = SparsityOutput("EQUALS", value)
-        self._check_sparsity_results(
-            sparse_ok,
-            dense_ok,
-            len(validator.validate(sparse_df)),
-            len(validator.validate(dense_df)),
-        )
-
-    def _check_sparsity_results(self, sparse_ok, dense_ok, sparse_results, dense_results):
-        if sparse_ok:
-            assert sparse_results == 0
-        else:
-            assert sparse_results > 0
-        if dense_ok:
-            assert dense_results == 0
-        else:
-            assert dense_results > 0
-
-    @pytest.mark.parametrize("value, missing_ok", [["FORBIDDEN", False], ["SUPPORTED", True]])
-    def test_missing_input(self, data, missing_data, value, missing_ok):
-        validator = InputContainsMissing("EQUALS", value)
-        assert len(validator.validate(data)) == 0
-        if missing_ok:
-            assert len(validator.validate(missing_data)) == 0
-        else:
-            assert len(validator.validate(missing_data)) > 0
-
-    @pytest.mark.parametrize("value, missing_ok", [["NEVER", False], ["DYNAMIC", True]])
-    def test_missing_output(self, data, missing_data, value, missing_ok):
-        validator = OutputContainsMissing("EQUALS", value)
-        assert len(validator.validate(data)) == 0
-        if missing_ok:
-            assert len(validator.validate(missing_data)) == 0
-        else:
-            assert len(validator.validate(missing_data)) > 0
+            with pytest.raises(DrumSchemaValidationException):
+                validator.validate_outputs(missing_data)
 
 
 class TestRevalidateTypeSchemaDataTypes:
