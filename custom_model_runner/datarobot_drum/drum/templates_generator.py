@@ -17,6 +17,7 @@ from datarobot_drum.drum.common import (
 MODEL_TEMPLATE_README = "MODEL_README_TEMPLATE.md.j2"
 MODEL_TEMPLATE_CUSTOM_PYTHON = "custom_python_template.py.j2"
 MODEL_TEMPLATE_CUSTOM_R = "custom_r_template.R.j2"
+MODEL_TEMPLATE_CUSTOM_JULIA = "custom_julia_template.jl.j2"
 
 
 class CMTemplateGenerator:
@@ -41,12 +42,17 @@ class CMTemplateGenerator:
                 "line_comment": "#",
                 "suffix": ".R",
             },
+            RunLanguage.JULIA: {
+                "model_template": MODEL_TEMPLATE_CUSTOM_JULIA,
+                "line_comment": "#",
+                "suffix": ".jl",
+            },
         }
 
     def generate(self):
         if self._template_type == TemplateType.MODEL:
             self._logger.debug("lang: {}".format(self._language))
-            if self._language in [RunLanguage.PYTHON, RunLanguage.R]:
+            if self._language in [RunLanguage.PYTHON, RunLanguage.R, RunLanguage.JULIA]:
                 self._generate_model_template()
             else:
                 raise NotImplementedError(

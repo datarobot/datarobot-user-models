@@ -36,6 +36,14 @@ echo
 pip install "${DRUM_WHEEL}[R]"
 popd
 
+echo "--> julia check "
+echo "--> creating julia system image"
+julia /opt/julia/sysim.jl
+echo "--> checking location of julia system image is A-OK"
+ls -l /opt/julia
+julia -J$JULIA_SYS_IMAGE -e "using Pkg; Pkg.activate(ENV[\"JULIA_PROJECT\"]); using PyCall; @info PyCall.python; @info PyCall.libpython; @info \"jl system image check success! \U0001F37E\""
+echo "--> julia check complete"
+
 
 # Change every environment Dockerfile to install freshly built DRUM wheel
 WITH_R=""

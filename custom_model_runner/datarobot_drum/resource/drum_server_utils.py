@@ -138,7 +138,7 @@ class DrumServerRun:
         time.sleep(0.5)
 
         _wait_for_server(
-            self.url_server_address, timeout=10, process_holder=self._process_object_holder
+            self.url_server_address, timeout=30, process_holder=self._process_object_holder
         )
 
         return self

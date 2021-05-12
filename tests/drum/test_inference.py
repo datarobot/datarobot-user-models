@@ -62,6 +62,8 @@ from .constants import (
     SPARSE,
     TRANSFORM,
     XGB,
+    JULIA,
+    MLJ,
 )
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
 from datarobot_drum.resource.utils import (
@@ -125,6 +127,9 @@ class TestInference:
             (PYPMML, BINARY, NO_CUSTOM, None, False),
             (PYPMML, MULTICLASS, NO_CUSTOM, None, False),
             (PYPMML, MULTICLASS_BINARY, NO_CUSTOM, None, False),
+            (MLJ, REGRESSION, JULIA, None, False),
+            (MLJ, BINARY, JULIA, None, False),
+            (MLJ, MULTICLASS, JULIA, None, False),
         ],
     )
     def test_custom_models_with_drum(
@@ -203,6 +208,9 @@ class TestInference:
             (PYPMML, BINARY, NO_CUSTOM, None),
             (PYPMML, MULTICLASS, NO_CUSTOM, None),
             (PYPMML, MULTICLASS_BINARY, NO_CUSTOM, None),
+            (MLJ, BINARY, JULIA, None),
+            (MLJ, REGRESSION, JULIA, None),
+            (MLJ, MULTICLASS, JULIA, None),
         ],
     )
     @pytest.mark.parametrize("pass_args_as_env_vars", [False])
