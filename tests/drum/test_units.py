@@ -745,7 +745,6 @@ class TestSchemaValidator:
         revalidate_typeschema(schema)
         return schema.data
 
-
     @pytest.mark.parametrize(
         "condition, value, passing_dataset, passing_target, failing_dataset, failing_target",
         [
@@ -816,6 +815,13 @@ class TestSchemaValidator:
         bad_data.drop(failing_target, inplace=True, axis=1)
         with pytest.raises(DrumSchemaValidationException):
             validator.validate_inputs(bad_data)
+
+    @pytest.mark.parametrize("condition", [EricConditions.EQUALS, EricConditions.NOT_EQUALS])
+    def test_data_types_raises_error_for_bad_equals_and_not_equals(self, condition, iris_binary):
+        yaml_str = input_requirements_yaml(EricFields.DATA_TYPES, condition, [EricValues.NUM, EricValues.CAT])
+        schema_dict = self.yaml_str_to_schema_dict(yaml_str)
+        with pytest.raises(DrumSchemaValidationException):
+            SchemaValidator(schema_dict)
 
     @pytest.mark.parametrize(
         "condition, value, fail_expected",
