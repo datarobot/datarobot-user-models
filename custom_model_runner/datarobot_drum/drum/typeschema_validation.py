@@ -222,7 +222,6 @@ class NumColumns(BaseValidator):
             self.values = [values]
         else:
             self.values = values
-        self.values = [int(value) for value in self.values]
 
     def validate(self, dataframe):
         errors = []
@@ -332,7 +331,8 @@ def revalidate_typeschema(type_schema: YAML):
 
     for input_req in type_schema.get("input_requirements", []):
         field = EricFields.from_string(input_req.data["field"])
-        input_req.revalidate(field.to_input_requirements())
+        requirements = field.to_input_requirements()
+        input_req.revalidate(requirements)
 
     for output_req in type_schema.get("output_requirements", []):
         field = EricFields.from_string(output_req.data["field"])
@@ -508,7 +508,7 @@ class EricFields(PythonNativeEnum):
 
 
 def get_mapping(field: EricFields, values: List[EricValues]):
-    base_value_enum = Enum((str(el) for el in values))
+    base_value_enum = Enum([str(el) for el in values])
     if field == EricFields.DATA_TYPES:
         value_enum = base_value_enum | Seq(base_value_enum)
     elif field == EricFields.NUMBER_OF_COLUMNS:

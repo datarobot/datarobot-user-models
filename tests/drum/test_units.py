@@ -1,6 +1,7 @@
 import json
 import os
 import tempfile
+from itertools import permutations
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
@@ -352,6 +353,51 @@ def test_yaml_metadata_missing_fields(tmp_path, config_yaml, request, test_case_
         read_model_metadata_yaml(tmp_path)
 
 
+def test_read_model_metadata_properly_casts_typeschema(tmp_path, training_metadata_yaml):
+    config_yaml = training_metadata_yaml + dedent(
+        """
+        typeSchema:
+           input_requirements:
+           - field: number_of_columns
+             condition: IN
+             value:
+               - 1
+               - 2
+           - field: data_types
+             condition: EQUALS
+             value:
+               - NUM
+               - TXT
+           output_requirements:
+           - field: number_of_columns
+             condition: IN
+             value: 2
+           - field: data_types
+             condition: EQUALS
+             value: NUM
+        """
+    )
+    with open(os.path.join(tmp_path, MODEL_CONFIG_FILENAME), mode="w") as f:
+        f.write(config_yaml)
+
+    yaml_conf = read_model_metadata_yaml(tmp_path)
+    output_reqs = yaml_conf['typeSchema']['output_requirements']
+    input_reqs = yaml_conf['typeSchema']['input_requirements']
+
+    value_key = 'value'
+    expected_as_int_list = next((el for el in input_reqs if el['field'] == 'number_of_columns')).get(value_key)
+    expected_as_str_list = next((el for el in input_reqs if el['field'] == 'data_types')).get(value_key)
+    expected_as_int = next((el for el in output_reqs if el['field'] == 'number_of_columns')).get(value_key)
+    expected_as_str = next((el for el in output_reqs if el['field'] == 'data_types')).get(value_key)
+
+    assert all(isinstance(el, int) for el in expected_as_int_list)
+    assert all(isinstance(el, str) for el in expected_as_str_list)
+    assert isinstance(expected_as_str_list, list)
+
+    assert isinstance(expected_as_int, int)
+    assert isinstance(expected_as_str, str)
+
+
 def version_mocks():
     responses.add(
         responses.GET,
@@ -690,6 +736,16 @@ class TestSchemaValidator:
     def dense_df(self):
         yield pd.DataFrame(np.zeros((10, 10)))
 
+    @staticmethod
+    def yaml_str_to_schema_dict(yaml_str: str) -> dict:
+        """this emulates how we cast a yaml to a dict for validation in
+        `datarobot_drum.drum.common.read_model_metadata_yaml` and these assumptions
+        are tested in: `tests.drum.test_units.test_read_model_metadata_properly_casts_typeschema` """
+        schema = load(yaml_str, get_type_schema_yaml_validator())
+        revalidate_typeschema(schema)
+        return schema.data
+
+
     @pytest.mark.parametrize(
         "condition, value, passing_dataset, passing_target, failing_dataset, failing_target",
         [
@@ -747,7 +803,7 @@ class TestSchemaValidator:
         request,
     ):
         yaml_str = input_requirements_yaml(EricFields.DATA_TYPES, condition, value)
-        schema_dict = load(yaml_str, get_type_schema_yaml_validator()).data
+        schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
 
         # good_data = pd.read_csv(os.path.join(self.tests_data_path, passing_dataset))
@@ -785,7 +841,7 @@ class TestSchemaValidator:
     )
     def test_num_columns(self, data, condition, value, fail_expected):
         yaml_str = input_requirements_yaml(EricFields.NUMBER_OF_COLUMNS, condition, value)
-        schema_dict = load(yaml_str, get_type_schema_yaml_validator()).data
+        schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
         if fail_expected:
             with pytest.raises(DrumSchemaValidationException):
@@ -800,7 +856,7 @@ class TestSchemaValidator:
         yaml_str = input_requirements_yaml(
             EricFields.CONTAINS_MISSING, EricConditions.EQUALS, [value]
         )
-        schema_dict = load(yaml_str, get_type_schema_yaml_validator()).data
+        schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
 
         assert validator.validate_inputs(data)
@@ -817,7 +873,7 @@ class TestSchemaValidator:
         yaml_str = output_requirements_yaml(
             EricFields.CONTAINS_MISSING, EricConditions.EQUALS, [value]
         )
-        schema_dict = load(yaml_str, get_type_schema_yaml_validator()).data
+        schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
 
         assert validator.validate_outputs(data)
@@ -837,7 +893,7 @@ class TestSchemaValidator:
     )
     def test_sparse_input(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
         yaml_str = input_requirements_yaml(EricFields.SPARSE, EricConditions.EQUALS, [value])
-        schema_dict = load(yaml_str, get_type_schema_yaml_validator()).data
+        schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
 
         self._assert_validation(validator.validate_inputs, sparse_df, should_pass=sparse_ok)
@@ -854,7 +910,7 @@ class TestSchemaValidator:
     )
     def test_sparse_output(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
         yaml_str = output_requirements_yaml(EricFields.SPARSE, EricConditions.EQUALS, [value])
-        schema_dict = load(yaml_str, get_type_schema_yaml_validator()).data
+        schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
 
         self._assert_validation(validator.validate_outputs, sparse_df, should_pass=sparse_ok)
@@ -874,7 +930,7 @@ class TestSchemaValidator:
         )
         yaml_str += num_input
         yaml_str += random_output
-        schema_dict = load(yaml_str, get_type_schema_yaml_validator()).data
+        schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
 
         self._assert_validation(validator.validate_inputs, sparse_df, should_pass=sparse_ok)
@@ -894,7 +950,7 @@ class TestSchemaValidator:
         )
         yaml_str += num_output
         yaml_str += random_input
-        schema_dict = load(yaml_str, get_type_schema_yaml_validator()).data
+        schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
 
         self._assert_validation(validator.validate_outputs, sparse_df, should_pass=sparse_ok)
@@ -955,6 +1011,25 @@ class TestRevalidateTypeSchemaDataTypes:
             parsed_yaml = load(data_type_str, get_type_schema_yaml_validator())
             with pytest.raises(YAMLValidationError):
                 revalidate_typeschema(parsed_yaml)
+
+    def test_datatypes_multiple_values(self):
+        condition = EricConditions.IN
+        values = EricValues.data_values()
+        input_data_type_str = input_requirements_yaml(self.field, condition, values)
+        output_data_type_str = output_requirements_yaml(self.field, condition, values)
+
+        for data_type_str in (input_data_type_str, output_data_type_str):
+            parsed_yaml = load(data_type_str, get_type_schema_yaml_validator())
+            revalidate_typeschema(parsed_yaml)
+
+    @pytest.mark.parametrize("permutation", [
+        [EricValues.CAT, EricValues.NUM],
+        [EricValues.NUM, EricValues.CAT]
+    ], ids=lambda x: str([str(el) for el in x]))
+    def test_regression_test_datatypes_multi_values(self, permutation):
+        corner_case = input_requirements_yaml(EricFields.DATA_TYPES, EricConditions.IN, permutation)
+        parsed_yaml = load(corner_case, get_type_schema_yaml_validator())
+        revalidate_typeschema(parsed_yaml)
 
     def test_datatypes_mix_allowed_and_unallowed_values(self):
         values = [EricValues.NUM, EricValues.REQUIRED]
@@ -1134,6 +1209,24 @@ class TestRevalidateTypeSchemaNumberOfColumns:
         parsed_yaml = load(yaml_str, get_type_schema_yaml_validator())
         with pytest.raises(YAMLValidationError):
             revalidate_typeschema(parsed_yaml)
+
+    def test_revalidate_typescehma_mutates_yaml_num_columns_to_int(self):
+        yaml_single_int = input_requirements_yaml(self.field, EricConditions.EQUALS, [1])
+        yaml_int_list = input_requirements_yaml(self.field, EricConditions.EQUALS, [1, 2])
+        parsed_single_int = load(yaml_single_int, get_type_schema_yaml_validator())
+        parsed_int_list = load(yaml_int_list, get_type_schema_yaml_validator())
+
+        def get_value(yaml):
+            return yaml['input_requirements'][0]['value'].data
+
+        assert isinstance(get_value(parsed_single_int), str)
+        assert isinstance(get_value(parsed_int_list)[0], str)
+
+        revalidate_typeschema(parsed_single_int)
+        revalidate_typeschema(parsed_int_list)
+
+        assert isinstance(get_value(parsed_single_int), int)
+        assert isinstance(get_value(parsed_int_list)[0], int)
 
 
 class TestRevalidateTypeSchemaMixedCases:
