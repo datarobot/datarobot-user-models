@@ -4,7 +4,8 @@ import logging
 from enum import auto, Enum
 from enum import Enum as PythonNativeEnum
 from io import BytesIO
-from typing import List, Type, TypeVar, Any
+import operator
+from typing import List, Type, TypeVar, Union
 
 from PIL import Image
 from strictyaml import Map, Optional, Seq, Int, Enum, Str, YAML
@@ -16,8 +17,8 @@ from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 logger = logging.getLogger("drum." + __name__)
 
 
+T = TypeVar("T")
 
-T = TypeVar('T')
 
 class BaseEnum(PythonNativeEnum):
     def __str__(self) -> str:
@@ -29,7 +30,6 @@ class BaseEnum(PythonNativeEnum):
             if str(el) == enum_str:
                 return el
         raise ValueError(f"No enum value matches: {enum_str!r}")
-
 
 
 class EricConditions(BaseEnum):
@@ -53,6 +53,16 @@ class EricConditions(BaseEnum):
             cls.NOT_IN,
         ]
 
+    @classmethod
+    def single_value_conditions(cls) -> List["EricConditions"]:
+        return [
+            cls.EQUALS,
+            cls.NOT_EQUALS,
+            cls.GREATER_THAN,
+            cls.NOT_GREATER_THAN,
+            cls.LESS_THAN,
+            cls.NOT_LESS_THAN,
+        ]
 
 
 class EricValues(BaseEnum):
@@ -84,7 +94,6 @@ class EricValues(BaseEnum):
     @classmethod
     def output_values(cls) -> List["EricValues"]:
         return [cls.NEVER, cls.DYNAMIC, cls.ALWAYS, cls.IDENTITY]
-
 
 
 class EricFields(BaseEnum):
@@ -153,9 +162,19 @@ def get_mapping(field: EricFields, values: List[EricValues]):
 
 
 class BaseValidator(ABC):
-    @abstractmethod
-    def __init__(self, condition: EricConditions, values: List[Any]):
-        raise NotImplementedError
+    def __init__(self, condition: EricConditions, values: List[Union[str, int]]):
+        if len(values) > 1 and condition in EricConditions.single_value_conditions():
+            raise DrumSchemaValidationException(
+                f"{condition} only accepts a single value for: {values}"
+            )
+
+        def convert_value(value):
+            if isinstance(value, int):
+                return value
+            return EricValues.from_string(value)
+
+        self.condition = condition
+        self.values = [convert_value(value) for value in values]
 
     @abstractmethod
     def validate(self, dataframe: pd.DataFrame):
@@ -165,12 +184,8 @@ class BaseValidator(ABC):
 class DataTypes(BaseValidator):
     """Validation related to data types.  This is common between input and output."""
 
-    def __init__(self, condition: EricConditions, values: List[Any]):
-        self.values = [EricValues.from_string(el) for el in values]
-        self.condition = condition
-        if self.condition in (EricConditions.EQUALS, EricConditions.NOT_EQUALS):
-            if len(self.values) > 1:
-                raise (DrumSchemaValidationException("Multiple values not supported, use EQUALS/NOT_EQUALS instead."))
+    def __init__(self, condition, values):
+        super(DataTypes, self).__init__(condition, values)
 
     @staticmethod
     def is_text(x):
@@ -196,6 +211,7 @@ class DataTypes(BaseValidator):
     def is_img(x):
         def convert(data):
             return Image.open(BytesIO(base64.b64decode(data)))
+
         try:
             x.apply(convert)
             return True
@@ -268,10 +284,8 @@ class DataTypes(BaseValidator):
 
 
 class Sparsity(BaseValidator):
-
-    def __init__(self, condition: EricConditions, values: List[Any]):
-        self.condition = condition
-        self.values = EricValues.from_string(values[0])
+    def __init__(self, condition, values):
+        super(Sparsity, self).__init__(condition, values)
 
     def validate(self, dataframe):
 
@@ -283,123 +297,75 @@ class Sparsity(BaseValidator):
         dense_input_allowed_values = [EricValues.FORBIDDEN, EricValues.SUPPORTED]
         dense_output_allowed_values = [EricValues.NEVER, EricValues.DYNAMIC, EricValues.IDENTITY]
 
-        if self.values in EricValues.input_values():
+        value = self.values[0]
+
+        if value in EricValues.input_values():
             io_type = "input"
         else:
             io_type = "output"
 
-        if (
-            is_sparse
-            and self.values not in sparse_output_allowed_values + sparse_input_allowed_values
-        ):
+        if is_sparse and value not in sparse_output_allowed_values + sparse_input_allowed_values:
             return [
-                f"Sparse {io_type} data found, however value is set to {self.values}, expecting dense"
+                f"Sparse {io_type} data found, however value is set to {value}, expecting dense"
             ]
         elif (
-            not is_sparse
-            and self.values not in dense_output_allowed_values + dense_input_allowed_values
+            not is_sparse and value not in dense_output_allowed_values + dense_input_allowed_values
         ):
             return [
-                f"Dense {io_type} data found, however value is set to {self.values}, expecting sparse"
+                f"Dense {io_type} data found, however value is set to {value}, expecting sparse"
             ]
         else:
             return []
 
 
-
 class NumColumns(BaseValidator):
-    def __init__(self, condition: EricConditions, values: List[Any]):
-        self.condition = condition
-        self.values = values
+    def __init__(self, condition, values):
+        super(NumColumns, self).__init__(condition, values)
 
     def validate(self, dataframe):
         errors = []
         n_columns = len(dataframe.columns)
-        if self.condition == EricConditions.EQUALS:
-            if len(self.values) > 1:
-                errors.append("Num columns error, only one value can be accepted for EQUALS")
-            elif n_columns != self.values[0]:
-                errors.append(
-                    "Num columns error, found {} but expected {} columns".format(
-                        n_columns, self.values[0]
-                    )
-                )
-        elif self.condition == EricConditions.IN:
-            if not any([n_columns == value for value in self.values]):
-                errors.append(
-                    "Num columns error, found {} but expected number of columns to be in {}".format(
-                        n_columns, self.values
-                    )
-                )
-        elif self.condition == EricConditions.NOT_EQUALS:
-            if len(self.values) > 1:
-                errors.append("Num columns error, only one value can be accepted for EQUALS")
-            elif n_columns == self.values[0]:
-                errors.append(
-                    "Num columns error, found {} columns, which is not supported".format(n_columns)
-                )
-        elif self.condition == EricConditions.NOT_IN:
-            if any([n_columns == value for value in self.values]):
-                errors.append(
-                    "Num columns error, found {} columns, which is not supported".format(n_columns)
-                )
-        elif self.condition == EricConditions.GREATER_THAN:
-            if len(self.values) > 1:
-                errors.append("Num columns error, only one value can be accepted for EQUALS")
-            elif n_columns <= self.values[0]:
-                errors.append(
-                    "Num columns error, found {} columns, but expected greater than {}".format(
-                        n_columns, self.values[0]
-                    )
-                )
-        elif self.condition == EricConditions.NOT_GREATER_THAN:
-            if len(self.values) > 1:
-                errors.append("Num columns error, only one value can be accepted for EQUALS")
-            elif n_columns > self.values[0]:
-                errors.append(
-                    "Num columns error, found {} columns, but expected greater than {}".format(
-                        n_columns, self.values[0]
-                    )
-                )
-        elif self.condition == EricConditions.LESS_THAN:
-            if len(self.values) > 1:
-                errors.append("Num columns error, only one value can be accepted for EQUALS")
-            elif n_columns >= self.values[0]:
-                errors.append(
-                    "Num columns error, found {} columns but expected less than {}".format(
-                        n_columns, self.values[0]
-                    )
-                )
-        elif self.condition == EricConditions.NOT_LESS_THAN:
-            if len(self.values) > 1:
-                errors.append("Num columns error, only one value can be accepted for EQUALS")
-            elif n_columns < self.values[0]:
-                errors.append(
-                    "Num columns error, found {} columns but expected less than {}".format(
-                        n_columns, self.values[0]
-                    )
-                )
-        else:
-            errors.append("Num columns error, unrecognized condition {}".format(self.condition))
-        return errors
+
+        conditions_map = {
+            EricConditions.EQUALS: operator.eq,
+            EricConditions.NOT_EQUALS: operator.ne,
+            EricConditions.IN: lambda a, b: a in b,
+            EricConditions.NOT_IN: lambda a, b: a not in b,
+            EricConditions.GREATER_THAN: operator.gt,
+            EricConditions.NOT_GREATER_THAN: operator.le,
+            EricConditions.LESS_THAN: operator.lt,
+            EricConditions.NOT_LESS_THAN: operator.ge,
+        }
+
+        test_value = self.values
+        if self.condition in EricConditions.single_value_conditions():
+            test_value = self.values[0]
+
+        passes = conditions_map[self.condition](n_columns, test_value)
+        if not passes:
+            return [
+                f"Num columns error, {n_columns} did not satisfy: {self.condition} {test_value}"
+            ]
+        return []
 
 
 class ContainsMissing(BaseValidator):
-    def __init__(self, condition: EricConditions, values: List[Any]):
-        self.condition = condition
-        self.values = EricValues.from_string(values[0])
+    def __init__(self, condition, values):
+        super(ContainsMissing, self).__init__(condition, values)
 
     def validate(self, dataframe):
         missing_output_disallowed = EricValues.NEVER
         missing_input_disallowed = EricValues.FORBIDDEN
         any_missing = dataframe.isna().any().any()
 
-        if self.values in EricValues.input_values():
+        value = self.values[0]
+
+        if value in EricValues.input_values():
             io_type = "Input"
         else:
             io_type = "Output"
 
-        if any_missing and self.values in [missing_output_disallowed, missing_input_disallowed]:
+        if any_missing and value in [missing_output_disallowed, missing_input_disallowed]:
             return [f"{io_type} contains missing values, the model does not support missing."]
         return []
 
@@ -489,6 +455,3 @@ class SchemaValidator:
                     "schema validation failed for {}:\n {}".format(step_label, errors)
                 )
             return False
-
-
-

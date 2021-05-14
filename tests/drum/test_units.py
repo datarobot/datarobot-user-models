@@ -381,14 +381,20 @@ def test_read_model_metadata_properly_casts_typeschema(tmp_path, training_metada
         f.write(config_yaml)
 
     yaml_conf = read_model_metadata_yaml(tmp_path)
-    output_reqs = yaml_conf['typeSchema']['output_requirements']
-    input_reqs = yaml_conf['typeSchema']['input_requirements']
+    output_reqs = yaml_conf["typeSchema"]["output_requirements"]
+    input_reqs = yaml_conf["typeSchema"]["input_requirements"]
 
-    value_key = 'value'
-    expected_as_int_list = next((el for el in input_reqs if el['field'] == 'number_of_columns')).get(value_key)
-    expected_as_str_list = next((el for el in input_reqs if el['field'] == 'data_types')).get(value_key)
-    expected_as_int = next((el for el in output_reqs if el['field'] == 'number_of_columns')).get(value_key)
-    expected_as_str = next((el for el in output_reqs if el['field'] == 'data_types')).get(value_key)
+    value_key = "value"
+    expected_as_int_list = next(
+        (el for el in input_reqs if el["field"] == "number_of_columns")
+    ).get(value_key)
+    expected_as_str_list = next((el for el in input_reqs if el["field"] == "data_types")).get(
+        value_key
+    )
+    expected_as_int = next((el for el in output_reqs if el["field"] == "number_of_columns")).get(
+        value_key
+    )
+    expected_as_str = next((el for el in output_reqs if el["field"] == "data_types")).get(value_key)
 
     assert all(isinstance(el, int) for el in expected_as_int_list)
     assert all(isinstance(el, str) for el in expected_as_str_list)
@@ -816,9 +822,37 @@ class TestSchemaValidator:
         with pytest.raises(DrumSchemaValidationException):
             validator.validate_inputs(bad_data)
 
-    @pytest.mark.parametrize("condition", [EricConditions.EQUALS, EricConditions.NOT_EQUALS])
-    def test_data_types_raises_error_for_bad_equals_and_not_equals(self, condition, iris_binary):
-        yaml_str = input_requirements_yaml(EricFields.DATA_TYPES, condition, [EricValues.NUM, EricValues.CAT])
+    def test_data_types_raises_error_if_all_type_in_in_are_not_present(self, iris_binary):
+
+        # TODO is this really correct behavior? if the dataset is missing any one
+        #  of the data types then it's wrong?
+        condition = EricConditions.IN
+        value = EricValues.data_values()
+
+        yaml_str = input_requirements_yaml(EricFields.DATA_TYPES, condition, value)
+        schema_dict = self.yaml_str_to_schema_dict(yaml_str)
+        validator = SchemaValidator(schema_dict)
+
+        with pytest.raises(DrumSchemaValidationException):
+            validator.validate_inputs(iris_binary)
+
+    @pytest.mark.parametrize(
+        "single_value_condition",
+        [
+            EricConditions.EQUALS,
+            EricConditions.NOT_EQUALS,
+            EricConditions.GREATER_THAN,
+            EricConditions.NOT_GREATER_THAN,
+            EricConditions.LESS_THAN,
+            EricConditions.NOT_LESS_THAN,
+        ],
+    )
+    def test_instantiating_validator_raises_error_for_too_many_values(
+        self, single_value_condition, iris_binary
+    ):
+        yaml_str = input_requirements_yaml(
+            EricFields.NUMBER_OF_COLUMNS, single_value_condition, [1, 2]
+        )
         schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         with pytest.raises(DrumSchemaValidationException):
             SchemaValidator(schema_dict)
@@ -1028,10 +1062,11 @@ class TestRevalidateTypeSchemaDataTypes:
             parsed_yaml = load(data_type_str, get_type_schema_yaml_validator())
             revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize("permutation", [
-        [EricValues.CAT, EricValues.NUM],
-        [EricValues.NUM, EricValues.CAT]
-    ], ids=lambda x: str([str(el) for el in x]))
+    @pytest.mark.parametrize(
+        "permutation",
+        [[EricValues.CAT, EricValues.NUM], [EricValues.NUM, EricValues.CAT]],
+        ids=lambda x: str([str(el) for el in x]),
+    )
     def test_regression_test_datatypes_multi_values(self, permutation):
         corner_case = input_requirements_yaml(EricFields.DATA_TYPES, EricConditions.IN, permutation)
         parsed_yaml = load(corner_case, get_type_schema_yaml_validator())
@@ -1223,7 +1258,7 @@ class TestRevalidateTypeSchemaNumberOfColumns:
         parsed_int_list = load(yaml_int_list, get_type_schema_yaml_validator())
 
         def get_value(yaml):
-            return yaml['input_requirements'][0]['value'].data
+            return yaml["input_requirements"][0]["value"].data
 
         assert isinstance(get_value(parsed_single_int), str)
         assert isinstance(get_value(parsed_int_list)[0], str)
