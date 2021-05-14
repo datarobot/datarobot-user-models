@@ -37,9 +37,9 @@ from datarobot_drum.drum.utils import StructuredInputReadUtils
 from datarobot_drum.drum.typeschema_validation import (
     get_type_schema_yaml_validator,
     revalidate_typeschema,
-    EricConditions,
-    EricValues,
-    EricFields,
+    Conditions,
+    Values,
+    Fields,
     SchemaValidator,
 )
 
@@ -660,14 +660,14 @@ class TestJavaPredictor:
 
 
 def input_requirements_yaml(
-    field: EricFields, condition: EricConditions, values: List[Union[int, EricValues]]
+    field: Fields, condition: Conditions, values: List[Union[int, Values]]
 ) -> str:
     yaml_dict = get_yaml_dict(condition, field, values, top_requirements="input_requirements")
     return yaml.dump(yaml_dict)
 
 
 def output_requirements_yaml(
-    field: EricFields, condition: EricConditions, values: List[Union[int, EricValues]]
+    field: Fields, condition: Conditions, values: List[Union[int, Values]]
 ) -> str:
     yaml_dict = get_yaml_dict(condition, field, values, top_requirements="output_requirements")
     return yaml.dump(yaml_dict)
@@ -675,7 +675,7 @@ def output_requirements_yaml(
 
 def get_yaml_dict(condition, field, values, top_requirements) -> dict:
     def _get_val(value):
-        if isinstance(value, EricValues):
+        if isinstance(value, Values):
             return str(value)
         return value
 
@@ -755,40 +755,40 @@ class TestSchemaValidator:
         "condition, value, passing_dataset, passing_target, failing_dataset, failing_target",
         [
             (
-                EricConditions.IN,
-                [EricValues.CAT, EricValues.NUM],
+                Conditions.IN,
+                [Values.CAT, Values.NUM],
                 "iris_binary",
                 "SepalLengthCm",
                 "ten_k_diabetes",
                 "readmitted",
             ),
             (
-                EricConditions.EQUALS,
-                [EricValues.NUM],
+                Conditions.EQUALS,
+                [Values.NUM],
                 "iris_binary",
                 "Species",
                 "ten_k_diabetes",
                 "readmitted",
             ),
             (
-                EricConditions.NOT_IN,
-                [EricValues.TXT],
+                Conditions.NOT_IN,
+                [Values.TXT],
                 "iris_binary",
                 "SepalLengthCm",
                 "ten_k_diabetes",
                 "readmitted",
             ),
             (
-                EricConditions.NOT_EQUALS,
-                [EricValues.CAT],
+                Conditions.NOT_EQUALS,
+                [Values.CAT],
                 "iris_binary",
                 "Species",
                 "lending_club",
                 "is_bad",
             ),
             (
-                EricConditions.EQUALS,
-                [EricValues.IMG],
+                Conditions.EQUALS,
+                [Values.IMG],
                 "cats_and_dogs",
                 "class",
                 "ten_k_diabetes",
@@ -807,7 +807,7 @@ class TestSchemaValidator:
         failing_target,
         request,
     ):
-        yaml_str = input_requirements_yaml(EricFields.DATA_TYPES, condition, value)
+        yaml_str = input_requirements_yaml(Fields.DATA_TYPES, condition, value)
         schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
 
@@ -826,10 +826,10 @@ class TestSchemaValidator:
 
         # TODO is this really correct behavior? if the dataset is missing any one
         #  of the data types then it's wrong?
-        condition = EricConditions.IN
-        value = EricValues.data_values()
+        condition = Conditions.IN
+        value = Values.data_values()
 
-        yaml_str = input_requirements_yaml(EricFields.DATA_TYPES, condition, value)
+        yaml_str = input_requirements_yaml(Fields.DATA_TYPES, condition, value)
         schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
 
@@ -839,20 +839,18 @@ class TestSchemaValidator:
     @pytest.mark.parametrize(
         "single_value_condition",
         [
-            EricConditions.EQUALS,
-            EricConditions.NOT_EQUALS,
-            EricConditions.GREATER_THAN,
-            EricConditions.NOT_GREATER_THAN,
-            EricConditions.LESS_THAN,
-            EricConditions.NOT_LESS_THAN,
+            Conditions.EQUALS,
+            Conditions.NOT_EQUALS,
+            Conditions.GREATER_THAN,
+            Conditions.NOT_GREATER_THAN,
+            Conditions.LESS_THAN,
+            Conditions.NOT_LESS_THAN,
         ],
     )
     def test_instantiating_validator_raises_error_for_too_many_values(
         self, single_value_condition, iris_binary
     ):
-        yaml_str = input_requirements_yaml(
-            EricFields.NUMBER_OF_COLUMNS, single_value_condition, [1, 2]
-        )
+        yaml_str = input_requirements_yaml(Fields.NUMBER_OF_COLUMNS, single_value_condition, [1, 2])
         schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         with pytest.raises(DrumSchemaValidationException):
             SchemaValidator(schema_dict)
@@ -860,27 +858,27 @@ class TestSchemaValidator:
     @pytest.mark.parametrize(
         "condition, value, fail_expected",
         [
-            (EricConditions.EQUALS, [6], False),
-            (EricConditions.EQUALS, [3], True),
-            (EricConditions.IN, [2, 4, 6], False),
-            (EricConditions.IN, [1, 2, 3], True),
-            (EricConditions.LESS_THAN, [7], False),
-            (EricConditions.LESS_THAN, [3], True),
-            (EricConditions.GREATER_THAN, [4], False),
-            (EricConditions.GREATER_THAN, [10], True),
-            (EricConditions.NOT_EQUALS, [5], False),
-            (EricConditions.NOT_EQUALS, [6], True),
-            (EricConditions.NOT_IN, [1, 2, 3], False),
-            (EricConditions.NOT_IN, [2, 4, 6], True),
-            (EricConditions.NOT_GREATER_THAN, [6], False),
-            (EricConditions.NOT_GREATER_THAN, [2], True),
-            (EricConditions.NOT_LESS_THAN, [3], False),
-            (EricConditions.NOT_LESS_THAN, [100], True),
+            (Conditions.EQUALS, [6], False),
+            (Conditions.EQUALS, [3], True),
+            (Conditions.IN, [2, 4, 6], False),
+            (Conditions.IN, [1, 2, 3], True),
+            (Conditions.LESS_THAN, [7], False),
+            (Conditions.LESS_THAN, [3], True),
+            (Conditions.GREATER_THAN, [4], False),
+            (Conditions.GREATER_THAN, [10], True),
+            (Conditions.NOT_EQUALS, [5], False),
+            (Conditions.NOT_EQUALS, [6], True),
+            (Conditions.NOT_IN, [1, 2, 3], False),
+            (Conditions.NOT_IN, [2, 4, 6], True),
+            (Conditions.NOT_GREATER_THAN, [6], False),
+            (Conditions.NOT_GREATER_THAN, [2], True),
+            (Conditions.NOT_LESS_THAN, [3], False),
+            (Conditions.NOT_LESS_THAN, [100], True),
         ],
         ids=lambda x: str(x),
     )
     def test_num_columns(self, data, condition, value, fail_expected):
-        yaml_str = input_requirements_yaml(EricFields.NUMBER_OF_COLUMNS, condition, value)
+        yaml_str = input_requirements_yaml(Fields.NUMBER_OF_COLUMNS, condition, value)
         schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
         if fail_expected:
@@ -890,12 +888,10 @@ class TestSchemaValidator:
             assert validator.validate_inputs(data)
 
     @pytest.mark.parametrize(
-        "value, missing_ok", [(EricValues.FORBIDDEN, False), (EricValues.SUPPORTED, True)]
+        "value, missing_ok", [(Values.FORBIDDEN, False), (Values.SUPPORTED, True)]
     )
     def test_missing_input(self, data, missing_data, value, missing_ok):
-        yaml_str = input_requirements_yaml(
-            EricFields.CONTAINS_MISSING, EricConditions.EQUALS, [value]
-        )
+        yaml_str = input_requirements_yaml(Fields.CONTAINS_MISSING, Conditions.EQUALS, [value])
         schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
 
@@ -906,13 +902,9 @@ class TestSchemaValidator:
             with pytest.raises(DrumSchemaValidationException):
                 validator.validate_inputs(missing_data)
 
-    @pytest.mark.parametrize(
-        "value, missing_ok", [(EricValues.NEVER, False), (EricValues.DYNAMIC, True)]
-    )
+    @pytest.mark.parametrize("value, missing_ok", [(Values.NEVER, False), (Values.DYNAMIC, True)])
     def test_missing_output(self, data, missing_data, value, missing_ok):
-        yaml_str = output_requirements_yaml(
-            EricFields.CONTAINS_MISSING, EricConditions.EQUALS, [value]
-        )
+        yaml_str = output_requirements_yaml(Fields.CONTAINS_MISSING, Conditions.EQUALS, [value])
         schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
 
@@ -926,13 +918,13 @@ class TestSchemaValidator:
     @pytest.mark.parametrize(
         "value, sparse_ok, dense_ok",
         [
-            (EricValues.FORBIDDEN, False, True),
-            (EricValues.SUPPORTED, True, True),
-            (EricValues.REQUIRED, True, False),
+            (Values.FORBIDDEN, False, True),
+            (Values.SUPPORTED, True, True),
+            (Values.REQUIRED, True, False),
         ],
     )
     def test_sparse_input(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
-        yaml_str = input_requirements_yaml(EricFields.SPARSE, EricConditions.EQUALS, [value])
+        yaml_str = input_requirements_yaml(Fields.SPARSE, Conditions.EQUALS, [value])
         schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
 
@@ -942,14 +934,14 @@ class TestSchemaValidator:
     @pytest.mark.parametrize(
         "value, sparse_ok, dense_ok",
         [
-            (EricValues.NEVER, False, True),
-            (EricValues.DYNAMIC, True, True),
-            (EricValues.ALWAYS, True, False),
-            (EricValues.IDENTITY, False, True),
+            (Values.NEVER, False, True),
+            (Values.DYNAMIC, True, True),
+            (Values.ALWAYS, True, False),
+            (Values.IDENTITY, False, True),
         ],
     )
     def test_sparse_output(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
-        yaml_str = output_requirements_yaml(EricFields.SPARSE, EricConditions.EQUALS, [value])
+        yaml_str = output_requirements_yaml(Fields.SPARSE, Conditions.EQUALS, [value])
         schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
 
@@ -958,15 +950,15 @@ class TestSchemaValidator:
 
     @pytest.mark.parametrize(
         "value, sparse_ok, dense_ok",
-        [(EricValues.FORBIDDEN, False, True), (EricValues.REQUIRED, True, False),],
+        [(Values.FORBIDDEN, False, True), (Values.REQUIRED, True, False),],
     )
     def test_multiple_input_requirements(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
-        yaml_str = input_requirements_yaml(EricFields.SPARSE, EricConditions.EQUALS, [value])
+        yaml_str = input_requirements_yaml(Fields.SPARSE, Conditions.EQUALS, [value])
         num_input = input_requirements_yaml(
-            EricFields.DATA_TYPES, EricConditions.EQUALS, [EricValues.NUM]
+            Fields.DATA_TYPES, Conditions.EQUALS, [Values.NUM]
         ).replace("input_requirements:\n", "")
         random_output = output_requirements_yaml(
-            EricFields.NUMBER_OF_COLUMNS, EricConditions.EQUALS, [10000]
+            Fields.NUMBER_OF_COLUMNS, Conditions.EQUALS, [10000]
         )
         yaml_str += num_input
         yaml_str += random_output
@@ -977,17 +969,14 @@ class TestSchemaValidator:
         self._assert_validation(validator.validate_inputs, dense_df, should_pass=dense_ok)
 
     @pytest.mark.parametrize(
-        "value, sparse_ok, dense_ok",
-        [(EricValues.NEVER, False, True), (EricValues.ALWAYS, True, False),],
+        "value, sparse_ok, dense_ok", [(Values.NEVER, False, True), (Values.ALWAYS, True, False),],
     )
     def test_multiple_output_requirements(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
-        yaml_str = output_requirements_yaml(EricFields.SPARSE, EricConditions.EQUALS, [value])
+        yaml_str = output_requirements_yaml(Fields.SPARSE, Conditions.EQUALS, [value])
         num_output = output_requirements_yaml(
-            EricFields.DATA_TYPES, EricConditions.EQUALS, [EricValues.NUM]
+            Fields.DATA_TYPES, Conditions.EQUALS, [Values.NUM]
         ).replace("output_requirements:\n", "")
-        random_input = input_requirements_yaml(
-            EricFields.NUMBER_OF_COLUMNS, EricConditions.EQUALS, [10000]
-        )
+        random_input = input_requirements_yaml(Fields.NUMBER_OF_COLUMNS, Conditions.EQUALS, [10000])
         yaml_str += num_output
         yaml_str += random_input
         schema_dict = self.yaml_str_to_schema_dict(yaml_str)
@@ -1006,11 +995,11 @@ class TestSchemaValidator:
 
 
 class TestRevalidateTypeSchemaDataTypes:
-    field = EricFields.DATA_TYPES
+    field = Fields.DATA_TYPES
 
-    @pytest.mark.parametrize("condition", EricConditions.non_numeric())
+    @pytest.mark.parametrize("condition", Conditions.non_numeric())
     def test_datatypes_allowed_conditions(self, condition):
-        values = [EricValues.NUM, EricValues.TXT]
+        values = [Values.NUM, Values.TXT]
         input_data_type_str = input_requirements_yaml(self.field, condition, values)
         output_data_type_str = output_requirements_yaml(self.field, condition, values)
 
@@ -1018,11 +1007,9 @@ class TestRevalidateTypeSchemaDataTypes:
             parsed_yaml = load(data_type_str, get_type_schema_yaml_validator())
             revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize(
-        "condition", list(set(EricConditions) - set(EricConditions.non_numeric()))
-    )
+    @pytest.mark.parametrize("condition", list(set(Conditions) - set(Conditions.non_numeric())))
     def test_datatypes_unallowed_conditions(self, condition):
-        values = [EricValues.NUM, EricValues.TXT]
+        values = [Values.NUM, Values.TXT]
         input_data_type_str = input_requirements_yaml(self.field, condition, values)
         output_data_type_str = output_requirements_yaml(self.field, condition, values)
 
@@ -1031,9 +1018,9 @@ class TestRevalidateTypeSchemaDataTypes:
             with pytest.raises(YAMLValidationError):
                 revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize("value", EricValues.data_values())
+    @pytest.mark.parametrize("value", Values.data_values())
     def test_datatyped_allowed_values(self, value):
-        condition = EricConditions.EQUALS
+        condition = Conditions.EQUALS
         input_data_type_str = input_requirements_yaml(self.field, condition, [value])
         output_data_type_str = output_requirements_yaml(self.field, condition, [value])
 
@@ -1041,9 +1028,9 @@ class TestRevalidateTypeSchemaDataTypes:
             parsed_yaml = load(data_type_str, get_type_schema_yaml_validator())
             revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize("value", list(set(EricValues) - set(EricValues.data_values())))
+    @pytest.mark.parametrize("value", list(set(Values) - set(Values.data_values())))
     def test_datatypes_unallowed_values(self, value):
-        condition = EricConditions.EQUALS
+        condition = Conditions.EQUALS
         input_data_type_str = input_requirements_yaml(self.field, condition, [value])
         output_data_type_str = output_requirements_yaml(self.field, condition, [value])
 
@@ -1053,8 +1040,8 @@ class TestRevalidateTypeSchemaDataTypes:
                 revalidate_typeschema(parsed_yaml)
 
     def test_datatypes_multiple_values(self):
-        condition = EricConditions.IN
-        values = EricValues.data_values()
+        condition = Conditions.IN
+        values = Values.data_values()
         input_data_type_str = input_requirements_yaml(self.field, condition, values)
         output_data_type_str = output_requirements_yaml(self.field, condition, values)
 
@@ -1064,17 +1051,17 @@ class TestRevalidateTypeSchemaDataTypes:
 
     @pytest.mark.parametrize(
         "permutation",
-        [[EricValues.CAT, EricValues.NUM], [EricValues.NUM, EricValues.CAT]],
+        [[Values.CAT, Values.NUM], [Values.NUM, Values.CAT]],
         ids=lambda x: str([str(el) for el in x]),
     )
     def test_regression_test_datatypes_multi_values(self, permutation):
-        corner_case = input_requirements_yaml(EricFields.DATA_TYPES, EricConditions.IN, permutation)
+        corner_case = input_requirements_yaml(Fields.DATA_TYPES, Conditions.IN, permutation)
         parsed_yaml = load(corner_case, get_type_schema_yaml_validator())
         revalidate_typeschema(parsed_yaml)
 
     def test_datatypes_mix_allowed_and_unallowed_values(self):
-        values = [EricValues.NUM, EricValues.REQUIRED]
-        condition = EricConditions.EQUALS
+        values = [Values.NUM, Values.REQUIRED]
+        condition = Conditions.EQUALS
         input_data_type_str = input_requirements_yaml(self.field, condition, values)
         output_data_type_str = output_requirements_yaml(self.field, condition, values)
 
@@ -1085,19 +1072,19 @@ class TestRevalidateTypeSchemaDataTypes:
 
 
 class TestRevalidateTypeSchemaSparse:
-    field = EricFields.SPARSE
+    field = Fields.SPARSE
 
-    @pytest.mark.parametrize("value", EricValues.input_values())
+    @pytest.mark.parametrize("value", Values.input_values())
     def test_sparsity_input_allowed_values(self, value):
-        condition = EricConditions.EQUALS
+        condition = Conditions.EQUALS
         sparse_yaml_str = input_requirements_yaml(self.field, condition, [value])
 
         parsed_yaml = load(sparse_yaml_str, get_type_schema_yaml_validator())
         revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize("value", list(set(EricValues) - set(EricValues.input_values())))
+    @pytest.mark.parametrize("value", list(set(Values) - set(Values.input_values())))
     def test_sparsity_input_disallowed_values(self, value):
-        condition = EricConditions.EQUALS
+        condition = Conditions.EQUALS
         sparse_yaml_str = input_requirements_yaml(self.field, condition, [value])
 
         parsed_yaml = load(sparse_yaml_str, get_type_schema_yaml_validator())
@@ -1105,24 +1092,24 @@ class TestRevalidateTypeSchemaSparse:
             revalidate_typeschema(parsed_yaml)
 
     def test_sparsity_input_only_single_value(self):
-        condition = EricConditions.EQUALS
-        sparse_yaml_str = input_requirements_yaml(self.field, condition, EricValues.input_values())
+        condition = Conditions.EQUALS
+        sparse_yaml_str = input_requirements_yaml(self.field, condition, Values.input_values())
 
         parsed_yaml = load(sparse_yaml_str, get_type_schema_yaml_validator())
         with pytest.raises(YAMLValidationError):
             revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize("value", EricValues.output_values())
+    @pytest.mark.parametrize("value", Values.output_values())
     def test_sparsity_output_allowed_values(self, value):
-        condition = EricConditions.EQUALS
+        condition = Conditions.EQUALS
         sparse_yaml_str = output_requirements_yaml(self.field, condition, [value])
 
         parsed_yaml = load(sparse_yaml_str, get_type_schema_yaml_validator())
         revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize("value", list(set(EricValues) - set(EricValues.output_values())))
+    @pytest.mark.parametrize("value", list(set(Values) - set(Values.output_values())))
     def test_sparsity_output_disallowed_values(self, value):
-        condition = EricConditions.EQUALS
+        condition = Conditions.EQUALS
         sparse_yaml_str = output_requirements_yaml(self.field, condition, [value])
 
         parsed_yaml = load(sparse_yaml_str, get_type_schema_yaml_validator())
@@ -1130,23 +1117,17 @@ class TestRevalidateTypeSchemaSparse:
             revalidate_typeschema(parsed_yaml)
 
     def test_sparsity_output_only_single_value(self):
-        condition = EricConditions.EQUALS
-        sparse_yaml_str = output_requirements_yaml(
-            self.field, condition, EricValues.output_values()
-        )
+        condition = Conditions.EQUALS
+        sparse_yaml_str = output_requirements_yaml(self.field, condition, Values.output_values())
 
         parsed_yaml = load(sparse_yaml_str, get_type_schema_yaml_validator())
         with pytest.raises(YAMLValidationError):
             revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize("condition", list(set(EricConditions) - {EricConditions.EQUALS}))
+    @pytest.mark.parametrize("condition", list(set(Conditions) - {Conditions.EQUALS}))
     def test_sparsity_input_output_disallows_conditions(self, condition):
-        sparse_yaml_input_str = input_requirements_yaml(
-            self.field, condition, [EricValues.REQUIRED]
-        )
-        sparse_yaml_output_str = output_requirements_yaml(
-            self.field, condition, [EricValues.ALWAYS]
-        )
+        sparse_yaml_input_str = input_requirements_yaml(self.field, condition, [Values.REQUIRED])
+        sparse_yaml_output_str = output_requirements_yaml(self.field, condition, [Values.ALWAYS])
         for yaml_str in (sparse_yaml_input_str, sparse_yaml_output_str):
             parsed_yaml = load(yaml_str, get_type_schema_yaml_validator())
             with pytest.raises(YAMLValidationError):
@@ -1154,21 +1135,19 @@ class TestRevalidateTypeSchemaSparse:
 
 
 class TestRevalidateTypeSchemaContainsMissing:
-    field = EricFields.CONTAINS_MISSING
+    field = Fields.CONTAINS_MISSING
 
-    @pytest.mark.parametrize("value", [EricValues.FORBIDDEN, EricValues.SUPPORTED])
+    @pytest.mark.parametrize("value", [Values.FORBIDDEN, Values.SUPPORTED])
     def test_contains_missing_input_allowed_values(self, value):
-        condition = EricConditions.EQUALS
+        condition = Conditions.EQUALS
         sparse_yaml_str = input_requirements_yaml(self.field, condition, [value])
 
         parsed_yaml = load(sparse_yaml_str, get_type_schema_yaml_validator())
         revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize(
-        "value", list(set(EricValues) - {EricValues.FORBIDDEN, EricValues.SUPPORTED})
-    )
+    @pytest.mark.parametrize("value", list(set(Values) - {Values.FORBIDDEN, Values.SUPPORTED}))
     def test_contains_missing_input_disallowed_values(self, value):
-        condition = EricConditions.EQUALS
+        condition = Conditions.EQUALS
         sparse_yaml_str = input_requirements_yaml(self.field, condition, [value])
 
         parsed_yaml = load(sparse_yaml_str, get_type_schema_yaml_validator())
@@ -1176,28 +1155,26 @@ class TestRevalidateTypeSchemaContainsMissing:
             revalidate_typeschema(parsed_yaml)
 
     def test_contains_missing_input_only_single_value(self):
-        condition = EricConditions.EQUALS
+        condition = Conditions.EQUALS
         sparse_yaml_str = input_requirements_yaml(
-            self.field, condition, [EricValues.FORBIDDEN, EricValues.SUPPORTED]
+            self.field, condition, [Values.FORBIDDEN, Values.SUPPORTED]
         )
 
         parsed_yaml = load(sparse_yaml_str, get_type_schema_yaml_validator())
         with pytest.raises(YAMLValidationError):
             revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize("value", [EricValues.NEVER, EricValues.DYNAMIC])
+    @pytest.mark.parametrize("value", [Values.NEVER, Values.DYNAMIC])
     def test_contains_missing_output_allowed_values(self, value):
-        condition = EricConditions.EQUALS
+        condition = Conditions.EQUALS
         sparse_yaml_str = output_requirements_yaml(self.field, condition, [value])
 
         parsed_yaml = load(sparse_yaml_str, get_type_schema_yaml_validator())
         revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize(
-        "value", list(set(EricValues) - {EricValues.NEVER, EricValues.DYNAMIC})
-    )
+    @pytest.mark.parametrize("value", list(set(Values) - {Values.NEVER, Values.DYNAMIC}))
     def test_contains_missing_output_disallowed_values(self, value):
-        condition = EricConditions.EQUALS
+        condition = Conditions.EQUALS
         sparse_yaml_str = output_requirements_yaml(self.field, condition, [value])
 
         parsed_yaml = load(sparse_yaml_str, get_type_schema_yaml_validator())
@@ -1205,23 +1182,19 @@ class TestRevalidateTypeSchemaContainsMissing:
             revalidate_typeschema(parsed_yaml)
 
     def test_contains_missing_output_only_single_value(self):
-        condition = EricConditions.EQUALS
+        condition = Conditions.EQUALS
         sparse_yaml_str = output_requirements_yaml(
-            self.field, condition, [EricValues.NEVER, EricValues.DYNAMIC]
+            self.field, condition, [Values.NEVER, Values.DYNAMIC]
         )
 
         parsed_yaml = load(sparse_yaml_str, get_type_schema_yaml_validator())
         with pytest.raises(YAMLValidationError):
             revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize("condition", list(set(EricConditions) - {EricConditions.EQUALS}))
+    @pytest.mark.parametrize("condition", list(set(Conditions) - {Conditions.EQUALS}))
     def test_contains_missing_input_output_disallows_conditions(self, condition):
-        sparse_yaml_input_str = input_requirements_yaml(
-            self.field, condition, [EricValues.REQUIRED]
-        )
-        sparse_yaml_output_str = output_requirements_yaml(
-            self.field, condition, [EricValues.ALWAYS]
-        )
+        sparse_yaml_input_str = input_requirements_yaml(self.field, condition, [Values.REQUIRED])
+        sparse_yaml_output_str = output_requirements_yaml(self.field, condition, [Values.ALWAYS])
         for yaml_str in (sparse_yaml_input_str, sparse_yaml_output_str):
             parsed_yaml = load(yaml_str, get_type_schema_yaml_validator())
             with pytest.raises(YAMLValidationError):
@@ -1229,9 +1202,9 @@ class TestRevalidateTypeSchemaContainsMissing:
 
 
 class TestRevalidateTypeSchemaNumberOfColumns:
-    field = EricFields.NUMBER_OF_COLUMNS
+    field = Fields.NUMBER_OF_COLUMNS
 
-    @pytest.mark.parametrize("condition", list(EricConditions))
+    @pytest.mark.parametrize("condition", list(Conditions))
     def test_number_of_columns_can_use_all_conditions(self, condition):
         sparse_yaml_input_str = input_requirements_yaml(self.field, condition, [1])
         sparse_yaml_output_str = output_requirements_yaml(self.field, condition, [1])
@@ -1240,20 +1213,20 @@ class TestRevalidateTypeSchemaNumberOfColumns:
             revalidate_typeschema(parsed_yaml)
 
     def test_number_of_columns_can_have_multiple_ints(self):
-        yaml_str = input_requirements_yaml(self.field, EricConditions.EQUALS, [1, 0, -1])
+        yaml_str = input_requirements_yaml(self.field, Conditions.EQUALS, [1, 0, -1])
         parsed_yaml = load(yaml_str, get_type_schema_yaml_validator())
         revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize("value", list(EricValues))
+    @pytest.mark.parametrize("value", list(Values))
     def test_number_of_columns_cannot_use_other_values(self, value):
-        yaml_str = input_requirements_yaml(self.field, EricConditions.EQUALS, [value])
+        yaml_str = input_requirements_yaml(self.field, Conditions.EQUALS, [value])
         parsed_yaml = load(yaml_str, get_type_schema_yaml_validator())
         with pytest.raises(YAMLValidationError):
             revalidate_typeschema(parsed_yaml)
 
     def test_revalidate_typescehma_mutates_yaml_num_columns_to_int(self):
-        yaml_single_int = input_requirements_yaml(self.field, EricConditions.EQUALS, [1])
-        yaml_int_list = input_requirements_yaml(self.field, EricConditions.EQUALS, [1, 2])
+        yaml_single_int = input_requirements_yaml(self.field, Conditions.EQUALS, [1])
+        yaml_int_list = input_requirements_yaml(self.field, Conditions.EQUALS, [1, 2])
         parsed_single_int = load(yaml_single_int, get_type_schema_yaml_validator())
         parsed_int_list = load(yaml_int_list, get_type_schema_yaml_validator())
 
