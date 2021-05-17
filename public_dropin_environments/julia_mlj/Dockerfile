@@ -17,7 +17,6 @@ RUN pip3 install -r requirements.txt --no-cache-dir && \
     rm -rf requirements.txt
 
 # get and install  julia 1.5.4
-
 ENV HOME /opt
 RUN apt-get update && apt-get install wget -y && \
     wget https://julialang-s3.julialang.org/bin/linux/x64/1.5/julia-1.5.4-linux-x86_64.tar.gz && \
@@ -36,10 +35,11 @@ RUN julia "$HOME/julia/sysim.jl" && \
     chmod -R 777 $HOME/.julia/logs/manifest_usage.toml && \
     rm julia-1.5.4-linux-x86_64.tar.gz
 
-ENV CODE_DIR=/opt/code 
-ENV ADDRESS=0.0.0.0:8080 WITH_ERROR_SERVER=1
+ENV HOME=/opt CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
+WORKDIR /opt/code
 
+ENV WITH_ERROR_SERVER=1
 #Uncomment the following line to switch from Flask to uwsgi server
-ENV PRODUCTION=1 MAX_WORKERS=1 SHOW_STACKTRACE=1
+#ENV PRODUCTION=1 MAX_WORKERS=1 SHOW_STACKTRACE=1
 
 ENTRYPOINT ["/opt/code/start_server.sh"]  

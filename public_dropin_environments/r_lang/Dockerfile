@@ -11,12 +11,12 @@ COPY dr_requirements.txt dr_requirements.txt
 RUN pip3 install -U --upgrade-strategy eager -r dr_requirements.txt --no-cache-dir && \
     rm -rf dr_requirements.txt
 
-COPY ./ /opt/code/
-
-ENV CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
+ENV HOME=/opt CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
+WORKDIR ${CODE_DIR}
+COPY ./ ${CODE_DIR}
 
 ENV WITH_ERROR_SERVER=1
 # Uncomment the following line to switch from Flask to uwsgi server
 #ENV PRODUCTION=1 MAX_WORKERS=1 SHOW_STACKTRACE=1
 
-ENTRYPOINT ["/opt/code/start_server.sh"]
+ENTRYPOINT ["${CODE_DIR}/start_server.sh"]
