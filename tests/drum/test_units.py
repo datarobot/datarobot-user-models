@@ -1,7 +1,6 @@
 import json
 import os
 import tempfile
-from itertools import permutations
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
@@ -40,6 +39,7 @@ from datarobot_drum.drum.typeschema_validation import (
     Conditions,
     Values,
     Fields,
+    RequirementTypes,
     SchemaValidator,
 )
 
@@ -662,18 +662,18 @@ class TestJavaPredictor:
 def input_requirements_yaml(
     field: Fields, condition: Conditions, values: List[Union[int, Values]]
 ) -> str:
-    yaml_dict = get_yaml_dict(condition, field, values, top_requirements="input_requirements")
+    yaml_dict = get_yaml_dict(condition, field, values, RequirementTypes.INPUT_REQUIREMENTS)
     return yaml.dump(yaml_dict)
 
 
 def output_requirements_yaml(
     field: Fields, condition: Conditions, values: List[Union[int, Values]]
 ) -> str:
-    yaml_dict = get_yaml_dict(condition, field, values, top_requirements="output_requirements")
+    yaml_dict = get_yaml_dict(condition, field, values, RequirementTypes.OUTPUT_REQUIREMENTS)
     return yaml.dump(yaml_dict)
 
 
-def get_yaml_dict(condition, field, values, top_requirements) -> dict:
+def get_yaml_dict(condition, field, values, top_requirements: RequirementTypes) -> dict:
     def _get_val(value):
         if isinstance(value, Values):
             return str(value)
@@ -684,7 +684,9 @@ def get_yaml_dict(condition, field, values, top_requirements) -> dict:
     else:
         new_vals = [_get_val(el) for el in values]
     yaml_dict = {
-        top_requirements: [{"field": str(field), "condition": str(condition), "value": new_vals}]
+        str(top_requirements): [
+            {"field": str(field), "condition": str(condition), "value": new_vals}
+        ]
     }
     return yaml_dict
 
@@ -811,21 +813,27 @@ class TestSchemaValidator:
         schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
 
-        # good_data = pd.read_csv(os.path.join(self.tests_data_path, passing_dataset))
         good_data = request.getfixturevalue(passing_dataset)
         good_data.drop(passing_target, inplace=True, axis=1)
         assert validator.validate_inputs(good_data)
 
-        # bad_data = pd.read_csv(os.path.join(self.tests_data_path, failing_dataset))
         bad_data = request.getfixturevalue(failing_dataset)
         bad_data.drop(failing_target, inplace=True, axis=1)
         with pytest.raises(DrumSchemaValidationException):
             validator.validate_inputs(bad_data)
 
     def test_data_types_raises_error_if_all_type_in_in_are_not_present(self, iris_binary):
+        """Because of how it's implemented in DataRobot,
 
-        # TODO is this really correct behavior? if the dataset is missing any one
-        #  of the data types then it's wrong?
+        - field: data_types
+          condition: IN
+          value:
+            - NUM
+            - TXT
+
+        requires that the DataFrame's set of types present _EQUALS_ the set: {NUM, TXT},
+        but uses the condition: `IN`  :shrug:
+        """
         condition = Conditions.IN
         value = Values.data_values()
 
@@ -1231,7 +1239,7 @@ class TestRevalidateTypeSchemaNumberOfColumns:
         parsed_int_list = load(yaml_int_list, get_type_schema_yaml_validator())
 
         def get_value(yaml):
-            return yaml["input_requirements"][0]["value"].data
+            return yaml[str(RequirementTypes.INPUT_REQUIREMENTS)][0]["value"].data
 
         assert isinstance(get_value(parsed_single_int), str)
         assert isinstance(get_value(parsed_int_list)[0], str)
@@ -1270,9 +1278,9 @@ class TestRevalidateTypeSchemaMixedCases:
         parsed_yaml = load(passing_yaml_string, get_type_schema_yaml_validator())
         revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize("requirements_key", ["input_requirements", "output_requirements"])
+    @pytest.mark.parametrize("requirements_key", list(RequirementTypes))
     def test_failing_on_bad_requirements_key(self, requirements_key, passing_yaml_string):
-        bad_yaml = passing_yaml_string.replace(requirements_key, "oooooops")
+        bad_yaml = passing_yaml_string.replace(str(requirements_key), "oooooops")
         with pytest.raises(YAMLValidationError):
             load(bad_yaml, get_type_schema_yaml_validator())
 

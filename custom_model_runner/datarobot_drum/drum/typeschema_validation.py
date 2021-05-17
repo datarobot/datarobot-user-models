@@ -32,6 +32,14 @@ class BaseEnum(PythonNativeEnum):
         raise ValueError(f"No enum value matches: {enum_str!r}")
 
 
+class RequirementTypes(BaseEnum):
+    INPUT_REQUIREMENTS = auto()
+    OUTPUT_REQUIREMENTS = auto()
+
+    def __str__(self) -> str:
+        return self.name.lower()
+
+
 class Conditions(BaseEnum):
     """All acceptable values for the 'condition' field."""
 
@@ -132,11 +140,12 @@ class Fields(BaseEnum):
         }
         return values[self]
 
-    def to_input_requirements(self):
-        return get_mapping(self, self.input_values())
-
-    def to_output_requirements(self):
-        return get_mapping(self, self.output_values())
+    def to_requirements(self, requirement_type: RequirementTypes) -> Map:
+        types = {
+            RequirementTypes.INPUT_REQUIREMENTS: _get_mapping(self, self.input_values()),
+            RequirementTypes.OUTPUT_REQUIREMENTS: _get_mapping(self, self.output_values()),
+        }
+        return types[requirement_type]
 
     def to_validator_class(self) -> Type["BaseValidator"]:
         classes = {
@@ -148,7 +157,7 @@ class Fields(BaseEnum):
         return classes[self]
 
 
-def get_mapping(field: Fields, values: List[Values]):
+def _get_mapping(field: Fields, values: List[Values]) -> Map:
     base_value_enum = Enum([str(el) for el in values])
     if field == Fields.DATA_TYPES:
         value_enum = base_value_enum | Seq(base_value_enum)
@@ -227,6 +236,9 @@ class DataTypes(BaseValidator):
         return len(X.columns[list(X.apply(DataTypes.is_img, result_type="expand"))])
 
     def validate(self, dataframe):
+        """A quirk of validation that follows the implementation of DataRobot is
+        as follows: A condition `IN` requires that
+        `set(types_present_in_dataframe) == set(self.values)`"""
         types = dict()
         types[Values.NUM] = dataframe.select_dtypes(np.number).shape[1] > 0
         txt_columns = self.number_of_text_columns(dataframe)
@@ -365,25 +377,24 @@ def get_type_schema_yaml_validator() -> Map:
     )
     return Map(
         {
-            Optional("input_requirements"): seq_validator,
-            Optional("output_requirements"): seq_validator,
+            Optional(str(RequirementTypes.INPUT_REQUIREMENTS)): seq_validator,
+            Optional(str(RequirementTypes.OUTPUT_REQUIREMENTS)): seq_validator,
         }
     )
 
 
 def revalidate_typeschema(type_schema: YAML):
-    """Perform validation on each dictionary in the both lists.  This is required due to limitations in strictyaml.  See
+    """THIS MUTATES `type_schema`! calling the function would change {"number_of_columns": {"value": "1"}}
+    to {"number_of_columns": {"value": 1}}
+
+    Perform validation on each dictionary in the both lists.  This is required due to limitations in strictyaml.  See
     the strictyaml documentation on revalidation for details.  This checks that the provided values
     are valid together while the initial validation only checks that the map is in the right general format."""
 
-    for input_req in type_schema.get("input_requirements", []):
-        field = Fields.from_string(input_req.data["field"])
-        requirements = field.to_input_requirements()
-        input_req.revalidate(requirements)
-
-    for output_req in type_schema.get("output_requirements", []):
-        field = Fields.from_string(output_req.data["field"])
-        output_req.revalidate(field.to_output_requirements())
+    for requriment_type in RequirementTypes:
+        for req in type_schema.get(str(requriment_type), []):
+            field = Fields.from_string(req.data["field"])
+            req.revalidate(field.to_requirements(requriment_type))
 
 
 class SchemaValidator:
