@@ -115,8 +115,8 @@ public class ScoringCode extends BasePredictor {
             var originalClassLabels = ((IClassificationPredictor) model).getClassLabels();
             if (originalClassLabels.length == 2) {
                 var remappedPrediction = new HashMap<String, Double>();
-                remappedPrediction.put(this.negativeClassLabel, prediction.get(originalClassLabels[1]));
-                remappedPrediction.put(this.positiveClassLabel, prediction.get(originalClassLabels[0]));
+                remappedPrediction.put(this.classLabels[1], prediction.get(originalClassLabels[1]));
+                remappedPrediction.put(this.classLabels[0], prediction.get(originalClassLabels[0]));
                 prediction = remappedPrediction;
             }
             return prediction;

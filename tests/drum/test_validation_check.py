@@ -146,4 +146,3 @@ class TestValidationCheck:
 
         assert re.search(r"Basic batch prediction\s+FAILED", stdo)
         assert re.search(r"Null value imputation\s+FAILED", stdo)
-        assert "Prediction probabilities do not add up to 1" in stdo
