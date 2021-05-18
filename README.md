@@ -28,6 +28,7 @@ The following example shows how to use the [DRUM](https://github.com/datarobot/d
 4. cd into the repo: `cd datarobot-user-models`
 5. Install the required dependencies: `pip install -r public_dropin_environments/python3_sklearn/requirements.txt`
 6. Install datarobot-drum: `pip install datarobot-drum`
+   1. If you want to install the dev environment, instead `pip install -e custom_model_runner/`
 7. Run the example: `drum score --code-dir model_templates/inference/python3_sklearn --input tests/testdata/boston_housing.csv`  
     > Note: this command assumes model is regression. For binary classification model provide: _**positive-class-label**_ and _**negative-class-label**_ arguments.  
     Input data is expected to be in CSV format. By default, missing values are indicated with NaN in Python, and NA in R according to `pd.read_csv` and `read.csv` respectively.
@@ -357,7 +358,15 @@ Ubuntu 18.04
 `Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$forReg, c(1)]), Ncpus=4)'`  
 `Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$forClass, c(1)]), Ncpus=4)'`
 
-### DR developers
+### DRUM developers
+
+#### Setting Up Local Env For Testing
+
+1. create 3.7 venv
+1. `pip install -r requirements_dev.txt`
+1. `pip install -e custom_model_runner/`
+1. pytest to your heart's content
+
 #### DataRobot Confluence
 To get more information, search for `custom models` and `datarobot user models` in DataRobot Confluence.
 

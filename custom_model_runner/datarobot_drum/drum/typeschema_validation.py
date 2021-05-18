@@ -1,9 +1,14 @@
+from abc import ABC, abstractmethod
 import base64
 import logging
+from enum import auto, Enum
+from enum import Enum as PythonNativeEnum
 from io import BytesIO
+import operator
+from typing import List, Type, TypeVar, Union
 
 from PIL import Image
-from strictyaml import Map, Optional, Seq, Int, Enum, Str
+from strictyaml import Map, Optional, Seq, Int, Enum, Str, YAML
 import numpy as np
 import pandas as pd
 
@@ -12,55 +17,175 @@ from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 logger = logging.getLogger("drum." + __name__)
 
 
-class Conditions:
-    """All acceptable values for the 'condition' field."""
-
-    EQUALS = "EQUALS"
-    IN = "IN"
-    NOT_EQUALS = "NOT_EQUALS"
-    NOT_IN = "NOT_IN"
-    GREATER_THAN = "GREATER_THAN"
-    LESS_THAN = "LESS_THAN"
-    NOT_GREATER_THAN = "NOT_GREATER_THAN"
-    NOT_LESS_THAN = "NOT_LESS_THAN"
+T = TypeVar("T")
 
 
-class Values:
-    """All acceptable values for the 'value' field. """
-
-    NUM = "NUM"
-    TXT = "TXT"
-    CAT = "CAT"
-    IMG = "IMG"
-    DATE = "DATE"
-    FORBIDDEN = "FORBIDDEN"
-    SUPPORTED = "SUPPORTED"
-    REQUIRED = "REQUIRED"
-    NEVER = "NEVER"
-    DYNAMIC = "DYNAMIC"
-    ALWAYS = "ALWAYS"
-    IDENTITY = "IDENTITY"
-
-
-class BaseValidator(object):
-    FIELD = None
-    CONDITIONS = None
-    VALUES = None
-
-    def __init__(self, condition, values):
-        self.condition = condition
-        self.values = values
+class BaseEnum(PythonNativeEnum):
+    def __str__(self) -> str:
+        return self.name
 
     @classmethod
-    def get_yaml_validator(cls):
-        return Map(
-            {
-                "field": Enum(cls.FIELD),
-                "condition": Enum(cls.CONDITIONS),
-                "value": Enum(cls.VALUES),
-            }
-        )
+    def from_string(cls: Type[T], enum_str: str) -> T:
+        for el in list(cls):
+            if str(el) == enum_str:
+                return el
+        raise ValueError(f"No enum value matches: {enum_str!r}")
 
+
+class RequirementTypes(BaseEnum):
+    INPUT_REQUIREMENTS = auto()
+    OUTPUT_REQUIREMENTS = auto()
+
+    def __str__(self) -> str:
+        return self.name.lower()
+
+
+class Conditions(BaseEnum):
+    """All acceptable values for the 'condition' field."""
+
+    EQUALS = auto()
+    IN = auto()
+    NOT_EQUALS = auto()
+    NOT_IN = auto()
+    GREATER_THAN = auto()
+    LESS_THAN = auto()
+    NOT_GREATER_THAN = auto()
+    NOT_LESS_THAN = auto()
+
+    @classmethod
+    def non_numeric(cls) -> List["Conditions"]:
+        return [
+            cls.EQUALS,
+            cls.NOT_EQUALS,
+            cls.IN,
+            cls.NOT_IN,
+        ]
+
+    @classmethod
+    def single_value_conditions(cls) -> List["Conditions"]:
+        return [
+            cls.EQUALS,
+            cls.NOT_EQUALS,
+            cls.GREATER_THAN,
+            cls.NOT_GREATER_THAN,
+            cls.LESS_THAN,
+            cls.NOT_LESS_THAN,
+        ]
+
+
+class Values(BaseEnum):
+    """All acceptable values for the 'value' field. """
+
+    NUM = auto()
+    TXT = auto()
+    CAT = auto()
+    IMG = auto()
+    DATE = auto()
+
+    FORBIDDEN = auto()
+    SUPPORTED = auto()
+    REQUIRED = auto()
+
+    NEVER = auto()
+    DYNAMIC = auto()
+    ALWAYS = auto()
+    IDENTITY = auto()
+
+    @classmethod
+    def data_values(cls) -> List["Values"]:
+        return [cls.NUM, cls.TXT, cls.IMG, cls.DATE, cls.CAT]
+
+    @classmethod
+    def input_values(cls) -> List["Values"]:
+        return [cls.FORBIDDEN, cls.SUPPORTED, cls.REQUIRED]
+
+    @classmethod
+    def output_values(cls) -> List["Values"]:
+        return [cls.NEVER, cls.DYNAMIC, cls.ALWAYS, cls.IDENTITY]
+
+
+class Fields(BaseEnum):
+    DATA_TYPES = auto()
+    SPARSE = auto()
+    NUMBER_OF_COLUMNS = auto()
+    CONTAINS_MISSING = auto()
+
+    def __str__(self) -> str:
+        return self.name.lower()
+
+    def conditions(self) -> List[Conditions]:
+        conditions = {
+            Fields.SPARSE: [Conditions.EQUALS],
+            Fields.DATA_TYPES: Conditions.non_numeric(),
+            Fields.NUMBER_OF_COLUMNS: list(Conditions),
+            Fields.CONTAINS_MISSING: [Conditions.EQUALS],
+        }
+        return conditions[self]
+
+    def input_values(self) -> List[Values]:
+        values = {
+            Fields.DATA_TYPES: Values.data_values(),
+            Fields.SPARSE: Values.input_values(),
+            Fields.NUMBER_OF_COLUMNS: [],
+            Fields.CONTAINS_MISSING: [Values.FORBIDDEN, Values.SUPPORTED],
+        }
+        return values[self]
+
+    def output_values(self) -> List[Values]:
+        values = {
+            Fields.DATA_TYPES: Values.data_values(),
+            Fields.SPARSE: Values.output_values(),
+            Fields.NUMBER_OF_COLUMNS: [],
+            Fields.CONTAINS_MISSING: [Values.NEVER, Values.DYNAMIC],
+        }
+        return values[self]
+
+    def to_requirements(self, requirement_type: RequirementTypes) -> Map:
+        types = {
+            RequirementTypes.INPUT_REQUIREMENTS: _get_mapping(self, self.input_values()),
+            RequirementTypes.OUTPUT_REQUIREMENTS: _get_mapping(self, self.output_values()),
+        }
+        return types[requirement_type]
+
+    def to_validator_class(self) -> Type["BaseValidator"]:
+        classes = {
+            Fields.DATA_TYPES: DataTypes,
+            Fields.SPARSE: Sparsity,
+            Fields.NUMBER_OF_COLUMNS: NumColumns,
+            Fields.CONTAINS_MISSING: ContainsMissing,
+        }
+        return classes[self]
+
+
+def _get_mapping(field: Fields, values: List[Values]) -> Map:
+    base_value_enum = Enum([str(el) for el in values])
+    if field == Fields.DATA_TYPES:
+        value_enum = base_value_enum | Seq(base_value_enum)
+    elif field == Fields.NUMBER_OF_COLUMNS:
+        value_enum = Int() | Seq(Int())
+    else:
+        value_enum = base_value_enum
+
+    conditions = Enum([str(el) for el in field.conditions()])
+    return Map({"field": Enum(str(field)), "condition": conditions, "value": value_enum})
+
+
+class BaseValidator(ABC):
+    def __init__(self, condition: Conditions, values: List[Union[str, int]]):
+        if len(values) > 1 and condition in Conditions.single_value_conditions():
+            raise DrumSchemaValidationException(
+                f"{condition} only accepts a single value for: {values}"
+            )
+
+        def convert_value(value):
+            if isinstance(value, int):
+                return value
+            return Values.from_string(value)
+
+        self.condition = condition
+        self.values = [convert_value(value) for value in values]
+
+    @abstractmethod
     def validate(self, dataframe: pd.DataFrame):
         raise NotImplementedError
 
@@ -68,28 +193,8 @@ class BaseValidator(object):
 class DataTypes(BaseValidator):
     """Validation related to data types.  This is common between input and output."""
 
-    FIELD = "data_types"
-    VALUES = [Values.NUM, Values.TXT, Values.CAT, Values.IMG, Values.DATE]
-    CONDITIONS = [Conditions.EQUALS, Conditions.IN, Conditions.NOT_EQUALS, Conditions.NOT_IN]
-    _TYPES = Enum(VALUES)
-
     def __init__(self, condition, values):
-        super().__init__(condition, values)
-        if not isinstance(values, list):
-            self.values = [values]
-        if condition == "EQUALS" or condition == "NOT_EQUALS":
-            if len(self.values) > 1:
-                raise (Exception("Multiple values not supported, use EQUALS/NOT_EQUALS instead."))
-
-    @classmethod
-    def get_yaml_validator(cls):
-        return Map(
-            {
-                "field": Enum(cls.FIELD),
-                "condition": Enum(cls.CONDITIONS),
-                "value": Seq(cls._TYPES) | cls._TYPES,
-            }
-        )
+        super(DataTypes, self).__init__(condition, values)
 
     @staticmethod
     def is_text(x):
@@ -123,244 +228,148 @@ class DataTypes(BaseValidator):
             return False
 
     @staticmethod
-    def has_txt(X):
+    def number_of_text_columns(X):
         return len(X.columns[list(X.apply(DataTypes.is_text, result_type="expand"))])
 
     @staticmethod
-    def has_img(X):
+    def number_of_img_columns(X):
         return len(X.columns[list(X.apply(DataTypes.is_img, result_type="expand"))])
 
     def validate(self, dataframe):
+        """A quirk of validation that follows the implementation of DataRobot is
+        as follows: A condition `IN` requires that
+        `set(types_present_in_dataframe) == set(self.values)`"""
         types = dict()
-        types["NUM"] = dataframe.select_dtypes(np.number).shape[1] > 0
-        txt_len = self.has_txt(dataframe)
-        img_len = self.has_img(dataframe)
-        types["TXT"] = txt_len > 0
-        types["IMG"] = img_len > 0
-        types["CAT"] = (
+        types[Values.NUM] = dataframe.select_dtypes(np.number).shape[1] > 0
+        txt_columns = self.number_of_text_columns(dataframe)
+        img_columns = self.number_of_img_columns(dataframe)
+        types[Values.TXT] = txt_columns > 0
+        types[Values.IMG] = img_columns > 0
+        types[Values.CAT] = (
             dataframe.select_dtypes("O").shape[1]
-            - (txt_len + img_len)
+            - (txt_columns + img_columns)
             + dataframe.select_dtypes("boolean").shape[1]
             > 0
         )
-        types["DATE"] = dataframe.select_dtypes("datetime").shape[1] > 0
+        types[Values.DATE] = dataframe.select_dtypes("datetime").shape[1] > 0
 
         validation_errors = []
 
-        if self.condition == Conditions.EQUALS:
-            for dtype in self.VALUES:
-                if dtype == self.values[0]:
-                    if not types[dtype]:
-                        validation_errors.append(
-                            "Datatypes incorrect, expected data to have {}".format(self.values)
-                        )
-                else:
-                    if types[dtype]:
-                        validation_errors.append(
-                            "Datatypes incorrect, unexpected type {} found, expected {}".format(
-                                dtype, self.values
-                            )
-                        )
-        elif self.condition == Conditions.NOT_EQUALS:
-            if types[self.values[0]]:
-                validation_errors.append(
-                    "Datatypes incorrect, {} was expected to not be present".format(self.values)
-                )
-        elif self.condition == Conditions.NOT_IN:
-            for dtype in self.values:
-                if types[dtype]:
-                    validation_errors.append(
-                        "Datatypes incorrect, {} was expected to not be present".format(self.values)
-                    )
+        types_present = [k for k, v in types.items() if v]
 
-        elif self.condition == Conditions.IN:
-            for dtype in self.VALUES:
-                if dtype in self.values:
-                    if not types[dtype]:
-                        validation_errors.append(
-                            "Datatypes incorrect, expected {} to be present".format(dtype)
-                        )
-                elif types[dtype]:
-                    validation_errors.append(
-                        "Datatypes incorrect, {} is not  expected to be present".format(dtype)
-                    )
-        return validation_errors
+        base_error = f"Datatypes incorrect. Data has types: {types_present}"
+
+        errors = {
+            Conditions.EQUALS: f"{base_error}, but expected only {self.values[0]}.",
+            Conditions.NOT_EQUALS: f"{base_error}, but expected {self.values[0]} to NOT be present.",
+            Conditions.IN: f"{base_error}, but expected types to exactly match: {self.values}",
+            Conditions.NOT_IN: f"{base_error}, but expected no types in: {self.values} to be present",
+        }
+
+        tests = {
+            Conditions.EQUALS: lambda data_types: self.values == data_types,
+            Conditions.NOT_EQUALS: lambda data_types: self.values[0] not in data_types,
+            Conditions.IN: lambda data_types: set(self.values) == set(data_types),
+            Conditions.NOT_IN: lambda data_types: all(el not in self.values for el in data_types),
+        }
+
+        if not tests[self.condition](types_present):
+            return [errors[self.condition]]
+        return []
 
 
-class SparsityInput(BaseValidator):
-    FIELD = "sparse"
-    CONDITIONS = Conditions.EQUALS
-    VALUES = [Values.FORBIDDEN, Values.SUPPORTED, Values.REQUIRED]
+class Sparsity(BaseValidator):
+    def __init__(self, condition, values):
+        super(Sparsity, self).__init__(condition, values)
 
     def validate(self, dataframe):
-        errors = []
-        if dataframe.dtypes.apply(pd.api.types.is_sparse).any():
-            if self.values not in [Values.SUPPORTED, Values.REQUIRED]:
-                errors.append(
-                    "Sparse input data found, however value is set to {}, expecting dense".format(
-                        self.values
-                    )
-                )
-        elif self.values not in [Values.FORBIDDEN, Values.SUPPORTED]:
-            errors.append("Dense input data found, however value is set to {}, expecting sparse")
-        return errors
 
+        is_sparse = dataframe.dtypes.apply(pd.api.types.is_sparse).any()
 
-class SparsityOutput(BaseValidator):
-    FIELD = "sparse"
-    CONDITIONS = Conditions.EQUALS
-    VALUES = [Values.NEVER, Values.DYNAMIC, Values.ALWAYS, Values.IDENTITY]
+        sparse_input_allowed_values = [Values.SUPPORTED, Values.REQUIRED]
+        sparse_output_allowed_values = [Values.DYNAMIC, Values.ALWAYS]
 
-    def validate(self, dataframe):
-        errors = []
-        if dataframe.dtypes.apply(pd.api.types.is_sparse).any():
-            if self.values not in [Values.DYNAMIC, Values.ALWAYS]:
-                errors.append(
-                    "Sparse output data found, however value is set to {}, expecting dense".format(
-                        self.values
-                    )
-                )
-        elif self.values not in [Values.NEVER, Values.DYNAMIC, Values.IDENTITY]:
-            errors.append("Dense output data found, however value is set to {}, expecting sparse")
-        return errors
+        dense_input_allowed_values = [Values.FORBIDDEN, Values.SUPPORTED]
+        dense_output_allowed_values = [Values.NEVER, Values.DYNAMIC, Values.IDENTITY]
+
+        value = self.values[0]
+
+        if value in Values.input_values():
+            io_type = "input"
+        else:
+            io_type = "output"
+
+        if is_sparse and value not in sparse_output_allowed_values + sparse_input_allowed_values:
+            return [
+                f"Sparse {io_type} data found, however value is set to {value}, expecting dense"
+            ]
+        elif (
+            not is_sparse and value not in dense_output_allowed_values + dense_input_allowed_values
+        ):
+            return [
+                f"Dense {io_type} data found, however value is set to {value}, expecting sparse"
+            ]
+        else:
+            return []
 
 
 class NumColumns(BaseValidator):
-    FIELD = "number_of_columns"
-    CONDITIONS = [
-        Conditions.EQUALS,
-        Conditions.IN,
-        Conditions.NOT_EQUALS,
-        Conditions.NOT_IN,
-        Conditions.GREATER_THAN,
-        Conditions.LESS_THAN,
-        Conditions.NOT_GREATER_THAN,
-        Conditions.NOT_LESS_THAN,
-    ]
-
     def __init__(self, condition, values):
-        super().__init__(condition, values)
-        if not isinstance(values, list):
-            self.values = [values]
-
-    def __init__(self, condition, values):
-        self.condition = condition
-        if not isinstance(values, list):
-            self.values = [values]
-        else:
-            self.values = values
-
-    @classmethod
-    def get_yaml_validator(cls):
-        return Map(
-            {
-                "field": Enum(cls.FIELD),
-                "condition": Enum(cls.CONDITIONS),
-                "value": Int() | Seq(Int()),
-            }
-        )
+        super(NumColumns, self).__init__(condition, values)
 
     def validate(self, dataframe):
         errors = []
         n_columns = len(dataframe.columns)
-        if self.condition == Conditions.EQUALS:
-            if len(self.values) > 1:
-                errors.append("Num columns error, only one value can be accepted for EQUALS")
-            elif n_columns != self.values[0]:
-                errors.append(
-                    "Num columns error, found {} but expected {} columns".format(
-                        n_columns, self.values[0]
-                    )
-                )
-        elif self.condition == Conditions.IN:
-            if not any([n_columns == value for value in self.values]):
-                errors.append(
-                    "Num columns error, found {} but expected number of columns to be in {}".format(
-                        n_columns, self.values
-                    )
-                )
-        elif self.condition == Conditions.NOT_EQUALS:
-            if len(self.values) > 1:
-                errors.append("Num columns error, only one value can be accepted for EQUALS")
-            elif n_columns == self.values[0]:
-                errors.append(
-                    "Num columns error, found {} columns, which is not supported".format(n_columns)
-                )
-        elif self.condition == Conditions.NOT_IN:
-            if any([n_columns == value for value in self.values]):
-                errors.append(
-                    "Num columns error, found {} columns, which is not supported".format(n_columns)
-                )
-        elif self.condition == Conditions.GREATER_THAN:
-            if len(self.values) > 1:
-                errors.append("Num columns error, only one value can be accepted for EQUALS")
-            elif n_columns <= self.values[0]:
-                errors.append(
-                    "Num columns error, found {} columns, but expected greater than {}".format(
-                        n_columns, self.values[0]
-                    )
-                )
-        elif self.condition == Conditions.NOT_GREATER_THAN:
-            if len(self.values) > 1:
-                errors.append("Num columns error, only one value can be accepted for EQUALS")
-            elif n_columns > self.values[0]:
-                errors.append(
-                    "Num columns error, found {} columns, but expected greater than {}".format(
-                        n_columns, self.values[0]
-                    )
-                )
-        elif self.condition == Conditions.LESS_THAN:
-            if len(self.values) > 1:
-                errors.append("Num columns error, only one value can be accepted for EQUALS")
-            elif n_columns >= self.values[0]:
-                errors.append(
-                    "Num columns error, found {} columns but expected less than {}".format(
-                        n_columns, self.values[0]
-                    )
-                )
-        elif self.condition == Conditions.NOT_LESS_THAN:
-            if len(self.values) > 1:
-                errors.append("Num columns error, only one value can be accepted for EQUALS")
-            elif n_columns < self.values[0]:
-                errors.append(
-                    "Num columns error, found {} columns but expected less than {}".format(
-                        n_columns, self.values[0]
-                    )
-                )
+
+        conditions_map = {
+            Conditions.EQUALS: operator.eq,
+            Conditions.NOT_EQUALS: operator.ne,
+            Conditions.IN: lambda a, b: a in b,
+            Conditions.NOT_IN: lambda a, b: a not in b,
+            Conditions.GREATER_THAN: operator.gt,
+            Conditions.NOT_GREATER_THAN: operator.le,
+            Conditions.LESS_THAN: operator.lt,
+            Conditions.NOT_LESS_THAN: operator.ge,
+        }
+
+        test_value = self.values
+        if self.condition in Conditions.single_value_conditions():
+            test_value = self.values[0]
+
+        passes = conditions_map[self.condition](n_columns, test_value)
+        if not passes:
+            return [
+                f"Num columns error, {n_columns} did not satisfy: {self.condition} {test_value}"
+            ]
+        return []
+
+
+class ContainsMissing(BaseValidator):
+    def __init__(self, condition, values):
+        super(ContainsMissing, self).__init__(condition, values)
+
+    def validate(self, dataframe):
+        missing_output_disallowed = Values.NEVER
+        missing_input_disallowed = Values.FORBIDDEN
+        any_missing = dataframe.isna().any().any()
+
+        value = self.values[0]
+
+        if value in Values.input_values():
+            io_type = "Input"
         else:
-            errors.append("Num columns error, unrecognized condition {}".format(self.condition))
-        return errors
+            io_type = "Output"
 
-
-class InputContainsMissing(BaseValidator):
-    FIELD = "contains_missing"
-    CONDITIONS = Conditions.EQUALS
-    VALUES = [Values.FORBIDDEN, Values.SUPPORTED]
-
-    def validate(self, dataframe):
-        any_missing = dataframe.isna().any().any()
-        if any_missing and self.values == Values.FORBIDDEN:
-            return ["Input contains missing values, the model does not support missing."]
+        if any_missing and value in [missing_output_disallowed, missing_input_disallowed]:
+            return [f"{io_type} contains missing values, the model does not support missing."]
         return []
 
 
-class OutputContainsMissing(BaseValidator):
-    FIELD = "contains_missing"
-    CONDITIONS = Conditions.EQUALS
-    VALUES = [Values.NEVER, Values.DYNAMIC]
-
-    def validate(self, dataframe):
-        any_missing = dataframe.isna().any().any()
-        if any_missing and self.values == Values.NEVER:
-            return ["Input contains missing values, the model does not support missing."]
-        return []
-
-
-def get_type_schema_yaml_validator():
+def get_type_schema_yaml_validator() -> Map:
     seq_validator = Seq(
         Map(
             {
-                "field": Enum(["data_types", "sparse", "number_of_columns", "contains_missing"]),
+                "field": Enum([str(el) for el in Fields]),
                 "condition": Str(),
                 "value": Str() | Seq(Str()),
             }
@@ -368,31 +377,24 @@ def get_type_schema_yaml_validator():
     )
     return Map(
         {
-            Optional("input_requirements"): seq_validator,
-            Optional("output_requirements"): seq_validator,
+            Optional(str(RequirementTypes.INPUT_REQUIREMENTS)): seq_validator,
+            Optional(str(RequirementTypes.OUTPUT_REQUIREMENTS)): seq_validator,
         }
     )
 
 
-def revalidate_typeschema(type_schema):
-    """Perform validation on each dictionary in the both lists.  This is required due to limitations in strictyaml.  See
+def revalidate_typeschema(type_schema: YAML):
+    """THIS MUTATES `type_schema`! calling the function would change {"number_of_columns": {"value": "1"}}
+    to {"number_of_columns": {"value": 1}}
+
+    Perform validation on each dictionary in the both lists.  This is required due to limitations in strictyaml.  See
     the strictyaml documentation on revalidation for details.  This checks that the provided values
     are valid together while the initial validation only checks that the map is in the right general format."""
-    input_validation = {
-        d.FIELD: d.get_yaml_validator()
-        for d in [DataTypes, SparsityInput, NumColumns, InputContainsMissing]
-    }
-    output_validation = {
-        d.FIELD: d.get_yaml_validator()
-        for d in [DataTypes, SparsityOutput, NumColumns, OutputContainsMissing]
-    }
-    if "input_requirements" in type_schema:
-        for req in type_schema["input_requirements"]:
-            req.revalidate(input_validation[req.data["field"]])
-    if "output_requirements" in type_schema:
-        for req in type_schema["output_requirements"]:
-            print(req.data)
-            req.revalidate(output_validation[req.data["field"]])
+
+    for requriment_type in RequirementTypes:
+        for req in type_schema.get(str(requriment_type), []):
+            field = Fields.from_string(req.data["field"])
+            req.revalidate(field.to_requirements(requriment_type))
 
 
 class SchemaValidator:
@@ -402,33 +404,23 @@ class SchemaValidator:
     actual validation on the respective dataframes.
     """
 
-    _input_validator_mapping = {
-        DataTypes.FIELD: DataTypes,
-        SparsityInput.FIELD: SparsityInput,
-        NumColumns.FIELD: NumColumns,
-        InputContainsMissing.FIELD: InputContainsMissing,
-    }
-    _output_validator_mapping = {
-        DataTypes.FIELD: DataTypes,
-        SparsityOutput.FIELD: SparsityOutput,
-        NumColumns.FIELD: NumColumns,
-        OutputContainsMissing.FIELD: OutputContainsMissing,
-    }
-
-    def __init__(self, type_schema, strict=True, verbose=False):
+    def __init__(self, type_schema: dict, strict=True, verbose=False):
         self._input_validators = [
-            self._get_validator(schema, self._input_validator_mapping)
-            for schema in type_schema.get("input_requirements", [])
+            self._get_validator(schema) for schema in type_schema.get("input_requirements", [])
         ]
         self._output_validators = [
-            self._get_validator(schema, self._output_validator_mapping)
-            for schema in type_schema.get("output_requirements", [])
+            self._get_validator(schema) for schema in type_schema.get("output_requirements", [])
         ]
         self.strict = strict
         self._verbose = verbose
 
-    def _get_validator(self, schema, mapping):
-        return mapping[schema["field"]](schema["condition"], schema["value"])
+    def _get_validator(self, schema):
+        field = Fields.from_string(schema["field"])
+        condition = Conditions.from_string(schema["condition"])
+        values = schema["value"]
+        if not isinstance(values, list):
+            values = [values]
+        return field.to_validator_class()(condition, values)
 
     def validate_inputs(self, dataframe):
         return self._run_validate(dataframe, self._input_validators, "input")
