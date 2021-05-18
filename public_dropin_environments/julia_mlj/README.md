@@ -20,7 +20,7 @@ This environment has built for Julia and has support for the following scientifi
 
 ## Instructions
 
-1. From the terminal, run `tar -czvf py_dropin.tar.gz -C /path/to/public_dropin_environments/julia/ .`
+1. From the terminal, run `tar -czvf py_dropin.tar.gz -C /path/to/public_dropin_environments/julia_mlj/ .`
 2. Using either the API or from the UI create a new Custom Environment with the tarball created
 in step 1.
 
