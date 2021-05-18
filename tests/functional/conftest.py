@@ -124,6 +124,14 @@ def r_drop_in_env():
 
 
 @pytest.fixture(scope="session")
+def julia_drop_in_env():
+    env_dir = os.path.join(PUBLIC_DROPIN_ENVS_PATH, "julia_mlj")
+    environment = dr.ExecutionEnvironment.create(name="julia_drop_in", programming_language="other")
+    environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
+    return environment.id, environment_version.id
+
+
+@pytest.fixture(scope="session")
 def binary_testing_data():
     dataset = dr.Dataset.create_from_file(
         file_path=os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv")
