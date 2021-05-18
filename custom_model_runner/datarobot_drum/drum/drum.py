@@ -362,8 +362,8 @@ class CMRunner:
             self.logger.error(error_mes)
             raise DrumCommonException(error_mes)
 
-        def raise_multiple_custom_files(py_paths, r_paths):
-            files_found = py_paths + r_paths
+        def raise_multiple_custom_files(py_paths, r_paths, jl_paths):
+            files_found = py_paths + r_paths + jl_paths
             error_mes = (
                 "Multiple custom.py/R/jl files were identified in the code directories sub directories.\n"
                 "If using the output directory option select a directory that does not contain additional "
