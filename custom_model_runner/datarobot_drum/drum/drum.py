@@ -382,14 +382,17 @@ class CMRunner:
 
         # check which custom code files present in the code dir
         custom_py_paths = list(Path(code_dir_abspath).rglob("{}.py".format(CUSTOM_FILE_NAME)))
-        custom_r_paths = list(Path(code_dir_abspath).rglob("{}.r".format(CUSTOM_FILE_NAME))) + list(
-            Path(code_dir_abspath).rglob("{}.R".format(CUSTOM_FILE_NAME))
-        )
+        custom_r_paths = list(Path(code_dir_abspath).rglob("{}.[rR]".format(CUSTOM_FILE_NAME)))
         custom_jl_paths = list(Path(code_dir_abspath).rglob("{}.jl".format(CUSTOM_FILE_NAME)))
 
+        # subdirectories also contain custom py/R files, likely an incorrectly selected output dir.
+        if len(custom_py_paths) + len(custom_r_paths) + len(custom_jl_paths) > 1:
+            raise_multiple_custom_files(custom_py_paths, custom_r_paths, custom_jl_paths)
         # if only one custom file found, set it:
-        if len(custom_py_paths) + len(custom_r_paths) == 1:
-            custom_language = RunLanguage.PYTHON if custom_py_paths else RunLanguage.R
+        elif len(custom_py_paths) == 1:
+            custom_language = RunLanguage.PYTHON
+        elif len(custom_r_paths) == 1:
+            custom_language = RunLanguage.R
         elif len(custom_jl_paths) == 1:
             custom_language = RunLanguage.Julia
         # if no custom files, look for any other python file to use
@@ -406,10 +409,6 @@ class CMRunner:
                 is_py = True
             else:
                 raise_no_language(custom_language)
-
-        # subdirectories also contain custom py/R files, likely an incorrectly selected output dir.
-        elif len(custom_py_paths) + len(custom_r_paths) + len(custom_jl_paths) > 1:
-            raise_multiple_custom_files(custom_py_paths, custom_r_paths, custom_jl_paths)
 
         # otherwise, we're in trouble
         else:
