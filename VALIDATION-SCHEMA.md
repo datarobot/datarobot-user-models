@@ -37,7 +37,7 @@ A condition of EQUALS must always be used for sparsity specifications.
 For the output of the model the following values are allowed:
 - NEVER: This models output is never a sparse dataframe.
 - DYNAMIC: This model can output either a dense or sparse matrix.
-- ALWAYS: This model will never always a sparse matrix.
+- ALWAYS: This model will always be a sparse matrix.
 - IDENTITY: This model can output either a sparse or dense matrix, and the sparsity will match the input matrix. 
 
 ### number_of_columns
