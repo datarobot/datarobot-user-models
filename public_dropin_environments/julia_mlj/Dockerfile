@@ -11,11 +11,7 @@ COPY dr_requirements.txt dr_requirements.txt
 RUN pip3 install -U --upgrade-strategy eager --no-cache-dir --prefer-binary -r dr_requirements.txt  && \
     rm -rf dr_requirements.txt
 
-# Install the list of custom Python requirements, e.g. keras, xgboost, etc.
-COPY requirements.txt requirements.txt
-RUN pip3 install -r requirements.txt --no-cache-dir && \
-    rm -rf requirements.txt
-
+# rebuild julia image as it depends on the CPU and architecture
 RUN julia /opt/julia/sysim.jl
 
 # Copy the drop-in environment code into the correct directory
