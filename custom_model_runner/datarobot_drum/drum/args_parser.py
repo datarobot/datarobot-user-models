@@ -920,6 +920,12 @@ class CMRunnerArgsRegistry(object):
                 CMRunnerArgsRegistry._parsers[ArgumentsOptions.NEW].print_help()
                 exit(1)
         elif options.subparser_name in [ArgumentsOptions.SERVER, ArgumentsOptions.PERF_TEST]:
+            if (
+                options.subparser_name == ArgumentsOptions.PERF_TEST
+                and options.target_type == TargetType.UNSTRUCTURED.value
+            ):
+                print("Performance testing is not implemented for unstructured models.")
+                exit(1)
             if options.production:
                 if options.verbose:
                     print("Checking if uwsgi is installed...")

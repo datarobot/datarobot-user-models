@@ -8,6 +8,8 @@ DRUM can also:
 - perform model validation tests, e.g., checking model functionality on corner cases, like null values imputation.
 - run models in a Docker container.
 
+***DataRobot DRUM is only tested to support Linux/macOS operating systems. To run DRUM in Windows 10 please use WSL (Windows Subsystem for Linux).***
+
 ## Communication
 - open an issue in the [DRUM GitHub repository](https://github.com/datarobot/datarobot-user-models/issues).
 - ask a question on the [#drum (IRC) channel](https://webchat.freenode.net/?channels=#drum).

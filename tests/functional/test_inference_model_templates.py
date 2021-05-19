@@ -178,6 +178,17 @@ class TestInferenceModelTemplates(object):
                 None,
                 "model_templates/inference/python3_pytorch_multiclass/class_labels.txt",
             ),
+            (
+                "inference/julia/jl_boston",
+                "other",
+                "julia_drop_in_env",
+                "regression_testing_data",
+                dr.TARGET_TYPE.REGRESSION,
+                "MEDV",
+                None,
+                None,
+                None,
+            ),
         ],
     )
     def test_inference_model_templates(
