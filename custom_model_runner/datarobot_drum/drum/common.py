@@ -260,6 +260,7 @@ class RunLanguage(Enum):
 
 
 class TargetType(Enum):
+    # Update documentation in model-metadata.md if a new type is added here.
     BINARY = "binary"
     REGRESSION = "regression"
     ANOMALY = "anomaly"
