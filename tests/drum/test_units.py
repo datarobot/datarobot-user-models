@@ -5,7 +5,6 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
 from typing import List, Union
-from unittest import mock
 from unittest.mock import patch
 
 
