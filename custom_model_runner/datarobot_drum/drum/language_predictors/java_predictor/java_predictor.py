@@ -225,9 +225,11 @@ class JavaPredictor(BaseLanguagePredictor):
         poll_val = self._proc.poll()
         if poll_val is not None:
             stdo, stde = self._proc.communicate()
-            print(stdo.decode())
-            print(stde.decode())
-            raise Exception("java gateway failed to start")
+            if stdo is not None:
+                print(stdo.decode())
+            if stde is not None:
+                print(stde.decode())
+            raise DrumCommonException("java gateway failed to start")
 
         self.logger.debug("java server entry point run successfully!")
 

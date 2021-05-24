@@ -94,8 +94,9 @@ public class PredictorEntryPoint {
             // TODO: use a specific port, note multiple such gateways might be running.
             GatewayServer gatewayServer = new GatewayServer(entryPoint, config.portNumber);
             gatewayServer.start();
-        } catch (Exception e) {
+        } catch (py4j.Py4JNetworkException e) {
             System.out.println(String.format("PredictorEntryPoint failed to start py4j GatewayServer on port: %d", portNumber));
+            System.out.println(String.format("Message: %s", e.getMessage()));
             e.printStackTrace();
             System.exit(1);
         }
