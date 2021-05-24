@@ -86,15 +86,19 @@ public class PredictorEntryPoint {
     }
 
     public static void main(String[] args) throws Exception {
+        int portNumber = -1;
         try {
             EntryPointConfig config = parseArgs(args);
+            portNumber = config.portNumber;
             PredictorEntryPoint entryPoint = new PredictorEntryPoint(config.className, config.predictorName);
             // TODO: use a specific port, note multiple such gateways might be running.
             GatewayServer gatewayServer = new GatewayServer(entryPoint, config.portNumber);
             gatewayServer.start();
-        } catch (Exception e) {
-            System.out.println("Got exception in ComponentEntryPoint: " + e.getMessage());
-            throw e;
+        } catch (py4j.Py4JNetworkException e) {
+            System.out.println(String.format("PredictorEntryPoint failed to start py4j GatewayServer on port: %d", portNumber));
+            System.out.println(String.format("Message: %s", e.getMessage()));
+            e.printStackTrace();
+            System.exit(1);
         }
     }
 }

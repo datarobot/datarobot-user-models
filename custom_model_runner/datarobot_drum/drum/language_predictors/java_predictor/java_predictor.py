@@ -192,6 +192,7 @@ class JavaPredictor(BaseLanguagePredictor):
         self.logger.debug("Full Java class path: {}".format(java_cp))
 
         self._java_port = JavaPredictor.find_free_port()
+
         cmd = ["java"]
         if self._java_Xmx:
             cmd.append("-Xmx{}".format(self._java_Xmx))
@@ -223,7 +224,12 @@ class JavaPredictor(BaseLanguagePredictor):
 
         poll_val = self._proc.poll()
         if poll_val is not None:
-            raise Exception("java gateway failed to start")
+            stdo, stde = self._proc.communicate()
+            if stdo is not None:
+                print(stdo.decode())
+            if stde is not None:
+                print(stde.decode())
+            raise DrumCommonException("java gateway failed to start")
 
         self.logger.debug("java server entry point run successfully!")
 

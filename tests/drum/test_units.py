@@ -5,6 +5,8 @@ from pathlib import Path
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
 from typing import List, Union
+from unittest.mock import patch
+
 
 import numpy as np
 import pandas as pd
@@ -685,6 +687,22 @@ class TestJavaPredictor:
         jp = JavaPredictor()
         with pytest.raises(AttributeError, match=error_message):
             jp._predict(binary_data=b"d" * data_size)
+
+    @patch.object(JavaPredictor, "find_free_port", return_value=80)
+    def test_run_java_server_entry_point_fail(self, mock_find_free_port):
+        pred = JavaPredictor()
+        pred.model_artifact_extension = ".jar"
+
+        with pytest.raises(DrumCommonException, match="java gateway failed to start"):
+            pred._run_java_server_entry_point()
+
+    def test_run_java_server_entry_point_succeed(self):
+        pred = JavaPredictor()
+        pred.model_artifact_extension = ".jar"
+        pred._run_java_server_entry_point()
+        # required to properly shutdown py4j Gateway
+        pred._setup_py4j_client_connection()
+        pred._stop_py4j()
 
 
 def input_requirements_yaml(
