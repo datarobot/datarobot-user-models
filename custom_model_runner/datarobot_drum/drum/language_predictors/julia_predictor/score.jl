@@ -74,9 +74,7 @@ end
 function load_serialized_model(model_dir)
 
     model = nothing
-    if defined_hooks["load_model"]
-        return Custom.load_model(model_dir)
-    end
+
     files = Filesystem.readdir(model_dir)
     artifacts = [x for x in files if endswith(x, "jlso")]
     if length(artifacts) == 0
@@ -95,17 +93,23 @@ function load_serialized_model(model_dir)
         ## of top leve.  should save some time and lighten lib 
         ## requirement on user if there is no intention to use MLJ
     end
-    @info "Loading serialized model artifact found at $artifact_path"
-    model = Main.MLJLibs.MLJ.machine(artifact_path)
+    if defined_hooks["load_model"]
+        @info "Loading model via hook"
+        model = Custom.load_model(model_dir)
+    else
+        @info "Loading serialized model artifact found at $artifact_path"
+        model = Main.MLJLibs.MLJ.machine(artifact_path)
+    end
 
     return model
 end
 
 function predict_regression(data, model; kwargs...)
     if defined_hooks["score"]
-        return predictions = Custom.score(data, model; kwargs...)
+        predictions = Custom.score(data, model; kwargs...)
+    else
+        predictions = Main.MLJLibs.MLJ.predict(model, data)
     end
-    predictions = Main.MLJLibs.MLJ.predict(model, data)
     return Pandas.DataFrame(predictions, columns=[REGRESSION_PRED_COLUMN_NAME])
 end
 
