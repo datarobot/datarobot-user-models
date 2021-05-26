@@ -9,8 +9,13 @@ solely deployment, while training models will be able to be trained on the leade
 * environmentID (required): a hash of the execution environment to use while running your custom model. 
     You can find a list of available execution environments [here](https://app.datarobot.com/model-registry/custom-environments). 
     Click on the `Environment Info` tab of the environment and copy the ID to your file. 
-* targetType (required): a string with the value either `binary` or `regression` representing the kind of 
-    prediction your model is able to make
+* targetType (required): a string indicating the type of target.  Must be one of 
+    - `binary`
+    - `regression`
+    - `anomaly`
+    - `unstructured`
+    - `multiclass`
+    - `transform`
 * modelID (optional): Once you have created a model for the first time, it is best practice to use 
 custom model versions when adding code while iterating on your model. To only create a new version
 instead of a whole new top level model, please include a hash here for the custom model you created.
@@ -35,7 +40,7 @@ which label will be chosen as the predicted label.
 on. If this is supplied, the code you supplied will start to run against this pid automagically. 
 
 ### Validation Schema
-The validation schema is used to define input and output requirements for the training model.  The validation is used to
+The validation schema is used to define input and output requirements for the training model (See detailed documentation in VALIDATION-SCHEMA.md).  The validation is used to
 communicate the acceptable inputs for the model along with the expected output.  This will be verified when running `drum fit`
 * typeSchema (optional): Top level dictionary that contains the input and output schema definitions
   * input_requirements (optional):  Specifications that apply to the models input.  The specifications provided as a list.
