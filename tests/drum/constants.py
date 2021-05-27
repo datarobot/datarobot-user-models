@@ -13,7 +13,7 @@ MODEL_TEMPLATES_PATH = os.path.join(REPO_ROOT_PATH, "model_templates")
 PUBLIC_DROPIN_ENVS_PATH = os.path.join(REPO_ROOT_PATH, "public_dropin_environments")
 
 
-TRAINING = "estimator_tasks"
+TRAINING = "training"
 INFERENCE = "inference"
 
 # Framework keywords

@@ -267,7 +267,7 @@ def training_metadata_yaml():
     return dedent(
         """
         name: drumpush-regression
-        type: estimator_tasks
+        type: training
         targetType: regression
         environmentID: {environmentID}
         validation:
@@ -281,7 +281,7 @@ def training_metadata_yaml_with_proj():
     return dedent(
         """
         name: drumpush-regression
-        type: estimator_tasks
+        type: training
         targetType: regression
         environmentID: {environmentID}
         trainingModel:
@@ -449,7 +449,7 @@ def version_mocks():
     )
 
 
-def mock_get_model(model_type="estimator_tasks", target_type="Regression"):
+def mock_get_model(model_type="training", target_type="Regression"):
     body = {
         "customModelType": model_type,
         "id": modelID,

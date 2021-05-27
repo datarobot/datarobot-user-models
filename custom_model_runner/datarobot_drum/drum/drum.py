@@ -145,7 +145,7 @@ class CMRunner:
     def _resolve_class_labels(self):
         if self.run_mode in [RunMode.NEW] or (
             self.run_mode == RunMode.PUSH
-            and self.options.model_config[ModelMetadataKeys.TYPE] == "estimator_tasks"
+            and self.options.model_config[ModelMetadataKeys.TYPE] == "training"
         ):
             self.options.positive_class_label = None
             self.options.negative_class_label = None

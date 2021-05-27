@@ -25,7 +25,7 @@ def fit(
     Parameters
     ----------
     X
-        estimator_tasks data to perform fit on
+        training data to perform fit on
     y
         target data to perform fit on
     output_dir

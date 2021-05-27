@@ -13,7 +13,7 @@ def fit(
     For inference models, this hook can stick around unimplemented, and won’t be triggered.
     Parameters
     ----------
-    X: pd.DataFrame - estimator_tasks data to perform fit on
+    X: pd.DataFrame - training data to perform fit on
     y: pd.Series - target data to perform fit on
     output_dir: the path to write output. This is the path provided in '--output' parameter of the
         'drum fit' command.

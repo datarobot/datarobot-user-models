@@ -65,7 +65,7 @@ def transform(X, transformer, y=None):
     """
     Parameters
     ----------
-    X: pd.DataFrame - estimator_tasks data to perform transform on
+    X: pd.DataFrame - training data to perform transform on
     transformer: object - trained transformer object
     y: pd.Series (optional) - target data to perform transform on
     Returns
