@@ -46,14 +46,14 @@ def fit(
     """
     This hook must be implemented with your fitting code, for running drum in the fit mode.
 
-    This hook MUST ALWAYS be implemented for custom training models. For custom transformers, the
+    This hook MUST ALWAYS be implemented for custom tasks. For custom transformers, the
     transform hook below is also required.
 
     For inference models, this hook can stick around unimplemented, and won’t be triggered.
 
     Parameters
     ----------
-    X: pd.DataFrame - training data to perform fit on
+    X: pd.DataFrame - estimator_tasks data to perform fit on
     y: pd.Series - target data to perform fit on
     output_dir: the path to write output. This is the path provided in '--output' parameter of the
         'drum fit' command.
@@ -80,7 +80,7 @@ def transform(X, transformer, y=None):
     """
     Parameters
     ----------
-    X: pd.DataFrame - training data to perform transform on
+    X: pd.DataFrame - estimator_tasks data to perform transform on
     transformer: object - trained transformer object
     y: pd.Series (optional) - target data to perform transform on
     Returns

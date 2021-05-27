@@ -145,7 +145,7 @@ class CMRunner:
     def _resolve_class_labels(self):
         if self.run_mode in [RunMode.NEW] or (
             self.run_mode == RunMode.PUSH
-            and self.options.model_config[ModelMetadataKeys.TYPE] == "training"
+            and self.options.model_config[ModelMetadataKeys.TYPE] == "estimator_tasks"
         ):
             self.options.positive_class_label = None
             self.options.negative_class_label = None
@@ -1072,7 +1072,7 @@ def possibly_intuit_order(
     if len(classes) >= 2:
         return classes
     elif len(classes) == 1:
-        raise DrumCommonException("Only one target label was provided, please revise training data")
+        raise DrumCommonException("Only one target label was provided, please revise estimator_tasks data")
     return None
 
 

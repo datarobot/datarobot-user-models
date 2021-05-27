@@ -67,7 +67,7 @@ class CMRunnerArgsRegistry(object):
         abs_path = os.path.abspath(arg)
         if not os.path.isdir(arg):
             raise argparse.ArgumentTypeError(
-                "The path {} is not a directory! For custom training models, "
+                "The path {} is not a directory! For custom tasks, "
                 "the output directory will consist of the artifacts usable "
                 "for making predictions. ".format(arg)
             )
@@ -147,7 +147,7 @@ class CMRunnerArgsRegistry(object):
                 type=str,
                 required=False,
                 default=None,
-                help="A column name of row weights in your training dataframe. "
+                help="A column name of row weights in your estimator_tasks dataframe. "
                 "Argument is mutually exclusive with {}".format(ArgumentsOptions.WEIGHTS_CSV),
             )
             group.add_argument(

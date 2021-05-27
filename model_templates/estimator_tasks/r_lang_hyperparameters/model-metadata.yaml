@@ -1,0 +1,7 @@
+name: drumpush-estimator_tasks
+type: estimator_tasks
+targetType: binary
+hyperparameters:
+  - name: method
+    type: string
+    default: "gbm"

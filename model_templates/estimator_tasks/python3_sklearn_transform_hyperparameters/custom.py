@@ -2,46 +2,11 @@ import pickle
 import pandas as pd
 from scipy.sparse.csr import csr_matrix
 
-import numpy as np
-
-from sklearn.compose import ColumnTransformer, make_column_selector
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
-
-numeric_selector = make_column_selector(dtype_include=np.number)
-categorical_selector = make_column_selector(dtype_include=np.object)
-
-
-numeric_pipeline = Pipeline(
-    steps=[
-        ("imputer", SimpleImputer(strategy="median", add_indicator=True)),
-        ("scaler", StandardScaler()),
-    ]
-)
-
-categorical_pipeline = Pipeline(
-    steps=[
-        ("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
-        ("onehot", OneHotEncoder(handle_unknown="ignore")),
-    ]
-)
-
-# Sparse preprocessing pipeline, for models such as Ridge that handle sparse input well
-sparse_preprocessing_pipeline = ColumnTransformer(
-    transformers=[
-        ("num", numeric_pipeline, numeric_selector),
-        ("cat", categorical_pipeline, categorical_selector),
-    ]
-)
-
-
-def make_pipeline():
-    return sparse_preprocessing_pipeline
+from create_transform_pipeline import make_pipeline
 
 
 def fit(
-    X: pd.DataFrame, y: pd.Series, output_dir: str, **kwargs,
+    X: pd.DataFrame, y: pd.Series, output_dir: str, parameters: dict, **kwargs,
 ):
     """
     This hook must be implemented with your fitting code, for running drum in the fit mode.
@@ -57,6 +22,8 @@ def fit(
     y: pd.Series - target data to perform fit on
     output_dir: the path to write output. This is the path provided in '--output' parameter of the
         'drum fit' command.
+    parameters: dict
+        A dictionary of parameters defined within the model-metadata.yaml file.
     kwargs: Added for forwards compatibility
 
     Returns
@@ -64,6 +31,24 @@ def fit(
     Nothing
     """
     transformer = make_pipeline()
+
+    if not parameters:
+        raise ValueError("Did not receive parameters")
+
+    # Parameters are provided during fit as a dict with names set according to your model-metadata.yaml file.
+    # In this example, we set the various transformer parameters in our sklearn pipeline.
+    transformer.set_params(
+        **{
+            "num__imputer__strategy": parameters["numeric_imputer_strategy"],
+            "num__scaler__with_mean": parameters["numeric_standardize_with_mean"],
+            "cat__imputer__fill_value": parameters["categorical_fill"],
+        }
+    )
+
+    # Only set numeric imputer's fill value if the strategy is constant
+    if parameters["numeric_imputer_strategy"] == "constant":
+        transformer.set_params(num__imputer__fill_value=parameters["numeric_imputer_constant_fill"])
+
     transformer.fit(X, y)
 
     # You must serialize out your transformer to the output_dir given, however if you wish to change this
@@ -76,7 +61,7 @@ def fit(
         pickle.dump(transformer, fp)
 
 
-def transform(X, transformer):
+def transform(X, transformer, y=None):
     """
     Parameters
     ----------

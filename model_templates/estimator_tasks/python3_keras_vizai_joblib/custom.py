@@ -1,9 +1,13 @@
-import pickle
-from typing import Any, List, Optional
-
-import numpy as np
+from typing import List, Optional
 import pandas as pd
-from sklearn.linear_model import Ridge
+import numpy as np
+from sklearn.pipeline import Pipeline
+
+from model_utils import (
+    fit_image_classifier_pipeline,
+    serialize_estimator_pipeline,
+    deserialize_estimator_pipeline,
+)
 
 
 def fit(
@@ -13,7 +17,7 @@ def fit(
     class_order: Optional[List[str]] = None,
     row_weights: Optional[np.ndarray] = None,
     **kwargs,
-):
+) -> None:
     """
     This hook must be implemented with your fitting code, for running drum in the fit mode.
 
@@ -42,20 +46,13 @@ def fit(
     -------
     Nothing
     """
-    for colname in X.columns:
-        assert colname.startswith("a") or colname.startswith("A")
-    assert len(set(X.columns)) == 162
-    estimator = Ridge()
-    estimator.fit(X, y)
-
-    # You must serialize out your model to the output_dir given, however if you wish to change this
-    # code, you will probably have to add a load_model method to read the serialized model back in
-    # When prediction is done.
-    # Check out this doc for more information on serialization https://github.com/datarobot/custom-\
-    # model-templates/tree/master/custom_model_runner#python
-    # NOTE: We currently set a 10GB limit to the size of the serialized model
-    with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
-        pickle.dump(estimator, fp)
+    # Feel free to delete which ever one of these you aren't using
+    if class_order:
+        fit_estimator = fit_image_classifier_pipeline(X, y, class_order)
+        # NOTE: We currently set a 10GB limit to the size of the serialized model
+        serialize_estimator_pipeline(fit_estimator, output_dir)
+    else:
+        raise NotImplementedError("Regression not implemented for Visual AI.")
 
 
 """
@@ -74,40 +71,45 @@ for custom inference code.
 #     kwargs : future proofing
 #     """
 
-# def load_model(code_dir: str) -> Any:
-#     """
-#     Can be used to load supported models if your model has multiple artifacts, or for loading
-#     models that DRUM does not natively support
-#
-#     Parameters
-#     ----------
-#     code_dir : is the directory where model artifact and additional code are provided, passed in
-#
-#     Returns
-#     -------
-#     If used, this hook must return a non-None value
-#     """
 
-
-def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
+def load_model(input_dir: str) -> Pipeline:
     """
-    Intended to apply transformations to the prediction data before making predictions. This is
-    most useful if DRUM supports the model's library, but your model requires additional data
-    processing before it can make predictions
+    Note: This hook may not have to be implemented for your model.
+    In this case implemented for the model used in the example.
+
+    This keras estimator requires 'load_model()' to be overridden. Coz as it involves pipeline of
+    preprocessor and estimator bundled together, it requires a special handling (oppose to usually
+    simple keras.models.load_model() or unpickling) to load the model. Currently there is no elegant
+    default method to save the keras classifier/regressor along with the sklearn pipeline. Hence we
+    use deserialize_estimator_pipeline() to load the model pipeline to predict.
 
     Parameters
     ----------
-    data : is the dataframe given to DRUM to make predictions on
-    model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
+    input_dir: str
 
     Returns
     -------
-    Transformed data
+    pipelined_model: Pipeline
+        Estimator pipeline obj
     """
-    for colname in data.columns:
-        assert colname.startswith("a") or colname.startswith("A")
-    return data
+    return deserialize_estimator_pipeline(input_dir)
 
+
+# def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
+#     """
+#     Intended to apply transformations to the prediction data before making predictions. This is
+#     most useful if DRUM supports the model's library, but your model requires additional data
+#     processing before it can make predictions
+#
+#     Parameters
+#     ----------
+#     data : is the dataframe given to DRUM to make predictions on
+#     model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
+#
+#     Returns
+#     -------
+#     Transformed data
+#     """
 
 # def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
 #     """

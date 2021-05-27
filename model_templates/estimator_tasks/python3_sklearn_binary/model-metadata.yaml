@@ -1,11 +1,11 @@
-name: drumpush-regression
+name: drumpush-binary
 type: estimator_tasks
-targetType: regression
+targetType: binary
 # modelID: optional
 environmentID: 5e8c889607389fe0f466c72d
 #trainingModel:
 #  trainOnProject: optional project on which to train
 validation:
   # Path is relative to this file
-  input: ../../../tests/testdata/boston_housing.csv
-  targetName: MEDV
+  input: ../../../tests/testdata/iris_binary_training.csv
+  targetName: Species

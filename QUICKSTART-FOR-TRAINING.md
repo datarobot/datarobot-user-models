@@ -1,4 +1,4 @@
-# :bowtie: Welcome to Custom Training Models :bowtie: 
+# :bowtie: Welcome to Custom Taskss :bowtie: 
 *NOTE*: This feature is currently in Beta. That means to get access to it, you 
 need to reach out and ask us. Please email `sylvain.ferrandiz@datarobot.com` if 
 you are interested. 
@@ -9,7 +9,7 @@ You should be able to complete this guide without deviating at all. If you
 cannot, let us know!
 
 ## Background
-Custom Training Models is a new feature where you, a programmer, can write some 
+Custom Tasks is a new feature where you, a programmer, can write some 
 code to build a model, and then have that model get built within DataRobot, 
 show up on the leaderboard, and then be available for insights and deployment. 
 Before now, the DataRobot Machine Learning Engineers were the only ones who 
@@ -58,7 +58,7 @@ Start the project in manual mode.
 off. 
 10. You should see a top level tab called the `Model Registry` click on that, 
 and then go into the custom model workshop
-11. Create a new custom training model with the target type Binary. 
+11. Create a new custom estimator task with the target type Binary. 
 12. After this, drag and drop the contents of the code directory into the 
 custom model file drop
 14. Click on the big `Make Custom Blueprint` button

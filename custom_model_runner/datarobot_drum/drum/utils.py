@@ -196,7 +196,7 @@ def extract_weights(X, fit_class):
         if fit_class.weights not in X.columns:
             raise ValueError(
                 "The column name {} is not one of the columns in "
-                "your training data".format(fit_class.weights)
+                "your estimator_tasks data".format(fit_class.weights)
             )
         row_weights = X[fit_class.weights]
     else:

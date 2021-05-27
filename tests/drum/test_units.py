@@ -267,7 +267,7 @@ def training_metadata_yaml():
     return dedent(
         """
         name: drumpush-regression
-        type: training
+        type: estimator_tasks
         targetType: regression
         environmentID: {environmentID}
         validation:
@@ -281,7 +281,7 @@ def training_metadata_yaml_with_proj():
     return dedent(
         """
         name: drumpush-regression
-        type: training
+        type: estimator_tasks
         targetType: regression
         environmentID: {environmentID}
         trainingModel:
@@ -449,7 +449,7 @@ def version_mocks():
     )
 
 
-def mock_get_model(model_type="training", target_type="Regression"):
+def mock_get_model(model_type="estimator_tasks", target_type="Regression"):
     body = {
         "customModelType": model_type,
         "id": modelID,
@@ -556,7 +556,7 @@ def test_push(request, config_yaml, existing_model_id, multiclass_labels, tmp_pa
     mock_get_model(model_type=config["type"], target_type=config["targetType"].capitalize())
     mock_get_env()
     mock_train_model()
-    push_fn = _push_training if config["type"] == "training" else _push_inference
+    push_fn = _push_training if config["type"] == "estimator_tasks" else _push_inference
     push_fn(config, code_dir="", endpoint="http://Yess", token="okay")
 
     calls = responses.calls

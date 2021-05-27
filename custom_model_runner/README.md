@@ -17,7 +17,7 @@ DRUM can also:
 ## Custom inference models quickstart guide
 View examples [here](https://github.com/datarobot/datarobot-user-models#quickstart).
 
-## Custom training models
+## Custom tasks
 View examples [here](https://github.com/datarobot/datarobot-user-models#training_model_folder).
 
 ## Installation

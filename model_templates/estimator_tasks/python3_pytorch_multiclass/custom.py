@@ -16,7 +16,7 @@ preprocessor = None
 def load_model(code_dir: str) -> Any:
     """
     Can be used to load supported models if your model has multiple artifacts, or for loading
-    models that DRUM  does not natively support
+    models that DRUM does not natively support
 
     Parameters
     ----------

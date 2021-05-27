@@ -1,9 +1,10 @@
 import pickle
-from typing import Any, List, Optional
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import Ridge
+from create_pipeline import make_classifier
+from sklearn.preprocessing import label_binarize
 
 
 def fit(
@@ -12,6 +13,7 @@ def fit(
     output_dir: str,
     class_order: Optional[List[str]] = None,
     row_weights: Optional[np.ndarray] = None,
+    parameters: Optional[dict] = None,
     **kwargs,
 ):
     """
@@ -36,16 +38,36 @@ def fit(
         a row is. Row weights is only optionally used, and there will be no filtering for which
         custom models support this. There are two situations when values will be passed into
         row_weights, during smart downsampling and when weights are explicitly provided by the user
+    parameters: dict
+        A dictionary of parameters defined within the model-metadata.yaml file.
     kwargs: Added for forwards compatibility
 
     Returns
     -------
     Nothing
     """
-    for colname in X.columns:
-        assert colname.startswith("a") or colname.startswith("A")
-    assert len(set(X.columns)) == 162
-    estimator = Ridge()
+    # Feel free to delete which ever one of these you aren't using
+    if class_order is not None:
+        if y.dtype == np.dtype("bool"):
+            y = y.astype("str")
+        estimator = make_classifier(X)
+    else:
+        raise Exception("Running binary estimator_tasks: class_order expected to be not None")
+
+    if not parameters:
+        raise ValueError("Did not receive parameters")
+
+    # Parameters are provided during fit as a dict with names set according to your model-metadata.yaml file.
+    # In this example, we set the 'model' parameters in our sklearn pipeline.
+    estimator.set_params(
+        **{
+            "model__penalty": parameters["penalty"],
+            "model__dual": parameters["dual"],
+            "model__tol": parameters["tol"],
+            "model__solver": parameters["solver"],
+        }
+    )
+
     estimator.fit(X, y)
 
     # You must serialize out your model to the output_dir given, however if you wish to change this
@@ -88,26 +110,21 @@ for custom inference code.
 #     If used, this hook must return a non-None value
 #     """
 
-
-def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
-    """
-    Intended to apply transformations to the prediction data before making predictions. This is
-    most useful if DRUM supports the model's library, but your model requires additional data
-    processing before it can make predictions
-
-    Parameters
-    ----------
-    data : is the dataframe given to DRUM to make predictions on
-    model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
-
-    Returns
-    -------
-    Transformed data
-    """
-    for colname in data.columns:
-        assert colname.startswith("a") or colname.startswith("A")
-    return data
-
+# def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
+#     """
+#     Intended to apply transformations to the prediction data before making predictions. This is
+#     most useful if DRUM supports the model's library, but your model requires additional data
+#     processing before it can make predictions
+#
+#     Parameters
+#     ----------
+#     data : is the dataframe given to DRUM to make predictions on
+#     model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
+#
+#     Returns
+#     -------
+#     Transformed data
+#     """
 
 # def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
 #     """

@@ -1,9 +1,30 @@
 import pickle
-from typing import Any, List, Optional
+from typing import List, Optional, Any
 
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import Ridge
+from create_pipeline import make_classifier
+from sklearn.preprocessing import label_binarize
+
+
+def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
+    """
+    Intended to apply transformations to the prediction data before making predictions. This is
+    most useful if DRUM supports the model's library, but your model requires additional data
+    processing before it can make predictions
+
+    Parameters
+    ----------
+    data : is the dataframe given to DRUM to make predictions on
+    model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
+
+    Returns
+    -------
+    Transformed data
+    """
+    if "class" in data.columns:
+        data.pop("class")
+    return data
 
 
 def fit(
@@ -42,10 +63,13 @@ def fit(
     -------
     Nothing
     """
-    for colname in X.columns:
-        assert colname.startswith("a") or colname.startswith("A")
-    assert len(set(X.columns)) == 162
-    estimator = Ridge()
+    # Feel free to delete which ever one of these you aren't using
+    if class_order is not None:
+        if y.dtype == np.dtype("bool"):
+            y = y.astype("str")
+        estimator = make_classifier(X)
+    else:
+        raise Exception("Running binary estimator_tasks: class_order expected to be not None")
     estimator.fit(X, y)
 
     # You must serialize out your model to the output_dir given, however if you wish to change this
@@ -56,6 +80,8 @@ def fit(
     # NOTE: We currently set a 10GB limit to the size of the serialized model
     with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
         pickle.dump(estimator, fp)
+    with open("{}/class_labels.txt".format(output_dir), "wb") as fp:
+        fp.write("\n".join(str(class_) for class_ in estimator.classes_).encode("utf-8"))
 
 
 """
@@ -87,27 +113,6 @@ for custom inference code.
 #     -------
 #     If used, this hook must return a non-None value
 #     """
-
-
-def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
-    """
-    Intended to apply transformations to the prediction data before making predictions. This is
-    most useful if DRUM supports the model's library, but your model requires additional data
-    processing before it can make predictions
-
-    Parameters
-    ----------
-    data : is the dataframe given to DRUM to make predictions on
-    model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
-
-    Returns
-    -------
-    Transformed data
-    """
-    for colname in data.columns:
-        assert colname.startswith("a") or colname.startswith("A")
-    return data
-
 
 # def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
 #     """
