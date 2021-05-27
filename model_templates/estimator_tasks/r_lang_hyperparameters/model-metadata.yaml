@@ -1,5 +1,5 @@
 name: drumpush-estimator_tasks
-type: estimator_tasks
+type: training
 targetType: binary
 hyperparameters:
   - name: method

@@ -88,14 +88,14 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
             )
             blueprint_id = response.json()["id"]
 
-            current_task = "actually estimator_tasks of blueprint {}".format(blueprint_id)
+            current_task = "actually training of blueprint {}".format(blueprint_id)
             model_job_id = project.train(blueprint_id)
             lid = dr_client.ModelJob.get(project_id=pid, model_job_id=model_job_id).model_id
         except dr_client.errors.ClientError as e:
-            print("There was an error estimator_tasks your model while {}: {}".format(current_task, e))
+            print("There was an error training your model while {}: {}".format(current_task, e))
             raise SystemExit(1)
         print("\nIn addition...")
-        print("Model estimator_tasks has started! Follow along at this link: ")
+        print("Model training has started! Follow along at this link: ")
         print(
             MODEL_LOGS_LINK_FORMAT.format(
                 url=re.sub(r"/api/v2/?", "", dr_client.client._global_client.endpoint),
@@ -207,7 +207,7 @@ def _setup_inference_validation(config, options):
 def setup_validation_options(options):
     model_config = get_metadata(options)
     validate_config_fields(model_config, ModelMetadataKeys.VALIDATION)
-    if model_config["type"] == "estimator_tasks":
+    if model_config["type"] == "training":
         return _setup_training_validation(model_config, options)
     elif model_config["type"] == "inference":
         return _setup_inference_validation(model_config, options)
@@ -218,7 +218,7 @@ def setup_validation_options(options):
 def drum_push(options):
     model_config = get_metadata(options)
 
-    if model_config["type"] == "estimator_tasks":
+    if model_config["type"] == "training":
         validate_config_fields(model_config, ModelMetadataKeys.ENVIRONMENT_ID)
         _push_training(model_config, options.code_dir)
     elif model_config["type"] == "inference":

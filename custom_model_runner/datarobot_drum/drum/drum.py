@@ -1072,7 +1072,7 @@ def possibly_intuit_order(
     if len(classes) >= 2:
         return classes
     elif len(classes) == 1:
-        raise DrumCommonException("Only one target label was provided, please revise estimator_tasks data")
+        raise DrumCommonException("Only one target label was provided, please revise training data")
     return None
 
 

@@ -1,5 +1,5 @@
 name: drumpush-binary-logistic-regression
-type: estimator_tasks
+type: training
 targetType: binary
 # modelID: optional
 environmentID: 5e8c889607389fe0f466c72d

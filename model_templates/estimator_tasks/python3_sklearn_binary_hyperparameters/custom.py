@@ -24,7 +24,7 @@ def fit(
 
     Parameters
     ----------
-    X: pd.DataFrame - estimator_tasks data to perform fit on
+    X: pd.DataFrame - trainings data to perform fit on
     y: pd.Series - target data to perform fit on
     output_dir: the path to write output. This is the path provided in '--output' parameter of the
         'drum fit' command.
