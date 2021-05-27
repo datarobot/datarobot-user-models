@@ -113,13 +113,14 @@ class StatsCollector(object):
 
     def dict_report(self, name):
         if self._disable_instance or self._stats_df is None:
-            return {"min": None, "max": None, "avg": None}
+            return {"min": None, "max": None, "avg": None, "total": None}
         if name not in self._report_cols:
             raise StatsCollectorException("report {} does not exist".format(name))
         return {
             "min": self._stats_df[name].min(),
             "max": self._stats_df[name].max(),
             "avg": self._stats_df[name].mean(),
+            "total": self._stats_df[name].sum(),
         }
 
     def print_report(self, name, format_str=None):

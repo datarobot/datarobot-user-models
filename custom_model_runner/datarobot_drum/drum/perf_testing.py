@@ -114,9 +114,9 @@ class PerfTestResultsFormatter:
     def _init_table(self):
         self._table = Texttable()
         self._table.set_deco(Texttable.HEADER)
-        header_names = ["size", "samples", "iters", "min", "avg", "max"]
-        header_types = ["t", "i", "i", "f", "f", "f"]
-        col_allign = ["l", "r", "r", "r", "r", "r"]
+        header_names = ["size", "samples", "iters", "min", "avg", "max", "total (s)"]
+        header_types = ["t", "i", "i", "f", "f", "f", "f"]
+        col_allign = ["l", "r", "r", "r", "r", "r", "r"]
 
         if self._show_mem:
             if self._in_docker:
@@ -197,10 +197,10 @@ class PerfTestResultsFormatter:
             server_stats = None
             if res.prediction_ok:
                 d = res.stats_obj.dict_report(CMRunTests.REPORT_NAME)
-                row.extend([d["min"], d["avg"], d["max"]])
+                row.extend([d["min"], d["avg"], d["max"], d["total"]])
                 server_stats = json.loads(res.server_stats) if res.server_stats else None
             else:
-                row.extend(self._same_value_list(CMRunTests.TEST_CASE_FAIL_VALUE, 3))
+                row.extend(self._same_value_list(CMRunTests.TEST_CASE_FAIL_VALUE, 4))
 
             if self._show_mem:
                 self._add_mem_info(row, server_stats)
