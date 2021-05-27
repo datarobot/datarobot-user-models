@@ -39,7 +39,7 @@
         <dependency>
             <groupId>com.opencsv</groupId>
             <artifactId>opencsv</artifactId>
-            <version>5.2</version>
+            <version>5.4</version>
         </dependency>
        <!-- https://mvnrepository.com/artifact/ai.h2o/h2o-genmodel -->
         <dependency>
