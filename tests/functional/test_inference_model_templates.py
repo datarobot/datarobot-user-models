@@ -9,7 +9,7 @@ from tests.drum.constants import MODEL_TEMPLATES_PATH
 
 class TestInferenceModelTemplates(object):
     @pytest.mark.parametrize(
-        "model_template, language, env, dataset, target_type, target, pos_label, neg_label, class_labels_file",
+        "model_template, language, env, dataset, target_type, target, pos_label, neg_label, class_labels_file, network_egress_policy",
         [
             (
                 "inference/java_codegen",
@@ -18,6 +18,7 @@ class TestInferenceModelTemplates(object):
                 "regression_testing_data",
                 dr.TARGET_TYPE.REGRESSION,
                 "MEDV",
+                None,
                 None,
                 None,
                 None,
@@ -32,6 +33,7 @@ class TestInferenceModelTemplates(object):
                 "Iris-setosa",
                 "Iris-versicolor",
                 None,
+                None,
             ),
             (
                 "inference/h2o_mojo/binary",
@@ -43,6 +45,7 @@ class TestInferenceModelTemplates(object):
                 "Iris-setosa",
                 "Iris-versicolor",
                 None,
+                None,
             ),
             (
                 "inference/h2o_pojo/regression",
@@ -51,6 +54,7 @@ class TestInferenceModelTemplates(object):
                 "regression_testing_data",
                 dr.TARGET_TYPE.REGRESSION,
                 "MEDV",
+                None,
                 None,
                 None,
                 None,
@@ -65,6 +69,7 @@ class TestInferenceModelTemplates(object):
                 None,
                 None,
                 None,
+                None,
             ),
             (
                 "inference/python3_keras_joblib",
@@ -73,6 +78,7 @@ class TestInferenceModelTemplates(object):
                 "regression_testing_data",
                 dr.TARGET_TYPE.REGRESSION,
                 "MEDV",
+                None,
                 None,
                 None,
                 None,
@@ -87,6 +93,7 @@ class TestInferenceModelTemplates(object):
                 "dogs",
                 "cats",
                 None,
+                "PUBLIC",
             ),
             (
                 "inference/python3_pytorch",
@@ -95,6 +102,7 @@ class TestInferenceModelTemplates(object):
                 "regression_testing_data",
                 dr.TARGET_TYPE.REGRESSION,
                 "MEDV",
+                None,
                 None,
                 None,
                 None,
@@ -109,6 +117,7 @@ class TestInferenceModelTemplates(object):
                 None,
                 None,
                 None,
+                None,
             ),
             (
                 "inference/python3_unstructured",
@@ -117,6 +126,7 @@ class TestInferenceModelTemplates(object):
                 # datafile here is only a stub, because unstructured model testing performs start up check only
                 "regression_testing_data",
                 dr.TARGET_TYPE.UNSTRUCTURED,
+                None,
                 None,
                 None,
                 None,
@@ -133,6 +143,7 @@ class TestInferenceModelTemplates(object):
                 None,
                 None,
                 None,
+                None,
             ),
             (
                 "inference/python3_xgboost",
@@ -141,6 +152,7 @@ class TestInferenceModelTemplates(object):
                 "regression_testing_data",
                 dr.TARGET_TYPE.REGRESSION,
                 "MEDV",
+                None,
                 None,
                 None,
                 None,
@@ -155,6 +167,7 @@ class TestInferenceModelTemplates(object):
                 None,
                 None,
                 None,
+                None,
             ),
             (
                 "inference/python3_pmml",
@@ -165,6 +178,7 @@ class TestInferenceModelTemplates(object):
                 "Species",
                 "Iris-setosa",
                 "Iris-versicolor",
+                None,
                 None,
             ),
             (
@@ -177,6 +191,7 @@ class TestInferenceModelTemplates(object):
                 None,
                 None,
                 "model_templates/inference/python3_pytorch_multiclass/class_labels.txt",
+                None,
             ),
             (
                 "inference/julia/jl_boston",
@@ -185,6 +200,7 @@ class TestInferenceModelTemplates(object):
                 "regression_testing_data",
                 dr.TARGET_TYPE.REGRESSION,
                 "MEDV",
+                None,
                 None,
                 None,
                 None,
@@ -203,6 +219,7 @@ class TestInferenceModelTemplates(object):
         pos_label,
         neg_label,
         class_labels_file,
+        network_egress_policy,
     ):
         env_id, env_version_id = request.getfixturevalue(env)
         test_data_id = request.getfixturevalue(dataset)
@@ -223,6 +240,9 @@ class TestInferenceModelTemplates(object):
             )
         elif target_type == dr.TARGET_TYPE.MULTICLASS:
             create_params.update({"class_labels_file": class_labels_file})
+
+        if network_egress_policy is not None:
+            create_params.update({"network_egress_policy": network_egress_policy})
 
         model = dr.CustomInferenceModel.create(**create_params)
 
