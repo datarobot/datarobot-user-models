@@ -77,17 +77,19 @@ class TestInferenceModelTemplates(object):
                 None,
                 None,
             ),
-            (
-                "inference/python3_keras_vizai_joblib",
-                "python",
-                "keras_drop_in_env",
-                "binary_vizai_testing_data",
-                dr.TARGET_TYPE.BINARY,
-                "class",
-                "dogs",
-                "cats",
-                None,
-            ),
+            # This test requires public egress access and fails where NetworkPolicy is not
+            # ignored. Can be re-enabled when public egress is not required.
+            # (
+            #     "inference/python3_keras_vizai_joblib",
+            #     "python",
+            #     "keras_drop_in_env",
+            #     "binary_vizai_testing_data",
+            #     dr.TARGET_TYPE.BINARY,
+            #     "class",
+            #     "dogs",
+            #     "cats",
+            #     None,
+            # ),
             (
                 "inference/python3_pytorch",
                 "python",
