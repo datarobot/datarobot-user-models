@@ -21,12 +21,6 @@ updates:
     reviewers:
       - "datarobot/custom-models"
   - package-ecosystem: "pip"
-    directory: "/public_dropin_environments/java_codegen"
-    schedule:
-      interval: "weekly"
-    reviewers:
-      - "datarobot/custom-models"
-  - package-ecosystem: "pip"
     directory: "/public_dropin_environments/julia_mlj"
     schedule:
       interval: "weekly"
