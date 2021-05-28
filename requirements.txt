@@ -7,7 +7,7 @@ sagemaker-scikit-learn-extension==1.1.0
 requests_toolbelt
 xgboost==1.1.1
 torch==1.2.0
-grpcio==1.27.2
+grpcio==1.32.0
 tensorflow==2.4.0
 Pillow==8.1.1
 pypmml==0.9.6
