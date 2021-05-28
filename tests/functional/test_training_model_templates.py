@@ -159,7 +159,7 @@ class TestTrainingModelTemplates(object):
         else:
             raise ValueError("Unkown target type {}".format(target_type))
 
-        model = CustomTrainingModel.create(name="estimator_tasks model", target_type=dr_target_type)
+        model = CustomTrainingModel.create(name="estimator", target_type=dr_target_type)
         model_version = dr.CustomModelVersion.create_clean(
             custom_model_id=model.id,
             base_environment_id=env_id,

@@ -49,7 +49,7 @@ def fit(
             y = y.astype("str")
         estimator = make_classifier(X)
     else:
-        raise Exception("Running binary estimator_tasks: class_order expected to be not None")
+        raise Exception("Running binary estimator: class_order expected to be not None")
     estimator.fit(X, y)
 
     # You must serialize out your model to the output_dir given, however if you wish to change this

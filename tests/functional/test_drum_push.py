@@ -24,7 +24,7 @@ def get_push_yaml(env_id, data_path, problem, target_name):
     target_name = "targetName: {targetName}".format(targetName=target_name) if target_name else ""
     return """
             name: drumpush-{problemType}
-            type: estimator_tasks
+            type: training
             targetType: {problemType}
             environmentID: {environmentID}
             validation:

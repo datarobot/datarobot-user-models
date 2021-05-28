@@ -556,7 +556,7 @@ def test_push(request, config_yaml, existing_model_id, multiclass_labels, tmp_pa
     mock_get_model(model_type=config["type"], target_type=config["targetType"].capitalize())
     mock_get_env()
     mock_train_model()
-    push_fn = _push_training if config["type"] == "estimator_tasks" else _push_inference
+    push_fn = _push_training if config["type"] == "training" else _push_inference
     push_fn(config, code_dir="", endpoint="http://Yess", token="okay")
 
     calls = responses.calls

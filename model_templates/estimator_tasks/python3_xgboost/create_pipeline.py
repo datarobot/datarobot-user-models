@@ -84,7 +84,7 @@ def make_classifier_pipeline(X: pd.DataFrame, num_labels: int) -> Pipeline:
     Parameters
     ----------
     X
-        X containing all the required features for estimator_tasks
+        X containing all the required features for training
     num_labels
         number of classification labels
 
@@ -122,7 +122,7 @@ def make_regressor_pipeline(X: pd.DataFrame) -> Pipeline:
     Parameters
     ----------
     X
-        X containing all the required features for estimator_tasks
+        X containing all the required features for training
 
     Returns
     -------

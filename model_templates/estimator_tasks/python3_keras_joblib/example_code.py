@@ -97,7 +97,7 @@ def make_classifier_pipeline(X: pd.DataFrame, num_labels: int) -> Pipeline:
     Parameters
     ----------
     X: pd.DataFrame
-        X containing all the required features for estimator_tasks
+        X containing all the required features for training
     num_labels: int
         The number of output labels
 

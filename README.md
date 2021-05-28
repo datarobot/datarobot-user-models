@@ -21,7 +21,7 @@ debugging, testing, and running your training and inference models with DataRobo
 This repository addresses the DataRobot functionality known as `custom models`. The terms `custom model` and `user model` can be used interchangeably, as can `custom model directory` and `code directory`.
 
 ## Quickstart <a name="quickstart"></a>
-The following example shows how to use the [DRUM](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) tool to make predictions on an [sklearn regression model](model_templates/inference/python3_sklearn). For the training model quickstart, please reference [this document](QUICKSTART-FOR-TRAINING.md)
+The following example shows how to use the [DRUM](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) tool to make predictions on an [sklearn regression model](model_templates/inference/python3_sklearn). For the training model quickstart, please reference [this document](QUICKSTART-FOR-TASKS.md)
 1. Clone the repository
 2. Create a virtual environment: `python3 -m virtualenv <dirname for virtual environment>`
 3. Activate the virtual environment: `source <dirname for virtual environment>/bin/activate`
@@ -246,7 +246,7 @@ The best way to debug in batch mode is to provide `--output` file. Returned data
 
 
 ## Assembling a custom task code folder <a name="training_model_folder"></a>
-Custom tasks are in active development. They include a `fit()` function, can be trained on the Leaderboard, benchmarked against DataRobot AutoML models, and get access to DataRobot's full set of automated insights. Refer to the [quickrun readme](QUICKSTART-FOR-TRAINING.md).
+Custom tasks are in active development. They include a `fit()` function, can be trained on the Leaderboard, benchmarked against DataRobot AutoML models, and get access to DataRobot's full set of automated insights. Refer to the [quickrun readme](QUICKSTART-FOR-TASKS.md).
 
 The model folder must contain any code required for DRUM to run and train your model.
 
