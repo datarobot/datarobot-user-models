@@ -26,24 +26,25 @@ _KERAS_UTILS = None
 
 
 def get_submodules_from_kwargs(kwargs):
-    backend = kwargs.get('backend', _KERAS_BACKEND)
-    layers = kwargs.get('layers', _KERAS_LAYERS)
-    models = kwargs.get('models', _KERAS_MODELS)
-    utils = kwargs.get('utils', _KERAS_UTILS)
+    backend = kwargs.get("backend", _KERAS_BACKEND)
+    layers = kwargs.get("layers", _KERAS_LAYERS)
+    models = kwargs.get("models", _KERAS_MODELS)
+    utils = kwargs.get("utils", _KERAS_UTILS)
     for key in kwargs.keys():
-        if key not in ['backend', 'layers', 'models', 'utils']:
-            raise TypeError('Invalid keyword argument: %s', key)
+        if key not in ["backend", "layers", "models", "utils"]:
+            raise TypeError("Invalid keyword argument: %s", key)
     return backend, layers, models, utils
 
 
 def inject_keras_modules(func):
     import keras
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        kwargs['backend'] = keras.backend
-        kwargs['layers'] = keras.layers
-        kwargs['models'] = keras.models
-        kwargs['utils'] = keras.utils
+        kwargs["backend"] = keras.backend
+        kwargs["layers"] = keras.layers
+        kwargs["models"] = keras.models
+        kwargs["utils"] = keras.utils
         return func(*args, **kwargs)
 
     return wrapper
@@ -51,12 +52,13 @@ def inject_keras_modules(func):
 
 def inject_tfkeras_modules(func):
     import tensorflow.keras as tfkeras
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        kwargs['backend'] = tfkeras.backend
-        kwargs['layers'] = tfkeras.layers
-        kwargs['models'] = tfkeras.models
-        kwargs['utils'] = tfkeras.utils
+        kwargs["backend"] = tfkeras.backend
+        kwargs["layers"] = tfkeras.layers
+        kwargs["models"] = tfkeras.models
+        kwargs["utils"] = tfkeras.utils
         return func(*args, **kwargs)
 
     return wrapper
@@ -67,8 +69,8 @@ def init_keras_custom_objects():
     import efficientnet as model
 
     custom_objects = {
-        'swish': inject_keras_modules(model.get_swish)(),
-        'FixedDropout': inject_keras_modules(model.get_dropout)()
+        "swish": inject_keras_modules(model.get_swish)(),
+        "FixedDropout": inject_keras_modules(model.get_dropout)(),
     }
 
     keras.utils.generic_utils.get_custom_objects().update(custom_objects)
@@ -79,8 +81,8 @@ def init_tfkeras_custom_objects():
     import efficientnet as model
 
     custom_objects = {
-        'swish': inject_tfkeras_modules(model.get_swish)(),
-        'FixedDropout': inject_tfkeras_modules(model.get_dropout)()
+        "swish": inject_tfkeras_modules(model.get_swish)(),
+        "FixedDropout": inject_tfkeras_modules(model.get_dropout)(),
     }
 
     tfkeras.utils.get_custom_objects().update(custom_objects)
@@ -101,16 +103,17 @@ def preprocess_image(image, image_size):
 
     image = image.resize((resized_width, resized_height))
     image = np.asarray(image, dtype="float32")
-    image /= 255.
+    image /= 255.0
     mean = [0.485, 0.456, 0.406]
     std = [0.229, 0.224, 0.225]
     image -= mean
     image /= std
     pad_h = image_size - resized_height
     pad_w = image_size - resized_width
-    image = np.pad(image, [(0, pad_h), (0, pad_w), (0, 0)], mode='constant')
+    image = np.pad(image, [(0, pad_h), (0, pad_w), (0, 0)], mode="constant")
 
     return image, scale
+
 
 def reorder_vertexes(vertexes):
     """
@@ -164,10 +167,13 @@ class AnchorParameters:
         scales : List of scales to use per location in a feature map.
     """
 
-    def __init__(self, sizes=(32, 64, 128, 256, 512),
-                 strides=(8, 16, 32, 64, 128),
-                 ratios=(1, 0.5, 2),
-                 scales=(2 ** 0, 2 ** (1. / 3.), 2 ** (2. / 3.))):
+    def __init__(
+        self,
+        sizes=(32, 64, 128, 256, 512),
+        strides=(8, 16, 32, 64, 128),
+        ratios=(1, 0.5, 2),
+        scales=(2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)),
+    ):
         self.sizes = sizes
         self.strides = strides
         self.ratios = np.array(ratios, dtype=keras.backend.floatx())
@@ -188,6 +194,7 @@ AnchorParameters.default = AnchorParameters(
     scales=np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)], keras.backend.floatx()),
 )
 
+
 def layer_shapes(image_shape, model):
     """
     Compute layer shapes given input image shape and the model.
@@ -207,7 +214,9 @@ def layer_shapes(image_shape, model):
             input_shapes = [shape[inbound_layer.name] for inbound_layer in node.inbound_layers]
             if not input_shapes:
                 continue
-            shape[layer.name] = layer.compute_output_shape(input_shapes[0] if len(input_shapes) == 1 else input_shapes)
+            shape[layer.name] = layer.compute_output_shape(
+                input_shapes[0] if len(input_shapes) == 1 else input_shapes
+            )
 
     return shape
 
@@ -240,10 +249,7 @@ def guess_shapes(image_shape, pyramid_levels):
 
 
 def anchors_for_shape(
-        image_shape,
-        pyramid_levels=None,
-        anchor_params=None,
-        shapes_callback=None,
+    image_shape, pyramid_levels=None, anchor_params=None, shapes_callback=None,
 ):
     """
     Generators anchors for a given shape.
@@ -272,7 +278,7 @@ def anchors_for_shape(
         anchors = generate_anchors(
             base_size=anchor_params.sizes[idx],
             ratios=anchor_params.ratios,
-            scales=anchor_params.scales
+            scales=anchor_params.scales,
         )
         shifted_anchors = shift(feature_map_shapes[idx], anchor_params.strides[idx], anchors)
         all_anchors = np.append(all_anchors, shifted_anchors, axis=0)
@@ -295,14 +301,13 @@ def shift(feature_map_shape, stride, anchors):
 
     shift_x, shift_y = np.meshgrid(shift_x, shift_y)
 
-    shifts = np.vstack((
-        shift_x.ravel(), shift_y.ravel(),
-        shift_x.ravel(), shift_y.ravel()
-    )).transpose()
+    shifts = np.vstack(
+        (shift_x.ravel(), shift_y.ravel(), shift_x.ravel(), shift_y.ravel())
+    ).transpose()
 
     A = anchors.shape[0]
     K = shifts.shape[0]
-    all_anchors = (anchors.reshape((1, A, 4)) + shifts.reshape((1, K, 4)).transpose((1, 0, 2)))
+    all_anchors = anchors.reshape((1, A, 4)) + shifts.reshape((1, K, 4)).transpose((1, 0, 2))
     all_anchors = all_anchors.reshape((K * A, 4))
 
     return all_anchors
@@ -345,13 +350,13 @@ def generate_anchors(base_size=16, ratios=None, scales=None):
 def bbox_transform(anchors, gt_boxes, scale_factors=None):
     wa = anchors[:, 2] - anchors[:, 0]
     ha = anchors[:, 3] - anchors[:, 1]
-    cxa = anchors[:, 0] + wa / 2.
-    cya = anchors[:, 1] + ha / 2.
+    cxa = anchors[:, 0] + wa / 2.0
+    cya = anchors[:, 1] + ha / 2.0
 
     w = gt_boxes[:, 2] - gt_boxes[:, 0]
     h = gt_boxes[:, 3] - gt_boxes[:, 1]
-    cx = gt_boxes[:, 0] + w / 2.
-    cy = gt_boxes[:, 1] + h / 2.
+    cx = gt_boxes[:, 0] + w / 2.0
+    cy = gt_boxes[:, 1] + h / 2.0
     # Avoid NaN in division and log below.
     ha += 1e-7
     wa += 1e-7

@@ -4,8 +4,10 @@ from sklearn.pipeline import Pipeline
 import json
 
 from model_load_utils import (
-    load_image_object_detection_inference_pipeline, predict_with_preprocessing
+    load_image_object_detection_inference_pipeline,
+    predict_with_preprocessing,
 )
+
 
 def load_model(input_dir: str) -> Pipeline:
     """
@@ -49,6 +51,7 @@ def transform(b64_image_array: str, model: Any) -> list:
     predicted_labels = predict_with_preprocessing(model, b64_image_array)
     return predicted_labels
 
+
 def score_unstructured(model, data, query, **kwargs):
     print("Model: ", model)
     print("Incoming content type params: ", kwargs)
@@ -68,7 +71,6 @@ def score_unstructured(model, data, query, **kwargs):
     else:
         ret = json.dumps(ret)
     return ret
-
 
 
 # def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
