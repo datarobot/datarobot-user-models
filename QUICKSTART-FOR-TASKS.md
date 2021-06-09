@@ -35,8 +35,7 @@ eval "$(pyenv init -)"
 5. Now that you're in a brand new virtual env, we're going to go install the 
 dependencies we need to test locally
 ```
-pip install -r public_dropin_environments/python3_sklearn_binary/dr_requirements.txt\
- -r public_dropin_environments/python3_sklearn_binary/dr_requirements.txt
+pip install -r public_dropin_environments/python3_sklearn/dr_requirements.txt
 ```
 ### Test that your code works locally
 6. To do this, we're going to be using the tester tool developed by DataRobot 
