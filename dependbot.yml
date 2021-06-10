@@ -3,13 +3,13 @@ updates:
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
-      interval: "daily"
+      interval: "monthly"
     reviewers:
       - "datarobot/custom-models"
   - package-ecosystem: "pip"
     directory: "/custom_model_runner/"
     schedule:
-      interval: "daily"
+      interval: "monthly"
     reviewers:
       - "datarobot/custom-models"
   # check the dropin environments
@@ -17,55 +17,55 @@ updates:
   - package-ecosystem: "pip"
     directory: "/public_dropin_environments/java_codegen"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     reviewers:
       - "datarobot/custom-models"
   - package-ecosystem: "pip"
     directory: "/public_dropin_environments/julia_mlj"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     reviewers:
       - "datarobot/custom-models"
   - package-ecosystem: "pip"
     directory: "/public_dropin_environments/python3_keras"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     reviewers:
       - "datarobot/custom-models"
   - package-ecosystem: "pip"
     directory: "/public_dropin_environments/python3_pmml"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     reviewers:
       - "datarobot/custom-models"
   - package-ecosystem: "pip"
     directory: "/public_dropin_environments/python3_pytorch"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     reviewers:
       - "datarobot/custom-models"
   - package-ecosystem: "pip"
     directory: "/public_dropin_environments/python3_sklearn"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     reviewers:
       - "datarobot/custom-models"
   - package-ecosystem: "pip"
     directory: "/public_dropin_environments/python3_xgboost"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     reviewers:
       - "datarobot/custom-models"
   - package-ecosystem: "pip"
     directory: "/public_dropin_environments/r_lang"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     reviewers:
       - "datarobot/custom-models"
   # check the model templates, most do not have requirements files
   - package-ecosystem: "pip"
     directory: "/model_templates/training/python3_pytorch_multiclass/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
     reviewers:
       - "datarobot/custom-models"
