@@ -6,7 +6,7 @@ import datarobot as dr
 
 from datarobot._experimental import CustomTrainingBlueprint, CustomTrainingModel
 
-BASE_MODEL_TEMPLATES_DIR = "model_templates"
+BASE_MODEL_TEMPLATES_DIR = "custom_tasks/examples"
 BASE_DATASET_DIR = "tests/testdata"
 
 
@@ -51,43 +51,43 @@ class TestTrainingModelTemplates(object):
         "model_template, proj, env, target_type",
         [
             (
-                "estimator_tasks/python3_pytorch",
+                "python3_pytorch",
                 "project_binary_diabetes",
                 "pytorch_drop_in_env",
                 "binary",
             ),
             (
-                "estimator_tasks/python3_pytorch",
+                "python3_pytorch",
                 "project_binary_iris",
                 "pytorch_drop_in_env",
                 "binary",
             ),
             (
-                "estimator_tasks/python3_pytorch",
+                "python3_pytorch",
                 "project_regression_boston",
                 "pytorch_drop_in_env",
                 "regression",
             ),
             (
-                "estimator_tasks/python3_pytorch_multiclass",
+                "python3_pytorch_multiclass",
                 "project_multiclass_skyserver",
                 "pytorch_drop_in_env",
                 "multiclass",
             ),
             (
-                "estimator_tasks/python3_keras_joblib",
+                "python3_keras_joblib",
                 "project_regression_boston",
                 "keras_drop_in_env",
                 "regression",
             ),
             (
-                "estimator_tasks/python3_keras_joblib",
+                "python3_keras_joblib",
                 "project_binary_iris",
                 "keras_drop_in_env",
                 "binary",
             ),
             (
-                "estimator_tasks/python3_keras_joblib",
+                "python3_keras_joblib",
                 "project_multiclass_skyserver",
                 "keras_drop_in_env",
                 "multiclass",
@@ -96,51 +96,51 @@ class TestTrainingModelTemplates(object):
             # Allowed by default data types for Custom Tasks. We can re-enable this
             # Test if we add image features in the fixture to the allowed data types.
             # (
-            #     "estimator_tasks/python3_keras_vizai_joblib",
+            #     "python3_keras_vizai_joblib",
             #     "project_binary_cats_dogs",
             #     "keras_drop_in_env",
             #     "binary",
             # ),
             (
-                "estimator_tasks/python3_xgboost",
+                "python3_xgboost",
                 "project_regression_boston",
                 "xgboost_drop_in_env",
                 "regression",
             ),
             (
-                "estimator_tasks/python3_xgboost",
+                "python3_xgboost",
                 "project_binary_iris",
                 "xgboost_drop_in_env",
                 "binary",
             ),
             (
-                "estimator_tasks/python3_xgboost",
+                "python3_xgboost",
                 "project_multiclass_skyserver",
                 "xgboost_drop_in_env",
                 "multiclass",
             ),
             (
-                "estimator_tasks/python3_sklearn_regression",
+                "python3_sklearn_regression",
                 "project_regression_boston",
                 "sklearn_drop_in_env",
                 "regression",
             ),
             (
-                "estimator_tasks/python3_sklearn_binary",
+                "python3_sklearn_binary",
                 "project_binary_iris",
                 "sklearn_drop_in_env",
                 "binary",
             ),
             (
-                "estimator_tasks/python3_sklearn_multiclass",
+                "python3_sklearn_multiclass",
                 "project_multiclass_skyserver",
                 "sklearn_drop_in_env",
                 "multiclass",
             ),
-            ("estimator_tasks/r_lang", "project_regression_boston", "r_drop_in_env", "regression",),
-            ("estimator_tasks/r_lang", "project_binary_iris", "r_drop_in_env", "binary",),
+            ("r_lang", "project_regression_boston", "r_drop_in_env", "regression",),
+            ("r_lang", "project_binary_iris", "r_drop_in_env", "binary",),
             (
-                "estimator_tasks/r_lang",
+                "r_lang",
                 "project_multiclass_skyserver",
                 "r_drop_in_env",
                 "multiclass",
