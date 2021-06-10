@@ -136,7 +136,7 @@ def make_regressor_pipeline(X: pd.DataFrame) -> Pipeline:
     Parameters
     ----------
     X: pd.DataFrame
-        X containing all the required features for estimator_tasks
+        X containing all the required features for training
 
     Returns
     -------

@@ -18,7 +18,7 @@ def fit(
     """
     This hook must be implemented with your fitting code, for running drum in the fit mode.
 
-    This hook MUST ALWAYS be implemented for custom taskss.
+    This hook MUST ALWAYS be implemented for custom tasks.
     For inference models, this hook can stick around unimplemented, and won’t be triggered.
 
     Parameters

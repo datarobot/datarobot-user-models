@@ -147,7 +147,7 @@ class CMRunnerArgsRegistry(object):
                 type=str,
                 required=False,
                 default=None,
-                help="A column name of row weights in your estimator_tasks dataframe. "
+                help="A column name of row weights in your training dataframe. "
                 "Argument is mutually exclusive with {}".format(ArgumentsOptions.WEIGHTS_CSV),
             )
             group.add_argument(

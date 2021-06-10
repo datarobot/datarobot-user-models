@@ -56,7 +56,7 @@ class AnomalyCalibEstimator(BaseEstimator):
 
         scores = self.model.decision_function(X).flatten()
 
-        # Normalize the scores based on the min and max of estimator_tasks data
+        # Normalize the scores based on the min and max of training data
         # from sklearn docs: "Signed distance is positive for an inlier
         # and negative for an outlier."
         # hence we take 1 - the calibrated scores so 1 corresponds to anomaly

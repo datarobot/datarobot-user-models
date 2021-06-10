@@ -4,8 +4,9 @@ from typing import List, Optional, Any
 import numpy as np
 import pandas as pd
 from create_pipeline import make_classifier
-from sklearn.preprocessing import label_binarize
+import logging
 
+logger = logging.getLogger()
 
 def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
     """
@@ -63,13 +64,14 @@ def fit(
     -------
     Nothing
     """
+    logging.info(y.head())
     # Feel free to delete which ever one of these you aren't using
     if class_order is not None:
         if y.dtype == np.dtype("bool"):
             y = y.astype("str")
         estimator = make_classifier(X)
     else:
-        raise Exception("Running binary estimator_tasks: class_order expected to be not None")
+        raise Exception("Running multiclass estimator task: class_order expected to be not None")
     estimator.fit(X, y)
 
     # You must serialize out your model to the output_dir given, however if you wish to change this
