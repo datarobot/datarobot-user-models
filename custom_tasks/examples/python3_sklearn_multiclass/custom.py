@@ -8,6 +8,7 @@ import logging
 
 logger = logging.getLogger()
 
+
 def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
     """
     Intended to apply transformations to the prediction data before making predictions. This is
