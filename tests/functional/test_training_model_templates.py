@@ -50,24 +50,9 @@ class TestTrainingModelTemplates(object):
     @pytest.mark.parametrize(
         "model_template, proj, env, target_type",
         [
-            (
-                "python3_pytorch",
-                "project_binary_diabetes",
-                "pytorch_drop_in_env",
-                "binary",
-            ),
-            (
-                "python3_pytorch",
-                "project_binary_iris",
-                "pytorch_drop_in_env",
-                "binary",
-            ),
-            (
-                "python3_pytorch",
-                "project_regression_boston",
-                "pytorch_drop_in_env",
-                "regression",
-            ),
+            ("python3_pytorch", "project_binary_diabetes", "pytorch_drop_in_env", "binary",),
+            ("python3_pytorch", "project_binary_iris", "pytorch_drop_in_env", "binary",),
+            ("python3_pytorch", "project_regression_boston", "pytorch_drop_in_env", "regression",),
             (
                 "python3_pytorch_multiclass",
                 "project_multiclass_skyserver",
@@ -80,12 +65,7 @@ class TestTrainingModelTemplates(object):
                 "keras_drop_in_env",
                 "regression",
             ),
-            (
-                "python3_keras_joblib",
-                "project_binary_iris",
-                "keras_drop_in_env",
-                "binary",
-            ),
+            ("python3_keras_joblib", "project_binary_iris", "keras_drop_in_env", "binary",),
             (
                 "python3_keras_joblib",
                 "project_multiclass_skyserver",
@@ -101,18 +81,8 @@ class TestTrainingModelTemplates(object):
             #     "keras_drop_in_env",
             #     "binary",
             # ),
-            (
-                "python3_xgboost",
-                "project_regression_boston",
-                "xgboost_drop_in_env",
-                "regression",
-            ),
-            (
-                "python3_xgboost",
-                "project_binary_iris",
-                "xgboost_drop_in_env",
-                "binary",
-            ),
+            ("python3_xgboost", "project_regression_boston", "xgboost_drop_in_env", "regression",),
+            ("python3_xgboost", "project_binary_iris", "xgboost_drop_in_env", "binary",),
             (
                 "python3_xgboost",
                 "project_multiclass_skyserver",
@@ -125,12 +95,7 @@ class TestTrainingModelTemplates(object):
                 "sklearn_drop_in_env",
                 "regression",
             ),
-            (
-                "python3_sklearn_binary",
-                "project_binary_iris",
-                "sklearn_drop_in_env",
-                "binary",
-            ),
+            ("python3_sklearn_binary", "project_binary_iris", "sklearn_drop_in_env", "binary",),
             (
                 "python3_sklearn_multiclass",
                 "project_multiclass_skyserver",
@@ -139,12 +104,7 @@ class TestTrainingModelTemplates(object):
             ),
             ("r_lang", "project_regression_boston", "r_drop_in_env", "regression",),
             ("r_lang", "project_binary_iris", "r_drop_in_env", "binary",),
-            (
-                "r_lang",
-                "project_multiclass_skyserver",
-                "r_drop_in_env",
-                "multiclass",
-            ),
+            ("r_lang", "project_multiclass_skyserver", "r_drop_in_env", "multiclass",),
         ],
     )
     def test_training_model_templates(self, request, model_template, proj, env, target_type):
