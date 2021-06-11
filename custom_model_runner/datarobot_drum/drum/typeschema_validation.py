@@ -316,6 +316,18 @@ class Sparsity(BaseValidator):
 class NumColumns(BaseValidator):
     def __init__(self, condition, values):
         super(NumColumns, self).__init__(condition, values)
+        # check that all values are >=0
+        if not all([v >= 0 for v in values]):
+            raise ValueError("The value for number of columns can not be negative")
+        # check cases where value can be 0
+        if 0 in values:
+            if condition not in [
+                Conditions.NOT_IN,
+                Conditions.NOT_EQUALS,
+                Conditions.NOT_LESS_THAN,
+                Conditions.GREATER_THAN,
+            ]:
+                raise ValueError(f"Value of 0 is not supported for {condition}")
 
     def validate(self, dataframe):
         errors = []
@@ -338,10 +350,11 @@ class NumColumns(BaseValidator):
 
         passes = conditions_map[self.condition](n_columns, test_value)
         if not passes:
-            return [
+            errors.append(
                 f"Num columns error, {n_columns} did not satisfy: {self.condition} {test_value}"
-            ]
-        return []
+            )
+
+        return errors
 
 
 class ContainsMissing(BaseValidator):
