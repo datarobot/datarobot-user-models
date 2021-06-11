@@ -12,6 +12,7 @@ from datarobot_drum.drum.common import (
     PayloadFormat,
     SupportedPayloadFormats,
     StructuredDtoKeys,
+    capture_R_traceback_if_errors,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
@@ -88,7 +89,7 @@ class RPredictor(BaseLanguagePredictor):
     def _predict(self, **kwargs):
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
-        try:
+        with capture_R_traceback_if_errors(r_handler, logger):
             predictions = r_handler.outer_predict(
                 self._target_type.value,
                 binary_data=ro.rinterface.NULL
@@ -100,16 +101,6 @@ class RPredictor(BaseLanguagePredictor):
                 negative_class_label=self._r_negative_class_label,
                 class_labels=self._r_class_labels,
             )
-        except RRuntimeError as e:
-            logger.error("R Traceback:")
-            try:
-                r_handler("traceback(max.lines = 50)")
-            except Exception as traceback_exc:
-                e.context = {
-                    "r_traceback": "(an error occurred while getting traceback from R)",
-                    "t_traceback_err": traceback_exc,
-                }
-            raise
 
         with localconverter(ro.default_converter + pandas2ri.converter):
             py_data_object = ro.conversion.rpy2py(predictions)
@@ -176,20 +167,10 @@ class RPredictor(BaseLanguagePredictor):
             r_data_binary_or_text = ro.vectors.ByteVector(data_binary_or_text)
 
         kwargs_filtered = {k: v for k, v in kwargs.items() if v is not None}
-        try:
+        with capture_R_traceback_if_errors(r_handler, logger):
             list_data_kwargs = r_handler.predict_unstructured(
                 model=self._model, data=r_data_binary_or_text, **kwargs_filtered
             )
-        except RRuntimeError as e:
-            logger.error("R Traceback:")
-            try:
-                r_handler("traceback(max.lines = 50)")
-            except Exception as traceback_exc:
-                e.context = {
-                    "r_traceback": "(an error occurred while getting traceback from R)",
-                    "t_traceback_err": traceback_exc,
-                }
-            raise
 
         if isinstance(list_data_kwargs, ro.vectors.ListVector):
             ret = _cast_r_to_py(list_data_kwargs[0]), _rlist_to_dict(list_data_kwargs[1])

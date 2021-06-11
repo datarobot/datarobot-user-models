@@ -3,7 +3,7 @@ import os
 
 from mlpiper.components.connectable_component import ConnectableComponent
 
-from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.common import LOGGER_NAME_PREFIX, capture_R_traceback_if_errors
 from datarobot_drum.drum.utils import shared_fit_preprocessing, make_sure_artifact_is_small
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
@@ -84,7 +84,7 @@ class RFit(ConnectableComponent):
         if self.target_name:
             target_name = self.target_name.replace("-", ".").replace("_", ".")
 
-        try:
+        with capture_R_traceback_if_errors(r_handler, logger):
             r_handler.outer_fit(
                 self.output_dir,
                 self.input_filename,
@@ -98,16 +98,6 @@ class RFit(ConnectableComponent):
                 ro.StrVector(self.class_labels) if self.class_labels else ro.NULL,
                 self.parameter_file or ro.NULL,
             )
-        except RRuntimeError as e:
-            logger.error("R Traceback:")
-            try:
-                r_handler("traceback(max.lines = 50)")
-            except Exception as traceback_exc:
-                e.context = {
-                    "r_traceback": "(an error occurred while getting traceback from R)",
-                    "t_traceback_err": traceback_exc,
-                }
-            raise
 
         make_sure_artifact_is_small(self.output_dir)
         return []
