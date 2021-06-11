@@ -22,6 +22,7 @@ try:
     import rpy2.robjects as ro
     from rpy2.robjects import pandas2ri, StrVector
     from rpy2.robjects.conversion import localconverter
+    from rpy2.rinterface_lib.embedded import RRuntimeError
 
 except ImportError:
     error_message = (
@@ -87,17 +88,29 @@ class RPredictor(BaseLanguagePredictor):
     def _predict(self, **kwargs):
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
-        predictions = r_handler.outer_predict(
-            self._target_type.value,
-            binary_data=ro.rinterface.NULL
-            if input_binary_data is None
-            else ro.vectors.ByteVector(input_binary_data),
-            mimetype=ro.rinterface.NULL if mimetype is None else mimetype,
-            model=self._model,
-            positive_class_label=self._r_positive_class_label,
-            negative_class_label=self._r_negative_class_label,
-            class_labels=self._r_class_labels,
-        )
+        try:
+            predictions = r_handler.outer_predict(
+                self._target_type.value,
+                binary_data=ro.rinterface.NULL
+                if input_binary_data is None
+                else ro.vectors.ByteVector(input_binary_data),
+                mimetype=ro.rinterface.NULL if mimetype is None else mimetype,
+                model=self._model,
+                positive_class_label=self._r_positive_class_label,
+                negative_class_label=self._r_negative_class_label,
+                class_labels=self._r_class_labels,
+            )
+        except RRuntimeError as e:
+            logger.error("R Traceback:")
+            try:
+                r_handler("traceback(max.lines = 50)")
+            except Exception as traceback_exc:
+                e.context = {
+                    "r_traceback": "(an error occurred while getting traceback from R)",
+                    "t_traceback_err": traceback_exc,
+                }
+            raise
+
         with localconverter(ro.default_converter + pandas2ri.converter):
             py_data_object = ro.conversion.rpy2py(predictions)
 
@@ -163,9 +176,21 @@ class RPredictor(BaseLanguagePredictor):
             r_data_binary_or_text = ro.vectors.ByteVector(data_binary_or_text)
 
         kwargs_filtered = {k: v for k, v in kwargs.items() if v is not None}
-        list_data_kwargs = r_handler.predict_unstructured(
-            model=self._model, data=r_data_binary_or_text, **kwargs_filtered
-        )
+        try:
+            list_data_kwargs = r_handler.predict_unstructured(
+                model=self._model, data=r_data_binary_or_text, **kwargs_filtered
+            )
+        except RRuntimeError as e:
+            logger.error("R Traceback:")
+            try:
+                r_handler("traceback(max.lines = 50)")
+            except Exception as traceback_exc:
+                e.context = {
+                    "r_traceback": "(an error occurred while getting traceback from R)",
+                    "t_traceback_err": traceback_exc,
+                }
+            raise
+
         if isinstance(list_data_kwargs, ro.vectors.ListVector):
             ret = _cast_r_to_py(list_data_kwargs[0]), _rlist_to_dict(list_data_kwargs[1])
         else:
