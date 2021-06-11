@@ -5,7 +5,6 @@ from mlpiper.components.connectable_component import ConnectableComponent
 
 from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.utils import (
-    shared_fit_preprocessing,
     make_sure_artifact_is_small,
     capture_R_traceback_if_errors,
 )
@@ -16,7 +15,6 @@ try:
     import rpy2.robjects as ro
     from rpy2.robjects import pandas2ri
     from rpy2.robjects.conversion import localconverter
-    from rpy2.rinterface_lib.embedded import RRuntimeError
 except ImportError:
     error_message = (
         "rpy2 package is not installed."

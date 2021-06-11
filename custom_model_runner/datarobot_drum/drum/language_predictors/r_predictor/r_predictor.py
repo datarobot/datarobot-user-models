@@ -23,7 +23,6 @@ try:
     import rpy2.robjects as ro
     from rpy2.robjects import pandas2ri, StrVector
     from rpy2.robjects.conversion import localconverter
-    from rpy2.rinterface_lib.embedded import RRuntimeError
 
 except ImportError:
     error_message = (
