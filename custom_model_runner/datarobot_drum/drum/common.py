@@ -313,7 +313,6 @@ def capture_R_traceback_if_errors(r_handler, logger):
         yield
     except RRuntimeError as e:
         try:
-            # Will print to stdout, which requires --verbose to see it
             out = "\n".join(r_handler("capture.output(traceback(max.lines = 50))"))
             logger.error("R Traceback:\n{}".format(str(out)))
         except Exception as traceback_exc:
