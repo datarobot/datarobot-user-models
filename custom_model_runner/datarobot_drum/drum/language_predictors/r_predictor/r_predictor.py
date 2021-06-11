@@ -12,8 +12,8 @@ from datarobot_drum.drum.common import (
     PayloadFormat,
     SupportedPayloadFormats,
     StructuredDtoKeys,
-    capture_R_traceback_if_errors,
 )
+from datarobot_drum.drum.utils import capture_R_traceback_if_errors
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 
