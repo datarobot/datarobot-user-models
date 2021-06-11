@@ -12,6 +12,7 @@ try:
     import rpy2.robjects as ro
     from rpy2.robjects import pandas2ri
     from rpy2.robjects.conversion import localconverter
+    from rpy2.rinterface_lib.embedded import RRuntimeError
 except ImportError:
     error_message = (
         "rpy2 package is not installed."
@@ -83,19 +84,30 @@ class RFit(ConnectableComponent):
         if self.target_name:
             target_name = self.target_name.replace("-", ".").replace("_", ".")
 
-        r_handler.outer_fit(
-            self.output_dir,
-            self.input_filename,
-            self.target_filename or ro.NULL,
-            target_name,
-            self.num_rows,
-            self.weights_filename or ro.NULL,
-            weights,
-            self.positive_class_label or ro.NULL,
-            self.negative_class_label or ro.NULL,
-            ro.StrVector(self.class_labels) if self.class_labels else ro.NULL,
-            self.parameter_file or ro.NULL,
-        )
+        try:
+            r_handler.outer_fit(
+                self.output_dir,
+                self.input_filename,
+                self.target_filename or ro.NULL,
+                target_name,
+                self.num_rows,
+                self.weights_filename or ro.NULL,
+                weights,
+                self.positive_class_label or ro.NULL,
+                self.negative_class_label or ro.NULL,
+                ro.StrVector(self.class_labels) if self.class_labels else ro.NULL,
+                self.parameter_file or ro.NULL,
+            )
+        except RRuntimeError as e:
+            logger.error("R Traceback:")
+            try:
+                r_handler("traceback(max.lines = 50)")
+            except Exception as traceback_exc:
+                e.context = {
+                    "r_traceback": "(an error occurred while getting traceback from R)",
+                    "t_traceback_err": traceback_exc,
+                }
+            raise
 
         make_sure_artifact_is_small(self.output_dir)
         return []
