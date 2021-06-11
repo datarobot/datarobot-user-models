@@ -1,3 +1,5 @@
+import logging
+
 from dataclasses import dataclass
 from typing import Any, Optional
 from unittest.mock import Mock
@@ -5,6 +7,8 @@ from unittest.mock import Mock
 import pytest
 
 from datarobot_drum.drum.utils import extract_class_order, capture_R_traceback_if_errors
+
+logger = logging.getLogger(__name__)
 
 try:
     import rpy2.robjects as ro
