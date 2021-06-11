@@ -286,14 +286,14 @@ The [model_templates](model_templates) folder contains sample models that work w
 * [Julia sample models](model_templates/inference/julia)
 
 ##### Training Models
-* [Scikit-Learn sample regression model](model_templates/estimator_tasks/python3_sklearn_regression)
-* [Scikit-Learn sample binary model](model_templates/estimator_tasks/python3_sklearn_binary)
-* [Scikit-Learn sample unsupervised anomaly detection model](model_templates/estimator_tasks/python3_anomaly_detection)
+* [Scikit-Learn sample regression model](custom_tasks/examples/python3_sklearn_regression)
+* [Scikit-Learn sample binary model](custom_tasks/examples/python3_sklearn_binary)
+* [Scikit-Learn sample unsupervised anomaly detection model](custom_tasks/examples/python3_anomaly_detection)
 > Note: Unsupervised support is limited to anomaly detection models as of release 1.1.5
-* [Scikit-Learn sample transformer](model_templates/estimator_tasks/python3_sklearn_transform)
-* [XGBoost sample model](model_templates/estimator_tasks/python3_xgboost)
-* [Keras sample model + Joblib artifact](model_templates/estimator_tasks/python3_keras_joblib)
-* [R sample model](model_templates/estimator_tasks/r_lang)
+* [Scikit-Learn sample transformer](custom_tasks/examples/python3_sklearn_transform)
+* [XGBoost sample model](custom_tasks/examples/python3_xgboost)
+* [Keras sample model + Joblib artifact](custom_tasks/examples/python3_keras_joblib)
+* [R sample model](custom_tasks/examples/r_lang)
 
 ## Custom Environment Templates <a name="custom_environment_templates"></a>
 The [environment templates folder](#custom_environment_template) contains templates for the base environments used in DataRobot. Dependency requirements can be applied to the base environment to create a runtime environment for custom models.
