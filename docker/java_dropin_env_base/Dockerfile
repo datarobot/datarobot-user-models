@@ -31,6 +31,8 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/* && \
     chmod 707 /var/lib/nginx
 
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+
 RUN pip3 install -U pip
 RUN pip3 install --no-cache-dir setuptools wheel
 
