@@ -1,8 +1,9 @@
 import pickle
-from typing import Any, List, Optional
+from typing import List, Optional
 
 import numpy as np
 import pandas as pd
+from scipy.sparse import csr_matrix
 from sklearn.linear_model import Ridge
 
 
@@ -42,9 +43,6 @@ def fit(
     -------
     Nothing
     """
-    for colname in X.columns:
-        assert colname.startswith("a") or colname.startswith("A")
-    assert len(set(X.columns)) == 162
     estimator = Ridge()
     estimator.fit(X, y)
 
@@ -88,26 +86,21 @@ for custom inference code.
 #     If used, this hook must return a non-None value
 #     """
 
-
-def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
-    """
-    Intended to apply transformations to the prediction data before making predictions. This is
-    most useful if DRUM supports the model's library, but your model requires additional data
-    processing before it can make predictions
-
-    Parameters
-    ----------
-    data : is the dataframe given to DRUM to make predictions on
-    model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
-
-    Returns
-    -------
-    Transformed data
-    """
-    for colname in data.columns:
-        assert colname.startswith("a") or colname.startswith("A")
-    return data
-
+# def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
+#     """
+#     Intended to apply transformations to the prediction data before making predictions. This is
+#     most useful if DRUM supports the model's library, but your model requires additional data
+#     processing before it can make predictions
+#
+#     Parameters
+#     ----------
+#     data : is the dataframe given to DRUM to make predictions on
+#     model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
+#
+#     Returns
+#     -------
+#     Transformed data
+#     """
 
 # def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
 #     """

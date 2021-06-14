@@ -34,7 +34,7 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
         from datarobot._experimental import CustomTrainingBlueprint, CustomTrainingModel
     except ImportError:
         raise DrumCommonException(
-            "You tried to run custom training models using a version of the \n"
+            "You tried to run custom tasks using a version of the \n"
             "datarobot client which doesn't have this beta functionality yet. \n"
             "Please pip install datarobot>=2.22.0b0 to access this functionality. \n"
             "This requires adding the internal datarobot artifactory index \n"

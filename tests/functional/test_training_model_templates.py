@@ -6,7 +6,7 @@ import datarobot as dr
 
 from datarobot._experimental import CustomTrainingBlueprint, CustomTrainingModel
 
-BASE_MODEL_TEMPLATES_DIR = "model_templates"
+BASE_MODEL_TEMPLATES_DIR = "custom_tasks/examples"
 BASE_DATASET_DIR = "tests/testdata"
 
 
@@ -50,86 +50,61 @@ class TestTrainingModelTemplates(object):
     @pytest.mark.parametrize(
         "model_template, proj, env, target_type",
         [
+            ("python3_pytorch", "project_binary_diabetes", "pytorch_drop_in_env", "binary",),
+            ("python3_pytorch", "project_binary_iris", "pytorch_drop_in_env", "binary",),
+            ("python3_pytorch", "project_regression_boston", "pytorch_drop_in_env", "regression",),
             (
-                "training/python3_pytorch",
-                "project_binary_diabetes",
-                "pytorch_drop_in_env",
-                "binary",
-            ),
-            ("training/python3_pytorch", "project_binary_iris", "pytorch_drop_in_env", "binary",),
-            (
-                "training/python3_pytorch",
-                "project_regression_boston",
-                "pytorch_drop_in_env",
-                "regression",
-            ),
-            (
-                "training/python3_pytorch_multiclass",
+                "python3_pytorch_multiclass",
                 "project_multiclass_skyserver",
                 "pytorch_drop_in_env",
                 "multiclass",
             ),
             (
-                "training/python3_keras_joblib",
+                "python3_keras_joblib",
                 "project_regression_boston",
                 "keras_drop_in_env",
                 "regression",
             ),
+            ("python3_keras_joblib", "project_binary_iris", "keras_drop_in_env", "binary",),
             (
-                "training/python3_keras_joblib",
-                "project_binary_iris",
-                "keras_drop_in_env",
-                "binary",
-            ),
-            (
-                "training/python3_keras_joblib",
+                "python3_keras_joblib",
                 "project_multiclass_skyserver",
                 "keras_drop_in_env",
                 "multiclass",
             ),
             # This test currently fails, because it uses image features, which isn't one of the
-            # Allowed by default data types for Custom Training Models. We can re-enable this
+            # Allowed by default data types for Custom Tasks. We can re-enable this
             # Test if we add image features in the fixture to the allowed data types.
             # (
-            #     "training/python3_keras_vizai_joblib",
+            #     "python3_keras_vizai_joblib",
             #     "project_binary_cats_dogs",
             #     "keras_drop_in_env",
             #     "binary",
             # ),
+            ("python3_xgboost", "project_regression_boston", "xgboost_drop_in_env", "regression",),
+            ("python3_xgboost", "project_binary_iris", "xgboost_drop_in_env", "binary",),
             (
-                "training/python3_xgboost",
-                "project_regression_boston",
-                "xgboost_drop_in_env",
-                "regression",
-            ),
-            ("training/python3_xgboost", "project_binary_iris", "xgboost_drop_in_env", "binary",),
-            (
-                "training/python3_xgboost",
+                "python3_xgboost",
                 "project_multiclass_skyserver",
                 "xgboost_drop_in_env",
                 "multiclass",
             ),
             (
-                "training/python3_sklearn_regression",
+                "python3_sklearn_regression",
                 "project_regression_boston",
                 "sklearn_drop_in_env",
                 "regression",
             ),
+            ("python3_sklearn_binary", "project_binary_iris", "sklearn_drop_in_env", "binary",),
             (
-                "training/python3_sklearn_binary",
-                "project_binary_iris",
-                "sklearn_drop_in_env",
-                "binary",
-            ),
-            (
-                "training/python3_sklearn_multiclass",
+                "python3_sklearn_multiclass",
                 "project_multiclass_skyserver",
                 "sklearn_drop_in_env",
                 "multiclass",
             ),
-            ("training/r_lang", "project_regression_boston", "r_drop_in_env", "regression",),
-            ("training/r_lang", "project_binary_iris", "r_drop_in_env", "binary",),
-            ("training/r_lang", "project_multiclass_skyserver", "r_drop_in_env", "multiclass",),
+            ("r_lang", "project_regression_boston", "r_drop_in_env", "regression",),
+            ("r_lang", "project_binary_iris", "r_drop_in_env", "binary",),
+            ("r_lang", "project_multiclass_skyserver", "r_drop_in_env", "multiclass",),
         ],
     )
     def test_training_model_templates(self, request, model_template, proj, env, target_type):
@@ -144,7 +119,7 @@ class TestTrainingModelTemplates(object):
         else:
             raise ValueError("Unkown target type {}".format(target_type))
 
-        model = CustomTrainingModel.create(name="training model", target_type=dr_target_type)
+        model = CustomTrainingModel.create(name="estimator", target_type=dr_target_type)
         model_version = dr.CustomModelVersion.create_clean(
             custom_model_id=model.id,
             base_environment_id=env_id,

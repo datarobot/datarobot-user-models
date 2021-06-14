@@ -67,7 +67,7 @@ class CMRunnerArgsRegistry(object):
         abs_path = os.path.abspath(arg)
         if not os.path.isdir(arg):
             raise argparse.ArgumentTypeError(
-                "The path {} is not a directory! For custom training models, "
+                "The path {} is not a directory! For custom tasks, "
                 "the output directory will consist of the artifacts usable "
                 "for making predictions. ".format(arg)
             )

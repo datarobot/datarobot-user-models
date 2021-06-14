@@ -5,7 +5,7 @@ requirements, as appropriate to specify exactly what kinds of data the task expe
 
 ## Purpose
 The schema validation system, which is defined under the `typeSchema` field in model_metadata.yaml
-is used to define the expected input and output data requirements for a given custom training model.  This allows for easy communication of the expected input data from the creator to end users of a model.
+is used to define the expected input and output data requirements for a given custom task.  This allows for easy communication of the expected input data from the creator to end users of a model.
 The specified conditions are also used at fit time to verify that the data provided meets the 
 constraints specified.  Inside DataRobot the requirements are used to verify that the blueprint inside the
 project provides the required datatypes, and conforms to the sparsity, number of columns and missing values constraints

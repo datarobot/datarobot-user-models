@@ -1,7 +1,0 @@
-name: drumpush-training
-type: training
-targetType: binary
-hyperparameters:
-  - name: method
-    type: string
-    default: "gbm"

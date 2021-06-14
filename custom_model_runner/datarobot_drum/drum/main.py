@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
 """
-Custom model runner is a tool to work with user models in scoring, training and other modes.
+Custom model runner is a tool to work with user models in scoring, custom tasks, custom estimator tasks, and other
+modes.
 
 Examples:
 

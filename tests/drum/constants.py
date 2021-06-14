@@ -7,7 +7,7 @@ TESTS_FIXTURES_PATH = os.path.join(TESTS_ROOT_PATH, "fixtures")
 TESTS_ARTIFACTS_PATH = os.path.join(TESTS_FIXTURES_PATH, "drop_in_model_artifacts")
 TESTS_DATA_PATH = os.path.join(TESTS_ROOT_PATH, "testdata")
 TESTS_DEPLOYMENT_CONFIG_PATH = os.path.join(TESTS_DATA_PATH, "deployment_config")
-TRAINING_TEMPLATES_PATH = os.path.join(TESTS_ROOT_PATH, "..", "model_templates", "training")
+TRAINING_TEMPLATES_PATH = os.path.join(TESTS_ROOT_PATH, "..", "custom_tasks", "examples")
 
 MODEL_TEMPLATES_PATH = os.path.join(REPO_ROOT_PATH, "model_templates")
 PUBLIC_DROPIN_ENVS_PATH = os.path.join(REPO_ROOT_PATH, "public_dropin_environments")

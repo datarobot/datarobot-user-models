@@ -1,9 +1,11 @@
+from typing import List, Optional
 import pickle
-from typing import Any, List, Optional
-
-import numpy as np
 import pandas as pd
-from sklearn.linear_model import Ridge
+import numpy as np
+from pathlib import Path
+from sklearn.preprocessing import LabelEncoder
+
+from create_pipeline import make_classifier_pipeline, make_regressor_pipeline
 
 
 def fit(
@@ -13,49 +15,57 @@ def fit(
     class_order: Optional[List[str]] = None,
     row_weights: Optional[np.ndarray] = None,
     **kwargs,
-):
+) -> None:
     """
-    This hook must be implemented with your fitting code, for running drum in the fit mode.
+    This hook must be implemented with your fitting code, for running DRUM in the fit mode.
 
     This hook MUST ALWAYS be implemented for custom tasks.
     For inference models, this hook can stick around unimplemented, and won’t be triggered.
 
     Parameters
     ----------
-    X: pd.DataFrame - training data to perform fit on
-    y: pd.Series - target data to perform fit on
-    output_dir: the path to write output. This is the path provided in '--output' parameter of the
-        'drum fit' command.
-    class_order : A two element long list dictating the order of classes which should be used for
+    X
+        training data to perform fit on
+    y
+        target data to perform fit on
+    output_dir
+        the path to write output.
+        This is the path provided in '--output' parameter of the 'drum fit' command.
+    class_order
+        A two element long list dictating the order of classes which should be used for
         modeling. Class order will always be passed to fit by DataRobot for classification tasks,
         and never otherwise. When models predict, they output a likelihood of one class, with a
         value from 0 to 1. The likelihood of the other class is 1 - this likelihood. Class order
         dictates that the first element in the list will be the 0 class, and the second will be the
         1 class.
-    row_weights: An array of non-negative numeric values which can be used to dictate how important
+    row_weights
+        An array of non-negative numeric values which can be used to dictate how important
         a row is. Row weights is only optionally used, and there will be no filtering for which
         custom models support this. There are two situations when values will be passed into
         row_weights, during smart downsampling and when weights are explicitly provided by the user
-    kwargs: Added for forwards compatibility
+    kwargs
+        Added for forwards compatibility
 
     Returns
     -------
     Nothing
     """
-    for colname in X.columns:
-        assert colname.startswith("a") or colname.startswith("A")
-    assert len(set(X.columns)) == 162
-    estimator = Ridge()
+    # Feel free to delete which ever one of these you aren't using
+    if class_order:
+        estimator = make_classifier_pipeline(X, len(class_order))
+        if y.dtype == np.dtype("bool"):
+            y = y.astype("str")
+        lb = LabelEncoder()
+        y = lb.fit_transform(y)
+    else:
+        estimator = make_regressor_pipeline(X)
     estimator.fit(X, y)
 
-    # You must serialize out your model to the output_dir given, however if you wish to change this
-    # code, you will probably have to add a load_model method to read the serialized model back in
-    # When prediction is done.
-    # Check out this doc for more information on serialization https://github.com/datarobot/custom-\
-    # model-templates/tree/master/custom_model_runner#python
     # NOTE: We currently set a 10GB limit to the size of the serialized model
-    with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
-        pickle.dump(estimator, fp)
+    output_dir_path = Path(output_dir)
+    if output_dir_path.exists() and output_dir_path.is_dir():
+        with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
+            pickle.dump(estimator, fp)
 
 
 """
@@ -88,26 +98,21 @@ for custom inference code.
 #     If used, this hook must return a non-None value
 #     """
 
-
-def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
-    """
-    Intended to apply transformations to the prediction data before making predictions. This is
-    most useful if DRUM supports the model's library, but your model requires additional data
-    processing before it can make predictions
-
-    Parameters
-    ----------
-    data : is the dataframe given to DRUM to make predictions on
-    model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
-
-    Returns
-    -------
-    Transformed data
-    """
-    for colname in data.columns:
-        assert colname.startswith("a") or colname.startswith("A")
-    return data
-
+# def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
+#     """
+#     Intended to apply transformations to the prediction data before making predictions. This is
+#     most useful if DRUM supports the model's library, but your model requires additional data
+#     processing before it can make predictions
+#
+#     Parameters
+#     ----------
+#     data : is the dataframe given to DRUM to make predictions on
+#     model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
+#
+#     Returns
+#     -------
+#     Transformed data
+#     """
 
 # def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
 #     """
