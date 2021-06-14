@@ -4,7 +4,10 @@ import os
 from mlpiper.components.connectable_component import ConnectableComponent
 
 from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
-from datarobot_drum.drum.utils import shared_fit_preprocessing, make_sure_artifact_is_small
+from datarobot_drum.drum.utils import (
+    make_sure_artifact_is_small,
+    capture_R_traceback_if_errors,
+)
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -83,19 +86,20 @@ class RFit(ConnectableComponent):
         if self.target_name:
             target_name = self.target_name.replace("-", ".").replace("_", ".")
 
-        r_handler.outer_fit(
-            self.output_dir,
-            self.input_filename,
-            self.target_filename or ro.NULL,
-            target_name,
-            self.num_rows,
-            self.weights_filename or ro.NULL,
-            weights,
-            self.positive_class_label or ro.NULL,
-            self.negative_class_label or ro.NULL,
-            ro.StrVector(self.class_labels) if self.class_labels else ro.NULL,
-            self.parameter_file or ro.NULL,
-        )
+        with capture_R_traceback_if_errors(r_handler, logger):
+            r_handler.outer_fit(
+                self.output_dir,
+                self.input_filename,
+                self.target_filename or ro.NULL,
+                target_name,
+                self.num_rows,
+                self.weights_filename or ro.NULL,
+                weights,
+                self.positive_class_label or ro.NULL,
+                self.negative_class_label or ro.NULL,
+                ro.StrVector(self.class_labels) if self.class_labels else ro.NULL,
+                self.parameter_file or ro.NULL,
+            )
 
         make_sure_artifact_is_small(self.output_dir)
         return []

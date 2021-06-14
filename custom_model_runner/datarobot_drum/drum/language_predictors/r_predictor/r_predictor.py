@@ -13,6 +13,7 @@ from datarobot_drum.drum.common import (
     SupportedPayloadFormats,
     StructuredDtoKeys,
 )
+from datarobot_drum.drum.utils import capture_R_traceback_if_errors
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 
@@ -87,17 +88,19 @@ class RPredictor(BaseLanguagePredictor):
     def _predict(self, **kwargs):
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
-        predictions = r_handler.outer_predict(
-            self._target_type.value,
-            binary_data=ro.rinterface.NULL
-            if input_binary_data is None
-            else ro.vectors.ByteVector(input_binary_data),
-            mimetype=ro.rinterface.NULL if mimetype is None else mimetype,
-            model=self._model,
-            positive_class_label=self._r_positive_class_label,
-            negative_class_label=self._r_negative_class_label,
-            class_labels=self._r_class_labels,
-        )
+        with capture_R_traceback_if_errors(r_handler, logger):
+            predictions = r_handler.outer_predict(
+                self._target_type.value,
+                binary_data=ro.rinterface.NULL
+                if input_binary_data is None
+                else ro.vectors.ByteVector(input_binary_data),
+                mimetype=ro.rinterface.NULL if mimetype is None else mimetype,
+                model=self._model,
+                positive_class_label=self._r_positive_class_label,
+                negative_class_label=self._r_negative_class_label,
+                class_labels=self._r_class_labels,
+            )
+
         with localconverter(ro.default_converter + pandas2ri.converter):
             py_data_object = ro.conversion.rpy2py(predictions)
 
@@ -163,9 +166,11 @@ class RPredictor(BaseLanguagePredictor):
             r_data_binary_or_text = ro.vectors.ByteVector(data_binary_or_text)
 
         kwargs_filtered = {k: v for k, v in kwargs.items() if v is not None}
-        list_data_kwargs = r_handler.predict_unstructured(
-            model=self._model, data=r_data_binary_or_text, **kwargs_filtered
-        )
+        with capture_R_traceback_if_errors(r_handler, logger):
+            list_data_kwargs = r_handler.predict_unstructured(
+                model=self._model, data=r_data_binary_or_text, **kwargs_filtered
+            )
+
         if isinstance(list_data_kwargs, ro.vectors.ListVector):
             ret = _cast_r_to_py(list_data_kwargs[0]), _rlist_to_dict(list_data_kwargs[1])
         else:
