@@ -12,4 +12,4 @@ requests
 strictyaml==1.0.6
 texttable
 pyarrow==0.14.1
-Pillow==8.1.1
+Pillow==8.2.0
