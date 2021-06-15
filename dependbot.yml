@@ -1,0 +1,71 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    reviewers:
+      - "datarobot/custom-models"
+  - package-ecosystem: "pip"
+    directory: "/custom_model_runner/"
+    schedule:
+      interval: "monthly"
+    reviewers:
+      - "datarobot/custom-models"
+  # check the dropin environments
+  # All of these also require running env_version_update.py
+  - package-ecosystem: "pip"
+    directory: "/public_dropin_environments/java_codegen"
+    schedule:
+      interval: "monthly"
+    reviewers:
+      - "datarobot/custom-models"
+  - package-ecosystem: "pip"
+    directory: "/public_dropin_environments/julia_mlj"
+    schedule:
+      interval: "monthly"
+    reviewers:
+      - "datarobot/custom-models"
+  - package-ecosystem: "pip"
+    directory: "/public_dropin_environments/python3_keras"
+    schedule:
+      interval: "monthly"
+    reviewers:
+      - "datarobot/custom-models"
+  - package-ecosystem: "pip"
+    directory: "/public_dropin_environments/python3_pmml"
+    schedule:
+      interval: "monthly"
+    reviewers:
+      - "datarobot/custom-models"
+  - package-ecosystem: "pip"
+    directory: "/public_dropin_environments/python3_pytorch"
+    schedule:
+      interval: "monthly"
+    reviewers:
+      - "datarobot/custom-models"
+  - package-ecosystem: "pip"
+    directory: "/public_dropin_environments/python3_sklearn"
+    schedule:
+      interval: "monthly"
+    reviewers:
+      - "datarobot/custom-models"
+  - package-ecosystem: "pip"
+    directory: "/public_dropin_environments/python3_xgboost"
+    schedule:
+      interval: "monthly"
+    reviewers:
+      - "datarobot/custom-models"
+  - package-ecosystem: "pip"
+    directory: "/public_dropin_environments/r_lang"
+    schedule:
+      interval: "monthly"
+    reviewers:
+      - "datarobot/custom-models"
+  # check the model templates, most do not have requirements files
+  - package-ecosystem: "pip"
+    directory: "/model_templates/training/python3_pytorch_multiclass/"
+    schedule:
+      interval: "monthly"
+    reviewers:
+      - "datarobot/custom-models"
