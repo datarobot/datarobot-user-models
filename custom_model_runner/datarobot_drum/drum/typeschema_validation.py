@@ -243,9 +243,7 @@ class DataTypes(BaseValidator):
         return len(X.columns[list(X.apply(DataTypes.is_img, result_type="expand"))])
 
     def validate(self, dataframe):
-        """A quirk of validation that follows the implementation of DataRobot is
-        as follows: A condition `IN` requires that
-        `set(types_present_in_dataframe) == set(self.values)`"""
+        """Perform validation of the dataframe against the supplied specification."""
         types = dict()
         types[Values.NUM] = dataframe.select_dtypes(np.number).shape[1] > 0
         txt_columns = self.number_of_text_columns(dataframe)
@@ -272,9 +270,9 @@ class DataTypes(BaseValidator):
         }
 
         tests = {
-            Conditions.EQUALS: lambda data_types: self.values == data_types,
+            Conditions.EQUALS: lambda data_types: set(self.values) == set(data_types),
             Conditions.NOT_EQUALS: lambda data_types: self.values[0] not in data_types,
-            Conditions.IN: lambda data_types: set(self.values) == set(data_types),
+            Conditions.IN: lambda data_types: len(set(self.values) - set(data_types)) == 0,
             Conditions.NOT_IN: lambda data_types: all(el not in self.values for el in data_types),
         }
 
