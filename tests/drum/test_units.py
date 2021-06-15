@@ -694,34 +694,3 @@ class TestJavaPredictor:
         # required to properly shutdown py4j Gateway
         pred._setup_py4j_client_connection()
         pred._stop_py4j()
-
-
-def get_data(dataset_name: str) -> pd.DataFrame:
-    tests_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "testdata"))
-    return pd.read_csv(os.path.join(tests_data_path, dataset_name))
-
-
-CATS_AND_DOGS = get_data("cats_dogs_small_training.csv")
-TEN_K_DIABETES = get_data("10k_diabetes.csv")
-IRIS_BINARY = get_data("iris_binary_training.csv")
-LENDING_CLUB = get_data("lending_club_reduced.csv")
-
-
-@pytest.fixture
-def lending_club():
-    return LENDING_CLUB.copy()
-
-
-@pytest.fixture
-def iris_binary():
-    return IRIS_BINARY.copy()
-
-
-@pytest.fixture
-def ten_k_diabetes():
-    return TEN_K_DIABETES.copy()
-
-
-@pytest.fixture
-def cats_and_dogs():
-    return CATS_AND_DOGS.copy()
