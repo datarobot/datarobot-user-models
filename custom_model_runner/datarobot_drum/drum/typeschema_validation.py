@@ -253,8 +253,6 @@ class DataTypes(BaseValidator):
         )
         types[Values.DATE] = dataframe.select_dtypes("datetime").shape[1] > 0
 
-        validation_errors = []
-
         types_present = [k for k, v in types.items() if v]
 
         base_error = f"Datatypes incorrect. Data has types: {types_present}"
@@ -316,10 +314,8 @@ class Sparsity(BaseValidator):
 class NumColumns(BaseValidator):
     def __init__(self, condition, values):
         super(NumColumns, self).__init__(condition, values)
-        # check that all values are >=0
         if not all([v >= 0 for v in values]):
             raise ValueError("The value for number of columns can not be negative")
-        # check cases where value can be 0
         if 0 in values:
             if condition not in [
                 Conditions.NOT_IN,
@@ -330,7 +326,6 @@ class NumColumns(BaseValidator):
                 raise ValueError(f"Value of 0 is not supported for {condition}")
 
     def validate(self, dataframe):
-        errors = []
         n_columns = len(dataframe.columns)
 
         conditions_map = {
@@ -350,11 +345,11 @@ class NumColumns(BaseValidator):
 
         passes = conditions_map[self.condition](n_columns, test_value)
         if not passes:
-            errors.append(
+            return [
                 f"Num columns error, {n_columns} did not satisfy: {self.condition} {test_value}"
-            )
+            ]
 
-        return errors
+        return []
 
 
 class ContainsMissing(BaseValidator):
