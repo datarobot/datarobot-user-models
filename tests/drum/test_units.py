@@ -38,11 +38,6 @@ from datarobot_drum.drum.common import (
 )
 from datarobot_drum.drum.utils import StructuredInputReadUtils
 
-from datarobot_drum.drum.typeschema_validation import (
-    Values,
-    RequirementTypes,
-)
-
 
 class TestOrderIntuition:
     tests_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "testdata"))
