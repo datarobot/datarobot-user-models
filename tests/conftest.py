@@ -35,8 +35,10 @@ from tests.drum.constants import (
     PYTORCH_MULTICLASS,
     R,
     R_ALL_PREDICT_STRUCTURED_HOOKS,
+    R_ALL_PREDICT_STRUCTURED_HOOKS_LOWERCASE_R,
     R_FAIL_CLASSIFICATION_VALIDATION_HOOKS,
     R_ALL_PREDICT_UNSTRUCTURED_HOOKS,
+    R_ALL_PREDICT_UNSTRUCTURED_HOOKS_LOWERCASE_R,
     R_FIT,
     R_UNSTRUCTURED,
     R_UNSTRUCTURED_PARAMS,
@@ -355,6 +357,10 @@ _custom_filepaths = {
         os.path.join(TESTS_FIXTURES_PATH, "all_predict_structured_hooks_custom.R"),
         "custom.R",
     ),
+    R_ALL_PREDICT_STRUCTURED_HOOKS_LOWERCASE_R: (
+        os.path.join(TESTS_FIXTURES_PATH, "all_predict_structured_hooks_custom_lowercase_r.r"),
+        "custom.r",
+    ),
     R_FAIL_CLASSIFICATION_VALIDATION_HOOKS: (
         os.path.join(TESTS_FIXTURES_PATH, "fail_classification_validation_custom.R"),
         "custom.R",
@@ -362,6 +368,10 @@ _custom_filepaths = {
     R_ALL_PREDICT_UNSTRUCTURED_HOOKS: (
         os.path.join(TESTS_FIXTURES_PATH, "all_predict_unstructured_hooks_custom.R"),
         "custom.R",
+    ),
+    R_ALL_PREDICT_UNSTRUCTURED_HOOKS_LOWERCASE_R: (
+        os.path.join(TESTS_FIXTURES_PATH, "all_predict_unstructured_hooks_custom_lowercase_r.r"),
+        "custom.r",
     ),
     R_FIT: (os.path.join(TESTS_FIXTURES_PATH, "fit_custom.R"), "custom.R"),
     PYTHON_UNSTRUCTURED: (os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom.py"), "custom.py"),

@@ -28,7 +28,9 @@ from .constants import (
     PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS,
     R,
     R_ALL_PREDICT_STRUCTURED_HOOKS,
+    R_ALL_PREDICT_STRUCTURED_HOOKS_LOWERCASE_R,
     R_ALL_PREDICT_UNSTRUCTURED_HOOKS,
+    R_ALL_PREDICT_UNSTRUCTURED_HOOKS_LOWERCASE_R,
     DOCKER_PYTHON_SKLEARN,
 )
 
@@ -215,22 +217,34 @@ class TestOtherCases:
     @pytest.mark.parametrize(
         "framework, language, hooks_list, target_type",
         [
+            # (
+            #     None,
+            #     PYTHON_ALL_PREDICT_STRUCTURED_HOOKS,
+            #     CustomHooks.ALL_PREDICT_STRUCTURED,
+            #     REGRESSION,
+            # ),
+            # (None, R_ALL_PREDICT_STRUCTURED_HOOKS, CustomHooks.ALL_PREDICT_STRUCTURED, REGRESSION),
             (
                 None,
-                PYTHON_ALL_PREDICT_STRUCTURED_HOOKS,
+                R_ALL_PREDICT_STRUCTURED_HOOKS_LOWERCASE_R,
                 CustomHooks.ALL_PREDICT_STRUCTURED,
                 REGRESSION,
             ),
-            (None, R_ALL_PREDICT_STRUCTURED_HOOKS, CustomHooks.ALL_PREDICT_STRUCTURED, REGRESSION),
+            # (
+            #     None,
+            #     PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS,
+            #     CustomHooks.ALL_PREDICT_UNSTRUCTURED,
+            #     UNSTRUCTURED,
+            # ),
+            # (
+            #     None,
+            #     R_ALL_PREDICT_UNSTRUCTURED_HOOKS,
+            #     CustomHooks.ALL_PREDICT_UNSTRUCTURED,
+            #     UNSTRUCTURED,
+            # ),
             (
                 None,
-                PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS,
-                CustomHooks.ALL_PREDICT_UNSTRUCTURED,
-                UNSTRUCTURED,
-            ),
-            (
-                None,
-                R_ALL_PREDICT_UNSTRUCTURED_HOOKS,
+                R_ALL_PREDICT_UNSTRUCTURED_HOOKS_LOWERCASE_R,
                 CustomHooks.ALL_PREDICT_UNSTRUCTURED,
                 UNSTRUCTURED,
             ),
@@ -245,8 +259,8 @@ class TestOtherCases:
 
         output = tmp_path / "output"
 
-        cmd = "{} score --code-dir {} --input {} --output {} --target-type {}".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output, target_type
+        cmd = "PYTHONPATH=~/workspace/drum/custom_model_runner ~/workspace/drum/custom_model_runner/bin/drum score --code-dir {} --input {} --output {} --target-type {}".format(
+            custom_model_dir, input_dataset, output, target_type
         )
         _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)

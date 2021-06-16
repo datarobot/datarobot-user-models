@@ -18,9 +18,14 @@ RUNNING_LANG_MSG <- "Running environment language: R."
 
 init <- function(code_dir, target_type) {
     custom_path <- file.path(code_dir, "custom.R")
-    custom_loaded <- import(custom_path)
+    custom_loaded_R <- import(custom_path)
 
-    if (isTRUE(custom_loaded)) {
+    if (isFALSE(custom_loaded_R)) {
+        custom_path <- file.path(code_dir, "custom.r")
+        custom_loaded_R <- import(custom_path)
+    }
+
+    if (isTRUE(custom_loaded_R)) {
         if (target_type == TargetType$UNSTRUCTURED) {
             init_hook <<- getHookMethod("init")
             load_model_hook <<- getHookMethod("load_model")
