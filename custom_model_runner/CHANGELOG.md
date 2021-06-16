@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Current
 ##### Updated
 - Show full R traceback for fit/predict errors
+##### Fixed
+- Loading hooks from both custom.R and custom.r
 
 #### [1.5.6] - 2021-05-17
 ##### Fixed
