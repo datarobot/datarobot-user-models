@@ -217,31 +217,31 @@ class TestOtherCases:
     @pytest.mark.parametrize(
         "framework, language, hooks_list, target_type",
         [
-            # (
-            #     None,
-            #     PYTHON_ALL_PREDICT_STRUCTURED_HOOKS,
-            #     CustomHooks.ALL_PREDICT_STRUCTURED,
-            #     REGRESSION,
-            # ),
-            # (None, R_ALL_PREDICT_STRUCTURED_HOOKS, CustomHooks.ALL_PREDICT_STRUCTURED, REGRESSION),
+            (
+                None,
+                PYTHON_ALL_PREDICT_STRUCTURED_HOOKS,
+                CustomHooks.ALL_PREDICT_STRUCTURED,
+                REGRESSION,
+            ),
+            (None, R_ALL_PREDICT_STRUCTURED_HOOKS, CustomHooks.ALL_PREDICT_STRUCTURED, REGRESSION),
             (
                 None,
                 R_ALL_PREDICT_STRUCTURED_HOOKS_LOWERCASE_R,
                 CustomHooks.ALL_PREDICT_STRUCTURED,
                 REGRESSION,
             ),
-            # (
-            #     None,
-            #     PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS,
-            #     CustomHooks.ALL_PREDICT_UNSTRUCTURED,
-            #     UNSTRUCTURED,
-            # ),
-            # (
-            #     None,
-            #     R_ALL_PREDICT_UNSTRUCTURED_HOOKS,
-            #     CustomHooks.ALL_PREDICT_UNSTRUCTURED,
-            #     UNSTRUCTURED,
-            # ),
+            (
+                None,
+                PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS,
+                CustomHooks.ALL_PREDICT_UNSTRUCTURED,
+                UNSTRUCTURED,
+            ),
+            (
+                None,
+                R_ALL_PREDICT_UNSTRUCTURED_HOOKS,
+                CustomHooks.ALL_PREDICT_UNSTRUCTURED,
+                UNSTRUCTURED,
+            ),
             (
                 None,
                 R_ALL_PREDICT_UNSTRUCTURED_HOOKS_LOWERCASE_R,
