@@ -14,5 +14,5 @@ strictyaml==1.0.6
 texttable
 py4j~=0.10.9.0
 pyarrow==2.0.0
-Pillow==8.1.1
+Pillow==8.2.0
 julia==0.5.6
