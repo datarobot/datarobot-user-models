@@ -81,6 +81,11 @@ class Values(BaseEnum):
     CAT = auto()
     IMG = auto()
     DATE = auto()
+    AUDIO = auto()
+    DATE_DURATION = auto()
+    COUNT_DICT = auto()
+    GEO = auto()
+    TARGET_ONLY = auto()
 
     FORBIDDEN = auto()
     SUPPORTED = auto()
@@ -93,7 +98,18 @@ class Values(BaseEnum):
 
     @classmethod
     def data_values(cls) -> List["Values"]:
-        return [cls.NUM, cls.TXT, cls.IMG, cls.DATE, cls.CAT]
+        return [
+            cls.NUM,
+            cls.TXT,
+            cls.IMG,
+            cls.DATE,
+            cls.CAT,
+            cls.AUDIO,
+            cls.DATE_DURATION,
+            cls.COUNT_DICT,
+            cls.GEO,
+            cls.TARGET_ONLY,
+        ]
 
     @classmethod
     def input_values(cls) -> List["Values"]:
@@ -194,6 +210,9 @@ class DataTypes(BaseValidator):
     """Validation related to data types.  This is common between input and output."""
 
     def __init__(self, condition, values):
+        # We currently do not support DRUM validation for these values, but they are supported in DataRobot
+        self._SKIP_VALIDATION = {Values.AUDIO, Values.COUNT_DICT, Values.GEO, Values.TARGET_ONLY}
+        values = list(set(values) - self._SKIP_VALIDATION)
         super(DataTypes, self).__init__(condition, values)
 
     @staticmethod
@@ -257,6 +276,7 @@ class DataTypes(BaseValidator):
             > 0
         )
         types[Values.DATE] = dataframe.select_dtypes("datetime").shape[1] > 0
+        types[Values.DATE_DURATION] = dataframe.select_dtypes("timedelta").shape[1] > 0
 
         types_present = [k for k, v in types.items() if v]
 
