@@ -88,9 +88,6 @@ def output_requirements_yaml(
 
 
 class TestSchemaValidator:
-    tests_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
-                                                   "../../unit", "testdata"))
-
     @pytest.fixture
     def data(self, iris_binary):
         yield iris_binary
