@@ -259,8 +259,8 @@ class TestOtherCases:
 
         output = tmp_path / "output"
 
-        cmd = "PYTHONPATH=~/workspace/drum/custom_model_runner ~/workspace/drum/custom_model_runner/bin/drum score --code-dir {} --input {} --output {} --target-type {}".format(
-            custom_model_dir, input_dataset, output, target_type
+        cmd = "{} score --code-dir {} --input {} --output {} --target-type {}".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output, target_type
         )
         _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
