@@ -262,13 +262,16 @@ class DataTypes(BaseValidator):
 
         types_present = [str(k) for k, v in types.items() if v]
 
-        base_error = f"Datatypes incorrect. Data has types: {types_present}"
+        def list_of_strings(input_list):
+            return [str(el) for el in input_list]
+
+        base_error = f"Datatypes incorrect. Data has types: {list_of_strings(types_present)}"
 
         errors = {
             Conditions.EQUALS: f"{base_error}, but expected only {self.values[0]}.",
             Conditions.NOT_EQUALS: f"{base_error}, but expected {self.values[0]} to NOT be present.",
-            Conditions.IN: f"{base_error}, but expected types to exactly match: {list_str(self.values)}",
-            Conditions.NOT_IN: f"{base_error}, but expected no types in: {list_str(self.values)} to be present",
+            Conditions.IN: f"{base_error}, but expected types to exactly match: {list_of_strings(self.values)}",
+            Conditions.NOT_IN: f"{base_error}, but expected no types in: {list_of_strings(self.values)} to be present",
         }
 
         tests = {

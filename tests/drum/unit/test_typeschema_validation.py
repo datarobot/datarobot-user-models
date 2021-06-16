@@ -5,7 +5,7 @@ from typing import List, Union
 import pytest
 import numpy as np
 import pandas as pd
-import scipy
+from scipy import sparse
 import yaml
 from strictyaml import load, YAMLValidationError
 
@@ -21,10 +21,12 @@ from datarobot_drum.drum.typeschema_validation import (
     RequirementTypes,
 )
 
+from tests.drum.utils import test_data
+
 
 def get_data(dataset_name: str) -> pd.DataFrame:
-    tests_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "testdata"))
-    return pd.read_csv(os.path.join(tests_data_path, dataset_name))
+    dataset_path = test_data() / dataset_name
+    return pd.read_csv(dataset_path)
 
 
 CATS_AND_DOGS = get_data("cats_dogs_small_training.csv")
@@ -86,7 +88,8 @@ def output_requirements_yaml(
 
 
 class TestSchemaValidator:
-    tests_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "testdata"))
+    tests_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__),
+                                                   "../../unit", "testdata"))
 
     @pytest.fixture
     def data(self, iris_binary):
@@ -101,7 +104,7 @@ class TestSchemaValidator:
 
     @pytest.fixture
     def sparse_df(self):
-        yield pd.DataFrame.sparse.from_spmatrix(scipy.sparse.eye(10))
+        yield pd.DataFrame.sparse.from_spmatrix(sparse.eye(10))
 
     @pytest.fixture
     def dense_df(self):
