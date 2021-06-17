@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show full R traceback for fit/predict errors
 ##### Fixed
 - Loading hooks from both custom.R and custom.r
+- Fix single-col data bug when running drum fit in R
 
 #### [1.5.6] - 2021-05-17
 ##### Fixed
