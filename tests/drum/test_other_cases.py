@@ -28,7 +28,9 @@ from .constants import (
     PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS,
     R,
     R_ALL_PREDICT_STRUCTURED_HOOKS,
+    R_ALL_PREDICT_STRUCTURED_HOOKS_LOWERCASE_R,
     R_ALL_PREDICT_UNSTRUCTURED_HOOKS,
+    R_ALL_PREDICT_UNSTRUCTURED_HOOKS_LOWERCASE_R,
     DOCKER_PYTHON_SKLEARN,
 )
 
@@ -224,6 +226,12 @@ class TestOtherCases:
             (None, R_ALL_PREDICT_STRUCTURED_HOOKS, CustomHooks.ALL_PREDICT_STRUCTURED, REGRESSION),
             (
                 None,
+                R_ALL_PREDICT_STRUCTURED_HOOKS_LOWERCASE_R,
+                CustomHooks.ALL_PREDICT_STRUCTURED,
+                REGRESSION,
+            ),
+            (
+                None,
                 PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS,
                 CustomHooks.ALL_PREDICT_UNSTRUCTURED,
                 UNSTRUCTURED,
@@ -231,6 +239,12 @@ class TestOtherCases:
             (
                 None,
                 R_ALL_PREDICT_UNSTRUCTURED_HOOKS,
+                CustomHooks.ALL_PREDICT_UNSTRUCTURED,
+                UNSTRUCTURED,
+            ),
+            (
+                None,
+                R_ALL_PREDICT_UNSTRUCTURED_HOOKS_LOWERCASE_R,
                 CustomHooks.ALL_PREDICT_UNSTRUCTURED,
                 UNSTRUCTURED,
             ),
