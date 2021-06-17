@@ -775,9 +775,14 @@ class CMRunner:
         in_docker_cmd_list[0] = ArgumentsOptions.MAIN_COMMAND
         in_docker_cmd_list[1] = run_mode.value
 
+        # [RAPTOR-5607] Using -cd makes fit fail within docker, but not --code-dir.
+        # Hotfix it by replacing -cd with --code-dir
+        in_docker_cmd_list = [
+            ArgumentsOptions.CODE_DIR if arg == "-cd" else arg for arg in in_docker_cmd_list
+        ]
+
         CMRunnerUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.DOCKER)
         CMRunnerUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.SKIP_DEPS_INSTALL)
-
         if options.memory:
             docker_cmd_args += " --memory {mem_size} --memory-swap {mem_size} ".format(
                 mem_size=options.memory
