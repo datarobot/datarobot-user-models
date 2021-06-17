@@ -289,7 +289,6 @@ class CMRunnerArgsRegistry(object):
                 type_callback = CMRunnerArgsRegistry._is_valid_dir
 
             parser.add_argument(
-                "-cd",
                 ArgumentsOptions.CODE_DIR,
                 default=None,
                 required=True,

@@ -198,7 +198,7 @@ def _setup_inference_validation(config, options):
     options.output = "/dev/null"
     options.negative_class_label = None
     options.positive_class_label = None
-    raw_args_for_docker = "drum {run_mode} --input {input} -cd {code_dir}".format(
+    raw_args_for_docker = "drum {run_mode} --input {input} --code-dir {code_dir}".format(
         run_mode=RunMode.SCORE, input=path, code_dir=options.code_dir
     ).split()
     return options, RunMode.SCORE, raw_args_for_docker

@@ -795,7 +795,6 @@ class CMRunner:
         CMRunnerUtils.replace_cmd_argument_value(
             in_docker_cmd_list, ArgumentsOptions.CODE_DIR, in_docker_model
         )
-        CMRunnerUtils.replace_cmd_argument_value(in_docker_cmd_list, "-cd", in_docker_model)
         CMRunnerUtils.replace_cmd_argument_value(
             in_docker_cmd_list, ArgumentsOptions.INPUT, in_docker_input_file
         )
