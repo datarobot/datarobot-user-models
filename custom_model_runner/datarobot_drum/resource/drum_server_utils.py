@@ -25,9 +25,12 @@ def _wait_for_server(url, timeout, process_holder):
         if timeout <= 0:
             if process_holder is not None:
                 print("Killing subprocess: {}".format(process_holder.process.pid))
-                os.killpg(os.getpgid(process_holder.process.pid), signal.SIGTERM)
-                time.sleep(0.25)
-                os.killpg(os.getpgid(process_holder.process.pid), signal.SIGKILL)
+                try:
+                    os.killpg(os.getpgid(process_holder.process.pid), signal.SIGTERM)
+                    time.sleep(0.25)
+                    os.killpg(os.getpgid(process_holder.process.pid), signal.SIGKILL)
+                except psutil.ProcessLookupError:
+                    assert False, "Server failed to start: url: {}".format(url)
 
             assert timeout, "Server failed to start: url: {}".format(url)
 
@@ -73,14 +76,14 @@ class DrumServerRun:
         verbose=True,
         append_cmd=None,
     ):
-        port = CMRunnerUtils.find_free_port()
-        self.server_address = "localhost:{}".format(port)
+        self.port = CMRunnerUtils.find_free_port()
+        self.server_address = "localhost:{}".format(self.port)
         url_host = os.environ.get("TEST_URL_HOST", "localhost")
 
         if docker:
-            self.url_server_address = "http://{}:{}".format(url_host, port)
+            self.url_server_address = "http://{}:{}".format(url_host, self.port)
         else:
-            self.url_server_address = "http://localhost:{}".format(port)
+            self.url_server_address = "http://localhost:{}".format(self.port)
 
         cmd = "{} server".format(ArgumentsOptions.MAIN_COMMAND)
 
@@ -164,9 +167,12 @@ class DrumServerRun:
             # this kills drum running in the docker
             for proc in psutil.process_iter():
                 if "{}".format(ArgumentsOptions.MAIN_COMMAND) in proc.name().lower():
-                    print(proc.cmdline())
-                    if "{}".format(ArgumentsOptions.SERVER) in proc.cmdline():
-                        if "--production" in proc.cmdline():
+                    cmdline_lst = proc.cmdline()
+                    if "{}".format(ArgumentsOptions.SERVER) in cmdline_lst:
+                        # check if --production in cmdline and port number in any param in cmdline
+                        if "--production" in cmdline_lst and any(
+                            "{:}".format(self.port) in param for param in cmdline_lst
+                        ):
                             try:
                                 proc.terminate()
                                 time.sleep(0.3)
