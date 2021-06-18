@@ -165,21 +165,21 @@ class DrumServerRun:
             parent.kill()
 
             # this kills drum running in the docker
-            for proc in psutil.process_iter():
-                if "{}".format(ArgumentsOptions.MAIN_COMMAND) in proc.name().lower():
-                    cmdline_lst = proc.cmdline()
-                    if "{}".format(ArgumentsOptions.SERVER) in cmdline_lst:
-                        # check if --production in cmdline and port number in any param in cmdline
-                        if "--production" in cmdline_lst and any(
-                            "{:}".format(self.port) in param for param in cmdline_lst
-                        ):
-                            try:
+            try:
+                for proc in psutil.process_iter():
+                    if "{}".format(ArgumentsOptions.MAIN_COMMAND) in proc.name().lower():
+                        cmdline_lst = proc.cmdline()
+                        if "{}".format(ArgumentsOptions.SERVER) in cmdline_lst:
+                            # check if --production in cmdline and port number in any param in cmdline
+                            if "--production" in cmdline_lst and any(
+                                "{:}".format(self.port) in param for param in cmdline_lst
+                            ):
                                 proc.terminate()
                                 time.sleep(0.3)
                                 proc.kill()
-                            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                                pass
-                            break
+                                break
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
 
             self._server_thread.join(timeout=5)
 
