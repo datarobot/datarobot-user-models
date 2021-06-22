@@ -45,6 +45,7 @@ from tests.drum.constants import (
     RDS,
     RDS_SPARSE,
     REGRESSION,
+    REGRESSION_SINGLE_COL,
     REGRESSION_INFERENCE,
     SIMPLE,
     SKLEARN,
@@ -90,6 +91,7 @@ _datasets = {
     # If specific dataset should be defined for a framework, use (framework, problem) key.
     # Otherwise default dataset is used (None, problem)
     (None, REGRESSION): os.path.join(TESTS_DATA_PATH, "boston_housing.csv"),
+    (None, REGRESSION_SINGLE_COL): os.path.join(TESTS_DATA_PATH, "regression_single_col.csv"),
     (None, BINARY_TEXT): os.path.join(TESTS_DATA_PATH, "telecomms_churn.csv"),
     (PYPMML, REGRESSION): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
     (None, REGRESSION_INFERENCE): os.path.join(TESTS_DATA_PATH, "boston_housing_inference.csv"),
@@ -163,6 +165,7 @@ _training_models_paths = {
 _targets = {
     BINARY: "Species",
     REGRESSION: "MEDV",
+    REGRESSION_SINGLE_COL: "target",
     BINARY_TEXT: "Churn",
     MULTICLASS: "class",
     MULTICLASS_BINARY: "Species",
@@ -179,6 +182,7 @@ _target_types = {
     BINARY_TEXT: "binary",
     BINARY_SPACES: "binary",
     REGRESSION: "regression",
+    REGRESSION_SINGLE_COL: "regression",
     REGRESSION_INFERENCE: "regression",
     ANOMALY: "anomaly",
     UNSTRUCTURED: "unstructured",
