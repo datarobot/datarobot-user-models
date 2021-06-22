@@ -49,6 +49,7 @@ load_data <- function(input_filename){
 }
 
 
+
 process_data <- function(input_filename, target_filename, target_name, num_rows){
     # read X
     df <- load_data(input_filename)
@@ -68,8 +69,8 @@ process_data <- function(input_filename, target_filename, target_name, num_rows)
             target_name <- colnames(y_unsampled)
         }
     df <- df[!(is.na(df[target_name])), ]
-    X <- df[,!(names(df) %in% c(target_name))]
-    X <- X[sample(nrow(X), size=num_rows ), ]
+    X <- df[,!(names(df) %in% c(target_name)), drop=FALSE]
+    X <- X[sample(nrow(X), size=num_rows ),, drop=FALSE]
 
     y <- df[,target_name, drop=FALSE]
     y <- y[sample(nrow(y), size=num_rows),]
@@ -77,7 +78,7 @@ process_data <- function(input_filename, target_filename, target_name, num_rows)
     } else {
 
         y <- NULL
-        X <- df[sample(nrow(df), size=num_rows), ]
+        X <- df[sample(nrow(df), size=num_rows),, drop=FALSE]
 
     }
 

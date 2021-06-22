@@ -34,6 +34,42 @@ TEN_K_DIABETES = get_data("10k_diabetes.csv")
 IRIS_BINARY = get_data("iris_binary_training.csv")
 LENDING_CLUB = get_data("lending_club_reduced.csv")
 
+CONDITIONS_EXCEPT_EQUALS = [
+    Conditions.NOT_EQUALS,
+    Conditions.IN,
+    Conditions.NOT_IN,
+    Conditions.GREATER_THAN,
+    Conditions.LESS_THAN,
+    Conditions.NOT_GREATER_THAN,
+    Conditions.NOT_LESS_THAN,
+]
+
+VALUES_EXCEPT_FORBIDDEN_SUPPORTED = [
+    Values.NUM,
+    Values.TXT,
+    Values.CAT,
+    Values.IMG,
+    Values.DATE,
+    Values.REQUIRED,
+    Values.NEVER,
+    Values.DYNAMIC,
+    Values.ALWAYS,
+    Values.IDENTITY,
+]
+
+VALUES_EXCEPT_NEVER_DYNAMIC = [
+    Values.NUM,
+    Values.TXT,
+    Values.CAT,
+    Values.IMG,
+    Values.DATE,
+    Values.FORBIDDEN,
+    Values.SUPPORTED,
+    Values.REQUIRED,
+    Values.ALWAYS,
+    Values.IDENTITY,
+]
+
 
 @pytest.fixture
 def lending_club():
@@ -378,7 +414,15 @@ class TestRevalidateTypeSchemaDataTypes:
             parsed_yaml = load(data_type_str, get_type_schema_yaml_validator())
             revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize("condition", list(set(Conditions) - set(Conditions.non_numeric())))
+    @pytest.mark.parametrize(
+        "condition",
+        [
+            Conditions.GREATER_THAN,
+            Conditions.LESS_THAN,
+            Conditions.NOT_GREATER_THAN,
+            Conditions.NOT_LESS_THAN,
+        ],
+    )
     def test_datatypes_unallowed_conditions(self, condition):
         values = [Values.NUM, Values.TXT]
         input_data_type_str = input_requirements_yaml(self.field, condition, values)
@@ -399,7 +443,7 @@ class TestRevalidateTypeSchemaDataTypes:
             parsed_yaml = load(data_type_str, get_type_schema_yaml_validator())
             revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize("value", list(set(Values) - set(Values.data_values())))
+    @pytest.mark.parametrize("value", Values.input_values() + Values.output_values())
     def test_datatypes_unallowed_values(self, value):
         condition = Conditions.EQUALS
         input_data_type_str = input_requirements_yaml(self.field, condition, [value])
@@ -453,7 +497,7 @@ class TestRevalidateTypeSchemaSparse:
         parsed_yaml = load(sparse_yaml_str, get_type_schema_yaml_validator())
         revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize("value", list(set(Values) - set(Values.input_values())))
+    @pytest.mark.parametrize("value", Values.data_values() + Values.output_values())
     def test_sparsity_input_disallowed_values(self, value):
         condition = Conditions.EQUALS
         sparse_yaml_str = input_requirements_yaml(self.field, condition, [value])
@@ -478,7 +522,7 @@ class TestRevalidateTypeSchemaSparse:
         parsed_yaml = load(sparse_yaml_str, get_type_schema_yaml_validator())
         revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize("value", list(set(Values) - set(Values.output_values())))
+    @pytest.mark.parametrize("value", Values.data_values() + Values.input_values())
     def test_sparsity_output_disallowed_values(self, value):
         condition = Conditions.EQUALS
         sparse_yaml_str = output_requirements_yaml(self.field, condition, [value])
@@ -495,7 +539,7 @@ class TestRevalidateTypeSchemaSparse:
         with pytest.raises(YAMLValidationError):
             revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize("condition", list(set(Conditions) - {Conditions.EQUALS}))
+    @pytest.mark.parametrize("condition", CONDITIONS_EXCEPT_EQUALS)
     def test_sparsity_input_output_disallows_conditions(self, condition):
         sparse_yaml_input_str = input_requirements_yaml(self.field, condition, [Values.REQUIRED])
         sparse_yaml_output_str = output_requirements_yaml(self.field, condition, [Values.ALWAYS])
@@ -516,7 +560,7 @@ class TestRevalidateTypeSchemaContainsMissing:
         parsed_yaml = load(sparse_yaml_str, get_type_schema_yaml_validator())
         revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize("value", list(set(Values) - {Values.FORBIDDEN, Values.SUPPORTED}))
+    @pytest.mark.parametrize("value", VALUES_EXCEPT_FORBIDDEN_SUPPORTED)
     def test_contains_missing_input_disallowed_values(self, value):
         condition = Conditions.EQUALS
         sparse_yaml_str = input_requirements_yaml(self.field, condition, [value])
@@ -543,7 +587,7 @@ class TestRevalidateTypeSchemaContainsMissing:
         parsed_yaml = load(sparse_yaml_str, get_type_schema_yaml_validator())
         revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize("value", list(set(Values) - {Values.NEVER, Values.DYNAMIC}))
+    @pytest.mark.parametrize("value", VALUES_EXCEPT_NEVER_DYNAMIC)
     def test_contains_missing_output_disallowed_values(self, value):
         condition = Conditions.EQUALS
         sparse_yaml_str = output_requirements_yaml(self.field, condition, [value])
@@ -562,7 +606,7 @@ class TestRevalidateTypeSchemaContainsMissing:
         with pytest.raises(YAMLValidationError):
             revalidate_typeschema(parsed_yaml)
 
-    @pytest.mark.parametrize("condition", list(set(Conditions) - {Conditions.EQUALS}))
+    @pytest.mark.parametrize("condition", CONDITIONS_EXCEPT_EQUALS)
     def test_contains_missing_input_output_disallows_conditions(self, condition):
         sparse_yaml_input_str = input_requirements_yaml(self.field, condition, [Values.REQUIRED])
         sparse_yaml_output_str = output_requirements_yaml(self.field, condition, [Values.ALWAYS])

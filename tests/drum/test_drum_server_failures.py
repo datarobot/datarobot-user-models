@@ -62,8 +62,8 @@ class TestDrumServerFailures:
                 assert error_message in response.json()["message"]
         else:
             # DrumServerRun tries to ping the server.
-            # assert that the process is already dead we it's done.
-            with pytest.raises(ProcessLookupError), drum_server_run:
+            # if ping fails for timeout, AssertionError("Server failed to start") is risen
+            with pytest.raises(AssertionError, match="Server failed to start"), drum_server_run:
                 pass
 
         # nginx test runs in docker; to stop the process we kill it, so don't check return code

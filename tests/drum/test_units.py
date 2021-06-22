@@ -1,3 +1,5 @@
+from contextlib import closing
+import socket
 import json
 import os
 import tempfile
@@ -674,13 +676,17 @@ class TestJavaPredictor:
         with pytest.raises(AttributeError, match=error_message):
             jp._predict(binary_data=b"d" * data_size)
 
-    @patch.object(JavaPredictor, "find_free_port", return_value=80)
+    @patch.object(JavaPredictor, "find_free_port")
     def test_run_java_server_entry_point_fail(self, mock_find_free_port):
-        pred = JavaPredictor()
-        pred.model_artifact_extension = ".jar"
+        with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as s:
+            s.bind(("", 0))
+            mock_find_free_port.return_value = s.getsockname()[1]
 
-        with pytest.raises(DrumCommonException, match="java gateway failed to start"):
-            pred._run_java_server_entry_point()
+            pred = JavaPredictor()
+            pred.model_artifact_extension = ".jar"
+
+            with pytest.raises(DrumCommonException, match="java gateway failed to start"):
+                pred._run_java_server_entry_point()
 
     def test_run_java_server_entry_point_succeed(self):
         pred = JavaPredictor()

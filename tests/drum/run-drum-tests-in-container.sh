@@ -114,7 +114,8 @@ pip install \
 
 pytest tests/drum/ \
        -k "not test_drum_monitoring_no_mlops_installed" \
-       --junit-xml="$GIT_ROOT/results_integration.xml"
+       --junit-xml="$GIT_ROOT/results_integration.xml" \
+       -n auto
 
 TEST_RESULT=$?
 END_TIME=$(date +%s)

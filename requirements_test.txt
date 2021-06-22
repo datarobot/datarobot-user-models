@@ -1,6 +1,7 @@
 dr-usertool
 pytest
 pytest-runner
+pytest-xdist
 responses
 urllib3 >= 1.25.0
 datarobot==2.24.0
