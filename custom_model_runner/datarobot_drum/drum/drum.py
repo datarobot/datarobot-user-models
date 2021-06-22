@@ -769,7 +769,7 @@ class CMRunner:
         in_docker_fit_row_weights_filename = "/opt/fit_row_weights.csv"
 
         docker_cmd = "docker run --rm --entrypoint '' --interactive --user $(id -u):$(id -g)"
-        docker_cmd_args = " -v {}:{}".format(options.code_dir, in_docker_model)
+        docker_cmd_args = ' -v "{}":{}'.format(options.code_dir, in_docker_model)
 
         in_docker_cmd_list = raw_arguments
         in_docker_cmd_list[0] = ArgumentsOptions.MAIN_COMMAND
@@ -850,7 +850,7 @@ class CMRunner:
                     )
                 if options.row_weights_csv:
                     fit_row_weights_filename = os.path.realpath(options.row_weights_csv)
-                    docker_cmd_args += " -v {}:{}".format(
+                    docker_cmd_args += ' -v "{}":{}'.format(
                         fit_row_weights_filename, in_docker_fit_row_weights_filename
                     )
                     CMRunnerUtils.replace_cmd_argument_value(
