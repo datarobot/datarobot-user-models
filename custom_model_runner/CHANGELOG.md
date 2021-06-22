@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Fixed
 - Loading hooks from both custom.R and custom.r
 - Fix single-col data bug when running drum fit in R
+- Error when using -cd instead of --code-dir when running with docker
+- Error when using spaces in --code-dir path when running with docker
 
 #### [1.5.6] - 2021-05-17
 ##### Fixed
