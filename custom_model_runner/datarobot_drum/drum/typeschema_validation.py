@@ -20,13 +20,6 @@ logger = logging.getLogger("drum." + __name__)
 T = TypeVar("T")
 
 
-def list_str(l):
-    """f-strings do not do a great job dealing with lists of objects.  The __str__ method isn't called on the
-    contained objects, and the result is in [].  This provides the nicely formatted representation we want
-    in the error message"""
-    return ", ".join([str(x) for x in l])
-
-
 class BaseEnum(PythonNativeEnum):
     def __str__(self) -> str:
         return self.name
@@ -204,6 +197,13 @@ class DataTypes(BaseValidator):
         super(DataTypes, self).__init__(condition, values)
 
     @staticmethod
+    def list_str(l):
+        """f-strings do not do a great job dealing with lists of objects.  The __str__ method isn't called on the
+        contained objects, and the result is in [].  This provides the nicely formatted representation we want
+        in the error message"""
+        return ", ".join([str(x) for x in l])
+
+    @staticmethod
     def is_text(x):
         """
         Decide if a pandas series is text, using a very simple heuristic:
@@ -262,13 +262,13 @@ class DataTypes(BaseValidator):
 
         types_present = [str(k) for k, v in types.items() if v]
 
-        base_error = f"Datatypes incorrect. Data has types: {types_present}"
+        base_error = f"Datatypes incorrect. Data has types: {DataTypes.list_str(types_present)}"
 
         errors = {
             Conditions.EQUALS: f"{base_error}, but expected only {self.values[0]}.",
             Conditions.NOT_EQUALS: f"{base_error}, but expected {self.values[0]} to NOT be present.",
-            Conditions.IN: f"{base_error}, but expected types to exactly match: {list_str(self.values)}",
-            Conditions.NOT_IN: f"{base_error}, but expected no types in: {list_str(self.values)} to be present",
+            Conditions.IN: f"{base_error}, but expected types to exactly match: {DataTypes.list_str(self.values)}",
+            Conditions.NOT_IN: f"{base_error}, but expected no types in: {DataTypes.list_str(self.values)} to be present",
         }
 
         tests = {

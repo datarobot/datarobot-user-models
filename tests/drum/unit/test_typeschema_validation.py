@@ -19,6 +19,7 @@ from datarobot_drum.drum.typeschema_validation import (
     Fields,
     SchemaValidator,
     RequirementTypes,
+    DataTypes,
 )
 
 from tests.drum.utils import test_data
@@ -692,3 +693,16 @@ def test_num_col_values(condition, value, fails):
             NumColumns(condition, value)
     else:
         NumColumns(condition, value)
+
+
+def test_datatypes_error_formatting():
+    """This tests the error formatting for the list of Values"""
+    validator = DataTypes(Conditions.IN, [Values.IMG.name, Values.DATE.name])
+    df = pd.DataFrame({"a": range(10), "b": range(10)})
+    errors = validator.validate(df)
+    assert len(errors) == 1, "incorrect number of errors found"
+    assert "<Values." not in errors[0], "Values enum not correctly cast to string"
+    assert (
+        "[" not in errors[0] and "]" not in errors[0]
+    ), "Error message should not have list brackets"
+    assert "IMG" in errors[0], "type information missing"
