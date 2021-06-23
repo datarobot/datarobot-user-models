@@ -260,7 +260,7 @@ class DataTypes(BaseValidator):
         )
         types[Values.DATE] = dataframe.select_dtypes("datetime").shape[1] > 0
 
-        types_present = [str(k) for k, v in types.items() if v]
+        types_present = [k for k, v in types.items() if v]
 
         base_error = f"Datatypes incorrect. Data has types: {DataTypes.list_str(types_present)}"
 
