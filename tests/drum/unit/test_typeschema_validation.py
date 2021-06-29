@@ -222,17 +222,14 @@ class TestSchemaValidator:
         with pytest.raises(DrumSchemaValidationException):
             validator.validate_inputs(bad_data)
 
-    def test_data_types_raises_error_if_all_type_in_in_are_not_present(self, iris_binary):
-        """Because of how it's implemented in DataRobot,
+    def test_data_types_in_allows_extra(self, iris_binary):
+        """Additional values should be allowed with the IN condition
 
         - field: data_types
           condition: IN
           value:
             - NUM
             - TXT
-
-        requires that the DataFrame's set of types present _EQUALS_ the set: {NUM, TXT},
-        but uses the condition: `IN`  :shrug:
         """
         condition = Conditions.IN
         value = Values.data_values()
@@ -241,8 +238,7 @@ class TestSchemaValidator:
         schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
 
-        with pytest.raises(DrumSchemaValidationException):
-            validator.validate_inputs(iris_binary)
+        validator.validate_inputs(iris_binary)
 
     @pytest.mark.parametrize(
         "single_value_condition",
