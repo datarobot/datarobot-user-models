@@ -263,9 +263,9 @@ class DataTypes(BaseValidator):
         base_error = f"Datatypes incorrect. Data has types: {DataTypes.list_str(types_present)}"
 
         errors = {
-            Conditions.EQUALS: f"{base_error}, but expected only {self.values[0]}.",
+            Conditions.EQUALS: f"{base_error}, but expected types to exactly match: {DataTypes.list_str(self.values)}",
             Conditions.NOT_EQUALS: f"{base_error}, but expected {self.values[0]} to NOT be present.",
-            Conditions.IN: f"{base_error}, but expected types to exactly match: {DataTypes.list_str(self.values)}",
+            Conditions.IN: f"{base_error}, but expected only {DataTypes.list_str(self.values)}.",
             Conditions.NOT_IN: f"{base_error}, but expected no types in: {DataTypes.list_str(self.values)} to be present",
         }
 
