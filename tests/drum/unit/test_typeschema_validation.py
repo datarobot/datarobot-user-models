@@ -365,6 +365,21 @@ class TestSchemaValidator:
             with pytest.raises(DrumSchemaValidationException):
                 validator_method(data_frame)
 
+    def test_data_types_error_message(self, ten_k_diabetes):
+        """This tests the error formatting for the list of Values"""
+        condition = Conditions.IN
+        values = [Values.CAT, Values.NUM]
+        target = "readmitted"
+
+        yaml_str = input_requirements_yaml(Fields.DATA_TYPES, condition, values)
+        schema_dict = self.yaml_str_to_schema_dict(yaml_str)
+        validator = SchemaValidator(schema_dict)
+        ten_k_diabetes.drop(target, inplace=True, axis=1)
+
+        match_str = r"has types:( \w+,?){2,3}.* exactly match: CAT, NUM"
+        with pytest.raises(DrumSchemaValidationException, match=match_str):
+            validator.validate_inputs(ten_k_diabetes)
+
 
 class TestRevalidateTypeSchemaDataTypes:
     field = Fields.DATA_TYPES
@@ -693,16 +708,3 @@ def test_num_col_values(condition, value, fails):
             NumColumns(condition, value)
     else:
         NumColumns(condition, value)
-
-
-def test_datatypes_error_formatting():
-    """This tests the error formatting for the list of Values"""
-    validator = DataTypes(Conditions.IN, [Values.IMG.name, Values.DATE.name])
-    df = pd.DataFrame({"a": range(10), "b": range(10)})
-    errors = validator.validate(df)
-    assert len(errors) == 1, "incorrect number of errors found"
-    assert "<Values." not in errors[0], "Values enum not correctly cast to string"
-    assert (
-        "[" not in errors[0] and "]" not in errors[0]
-    ), "Error message should not have list brackets"
-    assert "IMG" in errors[0], "type information missing"
