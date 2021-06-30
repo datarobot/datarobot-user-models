@@ -162,7 +162,7 @@ class TestSchemaValidator:
                 "iris_binary",
                 "SepalLengthCm",
                 "cats_and_dogs",
-                "readmitted",
+                "class",
             ),
             (
                 Conditions.EQUALS,
