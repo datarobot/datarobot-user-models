@@ -272,7 +272,7 @@ class DataTypes(BaseValidator):
         tests = {
             Conditions.EQUALS: lambda data_types: set(self.values) == set(data_types),
             Conditions.NOT_EQUALS: lambda data_types: self.values[0] not in data_types,
-            Conditions.IN: lambda data_types: len(set(self.values) - set(data_types)) == 0,
+            Conditions.IN: lambda data_types: len(set(data_types) - set(self.values)) == 0,
             Conditions.NOT_IN: lambda data_types: all(el not in self.values for el in data_types),
         }
 

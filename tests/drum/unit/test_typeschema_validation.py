@@ -161,7 +161,7 @@ class TestSchemaValidator:
                 [Values.CAT, Values.NUM],
                 "iris_binary",
                 "SepalLengthCm",
-                "ten_k_diabetes",
+                "cats_and_dogs",
                 "readmitted",
             ),
             (
