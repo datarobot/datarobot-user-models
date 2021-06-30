@@ -224,7 +224,7 @@ class DataTypes(BaseValidator):
         """f-strings do not do a great job dealing with lists of objects.  The __str__ method isn't called on the
         contained objects, and the result is in [].  This provides the nicely formatted representation we want
         in the error message"""
-        return ", ".join([str(x) for x in l])
+        return ", ".join(sorted([str(x) for x in l]))
 
     @staticmethod
     def is_text(x):

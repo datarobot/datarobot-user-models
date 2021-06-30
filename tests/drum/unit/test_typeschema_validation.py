@@ -399,7 +399,7 @@ class TestSchemaValidator:
 
     def test_data_types_error_message(self, ten_k_diabetes):
         """This tests the error formatting for the list of Values"""
-        condition = Conditions.IN
+        condition = Conditions.EQUALS
         values = [Values.CAT, Values.NUM]
         target = "readmitted"
 
