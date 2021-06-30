@@ -214,7 +214,9 @@ class DataTypes(BaseValidator):
         self._SKIP_VALIDATION = {Values.AUDIO, Values.COUNT_DICT, Values.GEO, Values.TARGET_ONLY}
         values = list(set(values) - self._SKIP_VALIDATION)
         if len(values) == 0:
-            logger.info("Values specified do not have runtime validation in DRUM, only within DataRobot.")
+            logger.info(
+                "Values specified do not have runtime validation in DRUM, only within DataRobot."
+            )
         super(DataTypes, self).__init__(condition, values)
 
     @staticmethod
