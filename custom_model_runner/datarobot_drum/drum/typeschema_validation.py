@@ -265,14 +265,14 @@ class DataTypes(BaseValidator):
         errors = {
             Conditions.EQUALS: f"{base_error}, but expected types to exactly match: {DataTypes.list_str(self.values)}",
             Conditions.NOT_EQUALS: f"{base_error}, but expected {self.values[0]} to NOT be present.",
-            Conditions.IN: f"{base_error}, but expected only {DataTypes.list_str(self.values)}.",
+            Conditions.IN: f"{base_error}, which include values that are not in  {DataTypes.list_str(self.values)}.",
             Conditions.NOT_IN: f"{base_error}, but expected no types in: {DataTypes.list_str(self.values)} to be present",
         }
 
         tests = {
             Conditions.EQUALS: lambda data_types: set(self.values) == set(data_types),
             Conditions.NOT_EQUALS: lambda data_types: self.values[0] not in data_types,
-            Conditions.IN: lambda data_types: len(set(data_types) - set(self.values)) == 0,
+            Conditions.IN: lambda data_types: set(data_types).issubset(set(self.values)),
             Conditions.NOT_IN: lambda data_types: all(el not in self.values for el in data_types),
         }
 
