@@ -408,7 +408,7 @@ class TestSchemaValidator:
         validator = SchemaValidator(schema_dict)
         ten_k_diabetes.drop(target, inplace=True, axis=1)
 
-        match_str = r"has types:( \w+,?){2,3}.*, which include values that are not in CAT, NUM"
+        match_str = r"has types:( \w+,?){2,3}.*, which includes values that are not in CAT, NUM"
         with pytest.raises(DrumSchemaValidationException, match=match_str):
             validator.validate_inputs(ten_k_diabetes)
 
