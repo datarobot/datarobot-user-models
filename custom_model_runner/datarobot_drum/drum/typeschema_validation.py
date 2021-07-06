@@ -215,7 +215,7 @@ class DataTypes(BaseValidator):
         values = list(set(values) - self._SKIP_VALIDATION)
         if len(values) == 0:
             logger.info(
-                "Values specified do not have runtime validation in DRUM, only within DataRobot."
+                f"Values ({self.list_str(values)}) specified do not have runtime validation in DRUM, only within DataRobot."
             )
         super(DataTypes, self).__init__(condition, values)
 
