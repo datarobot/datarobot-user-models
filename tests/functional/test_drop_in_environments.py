@@ -322,33 +322,30 @@ class TestDropInEnvironments(object):
         assert test.overall_status == "succeeded"
 
     @pytest.mark.parametrize(
-        "env, model, test_data_id",
+        "model, test_data_id",
         [
-            ("java_drop_in_env", "java_binary_custom_model", "binary_testing_data"),
-            ("java_drop_in_env", "java_regression_custom_model", "regression_testing_data"),
-            ("sklearn_drop_in_env", "sklearn_binary_custom_model", "binary_testing_data"),
-            ("sklearn_drop_in_env", "sklearn_regression_custom_model", "regression_testing_data"),
-            ("r_drop_in_env", "r_binary_custom_model", "binary_testing_data"),
-            ("r_drop_in_env", "r_regression_custom_model", "regression_testing_data"),
+            ("java_binary_custom_model", "binary_testing_data"),
+            ("java_regression_custom_model", "regression_testing_data"),
+            ("sklearn_binary_custom_model", "binary_testing_data"),
+            ("sklearn_regression_custom_model", "regression_testing_data"),
+            ("r_binary_custom_model", "binary_testing_data"),
+            ("r_regression_custom_model", "regression_testing_data"),
         ],
     )
-    def test_feature_impact(self, request, env, model, test_data_id):
-        env_id, env_version_id = request.getfixturevalue(env)
+    def test_feature_impact(self, request, model, test_data_id):
         model_id, model_version_id = request.getfixturevalue(model)
         test_data_id = request.getfixturevalue(test_data_id)
 
-        model_image = dr.CustomInferenceImage.create(
-            model_id, model_version_id, env_id, env_version_id
-        )
+        model_version = dr.CustomModelVersion.get(model_id, model_version_id)
         model = dr.CustomInferenceModel.get(model_id)
         model.assign_training_data(test_data_id)
-        model_image.calculate_feature_impact()
+        model_version.calculate_feature_impact()
 
         test_passed = False
         error_message = ""
         for i in range(300):
             try:
-                model_image.get_feature_impact()
+                model_version.get_feature_impact()
                 test_passed = True
                 break
             except (dr.errors.ClientError, dr.errors.ClientError) as e:
