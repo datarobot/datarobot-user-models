@@ -37,8 +37,6 @@ class BaseLanguagePredictor(ABC):
         self._mlops = None
 
     def configure(self, params):
-        # import pydevd_pycharm
-        # pydevd_pycharm.settrace('localhost', port=35405, stdoutToServer=True, stderrToServer=True)
         self._code_dir = params["__custom_model_path__"]
         self._positive_class_label = params.get("positiveClassLabel")
         self._negative_class_label = params.get("negativeClassLabel")
@@ -125,8 +123,7 @@ class BaseLanguagePredictor(ABC):
     def transform(self, **kwargs):
         output = self._transform(**kwargs)
         output_X = output[0]
-        # import pydevd_pycharm
-        # pydevd_pycharm.settrace('localhost', port=35405, stdoutToServer=True, stderrToServer=True)
+        # TODO: [RAPTOR-5765] validate output_y
         self.validate_output(output_X)
         return output
 
