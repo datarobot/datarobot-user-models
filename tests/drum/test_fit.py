@@ -62,6 +62,7 @@ from .constants import (
     RDS_HYPERPARAMETERS,
     RDS_PARAMETERS,
     SKLEARN_BINARY_SCHEMA_VALIDATION,
+    PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION,
 )
 
 
@@ -604,13 +605,22 @@ class TestFit:
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
 
-    def test_fit_schema_failure(self, resources, tmp_path):
+    @pytest.mark.parametrize(
+        "framework, problem, language, error_in_predict_server",
+        [
+            (SKLEARN_BINARY_SCHEMA_VALIDATION, BINARY, PYTHON, False),
+            (PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION, TRANSFORM, PYTHON, True),
+        ],
+    )
+    def test_fit_schema_failure(
+        self, resources, framework, problem, language, error_in_predict_server, tmp_path
+    ):
         custom_model_dir = _create_custom_model_dir(
             resources,
             tmp_path,
-            SKLEARN_BINARY_SCHEMA_VALIDATION,
-            BINARY,
-            PYTHON,
+            framework,
+            problem,
+            language,
             is_training=True,
             include_metadata=True,
         )
@@ -621,13 +631,19 @@ class TestFit:
 
         cmd = "{} fit --target-type {} --code-dir {} --target {} --input {} --verbose".format(
             ArgumentsOptions.MAIN_COMMAND,
-            BINARY,
+            problem,
             custom_model_dir,
             resources.targets(BINARY_TEXT),
             input_dataset,
         )
-        with pytest.raises(AssertionError):
-            _, _, stderr = _exec_shell_cmd(
-                cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
-            )
+        _, stdout, stderr = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+
+        # The predict server will not return the full stacktrace since it is ran in a forked process
+        if error_in_predict_server:
+            assert "ERROR: schema validation failed for output" in stdout
+        else:
             assert "DrumSchemaValidationException" in stderr

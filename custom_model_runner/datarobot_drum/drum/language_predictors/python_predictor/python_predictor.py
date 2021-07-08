@@ -57,7 +57,7 @@ class PythonPredictor(BaseLanguagePredictor):
         predictions = self._model_adapter.predict(model=self._model, **kwargs)
         return predictions
 
-    def transform(self, **kwargs):
+    def _transform(self, **kwargs):
         return self._model_adapter.transform(model=self._model, **kwargs)
 
     def predict_unstructured(self, data, **kwargs):
