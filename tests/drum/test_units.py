@@ -107,11 +107,11 @@ class TestValidatePredictions:
             df_good = pd.DataFrame(
                 {positive_label: [0.1, 0.2, 0.3], negative_label: [0.9, 0.8, 0.7]}
             )
-            predictor.validate_predictions(df_good)
+            predictor.validate_output(df_good)
 
             df_bad = pd.DataFrame({positive_label: [1, 1, 1], negative_label: [-1, 0, 0]})
             with pytest.raises(ValueError):
-                predictor.validate_predictions(df_bad)
+                predictor.validate_output(df_bad)
 
 
 modelID = "5f1f15a4d6111f01cb7f91f"

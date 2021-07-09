@@ -28,6 +28,7 @@ from tests.drum.constants import (
     PYTHON_LOAD_MODEL,
     PYTHON_TRANSFORM,
     PYTHON_TRANSFORM_DENSE,
+    PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION,
     PYTHON_UNSTRUCTURED,
     PYTHON_UNSTRUCTURED_PARAMS,
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
@@ -159,6 +160,9 @@ _training_models_paths = {
     ),
     (PYTHON, SKLEARN_PRED_CONSISTENCY): os.path.join(
         TESTS_FIXTURES_PATH, "custom_pred_consistency"
+    ),
+    (PYTHON, PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION): os.path.join(
+        TESTS_FIXTURES_PATH, "validate_transform_fail_output_schema_validation"
     ),
 }
 

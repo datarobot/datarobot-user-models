@@ -1,3 +1,4 @@
+from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from flask import request, Response
 from requests_toolbelt import MultipartEncoder
 
@@ -182,32 +183,40 @@ class PredictMixin:
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             return {"message": "ERROR: " + str(e)}, response_status
 
-        if "y" in request.files.keys():
-            try:
-                target_binary_data, target_mimetype, target_charset = self._fetch_data_from_request(
-                    "y", logger=logger
-                )
-                mimetype_support_error_response = self._check_mimetype_support(target_mimetype)
-                if mimetype_support_error_response is not None:
-                    return mimetype_support_error_response
-            except ValueError as e:
-                response_status = HTTP_422_UNPROCESSABLE_ENTITY
-                return {"message": "ERROR: " + str(e)}, response_status
+        try:
+            if "y" in request.files.keys():
+                try:
+                    (
+                        target_binary_data,
+                        target_mimetype,
+                        target_charset,
+                    ) = self._fetch_data_from_request("y", logger=logger)
+                    mimetype_support_error_response = self._check_mimetype_support(target_mimetype)
+                    if mimetype_support_error_response is not None:
+                        return mimetype_support_error_response
+                except ValueError as e:
+                    response_status = HTTP_422_UNPROCESSABLE_ENTITY
+                    return {"message": "ERROR: " + str(e)}, response_status
 
-            out_data, out_target = self._predictor.transform(
-                binary_data=feature_binary_data,
-                mimetype=feature_mimetype,
-                charset=feature_charset,
-                target_binary_data=target_binary_data,
-                target_mimetype=target_mimetype,
-                target_charset=target_charset,
-                sparse_colnames=colnames_bin_data,
-            )
-        else:
-            out_data, _ = self._predictor.transform(
-                binary_data=feature_binary_data, mimetype=feature_mimetype, charset=feature_charset
-            )
-            out_target = None
+                out_data, out_target = self._predictor.transform(
+                    binary_data=feature_binary_data,
+                    mimetype=feature_mimetype,
+                    charset=feature_charset,
+                    target_binary_data=target_binary_data,
+                    target_mimetype=target_mimetype,
+                    target_charset=target_charset,
+                    sparse_colnames=colnames_bin_data,
+                )
+            else:
+                out_data, _ = self._predictor.transform(
+                    binary_data=feature_binary_data,
+                    mimetype=feature_mimetype,
+                    charset=feature_charset,
+                )
+                out_target = None
+        except DrumSchemaValidationException as e:
+            response_status = HTTP_422_UNPROCESSABLE_ENTITY
+            return {"message": "ERROR: " + str(e)}, response_status
 
         # make output
         if is_sparse(out_data):

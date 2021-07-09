@@ -113,5 +113,5 @@ class JlPredictor(BaseLanguagePredictor):
             ret = ret
         return ret
 
-    def transform(self, **kwargs):
+    def _transform(self, **kwargs):
         raise DrumCommonException("Transform feature is not supported for Julia yet")
