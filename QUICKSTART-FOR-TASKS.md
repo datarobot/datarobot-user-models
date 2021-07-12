@@ -43,7 +43,7 @@ pip install -r public_dropin_environments/python3_sklearn_binary/dr_requirements
 engineers to make sure your model is in tip top shape to be uploaded into the 
 app. This tool is called DRUM. Here's how to run it
 ```
-drum fit --code-dir custom_tasks/examples/python3_sklearn_binary --input \
+drum fit --code-dir task_templates/pipelines/python3_sklearn_binary --input \
 tests/testdata/iris_binary_training.csv --target-type binary --target Species --verbose
 ```
 This is going to build a model with the code in the `training/python3_sklearn_binary` 

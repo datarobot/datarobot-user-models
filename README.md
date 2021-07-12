@@ -21,7 +21,7 @@ debugging, testing, and running your training and inference models with DataRobo
 This repository addresses the DataRobot functionality known as `custom models`. The terms `custom model` and `user model` can be used interchangeably, as can `custom model directory` and `code directory`.
 
 ## Quickstart <a name="quickstart"></a>
-The following example shows how to use the [DRUM](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) tool to make predictions on an [sklearn regression model](model_templates/inference/python3_sklearn). For the training model quickstart, please reference [this document](QUICKSTART-FOR-TASKS.md)
+The following example shows how to use the [DRUM](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) tool to make predictions on an [sklearn regression model](model_templates/python3_sklearn). For the training model quickstart, please reference [this document](QUICKSTART-FOR-TASKS.md)
 1. Clone the repository
 2. Create a virtual environment: `python3 -m virtualenv <dirname for virtual environment>`
 3. Activate the virtual environment: `source <dirname for virtual environment>/bin/activate`
@@ -29,7 +29,7 @@ The following example shows how to use the [DRUM](https://github.com/datarobot/d
 5. Install the required dependencies: `pip install -r public_dropin_environments/python3_sklearn/requirements.txt`
 6. Install datarobot-drum: `pip install datarobot-drum`
    1. If you want to install the dev environment, instead `pip install -e custom_model_runner/`
-7. Run the example: `drum score --code-dir model_templates/inference/python3_sklearn --input tests/testdata/boston_housing.csv`  
+7. Run the example: `drum score --code-dir model_templates/python3_sklearn --input tests/testdata/boston_housing.csv`  
     > Note: this command assumes model is regression. For binary classification model provide: _**positive-class-label**_ and _**negative-class-label**_ arguments.  
     Input data is expected to be in CSV format. By default, missing values are indicated with NaN in Python, and NA in R according to `pd.read_csv` and `read.csv` respectively.
 
@@ -144,7 +144,7 @@ pyjulia does NOT work with statically linked libpython.  See this trouble shooti
 
 The simplest way to getting DRUM working with Julia is to leverage the [Julia Dropin Environment](public_dropin_environments/julia_mlj)
 
-See details [here](model_templates/inference/julia/README.md) on setting up Julia for use with DRUM
+See details [here](model_templates/julia/README.md) on setting up Julia for use with DRUM
 
 ### Java
 | Library | File Extension | Example |
@@ -274,26 +274,26 @@ The examples in this repository use the DataRobot User Model Runner (DRUM).  For
 The [model_templates](model_templates) folder contains sample models that work with the provided template environments. For more information about each model, reference the readme for every example:
 
 ##### Inference Models
-* [Scikit-Learn sample model](model_templates/inference/python3_sklearn)
-* [Scikit-Learn sample unsupervised anomaly detection model](model_templates/inference/python3_sklearn_anomaly)
-* [PyTorch sample model](model_templates/inference/python3_pytorch)
-* [XGBoost sample model](model_templates/inference/python3_xgboost)
-* [Keras sample model](model_templates/inference/python3_keras)
-* [Keras sample model + Joblib artifact](model_templates/inference/python3_keras_joblib)
-* [PyPMML sample model](model_templates/inference/python3_pmml)
-* [R sample model](model_templates/inference/r_lang)
-* [Java sample model](model_templates/inference/java_codegen)
-* [Julia sample models](model_templates/inference/julia)
+* [Scikit-Learn sample model](model_templates/python3_sklearn)
+* [Scikit-Learn sample unsupervised anomaly detection model](model_templates/python3_sklearn_anomaly)
+* [PyTorch sample model](model_templates/python3_pytorch)
+* [XGBoost sample model](model_templates/python3_xgboost)
+* [Keras sample model](model_templates/python3_keras)
+* [Keras sample model + Joblib artifact](model_templates/python3_keras_joblib)
+* [PyPMML sample model](model_templates/python3_pmml)
+* [R sample model](model_templates/r_lang)
+* [Java sample model](model_templates/java_codegen)
+* [Julia sample models](model_templates/julia)
 
 ##### Training Models
-* [Scikit-Learn sample regression model](custom_tasks/examples/python3_sklearn_regression)
-* [Scikit-Learn sample binary model](custom_tasks/examples/python3_sklearn_binary)
-* [Scikit-Learn sample unsupervised anomaly detection model](custom_tasks/examples/python3_anomaly_detection)
+* [Scikit-Learn sample regression model](task_templates/pipelines/python3_sklearn_regression)
+* [Scikit-Learn sample binary model](task_templates/pipelines/python3_sklearn_binary)
+* [Scikit-Learn sample unsupervised anomaly detection model](task_templates/pipelines/python3_anomaly_detection)
 > Note: Unsupervised support is limited to anomaly detection models as of release 1.1.5
-* [Scikit-Learn sample transformer](custom_tasks/examples/python3_sklearn_transform)
-* [XGBoost sample model](custom_tasks/examples/python3_xgboost)
-* [Keras sample model + Joblib artifact](custom_tasks/examples/python3_keras_joblib)
-* [R sample model](custom_tasks/examples/r_lang)
+* [Scikit-Learn sample transformer](task_templates/pipelines/python3_sklearn_transform)
+* [XGBoost sample model](task_templates/pipelines/python3_xgboost)
+* [Keras sample model + Joblib artifact](task_templates/pipelines/python3_keras_joblib)
+* [R sample model](task_templates/pipelines/r_lang)
 
 ## Custom Environment Templates <a name="custom_environment_templates"></a>
 The [environment templates folder](#custom_environment_template) contains templates for the base environments used in DataRobot. Dependency requirements can be applied to the base environment to create a runtime environment for custom models.

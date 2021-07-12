@@ -178,7 +178,7 @@ class TestInferenceModelTemplates(object):
                 "class",
                 None,
                 None,
-                "model_templates/inference/python3_pytorch_multiclass/class_labels.txt",
+                "model_templates/python3_pytorch_multiclass/class_labels.txt",
             ),
             (
                 "inference/julia/jl_boston",
