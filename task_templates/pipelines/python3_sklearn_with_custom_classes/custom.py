@@ -1,7 +1,7 @@
 # In some cases, avg(prediction) might not match avg(actuals)
 # This task, added as a calibrator in the end of a regression blueprint, can help to fix that
 # During fit(), it computes and stores the calibration coefficient that is equal to avg(actuals) / avg(predicted) on training data
-# During score(), it multiplies incoming data by the calibration coefficient 
+# During score(), it multiplies incoming data by the calibration coefficient
 
 # In this example we use an sklearn pipeline that is built using custom classes
 
@@ -10,7 +10,8 @@ import pickle
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from custom_pipeline import pipeline # pipeline defined into custom_pipeline.py
+from custom_pipeline import pipeline  # pipeline defined into custom_pipeline.py
+
 
 def fit(X, y, output_dir, row_weights, **kwargs):
     """ This hook defines how DataRobot will train this task.
@@ -40,8 +41,7 @@ def fit(X, y, output_dir, row_weights, **kwargs):
     estimator = pipeline(X)
     estimator.fit(X, y)
 
-
-    # dump the trained object [in this example - a trained sklearn pipeline] 
+    # dump the trained object [in this example - a trained sklearn pipeline]
     # into an artifact [in this example - artifact.pkl]
     # and save it into output_dir so that it can be used later when scoring data
     output_dir_path = Path(output_dir)
@@ -50,7 +50,7 @@ def fit(X, y, output_dir, row_weights, **kwargs):
             pickle.dump(estimator, fp)
 
 
-def score(data, model, **kwargs): 
+def score(data, model, **kwargs):
     """ This hook defines how DataRobot will use the trained object from fit() to score new data.
     DataRobot runs this hook when the task is used for scoring inside a blueprint. 
     As an output, this hook is expected to return the scored data.
@@ -71,6 +71,4 @@ def score(data, model, **kwargs):
         In case of regression, score() must return a dataframe with a single column with column name "Predictions".
     """
 
-    return pd.DataFrame(data=model.predict(data), columns = ['Predictions'])
-
-
+    return pd.DataFrame(data=model.predict(data), columns=["Predictions"])

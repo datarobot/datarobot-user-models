@@ -4,7 +4,9 @@ import pickle
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from MissingImputation import MissingValuesMedianImputation # class defined into MissingImputation.py
+from MissingImputation import (
+    MissingValuesMedianImputation,
+)  # class defined into MissingImputation.py
 
 
 def fit(X, y, output_dir, **kwargs):
@@ -29,11 +31,11 @@ def fit(X, y, output_dir, **kwargs):
         so that the trained object can be used during scoring inside transform()
     """
 
-    #train MissingValuesMedianImputation
+    # train MissingValuesMedianImputation
     trn = MissingValuesMedianImputation(X)
     trn.fit(X)
 
-    # dump the trained object [in this example - object `trn`] 
+    # dump the trained object [in this example - object `trn`]
     # into an artifact [in this example - artifact.pkl]
     # and save it into output_dir so that it can be used to impute on new data
     output_dir_path = Path(output_dir)
@@ -42,7 +44,7 @@ def fit(X, y, output_dir, **kwargs):
             pickle.dump(trn, fp)
 
 
-def transform(data, transformer): 
+def transform(data, transformer):
     """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
     DataRobot runs this hook when the task is used for scoring inside a blueprint. 
     As an output, this hook is expected to return the transformed data.

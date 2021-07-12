@@ -7,6 +7,7 @@ import numpy as np
 from pathlib import Path
 from sklearn.linear_model import SGDClassifier
 
+
 def fit(X, y, output_dir, class_order, row_weights, **kwargs):
     """ This hook defines how DataRobot will train this task.
     DataRobot runs this hook when the task is being trained inside a blueprint.
@@ -34,11 +35,10 @@ def fit(X, y, output_dir, class_order, row_weights, **kwargs):
     """
 
     # fit SGDClassifier
-    estimator = SGDClassifier(loss = 'log')
+    estimator = SGDClassifier(loss="log")
     estimator.fit(X, y)
 
-
-    # dump the trained object [in this example - a trained SGDClassifier] 
+    # dump the trained object [in this example - a trained SGDClassifier]
     # into an artifact [in this example - artifact.pkl]
     # and save it into output_dir so that it can be used later when scoring data
     output_dir_path = Path(output_dir)
@@ -46,7 +46,8 @@ def fit(X, y, output_dir, class_order, row_weights, **kwargs):
         with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
             pickle.dump(estimator, fp)
 
-def score(data, model, **kwargs): 
+
+def score(data, model, **kwargs):
     """ This hook defines how DataRobot will use the trained object from fit() to score new data.
     DataRobot runs this hook when the task is used for scoring inside a blueprint. 
     As an output, this hook is expected to return the scored data.
@@ -69,4 +70,4 @@ def score(data, model, **kwargs):
         and probabilities of classes as values (each row must sum to 1.0)
     """
 
-    return pd.DataFrame(data=model.predict_proba(data), columns = model.classes_)
+    return pd.DataFrame(data=model.predict_proba(data), columns=model.classes_)

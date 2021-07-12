@@ -10,7 +10,8 @@ import pickle
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from CustomCalibrator import CustomCalibrator # class defined into CustomCalibrator.py
+from CustomCalibrator import CustomCalibrator  # class defined into CustomCalibrator.py
+
 
 def fit(X, y, output_dir, row_weights, **kwargs):
     """ This hook defines how DataRobot will train this task.
@@ -40,8 +41,7 @@ def fit(X, y, output_dir, row_weights, **kwargs):
     estimator = CustomCalibrator(X)
     estimator.fit(X, y)
 
-
-    # dump the trained object [in this example - a trained object `estimator`] 
+    # dump the trained object [in this example - a trained object `estimator`]
     # into an artifact [in this example - artifact.pkl]
     # and then save it into output_dir so that it can be used later when scoring data
     output_dir_path = Path(output_dir)
@@ -50,7 +50,7 @@ def fit(X, y, output_dir, row_weights, **kwargs):
             pickle.dump(estimator, fp)
 
 
-def score(data, model, **kwargs): 
+def score(data, model, **kwargs):
     """ This hook defines how DataRobot will use the trained object from fit() to score new data.
     DataRobot runs this hook when the task is used for scoring inside a blueprint. 
     As an output, this hook is expected to return the scored data.
@@ -71,8 +71,4 @@ def score(data, model, **kwargs):
         In case of regression, must return a dataframe with a single column with column name "Predictions".
     """
 
-    return pd.DataFrame(data=model.predict(data), columns = ['Predictions'])
-
-
-
-
+    return pd.DataFrame(data=model.predict(data), columns=["Predictions"])

@@ -26,7 +26,7 @@ Upload H2O Pojo File and use with the [Java Drop-In Environment](../../public_dr
 
 To run these examples locally with `drum` installed, you must already have java 11 installed, or you can execute the examples with Docker.  
 
-Paths are relative to `./datarobot-user-models/model_templates/inference` unless fully qualified
+Paths are relative to `./datarobot-user-models/model_templates` unless fully qualified
 
 #### Binary 
 

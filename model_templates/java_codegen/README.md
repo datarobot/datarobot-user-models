@@ -11,4 +11,4 @@ Upload the jar file as the only file in the custom model and use the Java Drop-I
 
 ### To run locally using 'drum'
 Paths are relative to `./datarobot-user-models`:  
-`drum score --code-dir model_templates/inference/java_codegen --target-type regression --input tests/testdata/boston_housing.csv`
+`drum score --code-dir model_templates/java_codegen --target-type regression --input tests/testdata/boston_housing.csv`

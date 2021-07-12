@@ -12,7 +12,7 @@ Create a new custom model with these files and use it locally in a virtual envir
 
 ### To run locally using 'drum'
 File paths are relative to `./datarobot-user-models`:   
-`drum score --code-dir model_templates/inference/python3_unstructured --target-type unstructured --input tests/testdata/unstructured_data.txt`
+`drum score --code-dir model_templates/python3_unstructured --target-type unstructured --input tests/testdata/unstructured_data.txt`
 
 #### Running with additional params
 The following example shows how to control the types of the values passed into the `score_unstructured` hook.
@@ -21,7 +21,7 @@ Consider the following signature: `score_unstructured(model, data, query, **kwar
 
 ##### Example 1
 Command:   
-`drum score --code-dir model_templates/inference/python3_unstructured --target-type unstructured --input tests/testdata/unstructured_data.txt --verbose`
+`drum score --code-dir model_templates/python3_unstructured --target-type unstructured --input tests/testdata/unstructured_data.txt --verbose`
 
 Output:
 ```
@@ -41,7 +41,7 @@ The query params are empty because the `--query` argument (optional) was not pro
 The following example demonstrates a custom *textual* content type.  
 DRUM handles `mimetype` starting with `text/` or `application/json` as a textual content type.  
 Command:   
-`drum score --code-dir model_templates/inference/python3_unstructured --target-type unstructured --input tests/testdata/unstructured_data.txt --verbose --content-type "text/my_text;charset=latin1"`
+`drum score --code-dir model_templates/python3_unstructured --target-type unstructured --input tests/testdata/unstructured_data.txt --verbose --content-type "text/my_text;charset=latin1"`
 
 Output:
 ```
@@ -63,7 +63,7 @@ The text is unreadable because it has been decoded using the `latin1` charset, w
 This example provides a custom *binary* content type and query params.  
 DRUM handles any data with `mimetype` that does not start with `text/` or `application/json` as binary.  
 Command:   
-`drum score --code-dir model_templates/inference/python3_unstructured --target-type unstructured --input tests/testdata/unstructured_data.txt --verbose --content-type "application/octet-stream" --query "ret_mode=text" --output out_file`
+`drum score --code-dir model_templates/python3_unstructured --target-type unstructured --input tests/testdata/unstructured_data.txt --verbose --content-type "application/octet-stream" --query "ret_mode=text" --output out_file`
 
 Output:
 ```

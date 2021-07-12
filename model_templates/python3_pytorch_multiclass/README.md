@@ -12,11 +12,11 @@ The supplied pth file is a PyTorch model trained on [skyserver_sql2_27_2018_6_51
 with a `class` as the target (multiclass).
 
 The model was trained using:
-`drum fit -cd model_templates/training/python3_pytorch_multiclass/ --target-type multiclass --target class --input tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv --output model_templates/inference/python3_pytorch_multiclass/`
+`drum fit -cd task_templates/pipelines/python3_pytorch_multiclass/ --target-type multiclass --target class --input tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv --output model_templates/python3_pytorch_multiclass/`
 
 ## Instructions
 Create a new custom model with these files and use the Python Drop-In Environment with it
 
 ### To run locally using 'drum'
 Paths are relative to `datarobot-user-models` root:  
-`drum score --code-dir model_templates/inference/python3_pytorch_multiclass --input tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv --target-type multiclass --class-labels-file model_templates/inference/python3_pytorch_multiclass/class_labels.txt`
+`drum score --code-dir model_templates/python3_pytorch_multiclass --input tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv --target-type multiclass --class-labels-file model_templates/python3_pytorch_multiclass/class_labels.txt`

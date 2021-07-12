@@ -28,7 +28,7 @@ The expectation for use of DRUM with you Julia model artifacts
 * your model has been serialized with a `.jlso` extension.
 * your model may be instantiated with the `MLJ.machine("path_to_your_model.jlso")`
 
-If the above are not true, you will need to use `custom.jl` file to create hooks that DRUM will leverage when using your model.  See flux [boston model](model_templates/inference/julia/jl_custom) for example.  
+If the above are not true, you will need to use `custom.jl` file to create hooks that DRUM will leverage when using your model.  See flux [boston model](model_templates/julia/jl_custom) for example.  
 
 Hooks currently supported
 * `init`
@@ -142,7 +142,7 @@ export JULIA_PROJECT=path-to-your-julia-project
 
 To run these examples locally with `drum` installed, you must already have java 11 installed, or you can execute the examples with Docker.  
 
-Paths are relative to `./datarobot-user-models/model_templates/inference` unless fully qualified
+Paths are relative to `./datarobot-user-models/model_templates` unless fully qualified
 
 ### Binary 
 
@@ -159,13 +159,13 @@ Paths are relative to `./datarobot-user-models/model_templates/inference` unless
 #### Validation
 
 ```
-drum validation --code-dir model_templates/inference/julia/jl_iris_binary --target-type binary --input tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor --verbose
+drum validation --code-dir model_templates/julia/jl_iris_binary --target-type binary --input tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor --verbose
 ```
 
 #### Performance Testing 
 
 ```
-drum perf-test --code-dir model_templates/inference/julia/jl_iris_binary --target-type binary --input tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor --verbose
+drum perf-test --code-dir model_templates/julia/jl_iris_binary --target-type binary --input tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor --verbose
 ```
 
 #### Docker
@@ -183,5 +183,5 @@ or provide the name of the docker image that has already been built [Julia MLJ D
 ## DRUM Server
 
 ```
-drum server --code-dir model_templates/inference/julia/jl_iris_binary --target-type binary --positive-class-label Iris-setosa --negative-class-label Iris-versicolor --verbose --logging-level info --address 0.0.0.0:6789
+drum server --code-dir model_templates/julia/jl_iris_binary --target-type binary --positive-class-label Iris-setosa --negative-class-label Iris-versicolor --verbose --logging-level info --address 0.0.0.0:6789
 ```

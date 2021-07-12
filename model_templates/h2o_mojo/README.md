@@ -20,7 +20,7 @@ Upload H2O Mojo file (Modern Object, Optimized) and use the Java Drop-In Environ
 
 To run these examples locally with `drum` installed, you must already have java 11 installed, or you can execute the examples with Docker.  
 
-Paths are relative to `./datarobot-user-models/model_templates/inference` unless fully qualified
+Paths are relative to `./datarobot-user-models/model_templates` unless fully qualified
 
 #### Binary 
 

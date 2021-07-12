@@ -94,12 +94,12 @@ class TestDrumDocker:
     @pytest.mark.parametrize(
         "framework, problem, code_dir, env_dir, skip_deps_install",
         [
-            (PYTORCH, MULTICLASS, "inference/python3_pytorch_multiclass", "python3_pytorch", False),
-            (PYTORCH, MULTICLASS, "inference/python3_pytorch_multiclass", "python3_pytorch", True),
-            (None, UNSTRUCTURED, "inference/r_unstructured", "r_lang", False),
-            (None, UNSTRUCTURED, "inference/r_unstructured", "r_lang", True),
-            (CODEGEN, REGRESSION, "inference/java_codegen", "java_codegen", False),
-            (CODEGEN, REGRESSION, "inference/java_codegen", "java_codegen", True),
+            (PYTORCH, MULTICLASS, "python3_pytorch_multiclass", "python3_pytorch", False),
+            (PYTORCH, MULTICLASS, "python3_pytorch_multiclass", "python3_pytorch", True),
+            (None, UNSTRUCTURED, "r_unstructured", "r_lang", False),
+            (None, UNSTRUCTURED, "r_unstructured", "r_lang", True),
+            (CODEGEN, REGRESSION, "java_codegen", "java_codegen", False),
+            (CODEGEN, REGRESSION, "java_codegen", "java_codegen", True),
         ],
     )
     def test_docker_image_with_deps_install(
@@ -169,7 +169,7 @@ class TestDrumDocker:
 
     @pytest.mark.parametrize(
         "framework, problem, code_dir, env_dir",
-        [(PYTORCH, MULTICLASS, "inference/python3_pytorch_multiclass", "python3_pytorch"),],
+        [(PYTORCH, MULTICLASS, "python3_pytorch_multiclass", "python3_pytorch"),],
     )
     def test_docker_image_with_wrong_dep_install(
         self, resources, framework, problem, code_dir, env_dir, tmp_path,

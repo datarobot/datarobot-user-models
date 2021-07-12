@@ -25,7 +25,7 @@ NO EXAMPLES PROVIDED
 
 To run these examples locally with `drum` installed, you must already have java 11 installed, or you can execute the examples with Docker.  
 
-Paths are relative to `./datarobot-user-models/model_templates/inference` unless fully qualified
+Paths are relative to `./datarobot-user-models/model_templates` unless fully qualified
 
 All folders listed below in the `--code-dir` arguemtns are assumed to be unzipped DAI Mojo Pipelines, and users are expected to have a valid ongoing Driverless AI License. 
 

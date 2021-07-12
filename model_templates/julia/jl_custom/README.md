@@ -12,11 +12,11 @@ Again, this is a slow startup time.  For scoring and serving it is fine, but it 
 
 ## Scoring
 
-drum score --code-dir model_templates/inference/julia/jl_custom --target-type regression --input tests/testdata/boston_housing_inference.csv --verbose --logging-level info
+drum score --code-dir model_templates/julia/jl_custom --target-type regression --input tests/testdata/boston_housing_inference.csv --verbose --logging-level info
 
 ## Serving with Docker
 
-drum server --code-dir model_templates/inference/julia/jl_custom --target-type regression --input tests/testdata/boston_housing_inference.csv --verbose --logging-level info
+drum server --code-dir model_templates/julia/jl_custom --target-type regression --input tests/testdata/boston_housing_inference.csv --verbose --logging-level info
 
 
 

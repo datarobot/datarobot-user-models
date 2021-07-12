@@ -2,7 +2,7 @@
 ## Usage
 
 ```
-drum score --code-dir model_templates/inference/julia/jl_unstructured --target-type unstructured --input tests/testdata/unstructured_data.txt --verbose
+drum score --code-dir model_templates/julia/jl_unstructured --target-type unstructured --input tests/testdata/unstructured_data.txt --verbose
 ```
 
 changing content type latin1

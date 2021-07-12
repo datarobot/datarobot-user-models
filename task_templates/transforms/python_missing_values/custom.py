@@ -29,10 +29,9 @@ def fit(X, y, output_dir, **kwargs):
     """
 
     # compute medians for all numeric features on training data, store them in a dictionary
-    median = X.median(axis = 0, numeric_only = True, skipna = True).to_dict()
+    median = X.median(axis=0, numeric_only=True, skipna=True).to_dict()
 
-
-    # dump the trained object [in this example - dictionary with medians per column] 
+    # dump the trained object [in this example - dictionary with medians per column]
     # into an artifact [in this example - artifact.pkl]
     # and save it into output_dir so that it can be used later to impute on new data
     output_dir_path = Path(output_dir)
@@ -41,7 +40,7 @@ def fit(X, y, output_dir, **kwargs):
             pickle.dump(median, fp)
 
 
-def transform(data, transformer): 
+def transform(data, transformer):
     """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
     DataRobot runs this hook when the task is used for scoring inside a blueprint. 
     As an output, this hook is expected to return the transformed data.

@@ -12,7 +12,7 @@ class TestInferenceModelTemplates(object):
         "model_template, language, env, dataset, target_type, target, pos_label, neg_label, class_labels_file",
         [
             (
-                "inference/java_codegen",
+                "java_codegen",
                 "java",
                 "java_drop_in_env",
                 "regression_testing_data",
@@ -23,7 +23,7 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
-                "inference/h2o_pojo/binary",
+                "h2o_pojo/binary",
                 "java",
                 "java_drop_in_env",
                 "binary_testing_data",
@@ -34,7 +34,7 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
-                "inference/h2o_mojo/binary",
+                "h2o_mojo/binary",
                 "java",
                 "java_drop_in_env",
                 "binary_testing_data",
@@ -45,7 +45,7 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
-                "inference/h2o_pojo/regression",
+                "h2o_pojo/regression",
                 "java",
                 "java_drop_in_env",
                 "regression_testing_data",
@@ -56,7 +56,7 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
-                "inference/python3_keras",
+                "python3_keras",
                 "python",
                 "keras_drop_in_env",
                 "regression_testing_data",
@@ -67,7 +67,7 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
-                "inference/python3_keras_joblib",
+                "python3_keras_joblib",
                 "python",
                 "keras_drop_in_env",
                 "regression_testing_data",
@@ -80,7 +80,7 @@ class TestInferenceModelTemplates(object):
             # This test requires public egress access and fails where NetworkPolicy is not
             # ignored. Can be re-enabled when public egress is not required.
             # (
-            #     "inference/python3_keras_vizai_joblib",
+            #     "python3_keras_vizai_joblib",
             #     "python",
             #     "keras_drop_in_env",
             #     "binary_vizai_testing_data",
@@ -91,7 +91,7 @@ class TestInferenceModelTemplates(object):
             #     None,
             # ),
             (
-                "inference/python3_pytorch",
+                "python3_pytorch",
                 "python",
                 "pytorch_drop_in_env",
                 "regression_testing_data",
@@ -102,7 +102,7 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
-                "inference/python3_sklearn",
+                "python3_sklearn",
                 "python",
                 "sklearn_drop_in_env",
                 "regression_testing_data",
@@ -113,7 +113,7 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
-                "inference/python3_unstructured",
+                "python3_unstructured",
                 "python",
                 "sklearn_drop_in_env",
                 # datafile here is only a stub, because unstructured model testing performs start up check only
@@ -125,7 +125,7 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
-                "inference/r_unstructured",
+                "r_unstructured",
                 "r",
                 "r_drop_in_env",
                 # datafile here is only a stub, because unstructured model testing performs start up check only
@@ -137,7 +137,7 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
-                "inference/python3_xgboost",
+                "python3_xgboost",
                 "python",
                 "xgboost_drop_in_env",
                 "regression_testing_data",
@@ -148,7 +148,7 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
-                "inference/r_lang",
+                "r_lang",
                 "r",
                 "r_drop_in_env",
                 "regression_testing_data",
@@ -159,7 +159,7 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
-                "inference/python3_pmml",
+                "python3_pmml",
                 "python",
                 "pmml_drop_in_env",
                 "binary_testing_data",
@@ -170,7 +170,7 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
-                "inference/python3_pytorch_multiclass",
+                "python3_pytorch_multiclass",
                 "python",
                 "pytorch_drop_in_env",
                 "multiclass_testing_data",
@@ -181,7 +181,7 @@ class TestInferenceModelTemplates(object):
                 "model_templates/python3_pytorch_multiclass/class_labels.txt",
             ),
             (
-                "inference/julia/jl_boston",
+                "julia/jl_boston",
                 "other",
                 "julia_drop_in_env",
                 "regression_testing_data",

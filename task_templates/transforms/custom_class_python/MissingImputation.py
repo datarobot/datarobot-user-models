@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 
-class MissingValuesMedianImputation():
+class MissingValuesMedianImputation:
     """
     Custom class used to define a custom transform that imputes missing values with a median:
     In fit(), it computes the medians for all numeric features
@@ -13,9 +13,8 @@ class MissingValuesMedianImputation():
         self.medians = {}
 
     def fit(self, X, y=None, **kwargs):
-        self.medians = X.median(axis = 0, numeric_only = True, skipna = True).to_dict()
+        self.medians = X.median(axis=0, numeric_only=True, skipna=True).to_dict()
         return self
 
     def transform(self, X):
         return X.fillna(self.medians)
-
