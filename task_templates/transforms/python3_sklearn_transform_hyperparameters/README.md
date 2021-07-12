@@ -33,7 +33,7 @@ This makes a dataset that can be used with any sklearn model that supports spars
 
 ### To run locally using 'drum'
 Paths are relative to `datarobot-user-models` root:
-`drum fit --code-dir task_templates/pipelines/python3_sklearn_transform --input tests/testdata/iris_binary_training.csv --target-type transform --target Species`
+`drum fit --code-dir task_templates/transforms/python3_sklearn_transform --input tests/testdata/iris_binary_training.csv --target-type transform --target Species`
 If the command succeeds, your code is ready to be uploaded. 
 
 This template can be run with any downstream problem in mind, so the target could be regression, binary, multiclass, or 

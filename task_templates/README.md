@@ -14,6 +14,8 @@ Below is an enumeration of the templates we provide
 ## Transforms
 * `custom_class_python` - Shows how to define your own transformation class without relying on external libraries
 * `python_missing_values` - Uses builtin pandas functionality to impute missing values
+ * `python3_sklearn_transform_hyperparameters` - Verified
+ * `python3_sklearn_transform` - Verified
 
 ## Estimators 
 * `python_calibrator` - Shows how to create an estimator task for doing prediction calibration, which
@@ -27,12 +29,11 @@ is usually done in DataRobot as an additional estimator step after the main esti
 * `r_regression`
 
 ## Pipelines
-Except for where noted, pipelines are also automatedly tested within our functional test framework. 
+Except for where noted, pipelines are also verified within our functional test framework. 
 
  * `python3_anomaly_detection`
  * `python3_pytorch`
  * `python3_sklearn_binary_schema_validation`
- * `python3_sklearn_transform_hyperparameters`
  * `python3_calibrated_anomaly_detection`
  * `python3_pytorch_multiclass`
  * `python3_sklearn_multiclass`
@@ -43,7 +44,6 @@ Except for where noted, pipelines are also automatedly tested within our functio
  * `python3_sparse`
  * `python3_keras_vizai_joblib`
  * `python3_sklearn_binary_hyperparameters`
- * `python3_sklearn_transform`
  * `python3_xgboost`
  * `r_lang`
  * `r_lang_hyperparameters`

@@ -290,7 +290,7 @@ The [model_templates](model_templates) folder contains sample models that work w
 * [Scikit-Learn sample binary model](task_templates/pipelines/python3_sklearn_binary)
 * [Scikit-Learn sample unsupervised anomaly detection model](task_templates/pipelines/python3_anomaly_detection)
 > Note: Unsupervised support is limited to anomaly detection models as of release 1.1.5
-* [Scikit-Learn sample transformer](task_templates/pipelines/python3_sklearn_transform)
+* [Scikit-Learn sample transformer](task_templates/transforms/python3_sklearn_transform)
 * [XGBoost sample model](task_templates/pipelines/python3_xgboost)
 * [Keras sample model + Joblib artifact](task_templates/pipelines/python3_keras_joblib)
 * [R sample model](task_templates/pipelines/r_lang)
