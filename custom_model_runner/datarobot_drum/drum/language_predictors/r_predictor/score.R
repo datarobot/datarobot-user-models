@@ -193,15 +193,31 @@ outer_predict <- function(target_type, binary_data=NULL, mimetype=NULL, model=NU
         .validate_data(to_validate)
         if (target_type == TargetType$MULTICLASS) {
             compare_labels <- class_labels
-        } else {
+        } else {  # binary
             compare_labels <- c(positive_class_label, negative_class_label)
         }
-        if (!identical(sort(names(to_validate)), sort(compare_labels))) {
+
+        # Compare both the literal labels
+        expected_labels <- sort(compare_labels)
+        actual_labels <- sort(names(to_validate))
+
+        # And the labels casted to doubles if possible
+        .if_castable_cast_as_double <- function(x) {
+            x_double <- as.double(x)
+            if (any(is.na(x_double))) {
+                return(x)
+            }
+            x_double
+        }
+        expected_labels_dbl <- .if_castable_cast_as_double(expected_labels)
+        actual_labels_dbl <- .if_castable_cast_as_double(actual_labels)
+
+        if (!identical(expected_labels, actual_labels) & !identical(expected_labels_dbl, actual_labels_dbl))  {
             stop(
               sprintf(
                 "Expected predictions to have columns [%s], but encountered [%s]",
-                paste(compare_labels, collapse=", "),
-                paste(names(to_validate), collapse=", ")
+                paste(expected_labels, collapse=", "),
+                paste(actual_labels, collapse=", ")
               )
             )
         }

@@ -10,7 +10,7 @@ from datarobot_drum.resource.drum_server_utils import DrumServerRun
 from datarobot_drum.resource.utils import (
     _exec_shell_cmd,
     _create_custom_model_dir,
-)
+    _cmd_add_class_labels)
 
 
 from .constants import (
@@ -32,7 +32,7 @@ from .constants import (
     R_ALL_PREDICT_UNSTRUCTURED_HOOKS,
     R_ALL_PREDICT_UNSTRUCTURED_HOOKS_LOWERCASE_R,
     DOCKER_PYTHON_SKLEARN,
-)
+    R_INT_COLNAMES_BINARY, R_INT_COLNAMES_MULTICLASS, MULTICLASS)
 
 
 class TestOtherCases:
@@ -272,6 +272,48 @@ class TestOtherCases:
             with open(output) as f:
                 all_data = f.read()
                 assert str(len(hooks_list)) in all_data
+
+    @pytest.mark.parametrize(
+        "framework, language, hooks_list, target_type",
+        [
+            (
+                    None,
+                    R_INT_COLNAMES_BINARY,
+                    CustomHooks.SCORE,
+                    BINARY,
+            ),
+            (
+                    None,
+                    R_INT_COLNAMES_MULTICLASS,
+                    CustomHooks.SCORE,
+                    MULTICLASS,
+            ),
+        ],
+    )
+    @pytest.mark.parametrize('label_type', [int, float])
+    def test_custom_model_R_int_colnames_in_prediction_output(
+            self, resources, framework, language, hooks_list, target_type, label_type, tmp_path,
+    ):
+        custom_model_dir = _create_custom_model_dir(resources, tmp_path, framework, None, language, )
+        input_dataset = resources.datasets(framework, REGRESSION)
+        output = tmp_path / "output"
+
+        labels = [0, 1]
+        if target_type == MULTICLASS:
+            labels = [0, 1, 2]
+
+        labels = [label_type(l) for l in labels]
+
+        cmd = "{} score --code-dir {} --input {} --output {} --target-type {}".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output, target_type
+        )
+        cmd = _cmd_add_class_labels(
+            cmd, labels, target_type=target_type
+        )
+
+        _exec_shell_cmd(
+            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+        )
 
     @pytest.mark.parametrize("language, language_suffix", [("python", ".py"), ("r", ".R")])
     def test_template_creation(self, language, language_suffix, tmp_path):
