@@ -43,7 +43,7 @@ additional pre-processing
   - The first value is the negative class probability, the second is the positive class probability
 - There is a single rds file present
   
-If these assumptions are incorrect for your model, you should make a copy of [custom.R](https://github.com/datarobot/datarobot-user-models/blob/master/model_templates/inference/r_lang/custom.R), modify it as needed, and include it in your custom model archive.
+If these assumptions are incorrect for your model, you should make a copy of [custom.R](https://github.com/datarobot/datarobot-user-models/blob/master/model_templates/r_lang/custom.R), modify it as needed, and include it in your custom model archive.
 
 The structure of your custom model archive should look like:
 

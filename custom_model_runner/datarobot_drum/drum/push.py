@@ -262,5 +262,5 @@ To use this functionality, you must create two types of configuration.
     parsed on drum to create the correct sort of model in DataRobot. 
     This metadata file includes quite a few options. You can
     [read about those options](MODEL-METADATA.md) or 
-    [see an example](model_templates/inference/python3_sklearn/model-metadata.yaml)
+    [see an example](model_templates/python3_sklearn/model-metadata.yaml)
 """

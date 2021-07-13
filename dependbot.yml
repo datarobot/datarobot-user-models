@@ -64,7 +64,7 @@ updates:
       - "datarobot/custom-models"
   # check the model templates, most do not have requirements files
   - package-ecosystem: "pip"
-    directory: "/model_templates/training/python3_pytorch_multiclass/"
+    directory: "/task_templates/pipelines/python3_pytorch_multiclass/"
     schedule:
       interval: "monthly"
     reviewers:

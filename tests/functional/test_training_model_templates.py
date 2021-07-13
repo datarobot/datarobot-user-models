@@ -6,7 +6,7 @@ import datarobot as dr
 
 from datarobot._experimental import CustomTrainingBlueprint, CustomTrainingModel
 
-BASE_MODEL_TEMPLATES_DIR = "custom_tasks/examples"
+BASE_MODEL_TEMPLATES_DIR = "task_templates/pipelines"
 BASE_DATASET_DIR = "tests/testdata"
 
 

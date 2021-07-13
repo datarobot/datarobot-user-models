@@ -71,6 +71,7 @@ from tests.drum.constants import (
     TESTS_DATA_PATH,
     TESTS_FIXTURES_PATH,
     TRAINING_TEMPLATES_PATH,
+    TRANSFORM_TEMPLATES_PATH,
     TRANSFORM,
     UNSTRUCTURED,
     XGB,
@@ -145,7 +146,7 @@ _training_models_paths = {
         TRAINING_TEMPLATES_PATH, "python3_sklearn_multiclass"
     ),
     (PYTHON, SKLEARN_TRANSFORM_HYPERPARAMETERS): os.path.join(
-        TRAINING_TEMPLATES_PATH, "python3_sklearn_transform_hyperparameters"
+        TRANSFORM_TEMPLATES_PATH, "python3_sklearn_transform_hyperparameters"
     ),
     (PYTHON, SIMPLE): os.path.join(TRAINING_TEMPLATES_PATH, "simple"),
     (PYTHON, SKLEARN_SPARSE): os.path.join(TESTS_FIXTURES_PATH, "validate_sparse_columns"),

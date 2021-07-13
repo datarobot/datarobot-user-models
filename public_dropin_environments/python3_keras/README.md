@@ -31,7 +31,7 @@ additional pre-processing
   - Multi value it is assumed that the first value is the negative class probability, the second is the positive class probability
 - There is a single .h5 file present
   
-If these assumptions are incorrect for your model, you should make a copy of [custom.py](https://github.com/datarobot/datarobot-user-models/blob/master/model_templates/inference/python3_keras/custom.py), modify it as needed, and include in your custom model archive.
+If these assumptions are incorrect for your model, you should make a copy of [custom.py](https://github.com/datarobot/datarobot-user-models/blob/master/model_templates/python3_keras/custom.py), modify it as needed, and include in your custom model archive.
 
 The structure of your custom model archive should look like:
 
