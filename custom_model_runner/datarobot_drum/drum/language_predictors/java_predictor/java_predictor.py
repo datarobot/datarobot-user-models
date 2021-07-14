@@ -1,6 +1,7 @@
 import glob
 import logging
 import os
+import py4j
 import signal
 import socket
 import subprocess
@@ -237,14 +238,32 @@ class JavaPredictor(BaseLanguagePredictor):
         gateway_params = GatewayParameters(
             port=self._java_port, auto_field=True, auto_close=True, eager_load=True
         )
+
         callback_server_params = CallbackServerParameters(
             port=0, daemonize=True, daemonize_connections=True, eager_load=True
         )
-        self._gateway = JavaGateway(
-            gateway_parameters=gateway_params,
-            callback_server_parameters=callback_server_params,
-            python_server_entry_point=self,
-        )
+
+        retries = 10
+        while True:
+            try:
+                self._gateway = JavaGateway(
+                    gateway_parameters=gateway_params,
+                    callback_server_parameters=callback_server_params,
+                    python_server_entry_point=self,
+                )
+                break
+            except py4j.java_gateway.Py4JNetworkError as e:
+                retries -= 1
+                if retries <= 0:
+                    break
+                time.sleep(1)
+
+        if self._gateway is None:
+            self.logger.error("Failed to connect to java gateway")
+            raise DrumCommonException("Failed to connect to java gateway")
+
+        self.logger.debug("java server entry point run successfully!")
+
         self._predictor_via_py4j = self._gateway.entry_point.getPredictor()
         if not self._predictor_via_py4j:
             raise Exception("None reference of py4j java object!")
