@@ -251,6 +251,7 @@ class JavaPredictor(BaseLanguagePredictor):
                     callback_server_parameters=callback_server_params,
                     python_server_entry_point=self,
                 )
+                break
             except py4j.java_gateway.Py4JNetworkError as e:
                 retries -= 1
                 if retries <= 0:
