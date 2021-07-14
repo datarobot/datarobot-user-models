@@ -307,6 +307,9 @@ class TestOtherCases:
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
 
+        preds = pd.read_csv(output)
+        assert all(preds.columns == [str(l) for l in labels])
+
     @pytest.mark.parametrize("language, language_suffix", [("python", ".py"), ("r", ".R")])
     def test_template_creation(self, language, language_suffix, tmp_path):
         print("Running template creation tests: {}".format(language))

@@ -212,15 +212,22 @@ outer_predict <- function(target_type, binary_data=NULL, mimetype=NULL, model=NU
         expected_labels_dbl <- .if_castable_cast_as_double(expected_labels)
         actual_labels_dbl <- .if_castable_cast_as_double(actual_labels)
 
-        if (!identical(expected_labels, actual_labels) & !identical(expected_labels_dbl, actual_labels_dbl))  {
-            stop(
-              sprintf(
-                "Expected predictions to have columns [%s], but encountered [%s]",
-                paste(expected_labels, collapse=", "),
-                paste(actual_labels, collapse=", ")
-              )
-            )
+        labels_to_return <- names(to_validate)
+        if (!identical(expected_labels, actual_labels))  {
+            # If the labels casted as double do not match, error
+            if (!identical(expected_labels_dbl, actual_labels_dbl)) {
+                stop(
+                  sprintf(
+                    "Expected predictions to have columns [%s], but encountered [%s]",
+                    paste(expected_labels, collapse=", "),
+                    paste(actual_labels, collapse=", ")
+                  )
+                )
+            }
+            # If they do match as doubles, use the expected labels, but keep the actual label ordering
+            labels_to_return <- expected_labels[order(names(to_validate))]
         }
+        labels_to_return
     }
 
     .validate_regression_predictions <- function(to_validate) {
@@ -274,7 +281,8 @@ outer_predict <- function(target_type, binary_data=NULL, mimetype=NULL, model=NU
     }
 
     if (target_type == TargetType$BINARY || target_type == TargetType$MULTICLASS) {
-        .validate_classification_predictions(predictions)
+        prediction_labels <- .validate_classification_predictions(predictions)
+        names(predictions) <- prediction_labels
     } else if (target_type == TargetType$REGRESSION) {
         .validate_regression_predictions(predictions)
     } else {
