@@ -685,8 +685,13 @@ class TestJavaPredictor:
             pred = JavaPredictor()
             pred.model_artifact_extension = ".jar"
 
+            # check that PredictorEntryPoint can not bind to port as it is taken
             with pytest.raises(DrumCommonException, match="java gateway failed to start"):
                 pred._run_java_server_entry_point()
+
+            # check that JavaGateway() fails to connect
+            with pytest.raises(DrumCommonException, match="Failed to connect to java gateway"):
+                pred._setup_py4j_client_connection()
 
     def test_run_java_server_entry_point_succeed(self):
         pred = JavaPredictor()
