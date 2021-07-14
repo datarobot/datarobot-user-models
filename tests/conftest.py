@@ -87,6 +87,8 @@ from tests.drum.constants import (
     MLJ,
     JLSO,
     JULIA,
+    R_INT_COLNAMES_BINARY,
+    R_INT_COLNAMES_MULTICLASS,
 )
 
 _datasets = {
@@ -391,6 +393,11 @@ _custom_filepaths = {
     ),
     R_UNSTRUCTURED_PARAMS: (
         os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom_params.R"),
+        "custom.R",
+    ),
+    R_INT_COLNAMES_BINARY: (os.path.join(TESTS_FIXTURES_PATH, "int_colnames_binary.R"), "custom.R"),
+    R_INT_COLNAMES_MULTICLASS: (
+        os.path.join(TESTS_FIXTURES_PATH, "int_colnames_multiclass.R"),
         "custom.R",
     ),
     PYTHON_TRANSFORM: (os.path.join(TESTS_FIXTURES_PATH, "transform_custom.py"), "custom.py"),
