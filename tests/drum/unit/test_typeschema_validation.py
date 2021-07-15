@@ -237,6 +237,9 @@ class TestSchemaValidator:
     )
     def test_data_types_no_validation(self, condition, value, expected_value_count):
         """Test the data types that do not have associated validation"""
+        if len(value) > 1 and condition in Conditions.single_value_conditions():
+            return
+
         yaml_str = input_requirements_yaml(Fields.DATA_TYPES, condition, value)
         schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
