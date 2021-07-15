@@ -20,8 +20,9 @@ list for input requirements and for output requirements unless noted otherwise b
 The `data_types` field is used to specify those datatypes that are specifically expected, or those that
 are specifically disallowed.  Only a single entry is supported for this field in each specification.  
 The conditions used for data_types are:
-- EQUALS:All of the listed data types are expected in the dataframe.  An error will occur if one is missing or unexpected types are found.
-- IN: The types are supported, but not all are required to be present.
+- EQUALS:
+  All of the listed data types are expected in the dataframe.  An error will occur if one is missing or unexpected types are found.
+- IN: All of the listed data types are supported, but not all are required to be present.
 - NOT_EQUALS: The datatype for the input dataframe may not be this value.
 - NOT_IN: None of these datatypes are supported by the model.  
 

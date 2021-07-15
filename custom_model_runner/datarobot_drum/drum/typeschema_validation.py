@@ -211,7 +211,13 @@ class DataTypes(BaseValidator):
 
     def __init__(self, condition, values):
         # We currently do not support DRUM validation for these values, but they are supported in DataRobot
-        self._SKIP_VALIDATION = {Values.AUDIO, Values.COUNT_DICT, Values.GEO, Values.TARGET_ONLY}
+        self._SKIP_VALIDATION = {
+            Values.DATE_DURATION,
+            Values.AUDIO,
+            Values.COUNT_DICT,
+            Values.GEO,
+            Values.TARGET_ONLY,
+        }
         values = list(set(values) - self._SKIP_VALIDATION)
         if len(values) == 0:
             logger.info(
@@ -267,6 +273,9 @@ class DataTypes(BaseValidator):
 
     def validate(self, dataframe):
         """Perform validation of the dataframe against the supplied specification."""
+        if len(self.values) == 0:
+            logger.info("Skipping type validation")
+            return []
         types = dict()
         types[Values.NUM] = dataframe.select_dtypes(np.number).shape[1] > 0
         txt_columns = self.number_of_text_columns(dataframe)
@@ -280,7 +289,6 @@ class DataTypes(BaseValidator):
             > 0
         )
         types[Values.DATE] = dataframe.select_dtypes("datetime").shape[1] > 0
-        types[Values.DATE_DURATION] = dataframe.select_dtypes("timedelta").shape[1] > 0
 
         types_present = [k for k, v in types.items() if v]
 
