@@ -212,11 +212,11 @@ class DataTypes(BaseValidator):
     def __init__(self, condition, values):
         # We currently do not support DRUM validation for these values, but they are supported in DataRobot
         self._SKIP_VALIDATION = {
-            Values.DATE_DURATION,
-            Values.AUDIO,
-            Values.COUNT_DICT,
-            Values.GEO,
-            Values.TARGET_ONLY,
+            Values.DATE_DURATION.name,
+            Values.AUDIO.name,
+            Values.COUNT_DICT.name,
+            Values.GEO.name,
+            Values.TARGET_ONLY.name,
         }
         values = list(set(values) - self._SKIP_VALIDATION)
         if len(values) == 0:
