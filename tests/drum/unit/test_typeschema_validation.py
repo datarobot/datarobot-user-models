@@ -244,7 +244,8 @@ class TestSchemaValidator:
         schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
         # check that the values without validators are not added to the validator
-        assert len(validator.values) == expected_value_count
+        # pylint: disable=protected-access
+        assert len(validator._input_validators[0].values) == expected_value_count
 
     def test_data_types_no_validation_skips_validation(self, request, cats_and_dogs):
         yaml_str = input_requirements_yaml(
