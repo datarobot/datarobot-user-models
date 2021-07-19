@@ -4,12 +4,13 @@ In this directory are three folders - estimators, transforms, and pipelines
 
 * estimators - meant to be used as the prediction step in a blueprint
 * transforms - meant to be used as a preprocessing step in a blueprint
-* pipelines - meant to be added as a single task blueprint, these have some preprocessing and an
-  estimator built in
+* pipelines - meant to be added as a single task blueprint, these have preprocessing and an
+  estimator built into a single task
 
 Our estimator examples are also different than the pipelines examples because these templates have
 score hooks implemented. The pipelines examples do not have score hooks to demonstrate the automatic
-scoring functionality of the DRUM middleware layer.
+scoring functionality of the DRUM tool middleware layer. This functionality works if your estimator
+inherits from sklearn, pytorch, keras, or xgboost, and doesn't have any additional functionality.
 
 If a template is tagged as "Verified", this means we have automated tests which guarantee
 integration functionality with the DataRobot platform
@@ -32,8 +33,8 @@ integration functionality with the DataRobot platform
   classification problems
 * `python_multiclass_classification` - Implements a linear classifier with SGD training
 * `python_regression` - Implements a linear regressor with SGD training
-* `python_regression_with_custom_class` - Uses a custom python class, CustomCalibrator, so that we
-  can store the complex state inside the object and then re-use it during scoring.
+* `python_regression_with_custom_class` - Uses a custom python class, CustomCalibrator, which
+  implements fit and score from scratch with no external libraries
 * `python_calibrator` - Shows how to create an estimator task for doing prediction calibration,
   which is usually done in DataRobot as an additional estimator step after the main estimator
 * `r_classification` - Implements a GLM binary classifier in R
