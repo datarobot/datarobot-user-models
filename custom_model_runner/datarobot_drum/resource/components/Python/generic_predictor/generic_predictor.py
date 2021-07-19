@@ -1,6 +1,7 @@
 import logging
 import urllib
 import werkzeug
+from pandas import DataFrame
 
 from datarobot_drum.drum.common import (
     LOGGER_NAME_PREFIX,
@@ -105,7 +106,11 @@ class GenericPredictorComponent(ConnectableComponent):
             binary_data, mimetype = StructuredInputReadUtils.read_structured_input_file_as_binary(
                 input_filename
             )
-            transformed_df = self._predictor.transform(binary_data=binary_data, mimetype=mimetype)
+            transformed_output = self._predictor.transform(binary_data=binary_data, mimetype=mimetype)
+            if type(transformed_output) == tuple:
+                transformed_df = transformed_output[0]
+            elif type(transformed_output) == DataFrame:
+                transfromed_df = transformed_output   
             transformed_df.to_csv(output_filename, index=False)
         else:
             binary_data, mimetype = StructuredInputReadUtils.read_structured_input_file_as_binary(
