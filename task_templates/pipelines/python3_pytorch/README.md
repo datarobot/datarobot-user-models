@@ -3,7 +3,7 @@
 This model is intended to work with the [Python 3 PyTorch Drop-In Environment](../../../public_dropin_environments/python3_pytorch/).
 
 ## Instructions
-Create a new custom model with these files and use the Python Drop-In Environment with it
+Create a new custom model with these files and use the Pytorch Drop-In Environment with it
 
 ### To run locally using 'drum'
 Paths are relative to `datarobot-user-models` root:  

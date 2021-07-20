@@ -1,11 +1,11 @@
 ## Advanced Python Template Model
 
-This is an advanced python model template with preproccessing that:
+This is an advanced python task template with preproccessing that:
 - Handles text variables
 - Handles categorical variables
 - Handles numeric variables
 
-The final modeler can be any sklearn-compatible modeler.
+The final estimator can be any sklearn-compatible estimator.
 
 This model is intended to work with the [Python 3 Scikit-Learn Drop-In Environment](../../../public_dropin_environments/python3_sklearn/).
 
