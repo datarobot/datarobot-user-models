@@ -3,13 +3,7 @@ library(recipes)
 fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, ...){
   # set up dataframe for modeling
   train_df <- X
-
-  if (is.null(y)) {
-    rcp <- recipe(train_df)
-  } else {
-    train_df$target <- unlist(y)
-    rcp <- recipe(target ~ ., data = train_df)
-  }
+  rcp <- recipe(train_df)
 
   outfile <- 'r_transform.rds'
 
@@ -46,6 +40,6 @@ fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, ...){
   saveRDS(model, file = model_path)
 }
 
-transform <- function(X, transformer, y=NULL, ...){
+transform <- function(X, transformer, ...){
     bake(transformer, X)
 }

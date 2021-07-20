@@ -195,16 +195,24 @@ class RPredictor(BaseLanguagePredictor):
         with localconverter(ro.default_converter + pandas2ri.converter):
             py_data_object = ro.conversion.rpy2py(predictions)
 
-        print('what is dis')
-        print(py_data_object)
-        print(type(py_data_object))
-        if not isinstance(py_data_object, ro.ListVector):
+        if not isinstance(py_data_object, ro.ListVector) or len(py_data_object) != 2:
             error_message = (
-                "Expected transformed type: {}, actual: {}. ".format(
-                    ro.ListVector, type(py_data_object)
+                "Expected transform to return a two-element list containing X and y, got {}. ".format(type(py_data_object))
+            )
+            logger.error(error_message)
+            raise DrumCommonException(error_message)
+
+        output_X = py_data_object[0]
+        output_y = py_data_object[1] if py_data_object[1] != ro.NULL else None
+
+        if not isinstance(output_X, pd.DataFrame):
+            error_message = (
+                "Expected predictions type: {}, actual: {}. "
+                "Are you trying to run binary classification without class labels provided?".format(
+                    pd.DataFrame, type(py_data_object)
                 )
             )
             logger.error(error_message)
             raise DrumCommonException(error_message)
 
-        return py_data_object
+        return output_X, output_y

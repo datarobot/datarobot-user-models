@@ -45,7 +45,3 @@ fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, ...){
   )
   saveRDS(model, file = model_path)
 }
-
-transform <- function(X, transformer, y=NULL, ...){
-    bake(transformer, X)
-}

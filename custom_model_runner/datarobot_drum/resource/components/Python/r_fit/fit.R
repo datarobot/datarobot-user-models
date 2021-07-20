@@ -147,13 +147,11 @@ outer_fit <- function(output_dir, input_filename, target_filename,
     if (!isFALSE(fit_hook)) {
         kwargs <- list()
         kwargs <- append(kwargs, list(X=X,
+                                      y=y,
                                       output_dir=output_dir,
                                       row_weights=row_weights,
+                                      class_order=class_order,
                                       parameters=parameters))
-        if (!is.null(y)) {
-            kwargs <- append(kwargs, list(y=y,
-                                            class_order=class_order))
-        }
 
         do.call(fit_hook, kwargs)
         } else {
