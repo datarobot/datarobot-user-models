@@ -63,7 +63,12 @@ from .constants import (
     RDS_PARAMETERS,
     SKLEARN_BINARY_SCHEMA_VALIDATION,
     PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION,
-    R_TRANSFORM_SPARSE_INPUT, R_TRANSFORM_SPARSE_IN_OUT, R_TRANSFORM)
+    R_TRANSFORM_SPARSE_INPUT,
+    R_TRANSFORM_SPARSE_IN_OUT,
+    R_TRANSFORM,
+    R_TRANSFORM_NO_Y,
+    R_TRANSFORM_NO_HOOK,
+)
 
 
 class TestFit:
@@ -266,11 +271,13 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, language",
         [
-            # SKLEARN_TRANSFORM,
+            # (SKLEARN_TRANSFORM, PYTHON),
             # SKLEARN_TRANSFORM_WITH_Y,
             # SKLEARN_TRANSFORM_NO_HOOK,
             # SKLEARN_TRANSFORM_NON_NUMERIC,
             (R_TRANSFORM, R_FIT),
+            (R_TRANSFORM_NO_Y, R_FIT),
+            (R_TRANSFORM_NO_HOOK, R_FIT),
         ],
     )
     @pytest.mark.parametrize("problem", [REGRESSION, BINARY, ANOMALY])
@@ -308,7 +315,8 @@ class TestFit:
         )
 
     @pytest.mark.parametrize(
-        "framework", [
+        "framework",
+        [
             # SKLEARN_TRANSFORM_SPARSE_IN_OUT,
             # SKLEARN_TRANSFORM_SPARSE_INPUT,
             R_TRANSFORM_SPARSE_IN_OUT,

@@ -47,5 +47,5 @@ fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, ...){
 }
 
 transform <- function(X, transformer, y=NULL, ...){
-    bake(transformer, X)
+    list(bake(transformer, X), y)
 }

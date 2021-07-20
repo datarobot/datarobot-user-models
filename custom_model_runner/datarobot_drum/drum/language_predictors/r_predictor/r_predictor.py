@@ -196,8 +196,8 @@ class RPredictor(BaseLanguagePredictor):
             py_data_object = ro.conversion.rpy2py(predictions)
 
         if not isinstance(py_data_object, ro.ListVector) or len(py_data_object) != 2:
-            error_message = (
-                "Expected transform to return a two-element list containing X and y, got {}. ".format(type(py_data_object))
+            error_message = "Expected transform to return a two-element list containing X and y, got {}. ".format(
+                type(py_data_object)
             )
             logger.error(error_message)
             raise DrumCommonException(error_message)
