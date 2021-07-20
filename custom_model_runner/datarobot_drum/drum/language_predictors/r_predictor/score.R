@@ -1,5 +1,6 @@
 # Needed libraries
 library(caret)
+library(recipes)
 library(devtools)
 library(stringi)
 library(Matrix)
@@ -321,4 +322,59 @@ predict_unstructured <- function(model=NULL, data, ...) {
     predictions <- do.call(score_unstructured_hook, kwargs_list)
     validated_pred_list = .validate_unstructured_predictions(predictions)
     validated_pred_list
+}
+
+#' Makes predictions against the model using the custom predict
+#' method and returns a data.frame
+#'
+#' If the model is a regression model, the data.frame will have a single column "Predictions"
+#' If the model is a classification model, the data.frame will have a column for each class label
+#'     with their respective probabilities
+#'
+#' @param data data.frame to make predictions against
+#' @param model to use to make predictions
+#' @param positive_class_label character or NULL, The positive class label if this is a binary classification prediction request
+#' @param negative_class_label character or NULL, The negative class label if this is a binary classification prediction request
+#'
+#' @return data.frame of predictions
+#' @export
+#'
+#' @examples
+outer_transform <- function(binary_data=NULL, mimetype=NULL, model=NULL){
+    if (!isFALSE(read_input_data_hook)) {
+        data <- read_input_data_hook(binary_data)
+    } else if (!is.null(mimetype) && mimetype == "text/mtx") {
+        tmp_file_name <- tempfile()
+        f <- file(tmp_file_name, "w+b")
+        writeBin(binary_data, f)
+        flush(f)
+        data <- as.data.frame(as.matrix(readMM(tmp_file_name)))
+        close(f)
+        unlink(tmp_file_name)
+    } else {
+        tmp <- stri_conv(binary_data, "utf8")
+        data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE))
+    }
+
+    if (is.null(model)) {
+        model <- load_serialized_model()
+    }
+
+    if (!isFALSE(transform_hook)) {
+        output_data <- transform_hook(data, model)
+        print(output_data)
+        print('what is output')
+        if (is.data.frame(output_data)) {
+            output_data <- list(output_data, NULL)
+            print('is dataframe')
+        }
+    } else {
+        output_data <- list(bake(model, data), NULL)
+    }
+
+    if (!is.data.frame(output_data[[1]])) {
+        stop(sprintf("Transformed X must be of a data.frame type, received %s", typeof(output_data)))
+    }
+
+    output_data
 }

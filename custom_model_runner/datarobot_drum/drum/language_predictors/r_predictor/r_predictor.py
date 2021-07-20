@@ -181,4 +181,30 @@ class RPredictor(BaseLanguagePredictor):
         return ret
 
     def _transform(self, **kwargs):
-        raise DrumCommonException("Transform feature is not supported for R")
+        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
+        mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
+        with capture_R_traceback_if_errors(r_handler, logger):
+            predictions = r_handler.outer_transform(
+                binary_data=ro.rinterface.NULL
+                if input_binary_data is None
+                else ro.vectors.ByteVector(input_binary_data),
+                mimetype=ro.rinterface.NULL if mimetype is None else mimetype,
+                model=self._model,
+            )
+
+        with localconverter(ro.default_converter + pandas2ri.converter):
+            py_data_object = ro.conversion.rpy2py(predictions)
+
+        print('what is dis')
+        print(py_data_object)
+        print(type(py_data_object))
+        if not isinstance(py_data_object, ro.ListVector):
+            error_message = (
+                "Expected transformed type: {}, actual: {}. ".format(
+                    ro.ListVector, type(py_data_object)
+                )
+            )
+            logger.error(error_message)
+            raise DrumCommonException(error_message)
+
+        return py_data_object
