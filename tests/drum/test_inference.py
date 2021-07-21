@@ -9,7 +9,7 @@ import pyarrow
 import pytest
 import requests
 import scipy
-
+from scipy.sparse import csr_matrix
 
 from datarobot_drum.drum.common import (
     ArgumentsOptions,
@@ -447,7 +447,17 @@ class TestInference:
                             assert parsed_response["y.format"] == "csv"
                 actual_num_predictions = transformed_out.shape[0]
                 assert parsed_response["X.format"] == "sparse"
-            validate_transformed_output(transformed_out, framework=framework)
+
+            if framework == SKLEARN_TRANSFORM:
+                assert type(transformed_out) == csr_matrix
+                assert transformed_out.shape[1] == 714
+            elif framework == SKLEARN_TRANSFORM_DENSE:
+                assert type(transformed_out) == pd.DataFrame
+                assert transformed_out.shape[1] == 10
+            elif framework == R_TRANSFORM:
+                assert type(transformed_out) == pd.DataFrame
+                assert transformed_out.shape[1] == 80
+
             if pass_target:
                 assert all(pd.read_csv(target_dataset) == target_out)
             assert in_data.shape[0] == actual_num_predictions

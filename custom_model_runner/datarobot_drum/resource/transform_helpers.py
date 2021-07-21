@@ -1,4 +1,3 @@
-import csv
 import pandas as pd
 import logging
 
@@ -7,10 +6,8 @@ from io import BytesIO, StringIO
 
 from scipy.io import mmwrite, mmread
 from scipy.sparse.csr import csr_matrix
-from scipy.sparse import vstack
 
 from datarobot_drum.drum.common import verify_pyarrow_module
-from tests.drum.constants import SKLEARN_TRANSFORM, SKLEARN_TRANSFORM_DENSE, R_TRANSFORM
 
 
 def filter_urllib3_logging():
@@ -81,20 +78,6 @@ def read_mtx_payload(response_dict, transform_key):
     bytes = response_dict[transform_key]
     sparse_mat = mmread(BytesIO(bytes))
     return csr_matrix(sparse_mat)
-
-
-def validate_transformed_output(transformed_output, framework):
-    if framework == SKLEARN_TRANSFORM:
-        assert type(transformed_output) == csr_matrix
-        assert transformed_output.shape[1] == 714
-    elif framework == SKLEARN_TRANSFORM_DENSE:
-        assert type(transformed_output) == pd.DataFrame
-        assert transformed_output.shape[1] == 10
-    elif framework == R_TRANSFORM:
-        assert type(transformed_output) == pd.DataFrame
-        assert transformed_output.shape[1] == 80
-    else:
-        assert False, "Framework not asserted"
 
 
 def parse_multi_part_response(response):
