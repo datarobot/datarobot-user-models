@@ -328,22 +328,16 @@ predict_unstructured <- function(model=NULL, data, ...) {
     validated_pred_list
 }
 
-#' Makes predictions against the model using the custom predict
-#' method and returns a data.frame
+#' Makes transforms against the model or by using the custom transform
+#' method and returns a list containing the transformed X and optionally y
 #'
-#' If the model is a regression model, the data.frame will have a single column "Predictions"
-#' If the model is a classification model, the data.frame will have a column for each class label
-#'     with their respective probabilities
 #'
-#' @param data data.frame to make predictions against
+#' @param binary_data, Binary data containing X
+#' @param mimetype character, The file type of the binary data
 #' @param model to use to make predictions
-#' @param positive_class_label character or NULL, The positive class label if this is a binary classification prediction request
-#' @param negative_class_label character or NULL, The negative class label if this is a binary classification prediction request
 #'
-#' @return data.frame of predictions
-#' @export
+#' @return list, Two-element list containing transformed X (data.frame) and y (vector or NULL)
 #'
-#' @examples
 outer_transform <- function(binary_data=NULL, mimetype=NULL, model=NULL){
     if (!isFALSE(read_input_data_hook)) {
         data <- read_input_data_hook(binary_data)

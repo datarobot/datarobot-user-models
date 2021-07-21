@@ -272,10 +272,10 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, language",
         [
-            # (SKLEARN_TRANSFORM, PYTHON),
-            # (SKLEARN_TRANSFORM_WITH_Y, PYTHON),
-            # (SKLEARN_TRANSFORM_NO_HOOK, PYTHON),
-            # (SKLEARN_TRANSFORM_NON_NUMERIC, PYTHON),
+            (SKLEARN_TRANSFORM, PYTHON),
+            (SKLEARN_TRANSFORM_WITH_Y, PYTHON),
+            (SKLEARN_TRANSFORM_NO_HOOK, PYTHON),
+            (SKLEARN_TRANSFORM_NON_NUMERIC, PYTHON),
             (R_TRANSFORM, R_FIT),
             (R_TRANSFORM_NO_Y, R_FIT),
             (R_TRANSFORM_NO_HOOK, R_FIT),
@@ -319,8 +319,8 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework",
         [
-            # SKLEARN_TRANSFORM_SPARSE_IN_OUT,
-            # SKLEARN_TRANSFORM_SPARSE_INPUT,
+            SKLEARN_TRANSFORM_SPARSE_IN_OUT,
+            SKLEARN_TRANSFORM_SPARSE_INPUT,
             R_TRANSFORM_SPARSE_IN_OUT,
             R_TRANSFORM_SPARSE_INPUT,
         ],
