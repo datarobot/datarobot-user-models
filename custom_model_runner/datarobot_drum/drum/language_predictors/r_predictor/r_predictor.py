@@ -182,12 +182,16 @@ class RPredictor(BaseLanguagePredictor):
 
     def _transform(self, **kwargs):
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
+        target_binary_data = kwargs.get(StructuredDtoKeys.TARGET_BINARY_DATA)
         mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
         with capture_R_traceback_if_errors(r_handler, logger):
             predictions = r_handler.outer_transform(
                 binary_data=ro.rinterface.NULL
                 if input_binary_data is None
                 else ro.vectors.ByteVector(input_binary_data),
+                target_binary_data=ro.rinterface.NULL
+                if target_binary_data is None
+                else ro.vectors.ByteVector(target_binary_data),
                 mimetype=ro.rinterface.NULL if mimetype is None else mimetype,
                 model=self._model,
             )
@@ -203,7 +207,7 @@ class RPredictor(BaseLanguagePredictor):
             raise DrumCommonException(error_message)
 
         output_X = py_data_object[0]
-        output_y = py_data_object[1] if py_data_object[1] != ro.NULL else None
+        output_y = py_data_object[1] if py_data_object[1] is not ro.NULL else None
 
         if not isinstance(output_X, pd.DataFrame):
             error_message = (

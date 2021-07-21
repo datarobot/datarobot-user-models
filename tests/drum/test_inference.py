@@ -65,6 +65,7 @@ from .constants import (
     XGB,
     JULIA,
     MLJ,
+    R_TRANSFORM,
 )
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
 from datarobot_drum.resource.utils import (
@@ -381,6 +382,7 @@ class TestInference:
             (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, False),
             (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM_NO_Y, None, True),
             (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_NO_Y_DENSE, None, False),
+            (R_TRANSFORM, TRANSFORM, R_TRANSFORM, None, False),
         ],
     )
     @pytest.mark.parametrize("pass_target", [True, False])
@@ -413,7 +415,7 @@ class TestInference:
 
             parsed_response = parse_multi_part_response(response)
 
-            if framework == SKLEARN_TRANSFORM_DENSE:
+            if framework in [SKLEARN_TRANSFORM_DENSE, R_TRANSFORM]:
                 if use_arrow:
                     transformed_out = read_arrow_payload(parsed_response, X_TRANSFORM_KEY)
                     if pass_target:
@@ -445,9 +447,7 @@ class TestInference:
                             assert parsed_response["y.format"] == "csv"
                 actual_num_predictions = transformed_out.shape[0]
                 assert parsed_response["X.format"] == "sparse"
-            validate_transformed_output(
-                transformed_out, should_be_sparse=framework == SKLEARN_TRANSFORM
-            )
+            validate_transformed_output(transformed_out, framework=framework)
             if pass_target:
                 assert all(pd.read_csv(target_dataset) == target_out)
             assert in_data.shape[0] == actual_num_predictions

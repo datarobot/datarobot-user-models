@@ -333,12 +333,13 @@ predict_unstructured <- function(model=NULL, data, ...) {
 #'
 #'
 #' @param binary_data, Binary data containing X
+#' @param target_binary_data, Optional binary data containing y
 #' @param mimetype character, The file type of the binary data
 #' @param model to use to make predictions
 #'
 #' @return list, Two-element list containing transformed X (data.frame) and y (vector or NULL)
 #'
-outer_transform <- function(binary_data=NULL, mimetype=NULL, model=NULL){
+outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=NULL, model=NULL){
     if (!isFALSE(read_input_data_hook)) {
         data <- read_input_data_hook(binary_data)
     } else if (!is.null(mimetype) && mimetype == "text/mtx") {
@@ -354,13 +355,19 @@ outer_transform <- function(binary_data=NULL, mimetype=NULL, model=NULL){
         data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE))
     }
 
+    target_data <- NULL
+    if (!is.null(target_binary_data)) {
+        tmp <- stri_conv(target_binary_data, "utf8")
+        target_data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE))
+    }
+
     if (!isFALSE(transform_hook)) {
-        output_data <- transform_hook(data, model)
+        output_data <- transform_hook(data, model, target_data)
         if (is.data.frame(output_data)) {
-            output_data <- list(output_data, NULL)
+            output_data <- list(output_data, target_data)
         }
     } else {
-        output_data <- list(bake(model, data), NULL)
+        output_data <- list(bake(model, data), target_data)
     }
 
     if (!is.data.frame(output_data[[1]])) {

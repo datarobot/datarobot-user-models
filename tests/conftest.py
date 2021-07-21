@@ -137,6 +137,7 @@ _datasets = {
     (SKLEARN_REGRESSION, TARGET_NAME_DUPLICATED_Y): os.path.join(
         TESTS_DATA_PATH, "target_name_duplicated_y.csv"
     ),
+    (R_TRANSFORM, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
 }
 
 _training_models_paths = {
