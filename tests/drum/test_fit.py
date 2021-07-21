@@ -68,6 +68,7 @@ from .constants import (
     R_TRANSFORM,
     R_TRANSFORM_NO_Y,
     R_TRANSFORM_NO_HOOK,
+    R_TRANSFORM_NON_NUMERIC,
 )
 
 
@@ -272,12 +273,13 @@ class TestFit:
         "framework, language",
         [
             # (SKLEARN_TRANSFORM, PYTHON),
-            # SKLEARN_TRANSFORM_WITH_Y,
-            # SKLEARN_TRANSFORM_NO_HOOK,
-            # SKLEARN_TRANSFORM_NON_NUMERIC,
+            # (SKLEARN_TRANSFORM_WITH_Y, PYTHON),
+            # (SKLEARN_TRANSFORM_NO_HOOK, PYTHON),
+            # (SKLEARN_TRANSFORM_NON_NUMERIC, PYTHON),
             (R_TRANSFORM, R_FIT),
             (R_TRANSFORM_NO_Y, R_FIT),
             (R_TRANSFORM_NO_HOOK, R_FIT),
+            (R_TRANSFORM_NON_NUMERIC, R_FIT),
         ],
     )
     @pytest.mark.parametrize("problem", [REGRESSION, BINARY, ANOMALY])

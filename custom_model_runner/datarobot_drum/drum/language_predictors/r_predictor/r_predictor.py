@@ -73,7 +73,7 @@ class RPredictor(BaseLanguagePredictor):
                         )
                     )
 
-        self._model = r_handler.load_serialized_model(self._code_dir)
+        self._model = r_handler.load_serialized_model(self._code_dir, self._target_type.value)
 
     @property
     def supported_payload_formats(self):

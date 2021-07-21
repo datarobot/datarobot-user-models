@@ -470,16 +470,16 @@ _custom_filepaths = {
         "custom.R",
     ),
     R_TRANSFORM_SPARSE_INPUT: (
-        os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_sparse_input.py"),
-        "custom.py",
+        os.path.join(TESTS_FIXTURES_PATH, "r_transform_fit_custom_sparse_input.R"),
+        "custom.R",
     ),
     R_TRANSFORM_SPARSE_IN_OUT: (
-        os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_sparse_in_out.py"),
-        "custom.py",
+        os.path.join(TESTS_FIXTURES_PATH, "r_transform_fit_custom_sparse_in_out.R"),
+        "custom.R",
     ),
     R_TRANSFORM_NON_NUMERIC: (
-        os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_non_numeric.py"),
-        "custom.py",
+        os.path.join(TESTS_FIXTURES_PATH, "r_transform_fit_custom_non_numeric.R"),
+        "custom.R",
     ),
 }
 

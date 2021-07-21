@@ -56,7 +56,7 @@ has_read_input_data_hook <- function() {
 #' @export
 #'
 #' @examples
-load_serialized_model <- function(model_dir) {
+load_serialized_model <- function(model_dir, target_type) {
     model <- NULL
     if (!isFALSE(load_model_hook)) {
         model <- load_model_hook(model_dir)
@@ -64,6 +64,10 @@ load_serialized_model <- function(model_dir) {
     if (is.null(model)) {
         file_names <- dir(model_dir, pattern = CUSTOM_MODEL_FILE_EXTENSION)
         if (length(file_names) == 0) {
+            # Allow no serialized models if it is a transform
+            if (target_type == TargetType$TRANSFORM) {
+                return(NULL)
+            }
             stop("\n\n", RUNNING_LANG_MSG, "\nCould not find a serialized model artifact with ",
                  CUSTOM_MODEL_FILE_EXTENSION,
                  " extension, supported by default R predictor. ",
@@ -77,6 +81,10 @@ load_serialized_model <- function(model_dir) {
         }
         model_artifact <- file.path(model_dir, file_names[1])
         if (is.na(model_artifact)) {
+            # Allow no serialized models if it is a transform
+            if (target_type == TargetType$TRANSFORM) {
+                return(NULL)
+            }
             stop(sprintf("\n\n", RUNNING_LANG_MSG, "\n",
                          "Could not find serialized model artifact. Serialized model file name should have the extension %s",
                          CUSTOM_MODEL_FILE_EXTENSION
@@ -259,10 +267,6 @@ outer_predict <- function(target_type, binary_data=NULL, mimetype=NULL, model=NU
         data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE))
     }
 
-    if (is.null(model)) {
-        model <- load_serialized_model()
-    }
-
     if (!isFALSE(transform_hook)) {
         data <- transform_hook(data, model)
     }
@@ -356,17 +360,10 @@ outer_transform <- function(binary_data=NULL, mimetype=NULL, model=NULL){
         data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE))
     }
 
-    if (is.null(model)) {
-        model <- load_serialized_model()
-    }
-
     if (!isFALSE(transform_hook)) {
         output_data <- transform_hook(data, model)
-        print(output_data)
-        print('what is output')
         if (is.data.frame(output_data)) {
             output_data <- list(output_data, NULL)
-            print('is dataframe')
         }
     } else {
         output_data <- list(bake(model, data), NULL)
