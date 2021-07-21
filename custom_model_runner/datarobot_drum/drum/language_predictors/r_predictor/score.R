@@ -105,6 +105,24 @@ load_serialized_model <- function(model_dir, target_type) {
     model
 }
 
+.load_data <- function(binary_data, mimetype=NULL, use_hook=TRUE) {
+    if (use_hook && !isFALSE(read_input_data_hook)) {
+        data <- read_input_data_hook(binary_data)
+    } else if (!is.null(mimetype) && mimetype == "text/mtx") {
+        tmp_file_name <- tempfile()
+        f <- file(tmp_file_name, "w+b")
+        writeBin(binary_data, f)
+        flush(f)
+        data <- as.data.frame(as.matrix(readMM(tmp_file_name)))
+        close(f)
+        unlink(tmp_file_name)
+    } else {
+        tmp <- stri_conv(binary_data, "utf8")
+        data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE))
+    }
+    data
+}
+
 .predict_regression <- function(data, model, ...) {
     predictions <- data.frame(stats::predict(model, data))
     names(predictions) <- c(REGRESSION_PRED_COLUMN_NAME)
@@ -252,21 +270,7 @@ outer_predict <- function(target_type, binary_data=NULL, mimetype=NULL, model=NU
         }
     }
 
-    if (!isFALSE(read_input_data_hook)) {
-        data <- read_input_data_hook(binary_data)
-    } else if (!is.null(mimetype) && mimetype == "text/mtx") {
-        tmp_file_name <- tempfile()
-        f <- file(tmp_file_name, "w+b")
-        writeBin(binary_data, f)
-        flush(f)
-        data <- as.data.frame(as.matrix(readMM(tmp_file_name)))
-        close(f)
-        unlink(tmp_file_name)
-    } else {
-        tmp <- stri_conv(binary_data, "utf8")
-        data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE))
-    }
-
+    data <- .load_data(binary_data, mimetype)
     if (!isFALSE(transform_hook)) {
         data <- transform_hook(data, model)
     }
@@ -355,10 +359,10 @@ outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=
         data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE))
     }
 
+    data <- .load_data(binary_data, mimetype=mimetype)
     target_data <- NULL
     if (!is.null(target_binary_data)) {
-        tmp <- stri_conv(target_binary_data, "utf8")
-        target_data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE))
+        target_data <- .load_data(target_binary_data, use_hook=FALSE)
     }
 
     if (!isFALSE(transform_hook)) {
