@@ -344,21 +344,6 @@ predict_unstructured <- function(model=NULL, data, ...) {
 #' @return list, Two-element list containing transformed X (data.frame) and y (vector or NULL)
 #'
 outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=NULL, model=NULL){
-    if (!isFALSE(read_input_data_hook)) {
-        data <- read_input_data_hook(binary_data)
-    } else if (!is.null(mimetype) && mimetype == "text/mtx") {
-        tmp_file_name <- tempfile()
-        f <- file(tmp_file_name, "w+b")
-        writeBin(binary_data, f)
-        flush(f)
-        data <- as.data.frame(as.matrix(readMM(tmp_file_name)))
-        close(f)
-        unlink(tmp_file_name)
-    } else {
-        tmp <- stri_conv(binary_data, "utf8")
-        data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE))
-    }
-
     data <- .load_data(binary_data, mimetype=mimetype)
     target_data <- NULL
     if (!is.null(target_binary_data)) {
