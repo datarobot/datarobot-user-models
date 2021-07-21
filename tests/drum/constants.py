@@ -47,7 +47,6 @@ R_TRANSFORM_NO_HOOK = "R_transform_no_hook"
 R_TRANSFORM_SPARSE_INPUT = "R_transform_sparse_input"
 R_TRANSFORM_SPARSE_IN_OUT = "R_transform_sparse_in_out"
 R_TRANSFORM_NON_NUMERIC = "R_transform_non_numeric"
-R_TRANSFORM_HYPERPARAMETERS = "R_transform_hyperparameters"
 
 MLJ = "mlj"
 MLJ_BINARY = "mlj_binary"
