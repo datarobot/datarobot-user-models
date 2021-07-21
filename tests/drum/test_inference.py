@@ -26,7 +26,6 @@ from datarobot_drum.resource.transform_helpers import (
     read_arrow_payload,
     read_mtx_payload,
     read_csv_payload,
-    validate_transformed_output,
     parse_multi_part_response,
 )
 from .constants import (
