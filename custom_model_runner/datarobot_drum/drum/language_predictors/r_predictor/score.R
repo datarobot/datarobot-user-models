@@ -353,10 +353,10 @@ outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=
     if (!isFALSE(transform_hook)) {
         output_data <- transform_hook(data, model, target_data)
         if (is.data.frame(output_data)) {
-            output_data <- list(output_data, target_data)
+            output_data <- list(output_data, NULL)
         }
     } else {
-        output_data <- list(bake(model, data), target_data)
+        output_data <- list(bake(model, data), NULL)
     }
 
     if (!is.data.frame(output_data[[1]])) {
