@@ -222,6 +222,42 @@ class TestSchemaValidator:
         with pytest.raises(DrumSchemaValidationException):
             validator.validate_inputs(bad_data)
 
+    @pytest.mark.parametrize("condition", Conditions.non_numeric())
+    @pytest.mark.parametrize(
+        "value, expected_value_count",
+        [
+            ([Values.AUDIO], 0),
+            ([Values.COUNT_DICT], 0),
+            ([Values.GEO], 0),
+            ([Values.TARGET_ONLY], 0),
+            ([Values.AUDIO, Values.GEO, Values.DATE_DURATION], 0),
+            ([Values.COUNT_DICT, Values.GEO], 0),
+            ([Values.COUNT_DICT, Values.GEO, Values.AUDIO, Values.NUM], 1),
+        ],
+    )
+    def test_data_types_no_validation(self, condition, value, expected_value_count):
+        """Test the data types that do not have associated validation"""
+        if len(value) > 1 and condition in Conditions.single_value_conditions():
+            return
+
+        yaml_str = input_requirements_yaml(Fields.DATA_TYPES, condition, value)
+        schema_dict = self.yaml_str_to_schema_dict(yaml_str)
+        validator = SchemaValidator(schema_dict)
+        # check that the values without validators are not added to the validator
+        # pylint: disable=protected-access
+        assert len(validator._input_validators[0].values) == expected_value_count
+
+    def test_data_types_no_validation_skips_validation(self, cats_and_dogs):
+        yaml_str = input_requirements_yaml(
+            Fields.DATA_TYPES, Conditions.IN, [Values.AUDIO, Values.GEO]
+        )
+        schema_dict = self.yaml_str_to_schema_dict(yaml_str)
+        validator = SchemaValidator(schema_dict)
+
+        good_data = cats_and_dogs
+        good_data.drop("class", inplace=True, axis=1)
+        assert validator.validate_inputs(good_data)
+
     def test_data_types_in_allows_extra(self, iris_binary):
         """Additional values should be allowed with the IN condition
 

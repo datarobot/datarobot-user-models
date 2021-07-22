@@ -81,6 +81,11 @@ class Values(BaseEnum):
     CAT = auto()
     IMG = auto()
     DATE = auto()
+    AUDIO = auto()
+    DATE_DURATION = auto()
+    COUNT_DICT = auto()
+    GEO = auto()
+    TARGET_ONLY = auto()
 
     FORBIDDEN = auto()
     SUPPORTED = auto()
@@ -93,7 +98,18 @@ class Values(BaseEnum):
 
     @classmethod
     def data_values(cls) -> List["Values"]:
-        return [cls.NUM, cls.TXT, cls.IMG, cls.DATE, cls.CAT]
+        return [
+            cls.NUM,
+            cls.TXT,
+            cls.IMG,
+            cls.DATE,
+            cls.CAT,
+            cls.AUDIO,
+            cls.DATE_DURATION,
+            cls.COUNT_DICT,
+            cls.GEO,
+            cls.TARGET_ONLY,
+        ]
 
     @classmethod
     def input_values(cls) -> List["Values"]:
@@ -194,6 +210,19 @@ class DataTypes(BaseValidator):
     """Validation related to data types.  This is common between input and output."""
 
     def __init__(self, condition, values):
+        # We currently do not support DRUM validation for these values, but they are supported in DataRobot
+        self._SKIP_VALIDATION = {
+            Values.DATE_DURATION.name,
+            Values.AUDIO.name,
+            Values.COUNT_DICT.name,
+            Values.GEO.name,
+            Values.TARGET_ONLY.name,
+        }
+        values = list(set(values) - self._SKIP_VALIDATION)
+        if len(values) == 0:
+            logger.info(
+                f"Values ({self.list_str(values)}) specified do not have runtime validation in DRUM, only within DataRobot."
+            )
         super(DataTypes, self).__init__(condition, values)
 
     @staticmethod
@@ -201,7 +230,7 @@ class DataTypes(BaseValidator):
         """f-strings do not do a great job dealing with lists of objects.  The __str__ method isn't called on the
         contained objects, and the result is in [].  This provides the nicely formatted representation we want
         in the error message"""
-        return ", ".join([str(x) for x in l])
+        return ", ".join(sorted([str(x) for x in l]))
 
     @staticmethod
     def is_text(x):
@@ -244,6 +273,9 @@ class DataTypes(BaseValidator):
 
     def validate(self, dataframe):
         """Perform validation of the dataframe against the supplied specification."""
+        if len(self.values) == 0:
+            logger.info("Skipping type validation")
+            return []
         types = dict()
         types[Values.NUM] = dataframe.select_dtypes(np.number).shape[1] > 0
         txt_columns = self.number_of_text_columns(dataframe)
