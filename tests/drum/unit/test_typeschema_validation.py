@@ -247,14 +247,14 @@ class TestSchemaValidator:
         # pylint: disable=protected-access
         assert len(validator._input_validators[0].values) == expected_value_count
 
-    def test_data_types_no_validation_skips_validation(self, request, cats_and_dogs):
+    def test_data_types_no_validation_skips_validation(self, cats_and_dogs):
         yaml_str = input_requirements_yaml(
             Fields.DATA_TYPES, Conditions.IN, [Values.AUDIO, Values.GEO]
         )
         schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
 
-        good_data = request.getfixturevalue(cats_and_dogs)
+        good_data = cats_and_dogs
         good_data.drop("class", inplace=True, axis=1)
         assert validator.validate_inputs(good_data)
 
