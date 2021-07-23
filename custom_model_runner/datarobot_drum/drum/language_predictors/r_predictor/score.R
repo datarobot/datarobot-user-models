@@ -332,18 +332,18 @@ predict_unstructured <- function(model=NULL, data, ...) {
     validated_pred_list
 }
 
-#' Makes transforms against the model or by using the custom transform
+#' Makes transforms against the transformer or by using the custom transform
 #' method and returns a list containing the transformed X and optionally y
 #'
 #'
 #' @param binary_data, Binary data containing X
 #' @param target_binary_data, Optional binary data containing y
 #' @param mimetype character, The file type of the binary data
-#' @param model to use to make predictions
+#' @param transformer to use to make transformations
 #'
 #' @return list, Two-element list containing transformed X (data.frame) and y (vector or NULL)
 #'
-outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=NULL, model=NULL){
+outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=NULL, transformer=NULL){
     data <- .load_data(binary_data, mimetype=mimetype)
     target_data <- NULL
     if (!is.null(target_binary_data)) {
@@ -351,12 +351,12 @@ outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=
     }
 
     if (!isFALSE(transform_hook)) {
-        output_data <- transform_hook(data, model, target_data)
+        output_data <- transform_hook(data, transformer, target_data)
         if (is.data.frame(output_data)) {
             output_data <- list(output_data, NULL)
         }
     } else {
-        output_data <- list(bake(model, data), NULL)
+        output_data <- list(bake(transformer, data), NULL)
     }
 
     if (!is.data.frame(output_data[[1]])) {

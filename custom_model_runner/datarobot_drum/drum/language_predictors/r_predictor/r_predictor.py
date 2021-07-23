@@ -193,7 +193,7 @@ class RPredictor(BaseLanguagePredictor):
                 if target_binary_data is None
                 else ro.vectors.ByteVector(target_binary_data),
                 mimetype=ro.rinterface.NULL if mimetype is None else mimetype,
-                model=self._model,
+                transformer=self._model,
             )
 
         with localconverter(ro.default_converter + pandas2ri.converter):
