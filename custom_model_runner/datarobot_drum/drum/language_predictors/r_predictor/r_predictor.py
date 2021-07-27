@@ -91,9 +91,7 @@ class RPredictor(BaseLanguagePredictor):
         with capture_R_traceback_if_errors(r_handler, logger):
             predictions = r_handler.outer_predict(
                 self._target_type.value,
-                binary_data=ro.rinterface.NULL
-                if input_binary_data is None
-                else ro.vectors.ByteVector(input_binary_data),
+                binary_data=ro.vectors.ByteVector(input_binary_data),
                 mimetype=ro.rinterface.NULL if mimetype is None else mimetype,
                 model=self._model,
                 positive_class_label=self._r_positive_class_label,
@@ -186,12 +184,8 @@ class RPredictor(BaseLanguagePredictor):
         mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
         with capture_R_traceback_if_errors(r_handler, logger):
             transformations = r_handler.outer_transform(
-                binary_data=ro.rinterface.NULL
-                if input_binary_data is None
-                else ro.vectors.ByteVector(input_binary_data),
-                target_binary_data=ro.rinterface.NULL
-                if target_binary_data is None
-                else ro.vectors.ByteVector(target_binary_data),
+                binary_data=ro.vectors.ByteVector(input_binary_data),
+                target_binary_data=ro.vectors.ByteVector(target_binary_data),
                 mimetype=ro.rinterface.NULL if mimetype is None else mimetype,
                 transformer=self._model,
             )
