@@ -1,3 +1,4 @@
+import os
 from abc import ABC, abstractmethod
 import base64
 import logging
@@ -449,13 +450,29 @@ class SchemaValidator:
     actual validation on the respective dataframes.
     """
 
+    _DEFAULT_TYPE_SCHEMA_CODEDIR_PATH = os.path.join(
+        os.path.dirname(__file__), "../resource/default_typeschema/"
+    )
+
     def __init__(self, type_schema: dict, strict=True, verbose=False):
+        self._using_default_type_schema = False
+        if not type_schema:
+            from datarobot_drum.drum.common import (
+                read_model_metadata_yaml,
+            )  # local import to prevent cyclic dependency
+
+            type_schema = read_model_metadata_yaml(
+                SchemaValidator._DEFAULT_TYPE_SCHEMA_CODEDIR_PATH
+            )["typeSchema"]
+            self._using_default_type_schema = True
+
         self._input_validators = [
             self._get_validator(schema) for schema in type_schema.get("input_requirements", [])
         ]
         self._output_validators = [
             self._get_validator(schema) for schema in type_schema.get("output_requirements", [])
         ]
+
         self.strict = strict
         self._verbose = verbose
 
@@ -468,9 +485,20 @@ class SchemaValidator:
         return field.to_validator_class()(condition, values)
 
     def validate_inputs(self, dataframe):
+        if self._verbose and self._using_default_type_schema:
+            logger.info(
+                "Using default input type schema, which validates NUM, CAT, TXT, DATE, DATE_DURATION input types, "
+                "allows sparse or dense, and allows missing values."
+            )
+
         return self._run_validate(dataframe, self._input_validators, "input")
 
     def validate_outputs(self, dataframe):
+        if self._verbose and self._using_default_type_schema:
+            logger.info(
+                "Using default output type schema, which validates NUM output type, "
+                "requires dense, and allows passthrough missing values."
+            )
         return self._run_validate(dataframe, self._output_validators, "output")
 
     def _run_validate(self, dataframe, validators, step_label):
