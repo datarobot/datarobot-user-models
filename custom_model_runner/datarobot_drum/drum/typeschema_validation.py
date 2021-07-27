@@ -497,7 +497,7 @@ class SchemaValidator:
         if self._verbose and self._using_default_type_schema:
             logger.info(
                 "Using default output type schema, which validates NUM output type, "
-                "requires dense, and allows passthrough missing values."
+                "allows sparse or dense, and allows passthrough missing values."
             )
         return self._run_validate(dataframe, self._output_validators, "output")
 

@@ -184,7 +184,7 @@ class TestSchemaValidator:
 
         assert isinstance(validator._output_validators[1], Sparsity)
         assert validator._output_validators[1].condition == Conditions.EQUALS
-        assert validator._output_validators[1].values == [Values.NEVER]
+        assert validator._output_validators[1].values == [Values.DYNAMIC]
 
         assert isinstance(validator._output_validators[2], ContainsMissing)
         assert validator._output_validators[2].condition == Conditions.EQUALS

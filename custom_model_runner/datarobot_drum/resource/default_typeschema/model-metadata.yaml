@@ -24,7 +24,7 @@ typeSchema:
       value: NUM
     - field: sparse
       condition: EQUALS
-      value: NEVER
+      value: DYNAMIC
     - field: contains_missing
       condition: EQUALS
       value: DYNAMIC
