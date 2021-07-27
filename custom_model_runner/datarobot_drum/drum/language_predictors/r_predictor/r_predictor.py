@@ -185,7 +185,9 @@ class RPredictor(BaseLanguagePredictor):
         with capture_R_traceback_if_errors(r_handler, logger):
             transformations = r_handler.outer_transform(
                 binary_data=ro.vectors.ByteVector(input_binary_data),
-                target_binary_data=ro.vectors.ByteVector(target_binary_data),
+                target_binary_data=ro.rinterface.NULL
+                if target_binary_data is None
+                else ro.vectors.ByteVector(target_binary_data),
                 mimetype=ro.rinterface.NULL if mimetype is None else mimetype,
                 transformer=self._model,
             )
