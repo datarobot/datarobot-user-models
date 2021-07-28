@@ -303,9 +303,12 @@ class TestFit:
 
         cmd += weights_cmd
 
-        _exec_shell_cmd(
+        _, stdout, _ = _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
+
+        # Ensure the default type schema is used since we do not disable strict validation
+        assert "WARNING: No type schema provided. For transforms, we" in stdout
 
     @pytest.mark.parametrize(
         "framework", [SKLEARN_TRANSFORM_SPARSE_IN_OUT, SKLEARN_TRANSFORM_SPARSE_INPUT,],
