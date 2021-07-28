@@ -63,6 +63,12 @@ from .constants import (
     RDS_PARAMETERS,
     SKLEARN_BINARY_SCHEMA_VALIDATION,
     PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION,
+    R_TRANSFORM_SPARSE_INPUT,
+    R_TRANSFORM_SPARSE_IN_OUT,
+    R_TRANSFORM,
+    R_TRANSFORM_NO_Y,
+    R_TRANSFORM_NO_HOOK,
+    R_TRANSFORM_NON_NUMERIC,
 )
 
 
@@ -264,20 +270,23 @@ class TestFit:
         )
 
     @pytest.mark.parametrize(
-        "framework",
+        "framework, language",
         [
-            SKLEARN_TRANSFORM,
-            SKLEARN_TRANSFORM_WITH_Y,
-            SKLEARN_TRANSFORM_NO_HOOK,
-            SKLEARN_TRANSFORM_NON_NUMERIC,
+            (SKLEARN_TRANSFORM, PYTHON),
+            (SKLEARN_TRANSFORM_WITH_Y, PYTHON),
+            (SKLEARN_TRANSFORM_NO_HOOK, PYTHON),
+            (SKLEARN_TRANSFORM_NON_NUMERIC, PYTHON),
+            (R_TRANSFORM, R_FIT),
+            (R_TRANSFORM_NO_Y, R_FIT),
+            (R_TRANSFORM_NO_HOOK, R_FIT),
+            (R_TRANSFORM_NON_NUMERIC, R_FIT),
         ],
     )
     @pytest.mark.parametrize("problem", [REGRESSION, BINARY, ANOMALY])
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
     def test_transform_fit(
-        self, resources, framework, problem, weights, tmp_path,
+        self, resources, framework, language, problem, weights, tmp_path,
     ):
-        language = PYTHON
         custom_model_dir = _create_custom_model_dir(
             resources, tmp_path, framework, problem, language=framework,
         )
@@ -308,7 +317,13 @@ class TestFit:
         )
 
     @pytest.mark.parametrize(
-        "framework", [SKLEARN_TRANSFORM_SPARSE_IN_OUT, SKLEARN_TRANSFORM_SPARSE_INPUT,],
+        "framework",
+        [
+            SKLEARN_TRANSFORM_SPARSE_IN_OUT,
+            SKLEARN_TRANSFORM_SPARSE_INPUT,
+            R_TRANSFORM_SPARSE_IN_OUT,
+            R_TRANSFORM_SPARSE_INPUT,
+        ],
     )
     def test_sparse_transform_fit(
         self, framework, resources, tmp_path,

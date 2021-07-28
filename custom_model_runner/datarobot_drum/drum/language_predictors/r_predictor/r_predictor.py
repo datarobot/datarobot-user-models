@@ -73,7 +73,7 @@ class RPredictor(BaseLanguagePredictor):
                         )
                     )
 
-        self._model = r_handler.load_serialized_model(self._code_dir)
+        self._model = r_handler.load_serialized_model(self._code_dir, self._target_type.value)
 
     @property
     def supported_payload_formats(self):
@@ -91,9 +91,7 @@ class RPredictor(BaseLanguagePredictor):
         with capture_R_traceback_if_errors(r_handler, logger):
             predictions = r_handler.outer_predict(
                 self._target_type.value,
-                binary_data=ro.rinterface.NULL
-                if input_binary_data is None
-                else ro.vectors.ByteVector(input_binary_data),
+                binary_data=ro.vectors.ByteVector(input_binary_data),
                 mimetype=ro.rinterface.NULL if mimetype is None else mimetype,
                 model=self._model,
                 positive_class_label=self._r_positive_class_label,
@@ -181,4 +179,35 @@ class RPredictor(BaseLanguagePredictor):
         return ret
 
     def _transform(self, **kwargs):
-        raise DrumCommonException("Transform feature is not supported for R")
+        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
+        target_binary_data = kwargs.get(StructuredDtoKeys.TARGET_BINARY_DATA)
+        mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
+        with capture_R_traceback_if_errors(r_handler, logger):
+            transformations = r_handler.outer_transform(
+                binary_data=ro.vectors.ByteVector(input_binary_data),
+                target_binary_data=ro.rinterface.NULL
+                if target_binary_data is None
+                else ro.vectors.ByteVector(target_binary_data),
+                mimetype=ro.rinterface.NULL if mimetype is None else mimetype,
+                transformer=self._model,
+            )
+
+        with localconverter(ro.default_converter + pandas2ri.converter):
+            py_data_object = ro.conversion.rpy2py(transformations)
+
+        if not isinstance(py_data_object, ro.ListVector) or len(py_data_object) != 2:
+            error_message = "Expected transform to return a two-element list containing X and y, got {}. ".format(
+                type(py_data_object)
+            )
+            raise DrumCommonException(error_message)
+
+        output_X = py_data_object[0]
+        output_y = py_data_object[1] if py_data_object[1] is not ro.NULL else None
+
+        if not isinstance(output_X, pd.DataFrame):
+            error_message = "Expected transform output type: {}, actual: {}.".format(
+                pd.DataFrame, type(py_data_object)
+            )
+            raise DrumCommonException(error_message)
+
+        return output_X, output_y

@@ -53,7 +53,6 @@ class PythonFit(ConnectableComponent):
     def _materialize(self, parent_data_objs, user_data):
 
         X, y, class_order, row_weights, parameters = shared_fit_preprocessing(self)
-
         self._model_adapter.fit(
             X,
             y,
