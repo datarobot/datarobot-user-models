@@ -1,4 +1,4 @@
-name: drumpush-binary
+name: default-transform-model-metadata
 type: training
 targetType: transform
 typeSchema:
