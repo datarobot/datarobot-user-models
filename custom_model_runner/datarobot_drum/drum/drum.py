@@ -80,13 +80,27 @@ class CMRunner:
             get_metadata(self.options)
 
         if self.run_mode in [RunMode.FIT, RunMode.PUSH]:
-            # always populate the validator, even if info isn't provided.  If no info then the validators will be empty
-            # and pass by default.
+            # always populate the validator, even if info isn't provided. Use the default type schema if no
+            # schema is provided, strict validation is enabled, and the target type is transform
+            type_schema = {}
+            use_default_type_schema = False
+            strict_validation = not self.options.disable_strict_validation
+            if self.options.model_config:
+                type_schema = self.options.model_config.get("typeSchema", {})
+
+            if not type_schema and strict_validation and self.target_type == TargetType.TRANSFORM:
+                print(
+                    "WARNING: No type schema provided. For transforms, we enforce using the default type schema to "
+                    "ensure there are no conflicts with other tasks downstream. Disable strict validation if you do "
+                    "not want to use the default type schema."
+                )
+                use_default_type_schema = True
+
             self.schema_validator = SchemaValidator(
-                self.options.model_config.get("typeSchema", {})
-                if self.options.model_config is not None
-                else {},
-                self.options.disable_strict_validation,
+                type_schema=type_schema,
+                strict=strict_validation,
+                use_default_type_schema=use_default_type_schema,
+                verbose=self.verbose,
             )
         self._input_df = None
 

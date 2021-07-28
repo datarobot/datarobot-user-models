@@ -596,9 +596,9 @@ class CMRunnerArgsRegistry(object):
     def _reg_arg_strict_validation(*parsers):
         for parser in parsers:
             parser.add_argument(
-                ArgumentsOptions.STRICT_VALIDATION,
-                action="store_false",
-                default=True,
+                ArgumentsOptions.DISABLE_STRICT_VALIDATION,
+                action="store_true",
+                default=False,
                 help="Disable strict schema validation and only warn if issues are found.",
             )
 

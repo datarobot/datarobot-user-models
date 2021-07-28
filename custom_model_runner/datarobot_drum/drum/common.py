@@ -194,7 +194,7 @@ class ArgumentsOptions:
     SKIP_DEPS_INSTALL = "--skip-deps-install"
     SPARSE_COLFILE = "--sparse-column-file"
     PARAMETER_FILE = "--parameter-file"
-    STRICT_VALIDATION = "--disable-strict-validation"
+    DISABLE_STRICT_VALIDATION = "--disable-strict-validation"
 
     MAIN_COMMAND = "drum" if not DEBUG else "./custom_model_runner/bin/drum"
 
