@@ -156,8 +156,8 @@ class TestSchemaValidator:
         return schema.data
 
     def test_default_typeschema(self):
-        validator = SchemaValidator(type_schema={})
-        assert validator._using_default_type_schema == True
+        validator = SchemaValidator(type_schema={}, use_default_type_schema=True)
+        assert validator._using_default_type_schema
 
         # Ensure input validators are correctly set
         assert isinstance(validator._input_validators[0], DataTypes)
