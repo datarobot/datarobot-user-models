@@ -450,9 +450,10 @@ class SchemaValidator:
     actual validation on the respective dataframes.
     """
 
-    _DEFAULT_TYPE_SCHEMA_CODEDIR_PATH = os.path.join(
-        os.path.dirname(__file__), "../resource/default_typeschema/"
+    _DEFAULT_TYPE_SCHEMA_CODEDIR_PATH = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "resource", "default_typeschema")
     )
+    assert os.path.exists(_DEFAULT_TYPE_SCHEMA_CODEDIR_PATH)
 
     def __init__(
         self, type_schema: dict, strict=True, use_default_type_schema=False, verbose=False
