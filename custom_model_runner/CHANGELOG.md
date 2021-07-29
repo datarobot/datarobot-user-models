@@ -4,9 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-#### [1.6.0]- Current
+#### [1.5.10] - Current
+##### Fixed
+- Updated version of strictyaml to fix issue with comments in yaml metadata files
 ##### Added
-- R transform support
+- R support for custom transforms
 - Default type schema for transforms when not provided
 - Enable strict type-schema validation by default
 
