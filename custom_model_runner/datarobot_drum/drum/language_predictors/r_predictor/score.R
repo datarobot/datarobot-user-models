@@ -1,5 +1,6 @@
 # Needed libraries
 library(caret)
+library(recipes)
 library(devtools)
 library(stringi)
 library(Matrix)
@@ -55,7 +56,7 @@ has_read_input_data_hook <- function() {
 #' @export
 #'
 #' @examples
-load_serialized_model <- function(model_dir) {
+load_serialized_model <- function(model_dir, target_type) {
     model <- NULL
     if (!isFALSE(load_model_hook)) {
         model <- load_model_hook(model_dir)
@@ -63,6 +64,10 @@ load_serialized_model <- function(model_dir) {
     if (is.null(model)) {
         file_names <- dir(model_dir, pattern = CUSTOM_MODEL_FILE_EXTENSION)
         if (length(file_names) == 0) {
+            # Allow no serialized models if it is a transform
+            if (target_type == TargetType$TRANSFORM) {
+                return(NULL)
+            }
             stop("\n\n", RUNNING_LANG_MSG, "\nCould not find a serialized model artifact with ",
                  CUSTOM_MODEL_FILE_EXTENSION,
                  " extension, supported by default R predictor. ",
@@ -76,6 +81,10 @@ load_serialized_model <- function(model_dir) {
         }
         model_artifact <- file.path(model_dir, file_names[1])
         if (is.na(model_artifact)) {
+            # Allow no serialized models if it is a transform
+            if (target_type == TargetType$TRANSFORM) {
+                return(NULL)
+            }
             stop(sprintf("\n\n", RUNNING_LANG_MSG, "\n",
                          "Could not find serialized model artifact. Serialized model file name should have the extension %s",
                          CUSTOM_MODEL_FILE_EXTENSION
@@ -94,6 +103,24 @@ load_serialized_model <- function(model_dir) {
         )
     }
     model
+}
+
+.load_data <- function(binary_data, mimetype=NULL, use_hook=TRUE) {
+    if (use_hook && !isFALSE(read_input_data_hook)) {
+        data <- read_input_data_hook(binary_data)
+    } else if (!is.null(mimetype) && mimetype == "text/mtx") {
+        tmp_file_name <- tempfile()
+        f <- file(tmp_file_name, "w+b")
+        writeBin(binary_data, f)
+        flush(f)
+        data <- as.data.frame(as.matrix(readMM(tmp_file_name)))
+        close(f)
+        unlink(tmp_file_name)
+    } else {
+        tmp <- stri_conv(binary_data, "utf8")
+        data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE))
+    }
+    data
 }
 
 .predict_regression <- function(data, model, ...) {
@@ -243,25 +270,7 @@ outer_predict <- function(target_type, binary_data=NULL, mimetype=NULL, model=NU
         }
     }
 
-    if (!isFALSE(read_input_data_hook)) {
-        data <- read_input_data_hook(binary_data)
-    } else if (!is.null(mimetype) && mimetype == "text/mtx") {
-        tmp_file_name <- tempfile()
-        f <- file(tmp_file_name, "w+b")
-        writeBin(binary_data, f)
-        flush(f)
-        data <- as.data.frame(as.matrix(readMM(tmp_file_name)))
-        close(f)
-        unlink(tmp_file_name)
-    } else {
-        tmp <- stri_conv(binary_data, "utf8")
-        data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE))
-    }
-
-    if (is.null(model)) {
-        model <- load_serialized_model()
-    }
-
+    data <- .load_data(binary_data, mimetype)
     if (!isFALSE(transform_hook)) {
         data <- transform_hook(data, model)
     }
@@ -321,4 +330,38 @@ predict_unstructured <- function(model=NULL, data, ...) {
     predictions <- do.call(score_unstructured_hook, kwargs_list)
     validated_pred_list = .validate_unstructured_predictions(predictions)
     validated_pred_list
+}
+
+#' Makes transforms against the transformer or by using the custom transform
+#' method and returns a list containing the transformed X and optionally y
+#'
+#'
+#' @param binary_data, Binary data containing X
+#' @param target_binary_data, Optional binary data containing y
+#' @param mimetype character, The file type of the binary data
+#' @param transformer to use to make transformations
+#'
+#' @return list, Two-element list containing transformed X (data.frame) and y (vector or NULL)
+#'
+outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=NULL, transformer=NULL){
+    data <- .load_data(binary_data, mimetype=mimetype)
+    target_data <- NULL
+    if (!is.null(target_binary_data)) {
+        target_data <- .load_data(target_binary_data, use_hook=FALSE)
+    }
+
+    if (!isFALSE(transform_hook)) {
+        output_data <- transform_hook(data, transformer, target_data)
+        if (is.data.frame(output_data)) {
+            output_data <- list(output_data, NULL)
+        }
+    } else {
+        output_data <- list(bake(transformer, data), NULL)
+    }
+
+    if (!is.data.frame(output_data[[1]])) {
+        stop(sprintf("Transformed X must be of a data.frame type, received %s", typeof(output_data)))
+    }
+
+    output_data
 }

@@ -9,7 +9,7 @@ numpy
 pandas
 progress
 requests
-strictyaml==1.0.6
+strictyaml==1.4.2
 texttable
 pyarrow==0.14.1
 Pillow==8.2.0

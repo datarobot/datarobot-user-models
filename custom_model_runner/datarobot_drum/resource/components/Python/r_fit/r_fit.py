@@ -100,6 +100,5 @@ class RFit(ConnectableComponent):
                 ro.StrVector(self.class_labels) if self.class_labels else ro.NULL,
                 self.parameter_file or ro.NULL,
             )
-
         make_sure_artifact_is_small(self.output_dir)
         return []

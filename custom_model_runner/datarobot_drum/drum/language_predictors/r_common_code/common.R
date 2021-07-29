@@ -5,7 +5,8 @@ TargetTypeEnum <- function() {
       BINARY = "binary",
       ANOMALY = "anomaly",
       UNSTRUCTURED = "unstructured",
-      MULTICLASS = "multiclass"
+      MULTICLASS = "multiclass",
+      TRANSFORM = "transform"
     )
 }
 

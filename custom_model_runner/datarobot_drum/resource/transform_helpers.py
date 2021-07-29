@@ -1,4 +1,3 @@
-import csv
 import pandas as pd
 import logging
 
@@ -7,7 +6,6 @@ from io import BytesIO, StringIO
 
 from scipy.io import mmwrite, mmread
 from scipy.sparse.csr import csr_matrix
-from scipy.sparse import vstack
 
 from datarobot_drum.drum.common import verify_pyarrow_module
 
@@ -80,15 +78,6 @@ def read_mtx_payload(response_dict, transform_key):
     bytes = response_dict[transform_key]
     sparse_mat = mmread(BytesIO(bytes))
     return csr_matrix(sparse_mat)
-
-
-def validate_transformed_output(transformed_output, should_be_sparse=False):
-    if should_be_sparse:
-        assert type(transformed_output) == csr_matrix
-        assert transformed_output.shape[1] == 714
-    else:
-        assert type(transformed_output) == pd.DataFrame
-        assert transformed_output.shape[1] == 10
 
 
 def parse_multi_part_response(response):

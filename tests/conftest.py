@@ -65,6 +65,12 @@ from tests.drum.constants import (
     SKLEARN_TRANSFORM_SPARSE_IN_OUT,
     SKLEARN_TRANSFORM_NON_NUMERIC,
     SKLEARN_PRED_CONSISTENCY,
+    R_TRANSFORM,
+    R_TRANSFORM_NO_Y,
+    R_TRANSFORM_NO_HOOK,
+    R_TRANSFORM_SPARSE_INPUT,
+    R_TRANSFORM_SPARSE_IN_OUT,
+    R_TRANSFORM_NON_NUMERIC,
     SPARSE,
     SPARSE_TARGET,
     TESTS_ARTIFACTS_PATH,
@@ -131,6 +137,7 @@ _datasets = {
     (SKLEARN_REGRESSION, TARGET_NAME_DUPLICATED_Y): os.path.join(
         TESTS_DATA_PATH, "target_name_duplicated_y.csv"
     ),
+    (R_TRANSFORM, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
 }
 
 _training_models_paths = {
@@ -340,6 +347,25 @@ _artifacts = {
     (SKLEARN_TRANSFORM_NON_NUMERIC, REGRESSION): None,
     (SKLEARN_TRANSFORM_NON_NUMERIC, BINARY): None,
     (SKLEARN_TRANSFORM_NON_NUMERIC, ANOMALY): None,
+    (R_TRANSFORM, TRANSFORM): os.path.join(TESTS_ARTIFACTS_PATH, "r_transform.rds"),
+    (R_TRANSFORM, REGRESSION): None,
+    (R_TRANSFORM, BINARY): None,
+    (R_TRANSFORM, ANOMALY): None,
+    (R_TRANSFORM_NO_Y, REGRESSION): None,
+    (R_TRANSFORM_NO_Y, BINARY): None,
+    (R_TRANSFORM_NO_Y, ANOMALY): None,
+    (R_TRANSFORM_NO_HOOK, REGRESSION): None,
+    (R_TRANSFORM_NO_HOOK, BINARY): None,
+    (R_TRANSFORM_NO_HOOK, ANOMALY): None,
+    (R_TRANSFORM_SPARSE_INPUT, REGRESSION): None,
+    (R_TRANSFORM_SPARSE_INPUT, BINARY): None,
+    (R_TRANSFORM_SPARSE_INPUT, ANOMALY): None,
+    (R_TRANSFORM_SPARSE_IN_OUT, REGRESSION): None,
+    (R_TRANSFORM_SPARSE_IN_OUT, BINARY): None,
+    (R_TRANSFORM_SPARSE_IN_OUT, ANOMALY): None,
+    (R_TRANSFORM_NON_NUMERIC, REGRESSION): None,
+    (R_TRANSFORM_NON_NUMERIC, BINARY): None,
+    (R_TRANSFORM_NON_NUMERIC, ANOMALY): None,
 }
 
 _custom_filepaths = {
@@ -436,6 +462,24 @@ _custom_filepaths = {
     SKLEARN_TRANSFORM_NON_NUMERIC: (
         os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_non_numeric.py"),
         "custom.py",
+    ),
+    R_TRANSFORM: (os.path.join(TESTS_FIXTURES_PATH, "r_transform_custom.R"), "custom.R"),
+    R_TRANSFORM_NO_Y: (os.path.join(TESTS_FIXTURES_PATH, "r_transform_custom_no_y.R"), "custom.R",),
+    R_TRANSFORM_NO_HOOK: (
+        os.path.join(TESTS_FIXTURES_PATH, "r_transform_fit_custom_no_hook.R"),
+        "custom.R",
+    ),
+    R_TRANSFORM_SPARSE_INPUT: (
+        os.path.join(TESTS_FIXTURES_PATH, "r_transform_fit_custom_sparse_input.R"),
+        "custom.R",
+    ),
+    R_TRANSFORM_SPARSE_IN_OUT: (
+        os.path.join(TESTS_FIXTURES_PATH, "r_transform_fit_custom_sparse_in_out.R"),
+        "custom.R",
+    ),
+    R_TRANSFORM_NON_NUMERIC: (
+        os.path.join(TESTS_FIXTURES_PATH, "r_transform_fit_custom_non_numeric.R"),
+        "custom.R",
     ),
 }
 
