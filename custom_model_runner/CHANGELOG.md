@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Added
 - R transform support
 - Default type schema for transforms when not provided
+- Enable strict type-schema validation by default
 
 #### [1.5.9]- 2021-07-19
 ##### Fixed
