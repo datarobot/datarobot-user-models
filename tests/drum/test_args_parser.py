@@ -124,3 +124,28 @@ class TestPosNegLabelsParser(object):
         actual_labels = [options.positive_class_label, options.negative_class_label]
         assert all(isinstance(label, str) for label in actual_labels)
         assert actual_labels == [str(label) for label in valid_labels]
+
+
+class TestStrictValidationParser(object):
+    @pytest.fixture
+    def parser(self):
+        test_parser = argparse.ArgumentParser()
+        subparsers = test_parser.add_subparsers(dest="command")
+        label_parser = subparsers.add_parser("dummy")
+        CMRunnerArgsRegistry._reg_arg_strict_validation(label_parser)
+        return test_parser
+
+    def test_disable_strict_validation(self, parser):
+        args = "dummy --disable-strict-validation".split()
+        with patch.object(sys, "argv", args):
+            options = parser.parse_args(args)
+
+        assert options.disable_strict_validation
+
+    def test_enable_strict_validation(self, parser):
+        # Test the strict validation is enabled by default
+        args = "dummy".split()
+        with patch.object(sys, "argv", args):
+            options = parser.parse_args(args)
+
+        assert not options.disable_strict_validation
