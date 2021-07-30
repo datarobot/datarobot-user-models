@@ -103,6 +103,7 @@ class TestCustomTaskTemplates(object):
             # Allowed by default data types for Custom Tasks. We can re-enable this
             # Test if we add image features in the fixture to the allowed data types.
             # (
+            #     "pipeline",
             #     "python3_keras_vizai_joblib",
             #     "project_binary_cats_dogs",
             #     "keras_drop_in_env",
@@ -158,7 +159,7 @@ class TestCustomTaskTemplates(object):
                 "python3_sklearn_transform",
                 "project_binary_diabetes",
                 "sklearn_drop_in_env",
-                "binary",
+                "transform",
             ),
         ],
     )
@@ -191,7 +192,7 @@ class TestCustomTaskTemplates(object):
             w.TaskInputs.ALL
         )
         if target_type == dr.enums.CUSTOM_TASK_TARGET_TYPE.TRANSFORM:
-            bp = bp(w.Tasks.LR1())
+            bp = w.Tasks.LR1()(bp)
         user_blueprint = w.BlueprintGraph(bp).save()
         bp_id = user_blueprint.add_to_repository(proj_id)
 
