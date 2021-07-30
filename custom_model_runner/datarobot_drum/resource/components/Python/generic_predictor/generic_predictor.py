@@ -109,9 +109,9 @@ class GenericPredictorComponent(ConnectableComponent):
             transformed_output = self._predictor.transform(
                 binary_data=binary_data, mimetype=mimetype
             )
-            if type(transformed_output) == tuple:
+            if isinstance(transformed_output, tuple):
                 transformed_df = transformed_output[0]
-            elif type(transformed_output) == DataFrame:
+            elif isinstance(transformed_output, DataFrame):
                 transfromed_df = transformed_output
             transformed_df.to_csv(output_filename, index=False)
         else:
