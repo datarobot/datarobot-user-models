@@ -454,7 +454,7 @@ class CMRunner:
         self._print_welcome_header()
 
         if self.run_mode in [RunMode.SERVER, RunMode.SCORE]:
-            self._run_fit_and_predictions_pipelines_in_mlpiper()
+            self._run_fit_or_predictions_pipelines_in_mlpiper()
         elif self.run_mode == RunMode.FIT:
             self.run_fit()
         elif self.run_mode == RunMode.PERF_TEST:
@@ -489,17 +489,21 @@ class CMRunner:
             self.options.output = mkdtemp()
             remove_temp_output = self.options.output
         mem_usage = memory_usage(
-            self._run_fit_and_predictions_pipelines_in_mlpiper,
+            self._run_fit_or_predictions_pipelines_in_mlpiper,
             interval=1,
             max_usage=True,
             max_iterations=1,
         )
         if self.options.verbose:
-            print("Maximum memory usage: {}MB".format(int(mem_usage)))
+            print("Maximum fit memory usage: {}MB".format(int(mem_usage)))
         if self.options.output or not self.options.skip_predict:
             create_custom_inference_model_folder(self.options.code_dir, self.options.output)
         if not self.options.skip_predict:
-            self.run_test_predict()
+            mem_usage = memory_usage(
+                self.run_test_predict, interval=1, max_usage=True, max_iterations=1,
+            )
+            if self.options.verbose:
+                print("Maximum server memory usage: {}MB".format(int(mem_usage)))
             pred_str = " and predictions can be made on the fit model! \n "
         else:
             pred_str = "however since you specified --skip-predict, predictions were not made \n"
@@ -686,7 +690,7 @@ class CMRunner:
         )
         return functional_pipeline_str
 
-    def _run_fit_and_predictions_pipelines_in_mlpiper(self):
+    def _run_fit_or_predictions_pipelines_in_mlpiper(self):
         if self.run_mode == RunMode.SERVER:
             run_language = self._check_artifacts_and_get_run_language()
             # in prediction server mode infra pipeline == prediction server runner pipeline
