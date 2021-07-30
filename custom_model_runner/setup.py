@@ -51,6 +51,7 @@ setup(
     package_data={
         "": ["*.json", "*.jar", "*.R", "*.j2", "*.jl", "*.toml"],
         "datarobot_drum.resource.pipelines": ["*"],
+        "datarobot_drum.resource.default_typeschema": ["*.yaml"],
     },
     scripts=["bin/drum"],
     install_requires=requirements,

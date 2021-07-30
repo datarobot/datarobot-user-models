@@ -20,6 +20,8 @@ from datarobot_drum.drum.typeschema_validation import (
     SchemaValidator,
     RequirementTypes,
     DataTypes,
+    Sparsity,
+    ContainsMissing,
 )
 
 from tests.drum.utils import test_data
@@ -152,6 +154,41 @@ class TestSchemaValidator:
         schema = load(yaml_str, get_type_schema_yaml_validator())
         revalidate_typeschema(schema)
         return schema.data
+
+    def test_default_typeschema(self):
+        validator = SchemaValidator(type_schema={}, use_default_type_schema=True)
+        assert validator._using_default_type_schema
+
+        # Ensure input validators are correctly set
+        assert isinstance(validator._input_validators[0], DataTypes)
+        assert validator._input_validators[0].condition == Conditions.IN
+        assert set(validator._input_validators[0].values) == {
+            Values.DATE,
+            Values.CAT,
+            Values.TXT,
+            Values.NUM,
+        }
+
+        assert isinstance(validator._input_validators[1], Sparsity)
+        assert validator._input_validators[1].condition == Conditions.EQUALS
+        assert validator._input_validators[1].values == [Values.SUPPORTED]
+
+        assert isinstance(validator._input_validators[2], ContainsMissing)
+        assert validator._input_validators[2].condition == Conditions.EQUALS
+        assert validator._input_validators[2].values == [Values.SUPPORTED]
+
+        # Ensure output validators are correctly set
+        assert isinstance(validator._output_validators[0], DataTypes)
+        assert validator._output_validators[0].condition == Conditions.EQUALS
+        assert validator._output_validators[0].values == [Values.NUM]
+
+        assert isinstance(validator._output_validators[1], Sparsity)
+        assert validator._output_validators[1].condition == Conditions.EQUALS
+        assert validator._output_validators[1].values == [Values.DYNAMIC]
+
+        assert isinstance(validator._output_validators[2], ContainsMissing)
+        assert validator._output_validators[2].condition == Conditions.EQUALS
+        assert validator._output_validators[2].values == [Values.DYNAMIC]
 
     @pytest.mark.parametrize(
         "condition, value, passing_dataset, passing_target, failing_dataset, failing_target",
