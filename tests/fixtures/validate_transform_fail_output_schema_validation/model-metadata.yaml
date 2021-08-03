@@ -5,7 +5,7 @@ typeSchema:
   output_requirements:
   - field: data_types
     condition: EQUALS
-    value: TXT
+    value: CAT
   - field: sparse
     condition: EQUALS
     value: NEVER

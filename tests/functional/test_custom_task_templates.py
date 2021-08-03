@@ -242,7 +242,7 @@ class TestCustomTaskTemplates(object):
                 "transform",
                 [
                     "Schema validation found mismatch between dataset and the supplied schema",
-                    "Datatypes incorrect. Data has types: NUM, but expected types to exactly match: TXT",
+                    "Datatypes incorrect. Data has types: NUM, but expected types to exactly match: CAT",
                 ],
             ),
         ],
