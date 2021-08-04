@@ -241,7 +241,7 @@ class TestCustomTaskTemplates(object):
                 "sklearn_drop_in_env",
                 "transform",
                 [
-                    "Schema validation found mismatch between dataset and the supplied schema",
+                    "Schema validation found mismatch between output dataset and the supplied schema",
                     "Datatypes incorrect. Data has types: NUM, but expected types to exactly match: CAT",
                 ],
             ),

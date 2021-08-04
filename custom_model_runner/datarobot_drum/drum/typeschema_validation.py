@@ -519,7 +519,11 @@ class SchemaValidator:
                 logger.info("Schema validation completed for model {}.".format(step_label))
             return True
         else:
-            logger.error("Schema validation found mismatch between dataset and the supplied schema")
+            logger.error(
+                "Schema validation found mismatch between {} dataset and the supplied schema".format(
+                    step_label
+                )
+            )
             for error in errors:
                 logger.error(error)
             if self.strict:
