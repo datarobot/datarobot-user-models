@@ -1,6 +1,6 @@
-name: drumpush-regression
+name: python3_calibrated_anomaly_detection
 type: training
-targetType: regression
+targetType: anomaly
 # modelID: optional
 environmentID: 5e8c889607389fe0f466c72d
 #trainingModel:
@@ -12,11 +12,8 @@ validation:
 typeSchema:
   input_requirements:
     - field: data_types
-      condition: IN
-      value:
-        - NUM
-        - CAT
-        - TXT
+      condition: EQUALS
+      value: NUM
     - field: number_of_columns
       condition: NOT_LESS_THAN
       value: 2

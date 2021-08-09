@@ -1,24 +1,25 @@
-name: drumpush-binary
+name: python3_sklearn_with_custom_classes
 type: training
 targetType: multiclass
+# modelID: optional
 environmentID: 5e8c889607389fe0f466c72d
+#trainingModel:
+#  trainOnProject: optional project on which to train
 validation:
+  # Path is relative to this file
   input: ../../../tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv
-  targetName: class
+  targetName: MEDV
 typeSchema:
   input_requirements:
     - field: data_types
-      condition: IN
-      value:
-        - NUM
-        - CAT
-        - TXT
+      condition: EQUALS
+      value: NUM
     - field: number_of_columns
-      condition: NOT_LESS_THAN
-      value: 2
+      condition: EQUALS
+      value: 1
     - field: sparse
       condition: EQUALS
       value: FORBIDDEN
     - field: contains_missing
       condition: EQUALS
-      value: SUPPORTED
+      value: FORBIDDEN
