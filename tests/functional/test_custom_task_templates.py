@@ -1,8 +1,12 @@
 from __future__ import absolute_import
 
 import os
+import shutil
+from tempfile import TemporaryDirectory
+
 import pytest
 import datarobot as dr
+import yaml
 from datarobot_bp_workshop import Workshop
 
 BASE_PIPELINE_TASK_TEMPLATES_DIR = "task_templates/pipelines"
@@ -181,11 +185,20 @@ class TestCustomTaskTemplates(object):
         }[target_type]
 
         custom_task = dr.CustomTask.create(name="estimator", target_type=target_type)
-        custom_task_version = dr.CustomTaskVersion.create_clean(
-            custom_task_id=str(custom_task.id),
-            base_environment_id=env_id,
-            folder_path=os.path.join(folder_base_path, model_template),
-        )
+        with TemporaryDirectory() as temp_dir:
+            code_dir = os.path.join(temp_dir, "code")
+            shutil.copytree(os.path.join(folder_base_path, model_template), code_dir)
+            metadata_filename = os.path.join(code_dir, "model-metadata.yaml")
+            if os.path.isfile(metadata_filename):
+                # Set the target type in the metadata file sent to DataRobot to the correct type.
+                metadata = yaml.load(open(metadata_filename))
+                metadata["targetType"] = target_type
+                yaml.dump(metadata, open(metadata_filename, "w"))
+            custom_task_version = dr.CustomTaskVersion.create_clean(
+                custom_task_id=str(custom_task.id),
+                base_environment_id=env_id,
+                folder_path=code_dir,
+            )
 
         w = Workshop()
         bp = w.CustomTask(custom_task_version.custom_task_id, version=str(custom_task_version.id))(
