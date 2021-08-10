@@ -177,7 +177,14 @@ class TestCustomTaskTemplates(object):
         if template_type == "transform":
             folder_base_path = BASE_TRANSFORM_TASK_TEMPLATES_DIR
 
-        custom_task = dr.CustomTask.create(name="estimator", target_type=target_type)
+        dr_target_type = {
+            "regression": dr.enums.CUSTOM_TASK_TARGET_TYPE.REGRESSION,
+            "binary": dr.enums.CUSTOM_TASK_TARGET_TYPE.BINARY,
+            "multiclass": dr.enums.CUSTOM_TASK_TARGET_TYPE.MULTICLASS,
+            "transform": dr.enums.CUSTOM_TASK_TARGET_TYPE.TRANSFORM,
+        }[target_type]
+
+        custom_task = dr.CustomTask.create(name="estimator", target_type=dr_target_type)
         with TemporaryDirectory() as temp_dir:
             code_dir = os.path.join(temp_dir, "code")
             shutil.copytree(os.path.join(folder_base_path, model_template), code_dir)
@@ -187,12 +194,7 @@ class TestCustomTaskTemplates(object):
                 metadata = yaml.load(open(metadata_filename))
                 metadata["targetType"] = target_type
                 yaml.dump(metadata, open(metadata_filename, "w"))
-            target_type = {
-                "regression": dr.enums.CUSTOM_TASK_TARGET_TYPE.REGRESSION,
-                "binary": dr.enums.CUSTOM_TASK_TARGET_TYPE.BINARY,
-                "multiclass": dr.enums.CUSTOM_TASK_TARGET_TYPE.MULTICLASS,
-                "transform": dr.enums.CUSTOM_TASK_TARGET_TYPE.TRANSFORM,
-            }[target_type]
+
             custom_task_version = dr.CustomTaskVersion.create_clean(
                 custom_task_id=str(custom_task.id),
                 base_environment_id=env_id,
@@ -203,7 +205,7 @@ class TestCustomTaskTemplates(object):
         bp = w.CustomTask(custom_task_version.custom_task_id, version=str(custom_task_version.id))(
             w.TaskInputs.ALL
         )
-        if target_type == dr.enums.CUSTOM_TASK_TARGET_TYPE.TRANSFORM:
+        if dr_target_type == dr.enums.CUSTOM_TASK_TARGET_TYPE.TRANSFORM:
             bp = w.Tasks.LR1()(bp)
         user_blueprint = w.BlueprintGraph(bp).save()
         bp_id = user_blueprint.add_to_repository(proj_id)
