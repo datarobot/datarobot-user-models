@@ -177,13 +177,6 @@ class TestCustomTaskTemplates(object):
         if template_type == "transform":
             folder_base_path = BASE_TRANSFORM_TASK_TEMPLATES_DIR
 
-        target_type = {
-            "regression": dr.enums.CUSTOM_TASK_TARGET_TYPE.REGRESSION,
-            "binary": dr.enums.CUSTOM_TASK_TARGET_TYPE.BINARY,
-            "multiclass": dr.enums.CUSTOM_TASK_TARGET_TYPE.MULTICLASS,
-            "transform": dr.enums.CUSTOM_TASK_TARGET_TYPE.TRANSFORM,
-        }[target_type]
-
         custom_task = dr.CustomTask.create(name="estimator", target_type=target_type)
         with TemporaryDirectory() as temp_dir:
             code_dir = os.path.join(temp_dir, "code")
@@ -194,6 +187,12 @@ class TestCustomTaskTemplates(object):
                 metadata = yaml.load(open(metadata_filename))
                 metadata["targetType"] = target_type
                 yaml.dump(metadata, open(metadata_filename, "w"))
+            target_type = {
+                "regression": dr.enums.CUSTOM_TASK_TARGET_TYPE.REGRESSION,
+                "binary": dr.enums.CUSTOM_TASK_TARGET_TYPE.BINARY,
+                "multiclass": dr.enums.CUSTOM_TASK_TARGET_TYPE.MULTICLASS,
+                "transform": dr.enums.CUSTOM_TASK_TARGET_TYPE.TRANSFORM,
+            }[target_type]
             custom_task_version = dr.CustomTaskVersion.create_clean(
                 custom_task_id=str(custom_task.id),
                 base_environment_id=env_id,
