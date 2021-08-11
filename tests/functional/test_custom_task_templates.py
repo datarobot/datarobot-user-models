@@ -57,13 +57,6 @@ class TestCustomTaskTemplates(object):
             (
                 "pipeline",
                 "python3_pytorch",
-                "project_binary_diabetes",
-                "pytorch_drop_in_env",
-                "binary",
-            ),
-            (
-                "pipeline",
-                "python3_pytorch",
                 "project_binary_iris",
                 "pytorch_drop_in_env",
                 "binary",
