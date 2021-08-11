@@ -7,7 +7,7 @@ from io import BytesIO, StringIO
 from scipy.io import mmwrite, mmread
 from scipy.sparse.csr import csr_matrix
 
-from datarobot_drum.drum.common import verify_pyarrow_module
+from datarobot_drum.drum.common import verify_pyarrow_module, X_FORMAT_KEY, X_TRANSFORM_KEY
 
 
 def filter_urllib3_logging():
@@ -93,3 +93,9 @@ def parse_multi_part_response(response):
         parsed_response.update({key: value})
 
     return parsed_response
+
+
+def read_x_data_from_response(response):
+    reader = {"arrow": read_arrow_payload, "sparse": read_mtx_payload, "csv": read_csv_payload}
+    data = parse_multi_part_response(response)
+    return reader[data[X_FORMAT_KEY]](data, X_TRANSFORM_KEY)
