@@ -22,9 +22,3 @@ typeSchema:
     - field: data_types
       condition: EQUALS
       value: NUM
-    - field: sparse
-      condition: EQUALS
-      value: DYNAMIC
-    - field: contains_missing
-      condition: EQUALS
-      value: DYNAMIC
