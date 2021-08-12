@@ -160,6 +160,7 @@ class TestSchemaValidator:
         assert validator._using_default_type_schema
 
         # Ensure input validators are correctly set
+        assert len(validator._input_validators) == 3
         assert isinstance(validator._input_validators[0], DataTypes)
         assert validator._input_validators[0].condition == Conditions.IN
         assert set(validator._input_validators[0].values) == {
@@ -178,17 +179,10 @@ class TestSchemaValidator:
         assert validator._input_validators[2].values == [Values.SUPPORTED]
 
         # Ensure output validators are correctly set
+        assert len(validator._output_validators) == 1
         assert isinstance(validator._output_validators[0], DataTypes)
         assert validator._output_validators[0].condition == Conditions.EQUALS
         assert validator._output_validators[0].values == [Values.NUM]
-
-        assert isinstance(validator._output_validators[1], Sparsity)
-        assert validator._output_validators[1].condition == Conditions.EQUALS
-        assert validator._output_validators[1].values == [Values.DYNAMIC]
-
-        assert isinstance(validator._output_validators[2], ContainsMissing)
-        assert validator._output_validators[2].condition == Conditions.EQUALS
-        assert validator._output_validators[2].values == [Values.DYNAMIC]
 
     @pytest.mark.parametrize(
         "condition, value, passing_dataset, passing_target, failing_dataset, failing_target",
