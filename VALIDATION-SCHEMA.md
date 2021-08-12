@@ -81,7 +81,7 @@ may be used to ignore any errors.
 ## Example typeSchema
 This example would be in addition to other required fields in model_metadata.yaml.  
 ```yaml
--typeSchema:
+- typeSchema:
   - input_requirements:
       - field:  data_types
         condition: NOT_IN
