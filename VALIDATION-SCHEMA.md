@@ -78,6 +78,20 @@ reported if a mismatch is present.
 During development of a model it might be useful to disable the validation.  In that case the `--disable-strict-validation`
 may be used to ignore any errors.  
 
+## Transform Task default schema
+The [default schema](custom_model_runner/datarobot_drum/resource/default_typeschema/model-metadata.yaml) is used when a 
+schema isn't supplied for a task.  The default allows sparse data and missing values in the input, and the following 
+datatypes:
+- NUM
+- CAT
+- TXT
+- DATE
+- DATE_DURATION
+
+The default output data type is NUM.  If any of these values are not appropriate for the task then a schema must be 
+supplied in model-metadata.yaml.  
+
+
 ## Example typeSchema
 This example would be in addition to other required fields in model_metadata.yaml.  
 ```yaml
