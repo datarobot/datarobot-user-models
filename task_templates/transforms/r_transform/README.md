@@ -1,4 +1,4 @@
-## Sklearn Transform Template
+## R Transform Template
 
 This is an R transformer template with preproccessing that:
 - Handles categorical variables
