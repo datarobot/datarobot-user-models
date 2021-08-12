@@ -28,7 +28,14 @@ fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, ...){
   "
   # set up dataframe for modeling
   train_df <- X
-  train_df$target <- unlist(y)
+
+  # y can be null if performing anomaly detection
+  if (is.null(y)) {
+    rcp <- recipe(train_df)
+  } else {
+    train_df$target <- unlist(y)
+    rcp <- recipe(target ~ ., data = train_df)
+  }
 
   outfile <- 'r_transform.rds'
 
