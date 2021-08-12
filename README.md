@@ -106,15 +106,9 @@ include any necessary hooks in a file called `custom.py` for Python models,`cust
 - `transform(data: DataFrame, model: Any) -> DataFrame`
   - `data` is the dataframe given to DRUM to make predictions on. Missing values are indicated with NaN in Python and NA in R, unless otherwise overridden by the read_input_data hook.
   - `model` is the deserialized model loaded by DRUM or by `load_model` (if provided)
-  - This hook is intended to apply transformations to the prediction data before making predictions. It is useful
-  if DRUM supports the model's library, but your model requires additional data processing before it can make predictions.
-- The transform hook will behave differently when running with a `transform` target type:
-    - `transform(X: DataFrame, transformer: Any, y: Series) -> Tuple[DataFrame, Series]`
-        - `X` is the dataframe given to DRUM to make predictions on. If `y` is defined, it will contain the raw features to be transformed (omitting the target).
-        - `transformer` deserialized transformer loaded by DRUM or `load_model` 
-        - `y` defaults to None, and will not be used for unsupervised downstream problems. Contains the target labels. Transform can simply pass the raw values on, may transform the values (i.e perform a log transform), 
-        or use the `y` values in the transformation of `X` if needed.
-        - As of version 1.4.9, the transform hook need not return `y` if no changes are made to the target. You may define a transform hook that does not take a `y` argument.
+  - This hook can be used in both transformer and estimator tasks. 
+    - For transformers, it will apply the transformations to X and pass it to downstream tasks.
+    - For estimators, it is intended to apply transformations to the prediction data before making predictions.
 - `score(data: DataFrame, model: Any, **kwargs: Dict[str, Any]) -> DataFrame`
   - `data` is the dataframe to make predictions against. If `transform` is supplied, `data` will be the transformed data.
   - `model` is the deserialized model loaded by DRUM or by `load_model`, if supplied
