@@ -1,10 +1,13 @@
 from __future__ import absolute_import
 
+import pytest
 import os
 import tarfile
-
-import pytest
+import shutil
+from tempfile import TemporaryDirectory
 import tempfile
+import yaml
+
 import datarobot as dr
 from datarobot.errors import AsyncProcessUnsuccessfulError
 from datarobot_bp_workshop import Workshop
@@ -66,13 +69,6 @@ class TestCustomTaskTemplates(object):
     @pytest.mark.parametrize(
         "template_type, model_template, proj, env, target_type",
         [
-            (
-                "pipeline",
-                "python3_pytorch",
-                "project_binary_diabetes",
-                "pytorch_drop_in_env",
-                "binary",
-            ),
             (
                 "pipeline",
                 "python3_pytorch",
@@ -186,25 +182,35 @@ class TestCustomTaskTemplates(object):
         proj_id = request.getfixturevalue(proj)
         folder_base_path = self.get_template_base_path(template_type)
 
-        target_type = {
+        dr_target_type = {
             "regression": dr.enums.CUSTOM_TASK_TARGET_TYPE.REGRESSION,
             "binary": dr.enums.CUSTOM_TASK_TARGET_TYPE.BINARY,
             "multiclass": dr.enums.CUSTOM_TASK_TARGET_TYPE.MULTICLASS,
             "transform": dr.enums.CUSTOM_TASK_TARGET_TYPE.TRANSFORM,
         }[target_type]
 
-        custom_task = dr.CustomTask.create(name="estimator", target_type=target_type)
-        custom_task_version = dr.CustomTaskVersion.create_clean(
-            custom_task_id=str(custom_task.id),
-            base_environment_id=env_id,
-            folder_path=os.path.join(folder_base_path, model_template),
-        )
+        custom_task = dr.CustomTask.create(name="estimator", target_type=dr_target_type)
+        with TemporaryDirectory() as temp_dir:
+            code_dir = os.path.join(temp_dir, "code")
+            shutil.copytree(os.path.join(folder_base_path, model_template), code_dir)
+            metadata_filename = os.path.join(code_dir, "model-metadata.yaml")
+            if os.path.isfile(metadata_filename):
+                # Set the target type in the metadata file sent to DataRobot to the correct type.
+                metadata = yaml.load(open(metadata_filename))
+                metadata["targetType"] = target_type
+                yaml.dump(metadata, open(metadata_filename, "w"))
+
+            custom_task_version = dr.CustomTaskVersion.create_clean(
+                custom_task_id=str(custom_task.id),
+                base_environment_id=env_id,
+                folder_path=code_dir,
+            )
 
         w = Workshop()
         bp = w.CustomTask(custom_task_version.custom_task_id, version=str(custom_task_version.id))(
             w.TaskInputs.ALL
         )
-        if target_type == dr.enums.CUSTOM_TASK_TARGET_TYPE.TRANSFORM:
+        if dr_target_type == dr.enums.CUSTOM_TASK_TARGET_TYPE.TRANSFORM:
             bp = w.Tasks.LR1()(bp)
         user_blueprint = w.BlueprintGraph(bp).save()
         bp_id = user_blueprint.add_to_repository(proj_id)
