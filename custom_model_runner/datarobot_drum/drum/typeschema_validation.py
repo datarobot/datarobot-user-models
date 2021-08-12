@@ -183,6 +183,26 @@ def _get_mapping(field: Fields, values: List[Values]) -> Map:
     return Map({"field": Enum(str(field)), "condition": conditions, "value": value_enum})
 
 
+def check_is_mm(data):
+    if data.shape[1] == 1 and "%%MatrixMarket matrix coordinate" in data.columns[0]:
+        return True
+    else:
+        return False
+
+
+def check_csr_sparse(data):
+    try:
+        return data.format == "csr"
+    except AttributeError:
+        return data.dtypes.apply(pd.api.types.is_sparse).any()
+
+
+def check_is_sparse(data):
+    # this is more verbose than ideal since or doesn't seem to correctly short circuit with the data series apply,
+    # causing an issue dtypes missing in this case.
+    return check_is_mm(data) or check_csr_sparse(data)
+
+
 class BaseValidator(ABC):
     def __init__(self, condition: Conditions, values: List[Union[str, int]]):
         if len(values) > 1 and condition in Conditions.single_value_conditions():
@@ -272,18 +292,27 @@ class DataTypes(BaseValidator):
             logger.info("Skipping type validation")
             return []
         types = dict()
-        types[Values.NUM] = dataframe.select_dtypes(np.number).shape[1] > 0
-        txt_columns = self.number_of_text_columns(dataframe)
-        img_columns = self.number_of_img_columns(dataframe)
-        types[Values.TXT] = txt_columns > 0
-        types[Values.IMG] = img_columns > 0
-        types[Values.CAT] = (
-            dataframe.select_dtypes("O").shape[1]
-            - (txt_columns + img_columns)
-            + dataframe.select_dtypes("boolean").shape[1]
-            > 0
-        )
-        types[Values.DATE] = dataframe.select_dtypes("datetime").shape[1] > 0
+
+        if check_is_sparse(dataframe):
+            # only numeric can be a csr or matrix market sparse matrix
+            types[Values.NUM] = True
+            types[Values.TXT] = False
+            types[Values.IMG] = False
+            types[Values.CAT] = False
+            types[Values.DATE] = False
+        else:
+            types[Values.NUM] = dataframe.select_dtypes(np.number).shape[1] > 0
+            txt_columns = self.number_of_text_columns(dataframe)
+            img_columns = self.number_of_img_columns(dataframe)
+            types[Values.TXT] = txt_columns > 0
+            types[Values.IMG] = img_columns > 0
+            types[Values.CAT] = (
+                dataframe.select_dtypes("O").shape[1]
+                - (txt_columns + img_columns)
+                + dataframe.select_dtypes("boolean").shape[1]
+                > 0
+            )
+            types[Values.DATE] = dataframe.select_dtypes("datetime").shape[1] > 0
 
         types_present = [k for k, v in types.items() if v]
 
@@ -314,7 +343,7 @@ class Sparsity(BaseValidator):
 
     def validate(self, dataframe):
 
-        is_sparse = dataframe.dtypes.apply(pd.api.types.is_sparse).any()
+        is_sparse = check_is_sparse(dataframe)
 
         sparse_input_allowed_values = [Values.SUPPORTED, Values.REQUIRED]
         sparse_output_allowed_values = [Values.DYNAMIC, Values.ALWAYS]
@@ -391,7 +420,11 @@ class ContainsMissing(BaseValidator):
     def validate(self, dataframe):
         missing_output_disallowed = Values.NEVER
         missing_input_disallowed = Values.FORBIDDEN
-        any_missing = dataframe.isna().any().any()
+        if check_is_sparse(dataframe):
+            # sparse but not NA...
+            any_missing = False
+        else:
+            any_missing = dataframe.isna().any().any()
 
         value = self.values[0]
 
