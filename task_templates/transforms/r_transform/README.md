@@ -7,8 +7,7 @@ This is an R transformer template with preproccessing that:
 This transformer is intended to work with the [R Drop-In Environment](../../../public_dropin_environments/r_lang/).
 
 Note that transformers differ from custom models in that the end product is not a trained model, but a transformation of the dataset.
-As such, the fit method will train only a preprocessing pipeline on your data. The transform hook must be implemented by the user for now.
-You will also have to pass target info according to the downstream modeling task that will be used by this transformer.
+As such, the fit method will train only a preprocessing pipeline on your data.
 
 ## Instructions:
 You can change the contents of the `fit` hook to contain the code you want. The `transform` hook will simply 'bake the recipe'
