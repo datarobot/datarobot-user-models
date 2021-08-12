@@ -1,4 +1,4 @@
-name: r_transform
+name: r_transform_simple
 type: training
 targetType: transform
 # modelID: optional
@@ -12,10 +12,8 @@ validation:
 typeSchema:
   input_requirements:
     - field: data_types
-      condition: IN
-      value:
-        - NUM
-        - CAT
+      condition: EQUALS
+      value: NUM
     - field: sparse
       condition: EQUALS
       value: FORBIDDEN
