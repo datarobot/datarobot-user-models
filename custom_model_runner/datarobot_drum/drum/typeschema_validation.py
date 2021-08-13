@@ -194,7 +194,7 @@ def check_csr_sparse(data):
     try:
         return data.format == "csr"
     except AttributeError:
-        return data.dtypes.apply(pd.api.types.is_sparse).any()
+        return False
 
 
 def check_is_sparse(data):
