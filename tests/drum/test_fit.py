@@ -711,8 +711,6 @@ class TestFit:
         # The predict server will not return the full stacktrace since it is ran in a forked process
         if error_in_predict_server:
             print(stdout)
-            assert (
-                "expected types to exactly match: CAT" in stdout
-            )
+            assert "expected types to exactly match: CAT" in stdout
         else:
             assert "DrumSchemaValidationException" in stderr
