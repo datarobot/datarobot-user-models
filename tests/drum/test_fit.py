@@ -712,7 +712,7 @@ class TestFit:
         if error_in_predict_server:
             print(stdout)
             assert (
-                "Schema validation found mismatch between dataset and the supplied schema" in stdout
+                "expected types to exactly match: CAT" in stdout
             )
         else:
             assert "DrumSchemaValidationException" in stderr
