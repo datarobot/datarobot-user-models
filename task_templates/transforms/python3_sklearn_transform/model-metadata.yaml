@@ -1,0 +1,31 @@
+name: python3_sklearn_transform
+type: training
+targetType: transform
+# modelID: optional
+environmentID: 5e8c889607389fe0f466c72d
+#trainingModel:
+#  trainOnProject: optional project on which to train
+validation:
+  # Path is relative to this file
+  input: ../../../tests/testdata/boston_housing.csv
+  targetName: MEDV
+typeSchema:
+  input_requirements:
+    - field: data_types
+      condition: IN
+      value:
+        - NUM
+        - CAT
+    - field: number_of_columns
+      condition: NOT_LESS_THAN
+      value: 1
+    - field: sparse
+      condition: EQUALS
+      value: SUPPORTED
+    - field: contains_missing
+      condition: EQUALS
+      value: SUPPORTED
+  output_requirements:
+    - field: data_types
+      condition: EQUALS
+      value: NUM
