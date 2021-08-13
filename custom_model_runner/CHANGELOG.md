@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Added 
 - type schema to pipeline examples
 
-#### [1.5.10] - 2021-08-13
+#### [1.5.10] - 2021-07-30
 ##### Fixed
 - Updated version of strictyaml to fix issue with comments in yaml metadata files
 ##### Added

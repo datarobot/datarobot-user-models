@@ -275,9 +275,9 @@ class TestFit:
             (SKLEARN_TRANSFORM, PYTHON),
             (SKLEARN_TRANSFORM_WITH_Y, PYTHON),
             (SKLEARN_TRANSFORM_NO_HOOK, PYTHON),
-            # (R_TRANSFORM, R_FIT),
-            # (R_TRANSFORM_NO_Y, R_FIT),
-            # (R_TRANSFORM_NO_HOOK, R_FIT),
+            (R_TRANSFORM, R_FIT),
+            (R_TRANSFORM_NO_Y, R_FIT),
+            (R_TRANSFORM_NO_HOOK, R_FIT),
         ],
     )
     @pytest.mark.parametrize("problem", [REGRESSION, BINARY, ANOMALY])
@@ -710,7 +710,6 @@ class TestFit:
 
         # The predict server will not return the full stacktrace since it is ran in a forked process
         if error_in_predict_server:
-            print(stdout)
             assert "expected types to exactly match: CAT" in stdout
         else:
             assert "DrumSchemaValidationException" in stderr
