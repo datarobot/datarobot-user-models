@@ -14,7 +14,6 @@ import numpy as np
 import pandas as pd
 
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
-from datarobot_drum.resource.transform_helpers import is_sparse
 
 logger = logging.getLogger("drum." + __name__)
 
@@ -182,6 +181,10 @@ def _get_mapping(field: Fields, values: List[Values]) -> Map:
 
     conditions = Enum([str(el) for el in field.conditions()])
     return Map({"field": Enum(str(field)), "condition": conditions, "value": value_enum})
+
+
+def is_sparse(dataframe: pd.DataFrame) -> bool:
+    return dataframe.dtypes.apply(pd.api.types.is_sparse).any()
 
 
 class BaseValidator(ABC):
