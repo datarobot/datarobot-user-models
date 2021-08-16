@@ -21,7 +21,7 @@ debugging, testing, and running your training and inference models with DataRobo
 This repository addresses the DataRobot functionality known as `custom models`. The terms `custom model` and `user model` can be used interchangeably, as can `custom model directory` and `code directory`.
 
 ## Quickstart <a name="quickstart"></a>
-The following example shows how to use the [DRUM](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) tool to make predictions on an [sklearn regression model](model_templates/python3_sklearn). For the training model quickstart, please reference [this document](QUICKSTART-FOR-TASKS.md)
+The following example shows how to use the [DRUM](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) tool to make predictions on an [sklearn regression model](model_templates/python3_sklearn). 
 1. Clone the repository
 2. Create a virtual environment: `python3 -m virtualenv <dirname for virtual environment>`
 3. Activate the virtual environment: `source <dirname for virtual environment>/bin/activate`
@@ -242,26 +242,6 @@ The best way to debug in batch mode is to provide `--output` file. Returned data
 - `str` data -> text file, using default `utf8` or returned in kwargs charset;
 - `bytes` data -> binary file.  
 (Returned `kwargs` are not shown in the batch mode, but you can still print them during debugging).
-
-
-
-## Assembling a custom task code folder <a name="training_model_folder"></a>
-Custom tasks are in active development. They include a `fit()` function, can be trained on the Leaderboard, benchmarked against DataRobot AutoML models, and get access to DataRobot's full set of automated insights. Refer to the [quickrun readme](QUICKSTART-FOR-TASKS.md).
-
-The model folder must contain any code required for DRUM to run and train your model.
-
-### Python
-The model folder must contain a `custom.py` file which defines a `fit` method.
-
-- `fit(X: pandas.DataFrame, y: pandas.Series, output_dir: str, **kwargs: Dict[str, Any]) -> None`
-    - `X` is the dataframe to perform fit on.
-    - `y` is the dataframe containing target data.
-    - `output_dir` is the path to write the model artifact to.
-    - `kwargs` additional keyword arguments to the method;
-        - `class_order: List[str]` a two element long list dictating the order of classes which should be used for modeling.
-        - `row_weights: np.ndarray` an array of non-negative numeric values which can be used to dictate how important a row is.
-
-> Note: Training and inference hooks can be defined in the same file.
 
 
 ## Custom Model Templates <a name="custom_model_templates"></a>
