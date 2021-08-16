@@ -198,8 +198,6 @@ def check_csr_sparse(data):
 
 
 def check_is_sparse(data):
-    # this is more verbose than ideal since or doesn't seem to correctly short circuit with the data series apply,
-    # causing an issue dtypes missing in this case.
     return check_is_mm(data) or check_csr_sparse(data)
 
 
@@ -302,15 +300,14 @@ class DataTypes(BaseValidator):
             types[Values.DATE] = False
         else:
             types[Values.NUM] = dataframe.select_dtypes(np.number).shape[1] > 0
-            txt_columns = self.number_of_text_columns(dataframe)
-            img_columns = self.number_of_img_columns(dataframe)
-            types[Values.TXT] = txt_columns > 0
-            types[Values.IMG] = img_columns > 0
+            num_txt_columns = self.number_of_text_columns(dataframe)
+            num_img_columns = self.number_of_img_columns(dataframe)
+            num_obj_columns = dataframe.select_dtypes("O").shape[1]
+            num_bool_columns = dataframe.select_dtypes("boolean").shape[1]
+            types[Values.TXT] = num_txt_columns > 0
+            types[Values.IMG] = num_img_columns > 0
             types[Values.CAT] = (
-                dataframe.select_dtypes("O").shape[1]
-                - (txt_columns + img_columns)
-                + dataframe.select_dtypes("boolean").shape[1]
-                > 0
+                num_obj_columns - (num_txt_columns + num_img_columns) + num_bool_columns > 0
             )
             types[Values.DATE] = dataframe.select_dtypes("datetime").shape[1] > 0
 
