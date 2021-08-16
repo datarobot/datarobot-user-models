@@ -53,7 +53,7 @@ All specifications contain the following fields:
 
 #### data_types allowed values:
 - condition: "EQUALS", "IN", "NOT_EQUALS", "NOT_IN"
-- value: "NUM", "TXT", "CAT", "IMG", "DATE", "AUDIO", "DATE_DURATION", "COUNT_DICT", "GEO", "TARGET_ONLY'
+- value: "NUM", "TXT", "CAT", "IMG", "DATE", "DATE_DURATION", "COUNT_DICT", "GEO",
 
 #### sparse (input) allowed values:
 - condition: "EQUALS"

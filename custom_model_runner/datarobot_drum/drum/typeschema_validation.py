@@ -82,11 +82,9 @@ class Values(BaseEnum):
     CAT = auto()
     IMG = auto()
     DATE = auto()
-    AUDIO = auto()
     DATE_DURATION = auto()
     COUNT_DICT = auto()
     GEO = auto()
-    TARGET_ONLY = auto()
 
     FORBIDDEN = auto()
     SUPPORTED = auto()
@@ -105,11 +103,9 @@ class Values(BaseEnum):
             cls.IMG,
             cls.DATE,
             cls.CAT,
-            cls.AUDIO,
             cls.DATE_DURATION,
             cls.COUNT_DICT,
             cls.GEO,
-            cls.TARGET_ONLY,
         ]
 
     @classmethod
@@ -214,10 +210,8 @@ class DataTypes(BaseValidator):
         # We currently do not support DRUM validation for these values, but they are supported in DataRobot
         self._SKIP_VALIDATION = {
             Values.DATE_DURATION.name,
-            Values.AUDIO.name,
             Values.COUNT_DICT.name,
             Values.GEO.name,
-            Values.TARGET_ONLY.name,
         }
         values = list(set(values) - self._SKIP_VALIDATION)
         if len(values) == 0:
