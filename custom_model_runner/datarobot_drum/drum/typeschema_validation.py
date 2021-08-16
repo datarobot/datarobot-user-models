@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
+from datarobot_drum.resource.transform_helpers import is_sparse
 
 logger = logging.getLogger("drum." + __name__)
 
@@ -183,24 +184,6 @@ def _get_mapping(field: Fields, values: List[Values]) -> Map:
     return Map({"field": Enum(str(field)), "condition": conditions, "value": value_enum})
 
 
-def check_is_mm(data):
-    if data.shape[1] == 1 and "%%MatrixMarket matrix coordinate" in data.columns[0]:
-        return True
-    else:
-        return False
-
-
-def check_csr_sparse(data):
-    try:
-        return data.format == "csr"
-    except AttributeError:
-        return False
-
-
-def check_is_sparse(data):
-    return check_is_mm(data) or check_csr_sparse(data)
-
-
 class BaseValidator(ABC):
     def __init__(self, condition: Conditions, values: List[Union[str, int]]):
         if len(values) > 1 and condition in Conditions.single_value_conditions():
@@ -291,7 +274,7 @@ class DataTypes(BaseValidator):
             return []
         types = dict()
 
-        if check_is_sparse(dataframe):
+        if is_sparse(dataframe):
             # only numeric can be a csr or matrix market sparse matrix
             types[Values.NUM] = True
             types[Values.TXT] = False
@@ -340,7 +323,7 @@ class Sparsity(BaseValidator):
 
     def validate(self, dataframe):
 
-        is_sparse = check_is_sparse(dataframe)
+        _is_sparse = is_sparse(dataframe)
 
         sparse_input_allowed_values = [Values.SUPPORTED, Values.REQUIRED]
         sparse_output_allowed_values = [Values.DYNAMIC, Values.ALWAYS]
@@ -355,12 +338,12 @@ class Sparsity(BaseValidator):
         else:
             io_type = "output"
 
-        if is_sparse and value not in sparse_output_allowed_values + sparse_input_allowed_values:
+        if _is_sparse and value not in sparse_output_allowed_values + sparse_input_allowed_values:
             return [
                 f"Sparse {io_type} data found, however value is set to {value}, expecting dense"
             ]
         elif (
-            not is_sparse and value not in dense_output_allowed_values + dense_input_allowed_values
+            not _is_sparse and value not in dense_output_allowed_values + dense_input_allowed_values
         ):
             return [
                 f"Dense {io_type} data found, however value is set to {value}, expecting sparse"
@@ -417,7 +400,7 @@ class ContainsMissing(BaseValidator):
     def validate(self, dataframe):
         missing_output_disallowed = Values.NEVER
         missing_input_disallowed = Values.FORBIDDEN
-        if check_is_sparse(dataframe):
+        if is_sparse(dataframe):
             # sparse but not NA...
             any_missing = False
         else:
