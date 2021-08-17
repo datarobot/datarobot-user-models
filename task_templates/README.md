@@ -25,7 +25,7 @@ multiple transforms and/or estimators. This is useful if a user has a fully deve
 As a simple example, let's say we have custom logic to impute missing values. We look at the 
 example template found in the transforms folders (e.g. https://github.com/datarobot/datarobot-user-models/blob/master/task_templates/transforms/python_missing_values/custom.py) 
 and code our imputation logic into the 
-fit hook (note: the "fit" hook is currently always required). Notice how in the transform hook we apply
+fit hook (note: the "fit" and "transform" hooks are always required for transform tasks). Notice how in the transform hook we apply
 the median value imputation we learned in fit. This is because the transform hook is called at both trainging and scoring time
 while the fit hook is ONLY called during training. 
 Now we have a "custom missing value imputation" transform. Now let's say we want to also create a custom task to apply a weight of evidence 
