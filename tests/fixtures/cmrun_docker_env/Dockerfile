@@ -26,6 +26,7 @@ RUN pip3 install -r drum_requirements.txt --no-cache-dir && \
     rm -rf drum_requirements.txt
 
 # Copying the fresh wheel file
+RUN chmod 755 /tmp
 COPY datarobot_drum-*.whl /tmp/
 RUN ww=$(find /tmp/datarobot_drum*.whl) && \
     pip3 install -U --no-deps $ww
