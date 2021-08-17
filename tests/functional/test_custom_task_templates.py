@@ -173,6 +173,13 @@ class TestCustomTaskTemplates(object):
                 "sklearn_drop_in_env",
                 "transform",
             ),
+            (
+                "transform",
+                "python3_image_transform",
+                "project_binary_cats_dogs",
+                "sklearn_drop_in_env",
+                "transform",
+            )
         ],
     )
     def test_custom_task_templates(
