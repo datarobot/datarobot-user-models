@@ -23,8 +23,11 @@ multiple transforms and/or estimators. This is useful if a user has a fully deve
   you create a custom missing logic imputation that you want every blueprint to use. 
 
 As a simple example, let's say we have custom logic to impute missing values. We look at the 
-example template found in the transforms folders and code our imputation logic into the 
-transform hook (note: the "fit" hook isn't used because we aren't learning anything from the data, just applying hard coded imputation logic). 
+example template found in the transforms folders (e.g. https://github.com/datarobot/datarobot-user-models/blob/master/task_templates/transforms/python_missing_values/custom.py) 
+and code our imputation logic into the 
+fit hook (note: the "fit" hook is currently always required). Notice how in the transform hook we apply
+the median value imputation we learned in fit. This is because the transform hook is called at both trainging and scoring time
+while the fit hook is ONLY called during training. 
 Now we have a "custom missing value imputation" transform. Now let's say we want to also create a custom task to apply a weight of evidence 
 (see https://www.listendata.com/2015/03/weight-of-evidence-woe-and-information.html) encoding to 
 our categorical features. We also use a template from the transforms as a base, but this time
