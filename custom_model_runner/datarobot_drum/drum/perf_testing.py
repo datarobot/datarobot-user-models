@@ -677,9 +677,8 @@ class CMRunTests:
 
             response = requests.post(run.url_server_address + endpoint, files=payload)
             transformed_values = read_x_data_from_response(response)
-            if self._schema_validator:
-                # Validate that the transformed values are of the type and shape the user specified in the schema
-                self._schema_validator.validate_outputs(transformed_values)
+            # Validate that the transformed values are of the type and shape the user specified in the schema
+            self._schema_validator.validate_outputs(transformed_values)
             if not response.ok:
                 raise DrumCommonException(
                     "Failure in {} server: {}".format(endpoint[1:-1], response.text)
