@@ -27,8 +27,7 @@ RUN pip3 install -r drum_requirements.txt --no-cache-dir && \
 
 # Copying the fresh wheel file
 COPY datarobot_drum-*.whl /tmp/
-RUN ls /tmp/ && \
-    ww=$(find /tmp/datarobot_drum*.whl) && \
+RUN ww=$(find /tmp/datarobot_drum*.whl) && \
     pip3 install -U --no-deps $ww
 
 ENTRYPOINT ["this_is_fake_entrypoint_to_make_sure_drum_unsets_it_when_runs_with_--docker_param"]
