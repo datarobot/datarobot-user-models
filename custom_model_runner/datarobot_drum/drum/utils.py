@@ -1,4 +1,6 @@
 import json
+from pandas import DataFrame
+from typing import Set, Any, List
 import logging
 import os
 import socket
@@ -304,3 +306,45 @@ def capture_R_traceback_if_errors(r_handler, logger):
                 "t_traceback_err": traceback_exc,
             }
         raise
+
+
+def marshal_labels(expected_labels: List[str], actual_labels: List[Any]):
+    if set(expected_labels) == set(actual_labels):
+        return actual_labels
+
+    if (
+        _can_be_converted_to_float(expected_labels)
+        and _can_be_converted_to_float(actual_labels)
+        and set(float(l) for l in expected_labels) == set(float(l) for l in actual_labels)
+    ):
+        return _order_by_float(expected_labels, actual_labels)
+
+    raise DrumCommonException(
+        "Expected predictions to have columns [{}], but encountered [{}]".format(
+            expected_labels, actual_labels
+        )
+    )
+
+
+def _order_by_float(expected_labels, actual_labels):
+    """
+    Match the order of actual labels to the values in expected labels
+    Given both can be cast to floats
+    >>> _order_by_float(["1.0", "2.4", "0.4", "1.4"],  [2.4, 1.0, 0.4, 1.4])
+    ['2.4', '1.0', '0.4', '1.4']
+    """
+
+    def get_corresponding_expected_label(a_l):
+        for e_l in expected_labels:
+            if float(a_l) == float(e_l):
+                return e_l
+
+    return [get_corresponding_expected_label(_l) for _l in actual_labels]
+
+
+def _can_be_converted_to_float(labels):
+    try:
+        [float(label) for label in labels]
+        return True
+    except ValueError:
+        return False
