@@ -511,9 +511,11 @@ class SchemaValidator:
         return field.to_validator_class()(condition, values)
 
     def validate_inputs(self, dataframe):
+        # Validate that the input values are of the type and shape the user specified in the schema
         return self._run_validate(dataframe, self._input_validators, "input")
 
     def validate_outputs(self, dataframe):
+        # Validate that the output values are of the type and shape the user specified in the schema
         return self._run_validate(dataframe, self._output_validators, "output")
 
     def _run_validate(self, dataframe, validators, step_label):

@@ -677,7 +677,6 @@ class CMRunTests:
 
             response = requests.post(run.url_server_address + endpoint, files=payload)
             transformed_values = read_x_data_from_response(response)
-            # Validate that the transformed values are of the type and shape the user specified in the schema
             self._schema_validator.validate_outputs(transformed_values)
             if not response.ok:
                 raise DrumCommonException(
@@ -749,7 +748,6 @@ class CMRunTests:
 
             preds_full_subset = preds_full.iloc[data_subset.index]
 
-            # Validate that the predictions are of the type and shape the user specified in the schema
             self._schema_validator.validate_outputs(preds_sample)
 
             matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)

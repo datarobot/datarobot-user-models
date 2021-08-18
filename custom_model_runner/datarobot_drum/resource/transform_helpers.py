@@ -96,9 +96,12 @@ def parse_multi_part_response(response):
 
 
 def read_x_data_from_response(response):
+    def _sparse(data, key):
+        return pd.DataFrame.sparse.from_spmatrix(read_mtx_payload(data, key))
+
     reader = {
         "arrow": read_arrow_payload,
-        "sparse": lambda d, k: pd.DataFrame.sparse.from_spmatrix(read_mtx_payload(d, k)),
+        "sparse": _sparse,
         "csv": read_csv_payload,
     }
     data = parse_multi_part_response(response)
