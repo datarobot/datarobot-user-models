@@ -2,7 +2,7 @@ name: r_binary_classification
 type: training
 targetType: binary
 # modelID: optional
-environmentID: 5e8c889607389fe0f466c72d
+environmentID: 610305345da4263681a176b5
 #trainingModel:
 #  trainOnProject: optional project on which to train
 validation:
