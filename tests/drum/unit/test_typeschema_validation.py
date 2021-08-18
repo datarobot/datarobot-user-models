@@ -140,7 +140,7 @@ class TestSchemaValidator:
 
     @pytest.fixture
     def sparse_df(self):
-        yield pd.DataFrame.sparse.from_spmatrix(sparse.eye(10))
+        yield pd.DataFrame.sparse.from_spmatrix(sparse.csr_matrix(sparse.eye(10)))
 
     @pytest.fixture
     def dense_df(self):
