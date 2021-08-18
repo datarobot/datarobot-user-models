@@ -1,4 +1,11 @@
-from datarobot_drum.drum.utils import _order_by_float, _can_be_converted_to_float
+from datarobot_drum.drum.utils import _order_by_float, _can_be_converted_to_float, marshal_labels
+
+
+def test_marshal_labels():
+    assert marshal_labels(expected_labels=["True", "False"], actual_labels=[False, True]) == [
+        "False",
+        "True",
+    ]
 
 
 def test__order_by_float():

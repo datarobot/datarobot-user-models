@@ -264,7 +264,7 @@ outer_predict <- function(target_type, binary_data=NULL, mimetype=NULL, model=NU
                   )
                 )
             }
-            labels_to_return <- .order_by_float(expected_labels_dbl, actual_labels_dbl)
+            labels_to_return <- .order_by_float(expected_labels, actual_labels)
         }
         labels_to_return
     }

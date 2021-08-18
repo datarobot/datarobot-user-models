@@ -1,4 +1,5 @@
 import json
+from distutils.util import strtobool
 from pandas import DataFrame
 from typing import Set, Any, List
 import logging
@@ -315,12 +316,12 @@ def marshal_labels(expected_labels: List[str], actual_labels: List[Any]):
     if (
         _can_be_converted_to_float(expected_labels)
         and _can_be_converted_to_float(actual_labels)
-        and set(float(l) for l in expected_labels) == set(float(l) for l in actual_labels)
+        and set(floatify(l) for l in expected_labels) == set(floatify(l) for l in actual_labels)
     ):
         return _order_by_float(expected_labels, actual_labels)
 
     raise DrumCommonException(
-        "Expected predictions to have columns [{}], but encountered [{}]".format(
+        "Expected predictions to have columns {}, but encountered {}".format(
             expected_labels, actual_labels
         )
     )
@@ -336,15 +337,22 @@ def _order_by_float(expected_labels, actual_labels):
 
     def get_corresponding_expected_label(a_l):
         for e_l in expected_labels:
-            if float(a_l) == float(e_l):
+            if floatify(a_l) == floatify(e_l):
                 return e_l
 
     return [get_corresponding_expected_label(_l) for _l in actual_labels]
 
 
+def floatify(label):
+    try:
+        return float(label)
+    except ValueError:
+        return float(strtobool(label))
+
+
 def _can_be_converted_to_float(labels):
     try:
-        [float(label) for label in labels]
+        [floatify(label) for label in labels]
         return True
     except ValueError:
         return False
