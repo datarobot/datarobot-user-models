@@ -216,6 +216,19 @@ outer_predict <- function(target_type, binary_data=NULL, mimetype=NULL, model=NU
         }
     }
 
+
+    .order_by_float <- function(expected_labels, actual_labels) {
+        # If they do match as doubles, use the expected labels, but keep the actual label ordering
+        .get_corresponding_expected_label <- function(a_l) {
+            for (e_l in expected_labels) {
+                if (as.double(a_l) == as.double(e_l)) {
+                    return(e_l)
+                }
+            }
+        }
+        unlist(lapply(actual_labels, .get_corresponding_expected_label))
+    }
+
     .validate_classification_predictions <- function(to_validate) {
         .validate_data(to_validate)
         if (target_type == TargetType$MULTICLASS) {
@@ -251,11 +264,11 @@ outer_predict <- function(target_type, binary_data=NULL, mimetype=NULL, model=NU
                   )
                 )
             }
-            # If they do match as doubles, use the expected labels, but keep the actual label ordering
-            labels_to_return <- expected_labels[order(names(to_validate))]
+            labels_to_return <- .order_by_float(expected_labels, actual_labels)
         }
         labels_to_return
     }
+
 
     .validate_regression_predictions <- function(to_validate) {
         .validate_data(to_validate)
