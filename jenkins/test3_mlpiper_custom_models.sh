@@ -44,17 +44,9 @@ echo "detected machine=$machine url_host: $url_host"
 # Note: The --network=host will allow a code running inside the docker to access the host network
 #       In mac we dont have host network so we use the host.docker.internal ip
 
-docker run -i \
-      --network $network \
-      -v $HOME:$HOME \
-      -e TEST_URL_HOST=$url_host \
-      -v /tmp:/tmp \
-      -v /var/run/docker.sock:/var/run/docker.sock \
-      -v "$FULL_PATH_CODE_DIR:$FULL_PATH_CODE_DIR" \
-      --workdir $FULL_PATH_CODE_DIR \
-      -i $TERMINAM_OPTION\
-      $DOCKER_IMAGE \
-      ./tests/drum/run-drum-tests-in-container.sh
+TEST_URL_HOST=$url_host
+
+./tests/drum/run-drum-tests-in-container.sh
 
 TEST_RESULT=$?
 
