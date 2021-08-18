@@ -48,7 +48,7 @@ docker run -i \
       --network $network \
       -v $HOME:$HOME \
       -e TEST_URL_HOST=$url_host \
-      --tmpfs /tmp \
+      -v /tmp:/tmp \
       -v /var/run/docker.sock:/var/run/docker.sock \
       -v "$FULL_PATH_CODE_DIR:$FULL_PATH_CODE_DIR" \
       --workdir $FULL_PATH_CODE_DIR \
