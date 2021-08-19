@@ -417,7 +417,7 @@ class ContainsMissing(BaseValidator):
             io_type = "Output"
 
         if any_missing and value in [missing_output_disallowed, missing_input_disallowed]:
-            return [f"{io_type} contains missing values, the model does not support missing."]
+            return [f"{io_type} contains missing values, the task does not support missing."]
         return []
 
 
@@ -528,7 +528,7 @@ class SchemaValidator:
             return True
         elif len(errors) == 0:
             if self._verbose:
-                logger.info("Schema validation completed for model {}.".format(step_label))
+                logger.info("Schema validation completed for task {}.".format(step_label))
             return True
         else:
             logger.error(
