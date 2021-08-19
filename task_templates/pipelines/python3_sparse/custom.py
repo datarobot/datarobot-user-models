@@ -1,5 +1,5 @@
 import pickle
-from typing import List, Optional
+from typing import List, Optional, Any, Dict
 
 import numpy as np
 import pandas as pd
@@ -55,16 +55,46 @@ def fit(
     with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
         pickle.dump(estimator, fp)
 
+def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
+    """
+    This hook defines the output of a custom estimator and returns predictions on input data.
+    It should be skipped if a task is a transform.
+
+    Note: While best practice is to include the score hook, if the score hook is not present DataRobot will
+    add a score hook and call the default predict method for the library, e.g. model.predict(X,y) for python
+
+    Parameters
+    ----------
+    data : is the dataframe to make predictions against. If `transform` is supplied,
+    `data` will be the transformed data.
+    model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
+    kwargs : additional keyword arguments to the method
+    In case of classification model class labels will be provided as the following arguments:
+    - `positive_class_label` is the positive class label for a binary classification model
+    - `negative_class_label` is the negative class label for a binary classification model
+
+    Returns
+    -------
+    This method should return predictions as a dataframe with the following format:
+      Binary Classification: must have columns for each class label with floating- point class
+        probabilities as values. Each row should sum to 1.0
+      Regression: must have a single column called `Predictions` with numerical values
+    """
+
+    return pd.DataFrame(data=model.predict_proba(data), columns=model.classes_)
 
 """
-Custom hooks for prediction
+
+Additional hooks that are available to use
 ---------------------------
 
-If drum's standard assumptions are incorrect for your model, DRUM supports several hooks
-for custom inference code.
+These hooks are largely meant to help with edge cases around loading libraries / non-standard model artifacts.
+
 """
 # def init(code_dir : Optional[str], **kwargs) -> None:
 #     """
+#     Can typically be skipped for python, but is required when using R.
+#     Allows to load libraries and additional files to use in other hooks.
 #
 #     Parameters
 #     ----------
@@ -74,8 +104,10 @@ for custom inference code.
 
 # def load_model(code_dir: str) -> Any:
 #     """
-#     Can be used to load supported models if your model has multiple artifacts, or for loading
-#     models that DRUM does not natively support
+#     This hook loads a trained object(s) from the artifact(s).
+#     It is only required when a trained object is stored in an artifact
+#     that uses an unsupported format or when multiple artifacts are used.
+#     See documentation at https://github.com/datarobot/datarobot-user-models for default formats
 #
 #     Parameters
 #     ----------
@@ -84,64 +116,4 @@ for custom inference code.
 #     Returns
 #     -------
 #     If used, this hook must return a non-None value
-#     """
-
-# def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
-#     """
-#     Intended to apply transformations to the prediction data before making predictions. This is
-#     most useful if DRUM supports the model's library, but your model requires additional data
-#     processing before it can make predictions
-#
-#     Parameters
-#     ----------
-#     data : is the dataframe given to DRUM to make predictions on
-#     model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
-#
-#     Returns
-#     -------
-#     Transformed data
-#     """
-
-# def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
-#     """
-#     This hook is only needed if you would like to use DRUM with a framework not natively
-#     supported by the tool.
-#
-#     Parameters
-#     ----------
-#     data : is the dataframe to make predictions against. If `transform` is supplied,
-#     `data` will be the transformed data.
-#     model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
-#     kwargs : additional keyword arguments to the method
-#     In case of classification model class labels will be provided as the following arguments:
-#     - `positive_class_label` is the positive class label for a binary classification model
-#     - `negative_class_label` is the negative class label for a binary classification model
-#
-#     Returns
-#     -------
-#     This method should return predictions as a dataframe with the following format:
-#       Binary Classification: must have columns for each class label with floating- point class
-#         probabilities as values. Each row should sum to 1.0
-#       Regression: must have a single column called `Predictions` with numerical values
-#
-#     """
-
-# def post_process(predictions: pd.DataFrame, model: Any) -> pd.DataFrame:
-#     """
-#     This method is only needed if your model's output does not match the above expectations
-#
-#     Parameters
-#     ----------
-#     predictions : is the dataframe of predictions produced by DRUM or by
-#       the `score` hook, if supplied
-#     model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
-#
-#     Returns
-#     -------
-#     This method should return predictions as a dataframe with the following format:
-#       Binary Classification: must have columns for each class label with floating- point class
-#         probabilities as values. Each row
-#     should sum to 1.0
-#       Regression: must have a single column called `Predictions` with numerical values
-#
 #     """
