@@ -3,6 +3,6 @@
   "name": "[DataRobot] R Drop-In",
   "description": "This template environment can be used to create artifact-only R custom models that use the caret library. Your custom model archive need only contain your model artifacts if you use the environment correctly.",
   "programmingLanguage": "r",
-  "environmentVersionId": "611e9db390cff028d329baa9",
+  "environmentVersionId": "610305345da4263681a176b5",
   "isPublic": true
 }
