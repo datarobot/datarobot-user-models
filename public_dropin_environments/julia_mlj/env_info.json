@@ -3,6 +3,6 @@
   "name": "[DataRobot] Julia Drop-In",
   "description": "This template environment can be used to create artifact-only Julia MLJ custom models. This environment contains Julia and a number of models accessilbe via MLJ interfaces and only requires your model artifact as a .jlso file and optionally a custom.jl file.",
   "programmingLanguage": "julia",
-  "environmentVersionId": "610305345da4263681a176b4",
+  "environmentVersionId": "611e9db390cff028d329baa6",
   "isPublic": true
 }
