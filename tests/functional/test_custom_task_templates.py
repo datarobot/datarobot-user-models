@@ -218,6 +218,9 @@ class TestCustomTaskTemplates(object):
             w.TaskInputs.ALL
         )
         if dr_target_type == dr.enums.CUSTOM_TASK_TARGET_TYPE.TRANSFORM:
+            if "image" in model_template:
+                # Image example outputs an image, but we need a numeric for the final estimator
+                bp = w.Tasks.IMG_GRAYSCALE_DOWNSCALED_IMAGE_FEATURIZER()(bp)
             bp = w.Tasks.LR1()(bp)
         user_blueprint = w.BlueprintGraph(bp).save()
         bp_id = user_blueprint.add_to_repository(proj_id)
