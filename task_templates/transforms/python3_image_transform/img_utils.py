@@ -24,7 +24,7 @@ def img_to_b64(image: Image.Image) -> str:
         image_ram_buffer.seek(0)
         image_bytes = image_ram_buffer.read()
         b64 = base64.b64encode(image_bytes)
-        return b64
+        return str(b64)
 
 
 def b64_img_to_array(b64: str, dtype=np.uint8) -> np.array:

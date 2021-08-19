@@ -2,7 +2,7 @@ import pickle
 import pandas as pd
 from pathlib import Path
 
-from task_templates.transforms.python3_image_transform.img_utils import (
+from img_utils import (
     b64_to_img,
     img_to_b64,
     img_to_grayscale,
@@ -18,7 +18,7 @@ def _process_image(raw_data):
 def fit(X, y, output_dir, **kwargs):
     """ This hook defines how DataRobot will train this task. Even transform tasks need to be trained to learn/store information from training data
     DataRobot runs this hook when the task is being trained inside a blueprint.
-    As an output, this hook is expected to create an artifact containg a trained object
+    As an output, this hook is expected to create an artifact containing a trained object
     The input parameters are passed by DataRobot based on project and blueprint configuration.
 
     Parameters

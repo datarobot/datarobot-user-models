@@ -242,7 +242,11 @@ class DataTypes(BaseValidator):
         -------
         boolean: True for is text, False for not text
         """
-        if pd.api.types.is_string_dtype(x) and pd.api.types.infer_dtype(x) != "boolean":
+        if (
+            pd.api.types.is_string_dtype(x)
+            and pd.api.types.infer_dtype(x) != "boolean"
+            and pd.api.types.infer_dtype(x) != "bytes"
+        ):
             pct_rows_with_whitespace = (x.str.count(r"\s") > 0).sum() / x.shape[0]
             return pct_rows_with_whitespace > 0.75
         return False
