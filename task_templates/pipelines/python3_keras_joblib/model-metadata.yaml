@@ -1,7 +1,7 @@
 name: python3_keras_joblib
 type: training
 # switch to binary/multiclass if appropriate for the project
-targetType: regression
+targetType: binary
 # modelID: optional
 environmentID: 5e8c889607389fe0f466c72d
 #trainingModel:
