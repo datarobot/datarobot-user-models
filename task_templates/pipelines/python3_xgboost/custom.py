@@ -1,12 +1,7 @@
 """
-    In this example we use an sklearn pipeline that is built using custom classes
+    In this example we show how to implement a simple XGBoost classifier or regressor
 
-    In some cases, avg(prediction) might not match avg(actuals)
-    This task, added as a calibrator in the end of a regression blueprint, can help to fix that
-    During fit(), it computes and stores the calibration coefficient that is equal
-    to avg(actuals) / avg(predicted) on training data
-    During score(), it multiplies incoming data by the calibration coefficient
-
+    Note: all of the model logic and pipelines lives in the helper file create_pipeline.py
 
 """
 from typing import List, Optional, Any, Dict
