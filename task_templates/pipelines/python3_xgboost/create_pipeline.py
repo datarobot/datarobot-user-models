@@ -1,3 +1,10 @@
+"""
+    This is a helper file for the custom.py main file
+    which actually creates the pipeline, which consists of data preprocessing steps and an XGBoost model
+
+    Note: This script can build either a classification or regression model depending on the target
+
+"""
 from xgboost import XGBClassifier, XGBRegressor
 
 from sklearn.compose import ColumnTransformer
