@@ -1,5 +1,5 @@
 """
-    In this example we show how to implement a simple XGBoost classifier or regressor
+    In this example we show how to implement a simple XGBoost classifier (binary and multiclass) or regressor
 
     Note: all of the model logic and pipelines lives in the helper file create_pipeline.py
 
@@ -26,34 +26,38 @@ def fit(
 
     This hook defines how DataRobot will train this task.
     DataRobot runs this hook when the task is being trained inside a blueprint.
-    As an output, this hook is expected to create an artifact containg a trained object,
+
+    DataRobot will pass the training data, project target, and additional parameters based on the project
+    and blueprint configuration as parameters to this function.
+
+    As an output, this hook is expected to create an artifact containing a trained object,
     that is then used to score new data.
-    The input parameters are passed by DataRobot based on project and blueprint configuration.
 
     Parameters
     ----------
-    X
-        Training data that DataRobot passes when this task is being trained.
-    y
+    X: pd.DataFrame
+        Training data that DataRobot passes when this task is being trained. Note that both the training data AND
+        column (feature) names are passed
+    y: pd.Series
         Project's target column.
-    output_dir
+    output_dir: str
         A path to the output folder (also provided in --output paramter of 'drum fit' command)
         The artifact [in this example - containing the trained sklearn pipeline]
         must be saved into this folder.
-    class_order
-        A two element long list dictating the order of classes which should be used for modeling.
+    class_order: Optional[List[str]]
+        This indicates which class DataRobot considers positive or negative. E.g. 'yes' is positive, 'no' is negative.
         Class order will always be passed to fit by DataRobot for classification tasks,
         and never otherwise. When models predict, they output a likelihood of one class, with a
         value from 0 to 1. The likelihood of the other class is 1 - this likelihood. Class order
         dictates that the first element in the list will be the 0 class, and the second will be the
         1 class.
-    row_weights
+    row_weights: Optional[np.ndarray]
         An array of non-negative numeric values which can be used to dictate how important
         a row is. Row weights is only optionally used, and there will be no filtering for which
         custom models support this. There are two situations when values will be passed into
-        row_weights, during smart downsampling and when weights are explicitly provided by the user
+        row_weights, during smart downsampling and when weights are explicitly specified in the project settings.
     kwargs
-        Added for forwards compatibility
+        Added for forwards compatibility.
 
     Returns
     -------
@@ -62,22 +66,19 @@ def fit(
         (typically containing a trained object) into output_dir
         so that the trained object can be used during scoring.
     """
-    # Feel free to delete which ever one of these you aren't using
     if class_order:
         estimator = make_classifier_pipeline(X, len(class_order))
-        if y.dtype == np.dtype("bool"):
-            y = y.astype("str")
         lb = LabelEncoder()
         y = lb.fit_transform(y)
     else:
         estimator = make_regressor_pipeline(X)
     estimator.fit(X, y)
 
-    # You must serialize out your model to the output_dir given, however if you wish to change this
-    # code, you will probably have to add a load_model method to read the serialized model back in
-    # When prediction is done.
-    # Check out this doc for more information on serialization https://github.com/datarobot/custom-\
-    # NOTE: We currently set a 10GB limit to the size of the serialized model
+    # Dump the trained object [in this example - a trained XGBoost model]
+    # into an artifact [in this example - artifact.pkl]
+    # and save it into output_dir so that it can be used later when scoring data
+    # Note: DRUM will automatically load the model when it is in the default format (see docs)
+    # and there is only one artifact file
     output_dir_path = Path(output_dir)
     if output_dir_path.exists() and output_dir_path.is_dir():
         with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
@@ -86,6 +87,8 @@ def fit(
 
 def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
     """
+    DataRobot will run this hook when the task is used for scoring inside a blueprint
+
     This hook defines the output of a custom estimator and returns predictions on input data.
     It should be skipped if a task is a transform.
 
@@ -95,61 +98,22 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
 
     Parameters
     ----------
-    data:
-        Is the dataframe to make predictions against. If `transform` is supplied,
-        `data` will be the transformed data.
-    model:
+    data: pd.DataFrame
+        Is the dataframe to make predictions against. If the `transform` hook is utilized,
+        `data` will be the transformed data
+    model: Any
         Trained object, extracted by DataRobot from the artifact created in fit().
         In this example, contains trained sklearn pipeline extracted from artifact.pkl.
     kwargs:
         Additional keyword arguments to the method
-        In case of classification model class labels will be provided as the following arguments:
-        - `positive_class_label` is the positive class label for a binary classification model
-        - `negative_class_label` is the negative class label for a binary classification model
 
     Returns
     -------
     This method should return predictions as a dataframe with the following format:
       Binary Classification: must have columns for each class label with floating- point class
-        probabilities as values. Each row should sum to 1.0
+        probabilities as values. Each row should sum to 1.0. The original class names defined in the project
+        must be used as column names.
       Regression: must have a single column called `Predictions` with numerical values
     """
 
     return pd.DataFrame(data=model.predict_proba(data), columns=model.classes_)
-
-
-"""
-
-
-Additional hooks that are available to use
----------------------------
-
-These hooks are largely meant to help with edge cases around loading libraries / non-standard model artifacts.
-
-"""
-# def init(code_dir : Optional[str], **kwargs) -> None:
-#     """
-#     Can typically be skipped for python, but is required when using R.
-#     Allows to load libraries and additional files to use in other hooks.
-#
-#     Parameters
-#     ----------
-#     code_dir : code folder passed in the `--code_dir` parameter
-#     kwargs : future proofing
-#     """
-
-# def load_model(code_dir: str) -> Any:
-#     """
-#     This hook loads a trained object(s) from the artifact(s).
-#     It is only required when a trained object is stored in an artifact
-#     that uses an unsupported format or when multiple artifacts are used.
-#     See documentation at https://github.com/datarobot/datarobot-user-models for default formats
-#
-#     Parameters
-#     ----------
-#     code_dir : is the directory where model artifact and additional code are provided, passed in
-#
-#     Returns
-#     -------
-#     If used, this hook must return a non-None value
-#     """
