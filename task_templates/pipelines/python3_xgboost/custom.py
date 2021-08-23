@@ -2,8 +2,8 @@
     In this example we show how to implement a simple XGBoost classifier (binary and multiclass) or regressor
 
     Note: all of the model logic and pipelines lives in the helper file create_pipeline.py
-
 """
+
 from typing import List, Optional, Any, Dict
 import pickle
 import pandas as pd
