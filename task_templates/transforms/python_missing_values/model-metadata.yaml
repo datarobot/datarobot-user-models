@@ -27,3 +27,6 @@ typeSchema:
     - field: data_types
       condition: EQUALS
       value: NUM
+    - field: contains_missing
+      condition: EQUALS
+      value: NEVER
