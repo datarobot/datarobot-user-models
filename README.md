@@ -17,11 +17,18 @@
 The **DataRobot User Models** repository contains information and tools for assembling,
 debugging, testing, and running your training and inference models with DataRobot.
 
+For further documentation on this and all other features please visit our comprehensive
+documentation at: https://docs.datarobot.com/
+
 ### Terminology
 This repository addresses the DataRobot functionality known as `custom models`. The terms `custom model` and `user model` can be used interchangeably, as can `custom model directory` and `code directory`.
 
 ## Quickstart <a name="quickstart"></a>
-The following example shows how to use the [DRUM](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) tool to make predictions on an [sklearn regression model](model_templates/python3_sklearn). 
+The following example shows how to use the 
+[DRUM](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) 
+tool to make predictions on an 
+[sklearn regression model](https://github.com/datarobot/datarobot-user-models/tree/master/model_templates/python3_sklearn). 
+
 1. Clone the repository
 2. Create a virtual environment: `python3 -m virtualenv <dirname for virtual environment>`
 3. Activate the virtual environment: `source <dirname for virtual environment>/bin/activate`
@@ -30,22 +37,30 @@ The following example shows how to use the [DRUM](https://github.com/datarobot/d
 6. Install datarobot-drum: `pip install datarobot-drum`
    1. If you want to install the dev environment, instead `pip install -e custom_model_runner/`
 7. Run the example: `drum score --code-dir model_templates/python3_sklearn --input tests/testdata/boston_housing.csv`  
-    > Note: this command assumes model is regression. For binary classification model provide: _**positive-class-label**_ and _**negative-class-label**_ arguments.  
+    > Note: this command assumes model is regression. 
+    For binary classification model provide: _**positive-class-label**_ 
+    and _**negative-class-label**_ arguments.  
     Input data is expected to be in CSV format. By default, missing values are indicated with NaN in Python, and NA in R according to `pd.read_csv` and `read.csv` respectively.
 
 For more examples, reference the [Custom Model Templates](#custom_model_templates).
 
 ## Assembling an inference model code folder <a name="inference_model_folder"></a>
-> Note: the following information is only relevant you are using [DRUM](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) to run a model.
+> Note: the following information is only relevant you are using 
+ [DRUM](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner) 
+ to run a model.
 
-Custom inference models are models trained outside of DataRobot. Once they are uploaded to DataRobot, they are deployed as a DataRobot deployment which supports model monitoring and management.
+Custom inference models are models trained outside of DataRobot. 
+Once they are uploaded to DataRobot, they are deployed as a DataRobot deployment which 
+supports model monitoring and management.
 
-To create a custom inference model, you must provide specific files to use with a custom environment:
+To create a custom inference model, you must provide specific files to use with a 
+custom environment:
 
 - a serialized model artifact with a file extension corresponding to the chosen environment language.
 - any additional custom code required to use it.
 
-The `drum new model` command can help you generate a model template. Check [here](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner#model-template-generation) for more information.
+The `drum new model` command can help you generate a model template. 
+Check [here](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner#model-template-generation) for more information.
 
 ### Built-In Model Support
 The DRUM tool has built-in support for the following libraries. If your model is based on one of these libraries, DRUM expects your model artifact to have a matching file extension.
