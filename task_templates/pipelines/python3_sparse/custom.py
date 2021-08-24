@@ -98,9 +98,9 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     Returns
     -------
     This method should return predictions as a dataframe with the following format:
-      Binary Classification: must have columns for each class label with floating- point class
+      Classification: must have columns for each class label with floating- point class
         probabilities as values. Each row should sum to 1.0. The original class names defined in the project
-        must be used as column names.
+        must be used as column names. This applies to binary and multi-class classification.
       Regression: must have a single column called `Predictions` with numerical values
     """
 

@@ -1,3 +1,7 @@
+"""
+    In this example we show how flexible pipelines can be by creating
+    a computer vision pipeline and classifier
+"""
 from typing import List, Optional
 import pandas as pd
 import numpy as np
@@ -18,58 +22,61 @@ def fit(
     row_weights: Optional[np.ndarray] = None,
     **kwargs,
 ) -> None:
-    """
-    This hook must be implemented with your fitting code, for running drum in the fit mode.
+    """ This hook MUST ALWAYS be implemented for custom tasks.
 
-    This hook MUST ALWAYS be implemented for custom tasks.
-    For inference models, this hook can stick around unimplemented, and won’t be triggered.
+    This hook defines how DataRobot will train this task.
+    DataRobot runs this hook when the task is being trained inside a blueprint.
+
+    DataRobot will pass the training data, project target, and additional parameters based on the project
+    and blueprint configuration as parameters to this function.
+
+    As an output, this hook is expected to create an artifact containing a trained object,
+    that is then used to score new data.
 
     Parameters
     ----------
-    X: pd.DataFrame - training data to perform fit on
-    y: pd.Series - target data to perform fit on
-    output_dir: the path to write output. This is the path provided in '--output' parameter of the
-        'drum fit' command.
-    class_order : A two element long list dictating the order of classes which should be used for
-        modeling. Class order will always be passed to fit by DataRobot for classification tasks,
+    X: pd.DataFrame
+        Training data that DataRobot passes when this task is being trained. Note that both the training data AND
+        column (feature) names are passed
+    y: pd.Series
+        Project's target column.
+    output_dir: str
+        A path to the output folder (also provided in --output paramter of 'drum fit' command)
+        The artifact [in this example - containing the trained sklearn pipeline]
+        must be saved into this folder.
+    class_order: Optional[List[str]]
+        This indicates which class DataRobot considers positive or negative. E.g. 'yes' is positive, 'no' is negative.
+        Class order will always be passed to fit by DataRobot for classification tasks,
         and never otherwise. When models predict, they output a likelihood of one class, with a
         value from 0 to 1. The likelihood of the other class is 1 - this likelihood. Class order
         dictates that the first element in the list will be the 0 class, and the second will be the
         1 class.
-    row_weights: An array of non-negative numeric values which can be used to dictate how important
+    row_weights: Optional[np.ndarray]
+        An array of non-negative numeric values which can be used to dictate how important
         a row is. Row weights is only optionally used, and there will be no filtering for which
         custom models support this. There are two situations when values will be passed into
-        row_weights, during smart downsampling and when weights are explicitly provided by the user
-    kwargs: Added for forwards compatibility
+        row_weights, during smart downsampling and when weights are explicitly specified in the project settings.
+    kwargs
+        Added for forwards compatibility.
 
     Returns
     -------
-    Nothing
+    None
+        fit() doesn't return anything, but must output an artifact
+        (typically containing a trained object) into output_dir
+        so that the trained object can be used during scoring.
     """
-    # Feel free to delete which ever one of these you aren't using
     if class_order:
         fit_estimator = fit_image_classifier_pipeline(X, y, class_order)
-        # NOTE: We currently set a 10GB limit to the size of the serialized model
+
+        # Dump the trained object [in this example - a trained PyTorch model]
+        # into an artifact [in this example - artifact.joblib]
+        # and save it into output_dir so that it can be used later when scoring data
+        # Note: DRUM will automatically load the model when it is in the default format (see docs)
+        # and there is only one artifact file
         serialize_estimator_pipeline(fit_estimator, output_dir)
     else:
         raise NotImplementedError("Regression not implemented for Visual AI.")
-
-
-"""
-Custom hooks for prediction
----------------------------
-
-If drum's standard assumptions are incorrect for your model, DRUM supports several hooks
-for custom inference code.
-"""
-# def init(code_dir : Optional[str], **kwargs) -> None:
-#     """
-#
-#     Parameters
-#     ----------
-#     code_dir : code folder passed in the `--code_dir` parameter
-#     kwargs : future proofing
-#     """
 
 
 def load_model(input_dir: str) -> Pipeline:
@@ -93,64 +100,3 @@ def load_model(input_dir: str) -> Pipeline:
         Estimator pipeline obj
     """
     return deserialize_estimator_pipeline(input_dir)
-
-
-# def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
-#     """
-#     Intended to apply transformations to the prediction data before making predictions. This is
-#     most useful if DRUM supports the model's library, but your model requires additional data
-#     processing before it can make predictions
-#
-#     Parameters
-#     ----------
-#     data : is the dataframe given to DRUM to make predictions on
-#     model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
-#
-#     Returns
-#     -------
-#     Transformed data
-#     """
-
-# def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
-#     """
-#     This hook is only needed if you would like to use DRUM with a framework not natively
-#     supported by the tool.
-#
-#     Parameters
-#     ----------
-#     data : is the dataframe to make predictions against. If `transform` is supplied,
-#     `data` will be the transformed data.
-#     model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
-#     kwargs : additional keyword arguments to the method
-#     In case of classification model class labels will be provided as the following arguments:
-#     - `positive_class_label` is the positive class label for a binary classification model
-#     - `negative_class_label` is the negative class label for a binary classification model
-#
-#     Returns
-#     -------
-#     This method should return predictions as a dataframe with the following format:
-#       Binary Classification: must have columns for each class label with floating- point class
-#         probabilities as values. Each row should sum to 1.0
-#       Regression: must have a single column called `Predictions` with numerical values
-#
-#     """
-
-# def post_process(predictions: pd.DataFrame, model: Any) -> pd.DataFrame:
-#     """
-#     This method is only needed if your model's output does not match the above expectations
-#
-#     Parameters
-#     ----------
-#     predictions : is the dataframe of predictions produced by DRUM or by
-#       the `score` hook, if supplied
-#     model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
-#
-#     Returns
-#     -------
-#     This method should return predictions as a dataframe with the following format:
-#       Binary Classification: must have columns for each class label with floating- point class
-#         probabilities as values. Each row
-#     should sum to 1.0
-#       Regression: must have a single column called `Predictions` with numerical values
-#
-#     """
