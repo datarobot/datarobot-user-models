@@ -69,45 +69,55 @@ class TestCustomTaskTemplates(object):
     @pytest.mark.parametrize(
         "template_type, model_template, proj, env, target_type",
         [
+            (
+                "pipeline",
+                "python3_pytorch",
+                "project_binary_iris",
+                "pytorch_drop_in_env",
+                "binary",
+            ),
+            (
+                "pipeline",
+                "python3_pytorch",
+                "project_regression_boston",
+                "pytorch_drop_in_env",
+                "regression",
+            ),
+            (
+                "pipeline",
+                "python3_pytorch_multiclass",
+                "project_multiclass_skyserver",
+                "pytorch_drop_in_env",
+                "multiclass",
+            ),
+            (
+                "pipeline",
+                "python3_keras_joblib",
+                "project_regression_boston",
+                "keras_drop_in_env",
+                "regression",
+            ),
+            (
+                "pipeline",
+                "python3_keras_joblib",
+                "project_binary_iris",
+                "keras_drop_in_env",
+                "binary",
+            ),
+            (
+                "pipeline",
+                "python3_keras_joblib",
+                "project_multiclass_skyserver",
+                "keras_drop_in_env",
+                "multiclass",
+            ),
+            # This test currently fails, because it uses image features, which isn't one of the
+            # Allowed by default data types for Custom Tasks. We can re-enable this
+            # Test if we add image features in the fixture to the allowed data types.
             # (
             #     "pipeline",
-            #     "python3_pytorch",
-            #     "project_binary_iris",
-            #     "pytorch_drop_in_env",
-            #     "binary",
-            # ),
-            # (
-            #     "pipeline",
-            #     "python3_pytorch",
-            #     "project_regression_boston",
-            #     "pytorch_drop_in_env",
-            #     "regression",
-            # ),
-            # (
-            #     "pipeline",
-            #     "python3_pytorch_multiclass",
-            #     "project_multiclass_skyserver",
-            #     "pytorch_drop_in_env",
-            #     "multiclass",
-            # ),
-            # (
-            #     "pipeline",
-            #     "python3_keras_joblib",
-            #     "project_regression_boston",
-            #     "keras_drop_in_env",
-            #     "regression",
-            # ),
-            # (
-            #     "pipeline",
-            #     "python3_keras_joblib",
-            #     "project_binary_iris",
-            #     "keras_drop_in_env",
-            #     "binary",
-            # ),
-            # (
-            #     "pipeline",
-            #     "python3_keras_joblib",
-            #     "project_multiclass_skyserver",
+            #     "python3_keras_vizai_joblib",
+            #     "project_binary_cats_dogs",
             #     "keras_drop_in_env",
             #     "binary",
             # ),

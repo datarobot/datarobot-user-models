@@ -1,6 +1,5 @@
-import pickle
+from typing import Union, Any
 import pandas as pd
-from pathlib import Path
 
 from img_utils import (
     b64_to_img,
@@ -9,7 +8,7 @@ from img_utils import (
 )
 
 
-def _process_image(raw_data):
+def _process_image(raw_data: Union[str, bytes]) -> bytes:
     img = b64_to_img(raw_data)
     img = img_to_grayscale(img)
     return img_to_b64(img)
@@ -36,18 +35,27 @@ def fit(X, y, output_dir, **kwargs):
         fit() doesn't return anything, but must output an artifact (typically containing a trained object) into output_dir
         so that the trained object can be used during scoring inside transform()
     """
+    pass
 
-    # dump the transform function
-    # into an artifact [in this example - artifact.pkl]
-    # and save it into output_dir so that it can be used to impute on new data
-    output_dir_path = Path(output_dir)
-    if output_dir_path.exists() and output_dir_path.is_dir():
-        with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
-            pickle.dump(_process_image, fp)
+
+def load_model(code_dir: str) -> Any:
+    """
+    Can be used to load supported models if your model has multiple artifacts, or for loading
+    models that DRUM does not natively support
+
+    Parameters
+    ----------
+    code_dir : is the directory where model artifact and additional code are provided, passed in
+
+    Returns
+    -------
+    If used, this hook must return a non-None value
+    """
+    return _process_image
 
 
 def transform(data, transformer):
-    """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
+    """This hook defines how DataRobot will use the trained object from fit() to transform new data.
     DataRobot runs this hook when the task is used for scoring inside a blueprint.
     As an output, this hook is expected to return the transformed data.
     The input parameters are passed by DataRobot based on dataset and blueprint configuration.
