@@ -1,3 +1,5 @@
+import logging
+import sys
 from typing import List, Optional, Any, Dict
 import pandas as pd
 import numpy as np
@@ -84,22 +86,6 @@ def fit(
     save_torch_model(estimator, output_dir, artifact_name)
 
 
-# TODO: figure out how to implement this with score function?
-def transform(data, model):
-    """
-    apply the same subsetting at prediction time as during fit
-
-    Parameters
-    ----------
-    data : is the dataframe given to DRUM to make predictions on
-    model : is the deserialized model loaded by DRUM or by `load_model`, if supplied
-
-    Returns
-    -------
-    Transformed data
-    """
-
-
 def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
     """
     DataRobot will run this hook when the task is used for scoring inside a blueprint
@@ -134,6 +120,8 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     # If Classification
     data = subset_data(data)
     print(model.classes_)
+    sys.stdout.flush()
+    sys.stderr.flush()
     return pd.DataFrame(data=model.predict(data), columns=model.classes_)
 
     # If Regression
