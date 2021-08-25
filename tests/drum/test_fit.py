@@ -389,7 +389,6 @@ class TestFit:
             )
             assert "Transformation of the target variable is not supported by DRUM." in stdout
 
-
     @pytest.mark.parametrize(
         "framework",
         [
