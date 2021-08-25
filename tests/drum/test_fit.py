@@ -371,6 +371,25 @@ class TestFit:
             )
             assert "WARNING: No type schema provided. For transforms, we" not in stdout
 
+    def test_transform_fit_disallow_y_output(self, resources, tmp_path):
+
+        input_dataset = resources.datasets(SKLEARN, TRANSFORM)
+        target_type = TRANSFORM
+        custom_model_dir = "../fixtures/transform_with_y_output"
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose {}".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            target_type,
+            custom_model_dir,
+            input_dataset,
+            "--disable-strict-validation",
+        )
+        with pytest.raises(AssertionError):
+            _, stdout, _ = _exec_shell_cmd(
+                cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+            )
+            assert "Transformation of the target variable is not supported by DRUM." in stdout
+
+
     @pytest.mark.parametrize(
         "framework",
         [
