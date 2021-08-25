@@ -683,7 +683,6 @@ class CMRunTests:
             transformed_values = read_x_data_from_response(response)
             self._schema_validator.validate_outputs(transformed_values)
 
-
     def check_prediction_side_effects(self):
         rtol = 2e-02
         atol = 1e-06

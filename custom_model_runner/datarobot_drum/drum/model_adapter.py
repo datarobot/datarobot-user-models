@@ -403,7 +403,9 @@ class PythonModelAdapter:
                         "hook provided takes {}".format(len(transform_params))
                     )
                 if type(transform_out) == tuple:
-                    raise DrumTransformException("Transformation of the target variable is not supported by DRUM.")
+                    raise DrumTransformException(
+                        "Transformation of the target variable is not supported by DRUM."
+                    )
                 output_data = transform_out
                 output_target = target_data
 
