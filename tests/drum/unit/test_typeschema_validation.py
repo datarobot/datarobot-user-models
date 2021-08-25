@@ -303,6 +303,12 @@ class TestSchemaValidator:
 
         validator.validate_inputs(iris_binary)
 
+    def test_bytes_not_string(self):
+        """Tests that bytes are not counted as a string, and don't error trying to regex against a bytearray.  This is
+        a special case that is encountered when testing the output of transforms that output images"""
+        img = np.random.bytes(32)
+        assert not DataTypes.is_text(img)
+
     @pytest.mark.parametrize(
         "single_value_condition",
         [
