@@ -384,7 +384,7 @@ class TestInference:
             (R_TRANSFORM, TRANSFORM, R_TRANSFORM, None, False),
         ],
     )
-    @pytest.mark.parametrize("pass_target", [True, False])
+    @pytest.mark.parametrize("pass_target", [False])
     def test_custom_transform_server(
         self, resources, framework, problem, language, docker, tmp_path, use_arrow, pass_target,
     ):
