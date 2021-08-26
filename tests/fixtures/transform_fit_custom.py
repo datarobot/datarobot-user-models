@@ -89,6 +89,6 @@ def transform(X, transformer, y=None):
     """
     transformed = transformer.transform(X)
     if type(transformed) == csr_matrix:
-        return pd.DataFrame.sparse.from_spmatrix(transformed), y
+        return pd.DataFrame.sparse.from_spmatrix(transformed)
     else:
-        return pd.DataFrame(transformed), y
+        return pd.DataFrame(transformed)
