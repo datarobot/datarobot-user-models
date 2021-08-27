@@ -68,9 +68,7 @@ function read_input_data(input_binary_data)
     data = CSV.read(
         IOBuffer(input_binary_data),
         DataFrames.DataFrame,
-        delim=",",
-        ignorerepeated=true,
-        copycols=true,
+        delim=","
     )
     return data
 end
