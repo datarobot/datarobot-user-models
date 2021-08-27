@@ -3,7 +3,7 @@ name: r_binary_classification
 type: training
 targetType: binary
 # modelID: optional, used with drum push to create a new version of an existing model
-environmentID: 611fd93190cff0078f2686ba
+# environmentID: optional, used with drum push to select environment
 #trainingModel:
 #  trainOnProject: optional project on which to train
 validation:
