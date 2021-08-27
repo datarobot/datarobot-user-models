@@ -1,3 +1,4 @@
+# see MODEL-METADATA.md and VALIDATION-SCHEMA.md for full explanations of fields
 name: drumpush-binary
 type: training
 targetType: multiclass

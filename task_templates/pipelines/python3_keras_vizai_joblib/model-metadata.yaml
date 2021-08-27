@@ -1,7 +1,8 @@
+# see MODEL-METADATA.md and VALIDATION-SCHEMA.md for full explanations of fields
 name: python3_keras_vizai_joblib
 type: training
 targetType: binary
-# modelID: optional
+# modelID: optional, used with drum push to create a new version of an existing model
 environmentID: 5e8c889607389fe0f466c72d
 #trainingModel:
 #  trainOnProject: optional project on which to train
