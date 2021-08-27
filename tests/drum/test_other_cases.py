@@ -69,12 +69,7 @@ class TestOtherCases:
         stdo_stde = str(stdo) + str(stde)
 
         if framework == SKLEARN:
-            assert (
-                str(stdo_stde).find(
-                    "Wrong class labels ['no', 'yes']. Use class labels detected by sklearn model"
-                )
-                != -1
-            )
+            assert str(stdo_stde).find("Expected predictions to have columns ['no', 'yes']") != -1
         elif framework == RDS:
             assert (
                 str(stdo_stde).find(
