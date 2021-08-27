@@ -275,11 +275,9 @@ class TestFit:
             (SKLEARN_TRANSFORM, PYTHON),
             (SKLEARN_TRANSFORM_WITH_Y, PYTHON),
             (SKLEARN_TRANSFORM_NO_HOOK, PYTHON),
-            (SKLEARN_TRANSFORM_NON_NUMERIC, PYTHON),
             (R_TRANSFORM, R_FIT),
             (R_TRANSFORM_NO_Y, R_FIT),
             (R_TRANSFORM_NO_HOOK, R_FIT),
-            (R_TRANSFORM_NON_NUMERIC, R_FIT),
         ],
     )
     @pytest.mark.parametrize("problem", [REGRESSION, BINARY, ANOMALY])
@@ -318,6 +316,58 @@ class TestFit:
 
         # Ensure the default type schema is used since we do not disable strict validation
         assert "WARNING: No type schema provided. For transforms, we" in stdout
+
+    @pytest.mark.parametrize(
+        "framework, language",
+        [(SKLEARN_TRANSFORM_NON_NUMERIC, PYTHON), (R_TRANSFORM_NON_NUMERIC, R_FIT),],
+    )
+    @pytest.mark.parametrize("problem", [REGRESSION, BINARY, ANOMALY])
+    @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
+    @pytest.mark.parametrize("strict", [True, False])
+    def test_transform_fit_fails_default(
+        self, resources, framework, language, problem, weights, tmp_path, strict
+    ):
+        """Test that with strict validation non numeric transforms fail, but pass when strict validation is disabled."""
+        custom_model_dir = _create_custom_model_dir(
+            resources, tmp_path, framework, problem, language=framework,
+        )
+
+        input_dataset = resources.datasets(framework, problem)
+
+        weights_cmd, input_dataset, __keep_this_around = self._add_weights_cmd(
+            weights, input_dataset, r_fit=language == R_FIT
+        )
+
+        target_type = TRANSFORM
+
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose {}".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            target_type,
+            custom_model_dir,
+            input_dataset,
+            "" if strict else "--disable-strict-validation",
+        )
+        if problem != ANOMALY:
+            cmd += " --target {}".format(resources.targets(problem))
+
+        if problem in [BINARY, MULTICLASS]:
+            cmd = _cmd_add_class_labels(
+                cmd, resources.class_labels(framework, problem), target_type=target_type
+            )
+
+        cmd += weights_cmd
+
+        if strict:
+            with pytest.raises(AssertionError):
+                _, stdout, _ = _exec_shell_cmd(
+                    cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+                )
+                assert "expected NUM" in stdout
+        else:
+            _, stdout, _ = _exec_shell_cmd(
+                cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+            )
+            assert "WARNING: No type schema provided. For transforms, we" not in stdout
 
     @pytest.mark.parametrize(
         "framework",
@@ -662,6 +712,6 @@ class TestFit:
 
         # The predict server will not return the full stacktrace since it is ran in a forked process
         if error_in_predict_server:
-            assert "ERROR: schema validation failed for output" in stdout
+            assert "expected types to exactly match: CAT" in stdout
         else:
             assert "DrumSchemaValidationException" in stderr

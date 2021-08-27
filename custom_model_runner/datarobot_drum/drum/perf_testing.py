@@ -30,6 +30,7 @@ from datarobot_drum.drum.common import (
     SPARSE_COLNAMES,
     RESPONSE_PREDICTIONS_KEY,
     TargetType,
+    X_TRANSFORM_KEY,
 )
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
 from datarobot_drum.resource.transform_helpers import (
@@ -39,6 +40,7 @@ from datarobot_drum.resource.transform_helpers import (
     make_mtx_payload,
     parse_multi_part_response,
     filter_urllib3_logging,
+    read_x_data_from_response,
 )
 
 
@@ -664,7 +666,7 @@ class CMRunTests:
                 payload.update({SPARSE_COLNAMES: open(self.options.sparse_column_file)})
 
             # there is a known bug in urllib3 that needlessly gives a header warning
-            # this will supress the warning for better user experience when running performance test
+            # this will suppress the warning for better user experience when running performance test
             filter_urllib3_logging()
             if self.options.target:
                 target_location = target_temp_location.name
@@ -674,6 +676,8 @@ class CMRunTests:
                 payload.update({"y": open(target_location)})
 
             response = requests.post(run.url_server_address + endpoint, files=payload)
+            transformed_values = read_x_data_from_response(response)
+            self._schema_validator.validate_outputs(transformed_values)
             if not response.ok:
                 raise DrumCommonException(
                     "Failure in {} server: {}".format(endpoint[1:-1], response.text)
@@ -744,9 +748,7 @@ class CMRunTests:
 
             preds_full_subset = preds_full.iloc[data_subset.index]
 
-            if self._schema_validator:
-                # Validate that the predictions are of the type and shape the user specified in the schema
-                self._schema_validator.validate_outputs(preds_sample)
+            self._schema_validator.validate_outputs(preds_sample)
 
             matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)
             if not np.all(matches):

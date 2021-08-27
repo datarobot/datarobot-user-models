@@ -183,6 +183,10 @@ def _get_mapping(field: Fields, values: List[Values]) -> Map:
     return Map({"field": Enum(str(field)), "condition": conditions, "value": value_enum})
 
 
+def is_sparse(dataframe: pd.DataFrame) -> bool:
+    return dataframe.dtypes.apply(pd.api.types.is_sparse).any()
+
+
 class BaseValidator(ABC):
     def __init__(self, condition: Conditions, values: List[Union[str, int]]):
         if len(values) > 1 and condition in Conditions.single_value_conditions():
@@ -272,18 +276,26 @@ class DataTypes(BaseValidator):
             logger.info("Skipping type validation")
             return []
         types = dict()
-        types[Values.NUM] = dataframe.select_dtypes(np.number).shape[1] > 0
-        txt_columns = self.number_of_text_columns(dataframe)
-        img_columns = self.number_of_img_columns(dataframe)
-        types[Values.TXT] = txt_columns > 0
-        types[Values.IMG] = img_columns > 0
-        types[Values.CAT] = (
-            dataframe.select_dtypes("O").shape[1]
-            - (txt_columns + img_columns)
-            + dataframe.select_dtypes("boolean").shape[1]
-            > 0
-        )
-        types[Values.DATE] = dataframe.select_dtypes("datetime").shape[1] > 0
+
+        if is_sparse(dataframe):
+            # only numeric can be a csr or matrix market sparse matrix
+            types[Values.NUM] = True
+            types[Values.TXT] = False
+            types[Values.IMG] = False
+            types[Values.CAT] = False
+            types[Values.DATE] = False
+        else:
+            types[Values.NUM] = dataframe.select_dtypes(np.number).shape[1] > 0
+            num_txt_columns = self.number_of_text_columns(dataframe)
+            num_img_columns = self.number_of_img_columns(dataframe)
+            num_obj_columns = dataframe.select_dtypes("O").shape[1]
+            num_bool_columns = dataframe.select_dtypes("boolean").shape[1]
+            types[Values.TXT] = num_txt_columns > 0
+            types[Values.IMG] = num_img_columns > 0
+            types[Values.CAT] = (
+                num_obj_columns - (num_txt_columns + num_img_columns) + num_bool_columns > 0
+            )
+            types[Values.DATE] = dataframe.select_dtypes("datetime").shape[1] > 0
 
         types_present = [k for k, v in types.items() if v]
 
@@ -314,7 +326,7 @@ class Sparsity(BaseValidator):
 
     def validate(self, dataframe):
 
-        is_sparse = dataframe.dtypes.apply(pd.api.types.is_sparse).any()
+        _is_sparse = is_sparse(dataframe)
 
         sparse_input_allowed_values = [Values.SUPPORTED, Values.REQUIRED]
         sparse_output_allowed_values = [Values.DYNAMIC, Values.ALWAYS]
@@ -329,12 +341,12 @@ class Sparsity(BaseValidator):
         else:
             io_type = "output"
 
-        if is_sparse and value not in sparse_output_allowed_values + sparse_input_allowed_values:
+        if _is_sparse and value not in sparse_output_allowed_values + sparse_input_allowed_values:
             return [
                 f"Sparse {io_type} data found, however value is set to {value}, expecting dense"
             ]
         elif (
-            not is_sparse and value not in dense_output_allowed_values + dense_input_allowed_values
+            not _is_sparse and value not in dense_output_allowed_values + dense_input_allowed_values
         ):
             return [
                 f"Dense {io_type} data found, however value is set to {value}, expecting sparse"
@@ -391,7 +403,11 @@ class ContainsMissing(BaseValidator):
     def validate(self, dataframe):
         missing_output_disallowed = Values.NEVER
         missing_input_disallowed = Values.FORBIDDEN
-        any_missing = dataframe.isna().any().any()
+        if is_sparse(dataframe):
+            # sparse but not NA...
+            any_missing = False
+        else:
+            any_missing = dataframe.isna().any().any()
 
         value = self.values[0]
 
@@ -401,7 +417,7 @@ class ContainsMissing(BaseValidator):
             io_type = "Output"
 
         if any_missing and value in [missing_output_disallowed, missing_input_disallowed]:
-            return [f"{io_type} contains missing values, the model does not support missing."]
+            return [f"{io_type} contains missing values, the task does not support missing."]
         return []
 
 
@@ -495,9 +511,11 @@ class SchemaValidator:
         return field.to_validator_class()(condition, values)
 
     def validate_inputs(self, dataframe):
+        # Validate that the input values are of the type and shape the user specified in the schema
         return self._run_validate(dataframe, self._input_validators, "input")
 
     def validate_outputs(self, dataframe):
+        # Validate that the output values are of the type and shape the user specified in the schema
         return self._run_validate(dataframe, self._output_validators, "output")
 
     def _run_validate(self, dataframe, validators, step_label):
@@ -510,7 +528,7 @@ class SchemaValidator:
             return True
         elif len(errors) == 0:
             if self._verbose:
-                logger.info("Schema validation completed for model {}.".format(step_label))
+                logger.info("Schema validation completed for task {}.".format(step_label))
             return True
         else:
             logger.error(

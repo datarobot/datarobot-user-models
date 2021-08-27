@@ -1,43 +1,42 @@
-from contextlib import closing
-import socket
 import json
 import os
+import socket
 import tempfile
+from contextlib import closing
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
 from unittest.mock import patch
 
-
 import numpy as np
 import pandas as pd
-from pandas.testing import assert_frame_equal
 import pyarrow
 import pytest
 import responses
+from pandas.testing import assert_frame_equal
+from sklearn.linear_model import LogisticRegression
 
+from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPredictor
+from datarobot_drum.drum.common import (
+    MODEL_CONFIG_FILENAME,
+    ModelMetadataKeys,
+    read_model_metadata_yaml,
+    TargetType,
+    validate_config_fields,
+)
 from datarobot_drum.drum.drum import (
-    possibly_intuit_order,
-    output_in_code_dir,
     create_custom_inference_model_folder,
+    output_in_code_dir,
+    possibly_intuit_order,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.model_adapter import PythonModelAdapter
+from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import JavaPredictor
 from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
     PythonPredictor,
 )
 from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
-from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import JavaPredictor
-
-
+from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.push import _push_inference, _push_training, drum_push
-from datarobot_drum.drum.common import (
-    read_model_metadata_yaml,
-    MODEL_CONFIG_FILENAME,
-    TargetType,
-    validate_config_fields,
-    ModelMetadataKeys,
-)
 from datarobot_drum.drum.utils import StructuredInputReadUtils
 
 
@@ -81,7 +80,7 @@ class TestValidatePredictions:
         adapter._validate_predictions(
             to_validate=df, class_labels=[positive_label, negative_label],
         )
-        with pytest.raises(ValueError):
+        with pytest.raises(DrumCommonException):
             df = pd.DataFrame({positive_label: [0.1, 0.2, 0.3], negative_label: [0.9, 0.8, 0.7]})
             adapter._validate_predictions(
                 to_validate=df, class_labels=["yes", "no"],
@@ -700,3 +699,26 @@ class TestJavaPredictor:
         # required to properly shutdown py4j Gateway
         pred._setup_py4j_client_connection()
         pred._stop_py4j()
+
+
+@pytest.mark.parametrize("data_dtype,label_dtype", [(int, int), (float, int), (int, float)])
+def test_sklearn_predictor_wrong_dtype_labels(data_dtype, label_dtype):
+    """
+    This test makes sure that the target values can be ints, and the class labels be floats, and
+    everything still works okay
+    """
+    X = pd.DataFrame({"col1": range(10)})
+    y = pd.Series(data=[data_dtype(0)] * 5 + [data_dtype(1)] * 5)
+    csv_bytes = bytes(X.to_csv(index=False), encoding="utf-8")
+    estimator = LogisticRegression()
+    estimator.fit(X, y)
+    adapter = PythonModelAdapter(model_dir=None, target_type=TargetType.BINARY)
+    adapter._predictor_to_use = SKLearnPredictor()
+    out = adapter.predict(
+        estimator,
+        positive_class_label=str(label_dtype(0)),
+        negative_class_label=str(label_dtype(1)),
+        binary_data=csv_bytes,
+        target_type=TargetType.BINARY,
+    )
+    assert all(out.columns == [str(label_dtype(0)), str(label_dtype(1))])
