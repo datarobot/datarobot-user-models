@@ -12,6 +12,7 @@ function transform(data, model)
     elseif "class" in names(data)
         data = select!(data, Not(:class))
     end
+    data = coalesce.(data, 0)
     return data
 end
 
