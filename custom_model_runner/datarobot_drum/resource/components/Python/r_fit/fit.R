@@ -62,8 +62,6 @@ process_data <- function(input_filename, sparse_column_filename, target_filename
         num_rows <- as.integer(num_rows)
     }
 
-    X <- NULL
-    y <- NULL
     if (!is.null(target_filename) || !is.null(target_name)) {
         # If targets are provided in a separate file, read them in, and treat the df as X
         if (!is.null(target_filename)) {
@@ -91,7 +89,6 @@ process_data <- function(input_filename, sparse_column_filename, target_filename
     sample_rows <- as.vector(sample(nrow(X), size=num_rows))
     X <- X[sample_rows,, drop=FALSE]
     y <- y[sample_rows,, drop=TRUE]  # drop here so y is a single dimension
-
 
     return(list('X' = X, 'y' = y, 'num_rows' = num_rows))
 

@@ -57,7 +57,6 @@ class RFit(ConnectableComponent):
 
     def configure(self, params):
         super(RFit, self).configure(params)
-        print(self._params)
         self.custom_model_path = self._params["__custom_model_path__"]
         self.input_filename = self._params["inputFilename"]
         self.sparse_column_file = self._params["sparseColumnFile"]

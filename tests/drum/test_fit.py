@@ -559,10 +559,10 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, problem, language, is_training",
         [
-            # (SKLEARN_SPARSE, SPARSE, PYTHON, True),
-            # (PYTORCH, SPARSE, PYTHON, True),
+            (SKLEARN_SPARSE, SPARSE, PYTHON, True),
+            (PYTORCH, SPARSE, PYTHON, True),
             # This is testing an R custom task, but we have to set is_training to False because that's how you convert
-            # single-file fixtures into a custom task.
+            # single-file fixtures into a custom task. TODO: [RAPTOR-6175] Improve the test utils for custom tasks
             (R_ESTIMATOR_SPARSE, REGRESSION, R_ESTIMATOR_SPARSE, False),
         ],
     )
