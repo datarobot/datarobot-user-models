@@ -113,7 +113,7 @@ load_serialized_model <- function(model_dir, target_type) {
         f <- file(tmp_file_name, "w+b")
         writeBin(binary_data, f)
         flush(f)
-        data <- as.data.frame(as.matrix(readMM(tmp_file_name)))
+        data <- readMM(tmp_file_name)
         close(f)
         unlink(tmp_file_name)
     } else {

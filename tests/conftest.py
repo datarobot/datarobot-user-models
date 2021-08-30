@@ -71,6 +71,7 @@ from tests.drum.constants import (
     R_TRANSFORM_SPARSE_INPUT,
     R_TRANSFORM_SPARSE_IN_OUT,
     R_TRANSFORM_NON_NUMERIC,
+    R_ESTIMATOR_SPARSE,
     SPARSE,
     SPARSE_TARGET,
     TESTS_ARTIFACTS_PATH,
@@ -366,6 +367,7 @@ _artifacts = {
     (R_TRANSFORM_NON_NUMERIC, REGRESSION): None,
     (R_TRANSFORM_NON_NUMERIC, BINARY): None,
     (R_TRANSFORM_NON_NUMERIC, ANOMALY): None,
+    (R_ESTIMATOR_SPARSE, REGRESSION): None,
 }
 
 _custom_filepaths = {
@@ -481,6 +483,7 @@ _custom_filepaths = {
         os.path.join(TESTS_FIXTURES_PATH, "r_transform_fit_custom_non_numeric.R"),
         "custom.R",
     ),
+    R_ESTIMATOR_SPARSE: (os.path.join(TESTS_FIXTURES_PATH, "r_estimator_sparse.R"), "custom.R",),
 }
 
 

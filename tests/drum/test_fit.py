@@ -69,6 +69,7 @@ from .constants import (
     R_TRANSFORM_NO_Y,
     R_TRANSFORM_NO_HOOK,
     R_TRANSFORM_NON_NUMERIC,
+    R_ESTIMATOR_SPARSE,
 )
 
 
@@ -556,16 +557,18 @@ class TestFit:
         )
 
     @pytest.mark.parametrize(
-        "framework", [SKLEARN_SPARSE, PYTORCH, RDS,],
+        "framework, problem, language, is_training",
+        [
+            # (SKLEARN_SPARSE, SPARSE, PYTHON, True),
+            # (PYTORCH, SPARSE, PYTHON, True),
+            # This is testing an R custom task, but we have to set is_training to False because that's how you convert
+            # single-file fixtures into a custom task.
+            (R_ESTIMATOR_SPARSE, REGRESSION, R_ESTIMATOR_SPARSE, False),
+        ],
     )
-    def test_fit_sparse(self, resources, tmp_path, framework):
+    def test_fit_sparse(self, resources, tmp_path, framework, problem, language, is_training):
         custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            SPARSE,
-            language=R_FIT if framework == RDS else PYTHON,
-            is_training=True,
+            resources, tmp_path, framework, problem, language=language, is_training=is_training,
         )
 
         input_dataset = resources.datasets(framework, SPARSE)
