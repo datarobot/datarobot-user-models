@@ -1,5 +1,5 @@
 # see MODEL-METADATA.md and VALIDATION-SCHEMA.md for full explanations of fields
-name: drumpush-regression
+name: python_regression_with_custom_calibrator
 type: training
 targetType: regression
 # modelID: optional, used with drum push to create a new version of an existing model
@@ -23,8 +23,4 @@ typeSchema:
       value: FORBIDDEN
     - field: contains_missing
       condition: EQUALS
-      value: SUPPORTED
-  output_requirements:
-    - field: data_types
-      condition: EQUALS
-      value: NUM
+      value: FORBIDDEN

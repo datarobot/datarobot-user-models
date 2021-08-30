@@ -1,8 +1,9 @@
+# see MODEL-METADATA.md and VALIDATION-SCHEMA.md for full explanations of fields
 name: python3_anomaly_detection
 type: training
 targetType: anomaly
-# modelID: optional
-environmentID: 5e8c889607389fe0f466c72d
+# modelID: optional, used with drum push to create a new version of an existing model
+# environmentID: optional, used with drum push to select environment
 #trainingModel:
 #  trainOnProject: optional project on which to train
 validation:

@@ -1,5 +1,5 @@
 # see MODEL-METADATA.md and VALIDATION-SCHEMA.md for full explanations of fields
-name: drumpush-regression
+name: python_regression
 type: training
 targetType: regression
 # modelID: optional, used with drum push to create a new version of an existing model
@@ -17,14 +17,10 @@ typeSchema:
       value: NUM
     - field: number_of_columns
       condition: NOT_LESS_THAN
-      value: 1
+      value: 2
     - field: sparse
       condition: EQUALS
-      value: FORBIDDEN
+      value: SUPPORTED
     - field: contains_missing
       condition: EQUALS
-      value: SUPPORTED
-  output_requirements:
-    - field: data_types
-      condition: EQUALS
-      value: NUM
+      value: FORBIDDEN
