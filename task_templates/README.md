@@ -25,6 +25,7 @@ integration functionality with the DataRobot platform
   development
 * `python3_sklearn_transform` - Verified - This is a python template implementing a
   preprocessing-only SKLearn pipeline, handling categorical and numeric variables
+* `python3_image_transform` - Shows how to handle input and output of image data type with DataRobot
 
 ## Estimators
 
