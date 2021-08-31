@@ -64,7 +64,9 @@ process_data <- function(input_filename, sparse_column_filename, target_filename
     }
 
     # If a target is provided...
+    X <- NULL
     y <- NULL
+    na_rows <- NULL
     if (!is.null(target_filename) || !is.null(target_name)) {
         # And if targets are provided in a separate file, read them in, and treat the df as X
         if (!is.null(target_filename)) {
@@ -89,6 +91,7 @@ process_data <- function(input_filename, sparse_column_filename, target_filename
     # If no target is provided, then treat the df as X
     } else {
         X <- df
+        na_rows <- rep(FALSE, nrow(X))  # Set all of na_rows to FALSE since no y values are NA
     }
 
     # Sample X (and y if provided) using the provided num_rows amount
@@ -98,15 +101,16 @@ process_data <- function(input_filename, sparse_column_filename, target_filename
         y <- y[sample_rows,, drop=TRUE]  # drop here so y is a single dimension
     }
 
-    return(list('X' = X, 'y' = y, 'num_rows' = num_rows))
+    return(list('X' = X, 'y' = y, 'na_rows' = na_rows, 'sample_rows' = sample_rows))
 
 }
 
 
-process_weights <- function(X, weights_filename, weights, num_rows){
+process_weights <- function(X, weights_filename, weights, na_rows, sample_rows){
+  row_weights <- NULL
   if (!is.null(weights_filename)){
     row_weights <- load_data(weights_filename)
-    row_weights <- row_weights[sample(nrow(row_weights), size=num_rows, replace=TRUE ), ]
+
   } else if(!is.null(weights)){
     if (! weights %in% colnames(X)){
       stop( paste("The column name",
@@ -116,6 +120,12 @@ process_weights <- function(X, weights_filename, weights, num_rows){
     row_weights <- X[, weights, drop=FALSE]
   } else {
     row_weights = NULL
+  }
+
+  # Drop the NA rows found from y (if applicable) then use the same sample_rows as X (and y if present)
+  if (!is.null(row_weights)) {
+    row_weights <- row_weights[!na_rows,, drop=FALSE]
+    row_weights <- row_weights[sample_rows,, drop=FALSE]
   }
   row_weights
 }
@@ -146,9 +156,10 @@ outer_fit <- function(output_dir, input_filename, sparse_column_filename, target
 
     X <- processed_data$X
     y <- processed_data$y
-    num_rows <- processed_data$num_rows
+    na_rows <- processed_data$na_rows
+    sample_rows <- processed_data$sample_rows
 
-    row_weights <- process_weights(X, weights_filename, weights, num_rows )
+    row_weights <- process_weights(X, weights_filename, weights, na_rows, sample_rows)
 
     parameters <- process_parameters(parameter_filename)
 
