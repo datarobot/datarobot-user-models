@@ -55,6 +55,7 @@ load_data <- function(input_filename, sparse_column_filename){
 process_data <- function(input_filename, sparse_column_filename, target_filename, target_name, num_rows){
     # read X
     df <- load_data(input_filename, sparse_column_filename)
+
     # set num_rows
     if (num_rows == 'ALL'){
         num_rows <- nrow(df)
@@ -62,8 +63,10 @@ process_data <- function(input_filename, sparse_column_filename, target_filename
         num_rows <- as.integer(num_rows)
     }
 
+    # If a target is provided...
+    y <- NULL
     if (!is.null(target_filename) || !is.null(target_name)) {
-        # If targets are provided in a separate file, read them in, and treat the df as X
+        # And if targets are provided in a separate file, read them in, and treat the df as X
         if (!is.null(target_filename)) {
             X <- df
             y <- load_data(target_filename)
@@ -83,12 +86,17 @@ process_data <- function(input_filename, sparse_column_filename, target_filename
         na_rows <- as.vector(is.na(y[target_name]))
         X <- X[!na_rows,, drop=FALSE]
         y <- y[!na_rows,, drop=FALSE]
+    # If no target is provided, then treat the df as X
+    } else {
+        X <- df
     }
 
-    # Sample X and y using the provided num_rows amount
+    # Sample X (and y if provided) using the provided num_rows amount
     sample_rows <- as.vector(sample(nrow(X), size=num_rows))
     X <- X[sample_rows,, drop=FALSE]
-    y <- y[sample_rows,, drop=TRUE]  # drop here so y is a single dimension
+    if (!is.null(y)) {
+        y <- y[sample_rows,, drop=TRUE]  # drop here so y is a single dimension
+    }
 
     return(list('X' = X, 'y' = y, 'num_rows' = num_rows))
 
