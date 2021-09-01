@@ -57,19 +57,10 @@ class BaseLanguagePredictor(ABC):
             )
 
         model_metadata = read_model_metadata_yaml(self._code_dir)
-        schema = model_metadata.get("typeSchema", {})
-        use_default_type_schema = False
-        strict_validation = not self.options.disable_strict_validation
-        if self.options.model_config:
-            type_schema = self.options.model_config.get("typeSchema", {})
 
-        if not type_schema and strict_validation:
-            use_default_type_schema = True
-
-        self._schema_validator = (
-            SchemaValidator(schema, use_default_type_schema=use_default_type_schema)
-            if model_metadata
-            else None
+        self._schema_validator = SchemaValidator.create_validator(
+            model_metadata=model_metadata,
+            strict_validation=True,
         )
 
     def monitor(self, kwargs, predictions, predict_time_ms):

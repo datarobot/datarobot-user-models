@@ -543,3 +543,18 @@ class SchemaValidator:
                     "schema validation failed for {}:\n {}".format(step_label, errors)
                 )
             return False
+
+    @classmethod
+    def create_validator(cls, model_metadata, strict_validation, verbose=False):
+        if model_metadata is None:
+            schema = {}
+        else:
+            schema = model_metadata.get("typeSchema", {})
+        use_default_type_schema = False
+        if not schema and strict_validation:
+            print(
+                "WARNING: No type schema provided. We enforce using the default type schema for all tasks. "
+                "Disable strict validation if you do not want to use the default type schema."
+            )
+            use_default_type_schema = True
+        return cls(schema, use_default_type_schema=use_default_type_schema, verbose=verbose)
