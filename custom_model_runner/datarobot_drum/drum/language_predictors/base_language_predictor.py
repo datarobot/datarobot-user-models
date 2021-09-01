@@ -59,8 +59,7 @@ class BaseLanguagePredictor(ABC):
         model_metadata = read_model_metadata_yaml(self._code_dir)
 
         self._schema_validator = SchemaValidator.create_validator(
-            model_metadata=model_metadata,
-            strict_validation=True,
+            model_metadata=model_metadata, strict_validation=True,
         )
 
     def monitor(self, kwargs, predictions, predict_time_ms):
