@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 
 from abc import ABC, abstractmethod
@@ -58,8 +59,10 @@ class BaseLanguagePredictor(ABC):
 
         model_metadata = read_model_metadata_yaml(self._code_dir)
 
+        # Set the environment variable STRICT_VALIDATION to use validation
         self._schema_validator = SchemaValidator.create_validator(
-            model_metadata=model_metadata, strict_validation=True,
+            model_metadata=model_metadata,
+            strict_validation=os.getenv("STRICT_VALIDATION") is not None,
         )
 
     def monitor(self, kwargs, predictions, predict_time_ms):
