@@ -2,6 +2,7 @@ import logging
 import numpy
 import os
 import pandas as pd
+from scipy.sparse import coo_matrix
 
 from datarobot_drum.drum.common import (
     LOGGER_NAME_PREFIX,
@@ -209,5 +210,13 @@ class RPredictor(BaseLanguagePredictor):
                 pd.DataFrame, type(py_data_object)
             )
             raise DrumCommonException(error_message)
+
+        # If the column names contain this set of magic values, it implies the output data is sparse, so construct
+        # a sparse coo_matrix out of it. TODO: [RAPTOR-6209] propagate column names when R output data is sparse
+        if list(output_X.columns) == ['__DR__i', '__DR__j', '__DR__x']:
+            row = output_X['__DR__i']
+            col = output_X['__DR__j']
+            data = output_X['__DR__x']
+            output_X = pd.DataFrame.sparse.from_spmatrix(coo_matrix((data, (row, col))))
 
         return output_X, output_y

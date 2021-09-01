@@ -49,7 +49,6 @@ from .constants import (
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
     PYTORCH,
     R,
-    R_FIT,
     R_FAIL_CLASSIFICATION_VALIDATION_HOOKS,
     RDS,
     RDS_SPARSE,
@@ -65,6 +64,7 @@ from .constants import (
     JULIA,
     MLJ,
     R_TRANSFORM,
+    R_ESTIMATOR_SPARSE,
 )
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
 from datarobot_drum.resource.utils import (
@@ -625,7 +625,7 @@ class TestInference:
                     assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(
-        "framework, problem, language", [(RDS_SPARSE, REGRESSION, R_FIT),],
+        "framework, problem, language", [(RDS_SPARSE, REGRESSION, R_ESTIMATOR_SPARSE),],
     )
     @pytest.mark.parametrize("nginx", [False, True])
     def test_predictions_r_mtx(

@@ -5,6 +5,7 @@ from cgi import FieldStorage
 from io import BytesIO, StringIO
 
 from scipy.io import mmwrite, mmread
+from scipy.sparse import issparse
 from scipy.sparse.csr import csr_matrix
 
 from datarobot_drum.drum.common import verify_pyarrow_module, X_FORMAT_KEY, X_TRANSFORM_KEY
@@ -26,7 +27,7 @@ class NoHeaderErrorFilter(logging.Filter):
 
 
 def is_sparse(df):
-    return hasattr(df, "sparse") or type(df.iloc[0].values[0]) == csr_matrix
+    return hasattr(df, "sparse") or issparse(df.iloc[0].values[0])
 
 
 def make_arrow_payload(df, arrow_version):
