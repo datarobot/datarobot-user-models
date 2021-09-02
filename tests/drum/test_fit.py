@@ -315,7 +315,7 @@ class TestFit:
         )
 
         # Ensure the default type schema is used since we do not disable strict validation
-        assert "WARNING: No type schema provided. For transforms, we" in stdout
+        assert "WARNING: No type schema provided." in stdout
 
     @pytest.mark.parametrize(
         "framework, language",
@@ -367,7 +367,7 @@ class TestFit:
             _, stdout, _ = _exec_shell_cmd(
                 cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
             )
-            assert "WARNING: No type schema provided. For transforms, we" not in stdout
+            assert "WARNING: No type schema provided." not in stdout
 
     @pytest.mark.parametrize(
         "framework",
