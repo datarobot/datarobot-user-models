@@ -140,7 +140,7 @@ class TestSchemaValidator:
 
     @pytest.fixture
     def sparse_df(self):
-        yield pd.DataFrame.sparse.from_spmatrix(sparse.eye(10))
+        yield pd.DataFrame.sparse.from_spmatrix(sparse.csr_matrix(sparse.eye(10)))
 
     @pytest.fixture
     def dense_df(self):
@@ -257,13 +257,11 @@ class TestSchemaValidator:
     @pytest.mark.parametrize(
         "value, expected_value_count",
         [
-            ([Values.AUDIO], 0),
             ([Values.COUNT_DICT], 0),
             ([Values.GEO], 0),
-            ([Values.TARGET_ONLY], 0),
-            ([Values.AUDIO, Values.GEO, Values.DATE_DURATION], 0),
+            ([Values.GEO, Values.DATE_DURATION], 0),
             ([Values.COUNT_DICT, Values.GEO], 0),
-            ([Values.COUNT_DICT, Values.GEO, Values.AUDIO, Values.NUM], 1),
+            ([Values.COUNT_DICT, Values.GEO, Values.NUM], 1),
         ],
     )
     def test_data_types_no_validation(self, condition, value, expected_value_count):
@@ -279,9 +277,7 @@ class TestSchemaValidator:
         assert len(validator._input_validators[0].values) == expected_value_count
 
     def test_data_types_no_validation_skips_validation(self, cats_and_dogs):
-        yaml_str = input_requirements_yaml(
-            Fields.DATA_TYPES, Conditions.IN, [Values.AUDIO, Values.GEO]
-        )
+        yaml_str = input_requirements_yaml(Fields.DATA_TYPES, Conditions.IN, [Values.GEO])
         schema_dict = self.yaml_str_to_schema_dict(yaml_str)
         validator = SchemaValidator(schema_dict)
 
@@ -306,6 +302,12 @@ class TestSchemaValidator:
         validator = SchemaValidator(schema_dict)
 
         validator.validate_inputs(iris_binary)
+
+    def test_bytes_not_string(self):
+        """Tests that bytes are not counted as a string, and don't error trying to regex against a bytearray.  This is
+        a special case that is encountered when testing the output of transforms that output images"""
+        img = np.random.bytes(32)
+        assert not DataTypes.is_text(img)
 
     @pytest.mark.parametrize(
         "single_value_condition",

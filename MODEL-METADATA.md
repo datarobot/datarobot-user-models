@@ -1,11 +1,11 @@
 # Model Metadata
 The `drum` tool has a verb called `push` which requires the usage of a metadata file in your 
 code directory to configure the creation of a DataRobot model. 
-## Options for either training or inference models
+## Options for either tasks or inference models
 * name (required): a string used as the custom model title, try to make this unique so you can search for it 
     later.
 * type (required): a string with the value either `training` or `inference`. Inference models are meant for
-solely deployment, while training models will be able to be trained on the leaderboard. 
+solely deployment, while tasks will be able to be trained on the leaderboard. 
 * environmentID (required): a hash of the execution environment to use while running your custom model. 
     You can find a list of available execution environments [here](https://app.datarobot.com/model-registry/custom-environments). 
     Click on the `Environment Info` tab of the environment and copy the ID to your file. 
@@ -26,7 +26,7 @@ major version update or a minor version update. If the previous model version is
 update would create the version 3.3, and a minor version update would create the version 2.4. 
 
 ## Options specific to inference models
-NOTE: All options specific to inference or training models are ignored if modelID is set- they
+NOTE: All options specific to inference models or tasks are ignored if modelID is set- they
 configure the base `custom model` entity only. However, they are still required to keep in the
 metadata file.
 * targetName (required): a string with the column of your data that your model tries to predict. 
@@ -35,12 +35,12 @@ metadata file.
 * predictionThreshold: Optional for binary models. The cutoff point between 0 and 1 that represents
 which label will be chosen as the predicted label. 
 
-## Options specific to training models
+## Options specific to tasks
 * trainOnProject (optional): A hash with the pid of a project you would like to train your new model or version 
 on. If this is supplied, the code you supplied will start to run against this pid automagically. 
 
 ### Validation Schema
-The validation schema is used to define input and output requirements for the training model (See detailed documentation in VALIDATION-SCHEMA.md).  The validation is used to
+The validation schema is used to define input and output requirements for the task (See detailed documentation in VALIDATION-SCHEMA.md).  The validation is used to
 communicate the acceptable inputs for the model along with the expected output.  This will be verified when running `drum fit`
 * typeSchema (optional): Top level dictionary that contains the input and output schema definitions
   * input_requirements (optional):  Specifications that apply to the models input.  The specifications provided as a list.
@@ -53,7 +53,7 @@ All specifications contain the following fields:
 
 #### data_types allowed values:
 - condition: "EQUALS", "IN", "NOT_EQUALS", "NOT_IN"
-- value: "NUM", "TXT", "CAT", "IMG", "DATE", "AUDIO", "DATE_DURATION", "COUNT_DICT", "GEO", "TARGET_ONLY'
+- value: "NUM", "TXT", "CAT", "IMG", "DATE", "DATE_DURATION", "COUNT_DICT", "GEO",
 
 #### sparse (input) allowed values:
 - condition: "EQUALS"
@@ -65,5 +65,5 @@ All specifications contain the following fields:
 
 #### number_of_columns allowed values:
 - condition: "EQUALS", "IN", "NOT_EQUALS", "NOT_IN", "GREATER_THAN", "LESS_THAN", "NOT_GREATER_THAN", "NOT_LESS_THAN"
-- value: Integer value > 0
-
+- value: Integer value >= 0 (for value of 0 only GREATER_THAN is allowed)
+   

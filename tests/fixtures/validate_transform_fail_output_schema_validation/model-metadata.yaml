@@ -1,7 +1,6 @@
-name: drumpush-transform
+name: drum-transform-output-fail
 type: training
 targetType: transform
-environmentID: 5e8c889607389fe0f466c72d
 typeSchema:
   output_requirements:
   - field: data_types

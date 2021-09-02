@@ -1,0 +1,11 @@
+description: |
+  Builds a release version of the public environment installer.
+  This should only be executed after both datarobot/datarobot-user-models and
+  datarobot/execution-environment-installer are branched.
+artifact build job: |
+  https://jenkins.hq.datarobot.com/job/Build_Environments_Installer/
+artifact build parameters:
+  CUSTOM_MODEL_INSTALLER_VERSION: {}
+  CUSTOM_MODEL_INSTALLER_ENV: release
+  EXECUTION_ENVIRONMENT_INSTALLER_SHA: release/{}
+  CUSTOM_MODEL_TEMPLATES_SHA: release/{}

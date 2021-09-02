@@ -171,9 +171,7 @@ function outer_predict(
         data = CSV.read(
             IOBuffer(binary_data),
             DataFrames.DataFrame,
-            delim=",",
-            ignorerepeated=true,
-            copycols=true,
+            delim=","
         )
     end
 

@@ -1,0 +1,26 @@
+# see MODEL-METADATA.md and VALIDATION-SCHEMA.md for full explanations of fields
+name: r_binary_classification
+type: training
+targetType: binary
+# modelID: optional, used with drum push to create a new version of an existing model
+# environmentID: optional, used with drum push to select environment
+#trainingModel:
+#  trainOnProject: optional project on which to train
+validation:
+  # Path is relative to this file
+  input: ../../../tests/testdata/iris_binary_training.csv
+  targetName: Species
+typeSchema:
+  input_requirements:
+    - field: data_types
+      condition: EQUALS
+      value: NUM
+    - field: number_of_columns
+      condition: NOT_LESS_THAN
+      value: 1
+    - field: sparse
+      condition: EQUALS
+      value: FORBIDDEN
+    - field: contains_missing
+      condition: EQUALS
+      value: FORBIDDEN
