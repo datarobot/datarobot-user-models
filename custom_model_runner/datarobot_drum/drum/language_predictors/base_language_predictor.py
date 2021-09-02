@@ -60,7 +60,6 @@ class BaseLanguagePredictor(ABC):
         model_metadata = read_model_metadata_yaml(self._code_dir)
 
         # Set the environment variable STRICT_VALIDATION to use validation
-        print(os.getenv("STRICT_VALIDATION", False) in [1, "True", "true", "TRUE"])
         self._schema_validator = SchemaValidator.create_validator(
             model_metadata=model_metadata,
             strict_validation=os.getenv("STRICT_VALIDATION", False)
