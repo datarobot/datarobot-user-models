@@ -546,6 +546,10 @@ class SchemaValidator:
 
     @classmethod
     def create_validator(cls, model_metadata, strict_validation, verbose=False):
+        if not strict_validation:
+            # Don't use any validation schema
+            return cls({}, use_default_type_schema=False, verbose=verbose)
+
         if model_metadata is None:
             schema = {}
         else:
