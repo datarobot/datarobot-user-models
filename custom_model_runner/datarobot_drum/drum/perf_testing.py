@@ -652,6 +652,50 @@ class CMRunTests:
         print("\n\nValidation checks results")
         print(tbl_report)
 
+    def _get_subset_payload(self, y=None):
+        def get_subset(data, y):
+            if y is not None:
+                data["_y"] = y.values
+            samplesize = min(1000, max(int(len(data) * 0.1), 10))
+            data_subset = data.sample(n=samplesize, random_state=42)
+            if y is not None:
+                subset_y = data_subset["_y"]
+                data_subset.drop(["_y"], axis=1)
+                subset_y.name = y.columns[0]  # there should only be 1 column
+            else:
+                subset_y = None
+            return data_subset, subset_y
+
+        input_extension = os.path.splitext(self.options.input)
+        is_sparse = input_extension[1] == ".mtx"
+
+        if is_sparse:
+            columns = [
+                column.strip() for column in open(self.options.sparse_column_file).readlines()
+            ]
+            df = pd.DataFrame.sparse.from_spmatrix(mmread(self.options.input), columns=columns)
+            data_subset, y_subset = get_subset(df, y)
+            subset_payload, colnames = make_mtx_payload(data_subset)
+            subset_payload = ("X.mtx", subset_payload)
+            files = {
+                "X": subset_payload,
+                SPARSE_COLNAMES: (
+                    SPARSE_COLNAMES,
+                    colnames,
+                    PredictionServerMimetypes.APPLICATION_OCTET_STREAM,
+                ),
+            }
+        else:
+            df = pd.read_csv(self.options.input)
+            data_subset, y_subset = get_subset(df, y)
+            subset_payload = make_csv_payload(data_subset)
+            files = {"X": subset_payload}
+
+        if y_subset is not None:
+            files.update({"y": make_csv_payload(y_subset)})
+
+        return data_subset, files
+
     def check_transform_server(self, target_temp_location=None):
 
         with DrumServerRun(
@@ -661,20 +705,20 @@ class CMRunTests:
             verbose=self._verbose,
         ) as run:
             endpoint = "/transform/"
-            payload = {"X": open(self.options.input)}
-            if self.options.sparse_column_file:
-                payload.update({SPARSE_COLNAMES: open(self.options.sparse_column_file)})
 
             # there is a known bug in urllib3 that needlessly gives a header warning
             # this will suppress the warning for better user experience when running performance test
             filter_urllib3_logging()
             if self.options.target:
-                target_location = target_temp_location.name
-                payload.update({"y": open(target_location)})
+                y = pd.read_csv(target_temp_location.name)
             elif self.options.target_csv:
-                target_location = self.options.target_csv
-                payload.update({"y": open(target_location)})
+                y = pd.read_csv(self.options.target_csv)
+            else:
+                y = None
 
+            _, payload = self._get_subset_payload(y)
+            if self.options.sparse_column_file:
+                payload.update({SPARSE_COLNAMES: open(self.options.sparse_column_file)})
             response = requests.post(run.url_server_address + endpoint, files=payload)
             if not response.ok:
                 raise DrumCommonException(
@@ -689,29 +733,7 @@ class CMRunTests:
         input_extension = os.path.splitext(self.options.input)
         is_sparse = input_extension[1] == ".mtx"
 
-        if is_sparse:
-            columns = [
-                column.strip() for column in open(self.options.sparse_column_file).readlines()
-            ]
-            df = pd.DataFrame.sparse.from_spmatrix(mmread(self.options.input), columns=columns)
-            samplesize = min(1000, max(int(len(df) * 0.1), 10))
-            data_subset = df.sample(n=samplesize, random_state=42)
-            subset_payload, colnames = make_mtx_payload(data_subset)
-            subset_payload = ("X.mtx", subset_payload)
-            files = {
-                "X": subset_payload,
-                SPARSE_COLNAMES: (
-                    SPARSE_COLNAMES,
-                    colnames,
-                    PredictionServerMimetypes.APPLICATION_OCTET_STREAM,
-                ),
-            }
-        else:
-            df = pd.read_csv(self.options.input)
-            samplesize = min(1000, max(int(len(df) * 0.1), 10))
-            data_subset = df.sample(n=samplesize, random_state=42)
-            subset_payload = make_csv_payload(data_subset)
-            files = {"X": subset_payload}
+        data_subset, files = self._get_subset_payload()
 
         labels = self.resolve_labels(self.target_type, self.options)
 
