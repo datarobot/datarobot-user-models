@@ -21,7 +21,8 @@ fit <- function(X, y, output_dir, ...){
       fit() doesn't return anything, but must output an artifact (typically containing a trained object) into output_dir
       so that the trained object can be used during transform.
   "
-  median = apply(X, 2, median)
+  # Compute median for each column, excluding nans
+  X_median = apply(X, 2, function(x) { median(x, na.rm = TRUE) })
 
   # Save model
   outfile <- 'r_transform.rds'
@@ -40,7 +41,7 @@ fit <- function(X, y, output_dir, ...){
       output_dir, outfile, sep=seperator
     )
   )
-  saveRDS(median, file = model_path)
+  saveRDS(X_median, file = model_path)
 }
 
 transform <- function(X, transformer, ...){
