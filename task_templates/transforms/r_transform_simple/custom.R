@@ -62,11 +62,11 @@ transform <- function(X, transformer, ...){
   data.frame
       Returns the transformed dataframe
   "
-  median <- transformer
+  X_median <- transformer
 
   # replace NA values with the median values for each column
   for (i in 1:ncol(X)) {
-    X[is.na(X[,i]), i] <- median[i]
+    X[is.na(X[,i]), i] <- X_median[i]
   }
   X
 }
