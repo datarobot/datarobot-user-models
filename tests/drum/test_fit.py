@@ -562,8 +562,18 @@ class TestFit:
         [
             (SKLEARN_SPARSE, SPARSE, PYTHON, True),
             (PYTORCH, SPARSE, PYTHON, True),
-            (R_ESTIMATOR_SPARSE, REGRESSION, R_FIT, True),  # Tests the R spare regression template (w/schema)
-            (R_VALIDATE_SPARSE_ESTIMATOR, REGRESSION, R_VALIDATE_SPARSE_ESTIMATOR, False),  # Asserts data is sparse
+            (
+                R_ESTIMATOR_SPARSE,
+                REGRESSION,
+                R_FIT,
+                True,
+            ),  # Tests the R spare regression template (w/schema)
+            (
+                R_VALIDATE_SPARSE_ESTIMATOR,
+                REGRESSION,
+                R_VALIDATE_SPARSE_ESTIMATOR,
+                False,
+            ),  # Asserts data is sparse
         ],
     )
     def test_fit_sparse(
