@@ -9,6 +9,7 @@ TESTS_DATA_PATH = os.path.join(TESTS_ROOT_PATH, "testdata")
 TESTS_DEPLOYMENT_CONFIG_PATH = os.path.join(TESTS_DATA_PATH, "deployment_config")
 TRAINING_TEMPLATES_PATH = os.path.join(TESTS_ROOT_PATH, "..", "task_templates", "pipelines")
 TRANSFORM_TEMPLATES_PATH = os.path.join(TESTS_ROOT_PATH, "..", "task_templates", "transforms")
+ESTIMATORS_TEMPLATES_PATH = os.path.join(TESTS_ROOT_PATH, "..", "task_templates", "estimators")
 
 MODEL_TEMPLATES_PATH = os.path.join(REPO_ROOT_PATH, "model_templates")
 PUBLIC_DROPIN_ENVS_PATH = os.path.join(REPO_ROOT_PATH, "public_dropin_environments")
@@ -48,6 +49,7 @@ R_TRANSFORM_SPARSE_INPUT = "R_transform_sparse_input"
 R_TRANSFORM_SPARSE_IN_OUT = "R_transform_sparse_in_out"
 R_TRANSFORM_NON_NUMERIC = "R_transform_non_numeric"
 R_ESTIMATOR_SPARSE = "R_estimator_sparse"
+R_VALIDATE_SPARSE_ESTIMATOR = "R_validate_sparse_estimator"
 
 MLJ = "mlj"
 MLJ_BINARY = "mlj_binary"

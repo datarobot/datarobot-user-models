@@ -64,7 +64,7 @@ from .constants import (
     JULIA,
     MLJ,
     R_TRANSFORM,
-    R_ESTIMATOR_SPARSE,
+    R_VALIDATE_SPARSE_ESTIMATOR,
 )
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
 from datarobot_drum.resource.utils import (
@@ -625,7 +625,7 @@ class TestInference:
                     assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(
-        "framework, problem, language", [(RDS_SPARSE, REGRESSION, R_ESTIMATOR_SPARSE),],
+        "framework, problem, language", [(RDS_SPARSE, REGRESSION, R_VALIDATE_SPARSE_ESTIMATOR),],
     )
     @pytest.mark.parametrize("nginx", [False, True])
     def test_predictions_r_mtx(

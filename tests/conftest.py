@@ -72,6 +72,7 @@ from tests.drum.constants import (
     R_TRANSFORM_SPARSE_IN_OUT,
     R_TRANSFORM_NON_NUMERIC,
     R_ESTIMATOR_SPARSE,
+    R_VALIDATE_SPARSE_ESTIMATOR,
     SPARSE,
     SPARSE_TARGET,
     TESTS_ARTIFACTS_PATH,
@@ -79,6 +80,7 @@ from tests.drum.constants import (
     TESTS_FIXTURES_PATH,
     TRAINING_TEMPLATES_PATH,
     TRANSFORM_TEMPLATES_PATH,
+    ESTIMATORS_TEMPLATES_PATH,
     TRANSFORM,
     UNSTRUCTURED,
     XGB,
@@ -164,6 +166,7 @@ _training_models_paths = {
     (PYTHON, XGB): os.path.join(TRAINING_TEMPLATES_PATH, "python3_xgboost"),
     (R_FIT, RDS): os.path.join(TRAINING_TEMPLATES_PATH, "r_lang"),
     (R_FIT, RDS_HYPERPARAMETERS): os.path.join(TESTS_FIXTURES_PATH, "r_lang_hyperparameters"),
+    (R_FIT, R_ESTIMATOR_SPARSE): os.path.join(ESTIMATORS_TEMPLATES_PATH, "r_sparse_regression"),
     (PYTHON, PYTORCH): os.path.join(TRAINING_TEMPLATES_PATH, "python3_pytorch"),
     (PYTHON, SKLEARN_ANOMALY): os.path.join(TRAINING_TEMPLATES_PATH, "python3_anomaly_detection"),
     (PYTHON, PYTORCH_MULTICLASS): os.path.join(
@@ -368,6 +371,7 @@ _artifacts = {
     (R_TRANSFORM_NON_NUMERIC, BINARY): None,
     (R_TRANSFORM_NON_NUMERIC, ANOMALY): None,
     (R_ESTIMATOR_SPARSE, REGRESSION): None,
+    (R_VALIDATE_SPARSE_ESTIMATOR, REGRESSION): None,
 }
 
 _custom_filepaths = {
@@ -483,7 +487,10 @@ _custom_filepaths = {
         os.path.join(TESTS_FIXTURES_PATH, "r_transform_fit_custom_non_numeric.R"),
         "custom.R",
     ),
-    R_ESTIMATOR_SPARSE: (os.path.join(TESTS_FIXTURES_PATH, "r_estimator_sparse.R"), "custom.R",),
+    R_VALIDATE_SPARSE_ESTIMATOR: (
+        os.path.join(TESTS_FIXTURES_PATH, "r_validate_sparse_estimator.R"),
+        "custom.R",
+    ),
 }
 
 

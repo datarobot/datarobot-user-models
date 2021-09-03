@@ -70,6 +70,7 @@ from .constants import (
     R_TRANSFORM_NO_HOOK,
     R_TRANSFORM_NON_NUMERIC,
     R_ESTIMATOR_SPARSE,
+    R_VALIDATE_SPARSE_ESTIMATOR,
 )
 
 
@@ -557,18 +558,26 @@ class TestFit:
         )
 
     @pytest.mark.parametrize(
-        "framework, problem, language, is_training",
+        "framework, problem, language, is_framework_directory",
         [
             (SKLEARN_SPARSE, SPARSE, PYTHON, True),
             (PYTORCH, SPARSE, PYTHON, True),
-            # This is testing an R custom task, but we have to set is_training to False because that's how you convert
-            # single-file fixtures into a custom task. TODO: [RAPTOR-6175] Improve the test utils for custom tasks
-            (R_ESTIMATOR_SPARSE, REGRESSION, R_ESTIMATOR_SPARSE, False),
+            (R_ESTIMATOR_SPARSE, REGRESSION, R_FIT, True),  # Tests the R spare regression template (w/schema)
+            (R_VALIDATE_SPARSE_ESTIMATOR, REGRESSION, R_VALIDATE_SPARSE_ESTIMATOR, False),  # Asserts data is sparse
         ],
     )
-    def test_fit_sparse(self, resources, tmp_path, framework, problem, language, is_training):
+    def test_fit_sparse(
+        self, resources, tmp_path, framework, problem, language, is_framework_directory
+    ):
+        # TODO: [RAPTOR-6175] Improve the test utils for custom tasks
+        # the is_training parameter should not make assumptions of whether the framework is a single file or directory
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language=language, is_training=is_training,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language=language,
+            is_training=is_framework_directory,
         )
 
         input_dataset = resources.datasets(framework, SPARSE)

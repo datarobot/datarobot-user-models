@@ -12,6 +12,14 @@ fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, ...){
 }
 
 score <- function(X, model, ...) {
-   # return a data.frame with a 'Predictions' column with a single value of 42
-   data.frame('Predictions'=rep(42, nrow(X)))
+  if (class(X) != "dgTMatrix") {
+    stop("X matrix is not sparse when it should be")
+  }
+  # TODO: [RAPTOR-6231] Sparse data column names are not passed to score hook
+  # if (is.null(colnames(X))) {
+  #   stop("X colnames are null when they should be populated")
+  # }
+
+  # return a data.frame with a 'Predictions' column with a single value of 42
+  data.frame('Predictions'=rep(42, nrow(X)))
 }
