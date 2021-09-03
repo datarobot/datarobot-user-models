@@ -10,9 +10,7 @@ from datarobot_drum.drum.common import (
     TargetType,
     StructuredDtoKeys,
     ModelInfoKeys,
-    read_model_metadata_yaml,
 )
-from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils import StructuredInputReadUtils
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
@@ -57,15 +55,6 @@ class BaseLanguagePredictor(ABC):
                 .init()
             )
 
-        model_metadata = read_model_metadata_yaml(self._code_dir)
-
-        # Set the environment variable STRICT_VALIDATION to use validation
-        self._schema_validator = SchemaValidator.create_validator(
-            model_metadata=model_metadata,
-            strict_validation=os.getenv("STRICT_VALIDATION", False)
-            in ["1", "True", "true", "TRUE"],
-        )
-
     def monitor(self, kwargs, predictions, predict_time_ms):
         if self._params["monitor"] == "True":
             self._mlops.report_deployment_stats(
@@ -107,9 +96,6 @@ class BaseLanguagePredictor(ABC):
                 raise ValueError(
                     "Your prediction probabilities do not add up to 1. \n{}".format(output_df)
                 )
-        if self._target_type.value == TargetType.TRANSFORM.value:
-            if self._schema_validator:
-                self._schema_validator.validate_outputs(output_df)
 
     def predict(self, **kwargs):
         start_predict = time.time()
