@@ -370,7 +370,7 @@ class TestFit:
             assert "WARNING: No type schema provided. For transforms, we" not in stdout
 
     @pytest.mark.parametrize(
-        "framework, language", [(SKLEARN_TRANSFORM_WITH_Y, PYTHON), (R_TRANSFORM_NO_Y, R_FIT),]
+        "framework, language", [(SKLEARN_TRANSFORM_WITH_Y, PYTHON), (R_TRANSFORM, R_FIT),]
     )
     @pytest.mark.parametrize("problem", [REGRESSION, BINARY, ANOMALY])
     def test_transform_fit_disallow_y_output(
@@ -390,11 +390,12 @@ class TestFit:
             input_dataset,
             "--disable-strict-validation",
         )
-        with pytest.raises(AssertionError):
-            _, stdout, _ = _exec_shell_cmd(
-                cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
-            )
-            assert "Transformation of the target variable is not supported by DRUM." in stdout
+        _, stdout, _ = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+        assert "Transformation of the target variable is not supported by DRUM." in stdout
 
     @pytest.mark.parametrize(
         "framework",
