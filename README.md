@@ -6,12 +6,11 @@
 2. [Quickstart and examples](#quickstart)
 3. [Assembling an inference model code folder](#inference_model_folder)
 4. [Unstructured inference models](#unstructured_inference_models)
-5. [Assembling a training model code folder](#training_model_folder)
-6. [Custom Model Templates](#custom_model_templates)
-7. [Custom Environment Templates](#custom_environment_templates)
-8. [Custom Model Runner (drum)](#custom_model_runner)
-9. [Contribution & development](#contribution_development)
-10. [Communication](#communication)
+5. [Custom Model Templates](#custom_model_templates)
+6. [Custom Environment Templates](#custom_environment_templates)
+7. [Custom Model Runner (drum)](#custom_model_runner)
+8. [Contribution & development](#contribution_development)
+9. [Communication](#communication)
 
 ## What is this repository? <a name="what_is_it"></a>
 The **DataRobot User Models** repository contains information and tools for assembling,

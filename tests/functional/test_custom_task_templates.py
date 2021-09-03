@@ -59,6 +59,14 @@ class TestCustomTaskTemplates(object):
         return proj.id
 
     @pytest.fixture(scope="session")
+    def project_binary_diabetes_no_text(self):
+        proj = dr.Project.create(
+            sourcedata=os.path.join(BASE_DATASET_DIR, "10k_diabetes_no_text.csv")
+        )
+        proj.set_target(target="readmitted", mode=dr.AUTOPILOT_MODE.MANUAL)
+        return proj.id
+
+    @pytest.fixture(scope="session")
     def project_multiclass_skyserver(self):
         proj = dr.Project.create(
             sourcedata=os.path.join(BASE_DATASET_DIR, "skyserver_sql2_27_2018_6_51_39_pm.csv")
@@ -169,7 +177,7 @@ class TestCustomTaskTemplates(object):
             (
                 "transform",
                 "python3_sklearn_transform",
-                "project_binary_diabetes",
+                "project_binary_diabetes_no_text",
                 "sklearn_drop_in_env",
                 "transform",
             ),
