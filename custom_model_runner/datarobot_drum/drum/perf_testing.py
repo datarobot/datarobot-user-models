@@ -30,7 +30,6 @@ from datarobot_drum.drum.common import (
     SPARSE_COLNAMES,
     RESPONSE_PREDICTIONS_KEY,
     TargetType,
-    X_TRANSFORM_KEY,
 )
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
 from datarobot_drum.resource.transform_helpers import (
@@ -654,14 +653,10 @@ class CMRunTests:
 
     def _get_subset_payload(self, y=None):
         def get_subset(data, y):
-            if y is not None:
-                data["_y"] = y.values
             samplesize = min(1000, max(int(len(data) * 0.1), 10))
             data_subset = data.sample(n=samplesize, random_state=42)
             if y is not None:
-                subset_y = data_subset["_y"]
-                data_subset.drop(["_y"], axis=1)
-                subset_y.name = y.columns[0]  # there should only be 1 column
+                subset_y = y.iloc[data_subset.index, :]
             else:
                 subset_y = None
             return data_subset, subset_y

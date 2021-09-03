@@ -674,14 +674,21 @@ class TestFit:
         )
 
     @pytest.mark.parametrize(
-        "framework, problem, language, error_in_predict_server",
+        "framework, problem, language, error_in_predict_server, expected_match",
         [
-            (SKLEARN_BINARY_SCHEMA_VALIDATION, BINARY, PYTHON, False),
-            (PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION, TRANSFORM, PYTHON, True),
+            (SKLEARN_BINARY_SCHEMA_VALIDATION, BINARY, PYTHON, False, "NUM"),
+            (PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION, TRANSFORM, PYTHON, True, "CAT"),
         ],
     )
     def test_fit_schema_failure(
-        self, resources, framework, problem, language, error_in_predict_server, tmp_path
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        error_in_predict_server,
+        tmp_path,
+        expected_match,
     ):
         custom_model_dir = _create_custom_model_dir(
             resources,
@@ -710,8 +717,4 @@ class TestFit:
             assert_if_fail=False,
         )
 
-        # The predict server will not return the full stacktrace since it is ran in a forked process
-        if error_in_predict_server:
-            assert "expected types to exactly match: CAT" in stdout
-        else:
-            assert "DrumSchemaValidationException" in stderr
+        assert "expected types to exactly match: {}".format(expected_match) in stderr
