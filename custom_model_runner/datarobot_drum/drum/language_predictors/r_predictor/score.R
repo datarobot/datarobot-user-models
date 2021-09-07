@@ -113,7 +113,7 @@ load_serialized_model <- function(model_dir, target_type) {
         f <- file(tmp_file_name, "w+b")
         writeBin(binary_data, f)
         flush(f)
-        data <- as.data.frame(as.matrix(readMM(tmp_file_name)))
+        data <- readMM(tmp_file_name)
         close(f)
         unlink(tmp_file_name)
     } else {
@@ -354,7 +354,7 @@ predict_unstructured <- function(model=NULL, data, ...) {
 #' @param mimetype character, The file type of the binary data
 #' @param transformer to use to make transformations
 #'
-#' @return list, Two-element list containing transformed X (data.frame) and y (vector or NULL)
+#' @return list, Two-element list containing transformed X (data.frame or sparseMatrix) and y (vector or NULL)
 #'
 outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=NULL, transformer=NULL){
     data <- .load_data(binary_data, mimetype=mimetype)
@@ -365,15 +365,24 @@ outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=
 
     if (!isFALSE(transform_hook)) {
         output_data <- transform_hook(data, transformer, target_data)
-        if (is.data.frame(output_data)) {
+        if (is.data.frame(output_data) || is(output_data, 'sparseMatrix')) {
             output_data <- list(output_data, NULL)
         }
     } else {
         output_data <- list(bake(transformer, data), NULL)
     }
 
-    if (!is.data.frame(output_data[[1]])) {
+    if (!(is.data.frame(output_data[[1]]) || is(output_data[[1]], 'sparseMatrix'))) {
         stop(sprintf("Transformed X must be of a data.frame type, received %s", typeof(output_data)))
+    }
+
+    # If the output data is sparse, convert it to a dataframe containing its summary. It will contain three columns
+    # i, j, x where i is the row, j is the col, and x is the value of the sparse matrix. Set colnames to have a
+    # special DataRobot magic value so we know the dataframe is actually a sparse matrix.
+    # TODO: [RAPTOR-6209] propagate column names when R output data is sparse
+    if (is(output_data[[1]], 'sparseMatrix')) {
+        output_data[[1]] <- data.frame(summary(output_data[[1]]))
+        colnames(output_data[[1]]) <- c("__DR__i", "__DR__j", "__DR__x")
     }
 
     output_data

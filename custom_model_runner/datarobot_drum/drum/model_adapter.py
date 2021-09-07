@@ -8,7 +8,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from scipy.sparse import csr_matrix
+from scipy.sparse import issparse
 
 from datarobot_drum.drum.artifact_predictors.keras_predictor import KerasPredictor
 from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
@@ -63,7 +63,7 @@ class PythonModelAdapter:
     def _apply_sklearn_transformer(data, model):
         try:
             transformed = model.transform(data)
-            if type(transformed) == csr_matrix:
+            if issparse(transformed):
                 output_data = pd.DataFrame.sparse.from_spmatrix(transformed)
             else:
                 output_data = pd.DataFrame(transformed)

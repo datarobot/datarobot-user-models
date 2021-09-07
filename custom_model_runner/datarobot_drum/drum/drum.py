@@ -47,7 +47,11 @@ from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.push import drum_push, setup_validation_options
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
-from datarobot_drum.drum.utils import CMRunnerUtils, handle_missing_colnames
+from datarobot_drum.drum.utils import (
+    CMRunnerUtils,
+    handle_missing_colnames,
+    StructuredInputReadUtils,
+)
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 
 import docker.errors
@@ -108,7 +112,9 @@ class CMRunner:
     def input_df(self):
         if self._input_df is None:
             # Lazy load df
-            self._input_df = pd.read_csv(self.options.input)
+            self._input_df = StructuredInputReadUtils.read_structured_input_file_as_df(
+                self.options.input
+            )
         return self._input_df
 
     def _resolve_target_type(self):

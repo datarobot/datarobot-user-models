@@ -48,6 +48,7 @@ class RFit(ConnectableComponent):
         self.class_labels = None
         self.custom_model_path = None
         self.input_filename = None
+        self.sparse_column_file = None
         self.weights = None
         self.weights_filename = None
         self.target_filename = None
@@ -58,6 +59,7 @@ class RFit(ConnectableComponent):
         super(RFit, self).configure(params)
         self.custom_model_path = self._params["__custom_model_path__"]
         self.input_filename = self._params["inputFilename"]
+        self.sparse_column_file = self._params["sparseColumnFile"]
         self.target_name = self._params.get("targetColumn")
         self.output_dir = self._params["outputDir"]
         self.positive_class_label = self._params.get("positiveClassLabel")
@@ -90,6 +92,7 @@ class RFit(ConnectableComponent):
             r_handler.outer_fit(
                 self.output_dir,
                 self.input_filename,
+                self.sparse_column_file or ro.NULL,
                 self.target_filename or ro.NULL,
                 target_name,
                 self.num_rows,
