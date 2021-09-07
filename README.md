@@ -16,6 +16,13 @@
 The **DataRobot User Models** repository contains information and tools for assembling,
 debugging, testing, and running your training and inference models with DataRobot.
 
+The task_templates and model_templates folders provide reference examples to
+help users learn how to create custom tasks and/or custom inference models. 
+The templates there are simple, well documented, and can be used as tutorials. 
+
+For further examples, provided as-is, that often contain more complex logic please
+see the community examples repo at: https://github.com/datarobot-community/custom-models
+
 For further documentation on this and all other features please visit our comprehensive
 documentation at: https://docs.datarobot.com/
 
