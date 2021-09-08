@@ -64,7 +64,6 @@ def fit(
         (typically containing a trained object) into output_dir
         so that the trained object can be used during scoring.
     """
-    logging.info(y.head())
     if class_order is not None:
         if y.dtype == np.dtype("bool"):
             y = y.astype("str")
@@ -117,4 +116,6 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
       Regression: must have a single column called `Predictions` with numerical values
     """
 
-    return pd.DataFrame(data=model.predict_proba(data), columns=model.classes_)
+    # Note: for binary classification we are supplied the explicit positive and negative
+    # class lables. See python3_sklearn_binary example
+    return pd.DataFrame(data=model.predict_proba(data), columns=kwargs['class_labels'])

@@ -117,7 +117,8 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     """
 
     # If Classification
-    return pd.DataFrame(data=model.predict_proba(data), columns=model.classes_)
+    return pd.DataFrame(data=model.predict_proba(data),
+                        columns=[kwargs['negative_class_label'], kwargs['positive_class_label']])
 
     # If Regression
     # return pd.DataFrame(data=model.predict(data), columns=['Predictions'])
