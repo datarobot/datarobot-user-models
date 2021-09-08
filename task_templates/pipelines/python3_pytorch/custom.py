@@ -3,6 +3,7 @@ import sys
 from typing import List, Optional, Any, Dict
 import pandas as pd
 import numpy as np
+import torch
 
 from model_utils import (
     build_regressor,
@@ -69,6 +70,9 @@ def fit(
     # Keep only numeric features
     X_train = subset_data(X)
     # Feel free to delete which ever one of these you aren't using
+    print("Printing Fit Logs")
+    sys.stdout.flush()
+    sys.stderr.flush()
     if class_order:
         estimator, optimizer, criterion = build_classifier(X_train, len(class_order))
         train_classifier(X_train, y, estimator, optimizer, criterion)
@@ -119,10 +123,13 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
 
     # If Classification
     data = subset_data(data)
-    print(model.classes_)
-    sys.stdout.flush()
-    sys.stderr.flush()
-    return pd.DataFrame(data=model.predict(data), columns=model.classes_)
+    print("Printing Score Logs")
+    print(kwargs)
+    data_tensor = torch.from_numpy(data.values).type(torch.FloatTensor)
+    predictions = model(data_tensor).cpu().data.numpy()
+    predictions = pd.DataFrame(predictions, columns=[kwargs['positive_class_label']])
+    predictions[kwargs['negative_class_label']] = 1 - predictions[kwargs['positive_class_label']]
+    return predictions
 
     # If Regression
     # return pd.DataFrame(data=model.predict(data), columns=['Predictions'])
