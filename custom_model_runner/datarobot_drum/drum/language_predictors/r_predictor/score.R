@@ -376,13 +376,23 @@ outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=
         stop(sprintf("Transformed X must be of a data.frame type, received %s", typeof(output_data)))
     }
 
+    input_rows <- nrow(data)
+    output_rows <- nrow(output_data[[1]])
+    output_cols <- ncol(output_data[[1]])
+    if (input_rows != output_rows) {
+        stop(sprintf("Number of input rows (%d) does not match number of transform output rows (%d)", input_rows, output_rows))
+    }
+    if (output_cols <= 0) {
+        stop("Number of transform output cols is 0. Must be > 0.")
+    }
+
     # If the output data is sparse, convert it to a dataframe containing its summary. It will contain three columns
     # i, j, x where i is the row, j is the col, and x is the value of the sparse matrix. Set colnames to have a
     # special DataRobot magic value so we know the dataframe is actually a sparse matrix. In addition, add a row
     # to the end which contains [num_rows, num_cols, NaN]
     # TODO: [RAPTOR-6209] propagate column names when R output data is sparse
     if (is(output_data[[1]], 'sparseMatrix')) {
-        summary_info_row = c(nrow(output_data[[1]]), ncol(output_data[[1]]), NaN)
+        summary_info_row = c(output_rows, output_cols, NaN)
         output_data_summary <- rbind(summary(output_data[[1]]), summary_info_row)
 
         output_data[[1]] <- data.frame(output_data_summary)
