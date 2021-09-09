@@ -9,7 +9,7 @@ targetType: multiclass
 validation:
   # Path is relative to this file
   input: ../../../tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv
-  targetName: Species
+  targetName: class
 typeSchema:
   input_requirements:
     - field: data_types

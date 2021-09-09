@@ -6,6 +6,7 @@
     During fit(), it computes and stores the calibration coefficient that is equal
     to avg(actuals) / avg(predicted) on training data
     During score(), it multiplies incoming data by the calibration coefficient
+
 """
 
 from typing import List, Optional, Any, Dict

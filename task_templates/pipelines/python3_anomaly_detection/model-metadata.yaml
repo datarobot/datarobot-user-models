@@ -9,7 +9,6 @@ targetType: anomaly
 validation:
   # Path is relative to this file
   input: ../../../tests/testdata/boston_housing.csv
-  targetName: MEDV
 typeSchema:
   input_requirements:
     - field: data_types

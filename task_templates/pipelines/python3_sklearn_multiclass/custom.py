@@ -1,5 +1,6 @@
 """
     In this example we show a complex pipeline with a multiclass linear model.
+    Note in the score hook how we grab the class labels. Contrast this with the regression and binary examples
 """
 import pickle
 from typing import List, Optional, Any, Dict
