@@ -214,9 +214,18 @@ class RPredictor(BaseLanguagePredictor):
         # If the column names contain this set of magic values, it implies the output data is sparse, so construct
         # a sparse coo_matrix out of it. TODO: [RAPTOR-6209] propagate column names when R output data is sparse
         if list(output_X.columns) == ["__DR__i", "__DR__j", "__DR__x"]:
-            row = output_X["__DR__i"]
-            col = output_X["__DR__j"]
+            # The last row will contain the number of rows and cols, so get that and then drop it from output_X
+            num_rows, num_cols, _ = output_X.iloc[-1]
+            num_rows, num_cols = int(num_rows), int(num_cols)
+            output_X = output_X[:-1]
+
+            # R is 1-based indexing whereas python is 0, so adjust here
+            row = output_X["__DR__i"] - 1
+            col = output_X["__DR__j"] - 1
             data = output_X["__DR__x"]
-            output_X = pd.DataFrame.sparse.from_spmatrix(coo_matrix((data, (row, col))))
+
+            output_X = pd.DataFrame.sparse.from_spmatrix(
+                coo_matrix((data, (row, col)), shape=(num_rows, num_cols))
+            )
 
         return output_X, output_y

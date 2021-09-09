@@ -378,10 +378,14 @@ outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=
 
     # If the output data is sparse, convert it to a dataframe containing its summary. It will contain three columns
     # i, j, x where i is the row, j is the col, and x is the value of the sparse matrix. Set colnames to have a
-    # special DataRobot magic value so we know the dataframe is actually a sparse matrix.
+    # special DataRobot magic value so we know the dataframe is actually a sparse matrix. In addition, add a row
+    # to the end which contains [num_rows, num_cols, NaN]
     # TODO: [RAPTOR-6209] propagate column names when R output data is sparse
     if (is(output_data[[1]], 'sparseMatrix')) {
-        output_data[[1]] <- data.frame(summary(output_data[[1]]))
+        summary_info_row = c(nrow(output_data[[1]]), ncol(output_data[[1]]), NaN)
+        output_data_summary <- rbind(summary(output_data[[1]]), summary_info_row)
+
+        output_data[[1]] <- data.frame(output_data_summary)
         colnames(output_data[[1]]) <- c("__DR__i", "__DR__j", "__DR__x")
     }
 
