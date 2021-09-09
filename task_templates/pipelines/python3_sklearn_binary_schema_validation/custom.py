@@ -2,7 +2,7 @@
     In this example we show a complex pipeline with a binary linear model.
 """
 import pickle
-from typing import List, Optional
+from typing import List, Optional, Any, Dict
 
 import numpy as np
 import pandas as pd
@@ -109,4 +109,5 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
       Regression: must have a single column called `Predictions` with numerical values
     """
 
-    return pd.DataFrame(data=model.predict_proba(data), columns=model.classes_)
+    return pd.DataFrame(data=model.predict_proba(data),
+                        columns=[kwargs['negative_class_label'], kwargs['positive_class_label']])

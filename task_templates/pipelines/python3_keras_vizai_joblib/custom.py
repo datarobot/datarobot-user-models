@@ -1,11 +1,12 @@
 """
     In this example we show how flexible pipelines can be by creating
-    a computer vision pipeline and classifier
+    a computer vision pipeline and classifier. Note how we use load_model and a custom deserialize
 """
-from typing import List, Optional
+from typing import List, Optional, Any, Dict
 import pandas as pd
 import numpy as np
 from sklearn.pipeline import Pipeline
+import torch
 
 from model_utils import (
     fit_image_classifier_pipeline,
@@ -100,3 +101,43 @@ def load_model(input_dir: str) -> Pipeline:
         Estimator pipeline obj
     """
     return deserialize_estimator_pipeline(input_dir)
+
+
+def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
+    """
+    DataRobot will run this hook when the task is used for scoring inside a blueprint
+
+    This hook defines the output of a custom estimator and returns predictions on input data.
+    It should be skipped if a task is a transform.
+
+    Note: While best practice is to include the score hook, if the score hook is not present DataRobot will
+    add a score hook and call the default predict method for the library
+    See https://github.com/datarobot/datarobot-user-models#built-in-model-support for details
+
+    Parameters
+    ----------
+    data: pd.DataFrame
+        Is the dataframe to make predictions against. If the `transform` hook is utilized,
+        `data` will be the transformed data
+    model: Any
+        Trained object, extracted by DataRobot from the artifact created in fit().
+        In this example, contains trained sklearn pipeline extracted from artifact.pkl.
+    kwargs:
+        Additional keyword arguments to the method
+
+    Returns
+    -------
+    This method should return predictions as a dataframe with the following format:
+      Classification: must have columns for each class label with floating- point class
+        probabilities as values. Each row should sum to 1.0. The original class names defined in the project
+        must be used as column names. This applies to binary and multi-class classification.
+      Regression: must have a single column called `Predictions` with numerical values
+    """
+
+    # Note: for binary classification we are supplied the explicit positive and negative
+    # class lables. See python3_sklearn_binary example
+    predictions = model.predict(data)
+    predictions_df = pd.DataFrame(predictions, columns=[kwargs['positive_class_label']])
+    predictions_df[kwargs['negative_class_label']] = 1 - predictions_df[kwargs['positive_class_label']]
+
+    return predictions_df

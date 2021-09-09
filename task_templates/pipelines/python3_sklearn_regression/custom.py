@@ -1,8 +1,8 @@
 """
-    This is an advanced example that handles various datatypes
+    This shows how we handle regression using an sklearn pipeline
 """
 import pickle
-from typing import List, Optional
+from typing import List, Optional, Any, Dict
 
 import numpy as np
 import pandas as pd

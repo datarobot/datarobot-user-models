@@ -1,7 +1,9 @@
 """
     In this example we show how to implement a simple XGBoost classifier (binary and multiclass) or regressor
+    (see IF conditional in fit hook and commented out code in score)
 
-    Note: all of the model logic and pipelines lives in the helper file create_pipeline.py
+    Note: all of the model logic and pipelines lives in the helper file create_pipeline.py. Also note
+
 """
 
 from typing import List, Optional, Any, Dict
@@ -116,9 +118,10 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
       Regression: must have a single column called `Predictions` with numerical values
     """
 
-    # If Classification
-    return pd.DataFrame(data=model.predict_proba(data),
-                        columns=[kwargs['negative_class_label'], kwargs['positive_class_label']])
-
     # If Regression
-    # return pd.DataFrame(data=model.predict(data), columns=['Predictions'])
+    return pd.DataFrame(data=model.predict(data), columns=['Predictions'])
+
+    # If Binary Classification
+    #return pd.DataFrame(data=model.predict_proba(data),
+    #                    columns=[kwargs['negative_class_label'], kwargs['positive_class_label']])
+

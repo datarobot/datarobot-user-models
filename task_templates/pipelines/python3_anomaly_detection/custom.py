@@ -1,4 +1,9 @@
-from typing import List, Optional
+"""
+    In this example we see how to create an anomaly detection (i.e. unsupervised) pipeline
+
+    Note: in our score hook we use the same column name as regression, i.e. columns=['Predictions']
+"""
+from typing import List, Optional, Any, Dict
 import pandas as pd
 import numpy as np
 import pickle
@@ -71,3 +76,37 @@ def fit(
     # and there is only one artifact file
     with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
         pickle.dump(estimator, fp)
+
+
+def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
+    """
+    DataRobot will run this hook when the task is used for scoring inside a blueprint
+
+    This hook defines the output of a custom estimator and returns predictions on input data.
+    It should be skipped if a task is a transform.
+
+    Note: While best practice is to include the score hook, if the score hook is not present DataRobot will
+    add a score hook and call the default predict method for the library
+    See https://github.com/datarobot/datarobot-user-models#built-in-model-support for details
+
+    Parameters
+    ----------
+    data: pd.DataFrame
+        Is the dataframe to make predictions against. If the `transform` hook is utilized,
+        `data` will be the transformed data
+    model: Any
+        Trained object, extracted by DataRobot from the artifact created in fit().
+        In this example, contains trained sklearn pipeline extracted from artifact.pkl.
+    kwargs:
+        Additional keyword arguments to the method
+
+    Returns
+    -------
+    This method should return predictions as a dataframe with the following format:
+      Binary Classification: must have columns for each class label with floating- point class
+        probabilities as values. Each row should sum to 1.0. The original class names defined in the project
+        must be used as column names.
+      Regression: must have a single column called `Predictions` with numerical values
+    """
+
+    return pd.DataFrame(data=model.predict(data), columns=['Predictions'])
