@@ -181,6 +181,20 @@ class TestCustomTaskTemplates(object):
                 "sklearn_drop_in_env",
                 "transform",
             ),
+            (
+                "transform",
+                "r_transform_recipe",
+                "project_binary_iris",
+                "r_drop_in_env",
+                "transform",
+            ),
+            (
+                "transform",
+                "r_transform_simple",
+                "project_binary_iris",
+                "r_drop_in_env",
+                "transform",
+            ),
         ],
     )
     def test_custom_task_templates(

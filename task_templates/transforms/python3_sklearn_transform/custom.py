@@ -41,13 +41,12 @@ def fit(
         pickle.dump(transformer, fp)
 
 
-def transform(X, transformer, y=None):
+def transform(X, transformer):
     """
     Parameters
     ----------
     X: pd.DataFrame - training data to perform transform on
     transformer: object - trained transformer object
-    y: pd.Series (optional) - target data to perform transform on
     Returns
     -------
     transformed DataFrame resulting from applying transform to incoming data

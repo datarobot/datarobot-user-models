@@ -1,0 +1,32 @@
+name: r_transform_simple
+type: training
+targetType: transform
+# modelID: optional
+environmentID: 5ea850ca1d41c8173c2feef6
+#trainingModel:
+#  trainOnProject: optional project on which to train
+validation:
+  # Path is relative to this file
+  input: ../../../tests/testdata/boston_housing.csv
+  targetName: MEDV
+typeSchema:
+  input_requirements:
+    - field: data_types
+      condition: EQUALS
+      value: NUM
+    - field: sparse
+      condition: EQUALS
+      value: FORBIDDEN
+    - field: contains_missing
+      condition: EQUALS
+      value: SUPPORTED
+  output_requirements:
+    - field: data_types
+      condition: EQUALS
+      value: NUM
+    - field: sparse
+      condition: EQUALS
+      value: NEVER
+    - field: contains_missing
+      condition: EQUALS
+      value: NEVER
