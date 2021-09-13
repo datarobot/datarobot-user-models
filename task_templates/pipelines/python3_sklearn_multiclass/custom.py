@@ -8,9 +8,6 @@ from typing import List, Optional, Any, Dict
 import numpy as np
 import pandas as pd
 from create_pipeline import make_classifier
-import logging
-
-logger = logging.getLogger()
 
 
 def fit(
