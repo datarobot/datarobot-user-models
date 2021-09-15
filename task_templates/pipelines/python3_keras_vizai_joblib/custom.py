@@ -49,9 +49,9 @@ def fit(
         This indicates which class DataRobot considers positive or negative. E.g. 'yes' is positive, 'no' is negative.
         Class order will always be passed to fit by DataRobot for classification tasks,
         and never otherwise. When models predict, they output a likelihood of one class, with a
-        value from 0 to 1. The likelihood of the other class is 1 - this likelihood. Class order
-        dictates that the first element in the list will be the 0 class, and the second will be the
-        1 class.
+        value from 0 to 1. The likelihood of the other class is 1 - this likelihood.
+        The first element in the class_order list is the name of the class considered negative inside DR's project,
+        and the second is the name of the class that is considered positive
     row_weights: Optional[np.ndarray]
         An array of non-negative numeric values which can be used to dictate how important
         a row is. Row weights is only optionally used, and there will be no filtering for which

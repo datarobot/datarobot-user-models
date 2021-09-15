@@ -1,8 +1,6 @@
 """
     In this example we show how to create an unsupervised anomaly detection model
     with calibrated predictions
-
-    Note: in our score hook we use the same column name as regression, i.e. columns=['Predictions']
 """
 from typing import List, Optional, Any, Dict
 import pandas as pd
@@ -37,7 +35,7 @@ def fit(
         Training data that DataRobot passes when this task is being trained. Note that both the training data AND
         column (feature) names are passed
     y: pd.Series
-        Project's target column.
+        Project's target column. In the case of anomaly detection None is passed
     output_dir: str
         A path to the output folder (also provided in --output paramter of 'drum fit' command)
         The artifact [in this example - containing the trained sklearn pipeline]
@@ -46,9 +44,9 @@ def fit(
         This indicates which class DataRobot considers positive or negative. E.g. 'yes' is positive, 'no' is negative.
         Class order will always be passed to fit by DataRobot for classification tasks,
         and never otherwise. When models predict, they output a likelihood of one class, with a
-        value from 0 to 1. The likelihood of the other class is 1 - this likelihood. Class order
-        dictates that the first element in the list will be the 0 class, and the second will be the
-        1 class.
+        value from 0 to 1. The likelihood of the other class is 1 - this likelihood.
+        The first element in the class_order list is the name of the class considered negative inside DR's project,
+        and the second is the name of the class that is considered positive
     row_weights: Optional[np.ndarray]
         An array of non-negative numeric values which can be used to dictate how important
         a row is. Row weights is only optionally used, and there will be no filtering for which
@@ -108,4 +106,5 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
       Regression: must have a single column called `Predictions` with numerical values
     """
 
+    # Note: in our score hook we use the same column name as regression, i.e. columns=['Predictions']
     return pd.DataFrame(data=model.predict(data), columns=['Predictions'])
