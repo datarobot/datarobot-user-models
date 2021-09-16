@@ -76,6 +76,7 @@ def fit(
     # and there is only one artifact file
     serialize_estimator_pipeline(estimator, output_dir)
 
+
 def load_model(code_dir: str) -> Pipeline:
     """
     Note: This hook may not have to be implemented for your model.
@@ -131,7 +132,7 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     """
 
     # Uncomment below for regresssion
-    return pd.DataFrame(data=model.predict(data), columns=['Predictions'])
+    return pd.DataFrame(data=model.predict(data), columns=["Predictions"])
 
     # Uncomment below for multi-class
     # return pd.DataFrame(data=model.predict_proba(data), columns=kwargs['class_labels'])

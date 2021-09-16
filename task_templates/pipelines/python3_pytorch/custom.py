@@ -125,8 +125,8 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
 
     data_tensor = torch.from_numpy(data.values).type(torch.FloatTensor)
     predictions = model(data_tensor).cpu().data.numpy()
-    predictions = pd.DataFrame(predictions, columns=[kwargs['positive_class_label']])
-    predictions[kwargs['negative_class_label']] = 1 - predictions[kwargs['positive_class_label']]
+    predictions = pd.DataFrame(predictions, columns=[kwargs["positive_class_label"]])
+    predictions[kwargs["negative_class_label"]] = 1 - predictions[kwargs["positive_class_label"]]
     return predictions
 
     # If Regression

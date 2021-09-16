@@ -74,6 +74,7 @@ def fit(
     with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
         pickle.dump(estimator, fp)
 
+
 def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
     """
     DataRobot will run this hook when the task is used for scoring inside a blueprint
@@ -105,5 +106,4 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
       Regression: must have a single column called `Predictions` with numerical values
     """
 
-    return pd.DataFrame(data=model.predict(data), columns=['Predictions'])
-
+    return pd.DataFrame(data=model.predict(data), columns=["Predictions"])

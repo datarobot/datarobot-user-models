@@ -19,12 +19,12 @@ from custom_pipeline import pipeline  # pipeline defined into custom_pipeline.py
 
 
 def fit(
-        X: pd.DataFrame,
-        y: pd.Series,
-        output_dir: str,
-        class_order: Optional[List[str]] = None,
-        row_weights: Optional[np.ndarray] = None,
-        **kwargs,
+    X: pd.DataFrame,
+    y: pd.Series,
+    output_dir: str,
+    class_order: Optional[List[str]] = None,
+    row_weights: Optional[np.ndarray] = None,
+    **kwargs,
 ) -> None:
     """ This hook MUST ALWAYS be implemented for custom tasks.
 

@@ -104,4 +104,4 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
       Regression: must have a single column called `Predictions` with numerical values
     """
 
-    return pd.DataFrame(data=model.predict(data), columns=['Predictions'])
+    return pd.DataFrame(data=model.predict(data), columns=["Predictions"])

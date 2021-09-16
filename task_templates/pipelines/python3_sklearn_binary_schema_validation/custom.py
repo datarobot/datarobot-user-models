@@ -109,5 +109,7 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
       Regression: must have a single column called `Predictions` with numerical values
     """
 
-    return pd.DataFrame(data=model.predict_proba(data),
-                        columns=[kwargs['negative_class_label'], kwargs['positive_class_label']])
+    return pd.DataFrame(
+        data=model.predict_proba(data),
+        columns=[kwargs["negative_class_label"], kwargs["positive_class_label"]],
+    )

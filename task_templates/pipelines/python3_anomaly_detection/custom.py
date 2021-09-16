@@ -11,12 +11,12 @@ from build_pipeline import make_anomaly
 
 
 def fit(
-        X: pd.DataFrame,
-        y: pd.Series,
-        output_dir: str,
-        class_order: Optional[List[str]] = None,
-        row_weights: Optional[np.ndarray] = None,
-        **kwargs,
+    X: pd.DataFrame,
+    y: pd.Series,
+    output_dir: str,
+    class_order: Optional[List[str]] = None,
+    row_weights: Optional[np.ndarray] = None,
+    **kwargs,
 ) -> None:
     """ This hook MUST ALWAYS be implemented for custom tasks.
 
@@ -109,4 +109,4 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     """
 
     # Note: in our score hook we use the same column name as regression, i.e. columns=['Predictions']
-    return pd.DataFrame(data=model.predict(data), columns=['Predictions'])
+    return pd.DataFrame(data=model.predict(data), columns=["Predictions"])

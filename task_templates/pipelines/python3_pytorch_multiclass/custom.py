@@ -78,7 +78,6 @@ def fit(
     with open(os.path.join(output_dir, "class_labels.txt"), mode="w") as f:
         f.write("\n".join(str(label) for label in lb.classes_))
 
-
     # Dump the trained object [in this example - a trained PyTorch model]
     # into an artifact [in this example - artifact.pth]
     # and save it into output_dir so that it can be used later when scoring data
@@ -120,7 +119,6 @@ def load_model(code_dir: str) -> Any:
     return model
 
 
-
 def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
     """
     DataRobot will run this hook when the task is used for scoring inside a blueprint
@@ -158,8 +156,8 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     predictions = model(data_tensor).cpu().data.numpy()
 
     print("Pytorch predictions: ", predictions)
-    print("kwargs class_labels: ", kwargs['class_labels'])
+    print("kwargs class_labels: ", kwargs["class_labels"])
 
     # Note: for binary classification we are supplied the explicit positive and negative
     # class labels. See python3_sklearn_binary example
-    return pd.DataFrame(data=predictions, columns=kwargs['class_labels'])
+    return pd.DataFrame(data=predictions, columns=kwargs["class_labels"])
