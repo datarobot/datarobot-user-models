@@ -276,7 +276,7 @@ class TestFit:
         [
             (SKLEARN_TRANSFORM, PYTHON),
             (SKLEARN_TRANSFORM_NO_HOOK, PYTHON),
-            (R_TRANSFORM, R_FIT),
+            (R_TRANSFORM_NO_Y, R_FIT),
             (R_TRANSFORM_NO_HOOK, R_FIT),
         ],
     )
@@ -369,15 +369,13 @@ class TestFit:
             )
             assert "WARNING: No type schema provided. For transforms, we" not in stdout
 
-    @pytest.mark.parametrize(
-        "framework, language", [(SKLEARN_TRANSFORM_WITH_Y, PYTHON), (R_TRANSFORM, R_FIT),]
-    )
+    @pytest.mark.parametrize("framework, language", [(SKLEARN_TRANSFORM_WITH_Y, PYTHON),])
     @pytest.mark.parametrize("problem", [REGRESSION, BINARY, ANOMALY])
     def test_transform_fit_disallow_y_output(
         self, resources, tmp_path, framework, language, problem
     ):
 
-        input_dataset = resources.datasets(SKLEARN, TRANSFORM)
+        input_dataset = resources.datasets(framework, problem)
         target_type = TRANSFORM
         custom_model_dir = _create_custom_model_dir(
             resources, tmp_path, framework, problem, language=framework,
