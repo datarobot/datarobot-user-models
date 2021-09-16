@@ -421,7 +421,9 @@ class ContainsMissing(BaseValidator):
             io_type = "Output"
 
         if any_missing and value in [missing_output_disallowed, missing_input_disallowed]:
-            return [f"{io_type} contains missing values, but the schema says that they are not allowed."]
+            return [
+                f"{io_type} contains missing values, but the schema says that they are not allowed."
+            ]
         return []
 
 
