@@ -157,6 +157,9 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     data_tensor = torch.from_numpy(data).type(torch.FloatTensor)
     predictions = model(data_tensor).cpu().data.numpy()
 
+    print("Pytorch predictions: ", predictions)
+    print("kwargs class_labels: ", kwargs['class_labels'])
+
     # Note: for binary classification we are supplied the explicit positive and negative
     # class labels. See python3_sklearn_binary example
     return pd.DataFrame(data=predictions, columns=kwargs['class_labels'])

@@ -116,4 +116,4 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
 
     # Note: for binary classification we are supplied the explicit positive and negative
     # class lables. See python3_sklearn_binary example
-    return pd.DataFrame(data=model.predict_proba(data), columns=kwargs['class_labels'])
+    return pd.DataFrame(data=model.predict_proba(data), columns=model.classes_)
