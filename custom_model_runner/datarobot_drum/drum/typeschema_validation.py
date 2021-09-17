@@ -394,7 +394,7 @@ class NumColumns(BaseValidator):
         passes = conditions_map[self.condition](n_columns, test_value)
         if not passes:
             return [
-                f"Num columns error, {n_columns} received but the schema says: {self.condition} {test_value}"
+                f"Incorrect number of columns. {n_columns} received. However, the schema dictates that number of columns should be {self.condition} {test_value}"
             ]
 
         return []
@@ -422,7 +422,7 @@ class ContainsMissing(BaseValidator):
 
         if any_missing and value in [missing_output_disallowed, missing_input_disallowed]:
             return [
-                f"{io_type} contains missing values, but the schema says that they are not allowed."
+                f"{io_type} contains missing values, which the supplied task schema does not allow"
             ]
         return []
 
