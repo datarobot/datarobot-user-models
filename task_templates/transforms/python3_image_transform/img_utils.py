@@ -4,13 +4,13 @@ import numpy as np
 from PIL import Image
 
 
-def img_array_to_b64(image_data: np.array) -> bytes:
+def img_array_to_b64(image_data: np.array) -> str:
     """encode an image still in array format as a b64 string for use in DataRobot"""
     image = Image.fromarray(image_data)
     return img_to_b64(image)
 
 
-def img_to_b64(image: Image.Image) -> bytes:
+def img_to_b64(image: Image.Image) -> str:
     """Encode an image as a b64 string for use in DataRobot."""
     if image.format == "LA":
         # grayscale image
@@ -24,7 +24,7 @@ def img_to_b64(image: Image.Image) -> bytes:
         image_ram_buffer.seek(0)
         image_bytes = image_ram_buffer.read()
         b64 = base64.b64encode(image_bytes)
-        return b64
+        return str(b64, "utf-8")
 
 
 def b64_img_to_array(b64: str, dtype=np.uint8) -> np.array:
