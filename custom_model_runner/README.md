@@ -28,8 +28,7 @@ All models:
 - If you are using a drop-in environment found in this repo, you must pip install these dependencies.
 
 Python models:
-- Python 3.6 or 3.7 is required unless you are using DRUM with a Docker image.
-- This is because DRUM only runs with Python 3.6 or 3.7.
+- Check https://pypi.org/project/datarobot-drum/ for supported Python versions.
 
 Java models:
 - JRE >= 11.
