@@ -75,16 +75,12 @@ class BaseLanguagePredictor(ABC):
             # Regression: [10, 12, 13]
             # Classification: [[0.5, 0.5], [0.7, 03]]
             # In case of classification, class names are also required
-            class_names = self._class_labels
+            class_names = None
             if len(predictions.columns) == 1:
                 mlops_predictions = predictions[predictions.columns[0]].tolist()
             else:
                 mlops_predictions = predictions.values.tolist()
-                if (
-                    self._positive_class_label is not None
-                    and self._negative_class_label is not None
-                ):
-                    class_names = [self._negative_class_label, self._positive_class_label]
+                class_names = list(predictions.columns)
 
             df = StructuredInputReadUtils.read_structured_input_data_as_df(
                 kwargs.get(StructuredDtoKeys.BINARY_DATA), kwargs.get(StructuredDtoKeys.MIMETYPE),

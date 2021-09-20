@@ -1,3 +1,3 @@
-version = "1.5.13"
+version = "1.5.14"
 __version__ = version
 project_name = "datarobot-drum"

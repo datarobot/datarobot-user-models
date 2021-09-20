@@ -9,8 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Fixed
 ##### Added 
 
+
+#### [1.5.14] - in progress
+##### Fixed
+- reporting class labels through MLOps monitoring
+
 #### [1.5.13] - 2021-09-17
-####
+##### Fixed
 - compile DRUM with Java 11
 
 #### [1.5.12] - 2021-09-15
