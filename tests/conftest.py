@@ -98,6 +98,8 @@ from tests.drum.constants import (
     JULIA,
     R_INT_COLNAMES_BINARY,
     R_INT_COLNAMES_MULTICLASS,
+    R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
+    SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
 )
 
 _datasets = {
@@ -345,6 +347,9 @@ _artifacts = {
     (SKLEARN_TRANSFORM_SPARSE_INPUT, REGRESSION): None,
     (SKLEARN_TRANSFORM_SPARSE_INPUT, BINARY): None,
     (SKLEARN_TRANSFORM_SPARSE_INPUT, ANOMALY): None,
+    (SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT, REGRESSION): None,
+    (SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT, BINARY): None,
+    (SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT, ANOMALY): None,
     (SKLEARN_TRANSFORM_SPARSE_IN_OUT, REGRESSION): None,
     (SKLEARN_TRANSFORM_SPARSE_IN_OUT, BINARY): None,
     (SKLEARN_TRANSFORM_SPARSE_IN_OUT, ANOMALY): None,
@@ -364,6 +369,9 @@ _artifacts = {
     (R_TRANSFORM_SPARSE_INPUT, REGRESSION): None,
     (R_TRANSFORM_SPARSE_INPUT, BINARY): None,
     (R_TRANSFORM_SPARSE_INPUT, ANOMALY): None,
+    (R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT, REGRESSION): None,
+    (R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT, BINARY): None,
+    (R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT, ANOMALY): None,
     (R_TRANSFORM_SPARSE_IN_OUT, REGRESSION): None,
     (R_TRANSFORM_SPARSE_IN_OUT, BINARY): None,
     (R_TRANSFORM_SPARSE_IN_OUT, ANOMALY): None,
@@ -461,6 +469,10 @@ _custom_filepaths = {
         os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_sparse_input.py"),
         "custom.py",
     ),
+    SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT: (
+        os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_sparse_input_y_output.py"),
+        "custom.py",
+    ),
     SKLEARN_TRANSFORM_SPARSE_IN_OUT: (
         os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_sparse_in_out.py"),
         "custom.py",
@@ -477,6 +489,10 @@ _custom_filepaths = {
     ),
     R_TRANSFORM_SPARSE_INPUT: (
         os.path.join(TESTS_FIXTURES_PATH, "r_transform_fit_custom_sparse_input.R"),
+        "custom.R",
+    ),
+    R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT: (
+        os.path.join(TESTS_FIXTURES_PATH, "r_transform_fit_custom_sparse_input_y_output.R"),
         "custom.R",
     ),
     R_TRANSFORM_SPARSE_IN_OUT: (
