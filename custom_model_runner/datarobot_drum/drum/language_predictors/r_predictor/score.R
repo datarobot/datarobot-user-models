@@ -399,5 +399,9 @@ outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=
         colnames(output_data[[1]]) <- c("__DR__i", "__DR__j", "__DR__x")
     }
 
+    if (!is.null(output_data[[2]])) {
+        stop(sprintf("Transformation of the target variable is not supported by DRUM."))
+    }
+
     output_data
 }
