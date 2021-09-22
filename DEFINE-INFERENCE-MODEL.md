@@ -10,6 +10,8 @@ Note: See overview at [README](https://github.com/datarobot/datarobot-user-model
 4. [Test an inference model with DRUM locally](#test_inference_model_drum)
 5. [Building your own environment](#build_own_environment)
 6. [Upload, manage, and deploy a custom inference model with DataRobot](#custom_model_runner)
+    1. see [here](https://app.datarobot.com/docs/mlops/deployment/custom-models/custom-inf-model.html)
+    as well for documentation on how to upload, manage, and deploy custom inference models
 
 ## Assembling an inference model code folder <a name="inference_model_folder"></a>
 
@@ -31,7 +33,7 @@ The `drum new model` command can help you generate a model template.
 Check [here](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner#model-template-generation) for more information.
 
 See [here](https://github.com/datarobot/datarobot-user-models/tree/master/model_templates) 
-for examples you can just as a template. 
+for examples you can use as a template. 
 
 ## Define a structured inference model <a name="structured_inference_model"></a>
 
@@ -229,7 +231,7 @@ The best way to debug in batch mode is to provide `--output` file. Returned data
 - `bytes` data -> binary file.  
   (Returned `kwargs` are not shown in the batch mode, but you can still print them during debugging).
   
-## Test an inference model with DRUM locally <a name="https://github.com/datarobot/datarobot-user-models/tree/master/model_templates/python3_unstructured"></a>
+## Test an inference model with DRUM locally <a name="test_inference_model_drum"></a>
 
 Custom model runner (DRUM) is a tool that helps to assemble, test, and run custom models. 
 The custom model runner folder contains its source code. 

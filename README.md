@@ -51,8 +51,8 @@ Materials for getting started:
 * Code examples:
     * [Custom inference models templates](https://github.com/datarobot/datarobot-user-models/tree/master/model_templates)
     * [Environment Templates](https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments)
-* How to define a custom inference model:
-    * [Assembling a code folder](https://docs.google.com/document/d/154C_dDDZJlBClK4DjCOXQJlos6jszicgOmcCX14Mm_s/edit#heading=h.q52wbalbzdy9)
+* References for defining a custom inference model:
+    * [Assemble a code folder](https://docs.google.com/document/d/154C_dDDZJlBClK4DjCOXQJlos6jszicgOmcCX14Mm_s/edit#heading=h.q52wbalbzdy9)
     * [Define a structured model](https://docs.google.com/document/d/154C_dDDZJlBClK4DjCOXQJlos6jszicgOmcCX14Mm_s/edit#heading=h.rd7ksjij0hhn)
     * [Define an unstructured model](https://docs.google.com/document/d/154C_dDDZJlBClK4DjCOXQJlos6jszicgOmcCX14Mm_s/edit#heading=h.wg9ykdry860i)
     * [Test a model with DRUM locally](https://docs.google.com/document/d/154C_dDDZJlBClK4DjCOXQJlos6jszicgOmcCX14Mm_s/edit#heading=h.wx9siz7rht7w)
@@ -60,7 +60,7 @@ Materials for getting started:
     * [Upload, manage, and deploy a model in DataRobot](https://app.datarobot.com/docs/mlops/deployment/custom-models/custom-inf-model.html)
 
 Other sources:
-* There is a chance that the task you are looking for has already been implemented. 
+* There is a chance that the model you are looking for has already been implemented. 
   Check [custom inference models community Github](https://github.com/datarobot-community/custom-models/tree/master/custom_inference) 
   to see some off-the-shelf examples
     
