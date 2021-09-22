@@ -44,8 +44,9 @@ Other resources:
   to see some off-the-shelf examples
   * Note: The community repo above is NOT the place to start learning the basic concepts. 
     The examples tend to have more complex logic and are meant to be used 
-    as-is rather than as a reference. 
-    This repo is the appropriate place to start with tutorial examples.
+    as-is rather than as a reference.
+  * [This repo](task_templates)
+    is the appropriate place to start with tutorial examples.
 
 ## Custom Inference Models Reference <a name="custom_inference_model_ref"></a>
 
