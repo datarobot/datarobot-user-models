@@ -32,7 +32,7 @@ from datarobot_drum.drum.common import (
     TargetType,
 )
 from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
-from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.exceptions import DrumCommonException, DrumTransformException
 from datarobot_drum.drum.utils import marshal_labels, StructuredInputReadUtils
 
 RUNNING_LANG_MSG = "Running environment language: Python."
@@ -403,10 +403,11 @@ class PythonModelAdapter:
                         "hook provided takes {}".format(len(transform_params))
                     )
                 if type(transform_out) == tuple:
-                    output_data, output_target = transform_out
-                else:
-                    output_data = transform_out
-                    output_target = target_data
+                    raise DrumTransformException(
+                        "Transformation of the target variable is not supported by DRUM."
+                    )
+                output_data = transform_out
+                output_target = target_data
 
             except Exception as exc:
                 raise type(exc)(

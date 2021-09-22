@@ -376,15 +376,18 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker, use_arrow",
         [
-            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, True),
-            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None, False),
-            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, False),
+            # The following 3 tests produce Y transform values and are being temporarily removed until y transform
+            # validation is added
+            # (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, True),
+            # (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None, False),
+            # (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, False),
             (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM_NO_Y, None, True),
+            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM_NO_Y, None, False),
             (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_NO_Y_DENSE, None, False),
             (R_TRANSFORM, TRANSFORM, R_TRANSFORM, None, False),
         ],
     )
-    @pytest.mark.parametrize("pass_target", [True, False])
+    @pytest.mark.parametrize("pass_target", [False])
     def test_custom_transform_server(
         self, resources, framework, problem, language, docker, tmp_path, use_arrow, pass_target,
     ):
@@ -463,7 +466,7 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [(SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, DOCKER_PYTHON_SKLEARN),],
+        [(SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM_NO_Y, DOCKER_PYTHON_SKLEARN),],
     )
     def test_custom_transforms_with_drum_nginx_prediction_server(
         self, resources, framework, problem, language, docker, tmp_path,
