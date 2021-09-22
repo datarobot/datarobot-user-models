@@ -10,9 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Added 
 
 
-#### [1.5.14] - in progress
+#### [1.5.14] - 2021-09-22
 ##### Fixed
 - reporting class labels through MLOps monitoring
+- Restrict Y output from custom transform tasks
 
 #### [1.5.13] - 2021-09-17
 ##### Fixed
