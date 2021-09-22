@@ -42,6 +42,10 @@ Other resources:
 * There is a chance that the task you are looking for has already been implemented. 
   Check [custom tasks community Github](https://github.com/datarobot-community/custom-models/tree/master/custom_tasks) 
   to see some off-the-shelf examples
+  * Note: The community repo above is NOT the place to start learning the basic concepts. 
+    The examples tend to have more complex logic and are meant to be used 
+    as-is rather than as a reference. 
+    This repo is the appropriate place to start with tutorial examples.
 
 ## Custom Inference Models Reference <a name="custom_inference_model_ref"></a>
 
