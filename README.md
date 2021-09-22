@@ -52,12 +52,12 @@ Materials for getting started:
     * [Custom inference models templates](https://github.com/datarobot/datarobot-user-models/tree/master/model_templates)
     * [Environment Templates](https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments)
 * References for defining a custom inference model:
-    * [Assemble a code folder](https://docs.google.com/document/d/154C_dDDZJlBClK4DjCOXQJlos6jszicgOmcCX14Mm_s/edit#heading=h.q52wbalbzdy9)
-    * [Define a structured model](https://docs.google.com/document/d/154C_dDDZJlBClK4DjCOXQJlos6jszicgOmcCX14Mm_s/edit#heading=h.rd7ksjij0hhn)
-    * [Define an unstructured model](https://docs.google.com/document/d/154C_dDDZJlBClK4DjCOXQJlos6jszicgOmcCX14Mm_s/edit#heading=h.wg9ykdry860i)
-    * [Test a model with DRUM locally](https://docs.google.com/document/d/154C_dDDZJlBClK4DjCOXQJlos6jszicgOmcCX14Mm_s/edit#heading=h.wx9siz7rht7w)
-    * [Build your own environment](https://docs.google.com/document/d/154C_dDDZJlBClK4DjCOXQJlos6jszicgOmcCX14Mm_s/edit#heading=h.d59dwsyskndu)
-    * [Upload, manage, and deploy a model in DataRobot](https://app.datarobot.com/docs/mlops/deployment/custom-models/custom-inf-model.html)
+    * [Assemble a code folder](https://github.com/datarobot/datarobot-user-models/blob/duncan/raptor-5561/refine_readme_drum_stage1/DEFINE-INFERENCE-MODEL.md#inference_model_folder)
+    * [Define a structured model](https://github.com/datarobot/datarobot-user-models/blob/duncan/raptor-5561/refine_readme_drum_stage1/DEFINE-INFERENCE-MODEL.md#structured_inference_model)
+    * [Define an unstructured model](https://github.com/datarobot/datarobot-user-models/blob/duncan/raptor-5561/refine_readme_drum_stage1/DEFINE-INFERENCE-MODEL.md#unstructured_inference_model)
+    * [Test a model with DRUM locally](https://github.com/datarobot/datarobot-user-models/blob/duncan/raptor-5561/refine_readme_drum_stage1/DEFINE-INFERENCE-MODEL.md#test_inference_model_drum)
+    * [Build your own environment](https://github.com/datarobot/datarobot-user-models/blob/duncan/raptor-5561/refine_readme_drum_stage1/DEFINE-INFERENCE-MODEL.md#build_own_environment)
+    * [Upload, manage, and deploy a model in DataRobot](https://github.com/datarobot/datarobot-user-models/blob/duncan/raptor-5561/refine_readme_drum_stage1/DEFINE-INFERENCE-MODEL.md#upload_custom_model)
 
 Other sources:
 * There is a chance that the model you are looking for has already been implemented. 

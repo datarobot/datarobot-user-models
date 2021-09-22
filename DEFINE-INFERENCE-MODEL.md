@@ -9,7 +9,7 @@ Note: See overview at [README](https://github.com/datarobot/datarobot-user-model
 3. [Define unstructured inference model](#unstructured_inference_model)
 4. [Test an inference model with DRUM locally](#test_inference_model_drum)
 5. [Building your own environment](#build_own_environment)
-6. [Upload, manage, and deploy a custom inference model with DataRobot](#custom_model_runner)
+6. [Upload, manage, and deploy a custom inference model with DataRobot](#upload_custom_model)
     1. see [here](https://app.datarobot.com/docs/mlops/deployment/custom-models/custom-inf-model.html)
     as well for documentation on how to upload, manage, and deploy custom inference models
 
@@ -281,5 +281,5 @@ If you'd like to use a tool/language/framework that is not supported by our temp
 See templates [here](https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments)
 for examples
 
-## Upload, manage and deploy a custom inference model with DataRobot <a name="#custom_model_runner"></a>
+## Upload, manage and deploy a custom inference model with DataRobot <a name="upload_custom_model"></a>
 Follow steps from the [docs](https://app.datarobot.com/docs/mlops/deployment/custom-models/custom-inf-model.html)
