@@ -45,7 +45,10 @@ function build_all_dropin_env_dockerfiles() {
   DIRS=$(ls)
   for d in $DIRS
   do
-     build_dropin_env_dockerfile "$d" "$1"
+    if [[ "$d" != *.md ]]
+    then
+       build_dropin_env_dockerfile "$d" "$1"
+    fi
   done
   popd || exit 1
 }
