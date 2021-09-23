@@ -6,7 +6,6 @@ init <- function(code_dir) {
   library(solitude)
   library(ranger)
   library(e1071)
-  source(file.path(code_dir, 'create_pipeline.R'))
 }
 
 fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, ...){
@@ -30,7 +29,10 @@ fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, ...){
     #' @param ...: Added for forwards compatibility
     #' @return Nothing
 
-  model <- create_pipeline(X)
+  # Train model
+  model = isolationForest$new()
+  model$fit(X)
+
   # Save model
   model_path <- file.path(output_dir, 'artifact.rds')
   saveRDS(model, file = model_path)

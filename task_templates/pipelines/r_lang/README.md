@@ -4,8 +4,8 @@ The custom.R template includes a basic fit and init method that can be used to t
 The expected arguments to the fit method should remain the same, although the internal functionality can be tweaked to 
 use different modeling or preprocessing techniques.
 
-Inside you will find several commented out methods related to prediction behavior. 
-Uncomment and implement provided methods to modify this behavior from the default.
+Inside you will find an .init hook, which loads required libaries and
+a fit hook that makes predictions. 
 
 ### To run locally using 'drum'
 Paths are relative to `datarobot-user-models` root:
