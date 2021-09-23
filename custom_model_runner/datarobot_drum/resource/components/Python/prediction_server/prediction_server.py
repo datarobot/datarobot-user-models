@@ -14,7 +14,7 @@ from datarobot_drum.drum.common import (
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
-from datarobot_drum.drum.memory_monitor import MemoryMonitor
+from datarobot_drum.drum.resource_monitor import ResourceMonitor
 
 from datarobot_drum.resource.deployment_config_helpers import parse_validate_deployment_config_file
 from datarobot_drum.resource.predict_mixin import PredictMixin
@@ -35,7 +35,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         super(PredictionServer, self).__init__(engine)
         self._show_perf = False
         self._stats_collector = None
-        self._memory_monitor = None
+        self._resource_monitor = None
         self._run_language = None
         self._predictor = None
         self._target_type = None
@@ -54,7 +54,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         self._stats_collector.register_report(
             "run_predictor_total", "finish", StatsOperation.SUB, "start"
         )
-        self._memory_monitor = MemoryMonitor(monitor_current_process=True)
+        self._resource_monitor = ResourceMonitor(monitor_current_process=True)
         self._deployment_config = parse_validate_deployment_config_file(
             self._params["deployment_config"]
         )
@@ -160,8 +160,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
 
         @model_api.route("/stats/", methods=["GET"])
         def stats():
-            mem_info = self._memory_monitor.collect_memory_info()
-            ret_dict = {"mem_info": mem_info._asdict()}
+            ret_dict = self._resource_monitor.collect_resources_info()
 
             self._stats_collector.round()
             ret_dict["time_info"] = {}

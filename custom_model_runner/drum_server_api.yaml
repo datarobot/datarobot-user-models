@@ -110,6 +110,24 @@ paths:
               schema:
                 type: object
                 properties:
+                  drum_info:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        cmdline:
+                          type: array
+                          items:
+                            type: string
+                        cpu_percent:
+                          type: number
+                          description: CPU persent used by DRUM or its child(in case when DRUM is running as nginx + uwsgi server).
+                        mem:
+                          type: number
+                          description: Memory used by DRUM.
+                        pid:
+                          type: number
+                          description: DRUM server process PID.
                   mem_info:
                     type: object
                     properties:
@@ -118,27 +136,12 @@ paths:
                         description: Total available memory on the system.
                       container_limit:
                         type: number
-                        description: Value is not null when starting drum server in container, using --docker argument.
+                        description: Value is not null when starting DRUM server in container, using --docker argument.
                       container_max_used:
                         type: number
-                        description: Value is not null when starting drum server in container, using --docker argument.
+                        description: Value is not null when starting DRUM server in container, using --docker argument.
                       container_used:
                         type: number
-                      drum_info:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            cmdline: 
-                              type: array
-                              items:
-                                type: string
-                            mem:
-                              type: number
-                              description: Memory used by drum.
-                            pid:
-                              type: number
-                              description: DRUM server process PID.
                       drum_rss:
                         type: number
                         description: Resident memory occupied by DRUM.
@@ -166,23 +169,23 @@ paths:
                           min:
                             type: number
                             description: Minimum request time (s)
-              example: 
+              example:
+                drum_info: [ cmdline: [ "/tmp/drum_tests_virtual_environment/bin/python3",
+                                        "/tmp/drum_tests_virtual_environment/bin/drum",
+                                        "server",
+                                        "--code-dir",
+                                        "/tmp/model/python3_sklearn",
+                                        "--target-type",
+                                        "regression",
+                                        "--address",
+                                        "localhost:6789",
+                                        "--with-error-server",
+                                        "--show-perf" ], mem: 256.71484375, pid: 342391 ]
                 mem_info:
                   avail: 17670.828125
                   container_limit: null
                   container_max_used: null
                   container_used: null
-                  drum_info: [cmdline: ["/tmp/drum_tests_virtual_environment/bin/python3",
-                        "/tmp/drum_tests_virtual_environment/bin/drum",
-                        "server",
-                        "--code-dir",
-                        "/tmp/model/python3_sklearn",
-                        "--target-type",
-                        "regression",
-                        "--address",
-                        "localhost:6789",
-                        "--with-error-server",
-                        "--show-perf"], mem: 256.71484375, pid: 342391]
                   drum_rss: 256.71484375
                   free: 312.33203125
                   nginx_rss: 0

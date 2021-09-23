@@ -204,31 +204,32 @@ Response:
 * Statistics route:  
 A GET **URL_PREFIX/stats/** route, shows running model statistics (memory).  
 Example: GET http://localhost:6789/stats/  
+`mem_info::drum_rss` represent a sum of `drum_info::mem` values.  
 Response:
     ```json
   {
+      "drum_info": [{
+          "cmdline": [
+              "/tmp/drum_tests_virtual_environment/bin/python3",
+              "/tmp/drum_tests_virtual_environment/bin/drum",
+              "server",
+              "--code-dir",
+              "/tmp/model/python3_sklearn",
+              "--target-type",
+              "regression",
+              "--address",
+              "localhost:6789",
+              "--with-error-server",
+              "--show-perf"
+          ],
+          "mem": 256.71484375,
+          "pid": 342391
+      }],
       "mem_info": {
           "avail": 17670.828125,
           "container_limit": null,
           "container_max_used": null,
           "container_used": null,
-          "drum_info": [{
-              "cmdline": [
-                  "/tmp/drum_tests_virtual_environment/bin/python3",
-                  "/tmp/drum_tests_virtual_environment/bin/drum",
-                  "server",
-                  "--code-dir",
-                  "/tmp/model/python3_sklearn",
-                  "--target-type",
-                  "regression",
-                  "--address",
-                  "localhost:6789",
-                  "--with-error-server",
-                  "--show-perf"
-              ],
-              "mem": 256.71484375,
-              "pid": 342391
-          }],
           "drum_rss": 256.71484375,
           "free": 312.33203125,
           "nginx_rss": 0,
