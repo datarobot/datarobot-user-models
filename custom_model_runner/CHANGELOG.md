@@ -9,11 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Fixed
 ##### Added 
 
-#### [1.5.15] - in progress
+#### [1.5.15] - 2021-09-23
 ##### Added
+- Release v1.5.15 due to a glitch with v1.5.14 release
 - Show CPU usage info in /stats API
 - Reporting class labels through MLOps monitoring
 - Restrict Y output from custom transform tasks
+
+#### [1.5.14] - 2021-09-22
+##### Note
+- Consider unreleased, removed from PyPi
 
 #### [1.5.13] - 2021-09-17
 ##### Fixed

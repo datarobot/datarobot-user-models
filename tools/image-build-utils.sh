@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+GIT_ROOT=$(git rev-parse --show-toplevel)
+
 function build_drum() {
   CDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
   DRUM_BUILDER_IMAGE="datarobot/drum-builder"
@@ -41,11 +43,11 @@ function build_dropin_env_dockerfile() {
 
 function build_all_dropin_env_dockerfiles() {
   # Change every environment Dockerfile to install freshly built DRUM wheel
-  pushd public_dropin_environments || exit 1
+  pushd "${GIT_ROOT}/public_dropin_environments" || exit 1
   DIRS=$(ls)
   for d in $DIRS
   do
-    if [[ "$d" != *.md ]]
+    if [[ -d "$d" ]]
     then
        build_dropin_env_dockerfile "$d" "$1"
     fi
