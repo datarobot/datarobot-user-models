@@ -9,10 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Fixed
 ##### Added 
 
-
-#### [1.5.14] - in progress
-##### Fixed
-- reporting class labels through MLOps monitoring
+#### [1.5.15] - in progress
+##### Added
+- Show CPU usage info in /stats API
+- Reporting class labels through MLOps monitoring
+- Restrict Y output from custom transform tasks
 
 #### [1.5.13] - 2021-09-17
 ##### Fixed
