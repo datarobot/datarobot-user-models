@@ -51,7 +51,7 @@ typeSchema:
       # specify if the task outputs data in sparse format (CSR format for python, dgTMatrix for R)
     - field: sparse
       condition: EQUALS # only EQUALS is supported
-      value: NEVER # one of: NEVER, DYNAMIC (i.e. can be sparse or not sparse), ALWAYS, IDENTITY (i.e. output sparsity must match input sparsity)
+      value: DYNAMIC # one of: NEVER, DYNAMIC (i.e. can be sparse or not sparse), ALWAYS, IDENTITY (i.e. output sparsity must match input sparsity)
 
       # specify if the task can output missing values
     - field: contains_missing
