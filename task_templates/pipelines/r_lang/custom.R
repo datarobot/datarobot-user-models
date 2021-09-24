@@ -38,3 +38,4 @@ fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, ...){
   model_path <- file.path(output_dir, 'artifact.rds')
   saveRDS(model, file = model_path)
 }
+

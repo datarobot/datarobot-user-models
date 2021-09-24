@@ -123,4 +123,4 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     data_tensor = torch.from_numpy(data.values).type(torch.FloatTensor)
     predictions = model(data_tensor).cpu().data.numpy()
 
-    return pd.DataFrame(data=predictions, columns=['Predictions'])
+    return pd.DataFrame(data=predictions, columns=["Predictions"])
