@@ -105,20 +105,6 @@ class TestCustomTaskTemplates(object):
                 "keras_drop_in_env",
                 "regression",
             ),
-            (
-                "pipeline",
-                "python3_keras_joblib",
-                "project_binary_iris",
-                "keras_drop_in_env",
-                "binary",
-            ),
-            (
-                "pipeline",
-                "python3_keras_joblib",
-                "project_multiclass_skyserver",
-                "keras_drop_in_env",
-                "multiclass",
-            ),
             # This test currently fails, because it uses image features, which isn't one of the
             # Allowed by default data types for Custom Tasks. We can re-enable this
             # Test if we add image features in the fixture to the allowed data types.
@@ -135,20 +121,6 @@ class TestCustomTaskTemplates(object):
                 "project_regression_boston",
                 "xgboost_drop_in_env",
                 "regression",
-            ),
-            (
-                "pipeline",
-                "python3_xgboost",
-                "project_binary_iris",
-                "xgboost_drop_in_env",
-                "binary",
-            ),
-            (
-                "pipeline",
-                "python3_xgboost",
-                "project_multiclass_skyserver",
-                "xgboost_drop_in_env",
-                "multiclass",
             ),
             (
                 "pipeline",
