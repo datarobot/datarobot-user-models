@@ -11,9 +11,6 @@ COPY dr_requirements.txt dr_requirements.txt
 RUN pip3 install -U --upgrade-strategy eager -r dr_requirements.txt --no-cache-dir && \
     rm -rf dr_requirements.txt
 
-RUN Rscript -e "install.packages('solitude', Ncpus=4)" && \
-    Rscript -e "install.packages('ranger', Ncpus=4)"
-
 ENV HOME=/opt CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
 WORKDIR ${CODE_DIR}
 COPY ./ ${CODE_DIR}
