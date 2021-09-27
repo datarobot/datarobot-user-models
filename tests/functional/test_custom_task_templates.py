@@ -11,8 +11,6 @@ import datarobot as dr
 from datarobot.errors import AsyncProcessUnsuccessfulError
 from datarobot_bp_workshop import Workshop
 
-import pydevd_pycharm
-
 BASE_PIPELINE_TASK_TEMPLATES_DIR = "task_templates/pipelines"
 BASE_ESTIMATOR_TASK_TEMPLATES_DIR = "task_templates/estimators"
 BASE_TRANSFORM_TASK_TEMPLATES_DIR = "task_templates/transforms"
@@ -218,7 +216,6 @@ class TestCustomTaskTemplates(object):
                 folder_path=code_dir,
             )
 
-        # pydevd_pycharm.settrace('localhost', port=35406, stdoutToServer=True, stderrToServer=True)
         w = Workshop()
         bp = w.CustomTask(custom_task_version.custom_task_id, version=str(custom_task_version.id))(
             w.TaskInputs.ALL
@@ -231,7 +228,6 @@ class TestCustomTaskTemplates(object):
         user_blueprint = w.BlueprintGraph(bp).save()
         bp_id = user_blueprint.add_to_repository(proj_id)
 
-        # pydevd_pycharm.settrace('localhost', port=35406, stdoutToServer=True, stderrToServer=True)
         proj = dr.Project.get(proj_id)
         job_id = proj.train(bp_id)
 
