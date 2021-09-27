@@ -172,11 +172,11 @@ class TestSchemaValidator:
 
         assert isinstance(validator._input_validators[1], Sparsity)
         assert validator._input_validators[1].condition == Conditions.EQUALS
-        assert validator._input_validators[1].values == [Values.SUPPORTED]
+        assert validator._input_validators[1].values == [Values.FORBIDDEN]
 
         assert isinstance(validator._input_validators[2], ContainsMissing)
         assert validator._input_validators[2].condition == Conditions.EQUALS
-        assert validator._input_validators[2].values == [Values.SUPPORTED]
+        assert validator._input_validators[2].values == [Values.FORBIDDEN]
 
         # Ensure output validators are correctly set
         assert len(validator._output_validators) == 1
