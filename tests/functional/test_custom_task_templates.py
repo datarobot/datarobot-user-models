@@ -94,13 +94,6 @@ class TestCustomTaskTemplates(object):
             ),
             (
                 "pipeline",
-                "python3_pytorch_regression",
-                "project_regression_boston",
-                "pytorch_drop_in_env",
-                "regression",
-            ),
-            (
-                "pipeline",
                 "python3_pytorch_multiclass",
                 "project_multiclass_skyserver",
                 "pytorch_drop_in_env",
