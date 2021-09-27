@@ -86,7 +86,7 @@ class TestCustomTaskTemplates(object):
             ),
             (
                 "pipeline",
-                "python3_pytorch",
+                "python3_pytorch_regression",
                 "project_regression_boston",
                 "pytorch_drop_in_env",
                 "regression",
