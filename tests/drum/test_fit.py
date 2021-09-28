@@ -71,6 +71,8 @@ from .constants import (
     R_TRANSFORM_NON_NUMERIC,
     R_ESTIMATOR_SPARSE,
     R_VALIDATE_SPARSE_ESTIMATOR,
+    R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
+    SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
 )
 
 
@@ -268,9 +270,7 @@ class TestFit:
         "framework, language",
         [
             (SKLEARN_TRANSFORM, PYTHON),
-            (SKLEARN_TRANSFORM_WITH_Y, PYTHON),
             (SKLEARN_TRANSFORM_NO_HOOK, PYTHON),
-            (R_TRANSFORM, R_FIT),
             (R_TRANSFORM_NO_Y, R_FIT),
             (R_TRANSFORM_NO_HOOK, R_FIT),
         ],
@@ -363,6 +363,68 @@ class TestFit:
                 cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
             )
             assert "WARNING: No type schema provided. For transforms, we" not in stdout
+
+    @pytest.mark.parametrize(
+        "framework, language",
+        [
+            (SKLEARN_TRANSFORM_WITH_Y, PYTHON),
+            # disabling R, there is a bug where the Y value is only passed in for sparse
+            # (R_TRANSFORM, R_FIT),
+        ],
+    )
+    @pytest.mark.parametrize("problem", [REGRESSION, BINARY, ANOMALY])
+    def test_transform_fit_disallow_y_output(
+        self, resources, tmp_path, framework, language, problem
+    ):
+
+        input_dataset = resources.datasets(framework, problem)
+        target_type = TRANSFORM
+        custom_model_dir = _create_custom_model_dir(
+            resources, tmp_path, framework, problem, language=framework,
+        )
+
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose {}".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            target_type,
+            custom_model_dir,
+            input_dataset,
+            "--disable-strict-validation",
+        )
+        _, stdout, _ = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+        assert "Transformation of the target variable is not supported by DRUM." in stdout
+
+    @pytest.mark.parametrize(
+        "framework", [SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT, R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT]
+    )
+    def test_sparse_transform_fit_disallow_y_output(
+        self, framework, resources, tmp_path,
+    ):
+        input_dataset = resources.datasets(None, SPARSE)
+        target_dataset = resources.datasets(None, SPARSE_TARGET)
+
+        custom_model_dir = _create_custom_model_dir(
+            resources, tmp_path, framework, REGRESSION, language=framework,
+        )
+        columns = resources.datasets(framework, SPARSE_COLUMNS)
+
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose --target-csv {} --sparse-column-file {} --disable-strict-validation".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            TRANSFORM,
+            custom_model_dir,
+            input_dataset,
+            target_dataset,
+            columns,
+        )
+        _, stdout, _ = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+        assert "Transformation of the target variable is not supported by DRUM." in stdout
 
     @pytest.mark.parametrize(
         "framework",

@@ -28,8 +28,7 @@ All models:
 - If you are using a drop-in environment found in this repo, you must pip install these dependencies.
 
 Python models:
-- Python 3.6 or 3.7 is required unless you are using DRUM with a Docker image.
-- This is because DRUM only runs with Python 3.6 or 3.7.
+- Check https://pypi.org/project/datarobot-drum/ for supported Python versions.
 
 Java models:
 - JRE >= 11.
@@ -205,31 +204,32 @@ Response:
 * Statistics route:  
 A GET **URL_PREFIX/stats/** route, shows running model statistics (memory).  
 Example: GET http://localhost:6789/stats/  
+`mem_info::drum_rss` represent a sum of `drum_info::mem` values.  
 Response:
     ```json
   {
+      "drum_info": [{
+          "cmdline": [
+              "/tmp/drum_tests_virtual_environment/bin/python3",
+              "/tmp/drum_tests_virtual_environment/bin/drum",
+              "server",
+              "--code-dir",
+              "/tmp/model/python3_sklearn",
+              "--target-type",
+              "regression",
+              "--address",
+              "localhost:6789",
+              "--with-error-server",
+              "--show-perf"
+          ],
+          "mem": 256.71484375,
+          "pid": 342391
+      }],
       "mem_info": {
           "avail": 17670.828125,
           "container_limit": null,
           "container_max_used": null,
           "container_used": null,
-          "drum_info": [{
-              "cmdline": [
-                  "/tmp/drum_tests_virtual_environment/bin/python3",
-                  "/tmp/drum_tests_virtual_environment/bin/drum",
-                  "server",
-                  "--code-dir",
-                  "/tmp/model/python3_sklearn",
-                  "--target-type",
-                  "regression",
-                  "--address",
-                  "localhost:6789",
-                  "--with-error-server",
-                  "--show-perf"
-              ],
-              "mem": 256.71484375,
-              "pid": 342391
-          }],
           "drum_rss": 256.71484375,
           "free": 312.33203125,
           "nginx_rss": 0,
@@ -290,11 +290,12 @@ For these routes data is posted as binary data. Provide mimetype and charset to 
 For more detailed information please go [here](https://github.com/datarobot/datarobot-user-models#unstructured_inference_models).  
 
 #### Starting drum as prediction server in production mode.
-Drum prediction server can be started in *production* mode which has nginx and uwsgi as the backend.
+DRUM prediction server can be started in *production* mode which has nginx and uwsgi as the backend.
 This provides better stability and scalability - depending on how many CPUs are available several workers will be started to serve predictions.  
 *--max-workers* parameter  can be used to limit number of workers.  
 E.g. ```drum server --code-dir ~/user_code_dir --address localhost:6789 --production --max-workers 2```
 
+> Note: `uwsgi` is an extra dependency for DRUM. Install it using: `pip install datarobot-drum[uwsgi]` or `pip install uwsgi`  
 > Note: *Production* mode may not be available on Windows-based systems out ot the box, as uwsgi installation requires special handling.
 > Docker container based Linux environment can be used for such cases.
 

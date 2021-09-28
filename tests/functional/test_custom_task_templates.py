@@ -7,12 +7,12 @@ import shutil
 from tempfile import TemporaryDirectory
 import tempfile
 import yaml
-
 import datarobot as dr
 from datarobot.errors import AsyncProcessUnsuccessfulError
 from datarobot_bp_workshop import Workshop
 
 BASE_PIPELINE_TASK_TEMPLATES_DIR = "task_templates/pipelines"
+BASE_ESTIMATOR_TASK_TEMPLATES_DIR = "task_templates/estimators"
 BASE_TRANSFORM_TASK_TEMPLATES_DIR = "task_templates/transforms"
 BASE_FIXTURE_TASK_TEMPLATES_DIR = "tests/fixtures"
 
@@ -24,6 +24,8 @@ class TestCustomTaskTemplates(object):
     def get_template_base_path(template_type):
         if template_type == "pipeline":
             return BASE_PIPELINE_TASK_TEMPLATES_DIR
+        if template_type == "estimator":
+            return BASE_ESTIMATOR_TASK_TEMPLATES_DIR
         if template_type == "transform":
             return BASE_TRANSFORM_TASK_TEMPLATES_DIR
         if template_type == "fixture":
@@ -34,6 +36,12 @@ class TestCustomTaskTemplates(object):
     def project_regression_boston(self):
         proj = dr.Project.create(sourcedata=os.path.join(BASE_DATASET_DIR, "boston_housing.csv"))
         proj.set_target(target="MEDV", mode=dr.AUTOPILOT_MODE.MANUAL)
+        return proj.id
+
+    @pytest.fixture(scope="session")
+    def project_anomaly_boston(self):
+        proj = dr.Project.create(sourcedata=os.path.join(BASE_DATASET_DIR, "boston_housing.csv"))
+        proj.set_target(unsupervised_mode=True, mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
     @pytest.fixture(scope="session")
@@ -167,6 +175,13 @@ class TestCustomTaskTemplates(object):
                 "r_drop_in_env",
                 "transform",
             ),
+            (
+                "estimator",
+                "r_anomaly_detection",
+                "project_anomaly_boston",
+                "r_drop_in_env",
+                "anomaly",
+            ),
         ],
     )
     def test_custom_task_templates(
@@ -181,6 +196,7 @@ class TestCustomTaskTemplates(object):
             "binary": dr.enums.CUSTOM_TASK_TARGET_TYPE.BINARY,
             "multiclass": dr.enums.CUSTOM_TASK_TARGET_TYPE.MULTICLASS,
             "transform": dr.enums.CUSTOM_TASK_TARGET_TYPE.TRANSFORM,
+            "anomaly": dr.enums.CUSTOM_TASK_TARGET_TYPE.ANOMALY,
         }[target_type]
 
         custom_task = dr.CustomTask.create(name="estimator", target_type=dr_target_type)

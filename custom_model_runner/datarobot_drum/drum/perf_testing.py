@@ -676,12 +676,12 @@ class CMRunTests:
                 payload.update({"y": open(target_location)})
 
             response = requests.post(run.url_server_address + endpoint, files=payload)
-            transformed_values = read_x_data_from_response(response)
-            self._schema_validator.validate_outputs(transformed_values)
             if not response.ok:
                 raise DrumCommonException(
                     "Failure in {} server: {}".format(endpoint[1:-1], response.text)
                 )
+            transformed_values = read_x_data_from_response(response)
+            self._schema_validator.validate_outputs(transformed_values)
 
     def check_prediction_side_effects(self):
         rtol = 2e-02

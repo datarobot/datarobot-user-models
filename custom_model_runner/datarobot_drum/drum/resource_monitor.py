@@ -7,21 +7,27 @@ import collections
 
 MemoryInfo = collections.namedtuple(
     "MemoryInfo",
-    "total avail free drum_rss drum_info nginx_rss container_limit container_max_used container_used",
+    "total avail free drum_rss nginx_rss container_limit container_max_used container_used",
 )
 
 
-class MemoryMonitor:
+class ResourceMonitor:
     TOTAL_MEMORY_LABEL = "Total"
     AVAILABLE_MEMORY_LABEL = "Available"
     FREE_MEMORY_LABEL = "Free"
-    MLAPP_RSS_LABEL = "Pipeline RSS"
 
-    def __init__(self, pid=None, include_childs=True, monitor_current_process=False):
+    def __init__(self, monitor_current_process=False):
         """"""
-        self._pid = pid if pid is not None else os.getpid()
-        self._include_childs = include_childs
-        self._monitor_current_process = monitor_current_process
+        self._is_drum_process = monitor_current_process
+        # _current_proc is drum process in case monitor_current_process is True
+        # or uwsgi worker otherwise
+        self._current_proc = psutil.Process()
+        self._drum_proc = None
+        if self._is_drum_process:
+            self._drum_proc = self._current_proc
+
+        # save DRUM child processes, because consequent cpu_percent() calls has to be made on the same object.
+        self._children_procs = {}
 
     @staticmethod
     def _run_inside_docker():
@@ -57,38 +63,53 @@ class MemoryMonitor:
 
         return {"total_mb": total_mb, "usage_mb": usage_mb, "max_usage_mb": max_usage_mb}
 
-    def collect_memory_info(self):
+    def collect_drum_info(self):
         def get_proc_data(p):
             return {
                 "pid": p.pid,
                 "cmdline": p.cmdline(),
                 "mem": ByteConv.from_bytes(p.memory_info().rss).mbytes,
+                "cpu_percent": p.cpu_percent(),
             }
 
-        drum_process = None
-        nginx_rss_mb = 0
-        drum_rss_mb = 0
-
-        current_proc = psutil.Process()
+        drum_info = None
 
         # case with Flask server, there is only one process - drum
-        if self._monitor_current_process:
-            drum_process = current_proc
-        # case with uwsgi, current proc is uwsgi worker, so looking for parent drum process
-        else:
-            parents = current_proc.parents()
-            for p in parents:
-                if p.name() == ArgumentsOptions.MAIN_COMMAND:
-                    drum_process = p
-                    break
+        if self._drum_proc is None:
+            if self._is_drum_process:
+                self._drum_proc = self._current_proc
+            # case with uwsgi, current proc is uwsgi worker, so looking for parent drum process
+            else:
+                parents = self._current_proc.parents()
+                for p in parents:
+                    if p.name() == ArgumentsOptions.MAIN_COMMAND:
+                        self._drum_proc = p
+                        break
 
-        if drum_process:
-            drum_rss_mb = ByteConv.from_bytes(drum_process.memory_info().rss).mbytes
-            drum_info = []
-            drum_info.append(get_proc_data(drum_process))
-            for child in drum_process.children(recursive=True):
-                drum_rss_mb += ByteConv.from_bytes(child.memory_info().rss).mbytes
-                drum_info.append(get_proc_data(child))
+        if self._drum_proc:
+            drum_info = list()
+            drum_info.append(get_proc_data(self._drum_proc))
+            if not self._is_drum_process:
+                new_children = set()
+                for child in self._drum_proc.children(recursive=True):
+                    new_children.add(child.pid)
+                    if child.pid not in self._children_procs.keys():
+                        self._children_procs[child.pid] = child
+
+                # difference is pids in _children_procs and not in new_children
+                # remove such processes
+                for child_pid in set(self._children_procs.keys()).difference(new_children):
+                    self._children_procs.pop(child_pid)
+
+                for child in self._children_procs.values():
+                    drum_info.append(get_proc_data(child))
+
+        return drum_info
+
+    def collect_resources_info(self):
+        nginx_rss_mb = 0
+
+        drum_info = self.collect_drum_info()
 
         for proc in psutil.process_iter():
             if "nginx" in proc.name().lower():
@@ -115,12 +136,11 @@ class MemoryMonitor:
             total=total_physical_mem_mb,
             avail=available_mem_mb,
             free=free_mem_mb,
-            drum_rss=drum_rss_mb if drum_process else None,
-            drum_info=drum_info if drum_process else None,
+            drum_rss=sum(info["mem"] for info in drum_info) if self._drum_proc else None,
             nginx_rss=nginx_rss_mb,
             container_limit=container_limit_mb,
             container_max_used=container_max_usage_mb,
             container_used=container_usage_mb,
         )
 
-        return mem_info
+        return {"mem_info": mem_info._asdict(), "drum_info": drum_info if self._drum_proc else None}

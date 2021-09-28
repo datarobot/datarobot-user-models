@@ -30,3 +30,7 @@ class DrumPredException(DrumException):
 
 class DrumSchemaValidationException(DrumException):
     """ Raised when the supplied schema in model_metadata does not match actual input or output data."""
+
+
+class DrumTransformException(DrumException):
+    """ Raised when there is an issue specific to transform tasks."""
