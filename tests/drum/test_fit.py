@@ -448,12 +448,8 @@ class TestFit:
             (SKLEARN_ANOMALY, ANOMALY, None),
             (SKLEARN_MULTICLASS, MULTICLASS, None),
             (SKLEARN_SPARSE, REGRESSION, None),
-            (XGB, BINARY_TEXT, None),
-            (XGB, BINARY, None),
-            (XGB, MULTICLASS, None),
-            (KERAS, BINARY_TEXT, None),
-            (KERAS, BINARY, None),
-            (KERAS, MULTICLASS, None),
+            (XGB, REGRESSION, None),
+            (KERAS, REGRESSION, None),
         ],
     )
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, None])
