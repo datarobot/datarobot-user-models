@@ -200,7 +200,7 @@ class TestFit:
 
         target_type = resources.target_types(problem)
 
-        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose --disable-strict-validation".format(
             ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
         )
         if problem != ANOMALY:
