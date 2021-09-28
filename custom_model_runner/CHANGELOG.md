@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Fixed
 ##### Added 
 
+#### [1.5.16] - in progress
+##### Changed
+- add `uwsgi` as extra dependency
+
 #### [1.5.15] - 2021-09-23
 ##### Added
 - Release v1.5.15 due to a glitch with v1.5.14 release

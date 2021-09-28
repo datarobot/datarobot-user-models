@@ -1,9 +1,9 @@
 ## Python Keras Inference Model Template
 
-This model is intended to work with the [Python 3 Keras Drop-In Environment](../../../public_dropin_environments/python3_keras/).
-The supplied h5 file is a keras + tensorflow model trained on [boston_housing.csv](../../../tests/testdata/boston_housing.csv)
+This model is intended to work with the [Python 3 Keras Drop-In Environment](../../public_dropin_environments/python3_keras/).
+The supplied h5 file is a keras + tensorflow model trained on [boston_housing.csv](../../tests/testdata/boston_housing.csv)
 with a MEDV as the target (regression), though any binary or regression model trained using the libraries
-outlined in [Python 3 Keras Drop-In Environment](../../../public_dropin_environments/python3_keras/) will work.
+outlined in [Python 3 Keras Drop-In Environment](../../public_dropin_environments/python3_keras/) will work.
 
 For this sample model, custom.py contains additional data pre-processing that the model itself lacks.
 
