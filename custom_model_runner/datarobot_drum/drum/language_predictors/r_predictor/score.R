@@ -305,7 +305,7 @@ outer_predict <- function(target_type, binary_data=NULL, mimetype=NULL, model=NU
     if (target_type == TargetType$BINARY || target_type == TargetType$MULTICLASS) {
         prediction_labels <- .validate_classification_predictions(predictions)
         names(predictions) <- prediction_labels
-    } else if (target_type == TargetType$REGRESSION) {
+    } else if (target_type == TargetType$REGRESSION || target_type == TargetType$ANOMALY) {
         .validate_regression_predictions(predictions)
     } else {
         stop(sprintf("Unsupported target type %s", target_type))
