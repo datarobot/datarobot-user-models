@@ -26,6 +26,7 @@ from .constants import (
     MULTICLASS_NUM_LABELS,
     PYTHON,
     PYTORCH,
+    PYTORCH_REGRESSION,
     PYTORCH_MULTICLASS,
     R_FIT,
     RDS,
@@ -612,7 +613,7 @@ class TestFit:
         "framework, problem, language, is_framework_directory",
         [
             (SKLEARN_SPARSE, SPARSE, PYTHON, True),
-            (PYTORCH, SPARSE, PYTHON, True),
+            (PYTORCH_REGRESSION, SPARSE, PYTHON, True),
             (
                 R_ESTIMATOR_SPARSE,
                 REGRESSION,

@@ -115,8 +115,6 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
         must be used as column names. This applies to binary and multi-class classification.
       Regression: must have a single column called `Predictions` with numerical values
     """
-    # Can see what is passed in via kwargs. Use drum fit --verbose
-    print(kwargs)
 
     # Convert data
     data = subset_data(data)
