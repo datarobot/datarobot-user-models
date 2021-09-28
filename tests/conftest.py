@@ -171,7 +171,9 @@ _training_models_paths = {
     (R_FIT, RDS_HYPERPARAMETERS): os.path.join(TESTS_FIXTURES_PATH, "r_lang_hyperparameters"),
     (R_FIT, R_ESTIMATOR_SPARSE): os.path.join(ESTIMATORS_TEMPLATES_PATH, "r_sparse_regression"),
     (PYTHON, PYTORCH): os.path.join(TRAINING_TEMPLATES_PATH, "python3_pytorch"),
-    (PYTHON, PYTORCH_REGRESSION): os.path.join(TRAINING_TEMPLATES_PATH, "python3_pytorch_regression"),
+    (PYTHON, PYTORCH_REGRESSION): os.path.join(
+        TRAINING_TEMPLATES_PATH, "python3_pytorch_regression"
+    ),
     (PYTHON, SKLEARN_ANOMALY): os.path.join(TRAINING_TEMPLATES_PATH, "python3_anomaly_detection"),
     (PYTHON, PYTORCH_MULTICLASS): os.path.join(
         TRAINING_TEMPLATES_PATH, "python3_pytorch_multiclass"
