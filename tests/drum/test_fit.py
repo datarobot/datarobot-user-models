@@ -453,7 +453,7 @@ class TestFit:
         )
         columns = resources.datasets(framework, SPARSE_COLUMNS)
 
-        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose --target-csv {} --sparse-column-file {}".format(
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose --target-csv {} --sparse-column-file {} --disable-strict-validation".format(
             ArgumentsOptions.MAIN_COMMAND,
             TRANSFORM,
             custom_model_dir,
