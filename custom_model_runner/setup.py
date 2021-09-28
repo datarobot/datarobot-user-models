@@ -21,12 +21,13 @@ extras_require = {
     "R": ["rpy2;python_version>='3.6'"],
     "pypmml": extra_deps[SupportedFrameworks.PYPMML],
     "trainingModels": ["datarobot==2.24.0"],
+    "uwsgi": ["uwsgi"],
 }
 
 setup(
     name=project_name,
     version=version,
-    description="Custom Model Runner",
+    description="DRUM - develop, test and deploy custom models",
     long_description=long_desc,
     long_description_content_type="text/markdown",
     url="http://datarobot.com",

@@ -1,9 +1,9 @@
 ## R Unstructured Inference Model Template
 
-This model is intended to work with the [R Drop-In Environment](../../../public_dropin_environments/r_lang/).
+This model is intended to work with the [R Drop-In Environment](../../public_dropin_environments/r_lang/).
 or any other R environment as it doesn't require any specific packages.
 
-The data is just a text file [unstructured_data.txt]:(../../../tests/testdata/unstructured_data.txt).
+The data is just a text file [unstructured_data.txt](../../tests/testdata/unstructured_data.txt).
 
 The model doesn't use any artifacts, only `custom.R` which implements the `score_unstructured` method and performs a word count on the input data.
 
