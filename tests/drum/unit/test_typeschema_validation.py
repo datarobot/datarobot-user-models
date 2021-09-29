@@ -37,7 +37,7 @@ TEN_K_DIABETES = get_data("10k_diabetes.csv")
 IRIS_BINARY = get_data("iris_binary_training.csv")
 LENDING_CLUB = get_data("lending_club_reduced.csv")
 BOSTON_PUBLIC_RAISES = get_data("BostonPublicRaises_80.csv")
-TELCO_CHURN = get_data('telecomms_churn.csv')
+TELCO_CHURN = get_data("telecomms_churn.csv")
 
 CONDITIONS_EXCEPT_EQUALS = [
     Conditions.NOT_EQUALS,
@@ -95,14 +95,16 @@ def ten_k_diabetes():
 def cats_and_dogs():
     return CATS_AND_DOGS.copy()
 
+
 @pytest.fixture
 def boston_raises():
     return BOSTON_PUBLIC_RAISES.copy()
 
+
 @pytest.fixture
 def telco_churn_txt():
     data = TELCO_CHURN.copy()
-    return data[['Churn', 'tariff_plan_conds']]
+    return data[["Churn", "tariff_plan_conds"]]
 
 
 def get_yaml_dict(condition, field, values, top_requirements: RequirementTypes) -> dict:
