@@ -1,4 +1,5 @@
 import argparse
+import os
 import sys
 from tempfile import NamedTemporaryFile
 from unittest.mock import patch
@@ -6,8 +7,9 @@ from unittest.mock import patch
 import pytest
 
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
-from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.drum.common import ArgumentsOptions, ArgumentOptionsEnvVars
 from datarobot_drum.resource.utils import _exec_shell_cmd
+from datarobot_drum.drum.utils import unset_drum_supported_env_vars
 
 
 class TestDrumHelp:
@@ -149,3 +151,23 @@ class TestStrictValidationParser(object):
             options = parser.parse_args(args)
 
         assert not options.disable_strict_validation
+
+
+class TestBooleanArgumentOptions:
+    def test_boolean_argument_options_passed_through_env_var(self):
+        args = f"{ArgumentsOptions.MAIN_COMMAND} server  --with-error-server --skip-predict".split()
+        with patch.object(sys, "argv", args):
+            unset_drum_supported_env_vars()
+            CMRunnerArgsRegistry.get_arg_parser()
+            os.environ[ArgumentOptionsEnvVars.PRODUCTION] = "True"
+            os.environ[ArgumentOptionsEnvVars.MONITOR] = "False"
+            os.environ[ArgumentOptionsEnvVars.WITH_ERROR_SERVER] = "1"
+            os.environ[ArgumentOptionsEnvVars.SKIP_PREDICT] = "False"
+            CMRunnerArgsRegistry.extend_sys_argv_with_env_vars()
+            assert ArgumentsOptions.PRODUCTION in sys.argv
+            assert ArgumentsOptions.MONITOR not in sys.argv
+            assert ArgumentsOptions.WITH_ERROR_SERVER in sys.argv
+            assert ArgumentsOptions.SKIP_PREDICT in sys.argv
+            assert sys.argv.count(ArgumentsOptions.WITH_ERROR_SERVER) == 1
+            assert sys.argv.count(ArgumentsOptions.SKIP_PREDICT) == 1
+            unset_drum_supported_env_vars()
