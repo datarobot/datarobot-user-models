@@ -58,7 +58,7 @@ The DRUM tool has built-in support for the following libraries. If your model is
 ### Julia Libraries
 | Library | File Extension | Example |
 | --- | --- | --- |
-| MLJ | *.jlso | boston_rf.jlso |
+| MLJ | *.jlso | grade_regression.jlso |
 
 This tool makes the following assumptions about your serialized model:
 - The data sent to a model can be used to make predictions without additional pre-processing.
@@ -248,7 +248,7 @@ The custom model runner folder contains its source code.
     
 ### Here are a few ways to use DRUM to test a custom model locally:
 * Score data:
-  * Run the example: `drum score --code-dir model_templates/python3_sklearn --input tests/testdata/boston_housing.csv`
+  * Run the example: `drum score --code-dir model_templates/python3_sklearn --input tests/testdata/juniors_3_year_stats_regression.csv`
    > Note: this command assumes model is regression.
    For binary classification model provide: _**positive-class-label**_
    and _**negative-class-label**_ arguments.  

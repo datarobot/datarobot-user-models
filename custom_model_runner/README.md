@@ -186,14 +186,14 @@ Response:
      "modelMetadata": {
        "environmentID": "5e8c889607389fe0f466c72d",
        "inferenceModel": {
-         "targetName": "MEDV"
+         "targetName": "Grade 2014"
        },
        "modelID": "5f1f15a4d6111f01cb7f91fd",
        "name": "regression model",
        "targetType": "regression",
        "type": "inference",
        "validation": {
-         "input": "../../../tests/testdata/boston_housing.csv"
+         "input": "../../../tests/testdata/juniors_3_year_stats_regression.csv"
        }
      },
      "predictor": "scikit-learn",

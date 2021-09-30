@@ -39,7 +39,6 @@ fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, ...){
 }
 
 score <- function(data, model, ...){
-
     Predictions <- model$predict(data)$anomaly_score
     data.frame(Predictions)
 }

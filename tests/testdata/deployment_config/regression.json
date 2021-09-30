@@ -2,7 +2,7 @@
     "target": {
         "class_mapping": null, 
         "missing_maps_to": null, 
-        "name": "MEDV", 
+        "name": "Grade 2014",
         "prediction_threshold": 0.5, 
         "type": "Regression"
     }

@@ -129,7 +129,7 @@ class TestFit:
             ArgumentsOptions.MAIN_COMMAND, problem, custom_model_dir, input_dataset
         )
         if problem != ANOMALY:
-            cmd += " --target {}".format(resources.targets(problem))
+            cmd += ' --target "{}"'.format(resources.targets(problem))
 
         if use_output:
             cmd += " --output {}".format(output)
@@ -198,7 +198,7 @@ class TestFit:
             ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
         )
         if problem != ANOMALY:
-            cmd += " --target {}".format(resources.targets(problem))
+            cmd += ' --target "{}"'.format(resources.targets(problem))
 
         if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
@@ -252,7 +252,7 @@ class TestFit:
             parameter_file,
         )
         if problem != ANOMALY:
-            cmd += " --target {}".format(resources.targets(problem))
+            cmd += ' --target "{}"'.format(resources.targets(problem))
 
         if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
@@ -297,7 +297,7 @@ class TestFit:
             ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
         )
         if problem != ANOMALY:
-            cmd += " --target {}".format(resources.targets(problem))
+            cmd += ' --target "{}"'.format(resources.targets(problem))
 
         if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
@@ -344,7 +344,7 @@ class TestFit:
             "" if strict else "--disable-strict-validation",
         )
         if problem != ANOMALY:
-            cmd += " --target {}".format(resources.targets(problem))
+            cmd += ' --target "{}"'.format(resources.targets(problem))
 
         if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
@@ -598,7 +598,7 @@ class TestFit:
         output = tmp_path / "output"
         output.mkdir()
 
-        cmd = "{} fit --target-type {} --code-dir {} --target {} --input {} --verbose".format(
+        cmd = '{} fit --target-type {} --code-dir {} --target "{}" --input {} --verbose'.format(
             ArgumentsOptions.MAIN_COMMAND,
             REGRESSION,
             custom_model_dir,
@@ -671,10 +671,13 @@ class TestFit:
         else:
             target_type = problem
 
-        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
-            ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
+        cmd = '{} fit --target-type {} --code-dir {} --target "{}" --input {} --verbose '.format(
+            ArgumentsOptions.MAIN_COMMAND,
+            target_type,
+            custom_model_dir,
+            resources.targets(problem),
+            input_dataset,
         )
-        cmd += " --target {}".format(resources.targets(problem))
 
         if target_type in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
@@ -736,7 +739,7 @@ class TestFit:
         output = tmp_path / "output"
         output.mkdir()
 
-        cmd = "{} fit --target-type {} --code-dir {} --target {} --input {} --verbose".format(
+        cmd = '{} fit --target-type {} --code-dir {} --target "{}" --input {} --verbose'.format(
             ArgumentsOptions.MAIN_COMMAND,
             BINARY,
             custom_model_dir,
@@ -771,7 +774,7 @@ class TestFit:
         output = tmp_path / "output"
         output.mkdir()
 
-        cmd = "{} fit --target-type {} --code-dir {} --target {} --input {} --verbose".format(
+        cmd = '{} fit --target-type {} --code-dir {} --target "{}" --input {} --verbose'.format(
             ArgumentsOptions.MAIN_COMMAND,
             problem,
             custom_model_dir,
