@@ -236,7 +236,8 @@ class DataTypes(BaseValidator):
         """
         Decide if a pandas series is text, using a very simple heuristic:
         1. Count the number of elements in the series that contain 1 or more whitespace character
-        2. If >75% of the elements have whitespace, the Series is text
+        2. If >75% of the elements have whitespace, and either there are more than 60 unique values or
+            more than 5% of values are unique then the Series is considered to be text
 
         Parameters
         ----------
@@ -246,13 +247,19 @@ class DataTypes(BaseValidator):
         -------
         boolean: True for is text, False for not text
         """
+        MIN_WHITESPACE_ROWS = 0.75  # percent
+        MIN_UNIQUE_VALUES = 0.05  # percent
         if (
             pd.api.types.is_string_dtype(x)
             and pd.api.types.infer_dtype(x) != "boolean"
             and pd.api.types.infer_dtype(x) != "bytes"
         ):
             pct_rows_with_whitespace = (x.str.count(r"\s") > 0).sum() / x.shape[0]
-            return pct_rows_with_whitespace > 0.75
+            unique = x.nunique()
+            pct_unique_values = unique / x.shape[0]
+            return pct_rows_with_whitespace >= MIN_WHITESPACE_ROWS and (
+                pct_unique_values >= MIN_UNIQUE_VALUES or unique >= 60
+            )
         return False
 
     @staticmethod

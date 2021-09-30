@@ -36,6 +36,8 @@ CATS_AND_DOGS = get_data("cats_dogs_small_training.csv")
 TEN_K_DIABETES = get_data("10k_diabetes.csv")
 IRIS_BINARY = get_data("iris_binary_training.csv")
 LENDING_CLUB = get_data("lending_club_reduced.csv")
+BOSTON_PUBLIC_RAISES = get_data("BostonPublicRaises_80.csv")
+TELCO_CHURN = get_data("telecomms_churn.csv")
 
 CONDITIONS_EXCEPT_EQUALS = [
     Conditions.NOT_EQUALS,
@@ -92,6 +94,17 @@ def ten_k_diabetes():
 @pytest.fixture
 def cats_and_dogs():
     return CATS_AND_DOGS.copy()
+
+
+@pytest.fixture
+def boston_raises():
+    return BOSTON_PUBLIC_RAISES.copy()
+
+
+@pytest.fixture
+def telco_churn_txt():
+    data = TELCO_CHURN.copy()
+    return data[["Churn", "tariff_plan_conds"]]
 
 
 def get_yaml_dict(condition, field, values, top_requirements: RequirementTypes) -> dict:
@@ -226,6 +239,22 @@ class TestSchemaValidator:
                 "class",
                 "ten_k_diabetes",
                 "readmitted",
+            ),
+            (
+                Conditions.EQUALS,
+                [Values.CAT],
+                "boston_raises",
+                "RAISE",
+                "telco_churn_txt",
+                "Churn",
+            ),
+            (
+                Conditions.EQUALS,
+                [Values.TXT],
+                "telco_churn_txt",
+                "Churn",
+                "boston_raises",
+                "RAISE",
             ),
         ],
         ids=lambda x: str([str(el) for el in x]) if isinstance(x, list) else str(x),
