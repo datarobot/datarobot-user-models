@@ -236,8 +236,8 @@ class DataTypes(BaseValidator):
         """
         Decide if a pandas series is text, using a very simple heuristic:
         1. Count the number of elements in the series that contain 1 or more whitespace character
-        2. If >75% of the elements have whitespace, the Series is text and there are more than 60 unique values or
-            more than 5% of values are unique
+        2. If >75% of the elements have whitespace, and either there are more than 60 unique values or
+            more than 5% of values are unique then the Series is considered to be text
 
         Parameters
         ----------
