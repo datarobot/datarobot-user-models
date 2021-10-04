@@ -51,7 +51,7 @@ def fit(
 def score(
     data: pd.DataFrame,  # data that needs to be scored
     model,  # the trained object, extracted from the artifact
-    # [in this example - trained SGDClassifier extracted from artifact.pkl]
+    # [in this example - trained CustomCalibrator extracted from artifact.pkl]
     **kwargs,
 ) -> pd.DataFrame:  # returns scored data
 

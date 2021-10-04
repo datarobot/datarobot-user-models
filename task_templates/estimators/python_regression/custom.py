@@ -1,11 +1,10 @@
-# This custom estimator task implements a linear regressor with SGD training
+# This custom estimator task implements a decision tree regressor
 
-from typing import List, Optional
 import pickle
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from sklearn.linear_model import SGDRegressor
+from sklearn.tree import DecisionTreeRegressor
 
 
 def fit(X, y, output_dir, row_weights, **kwargs):
@@ -21,7 +20,7 @@ def fit(X, y, output_dir, row_weights, **kwargs):
     y: pd.Series
         Project's target column.
     output_dir: str
-        A path to the output folder; the artifact [in this example - containing the trained SGDRegressor] must be saved into this folder.
+        A path to the output folder; the artifact [in this example - containing the trained DecisionTreeRegressor] must be saved into this folder.
     row_weights: np.ndarray (optional, default = None)
         A list of weights. DataRobot passes it in case of smart downsampling or when weights column is specified in project settings.
 
@@ -32,11 +31,11 @@ def fit(X, y, output_dir, row_weights, **kwargs):
         so that the trained object can be used during scoring.
     """
 
-    # fit a SGDRegressor
-    estimator = SGDRegressor()
+    # fit a DecisionTreeRegressor
+    estimator = DecisionTreeRegressor()
     estimator.fit(X, y)
 
-    # dump the trained object [in this example - a trained SGDRegressor]
+    # dump the trained object [in this example - a trained DecisionTreeRegressor]
     # into an artifact [in this example - artifact.pkl]
     # and then save it into output_dir so that it can be used later when scoring data
     output_dir_path = Path(output_dir)
@@ -47,7 +46,7 @@ def fit(X, y, output_dir, row_weights, **kwargs):
 
 def score(data, model, **kwargs):
     """ This hook defines how DataRobot will use the trained object from fit() to score new data.
-    DataRobot runs this hook when the task is used for scoring inside a blueprint. 
+    DataRobot runs this hook when the task is used for scoring inside a blueprint.
     As an output, this hook is expected to return the scored data.
     The input parameters are passed by DataRobot based on dataset and blueprint configuration.
 
@@ -57,8 +56,8 @@ def score(data, model, **kwargs):
         Data that DataRobot passes for scoring.
     model: Any
         Trained object, extracted by DataRobot from the artifact created in fit().
-        In this example, contains trained SGDRegressor extracted from artifact.pkl.
-    
+        In this example, contains trained DecisionTreeRegressor extracted from artifact.pkl.
+
     Returns
     -------
     pd.DataFrame
