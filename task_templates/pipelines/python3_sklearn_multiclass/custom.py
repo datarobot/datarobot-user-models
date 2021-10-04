@@ -62,7 +62,7 @@ def fit(
         (typically containing a trained object) into output_dir
         so that the trained object can be used during scoring.
     """
-    print(kwargs)
+
     if class_order is not None:
         if y.dtype == np.dtype("bool"):
             y = y.astype("str")
