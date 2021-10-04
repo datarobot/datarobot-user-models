@@ -1,8 +1,8 @@
 """
-    In this example we show how to implement a simple Ridge Regression that handles sparse input.
-    Intended for binary classification
-
+In this example we show how to implement a simple Ridge Regression that handles sparse input.
+Intended for binary classification
 """
+
 import pickle
 from typing import List, Optional, Any, Dict
 
@@ -34,7 +34,8 @@ def fit(
     ----------
     X: pd.DataFrame
         Training data that DataRobot passes when this task is being trained. Note that both the training data AND
-        column (feature) names are passed
+        column (feature) names are passed. Note that this dataframe is sparse and COO format
+        https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO)
     y: pd.Series
         Project's target column.
     output_dir: str
@@ -90,7 +91,7 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     ----------
     data: pd.DataFrame
         Is the dataframe to make predictions against. If the `transform` hook is utilized,
-        `data` will be the transformed data
+        `data` will be the transformed data. Note that this dataframe is sparse
     model: Any
         Trained object, extracted by DataRobot from the artifact created in fit().
         In this example, contains trained sklearn pipeline extracted from artifact.pkl.
@@ -100,9 +101,6 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     Returns
     -------
     This method should return predictions as a dataframe with the following format:
-      Classification: must have columns for each class label with floating- point class
-        probabilities as values. Each row should sum to 1.0. The original class names defined in the project
-        must be used as column names. This applies to binary and multi-class classification.
       Regression: must have a single column called `Predictions` with numerical values
     """
 

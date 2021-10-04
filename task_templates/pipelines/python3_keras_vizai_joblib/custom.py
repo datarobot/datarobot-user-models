@@ -1,6 +1,6 @@
 """
-    In this example we show how flexible pipelines can be by creating
-    a computer vision pipeline and classifier. Note how we use load_model and a custom deserialize
+In this example we show how flexible pipelines can be by creating
+a computer vision pipeline and classifier. Note how we use load_model and a custom deserialize
 """
 from typing import List, Optional, Any, Dict
 import pandas as pd
@@ -131,11 +131,8 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
       Classification: must have columns for each class label with floating- point class
         probabilities as values. Each row should sum to 1.0. The original class names defined in the project
         must be used as column names. This applies to binary and multi-class classification.
-      Regression: must have a single column called `Predictions` with numerical values
     """
 
-    # Note: for binary classification we are supplied the explicit positive and negative
-    # class lables. See python3_sklearn_binary example
     predictions = model.predict(data)
     predictions_df = pd.DataFrame(predictions, columns=[kwargs["positive_class_label"]])
     predictions_df[kwargs["negative_class_label"]] = (

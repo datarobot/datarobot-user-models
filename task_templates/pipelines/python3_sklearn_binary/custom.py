@@ -1,5 +1,5 @@
 """
-    In this example we show a complex pipeline with a binary linear model.
+In this example we show a complex pipeline with a binary linear model.
 """
 import pickle
 from typing import List, Optional, Any, Dict
@@ -108,10 +108,6 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
       Classification: must have columns for each class label with floating- point class
         probabilities as values. Each row should sum to 1.0. The original class names defined in the project
         must be used as column names. This applies to binary and multi-class classification.
-      Regression: must have a single column called `Predictions` with numerical values
     """
 
-    return pd.DataFrame(
-        data=model.predict_proba(data),
-        columns=[kwargs["negative_class_label"], kwargs["positive_class_label"]],
-    )
+    return pd.DataFrame( data=model.predict_proba(data), columns=model.classes_)

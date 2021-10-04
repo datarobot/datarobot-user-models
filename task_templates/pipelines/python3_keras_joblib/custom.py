@@ -1,5 +1,5 @@
 """
-    In this example we show how to create a Pytorch regression or classifiction model
+In this example we show how to create a Pytorch regression or classifiction model
 """
 from typing import List, Optional, Any, Dict
 import pandas as pd
@@ -131,8 +131,9 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
       Regression: must have a single column called `Predictions` with numerical values
     """
 
-    # Uncomment below for regresssion
+    # Regression
     return pd.DataFrame(data=model.predict(data), columns=["Predictions"])
 
-    # Uncomment below for multi-class
+    # To change this to classification comment out the above return statement and uncomment the below line
+    # Also change the model-metadata.yaml targetType to classification
     # return pd.DataFrame(data=model.predict_proba(data), columns=kwargs['class_labels'])

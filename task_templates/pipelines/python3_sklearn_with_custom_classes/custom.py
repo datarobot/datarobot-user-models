@@ -1,12 +1,11 @@
 """
-    In this example we use an sklearn pipeline that is built using custom classes
+In this example we use an sklearn pipeline that is built using custom classes
 
-    In some cases, avg(prediction) might not match avg(actuals)
-    This task, added as a calibrator in the end of a regression blueprint, can help to fix that
-    During fit(), it computes and stores the calibration coefficient that is equal
-    to avg(actuals) / avg(predicted) on training data
-    During score(), it multiplies incoming data by the calibration coefficient
-
+In some cases, avg(prediction) might not match avg(actuals)
+This task, added as a calibrator in the end of a regression blueprint, can help to fix that
+During fit(), it computes and stores the calibration coefficient that is equal
+to avg(actuals) / avg(predicted) on training data
+During score(), it multiplies incoming data by the calibration coefficient
 """
 
 from typing import List, Optional, Any, Dict
@@ -110,9 +109,6 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     Returns
     -------
     This method should return predictions as a dataframe with the following format:
-      Classification: must have columns for each class label with floating- point class
-        probabilities as values. Each row should sum to 1.0. The original class names defined in the project
-        must be used as column names. This applies to binary and multi-class classification.
       Regression: must have a single column called `Predictions` with numerical values
     """
 

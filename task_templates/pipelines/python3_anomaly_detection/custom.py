@@ -1,6 +1,5 @@
 """
-    In this example we see how to create an anomaly detection (i.e. unsupervised) pipeline
-
+In this example we see how to create an anomaly detection (i.e. unsupervised) pipeline
 """
 from typing import List, Optional, Any, Dict
 import pandas as pd
@@ -102,10 +101,8 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     Returns
     -------
     This method should return predictions as a dataframe with the following format:
-      Binary Classification: must have columns for each class label with floating- point class
-        probabilities as values. Each row should sum to 1.0. The original class names defined in the project
-        must be used as column names.
-      Regression: must have a single column called `Predictions` with numerical values
+      Anomaly Detection: must have a single column called `Predictions` with numerical values
+        indicating the anomaly score
     """
 
     # Note: in our score hook we use the same column name as regression, i.e. columns=['Predictions']

@@ -62,6 +62,7 @@ def fit(
         (typically containing a trained object) into output_dir
         so that the trained object can be used during scoring.
     """
+    print(kwargs)
     if class_order is not None:
         if y.dtype == np.dtype("bool"):
             y = y.astype("str")
@@ -111,9 +112,6 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
       Classification: must have columns for each class label with floating- point class
         probabilities as values. Each row should sum to 1.0. The original class names defined in the project
         must be used as column names. This applies to binary and multi-class classification.
-      Regression: must have a single column called `Predictions` with numerical values
     """
 
-    # Note: for binary classification we are supplied the explicit positive and negative
-    # class lables. See python3_sklearn_binary example
     return pd.DataFrame(data=model.predict_proba(data), columns=model.classes_)

@@ -4,13 +4,13 @@
 name: python3_sklearn_with_custom_classes
 type: training # training (for custom tasks) or inference (for custom inference models)
 environmentID: 5e8c889607389fe0f466c72d # optional, only required when using "drum push" to select environment
-targetType: multiclass  # can be one of: transform, binary, regression, anomaly, multiclass, unstructured (unstructured is only available for inference models)
+targetType: regression  # can be one of: transform, binary, regression, anomaly, multiclass, unstructured (unstructured is only available for inference models)
 
 # This part below defines the task's schema. Using this schema, on the fly,
 # DataRobot will validate if the task requirements match neighboring tasks in a blueprint
 # Note that it's only available for tasks, and not for inference models
 # Every condition (and the whole section) is optional
->>>>>>> master
+
 typeSchema:
   # Specify what data types this task allows as input
   input_requirements:
