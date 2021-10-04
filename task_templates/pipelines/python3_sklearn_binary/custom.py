@@ -110,4 +110,4 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
         must be used as column names. This applies to binary and multi-class classification.
     """
 
-    return pd.DataFrame( data=model.predict_proba(data), columns=model.classes_)
+    return pd.DataFrame(data=model.predict_proba(data), columns=model.classes_)
