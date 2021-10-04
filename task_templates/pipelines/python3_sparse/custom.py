@@ -91,7 +91,7 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     ----------
     data: pd.DataFrame
         Is the dataframe to make predictions against. If the `transform` hook is utilized,
-        `data` will be the transformed data. Note that this dataframe is sparse
+        `data` will be the transformed data. Note that this dataframe is sparse in COO format
     model: Any
         Trained object, extracted by DataRobot from the artifact created in fit().
         In this example, contains trained sklearn pipeline extracted from artifact.pkl.
