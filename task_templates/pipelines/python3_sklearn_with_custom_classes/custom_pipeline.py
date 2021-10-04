@@ -14,7 +14,8 @@ def pipeline(X):
 
 class Calibrator:
     """
-    During fit(), it computes and stores the calibration coefficient that is equal to avg(actuals) / avg(predicted) on training data
+    During fit(), it computes and stores the calibration coefficient that is equal to
+    avg(actuals) / avg(predicted) on training data
     During transform(), it multiplies incoming data by the calibration coefficient 
     """
 

@@ -10,6 +10,7 @@ targetType: multiclass  # can be one of: transform, binary, regression, anomaly,
 # DataRobot will validate if the task requirements match neighboring tasks in a blueprint
 # Note that it's only available for tasks, and not for inference models
 # Every condition (and the whole section) is optional
+
 typeSchema:
   # Specify what data types this task allows as input
   input_requirements:
