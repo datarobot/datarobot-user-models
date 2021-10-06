@@ -88,10 +88,10 @@ class TestFit:
             df[colname] = weights_data
             if r_fit:
                 df = handle_missing_colnames(df)
-            df.to_csv(__keep_this_around.name)
+            df.to_csv(__keep_this_around.name, index=False)
             return " --row-weights " + colname, __keep_this_around.name, __keep_this_around
         elif weights == WEIGHTS_CSV:
-            weights_data.to_csv(__keep_this_around.name)
+            weights_data.to_csv(__keep_this_around.name, index=False)
             return " --row-weights-csv " + __keep_this_around.name, input_csv, __keep_this_around
 
         return "", input_csv, __keep_this_around
@@ -500,7 +500,7 @@ class TestFit:
             df = pd.read_csv(input_dataset)
             weights_data = pd.Series(np.random.randint(1, 3, len(df)))
             with open(os.path.join(input_dir, "weights.csv"), "w+") as fp:
-                weights_data.to_csv(fp)
+                weights_data.to_csv(fp, index=False)
 
     @pytest.mark.parametrize(
         "framework, problem, parameters",
