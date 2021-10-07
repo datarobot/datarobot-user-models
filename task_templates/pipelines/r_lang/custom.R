@@ -4,14 +4,14 @@ init <- function(code_dir) {
   library(caret)
   library(recipes)
   library(e1071)
-  library(gbm)
+  library(randomForest)
   source(file.path(code_dir, 'create_pipeline.R'))
 }
 
 fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, ...){
     #' User-provided fit method, required for custom training
     #'
-    #' Trains a regression or classification model using gbm (via caret)
+    #' Trains a regression or classification model using a random forest (via caret)
     #' @param X data.frame - training data to perform fit on
     #' @param y data.frame column or array - target data to perform fit on
     #' @param output_dir the path to write output. This is the path provided in '--output' parameter of the
