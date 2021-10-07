@@ -14,6 +14,7 @@ create_pipeline<-function(X, y, model_type='regression') {
     step_medianimpute(all_numeric()) %>%
     step_normalize(all_numeric(), -all_outcomes()) %>%
     # Categorical preprocessing
+    step_novel(all_nominal(), -all_outcomes()) %>%
     step_unknown(all_nominal(), -all_outcomes()) %>%
     step_other(all_nominal(), -all_outcomes()) %>%
     step_dummy(all_nominal(), -all_outcomes())
