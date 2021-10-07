@@ -37,7 +37,7 @@ integration functionality with the DataRobot platform
 3. `r_sparse_regression` - Demonstrates how to use sparse input with R
 4. `python_binary_classification` - Shows how to create an estimator for binary
   classification problems
-5. `r_classification` - Implements a GLM binary classifier in R
+5. `r_binary_classification` - Implements a GLM binary classifier in R
 6. `python_multiclass_classification` - Implements a linear classifier with SGD training
 7. `python_anomaly` - Shows how to create an anomaly estimator
 8. `r_anomaly_detection`  - Shows how to create an anomaly estimator in R
@@ -65,8 +65,9 @@ Except for where noted, our pipelines are verified within our functional test fr
 7. `python3_anomaly_detection` - Provides an uncalibrated Sklearn anomaly pipeline
 8. `python3_calibrated_anomaly_detection` - Provides a calibrated Sklearn anomaly pipeline
 9. `python3_sklearn_with_custom_classes` - This pipeline shows you how to build an estimator
-10. independent from any library [Not Verified]
-11. `python3_sparse` - A pipeline that intakes sparse data (csr_matrix) from an MTX file
+    independent from any library [Not Verified]
+10. `python3_sparse` - A pipeline that intakes sparse data (csr_matrix) from an MTX file
+11. `python3_pytorch_regression` - Provides a pytorch pipeline. Also uses the transform hook
 12. `python3_pytorch` - Provides a pytorch pipeline. Also uses the transform hook
 13. `python3_pytorch_multiclass` - Parses the passed in class_labels file. Also uses transform, and
      also relies on the internal PyTorch prediction implementation

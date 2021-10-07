@@ -94,8 +94,8 @@ class TestDrumDocker:
     @pytest.mark.parametrize(
         "framework, problem, code_dir, env_dir, skip_deps_install",
         [
-            (PYTORCH, MULTICLASS, "python3_pytorch_multiclass", "python3_sklearn", False),
-            (PYTORCH, MULTICLASS, "python3_pytorch_multiclass", "python3_sklearn", True),
+            (PYTORCH, MULTICLASS, "13_python3_pytorch_multiclass", "python3_sklearn", False),
+            (PYTORCH, MULTICLASS, "13_python3_pytorch_multiclass", "python3_sklearn", True),
             (None, UNSTRUCTURED, "r_unstructured", "r_lang", False),
             (None, UNSTRUCTURED, "r_unstructured", "r_lang", True),
             (CODEGEN, REGRESSION, "java_codegen", "java_codegen", False),
@@ -169,7 +169,7 @@ class TestDrumDocker:
 
     @pytest.mark.parametrize(
         "framework, problem, code_dir, env_dir",
-        [(PYTORCH, MULTICLASS, "python3_pytorch_multiclass", "python3_pytorch"),],
+        [(PYTORCH, MULTICLASS, "13_python3_pytorch_multiclass", "python3_pytorch"),],
     )
     def test_docker_image_with_wrong_dep_install(
         self, resources, framework, problem, code_dir, env_dir, tmp_path,
