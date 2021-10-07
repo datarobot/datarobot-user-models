@@ -153,7 +153,13 @@ class TestCustomTaskTemplates(object):
             ),
             ("pipeline", "3_r_lang", "project_regression_boston", "r_drop_in_env", "regression",),
             ("pipeline", "3_r_lang", "project_binary_iris", "r_drop_in_env", "binary",),
-            ("pipeline", "3_r_lang", "project_multiclass_skyserver", "r_drop_in_env", "multiclass",),
+            (
+                "pipeline",
+                "3_r_lang",
+                "project_multiclass_skyserver",
+                "r_drop_in_env",
+                "multiclass",
+            ),
             (
                 "transform",
                 "3_python3_sklearn_transform",
