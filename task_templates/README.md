@@ -7,13 +7,18 @@ In this directory are three folders - estimators, transforms, and pipelines
 * pipelines - meant to be added as a single task blueprint, these have preprocessing and an
   estimator built into a single task
 
-Our estimator examples are also different than the pipelines examples because these templates have
+Our estimator examples are also different from the pipelines examples because these templates have
 score hooks implemented. The pipelines examples do not have score hooks to demonstrate the automatic
 scoring functionality of the DRUM tool middleware layer. This functionality works if your estimator
 inherits from sklearn, pytorch, keras, or xgboost, and doesn't have any additional functionality.
 
 If a template is tagged as "Verified", this means we have automated tests which guarantee
 integration functionality with the DataRobot platform
+
+## Data format
+
+When working with structured models DRUM supports data as files of `csv`, `sparse`, or `arrow` format.   
+DRUM doesn't perform sanitation of missing or strange(containing parenthesis, slash, etc symbols) column names.
 
 ## Transforms
 

@@ -9,10 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Fixed
 ##### Added 
 
-#### [1.6.0] - in progress
+#### [1.6.0] - 2021-10-08
 ##### Changed
 - regression boston dataset has been replaced with juniors grade dataset
-- R: dataset column names are not replaced with R variable valid names (it has been implicit before)
+- R: dataset column names are not replaced with R variable valid names (it has been implicitly replaced before)
 
 #### [1.5.16] - 2021-9-30
 ##### Changed
