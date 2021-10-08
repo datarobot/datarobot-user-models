@@ -51,7 +51,7 @@ fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, ...){
     step_dummy(all_nominal(), -all_outcomes())
 
   # Run the model
-  set.seed(123)
+  set.seed(1234)
   model <- train(model_recipe, train_df, method = "gbm")
 
   # Save model
