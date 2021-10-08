@@ -13,4 +13,4 @@ Create a new custom model with these files and use the Python Drop-In Environmen
 
 ### To run locally using 'drum'
 Paths are relative to `./datarobot-user-models`:   
-`drum score --code-dir model_templates/python3_pytorch --target-type regression --input tests/testdata/boston_housing.csv --target-type regression`
+`drum score --code-dir model_templates/python3_pytorch --target-type regression --input tests/testdata/boston_housing.csv`

@@ -1,14 +1,20 @@
 """
-In this example we show how to implement a simple Ridge Regression that handles sparse input.
-Intended for binary classification
+In this example we see how to create a regression neural net with pytorch
 """
 
-import pickle
 from typing import List, Optional, Any, Dict
-
-import numpy as np
 import pandas as pd
-from sklearn.linear_model import Ridge
+import numpy as np
+import torch
+
+from model_utils import (
+    build_regressor,
+    build_classifier,
+    train_regressor,
+    train_classifier,
+    save_torch_model,
+    subset_data,
+)
 
 
 def fit(
@@ -18,7 +24,7 @@ def fit(
     class_order: Optional[List[str]] = None,
     row_weights: Optional[np.ndarray] = None,
     **kwargs,
-):
+) -> None:
     """ This hook MUST ALWAYS be implemented for custom tasks.
 
     This hook defines how DataRobot will train this task.
@@ -34,8 +40,7 @@ def fit(
     ----------
     X: pd.DataFrame
         Training data that DataRobot passes when this task is being trained. Note that both the training data AND
-        column (feature) names are passed. Note that this dataframe is sparse and COO format
-        https://en.wikipedia.org/wiki/Sparse_matrix#Coordinate_list_(COO)
+        column (feature) names are passed
     y: pd.Series
         Project's target column.
     output_dir: str
@@ -64,16 +69,24 @@ def fit(
         (typically containing a trained object) into output_dir
         so that the trained object can be used during scoring.
     """
-    estimator = Ridge()
-    estimator.fit(X, y)
+    # Keep only numeric features
+    X_train = subset_data(X)
+    # Feel free to delete which ever one of these you aren't using
+    if class_order:
+        estimator, optimizer, criterion = build_classifier(X_train, len(class_order))
+        train_classifier(X_train, y, estimator, optimizer, criterion)
+        artifact_name = "torch_class.pth"
+    else:
+        estimator, optimizer, criterion = build_regressor(X_train)
+        train_regressor(X_train, y, estimator, optimizer, criterion)
+        artifact_name = "torch_reg.pth"
 
-    # Dump the trained object [in this example - a trained XGBoost model]
-    # into an artifact [in this example - artifact.pkl]
+    # Dump the trained object [in this example - a trained PyTorch model]
+    # into an artifact [in this example - torch_bin.pth]
     # and save it into output_dir so that it can be used later when scoring data
     # Note: DRUM will automatically load the model when it is in the default format (see docs)
     # and there is only one artifact file
-    with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
-        pickle.dump(estimator, fp)
+    save_torch_model(estimator, output_dir, artifact_name)
 
 
 def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
@@ -91,7 +104,7 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     ----------
     data: pd.DataFrame
         Is the dataframe to make predictions against. If the `transform` hook is utilized,
-        `data` will be the transformed data. Note that this dataframe is sparse in COO format
+        `data` will be the transformed data
     model: Any
         Trained object, extracted by DataRobot from the artifact created in fit().
         In this example, contains trained sklearn pipeline extracted from artifact.pkl.
@@ -104,4 +117,9 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
       Regression: must have a single column called `Predictions` with numerical values
     """
 
-    return pd.DataFrame(data=model.predict(data), columns=["Predictions"])
+    # Convert data
+    data = subset_data(data)
+    data_tensor = torch.from_numpy(data.values).type(torch.FloatTensor)
+    predictions = model(data_tensor).cpu().data.numpy()
+
+    return pd.DataFrame(data=predictions, columns=["Predictions"])

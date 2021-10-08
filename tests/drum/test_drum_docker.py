@@ -94,8 +94,8 @@ class TestDrumDocker:
     @pytest.mark.parametrize(
         "framework, problem, code_dir, env_dir, skip_deps_install",
         [
-            (PYTORCH, MULTICLASS, "python3_pytorch_multiclass", "python3_pytorch", False),
-            (PYTORCH, MULTICLASS, "python3_pytorch_multiclass", "python3_pytorch", True),
+            (PYTORCH, MULTICLASS, "python3_pytorch_multiclass", "python3_sklearn", False),
+            (PYTORCH, MULTICLASS, "python3_pytorch_multiclass", "python3_sklearn", True),
             (None, UNSTRUCTURED, "r_unstructured", "r_lang", False),
             (None, UNSTRUCTURED, "r_unstructured", "r_lang", True),
             (CODEGEN, REGRESSION, "java_codegen", "java_codegen", False),
