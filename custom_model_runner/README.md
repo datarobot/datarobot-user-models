@@ -93,7 +93,7 @@ This command creates a folder with a `custom.py/R` file and a short description:
 <a name="score"></a>
 #### Run a binary classification custom model
 Make batch predictions with a binary classification model. Optionally, specify an output file. Otherwise, predictions are returned to the command line:  
-```drum score --code-dir ~/user_code_dir/ --input 10k.csv --targe-type binary --positive-class-label yes --negative-class-label no --output 10k-results.csv --verbose```
+```drum score --code-dir ~/user_code_dir/ --input 10k.csv --target-type binary --positive-class-label yes --negative-class-label no --output 10k-results.csv --verbose```
 
 #### Run a regression custom model
 Make batch predictions with a regression model:  
@@ -104,7 +104,7 @@ Make batch predictions with a regression model:
 You can test how the model performs and get its latency times and memory usage.  
 In this mode, the model is started with a prediction server. Different request combinations are submitted to it.
 After it completes, it returns a report.  
-```drum perf-test --code-dir ~/user_code_dir/ --input 10k.csv --targe-type binary --positive-class-label yes --negative-class-label no```  
+```drum perf-test --code-dir ~/user_code_dir/ --input 10k.csv --target-type binary --positive-class-label yes --negative-class-label no```  
 Report example:
 ```
 samples   iters    min     avg     max    used (MB)   total (MB)
@@ -128,7 +128,7 @@ List of checks:
 - null values imputation: each feature of the provided dataset is set to missing and fed to the model.
 
 To run:
-```drum validation --code-dir ~/user_code_dir/ --input 10k.csv --targe-type binary --positive-class-label yes --negative-class-label no```
+```drum validation --code-dir ~/user_code_dir/ --input 10k.csv --target-type binary --positive-class-label yes --negative-class-label no```
 Sample report:
 ```
 Validation check results
