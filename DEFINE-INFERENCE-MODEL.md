@@ -19,7 +19,7 @@ Note: See overview at [README](https://github.com/datarobot/datarobot-user-model
 [DRUM](https://github.com/datarobot/datarobot-user-models/tree/master/custom_model_runner)
 to run a model.
 
-Custom inference models are models trained outside of DataRobot.
+Custom inference models are models trained outside DataRobot.
 Once they are uploaded to DataRobot, they are deployed as a DataRobot deployment which
 supports model monitoring and management.
 
@@ -68,6 +68,10 @@ This tool makes the following assumptions about your serialized model:
     - Multi value it is assumed that the first value is the negative class probability, the second is the positive class probability
 - There is a single pkl/pth/h5 file present.
 - Your model uses one of the above frameworks.
+
+### Data format
+When working with structured models DRUM supports data as files of `csv`, `sparse`, or `arrow` format.   
+DRUM doesn't perform sanitation of missing or strange(containing parenthesis, slash, etc symbols) column names.
 
 ### Custom hooks for Python and R models
 If the assumptions mentioned above are incorrect for your model, DRUM supports several hooks for custom code. If needed,
@@ -162,6 +166,9 @@ This is your responsibility to verify correctness.
 
 See [here](https://github.com/datarobot/datarobot-user-models/tree/master/model_templates/python3_unstructured)
 for an example of an unstructured template.
+
+### Data format
+When working with unstructured models DRUM supports data as a text or binary file.
 
 ### Custom hooks for Python, R, and Julia models
 Include any necessary hooks in a file called `custom.py` for Python models, `custom.R` for R models, or `custom.jl` for Julia models alongside your model artifacts in your model folder:
