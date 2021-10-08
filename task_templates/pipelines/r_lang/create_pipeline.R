@@ -18,7 +18,7 @@ create_pipeline<-function(X, y, model_type='regression') {
     step_dummy(all_nominal(), -all_outcomes())
 
   # Run the model using caret
-  set.seed(42)
+  set.seed(123)
   model <- train(model_recipe, train_df, method = "gbm", trControl = trainControl(method = "cv", number = 3))
 
   return(model)
