@@ -88,10 +88,10 @@ class TestFit:
             df[colname] = weights_data
             if r_fit:
                 df = handle_missing_colnames(df)
-            df.to_csv(__keep_this_around.name)
+            df.to_csv(__keep_this_around.name, index=False)
             return " --row-weights " + colname, __keep_this_around.name, __keep_this_around
         elif weights == WEIGHTS_CSV:
-            weights_data.to_csv(__keep_this_around.name)
+            weights_data.to_csv(__keep_this_around.name, index=False)
             return " --row-weights-csv " + __keep_this_around.name, input_csv, __keep_this_around
 
         return "", input_csv, __keep_this_around
@@ -129,7 +129,7 @@ class TestFit:
             ArgumentsOptions.MAIN_COMMAND, problem, custom_model_dir, input_dataset
         )
         if problem != ANOMALY:
-            cmd += " --target {}".format(resources.targets(problem))
+            cmd += ' --target "{}"'.format(resources.targets(problem))
 
         if use_output:
             cmd += " --output {}".format(output)
@@ -198,7 +198,7 @@ class TestFit:
             ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
         )
         if problem != ANOMALY:
-            cmd += " --target {}".format(resources.targets(problem))
+            cmd += ' --target "{}"'.format(resources.targets(problem))
 
         if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
@@ -252,7 +252,7 @@ class TestFit:
             parameter_file,
         )
         if problem != ANOMALY:
-            cmd += " --target {}".format(resources.targets(problem))
+            cmd += ' --target "{}"'.format(resources.targets(problem))
 
         if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
@@ -297,7 +297,7 @@ class TestFit:
             ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
         )
         if problem != ANOMALY:
-            cmd += " --target {}".format(resources.targets(problem))
+            cmd += ' --target "{}"'.format(resources.targets(problem))
 
         if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
@@ -344,7 +344,7 @@ class TestFit:
             "" if strict else "--disable-strict-validation",
         )
         if problem != ANOMALY:
-            cmd += " --target {}".format(resources.targets(problem))
+            cmd += ' --target "{}"'.format(resources.targets(problem))
 
         if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
@@ -500,7 +500,7 @@ class TestFit:
             df = pd.read_csv(input_dataset)
             weights_data = pd.Series(np.random.randint(1, 3, len(df)))
             with open(os.path.join(input_dir, "weights.csv"), "w+") as fp:
-                weights_data.to_csv(fp)
+                weights_data.to_csv(fp, index=False)
 
     @pytest.mark.parametrize(
         "framework, problem, parameters",
@@ -598,7 +598,7 @@ class TestFit:
         output = tmp_path / "output"
         output.mkdir()
 
-        cmd = "{} fit --target-type {} --code-dir {} --target {} --input {} --verbose".format(
+        cmd = '{} fit --target-type {} --code-dir {} --target "{}" --input {} --verbose'.format(
             ArgumentsOptions.MAIN_COMMAND,
             REGRESSION,
             custom_model_dir,
@@ -671,10 +671,13 @@ class TestFit:
         else:
             target_type = problem
 
-        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
-            ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
+        cmd = '{} fit --target-type {} --code-dir {} --target "{}" --input {} --verbose '.format(
+            ArgumentsOptions.MAIN_COMMAND,
+            target_type,
+            custom_model_dir,
+            resources.targets(problem),
+            input_dataset,
         )
-        cmd += " --target {}".format(resources.targets(problem))
 
         if target_type in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
@@ -736,7 +739,7 @@ class TestFit:
         output = tmp_path / "output"
         output.mkdir()
 
-        cmd = "{} fit --target-type {} --code-dir {} --target {} --input {} --verbose".format(
+        cmd = '{} fit --target-type {} --code-dir {} --target "{}" --input {} --verbose'.format(
             ArgumentsOptions.MAIN_COMMAND,
             BINARY,
             custom_model_dir,
@@ -771,7 +774,7 @@ class TestFit:
         output = tmp_path / "output"
         output.mkdir()
 
-        cmd = "{} fit --target-type {} --code-dir {} --target {} --input {} --verbose".format(
+        cmd = '{} fit --target-type {} --code-dir {} --target "{}" --input {} --verbose'.format(
             ArgumentsOptions.MAIN_COMMAND,
             problem,
             custom_model_dir,

@@ -39,7 +39,7 @@ All folders listed below in the `--code-dir` arguemtns are assumed to be unzippe
 
 #### Regression 
 
-`drum score --code-dir ./h2o_mojo_pipeline/regression --target-type regression --input ../../tests/testdata/boston_housing.csv`
+`drum score --code-dir ./h2o_mojo_pipeline/regression --target-type regression --input ../../tests/testdata/juniors_3_year_stats_regression.csv`
 
 #### Docker
 

@@ -49,7 +49,7 @@ class TestValidationCheck:
         df = pd.DataFrame(data=d)
 
         with NamedTemporaryFile(mode="w") as temp_f:
-            df.to_csv(temp_f.name)
+            df.to_csv(temp_f.name, index=False)
 
             input_dataset = temp_f.name
 

@@ -44,7 +44,7 @@ def transform(data, model):
     pd.DataFrame
     """
     # Execute any steps you need to do before scoring
-    # Remove target columns if  they're in the dataset
+    # Remove target columns if they're in the dataset
 
     # for Loan Lending Club dataset
     if "class" in data:

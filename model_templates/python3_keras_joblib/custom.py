@@ -20,19 +20,11 @@ def transform(data, model):
     pd.DataFrame
     """
     # Execute any steps you need to do before scoring
-    # Remove target columns if  they're in the dataset
-
-    # For Boston Housing dataset
-    if "MEDV" in data:
-        data.pop("MEDV")
-
-    # For sklearn iris dataset
-    if "Species" in data:
-        data.pop("Species")
-
-    # for Loan Lending Club dataset
-    if "is_bad" in data:
-        data.pop("is_bad")
+    # Remove target columns if they're in the dataset
+    # For juniors grade / iris / Loan Lending Club datasets
+    for target_col in ["Grade 2014", "Species", "is_bad"]:
+        if target_col in data:
+            data.pop(target_col)
 
     data = data.fillna(0)
     return data

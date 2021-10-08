@@ -28,7 +28,7 @@ The expectation for use of DRUM with you Julia model artifacts
 * your model has been serialized with a `.jlso` extension.
 * your model may be instantiated with the `MLJ.machine("path_to_your_model.jlso")`
 
-If the above are not true, you will need to use `custom.jl` file to create hooks that DRUM will leverage when using your model.  See flux [boston model](model_templates/julia/jl_custom) for example.  
+If the above are not true, you will need to use `custom.jl` file to create hooks that DRUM will leverage when using your model. 
 
 Hooks currently supported
 * `init`
@@ -134,9 +134,8 @@ export JULIA_PROJECT=path-to-your-julia-project
 
 * Binary - The binary example is based on the iris dataset with target `Species`
 * Multiclass - multiclass example based on the galaxy dataset with target `class`
-* regression - boston housing pricing dataset with target `MEDV`. 
+* regression - grade dataset with target `Grade 2014`. 
 * [Unstructured](./jl_unstructured/README.md)
-* [Custom Model](./jl_custom/README.md) - Boston Housing Prices with Julia Flux
 
 ### To run locally using 'drum'
 
@@ -154,7 +153,7 @@ Paths are relative to `./datarobot-user-models/model_templates` unless fully qua
 
 ### Regression 
 
-`drum score --code-dir ./julia/jl_boston --target-type regression --input ../../tests/testdata/boston_housing.csv`
+`drum score --code-dir ./julia/jl_grade --target-type regression --input ../../tests/testdata/juniors_3_year_stats_regression.csv`
 
 #### Validation
 

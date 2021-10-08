@@ -877,6 +877,10 @@ class CMRunner:
                         ArgumentsOptions.TARGET_CSV,
                         in_docker_fit_target_filename,
                     )
+                if options.target and ArgumentsOptions.TARGET in in_docker_cmd_list:
+                    CMRunnerUtils.replace_cmd_argument_value(
+                        in_docker_cmd_list, ArgumentsOptions.TARGET, f'"{options.target}"'
+                    )
                 if options.row_weights_csv:
                     fit_row_weights_filename = os.path.realpath(options.row_weights_csv)
                     docker_cmd_args += ' -v "{}":{}'.format(
