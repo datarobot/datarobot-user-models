@@ -94,8 +94,7 @@ class PythonModelAdapter:
                 if self._custom_hooks[CustomHooks.SCORE_UNSTRUCTURED] is None:
                     raise DrumCommonException(
                         "In '{}' mode hook '{}' must be provided.".format(
-                            TargetType.UNSTRUCTURED.value,
-                            self._custom_hooks[CustomHooks.SCORE_UNSTRUCTURED],
+                            TargetType.UNSTRUCTURED.value, CustomHooks.SCORE_UNSTRUCTURED,
                         )
                     )
             else:

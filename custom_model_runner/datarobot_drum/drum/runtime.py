@@ -54,7 +54,7 @@ class DrumRuntime:
             # when run in docker mode,
             # drum is started from docker with the same options except `--docker`.
             # thus error server is started in docker as well.
-            # return here two avoid starting error server 2nd time.
+            # return here to avoid starting error server 2nd time.
             return False  # propagate exception further
 
         if not self.options.with_error_server:
@@ -86,6 +86,9 @@ def run_error_server(host, port, exc_value):
         return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR
 
     @model_api.route("/predict/", methods=["POST"])
+    @model_api.route("/predictions/", methods=["POST"])
+    @model_api.route("/predictUnstructured/", methods=["POST"])
+    @model_api.route("/predictionsUnstructured/", methods=["POST"])
     def predict():
         return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR
 

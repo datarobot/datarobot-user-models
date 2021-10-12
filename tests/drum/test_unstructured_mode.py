@@ -267,5 +267,5 @@ class TestUnstructuredMode:
                 )
                 assert "application/octet-stream" == mimetype
                 # check params dict is empty
-                assert any(content_type_params_dict) == False
+                assert not any(content_type_params_dict)
                 assert response.content == data_bytes
