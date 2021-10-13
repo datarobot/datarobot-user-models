@@ -155,7 +155,13 @@ class TestCustomTaskTemplates(object):
                 "sklearn_drop_in_env",
                 "multiclass",
             ),
-            ("pipeline", "3_r_lang", "project_regression_juniors_grade", "r_drop_in_env", "regression",),
+            (
+                "pipeline",
+                "3_r_lang",
+                "project_regression_juniors_grade",
+                "r_drop_in_env",
+                "regression",
+            ),
             ("pipeline", "3_r_lang", "project_binary_iris", "r_drop_in_env", "binary",),
             (
                 "pipeline",
