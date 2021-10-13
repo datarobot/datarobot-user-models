@@ -35,8 +35,8 @@ class TestDeploymentConfig:
     deployment_config_multiclass = os.path.join(TESTS_DEPLOYMENT_CONFIG_PATH, "multiclass.json")
 
     def test_parse_deployment_config_file(self):
-        not_json = '{"target: {"class_mapping": null, "missing_maps_to": null, "name": "MEDV", "prediction_threshold": 0.5, "type": "Regression" }}'
-        no_target_json = '{"targe": {"class_mapping": null, "missing_maps_to": null, "name": "MEDV", "prediction_threshold": 0.5, "type": "Regression" }}'
+        not_json = '{"target: {"class_mapping": null, "missing_maps_to": null, "name": "Grade 2014", "prediction_threshold": 0.5, "type": "Regression" }}'
+        no_target_json = '{"targe": {"class_mapping": null, "missing_maps_to": null, "name": "Grade 2014", "prediction_threshold": 0.5, "type": "Regression" }}'
 
         assert parse_validate_deployment_config_file(None) is None
 
@@ -86,7 +86,7 @@ class TestDeploymentConfig:
         d = {"Predictions": [1.2, 2.3, 3.4]}
         df = pd.DataFrame(data=d)
         config = parse_validate_deployment_config_file(self.deployment_config_regression)
-        assert config["target"]["name"] == "MEDV"
+        assert config["target"]["name"] == "Grade 2014"
         assert config["target"]["type"] == "Regression"
 
         response = build_pps_response_json_str(df, config, TargetType.REGRESSION)

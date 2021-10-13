@@ -47,9 +47,8 @@ load_data <- function(input_filename, sparse_column_filename){
         return(X)
     }
     tmp = readChar(input_filename, file.info(input_filename)$size)
-    read.csv(text=gsub("\r","", tmp, fixed=TRUE), na.strings = c("NA", ""))
+    read.csv(text=gsub("\r","", tmp, fixed=TRUE), na.strings = c("NA", ""), check.names = FALSE)
 }
-
 
 
 process_data <- function(input_filename, sparse_column_filename, target_filename, target_name, num_rows){

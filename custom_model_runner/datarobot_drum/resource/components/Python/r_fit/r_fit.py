@@ -80,13 +80,8 @@ class RFit(ConnectableComponent):
         if self.output_dir[-1] != "/":
             self.output_dir += "/"
 
-        weights = ro.NULL
-        if self.weights:
-            weights = self.weights.replace("-", ".")
-
-        target_name = ro.NULL
-        if self.target_name:
-            target_name = self.target_name.replace("-", ".").replace("_", ".")
+        weights = self.weights if self.weights else ro.NULL
+        target_name = self.target_name if self.target_name else ro.NULL
 
         with capture_R_traceback_if_errors(r_handler, logger):
             r_handler.outer_fit(

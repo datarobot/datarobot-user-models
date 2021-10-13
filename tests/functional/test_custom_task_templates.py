@@ -33,14 +33,18 @@ class TestCustomTaskTemplates(object):
         raise ValueError(f"Invalid template type {template_type}")
 
     @pytest.fixture(scope="session")
-    def project_regression_boston(self):
-        proj = dr.Project.create(sourcedata=os.path.join(BASE_DATASET_DIR, "boston_housing.csv"))
-        proj.set_target(target="MEDV", mode=dr.AUTOPILOT_MODE.MANUAL)
+    def project_regression_juniors_grade(self):
+        proj = dr.Project.create(
+            sourcedata=os.path.join(BASE_DATASET_DIR, "juniors_3_year_stats_regression.csv")
+        )
+        proj.set_target(target="Grade 2014", mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
     @pytest.fixture(scope="session")
-    def project_anomaly_boston(self):
-        proj = dr.Project.create(sourcedata=os.path.join(BASE_DATASET_DIR, "boston_housing.csv"))
+    def project_anomaly_juniors_grade(self):
+        proj = dr.Project.create(
+            sourcedata=os.path.join(BASE_DATASET_DIR, "juniors_3_year_stats_regression.csv")
+        )
         proj.set_target(unsupervised_mode=True, mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
@@ -95,7 +99,7 @@ class TestCustomTaskTemplates(object):
             (
                 "pipeline",
                 "11_python3_pytorch_regression",
-                "project_regression_boston",
+                "project_regression_juniors_grade",
                 "pytorch_drop_in_env",
                 "regression",
             ),
@@ -109,7 +113,7 @@ class TestCustomTaskTemplates(object):
             (
                 "pipeline",
                 "14_python3_keras_joblib",
-                "project_regression_boston",
+                "project_regression_juniors_grade",
                 "keras_drop_in_env",
                 "regression",
             ),
@@ -126,14 +130,14 @@ class TestCustomTaskTemplates(object):
             (
                 "pipeline",
                 "4_python3_xgboost",
-                "project_regression_boston",
+                "project_regression_juniors_grade",
                 "xgboost_drop_in_env",
                 "regression",
             ),
             (
                 "pipeline",
                 "2_python3_sklearn_regression",
-                "project_regression_boston",
+                "project_regression_juniors_grade",
                 "sklearn_drop_in_env",
                 "regression",
             ),
@@ -151,7 +155,7 @@ class TestCustomTaskTemplates(object):
                 "sklearn_drop_in_env",
                 "multiclass",
             ),
-            ("pipeline", "3_r_lang", "project_regression_boston", "r_drop_in_env", "regression",),
+            ("pipeline", "3_r_lang", "project_regression_juniors_grade", "r_drop_in_env", "regression",),
             ("pipeline", "3_r_lang", "project_binary_iris", "r_drop_in_env", "binary",),
             (
                 "pipeline",
@@ -184,7 +188,7 @@ class TestCustomTaskTemplates(object):
             (
                 "estimator",
                 "8_r_anomaly_detection",
-                "project_anomaly_boston",
+                "project_anomaly_juniors_grade",
                 "r_drop_in_env",
                 "anomaly",
             ),

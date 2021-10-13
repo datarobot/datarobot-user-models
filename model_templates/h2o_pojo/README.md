@@ -20,7 +20,7 @@ Upload H2O Pojo File and use with the [Java Drop-In Environment](../../public_dr
 
 * Binary - The binary example is based on the iris dataset `Species`
 * Multiclass - multiclass example based on the galaxy dataset with target `class`
-* regression - boston housing pricing dataset with target `MEDV`. 
+* regression - grade dataset with target `Grade 2014`. 
 
 ### To run locally using 'drum'
 
@@ -30,15 +30,15 @@ Paths are relative to `./datarobot-user-models/model_templates` unless fully qua
 
 #### Binary 
 
-`drum score --code-dir ./h2o_pojo/binary --target-type binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor`
+`drum score --code-dir ./h2o_pojo/binary --target-type binary --input ../tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor`
 
 #### Multiclass 
 
-`drum score --code-dir ./h2o_pojo/multiclass --target-type multiclass --class-labels GALAXY QSO STAR --input ../../tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv` 
+`drum score --code-dir ./h2o_pojo/multiclass --target-type multiclass --class-labels GALAXY QSO STAR --input ../tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv` 
 
 #### Regression 
 
-`drum score --code-dir ./h2o_pojo/regression --target-type regression --input ../../tests/testdata/boston_housing.csv --docker drum_h2o`
+`drum score --code-dir ./h2o_pojo/regression --target-type regression --input ../tests/testdata/juniors_3_year_stats_regression.csv --docker drum_h2o`
 
 #### Docker
 
@@ -46,8 +46,8 @@ If you do not have Java 11 installed, please consider using docker.
 
 You can either provide the path to the Dockerfile
 
-`drum score --code-dir ./h2o_pojo/binary --target-type binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor --docker ../../public_dropin_environments/java_codegen/`
+`drum score --code-dir ./h2o_pojo/binary --target-type binary --input ../tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor --docker ../../public_dropin_environments/java_codegen/`
 
 or provide the name of the docker image that has already been built [Java Drop-In Environment](../../public_dropin_environments/java_codegen/), for example, docker image is `drum_h2o`.
 
-`drum score --code-dir ./h2o_pojo/binary --target-type binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor --docker drum_h2o`
+`drum score --code-dir ./h2o_pojo/binary --target-type binary --input ../tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor --docker drum_h2o`

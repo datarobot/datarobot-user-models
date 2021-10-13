@@ -12,7 +12,7 @@ The Java model artifacts were made using codegen.
 
  - Binary classification [iris_binary_training.csv](../../testdata/iris_binary_training.csv)
    - This dataset does not have enough rows for DR. To get the Java Scoring Code models, I just copied the dataset.
- - Regression [boston_housing.csv](../../testdata/boston_housing.csv)
+ - Regression [juniors_3_year_stats_regression.csv](../../testdata/juniors_3_year_stats_regression.csv)
  
 ### Generating new artifacts
 

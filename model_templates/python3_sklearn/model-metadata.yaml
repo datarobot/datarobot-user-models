@@ -4,7 +4,7 @@ targetType: regression
 modelID: 5f1f15a4d6111f01cb7f91fd
 environmentID: 5e8c889607389fe0f466c72d
 inferenceModel:
-  targetName: MEDV
+  targetName: Grade 2014
 validation:
   # Path is relative to this file
-  input: ../../../tests/testdata/boston_housing.csv
+  input: ../../../tests/testdata/juniors_3_year_stats_regression.csv
