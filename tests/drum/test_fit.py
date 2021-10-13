@@ -62,7 +62,6 @@ from .constants import (
     SKLEARN_TRANSFORM_PARAMETERS,
     RDS_HYPERPARAMETERS,
     RDS_PARAMETERS,
-    SKLEARN_BINARY_SCHEMA_VALIDATION,
     PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION,
     R_TRANSFORM_SPARSE_INPUT,
     R_TRANSFORM_SPARSE_IN_OUT,
@@ -724,7 +723,7 @@ class TestFit:
         custom_model_dir = _create_custom_model_dir(
             resources,
             tmp_path,
-            SKLEARN_BINARY_SCHEMA_VALIDATION,
+            SKLEARN_BINARY,
             BINARY,
             PYTHON,
             is_training=True,
@@ -750,7 +749,7 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, problem, language, error_in_predict_server",
         [
-            (SKLEARN_BINARY_SCHEMA_VALIDATION, BINARY, PYTHON, False),
+            (SKLEARN_BINARY, BINARY, PYTHON, False),
             (PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION, TRANSFORM, PYTHON, True),
         ],
     )

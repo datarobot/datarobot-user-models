@@ -160,11 +160,11 @@ _training_models_paths = {
     (PYTHON, SKLEARN_TRANSFORM_HYPERPARAMETERS): os.path.join(
         TESTS_FIXTURES_PATH, "python3_sklearn_transform_hyperparameters"
     ),
-    (PYTHON, SIMPLE): os.path.join(TRAINING_TEMPLATES_PATH, "simple"),
+    (PYTHON, SIMPLE): os.path.join(TRAINING_TEMPLATES_PATH, "1_simple"),
     (PYTHON, SKLEARN_SPARSE): os.path.join(TESTS_FIXTURES_PATH, "validate_sparse_columns"),
     (PYTHON, KERAS): os.path.join(TRAINING_TEMPLATES_PATH, "14_python3_keras_joblib"),
     (PYTHON, XGB): os.path.join(TRAINING_TEMPLATES_PATH, "4_python3_xgboost"),
-    (R_FIT, RDS): os.path.join(TRAINING_TEMPLATES_PATH, "r_lang"),
+    (R_FIT, RDS): os.path.join(TRAINING_TEMPLATES_PATH, "3_r_lang"),
     (R_FIT, RDS_HYPERPARAMETERS): os.path.join(TESTS_FIXTURES_PATH, "r_lang_hyperparameters"),
     (R_FIT, R_ESTIMATOR_SPARSE): os.path.join(ESTIMATORS_TEMPLATES_PATH, "3_r_sparse_regression"),
     (PYTHON, PYTORCH): os.path.join(TRAINING_TEMPLATES_PATH, "12_python3_pytorch"),
