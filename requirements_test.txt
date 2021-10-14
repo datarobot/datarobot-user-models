@@ -1,4 +1,6 @@
 dr-usertool
+# PyYAML is constrained by dr-usertool and its deps
+PyYAML>=3.12,<4.0
 pytest
 pytest-runner
 pytest-xdist
@@ -9,4 +11,3 @@ datarobot-bp-workshop==0.1.9.post1
 requests >= 2.24.0
 scikit-learn==0.23.1
 sagemaker-scikit-learn-extension==1.1.0
-pyyaml==6.0
