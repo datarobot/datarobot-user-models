@@ -2,4 +2,4 @@
 
 # This script assumes it is being executed from the repo's root
 
-black --diff --check .
+black --check .
