@@ -1,6 +1,6 @@
 dr-usertool
 # PyYAML is constrained by dr-usertool and its deps
-PyYAML>=3.12,<4.0
+PyYAML>=3.11
 pytest
 pytest-runner
 pytest-xdist
