@@ -303,7 +303,7 @@ class DataTypes(BaseValidator):
             # Note that boolean values will be sent as numeric in DataRobot
             if num_bool_columns > 0:
                 logger.warning(
-                    "Boolean values were present in the data, which are passed with numeric input in DataRobot.  Consider adding a bool to int conversion task if needed."
+                    "Boolean values were present in the data, which are passed as numeric input in DataRobot.  You may need to convert boolean values to integers/floats for your model"
                 )
             types[Values.NUM] = (
                 dataframe.select_dtypes(np.number).shape[1] > 0 or num_bool_columns > 0
