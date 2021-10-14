@@ -25,7 +25,6 @@ create_pipeline<-function(X, y, model_type='regression') {
     method = "gbm", 
     trControl = trainControl(method = "cv", number = 3, seeds=list(c(2,2,2), c(2,2,2), c(2,2,2), c(2)))
   )
-  stop("TESTING")
 
   return(model)
 }
