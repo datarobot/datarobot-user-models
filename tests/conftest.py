@@ -106,13 +106,15 @@ from tests.drum.constants import (
 _datasets = {
     # If specific dataset should be defined for a framework, use (framework, problem) key.
     # Otherwise default dataset is used (None, problem)
-    (None, REGRESSION): os.path.join(TESTS_DATA_PATH, "boston_housing.csv"),
+    (None, REGRESSION): os.path.join(TESTS_DATA_PATH, "juniors_3_year_stats_regression.csv"),
+    (None, REGRESSION_INFERENCE): os.path.join(
+        TESTS_DATA_PATH, "juniors_3_year_stats_regression_inference.csv"
+    ),
     (None, REGRESSION_SINGLE_COL): os.path.join(TESTS_DATA_PATH, "regression_single_col.csv"),
     (None, BINARY_TEXT): os.path.join(TESTS_DATA_PATH, "telecomms_churn.csv"),
     (PYPMML, REGRESSION): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
-    (None, REGRESSION_INFERENCE): os.path.join(TESTS_DATA_PATH, "boston_housing_inference.csv"),
     (None, BINARY): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
-    (None, ANOMALY): os.path.join(TESTS_DATA_PATH, "boston_housing.csv"),
+    (None, ANOMALY): os.path.join(TESTS_DATA_PATH, "juniors_3_year_stats_regression_inference.csv"),
     (None, UNSTRUCTURED): os.path.join(TESTS_DATA_PATH, "unstructured_data.txt"),
     (None, MULTICLASS): os.path.join(TESTS_DATA_PATH, "skyserver_sql2_27_2018_6_51_39_pm.csv"),
     (None, MULTICLASS_NUM_LABELS): os.path.join(
@@ -188,7 +190,7 @@ _training_models_paths = {
 
 _targets = {
     BINARY: "Species",
-    REGRESSION: "MEDV",
+    REGRESSION: "Grade 2014",
     REGRESSION_SINGLE_COL: "target",
     BINARY_TEXT: "Churn",
     MULTICLASS: "class",
@@ -295,7 +297,7 @@ _artifacts = {
     (CODEGEN, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "java_reg.jar"),
     (CODEGEN, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "java_bin.jar"),
     (POJO, REGRESSION): os.path.join(
-        TESTS_ARTIFACTS_PATH, "drf_887c2e5b_0941_40b7_ae26_cae274c4b424.java",
+        TESTS_ARTIFACTS_PATH, "DRF_model_python_1633108695693_1.java",
     ),
     (POJO, BINARY): os.path.join(
         TESTS_ARTIFACTS_PATH, "XGBoost_grid__1_AutoML_20200717_163214_model_159.java",
@@ -306,7 +308,7 @@ _artifacts = {
     (MOJO, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_reg.zip"),
     (MOJO, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_bin.zip"),
     (MOJO, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_multi.zip"),
-    (MLJ, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "boston_rf.jlso"),
+    (MLJ, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "grade_regression.jlso"),
     (MLJ, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "iris_binary.jlso"),
     (MLJ, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "galaxy.jlso"),
     (PYPMML, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "iris_reg.pmml"),

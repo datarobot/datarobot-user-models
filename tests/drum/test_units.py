@@ -43,7 +43,7 @@ from datarobot_drum.drum.utils import StructuredInputReadUtils
 class TestOrderIntuition:
     tests_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "testdata"))
     binary_filename = os.path.join(tests_data_path, "iris_binary_training.csv")
-    regression_filename = os.path.join(tests_data_path, "boston_housing.csv")
+    regression_filename = os.path.join(tests_data_path, "juniors_3_year_stats_regression.csv")
     one_target_filename = os.path.join(tests_data_path, "one_target.csv")
 
     def test_colname(self):
@@ -66,7 +66,7 @@ class TestOrderIntuition:
 
     def test_unsupervised(self):
         classes = possibly_intuit_order(
-            self.regression_filename, target_col_name="MEDV", is_anomaly=True
+            self.regression_filename, target_col_name="Grade 2014", is_anomaly=True
         )
         assert classes is None
 
@@ -127,7 +127,7 @@ def inference_metadata_yaml():
         targetType: regression
         environmentID: {environmentID}
         inferenceModel:
-          targetName: MEDV
+          targetName: Grade 2014
         validation:
           input: hello
         """

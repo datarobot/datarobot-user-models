@@ -118,7 +118,7 @@ load_serialized_model <- function(model_dir, target_type) {
         unlink(tmp_file_name)
     } else {
         tmp <- stri_conv(binary_data, "utf8")
-        data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE))
+        data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE), check.names = FALSE)
     }
     data
 }

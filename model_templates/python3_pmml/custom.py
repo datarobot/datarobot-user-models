@@ -19,7 +19,7 @@ def transform(data, model):
     pd.DataFrame
     """
     # Execute any steps you need to do before scoring
-    # Remove target columns if  they're in the dataset
+    # Remove target columns if they're in the dataset
     data = data.fillna(0)
 
     return data

@@ -10,8 +10,8 @@ comprehensive documentation at: https://docs.datarobot.com/
 ## Terminology
 DataRobot has 2 mechanisms for bringing custom ML code:
 
-1. Custom task: a ML algorithm, for example, XGBoost or One-hot encoding, 
-   that can be used as a step in a ML pipeline ([blueprint](https://docs.datarobot.com/en/docs/modeling/analyze-models/describe/blueprints.html)) 
+1. Custom task: an ML algorithm, for example, XGBoost or One-hot encoding, 
+   that can be used as a step in an ML pipeline ([blueprint](https://docs.datarobot.com/en/docs/modeling/analyze-models/describe/blueprints.html)) 
    inside DataRobot.
    
 2. Custom inference model: a pre-trained model or user code prepared for inference. 
@@ -33,9 +33,9 @@ Materials for getting started:
 * Code examples:
   * [Custom task templates](https://github.com/datarobot/datarobot-user-models/tree/master/task_templates)
   * [Environment Templates](https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments)
-  * [Building blueprints programatically](https://blueprint-workshop.datarobot.com/)
+  * [Building blueprints programmatically](https://blueprint-workshop.datarobot.com/)
     from tasks like lego blocks     
-* Quick walkthrough: coming soon
+* Quick walk-through: coming soon
 * Detailed documentation: coming soon
 
 Other resources:
@@ -52,7 +52,7 @@ Other resources:
 
 Materials for getting started:
 
-* [Custom models walkthrough](https://community.datarobot.com/t5/knowledge-base/working-with-custom-models/ta-p/6082)
+* [Custom models walk-through](https://community.datarobot.com/t5/knowledge-base/working-with-custom-models/ta-p/6082)
 * Code examples:
     * [Custom inference models templates](https://github.com/datarobot/datarobot-user-models/tree/master/model_templates)
     * [Environment Templates](https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments)
@@ -95,7 +95,7 @@ Ubuntu 18.04
 
 #### Setting Up Local Env For Testing
 
-1. create 3.7 venv
+1. create Py 3.7 or 3.8 venv
 1. `pip install -r requirements_dev.txt`
 1. `pip install -e custom_model_runner/`
 1. pytest to your heart's content
@@ -114,10 +114,17 @@ There is a script called `create-drum-dev-image.sh` which will build and save an
 ### Non-DataRobot developers
 To contribute to the project, use a [regular GitHub process](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork ): fork the repo and create a pull request to the original repository.
 
-### Running tests
-*Coming Soon*
+### Tests
+
+#### Test artifacts
+Artifacts used in tests are located here: [./tests/fixtures/drop_in_model_artifacts](./tests/fixtures/drop_in_model_artifacts).  
+There is also the code in (*.ipynb, Pytorch.py, Rmodel.R, etc files) to generate those artifacts.  
+Check for `generate*` scripts in [./tests/fixtures/drop_in_model_artifacts](./tests/fixtures/drop_in_model_artifacts) and [./tests/fixtures/artifacts.py](./tests/fixtures/artifacts.py)
+
+Model examples in [./model_templates](./model_templates) are also used in functional testing. In the most cases, artifacts for those models are the same as in the [./tests/fixtures/drop_in_model_artifacts](./tests/fixtures/drop_in_model_artifacts) and can be simply copied accordingly.
+If artifact for model template is not in the [./tests/fixtures/drop_in_model_artifacts](./tests/fixtures/drop_in_model_artifacts), check template's README for more instructions.
+
 
 ## Communication<a name="communication"></a>
 Some places to ask for help are:
 - open an issue through the [GitHub board](https://github.com/datarobot/datarobot-user-models/issues).
-- ask a question on the [#drum (IRC) channel](https://webchat.freenode.net/?channels=#drum).

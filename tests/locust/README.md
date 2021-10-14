@@ -14,7 +14,7 @@ Currently there are two of them prepared to run tasks on DRUM:
 #### How script works
 It utilizes official Locust docker container to start Locust with the provided parameters.
 #### Usage
-`./start-locust-docker.sh -l "-u 5 -r 5 -H http://localhost:6788 -t 5 --headless --csv drum" -d ../testdata/boston_housing.csv`
+`./start-locust-docker.sh -l "-u 5 -r 5 -H http://localhost:6788 -t 5 --headless --csv drum" -d ../testdata/juniors_3_year_stats_regression.csv`
 ##### Parameters
 - -l - string composed of native Locust parameters, check `locust --help` or [https://docs.locust.io/en/stable/configuration.html](https://docs.locust.io/en/stable/configuration.html)
 - -d - samples dataset to send
