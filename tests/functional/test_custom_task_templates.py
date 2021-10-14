@@ -249,6 +249,61 @@ class TestCustomTaskTemplates(object):
 
         assert test_passed, "Job result is the object: " + str(res)
 
+        models = proj.get_models()
+        if len(models) > 1:
+            if target_type == "regression":
+                xgboost_mdl = [m for m in models if m.model_type == "eXtreme Gradient Boosted Trees Regressor with Early Stopping"][0]
+                dummy_mdl = [m for m in models if m.model_type == "Mean Response Regressor"][0]
+            elif target_type == "anomaly":
+                dm_mdl = [m for m in models if m.model_type == "Double Median Absolute Deviation Anomaly Detection with Calibration"][0]
+            else:
+                xgboost_mdl = [m for m in models if m.model_type == "eXtreme Gradient Boosted Trees Classifier with Early Stopping"][0]
+                dummy_mdl = [m for m in models if m.model_type == "Majority Class Classifier"][0]
+        else:
+            blueprints = proj.get_blueprints()
+            if target_type == "regression":
+                xgboost_bp = [bp for bp in blueprints if bp.model_type == "eXtreme Gradient Boosted Trees Regressor with Early Stopping"][0]
+                dummy_bp = [bp for bp in blueprints if bp.model_type == "Mean Response Regressor"][0]
+            elif target_type == "anomaly":
+                dm_bp = [bp for bp in blueprints if bp.model_type == "Double Median Absolute Deviation Anomaly Detection with Calibration"][0]
+            else:
+                xgboost_bp = [bp for bp in blueprints if bp.model_type == "eXtreme Gradient Boosted Trees Classifier with Early Stopping"][0]
+                dummy_bp = [bp for bp in blueprints if bp.model_type == "Majority Class Classifier"][0]
+
+            if target_type == "anomaly":
+                job_id = proj.train(dm_bp)
+                job = dr.ModelJob.get(proj_id, job_id)
+                dm_mdl = job.get_result_when_complete(max_wait=900)
+            else:
+                job_id = proj.train(xgboost_bp)
+                job = dr.ModelJob.get(proj_id, job_id)
+                xgboost_mdl = job.get_result_when_complete(max_wait=900)
+
+                job_id = proj.train(dummy_bp)
+                job = dr.ModelJob.get(proj_id, job_id)
+                dummy_mdl = job.get_result_when_complete(max_wait=900)
+
+        if target_type == "anomaly":
+            # Require Synthetic AUC so dummy model score can be set to 0.5
+            assert proj.metric == "Synthetic AUC"
+            dm_score = dm_mdl.metrics[proj.metric]['validation']
+            threshold_score = (dm_score + 0.5) / 2
+        else:
+            xgboost_score = xgboost_mdl.metrics[proj.metric]['validation']
+            dummy_score = dummy_mdl.metrics[proj.metric]['validation']
+            threshold_score = (xgboost_score + dummy_score) / 2
+
+        custom_task_score = res.metrics[proj.metric]["validation"]
+        if target_type == "anomaly":
+            metric_asc = False
+        else:
+            metric_details = proj.get_metrics(proj.target)["metric_details"]
+            metric_asc = [m for m in metric_details if m["metric_name"] == proj.metric][0]["ascending"]
+        if metric_asc:
+            assert custom_task_score < threshold_score, f"Accuracy check failed: {custom_task_score} > {threshold_score}"
+        else:
+            assert custom_task_score > threshold_score, f"Accuracy check failed: {custom_task_score} < {threshold_score}"
+
     @pytest.mark.parametrize(
         "template_type, model_template, proj, env, target_type, expected_msgs",
         [

@@ -26,10 +26,9 @@ def create_regression_model() -> XGBRegressor:
     """
     xg_reg = XGBRegressor(
         objective="reg:squarederror",
-        colsample_bytree=0.5,
-        learning_rate=0.1,
+        learning_rate=0.05,
         max_depth=5,
-        alpha=10,
+        min_child_weight=20,
         n_estimators=50,
         seed=123,
     )
@@ -47,10 +46,9 @@ def create_binary_classification_model() -> XGBClassifier:
     """
     xg_clf = XGBClassifier(
         objective="binary:logistic",
-        colsample_bytree=0.5,
-        learning_rate=0.1,
+        learning_rate=0.05,
         max_depth=5,
-        alpha=10,
+        min_child_weight=20,
         n_estimators=50,
         seed=123,
     )
@@ -74,10 +72,9 @@ def create_multiclass_classification_model(num_labels: int) -> XGBClassifier:
     xg_clf = XGBClassifier(
         objective="multi:softprob",
         num_class=num_labels,
-        colsample_bytree=0.5,
-        learning_rate=0.1,
+        learning_rate=0.05,
         max_depth=5,
-        alpha=10,
+        min_child_weight=20,
         n_estimators=50,
         seed=123,
     )
@@ -150,4 +147,4 @@ def make_regressor_pipeline(X: pd.DataFrame) -> Pipeline:
 
     # pipeline with preprocessor and estimator bundled
     regressor_pipeline = Pipeline(steps=[("preprocessor", preprocessor), ("estimator", estimator)])
-    return regressor_pipeline
+    return estimator
