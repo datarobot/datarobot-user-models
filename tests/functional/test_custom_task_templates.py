@@ -216,7 +216,7 @@ class TestCustomTaskTemplates(object):
             metadata_filename = os.path.join(code_dir, "model-metadata.yaml")
             if os.path.isfile(metadata_filename):
                 # Set the target type in the metadata file sent to DataRobot to the correct type.
-                metadata = yaml.load(open(metadata_filename))
+                metadata = yaml.safe_load(open(metadata_filename))
                 metadata["targetType"] = target_type
                 yaml.dump(metadata, open(metadata_filename, "w"))
 
