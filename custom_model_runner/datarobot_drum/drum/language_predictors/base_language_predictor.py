@@ -91,12 +91,12 @@ class BaseLanguagePredictor(ABC):
 
     def validate_output(self, output_df):
         if self._target_type.value in TargetType.CLASSIFICATION.value:
-            try:
-                added_probs = output_df.sum(axis=1)
-                np.testing.assert_array_almost_equal(added_probs, 1)
-            except AssertionError:
+            added_probs = output_df.sum(axis=1)
+            good_preds = np.isclose(added_probs, 1)
+            if not np.all(good_preds):
+                bad_rows = output_df[~good_preds]
                 raise ValueError(
-                    "Your prediction probabilities do not add up to 1. \n{}".format(output_df)
+                    "Your prediction probabilities do not add up to 1. \n{}".format(bad_rows)
                 )
         if self._target_type.value == TargetType.TRANSFORM.value:
             if self._schema_validator:
