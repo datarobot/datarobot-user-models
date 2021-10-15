@@ -645,7 +645,6 @@ class TestInference:
             input_dataset = resources.datasets(framework, SPARSE)
 
             # do predictions
-
             for endpoint in ["/predict/", "/predictions/"]:
                 for post_args in [
                     {"files": {"X": ("X.mtx", open(input_dataset))}},
