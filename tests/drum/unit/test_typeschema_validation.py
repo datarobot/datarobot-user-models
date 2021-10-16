@@ -148,7 +148,7 @@ class TestSchemaValidator:
     def missing_data(self, data):
         df = data.copy(deep=True)
         for col in df.columns:
-            df.loc[df.sample(frac=0.1).index, col] = pd.np.nan
+            df.loc[df.sample(frac=0.1).index, col] = np.nan
         yield df
 
     @pytest.fixture

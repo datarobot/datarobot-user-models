@@ -77,6 +77,7 @@ def _exec_shell_cmd(
         env=env,
         universal_newlines=True,
         encoding="utf-8",
+        preexec_fn=os.setsid,
     )
     if process_obj_holder is not None:
         process_obj_holder.process = p

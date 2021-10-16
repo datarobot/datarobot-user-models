@@ -649,7 +649,7 @@ class TestInference:
                 for post_args in [
                     {"files": {"X": ("X.mtx", open(input_dataset))}},
                     {
-                        "data": open(input_dataset),
+                        "data": open(input_dataset, "rb"),
                         "headers": {
                             "Content-Type": "{};".format(PredictionServerMimetypes.TEXT_MTX)
                         },
