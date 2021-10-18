@@ -19,7 +19,12 @@ create_pipeline<-function(X, y, model_type='regression') {
 
   # Run the model using caret
   set.seed(1234)
-  model <- train(model_recipe, train_df, method = "gbm", trControl = trainControl(method = "cv", number = 3))
+  model <- train(
+    model_recipe, 
+    train_df, 
+    method = "gbm", 
+    trControl = trainControl(method = "cv", number = 3, seeds=list(c(2,2,2), c(2,2,2), c(2,2,2), c(2)))
+  )
 
   return(model)
 }
