@@ -473,6 +473,20 @@ def mock_post_blueprint():
             "training_history": [],
         },
     )
+    responses.add(
+        responses.POST,
+        "http://yess/customTasks/",
+        json={
+            "id": modelID,
+            "target_type": "Regression",
+            "created": "1",
+            "updated": "1",
+            "name": "1",
+            "description": "1",
+            "language": "Python",
+            "created_by": "1",
+        },
+    )
 
 
 def mock_post_add_to_repository():
@@ -548,7 +562,11 @@ def test_push(request, config_yaml, existing_model_id, multiclass_labels, tmp_pa
 
     calls = responses.calls
     if existing_model_id is None:
-        assert calls[1].request.path_url == "/customModels/" and calls[1].request.method == "POST"
+        custom_tasks_or_models_path = "customTasks" if push_fn == _push_training else "customModels"
+        assert (
+            calls[1].request.path_url == "/{}/".format(custom_tasks_or_models_path)
+            and calls[1].request.method == "POST"
+        )
         if config["targetType"] == TargetType.MULTICLASS.value:
             sent_labels = json.loads(calls[1].request.body)["classLabels"]
             assert sent_labels == multiclass_labels
