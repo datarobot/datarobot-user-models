@@ -41,7 +41,7 @@ from datarobot_drum.drum.enum import (
 )
 from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumTransformException
-from datarobot_drum.drum.utils import marshal_labels, StructuredInputReadUtils
+from datarobot_drum.drum.utils import marshal_labels, StructuredInputReadUtils, DrumUtils
 
 RUNNING_LANG_MSG = "Running environment language: Python."
 
@@ -189,7 +189,7 @@ class PythonModelAdapter:
             if os.path.isdir(path):
                 continue
 
-            if any(filename.endswith(extension) for extension in all_supported_extensions):
+            if DrumUtils.endswith_extension_ignore_case(filename, all_supported_extensions):
                 if model_artifact_file:
                     raise DrumCommonException(
                         "\n\n{}\n"

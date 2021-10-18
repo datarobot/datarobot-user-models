@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from datarobot_drum.drum.enum import ArgumentsOptions
+from datarobot_drum.drum.enum import ArgumentsOptions, InputFormatExtension
 from datarobot_drum.drum.utils import handle_missing_colnames, unset_drum_supported_env_vars
 from datarobot_drum.resource.utils import (
     _cmd_add_class_labels,
@@ -568,9 +568,9 @@ class TestFit:
         env["ARTIFACT_DIRECTORY"] = str(output)
         env["TARGET_TYPE"] = problem if problem != BINARY_TEXT else BINARY
         if framework == SKLEARN_SPARSE:
-            env["TRAINING_DATA_EXTENSION"] = ".mtx"
+            env["TRAINING_DATA_EXTENSION"] = InputFormatExtension.MTX
         else:
-            env["TRAINING_DATA_EXTENSION"] = ".csv"
+            env["TRAINING_DATA_EXTENSION"] = InputFormatExtension.CSV
 
         if problem in [BINARY, BINARY_TEXT]:
             labels = resources.class_labels(framework, problem)

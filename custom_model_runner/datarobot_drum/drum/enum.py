@@ -129,6 +129,7 @@ class PredictionServerMimetypes:
 class InputFormatExtension:
     MTX = ".mtx"
     ARROW = ".arrow"
+    CSV = ".csv"
 
 
 class ModelInfoKeys:

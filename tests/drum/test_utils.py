@@ -9,10 +9,11 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Optional
 from unittest.mock import Mock
+from pathlib import Path
 
 import pytest
 
-from datarobot_drum.drum.utils import extract_class_order, capture_R_traceback_if_errors
+from datarobot_drum.drum.utils import extract_class_order, capture_R_traceback_if_errors, DrumUtils
 
 logger = logging.getLogger(__name__)
 

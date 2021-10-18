@@ -29,6 +29,7 @@ from datarobot_drum.drum.exceptions import (
     DrumPredException,
 )
 from datarobot_drum.drum.utils import DrumUtils
+
 from datarobot_drum.drum.enum import (
     RESPONSE_PREDICTIONS_KEY,
     SPARSE_COLNAMES,
@@ -36,6 +37,7 @@ from datarobot_drum.drum.enum import (
     PredictionServerMimetypes,
     ArgumentsOptions,
     TargetType,
+    InputFormatExtension,
 )
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
 from datarobot_drum.resource.transform_helpers import (
@@ -690,7 +692,7 @@ class CMRunTests:
         rtol = 2e-02
         atol = 1e-06
         input_extension = os.path.splitext(self.options.input)
-        is_sparse = input_extension[1] == ".mtx"
+        is_sparse = input_extension[1] == InputFormatExtension.MTX
 
         if is_sparse:
             columns = [
@@ -756,7 +758,7 @@ class CMRunTests:
             matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)
             if not np.all(matches):
                 if is_sparse:
-                    _, __tempfile_sample = mkstemp(suffix=".mtx")
+                    _, __tempfile_sample = mkstemp(suffix=InputFormatExtension.MTX)
                     sparse_mat = vstack(x[0] for x in data_subset.values)
                     mmwrite(__tempfile_sample, sparse_mat.sparse.to_coo())
                 else:

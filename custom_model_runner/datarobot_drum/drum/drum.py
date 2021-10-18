@@ -303,8 +303,8 @@ class CMRunner:
         # check which custom code files present in the code dir
         is_custom_py = DrumUtils.filename_exists_and_is_file(code_dir_abspath, "custom.py")
         is_custom_r = DrumUtils.filename_exists_and_is_file(
-            code_dir_abspath, "custom.R"
-        ) or DrumUtils.filename_exists_and_is_file(code_dir_abspath, "custom.r")
+            code_dir_abspath, "custom.R", "custom.r"
+        )
         is_custom_jl = DrumUtils.filename_exists_and_is_file(code_dir_abspath, "custom.jl")
 
         # if all the artifacts belong to the same language, set it
