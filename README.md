@@ -35,8 +35,8 @@ Materials for getting started:
   * [Environment Templates](https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments)
   * [Building blueprints programmatically](https://blueprint-workshop.datarobot.com/)
     from tasks like lego blocks     
-* Quick walk-through: coming soon
-* Detailed documentation: coming soon
+* [Quick walk-through](https://docs.datarobot.com/en/docs/release/public-preview/automl-preview/cml/cml-quickstart.html)
+* [Detailed documentation](https://docs.datarobot.com/en/docs/release/public-preview/automl-preview/cml/index.html)
 
 Other resources:
 * There is a chance that the task you are looking for has already been implemented. 
