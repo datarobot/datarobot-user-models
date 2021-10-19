@@ -5,9 +5,7 @@ from datarobot_drum.drum.server import (
     get_flask_app,
     HTTP_513_DRUM_PIPELINE_ERROR,
 )
-from datarobot_drum.drum.common import (
-    verbose_stdout,
-)
+from datarobot_drum.drum.common import verbose_stdout
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, RunMode
 
 from datarobot_drum.drum.exceptions import DrumCommonException

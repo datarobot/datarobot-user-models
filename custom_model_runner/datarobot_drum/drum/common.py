@@ -7,7 +7,12 @@ from contextlib import contextmanager
 from strictyaml import Bool, Int, Map, Optional, Str, load, YAMLError, Seq, Any
 from pathlib import Path
 
-from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, PredictionServerMimetypes, TargetType, PayloadFormat
+from datarobot_drum.drum.enum import (
+    MODEL_CONFIG_FILENAME,
+    PredictionServerMimetypes,
+    TargetType,
+    PayloadFormat,
+)
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 from datarobot_drum.drum.typeschema_validation import (

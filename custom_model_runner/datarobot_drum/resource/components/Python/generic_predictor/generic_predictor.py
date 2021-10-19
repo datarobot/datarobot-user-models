@@ -3,8 +3,13 @@ import urllib
 import werkzeug
 from pandas import DataFrame
 
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, TARGET_TYPE_ARG_KEYWORD, UnstructuredDtoKeys, RunLanguage, \
-    TargetType
+from datarobot_drum.drum.enum import (
+    LOGGER_NAME_PREFIX,
+    TARGET_TYPE_ARG_KEYWORD,
+    UnstructuredDtoKeys,
+    RunLanguage,
+    TargetType,
+)
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.resource.unstructured_helpers import (
     _resolve_incoming_unstructured_data,

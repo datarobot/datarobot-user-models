@@ -28,9 +28,21 @@ from datarobot_drum.drum.common import (
     ModelMetadataKeys,
     get_metadata,
 )
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, CUSTOM_FILE_NAME, LOG_LEVELS, PythonArtifacts, RArtifacts, \
-    JavaArtifacts, JuliaArtifacts, ArgumentsOptions, ArgumentOptionsEnvVars, RunMode, RunLanguage, TargetType, \
-    TemplateType
+from datarobot_drum.drum.enum import (
+    LOGGER_NAME_PREFIX,
+    CUSTOM_FILE_NAME,
+    LOG_LEVELS,
+    PythonArtifacts,
+    RArtifacts,
+    JavaArtifacts,
+    JuliaArtifacts,
+    ArgumentsOptions,
+    ArgumentOptionsEnvVars,
+    RunMode,
+    RunLanguage,
+    TargetType,
+    TemplateType,
+)
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumPredException
 from datarobot_drum.drum.perf_testing import CMRunTests

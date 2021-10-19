@@ -23,8 +23,15 @@ from datarobot_drum.drum.exceptions import (
     DrumPredException,
 )
 from datarobot_drum.drum.utils import CMRunnerUtils
-from datarobot_drum.drum.enum import RESPONSE_PREDICTIONS_KEY, X_TRANSFORM_KEY, SPARSE_COLNAMES, PERF_TEST_SERVER_LABEL, \
-    PredictionServerMimetypes, ArgumentsOptions, TargetType
+from datarobot_drum.drum.enum import (
+    RESPONSE_PREDICTIONS_KEY,
+    X_TRANSFORM_KEY,
+    SPARSE_COLNAMES,
+    PERF_TEST_SERVER_LABEL,
+    PredictionServerMimetypes,
+    ArgumentsOptions,
+    TargetType,
+)
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
 from datarobot_drum.resource.transform_helpers import (
     read_csv_payload,

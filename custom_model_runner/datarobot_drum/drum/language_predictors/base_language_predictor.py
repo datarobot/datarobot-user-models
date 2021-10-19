@@ -4,10 +4,13 @@ import time
 from abc import ABC, abstractmethod
 import numpy as np
 
-from datarobot_drum.drum.common import (
-    read_model_metadata_yaml,
+from datarobot_drum.drum.common import read_model_metadata_yaml
+from datarobot_drum.drum.enum import (
+    LOGGER_NAME_PREFIX,
+    StructuredDtoKeys,
+    ModelInfoKeys,
+    TargetType,
 )
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, StructuredDtoKeys, ModelInfoKeys, TargetType
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils import StructuredInputReadUtils
 

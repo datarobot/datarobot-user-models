@@ -20,9 +20,19 @@ from datarobot_drum.drum.common import (
     reroute_stdout_to_stderr,
     SupportedPayloadFormats,
 )
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, REGRESSION_PRED_COLUMN, CUSTOM_FILE_NAME, \
-    POSITIVE_CLASS_LABEL_ARG_KEYWORD, NEGATIVE_CLASS_LABEL_ARG_KEYWORD, CLASS_LABELS_ARG_KEYWORD, CustomHooks, \
-    StructuredDtoKeys, ModelInfoKeys, TargetType, PayloadFormat
+from datarobot_drum.drum.enum import (
+    LOGGER_NAME_PREFIX,
+    REGRESSION_PRED_COLUMN,
+    CUSTOM_FILE_NAME,
+    POSITIVE_CLASS_LABEL_ARG_KEYWORD,
+    NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
+    CLASS_LABELS_ARG_KEYWORD,
+    CustomHooks,
+    StructuredDtoKeys,
+    ModelInfoKeys,
+    TargetType,
+    PayloadFormat,
+)
 from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumTransformException
 from datarobot_drum.drum.utils import marshal_labels, StructuredInputReadUtils
