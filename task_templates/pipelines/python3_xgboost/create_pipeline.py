@@ -147,4 +147,4 @@ def make_regressor_pipeline(X: pd.DataFrame) -> Pipeline:
 
     # pipeline with preprocessor and estimator bundled
     regressor_pipeline = Pipeline(steps=[("preprocessor", preprocessor), ("estimator", estimator)])
-    return estimator
+    return regressor_pipeline
