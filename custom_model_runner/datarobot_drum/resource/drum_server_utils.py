@@ -159,12 +159,9 @@ class DrumServerRun:
             # nginx server doesn't have shutdown API, so we need to kill it
 
             # This loop kill all the chain except for docker
-            parent = psutil.Process(self._process_object_holder.process.pid)
-            for child in parent.children(recursive=True):
-                child.kill()
-            parent.kill()
+            os.killpg(os.getpgid(self._process_object_holder.process.pid), signal.SIGTERM)
 
-            # this kills drum running in the docker
+            # kill drum running in the docker (maybe not needed after adding group kill ^)
             try:
                 for proc in psutil.process_iter():
                     if "{}".format(ArgumentsOptions.MAIN_COMMAND) in proc.name().lower():

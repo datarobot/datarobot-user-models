@@ -296,16 +296,21 @@ class DataTypes(BaseValidator):
             types[Values.CAT] = False
             types[Values.DATE] = False
         else:
-            types[Values.NUM] = dataframe.select_dtypes(np.number).shape[1] > 0
+            num_bool_columns = dataframe.select_dtypes("boolean").shape[1]
             num_txt_columns = self.number_of_text_columns(dataframe)
             num_img_columns = self.number_of_img_columns(dataframe)
             num_obj_columns = dataframe.select_dtypes("O").shape[1]
-            num_bool_columns = dataframe.select_dtypes("boolean").shape[1]
+            # Note that boolean values will be sent as numeric in DataRobot
+            if num_bool_columns > 0:
+                logger.warning(
+                    "Boolean values were present in the data, which are passed as numeric input in DataRobot.  You may need to convert boolean values to integers/floats for your model"
+                )
+            types[Values.NUM] = (
+                dataframe.select_dtypes(np.number).shape[1] > 0 or num_bool_columns > 0
+            )
             types[Values.TXT] = num_txt_columns > 0
             types[Values.IMG] = num_img_columns > 0
-            types[Values.CAT] = (
-                num_obj_columns - (num_txt_columns + num_img_columns) + num_bool_columns > 0
-            )
+            types[Values.CAT] = num_obj_columns - (num_txt_columns + num_img_columns)
             types[Values.DATE] = dataframe.select_dtypes("datetime").shape[1] > 0
 
         types_present = [k for k, v in types.items() if v]
