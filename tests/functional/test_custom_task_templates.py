@@ -57,6 +57,15 @@ class TestCustomTaskTemplates(object):
         return proj.id
 
     @pytest.fixture(scope="session")
+    def project_weight_test(self):
+        proj = dr.Project.create(sourcedata=os.path.join(BASE_DATASET_DIR, "weight_test.csv"))
+        advanced_options = dr.helpers.AdvancedOptions(weights="weights")
+        proj.set_target(
+            target="target", mode=dr.AUTOPILOT_MODE.MANUAL, advanced_options=advanced_options
+        )
+        return proj.id
+
+    @pytest.fixture(scope="session")
     def project_binary_cats_dogs(self):
         proj = dr.Project.create(
             sourcedata=os.path.join(BASE_DATASET_DIR, "cats_dogs_small_training.csv")
@@ -103,6 +112,14 @@ class TestCustomTaskTemplates(object):
     @pytest.mark.parametrize(
         "template_type, model_template, proj, env, target_type, pre_processing",
         [
+            (
+                "fixture",
+                "python3_weight_test",
+                "project_weight_test",
+                "sklearn_drop_in_env",
+                "binary",
+                None,
+            ),
             (
                 "pipeline",
                 "python3_pytorch",
