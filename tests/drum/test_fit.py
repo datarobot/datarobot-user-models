@@ -752,7 +752,7 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, problem, language, error_in_predict_server",
         [
-            (SKLEARN_BINARY, BINARY, PYTHON, False),
+            (PYTORCH, BINARY, PYTHON, False),
             (PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION, TRANSFORM, PYTHON, True),
         ],
     )
@@ -788,6 +788,6 @@ class TestFit:
 
         # The predict server will not return the full stacktrace since it is ran in a forked process
         if error_in_predict_server:
-            assert "expected types to exactly match: CAT" in stdout
+            assert "Schema validation found mismatch between output dataset and the supplied schema" in stdout
         else:
             assert "DrumSchemaValidationException" in stderr

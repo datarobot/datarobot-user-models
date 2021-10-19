@@ -169,7 +169,7 @@ class TestDrumDocker:
 
     @pytest.mark.parametrize(
         "framework, problem, code_dir, env_dir",
-        [(PYTORCH, MULTICLASS, "13_python3_pytorch_multiclass", "python3_pytorch"),],
+        [(PYTORCH, MULTICLASS, "python3_pytorch_multiclass", "python3_pytorch"),],
     )
     def test_docker_image_with_wrong_dep_install(
         self, resources, framework, problem, code_dir, env_dir, tmp_path,
