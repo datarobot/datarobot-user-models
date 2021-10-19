@@ -4,7 +4,7 @@ import os
 
 from mlpiper.components.connectable_component import ConnectableComponent
 
-from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.utils import shared_fit_preprocessing, make_sure_artifact_is_small
 

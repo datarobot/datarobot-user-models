@@ -1,13 +1,8 @@
 import logging
 import sys
 
-from datarobot_drum.drum.common import (
-    LOGGER_NAME_PREFIX,
-    POSITIVE_CLASS_LABEL_ARG_KEYWORD,
-    NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
-    CLASS_LABELS_ARG_KEYWORD,
-    TARGET_TYPE_ARG_KEYWORD,
-)
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, POSITIVE_CLASS_LABEL_ARG_KEYWORD, \
+    NEGATIVE_CLASS_LABEL_ARG_KEYWORD, CLASS_LABELS_ARG_KEYWORD, TARGET_TYPE_ARG_KEYWORD
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.exceptions import DrumCommonException

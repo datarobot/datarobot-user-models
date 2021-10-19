@@ -4,16 +4,8 @@ from requests_toolbelt import MultipartEncoder
 
 import werkzeug
 
-
-from datarobot_drum.drum.common import (
-    REGRESSION_PRED_COLUMN,
-    TargetType,
-    UnstructuredDtoKeys,
-    SPARSE_COLNAMES,
-    PredictionServerMimetypes,
-    X_TRANSFORM_KEY,
-    Y_TRANSFORM_KEY,
-)
+from datarobot_drum.drum.enum import REGRESSION_PRED_COLUMN, X_TRANSFORM_KEY, Y_TRANSFORM_KEY, SPARSE_COLNAMES, \
+    UnstructuredDtoKeys, PredictionServerMimetypes, TargetType
 from datarobot_drum.drum.utils import StructuredInputReadUtils
 from datarobot_drum.resource.transform_helpers import (
     make_arrow_payload,

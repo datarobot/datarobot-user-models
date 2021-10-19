@@ -4,7 +4,7 @@ import pickle
 import pytest
 import requests
 
-from datarobot_drum.drum.common import PythonArtifacts, RunMode
+from datarobot_drum.drum.enum import PythonArtifacts, RunMode
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 
 from .constants import SKLEARN, REGRESSION, BINARY, DOCKER_PYTHON_SKLEARN, PYTHON

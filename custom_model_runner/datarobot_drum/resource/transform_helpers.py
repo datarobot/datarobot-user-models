@@ -8,7 +8,8 @@ from scipy.io import mmwrite, mmread
 from scipy.sparse import issparse
 from scipy.sparse.csr import csr_matrix
 
-from datarobot_drum.drum.common import verify_pyarrow_module, X_FORMAT_KEY, X_TRANSFORM_KEY
+from datarobot_drum.drum.common import verify_pyarrow_module
+from datarobot_drum.drum.enum import X_FORMAT_KEY, X_TRANSFORM_KEY
 
 
 def filter_urllib3_logging():

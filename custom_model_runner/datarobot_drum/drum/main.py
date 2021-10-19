@@ -37,8 +37,8 @@ import sys
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.common import (
     config_logging,
-    RunMode,
 )
+from datarobot_drum.drum.enum import RunMode
 from datarobot_drum.drum.runtime import DrumRuntime
 
 

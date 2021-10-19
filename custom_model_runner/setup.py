@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import os
 
 from datarobot_drum.drum.description import version, project_name
-from datarobot_drum.drum.common import extra_deps, SupportedFrameworks
+from datarobot_drum.drum.enum import SupportedFrameworks, extra_deps
 
 # The directory containing this file
 root = os.path.dirname(os.path.abspath(__file__))

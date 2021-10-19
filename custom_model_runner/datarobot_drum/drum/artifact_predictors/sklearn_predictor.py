@@ -2,13 +2,8 @@ import pickle
 import pandas as pd
 import numpy as np
 
-from datarobot_drum.drum.common import (
-    PythonArtifacts,
-    REGRESSION_PRED_COLUMN,
-    TargetType,
-    extra_deps,
-    SupportedFrameworks,
-)
+from datarobot_drum.drum.enum import REGRESSION_PRED_COLUMN, SupportedFrameworks, extra_deps, PythonArtifacts, \
+    TargetType
 from datarobot_drum.drum.utils import marshal_labels
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.artifact_predictors.artifact_predictor import ArtifactPredictor

@@ -2,14 +2,8 @@ from abc import ABC, abstractmethod
 import logging
 
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.common import (
-    LOGGER_NAME_PREFIX,
-    POSITIVE_CLASS_LABEL_ARG_KEYWORD,
-    NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
-    CLASS_LABELS_ARG_KEYWORD,
-    TARGET_TYPE_ARG_KEYWORD,
-    TargetType,
-)
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, POSITIVE_CLASS_LABEL_ARG_KEYWORD, \
+    NEGATIVE_CLASS_LABEL_ARG_KEYWORD, CLASS_LABELS_ARG_KEYWORD, TARGET_TYPE_ARG_KEYWORD, TargetType
 
 
 class ArtifactPredictor(ABC):

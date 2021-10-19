@@ -5,15 +5,10 @@ import pandas as pd
 from scipy.sparse import coo_matrix
 
 from datarobot_drum.drum.common import (
-    LOGGER_NAME_PREFIX,
-    TargetType,
-    CustomHooks,
-    REGRESSION_PRED_COLUMN,
-    UnstructuredDtoKeys,
-    PayloadFormat,
     SupportedPayloadFormats,
-    StructuredDtoKeys,
 )
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, REGRESSION_PRED_COLUMN, CustomHooks, UnstructuredDtoKeys, \
+    StructuredDtoKeys, TargetType, PayloadFormat
 from datarobot_drum.drum.utils import capture_R_traceback_if_errors
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor

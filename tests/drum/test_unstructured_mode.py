@@ -2,7 +2,7 @@ import pytest
 import requests
 import werkzeug
 
-from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.drum.enum import ArgumentsOptions
 from datarobot_drum.drum.server import HTTP_422_UNPROCESSABLE_ENTITY
 
 from datarobot_drum.resource.drum_server_utils import DrumServerRun

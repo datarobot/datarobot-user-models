@@ -2,7 +2,7 @@ import os
 import pytest
 import pandas as pd
 
-from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.drum.enum import ArgumentsOptions
 
 from .constants import SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, BINARY
 

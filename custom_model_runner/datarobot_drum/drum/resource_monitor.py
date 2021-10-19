@@ -2,7 +2,7 @@ import os
 import psutil
 
 from mlpiper.common.byte_conv import ByteConv
-from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.drum.enum import ArgumentsOptions
 import collections
 
 MemoryInfo = collections.namedtuple(

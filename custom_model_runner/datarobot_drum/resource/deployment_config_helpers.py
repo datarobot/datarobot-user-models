@@ -1,7 +1,7 @@
 import json
 
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.common import TargetType
+from datarobot_drum.drum.enum import TargetType
 
 
 def parse_validate_deployment_config_file(filename):
