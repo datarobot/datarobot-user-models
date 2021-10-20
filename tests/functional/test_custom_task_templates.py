@@ -207,6 +207,137 @@ class TestCustomTaskTemplates(object):
                 "binary",
                 None,
             ),
+            (
+                "pipeline",
+                "11_python3_pytorch_regression",
+                "project_regression_juniors_grade",
+                "pytorch_drop_in_env",
+                "regression",
+                None,
+            ),
+            (
+                "pipeline",
+                "13_python3_pytorch_multiclass",
+                "project_multiclass_skyserver",
+                "pytorch_drop_in_env",
+                "multiclass",
+                None,
+            ),
+            (
+                "pipeline",
+                "14_python3_keras_joblib",
+                "project_regression_juniors_grade",
+                "keras_drop_in_env",
+                "regression",
+                None,
+            ),
+            # This test currently fails, because it uses image features, which isn't one of the
+            # Allowed by default data types for Custom Tasks. We can re-enable this
+            # Test if we add image features in the fixture to the allowed data types.
+            # (
+            #     "pipeline",
+            #     "15_python3_keras_vizai_joblib",
+            #     "project_binary_cats_dogs",
+            #     "keras_drop_in_env",
+            #     "binary",
+            # ),
+            (
+                "pipeline",
+                "4_python3_xgboost",
+                "project_regression_juniors_grade",
+                "xgboost_drop_in_env",
+                "regression",
+                None,
+            ),
+            (
+                "pipeline",
+                "2_python3_sklearn_regression",
+                "project_regression_juniors_grade",
+                "sklearn_drop_in_env",
+                "regression",
+                None,
+            ),
+            (
+                "pipeline",
+                "2_python3_sklearn_regression",
+                "project_regression_juniors_grade",
+                "sklearn_drop_in_env",
+                "regression",
+                "dr_numeric_impute",
+            ),
+            (
+                "pipeline",
+                "13_python3_pytorch_multiclass",
+                "project_skyserver_manual_partition",
+                "pytorch_drop_in_env",
+                "multiclass",
+                None,
+            ),
+            (
+                "pipeline",
+                "5_python3_sklearn_binary",
+                "project_binary_iris",
+                "sklearn_drop_in_env",
+                "binary",
+                None,
+            ),
+            (
+                "pipeline",
+                "6_python3_sklearn_multiclass",
+                "project_multiclass_skyserver",
+                "sklearn_drop_in_env",
+                "multiclass",
+                None,
+            ),
+            (
+                "pipeline",
+                "3_r_lang",
+                "project_regression_juniors_grade",
+                "r_drop_in_env",
+                "regression",
+                None,
+            ),
+            ("pipeline", "3_r_lang", "project_binary_iris", "r_drop_in_env", "binary", None),
+            (
+                "pipeline",
+                "3_r_lang",
+                "project_multiclass_skyserver",
+                "r_drop_in_env",
+                "multiclass",
+                None,
+            ),
+            (
+                "transform",
+                "3_python3_sklearn_transform",
+                "project_binary_diabetes_no_text",
+                "sklearn_drop_in_env",
+                "transform",
+                None,
+            ),
+            (
+                "transform",
+                "4_r_transform_recipe",
+                "project_binary_iris",
+                "r_drop_in_env",
+                "transform",
+                None,
+            ),
+            (
+                "transform",
+                "2_r_transform_simple",
+                "project_binary_iris",
+                "r_drop_in_env",
+                "transform",
+                None,
+            ),
+            (
+                "estimator",
+                "8_r_anomaly_detection",
+                "project_anomaly_juniors_grade",
+                "r_drop_in_env",
+                "anomaly",
+                None,
+            ),
         ],
     )
     def test_custom_task_templates(
@@ -263,7 +394,7 @@ class TestCustomTaskTemplates(object):
 
         job = dr.ModelJob.get(proj_id, job_id)
         test_passed = False
-        res = job.get_result_when_complete(max_wait=900)
+        res = job.get_result_when_complete(max_wait=1200)
         if isinstance(res, dr.Model):
             test_passed = True
 
@@ -339,7 +470,7 @@ class TestCustomTaskTemplates(object):
         job = dr.ModelJob.get(proj_id, job_id)
 
         try:
-            job.get_result_when_complete(max_wait=900)
+            job.get_result_when_complete(max_wait=1200)
         except AsyncProcessUnsuccessfulError:
             pass
 
