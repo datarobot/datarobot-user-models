@@ -144,6 +144,15 @@ class TestCustomTaskTemplates(object):
         return proj.id
 
     @pytest.fixture(scope="session")
+    def project_weight_test(self):
+        proj = dr.Project.create(sourcedata=os.path.join(BASE_DATASET_DIR, "weight_test.csv"))
+        advanced_options = dr.helpers.AdvancedOptions(weights="weights")
+        proj.set_target(
+            target="target", mode=dr.AUTOPILOT_MODE.MANUAL, advanced_options=advanced_options
+        )
+        return proj.id
+
+    @pytest.fixture(scope="session")
     def project_binary_cats_dogs(self):
         proj = dr.Project.create(
             sourcedata=os.path.join(BASE_DATASET_DIR, "cats_dogs_small_training.csv")
@@ -173,15 +182,38 @@ class TestCustomTaskTemplates(object):
         proj.set_target(target="class", mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
+    @pytest.fixture(scope="session")
+    def project_skyserver_manual_partition(self):
+        # This dataset has a "partition" column where partition V1 has classes QSO & GALAXY and
+        # partition V2 has STAR & GALAXY
+        proj = dr.Project.create(
+            sourcedata=os.path.join(BASE_DATASET_DIR, "skyserver_manual_partition.csv")
+        )
+        proj.set_target(
+            target="class",
+            mode=dr.AUTOPILOT_MODE.MANUAL,
+            partitioning_method=dr.UserCV("partition", "H"),
+        )
+        return proj.id
+
     @pytest.mark.parametrize(
-        "template_type, model_template, proj, env, target_type",
+        "template_type, model_template, proj, env, target_type, pre_processing",
         [
+            (
+                "fixture",
+                "python3_weight_test",
+                "project_weight_test",
+                "sklearn_drop_in_env",
+                "binary",
+                None,
+            ),
             (
                 "pipeline",
                 "python3_pytorch",
                 "project_binary_iris",
                 "pytorch_drop_in_env",
                 "binary",
+                None,
             ),
             (
                 "pipeline",
@@ -189,6 +221,7 @@ class TestCustomTaskTemplates(object):
                 "project_regression_juniors_grade",
                 "pytorch_drop_in_env",
                 "regression",
+                None,
             ),
             (
                 "pipeline",
@@ -196,6 +229,7 @@ class TestCustomTaskTemplates(object):
                 "project_multiclass_skyserver",
                 "pytorch_drop_in_env",
                 "multiclass",
+                None,
             ),
             (
                 "pipeline",
@@ -203,6 +237,7 @@ class TestCustomTaskTemplates(object):
                 "project_regression_juniors_grade",
                 "keras_drop_in_env",
                 "regression",
+                None,
             ),
             # This test currently fails, because it uses image features, which isn't one of the
             # Allowed by default data types for Custom Tasks. We can re-enable this
@@ -220,6 +255,7 @@ class TestCustomTaskTemplates(object):
                 "project_regression_juniors_grade",
                 "xgboost_drop_in_env",
                 "regression",
+                None,
             ),
             (
                 "pipeline",
@@ -227,6 +263,23 @@ class TestCustomTaskTemplates(object):
                 "project_regression_juniors_grade",
                 "sklearn_drop_in_env",
                 "regression",
+                None,
+            ),
+            (
+                "pipeline",
+                "python3_sklearn_regression",
+                "project_regression_juniors_grade",
+                "sklearn_drop_in_env",
+                "regression",
+                "dr_numeric_impute",
+            ),
+            (
+                "pipeline",
+                "python3_pytorch_multiclass",
+                "project_skyserver_manual_partition",
+                "pytorch_drop_in_env",
+                "multiclass",
+                None,
             ),
             (
                 "pipeline",
@@ -234,6 +287,7 @@ class TestCustomTaskTemplates(object):
                 "project_binary_iris",
                 "sklearn_drop_in_env",
                 "binary",
+                None,
             ),
             (
                 "pipeline",
@@ -241,6 +295,7 @@ class TestCustomTaskTemplates(object):
                 "project_multiclass_skyserver",
                 "sklearn_drop_in_env",
                 "multiclass",
+                None,
             ),
             (
                 "pipeline",
@@ -248,15 +303,24 @@ class TestCustomTaskTemplates(object):
                 "project_regression_juniors_grade",
                 "r_drop_in_env",
                 "regression",
+                None,
             ),
-            ("pipeline", "r_lang", "project_binary_iris", "r_drop_in_env", "binary",),
-            ("pipeline", "r_lang", "project_multiclass_skyserver", "r_drop_in_env", "multiclass",),
+            ("pipeline", "r_lang", "project_binary_iris", "r_drop_in_env", "binary", None),
+            (
+                "pipeline",
+                "r_lang",
+                "project_multiclass_skyserver",
+                "r_drop_in_env",
+                "multiclass",
+                None,
+            ),
             (
                 "transform",
                 "python3_sklearn_transform",
                 "project_binary_diabetes_no_text",
                 "sklearn_drop_in_env",
                 "transform",
+                None,
             ),
             (
                 "transform",
@@ -264,6 +328,7 @@ class TestCustomTaskTemplates(object):
                 "project_binary_iris",
                 "r_drop_in_env",
                 "transform",
+                None,
             ),
             (
                 "transform",
@@ -271,6 +336,7 @@ class TestCustomTaskTemplates(object):
                 "project_binary_iris",
                 "r_drop_in_env",
                 "transform",
+                None,
             ),
             (
                 "estimator",
@@ -278,11 +344,12 @@ class TestCustomTaskTemplates(object):
                 "project_anomaly_juniors_grade",
                 "r_drop_in_env",
                 "anomaly",
+                None,
             ),
         ],
     )
     def test_custom_task_templates(
-        self, request, template_type, model_template, proj, env, target_type
+        self, request, template_type, model_template, proj, env, target_type, pre_processing
     ):
         env_id, env_version_id = request.getfixturevalue(env)
         proj_id = request.getfixturevalue(proj)
@@ -314,8 +381,13 @@ class TestCustomTaskTemplates(object):
             )
 
         w = Workshop()
+        bp = w.TaskInputs.ALL
+        if pre_processing == "dr_numeric_impute":
+            bp = w.Tasks.PNI2()(bp)
+        else:
+            assert not pre_processing, f"Pre-processing {pre_processing} not supported."
         bp = w.CustomTask(custom_task_version.custom_task_id, version=str(custom_task_version.id))(
-            w.TaskInputs.ALL
+            bp
         )
         if dr_target_type == dr.enums.CUSTOM_TASK_TARGET_TYPE.TRANSFORM:
             if "image" in model_template:
