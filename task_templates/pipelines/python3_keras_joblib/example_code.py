@@ -1,5 +1,6 @@
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout
+from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.constraints import MaxNorm as maxnorm
 from tensorflow.keras.models import load_model
 from tensorflow.keras.wrappers.scikit_learn import KerasClassifier, KerasRegressor
@@ -159,6 +160,8 @@ def make_regressor_pipeline(X: pd.DataFrame) -> Pipeline:
         epochs=200,
         batch_size=8,
         verbose=1,
+        validation_split=0.33,
+        callbacks=[EarlyStopping(patience=20)],
     )
 
     # pipeline with preprocessor and estimator bundled

@@ -90,6 +90,9 @@ def fit(
     X = preprocessor.transform(X)
     y = lb.transform(y)
 
+    # For reproducible results
+    torch.manual_seed(0)
+
     estimator, optimizer, criterion = build_classifier(X, len(lb.classes_))
     print("Training classifier")
     train_classifier(X, y, estimator, optimizer, criterion)

@@ -1,4 +1,5 @@
 from __future__ import absolute_import
+from typing import List, Tuple, Union
 
 import pytest
 import os
@@ -18,6 +19,8 @@ BASE_FIXTURE_TASK_TEMPLATES_DIR = "tests/fixtures"
 
 BASE_DATASET_DIR = "tests/testdata"
 
+ModelLike = Union[dr.models.Model, dr.models.Blueprint]
+
 
 class TestCustomTaskTemplates(object):
     @staticmethod
@@ -31,6 +34,90 @@ class TestCustomTaskTemplates(object):
         if template_type == "fixture":
             return BASE_FIXTURE_TASK_TEMPLATES_DIR
         raise ValueError(f"Invalid template type {template_type}")
+
+    @staticmethod
+    def get_model_by_type(models: List[ModelLike], type_name: str) -> ModelLike:
+        return [m for m in models if m.model_type == type_name][0]
+
+    @staticmethod
+    def get_accuracy_threshold(proj: dr.models.Project, target_type: str) -> Tuple[float, bool]:
+        """ Compute accuracy threshold by running a known accurate model and dummy model
+        and averaging their accuracy scores """
+        models = proj.get_models()
+        if len(models) > 1:
+            # get existing models if project was created by another run of this test
+            if target_type == "regression":
+                xgboost_mdl = TestCustomTaskTemplates.get_model_by_type(
+                    models, "eXtreme Gradient Boosted Trees Regressor with Early Stopping"
+                )
+                dummy_mdl = TestCustomTaskTemplates.get_model_by_type(
+                    models, "Mean Response Regressor"
+                )
+            elif target_type == "anomaly":
+                dm_mdl = TestCustomTaskTemplates.get_model_by_type(
+                    models, "Double Median Absolute Deviation Anomaly Detection with Calibration"
+                )
+            else:
+                xgboost_mdl = TestCustomTaskTemplates.get_model_by_type(
+                    models, "eXtreme Gradient Boosted Trees Classifier with Early Stopping"
+                )
+                dummy_mdl = TestCustomTaskTemplates.get_model_by_type(
+                    models, "Majority Class Classifier"
+                )
+        else:
+            # run models for new projects
+            blueprints = proj.get_blueprints()
+            if target_type == "regression":
+                xgboost_bp = TestCustomTaskTemplates.get_model_by_type(
+                    blueprints, "eXtreme Gradient Boosted Trees Regressor with Early Stopping"
+                )
+                dummy_bp = TestCustomTaskTemplates.get_model_by_type(
+                    blueprints, "Mean Response Regressor"
+                )
+            elif target_type == "anomaly":
+                dm_bp = TestCustomTaskTemplates.get_model_by_type(
+                    blueprints,
+                    "Double Median Absolute Deviation Anomaly Detection with Calibration",
+                )
+            else:
+                xgboost_bp = TestCustomTaskTemplates.get_model_by_type(
+                    blueprints, "eXtreme Gradient Boosted Trees Classifier with Early Stopping"
+                )
+                dummy_bp = TestCustomTaskTemplates.get_model_by_type(
+                    blueprints, "Majority Class Classifier"
+                )
+
+            if target_type == "anomaly":
+                job_id = proj.train(dm_bp)
+                job = dr.ModelJob.get(proj.id, job_id)
+                dm_mdl = job.get_result_when_complete(max_wait=900)
+            else:
+                job_id = proj.train(xgboost_bp)
+                job = dr.ModelJob.get(proj.id, job_id)
+                xgboost_mdl = job.get_result_when_complete(max_wait=900)
+
+                job_id = proj.train(dummy_bp)
+                job = dr.ModelJob.get(proj.id, job_id)
+                dummy_mdl = job.get_result_when_complete(max_wait=900)
+
+        if target_type == "anomaly":
+            # Require Synthetic AUC so dummy model score can be set to 0.5
+            assert proj.metric == "Synthetic AUC"
+            dm_score = dm_mdl.metrics[proj.metric]["validation"]
+            threshold_score = (dm_score + 0.5) / 2
+        else:
+            xgboost_score = xgboost_mdl.metrics[proj.metric]["validation"]
+            dummy_score = dummy_mdl.metrics[proj.metric]["validation"]
+            threshold_score = (xgboost_score + dummy_score) / 2
+
+        if target_type == "anomaly":
+            metric_asc = False
+        else:
+            metric_details = proj.get_metrics(proj.target)["metric_details"]
+            metric_asc = [m for m in metric_details if m["metric_name"] == proj.metric][0][
+                "ascending"
+            ]
+        return threshold_score, metric_asc
 
     @pytest.fixture(scope="session")
     def project_regression_juniors_grade(self):
@@ -248,6 +335,17 @@ class TestCustomTaskTemplates(object):
             test_passed = True
 
         assert test_passed, "Job result is the object: " + str(res)
+
+        custom_task_score = res.metrics[proj.metric]["validation"]
+        threshold_score, metric_asc = self.get_accuracy_threshold(proj, target_type)
+        if metric_asc:
+            assert (
+                custom_task_score < threshold_score
+            ), f"Accuracy check failed: {custom_task_score} > {threshold_score}"
+        else:
+            assert (
+                custom_task_score > threshold_score
+            ), f"Accuracy check failed: {custom_task_score} < {threshold_score}"
 
     @pytest.mark.parametrize(
         "template_type, model_template, proj, env, target_type, expected_msgs",
