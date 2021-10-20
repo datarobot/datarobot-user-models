@@ -3,7 +3,7 @@ import os
 
 from mlpiper.components.connectable_component import ConnectableComponent
 
-from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.utils import (
     make_sure_artifact_is_small,
     capture_R_traceback_if_errors,

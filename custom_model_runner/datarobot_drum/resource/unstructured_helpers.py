@@ -1,5 +1,5 @@
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.common import UnstructuredDtoKeys, PredictionServerMimetypes
+from datarobot_drum.drum.enum import UnstructuredDtoKeys, PredictionServerMimetypes
 
 CHARSET_DEFAULT = "utf8"
 MIMETYPE_TEXT_DEFAULT = PredictionServerMimetypes.TEXT_PLAIN

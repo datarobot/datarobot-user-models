@@ -16,20 +16,22 @@ from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPre
 from datarobot_drum.drum.artifact_predictors.torch_predictor import PyTorchPredictor
 from datarobot_drum.drum.artifact_predictors.xgboost_predictor import XGBoostPredictor
 from datarobot_drum.drum.common import (
-    CLASS_LABELS_ARG_KEYWORD,
-    CUSTOM_FILE_NAME,
-    CustomHooks,
     get_pyarrow_module,
-    LOGGER_NAME_PREFIX,
-    ModelInfoKeys,
-    NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
-    PayloadFormat,
-    POSITIVE_CLASS_LABEL_ARG_KEYWORD,
-    REGRESSION_PRED_COLUMN,
     reroute_stdout_to_stderr,
-    StructuredDtoKeys,
     SupportedPayloadFormats,
+)
+from datarobot_drum.drum.enum import (
+    LOGGER_NAME_PREFIX,
+    REGRESSION_PRED_COLUMN,
+    CUSTOM_FILE_NAME,
+    POSITIVE_CLASS_LABEL_ARG_KEYWORD,
+    NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
+    CLASS_LABELS_ARG_KEYWORD,
+    CustomHooks,
+    StructuredDtoKeys,
+    ModelInfoKeys,
     TargetType,
+    PayloadFormat,
 )
 from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumTransformException

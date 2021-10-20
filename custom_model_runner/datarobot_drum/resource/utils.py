@@ -3,8 +3,7 @@ import glob
 import shutil
 import subprocess
 
-from datarobot_drum.drum.common import ArgumentOptionsEnvVars
-
+from datarobot_drum.drum.enum import ArgumentOptionsEnvVars
 
 PYTHON = "python3"
 JULIA = "julia"

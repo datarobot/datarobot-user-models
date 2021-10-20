@@ -15,13 +15,13 @@ import tempfile
 from io import StringIO
 from contextlib import closing
 
-from datarobot_drum.drum.common import (
+from datarobot_drum.drum.common import SupportedPayloadFormats
+from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
-    EnvVarNames,
-    JavaArtifacts,
-    PayloadFormat,
-    SupportedPayloadFormats,
     StructuredDtoKeys,
+    JavaArtifacts,
+    EnvVarNames,
+    PayloadFormat,
 )
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.exceptions import DrumCommonException

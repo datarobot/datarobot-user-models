@@ -1,6 +1,6 @@
 import pytest
 
-from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.drum.enum import ArgumentsOptions
 from .constants import SKLEARN, BINARY, RDS, R_FIT, PYTHON, ANOMALY, PYTORCH, XGB, KERAS
 from datarobot_drum.resource.utils import (
     _create_custom_model_dir,

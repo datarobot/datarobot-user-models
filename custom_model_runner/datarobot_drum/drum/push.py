@@ -5,12 +5,11 @@ from pathlib import Path
 import datarobot as dr_client
 
 from datarobot_drum.drum.common import (
-    RunMode,
     get_metadata,
-    TargetType,
     validate_config_fields,
     ModelMetadataKeys,
 )
+from datarobot_drum.drum.enum import RunMode, TargetType
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 DR_LINK_FORMAT = "{}/model-registry/custom-models/{}"

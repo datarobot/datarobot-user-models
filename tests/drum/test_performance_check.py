@@ -3,7 +3,7 @@ import subprocess
 import os
 import time
 
-from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.drum.enum import ArgumentsOptions
 from datarobot_drum.drum.perf_testing import (
     _find_drum_perf_test_server_process,
     _kill_drum_perf_test_server_process,

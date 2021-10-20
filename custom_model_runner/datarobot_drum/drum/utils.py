@@ -17,11 +17,11 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 
 from jinja2 import BaseLoader, DebugUndefined, Environment
 
-from datarobot_drum.drum.common import (
+from datarobot_drum.drum.common import get_pyarrow_module
+from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     PredictionServerMimetypes,
     InputFormatToMimetype,
-    get_pyarrow_module,
     ArgumentOptionsEnvVars,
 )
 

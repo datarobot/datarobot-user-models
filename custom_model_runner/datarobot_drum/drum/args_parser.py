@@ -7,12 +7,12 @@ import subprocess
 import trafaret as t
 
 from datarobot_drum.drum.description import version
-from datarobot_drum.drum.common import (
+from datarobot_drum.drum.enum import (
     LOG_LEVELS,
     ArgumentsOptions,
+    ArgumentOptionsEnvVars,
     RunLanguage,
     TargetType,
-    ArgumentOptionsEnvVars,
 )
 
 

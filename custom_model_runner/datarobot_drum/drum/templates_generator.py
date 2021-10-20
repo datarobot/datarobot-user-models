@@ -5,13 +5,13 @@ import time
 import pprint
 from jinja2 import Environment, FileSystemLoader
 
-from datarobot_drum.drum.common import (
-    RunLanguage,
+from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
-    CustomHooks,
     CUSTOM_FILE_NAME,
-    TemplateType,
+    CustomHooks,
     ArgumentsOptions,
+    RunLanguage,
+    TemplateType,
 )
 
 MODEL_TEMPLATE_README = "MODEL_README_TEMPLATE.md.j2"
