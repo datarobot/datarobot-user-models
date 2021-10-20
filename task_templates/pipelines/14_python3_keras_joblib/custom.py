@@ -4,6 +4,7 @@ In this example we show how to create a Pytorch regression or classifiction mode
 from typing import List, Optional, Any, Dict
 import pandas as pd
 import numpy as np
+import tensorflow as tf
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import label_binarize
 
@@ -67,6 +68,7 @@ def fit(
         estimator = make_classifier_pipeline(X, len(class_order))
     else:
         estimator = make_regressor_pipeline(X)
+    tf.random.set_seed(1234)
     estimator.fit(X, y)
 
     # Dump the trained object [in this example - a trained PyTorch model]

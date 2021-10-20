@@ -4,6 +4,7 @@
 # pylint: disable-all
 from __future__ import absolute_import
 from sklearn.preprocessing import LabelEncoder
+from math import sqrt
 from pathlib import Path
 
 import torch
@@ -74,7 +75,8 @@ class MultiModel(nn.Module):
         return out
 
 
-def train_epoch(model, opt, criterion, X, y, batch_size=50):
+def train_epoch(model, opt, criterion, X, y):
+    batch_size = int(sqrt(X.shape[0]))
     model.train()
     losses = []
     for beg_i in range(0, X.size(0), batch_size):
@@ -113,7 +115,7 @@ def build_regressor(X):
     return reg_model, reg_opt, reg_criterion
 
 
-def train_classifier(X, y, class_model, class_opt, class_criterion, n_epochs=5):
+def train_classifier(X, y, class_model, class_opt, class_criterion, n_epochs=10):
     target_encoder = LabelEncoder()
     target_encoder.fit(y)
     transformed_y = target_encoder.transform(y)
@@ -124,7 +126,7 @@ def train_classifier(X, y, class_model, class_opt, class_criterion, n_epochs=5):
         train_epoch(class_model, class_opt, class_criterion, bin_t_X, bin_t_y)
 
 
-def train_regressor(X, y, reg_model, reg_opt, reg_criterion, n_epochs=5):
+def train_regressor(X, y, reg_model, reg_opt, reg_criterion, n_epochs=10):
     reg_t_X = torch.from_numpy(X.values).type(torch.FloatTensor)
     reg_t_y = torch.from_numpy(y.values).type(torch.FloatTensor)
 

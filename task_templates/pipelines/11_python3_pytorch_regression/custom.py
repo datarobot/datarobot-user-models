@@ -71,6 +71,8 @@ def fit(
     """
     # Keep only numeric features
     X_train = subset_data(X)
+    # For reproducible results
+    torch.manual_seed(0)
     # Feel free to delete which ever one of these you aren't using
     if class_order:
         estimator, optimizer, criterion = build_classifier(X_train, len(class_order))
