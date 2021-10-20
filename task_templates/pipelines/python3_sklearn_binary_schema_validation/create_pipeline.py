@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import numpy as np
 import pandas as pd
 from sagemaker_sklearn_extension.feature_extraction.text import MultiColumnTfidfVectorizer
