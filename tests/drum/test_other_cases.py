@@ -9,6 +9,7 @@ from uuid import uuid4
 import pandas as pd
 import pytest
 import requests
+from unittest.mock import patch
 
 from datarobot_drum.drum.enum import CUSTOM_FILE_NAME, CustomHooks, ArgumentsOptions
 
@@ -18,7 +19,6 @@ from datarobot_drum.resource.utils import (
     _create_custom_model_dir,
     _cmd_add_class_labels,
 )
-
 
 from .constants import (
     SKLEARN,
@@ -43,6 +43,11 @@ from .constants import (
     R_INT_COLNAMES_MULTICLASS,
     MULTICLASS,
 )
+from datarobot_drum.drum.enum import RunMode
+from custom_model_runner.datarobot_drum.drum.drum import CMRunner
+from datarobot_drum.drum.runtime import DrumRuntime
+from argparse import Namespace
+from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 
 
 class TestOtherCases:
@@ -393,3 +398,50 @@ class TestOtherCases:
                 assert response.status_code == 500
             except Exception:
                 print("Expected connection error")
+
+    @pytest.mark.parametrize(
+        "target_type", ["binary", "regression", "unstructured", "anomaly", "multiclass"]
+    )
+    @pytest.mark.parametrize("run_mode", [RunMode.FIT, RunMode.PUSH])
+    def test_model_metadata_validation_fails__when_output_requirement_not_allowed_for_selected_target_types(
+        self, target_type, run_mode,
+    ):
+        """The output_requirements of model metadata defines the specs of custom task outputs. It only applies to
+        transform custom task. Before other checks are executed in CMRunner.run(), the model metadata will be first
+        validated. Exception will be raised when output_requirements is defined in a non-transform task.
+        """
+
+        with DrumRuntime() as runtime:
+            runtime_options = Namespace(
+                code_dir="",
+                disable_strict_validation=False,
+                logging_level="warning",
+                subparser_name=run_mode,
+                target_type=target_type,
+                verbose=False,
+                content_type=None,
+            )
+            with patch(
+                "custom_model_runner.datarobot_drum.drum.drum.read_model_metadata_yaml"
+            ) as mock_model_metadata:
+                mock_model_metadata.return_value = {
+                    "name": "name",
+                    "type": "training",
+                    "targetType": target_type,
+                    "typeSchema": {
+                        "input_requirements": [
+                            {"field": "data_types", "condition": "IN", "value": "NUM"},
+                        ],
+                        "output_requirements": [
+                            {"field": "data_types", "condition": "IN", "value": "CAT"},
+                        ],
+                    },
+                }
+                runtime.options = runtime_options
+                with pytest.raises(DrumSchemaValidationException) as ex:
+                    CMRunner(runtime).run()
+                assert "The output_requirements of model metadata yaml is not allowed " "for the target type: {}.".format(
+                    target_type
+                ) in str(
+                    ex.value
+                )

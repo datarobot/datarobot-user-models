@@ -463,6 +463,9 @@ class CMRunner:
 
         self._print_welcome_header()
 
+        if hasattr(self, "schema_validator"):
+            self.schema_validator.validate_type_schema(self.target_type)
+
         if self.run_mode in [RunMode.SERVER, RunMode.SCORE]:
             self._run_fit_or_predictions_pipelines_in_mlpiper()
         elif self.run_mode == RunMode.FIT:
