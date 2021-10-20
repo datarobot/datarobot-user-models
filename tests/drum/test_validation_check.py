@@ -3,7 +3,7 @@ import pytest
 import pandas as pd
 from tempfile import NamedTemporaryFile
 
-from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.drum.enum import ArgumentsOptions
 
 from datarobot_drum.resource.utils import (
     _exec_shell_cmd,

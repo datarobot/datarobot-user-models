@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from datarobot_drum.drum.common import (
+from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,

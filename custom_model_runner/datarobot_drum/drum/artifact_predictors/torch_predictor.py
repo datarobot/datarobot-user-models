@@ -3,11 +3,11 @@ import numpy as np
 import pandas as pd
 import sys
 
-from datarobot_drum.drum.common import (
-    PythonArtifacts,
+from datarobot_drum.drum.enum import (
     REGRESSION_PRED_COLUMN,
-    extra_deps,
     SupportedFrameworks,
+    extra_deps,
+    PythonArtifacts,
     TargetType,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException

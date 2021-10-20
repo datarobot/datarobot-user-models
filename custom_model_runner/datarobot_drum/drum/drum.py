@@ -23,23 +23,25 @@ from mlpiper.pipeline.executor_config import ExecutorConfig
 from mlpiper.pipeline import json_fields
 
 from datarobot_drum.drum.common import (
-    ArgumentsOptions,
-    ArgumentOptionsEnvVars,
-    CUSTOM_FILE_NAME,
-    JavaArtifacts,
-    JuliaArtifacts,
-    LOG_LEVELS,
-    LOGGER_NAME_PREFIX,
-    PythonArtifacts,
-    RArtifacts,
-    RunLanguage,
-    RunMode,
-    TemplateType,
-    TargetType,
     verbose_stdout,
     read_model_metadata_yaml,
     ModelMetadataKeys,
     get_metadata,
+)
+from datarobot_drum.drum.enum import (
+    LOGGER_NAME_PREFIX,
+    CUSTOM_FILE_NAME,
+    LOG_LEVELS,
+    PythonArtifacts,
+    RArtifacts,
+    JavaArtifacts,
+    JuliaArtifacts,
+    ArgumentsOptions,
+    ArgumentOptionsEnvVars,
+    RunMode,
+    RunLanguage,
+    TargetType,
+    TemplateType,
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumPredException

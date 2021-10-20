@@ -18,12 +18,11 @@ from sklearn.linear_model import LogisticRegression
 
 from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPredictor
 from datarobot_drum.drum.common import (
-    MODEL_CONFIG_FILENAME,
     ModelMetadataKeys,
     read_model_metadata_yaml,
-    TargetType,
     validate_config_fields,
 )
+from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, TargetType
 from datarobot_drum.drum.drum import (
     create_custom_inference_model_folder,
     output_in_code_dir,

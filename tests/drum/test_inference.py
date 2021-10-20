@@ -11,15 +11,15 @@ import requests
 import scipy
 from scipy.sparse import csr_matrix
 
-from datarobot_drum.drum.common import (
-    ArgumentsOptions,
-    EnvVarNames,
-    PredictionServerMimetypes,
+from datarobot_drum.drum.enum import (
     X_TRANSFORM_KEY,
     Y_TRANSFORM_KEY,
-    ModelInfoKeys,
-    TargetType,
     MODEL_CONFIG_FILENAME,
+    PredictionServerMimetypes,
+    ModelInfoKeys,
+    ArgumentsOptions,
+    TargetType,
+    EnvVarNames,
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.resource.transform_helpers import (

@@ -4,15 +4,15 @@ import os
 import pandas as pd
 import time
 
-from datarobot_drum.drum.common import (
+from datarobot_drum.drum.common import SupportedPayloadFormats
+from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
-    TargetType,
-    CustomHooks,
     REGRESSION_PRED_COLUMN,
+    CustomHooks,
     UnstructuredDtoKeys,
-    PayloadFormat,
-    SupportedPayloadFormats,
     StructuredDtoKeys,
+    TargetType,
+    PayloadFormat,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor

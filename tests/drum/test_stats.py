@@ -4,10 +4,7 @@ import pandas as pd
 import pytest
 import requests
 
-from datarobot_drum.drum.common import (
-    ModelInfoKeys,
-    TargetType,
-)
+from datarobot_drum.drum.enum import ModelInfoKeys, TargetType
 from datarobot_drum.drum.description import version as drum_version
 from .constants import (
     DOCKER_PYTHON_SKLEARN,

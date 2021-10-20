@@ -6,7 +6,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.drum.enum import ArgumentsOptions
 from datarobot_drum.drum.utils import handle_missing_colnames, unset_drum_supported_env_vars
 from datarobot_drum.resource.utils import (
     _cmd_add_class_labels,

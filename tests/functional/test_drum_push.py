@@ -4,7 +4,7 @@ import os
 import pytest
 import yaml
 
-from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.drum.enum import ArgumentsOptions
 from tests.conftest import (
     PYTHON,
     REGRESSION,

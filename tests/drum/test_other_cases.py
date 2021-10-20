@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 import requests
 
-from datarobot_drum.drum.common import ArgumentsOptions, CustomHooks, CUSTOM_FILE_NAME
+from datarobot_drum.drum.enum import CUSTOM_FILE_NAME, CustomHooks, ArgumentsOptions
 
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
 from datarobot_drum.resource.utils import (

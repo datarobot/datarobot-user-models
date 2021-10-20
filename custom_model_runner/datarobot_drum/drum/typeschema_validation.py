@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
+from datarobot_drum.drum.enum import TargetType
 
 logger = logging.getLogger("drum." + __name__)
 

@@ -1,7 +1,7 @@
 from flask import Flask, Blueprint, request
 import os
 
-from datarobot_drum.drum.common import URL_PREFIX_ENV_VAR_NAME
+from datarobot_drum.drum.enum import URL_PREFIX_ENV_VAR_NAME
 
 HTTP_200_OK = 200
 HTTP_422_UNPROCESSABLE_ENTITY = 422

@@ -144,6 +144,15 @@ class TestCustomTaskTemplates(object):
         return proj.id
 
     @pytest.fixture(scope="session")
+    def project_weight_test(self):
+        proj = dr.Project.create(sourcedata=os.path.join(BASE_DATASET_DIR, "weight_test.csv"))
+        advanced_options = dr.helpers.AdvancedOptions(weights="weights")
+        proj.set_target(
+            target="target", mode=dr.AUTOPILOT_MODE.MANUAL, advanced_options=advanced_options
+        )
+        return proj.id
+
+    @pytest.fixture(scope="session")
     def project_binary_cats_dogs(self):
         proj = dr.Project.create(
             sourcedata=os.path.join(BASE_DATASET_DIR, "cats_dogs_small_training.csv")
@@ -173,8 +182,22 @@ class TestCustomTaskTemplates(object):
         proj.set_target(target="class", mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
+    @pytest.fixture(scope="session")
+    def project_skyserver_manual_partition(self):
+        # This dataset has a "partition" column where partition V1 has classes QSO & GALAXY and
+        # partition V2 has STAR & GALAXY
+        proj = dr.Project.create(
+            sourcedata=os.path.join(BASE_DATASET_DIR, "skyserver_manual_partition.csv")
+        )
+        proj.set_target(
+            target="class",
+            mode=dr.AUTOPILOT_MODE.MANUAL,
+            partitioning_method=dr.UserCV("partition", "H"),
+        )
+        return proj.id
+
     @pytest.mark.parametrize(
-        "template_type, model_template, proj, env, target_type",
+        "template_type, model_template, proj, env, target_type, pre_processing",
         [
             (
                 "pipeline",
@@ -182,113 +205,12 @@ class TestCustomTaskTemplates(object):
                 "project_binary_iris",
                 "pytorch_drop_in_env",
                 "binary",
-            ),
-            (
-                "pipeline",
-                "11_python3_pytorch_regression",
-                "project_regression_juniors_grade",
-                "pytorch_drop_in_env",
-                "regression",
-            ),
-            (
-                "pipeline",
-                "13_python3_pytorch_multiclass",
-                "project_multiclass_skyserver",
-                "pytorch_drop_in_env",
-                "multiclass",
-            ),
-            (
-                "pipeline",
-                "14_python3_keras_joblib",
-                "project_regression_juniors_grade",
-                "keras_drop_in_env",
-                "regression",
-            ),
-            # This test currently fails, because it uses image features, which isn't one of the
-            # Allowed by default data types for Custom Tasks. We can re-enable this
-            # Test if we add image features in the fixture to the allowed data types.
-            # (
-            #     "pipeline",
-            #     "15_python3_keras_vizai_joblib",
-            #     "project_binary_cats_dogs",
-            #     "keras_drop_in_env",
-            #     "binary",
-            # ),
-            (
-                "pipeline",
-                "4_python3_xgboost",
-                "project_regression_juniors_grade",
-                "xgboost_drop_in_env",
-                "regression",
-            ),
-            (
-                "pipeline",
-                "2_python3_sklearn_regression",
-                "project_regression_juniors_grade",
-                "sklearn_drop_in_env",
-                "regression",
-            ),
-            (
-                "pipeline",
-                "5_python3_sklearn_binary",
-                "project_binary_iris",
-                "sklearn_drop_in_env",
-                "binary",
-            ),
-            (
-                "pipeline",
-                "6_python3_sklearn_multiclass",
-                "project_multiclass_skyserver",
-                "sklearn_drop_in_env",
-                "multiclass",
-            ),
-            (
-                "pipeline",
-                "3_r_lang",
-                "project_regression_juniors_grade",
-                "r_drop_in_env",
-                "regression",
-            ),
-            ("pipeline", "3_r_lang", "project_binary_iris", "r_drop_in_env", "binary",),
-            (
-                "pipeline",
-                "3_r_lang",
-                "project_multiclass_skyserver",
-                "r_drop_in_env",
-                "multiclass",
-            ),
-            (
-                "transform",
-                "3_python3_sklearn_transform",
-                "project_binary_diabetes_no_text",
-                "sklearn_drop_in_env",
-                "transform",
-            ),
-            (
-                "transform",
-                "4_r_transform_recipe",
-                "project_binary_iris",
-                "r_drop_in_env",
-                "transform",
-            ),
-            (
-                "transform",
-                "2_r_transform_simple",
-                "project_binary_iris",
-                "r_drop_in_env",
-                "transform",
-            ),
-            (
-                "estimator",
-                "8_r_anomaly_detection",
-                "project_anomaly_juniors_grade",
-                "r_drop_in_env",
-                "anomaly",
+                None,
             ),
         ],
     )
     def test_custom_task_templates(
-        self, request, template_type, model_template, proj, env, target_type
+        self, request, template_type, model_template, proj, env, target_type, pre_processing
     ):
         env_id, env_version_id = request.getfixturevalue(env)
         proj_id = request.getfixturevalue(proj)
@@ -320,8 +242,13 @@ class TestCustomTaskTemplates(object):
             )
 
         w = Workshop()
+        bp = w.TaskInputs.ALL
+        if pre_processing == "dr_numeric_impute":
+            bp = w.Tasks.PNI2()(bp)
+        else:
+            assert not pre_processing, f"Pre-processing {pre_processing} not supported."
         bp = w.CustomTask(custom_task_version.custom_task_id, version=str(custom_task_version.id))(
-            w.TaskInputs.ALL
+            bp
         )
         if dr_target_type == dr.enums.CUSTOM_TASK_TARGET_TYPE.TRANSFORM:
             if "image" in model_template:

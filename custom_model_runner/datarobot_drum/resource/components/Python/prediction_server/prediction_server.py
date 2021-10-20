@@ -3,13 +3,15 @@ import sys
 from mlpiper.components.connectable_component import ConnectableComponent
 
 from datarobot_drum.drum.common import (
-    LOGGER_NAME_PREFIX,
     make_predictor_capabilities,
-    RunLanguage,
-    TARGET_TYPE_ARG_KEYWORD,
-    TargetType,
     read_model_metadata_yaml,
+)
+from datarobot_drum.drum.enum import (
+    LOGGER_NAME_PREFIX,
+    TARGET_TYPE_ARG_KEYWORD,
     ModelInfoKeys,
+    RunLanguage,
+    TargetType,
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException
