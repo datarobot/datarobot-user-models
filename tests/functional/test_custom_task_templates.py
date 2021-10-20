@@ -200,6 +200,14 @@ class TestCustomTaskTemplates(object):
         "template_type, model_template, proj, env, target_type, pre_processing",
         [
             (
+                "fixture",
+                "python3_weight_test",
+                "project_weight_test",
+                "sklearn_drop_in_env",
+                "binary",
+                None,
+            ),
+            (
                 "pipeline",
                 "12_python3_pytorch",
                 "project_binary_iris",
@@ -246,14 +254,6 @@ class TestCustomTaskTemplates(object):
                 "4_python3_xgboost",
                 "project_regression_juniors_grade",
                 "xgboost_drop_in_env",
-                "regression",
-                None,
-            ),
-            (
-                "pipeline",
-                "2_python3_sklearn_regression",
-                "project_regression_juniors_grade",
-                "sklearn_drop_in_env",
                 "regression",
                 None,
             ),
