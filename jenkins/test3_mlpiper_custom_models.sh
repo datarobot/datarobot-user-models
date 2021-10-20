@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+# Copyright 2021 DataRobot, Inc. and its affiliates.
+#
+# All rights reserved.
+#
+# 
+#
+# This is proprietary source code of DataRobot, Inc. and its affiliates.
+#
+# Released under the terms of DataRobot Tool and Utility Agreement.
 # This file will be executed from the root of the repository in a python3 virtualenv.
 # It will run the test of drum inside a predefined docker image:
 

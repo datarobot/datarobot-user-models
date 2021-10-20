@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+# Copyright 2021 DataRobot, Inc. and its affiliates.
+#
+# All rights reserved.
+#
+# 
+#
+# This is proprietary source code of DataRobot, Inc. and its affiliates.
+#
+# Released under the terms of DataRobot Tool and Utility Agreement.
 
 # This script can be used to create a dev image for testing 
 # changes to drum within the DR app. Make sure to turn on

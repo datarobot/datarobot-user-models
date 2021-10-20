@@ -1,4 +1,13 @@
 function title() {
+# Copyright 2021 DataRobot, Inc. and its affiliates.
+#
+# All rights reserved.
+#
+# 
+#
+# This is proprietary source code of DataRobot, Inc. and its affiliates.
+#
+# Released under the terms of DataRobot Tool and Utility Agreement.
     msg=$1
     GREEN='\033[1;32m'
     NC='\033[0m' # No Color

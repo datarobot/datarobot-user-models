@@ -1,4 +1,13 @@
 set -e
+# Copyright 2021 DataRobot, Inc. and its affiliates.
+#
+# All rights reserved.
+#
+# 
+#
+# This is proprietary source code of DataRobot, Inc. and its affiliates.
+#
+# Released under the terms of DataRobot Tool and Utility Agreement.
 rm -rf SKLearn.py Keras.py XGBoost.py
 python3 -m jupyter nbconvert --execute --to python  SKLearn.ipynb
 python3 SKLearn.py || rm -rf SKLearn.py
