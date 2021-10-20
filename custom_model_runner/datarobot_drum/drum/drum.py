@@ -56,7 +56,7 @@ from datarobot_drum.drum.push import drum_push, setup_validation_options
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils import (
-    CMRunnerUtils,
+    DrumUtils,
     handle_missing_colnames,
     StructuredInputReadUtils,
 )
@@ -293,23 +293,19 @@ class CMRunner:
         artifact_language = None
         custom_language = None
         # check which artifacts present in the code dir
-        python_artifacts = CMRunnerUtils.find_files_by_extensions(
-            code_dir_abspath, PythonArtifacts.ALL
-        )
-        r_artifacts = CMRunnerUtils.find_files_by_extensions(code_dir_abspath, RArtifacts.ALL)
+        python_artifacts = DrumUtils.find_files_by_extensions(code_dir_abspath, PythonArtifacts.ALL)
+        r_artifacts = DrumUtils.find_files_by_extensions(code_dir_abspath, RArtifacts.ALL)
 
-        java_artifacts = CMRunnerUtils.find_files_by_extensions(code_dir_abspath, JavaArtifacts.ALL)
+        java_artifacts = DrumUtils.find_files_by_extensions(code_dir_abspath, JavaArtifacts.ALL)
 
-        julia_artifacts = CMRunnerUtils.find_files_by_extensions(
-            code_dir_abspath, JuliaArtifacts.ALL
-        )
+        julia_artifacts = DrumUtils.find_files_by_extensions(code_dir_abspath, JuliaArtifacts.ALL)
 
         # check which custom code files present in the code dir
-        is_custom_py = CMRunnerUtils.filename_exists_and_is_file(code_dir_abspath, "custom.py")
-        is_custom_r = CMRunnerUtils.filename_exists_and_is_file(
+        is_custom_py = DrumUtils.filename_exists_and_is_file(code_dir_abspath, "custom.py")
+        is_custom_r = DrumUtils.filename_exists_and_is_file(
             code_dir_abspath, "custom.R"
-        ) or CMRunnerUtils.filename_exists_and_is_file(code_dir_abspath, "custom.r")
-        is_custom_jl = CMRunnerUtils.filename_exists_and_is_file(code_dir_abspath, "custom.jl")
+        ) or DrumUtils.filename_exists_and_is_file(code_dir_abspath, "custom.r")
+        is_custom_jl = DrumUtils.filename_exists_and_is_file(code_dir_abspath, "custom.jl")
 
         # if all the artifacts belong to the same language, set it
         if (
@@ -571,7 +567,7 @@ class CMRunner:
         functional_pipeline_name = (
             SERVER_PIPELINE if self.run_mode == RunMode.SERVER else PREDICTOR_PIPELINE
         )
-        functional_pipeline_filepath = CMRunnerUtils.get_pipeline_filepath(functional_pipeline_name)
+        functional_pipeline_filepath = DrumUtils.get_pipeline_filepath(functional_pipeline_name)
         # fields to replace in the pipeline
         replace_data = {
             "positiveClassLabel": options.positive_class_label,
@@ -622,9 +618,7 @@ class CMRunner:
                 }
             )
 
-        functional_pipeline_str = CMRunnerUtils.render_file(
-            functional_pipeline_filepath, replace_data
-        )
+        functional_pipeline_str = DrumUtils.render_file(functional_pipeline_filepath, replace_data)
 
         if self.run_mode == RunMode.SERVER:
             if options.production:
@@ -681,7 +675,7 @@ class CMRunner:
         # functional pipeline is predictor pipeline
         # they are a little different for batch and server predictions.
         functional_pipeline_name = self._functional_pipelines[(self.run_mode, run_language)]
-        functional_pipeline_filepath = CMRunnerUtils.get_pipeline_filepath(functional_pipeline_name)
+        functional_pipeline_filepath = DrumUtils.get_pipeline_filepath(functional_pipeline_name)
         # fields to replace in the functional pipeline (predictor)
         replace_data = {
             "customModelPath": os.path.abspath(options.code_dir),
@@ -699,9 +693,7 @@ class CMRunner:
             "parameter_file": options.parameter_file,
         }
 
-        functional_pipeline_str = CMRunnerUtils.render_file(
-            functional_pipeline_filepath, replace_data
-        )
+        functional_pipeline_str = DrumUtils.render_file(functional_pipeline_filepath, replace_data)
         return functional_pipeline_str
 
     def _run_fit_or_predictions_pipelines_in_mlpiper(self):
@@ -731,7 +723,7 @@ class CMRunner:
             pipeline=infra_pipeline_str,
             pipeline_file=None,
             run_locally=True,
-            comp_root_path=CMRunnerUtils.get_components_repo(),
+            comp_root_path=DrumUtils.get_components_repo(),
             mlpiper_jar=None,
             spark_jars=None,
         )
@@ -813,30 +805,28 @@ class CMRunner:
             ArgumentsOptions.CODE_DIR if arg == "-cd" else arg for arg in in_docker_cmd_list
         ]
 
-        CMRunnerUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.DOCKER)
-        CMRunnerUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.SKIP_DEPS_INSTALL)
+        DrumUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.DOCKER)
+        DrumUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.SKIP_DEPS_INSTALL)
         if options.memory:
             docker_cmd_args += " --memory {mem_size} --memory-swap {mem_size} ".format(
                 mem_size=options.memory
             )
-            CMRunnerUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.MEMORY)
+            DrumUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.MEMORY)
 
         if options.class_labels and ArgumentsOptions.CLASS_LABELS not in in_docker_cmd_list:
-            CMRunnerUtils.delete_cmd_argument(
-                in_docker_cmd_list, ArgumentsOptions.CLASS_LABELS_FILE
-            )
+            DrumUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.CLASS_LABELS_FILE)
             in_docker_cmd_list.append(ArgumentsOptions.CLASS_LABELS)
             for label in options.class_labels:
                 in_docker_cmd_list.append(label)
 
-        CMRunnerUtils.replace_cmd_argument_value(
+        DrumUtils.replace_cmd_argument_value(
             in_docker_cmd_list, ArgumentsOptions.CODE_DIR, in_docker_model
         )
-        CMRunnerUtils.replace_cmd_argument_value(in_docker_cmd_list, "-cd", in_docker_model)
-        CMRunnerUtils.replace_cmd_argument_value(
+        DrumUtils.replace_cmd_argument_value(in_docker_cmd_list, "-cd", in_docker_model)
+        DrumUtils.replace_cmd_argument_value(
             in_docker_cmd_list, ArgumentsOptions.INPUT, in_docker_input_file
         )
-        CMRunnerUtils.replace_cmd_argument_value(
+        DrumUtils.replace_cmd_argument_value(
             in_docker_cmd_list, ArgumentsOptions.OUTPUT, in_docker_output_file
         )
 
@@ -848,7 +838,7 @@ class CMRunner:
                 )
             port = int(host_port_list[1])
             host_port_inside_docker = "{}:{}".format("0.0.0.0", port)
-            CMRunnerUtils.replace_cmd_argument_value(
+            DrumUtils.replace_cmd_argument_value(
                 in_docker_cmd_list, ArgumentsOptions.ADDRESS, host_port_inside_docker
             )
             docker_cmd_args += " -p {port}:{port}".format(port=port)
@@ -863,7 +853,7 @@ class CMRunner:
                     # otherwise docker create an empty directory
                     open(output_file, "a").close()
                 docker_cmd_args += ' -v "{}":{}'.format(output_file, in_docker_output_file)
-                CMRunnerUtils.replace_cmd_argument_value(
+                DrumUtils.replace_cmd_argument_value(
                     in_docker_cmd_list, ArgumentsOptions.OUTPUT, in_docker_output_file
                 )
             elif run_mode == RunMode.FIT:
@@ -872,7 +862,7 @@ class CMRunner:
                     docker_cmd_args += ' -v "{}":{}'.format(
                         fit_output_dir, in_docker_fit_output_dir
                     )
-                CMRunnerUtils.replace_cmd_argument_value(
+                DrumUtils.replace_cmd_argument_value(
                     in_docker_cmd_list, ArgumentsOptions.OUTPUT, in_docker_fit_output_dir
                 )
                 if options.target_csv:
@@ -880,13 +870,13 @@ class CMRunner:
                     docker_cmd_args += ' -v "{}":{}'.format(
                         fit_target_filename, in_docker_fit_target_filename
                     )
-                    CMRunnerUtils.replace_cmd_argument_value(
+                    DrumUtils.replace_cmd_argument_value(
                         in_docker_cmd_list,
                         ArgumentsOptions.TARGET_CSV,
                         in_docker_fit_target_filename,
                     )
                 if options.target and ArgumentsOptions.TARGET in in_docker_cmd_list:
-                    CMRunnerUtils.replace_cmd_argument_value(
+                    DrumUtils.replace_cmd_argument_value(
                         in_docker_cmd_list, ArgumentsOptions.TARGET, f'"{options.target}"'
                     )
                 if options.row_weights_csv:
@@ -894,7 +884,7 @@ class CMRunner:
                     docker_cmd_args += ' -v "{}":{}'.format(
                         fit_row_weights_filename, in_docker_fit_row_weights_filename
                     )
-                    CMRunnerUtils.replace_cmd_argument_value(
+                    DrumUtils.replace_cmd_argument_value(
                         in_docker_cmd_list,
                         ArgumentsOptions.WEIGHTS_CSV,
                         in_docker_fit_row_weights_filename,

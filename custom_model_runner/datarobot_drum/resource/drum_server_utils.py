@@ -11,7 +11,7 @@ import signal
 import time
 from threading import Thread
 
-from datarobot_drum.drum.utils import CMRunnerUtils
+from datarobot_drum.drum.utils import DrumUtils
 from datarobot_drum.drum.enum import ArgumentsOptions, ArgumentOptionsEnvVars
 from datarobot_drum.resource.utils import _exec_shell_cmd, _cmd_add_class_labels
 
@@ -82,7 +82,7 @@ class DrumServerRun:
         verbose=True,
         append_cmd=None,
     ):
-        self.port = CMRunnerUtils.find_free_port()
+        self.port = DrumUtils.find_free_port()
         self.server_address = "localhost:{}".format(self.port)
         url_host = os.environ.get("TEST_URL_HOST", "localhost")
 
