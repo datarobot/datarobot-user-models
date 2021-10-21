@@ -1,4 +1,10 @@
 """
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
+"""
 In this example we show how to implement a simple XGBoost classifier (binary and multiclass) or regressor
 (see IF conditional in fit hook and commented out code in score)
 
