@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 from datarobot_drum.drum.utils import _order_by_float, _can_be_converted_to_float, marshal_labels
 
 
