@@ -16,6 +16,7 @@ from datarobot_drum.drum.enum import (
     TARGET_TYPE_ARG_KEYWORD,
     TargetType,
 )
+from datarobot_drum.drum.utils import DrumUtils
 
 
 class ArtifactPredictor(ABC):
@@ -37,7 +38,7 @@ class ArtifactPredictor(ABC):
         return self._artifact_extension
 
     def is_artifact_supported(self, artifact_path):
-        if artifact_path.endswith(self._artifact_extension):
+        if DrumUtils.endswith_extension_ignore_case(artifact_path, self._artifact_extension):
             return True
         else:
             return False

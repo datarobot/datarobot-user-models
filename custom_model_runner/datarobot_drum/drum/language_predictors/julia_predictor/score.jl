@@ -76,7 +76,7 @@ function load_serialized_model(model_dir)
     model = nothing
 
     files = Filesystem.readdir(model_dir)
-    artifacts = [x for x in files if endswith(x, "jlso")]
+    artifacts = [x for x in files if endswith(lowercase(x), CUSTOM_MODEL_FILE_EXTENSION)]
     if length(artifacts) == 0
         @error """\nCould not find a serialized model artifact with $CUSTOM_MODEL_FILE_EXTENSION extension, supported by default Julia predictor.  
         If your artifact is not supported by default predictor, implement Custom.load_model hook."""

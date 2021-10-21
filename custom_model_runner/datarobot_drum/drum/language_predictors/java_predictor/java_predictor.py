@@ -31,6 +31,7 @@ from datarobot_drum.drum.enum import (
 )
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.utils import DrumUtils
 
 from py4j.java_gateway import GatewayParameters, CallbackServerParameters, JavaGateway
 
@@ -63,23 +64,26 @@ class JavaPredictor(BaseLanguagePredictor):
         self._java_Xmx = os.environ.get(EnvVarNames.DRUM_JAVA_XMX)
         self._custom_predictor_class = os.environ.get(EnvVarNames.DRUM_JAVA_CUSTOM_PREDICTOR_CLASS)
 
+        # find DRUM system file `predictors.jar` next to the current file in its installation dir
         self._jar_files = glob.glob(os.path.join(os.path.dirname(__file__), "*.jar"))
 
     def configure(self, params):
         super(JavaPredictor, self).configure(params)
 
-        ## retrieve the relevant extensions of the java predictor
-        ## changed from last verion significantly due to associating
-        ## jars with dr codegen AND h2o dai mojo pipeline
+        # retrieve the relevant extensions of the java predictor
+        # changed from last version significantly due to associating
+        # jars with dr codegen AND h2o dai mojo pipeline
         self.custom_model_path = params["__custom_model_path__"]
         files_list = sorted(os.listdir(self.custom_model_path))
-        files_list_str = " | ".join(files_list)
+        files_list_str = " | ".join(files_list).lower()
+
         self.logger.debug("files in custom model path: ".format(files_list_str))
         reg_exp = r"|".join(r"(\{})".format(ext) for ext in JavaArtifacts.ALL)
         ext_re = re.findall(reg_exp, files_list_str)
         ext_re = [[match for match in matches if match != ""] for matches in ext_re]
         ext_re = list(chain.from_iterable(ext_re))
 
+        # Note: files_list_str brought to lower case thus all the ext_re values are in lower case.
         if len(ext_re) == 0:
             raise DrumCommonException(
                 "\n\n{}\n"
@@ -91,7 +95,7 @@ class JavaPredictor(BaseLanguagePredictor):
             )
         self.logger.debug("relevant artifact extensions {}".format(", ".join(ext_re)))
 
-        if ".mojo" in ext_re:
+        if JavaArtifacts.MOJO_PIPELINE_EXTENSION in ext_re:
             ## check for liscense
             license_location = os.path.join(params["__custom_model_path__"], "license.sig")
             self.logger.debug("license location: {}".format(license_location))
@@ -111,7 +115,7 @@ class JavaPredictor(BaseLanguagePredictor):
                         )
                     else:
                         os.environ["DRIVERLESS_AI_LICENSE_FILE"] = license_location
-            self.model_artifact_extension = ".mojo"
+            self.model_artifact_extension = JavaArtifacts.MOJO_PIPELINE_EXTENSION
         else:
             self.model_artifact_extension = ext_re[0]
 
@@ -120,7 +124,7 @@ class JavaPredictor(BaseLanguagePredictor):
         ## only needed to add mojo runtime jars
         additional_jars = (
             None
-            if self.model_artifact_extension != ".mojo"
+            if self.model_artifact_extension != JavaArtifacts.MOJO_PIPELINE_EXTENSION
             else glob.glob(os.path.join(self.custom_model_path, "*.jar"))
         )
 

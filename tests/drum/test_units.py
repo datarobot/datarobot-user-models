@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import glob
 import json
 import os
 import socket
@@ -23,6 +24,10 @@ from pandas.testing import assert_frame_equal
 from sklearn.linear_model import LogisticRegression
 
 from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPredictor
+from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
+from datarobot_drum.drum.artifact_predictors.xgboost_predictor import XGBoostPredictor
+from datarobot_drum.drum.artifact_predictors.keras_predictor import KerasPredictor
+from datarobot_drum.drum.artifact_predictors.torch_predictor import PyTorchPredictor
 from datarobot_drum.drum.common import (
     ModelMetadataKeys,
     read_model_metadata_yaml,
@@ -42,7 +47,7 @@ from datarobot_drum.drum.language_predictors.python_predictor.python_predictor i
 from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.push import _push_inference, _push_training, drum_push
-from datarobot_drum.drum.utils import StructuredInputReadUtils
+from datarobot_drum.drum.utils import StructuredInputReadUtils, DrumUtils
 
 
 class TestOrderIntuition:
@@ -745,3 +750,72 @@ def test_sklearn_predictor_wrong_dtype_labels(data_dtype, label_dtype):
         target_type=TargetType.BINARY,
     )
     assert all(out.columns == [str(label_dtype(0)), str(label_dtype(1))])
+
+
+def test_endswith_extension_ignore_case():
+    assert DrumUtils.endswith_extension_ignore_case("f.ExT", ".eXt")
+    assert DrumUtils.endswith_extension_ignore_case("f.pY", [".Py", ".Java"])
+    assert not DrumUtils.endswith_extension_ignore_case("f.py", [".R"])
+
+
+def test_find_files_by_extension(tmp_path):
+    exts = [".ext", ".Rds", ".py"]
+    Path(f"{tmp_path}/file.ext").touch()
+    Path(f"{tmp_path}/file.RDS").touch()
+    Path(f"{tmp_path}/file.PY").touch()
+    Path(f"{tmp_path}/file.pY").touch()
+    assert 4 == len(DrumUtils.find_files_by_extensions(tmp_path, exts))
+
+
+def test_filename_exists_and_is_file(tmp_path, caplog):
+    Path(f"{tmp_path}/custom.py").touch()
+    assert DrumUtils.filename_exists_and_is_file(tmp_path, "custom.py")
+    for f in glob.glob(f"{tmp_path}/*"):
+        os.remove(f)
+
+    Path(f"{tmp_path}/custom.r").touch()
+    assert DrumUtils.filename_exists_and_is_file(tmp_path, "custom.r", "custom.R")
+    for f in glob.glob(f"{tmp_path}/*"):
+        os.remove(f)
+
+    Path(f"{tmp_path}/custom.R").touch()
+    assert DrumUtils.filename_exists_and_is_file(tmp_path, "custom.r", "custom.R")
+    for f in glob.glob(f"{tmp_path}/*"):
+        os.remove(f)
+
+    Path(f"{tmp_path}/custom.r").touch()
+    Path(f"{tmp_path}/custom.R").touch()
+    assert DrumUtils.filename_exists_and_is_file(tmp_path, "custom.r", "custom.R")
+    assert "Found filenames that case-insensitively match each other" in caplog.text
+    for f in glob.glob(f"{tmp_path}/*"):
+        os.remove(f)
+
+    caplog.clear()
+
+    Path(f"{tmp_path}/custom.jl").touch()
+    assert DrumUtils.filename_exists_and_is_file(tmp_path, "custom.jl")
+    for f in glob.glob(f"{tmp_path}/*"):
+        os.remove(f)
+
+    Path(f"{tmp_path}/custom.PY").touch()
+    assert not DrumUtils.filename_exists_and_is_file(tmp_path, "custom.py")
+    assert "Found filenames that case-insensitively match expected filenames" in caplog.text
+    assert "Found: ['custom.PY']" in caplog.text
+    assert "Expected one of: ['custom.py']" in caplog.text
+    for f in glob.glob(f"{tmp_path}/*"):
+        os.remove(f)
+
+    caplog.clear()
+
+
+def test_predictor_extension():
+    assert SKLearnPredictor().is_artifact_supported("artifact.PKL")
+    assert XGBoostPredictor().is_artifact_supported("artifact.PkL")
+    assert PyTorchPredictor().is_artifact_supported("artifact.pTh")
+    assert KerasPredictor().is_artifact_supported("artifact.h5")
+    assert PMMLPredictor().is_artifact_supported("artifact.PmMl")
+    assert not SKLearnPredictor().is_artifact_supported("artifact.jar")
+    assert not XGBoostPredictor().is_artifact_supported("artifact.jar")
+    assert not PyTorchPredictor().is_artifact_supported("artifact.Jar")
+    assert not KerasPredictor().is_artifact_supported("artifact.jaR")
+    assert not PMMLPredictor().is_artifact_supported("artifact.jAr")

@@ -5,7 +5,6 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
-import traceback
 from datarobot_drum.drum.server import (
     base_api_blueprint,
     get_flask_app,
@@ -15,9 +14,13 @@ from datarobot_drum.drum.common import verbose_stdout
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, RunMode
 
 from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.args_parser import ArgumentsOptions
+
+from termcolor import colored
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 logger.setLevel(logging.ERROR)
+logger_drum = logging.getLogger(LOGGER_NAME_PREFIX)
 
 
 class DrumRuntime:
@@ -32,6 +35,12 @@ class DrumRuntime:
         if not exc_type:
             return True  # no exception, just return
 
+        logger_drum.warning(
+            colored(
+                f"Looks like there is a problem. To get more output information try to run with: {ArgumentsOptions.VERBOSE}",
+                "yellow",
+            )
+        )
         if not self.options:
             # exception occurred before args were parsed
             return False  # propagate exception further
