@@ -37,7 +37,7 @@
     { "key": "log_level",
       "label": "Logging level [Default: 'info']",
       "type": "str",
-      "description": "One of: 'noset', 'debug', 'info', 'warning', 'error', 'critical'",
+      "description": "One of: 'all', 'debug', 'info', 'warning', 'error', 'critical'",
       "optional": true
     },
     { "key": "log_format",
