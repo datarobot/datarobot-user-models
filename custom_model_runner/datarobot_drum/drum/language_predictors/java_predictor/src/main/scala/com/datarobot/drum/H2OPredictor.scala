@@ -133,6 +133,7 @@ class H2OPredictor(
   def loadModel(modelDir: String): EasyPredictModelWrapper = {
 
     // h2o model artifacts
+    // POJO artifact must have all lower case `.java` extension, as that's what `javac` only supports.
     val re = new scala.util.matching.Regex("(.java$)|(.zip$)|(.ZIP$)")
 
     val filesInDir = Paths.get(modelDir).toFile().listFiles()
@@ -140,7 +141,6 @@ class H2OPredictor(
 
     val file = files.length match {
       case 0 =>
-        // throw new Exception("no model artifact found in model directory")
         throw new Exception(
           s"No model artifact found in the model directory. Found files: ${filesInDir.map { _.getName }.mkString(",")}\n" +
           s"Supported model extensions: java/zip/ZIP"

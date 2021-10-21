@@ -70,9 +70,9 @@ class JavaPredictor(BaseLanguagePredictor):
     def configure(self, params):
         super(JavaPredictor, self).configure(params)
 
-        ## retrieve the relevant extensions of the java predictor
-        ## changed from last version significantly due to associating
-        ## jars with dr codegen AND h2o dai mojo pipeline
+        # retrieve the relevant extensions of the java predictor
+        # changed from last version significantly due to associating
+        # jars with dr codegen AND h2o dai mojo pipeline
         self.custom_model_path = params["__custom_model_path__"]
         files_list = sorted(os.listdir(self.custom_model_path))
         files_list_str = " | ".join(files_list).lower()
@@ -83,6 +83,7 @@ class JavaPredictor(BaseLanguagePredictor):
         ext_re = [[match for match in matches if match != ""] for matches in ext_re]
         ext_re = list(chain.from_iterable(ext_re))
 
+        # Note: files_list_str brought to lower case thus all the ext_re values are in lower case.
         if len(ext_re) == 0:
             raise DrumCommonException(
                 "\n\n{}\n"
