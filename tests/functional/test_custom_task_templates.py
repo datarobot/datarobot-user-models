@@ -263,6 +263,14 @@ class TestCustomTaskTemplates(object):
                 "project_regression_juniors_grade",
                 "sklearn_drop_in_env",
                 "regression",
+                None,
+            ),
+            (
+                "pipeline",
+                "2_python3_sklearn_regression",
+                "project_regression_juniors_grade",
+                "sklearn_drop_in_env",
+                "regression",
                 "dr_numeric_impute",
             ),
             (

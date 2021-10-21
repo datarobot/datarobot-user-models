@@ -345,7 +345,7 @@ class TestDropInEnvironments(object):
         model_version = dr.CustomModelVersion.get(model_id, model_version_id)
         model = dr.CustomInferenceModel.get(model_id)
         model.assign_training_data(test_data_id)
-        model_version.calculate_feature_impact()
+        model_version.calculate_feature_impact(max_wait=1200)
 
         test_passed = False
         error_message = ""
