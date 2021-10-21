@@ -1,1 +1,0 @@
-find . -name "*.py" -exec sed -i '1s/^/"""\nCopyright 2021 DataRobot, Inc. and its affiliates.\nAll rights reserved.\nThis is proprietary source code of DataRobot, Inc. and its affiliates.\nReleased under the terms of DataRobot Tool and Utility Agreement.\n"""\n/' {} \;
