@@ -9,7 +9,7 @@ from uuid import uuid4
 import pandas as pd
 import pytest
 import requests
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from datarobot_drum.drum.enum import CUSTOM_FILE_NAME, CustomHooks, ArgumentsOptions
 
@@ -402,21 +402,19 @@ class TestOtherCases:
     @pytest.mark.parametrize(
         "target_type", ["binary", "regression", "unstructured", "anomaly", "multiclass"]
     )
-    @pytest.mark.parametrize("run_mode", [RunMode.FIT, RunMode.PUSH])
     def test_model_metadata_validation_fails__when_output_requirement_not_allowed_for_selected_target_types(
-        self, target_type, run_mode,
+        self, target_type,
     ):
         """The output_requirements of model metadata defines the specs of custom task outputs. It only applies to
-        transform custom task. Before other checks are executed in CMRunner.run(), the model metadata will be first
+        transform custom task. Before testing logic in CMRunner.run_fit() is executed, the model metadata will be first
         validated. Exception will be raised when output_requirements is defined in a non-transform task.
         """
-
         with DrumRuntime() as runtime:
             runtime_options = Namespace(
                 code_dir="",
                 disable_strict_validation=False,
                 logging_level="warning",
-                subparser_name=run_mode,
+                subparser_name=RunMode.FIT,
                 target_type=target_type,
                 verbose=False,
                 content_type=None,
@@ -440,8 +438,7 @@ class TestOtherCases:
                 runtime.options = runtime_options
                 with pytest.raises(DrumSchemaValidationException) as ex:
                     CMRunner(runtime).run()
-                assert "The output_requirements of model metadata yaml is not allowed " "for the target type: {}.".format(
-                    target_type
-                ) in str(
-                    ex.value
+                assert (
+                    "Specifying output_requirements in model_metadata.yaml is only valid for custom transform tasks."
+                    in str(ex.value)
                 )

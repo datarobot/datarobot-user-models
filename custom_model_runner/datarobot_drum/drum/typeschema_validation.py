@@ -585,7 +585,5 @@ class SchemaValidator:
 
         if target_type != TargetType.TRANSFORM and self._output_validators:
             raise DrumSchemaValidationException(
-                "The output_requirements of model metadata yaml is not allowed for the target type: {}.".format(
-                    target_type.value
-                )
+                "Specifying output_requirements in model_metadata.yaml is only valid for custom transform tasks."
             )
