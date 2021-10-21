@@ -4,6 +4,8 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
+
 def load_model(input_dir):
     """
     This hook can be implemented to adjust logic in the scoring mode.
