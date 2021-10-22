@@ -215,7 +215,7 @@ class TestCustomTaskTemplates(object):
             ),
             (
                 "pipeline",
-                "python3_pytorch",
+                "12_python3_pytorch",
                 "project_binary_iris",
                 "pytorch_drop_in_env",
                 "binary",
@@ -223,7 +223,7 @@ class TestCustomTaskTemplates(object):
             ),
             (
                 "pipeline",
-                "python3_pytorch_regression",
+                "11_python3_pytorch_regression",
                 "project_regression_juniors_grade",
                 "pytorch_drop_in_env",
                 "regression",
@@ -231,7 +231,7 @@ class TestCustomTaskTemplates(object):
             ),
             (
                 "pipeline",
-                "python3_pytorch_multiclass",
+                "13_python3_pytorch_multiclass",
                 "project_multiclass_skyserver",
                 "pytorch_drop_in_env",
                 "multiclass",
@@ -239,7 +239,7 @@ class TestCustomTaskTemplates(object):
             ),
             (
                 "pipeline",
-                "python3_keras_joblib",
+                "14_python3_keras_joblib",
                 "project_regression_juniors_grade",
                 "keras_drop_in_env",
                 "regression",
@@ -250,14 +250,14 @@ class TestCustomTaskTemplates(object):
             # Test if we add image features in the fixture to the allowed data types.
             # (
             #     "pipeline",
-            #     "python3_keras_vizai_joblib",
+            #     "15_python3_keras_vizai_joblib",
             #     "project_binary_cats_dogs",
             #     "keras_drop_in_env",
             #     "binary",
             # ),
             (
                 "pipeline",
-                "python3_xgboost",
+                "4_python3_xgboost",
                 "project_regression_juniors_grade",
                 "xgboost_drop_in_env",
                 "regression",
@@ -265,7 +265,7 @@ class TestCustomTaskTemplates(object):
             ),
             (
                 "pipeline",
-                "python3_sklearn_regression",
+                "2_python3_sklearn_regression",
                 "project_regression_juniors_grade",
                 "sklearn_drop_in_env",
                 "regression",
@@ -273,7 +273,7 @@ class TestCustomTaskTemplates(object):
             ),
             (
                 "pipeline",
-                "python3_sklearn_regression",
+                "2_python3_sklearn_regression",
                 "project_regression_juniors_grade",
                 "sklearn_drop_in_env",
                 "regression",
@@ -281,7 +281,7 @@ class TestCustomTaskTemplates(object):
             ),
             (
                 "pipeline",
-                "python3_pytorch_multiclass",
+                "13_python3_pytorch_multiclass",
                 "project_skyserver_manual_partition",
                 "pytorch_drop_in_env",
                 "multiclass",
@@ -289,7 +289,7 @@ class TestCustomTaskTemplates(object):
             ),
             (
                 "pipeline",
-                "python3_sklearn_binary",
+                "5_python3_sklearn_binary",
                 "project_binary_iris",
                 "sklearn_drop_in_env",
                 "binary",
@@ -297,7 +297,7 @@ class TestCustomTaskTemplates(object):
             ),
             (
                 "pipeline",
-                "python3_sklearn_multiclass",
+                "6_python3_sklearn_multiclass",
                 "project_multiclass_skyserver",
                 "sklearn_drop_in_env",
                 "multiclass",
@@ -305,16 +305,16 @@ class TestCustomTaskTemplates(object):
             ),
             (
                 "pipeline",
-                "r_lang",
+                "3_r_lang",
                 "project_regression_juniors_grade",
                 "r_drop_in_env",
                 "regression",
                 None,
             ),
-            ("pipeline", "r_lang", "project_binary_iris", "r_drop_in_env", "binary", None),
+            ("pipeline", "3_r_lang", "project_binary_iris", "r_drop_in_env", "binary", None),
             (
                 "pipeline",
-                "r_lang",
+                "3_r_lang",
                 "project_multiclass_skyserver",
                 "r_drop_in_env",
                 "multiclass",
@@ -322,7 +322,7 @@ class TestCustomTaskTemplates(object):
             ),
             (
                 "transform",
-                "python3_sklearn_transform",
+                "3_python3_sklearn_transform",
                 "project_binary_diabetes_no_text",
                 "sklearn_drop_in_env",
                 "transform",
@@ -330,7 +330,7 @@ class TestCustomTaskTemplates(object):
             ),
             (
                 "transform",
-                "r_transform_recipe",
+                "4_r_transform_recipe",
                 "project_binary_iris",
                 "r_drop_in_env",
                 "transform",
@@ -338,7 +338,7 @@ class TestCustomTaskTemplates(object):
             ),
             (
                 "transform",
-                "r_transform_simple",
+                "2_r_transform_simple",
                 "project_binary_iris",
                 "r_drop_in_env",
                 "transform",
@@ -346,7 +346,7 @@ class TestCustomTaskTemplates(object):
             ),
             (
                 "estimator",
-                "r_anomaly_detection",
+                "8_r_anomaly_detection",
                 "project_anomaly_juniors_grade",
                 "r_drop_in_env",
                 "anomaly",
@@ -408,7 +408,7 @@ class TestCustomTaskTemplates(object):
 
         job = dr.ModelJob.get(proj_id, job_id)
         test_passed = False
-        res = job.get_result_when_complete(max_wait=900)
+        res = job.get_result_when_complete(max_wait=1200)
         if isinstance(res, dr.Model):
             test_passed = True
 
@@ -484,7 +484,7 @@ class TestCustomTaskTemplates(object):
         job = dr.ModelJob.get(proj_id, job_id)
 
         try:
-            job.get_result_when_complete(max_wait=900)
+            job.get_result_when_complete(max_wait=1200)
         except AsyncProcessUnsuccessfulError:
             pass
 

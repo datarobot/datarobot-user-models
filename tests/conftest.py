@@ -99,7 +99,6 @@ from tests.drum.constants import (
     SKLEARN_TRANSFORM_HYPERPARAMETERS,
     RDS_PARAMETERS,
     RDS_HYPERPARAMETERS,
-    SKLEARN_BINARY_SCHEMA_VALIDATION,
     MLJ,
     JLSO,
     JULIA,
@@ -155,36 +154,33 @@ _datasets = {
 }
 
 _training_models_paths = {
-    (PYTHON, SKLEARN_BINARY): os.path.join(TRAINING_TEMPLATES_PATH, "python3_sklearn_binary"),
+    (PYTHON, SKLEARN_BINARY): os.path.join(TRAINING_TEMPLATES_PATH, "5_python3_sklearn_binary"),
     (PYTHON, SKLEARN_BINARY_HYPERPARAMETERS): os.path.join(
         TESTS_FIXTURES_PATH, "python3_sklearn_binary_hyperparameters"
     ),
-    (PYTHON, SKLEARN_BINARY_SCHEMA_VALIDATION): os.path.join(
-        TRAINING_TEMPLATES_PATH, "python3_sklearn_binary_schema_validation"
-    ),
     (PYTHON, SKLEARN_REGRESSION): os.path.join(
-        TRAINING_TEMPLATES_PATH, "python3_sklearn_regression"
+        TRAINING_TEMPLATES_PATH, "2_python3_sklearn_regression"
     ),
     (PYTHON, SKLEARN_MULTICLASS): os.path.join(
-        TRAINING_TEMPLATES_PATH, "python3_sklearn_multiclass"
+        TRAINING_TEMPLATES_PATH, "6_python3_sklearn_multiclass"
     ),
     (PYTHON, SKLEARN_TRANSFORM_HYPERPARAMETERS): os.path.join(
         TESTS_FIXTURES_PATH, "python3_sklearn_transform_hyperparameters"
     ),
-    (PYTHON, SIMPLE): os.path.join(TRAINING_TEMPLATES_PATH, "simple"),
+    (PYTHON, SIMPLE): os.path.join(TRAINING_TEMPLATES_PATH, "1_simple"),
     (PYTHON, SKLEARN_SPARSE): os.path.join(TESTS_FIXTURES_PATH, "validate_sparse_columns"),
-    (PYTHON, KERAS): os.path.join(TRAINING_TEMPLATES_PATH, "python3_keras_joblib"),
-    (PYTHON, XGB): os.path.join(TRAINING_TEMPLATES_PATH, "python3_xgboost"),
-    (R_FIT, RDS): os.path.join(TRAINING_TEMPLATES_PATH, "r_lang"),
+    (PYTHON, KERAS): os.path.join(TRAINING_TEMPLATES_PATH, "14_python3_keras_joblib"),
+    (PYTHON, XGB): os.path.join(TRAINING_TEMPLATES_PATH, "4_python3_xgboost"),
+    (R_FIT, RDS): os.path.join(TRAINING_TEMPLATES_PATH, "3_r_lang"),
     (R_FIT, RDS_HYPERPARAMETERS): os.path.join(TESTS_FIXTURES_PATH, "r_lang_hyperparameters"),
-    (R_FIT, R_ESTIMATOR_SPARSE): os.path.join(ESTIMATORS_TEMPLATES_PATH, "r_sparse_regression"),
-    (PYTHON, PYTORCH): os.path.join(TRAINING_TEMPLATES_PATH, "python3_pytorch"),
+    (R_FIT, R_ESTIMATOR_SPARSE): os.path.join(ESTIMATORS_TEMPLATES_PATH, "3_r_sparse_regression"),
+    (PYTHON, PYTORCH): os.path.join(TRAINING_TEMPLATES_PATH, "12_python3_pytorch"),
     (PYTHON, PYTORCH_REGRESSION): os.path.join(
-        TRAINING_TEMPLATES_PATH, "python3_pytorch_regression"
+        TRAINING_TEMPLATES_PATH, "11_python3_pytorch_regression"
     ),
-    (PYTHON, SKLEARN_ANOMALY): os.path.join(TRAINING_TEMPLATES_PATH, "python3_anomaly_detection"),
+    (PYTHON, SKLEARN_ANOMALY): os.path.join(TRAINING_TEMPLATES_PATH, "7_python3_anomaly_detection"),
     (PYTHON, PYTORCH_MULTICLASS): os.path.join(
-        TRAINING_TEMPLATES_PATH, "python3_pytorch_multiclass"
+        TRAINING_TEMPLATES_PATH, "13_python3_pytorch_multiclass"
     ),
     (PYTHON, SKLEARN_PRED_CONSISTENCY): os.path.join(
         TESTS_FIXTURES_PATH, "custom_pred_consistency"

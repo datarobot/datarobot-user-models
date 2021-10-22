@@ -68,7 +68,6 @@ from .constants import (
     SKLEARN_TRANSFORM_PARAMETERS,
     RDS_HYPERPARAMETERS,
     RDS_PARAMETERS,
-    SKLEARN_BINARY_SCHEMA_VALIDATION,
     PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION,
     R_TRANSFORM_SPARSE_INPUT,
     R_TRANSFORM_SPARSE_IN_OUT,
@@ -733,7 +732,7 @@ class TestFit:
         custom_model_dir = _create_custom_model_dir(
             resources,
             tmp_path,
-            SKLEARN_BINARY_SCHEMA_VALIDATION,
+            SKLEARN_BINARY,
             BINARY,
             PYTHON,
             is_training=True,
@@ -759,7 +758,7 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, problem, language, error_in_predict_server",
         [
-            (SKLEARN_BINARY_SCHEMA_VALIDATION, BINARY, PYTHON, False),
+            (PYTORCH, BINARY, PYTHON, False),
             (PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION, TRANSFORM, PYTHON, True),
         ],
     )
@@ -795,6 +794,9 @@ class TestFit:
 
         # The predict server will not return the full stacktrace since it is ran in a forked process
         if error_in_predict_server:
-            assert "expected types to exactly match: CAT" in stdout
+            assert (
+                "Schema validation found mismatch between output dataset and the supplied schema"
+                in stdout
+            )
         else:
             assert "DrumSchemaValidationException" in stderr

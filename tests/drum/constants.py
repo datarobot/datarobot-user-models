@@ -100,7 +100,6 @@ TARGET_NAME_DUPLICATED_Y = "target_name_duplicated_y"
 SKLEARN_BINARY_PARAMETERS = "sklearn_binary_parameters"
 SKLEARN_TRANSFORM_PARAMETERS = "sklearn_transform_parameters"
 RDS_PARAMETERS = "r_parameters"
-SKLEARN_BINARY_SCHEMA_VALIDATION = "sklearn_binary_schema_validation"
 
 # Language keywords
 PYTHON = "python3"
