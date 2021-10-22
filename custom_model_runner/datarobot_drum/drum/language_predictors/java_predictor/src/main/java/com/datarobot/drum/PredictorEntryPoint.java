@@ -81,14 +81,12 @@ public class PredictorEntryPoint {
             EntryPointConfig config = parseArgs(args);
             portNumber = config.portNumber;
             PredictorEntryPoint entryPoint = new PredictorEntryPoint(config.className, config.predictorName);
-            logger.info(String.format("Starting py4j GatewayServer using: class name: %s; port: %s", config.className, config.portNumber));
+            logger.info("Starting py4j GatewayServer using: class name: {}; port: {}", config.className, config.portNumber);
             // TODO: use a specific port, note multiple such gateways might be running.
             GatewayServer gatewayServer = new GatewayServer(entryPoint, config.portNumber);
             gatewayServer.start();
         } catch (py4j.Py4JNetworkException e) {
-            var s = String.format("PredictorEntryPoint failed to start py4j GatewayServer on port: %d; Message: %s", portNumber, e.getMessage());
-            logger.error(s);
-            e.printStackTrace();
+            logger.error(String.format("PredictorEntryPoint failed to start py4j GatewayServer on port: %d; Message: %s", portNumber, e.getMessage()), e);
             System.exit(1);
         }
     }
