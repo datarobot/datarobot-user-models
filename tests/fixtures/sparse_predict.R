@@ -9,11 +9,6 @@
 # Released under the terms of DataRobot Tool and Utility Agreement.
 init <- function(code_dir) {
   # custom init function to load required libraries
-#  library(tidyverse)
-#  library(caret)
-#  library(recipes)
-#  library(e1071)
-#  library(gbm)
     library(glmnet)
 }
 
@@ -37,7 +32,7 @@ score <- function(data, model, ...){
         Returns a dataframe with scored data
         In case of regression, score() must return a dataframe with a single column with column name 'Predictions'.
     "
-	expected_colnames <- c(
+    expected_colnames <- c(
         "abatjours",
         "abaton",
         "abator",
@@ -201,7 +196,7 @@ score <- function(data, model, ...){
         "abduct",
         "abducted"
     )
-	stopifnot(colnames(data) == expected_colnames)
-	stopifnot(is(data, 'sparseMatrix'))
+    stopifnot(colnames(data) == expected_colnames)
+    stopifnot(is(data, 'sparseMatrix'))
     return(data.frame(Predictions = predict(model, newx=data, type = "response")[,"s0"]))
 }

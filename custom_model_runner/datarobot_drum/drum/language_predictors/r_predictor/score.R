@@ -125,9 +125,9 @@ load_serialized_model <- function(model_dir, target_type) {
         data <- readMM(tmp_file_name)
         close(f)
         unlink(tmp_file_name)
-		if(!is.null(sparse_colnames)) {
-			colnames(data) <- sparse_colnames
-		}
+        if(!is.null(sparse_colnames)) {
+            colnames(data) <- sparse_colnames
+        }
     } else {
         tmp <- stri_conv(binary_data, "utf8")
         data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE), check.names = FALSE)
