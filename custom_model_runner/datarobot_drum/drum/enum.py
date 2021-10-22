@@ -58,13 +58,14 @@ PERF_TEST_SERVER_LABEL = "__DRUM_PERF_TEST_SERVER__"
 
 
 LOG_LEVELS = {
-    "noset": logging.NOTSET,
+    "all": logging.NOTSET,
     "debug": logging.DEBUG,
     "info": logging.INFO,
     "warn": logging.WARN,
     "warning": logging.WARNING,
     "error": logging.ERROR,
     "critical": logging.CRITICAL,
+    "fatal": logging.CRITICAL,
 }
 
 

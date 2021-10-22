@@ -212,9 +212,23 @@ class JavaPredictor(BaseLanguagePredictor):
             self._custom_predictor_class
             or JavaPredictor.java_class_by_ext[self.model_artifact_extension]
         )
-        self.logger.info("Loading predictor class: {}", class_to_load)
+        self.logger.info("Loading predictor class: {}".format(class_to_load))
+
+        PY_TO_LOG4J2_LEVELS = {
+            "NOTSET": "ALL",
+            "DEBUG": "DEBUG",
+            "INFO": "INFO",
+            "WARNING": "WARN",
+            "ERROR": "ERROR",
+            "CRITICAL": "FATAL",
+        }
         cmd.extend(
             [
+                "-Dorg.apache.logging.log4j.level={}".format(
+                    PY_TO_LOG4J2_LEVELS.get(
+                        logging.getLevelName(self.logger.getEffectiveLevel()), "INFO"
+                    )
+                ),
                 "-cp",
                 java_cp,
                 JavaPredictor.JAVA_COMPONENT_ENTRY_POINT_CLASS,
