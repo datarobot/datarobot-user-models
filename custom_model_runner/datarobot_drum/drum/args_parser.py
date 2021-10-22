@@ -840,7 +840,7 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_arg_weights(fit_parser)
         CMRunnerArgsRegistry._reg_arg_skip_predict(fit_parser)
         CMRunnerArgsRegistry._reg_arg_num_rows(fit_parser)
-        CMRunnerArgsRegistry._reg_arg_sparse_colfile(fit_parser)
+        CMRunnerArgsRegistry._reg_arg_sparse_colfile(fit_parser, score_parser)
         CMRunnerArgsRegistry._reg_arg_parameter_file(fit_parser)
 
         CMRunnerArgsRegistry._reg_arg_samples(perf_test_parser)

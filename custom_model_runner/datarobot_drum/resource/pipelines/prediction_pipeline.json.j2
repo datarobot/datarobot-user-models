@@ -10,6 +10,7 @@
               "arguments": {
                 "input_filename": "{{ input_filename }}",
                 "output_filename": {{ output_filename }},
+                "sparse_column_file": {{ sparse_column_file | jsonify }},
                 "positiveClassLabel": {{ positiveClassLabel | jsonify }},
                 "negativeClassLabel": {{ negativeClassLabel | jsonify }},
                 "classLabels": {{ classLabels | jsonify }},

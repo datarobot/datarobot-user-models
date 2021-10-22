@@ -36,6 +36,7 @@ from .constants import (
     PYTORCH_MULTICLASS,
     R_FIT,
     RDS,
+    RDS_SPARSE,
     REGRESSION,
     REGRESSION_SINGLE_COL,
     SIMPLE,
@@ -154,6 +155,8 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, problem, docker",
         [
+            (SKLEARN_SPARSE, SPARSE, None),
+            (RDS_SPARSE, SPARSE, None),
             (RDS, BINARY_BOOL, None),
             (RDS, BINARY_TEXT, None),
             (RDS, REGRESSION, None),
@@ -182,7 +185,7 @@ class TestFit:
     def test_fit(
         self, resources, framework, problem, docker, weights, tmp_path,
     ):
-        if framework == RDS:
+        if framework in {RDS, RDS_SPARSE}:
             language = R_FIT
         else:
             language = PYTHON
@@ -202,13 +205,23 @@ class TestFit:
         cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose --disable-strict-validation".format(
             ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
         )
-        if problem != ANOMALY:
+        if problem not in {ANOMALY, SPARSE}:
             cmd += ' --target "{}"'.format(resources.targets(problem))
+
+        if problem == SPARSE:
+            input_dir = tmp_path / "input_dir"
+            input_dir.mkdir(parents=True, exist_ok=True)
+            target_file = os.path.join(input_dir, "y.csv")
+            shutil.copyfile(resources.datasets(None, SPARSE_TARGET), target_file)
+            cmd += " --sparse-column-file {} --target-csv {}".format(
+                input_dataset.replace(".mtx", ".columns"), target_file
+            )
 
         if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
                 cmd, resources.class_labels(framework, problem), target_type=target_type
             )
+
         if docker:
             cmd += " --docker {} ".format(docker)
 

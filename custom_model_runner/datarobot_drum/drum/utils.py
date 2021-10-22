@@ -304,11 +304,18 @@ class StructuredInputReadUtils:
         return binary_data, mimetype
 
     @staticmethod
-    def read_structured_input_file_as_df(filename):
+    def read_structured_input_file_as_df(filename, sparse_column_file=None):
         binary_data, mimetype = StructuredInputReadUtils.read_structured_input_file_as_binary(
             filename
         )
-        return StructuredInputReadUtils.read_structured_input_data_as_df(binary_data, mimetype)
+        if sparse_column_file:
+            with open(sparse_column_file, "rb") as file:
+                sparse_colnames = file.read()
+        else:
+            sparse_colnames = None
+        return StructuredInputReadUtils.read_structured_input_data_as_df(
+            binary_data, mimetype, sparse_colnames
+        )
 
     @staticmethod
     def resolve_mimetype_by_filename(filename):

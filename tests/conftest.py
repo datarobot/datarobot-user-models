@@ -4,10 +4,13 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import io
 import os
 
+import pandas as pd
 import pytest
 import yaml
+from scipy.io import mmread
 
 from tests.drum.constants import (
     ANOMALY,
@@ -32,6 +35,7 @@ from tests.drum.constants import (
     PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS,
     PYTHON_NO_ARTIFACT_REGRESSION_HOOKS,
     PYTHON_LOAD_MODEL,
+    PYTHON_PREDICT_SPARSE,
     PYTHON_TRANSFORM,
     PYTHON_TRANSFORM_DENSE,
     PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION,
@@ -48,6 +52,7 @@ from tests.drum.constants import (
     R_ALL_PREDICT_UNSTRUCTURED_HOOKS,
     R_ALL_PREDICT_UNSTRUCTURED_HOOKS_LOWERCASE_R,
     R_FIT,
+    R_PREDICT_SPARSE,
     R_UNSTRUCTURED,
     R_UNSTRUCTURED_PARAMS,
     RDS,
@@ -174,6 +179,7 @@ _training_models_paths = {
     (R_FIT, RDS): os.path.join(TRAINING_TEMPLATES_PATH, "3_r_lang"),
     (R_FIT, RDS_HYPERPARAMETERS): os.path.join(TESTS_FIXTURES_PATH, "r_lang_hyperparameters"),
     (R_FIT, R_ESTIMATOR_SPARSE): os.path.join(ESTIMATORS_TEMPLATES_PATH, "3_r_sparse_regression"),
+    (R_FIT, RDS_SPARSE): os.path.join(TESTS_FIXTURES_PATH, "r_sparse_validation"),
     (PYTHON, PYTORCH): os.path.join(TRAINING_TEMPLATES_PATH, "12_python3_pytorch"),
     (PYTHON, PYTORCH_REGRESSION): os.path.join(
         TRAINING_TEMPLATES_PATH, "11_python3_pytorch_regression"
@@ -214,6 +220,7 @@ _target_types = {
     REGRESSION_INFERENCE: "regression",
     ANOMALY: "anomaly",
     UNSTRUCTURED: "unstructured",
+    SPARSE: "regression",
     MULTICLASS: "multiclass",
     MULTICLASS_BINARY: "multiclass",
     MULTICLASS_NUM_LABELS: "multiclass",
@@ -270,6 +277,7 @@ _artifacts = {
     (None, REGRESSION): None,
     (None, BINARY): None,
     (None, UNSTRUCTURED): None,
+    (SKLEARN, SPARSE): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_dtr_sparse.pkl"),
     (SKLEARN, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_reg.pkl"),
     (SKLEARN, REGRESSION_INFERENCE): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_reg.pkl"),
     (MULTI_ARTIFACT, REGRESSION): [
@@ -295,6 +303,7 @@ _artifacts = {
     ],
     (RDS, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "r_reg.rds"),
     (RDS_SPARSE, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "r_reg_sparse.rds"),
+    (RDS_SPARSE, SPARSE): os.path.join(TESTS_ARTIFACTS_PATH, "r_reg_sparse.rds"),
     (RDS, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "r_bin.rds"),
     (CODEGEN, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "java_reg.jar"),
     (CODEGEN, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "java_bin.jar"),
@@ -411,6 +420,9 @@ _custom_filepaths = {
         os.path.join(TESTS_FIXTURES_PATH, "no_artifact_regression_custom.py"),
         "custom.py",
     ),
+    # sparse_predict.* for sparse.mtx, checks that data is sparse matrix and contains column names
+    R_PREDICT_SPARSE: (os.path.join(TESTS_FIXTURES_PATH, "sparse_predict.R"), "custom.R",),
+    PYTHON_PREDICT_SPARSE: (os.path.join(TESTS_FIXTURES_PATH, "sparse_predict.py"), "custom.py",),
     R: (os.path.join(TESTS_FIXTURES_PATH, "custom.R"), "custom.R"),
     R_ALL_PREDICT_STRUCTURED_HOOKS: (
         os.path.join(TESTS_FIXTURES_PATH, "all_predict_structured_hooks_custom.R"),
@@ -590,6 +602,24 @@ def get_custom():
 
 
 @pytest.fixture(scope="session")
+def get_input_data(get_dataset_filename):
+    def _foo(framework, problem):
+        dataset_path = get_dataset_filename(framework, problem)
+        column_file = dataset_path.replace(".mtx", ".columns")
+        if problem == SPARSE:
+            with open(column_file) as f:
+                columns = [c.rstrip() for c in f]
+            with open(dataset_path, "rb") as f:
+                return pd.DataFrame.sparse.from_spmatrix(
+                    mmread(io.BytesIO(f.read())), columns=columns
+                )
+        else:
+            return pd.read_csv(dataset_path)
+
+    return _foo
+
+
+@pytest.fixture(scope="session")
 def resources(
     get_dataset_filename,
     get_paths_to_training_models,
@@ -598,6 +628,7 @@ def resources(
     get_class_labels,
     get_artifacts,
     get_custom,
+    get_input_data,
 ):
     resource = Resource()
     resource.datasets = get_dataset_filename
@@ -607,6 +638,7 @@ def resources(
     resource.class_labels = get_class_labels
     resource.artifacts = get_artifacts
     resource.custom = get_custom
+    resource.input_data = get_input_data
     return resource
 
 
