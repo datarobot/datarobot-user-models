@@ -203,6 +203,9 @@ fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, ...){
         "abduct",
         "abducted"
     )
+	if("some-weights" %in% colnames(X)) {
+		expected_colnames <- c(expected_colnames, "some-weights")
+	}
 	stopifnot(colnames(X) == expected_colnames)
 	stopifnot(is(X, 'sparseMatrix'))
 
