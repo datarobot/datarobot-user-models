@@ -49,8 +49,11 @@ def fit(
     Nothing
     """
     for colname in X.columns:
-        assert colname.startswith("a") or colname.startswith("A")
-    assert len(set(X.columns)) == 162
+        assert colname.startswith("a") or colname.startswith("A") or colname == "some-weights"
+    if colname == "some-weights":
+        assert len(set(X.columns)) == 163
+    else:
+        assert len(set(X.columns)) == 162
     estimator = Ridge()
     estimator.fit(X, y)
 
@@ -111,7 +114,7 @@ def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
     Transformed data
     """
     for colname in data.columns:
-        assert colname.startswith("a") or colname.startswith("A")
+        assert colname.startswith("a") or colname.startswith("A") or colname == "some-weights"
     return data
 
 
