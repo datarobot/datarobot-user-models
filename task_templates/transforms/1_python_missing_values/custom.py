@@ -9,7 +9,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import pickle
 import pandas as pd
 import numpy as np
-from pathlib import Path
+import os
 
 
 def fit(X, y, output_dir, **kwargs):
@@ -40,10 +40,8 @@ def fit(X, y, output_dir, **kwargs):
     # dump the trained object [in this example - dictionary with medians per column]
     # into an artifact [in this example - artifact.pkl]
     # and save it into output_dir so that it can be used later to impute on new data
-    output_dir_path = Path(output_dir)
-    if output_dir_path.exists() and output_dir_path.is_dir():
-        with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
-            pickle.dump(median, fp)
+    with open(os.path.join(output_dir, "artifact.pkl"), "wb") as fp:
+        pickle.dump(median, fp)
 
 
 def transform(data, transformer):
