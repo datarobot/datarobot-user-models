@@ -1,3 +1,4 @@
+pyparsing<3.0  # dr-usertool fails with the most recent pyparsing 3.0.x
 dr-usertool
 # PyYAML is constrained by dr-usertool and its deps
 PyYAML>=3.11
