@@ -490,6 +490,16 @@ class CMRunner:
             raise DrumCommonException(error_message)
 
     def run_fit(self):
+        """Run when run_model is fit.
+
+        Raises
+        ------
+        DrumPredException
+            Raised when prediction fails.
+        DrumSchemaValidationException
+            Raised when model metadata validation fails.
+        """
+        self.schema_validator.validate_type_schema(self.target_type)
         input_data = self.input_df
         if self.options.target:
             input_data = input_data.drop(self.options.target, axis=1)
