@@ -115,6 +115,7 @@ class TestFit:
             weights_data.to_csv(__keep_this_around.name, index=False)
             return " --row-weights-csv " + __keep_this_around.name, input_name, __keep_this_around
 
+        __keep_this_around = NamedTemporaryFile("w")
         return "", input_name, __keep_this_around
 
     @pytest.mark.parametrize("framework", [XGB, RDS])
