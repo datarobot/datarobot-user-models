@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import os
 import shutil
 from tempfile import NamedTemporaryFile
@@ -6,7 +12,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.drum.enum import ArgumentsOptions, InputFormatExtension
 from datarobot_drum.drum.utils import handle_missing_colnames, unset_drum_supported_env_vars
 from datarobot_drum.resource.utils import (
     _cmd_add_class_labels,
@@ -62,7 +68,6 @@ from .constants import (
     SKLEARN_TRANSFORM_PARAMETERS,
     RDS_HYPERPARAMETERS,
     RDS_PARAMETERS,
-    SKLEARN_BINARY_SCHEMA_VALIDATION,
     PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION,
     R_TRANSFORM_SPARSE_INPUT,
     R_TRANSFORM_SPARSE_IN_OUT,
@@ -562,9 +567,9 @@ class TestFit:
         env["ARTIFACT_DIRECTORY"] = str(output)
         env["TARGET_TYPE"] = problem if problem != BINARY_TEXT else BINARY
         if framework == SKLEARN_SPARSE:
-            env["TRAINING_DATA_EXTENSION"] = ".mtx"
+            env["TRAINING_DATA_EXTENSION"] = InputFormatExtension.MTX
         else:
-            env["TRAINING_DATA_EXTENSION"] = ".csv"
+            env["TRAINING_DATA_EXTENSION"] = InputFormatExtension.CSV
 
         if problem in [BINARY, BINARY_TEXT]:
             labels = resources.class_labels(framework, problem)
@@ -727,7 +732,7 @@ class TestFit:
         custom_model_dir = _create_custom_model_dir(
             resources,
             tmp_path,
-            SKLEARN_BINARY_SCHEMA_VALIDATION,
+            SKLEARN_BINARY,
             BINARY,
             PYTHON,
             is_training=True,
@@ -753,7 +758,7 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, problem, language, error_in_predict_server",
         [
-            (SKLEARN_BINARY_SCHEMA_VALIDATION, BINARY, PYTHON, False),
+            (PYTORCH, BINARY, PYTHON, False),
             (PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION, TRANSFORM, PYTHON, True),
         ],
     )
@@ -789,6 +794,9 @@ class TestFit:
 
         # The predict server will not return the full stacktrace since it is ran in a forked process
         if error_in_predict_server:
-            assert "expected types to exactly match: CAT" in stdout
+            assert (
+                "Schema validation found mismatch between output dataset and the supplied schema"
+                in stdout
+            )
         else:
             assert "DrumSchemaValidationException" in stderr

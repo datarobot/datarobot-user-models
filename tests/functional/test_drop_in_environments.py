@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 from __future__ import absolute_import
 
 import os
@@ -345,7 +351,7 @@ class TestDropInEnvironments(object):
         model_version = dr.CustomModelVersion.get(model_id, model_version_id)
         model = dr.CustomInferenceModel.get(model_id)
         model.assign_training_data(test_data_id)
-        model_version.calculate_feature_impact()
+        model_version.calculate_feature_impact(max_wait=1200)
 
         test_passed = False
         error_message = ""

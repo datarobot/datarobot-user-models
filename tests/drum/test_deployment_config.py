@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import json
 import os
 from tempfile import NamedTemporaryFile
@@ -5,7 +11,7 @@ import pandas as pd
 import pytest
 import requests
 
-from datarobot_drum.drum.common import TargetType, ArgumentOptionsEnvVars
+from datarobot_drum.drum.enum import ArgumentOptionsEnvVars, TargetType
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.resource.deployment_config_helpers import (
     parse_validate_deployment_config_file,

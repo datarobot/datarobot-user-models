@@ -1,0 +1,55 @@
+DATAROBOT TOOL AND UTILITY AGREEMENT
+
+This Tool and Utility Agreement (this “Agreement”) between DataRobot, Inc., a Delaware Corporation, with its principal place of business located at 225 FRANKLIN STREET, 13TH FLOOR, BOSTON, MASSACHUSETTS 02110, USA (“DataRobot”) and you and the organization you represent (“You”), is effective as of the date that You are first granted access to the Tool and Utility Software (as defined below) (the “Effective Date”).
+
+This Agreement supersedes any other agreement between DataRobot and You with respect to the Tool and Utility Software.
+
+1. LICENSE GRANT
+    1.1. “Tool and Utility Software” means a no-fee offering of DataRobot’s tool(s) and/or utility software for use with the Solution.
+    1.2. Subject to the terms of this Agreement, DataRobot grants to You, for the period of time authorized by DataRobot (or, if no time has been specified, until the expiration of Your subscription for the DataRobot enterprise AI platform (the “Solution”) (the “Term”), a non-exclusive, non-transferable, non-sublicensable license to use the Tool and Utility Software with the Solution only for your internal business purposes.
+    1.3. DataRobot shall have the right to terminate, downgrade, limit or modify the Tool and Utility Software at any time without notice or compensation. No warranty, indemnity, availability, maintenance or support obligations of DataRobot will apply to Tool and Utility Software.
+
+2. RESTRICTIONS ON USE OF THE TOOL AND UTILITY SOFTWARE
+You shall not, and shall not permit any third party to, except as may be allowed by any applicable law which is incapable of exclusion by agreement between the parties and except as permitted under this Agreement:
+    (a) attempt to backup, copy, modify, create derivative works from, or distribute any part of the Tool and Utility Software;
+    (b) attempt to de-compile, reverse compile, disassemble, reverse engineer or otherwise reduce to human-perceivable form any part of the Tool and Utility Software except to the extent the law in Your jurisdiction permits this where necessary for the purposes of integrating the operation of the Software with the operation of other software or systems used by You. Before carrying out such action, You shall give DataRobot no less than 30 days’ written notice and the exception will not apply if DataRobot is prepared to carry out such action at a reasonable commercial fee or provides the information necessary to achieve such integration within a reasonable period;
+    (c) access any part of the Tool and Utility Software in order to build a competing product or service;
+    (d) attempt to obtain, or assist third parties in obtaining, access to the Tool and Utility Software, other than as provided under this Section 2.
+
+3. TERM AND TERMINATION
+    3.1. This Agreement starts on the Effective Date and will continue until the expiry of the Term, at which point this Agreement and the licenses granted under the terms of this Agreement will automatically terminate.
+
+    3.2. On termination or expiry of this Agreement for any reason:
+        (a) this Section 3.2, Section 6 (Limitation of Liability), Section 8 (Entire Agreement) and Section 9 (General) will survive alongside any other Sections that are intended to survive termination or expiration of this Agreement in order to achieve the fundamental purposes of this Agreement;
+        (b) any rights, remedies, obligations or liabilities of the parties that have accrued up to the date of termination which existed at or before the date of termination will not be affected.
+
+4. PROPRIETARY RIGHTS
+The Tool and Utility Software and Documentation are the proprietary intellectual property of DataRobot and its licensors.  DataRobot retains sole and exclusive ownership of all right, title, and interest in and to the Tool and Utility Software and any other technology used to provide them.
+
+5. NO WARRANTY
+    5.1. The Tool and Utility Software is provided “as is” without any warranty and all other conditions, warranties or other terms which might have effect or be implied or incorporated into this Agreement whether by statute, common law or otherwise are excluded.
+
+6. LIMITATION OF LIABILITY
+    6.1. Neither party’s liability for any damages (whether for breach of contract, misrepresentations, negligence, strict liability, other torts or otherwise) under this Agreement will exceed an amount equal to $10,000. This limitation will apply notwithstanding any failure of essential purpose of any remedy.
+    6.2. Nothing in this Agreement will limit or exclude either party’s liability for:
+        (a) any matter which by law may not be excluded or limited;
+        (b) in the case of You, for breach of Section 2(c) (Restrictions on Use)
+
+7. NOTICES
+    7.1. All notices required to be given under this Agreement shall be in writing and delivered by hand, email, first class prepaid mail or recorded delivery mail.
+    7.2. Notices for DataRobot shall be sent to legal@datarobot.com or DataRobot Inc., 225 Franklin St.; 13th Floor, Boston, MA 02110, U.S.A., Attn: Legal.
+    7.3. Notice will be deemed given:
+        (a) when received, if delivered by hand or email; or
+        (b) the next business day after it is sent, if sent by first class prepaid mail or recorded delivery;
+        (c) five business days following postage if sent internationally.
+
+8. ENTIRE AGREEMENT
+This Agreement and any documents referred to in it are the complete and exclusive statement of the parties’ agreement and supersede all proposals or prior arrangements, understandings or agreements between the parties relating to the subject matter of this Agreement.
+
+9. GENERAL
+    9.1. Unless it expressly states otherwise, this Agreement does not give rise to any rights for a third party to enforce any term of this Agreement.
+    9.2. Any waiver or modification of the provisions of this Agreement will only be effective if in writing and signed by both parties. Waivers and amendments to this Agreement shall be effective only if made by non-pre-printed agreements clearly understood by both parties to be an amendment or waiver to this Agreement.
+    9.3. If the whole or any part of a provision of this Agreement is held invalid, illegal or unenforceable, the validity, legality and enforceability of the remaining provisions will be unaffected. If any invalid, unenforceable or illegal provision would be valid, enforceable or legal if part of it were deleted, the provision shall apply with whatever modification is necessary to give effect to the commercial intention of the parties.
+    9.4. No failure or delay by a party to exercise any right or remedy provided under this Agreement or by law will constitute a waiver of that or any other right or remedy, nor will it prevent or restrict the further exercise of that or any other right or remedy. No single or partial exercise of such right or remedy will prevent or restrict the further exercise of that or any other right or remedy.
+    9.5. This Agreement and any dispute (whether contractual or non-contractual) arising out of or in connection with this Agreement, its subject matter or formation will be governed by and interpreted and construed in accordance with the laws of the Commonwealth of Massachusetts, without regard to conflict of law principles, and will be subject to the exclusive jurisdiction of the federal and state courts located in Boston, Massachusetts. Each party consents to the exclusive personal jurisdiction and venue of such courts.
+

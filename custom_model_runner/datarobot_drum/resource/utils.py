@@ -1,10 +1,22 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import os
 import glob
 import shutil
 import subprocess
 
-from datarobot_drum.drum.common import ArgumentOptionsEnvVars
 
+from datarobot_drum.drum.enum import (
+    ArgumentOptionsEnvVars,
+    PythonArtifacts,
+    RArtifacts,
+    JavaArtifacts,
+    JuliaArtifacts,
+)
 
 PYTHON = "python3"
 JULIA = "julia"
@@ -24,6 +36,7 @@ def _create_custom_model_dir(
     is_training=False,
     nested=False,
     include_metadata=False,
+    capitalize_artifact_extension=False,
 ):
     """
     Helper function for tests and validation to create temp custom model directory
@@ -53,7 +66,20 @@ def _create_custom_model_dir(
             if not isinstance(artifact_filenames, list):
                 artifact_filenames = [artifact_filenames]
             for filename in artifact_filenames:
-                shutil.copy2(filename, custom_model_dir)
+                if capitalize_artifact_extension:
+                    name, ext = os.path.splitext(os.path.basename(filename))
+                    if (
+                        ext
+                        in PythonArtifacts.ALL
+                        + RArtifacts.ALL
+                        + JavaArtifacts.ALL
+                        + JuliaArtifacts.ALL
+                    ):
+                        ext = ext.upper()
+                    dst = os.path.join(custom_model_dir, f"{name}{ext}")
+                else:
+                    dst = custom_model_dir
+                shutil.copy2(filename, dst)
 
         fixture_filename, rename = resources.custom(language)
         if fixture_filename:
@@ -77,6 +103,7 @@ def _exec_shell_cmd(
         env=env,
         universal_newlines=True,
         encoding="utf-8",
+        preexec_fn=os.setsid,
     )
     if process_obj_holder is not None:
         process_obj_holder.process = p

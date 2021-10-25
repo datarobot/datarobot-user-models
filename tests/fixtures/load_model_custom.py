@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import os
 import pickle
 
@@ -18,7 +24,13 @@ def load_model(input_dir):
     -------
     object, the deserialized model
     """
-    with open(os.path.join(input_dir, "sklearn_reg.pkl"), "rb") as picklefile:
+    model_filename = None
+    for file in os.listdir(input_dir):
+        if file.lower().endswith("sklearn_reg.pkl"):
+            model_filename = os.path.join(input_dir, file)
+            break
+
+    with open(model_filename, "rb") as picklefile:
         try:
             model = pickle.load(picklefile, encoding="latin1")
         except TypeError:

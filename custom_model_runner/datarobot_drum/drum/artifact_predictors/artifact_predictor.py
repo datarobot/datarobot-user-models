@@ -1,8 +1,14 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 from abc import ABC, abstractmethod
 import logging
 
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.common import (
+from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
@@ -10,6 +16,7 @@ from datarobot_drum.drum.common import (
     TARGET_TYPE_ARG_KEYWORD,
     TargetType,
 )
+from datarobot_drum.drum.utils import DrumUtils
 
 
 class ArtifactPredictor(ABC):
@@ -31,7 +38,7 @@ class ArtifactPredictor(ABC):
         return self._artifact_extension
 
     def is_artifact_supported(self, artifact_path):
-        if artifact_path.endswith(self._artifact_extension):
+        if DrumUtils.endswith_extension_ignore_case(artifact_path, self._artifact_extension):
             return True
         else:
             return False

@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import os
 
 REPO_ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -94,7 +100,6 @@ TARGET_NAME_DUPLICATED_Y = "target_name_duplicated_y"
 SKLEARN_BINARY_PARAMETERS = "sklearn_binary_parameters"
 SKLEARN_TRANSFORM_PARAMETERS = "sklearn_transform_parameters"
 RDS_PARAMETERS = "r_parameters"
-SKLEARN_BINARY_SCHEMA_VALIDATION = "sklearn_binary_schema_validation"
 
 # Language keywords
 PYTHON = "python3"

@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import logging
 import os
 import pickle
@@ -16,24 +22,26 @@ from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPre
 from datarobot_drum.drum.artifact_predictors.torch_predictor import PyTorchPredictor
 from datarobot_drum.drum.artifact_predictors.xgboost_predictor import XGBoostPredictor
 from datarobot_drum.drum.common import (
-    CLASS_LABELS_ARG_KEYWORD,
-    CUSTOM_FILE_NAME,
-    CustomHooks,
     get_pyarrow_module,
-    LOGGER_NAME_PREFIX,
-    ModelInfoKeys,
-    NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
-    PayloadFormat,
-    POSITIVE_CLASS_LABEL_ARG_KEYWORD,
-    REGRESSION_PRED_COLUMN,
     reroute_stdout_to_stderr,
-    StructuredDtoKeys,
     SupportedPayloadFormats,
+)
+from datarobot_drum.drum.enum import (
+    LOGGER_NAME_PREFIX,
+    REGRESSION_PRED_COLUMN,
+    CUSTOM_FILE_NAME,
+    POSITIVE_CLASS_LABEL_ARG_KEYWORD,
+    NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
+    CLASS_LABELS_ARG_KEYWORD,
+    CustomHooks,
+    StructuredDtoKeys,
+    ModelInfoKeys,
     TargetType,
+    PayloadFormat,
 )
 from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumTransformException
-from datarobot_drum.drum.utils import marshal_labels, StructuredInputReadUtils
+from datarobot_drum.drum.utils import marshal_labels, StructuredInputReadUtils, DrumUtils
 
 RUNNING_LANG_MSG = "Running environment language: Python."
 
@@ -94,8 +102,7 @@ class PythonModelAdapter:
                 if self._custom_hooks[CustomHooks.SCORE_UNSTRUCTURED] is None:
                     raise DrumCommonException(
                         "In '{}' mode hook '{}' must be provided.".format(
-                            TargetType.UNSTRUCTURED.value,
-                            self._custom_hooks[CustomHooks.SCORE_UNSTRUCTURED],
+                            TargetType.UNSTRUCTURED.value, CustomHooks.SCORE_UNSTRUCTURED,
                         )
                     )
             else:
@@ -175,28 +182,29 @@ class PythonModelAdapter:
         self._logger.debug("Supported suffixes: {}".format(all_supported_extensions))
         model_artifact_file = None
 
-        for filename in os.listdir(self._model_dir):
+        files_list = sorted(os.listdir(self._model_dir))
+        files_list_str = " | ".join(files_list)
+        for filename in files_list:
             path = os.path.join(self._model_dir, filename)
             if os.path.isdir(path):
                 continue
 
-            if any(filename.endswith(extension) for extension in all_supported_extensions):
+            if DrumUtils.endswith_extension_ignore_case(filename, all_supported_extensions):
                 if model_artifact_file:
                     raise DrumCommonException(
                         "\n\n{}\n"
                         "Multiple serialized model files found. Remove extra artifacts "
-                        "or overwrite custom.load_model()".format(RUNNING_LANG_MSG)
+                        "or overwrite custom.load_model()\n"
+                        "List of retrieved files are: {}".format(RUNNING_LANG_MSG, files_list_str)
                     )
                 model_artifact_file = path
 
         if not model_artifact_file:
-            files_list = sorted(os.listdir(self._model_dir))
-            files_list_str = " | ".join(files_list)
             raise DrumCommonException(
                 "\n\n{}\n"
                 "Could not find model artifact file in: {} supported by default predictors.\n"
                 "They support filenames with the following extensions {}.\n"
-                "If your artifact is not supported by default predictor, implement custom.load_model hook.\n"
+                "If your artifact is not supported by default predictor, implement custom.load_model() hook.\n"
                 "List of retrieved files are: {}".format(
                     RUNNING_LANG_MSG, self._model_dir, all_supported_extensions, files_list_str
                 )

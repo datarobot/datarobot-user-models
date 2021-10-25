@@ -1,18 +1,24 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import logging
 import numpy
 import os
 import pandas as pd
 from scipy.sparse import coo_matrix
 
-from datarobot_drum.drum.common import (
+from datarobot_drum.drum.common import SupportedPayloadFormats
+from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
-    TargetType,
-    CustomHooks,
     REGRESSION_PRED_COLUMN,
+    CustomHooks,
     UnstructuredDtoKeys,
-    PayloadFormat,
-    SupportedPayloadFormats,
     StructuredDtoKeys,
+    TargetType,
+    PayloadFormat,
 )
 from datarobot_drum.drum.utils import capture_R_traceback_if_errors
 from datarobot_drum.drum.exceptions import DrumCommonException

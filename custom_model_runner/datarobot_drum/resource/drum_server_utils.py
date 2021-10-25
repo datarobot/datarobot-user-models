@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import os
 import psutil
 import requests
@@ -5,8 +11,8 @@ import signal
 import time
 from threading import Thread
 
-from datarobot_drum.drum.utils import CMRunnerUtils
-from datarobot_drum.drum.common import ArgumentsOptions, ArgumentOptionsEnvVars
+from datarobot_drum.drum.utils import DrumUtils
+from datarobot_drum.drum.enum import ArgumentsOptions, ArgumentOptionsEnvVars
 from datarobot_drum.resource.utils import _exec_shell_cmd, _cmd_add_class_labels
 
 
@@ -76,7 +82,7 @@ class DrumServerRun:
         verbose=True,
         append_cmd=None,
     ):
-        self.port = CMRunnerUtils.find_free_port()
+        self.port = DrumUtils.find_free_port()
         self.server_address = "localhost:{}".format(self.port)
         url_host = os.environ.get("TEST_URL_HOST", "localhost")
 
@@ -159,12 +165,9 @@ class DrumServerRun:
             # nginx server doesn't have shutdown API, so we need to kill it
 
             # This loop kill all the chain except for docker
-            parent = psutil.Process(self._process_object_holder.process.pid)
-            for child in parent.children(recursive=True):
-                child.kill()
-            parent.kill()
+            os.killpg(os.getpgid(self._process_object_holder.process.pid), signal.SIGTERM)
 
-            # this kills drum running in the docker
+            # kill drum running in the docker (maybe not needed after adding group kill ^)
             try:
                 for proc in psutil.process_iter():
                     if "{}".format(ArgumentsOptions.MAIN_COMMAND) in proc.name().lower():

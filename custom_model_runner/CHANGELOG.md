@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Fixed
 ##### Added 
 
+#### [1.6.1] - 2021-10-22
+##### Changed
+- bump DataRobot client dependency to >= 2.26.0
+- handle artifacts case insensitively
+
 #### [1.6.0] - 2021-10-08
 ##### Changed
 - regression boston dataset has been replaced with juniors grade dataset

@@ -1,3 +1,12 @@
+# Copyright 2021 DataRobot, Inc. and its affiliates.
+#
+# All rights reserved.
+#
+# 
+#
+# This is proprietary source code of DataRobot, Inc. and its affiliates.
+#
+# Released under the terms of DataRobot Tool and Utility Agreement.
 # Needed libraries
 library(caret)
 library(recipes)
@@ -62,7 +71,7 @@ load_serialized_model <- function(model_dir, target_type) {
         model <- load_model_hook(model_dir)
     }
     if (is.null(model)) {
-        file_names <- dir(model_dir, pattern = CUSTOM_MODEL_FILE_EXTENSION)
+        file_names <- dir(model_dir, pattern = CUSTOM_MODEL_FILE_EXTENSION, ignore.case = TRUE)
         if (length(file_names) == 0) {
             # Allow no serialized models if it is a transform
             if (target_type == TargetType$TRANSFORM) {

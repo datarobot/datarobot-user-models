@@ -1,8 +1,14 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 from setuptools import setup, find_packages
 import os
 
 from datarobot_drum.drum.description import version, project_name
-from datarobot_drum.drum.common import extra_deps, SupportedFrameworks
+from datarobot_drum.drum.enum import SupportedFrameworks, extra_deps
 
 # The directory containing this file
 root = os.path.dirname(os.path.abspath(__file__))
@@ -20,7 +26,7 @@ extras_require = {
     "xgboost": extra_deps[SupportedFrameworks.XGBOOST],
     "R": ["rpy2;python_version>='3.6'"],
     "pypmml": extra_deps[SupportedFrameworks.PYPMML],
-    "trainingModels": ["datarobot==2.24.0"],
+    "trainingModels": ["datarobot>=2.26.0"],
     "uwsgi": ["uwsgi"],
 }
 

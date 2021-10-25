@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import argparse
 import os
 import sys
@@ -7,7 +13,7 @@ from unittest.mock import patch
 import pytest
 
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
-from datarobot_drum.drum.common import ArgumentsOptions, ArgumentOptionsEnvVars
+from datarobot_drum.drum.enum import ArgumentsOptions, ArgumentOptionsEnvVars
 from datarobot_drum.resource.utils import _exec_shell_cmd
 from datarobot_drum.drum.utils import unset_drum_supported_env_vars
 

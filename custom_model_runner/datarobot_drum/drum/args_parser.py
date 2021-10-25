@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import argparse
 
 import os
@@ -7,12 +13,12 @@ import subprocess
 import trafaret as t
 
 from datarobot_drum.drum.description import version
-from datarobot_drum.drum.common import (
+from datarobot_drum.drum.enum import (
     LOG_LEVELS,
     ArgumentsOptions,
+    ArgumentOptionsEnvVars,
     RunLanguage,
     TargetType,
-    ArgumentOptionsEnvVars,
 )
 
 

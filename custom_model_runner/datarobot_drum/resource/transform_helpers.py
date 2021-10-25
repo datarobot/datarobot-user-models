@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import pandas as pd
 import logging
 
@@ -8,7 +14,8 @@ from scipy.io import mmwrite, mmread
 from scipy.sparse import issparse
 from scipy.sparse.csr import csr_matrix
 
-from datarobot_drum.drum.common import verify_pyarrow_module, X_FORMAT_KEY, X_TRANSFORM_KEY
+from datarobot_drum.drum.common import verify_pyarrow_module
+from datarobot_drum.drum.enum import X_FORMAT_KEY, X_TRANSFORM_KEY
 
 
 def filter_urllib3_logging():

@@ -1,18 +1,23 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from flask import request, Response
 from requests_toolbelt import MultipartEncoder
 
 import werkzeug
 
-
-from datarobot_drum.drum.common import (
+from datarobot_drum.drum.enum import (
     REGRESSION_PRED_COLUMN,
-    TargetType,
-    UnstructuredDtoKeys,
-    SPARSE_COLNAMES,
-    PredictionServerMimetypes,
     X_TRANSFORM_KEY,
     Y_TRANSFORM_KEY,
+    SPARSE_COLNAMES,
+    UnstructuredDtoKeys,
+    PredictionServerMimetypes,
+    TargetType,
 )
 from datarobot_drum.drum.utils import StructuredInputReadUtils
 from datarobot_drum.resource.transform_helpers import (

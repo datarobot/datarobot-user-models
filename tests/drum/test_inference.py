@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import json
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
@@ -11,15 +17,15 @@ import requests
 import scipy
 from scipy.sparse import csr_matrix
 
-from datarobot_drum.drum.common import (
-    ArgumentsOptions,
-    EnvVarNames,
-    PredictionServerMimetypes,
+from datarobot_drum.drum.enum import (
     X_TRANSFORM_KEY,
     Y_TRANSFORM_KEY,
-    ModelInfoKeys,
-    TargetType,
     MODEL_CONFIG_FILENAME,
+    PredictionServerMimetypes,
+    ModelInfoKeys,
+    ArgumentsOptions,
+    TargetType,
+    EnvVarNames,
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.resource.transform_helpers import (
@@ -132,10 +138,24 @@ class TestInference:
         ],
     )
     def test_custom_models_with_drum(
-        self, resources, framework, problem, language, docker, tmp_path, use_labels_file, temp_file,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        tmp_path,
+        use_labels_file,
+        temp_file,
+        capitalize_artifact_extension=False,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
+            capitalize_artifact_extension=capitalize_artifact_extension,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -165,6 +185,38 @@ class TestInference:
         in_data = pd.read_csv(input_dataset)
         out_data = pd.read_csv(output)
         assert in_data.shape[0] == out_data.shape[0]
+
+    @pytest.mark.parametrize(
+        "framework, problem, language, docker, use_labels_file",
+        [
+            (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None, False),
+            (KERAS, REGRESSION, PYTHON, None, False),
+            (XGB, REGRESSION, PYTHON, None, False),
+            (PYTORCH, REGRESSION, PYTHON, None, False),
+            (RDS, REGRESSION, R, None, False),
+            (CODEGEN, REGRESSION, NO_CUSTOM, None, False),
+            # POJO is not a relevant case. POJO artifacet is a `.java` file which allowed to be only lowercase
+            (MOJO, REGRESSION, NO_CUSTOM, None, False),
+            (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None, False),
+            (PYPMML, REGRESSION, NO_CUSTOM, None, False),
+            (MLJ, REGRESSION, JULIA, None, False),
+        ],
+    )
+    def test_custom_models_with_drum_capitalize_artifact_extensions(
+        self, resources, framework, problem, language, docker, tmp_path, use_labels_file, temp_file,
+    ):
+        self.test_custom_models_with_drum(
+            resources,
+            framework,
+            problem,
+            language,
+            docker,
+            tmp_path,
+            use_labels_file,
+            temp_file,
+            capitalize_artifact_extension=True,
+        )
+        print(os.listdir(os.path.join(tmp_path, "custom_model")))
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
@@ -649,7 +701,7 @@ class TestInference:
                 for post_args in [
                     {"files": {"X": ("X.mtx", open(input_dataset))}},
                     {
-                        "data": open(input_dataset),
+                        "data": open(input_dataset, "rb"),
                         "headers": {
                             "Content-Type": "{};".format(PredictionServerMimetypes.TEXT_MTX)
                         },

@@ -1,10 +1,16 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import os
 from uuid import uuid4
 import pandas as pd
 import pytest
 import requests
 
-from datarobot_drum.drum.common import ArgumentsOptions, CustomHooks, CUSTOM_FILE_NAME
+from datarobot_drum.drum.enum import CUSTOM_FILE_NAME, CustomHooks, ArgumentsOptions
 
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
 from datarobot_drum.resource.utils import (
