@@ -48,12 +48,14 @@ from .constants import (
     PYPMML,
     PYTHON,
     PYTHON_LOAD_MODEL,
+    PYTHON_PREDICT_SPARSE,
     PYTHON_TRANSFORM_NO_Y,
     PYTHON_TRANSFORM_NO_Y_DENSE,
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
     PYTORCH,
     R,
     R_FAIL_CLASSIFICATION_VALIDATION_HOOKS,
+    R_PREDICT_SPARSE,
     RDS,
     RDS_SPARSE,
     REGRESSION,
@@ -89,6 +91,8 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker, use_labels_file",
         [
+            (SKLEARN, SPARSE, PYTHON_PREDICT_SPARSE, None, False),
+            (RDS_SPARSE, SPARSE, R_PREDICT_SPARSE, None, False),
             (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None, False),
             (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN, False),
             (SKLEARN, BINARY, PYTHON, None, False),
@@ -169,6 +173,8 @@ class TestInference:
             output,
             resources.target_types(problem),
         )
+        if problem == SPARSE:
+            cmd += " --sparse-column-file {}".format(input_dataset.replace(".mtx", ".columns"))
         if resources.target_types(problem) in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
                 cmd,
@@ -182,7 +188,7 @@ class TestInference:
         _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
-        in_data = pd.read_csv(input_dataset)
+        in_data = resources.input_data(framework, problem)
         out_data = pd.read_csv(output)
         assert in_data.shape[0] == out_data.shape[0]
 
@@ -221,6 +227,8 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
+            (SKLEARN, SPARSE, PYTHON_PREDICT_SPARSE, None),
+            (RDS_SPARSE, SPARSE, R_PREDICT_SPARSE, None),
             (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
             (SKLEARN, REGRESSION, PYTHON, None),
             (SKLEARN, BINARY, PYTHON, None),
@@ -287,6 +295,11 @@ class TestInference:
                     {"files": {"X": open(input_dataset)}},
                     {"data": open(input_dataset, "rb")},
                 ]:
+                    if problem == SPARSE:
+                        if "data" in post_args:
+                            continue
+                        input_colnames = input_dataset.replace(".mtx", ".columns")
+                        post_args["files"]["X.colnames"] = open(input_colnames)
                     response = requests.post(run.url_server_address + endpoint, **post_args)
 
                     print(response.text)
@@ -294,7 +307,7 @@ class TestInference:
                     actual_num_predictions = len(
                         json.loads(response.text)[RESPONSE_PREDICTIONS_KEY]
                     )
-                    in_data = pd.read_csv(input_dataset)
+                    in_data = resources.input_data(framework, problem)
                     assert in_data.shape[0] == actual_num_predictions
             # test model info
             response = requests.get(run.url_server_address + "/info/")

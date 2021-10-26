@@ -121,7 +121,7 @@ class CMRunner:
         if self._input_df is None:
             # Lazy load df
             self._input_df = StructuredInputReadUtils.read_structured_input_file_as_df(
-                self.options.input
+                self.options.input, self.options.sparse_column_file,
             )
         return self._input_df
 
@@ -603,6 +603,7 @@ class CMRunner:
                 {
                     "input_filename": options.input,
                     "output_filename": '"{}"'.format(options.output) if options.output else "null",
+                    "sparse_column_file": options.sparse_column_file,
                 }
             )
         else:

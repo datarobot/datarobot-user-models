@@ -121,6 +121,13 @@ class GenericPredictorComponent(ConnectableComponent):
             binary_data, mimetype = StructuredInputReadUtils.read_structured_input_file_as_binary(
                 input_filename
             )
-            predictions = self._predictor.predict(binary_data=binary_data, mimetype=mimetype)
+            if self._params["sparse_column_file"]:
+                with open(self._params["sparse_column_file"], "rb") as f:
+                    sparse_colnames_bin = f.read()
+            else:
+                sparse_colnames_bin = None
+            predictions = self._predictor.predict(
+                binary_data=binary_data, mimetype=mimetype, sparse_colnames=sparse_colnames_bin
+            )
             predictions.to_csv(output_filename, index=False)
         return []

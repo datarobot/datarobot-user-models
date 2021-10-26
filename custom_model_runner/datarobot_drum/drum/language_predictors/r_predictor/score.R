@@ -114,7 +114,7 @@ load_serialized_model <- function(model_dir, target_type) {
     model
 }
 
-.load_data <- function(binary_data, mimetype=NULL, use_hook=TRUE) {
+.load_data <- function(binary_data, mimetype=NULL, use_hook=TRUE, sparse_colnames=NULL) {
     if (use_hook && !isFALSE(read_input_data_hook)) {
         data <- read_input_data_hook(binary_data)
     } else if (!is.null(mimetype) && mimetype == "text/mtx") {
@@ -125,6 +125,9 @@ load_serialized_model <- function(model_dir, target_type) {
         data <- readMM(tmp_file_name)
         close(f)
         unlink(tmp_file_name)
+        if(!is.null(sparse_colnames)) {
+            colnames(data) <- sparse_colnames
+        }
     } else {
         tmp <- stri_conv(binary_data, "utf8")
         data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE), check.names = FALSE)
@@ -218,7 +221,7 @@ model_predict <- function(...) {
 #' @export
 #'
 #' @examples
-outer_predict <- function(target_type, binary_data=NULL, mimetype=NULL, model=NULL, positive_class_label=NULL, negative_class_label=NULL, class_labels=NULL){
+outer_predict <- function(target_type, binary_data=NULL, mimetype=NULL, model=NULL, positive_class_label=NULL, negative_class_label=NULL, class_labels=NULL, sparse_colnames=NULL){
     .validate_data <- function(to_validate) {
         if (!is.data.frame(to_validate)) {
             stop(sprintf("predictions must be of a data.frame type, received %s", typeof(to_validate)))
@@ -292,7 +295,7 @@ outer_predict <- function(target_type, binary_data=NULL, mimetype=NULL, model=NU
         }
     }
 
-    data <- .load_data(binary_data, mimetype)
+    data <- .load_data(binary_data, mimetype, sparse_colnames = sparse_colnames)
     if (!isFALSE(transform_hook)) {
         data <- transform_hook(data, model)
     }

@@ -95,6 +95,13 @@ class RPredictor(BaseLanguagePredictor):
     def _predict(self, **kwargs):
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
+        if kwargs.get(StructuredDtoKeys.SPARSE_COLNAMES):
+            sparse_colnames = (
+                kwargs[StructuredDtoKeys.SPARSE_COLNAMES].decode("utf-8").rstrip().split("\n")
+            )
+            sparse_colnames = ro.vectors.StrVector(sparse_colnames)
+        else:
+            sparse_colnames = ro.rinterface.NULL
         with capture_R_traceback_if_errors(r_handler, logger):
             predictions = r_handler.outer_predict(
                 self._target_type.value,
@@ -104,6 +111,7 @@ class RPredictor(BaseLanguagePredictor):
                 positive_class_label=self._r_positive_class_label,
                 negative_class_label=self._r_negative_class_label,
                 class_labels=self._r_class_labels,
+                sparse_colnames=sparse_colnames,
             )
 
         with localconverter(ro.default_converter + pandas2ri.converter):
