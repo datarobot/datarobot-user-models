@@ -121,7 +121,7 @@ class CMRunner:
         if self._input_df is None:
             # Lazy load df
             self._input_df = StructuredInputReadUtils.read_structured_input_file_as_df(
-                self.options.input
+                self.options.input, self.options.sparse_column_file,
             )
         return self._input_df
 
@@ -490,6 +490,16 @@ class CMRunner:
             raise DrumCommonException(error_message)
 
     def run_fit(self):
+        """Run when run_model is fit.
+
+        Raises
+        ------
+        DrumPredException
+            Raised when prediction fails.
+        DrumSchemaValidationException
+            Raised when model metadata validation fails.
+        """
+        self.schema_validator.validate_type_schema(self.target_type)
         input_data = self.input_df
         if self.options.target:
             input_data = input_data.drop(self.options.target, axis=1)
@@ -593,6 +603,7 @@ class CMRunner:
                 {
                     "input_filename": options.input,
                     "output_filename": '"{}"'.format(options.output) if options.output else "null",
+                    "sparse_column_file": options.sparse_column_file,
                 }
             )
         else:

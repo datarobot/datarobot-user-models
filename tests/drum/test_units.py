@@ -5,6 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import glob
+import itertools
 import json
 import os
 import socket
@@ -40,6 +41,7 @@ from datarobot_drum.drum.drum import (
     possibly_intuit_order,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import JavaPredictor
 from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
     PythonPredictor,
@@ -47,7 +49,9 @@ from datarobot_drum.drum.language_predictors.python_predictor.python_predictor i
 from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.push import _push_inference, _push_training, drum_push
-from datarobot_drum.drum.utils import StructuredInputReadUtils, DrumUtils
+from datarobot_drum.drum.utils import DrumUtils
+from datarobot_drum.drum.typeschema_validation import SchemaValidator
+from datarobot_drum.drum.utils import StructuredInputReadUtils
 
 
 class TestOrderIntuition:
@@ -819,3 +823,55 @@ def test_predictor_extension():
     assert not PyTorchPredictor().is_artifact_supported("artifact.Jar")
     assert not KerasPredictor().is_artifact_supported("artifact.jaR")
     assert not PMMLPredictor().is_artifact_supported("artifact.jAr")
+
+
+@pytest.mark.parametrize(
+    "target_type, predictor_cls",
+    itertools.product(
+        [
+            TargetType.BINARY,
+            TargetType.MULTICLASS,
+            TargetType.REGRESSION,
+            TargetType.UNSTRUCTURED,
+            TargetType.ANOMALY,
+            TargetType.UNSTRUCTURED,
+            TargetType.TRANSFORM,
+        ],
+        [PythonPredictor, RPredictor, JavaPredictor],
+    ),
+)
+def test_validate_model_metadata_output_requirements(target_type, predictor_cls):
+    """The validation on the specs defined in the output_requirements of model metadata is only triggered when the
+    custom task is a transform task. This test checks this functionality.
+
+    Expected results:
+        - If the custom task is a transform task, the validation on the specs defined in the output_requirements will
+          be triggered. In this case, the exception is raised due to the violation of output_requirements.
+        - If the custom task is not a transform task, the validation on the spec defined in the output_requirements will
+          not be triggered.
+    """
+
+    proba_pred_output = pd.DataFrame({"class_0": [0.1, 0.2, 0.3], "class_1": [0.9, 0.8, 0.7]})
+    num_pred_output = pd.DataFrame(np.arange(10))
+    predictor = predictor_cls()
+    predictor._target_type = target_type
+    type_schema = {
+        "input_requirements": [{"field": "data_types", "condition": "IN", "value": "NUM"}],
+        "output_requirements": [{"field": "data_types", "condition": "IN", "value": "CAT"}],
+    }
+    predictor._schema_validator = SchemaValidator(type_schema=type_schema)
+    df_to_validate = (
+        proba_pred_output
+        if target_type.value in TargetType.CLASSIFICATION.value
+        else num_pred_output
+    )
+
+    if target_type == TargetType.TRANSFORM:
+        with pytest.raises(DrumSchemaValidationException) as ex:
+            predictor.validate_output(df_to_validate)
+        assert str(ex.value) == (
+            "schema validation failed for output:\n ['Datatypes incorrect. Data has types: NUM, which includes values "
+            "that are not in CAT.']"
+        )
+    else:
+        predictor.validate_output(df_to_validate)

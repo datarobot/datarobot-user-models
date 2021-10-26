@@ -568,3 +568,22 @@ class SchemaValidator:
                     "schema validation failed for {}:\n {}".format(step_label, errors)
                 )
             return False
+
+    def validate_type_schema(self, target_type):
+        """Validate typeSchema section of model metadata.
+
+        Parameters
+        ----------
+        target_type: TargetType
+            Enum defined in TargetType.
+
+        Raises
+        ------
+        DrumSchemaValidationException
+            Raised when target type is not transform and output_requirements exists in the model metadata typeSchema.
+        """
+
+        if target_type != TargetType.TRANSFORM and self._output_validators:
+            raise DrumSchemaValidationException(
+                "Specifying output_requirements in model_metadata.yaml is only valid for custom transform tasks."
+            )
