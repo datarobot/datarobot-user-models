@@ -40,7 +40,7 @@ def fit(X, y, output_dir, class_order, row_weights, **kwargs):
     """
 
     # fit DecisionTreeClassifier
-    estimator = DecisionTreeClassifier(loss="log")
+    estimator = DecisionTreeClassifier()
     estimator.fit(X, y)
 
     # dump the trained object [in this example - a trained DecisionTreeClassifier]
