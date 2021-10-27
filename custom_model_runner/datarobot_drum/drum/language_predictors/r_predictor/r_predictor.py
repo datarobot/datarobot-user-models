@@ -210,14 +210,15 @@ class RPredictor(BaseLanguagePredictor):
         with localconverter(ro.default_converter + pandas2ri.converter):
             py_data_object = ro.conversion.rpy2py(transformations)
 
-        if not isinstance(py_data_object, ro.ListVector) or len(py_data_object) != 2:
-            error_message = "Expected transform to return a two-element list containing X and y, got {}. ".format(
+        if not isinstance(py_data_object, ro.ListVector) or len(py_data_object) != 3:
+            error_message = "Expected transform to return a three-element list containing X, y and colnames, got {}. ".format(
                 type(py_data_object)
             )
             raise DrumCommonException(error_message)
 
         output_X = py_data_object[0]
         output_y = py_data_object[1] if py_data_object[1] is not ro.NULL else None
+        colnames = py_data_object[2] if py_data_object[2] is not ro.NULL else None
 
         if not isinstance(output_X, pd.DataFrame):
             error_message = "Expected transform output type: {}, actual: {}.".format(
@@ -241,5 +242,6 @@ class RPredictor(BaseLanguagePredictor):
             output_X = pd.DataFrame.sparse.from_spmatrix(
                 coo_matrix((data, (row, col)), shape=(num_rows, num_cols))
             )
+            output_X.columns = colnames
 
         return output_X, output_y
