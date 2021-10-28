@@ -59,7 +59,9 @@ def validate_and_convert_column_names_for_serialization(df):
     if len(set(columns)) != df.shape[1]:
         raise ValueError(
             "Column name serialization check failed, deserializing column names resulted in {}, expected {}\n"
-            "Ensure there are no duplicate column names".format(len(columns), df.shape[1])
+            "Ensure there are no duplicate column names or trailing whitespace".format(
+                len(columns), df.shape[1]
+            )
         )
 
     df.columns = columns
