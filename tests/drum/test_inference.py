@@ -69,6 +69,7 @@ from .constants import (
     MLJ,
     R_TRANSFORM,
     R_VALIDATE_SPARSE_ESTIMATOR,
+    UNSTRUCTURED
 )
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
 from datarobot_drum.resource.utils import (
@@ -323,7 +324,12 @@ class TestInference:
         unset_drum_supported_env_vars()
 
     @pytest.mark.parametrize(
-        "problem, class_labels", [(REGRESSION, None), (BINARY, ["no", "yes"]),],
+        "problem, class_labels", 
+        [
+            (REGRESSION, None), 
+            (BINARY, ["no", "yes"]),
+            (UNSTRUCTURED, None)
+            ],
     )
     # current test case returns hardcoded predictions:
     # - for regression: [1, 2, .., N samples]
@@ -343,15 +349,20 @@ class TestInference:
             input_dataset = resources.datasets(None, problem)
             # do predictions
             post_args = {"data": open(input_dataset, "rb")}
-            response = requests.post(run.url_server_address + "/predict", **post_args)
-            print(response.text)
-            assert response.ok
-            predictions = json.loads(response.text)[RESPONSE_PREDICTIONS_KEY]
-            actual_num_predictions = len(predictions)
-            in_data = pd.read_csv(input_dataset)
-            assert in_data.shape[0] == actual_num_predictions
+            if problem == UNSTRUCTURED:
+                response = requests.post(run.url_server_address + "/predictUnstructured", **post_args)
+            else:
+                response = requests.post(run.url_server_address + "/predict", **post_args)
+                print(response.text)
+                assert response.ok
+                predictions = json.loads(response.text)[RESPONSE_PREDICTIONS_KEY]
+                actual_num_predictions = len(predictions)
+                in_data = pd.read_csv(input_dataset)
+                assert in_data.shape[0] == actual_num_predictions
             if problem == REGRESSION:
                 assert list(range(1, actual_num_predictions + 1)) == predictions
+            elif problem == UNSTRUCTURED:
+                assert response.content.decode("UTF-8") == "10"
             else:
                 single_prediction = {"yes": 0.7, "no": 0.3}
                 assert [single_prediction] * actual_num_predictions == predictions

@@ -31,6 +31,8 @@ public abstract class BasePredictor {
     */
     public abstract String predict(byte[] inputBytes) throws Exception;
 
+    public abstract <T> T predict_unstructured(byte[] inputBytes, String mimetype, String charset, Map<String, String> query) throws Exception;
+
     /**
     * Make predictions on input CSV. This method is used in java_predictor.py, when
     * input data is larger than 33K and data is temporary saved into a CSV.

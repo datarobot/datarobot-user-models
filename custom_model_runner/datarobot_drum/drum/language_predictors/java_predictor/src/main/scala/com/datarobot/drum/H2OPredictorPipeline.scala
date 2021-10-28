@@ -81,6 +81,10 @@ class H2OPredictorPipeline(name: String) extends BasePredictor(name) {
     val predictions = Try(this.scoreReader(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(inputBytes)))))
     this.predictionsToString(predictions)
   }
+  
+  override def predict_unstructured[T](
+    inputBytes: Array[Byte], mimetype: String, charset: String, query: java.util.Map[String, String]
+  ): T = ???
 
   def predictionsToString[T](predictions: Try[Array[Array[T]]]): String = {
     val csvPrinter: CSVPrinter = new CSVPrinter(
@@ -111,3 +115,4 @@ class H2OPredictorPipeline(name: String) extends BasePredictor(name) {
     mojoPipeline
   }
 }
+

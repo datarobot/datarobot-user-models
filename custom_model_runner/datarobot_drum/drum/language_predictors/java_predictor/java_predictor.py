@@ -25,15 +25,20 @@ from datarobot_drum.drum.common import SupportedPayloadFormats
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     StructuredDtoKeys,
+    UnstructuredDtoKeys,
     JavaArtifacts,
     EnvVarNames,
     PayloadFormat,
 )
+
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.utils import DrumUtils
 
 from py4j.java_gateway import GatewayParameters, CallbackServerParameters, JavaGateway
+from py4j.java_collections import MapConverter
+from werkzeug.datastructures import ImmutableMultiDict
+
 
 RUNNING_LANG_MSG = "Running environment language: Java."
 
@@ -176,6 +181,29 @@ class JavaPredictor(BaseLanguagePredictor):
 
         out_df = pd.read_csv(StringIO(out_csv))
         return out_df
+
+    def predict_unstructured(self, data, **kwargs):
+
+        mimetype = kwargs.get(UnstructuredDtoKeys.MIMETYPE, "")
+        query = kwargs.get(UnstructuredDtoKeys.QUERY, "")
+        charset = kwargs.get(UnstructuredDtoKeys.CHARSET, "utf-8")
+        if isinstance(data, bytes):
+            ba = bytearray(data)
+        elif isinstance(data, str):
+            ba = bytearray(data.encode(charset))
+        if isinstance(query, dict):
+            query_dict = query
+        elif isinstance(query, ImmutableMultiDict):
+            query_dict = query.to_dict()
+        jmap = MapConverter().convert(query_dict, self._gateway._gateway_client)
+        ret = self._predictor_via_py4j.predict_unstructured(ba, mimetype, charset, jmap)
+        if isinstance(ret, (str, bytes, type(None))):
+            ret = ret, None
+        elif isinstance(ret, bytearray):
+            ret = bytes(ret), None
+        elif isinstance(ret, tuple):
+            ret = ret
+        return ret
 
     def _transform(self, **kwargs):
         raise DrumCommonException("Transform feature is not supported for Java/Scala")
