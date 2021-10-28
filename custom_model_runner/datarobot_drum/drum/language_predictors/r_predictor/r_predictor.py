@@ -242,6 +242,7 @@ class RPredictor(BaseLanguagePredictor):
             output_X = pd.DataFrame.sparse.from_spmatrix(
                 coo_matrix((data, (row, col)), shape=(num_rows, num_cols))
             )
-            output_X.columns = colnames
+            if colnames is not None:
+                output_X.columns = colnames
 
         return output_X, output_y

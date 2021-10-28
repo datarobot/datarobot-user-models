@@ -379,10 +379,11 @@ outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=
         output_data <- transform_hook(data, transformer, target_data)
         if (is.data.frame(output_data)) {
             output_data <- list(output_data, NULL, NULL)
-        }
-		if (is(output_data, 'sparseMatrix')) {
+        } else if (is(output_data, 'sparseMatrix')) {
             output_data <- list(output_data, NULL, colnames(output_data))
-		}
+        } else {
+            output_data <- append(output_data, list(NULL))
+        }
     } else {
         output_data <- list(bake(transformer, data), NULL, NULL)
     }
