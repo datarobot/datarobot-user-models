@@ -69,7 +69,7 @@ from .constants import (
     MLJ,
     R_TRANSFORM,
     R_VALIDATE_SPARSE_ESTIMATOR,
-    UNSTRUCTURED
+    UNSTRUCTURED,
 )
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
 from datarobot_drum.resource.utils import (
@@ -324,16 +324,13 @@ class TestInference:
         unset_drum_supported_env_vars()
 
     @pytest.mark.parametrize(
-        "problem, class_labels", 
-        [
-            (REGRESSION, None), 
-            (BINARY, ["no", "yes"]),
-            (UNSTRUCTURED, None)
-            ],
+        "problem, class_labels",
+        [(REGRESSION, None), (BINARY, ["no", "yes"]), (UNSTRUCTURED, None)],
     )
     # current test case returns hardcoded predictions:
     # - for regression: [1, 2, .., N samples]
     # - for binary: [{0.3, 0,7}, {0.3, 0.7}, ...]
+    # - for unstructured: 10
     def test_custom_model_with_custom_java_predictor(
         self, resources, class_labels, problem,
     ):
@@ -350,7 +347,9 @@ class TestInference:
             # do predictions
             post_args = {"data": open(input_dataset, "rb")}
             if problem == UNSTRUCTURED:
-                response = requests.post(run.url_server_address + "/predictUnstructured", **post_args)
+                response = requests.post(
+                    run.url_server_address + "/predictUnstructured", **post_args
+                )
             else:
                 response = requests.post(run.url_server_address + "/predict", **post_args)
                 print(response.text)
