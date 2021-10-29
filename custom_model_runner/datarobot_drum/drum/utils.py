@@ -246,7 +246,9 @@ def shared_fit_preprocessing(fit_class):
 
     row_weights = extract_weights(X, fit_class)
     class_order = extract_class_order(fit_class)
-    return X, y, class_order, row_weights, parameters
+    offsets = extract_special_column(X, fit_class, "offsets_filename", "offsets")
+    events_count = extract_special_column(X, fit_class, "events_count_filename", "events_count")
+    return X, y, class_order, row_weights, parameters, offsets, events_count
 
 
 def extract_weights(X, fit_class):
@@ -265,6 +267,23 @@ def extract_weights(X, fit_class):
     else:
         row_weights = None
     return row_weights
+
+
+def extract_special_column(X, fit_class, file_name_attr, feature_name_attr):
+    data_file_name = getattr(fit_class, file_name_attr)
+    feature_name = getattr(fit_class, feature_name_attr)
+    if data_file_name:
+        data = pd.read_csv(data_file_name).sample(fit_class.num_rows, random_state=1)
+    elif feature_name:
+        if feature_name not in X.columns:
+            raise ValueError(
+                "The column name {} is not one of the columns in "
+                "your training data".format(feature_name)
+            )
+        data = X[feature_name]
+    else:
+        data = None
+    return data
 
 
 def extract_class_order(fit_class):

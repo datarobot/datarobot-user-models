@@ -167,6 +167,48 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
+    def _reg_arg_offsets(*parsers):
+        for parser in parsers:
+            group = parser.add_mutually_exclusive_group(required=False)
+            group.add_argument(
+                ArgumentsOptions.OFFSETS,
+                type=str,
+                required=False,
+                default=None,
+                help="A column name of offsets in your training dataframe. "
+                "Argument is mutually exclusive with {}".format(ArgumentsOptions.OFFSETS_CSV),
+            )
+            group.add_argument(
+                ArgumentsOptions.OFFSETS_CSV,
+                type=CMRunnerArgsRegistry._is_valid_file,
+                required=False,
+                default=None,
+                help="A one column csv file to be parsed as offsets. "
+                "Argument is mutually exclusive with {}".format(ArgumentsOptions.OFFSETS),
+            )
+
+    @staticmethod
+    def _reg_arg_events_count(*parsers):
+        for parser in parsers:
+            group = parser.add_mutually_exclusive_group(required=False)
+            group.add_argument(
+                ArgumentsOptions.EVENTS_COUNT,
+                type=str,
+                required=False,
+                default=None,
+                help="A column name of events count in your training dataframe. "
+                "Argument is mutually exclusive with {}".format(ArgumentsOptions.EVENTS_COUNT_CSV),
+            )
+            group.add_argument(
+                ArgumentsOptions.EVENTS_COUNT_CSV,
+                type=CMRunnerArgsRegistry._is_valid_file,
+                required=False,
+                default=None,
+                help="A one column csv file to be parsed as events count. "
+                "Argument is mutually exclusive with {}".format(ArgumentsOptions.EVENTS_COUNT),
+            )
+
+    @staticmethod
     def _reg_arg_skip_predict(*parsers):
         for parser in parsers:
             parser.add_argument(
@@ -838,6 +880,8 @@ class CMRunnerArgsRegistry(object):
 
         CMRunnerArgsRegistry._reg_arg_target_feature_and_filename(fit_parser)
         CMRunnerArgsRegistry._reg_arg_weights(fit_parser)
+        CMRunnerArgsRegistry._reg_arg_offsets(fit_parser)
+        CMRunnerArgsRegistry._reg_arg_events_count(fit_parser)
         CMRunnerArgsRegistry._reg_arg_skip_predict(fit_parser)
         CMRunnerArgsRegistry._reg_arg_num_rows(fit_parser)
         CMRunnerArgsRegistry._reg_arg_sparse_colfile(fit_parser, score_parser)

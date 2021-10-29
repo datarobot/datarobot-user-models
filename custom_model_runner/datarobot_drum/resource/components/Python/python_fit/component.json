@@ -88,6 +88,34 @@
     "type": "str or int",
     "description": "Number of rows to fit on",
     "optional": false
+  },
+  {
+      "key": "offsets",
+      "label": "offsets",
+      "type": "str",
+      "description": "Offset column name",
+      "optional": true
+  },
+  {
+      "key": "offsetsFilename",
+      "label": "offsetsFilename",
+      "type": "str",
+      "description": "Offset file name",
+      "optional": true
+  },
+  {
+      "key": "eventsCount",
+      "label": "eventsCount",
+      "type": "str",
+      "description": "Events count column name",
+      "optional": true
+  },
+  {
+      "key": "eventsCountFilename",
+      "label": "eventsCountFilename",
+      "type": "str",
+      "description": "Events count file name",
+      "optional": true
   }
   ]
 }

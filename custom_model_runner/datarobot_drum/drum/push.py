@@ -185,6 +185,10 @@ def _setup_training_validation(config, options):
     options.target = config["validation"].get("targetName")
     options.row_weights = None
     options.row_weights_csv = None
+    options.offsets = None
+    options.offsets_csv = None
+    options.events_count = None
+    options.events_count_csv = None
     options.num_rows = "ALL"
     options.skip_predict = False
     options.sparse_column_file = None

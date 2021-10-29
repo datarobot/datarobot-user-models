@@ -693,6 +693,10 @@ class CMRunner:
             "input_filename": options.input,
             "weights": options.row_weights,
             "weights_filename": options.row_weights_csv,
+            "offsets": options.offsets,
+            "offsets_filename": options.offsets_csv,
+            "events_count": options.events_count,
+            "events_count_filename": options.events_count_csv,
             "target_column": options.target,
             "target_filename": options.target_csv,
             "positiveClassLabel": options.positive_class_label,
@@ -802,6 +806,8 @@ class CMRunner:
         in_docker_fit_output_dir = "/opt/fit_output_dir"
         in_docker_fit_target_filename = "/opt/fit_target.csv"
         in_docker_fit_row_weights_filename = "/opt/fit_row_weights.csv"
+        in_docker_fit_offset_filename = "/opt/fit_offsets.csv"
+        in_docker_fit_events_count_filename = "/opt/fit_events_count.csv"
 
         docker_cmd = "docker run --rm --entrypoint '' --interactive --user $(id -u):$(id -g)"
         docker_cmd_args = ' -v "{}":{}'.format(options.code_dir, in_docker_model)
@@ -899,6 +905,26 @@ class CMRunner:
                         in_docker_cmd_list,
                         ArgumentsOptions.WEIGHTS_CSV,
                         in_docker_fit_row_weights_filename,
+                    )
+                if options.offsets_csv:
+                    fit_offsets_filename = os.path.realpath(options.offsets_csv)
+                    docker_cmd_args += ' -v "{}":{}'.format(
+                        fit_offsets_filename, in_docker_fit_offset_filename
+                    )
+                    DrumUtils.replace_cmd_argument_value(
+                        in_docker_cmd_list,
+                        ArgumentsOptions.OFFSETS_CSV,
+                        in_docker_fit_offset_filename,
+                    )
+                if options.events_count_csv:
+                    fit_events_count_filename = os.path.realpath(options.events_count_csv)
+                    docker_cmd_args += ' -v "{}":{}'.format(
+                        fit_events_count_filename, in_docker_fit_events_count_filename
+                    )
+                    DrumUtils.replace_cmd_argument_value(
+                        in_docker_cmd_list,
+                        ArgumentsOptions.EVENTS_COUNT_CSV,
+                        in_docker_fit_events_count_filename,
                     )
 
         docker_cmd += " {} {} {}".format(
