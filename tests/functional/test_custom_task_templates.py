@@ -18,9 +18,9 @@ import datarobot as dr
 from datarobot.errors import AsyncProcessUnsuccessfulError
 from datarobot_bp_workshop import Workshop
 
-BASE_PIPELINE_TASK_TEMPLATES_DIR = "task_templates/pipelines"
-BASE_ESTIMATOR_TASK_TEMPLATES_DIR = "task_templates/estimators"
-BASE_TRANSFORM_TASK_TEMPLATES_DIR = "task_templates/transforms"
+BASE_PIPELINE_TASK_TEMPLATES_DIR = "task_templates/3_pipelines"
+BASE_ESTIMATOR_TASK_TEMPLATES_DIR = "task_templates/2_estimators"
+BASE_TRANSFORM_TASK_TEMPLATES_DIR = "task_templates/1_transforms"
 BASE_FIXTURE_TASK_TEMPLATES_DIR = "tests/fixtures"
 
 BASE_DATASET_DIR = "tests/testdata"

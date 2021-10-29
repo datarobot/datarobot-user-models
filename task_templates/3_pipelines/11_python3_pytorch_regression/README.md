@@ -7,4 +7,4 @@ Create a new custom model with these files and use the Pytorch Drop-In Environme
 
 ### To run locally using 'drum'
 Paths are relative to `datarobot-user-models` root:  
-`drum fit --code-dir task_templates/pipelines/python3_pytorch --input tests/testdata/juniors_3_year_stats_regression.csv --target-type regression --target "Grade 2014"`  
+`drum fit --code-dir task_templates/3_pipelines/python3_pytorch --input tests/testdata/juniors_3_year_stats_regression.csv --target-type regression --target "Grade 2014"`  

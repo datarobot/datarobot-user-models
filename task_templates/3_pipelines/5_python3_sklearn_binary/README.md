@@ -44,5 +44,5 @@ Penalized linear model (but you can drop in any other sklearn model)
 
 ### To run locally using 'drum'
 Paths are relative to `datarobot-user-models` root:
-`drum fit --code-dir task_templates/pipelines/python3_sklearn_binary --input tests/testdata/iris_binary_training.csv --target-type binary --target Species`
+`drum fit --code-dir task_templates/3_pipelines/python3_sklearn_binary --input tests/testdata/iris_binary_training.csv --target-type binary --target Species`
 If the command succeeds, your code is ready to be uploaded.

@@ -1,6 +1,7 @@
 # Templates for Custom Tasks
 
-In this directory there are three folders - estimators, transforms, and pipelines. 
+In this directory there are three folders: transforms, estimators, and pipelines. 
+
 These are collectively known as "tasks". Each of these folders
 contain code snippets, i.e. tasks, that can be uploaded to DataRobot and incorporated into a blueprint. 
 DataRobot will then run this custom code as part of a blueprint both during model training and 
@@ -135,4 +136,4 @@ Except for where noted, our pipelines are verified within our functional test fr
 15. `python3_keras_vizai_joblib` - Trains a keras model on base64 encoded images.
 
 There is also a growing repository of re-usable tasks that might address your use case. You can find
-it here: https://github.com/datarobot-community/custom-models/tree/master/custom_tasks
+it here: htt****ps://github.com/datarobot-community/custom-models/tree/master/custom_tasks

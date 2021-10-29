@@ -15,4 +15,4 @@ Create a new custom model with these files and use the Python Drop-In Environmen
 
 ### To run locally using 'drum'
 Paths are relative to `datarobot-user-models` root:  
-`drum fit --code-dir task_templates/pipelines/python3_pytorch_multiclass --input tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv --target-type multiclass --target class`  
+`drum fit --code-dir task_templates/3_pipelines/python3_pytorch_multiclass --input tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv --target-type multiclass --target class`  

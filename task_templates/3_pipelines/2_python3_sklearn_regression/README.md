@@ -44,5 +44,5 @@ Penalized linear model (but you can drop in any other sklearn model)
 
 ### To run locally using 'drum'
 Paths are relative to `datarobot-user-models` root:
-`drum fit --code-dir task_templates/pipelines/python3_sklearn_regression --input tests/testdata/juniors_3_year_stats_regression.csv --target-type regression --target "Grade 2014"`
+`drum fit --code-dir task_templates/3_pipelines/python3_sklearn_regression --input tests/testdata/juniors_3_year_stats_regression.csv --target-type regression --target "Grade 2014"`
 If the command succeeds, your code is ready to be uploaded.
