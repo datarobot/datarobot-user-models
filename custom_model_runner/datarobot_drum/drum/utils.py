@@ -51,7 +51,7 @@ class DrumUtils:
 
     @classmethod
     def get_pipeline_filepath(cls, pipeline_name):
-        pipeline_filepath = os.path.join(cls.resource_path, "3_pipelines", pipeline_name)
+        pipeline_filepath = os.path.join(cls.resource_path, "pipelines", pipeline_name)
         logger.debug("Getting pipeline: {}".format(pipeline_filepath))
         return pipeline_filepath
 
