@@ -48,6 +48,11 @@ public class ScoringCode extends BasePredictor {
         return ret;
     }
 
+    @Override
+    public <T> T predict_unstructured(byte[] inputBytes, String mimetype, String charset, Map<String, String> query) throws Exception {
+        throw new Exception("Not Implemented");
+    }
+    
     private String predictionsToString(List<?> predictions) throws Exception {
         CSVPrinter csvPrinter = null;
 
