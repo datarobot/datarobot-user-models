@@ -1,20 +1,26 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import logging
-import traceback
 from datarobot_drum.drum.server import (
     base_api_blueprint,
     get_flask_app,
     HTTP_513_DRUM_PIPELINE_ERROR,
 )
-from datarobot_drum.drum.common import (
-    RunMode,
-    verbose_stdout,
-    LOGGER_NAME_PREFIX,
-)
+from datarobot_drum.drum.common import verbose_stdout
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, RunMode
 
 from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.args_parser import ArgumentsOptions
+
+from termcolor import colored
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 logger.setLevel(logging.ERROR)
+logger_drum = logging.getLogger(LOGGER_NAME_PREFIX)
 
 
 class DrumRuntime:
@@ -29,6 +35,12 @@ class DrumRuntime:
         if not exc_type:
             return True  # no exception, just return
 
+        logger_drum.warning(
+            colored(
+                f"Looks like there is a problem. To get more output information try to run with: {ArgumentsOptions.VERBOSE}",
+                "yellow",
+            )
+        )
         if not self.options:
             # exception occurred before args were parsed
             return False  # propagate exception further
@@ -54,7 +66,7 @@ class DrumRuntime:
             # when run in docker mode,
             # drum is started from docker with the same options except `--docker`.
             # thus error server is started in docker as well.
-            # return here two avoid starting error server 2nd time.
+            # return here to avoid starting error server 2nd time.
             return False  # propagate exception further
 
         if not self.options.with_error_server:
@@ -86,6 +98,9 @@ def run_error_server(host, port, exc_value):
         return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR
 
     @model_api.route("/predict/", methods=["POST"])
+    @model_api.route("/predictions/", methods=["POST"])
+    @model_api.route("/predictUnstructured/", methods=["POST"])
+    @model_api.route("/predictionsUnstructured/", methods=["POST"])
     def predict():
         return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR
 

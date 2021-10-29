@@ -1,15 +1,21 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import logging
 import time
 
 from abc import ABC, abstractmethod
 import numpy as np
 
-from datarobot_drum.drum.common import (
+from datarobot_drum.drum.common import read_model_metadata_yaml
+from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
-    TargetType,
     StructuredDtoKeys,
     ModelInfoKeys,
-    read_model_metadata_yaml,
+    TargetType,
 )
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils import StructuredInputReadUtils
@@ -75,16 +81,12 @@ class BaseLanguagePredictor(ABC):
             # Regression: [10, 12, 13]
             # Classification: [[0.5, 0.5], [0.7, 03]]
             # In case of classification, class names are also required
-            class_names = self._class_labels
+            class_names = None
             if len(predictions.columns) == 1:
                 mlops_predictions = predictions[predictions.columns[0]].tolist()
             else:
                 mlops_predictions = predictions.values.tolist()
-                if (
-                    self._positive_class_label is not None
-                    and self._negative_class_label is not None
-                ):
-                    class_names = [self._negative_class_label, self._positive_class_label]
+                class_names = list(predictions.columns)
 
             df = StructuredInputReadUtils.read_structured_input_data_as_df(
                 kwargs.get(StructuredDtoKeys.BINARY_DATA), kwargs.get(StructuredDtoKeys.MIMETYPE),
@@ -95,12 +97,12 @@ class BaseLanguagePredictor(ABC):
 
     def validate_output(self, output_df):
         if self._target_type.value in TargetType.CLASSIFICATION.value:
-            try:
-                added_probs = output_df.sum(axis=1)
-                np.testing.assert_array_almost_equal(added_probs, 1)
-            except AssertionError:
+            added_probs = output_df.sum(axis=1)
+            good_preds = np.isclose(added_probs, 1)
+            if not np.all(good_preds):
+                bad_rows = output_df[~good_preds]
                 raise ValueError(
-                    "Your prediction probabilities do not add up to 1. \n{}".format(output_df)
+                    "Your prediction probabilities do not add up to 1. \n{}".format(bad_rows)
                 )
         if self._target_type.value == TargetType.TRANSFORM.value:
             if self._schema_validator:

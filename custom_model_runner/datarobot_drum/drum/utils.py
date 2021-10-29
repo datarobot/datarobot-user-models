@@ -1,4 +1,13 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import json
+from distutils.util import strtobool
+from pandas import DataFrame
+from typing import Set, Any, List
 import logging
 import os
 import socket
@@ -14,18 +23,19 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 
 from jinja2 import BaseLoader, DebugUndefined, Environment
 
-from datarobot_drum.drum.common import (
+from datarobot_drum.drum.common import get_pyarrow_module
+from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     PredictionServerMimetypes,
     InputFormatToMimetype,
-    get_pyarrow_module,
     ArgumentOptionsEnvVars,
+    InputFormatExtension,
 )
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 
-class CMRunnerUtils:
+class DrumUtils:
     current_path = os.path.dirname(__file__)
     resource_path = os.path.abspath(os.path.join(current_path, "..", "resource"))
     assert os.path.exists(resource_path)
@@ -59,20 +69,73 @@ class CMRunnerUtils:
         return cls.render_template_keep_undefined(file_str, data)
 
     @classmethod
+    def endswith_extension_ignore_case(cls, filename, extensions):
+        if isinstance(extensions, list):
+            exts = tuple([extension.lower() for extension in extensions])
+        elif isinstance(extensions, str):
+            exts = extensions.lower()
+        else:
+            raise ValueError(
+                "`extensions` variable type is not supported: {}".format(type(extensions))
+            )
+        return filename.lower().endswith(exts)
+
+    @classmethod
     def find_files_by_extensions(cls, dirpath, extensions):
+        """
+        Find files in a dirpath according to provided extensions.
+        Ignore case.
+
+        :param dirpath: a directory where to search for files
+        :param extensions: list of extensions to match
+        :return: list of found files
+        """
         lst = []
         for filename in os.listdir(dirpath):
             path = os.path.join(dirpath, filename)
             if os.path.isdir(path):
                 continue
-            if any(filename.endswith(extension) for extension in extensions):
+            if DrumUtils.endswith_extension_ignore_case(filename, extensions):
                 lst.append(path)
         return lst
 
     @classmethod
-    def filename_exists_and_is_file(cls, dirpath, filename):
-        abs_filepath = os.path.abspath(os.path.join(dirpath, filename))
-        return os.path.exists(abs_filepath) and os.path.isfile(abs_filepath)
+    def filename_exists_and_is_file(cls, dirpath, filename, *args):
+        filenames = [filename] + list(args)
+        abs_filepaths = [os.path.abspath(os.path.join(dirpath, name)) for name in filenames]
+        found = [
+            os.path.exists(abs_filepath) and os.path.isfile(abs_filepath)
+            for abs_filepath in abs_filepaths
+        ]
+
+        # Check if there are multiple expected files in the dir, e.g. custom.r and custom.R
+        if found.count(True) > 1:
+            matching_files = [abs_filepaths[i] for i, value in enumerate(found) if value]
+            logger.warning(
+                "Found filenames that case-insensitively match each other.\n"
+                "Files: {}\n"
+                "This could lead to unexpected behavior or errors.".format(matching_files)
+            )
+
+        ret = any(found)
+        # if no expected files are found, check if there may be files that doesn't match expected case
+        # e.g. custom.PY vs custom.PY
+        if not ret:
+            case_insensitive_names = []
+            filenames_lower = [name.lower() for name in filenames]
+            for filename in os.listdir(dirpath):
+                if filename.lower() in filenames_lower:
+                    case_insensitive_names.append(filename)
+            if len(case_insensitive_names):
+                logger.warning(
+                    "Found filenames that case-insensitively match expected filenames.\n"
+                    "Found: {}\n"
+                    "Expected one of: {}\n"
+                    "This could lead to unexpected behavior or errors.".format(
+                        case_insensitive_names, filenames
+                    )
+                )
+        return ret
 
     @classmethod
     def is_port_in_use(cls, host, port):
@@ -130,7 +193,7 @@ def shared_fit_preprocessing(fit_class):
         row_weights: pd.Series of row weights, or None
     """
     # read in data
-    if fit_class.input_filename.endswith(".mtx"):
+    if DrumUtils.endswith_extension_ignore_case(fit_class.input_filename, InputFormatExtension.MTX):
         colnames = None
         if fit_class.sparse_column_file:
             colnames = [column.strip() for column in open(fit_class.sparse_column_file).readlines()]
@@ -241,11 +304,18 @@ class StructuredInputReadUtils:
         return binary_data, mimetype
 
     @staticmethod
-    def read_structured_input_file_as_df(filename):
+    def read_structured_input_file_as_df(filename, sparse_column_file=None):
         binary_data, mimetype = StructuredInputReadUtils.read_structured_input_file_as_binary(
             filename
         )
-        return StructuredInputReadUtils.read_structured_input_data_as_df(binary_data, mimetype)
+        if sparse_column_file:
+            with open(sparse_column_file, "rb") as file:
+                sparse_colnames = file.read()
+        else:
+            sparse_colnames = None
+        return StructuredInputReadUtils.read_structured_input_data_as_df(
+            binary_data, mimetype, sparse_colnames
+        )
 
     @staticmethod
     def resolve_mimetype_by_filename(filename):
@@ -304,3 +374,52 @@ def capture_R_traceback_if_errors(r_handler, logger):
                 "t_traceback_err": traceback_exc,
             }
         raise
+
+
+def marshal_labels(expected_labels: List[str], actual_labels: List[Any]):
+    if set(expected_labels) == set(actual_labels):
+        return actual_labels
+
+    if (
+        _can_be_converted_to_float(expected_labels)
+        and _can_be_converted_to_float(actual_labels)
+        and set(floatify(l) for l in expected_labels) == set(floatify(l) for l in actual_labels)
+    ):
+        return _order_by_float(expected_labels, actual_labels)
+
+    raise DrumCommonException(
+        "Expected predictions to have columns {}, but encountered {}".format(
+            expected_labels, actual_labels
+        )
+    )
+
+
+def _order_by_float(expected_labels, actual_labels):
+    """
+    Match the order of actual labels to the values in expected labels
+    Given both can be cast to floats
+    >>> _order_by_float(["1.0", "2.4", "0.4", "1.4"],  [2.4, 1.0, 0.4, 1.4])
+    ['2.4', '1.0', '0.4', '1.4']
+    """
+
+    def get_corresponding_expected_label(a_l):
+        for e_l in expected_labels:
+            if floatify(a_l) == floatify(e_l):
+                return e_l
+
+    return [get_corresponding_expected_label(_l) for _l in actual_labels]
+
+
+def floatify(label):
+    try:
+        return float(label)
+    except ValueError:
+        return float(strtobool(label))
+
+
+def _can_be_converted_to_float(labels):
+    try:
+        [floatify(label) for label in labels]
+        return True
+    except ValueError:
+        return False

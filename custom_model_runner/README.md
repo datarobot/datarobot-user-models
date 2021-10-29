@@ -12,7 +12,6 @@ DRUM can also:
 
 ## Communication
 - open an issue in the [DRUM GitHub repository](https://github.com/datarobot/datarobot-user-models/issues).
-- ask a question on the [#drum (IRC) channel](https://webchat.freenode.net/?channels=#drum).
 
 ## Custom inference models quickstart guide
 View examples [here](https://github.com/datarobot/datarobot-user-models#quickstart).
@@ -28,8 +27,7 @@ All models:
 - If you are using a drop-in environment found in this repo, you must pip install these dependencies.
 
 Python models:
-- Python 3.6 or 3.7 is required unless you are using DRUM with a Docker image.
-- This is because DRUM only runs with Python 3.6 or 3.7.
+- Check https://pypi.org/project/datarobot-drum/ for supported Python versions.
 
 Java models:
 - JRE >= 11.
@@ -93,21 +91,20 @@ This command creates a folder with a `custom.py/R` file and a short description:
 
 ### Batch scoring mode
 <a name="score"></a>
-> Note: DRUM doesn't automatically distinguish between regression and classification. When you are using classification model, provide: _**positive-class-label**_ and _**negative-class-label**_ arguments.
 #### Run a binary classification custom model
 Make batch predictions with a binary classification model. Optionally, specify an output file. Otherwise, predictions are returned to the command line:  
-```drum score --code-dir ~/user_code_dir/ --input 10k.csv  --positive-class-label yes --negative-class-label no --output 10k-results.csv --verbose```
+```drum score --code-dir ~/user_code_dir/ --input 10k.csv --target-type binary --positive-class-label yes --negative-class-label no --output 10k-results.csv --verbose```
 
 #### Run a regression custom model
 Make batch predictions with a regression model:  
-```drum score --code-dir ~/user_code_dir/ --input fast-iron.csv --verbose```
+```drum score --code-dir ~/user_code_dir/ --input fast-iron.csv --target-type regression --verbose```
 
 ### Testing model performance
 <a name="perf"></a>
 You can test how the model performs and get its latency times and memory usage.  
 In this mode, the model is started with a prediction server. Different request combinations are submitted to it.
 After it completes, it returns a report.  
-```drum perf-test --code-dir ~/user_code_dir/ --input 10k.csv --positive-class-label yes --negative-class-label no```  
+```drum perf-test --code-dir ~/user_code_dir/ --input 10k.csv --target-type binary --positive-class-label yes --negative-class-label no```  
 Report example:
 ```
 samples   iters    min     avg     max    used (MB)   total (MB)
@@ -125,13 +122,13 @@ For more feature options, see:
 ### Model validation checks
 <a name="validation"></a>
 You can validate the model on a set of various checks.
-It is highly recommended to run these checks, as they are performed in DataRobot before the model can be deployed.
+It is highly recommended running these checks, as they are performed in DataRobot before the model can be deployed.
 
 List of checks:
 - null values imputation: each feature of the provided dataset is set to missing and fed to the model.
 
 To run:
-```drum validation --code-dir ~/user_code_dir/ --input 10k.csv --positive-class-label yes --negative-class-label no```
+```drum validation --code-dir ~/user_code_dir/ --input 10k.csv --target-type binary --positive-class-label yes --negative-class-label no```
 Sample report:
 ```
 Validation check results
@@ -146,7 +143,7 @@ In case of check failure more information will be provided.
 <a name="server"></a>
 
 DRUM can also run as a prediction server. To do so, provide a server address argument:  
-```drum server --code-dir ~/user_code_dir --address localhost:6789```
+```drum server --code-dir ~/user_code_dir --target-type regression --address localhost:6789```
 
 The DRUM prediction server provides the following routes. You may provide the environment variable URL_PREFIX. Note that URLs must end with /.  
 For complete API specification in Openapi 3.0 format check here [drum_server_api.yaml](https://raw.githubusercontent.com/datarobot/datarobot-user-models/master/custom_model_runner/drum_server_api.yaml), you can also open it rendered in the [Swagger Editor](https://editor.swagger.io/?url=https://raw.githubusercontent.com/datarobot/datarobot-user-models/master/custom_model_runner/drum_server_api.yaml).
@@ -187,14 +184,14 @@ Response:
      "modelMetadata": {
        "environmentID": "5e8c889607389fe0f466c72d",
        "inferenceModel": {
-         "targetName": "MEDV"
+         "targetName": "Grade 2014"
        },
        "modelID": "5f1f15a4d6111f01cb7f91fd",
        "name": "regression model",
        "targetType": "regression",
        "type": "inference",
        "validation": {
-         "input": "../../../tests/testdata/boston_housing.csv"
+         "input": "../../../tests/testdata/juniors_3_year_stats_regression.csv"
        }
      },
      "predictor": "scikit-learn",
@@ -205,31 +202,32 @@ Response:
 * Statistics route:  
 A GET **URL_PREFIX/stats/** route, shows running model statistics (memory).  
 Example: GET http://localhost:6789/stats/  
+`mem_info::drum_rss` represent a sum of `drum_info::mem` values.  
 Response:
     ```json
   {
+      "drum_info": [{
+          "cmdline": [
+              "/tmp/drum_tests_virtual_environment/bin/python3",
+              "/tmp/drum_tests_virtual_environment/bin/drum",
+              "server",
+              "--code-dir",
+              "/tmp/model/python3_sklearn",
+              "--target-type",
+              "regression",
+              "--address",
+              "localhost:6789",
+              "--with-error-server",
+              "--show-perf"
+          ],
+          "mem": 256.71484375,
+          "pid": 342391
+      }],
       "mem_info": {
           "avail": 17670.828125,
           "container_limit": null,
           "container_max_used": null,
           "container_used": null,
-          "drum_info": [{
-              "cmdline": [
-                  "/tmp/drum_tests_virtual_environment/bin/python3",
-                  "/tmp/drum_tests_virtual_environment/bin/drum",
-                  "server",
-                  "--code-dir",
-                  "/tmp/model/python3_sklearn",
-                  "--target-type",
-                  "regression",
-                  "--address",
-                  "localhost:6789",
-                  "--with-error-server",
-                  "--show-perf"
-              ],
-              "mem": 256.71484375,
-              "pid": 342391
-          }],
           "drum_rss": 256.71484375,
           "free": 312.33203125,
           "nginx_rss": 0,
@@ -290,11 +288,12 @@ For these routes data is posted as binary data. Provide mimetype and charset to 
 For more detailed information please go [here](https://github.com/datarobot/datarobot-user-models#unstructured_inference_models).  
 
 #### Starting drum as prediction server in production mode.
-Drum prediction server can be started in *production* mode which has nginx and uwsgi as the backend.
+DRUM prediction server can be started in *production* mode which has nginx and uwsgi as the backend.
 This provides better stability and scalability - depending on how many CPUs are available several workers will be started to serve predictions.  
 *--max-workers* parameter  can be used to limit number of workers.  
 E.g. ```drum server --code-dir ~/user_code_dir --address localhost:6789 --production --max-workers 2```
 
+> Note: `uwsgi` is an extra dependency for DRUM. Install it using: `pip install datarobot-drum[uwsgi]` or `pip install uwsgi`  
 > Note: *Production* mode may not be available on Windows-based systems out ot the box, as uwsgi installation requires special handling.
 > Docker container based Linux environment can be used for such cases.
 
@@ -325,8 +324,8 @@ In every mode, DRUM can be run inside a docker container by providing the option
 The container should implement an environment required to perform desired action.
 DRUM must be installed as a part of this environment.  
 The following is an example on how to run DRUM inside of container:  
-```drum score --code-dir ~/user_code_dir/ --input dataset.csv --docker <container_name>```  
-```drum perf-test --code-dir ~/user_code_dir/ --input dataset.csv --docker <container_name>```
+```drum score --code-dir ~/user_code_dir/ --target-type <target type> --input dataset.csv --docker <container_name>```  
+```drum perf-test --code-dir ~/user_code_dir/ --target-type <target type> --input dataset.csv --docker <container_name>```
 
 Alternatively, the argument passed through the `--docker` flag may be a directory containing the unbuilt contents
 of an image. The DRUM tool will then attempt to build an image using this directory and run your model inside

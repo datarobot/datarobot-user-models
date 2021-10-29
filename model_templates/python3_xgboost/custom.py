@@ -1,3 +1,11 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
+
+
 def transform(data, model):
     """
     Note: This hook may not have to be implemented for your model.
@@ -16,10 +24,9 @@ def transform(data, model):
     pd.DataFrame
     """
     # Execute any steps you need to do before scoring
-    # Remove target columns if  they're in the dataset
-    if "MEDV" in data:
-        data.pop("MEDV")
-    if "Species" in data:
-        data.pop("Species")
+    # Remove target columns if they're in the dataset
+    for target_col in ["Grade 2014", "Species"]:
+        if target_col in data:
+            data.pop(target_col)
     data = data.fillna(0)
     return data

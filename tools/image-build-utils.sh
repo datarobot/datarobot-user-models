@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+# Copyright 2021 DataRobot, Inc. and its affiliates.
+#
+# All rights reserved.
+# This is proprietary source code of DataRobot, Inc. and its affiliates.
+#
+# Released under the terms of DataRobot Tool and Utility Agreement.
+
+GIT_ROOT=$(git rev-parse --show-toplevel)
 
 function build_drum() {
   CDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
@@ -41,11 +49,14 @@ function build_dropin_env_dockerfile() {
 
 function build_all_dropin_env_dockerfiles() {
   # Change every environment Dockerfile to install freshly built DRUM wheel
-  pushd public_dropin_environments || exit 1
+  pushd "${GIT_ROOT}/public_dropin_environments" || exit 1
   DIRS=$(ls)
   for d in $DIRS
   do
-     build_dropin_env_dockerfile "$d" "$1"
+    if [[ -d "$d" ]]
+    then
+       build_dropin_env_dockerfile "$d" "$1"
+    fi
   done
   popd || exit 1
 }

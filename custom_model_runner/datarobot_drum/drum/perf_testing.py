@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import collections
 import json
 import os
@@ -22,14 +28,16 @@ from datarobot_drum.drum.exceptions import (
     DrumPerfTestTimeout,
     DrumPredException,
 )
-from datarobot_drum.drum.utils import CMRunnerUtils
-from datarobot_drum.drum.common import (
+from datarobot_drum.drum.utils import DrumUtils
+
+from datarobot_drum.drum.enum import (
+    RESPONSE_PREDICTIONS_KEY,
+    SPARSE_COLNAMES,
+    PERF_TEST_SERVER_LABEL,
     PredictionServerMimetypes,
     ArgumentsOptions,
-    PERF_TEST_SERVER_LABEL,
-    SPARSE_COLNAMES,
-    RESPONSE_PREDICTIONS_KEY,
     TargetType,
+    InputFormatExtension,
 )
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
 from datarobot_drum.resource.transform_helpers import (
@@ -39,6 +47,7 @@ from datarobot_drum.resource.transform_helpers import (
     make_mtx_payload,
     parse_multi_part_response,
     filter_urllib3_logging,
+    read_x_data_from_response,
 )
 
 
@@ -229,7 +238,7 @@ class CMRunTests:
         self._input_df = pd.read_csv(self._input_csv)
 
         self._server_addr = "localhost"
-        self._server_port = CMRunnerUtils.find_free_port()
+        self._server_port = DrumUtils.find_free_port()
         self._url_server_address = "http://{}:{}".format(self._server_addr, self._server_port)
         self._shutdown_endpoint = "/shutdown/"
         self._predict_endpoint = "/predict/"
@@ -485,7 +494,7 @@ class CMRunTests:
         _kill_drum_perf_test_server_process(
             _find_drum_perf_test_server_process(), self.options.verbose
         )
-        if CMRunnerUtils.is_port_in_use(self._server_addr, self._server_port):
+        if DrumUtils.is_port_in_use(self._server_addr, self._server_port):
             error_message = "\nError: address: {} is in use".format(self._url_server_address)
             print(error_message)
             raise DrumCommonException(error_message)
@@ -517,7 +526,7 @@ class CMRunTests:
         output_dir = mkdtemp(prefix=DIR_PREFIX, dir=TMP_DIR)
         output_filename = os.path.join(output_dir, "output")
 
-        CMRunnerUtils.replace_cmd_argument_value(cmd_list, ArgumentsOptions.OUTPUT, output_filename)
+        DrumUtils.replace_cmd_argument_value(cmd_list, ArgumentsOptions.OUTPUT, output_filename)
 
         p = subprocess.Popen(cmd_list, env=os.environ)
         retcode = p.wait()
@@ -554,12 +563,10 @@ class CMRunTests:
             df_tmp = df.copy()
             df_tmp[column_name] = None
             df_tmp.to_csv(tmp_dataset_file_path, index=False)
-            CMRunnerUtils.replace_cmd_argument_value(
+            DrumUtils.replace_cmd_argument_value(
                 cmd_list, ArgumentsOptions.INPUT, tmp_dataset_file_path
             )
-            CMRunnerUtils.replace_cmd_argument_value(
-                cmd_list, ArgumentsOptions.OUTPUT, output_filename
-            )
+            DrumUtils.replace_cmd_argument_value(cmd_list, ArgumentsOptions.OUTPUT, output_filename)
 
             p = subprocess.Popen(cmd_list, env=os.environ)
             retcode = p.wait()
@@ -664,7 +671,7 @@ class CMRunTests:
                 payload.update({SPARSE_COLNAMES: open(self.options.sparse_column_file)})
 
             # there is a known bug in urllib3 that needlessly gives a header warning
-            # this will supress the warning for better user experience when running performance test
+            # this will suppress the warning for better user experience when running performance test
             filter_urllib3_logging()
             if self.options.target:
                 target_location = target_temp_location.name
@@ -678,12 +685,14 @@ class CMRunTests:
                 raise DrumCommonException(
                     "Failure in {} server: {}".format(endpoint[1:-1], response.text)
                 )
+            transformed_values = read_x_data_from_response(response)
+            self._schema_validator.validate_outputs(transformed_values)
 
     def check_prediction_side_effects(self):
         rtol = 2e-02
         atol = 1e-06
         input_extension = os.path.splitext(self.options.input)
-        is_sparse = input_extension[1] == ".mtx"
+        is_sparse = input_extension[1] == InputFormatExtension.MTX
 
         if is_sparse:
             columns = [
@@ -744,14 +753,12 @@ class CMRunTests:
 
             preds_full_subset = preds_full.iloc[data_subset.index]
 
-            if self._schema_validator:
-                # Validate that the predictions are of the type and shape the user specified in the schema
-                self._schema_validator.validate_outputs(preds_sample)
+            self._schema_validator.validate_outputs(preds_sample)
 
             matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)
             if not np.all(matches):
                 if is_sparse:
-                    _, __tempfile_sample = mkstemp(suffix=".mtx")
+                    _, __tempfile_sample = mkstemp(suffix=InputFormatExtension.MTX)
                     sparse_mat = vstack(x[0] for x in data_subset.values)
                     mmwrite(__tempfile_sample, sparse_mat.sparse.to_coo())
                 else:

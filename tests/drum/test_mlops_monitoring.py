@@ -1,8 +1,14 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import os
 import pytest
 import pandas as pd
 
-from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.drum.enum import ArgumentsOptions
 
 from .constants import SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, BINARY
 

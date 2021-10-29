@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 #!/usr/bin/env python
 # coding: utf-8
 
@@ -100,14 +106,14 @@ if __name__ == "__main__":
 
     TEST_DATA_ROOT = "~/workspace/datarobot-user-models/tests/testdata"
     BINARY_DATA = os.path.join(TEST_DATA_ROOT, "iris_binary_training.csv")
-    REGRESSION_DATA = os.path.join(TEST_DATA_ROOT, "boston_housing.csv")
+    REGRESSION_DATA = os.path.join(TEST_DATA_ROOT, "juniors_3_year_stats_regression.csv")
     MULTICLASS_DATA = os.path.join(TEST_DATA_ROOT, "skyserver_sql2_27_2018_6_51_39_pm.csv")
 
     bin_X = pd.read_csv(BINARY_DATA)
     bin_y = bin_X.pop("Species")
 
-    reg_X = pd.read_csv(REGRESSION_DATA)
-    reg_y = reg_X.pop("MEDV")
+    reg_X = pd.read_csv(REGRESSION_DATA).fillna(0)
+    reg_y = reg_X.pop("Grade 2014")
 
     multi_X = pd.read_csv(MULTICLASS_DATA)
     multi_y = multi_X.pop("class")

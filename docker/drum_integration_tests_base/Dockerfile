@@ -84,8 +84,9 @@ ENV PYTHON=/opt/v3.7/bin/python
 
 COPY requirements_drum.txt requirements_dropin.txt /tmp/
 
+# uwsgi is an extra dependency and it shouldn't be in requirements_drum.txt, so install it explicitly
 RUN cd /opt && . v3.7/bin/activate && \
-    pip install -r /tmp/requirements_drum.txt -r /tmp/requirements_dropin.txt && \
+    pip install -r /tmp/requirements_drum.txt -r /tmp/requirements_dropin.txt uwsgi && \
     rm -rf /root/.cache/pip
 
 # # install julia 1.5.4

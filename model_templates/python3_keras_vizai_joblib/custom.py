@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 from sklearn.pipeline import Pipeline
 
 from model_utils import deserialize_estimator_pipeline, get_imputation_img
@@ -44,7 +50,7 @@ def transform(data, model):
     pd.DataFrame
     """
     # Execute any steps you need to do before scoring
-    # Remove target columns if  they're in the dataset
+    # Remove target columns if they're in the dataset
 
     # for Loan Lending Club dataset
     if "class" in data:

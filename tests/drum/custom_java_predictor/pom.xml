@@ -14,27 +14,11 @@
     <properties>
         <componentDirectory>${basedir}</componentDirectory>
     </properties>
-
     <dependencies>
         <dependency>
             <groupId>net.sourceforge.argparse4j</groupId>
             <artifactId>argparse4j</artifactId>
             <version>0.8.1</version>
-        </dependency>
-        <dependency>
-            <groupId>net.sf.py4j</groupId>
-            <artifactId>py4j</artifactId>
-            <version>0.10.9</version>
-        </dependency>
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
-        </dependency>
-        <dependency>
-            <groupId>com.opencsv</groupId>
-            <artifactId>opencsv</artifactId>
-            <version>5.2</version>
         </dependency>
         <dependency>
             <groupId>commons-io</groupId>
@@ -45,11 +29,6 @@
             <groupId>com.datarobot.drum</groupId>
             <artifactId>predictors</artifactId>
             <version>1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.yaml</groupId>
-            <artifactId>snakeyaml</artifactId>
-            <version>1.27</version>
         </dependency>
     </dependencies>
 

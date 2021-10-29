@@ -1,6 +1,5 @@
 package com.datarobot.drum;
 
-import org.apache.log4j.PatternLayout;
 import com.datarobot.drum.BasePredictor;
 import py4j.GatewayServer;
 
@@ -9,10 +8,8 @@ import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 
-import org.apache.log4j.Logger;
-import org.apache.log4j.Level;
-import org.apache.log4j.ConsoleAppender;
-
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
 
 import java.lang.reflect.Constructor;
 import java.util.Map;
@@ -24,7 +21,7 @@ class EntryPointConfig {
 
     @Override
     public String toString() {
-        return String.format("className: %s, predictorName: %s portNumber: %d", className, predictorName, portNumber);
+        return String.format("className: %s; predictorName: %s; portNumber: %d", className, predictorName, portNumber);
     }
 }
 
@@ -32,16 +29,6 @@ public class PredictorEntryPoint {
     private BasePredictor predictor;
 
     public PredictorEntryPoint(String className, String predictorName) throws Exception {
-        ConsoleAppender console = new ConsoleAppender(); //create appender
-        //configure the appender
-        String PATTERN = "%d [%p|%c|%C{1}] %m%n";
-        console.setLayout(new PatternLayout(PATTERN));
-        console.setThreshold(Level.DEBUG);
-        console.activateOptions();
-        //add appender to any Logger (here is root)
-        Logger.getRootLogger().addAppender(console);
-        Logger.getRootLogger().setLevel(Level.INFO);
-
         Class<?> clazz = Class.forName(className);
 
         Class cls[] = new Class[] { String.class };
@@ -87,17 +74,19 @@ public class PredictorEntryPoint {
 
     public static void main(String[] args) throws Exception {
         int portNumber = -1;
+
+        Logger logger = LogManager.getLogger(PredictorEntryPoint.class);
+
         try {
             EntryPointConfig config = parseArgs(args);
             portNumber = config.portNumber;
             PredictorEntryPoint entryPoint = new PredictorEntryPoint(config.className, config.predictorName);
+            logger.info("Starting py4j GatewayServer using: class name: {}; port: {}", config.className, config.portNumber);
             // TODO: use a specific port, note multiple such gateways might be running.
             GatewayServer gatewayServer = new GatewayServer(entryPoint, config.portNumber);
             gatewayServer.start();
         } catch (py4j.Py4JNetworkException e) {
-            System.out.println(String.format("PredictorEntryPoint failed to start py4j GatewayServer on port: %d", portNumber));
-            System.out.println(String.format("Message: %s", e.getMessage()));
-            e.printStackTrace();
+            logger.error(String.format("PredictorEntryPoint failed to start py4j GatewayServer on port: %d; Message: %s", portNumber, e.getMessage()), e);
             System.exit(1);
         }
     }

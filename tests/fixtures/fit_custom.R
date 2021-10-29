@@ -1,3 +1,12 @@
+# Copyright 2021 DataRobot, Inc. and its affiliates.
+#
+# All rights reserved.
+#
+# 
+#
+# This is proprietary source code of DataRobot, Inc. and its affiliates.
+#
+# Released under the terms of DataRobot Tool and Utility Agreement.
 init <- function(...) {
   # custom init function to load required libraries
   library(tidyverse)
@@ -51,6 +60,7 @@ fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, ...){
     step_dummy(all_nominal(), -all_outcomes())
 
   # Run the model
+  set.seed(1234)
   model <- train(model_recipe, train_df, method = "gbm")
 
   # Save model

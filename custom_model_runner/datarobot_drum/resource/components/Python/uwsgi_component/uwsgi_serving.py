@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import logging
 import os
 import sys
@@ -8,13 +14,15 @@ from mlpiper.components.restful.metric import Metric, MetricType, MetricRelation
 
 
 from datarobot_drum.drum.common import (
-    RunLanguage,
-    URL_PREFIX_ENV_VAR_NAME,
-    TARGET_TYPE_ARG_KEYWORD,
     make_predictor_capabilities,
-    TargetType,
     read_model_metadata_yaml,
+)
+from datarobot_drum.drum.enum import (
+    TARGET_TYPE_ARG_KEYWORD,
+    URL_PREFIX_ENV_VAR_NAME,
     ModelInfoKeys,
+    RunLanguage,
+    TargetType,
 )
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.description import version as drum_version
@@ -24,7 +32,7 @@ from datarobot_drum.drum.server import (
     HTTP_500_INTERNAL_SERVER_ERROR,
     HTTP_513_DRUM_PIPELINE_ERROR,
 )
-from datarobot_drum.drum.memory_monitor import MemoryMonitor
+from datarobot_drum.drum.resource_monitor import ResourceMonitor
 from datarobot_drum.resource.predict_mixin import PredictMixin
 from datarobot_drum.resource.deployment_config_helpers import parse_validate_deployment_config_file
 
@@ -34,7 +42,7 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
         super(UwsgiServing, self).__init__(engine)
         self._show_perf = False
         self._stats_collector = None
-        self._memory_monitor = None
+        self._resource_monitor = None
         self._run_language = None
         self._predictor = None
         self._target_type = None
@@ -77,7 +85,7 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
         self._stats_collector.register_report(
             "run_predictor_total", "finish", StatsOperation.SUB, "start"
         )
-        self._memory_monitor = MemoryMonitor()
+        self._resource_monitor = ResourceMonitor()
         self._deployment_config = parse_validate_deployment_config_file(
             self._params["deployment_config"]
         )
@@ -147,8 +155,7 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
 
     @FlaskRoute("{}/stats/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def prediction_server_stats(self, url_params, form_params):
-        mem_info = self._memory_monitor.collect_memory_info()
-        ret_dict = {"mem_info": mem_info._asdict()}
+        ret_dict = self._resource_monitor.collect_resources_info()
 
         self._stats_collector.round()
         ret_dict["time_info"] = {}

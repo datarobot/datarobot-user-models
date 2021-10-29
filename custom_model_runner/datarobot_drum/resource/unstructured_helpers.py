@@ -1,5 +1,11 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.common import UnstructuredDtoKeys, PredictionServerMimetypes
+from datarobot_drum.drum.enum import UnstructuredDtoKeys, PredictionServerMimetypes
 
 CHARSET_DEFAULT = "utf8"
 MIMETYPE_TEXT_DEFAULT = PredictionServerMimetypes.TEXT_PLAIN

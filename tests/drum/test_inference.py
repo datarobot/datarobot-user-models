@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import json
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
@@ -11,15 +17,15 @@ import requests
 import scipy
 from scipy.sparse import csr_matrix
 
-from datarobot_drum.drum.common import (
-    ArgumentsOptions,
-    EnvVarNames,
-    PredictionServerMimetypes,
+from datarobot_drum.drum.enum import (
     X_TRANSFORM_KEY,
     Y_TRANSFORM_KEY,
-    ModelInfoKeys,
-    TargetType,
     MODEL_CONFIG_FILENAME,
+    PredictionServerMimetypes,
+    ModelInfoKeys,
+    ArgumentsOptions,
+    TargetType,
+    EnvVarNames,
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.resource.transform_helpers import (
@@ -42,15 +48,14 @@ from .constants import (
     PYPMML,
     PYTHON,
     PYTHON_LOAD_MODEL,
-    PYTHON_TRANSFORM,
-    PYTHON_TRANSFORM_DENSE,
+    PYTHON_PREDICT_SPARSE,
     PYTHON_TRANSFORM_NO_Y,
     PYTHON_TRANSFORM_NO_Y_DENSE,
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
     PYTORCH,
     R,
-    R_FIT,
     R_FAIL_CLASSIFICATION_VALIDATION_HOOKS,
+    R_PREDICT_SPARSE,
     RDS,
     RDS_SPARSE,
     REGRESSION,
@@ -65,6 +70,7 @@ from .constants import (
     JULIA,
     MLJ,
     R_TRANSFORM,
+    R_VALIDATE_SPARSE_ESTIMATOR,
 )
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
 from datarobot_drum.resource.utils import (
@@ -85,6 +91,8 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker, use_labels_file",
         [
+            (SKLEARN, SPARSE, PYTHON_PREDICT_SPARSE, None, False),
+            (RDS_SPARSE, SPARSE, R_PREDICT_SPARSE, None, False),
             (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None, False),
             (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN, False),
             (SKLEARN, BINARY, PYTHON, None, False),
@@ -134,10 +142,24 @@ class TestInference:
         ],
     )
     def test_custom_models_with_drum(
-        self, resources, framework, problem, language, docker, tmp_path, use_labels_file, temp_file,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        tmp_path,
+        use_labels_file,
+        temp_file,
+        capitalize_artifact_extension=False,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
+            capitalize_artifact_extension=capitalize_artifact_extension,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -151,6 +173,8 @@ class TestInference:
             output,
             resources.target_types(problem),
         )
+        if problem == SPARSE:
+            cmd += " --sparse-column-file {}".format(input_dataset.replace(".mtx", ".columns"))
         if resources.target_types(problem) in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
                 cmd,
@@ -164,13 +188,47 @@ class TestInference:
         _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
-        in_data = pd.read_csv(input_dataset)
+        in_data = resources.input_data(framework, problem)
         out_data = pd.read_csv(output)
         assert in_data.shape[0] == out_data.shape[0]
 
     @pytest.mark.parametrize(
+        "framework, problem, language, docker, use_labels_file",
+        [
+            (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None, False),
+            (KERAS, REGRESSION, PYTHON, None, False),
+            (XGB, REGRESSION, PYTHON, None, False),
+            (PYTORCH, REGRESSION, PYTHON, None, False),
+            (RDS, REGRESSION, R, None, False),
+            (CODEGEN, REGRESSION, NO_CUSTOM, None, False),
+            # POJO is not a relevant case. POJO artifacet is a `.java` file which allowed to be only lowercase
+            (MOJO, REGRESSION, NO_CUSTOM, None, False),
+            (MULTI_ARTIFACT, REGRESSION, PYTHON_LOAD_MODEL, None, False),
+            (PYPMML, REGRESSION, NO_CUSTOM, None, False),
+            (MLJ, REGRESSION, JULIA, None, False),
+        ],
+    )
+    def test_custom_models_with_drum_capitalize_artifact_extensions(
+        self, resources, framework, problem, language, docker, tmp_path, use_labels_file, temp_file,
+    ):
+        self.test_custom_models_with_drum(
+            resources,
+            framework,
+            problem,
+            language,
+            docker,
+            tmp_path,
+            use_labels_file,
+            temp_file,
+            capitalize_artifact_extension=True,
+        )
+        print(os.listdir(os.path.join(tmp_path, "custom_model")))
+
+    @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
+            (SKLEARN, SPARSE, PYTHON_PREDICT_SPARSE, None),
+            (RDS_SPARSE, SPARSE, R_PREDICT_SPARSE, None),
             (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
             (SKLEARN, REGRESSION, PYTHON, None),
             (SKLEARN, BINARY, PYTHON, None),
@@ -237,6 +295,11 @@ class TestInference:
                     {"files": {"X": open(input_dataset)}},
                     {"data": open(input_dataset, "rb")},
                 ]:
+                    if problem == SPARSE:
+                        if "data" in post_args:
+                            continue
+                        input_colnames = input_dataset.replace(".mtx", ".columns")
+                        post_args["files"]["X.colnames"] = open(input_colnames)
                     response = requests.post(run.url_server_address + endpoint, **post_args)
 
                     print(response.text)
@@ -244,7 +307,7 @@ class TestInference:
                     actual_num_predictions = len(
                         json.loads(response.text)[RESPONSE_PREDICTIONS_KEY]
                     )
-                    in_data = pd.read_csv(input_dataset)
+                    in_data = resources.input_data(framework, problem)
                     assert in_data.shape[0] == actual_num_predictions
             # test model info
             response = requests.get(run.url_server_address + "/info/")
@@ -376,15 +439,18 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker, use_arrow",
         [
-            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, True),
-            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None, False),
-            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, False),
+            # The following 3 tests produce Y transform values and are being temporarily removed until y transform
+            # validation is added
+            # (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, True),
+            # (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None, False),
+            # (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, False),
             (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM_NO_Y, None, True),
+            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM_NO_Y, None, False),
             (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_NO_Y_DENSE, None, False),
             (R_TRANSFORM, TRANSFORM, R_TRANSFORM, None, False),
         ],
     )
-    @pytest.mark.parametrize("pass_target", [True, False])
+    @pytest.mark.parametrize("pass_target", [False])
     def test_custom_transform_server(
         self, resources, framework, problem, language, docker, tmp_path, use_arrow, pass_target,
     ):
@@ -463,7 +529,7 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [(SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, DOCKER_PYTHON_SKLEARN),],
+        [(SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM_NO_Y, DOCKER_PYTHON_SKLEARN),],
     )
     def test_custom_transforms_with_drum_nginx_prediction_server(
         self, resources, framework, problem, language, docker, tmp_path,
@@ -625,7 +691,7 @@ class TestInference:
                     assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(
-        "framework, problem, language", [(RDS_SPARSE, REGRESSION, R_FIT),],
+        "framework, problem, language", [(RDS_SPARSE, REGRESSION, R_VALIDATE_SPARSE_ESTIMATOR),],
     )
     @pytest.mark.parametrize("nginx", [False, True])
     def test_predictions_r_mtx(
@@ -648,7 +714,7 @@ class TestInference:
                 for post_args in [
                     {"files": {"X": ("X.mtx", open(input_dataset))}},
                     {
-                        "data": open(input_dataset),
+                        "data": open(input_dataset, "rb"),
                         "headers": {
                             "Content-Type": "{};".format(PredictionServerMimetypes.TEXT_MTX)
                         },

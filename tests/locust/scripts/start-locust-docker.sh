@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# Copyright 2021 DataRobot, Inc. and its affiliates.
+#
+# All rights reserved.
+# This is proprietary source code of DataRobot, Inc. and its affiliates.
+#
+# Released under the terms of DataRobot Tool and Utility Agreement.
 
 # Current script starts locust inside official docker container locustio/locust.
 #
@@ -8,7 +14,7 @@
 # -s - number of samples to send
 #
 # E.g.
-# start-locust-docker.sh -l "-u 5 -r 5 -H http://localhost:6788 -t 5 --headless --csv drum" -d ../testdata/boston_housing.csv
+# start-locust-docker.sh -l "-u 5 -r 5 -H http://localhost:6788 -t 5 --headless --csv drum" -d ../testdata/juniors_3_year_stats_regression.csv
 #
 # locustfile, suit, to use is currently hardcoded to be datarobot-user-models/tests/locust/suits/predict.py
 

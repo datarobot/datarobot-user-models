@@ -1,17 +1,24 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import logging
 import numpy
 import os
 import pandas as pd
+from scipy.sparse import coo_matrix
 
-from datarobot_drum.drum.common import (
+from datarobot_drum.drum.common import SupportedPayloadFormats
+from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
-    TargetType,
-    CustomHooks,
     REGRESSION_PRED_COLUMN,
+    CustomHooks,
     UnstructuredDtoKeys,
-    PayloadFormat,
-    SupportedPayloadFormats,
     StructuredDtoKeys,
+    TargetType,
+    PayloadFormat,
 )
 from datarobot_drum.drum.utils import capture_R_traceback_if_errors
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -88,6 +95,13 @@ class RPredictor(BaseLanguagePredictor):
     def _predict(self, **kwargs):
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
+        if kwargs.get(StructuredDtoKeys.SPARSE_COLNAMES):
+            sparse_colnames = (
+                kwargs[StructuredDtoKeys.SPARSE_COLNAMES].decode("utf-8").rstrip().split("\n")
+            )
+            sparse_colnames = ro.vectors.StrVector(sparse_colnames)
+        else:
+            sparse_colnames = ro.rinterface.NULL
         with capture_R_traceback_if_errors(r_handler, logger):
             predictions = r_handler.outer_predict(
                 self._target_type.value,
@@ -97,6 +111,7 @@ class RPredictor(BaseLanguagePredictor):
                 positive_class_label=self._r_positive_class_label,
                 negative_class_label=self._r_negative_class_label,
                 class_labels=self._r_class_labels,
+                sparse_colnames=sparse_colnames,
             )
 
         with localconverter(ro.default_converter + pandas2ri.converter):
@@ -209,5 +224,22 @@ class RPredictor(BaseLanguagePredictor):
                 pd.DataFrame, type(py_data_object)
             )
             raise DrumCommonException(error_message)
+
+        # If the column names contain this set of magic values, it implies the output data is sparse, so construct
+        # a sparse coo_matrix out of it. TODO: [RAPTOR-6209] propagate column names when R output data is sparse
+        if list(output_X.columns) == ["__DR__i", "__DR__j", "__DR__x"]:
+            # The last row will contain the number of rows and cols, so get that and then drop it from output_X
+            num_rows, num_cols, _ = output_X.iloc[-1]
+            num_rows, num_cols = int(num_rows), int(num_cols)
+            output_X = output_X[:-1]
+
+            # R is 1-based indexing whereas python is 0, so adjust here
+            row = output_X["__DR__i"] - 1
+            col = output_X["__DR__j"] - 1
+            data = output_X["__DR__x"]
+
+            output_X = pd.DataFrame.sparse.from_spmatrix(
+                coo_matrix((data, (row, col)), shape=(num_rows, num_cols))
+            )
 
         return output_X, output_y

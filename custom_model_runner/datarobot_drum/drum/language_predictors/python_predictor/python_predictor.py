@@ -1,7 +1,13 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import logging
 import sys
 
-from datarobot_drum.drum.common import (
+from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,

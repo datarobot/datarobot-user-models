@@ -13,10 +13,10 @@ typeSchema:
         - DATE_DURATION
     - field: sparse
       condition: EQUALS
-      value: SUPPORTED
+      value: FORBIDDEN
     - field: contains_missing
       condition: EQUALS
-      value: SUPPORTED
+      value: FORBIDDEN
 
   output_requirements:
     - field: data_types

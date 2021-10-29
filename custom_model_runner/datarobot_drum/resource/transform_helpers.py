@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import pandas as pd
 import logging
 
@@ -5,9 +11,11 @@ from cgi import FieldStorage
 from io import BytesIO, StringIO
 
 from scipy.io import mmwrite, mmread
+from scipy.sparse import issparse
 from scipy.sparse.csr import csr_matrix
 
 from datarobot_drum.drum.common import verify_pyarrow_module
+from datarobot_drum.drum.enum import X_FORMAT_KEY, X_TRANSFORM_KEY
 
 
 def filter_urllib3_logging():
@@ -26,7 +34,7 @@ class NoHeaderErrorFilter(logging.Filter):
 
 
 def is_sparse(df):
-    return hasattr(df, "sparse") or type(df.iloc[0].values[0]) == csr_matrix
+    return hasattr(df, "sparse") or issparse(df.iloc[0].values[0])
 
 
 def make_arrow_payload(df, arrow_version):
@@ -93,3 +101,16 @@ def parse_multi_part_response(response):
         parsed_response.update({key: value})
 
     return parsed_response
+
+
+def read_x_data_from_response(response):
+    def _sparse(data, key):
+        return pd.DataFrame.sparse.from_spmatrix(read_mtx_payload(data, key))
+
+    reader = {
+        "arrow": read_arrow_payload,
+        "sparse": _sparse,
+        "csv": read_csv_payload,
+    }
+    data = parse_multi_part_response(response)
+    return reader[data[X_FORMAT_KEY]](data, X_TRANSFORM_KEY)

@@ -1,9 +1,9 @@
 ## Python Unstructured Inference Model Template
 
-This model is intended to work with the [Python 3 Scikit-Learn Drop-In Environment](../../../public_dropin_environments/python3_sklearn/).
+This model is intended to work with the [Python 3 Scikit-Learn Drop-In Environment](../../public_dropin_environments/python3_sklearn/).
 or any other python environment as it doesn't require any specific packages.
 
-The data is just a text file: [unstructured_data.txt](../../../tests/testdata/unstructured_data.txt).
+The data is just a text file: [unstructured_data.txt](../../tests/testdata/unstructured_data.txt).
 
 The model doesn't use any artifacts, only `custom.py` which implements the `score_unstructured` method and performs a word count on the input data.
 

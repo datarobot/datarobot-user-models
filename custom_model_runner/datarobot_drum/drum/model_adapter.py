@@ -1,15 +1,20 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import logging
 import os
 import pickle
 import sys
 import textwrap
+from inspect import signature
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from scipy.sparse import csr_matrix
-from inspect import signature
-
-from pathlib import Path
+from scipy.sparse import issparse
 
 from datarobot_drum.drum.artifact_predictors.keras_predictor import KerasPredictor
 from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
@@ -17,24 +22,26 @@ from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPre
 from datarobot_drum.drum.artifact_predictors.torch_predictor import PyTorchPredictor
 from datarobot_drum.drum.artifact_predictors.xgboost_predictor import XGBoostPredictor
 from datarobot_drum.drum.common import (
-    CUSTOM_FILE_NAME,
-    CustomHooks,
-    LOGGER_NAME_PREFIX,
-    NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
-    POSITIVE_CLASS_LABEL_ARG_KEYWORD,
-    CLASS_LABELS_ARG_KEYWORD,
-    REGRESSION_PRED_COLUMN,
+    get_pyarrow_module,
     reroute_stdout_to_stderr,
+    SupportedPayloadFormats,
+)
+from datarobot_drum.drum.enum import (
+    LOGGER_NAME_PREFIX,
+    REGRESSION_PRED_COLUMN,
+    CUSTOM_FILE_NAME,
+    POSITIVE_CLASS_LABEL_ARG_KEYWORD,
+    NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
+    CLASS_LABELS_ARG_KEYWORD,
+    CustomHooks,
+    StructuredDtoKeys,
+    ModelInfoKeys,
     TargetType,
     PayloadFormat,
-    SupportedPayloadFormats,
-    StructuredDtoKeys,
-    get_pyarrow_module,
-    ModelInfoKeys,
 )
-from datarobot_drum.drum.utils import StructuredInputReadUtils
 from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
-from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.exceptions import DrumCommonException, DrumTransformException
+from datarobot_drum.drum.utils import marshal_labels, StructuredInputReadUtils, DrumUtils
 
 RUNNING_LANG_MSG = "Running environment language: Python."
 
@@ -64,7 +71,7 @@ class PythonModelAdapter:
     def _apply_sklearn_transformer(data, model):
         try:
             transformed = model.transform(data)
-            if type(transformed) == csr_matrix:
+            if issparse(transformed):
                 output_data = pd.DataFrame.sparse.from_spmatrix(transformed)
             else:
                 output_data = pd.DataFrame(transformed)
@@ -95,8 +102,7 @@ class PythonModelAdapter:
                 if self._custom_hooks[CustomHooks.SCORE_UNSTRUCTURED] is None:
                     raise DrumCommonException(
                         "In '{}' mode hook '{}' must be provided.".format(
-                            TargetType.UNSTRUCTURED.value,
-                            self._custom_hooks[CustomHooks.SCORE_UNSTRUCTURED],
+                            TargetType.UNSTRUCTURED.value, CustomHooks.SCORE_UNSTRUCTURED,
                         )
                     )
             else:
@@ -176,28 +182,29 @@ class PythonModelAdapter:
         self._logger.debug("Supported suffixes: {}".format(all_supported_extensions))
         model_artifact_file = None
 
-        for filename in os.listdir(self._model_dir):
+        files_list = sorted(os.listdir(self._model_dir))
+        files_list_str = " | ".join(files_list)
+        for filename in files_list:
             path = os.path.join(self._model_dir, filename)
             if os.path.isdir(path):
                 continue
 
-            if any(filename.endswith(extension) for extension in all_supported_extensions):
+            if DrumUtils.endswith_extension_ignore_case(filename, all_supported_extensions):
                 if model_artifact_file:
                     raise DrumCommonException(
                         "\n\n{}\n"
                         "Multiple serialized model files found. Remove extra artifacts "
-                        "or overwrite custom.load_model()".format(RUNNING_LANG_MSG)
+                        "or overwrite custom.load_model()\n"
+                        "List of retrieved files are: {}".format(RUNNING_LANG_MSG, files_list_str)
                     )
                 model_artifact_file = path
 
         if not model_artifact_file:
-            files_list = sorted(os.listdir(self._model_dir))
-            files_list_str = " | ".join(files_list)
             raise DrumCommonException(
                 "\n\n{}\n"
                 "Could not find model artifact file in: {} supported by default predictors.\n"
                 "They support filenames with the following extensions {}.\n"
-                "If your artifact is not supported by default predictor, implement custom.load_model hook.\n"
+                "If your artifact is not supported by default predictor, implement custom.load_model() hook.\n"
                 "List of retrieved files are: {}".format(
                     RUNNING_LANG_MSG, self._model_dir, all_supported_extensions, files_list_str
                 )
@@ -281,14 +288,9 @@ class PythonModelAdapter:
 
     def _validate_predictions(self, to_validate, class_labels):
         self._validate_data(to_validate, "Predictions")
-        columns_to_validate = set(str(label) for label in to_validate.columns)
+        columns_to_validate = set(to_validate.columns)
         if class_labels:
-            if columns_to_validate != set(str(label) for label in class_labels):
-                raise ValueError(
-                    "Expected predictions to have columns {}, but encountered {}".format(
-                        class_labels, columns_to_validate
-                    )
-                )
+            marshal_labels(expected_labels=class_labels, actual_labels=to_validate)
 
         elif columns_to_validate != {REGRESSION_PRED_COLUMN}:
             raise ValueError(
@@ -351,8 +353,6 @@ class PythonModelAdapter:
             sparse_colnames=sparse_colnames,
         )
 
-        parameters = kwargs.get(StructuredDtoKeys.PARAMETERS)
-
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
             try:
                 output_data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
@@ -411,10 +411,11 @@ class PythonModelAdapter:
                         "hook provided takes {}".format(len(transform_params))
                     )
                 if type(transform_out) == tuple:
-                    output_data, output_target = transform_out
-                else:
-                    output_data = transform_out
-                    output_target = target_data
+                    raise DrumTransformException(
+                        "Transformation of the target variable is not supported by DRUM."
+                    )
+                output_data = transform_out
+                output_target = target_data
 
             except Exception as exc:
                 raise type(exc)(
@@ -459,12 +460,15 @@ class PythonModelAdapter:
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
         class_labels = (
-            [str(label) for label in kwargs.get(CLASS_LABELS_ARG_KEYWORD)]
+            [label for label in kwargs.get(CLASS_LABELS_ARG_KEYWORD)]
             if kwargs.get(CLASS_LABELS_ARG_KEYWORD)
             else None
         )
         if positive_class_label is not None and negative_class_label is not None:
             class_labels = [negative_class_label, positive_class_label]
+
+        if class_labels:
+            assert all(isinstance(label, str) for label in class_labels)
 
         if self._custom_hooks.get(CustomHooks.SCORE):
             try:

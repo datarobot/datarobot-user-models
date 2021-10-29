@@ -1,13 +1,20 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import logging
 import urllib
 import werkzeug
+from pandas import DataFrame
 
-from datarobot_drum.drum.common import (
+from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
-    RunLanguage,
-    TargetType,
     TARGET_TYPE_ARG_KEYWORD,
     UnstructuredDtoKeys,
+    RunLanguage,
+    TargetType,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.resource.unstructured_helpers import (
@@ -105,12 +112,22 @@ class GenericPredictorComponent(ConnectableComponent):
             binary_data, mimetype = StructuredInputReadUtils.read_structured_input_file_as_binary(
                 input_filename
             )
-            transformed_df = self._predictor.transform(binary_data=binary_data, mimetype=mimetype)
+            transformed_output = self._predictor.transform(
+                binary_data=binary_data, mimetype=mimetype
+            )
+            transformed_df = transformed_output[0]
             transformed_df.to_csv(output_filename, index=False)
         else:
             binary_data, mimetype = StructuredInputReadUtils.read_structured_input_file_as_binary(
                 input_filename
             )
-            predictions = self._predictor.predict(binary_data=binary_data, mimetype=mimetype)
+            if self._params["sparse_column_file"]:
+                with open(self._params["sparse_column_file"], "rb") as f:
+                    sparse_colnames_bin = f.read()
+            else:
+                sparse_colnames_bin = None
+            predictions = self._predictor.predict(
+                binary_data=binary_data, mimetype=mimetype, sparse_colnames=sparse_colnames_bin
+            )
             predictions.to_csv(output_filename, index=False)
         return []

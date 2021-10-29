@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import os
 
 REPO_ROOT_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -9,6 +15,7 @@ TESTS_DATA_PATH = os.path.join(TESTS_ROOT_PATH, "testdata")
 TESTS_DEPLOYMENT_CONFIG_PATH = os.path.join(TESTS_DATA_PATH, "deployment_config")
 TRAINING_TEMPLATES_PATH = os.path.join(TESTS_ROOT_PATH, "..", "task_templates", "pipelines")
 TRANSFORM_TEMPLATES_PATH = os.path.join(TESTS_ROOT_PATH, "..", "task_templates", "transforms")
+ESTIMATORS_TEMPLATES_PATH = os.path.join(TESTS_ROOT_PATH, "..", "task_templates", "estimators")
 
 MODEL_TEMPLATES_PATH = os.path.join(REPO_ROOT_PATH, "model_templates")
 PUBLIC_DROPIN_ENVS_PATH = os.path.join(REPO_ROOT_PATH, "public_dropin_environments")
@@ -32,10 +39,12 @@ SKLEARN_PRED_CONSISTENCY = "sklearn_pred_consistency"
 SKLEARN_TRANSFORM_WITH_Y = "sklearn_transform_with_y"
 SKLEARN_TRANSFORM_NO_HOOK = "sklearn_transform_no_hook"
 SKLEARN_TRANSFORM_SPARSE_INPUT = "sklearn_transform_sparse_input"
+SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT = "sklearn_transform_sparse_input_y_output"
 SKLEARN_TRANSFORM_SPARSE_IN_OUT = "sklearn_transform_sparse_in_out"
 SKLEARN_TRANSFORM_NON_NUMERIC = "sklearn_transform_non_numeric"
 SIMPLE = "simple"
 PYTORCH = "pytorch"
+PYTORCH_REGRESSION = "pytorch_regression"
 PYTORCH_MULTICLASS = "pytorch_multiclass"
 PYPMML = "pypmml"
 SKLEARN_ANOMALY = "sklearn_anomaly_detection"
@@ -46,7 +55,10 @@ R_TRANSFORM_NO_Y = "R_transform_no_y"
 R_TRANSFORM_NO_HOOK = "R_transform_no_hook"
 R_TRANSFORM_SPARSE_INPUT = "R_transform_sparse_input"
 R_TRANSFORM_SPARSE_IN_OUT = "R_transform_sparse_in_out"
+R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT = "R_transform_sparse_input_y_output"
 R_TRANSFORM_NON_NUMERIC = "R_transform_non_numeric"
+R_ESTIMATOR_SPARSE = "R_estimator_sparse"
+R_VALIDATE_SPARSE_ESTIMATOR = "R_validate_sparse_estimator"
 
 MLJ = "mlj"
 MLJ_BINARY = "mlj_binary"
@@ -88,7 +100,6 @@ TARGET_NAME_DUPLICATED_Y = "target_name_duplicated_y"
 SKLEARN_BINARY_PARAMETERS = "sklearn_binary_parameters"
 SKLEARN_TRANSFORM_PARAMETERS = "sklearn_transform_parameters"
 RDS_PARAMETERS = "r_parameters"
-SKLEARN_BINARY_SCHEMA_VALIDATION = "sklearn_binary_schema_validation"
 
 # Language keywords
 PYTHON = "python3"
@@ -97,6 +108,7 @@ PYTHON_ALL_PREDICT_STRUCTURED_HOOKS = "python_all_predict_structured_hooks"
 PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS = "python_all_predict_unstructured_hooks"
 PYTHON_NO_ARTIFACT_REGRESSION_HOOKS = "python_no_artifact_regression_hooks"
 PYTHON_LOAD_MODEL = "python_load_model"
+PYTHON_PREDICT_SPARSE = "python_predict_sparse"
 PYTHON_TRANSFORM = "python_transform"
 PYTHON_TRANSFORM_DENSE = "python_transform_dense"
 PYTHON_TRANSFORM_NO_Y = "python_transform_no_y"
@@ -111,6 +123,7 @@ R_ALL_PREDICT_UNSTRUCTURED_HOOKS_LOWERCASE_R = "R_all_predict_unstructured_hooks
 R_INT_COLNAMES_BINARY = "R_int_colnames_binary"
 R_INT_COLNAMES_MULTICLASS = "R_int_colnames_multiclass"
 R_FIT = "R_fit"
+R_PREDICT_SPARSE = "R_predict_sparse"
 JAVA = "java"
 JULIA = "julia"
 PYTHON_UNSTRUCTURED = "python_unstructured"

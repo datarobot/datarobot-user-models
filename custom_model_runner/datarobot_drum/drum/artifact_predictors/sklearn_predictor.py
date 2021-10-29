@@ -1,14 +1,21 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import pickle
 import pandas as pd
 import numpy as np
 
-from datarobot_drum.drum.common import (
-    PythonArtifacts,
+from datarobot_drum.drum.enum import (
     REGRESSION_PRED_COLUMN,
-    TargetType,
-    extra_deps,
     SupportedFrameworks,
+    extra_deps,
+    PythonArtifacts,
+    TargetType,
 )
+from datarobot_drum.drum.utils import marshal_labels
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.artifact_predictors.artifact_predictor import ArtifactPredictor
 
@@ -59,14 +66,9 @@ class SKLearnPredictor(ArtifactPredictor):
 
         if self.target_type.value in TargetType.CLASSIFICATION.value:
             if hasattr(model, "classes_"):
-                if set(str(label) for label in model.classes_) != set(
-                    str(label) for label in self.class_labels
-                ):
-                    error_message = "Wrong class labels {}. Use class labels detected by sklearn model: {}".format(
-                        self.class_labels, model.classes_
-                    )
-                    raise DrumCommonException(error_message)
-                labels_to_use = model.classes_
+                labels_to_use = marshal_labels(
+                    expected_labels=list(self.class_labels), actual_labels=list(model.classes_)
+                )
             else:
                 labels_to_use = self.class_labels
             predictions = model.predict_proba(data)
