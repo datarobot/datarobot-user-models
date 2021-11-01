@@ -377,11 +377,15 @@ outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=
 
     if (!isFALSE(transform_hook)) {
         output_data <- transform_hook(data, transformer, target_data)
-        if (is.data.frame(output_data) || is(output_data, 'sparseMatrix')) {
-            output_data <- list(output_data, NULL)
+        if (is.data.frame(output_data)) {
+            output_data <- list(output_data, NULL, NULL)
+        } else if (is(output_data, 'sparseMatrix')) {
+            output_data <- list(output_data, NULL, colnames(output_data))
+        } else {
+            output_data <- append(output_data, list(NULL))
         }
     } else {
-        output_data <- list(bake(transformer, data), NULL)
+        output_data <- list(bake(transformer, data), NULL, NULL)
     }
 
     if (!(is.data.frame(output_data[[1]]) || is(output_data[[1]], 'sparseMatrix'))) {
