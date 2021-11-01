@@ -243,6 +243,9 @@ class RPredictor(BaseLanguagePredictor):
                 coo_matrix((data, (row, col)), shape=(num_rows, num_cols))
             )
             if colnames is not None:
+                assert (
+                    len(colnames) == output_X.shape[1]
+                ), "Supplied count of column names does not match number of target classes."
                 output_X.columns = colnames
 
         return output_X, output_y
