@@ -20,7 +20,11 @@
                 "positiveClassLabel": {{ positiveClassLabel | jsonify }},
                 "negativeClassLabel": {{ negativeClassLabel | jsonify }},
                 "classLabels": {{ classLabels | jsonify }},
-                "__custom_model_path__": "{{ customModelPath }}"
+                "__custom_model_path__": "{{ customModelPath }}",
+                "offsets": {{ offsets | jsonify }},
+                "offsetsFileName": {{ offsets_filename | jsonify }},
+                "eventsCount": {{ events_count | jsonify }},
+                "eventsCountFilename": {{ events_count_filename | jsonify }}
               }
           }
       ]
