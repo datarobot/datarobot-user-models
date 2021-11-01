@@ -71,19 +71,23 @@
           </execution>
         </executions>
       </plugin>
-
-      <plugin>
+ <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
         <version>3.0.0</version>
-        <configuration>
+        <!-- <configuration>
           <archive>
             <manifestEntries>
               <MODEL-ID>GBM_model_python_1589382591366_1</MODEL-ID>
             </manifestEntries>
           </archive>
-        </configuration>
+        </configuration> -->
 
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.0.0</version>
       </plugin>
     </plugins>
   </build>

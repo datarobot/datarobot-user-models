@@ -182,7 +182,7 @@ class JavaPredictor(BaseLanguagePredictor):
 
     def predict_unstructured(self, data, **kwargs):
         mimetype = kwargs.get(UnstructuredDtoKeys.MIMETYPE, "")
-        query = kwargs.get(UnstructuredDtoKeys.QUERY, "")
+        query = kwargs.get(UnstructuredDtoKeys.QUERY, dict())
         charset = kwargs.get(UnstructuredDtoKeys.CHARSET, "utf-8")
         if isinstance(data, bytes):
             ba = bytearray(data)
