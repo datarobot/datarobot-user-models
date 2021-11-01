@@ -49,7 +49,7 @@ public class ScoringCode extends BasePredictor {
     }
 
     @Override
-    public <T> T predict_unstructured(byte[] inputBytes, String mimetype, String charset, Map<String, String> query) throws Exception {
+    public <T> T predictUnstructured(byte[] inputBytes, String mimetype, String charset, Map<String, String> query) throws Exception {
         throw new Exception("Not Implemented");
     }
     

@@ -33,7 +33,7 @@ public class CustomModel extends BasePredictor {
     }
 
     @Override
-    public <T> T predict_unstructured(byte[] inputBytes, String mimetype, String charset, Map<String, String> query) {
+    public <T> T predictUnstructured(byte[] inputBytes, String mimetype, String charset, Map<String, String> query) {
         System.out.println("incoming mimetype: " + mimetype);
         System.out.println("Incoming Charset: " + charset);
         try {

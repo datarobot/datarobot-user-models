@@ -37,7 +37,7 @@ public abstract class BasePredictor {
     * @param inputBytes Input data as binary -> byte[].
     * @return can technically return anything but DRUM expects either String or byte[].
     */
-    public abstract <T> T predict_unstructured(byte[] inputBytes, String mimetype, String charset, Map<String, String> query) throws Exception;
+    public abstract <T> T predictUnstructured(byte[] inputBytes, String mimetype, String charset, Map<String, String> query) throws Exception;
 
 
     /**

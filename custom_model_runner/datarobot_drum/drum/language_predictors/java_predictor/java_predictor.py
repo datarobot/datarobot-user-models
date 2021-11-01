@@ -195,7 +195,7 @@ class JavaPredictor(BaseLanguagePredictor):
         elif isinstance(query, ImmutableMultiDict):
             query_dict = query.to_dict()
         jmap = MapConverter().convert(query_dict, self._gateway._gateway_client)
-        ret = self._predictor_via_py4j.predict_unstructured(ba, mimetype, charset, jmap)
+        ret = self._predictor_via_py4j.predictUnstructured(ba, mimetype, charset, jmap)
         if isinstance(ret, (str, bytes, type(None))):
             ret = ret, None
         elif isinstance(ret, bytearray):

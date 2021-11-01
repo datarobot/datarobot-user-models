@@ -82,7 +82,7 @@ class H2OPredictorPipeline(name: String) extends BasePredictor(name) {
     this.predictionsToString(predictions)
   }
 
-  override def predict_unstructured[T](
+  override def predictUnstructured[T](
     inputBytes: Array[Byte], mimetype: String, charset: String, query: java.util.Map[String, String]
   ): T = ???
 
