@@ -1105,7 +1105,6 @@ def possibly_intuit_order(
         assert target_col_name is None
 
         y = pd.read_csv(target_data_file, index_col=False)
-        y = y.sample(min(1000, len(y)), random_state=1)
         classes = np.unique(y.iloc[:, 0])
     else:
         assert target_data_file is None
@@ -1116,7 +1115,7 @@ def possibly_intuit_order(
             )
             print(e, file=sys.stderr)
             raise DrumCommonException(e)
-        uniq = df[target_col_name].sample(min(1000, len(df)), random_state=1).unique()
+        uniq = df[target_col_name].unique()
         classes = set(uniq) - {np.nan}
     if len(classes) >= 2:
         return classes
