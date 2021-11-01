@@ -650,7 +650,7 @@ class CMRunner:
         if self.target_type == TargetType.BINARY:
             return self.options.negative_class_label is None or self.options.class_labels is None
         if self.target_type == TargetType.MULTICLASS:
-            return bool(self.options.class_labels)
+            return self.options.class_labels is None
         return False
 
     def _prepare_fit_pipeline(self, run_language):
