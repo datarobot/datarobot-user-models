@@ -81,6 +81,7 @@ from tests.drum.constants import (
     R_TRANSFORM_NO_Y,
     R_TRANSFORM_NO_HOOK,
     R_TRANSFORM_SPARSE_INPUT,
+    R_TRANSFORM_SPARSE_OUTPUT,
     R_TRANSFORM_SPARSE_IN_OUT,
     R_TRANSFORM_NON_NUMERIC,
     R_ESTIMATOR_SPARSE,
@@ -156,6 +157,9 @@ _datasets = {
         TESTS_DATA_PATH, "target_name_duplicated_y.csv"
     ),
     (R_TRANSFORM, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
+    (R_TRANSFORM_SPARSE_OUTPUT, TRANSFORM): os.path.join(
+        TESTS_DATA_PATH, "10k_diabetes_sample.csv"
+    ),
 }
 
 _training_models_paths = {
@@ -386,6 +390,9 @@ _artifacts = {
     (R_TRANSFORM_SPARSE_INPUT, REGRESSION): None,
     (R_TRANSFORM_SPARSE_INPUT, BINARY): None,
     (R_TRANSFORM_SPARSE_INPUT, ANOMALY): None,
+    (R_TRANSFORM_SPARSE_OUTPUT, TRANSFORM): os.path.join(
+        TESTS_ARTIFACTS_PATH, "r_sparse_transform.rds"
+    ),
     (R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT, REGRESSION): None,
     (R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT, BINARY): None,
     (R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT, ANOMALY): None,
@@ -509,6 +516,10 @@ _custom_filepaths = {
     ),
     R_TRANSFORM_SPARSE_INPUT: (
         os.path.join(TESTS_FIXTURES_PATH, "r_transform_fit_custom_sparse_input.R"),
+        "custom.R",
+    ),
+    R_TRANSFORM_SPARSE_OUTPUT: (
+        os.path.join(TESTS_FIXTURES_PATH, "r_transform_custom_sparse_output.R"),
         "custom.R",
     ),
     R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT: (

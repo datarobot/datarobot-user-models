@@ -70,6 +70,7 @@ from .constants import (
     JULIA,
     MLJ,
     R_TRANSFORM,
+    R_TRANSFORM_SPARSE_OUTPUT,
     R_VALIDATE_SPARSE_ESTIMATOR,
 )
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
@@ -448,6 +449,7 @@ class TestInference:
             (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM_NO_Y, None, False),
             (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_NO_Y_DENSE, None, False),
             (R_TRANSFORM, TRANSFORM, R_TRANSFORM, None, False),
+            (R_TRANSFORM_SPARSE_OUTPUT, TRANSFORM, R_TRANSFORM_SPARSE_OUTPUT, None, False),
         ],
     )
     @pytest.mark.parametrize("pass_target", [False])
@@ -500,6 +502,7 @@ class TestInference:
                 transformed_out = read_mtx_payload(parsed_response, X_TRANSFORM_KEY)
                 colnames = parsed_response["X.colnames"].decode("utf-8").split("\n")
                 assert len(colnames) == transformed_out.shape[1]
+                assert colnames == [f"feature_{i}" for i in range(transformed_out.shape[1])]
                 if pass_target:
                     # this shouldn't be sparse even though features are
                     if use_arrow:
