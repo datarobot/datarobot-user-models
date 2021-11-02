@@ -21,6 +21,8 @@ def transform(X, transformer, y=None):
     """
     transformed = transformer.transform(X)
     if type(transformed) == csr_matrix:
-        return pd.DataFrame.sparse.from_spmatrix(transformed)
+        return pd.DataFrame.sparse.from_spmatrix(
+            transformed, columns=[f"feature_{i}" for i in range(transformed.shape[1])]
+        )
     else:
         return pd.DataFrame(transformed)

@@ -37,8 +37,40 @@ def is_sparse(df):
     return hasattr(df, "sparse") or issparse(df.iloc[0].values[0])
 
 
+def validate_and_convert_column_names_for_serialization(df):
+    """
+    Parameters
+    ----------
+    df: pd.DataFrame
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with columns that can be properly serialized
+    """
+    columns = df.columns.values
+
+    # rstrip
+    columns = [str(colname).rstrip() for colname in columns]
+
+    # Replace newlines
+    columns = [colname.replace("\n", "\\n") for colname in columns]
+
+    if len(set(columns)) != df.shape[1]:
+        raise ValueError(
+            "Column name serialization check failed, deserializing column names resulted in {}, expected {}\n"
+            "Ensure there are no duplicate column names or trailing whitespace".format(
+                len(columns), df.shape[1]
+            )
+        )
+
+    df.columns = columns
+    return df
+
+
 def make_arrow_payload(df, arrow_version):
     pa = verify_pyarrow_module()
+    df = validate_and_convert_column_names_for_serialization(df)
 
     if arrow_version != pa.__version__ and arrow_version < 0.2:
         batch = pa.RecordBatch.from_pandas(df, nthreads=None, preserve_index=False)
@@ -54,6 +86,8 @@ def make_arrow_payload(df, arrow_version):
 
 
 def make_csv_payload(df):
+    df = validate_and_convert_column_names_for_serialization(df)
+
     s_buf = StringIO()
     df.to_csv(s_buf, index=False)
     return s_buf.getvalue().encode("utf-8")
@@ -73,7 +107,7 @@ def read_csv_payload(response_dict, transform_key):
 
 
 def make_mtx_payload(df):
-    sparse_mat = df
+    sparse_mat = validate_and_convert_column_names_for_serialization(df)
     colnames = df.columns.values
     sink = BytesIO()
     mmwrite(sink, sparse_mat.sparse.to_coo())
