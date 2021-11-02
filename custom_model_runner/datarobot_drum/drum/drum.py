@@ -1118,7 +1118,7 @@ def possibly_intuit_order(
         uniq = df[target_col_name].unique()
         classes = set(uniq) - {np.nan}
     if len(classes) >= 2:
-        return np.sort(classes)
+        return sorted(classes)
     elif len(classes) == 1:
         raise DrumCommonException("Only one target label was provided, please revise training data")
     return None
