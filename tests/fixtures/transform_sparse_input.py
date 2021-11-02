@@ -19,6 +19,7 @@ def transform(X, transformer, y=None):
     -------
     transformed DataFrame resulting from applying transform to incoming data
     """
+    assert all(col.lower().startswith("a") for col in X.columns)
     transformed = transformer.transform(X)
     if issparse(transformed):
         return pd.DataFrame.sparse.from_spmatrix(

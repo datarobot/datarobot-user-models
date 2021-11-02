@@ -38,6 +38,7 @@ from tests.drum.constants import (
     PYTHON_PREDICT_SPARSE,
     PYTHON_TRANSFORM,
     PYTHON_TRANSFORM_DENSE,
+    PYTHON_TRANSFORM_SPARSE,
     PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION,
     PYTHON_UNSTRUCTURED,
     PYTHON_UNSTRUCTURED_PARAMS,
@@ -159,7 +160,6 @@ _datasets = {
         TESTS_DATA_PATH, "target_name_duplicated_y.csv"
     ),
     (R_TRANSFORM, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
-    (R_TRANSFORM_SPARSE_INPUT, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
     (R_TRANSFORM_SPARSE_OUTPUT, TRANSFORM): os.path.join(
         TESTS_DATA_PATH, "10k_diabetes_sample.csv"
     ),
@@ -488,6 +488,10 @@ _custom_filepaths = {
     ),
     PYTHON_TRANSFORM_NO_Y_DENSE: (
         os.path.join(TESTS_FIXTURES_PATH, "transform_custom_no_y.py"),
+        "custom.py",
+    ),
+    PYTHON_TRANSFORM_SPARSE: (
+        os.path.join(TESTS_FIXTURES_PATH, "transform_sparse_input.py"),
         "custom.py",
     ),
     SKLEARN_TRANSFORM_WITH_Y: (
