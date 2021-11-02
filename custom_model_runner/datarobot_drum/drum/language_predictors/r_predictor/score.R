@@ -156,13 +156,20 @@ load_serialized_model <- function(model_dir, target_type) {
     predictions <- data.frame(stats::predict(model, data, type = "prob"))
     labels <- names(predictions)
     provided_labels_sanitized <- make.names(provided_labels)
+    trim_zeros <- function(l) {
+        sub("\\.0$", "", l)
+    }
+    provided_labels_sanitized_float <- sapply(provided_labels_sanitized, trim_zeros)
     labels_to_use <- NULL
     # check labels and provided_labels contain the same elements, order doesn't matter
     if (setequal(labels, provided_labels)) {
         labels_to_use <- provided_labels
     } else if (setequal(labels, provided_labels_sanitized)) {
         labels_to_use <- provided_labels_sanitized
+    } else if (setequal(labels, provided_labels_sanitized_float)) {
+        labels_to_use <- provided_labels_sanitized_float
     } else {
+        stop(paste("WRONG", "PRED", paste(labels, collapse=","), "|", "CL", paste(provided_labels_sanitized, collapse=",")))
         stop("Wrong class labels. Use class labels according to your dataset")
     }
     # if labels are not on the same order, switch columns
