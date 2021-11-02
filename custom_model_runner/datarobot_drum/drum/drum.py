@@ -508,15 +508,18 @@ class CMRunner:
         if not self.options.output:
             self.options.output = mkdtemp()
             remove_temp_output = self.options.output
+        print("Starting Fit")
         mem_usage = memory_usage(
             self._run_fit_or_predictions_pipelines_in_mlpiper,
             interval=1,
             max_usage=True,
             max_iterations=1,
         )
+        print("Fit successful")
         if self.options.verbose:
             print("Maximum fit memory usage: {}MB".format(int(mem_usage)))
-        if self.options.output or not self.options.skip_predict:
+        if self.options.output and not self.options.skip_predict:
+            print("Prediction started")
             create_custom_inference_model_folder(self.options.code_dir, self.options.output)
         if not self.options.skip_predict:
             mem_usage = memory_usage(
@@ -525,6 +528,7 @@ class CMRunner:
             if self.options.verbose:
                 print("Maximum server memory usage: {}MB".format(int(mem_usage)))
             pred_str = " and predictions can be made on the fit model! \n "
+            print("Prediction successful")
         else:
             pred_str = "however since you specified --skip-predict, predictions were not made \n"
         if remove_temp_output:
@@ -758,7 +762,7 @@ class CMRunner:
         sc.register_report("Full time", "end", StatsOperation.SUB, "start")
         sc.register_report("Init time (incl model loading)", "init", StatsOperation.SUB, "start")
         sc.register_report("Run time (incl reading CSV)", "run", StatsOperation.SUB, "init")
-        with verbose_stdout(self.options.verbose):
+        with verbose_stdout(True):
             sc.enable()
             try:
                 sc.mark("start")

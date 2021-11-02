@@ -246,9 +246,11 @@ class TestFit:
 
         cmd += weights_cmd
 
-        _exec_shell_cmd(
+        _, stdout, _ = _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
+        assert "Starting Fit" in stdout
+        assert "Prediction started" in stdout
 
     @pytest.mark.parametrize(
         "framework, problem, docker, parameters",
@@ -626,9 +628,8 @@ class TestFit:
         # clear env vars as it may affect next test cases
         unset_drum_supported_env_vars()
 
-    def test_fit_simple(
-        self, resources, tmp_path,
-    ):
+    @pytest.mark.parametrize("skip_predict", [True, False])
+    def test_fit_simple(self, resources, tmp_path, skip_predict):
         custom_model_dir = _create_custom_model_dir(
             resources, tmp_path, SIMPLE, REGRESSION, PYTHON, is_training=True, nested=True,
         )
@@ -645,9 +646,14 @@ class TestFit:
             resources.targets(REGRESSION),
             input_dataset,
         )
-        _exec_shell_cmd(
+        if skip_predict:
+            cmd += " --skip-predict"
+        _, stdout, _ = _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
+        if skip_predict:
+            assert "Prediction started" not in stdout
+            assert "predictions can be made on the fit model" not in stdout
 
     @pytest.mark.parametrize(
         "framework, problem, language, is_framework_directory",
