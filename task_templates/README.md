@@ -136,4 +136,4 @@ Except for where noted, our pipelines are verified within our functional test fr
 15. `python3_keras_vizai_joblib` - Trains a keras model on base64 encoded images.
 
 There is also a growing repository of re-usable tasks that might address your use case. You can find
-it here: htt****ps://github.com/datarobot-community/custom-models/tree/master/custom_tasks
+it here: https://github.com/datarobot-community/custom-models/tree/master/custom_tasks
