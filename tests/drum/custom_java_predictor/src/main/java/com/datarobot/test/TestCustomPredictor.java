@@ -16,6 +16,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class TestCustomPredictor extends BasePredictor {
     private String negativeClassLabel = null;
     private String positiveClassLabel = null;
@@ -25,6 +28,8 @@ public class TestCustomPredictor extends BasePredictor {
 
     private String inputDataset = null;
     private String outputDataset = null;
+
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     public TestCustomPredictor(String name) {
         super(name);
@@ -74,6 +79,62 @@ public class TestCustomPredictor extends BasePredictor {
     public String predict(byte[] inputBytes) throws IOException {
         return this.predictReader(new BufferedReader(new InputStreamReader(new ByteArrayInputStream(inputBytes))));
     }
+
+    @Override
+    public <T> T predictUnstructured(byte[] inputBytes, String mimetype, String charset, Map<String, String> query) {
+        System.out.println("incoming mimetype: " + mimetype);
+        System.out.println("Incoming Charset: " + charset);
+        try {
+            System.out.println("Incoming Query: " + objectMapper.writeValueAsString(query));
+        } catch (JsonProcessingException e) { 
+            e.printStackTrace();
+        }
+        
+        String retMode = query.getOrDefault("ret_mode", "text");
+        String s = null;
+        try { 
+            s = new String(inputBytes, charset);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        System.out.println("Incoming data: " + s );
+
+        Integer count = 10;
+        System.out.println(count.intValue());
+
+        switch (retMode) {
+            case "binary":
+                byte[] retBytes = null;
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                // ObjectOutputStream out = null;
+                DataOutputStream dos = null;
+                try {
+                    dos = new DataOutputStream(bos);                 
+                    dos.writeInt( count );
+                    dos.flush();
+                    retBytes = bos.toByteArray();
+                } catch (IOException e) { 
+                    e.printStackTrace() ;
+                } finally {
+                    try {
+                        bos.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                return (T) retBytes;
+            default:
+                String retString = null;
+                try {
+                    retString = objectMapper.writeValueAsString(count);;
+                } catch (JsonProcessingException e) {
+                    e.printStackTrace();
+                }
+                return (T) retString;  
+        }
+    }
+
 
     public static void main(String[] args) throws IOException, Exception {
         Map<String, Object> params = new HashMap<String, Object>();

@@ -31,6 +31,15 @@ public abstract class BasePredictor {
     */
     public abstract String predict(byte[] inputBytes) throws Exception;
 
+
+    /**
+    * Make predictions on input scoring data.
+    * @param inputBytes Input data as binary -> byte[].
+    * @return can technically return anything but DRUM expects either String or byte[].
+    */
+    public abstract <T> T predictUnstructured(byte[] inputBytes, String mimetype, String charset, Map<String, String> query) throws Exception;
+
+
     /**
     * Make predictions on input CSV. This method is used in java_predictor.py, when
     * input data is larger than 33K and data is temporary saved into a CSV.

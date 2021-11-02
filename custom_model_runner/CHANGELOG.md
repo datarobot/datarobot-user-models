@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Fixed
 ##### Added 
 
+#### [1.6.2] - 2021-11-01
+##### Added
+- support for Java Unstructured Models
+
 #### [1.6.1] - 2021-10-22
 ##### Changed
 - bump DataRobot client dependency to >= 2.26.0

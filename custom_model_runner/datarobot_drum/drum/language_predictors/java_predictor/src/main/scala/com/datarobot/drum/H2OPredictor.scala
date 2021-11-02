@@ -40,6 +40,10 @@ class H2OPredictor(
     this.predictionsToString(predictions)
   }
 
+  override def predictUnstructured[T](
+    inputBytes: Array[Byte], mimetype: String, charset: String, query: java.util.Map[String, String]
+  ): T = ???
+
   def predictionsToString[T](predictions: Try[Array[Array[T]]]): String = {
     val csvPrinter: CSVPrinter = new CSVPrinter(
       new StringWriter(),
