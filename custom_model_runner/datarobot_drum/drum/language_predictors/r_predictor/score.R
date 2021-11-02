@@ -2,7 +2,7 @@
 #
 # All rights reserved.
 #
-# 
+#
 #
 # This is proprietary source code of DataRobot, Inc. and its affiliates.
 #
@@ -368,8 +368,8 @@ predict_unstructured <- function(model=NULL, data, ...) {
 #'
 #' @return list, Two-element list containing transformed X (data.frame or sparseMatrix) and y (vector or NULL)
 #'
-outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=NULL, transformer=NULL){
-    data <- .load_data(binary_data, mimetype=mimetype)
+outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=NULL, transformer=NULL, sparse_colnames=NULL){
+    data <- .load_data(binary_data, mimetype=mimetype, sparse_colnames=sparse_colnames)
     target_data <- NULL
     if (!is.null(target_binary_data)) {
         target_data <- .load_data(target_binary_data, use_hook=FALSE)

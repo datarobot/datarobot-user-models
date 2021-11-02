@@ -88,6 +88,7 @@ from tests.drum.constants import (
     R_VALIDATE_SPARSE_ESTIMATOR,
     SPARSE,
     SPARSE_TARGET,
+    SPARSE_TRANSFORM,
     TESTS_ARTIFACTS_PATH,
     TESTS_DATA_PATH,
     TESTS_FIXTURES_PATH,
@@ -133,6 +134,7 @@ _datasets = {
     ),
     (None, MULTICLASS_BINARY): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
     (None, SPARSE): os.path.join(TESTS_DATA_PATH, "sparse.mtx"),
+    (None, SPARSE_TRANSFORM): os.path.join(TESTS_DATA_PATH, "sparse.mtx"),
     (None, SPARSE_TARGET): os.path.join(TESTS_DATA_PATH, "sparse_target.csv"),
     (None, SPARSE_COLUMNS): os.path.join(TESTS_DATA_PATH, "sparse.columns"),
     (None, SKLEARN_BINARY_PARAMETERS): os.path.join(
@@ -157,6 +159,7 @@ _datasets = {
         TESTS_DATA_PATH, "target_name_duplicated_y.csv"
     ),
     (R_TRANSFORM, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
+    (R_TRANSFORM_SPARSE_INPUT, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
     (R_TRANSFORM_SPARSE_OUTPUT, TRANSFORM): os.path.join(
         TESTS_DATA_PATH, "10k_diabetes_sample.csv"
     ),
@@ -225,6 +228,7 @@ _target_types = {
     ANOMALY: "anomaly",
     UNSTRUCTURED: "unstructured",
     SPARSE: "regression",
+    SPARSE_TRANSFORM: "transform",
     MULTICLASS: "multiclass",
     MULTICLASS_BINARY: "multiclass",
     MULTICLASS_NUM_LABELS: "multiclass",
@@ -339,6 +343,9 @@ _artifacts = {
     ],
     (CODEGEN, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "java_multi.jar"),
     (SKLEARN_TRANSFORM, TRANSFORM): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_transform.pkl"),
+    (SKLEARN_TRANSFORM, SPARSE_TRANSFORM): os.path.join(
+        TESTS_ARTIFACTS_PATH, "transform_sparse.pkl"
+    ),
     (SKLEARN_TRANSFORM_DENSE, TRANSFORM): os.path.join(
         TESTS_ARTIFACTS_PATH, "sklearn_transform_dense.pkl"
     ),
@@ -390,6 +397,9 @@ _artifacts = {
     (R_TRANSFORM_SPARSE_INPUT, REGRESSION): None,
     (R_TRANSFORM_SPARSE_INPUT, BINARY): None,
     (R_TRANSFORM_SPARSE_INPUT, ANOMALY): None,
+    (R_TRANSFORM_SPARSE_INPUT, SPARSE_TRANSFORM): os.path.join(
+        TESTS_ARTIFACTS_PATH, "r_sparse_transform.rds"
+    ),
     (R_TRANSFORM_SPARSE_OUTPUT, TRANSFORM): os.path.join(
         TESTS_ARTIFACTS_PATH, "r_sparse_transform.rds"
     ),
@@ -617,7 +627,7 @@ def get_input_data(get_dataset_filename):
     def _foo(framework, problem):
         dataset_path = get_dataset_filename(framework, problem)
         column_file = dataset_path.replace(".mtx", ".columns")
-        if problem == SPARSE:
+        if problem in {SPARSE, SPARSE_TRANSFORM}:
             with open(column_file) as f:
                 columns = [c.rstrip() for c in f]
             with open(dataset_path, "rb") as f:
