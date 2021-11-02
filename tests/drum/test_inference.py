@@ -463,6 +463,7 @@ class TestInference:
             (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_NO_Y_DENSE, None, False),
             (R_TRANSFORM, TRANSFORM, R_TRANSFORM, None, False),
             (SKLEARN_TRANSFORM, SPARSE_TRANSFORM, PYTHON_TRANSFORM_SPARSE, None, False),
+            (R_TRANSFORM_SPARSE_INPUT, SPARSE_TRANSFORM, R_TRANSFORM_SPARSE_INPUT, None, False),
             (R_TRANSFORM_SPARSE_OUTPUT, TRANSFORM, R_TRANSFORM_SPARSE_OUTPUT, None, False),
         ],
     )
@@ -532,7 +533,10 @@ class TestInference:
                 actual_num_predictions = transformed_out.shape[0]
                 assert parsed_response["X.format"] == "sparse"
 
-            if problem == SPARSE_TRANSFORM:
+            if framework == R_TRANSFORM_SPARSE_INPUT:
+                assert type(transformed_out) == pd.DataFrame
+                assert transformed_out.shape[1] == 162
+            elif problem == SPARSE_TRANSFORM:
                 assert type(transformed_out) == csr_matrix
                 assert transformed_out.shape[1] == 162
             elif framework == SKLEARN_TRANSFORM:
