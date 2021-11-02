@@ -7,7 +7,7 @@ outlined in [Python 3 Keras Drop-In Environment](../../public_dropin_environment
 
 For this sample model, custom.py contains additional data pre-processing that the model itself lacks.
 
-For fitting the model, use the following [training model](../../task_templates/pipelines/python3_keras_joblib)
+For fitting the model, use the following [training model](../../task_templates/3_pipelines/python3_keras_joblib)
 
 ## Instructions
 Create a new custom model with these files and use the Python Drop-In Environment with it
