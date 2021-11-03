@@ -519,7 +519,7 @@ class CMRunner:
         if self.options.verbose:
             print("Maximum fit memory usage: {}MB".format(int(mem_usage)))
         if self.options.output and not self.options.skip_predict:
-            print("Prediction started")
+            print("Starting Prediction")
             create_custom_inference_model_folder(self.options.code_dir, self.options.output)
         if not self.options.skip_predict:
             mem_usage = memory_usage(
