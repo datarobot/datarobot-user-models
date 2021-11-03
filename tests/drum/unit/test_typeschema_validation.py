@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import os
 from textwrap import dedent
 from typing import List, Union
@@ -36,6 +42,9 @@ CATS_AND_DOGS = get_data("cats_dogs_small_training.csv")
 TEN_K_DIABETES = get_data("10k_diabetes.csv")
 IRIS_BINARY = get_data("iris_binary_training.csv")
 LENDING_CLUB = get_data("lending_club_reduced.csv")
+BOSTON_PUBLIC_RAISES = get_data("BostonPublicRaises_80.csv")
+TELCO_CHURN = get_data("telecomms_churn.csv")
+IRIS_WITH_BOOL = get_data("iris_with_bool.csv")
 
 CONDITIONS_EXCEPT_EQUALS = [
     Conditions.NOT_EQUALS,
@@ -94,6 +103,22 @@ def cats_and_dogs():
     return CATS_AND_DOGS.copy()
 
 
+@pytest.fixture
+def boston_raises():
+    return BOSTON_PUBLIC_RAISES.copy()
+
+
+@pytest.fixture
+def telco_churn_txt():
+    data = TELCO_CHURN.copy()
+    return data[["Churn", "tariff_plan_conds"]]
+
+
+@pytest.fixture
+def iris_with_bool():
+    return IRIS_WITH_BOOL.copy()
+
+
 def get_yaml_dict(condition, field, values, top_requirements: RequirementTypes) -> dict:
     def _get_val(value):
         if isinstance(value, Values):
@@ -135,7 +160,7 @@ class TestSchemaValidator:
     def missing_data(self, data):
         df = data.copy(deep=True)
         for col in df.columns:
-            df.loc[df.sample(frac=0.1).index, col] = pd.np.nan
+            df.loc[df.sample(frac=0.1).index, col] = np.nan
         yield df
 
     @pytest.fixture
@@ -172,11 +197,11 @@ class TestSchemaValidator:
 
         assert isinstance(validator._input_validators[1], Sparsity)
         assert validator._input_validators[1].condition == Conditions.EQUALS
-        assert validator._input_validators[1].values == [Values.SUPPORTED]
+        assert validator._input_validators[1].values == [Values.FORBIDDEN]
 
         assert isinstance(validator._input_validators[2], ContainsMissing)
         assert validator._input_validators[2].condition == Conditions.EQUALS
-        assert validator._input_validators[2].values == [Values.SUPPORTED]
+        assert validator._input_validators[2].values == [Values.FORBIDDEN]
 
         # Ensure output validators are correctly set
         assert len(validator._output_validators) == 1
@@ -227,6 +252,23 @@ class TestSchemaValidator:
                 "ten_k_diabetes",
                 "readmitted",
             ),
+            (
+                Conditions.EQUALS,
+                [Values.CAT],
+                "boston_raises",
+                "RAISE",
+                "telco_churn_txt",
+                "Churn",
+            ),
+            (
+                Conditions.EQUALS,
+                [Values.TXT],
+                "telco_churn_txt",
+                "Churn",
+                "boston_raises",
+                "RAISE",
+            ),
+            (Conditions.IN, [Values.NUM], "iris_with_bool", "Species", "cats_and_dogs", "class",),
         ],
         ids=lambda x: str([str(el) for el in x]) if isinstance(x, list) else str(x),
     )

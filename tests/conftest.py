@@ -1,7 +1,16 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
+import io
 import os
 
+import pandas as pd
 import pytest
 import yaml
+from scipy.io import mmread
 
 from tests.drum.constants import (
     ANOMALY,
@@ -26,6 +35,7 @@ from tests.drum.constants import (
     PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS,
     PYTHON_NO_ARTIFACT_REGRESSION_HOOKS,
     PYTHON_LOAD_MODEL,
+    PYTHON_PREDICT_SPARSE,
     PYTHON_TRANSFORM,
     PYTHON_TRANSFORM_DENSE,
     PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION,
@@ -33,6 +43,7 @@ from tests.drum.constants import (
     PYTHON_UNSTRUCTURED_PARAMS,
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
     PYTORCH,
+    PYTORCH_REGRESSION,
     PYTORCH_MULTICLASS,
     R,
     R_ALL_PREDICT_STRUCTURED_HOOKS,
@@ -41,6 +52,7 @@ from tests.drum.constants import (
     R_ALL_PREDICT_UNSTRUCTURED_HOOKS,
     R_ALL_PREDICT_UNSTRUCTURED_HOOKS_LOWERCASE_R,
     R_FIT,
+    R_PREDICT_SPARSE,
     R_UNSTRUCTURED,
     R_UNSTRUCTURED_PARAMS,
     RDS,
@@ -69,8 +81,11 @@ from tests.drum.constants import (
     R_TRANSFORM_NO_Y,
     R_TRANSFORM_NO_HOOK,
     R_TRANSFORM_SPARSE_INPUT,
+    R_TRANSFORM_SPARSE_OUTPUT,
     R_TRANSFORM_SPARSE_IN_OUT,
     R_TRANSFORM_NON_NUMERIC,
+    R_ESTIMATOR_SPARSE,
+    R_VALIDATE_SPARSE_ESTIMATOR,
     SPARSE,
     SPARSE_TARGET,
     TESTS_ARTIFACTS_PATH,
@@ -78,6 +93,7 @@ from tests.drum.constants import (
     TESTS_FIXTURES_PATH,
     TRAINING_TEMPLATES_PATH,
     TRANSFORM_TEMPLATES_PATH,
+    ESTIMATORS_TEMPLATES_PATH,
     TRANSFORM,
     UNSTRUCTURED,
     XGB,
@@ -89,24 +105,27 @@ from tests.drum.constants import (
     SKLEARN_TRANSFORM_HYPERPARAMETERS,
     RDS_PARAMETERS,
     RDS_HYPERPARAMETERS,
-    SKLEARN_BINARY_SCHEMA_VALIDATION,
     MLJ,
     JLSO,
     JULIA,
     R_INT_COLNAMES_BINARY,
     R_INT_COLNAMES_MULTICLASS,
+    R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
+    SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
 )
 
 _datasets = {
     # If specific dataset should be defined for a framework, use (framework, problem) key.
     # Otherwise default dataset is used (None, problem)
-    (None, REGRESSION): os.path.join(TESTS_DATA_PATH, "boston_housing.csv"),
+    (None, REGRESSION): os.path.join(TESTS_DATA_PATH, "juniors_3_year_stats_regression.csv"),
+    (None, REGRESSION_INFERENCE): os.path.join(
+        TESTS_DATA_PATH, "juniors_3_year_stats_regression_inference.csv"
+    ),
     (None, REGRESSION_SINGLE_COL): os.path.join(TESTS_DATA_PATH, "regression_single_col.csv"),
     (None, BINARY_TEXT): os.path.join(TESTS_DATA_PATH, "telecomms_churn.csv"),
     (PYPMML, REGRESSION): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
-    (None, REGRESSION_INFERENCE): os.path.join(TESTS_DATA_PATH, "boston_housing_inference.csv"),
     (None, BINARY): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
-    (None, ANOMALY): os.path.join(TESTS_DATA_PATH, "boston_housing.csv"),
+    (None, ANOMALY): os.path.join(TESTS_DATA_PATH, "juniors_3_year_stats_regression_inference.csv"),
     (None, UNSTRUCTURED): os.path.join(TESTS_DATA_PATH, "unstructured_data.txt"),
     (None, MULTICLASS): os.path.join(TESTS_DATA_PATH, "skyserver_sql2_27_2018_6_51_39_pm.csv"),
     (None, MULTICLASS_NUM_LABELS): os.path.join(
@@ -138,35 +157,40 @@ _datasets = {
         TESTS_DATA_PATH, "target_name_duplicated_y.csv"
     ),
     (R_TRANSFORM, TRANSFORM): os.path.join(TESTS_DATA_PATH, "10k_diabetes_sample.csv"),
+    (R_TRANSFORM_SPARSE_OUTPUT, TRANSFORM): os.path.join(
+        TESTS_DATA_PATH, "10k_diabetes_sample.csv"
+    ),
 }
 
 _training_models_paths = {
-    (PYTHON, SKLEARN_BINARY): os.path.join(TRAINING_TEMPLATES_PATH, "python3_sklearn_binary"),
+    (PYTHON, SKLEARN_BINARY): os.path.join(TRAINING_TEMPLATES_PATH, "5_python3_sklearn_binary"),
     (PYTHON, SKLEARN_BINARY_HYPERPARAMETERS): os.path.join(
         TESTS_FIXTURES_PATH, "python3_sklearn_binary_hyperparameters"
     ),
-    (PYTHON, SKLEARN_BINARY_SCHEMA_VALIDATION): os.path.join(
-        TRAINING_TEMPLATES_PATH, "python3_sklearn_binary_schema_validation"
-    ),
     (PYTHON, SKLEARN_REGRESSION): os.path.join(
-        TRAINING_TEMPLATES_PATH, "python3_sklearn_regression"
+        TRAINING_TEMPLATES_PATH, "2_python3_sklearn_regression"
     ),
     (PYTHON, SKLEARN_MULTICLASS): os.path.join(
-        TRAINING_TEMPLATES_PATH, "python3_sklearn_multiclass"
+        TRAINING_TEMPLATES_PATH, "6_python3_sklearn_multiclass"
     ),
     (PYTHON, SKLEARN_TRANSFORM_HYPERPARAMETERS): os.path.join(
         TESTS_FIXTURES_PATH, "python3_sklearn_transform_hyperparameters"
     ),
-    (PYTHON, SIMPLE): os.path.join(TRAINING_TEMPLATES_PATH, "simple"),
+    (PYTHON, SIMPLE): os.path.join(TRAINING_TEMPLATES_PATH, "1_simple"),
     (PYTHON, SKLEARN_SPARSE): os.path.join(TESTS_FIXTURES_PATH, "validate_sparse_columns"),
-    (PYTHON, KERAS): os.path.join(TRAINING_TEMPLATES_PATH, "python3_keras_joblib"),
-    (PYTHON, XGB): os.path.join(TRAINING_TEMPLATES_PATH, "python3_xgboost"),
-    (R_FIT, RDS): os.path.join(TRAINING_TEMPLATES_PATH, "r_lang"),
+    (PYTHON, KERAS): os.path.join(TRAINING_TEMPLATES_PATH, "14_python3_keras_joblib"),
+    (PYTHON, XGB): os.path.join(TRAINING_TEMPLATES_PATH, "4_python3_xgboost"),
+    (R_FIT, RDS): os.path.join(TRAINING_TEMPLATES_PATH, "3_r_lang"),
     (R_FIT, RDS_HYPERPARAMETERS): os.path.join(TESTS_FIXTURES_PATH, "r_lang_hyperparameters"),
-    (PYTHON, PYTORCH): os.path.join(TRAINING_TEMPLATES_PATH, "python3_pytorch"),
-    (PYTHON, SKLEARN_ANOMALY): os.path.join(TRAINING_TEMPLATES_PATH, "python3_anomaly_detection"),
+    (R_FIT, R_ESTIMATOR_SPARSE): os.path.join(ESTIMATORS_TEMPLATES_PATH, "3_r_sparse_regression"),
+    (R_FIT, RDS_SPARSE): os.path.join(TESTS_FIXTURES_PATH, "r_sparse_validation"),
+    (PYTHON, PYTORCH): os.path.join(TRAINING_TEMPLATES_PATH, "12_python3_pytorch"),
+    (PYTHON, PYTORCH_REGRESSION): os.path.join(
+        TRAINING_TEMPLATES_PATH, "11_python3_pytorch_regression"
+    ),
+    (PYTHON, SKLEARN_ANOMALY): os.path.join(TRAINING_TEMPLATES_PATH, "7_python3_anomaly_detection"),
     (PYTHON, PYTORCH_MULTICLASS): os.path.join(
-        TRAINING_TEMPLATES_PATH, "python3_pytorch_multiclass"
+        TRAINING_TEMPLATES_PATH, "13_python3_pytorch_multiclass"
     ),
     (PYTHON, SKLEARN_PRED_CONSISTENCY): os.path.join(
         TESTS_FIXTURES_PATH, "custom_pred_consistency"
@@ -178,7 +202,7 @@ _training_models_paths = {
 
 _targets = {
     BINARY: "Species",
-    REGRESSION: "MEDV",
+    REGRESSION: "Grade 2014",
     REGRESSION_SINGLE_COL: "target",
     BINARY_TEXT: "Churn",
     MULTICLASS: "class",
@@ -200,6 +224,7 @@ _target_types = {
     REGRESSION_INFERENCE: "regression",
     ANOMALY: "anomaly",
     UNSTRUCTURED: "unstructured",
+    SPARSE: "regression",
     MULTICLASS: "multiclass",
     MULTICLASS_BINARY: "multiclass",
     MULTICLASS_NUM_LABELS: "multiclass",
@@ -256,6 +281,7 @@ _artifacts = {
     (None, REGRESSION): None,
     (None, BINARY): None,
     (None, UNSTRUCTURED): None,
+    (SKLEARN, SPARSE): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_dtr_sparse.pkl"),
     (SKLEARN, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_reg.pkl"),
     (SKLEARN, REGRESSION_INFERENCE): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_reg.pkl"),
     (MULTI_ARTIFACT, REGRESSION): [
@@ -281,11 +307,12 @@ _artifacts = {
     ],
     (RDS, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "r_reg.rds"),
     (RDS_SPARSE, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "r_reg_sparse.rds"),
+    (RDS_SPARSE, SPARSE): os.path.join(TESTS_ARTIFACTS_PATH, "r_reg_sparse.rds"),
     (RDS, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "r_bin.rds"),
     (CODEGEN, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "java_reg.jar"),
     (CODEGEN, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "java_bin.jar"),
     (POJO, REGRESSION): os.path.join(
-        TESTS_ARTIFACTS_PATH, "drf_887c2e5b_0941_40b7_ae26_cae274c4b424.java",
+        TESTS_ARTIFACTS_PATH, "DRF_model_python_1633108695693_1.java",
     ),
     (POJO, BINARY): os.path.join(
         TESTS_ARTIFACTS_PATH, "XGBoost_grid__1_AutoML_20200717_163214_model_159.java",
@@ -296,7 +323,7 @@ _artifacts = {
     (MOJO, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_reg.zip"),
     (MOJO, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_bin.zip"),
     (MOJO, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_multi.zip"),
-    (MLJ, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "boston_rf.jlso"),
+    (MLJ, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "grade_regression.jlso"),
     (MLJ, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "iris_binary.jlso"),
     (MLJ, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "galaxy.jlso"),
     (PYPMML, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "iris_reg.pmml"),
@@ -341,6 +368,9 @@ _artifacts = {
     (SKLEARN_TRANSFORM_SPARSE_INPUT, REGRESSION): None,
     (SKLEARN_TRANSFORM_SPARSE_INPUT, BINARY): None,
     (SKLEARN_TRANSFORM_SPARSE_INPUT, ANOMALY): None,
+    (SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT, REGRESSION): None,
+    (SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT, BINARY): None,
+    (SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT, ANOMALY): None,
     (SKLEARN_TRANSFORM_SPARSE_IN_OUT, REGRESSION): None,
     (SKLEARN_TRANSFORM_SPARSE_IN_OUT, BINARY): None,
     (SKLEARN_TRANSFORM_SPARSE_IN_OUT, ANOMALY): None,
@@ -360,12 +390,20 @@ _artifacts = {
     (R_TRANSFORM_SPARSE_INPUT, REGRESSION): None,
     (R_TRANSFORM_SPARSE_INPUT, BINARY): None,
     (R_TRANSFORM_SPARSE_INPUT, ANOMALY): None,
+    (R_TRANSFORM_SPARSE_OUTPUT, TRANSFORM): os.path.join(
+        TESTS_ARTIFACTS_PATH, "r_sparse_transform.rds"
+    ),
+    (R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT, REGRESSION): None,
+    (R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT, BINARY): None,
+    (R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT, ANOMALY): None,
     (R_TRANSFORM_SPARSE_IN_OUT, REGRESSION): None,
     (R_TRANSFORM_SPARSE_IN_OUT, BINARY): None,
     (R_TRANSFORM_SPARSE_IN_OUT, ANOMALY): None,
     (R_TRANSFORM_NON_NUMERIC, REGRESSION): None,
     (R_TRANSFORM_NON_NUMERIC, BINARY): None,
     (R_TRANSFORM_NON_NUMERIC, ANOMALY): None,
+    (R_ESTIMATOR_SPARSE, REGRESSION): None,
+    (R_VALIDATE_SPARSE_ESTIMATOR, REGRESSION): None,
 }
 
 _custom_filepaths = {
@@ -389,6 +427,9 @@ _custom_filepaths = {
         os.path.join(TESTS_FIXTURES_PATH, "no_artifact_regression_custom.py"),
         "custom.py",
     ),
+    # sparse_predict.* for sparse.mtx, checks that data is sparse matrix and contains column names
+    R_PREDICT_SPARSE: (os.path.join(TESTS_FIXTURES_PATH, "sparse_predict.R"), "custom.R",),
+    PYTHON_PREDICT_SPARSE: (os.path.join(TESTS_FIXTURES_PATH, "sparse_predict.py"), "custom.py",),
     R: (os.path.join(TESTS_FIXTURES_PATH, "custom.R"), "custom.R"),
     R_ALL_PREDICT_STRUCTURED_HOOKS: (
         os.path.join(TESTS_FIXTURES_PATH, "all_predict_structured_hooks_custom.R"),
@@ -455,6 +496,10 @@ _custom_filepaths = {
         os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_sparse_input.py"),
         "custom.py",
     ),
+    SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT: (
+        os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_sparse_input_y_output.py"),
+        "custom.py",
+    ),
     SKLEARN_TRANSFORM_SPARSE_IN_OUT: (
         os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_sparse_in_out.py"),
         "custom.py",
@@ -473,12 +518,24 @@ _custom_filepaths = {
         os.path.join(TESTS_FIXTURES_PATH, "r_transform_fit_custom_sparse_input.R"),
         "custom.R",
     ),
+    R_TRANSFORM_SPARSE_OUTPUT: (
+        os.path.join(TESTS_FIXTURES_PATH, "r_transform_custom_sparse_output.R"),
+        "custom.R",
+    ),
+    R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT: (
+        os.path.join(TESTS_FIXTURES_PATH, "r_transform_fit_custom_sparse_input_y_output.R"),
+        "custom.R",
+    ),
     R_TRANSFORM_SPARSE_IN_OUT: (
         os.path.join(TESTS_FIXTURES_PATH, "r_transform_fit_custom_sparse_in_out.R"),
         "custom.R",
     ),
     R_TRANSFORM_NON_NUMERIC: (
         os.path.join(TESTS_FIXTURES_PATH, "r_transform_fit_custom_non_numeric.R"),
+        "custom.R",
+    ),
+    R_VALIDATE_SPARSE_ESTIMATOR: (
+        os.path.join(TESTS_FIXTURES_PATH, "r_validate_sparse_estimator.R"),
         "custom.R",
     ),
 }
@@ -556,6 +613,24 @@ def get_custom():
 
 
 @pytest.fixture(scope="session")
+def get_input_data(get_dataset_filename):
+    def _foo(framework, problem):
+        dataset_path = get_dataset_filename(framework, problem)
+        column_file = dataset_path.replace(".mtx", ".columns")
+        if problem == SPARSE:
+            with open(column_file) as f:
+                columns = [c.rstrip() for c in f]
+            with open(dataset_path, "rb") as f:
+                return pd.DataFrame.sparse.from_spmatrix(
+                    mmread(io.BytesIO(f.read())), columns=columns
+                )
+        else:
+            return pd.read_csv(dataset_path)
+
+    return _foo
+
+
+@pytest.fixture(scope="session")
 def resources(
     get_dataset_filename,
     get_paths_to_training_models,
@@ -564,6 +639,7 @@ def resources(
     get_class_labels,
     get_artifacts,
     get_custom,
+    get_input_data,
 ):
     resource = Resource()
     resource.datasets = get_dataset_filename
@@ -573,12 +649,13 @@ def resources(
     resource.class_labels = get_class_labels
     resource.artifacts = get_artifacts
     resource.custom = get_custom
+    resource.input_data = get_input_data
     return resource
 
 
 # fixtures for variety data tests
 with open(os.path.join(TESTS_DATA_PATH, "variety_samples/variety_data_key.yaml")) as yamlfile:
-    variety_data_dict = yaml.load(yamlfile)
+    variety_data_dict = yaml.safe_load(yamlfile)
 
 variety_data_names = [*variety_data_dict]
 

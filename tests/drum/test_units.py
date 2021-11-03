@@ -1,3 +1,11 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
+import glob
+import itertools
 import json
 import os
 import socket
@@ -17,19 +25,23 @@ from pandas.testing import assert_frame_equal
 from sklearn.linear_model import LogisticRegression
 
 from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPredictor
+from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
+from datarobot_drum.drum.artifact_predictors.xgboost_predictor import XGBoostPredictor
+from datarobot_drum.drum.artifact_predictors.keras_predictor import KerasPredictor
+from datarobot_drum.drum.artifact_predictors.torch_predictor import PyTorchPredictor
 from datarobot_drum.drum.common import (
-    MODEL_CONFIG_FILENAME,
     ModelMetadataKeys,
     read_model_metadata_yaml,
-    TargetType,
     validate_config_fields,
 )
+from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, TargetType
 from datarobot_drum.drum.drum import (
     create_custom_inference_model_folder,
     output_in_code_dir,
     possibly_intuit_order,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import JavaPredictor
 from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
     PythonPredictor,
@@ -37,13 +49,15 @@ from datarobot_drum.drum.language_predictors.python_predictor.python_predictor i
 from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.push import _push_inference, _push_training, drum_push
+from datarobot_drum.drum.utils import DrumUtils
+from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils import StructuredInputReadUtils
 
 
 class TestOrderIntuition:
     tests_data_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "testdata"))
     binary_filename = os.path.join(tests_data_path, "iris_binary_training.csv")
-    regression_filename = os.path.join(tests_data_path, "boston_housing.csv")
+    regression_filename = os.path.join(tests_data_path, "juniors_3_year_stats_regression.csv")
     one_target_filename = os.path.join(tests_data_path, "one_target.csv")
 
     def test_colname(self):
@@ -66,7 +80,7 @@ class TestOrderIntuition:
 
     def test_unsupervised(self):
         classes = possibly_intuit_order(
-            self.regression_filename, target_col_name="MEDV", is_anomaly=True
+            self.regression_filename, target_col_name="Grade 2014", is_anomaly=True
         )
         assert classes is None
 
@@ -127,7 +141,7 @@ def inference_metadata_yaml():
         targetType: regression
         environmentID: {environmentID}
         inferenceModel:
-          targetName: MEDV
+          targetName: Grade 2014
         validation:
           input: hello
         """
@@ -473,6 +487,20 @@ def mock_post_blueprint():
             "training_history": [],
         },
     )
+    responses.add(
+        responses.POST,
+        "http://yess/customTasks/",
+        json={
+            "id": modelID,
+            "target_type": "Regression",
+            "created": "1",
+            "updated": "1",
+            "name": "1",
+            "description": "1",
+            "language": "Python",
+            "created_by": "1",
+        },
+    )
 
 
 def mock_post_add_to_repository():
@@ -548,7 +576,11 @@ def test_push(request, config_yaml, existing_model_id, multiclass_labels, tmp_pa
 
     calls = responses.calls
     if existing_model_id is None:
-        assert calls[1].request.path_url == "/customModels/" and calls[1].request.method == "POST"
+        custom_tasks_or_models_path = "customTasks" if push_fn == _push_training else "customModels"
+        assert (
+            calls[1].request.path_url == "/{}/".format(custom_tasks_or_models_path)
+            and calls[1].request.method == "POST"
+        )
         if config["targetType"] == TargetType.MULTICLASS.value:
             sent_labels = json.loads(calls[1].request.body)["classLabels"]
             assert sent_labels == multiclass_labels
@@ -722,3 +754,124 @@ def test_sklearn_predictor_wrong_dtype_labels(data_dtype, label_dtype):
         target_type=TargetType.BINARY,
     )
     assert all(out.columns == [str(label_dtype(0)), str(label_dtype(1))])
+
+
+def test_endswith_extension_ignore_case():
+    assert DrumUtils.endswith_extension_ignore_case("f.ExT", ".eXt")
+    assert DrumUtils.endswith_extension_ignore_case("f.pY", [".Py", ".Java"])
+    assert not DrumUtils.endswith_extension_ignore_case("f.py", [".R"])
+
+
+def test_find_files_by_extension(tmp_path):
+    exts = [".ext", ".Rds", ".py"]
+    Path(f"{tmp_path}/file.ext").touch()
+    Path(f"{tmp_path}/file.RDS").touch()
+    Path(f"{tmp_path}/file.PY").touch()
+    Path(f"{tmp_path}/file.pY").touch()
+    assert 4 == len(DrumUtils.find_files_by_extensions(tmp_path, exts))
+
+
+def test_filename_exists_and_is_file(tmp_path, caplog):
+    Path(f"{tmp_path}/custom.py").touch()
+    assert DrumUtils.filename_exists_and_is_file(tmp_path, "custom.py")
+    for f in glob.glob(f"{tmp_path}/*"):
+        os.remove(f)
+
+    Path(f"{tmp_path}/custom.r").touch()
+    assert DrumUtils.filename_exists_and_is_file(tmp_path, "custom.r", "custom.R")
+    for f in glob.glob(f"{tmp_path}/*"):
+        os.remove(f)
+
+    Path(f"{tmp_path}/custom.R").touch()
+    assert DrumUtils.filename_exists_and_is_file(tmp_path, "custom.r", "custom.R")
+    for f in glob.glob(f"{tmp_path}/*"):
+        os.remove(f)
+
+    Path(f"{tmp_path}/custom.r").touch()
+    Path(f"{tmp_path}/custom.R").touch()
+    assert DrumUtils.filename_exists_and_is_file(tmp_path, "custom.r", "custom.R")
+    assert "Found filenames that case-insensitively match each other" in caplog.text
+    for f in glob.glob(f"{tmp_path}/*"):
+        os.remove(f)
+
+    caplog.clear()
+
+    Path(f"{tmp_path}/custom.jl").touch()
+    assert DrumUtils.filename_exists_and_is_file(tmp_path, "custom.jl")
+    for f in glob.glob(f"{tmp_path}/*"):
+        os.remove(f)
+
+    Path(f"{tmp_path}/custom.PY").touch()
+    assert not DrumUtils.filename_exists_and_is_file(tmp_path, "custom.py")
+    assert "Found filenames that case-insensitively match expected filenames" in caplog.text
+    assert "Found: ['custom.PY']" in caplog.text
+    assert "Expected one of: ['custom.py']" in caplog.text
+    for f in glob.glob(f"{tmp_path}/*"):
+        os.remove(f)
+
+    caplog.clear()
+
+
+def test_predictor_extension():
+    assert SKLearnPredictor().is_artifact_supported("artifact.PKL")
+    assert XGBoostPredictor().is_artifact_supported("artifact.PkL")
+    assert PyTorchPredictor().is_artifact_supported("artifact.pTh")
+    assert KerasPredictor().is_artifact_supported("artifact.h5")
+    assert PMMLPredictor().is_artifact_supported("artifact.PmMl")
+    assert not SKLearnPredictor().is_artifact_supported("artifact.jar")
+    assert not XGBoostPredictor().is_artifact_supported("artifact.jar")
+    assert not PyTorchPredictor().is_artifact_supported("artifact.Jar")
+    assert not KerasPredictor().is_artifact_supported("artifact.jaR")
+    assert not PMMLPredictor().is_artifact_supported("artifact.jAr")
+
+
+@pytest.mark.parametrize(
+    "target_type, predictor_cls",
+    itertools.product(
+        [
+            TargetType.BINARY,
+            TargetType.MULTICLASS,
+            TargetType.REGRESSION,
+            TargetType.UNSTRUCTURED,
+            TargetType.ANOMALY,
+            TargetType.UNSTRUCTURED,
+            TargetType.TRANSFORM,
+        ],
+        [PythonPredictor, RPredictor, JavaPredictor],
+    ),
+)
+def test_validate_model_metadata_output_requirements(target_type, predictor_cls):
+    """The validation on the specs defined in the output_requirements of model metadata is only triggered when the
+    custom task is a transform task. This test checks this functionality.
+
+    Expected results:
+        - If the custom task is a transform task, the validation on the specs defined in the output_requirements will
+          be triggered. In this case, the exception is raised due to the violation of output_requirements.
+        - If the custom task is not a transform task, the validation on the spec defined in the output_requirements will
+          not be triggered.
+    """
+
+    proba_pred_output = pd.DataFrame({"class_0": [0.1, 0.2, 0.3], "class_1": [0.9, 0.8, 0.7]})
+    num_pred_output = pd.DataFrame(np.arange(10))
+    predictor = predictor_cls()
+    predictor._target_type = target_type
+    type_schema = {
+        "input_requirements": [{"field": "data_types", "condition": "IN", "value": "NUM"}],
+        "output_requirements": [{"field": "data_types", "condition": "IN", "value": "CAT"}],
+    }
+    predictor._schema_validator = SchemaValidator(type_schema=type_schema)
+    df_to_validate = (
+        proba_pred_output
+        if target_type.value in TargetType.CLASSIFICATION.value
+        else num_pred_output
+    )
+
+    if target_type == TargetType.TRANSFORM:
+        with pytest.raises(DrumSchemaValidationException) as ex:
+            predictor.validate_output(df_to_validate)
+        assert str(ex.value) == (
+            "schema validation failed for output:\n ['Datatypes incorrect. Data has types: NUM, which includes values "
+            "that are not in CAT.']"
+        )
+    else:
+        predictor.validate_output(df_to_validate)

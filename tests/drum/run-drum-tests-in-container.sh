@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# Copyright 2021 DataRobot, Inc. and its affiliates.
+#
+# All rights reserved.
+# This is proprietary source code of DataRobot, Inc. and its affiliates.
+#
+# Released under the terms of DataRobot Tool and Utility Agreement.
 
 echo
 echo "--- env ----"
@@ -46,26 +52,9 @@ echo "--> julia check complete"
 
 
 # Change every environment Dockerfile to install freshly built DRUM wheel
-WITH_R=""
-pushd $GIT_ROOT/public_dropin_environments
-DIRS=$(ls)
-for d in $DIRS
-do
-  pushd $d
-  cp $DRUM_WHEEL_REAL_PATH .
-
-  # check if DRUM is installed with R option
-  if grep "datarobot-drum\[R\]" dr_requirements.txt
-  then
-    WITH_R="[R]"
-  fi
-  # insert 'COPY wheel wheel' after 'COPY dr_requirements.txt dr_requirements.txt'
-  sed -i "/COPY \+dr_requirements.txt \+dr_requirements.txt/a COPY ${DRUM_WHEEL_FILENAME} ${DRUM_WHEEL_FILENAME}" Dockerfile
-  # replace 'datarobot-drum' requirement with a wheel
-  sed -i "s/^datarobot-drum.*/${DRUM_WHEEL_FILENAME}${WITH_R}/" dr_requirements.txt
-  popd
-done
-popd
+source "${GIT_ROOT}/tools/image-build-utils.sh"
+echo "--> Change every environment Dockerfile to install local freshly built DRUM wheel: ${DRUM_WHEEL_REAL_PATH}"
+build_all_dropin_env_dockerfiles "${DRUM_WHEEL_REAL_PATH}"
 
 echo
 echo "--> Installing DRUM Java BasePredictor into Maven repo"

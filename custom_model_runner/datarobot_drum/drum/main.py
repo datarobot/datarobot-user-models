@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 #!/usr/bin/env python3
 
 """
@@ -33,13 +39,10 @@ Examples:
 import os
 import signal
 import sys
+
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
-from datarobot_drum.drum.common import (
-    config_logging,
-    RunMode,
-    ArgumentsOptions,
-    ArgumentOptionsEnvVars,
-)
+from datarobot_drum.drum.common import config_logging
+from datarobot_drum.drum.enum import RunMode
 from datarobot_drum.drum.runtime import DrumRuntime
 
 
@@ -86,71 +89,7 @@ def main():
             # argcomplete call should be as close to the beginning as possible
             argcomplete.autocomplete(arg_parser)
 
-        def _extend_sys_argv_with_env_vars():
-            """
-            We want actions, types and checks defined in args parsers to take care of arguments,
-            even if they are defined by env var.
-            For this purpose, if arg is provided by env var, it's added to sys.argv according to the conditions:
-            - env var is set;
-            - arg is legit for the sub parser being used;
-            - arg is not already provided as command line argument;
-            :return:
-            """
-
-            def _is_arg_registered_in_subparser(sub_parser, arg):
-                """
-                Check that argument is legit for the subparser. E.g. for `fit` --target is legit, but not --address
-                :param sub_parser: argparse.ArgumentParser
-                :param arg: argument option, e.g. --address
-                :return: True/False
-                """
-
-                # This accesses private parser's properties.
-                for action in sub_parser._actions:
-                    if arg in action.option_strings:
-                        return True
-                return False
-
-            if len(sys.argv) == 1:
-                return
-            sub_parser_command = sys.argv[1]
-            sub_parser = CMRunnerArgsRegistry._parsers.get(sub_parser_command)
-            if sub_parser is None:
-                return
-
-            for env_var_key in ArgumentOptionsEnvVars.VALUE_VARS + ArgumentOptionsEnvVars.BOOL_VARS:
-                env_var_value = os.environ.get(env_var_key)
-                if env_var_value is not None and len(env_var_value) == 0:
-                    env_var_value = None
-                if (
-                    # if env var is set
-                    env_var_value is not None
-                    # and if argument related to env var is supported by parser
-                    and _is_arg_registered_in_subparser(
-                        sub_parser, ArgumentsOptions.__dict__[env_var_key]
-                    )
-                    # and if argument related to env var is not already in sys.argv
-                    and ArgumentsOptions.__dict__[env_var_key] not in sys.argv
-                ):
-                    # special handling for --class_labels_file as it and --class-labels can not be provided together
-                    if (
-                        env_var_key == ArgumentOptionsEnvVars.CLASS_LABELS_FILE
-                        and ArgumentsOptions.CLASS_LABELS in sys.argv
-                        or env_var_key == ArgumentOptionsEnvVars.CLASS_LABELS
-                        and ArgumentsOptions.CLASS_LABELS_FILE in sys.argv
-                    ):
-                        continue
-
-                    args_to_add = [ArgumentsOptions.__dict__[env_var_key]]
-                    if env_var_key in ArgumentOptionsEnvVars.VALUE_VARS:
-                        if env_var_key == ArgumentOptionsEnvVars.CLASS_LABELS:
-                            args_to_add.extend(env_var_value.split())
-                        else:
-                            args_to_add.extend([env_var_value])
-
-                    sys.argv.extend(args_to_add)
-
-        _extend_sys_argv_with_env_vars()
+        CMRunnerArgsRegistry.extend_sys_argv_with_env_vars()
 
         options = arg_parser.parse_args()
         CMRunnerArgsRegistry.verify_options(options)

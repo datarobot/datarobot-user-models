@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import os
 import shutil
 from tempfile import NamedTemporaryFile
@@ -5,8 +11,10 @@ from tempfile import NamedTemporaryFile
 import numpy as np
 import pandas as pd
 import pytest
+import scipy.sparse as sp
+from scipy.io import mmwrite
 
-from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.drum.enum import ArgumentsOptions, InputFormatExtension
 from datarobot_drum.drum.utils import handle_missing_colnames, unset_drum_supported_env_vars
 from datarobot_drum.resource.utils import (
     _cmd_add_class_labels,
@@ -26,9 +34,11 @@ from .constants import (
     MULTICLASS_NUM_LABELS,
     PYTHON,
     PYTORCH,
+    PYTORCH_REGRESSION,
     PYTORCH_MULTICLASS,
     R_FIT,
     RDS,
+    RDS_SPARSE,
     REGRESSION,
     REGRESSION_SINGLE_COL,
     SIMPLE,
@@ -61,7 +71,6 @@ from .constants import (
     SKLEARN_TRANSFORM_PARAMETERS,
     RDS_HYPERPARAMETERS,
     RDS_PARAMETERS,
-    SKLEARN_BINARY_SCHEMA_VALIDATION,
     PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION,
     R_TRANSFORM_SPARSE_INPUT,
     R_TRANSFORM_SPARSE_IN_OUT,
@@ -69,27 +78,45 @@ from .constants import (
     R_TRANSFORM_NO_Y,
     R_TRANSFORM_NO_HOOK,
     R_TRANSFORM_NON_NUMERIC,
+    R_ESTIMATOR_SPARSE,
+    R_VALIDATE_SPARSE_ESTIMATOR,
+    R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
+    SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
 )
 
 
 class TestFit:
     @staticmethod
-    def _add_weights_cmd(weights, input_csv, r_fit=False):
-        df = pd.read_csv(input_csv)
-        colname = "some-colname"
+    def _add_weights_cmd(weights, df, input_name, r_fit=False):
+        colname = "some-weights"
         weights_data = pd.Series(np.random.randint(1, 3, len(df)))
-        __keep_this_around = NamedTemporaryFile("w")
+        ext = os.path.splitext(input_name)[1]
         if weights == WEIGHTS_ARGS:
+            __keep_this_around = NamedTemporaryFile("w", suffix=ext)
             df[colname] = weights_data
             if r_fit:
                 df = handle_missing_colnames(df)
-            df.to_csv(__keep_this_around.name)
+            if ext == ".mtx":
+                with open(input_name.replace(".mtx", ".columns")) as f:
+                    sparse_colnames = [col.rstrip() for col in f]
+                sparse_colnames.append(colname)
+                tmp_colname_file = __keep_this_around.name.replace(".mtx", ".columns")
+                with open(tmp_colname_file, "w") as f:
+                    f.write("\n".join(sparse_colnames))
+                df[colname] = pd.arrays.SparseArray(
+                    df[colname], dtype=pd.SparseDtype(np.float64, 0)
+                )
+                mmwrite(__keep_this_around.name, sp.csr_matrix(df.to_numpy()))
+            else:
+                df.to_csv(__keep_this_around.name, index=False)
             return " --row-weights " + colname, __keep_this_around.name, __keep_this_around
         elif weights == WEIGHTS_CSV:
-            weights_data.to_csv(__keep_this_around.name)
-            return " --row-weights-csv " + __keep_this_around.name, input_csv, __keep_this_around
+            __keep_this_around = NamedTemporaryFile("w")
+            weights_data.to_csv(__keep_this_around.name, index=False)
+            return " --row-weights-csv " + __keep_this_around.name, input_name, __keep_this_around
 
-        return "", input_csv, __keep_this_around
+        __keep_this_around = NamedTemporaryFile("w")
+        return "", input_name, __keep_this_around
 
     @pytest.mark.parametrize("framework", [XGB, RDS])
     @pytest.mark.parametrize("problem", [REGRESSION])
@@ -112,9 +139,10 @@ class TestFit:
         )
 
         input_dataset = resources.datasets(framework, problem)
+        input_df = resources.input_data(framework, problem)
 
         weights_cmd, input_dataset, __keep_this_around = self._add_weights_cmd(
-            weights, input_dataset, r_fit=language == R_FIT
+            weights, input_df, input_dataset, r_fit=language == R_FIT
         )
 
         output = tmp_path / "output"
@@ -124,7 +152,7 @@ class TestFit:
             ArgumentsOptions.MAIN_COMMAND, problem, custom_model_dir, input_dataset
         )
         if problem != ANOMALY:
-            cmd += " --target {}".format(resources.targets(problem))
+            cmd += ' --target "{}"'.format(resources.targets(problem))
 
         if use_output:
             cmd += " --output {}".format(output)
@@ -144,6 +172,8 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, problem, docker",
         [
+            (SKLEARN_SPARSE, SPARSE, None),
+            (RDS_SPARSE, SPARSE, None),
             (RDS, BINARY_BOOL, None),
             (RDS, BINARY_TEXT, None),
             (RDS, REGRESSION, None),
@@ -161,16 +191,9 @@ class TestFit:
             (SKLEARN_MULTICLASS, MULTICLASS, None),
             (SKLEARN_MULTICLASS, MULTICLASS_BINARY, None),
             (SKLEARN_MULTICLASS, MULTICLASS_NUM_LABELS, None),
-            (XGB, BINARY_TEXT, None),
             (XGB, REGRESSION, None),
-            (XGB, MULTICLASS, None),
-            (XGB, MULTICLASS_BINARY, None),
-            (KERAS, BINARY_TEXT, None),
             (KERAS, REGRESSION, None),
-            (KERAS, MULTICLASS, None),
-            (KERAS, MULTICLASS_BINARY, None),
             (PYTORCH, BINARY_TEXT, None),
-            (PYTORCH, REGRESSION, None),
             (PYTORCH_MULTICLASS, MULTICLASS, None),
             (PYTORCH_MULTICLASS, MULTICLASS_BINARY, None),
         ],
@@ -179,7 +202,7 @@ class TestFit:
     def test_fit(
         self, resources, framework, problem, docker, weights, tmp_path,
     ):
-        if framework == RDS:
+        if framework in {RDS, RDS_SPARSE}:
             language = R_FIT
         else:
             language = PYTHON
@@ -189,23 +212,35 @@ class TestFit:
         )
 
         input_dataset = resources.datasets(framework, problem)
+        input_df = resources.input_data(framework, problem)
 
         weights_cmd, input_dataset, __keep_this_around = self._add_weights_cmd(
-            weights, input_dataset, r_fit=language == R_FIT
+            weights, input_df, input_dataset, r_fit=language == R_FIT
         )
 
         target_type = resources.target_types(problem)
 
-        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose --disable-strict-validation".format(
             ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
         )
-        if problem != ANOMALY:
-            cmd += " --target {}".format(resources.targets(problem))
+        if problem not in {ANOMALY, SPARSE}:
+            cmd += ' --target "{}"'.format(resources.targets(problem))
+
+        if problem == SPARSE:
+            input_dir = tmp_path / "input_dir"
+            input_dir.mkdir(parents=True, exist_ok=True)
+            target_file = os.path.join(input_dir, "y.csv")
+            shutil.copyfile(resources.datasets(None, SPARSE_TARGET), target_file)
+            sparse_column_file = input_dataset.replace(".mtx", ".columns")
+            cmd += " --sparse-column-file {} --target-csv {}".format(
+                sparse_column_file, target_file
+            )
 
         if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
                 cmd, resources.class_labels(framework, problem), target_type=target_type
             )
+
         if docker:
             cmd += " --docker {} ".format(docker)
 
@@ -239,9 +274,10 @@ class TestFit:
 
         input_dataset = resources.datasets(framework, problem)
         parameter_file = resources.datasets(framework, parameters)
+        input_df = resources.input_data(framework, problem)
 
         weights_cmd, input_dataset, __keep_this_around = self._add_weights_cmd(
-            weights, input_dataset, r_fit=language == R_FIT
+            weights, input_df, input_dataset, r_fit=language == R_FIT
         )
 
         target_type = resources.target_types(problem) if "transform" not in framework else TRANSFORM
@@ -254,7 +290,7 @@ class TestFit:
             parameter_file,
         )
         if problem != ANOMALY:
-            cmd += " --target {}".format(resources.targets(problem))
+            cmd += ' --target "{}"'.format(resources.targets(problem))
 
         if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
@@ -273,9 +309,7 @@ class TestFit:
         "framework, language",
         [
             (SKLEARN_TRANSFORM, PYTHON),
-            (SKLEARN_TRANSFORM_WITH_Y, PYTHON),
             (SKLEARN_TRANSFORM_NO_HOOK, PYTHON),
-            (R_TRANSFORM, R_FIT),
             (R_TRANSFORM_NO_Y, R_FIT),
             (R_TRANSFORM_NO_HOOK, R_FIT),
         ],
@@ -290,9 +324,10 @@ class TestFit:
         )
 
         input_dataset = resources.datasets(framework, problem)
+        input_df = resources.input_data(framework, problem)
 
         weights_cmd, input_dataset, __keep_this_around = self._add_weights_cmd(
-            weights, input_dataset, r_fit=language == R_FIT
+            weights, input_df, input_dataset, r_fit=language == R_FIT
         )
 
         target_type = TRANSFORM
@@ -301,7 +336,7 @@ class TestFit:
             ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
         )
         if problem != ANOMALY:
-            cmd += " --target {}".format(resources.targets(problem))
+            cmd += ' --target "{}"'.format(resources.targets(problem))
 
         if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
@@ -333,9 +368,10 @@ class TestFit:
         )
 
         input_dataset = resources.datasets(framework, problem)
+        input_df = resources.input_data(framework, problem)
 
         weights_cmd, input_dataset, __keep_this_around = self._add_weights_cmd(
-            weights, input_dataset, r_fit=language == R_FIT
+            weights, input_df, input_dataset, r_fit=language == R_FIT
         )
 
         target_type = TRANSFORM
@@ -348,7 +384,7 @@ class TestFit:
             "" if strict else "--disable-strict-validation",
         )
         if problem != ANOMALY:
-            cmd += " --target {}".format(resources.targets(problem))
+            cmd += ' --target "{}"'.format(resources.targets(problem))
 
         if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
@@ -370,6 +406,68 @@ class TestFit:
             assert "WARNING: No type schema provided. For transforms, we" not in stdout
 
     @pytest.mark.parametrize(
+        "framework, language",
+        [
+            (SKLEARN_TRANSFORM_WITH_Y, PYTHON),
+            # disabling R, there is a bug where the Y value is only passed in for sparse
+            # (R_TRANSFORM, R_FIT),
+        ],
+    )
+    @pytest.mark.parametrize("problem", [REGRESSION, BINARY, ANOMALY])
+    def test_transform_fit_disallow_y_output(
+        self, resources, tmp_path, framework, language, problem
+    ):
+
+        input_dataset = resources.datasets(framework, problem)
+        target_type = TRANSFORM
+        custom_model_dir = _create_custom_model_dir(
+            resources, tmp_path, framework, problem, language=framework,
+        )
+
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose {}".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            target_type,
+            custom_model_dir,
+            input_dataset,
+            "--disable-strict-validation",
+        )
+        _, stdout, _ = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+        assert "Transformation of the target variable is not supported by DRUM." in stdout
+
+    @pytest.mark.parametrize(
+        "framework", [SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT, R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT]
+    )
+    def test_sparse_transform_fit_disallow_y_output(
+        self, framework, resources, tmp_path,
+    ):
+        input_dataset = resources.datasets(None, SPARSE)
+        target_dataset = resources.datasets(None, SPARSE_TARGET)
+
+        custom_model_dir = _create_custom_model_dir(
+            resources, tmp_path, framework, REGRESSION, language=framework,
+        )
+        columns = resources.datasets(framework, SPARSE_COLUMNS)
+
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose --target-csv {} --sparse-column-file {} --disable-strict-validation".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            TRANSFORM,
+            custom_model_dir,
+            input_dataset,
+            target_dataset,
+            columns,
+        )
+        _, stdout, _ = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+        assert "Transformation of the target variable is not supported by DRUM." in stdout
+
+    @pytest.mark.parametrize(
         "framework",
         [
             SKLEARN_TRANSFORM_SPARSE_IN_OUT,
@@ -389,7 +487,7 @@ class TestFit:
         )
         columns = resources.datasets(framework, SPARSE_COLUMNS)
 
-        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose --target-csv {} --sparse-column-file {}".format(
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose --target-csv {} --sparse-column-file {} --disable-strict-validation".format(
             ArgumentsOptions.MAIN_COMMAND,
             TRANSFORM,
             custom_model_dir,
@@ -442,7 +540,7 @@ class TestFit:
             df = pd.read_csv(input_dataset)
             weights_data = pd.Series(np.random.randint(1, 3, len(df)))
             with open(os.path.join(input_dir, "weights.csv"), "w+") as fp:
-                weights_data.to_csv(fp)
+                weights_data.to_csv(fp, index=False)
 
     @pytest.mark.parametrize(
         "framework, problem, parameters",
@@ -453,12 +551,8 @@ class TestFit:
             (SKLEARN_ANOMALY, ANOMALY, None),
             (SKLEARN_MULTICLASS, MULTICLASS, None),
             (SKLEARN_SPARSE, REGRESSION, None),
-            (XGB, BINARY_TEXT, None),
-            (XGB, BINARY, None),
-            (XGB, MULTICLASS, None),
-            (KERAS, BINARY_TEXT, None),
-            (KERAS, BINARY, None),
-            (KERAS, MULTICLASS, None),
+            (XGB, REGRESSION, None),
+            (KERAS, REGRESSION, None),
         ],
     )
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, None])
@@ -508,9 +602,9 @@ class TestFit:
         env["ARTIFACT_DIRECTORY"] = str(output)
         env["TARGET_TYPE"] = problem if problem != BINARY_TEXT else BINARY
         if framework == SKLEARN_SPARSE:
-            env["TRAINING_DATA_EXTENSION"] = ".mtx"
+            env["TRAINING_DATA_EXTENSION"] = InputFormatExtension.MTX
         else:
-            env["TRAINING_DATA_EXTENSION"] = ".csv"
+            env["TRAINING_DATA_EXTENSION"] = InputFormatExtension.CSV
 
         if problem in [BINARY, BINARY_TEXT]:
             labels = resources.class_labels(framework, problem)
@@ -544,7 +638,7 @@ class TestFit:
         output = tmp_path / "output"
         output.mkdir()
 
-        cmd = "{} fit --target-type {} --code-dir {} --target {} --input {} --verbose".format(
+        cmd = '{} fit --target-type {} --code-dir {} --target "{}" --input {} --verbose'.format(
             ArgumentsOptions.MAIN_COMMAND,
             REGRESSION,
             custom_model_dir,
@@ -556,16 +650,36 @@ class TestFit:
         )
 
     @pytest.mark.parametrize(
-        "framework", [SKLEARN_SPARSE, PYTORCH, RDS,],
+        "framework, problem, language, is_framework_directory",
+        [
+            (SKLEARN_SPARSE, SPARSE, PYTHON, True),
+            (PYTORCH_REGRESSION, SPARSE, PYTHON, True),
+            (
+                R_ESTIMATOR_SPARSE,
+                REGRESSION,
+                R_FIT,
+                True,
+            ),  # Tests the R spare regression template (w/schema)
+            (
+                R_VALIDATE_SPARSE_ESTIMATOR,
+                REGRESSION,
+                R_VALIDATE_SPARSE_ESTIMATOR,
+                False,
+            ),  # Asserts data is sparse
+        ],
     )
-    def test_fit_sparse(self, resources, tmp_path, framework):
+    def test_fit_sparse(
+        self, resources, tmp_path, framework, problem, language, is_framework_directory
+    ):
+        # TODO: [RAPTOR-6175] Improve the test utils for custom tasks
+        # the is_training parameter should not make assumptions of whether the framework is a single file or directory
         custom_model_dir = _create_custom_model_dir(
             resources,
             tmp_path,
             framework,
-            SPARSE,
-            language=R_FIT if framework == RDS else PYTHON,
-            is_training=True,
+            problem,
+            language=language,
+            is_training=is_framework_directory,
         )
 
         input_dataset = resources.datasets(framework, SPARSE)
@@ -597,10 +711,13 @@ class TestFit:
         else:
             target_type = problem
 
-        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
-            ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
+        cmd = '{} fit --target-type {} --code-dir {} --target "{}" --input {} --verbose '.format(
+            ArgumentsOptions.MAIN_COMMAND,
+            target_type,
+            custom_model_dir,
+            resources.targets(problem),
+            input_dataset,
         )
-        cmd += " --target {}".format(resources.targets(problem))
 
         if target_type in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
@@ -650,7 +767,7 @@ class TestFit:
         custom_model_dir = _create_custom_model_dir(
             resources,
             tmp_path,
-            SKLEARN_BINARY_SCHEMA_VALIDATION,
+            SKLEARN_BINARY,
             BINARY,
             PYTHON,
             is_training=True,
@@ -662,7 +779,7 @@ class TestFit:
         output = tmp_path / "output"
         output.mkdir()
 
-        cmd = "{} fit --target-type {} --code-dir {} --target {} --input {} --verbose".format(
+        cmd = '{} fit --target-type {} --code-dir {} --target "{}" --input {} --verbose'.format(
             ArgumentsOptions.MAIN_COMMAND,
             BINARY,
             custom_model_dir,
@@ -676,7 +793,7 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, problem, language, error_in_predict_server",
         [
-            (SKLEARN_BINARY_SCHEMA_VALIDATION, BINARY, PYTHON, False),
+            (PYTORCH, BINARY, PYTHON, False),
             (PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION, TRANSFORM, PYTHON, True),
         ],
     )
@@ -697,7 +814,7 @@ class TestFit:
         output = tmp_path / "output"
         output.mkdir()
 
-        cmd = "{} fit --target-type {} --code-dir {} --target {} --input {} --verbose".format(
+        cmd = '{} fit --target-type {} --code-dir {} --target "{}" --input {} --verbose'.format(
             ArgumentsOptions.MAIN_COMMAND,
             problem,
             custom_model_dir,
@@ -712,6 +829,9 @@ class TestFit:
 
         # The predict server will not return the full stacktrace since it is ran in a forked process
         if error_in_predict_server:
-            assert "expected types to exactly match: CAT" in stdout
+            assert (
+                "Schema validation found mismatch between output dataset and the supplied schema"
+                in stdout
+            )
         else:
             assert "DrumSchemaValidationException" in stderr

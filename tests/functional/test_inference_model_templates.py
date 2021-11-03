@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 from __future__ import absolute_import
 
 import os
@@ -17,7 +23,7 @@ class TestInferenceModelTemplates(object):
                 "java_drop_in_env",
                 "regression_testing_data",
                 dr.TARGET_TYPE.REGRESSION,
-                "MEDV",
+                "Grade 2014",
                 None,
                 None,
                 None,
@@ -50,7 +56,7 @@ class TestInferenceModelTemplates(object):
                 "java_drop_in_env",
                 "regression_testing_data",
                 dr.TARGET_TYPE.REGRESSION,
-                "MEDV",
+                "Grade 2014",
                 None,
                 None,
                 None,
@@ -61,7 +67,7 @@ class TestInferenceModelTemplates(object):
                 "keras_drop_in_env",
                 "regression_testing_data",
                 dr.TARGET_TYPE.REGRESSION,
-                "MEDV",
+                "Grade 2014",
                 None,
                 None,
                 None,
@@ -72,7 +78,7 @@ class TestInferenceModelTemplates(object):
                 "keras_drop_in_env",
                 "regression_testing_data",
                 dr.TARGET_TYPE.REGRESSION,
-                "MEDV",
+                "Grade 2014",
                 None,
                 None,
                 None,
@@ -96,7 +102,7 @@ class TestInferenceModelTemplates(object):
                 "pytorch_drop_in_env",
                 "regression_testing_data",
                 dr.TARGET_TYPE.REGRESSION,
-                "MEDV",
+                "Grade 2014",
                 None,
                 None,
                 None,
@@ -107,7 +113,7 @@ class TestInferenceModelTemplates(object):
                 "sklearn_drop_in_env",
                 "regression_testing_data",
                 dr.TARGET_TYPE.REGRESSION,
-                "MEDV",
+                "Grade 2014",
                 None,
                 None,
                 None,
@@ -142,7 +148,7 @@ class TestInferenceModelTemplates(object):
                 "xgboost_drop_in_env",
                 "regression_testing_data",
                 dr.TARGET_TYPE.REGRESSION,
-                "MEDV",
+                "Grade 2014",
                 None,
                 None,
                 None,
@@ -153,7 +159,7 @@ class TestInferenceModelTemplates(object):
                 "r_drop_in_env",
                 "regression_testing_data",
                 dr.TARGET_TYPE.REGRESSION,
-                "MEDV",
+                "Grade 2014",
                 None,
                 None,
                 None,
@@ -181,12 +187,12 @@ class TestInferenceModelTemplates(object):
                 "model_templates/python3_pytorch_multiclass/class_labels.txt",
             ),
             (
-                "julia/jl_boston",
+                "julia/jl_grade",
                 "other",
                 "julia_drop_in_env",
                 "regression_testing_data",
                 dr.TARGET_TYPE.REGRESSION,
-                "MEDV",
+                "Grade 2014",
                 None,
                 None,
                 None,

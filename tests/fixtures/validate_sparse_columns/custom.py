@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import pickle
 from typing import Any, List, Optional
 
@@ -43,8 +49,11 @@ def fit(
     Nothing
     """
     for colname in X.columns:
-        assert colname.startswith("a") or colname.startswith("A")
-    assert len(set(X.columns)) == 162
+        assert colname.startswith("a") or colname.startswith("A") or colname == "some-weights"
+    if colname == "some-weights":
+        assert len(set(X.columns)) == 163
+    else:
+        assert len(set(X.columns)) == 162
     estimator = Ridge()
     estimator.fit(X, y)
 
@@ -105,7 +114,7 @@ def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
     Transformed data
     """
     for colname in data.columns:
-        assert colname.startswith("a") or colname.startswith("A")
+        assert colname.startswith("a") or colname.startswith("A") or colname == "some-weights"
     return data
 
 

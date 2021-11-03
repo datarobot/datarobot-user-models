@@ -1,3 +1,12 @@
+# Copyright 2021 DataRobot, Inc. and its affiliates.
+#
+# All rights reserved.
+#
+# 
+#
+# This is proprietary source code of DataRobot, Inc. and its affiliates.
+#
+# Released under the terms of DataRobot Tool and Utility Agreement.
 # Needed libraries
 library(caret)
 library(recipes)
@@ -62,7 +71,7 @@ load_serialized_model <- function(model_dir, target_type) {
         model <- load_model_hook(model_dir)
     }
     if (is.null(model)) {
-        file_names <- dir(model_dir, pattern = CUSTOM_MODEL_FILE_EXTENSION)
+        file_names <- dir(model_dir, pattern = CUSTOM_MODEL_FILE_EXTENSION, ignore.case = TRUE)
         if (length(file_names) == 0) {
             # Allow no serialized models if it is a transform
             if (target_type == TargetType$TRANSFORM) {
@@ -105,7 +114,7 @@ load_serialized_model <- function(model_dir, target_type) {
     model
 }
 
-.load_data <- function(binary_data, mimetype=NULL, use_hook=TRUE) {
+.load_data <- function(binary_data, mimetype=NULL, use_hook=TRUE, sparse_colnames=NULL) {
     if (use_hook && !isFALSE(read_input_data_hook)) {
         data <- read_input_data_hook(binary_data)
     } else if (!is.null(mimetype) && mimetype == "text/mtx") {
@@ -113,12 +122,15 @@ load_serialized_model <- function(model_dir, target_type) {
         f <- file(tmp_file_name, "w+b")
         writeBin(binary_data, f)
         flush(f)
-        data <- as.data.frame(as.matrix(readMM(tmp_file_name)))
+        data <- readMM(tmp_file_name)
         close(f)
         unlink(tmp_file_name)
+        if(!is.null(sparse_colnames)) {
+            colnames(data) <- sparse_colnames
+        }
     } else {
         tmp <- stri_conv(binary_data, "utf8")
-        data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE))
+        data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE), check.names = FALSE)
     }
     data
 }
@@ -209,7 +221,7 @@ model_predict <- function(...) {
 #' @export
 #'
 #' @examples
-outer_predict <- function(target_type, binary_data=NULL, mimetype=NULL, model=NULL, positive_class_label=NULL, negative_class_label=NULL, class_labels=NULL){
+outer_predict <- function(target_type, binary_data=NULL, mimetype=NULL, model=NULL, positive_class_label=NULL, negative_class_label=NULL, class_labels=NULL, sparse_colnames=NULL){
     .validate_data <- function(to_validate) {
         if (!is.data.frame(to_validate)) {
             stop(sprintf("predictions must be of a data.frame type, received %s", typeof(to_validate)))
@@ -283,7 +295,7 @@ outer_predict <- function(target_type, binary_data=NULL, mimetype=NULL, model=NU
         }
     }
 
-    data <- .load_data(binary_data, mimetype)
+    data <- .load_data(binary_data, mimetype, sparse_colnames = sparse_colnames)
     if (!isFALSE(transform_hook)) {
         data <- transform_hook(data, model)
     }
@@ -305,7 +317,7 @@ outer_predict <- function(target_type, binary_data=NULL, mimetype=NULL, model=NU
     if (target_type == TargetType$BINARY || target_type == TargetType$MULTICLASS) {
         prediction_labels <- .validate_classification_predictions(predictions)
         names(predictions) <- prediction_labels
-    } else if (target_type == TargetType$REGRESSION) {
+    } else if (target_type == TargetType$REGRESSION || target_type == TargetType$ANOMALY) {
         .validate_regression_predictions(predictions)
     } else {
         stop(sprintf("Unsupported target type %s", target_type))
@@ -354,7 +366,7 @@ predict_unstructured <- function(model=NULL, data, ...) {
 #' @param mimetype character, The file type of the binary data
 #' @param transformer to use to make transformations
 #'
-#' @return list, Two-element list containing transformed X (data.frame) and y (vector or NULL)
+#' @return list, Two-element list containing transformed X (data.frame or sparseMatrix) and y (vector or NULL)
 #'
 outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=NULL, transformer=NULL){
     data <- .load_data(binary_data, mimetype=mimetype)
@@ -366,14 +378,45 @@ outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=
     if (!isFALSE(transform_hook)) {
         output_data <- transform_hook(data, transformer, target_data)
         if (is.data.frame(output_data)) {
-            output_data <- list(output_data, NULL)
+            output_data <- list(output_data, NULL, NULL)
+        } else if (is(output_data, 'sparseMatrix')) {
+            output_data <- list(output_data, NULL, colnames(output_data))
+        } else {
+            output_data <- append(output_data, list(NULL))
         }
     } else {
-        output_data <- list(bake(transformer, data), NULL)
+        output_data <- list(bake(transformer, data), NULL, NULL)
     }
 
-    if (!is.data.frame(output_data[[1]])) {
+    if (!(is.data.frame(output_data[[1]]) || is(output_data[[1]], 'sparseMatrix'))) {
         stop(sprintf("Transformed X must be of a data.frame type, received %s", typeof(output_data)))
+    }
+
+    input_rows <- nrow(data)
+    output_rows <- nrow(output_data[[1]])
+    output_cols <- ncol(output_data[[1]])
+    if (input_rows != output_rows) {
+        stop(sprintf("Number of input rows (%d) does not match number of transform output rows (%d)", input_rows, output_rows))
+    }
+    if (output_cols <= 0) {
+        stop("Number of transform output cols is 0. Must be > 0.")
+    }
+
+    # If the output data is sparse, convert it to a dataframe containing its summary. It will contain three columns
+    # i, j, x where i is the row, j is the col, and x is the value of the sparse matrix. Set colnames to have a
+    # special DataRobot magic value so we know the dataframe is actually a sparse matrix. In addition, add a row
+    # to the end which contains [num_rows, num_cols, NaN]
+    # TODO: [RAPTOR-6209] propagate column names when R output data is sparse
+    if (is(output_data[[1]], 'sparseMatrix')) {
+        summary_info_row = c(output_rows, output_cols, NaN)
+        output_data_summary <- rbind(summary(output_data[[1]]), summary_info_row)
+
+        output_data[[1]] <- data.frame(output_data_summary)
+        colnames(output_data[[1]]) <- c("__DR__i", "__DR__j", "__DR__x")
+    }
+
+    if (!is.null(output_data[[2]])) {
+        stop(sprintf("Transformation of the target variable is not supported by DRUM."))
     }
 
     output_data

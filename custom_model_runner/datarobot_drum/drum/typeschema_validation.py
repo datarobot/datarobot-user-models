@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import os
 from abc import ABC, abstractmethod
 import base64
@@ -14,6 +20,7 @@ import numpy as np
 import pandas as pd
 
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
+from datarobot_drum.drum.enum import TargetType
 
 logger = logging.getLogger("drum." + __name__)
 
@@ -236,7 +243,8 @@ class DataTypes(BaseValidator):
         """
         Decide if a pandas series is text, using a very simple heuristic:
         1. Count the number of elements in the series that contain 1 or more whitespace character
-        2. If >75% of the elements have whitespace, the Series is text
+        2. If >75% of the elements have whitespace, and either there are more than 60 unique values or
+            more than 5% of values are unique then the Series is considered to be text
 
         Parameters
         ----------
@@ -246,13 +254,19 @@ class DataTypes(BaseValidator):
         -------
         boolean: True for is text, False for not text
         """
+        MIN_WHITESPACE_ROWS = 0.75  # percent
+        MIN_UNIQUE_VALUES = 0.05  # percent
         if (
             pd.api.types.is_string_dtype(x)
             and pd.api.types.infer_dtype(x) != "boolean"
             and pd.api.types.infer_dtype(x) != "bytes"
         ):
             pct_rows_with_whitespace = (x.str.count(r"\s") > 0).sum() / x.shape[0]
-            return pct_rows_with_whitespace > 0.75
+            unique = x.nunique()
+            pct_unique_values = unique / x.shape[0]
+            return pct_rows_with_whitespace >= MIN_WHITESPACE_ROWS and (
+                pct_unique_values >= MIN_UNIQUE_VALUES or unique >= 60
+            )
         return False
 
     @staticmethod
@@ -289,16 +303,21 @@ class DataTypes(BaseValidator):
             types[Values.CAT] = False
             types[Values.DATE] = False
         else:
-            types[Values.NUM] = dataframe.select_dtypes(np.number).shape[1] > 0
+            num_bool_columns = dataframe.select_dtypes("boolean").shape[1]
             num_txt_columns = self.number_of_text_columns(dataframe)
             num_img_columns = self.number_of_img_columns(dataframe)
             num_obj_columns = dataframe.select_dtypes("O").shape[1]
-            num_bool_columns = dataframe.select_dtypes("boolean").shape[1]
+            # Note that boolean values will be sent as numeric in DataRobot
+            if num_bool_columns > 0:
+                logger.warning(
+                    "Boolean values were present in the data, which are passed as numeric input in DataRobot.  You may need to convert boolean values to integers/floats for your model"
+                )
+            types[Values.NUM] = (
+                dataframe.select_dtypes(np.number).shape[1] > 0 or num_bool_columns > 0
+            )
             types[Values.TXT] = num_txt_columns > 0
             types[Values.IMG] = num_img_columns > 0
-            types[Values.CAT] = (
-                num_obj_columns - (num_txt_columns + num_img_columns) + num_bool_columns > 0
-            )
+            types[Values.CAT] = num_obj_columns - (num_txt_columns + num_img_columns)
             types[Values.DATE] = dataframe.select_dtypes("datetime").shape[1] > 0
 
         types_present = [k for k, v in types.items() if v]
@@ -394,7 +413,7 @@ class NumColumns(BaseValidator):
         passes = conditions_map[self.condition](n_columns, test_value)
         if not passes:
             return [
-                f"Num columns error, {n_columns} did not satisfy: {self.condition} {test_value}"
+                f"Incorrect number of columns. {n_columns} received. However, the schema dictates that number of columns should be {self.condition} {test_value}"
             ]
 
         return []
@@ -421,7 +440,9 @@ class ContainsMissing(BaseValidator):
             io_type = "Output"
 
         if any_missing and value in [missing_output_disallowed, missing_input_disallowed]:
-            return [f"{io_type} contains missing values, the task does not support missing."]
+            return [
+                f"{io_type} contains missing values, which the supplied task schema does not allow"
+            ]
         return []
 
 
@@ -547,3 +568,22 @@ class SchemaValidator:
                     "schema validation failed for {}:\n {}".format(step_label, errors)
                 )
             return False
+
+    def validate_type_schema(self, target_type):
+        """Validate typeSchema section of model metadata.
+
+        Parameters
+        ----------
+        target_type: TargetType
+            Enum defined in TargetType.
+
+        Raises
+        ------
+        DrumSchemaValidationException
+            Raised when target type is not transform and output_requirements exists in the model metadata typeSchema.
+        """
+
+        if target_type != TargetType.TRANSFORM and self._output_validators:
+            raise DrumSchemaValidationException(
+                "Specifying output_requirements in model_metadata.yaml is only valid for custom transform tasks."
+            )

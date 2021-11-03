@@ -14,7 +14,7 @@ Upload H2O Mojo file (Modern Object, Optimized) and use the Java Drop-In Environ
 
 * Binary - The binary example is based on the iris dataset with target `Species`
 * Multiclass - multiclass example based on the galaxy dataset with target `class`
-* regression - boston housing pricing dataset with target `MEDV`. 
+* regression - grade dataset with target `Grade 2014`. 
 
 ### To run locally using 'drum'
 
@@ -24,15 +24,15 @@ Paths are relative to `./datarobot-user-models/model_templates` unless fully qua
 
 #### Binary 
 
-`drum score --code-dir ./h2o_mojo/binary --target-type binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor` 
+`drum score --code-dir ./h2o_mojo/binary --target-type binary --input ../tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor` 
 
 #### Multiclass 
 
-`drum score --code-dir ./h2o_mojo/multiclass --target-type multiclass --class-labels GALAXY QSO STAR --input ../../tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv` 
+`drum score --code-dir ./h2o_mojo/multiclass --target-type multiclass --class-labels GALAXY QSO STAR --input ../tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv` 
 
 #### Regression 
 
-`drum score --code-dir ./h2o_mojo/regression --target-type regression --input ../../tests/testdata/boston_housing.csv`
+`drum score --code-dir ./h2o_mojo/regression --target-type regression --input ../tests/testdata/juniors_3_year_stats_regression.csv`
 
 #### Docker
 

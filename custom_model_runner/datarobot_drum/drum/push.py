@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import os
 import re
 from pathlib import Path
@@ -5,12 +11,11 @@ from pathlib import Path
 import datarobot as dr_client
 
 from datarobot_drum.drum.common import (
-    RunMode,
     get_metadata,
-    TargetType,
     validate_config_fields,
     ModelMetadataKeys,
 )
+from datarobot_drum.drum.enum import RunMode, TargetType
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 DR_LINK_FORMAT = "{}/model-registry/custom-models/{}"
@@ -31,7 +36,7 @@ def _convert_target_type(unconverted_target_type):
 
 def _push_training(model_config, code_dir, endpoint=None, token=None):
     try:
-        from datarobot._experimental import CustomTrainingBlueprint, CustomTrainingModel
+        from datarobot import CustomTask
     except ImportError:
         raise DrumCommonException(
             "You tried to run custom tasks using a version of the \n"
@@ -44,7 +49,7 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
     if ModelMetadataKeys.MODEL_ID in model_config:
         model_id = model_config[ModelMetadataKeys.MODEL_ID]
     else:
-        model_id = CustomTrainingModel.create(
+        model_id = CustomTask.create(
             name=model_config[ModelMetadataKeys.NAME],
             target_type=_convert_target_type(model_config[ModelMetadataKeys.TARGET_TYPE]),
             description=model_config.get("description", "Pushed from DRUM"),
@@ -65,7 +70,10 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
         print("Error adding model with ID {} and dir {}: {}".format(model_id, code_dir, str(e)))
         raise SystemExit(1)
 
-    # TODO: Update this once the datarobot client is updated
+    # TODO: Update this once the datarobot client is updated to 2.27.0
+    #   see: https://datarobot.atlassian.net/browse/RAPTOR-6865
+    # blue_print = dr_client.UserBlueprint.from_custom_task_version_id(model_version.id)
+    # user_blueprint_id = blue_print.id
     payload = dict(custom_model_version_id=model_version.id)
     response = dr_client.client.get_client().post("customTrainingBlueprints/", data=payload)
     user_blueprint_id = response.json()["userBlueprintId"]

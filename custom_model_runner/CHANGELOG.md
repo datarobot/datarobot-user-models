@@ -4,6 +4,60 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+#### Current
+
+##### Fixed
+##### Added 
+
+#### [1.6.2] - 2021-11-01
+##### Added
+- support for Java Unstructured Models
+
+#### [1.6.1] - 2021-10-22
+##### Changed
+- bump DataRobot client dependency to >= 2.26.0
+- handle artifacts case insensitively
+
+#### [1.6.0] - 2021-10-08
+##### Changed
+- regression boston dataset has been replaced with juniors grade dataset
+- R: dataset column names are not replaced with R variable valid names (it has been implicitly replaced before)
+
+#### [1.5.16] - 2021-9-30
+##### Changed
+- add `uwsgi` as extra dependency
+##### Fixed
+- improved categorical vs text for validation
+
+#### [1.5.15] - 2021-09-23
+##### Added
+- Release v1.5.15 due to a glitch with v1.5.14 release
+- Show CPU usage info in /stats API
+- Reporting class labels through MLOps monitoring
+- Restrict Y output from custom transform tasks
+
+#### [1.5.14] - 2021-09-22
+##### Note
+- Consider unreleased, removed from PyPi
+
+#### [1.5.13] - 2021-09-17
+##### Fixed
+- compile DRUM with Java 11
+
+#### [1.5.12] - 2021-09-15
+##### Fixed
+- R custom tasks sampling
+- R sparse input staying sparse and not getting casted to dense
+- R transform sparse output support
+- Fixing off by one error with R Sparse Transforms
+- Updating Readme documentation
+- CSV parsing in Julia inference model
+##### Added
+- R sparse regression template
+- R transform template
+- Image transform template
+- Type schema to transforms and estimators
+
 #### [1.5.11] - 2021-08-19
 ##### Fixed
 - Apply default schema to transforms

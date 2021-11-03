@@ -1,9 +1,15 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import re
 import pytest
 import pandas as pd
 from tempfile import NamedTemporaryFile
 
-from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.drum.enum import ArgumentsOptions
 
 from datarobot_drum.resource.utils import (
     _exec_shell_cmd,
@@ -49,7 +55,7 @@ class TestValidationCheck:
         df = pd.DataFrame(data=d)
 
         with NamedTemporaryFile(mode="w") as temp_f:
-            df.to_csv(temp_f.name)
+            df.to_csv(temp_f.name, index=False)
 
             input_dataset = temp_f.name
 

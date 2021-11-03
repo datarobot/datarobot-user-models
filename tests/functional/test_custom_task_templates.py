@@ -1,4 +1,11 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 from __future__ import absolute_import
+from typing import List, Tuple, Union
 
 import pytest
 import os
@@ -7,16 +14,18 @@ import shutil
 from tempfile import TemporaryDirectory
 import tempfile
 import yaml
-
 import datarobot as dr
 from datarobot.errors import AsyncProcessUnsuccessfulError
 from datarobot_bp_workshop import Workshop
 
-BASE_PIPELINE_TASK_TEMPLATES_DIR = "task_templates/pipelines"
-BASE_TRANSFORM_TASK_TEMPLATES_DIR = "task_templates/transforms"
+BASE_PIPELINE_TASK_TEMPLATES_DIR = "task_templates/3_pipelines"
+BASE_ESTIMATOR_TASK_TEMPLATES_DIR = "task_templates/2_estimators"
+BASE_TRANSFORM_TASK_TEMPLATES_DIR = "task_templates/1_transforms"
 BASE_FIXTURE_TASK_TEMPLATES_DIR = "tests/fixtures"
 
 BASE_DATASET_DIR = "tests/testdata"
+
+ModelLike = Union[dr.models.Model, dr.models.Blueprint]
 
 
 class TestCustomTaskTemplates(object):
@@ -24,16 +33,112 @@ class TestCustomTaskTemplates(object):
     def get_template_base_path(template_type):
         if template_type == "pipeline":
             return BASE_PIPELINE_TASK_TEMPLATES_DIR
+        if template_type == "estimator":
+            return BASE_ESTIMATOR_TASK_TEMPLATES_DIR
         if template_type == "transform":
             return BASE_TRANSFORM_TASK_TEMPLATES_DIR
         if template_type == "fixture":
             return BASE_FIXTURE_TASK_TEMPLATES_DIR
         raise ValueError(f"Invalid template type {template_type}")
 
+    @staticmethod
+    def get_model_by_type(models: List[ModelLike], type_name: str) -> ModelLike:
+        return [m for m in models if m.model_type == type_name][0]
+
+    @staticmethod
+    def get_accuracy_threshold(proj: dr.models.Project, target_type: str) -> Tuple[float, bool]:
+        """ Compute accuracy threshold by running a known accurate model and dummy model
+        and averaging their accuracy scores """
+        models = proj.get_models()
+        if len(models) > 1:
+            # get existing models if project was created by another run of this test
+            if target_type == "regression":
+                xgboost_mdl = TestCustomTaskTemplates.get_model_by_type(
+                    models, "eXtreme Gradient Boosted Trees Regressor with Early Stopping"
+                )
+                dummy_mdl = TestCustomTaskTemplates.get_model_by_type(
+                    models, "Mean Response Regressor"
+                )
+            elif target_type == "anomaly":
+                dm_mdl = TestCustomTaskTemplates.get_model_by_type(
+                    models, "Double Median Absolute Deviation Anomaly Detection with Calibration"
+                )
+            else:
+                xgboost_mdl = TestCustomTaskTemplates.get_model_by_type(
+                    models, "eXtreme Gradient Boosted Trees Classifier with Early Stopping"
+                )
+                dummy_mdl = TestCustomTaskTemplates.get_model_by_type(
+                    models, "Majority Class Classifier"
+                )
+        else:
+            # run models for new projects
+            blueprints = proj.get_blueprints()
+            if target_type == "regression":
+                xgboost_bp = TestCustomTaskTemplates.get_model_by_type(
+                    blueprints, "eXtreme Gradient Boosted Trees Regressor with Early Stopping"
+                )
+                dummy_bp = TestCustomTaskTemplates.get_model_by_type(
+                    blueprints, "Mean Response Regressor"
+                )
+            elif target_type == "anomaly":
+                dm_bp = TestCustomTaskTemplates.get_model_by_type(
+                    blueprints,
+                    "Double Median Absolute Deviation Anomaly Detection with Calibration",
+                )
+            else:
+                xgboost_bp = TestCustomTaskTemplates.get_model_by_type(
+                    blueprints, "eXtreme Gradient Boosted Trees Classifier with Early Stopping"
+                )
+                dummy_bp = TestCustomTaskTemplates.get_model_by_type(
+                    blueprints, "Majority Class Classifier"
+                )
+
+            if target_type == "anomaly":
+                job_id = proj.train(dm_bp)
+                job = dr.ModelJob.get(proj.id, job_id)
+                dm_mdl = job.get_result_when_complete(max_wait=900)
+            else:
+                job_id = proj.train(xgboost_bp)
+                job = dr.ModelJob.get(proj.id, job_id)
+                xgboost_mdl = job.get_result_when_complete(max_wait=900)
+
+                job_id = proj.train(dummy_bp)
+                job = dr.ModelJob.get(proj.id, job_id)
+                dummy_mdl = job.get_result_when_complete(max_wait=900)
+
+        if target_type == "anomaly":
+            # Require Synthetic AUC so dummy model score can be set to 0.5
+            assert proj.metric == "Synthetic AUC"
+            dm_score = dm_mdl.metrics[proj.metric]["validation"]
+            threshold_score = (dm_score + 0.5) / 2
+        else:
+            xgboost_score = xgboost_mdl.metrics[proj.metric]["validation"]
+            dummy_score = dummy_mdl.metrics[proj.metric]["validation"]
+            threshold_score = (xgboost_score + dummy_score) / 2
+
+        if target_type == "anomaly":
+            metric_asc = False
+        else:
+            metric_details = proj.get_metrics(proj.target)["metric_details"]
+            metric_asc = [m for m in metric_details if m["metric_name"] == proj.metric][0][
+                "ascending"
+            ]
+        return threshold_score, metric_asc
+
     @pytest.fixture(scope="session")
-    def project_regression_boston(self):
-        proj = dr.Project.create(sourcedata=os.path.join(BASE_DATASET_DIR, "boston_housing.csv"))
-        proj.set_target(target="MEDV", mode=dr.AUTOPILOT_MODE.MANUAL)
+    def project_regression_juniors_grade(self):
+        proj = dr.Project.create(
+            sourcedata=os.path.join(BASE_DATASET_DIR, "juniors_3_year_stats_regression.csv")
+        )
+        proj.set_target(target="Grade 2014", mode=dr.AUTOPILOT_MODE.MANUAL)
+        return proj.id
+
+    @pytest.fixture(scope="session")
+    def project_anomaly_juniors_grade(self):
+        proj = dr.Project.create(
+            sourcedata=os.path.join(BASE_DATASET_DIR, "juniors_3_year_stats_regression.csv")
+        )
+        proj.set_target(unsupervised_mode=True, mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
     @pytest.fixture(scope="session")
@@ -42,6 +147,15 @@ class TestCustomTaskTemplates(object):
             sourcedata=os.path.join(BASE_DATASET_DIR, "iris_binary_training.csv")
         )
         proj.set_target(target="Species", mode=dr.AUTOPILOT_MODE.MANUAL)
+        return proj.id
+
+    @pytest.fixture(scope="session")
+    def project_weight_test(self):
+        proj = dr.Project.create(sourcedata=os.path.join(BASE_DATASET_DIR, "weight_test.csv"))
+        advanced_options = dr.helpers.AdvancedOptions(weights="weights")
+        proj.set_target(
+            target="target", mode=dr.AUTOPILOT_MODE.MANUAL, advanced_options=advanced_options
+        )
         return proj.id
 
     @pytest.fixture(scope="session")
@@ -74,117 +188,174 @@ class TestCustomTaskTemplates(object):
         proj.set_target(target="class", mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
+    @pytest.fixture(scope="session")
+    def project_skyserver_manual_partition(self):
+        # This dataset has a "partition" column where partition V1 has classes QSO & GALAXY and
+        # partition V2 has STAR & GALAXY
+        proj = dr.Project.create(
+            sourcedata=os.path.join(BASE_DATASET_DIR, "skyserver_manual_partition.csv")
+        )
+        proj.set_target(
+            target="class",
+            mode=dr.AUTOPILOT_MODE.MANUAL,
+            partitioning_method=dr.UserCV("partition", "H"),
+        )
+        return proj.id
+
     @pytest.mark.parametrize(
-        "template_type, model_template, proj, env, target_type",
+        "template_type, model_template, proj, env, target_type, pre_processing",
         [
             (
+                "fixture",
+                "python3_weight_test",
+                "project_weight_test",
+                "sklearn_drop_in_env",
+                "binary",
+                None,
+            ),
+            (
                 "pipeline",
-                "python3_pytorch",
+                "12_python3_pytorch",
                 "project_binary_iris",
                 "pytorch_drop_in_env",
                 "binary",
+                None,
             ),
             (
                 "pipeline",
-                "python3_pytorch",
-                "project_regression_boston",
+                "11_python3_pytorch_regression",
+                "project_regression_juniors_grade",
                 "pytorch_drop_in_env",
                 "regression",
+                None,
             ),
             (
                 "pipeline",
-                "python3_pytorch_multiclass",
+                "13_python3_pytorch_multiclass",
                 "project_multiclass_skyserver",
                 "pytorch_drop_in_env",
                 "multiclass",
+                None,
             ),
             (
                 "pipeline",
-                "python3_keras_joblib",
-                "project_regression_boston",
+                "14_python3_keras_joblib",
+                "project_regression_juniors_grade",
                 "keras_drop_in_env",
                 "regression",
-            ),
-            (
-                "pipeline",
-                "python3_keras_joblib",
-                "project_binary_iris",
-                "keras_drop_in_env",
-                "binary",
-            ),
-            (
-                "pipeline",
-                "python3_keras_joblib",
-                "project_multiclass_skyserver",
-                "keras_drop_in_env",
-                "multiclass",
+                None,
             ),
             # This test currently fails, because it uses image features, which isn't one of the
             # Allowed by default data types for Custom Tasks. We can re-enable this
             # Test if we add image features in the fixture to the allowed data types.
             # (
             #     "pipeline",
-            #     "python3_keras_vizai_joblib",
+            #     "15_python3_keras_vizai_joblib",
             #     "project_binary_cats_dogs",
             #     "keras_drop_in_env",
             #     "binary",
             # ),
             (
                 "pipeline",
-                "python3_xgboost",
-                "project_regression_boston",
+                "4_python3_xgboost",
+                "project_regression_juniors_grade",
                 "xgboost_drop_in_env",
                 "regression",
+                None,
             ),
             (
                 "pipeline",
-                "python3_xgboost",
-                "project_binary_iris",
-                "xgboost_drop_in_env",
-                "binary",
-            ),
-            (
-                "pipeline",
-                "python3_xgboost",
-                "project_multiclass_skyserver",
-                "xgboost_drop_in_env",
-                "multiclass",
-            ),
-            (
-                "pipeline",
-                "python3_sklearn_regression",
-                "project_regression_boston",
+                "2_python3_sklearn_regression",
+                "project_regression_juniors_grade",
                 "sklearn_drop_in_env",
                 "regression",
+                None,
             ),
             (
                 "pipeline",
-                "python3_sklearn_binary",
+                "2_python3_sklearn_regression",
+                "project_regression_juniors_grade",
+                "sklearn_drop_in_env",
+                "regression",
+                "dr_numeric_impute",
+            ),
+            (
+                "pipeline",
+                "13_python3_pytorch_multiclass",
+                "project_skyserver_manual_partition",
+                "pytorch_drop_in_env",
+                "multiclass",
+                None,
+            ),
+            (
+                "pipeline",
+                "5_python3_sklearn_binary",
                 "project_binary_iris",
                 "sklearn_drop_in_env",
                 "binary",
+                None,
             ),
             (
                 "pipeline",
-                "python3_sklearn_multiclass",
+                "6_python3_sklearn_multiclass",
                 "project_multiclass_skyserver",
                 "sklearn_drop_in_env",
                 "multiclass",
+                None,
             ),
-            ("pipeline", "r_lang", "project_regression_boston", "r_drop_in_env", "regression",),
-            ("pipeline", "r_lang", "project_binary_iris", "r_drop_in_env", "binary",),
-            ("pipeline", "r_lang", "project_multiclass_skyserver", "r_drop_in_env", "multiclass",),
+            (
+                "pipeline",
+                "3_r_lang",
+                "project_regression_juniors_grade",
+                "r_drop_in_env",
+                "regression",
+                None,
+            ),
+            ("pipeline", "3_r_lang", "project_binary_iris", "r_drop_in_env", "binary", None),
+            (
+                "pipeline",
+                "3_r_lang",
+                "project_multiclass_skyserver",
+                "r_drop_in_env",
+                "multiclass",
+                None,
+            ),
             (
                 "transform",
-                "python3_sklearn_transform",
+                "3_python3_sklearn_transform",
                 "project_binary_diabetes_no_text",
                 "sklearn_drop_in_env",
                 "transform",
+                None,
+            ),
+            (
+                "transform",
+                "4_r_transform_recipe",
+                "project_binary_iris",
+                "r_drop_in_env",
+                "transform",
+                None,
+            ),
+            (
+                "transform",
+                "2_r_transform_simple",
+                "project_binary_iris",
+                "r_drop_in_env",
+                "transform",
+                None,
+            ),
+            (
+                "estimator",
+                "8_r_anomaly_detection",
+                "project_anomaly_juniors_grade",
+                "r_drop_in_env",
+                "anomaly",
+                None,
             ),
         ],
     )
     def test_custom_task_templates(
-        self, request, template_type, model_template, proj, env, target_type
+        self, request, template_type, model_template, proj, env, target_type, pre_processing
     ):
         env_id, env_version_id = request.getfixturevalue(env)
         proj_id = request.getfixturevalue(proj)
@@ -195,6 +366,7 @@ class TestCustomTaskTemplates(object):
             "binary": dr.enums.CUSTOM_TASK_TARGET_TYPE.BINARY,
             "multiclass": dr.enums.CUSTOM_TASK_TARGET_TYPE.MULTICLASS,
             "transform": dr.enums.CUSTOM_TASK_TARGET_TYPE.TRANSFORM,
+            "anomaly": dr.enums.CUSTOM_TASK_TARGET_TYPE.ANOMALY,
         }[target_type]
 
         custom_task = dr.CustomTask.create(name="estimator", target_type=dr_target_type)
@@ -204,7 +376,7 @@ class TestCustomTaskTemplates(object):
             metadata_filename = os.path.join(code_dir, "model-metadata.yaml")
             if os.path.isfile(metadata_filename):
                 # Set the target type in the metadata file sent to DataRobot to the correct type.
-                metadata = yaml.load(open(metadata_filename))
+                metadata = yaml.safe_load(open(metadata_filename))
                 metadata["targetType"] = target_type
                 yaml.dump(metadata, open(metadata_filename, "w"))
 
@@ -215,8 +387,13 @@ class TestCustomTaskTemplates(object):
             )
 
         w = Workshop()
+        bp = w.TaskInputs.ALL
+        if pre_processing == "dr_numeric_impute":
+            bp = w.Tasks.PNI2()(bp)
+        else:
+            assert not pre_processing, f"Pre-processing {pre_processing} not supported."
         bp = w.CustomTask(custom_task_version.custom_task_id, version=str(custom_task_version.id))(
-            w.TaskInputs.ALL
+            bp
         )
         if dr_target_type == dr.enums.CUSTOM_TASK_TARGET_TYPE.TRANSFORM:
             if "image" in model_template:
@@ -231,11 +408,22 @@ class TestCustomTaskTemplates(object):
 
         job = dr.ModelJob.get(proj_id, job_id)
         test_passed = False
-        res = job.get_result_when_complete(max_wait=900)
+        res = job.get_result_when_complete(max_wait=1200)
         if isinstance(res, dr.Model):
             test_passed = True
 
         assert test_passed, "Job result is the object: " + str(res)
+
+        custom_task_score = res.metrics[proj.metric]["validation"]
+        threshold_score, metric_asc = self.get_accuracy_threshold(proj, target_type)
+        if metric_asc:
+            assert (
+                custom_task_score < threshold_score
+            ), f"Accuracy check failed: {custom_task_score} > {threshold_score}"
+        else:
+            assert (
+                custom_task_score > threshold_score
+            ), f"Accuracy check failed: {custom_task_score} < {threshold_score}"
 
     @pytest.mark.parametrize(
         "template_type, model_template, proj, env, target_type, expected_msgs",
@@ -296,7 +484,7 @@ class TestCustomTaskTemplates(object):
         job = dr.ModelJob.get(proj_id, job_id)
 
         try:
-            job.get_result_when_complete(max_wait=900)
+            job.get_result_when_complete(max_wait=1200)
         except AsyncProcessUnsuccessfulError:
             pass
 

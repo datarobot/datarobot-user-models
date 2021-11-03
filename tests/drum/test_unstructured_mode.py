@@ -1,8 +1,14 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import pytest
 import requests
 import werkzeug
 
-from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.drum.enum import ArgumentsOptions
 from datarobot_drum.drum.server import HTTP_422_UNPROCESSABLE_ENTITY
 
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
@@ -267,5 +273,5 @@ class TestUnstructuredMode:
                 )
                 assert "application/octet-stream" == mimetype
                 # check params dict is empty
-                assert any(content_type_params_dict) == False
+                assert not any(content_type_params_dict)
                 assert response.content == data_bytes

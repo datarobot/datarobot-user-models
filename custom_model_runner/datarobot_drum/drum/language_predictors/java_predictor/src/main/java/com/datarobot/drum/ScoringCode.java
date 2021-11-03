@@ -28,7 +28,7 @@ public class ScoringCode extends BasePredictor {
     private static IPredictorInfo loadModel(String modelDir) throws IOException {
         var urls = new ArrayList<URL>();
         for (var file : Paths.get(modelDir).toFile().listFiles()) {
-            if (file.isFile() && file.getName().endsWith(".jar")) {
+            if (file.isFile() && file.getName().toLowerCase().endsWith(".jar")) {
                 urls.add(new URL("file://" + file.getCanonicalPath()));
             }
         }
@@ -48,6 +48,11 @@ public class ScoringCode extends BasePredictor {
         return ret;
     }
 
+    @Override
+    public <T> T predictUnstructured(byte[] inputBytes, String mimetype, String charset, Map<String, String> query) throws Exception {
+        throw new Exception("Not Implemented");
+    }
+    
     private String predictionsToString(List<?> predictions) throws Exception {
         CSVPrinter csvPrinter = null;
 

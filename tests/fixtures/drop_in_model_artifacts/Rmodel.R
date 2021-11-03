@@ -1,3 +1,12 @@
+# Copyright 2021 DataRobot, Inc. and its affiliates.
+#
+# All rights reserved.
+#
+# 
+#
+# This is proprietary source code of DataRobot, Inc. and its affiliates.
+#
+# Released under the terms of DataRobot Tool and Utility Agreement.
 # Loading packages
 library(tidyverse)
 library(caret)
@@ -7,7 +16,7 @@ library(glmnet)
 # URL to dataset
 TEST_DATA_ROOT <- "~/workspace/datarobot-user-models/tests/testdata"
 PATH_TO_BIN_DATAFRAME <- file.path(TEST_DATA_ROOT, "iris_binary_training.csv")
-PATH_TO_REG_DATAFRAME <- file.path(TEST_DATA_ROOT, "boston_housing.csv")
+PATH_TO_REG_DATAFRAME <- file.path(TEST_DATA_ROOT, "juniors_3_year_stats_regression.csv")
 PATH_TO_MULTI_DATAFRAME <- file.path(TEST_DATA_ROOT, "skyserver_sql2_27_2018_6_51_39_pm.csv")
 
 # Reading in dataset
@@ -31,7 +40,8 @@ bin_model_recipe <- recipe(Species ~ ., data = bin_df) %>%
   step_other(all_nominal(), -all_outcomes()) %>% 
   step_dummy(all_nominal(), -all_outcomes())
 
-reg_model_recipe <- recipe(MEDV ~ ., data = reg_df) %>%
+# change space to underscore in the dataset before training
+reg_model_recipe <- recipe(Grade_2014 ~ ., data = reg_df) %>%
   # Drop constant columns
   step_zv(all_predictors()) %>% 
   # Numeric preprocessing

@@ -40,6 +40,10 @@ class H2OPredictor(
     this.predictionsToString(predictions)
   }
 
+  override def predictUnstructured[T](
+    inputBytes: Array[Byte], mimetype: String, charset: String, query: java.util.Map[String, String]
+  ): T = ???
+
   def predictionsToString[T](predictions: Try[Array[Array[T]]]): String = {
     val csvPrinter: CSVPrinter = new CSVPrinter(
       new StringWriter(),
@@ -116,7 +120,7 @@ class H2OPredictor(
         )
     }
 
-    val pojoName = pojo.getName.replace(".jar", "").replace(".java", "")
+    val pojoName = pojo.getName.replace(".java", "")
     val urlClassLoader = URLClassLoader.newInstance(
       urls,
       Thread.currentThread().getContextClassLoader()
@@ -133,23 +137,26 @@ class H2OPredictor(
   def loadModel(modelDir: String): EasyPredictModelWrapper = {
 
     // h2o model artifacts
-    val re = new scala.util.matching.Regex("(.java$)|(.zip$)")
+    // POJO artifact must have all lower case `.java` extension, as that's what `javac` only supports.
+    val re = new scala.util.matching.Regex("(.java$)|(.zip$)|(.ZIP$)")
 
-    val files = Paths.get(modelDir).toFile().listFiles().filter { f =>
-      re.findAllMatchIn(f.getName).hasNext
-    }
+    val filesInDir = Paths.get(modelDir).toFile().listFiles()
+    val files = filesInDir.filter { f => re.findAllMatchIn(f.getName).hasNext }
 
     val file = files.length match {
       case 0 =>
-        throw new Exception("no model artifact found in model directory")
+        throw new Exception(
+          s"No model artifact found in the model directory. Found files: ${filesInDir.map { _.getName }.mkString(",")}\n" +
+          s"Supported model extensions: java/zip/ZIP"
+        )
       case 1 => files.apply(0)
       case _ =>
         throw new Exception(
-          s"more than 1 main model artifact found in model directory: ${files.map { _.getName }.mkString(",")}"
+          s"More than 1 main model artifact found in model directory: ${files.map { _.getName }.mkString(",")}"
         )
     }
 
-    val fileExt = re.findAllIn(file.getName).next
+    val fileExt = re.findAllIn(file.getName.toLowerCase).next
 
     val modelConfig = fileExt match {
       case ".zip"  => modelConfigViaMojo(file)

@@ -1,3 +1,11 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
+
+
 class DrumException(Exception):
     """Base drum exception"""
 
@@ -30,3 +38,7 @@ class DrumPredException(DrumException):
 
 class DrumSchemaValidationException(DrumException):
     """ Raised when the supplied schema in model_metadata does not match actual input or output data."""
+
+
+class DrumTransformException(DrumException):
+    """ Raised when there is an issue specific to transform tasks."""

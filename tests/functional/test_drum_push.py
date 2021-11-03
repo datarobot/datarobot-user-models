@@ -1,10 +1,16 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 from __future__ import absolute_import
 
 import os
 import pytest
 import yaml
 
-from datarobot_drum.drum.common import ArgumentsOptions
+from datarobot_drum.drum.enum import ArgumentsOptions
 from tests.conftest import (
     PYTHON,
     REGRESSION,
@@ -48,7 +54,13 @@ class TestDrumPush(object):
         self, resources, framework, problem, language, tmp_path, get_target, sklearn_drop_in_env,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language, is_training=True
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
+            is_training=True,
+            include_metadata=False,
         )
 
         env_id, _ = sklearn_drop_in_env
@@ -56,7 +68,7 @@ class TestDrumPush(object):
             env_id, resources.datasets(framework, problem), problem, get_target(problem)
         )
         with open(os.path.join(custom_model_dir, "model-metadata.yaml"), "w") as outfile:
-            yaml.dump(yaml.load(yaml_string), outfile)
+            yaml.dump(yaml.safe_load(yaml_string), outfile)
 
         cmd = "{} push --code-dir {} --verbose".format(
             ArgumentsOptions.MAIN_COMMAND, custom_model_dir,

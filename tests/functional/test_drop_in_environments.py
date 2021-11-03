@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 from __future__ import absolute_import
 
 import os
@@ -11,6 +17,9 @@ CUSTOM_PREDICT_PY_PATH = os.path.join(BASE_FIXTURE_DIR, "custom.py")
 CUSTOM_PREDICT_R_PATH = os.path.join(BASE_FIXTURE_DIR, "custom.R")
 CUSTOM_LOAD_PREDICT_PY_PATH = os.path.join(BASE_FIXTURE_DIR, "load_model_custom.py")
 CUSTOM_LOAD_PREDICT_R_PATH = os.path.join(BASE_FIXTURE_DIR, "load_model_custom.R")
+
+
+REGRESSION_TARGET = "Grade 2014"
 
 
 class TestDropInEnvironments(object):
@@ -116,7 +125,7 @@ class TestDropInEnvironments(object):
             "sklearn_reg.pkl",
             env_id,
             custom_predict_path=CUSTOM_PREDICT_PY_PATH,
-            target_name="MEDV",
+            target_name=REGRESSION_TARGET,
         )
 
     @pytest.fixture(scope="session")
@@ -238,7 +247,7 @@ class TestDropInEnvironments(object):
     def java_regression_custom_model(self, java_drop_in_env):
         env_id, _ = java_drop_in_env
         return self.make_custom_model(
-            "java_reg.jar", env_id, artifact_only=True, target_name="MEDV"
+            "java_reg.jar", env_id, artifact_only=True, target_name=REGRESSION_TARGET
         )
 
     @pytest.fixture(scope="session")
@@ -257,7 +266,10 @@ class TestDropInEnvironments(object):
     def r_regression_custom_model(self, r_drop_in_env):
         env_id, _ = r_drop_in_env
         return self.make_custom_model(
-            "r_reg.rds", env_id, custom_predict_path=CUSTOM_PREDICT_R_PATH, target_name="MEDV",
+            "r_reg.rds",
+            env_id,
+            custom_predict_path=CUSTOM_PREDICT_R_PATH,
+            target_name=REGRESSION_TARGET,
         )
 
     @pytest.fixture(scope="session")
@@ -339,7 +351,7 @@ class TestDropInEnvironments(object):
         model_version = dr.CustomModelVersion.get(model_id, model_version_id)
         model = dr.CustomInferenceModel.get(model_id)
         model.assign_training_data(test_data_id)
-        model_version.calculate_feature_impact()
+        model_version.calculate_feature_impact(max_wait=1200)
 
         test_passed = False
         error_message = ""

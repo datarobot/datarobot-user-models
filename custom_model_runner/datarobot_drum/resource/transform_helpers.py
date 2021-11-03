@@ -1,3 +1,9 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import pandas as pd
 import logging
 
@@ -5,9 +11,11 @@ from cgi import FieldStorage
 from io import BytesIO, StringIO
 
 from scipy.io import mmwrite, mmread
+from scipy.sparse import issparse
 from scipy.sparse.csr import csr_matrix
 
-from datarobot_drum.drum.common import verify_pyarrow_module, X_FORMAT_KEY, X_TRANSFORM_KEY
+from datarobot_drum.drum.common import verify_pyarrow_module
+from datarobot_drum.drum.enum import X_FORMAT_KEY, X_TRANSFORM_KEY
 
 
 def filter_urllib3_logging():
@@ -26,11 +34,43 @@ class NoHeaderErrorFilter(logging.Filter):
 
 
 def is_sparse(df):
-    return hasattr(df, "sparse") or type(df.iloc[0].values[0]) == csr_matrix
+    return hasattr(df, "sparse") or issparse(df.iloc[0].values[0])
+
+
+def validate_and_convert_column_names_for_serialization(df):
+    """
+    Parameters
+    ----------
+    df: pd.DataFrame
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame with columns that can be properly serialized
+    """
+    columns = df.columns.values
+
+    # rstrip
+    columns = [str(colname).rstrip() for colname in columns]
+
+    # Replace newlines
+    columns = [colname.replace("\n", "\\n") for colname in columns]
+
+    if len(set(columns)) != df.shape[1]:
+        raise ValueError(
+            "Column name serialization check failed, deserializing column names resulted in {}, expected {}\n"
+            "Ensure there are no duplicate column names or trailing whitespace".format(
+                len(columns), df.shape[1]
+            )
+        )
+
+    df.columns = columns
+    return df
 
 
 def make_arrow_payload(df, arrow_version):
     pa = verify_pyarrow_module()
+    df = validate_and_convert_column_names_for_serialization(df)
 
     if arrow_version != pa.__version__ and arrow_version < 0.2:
         batch = pa.RecordBatch.from_pandas(df, nthreads=None, preserve_index=False)
@@ -46,6 +86,8 @@ def make_arrow_payload(df, arrow_version):
 
 
 def make_csv_payload(df):
+    df = validate_and_convert_column_names_for_serialization(df)
+
     s_buf = StringIO()
     df.to_csv(s_buf, index=False)
     return s_buf.getvalue().encode("utf-8")
@@ -65,7 +107,7 @@ def read_csv_payload(response_dict, transform_key):
 
 
 def make_mtx_payload(df):
-    sparse_mat = df
+    sparse_mat = validate_and_convert_column_names_for_serialization(df)
     colnames = df.columns.values
     sink = BytesIO()
     mmwrite(sink, sparse_mat.sparse.to_coo())

@@ -1,9 +1,15 @@
+"""
+Copyright 2021 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import logging
 import os
 
 from mlpiper.components.connectable_component import ConnectableComponent
 
-from datarobot_drum.drum.common import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.utils import (
     make_sure_artifact_is_small,
     capture_R_traceback_if_errors,
@@ -48,6 +54,7 @@ class RFit(ConnectableComponent):
         self.class_labels = None
         self.custom_model_path = None
         self.input_filename = None
+        self.sparse_column_file = None
         self.weights = None
         self.weights_filename = None
         self.target_filename = None
@@ -58,6 +65,7 @@ class RFit(ConnectableComponent):
         super(RFit, self).configure(params)
         self.custom_model_path = self._params["__custom_model_path__"]
         self.input_filename = self._params["inputFilename"]
+        self.sparse_column_file = self._params["sparseColumnFile"]
         self.target_name = self._params.get("targetColumn")
         self.output_dir = self._params["outputDir"]
         self.positive_class_label = self._params.get("positiveClassLabel")
@@ -78,18 +86,14 @@ class RFit(ConnectableComponent):
         if self.output_dir[-1] != "/":
             self.output_dir += "/"
 
-        weights = ro.NULL
-        if self.weights:
-            weights = self.weights.replace("-", ".")
-
-        target_name = ro.NULL
-        if self.target_name:
-            target_name = self.target_name.replace("-", ".").replace("_", ".")
+        weights = self.weights if self.weights else ro.NULL
+        target_name = self.target_name if self.target_name else ro.NULL
 
         with capture_R_traceback_if_errors(r_handler, logger):
             r_handler.outer_fit(
                 self.output_dir,
                 self.input_filename,
+                self.sparse_column_file or ro.NULL,
                 self.target_filename or ro.NULL,
                 target_name,
                 self.num_rows,
