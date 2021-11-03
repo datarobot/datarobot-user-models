@@ -221,7 +221,10 @@ class PredictMixin:
                 out_target = None
         except DrumSchemaValidationException as e:
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
-            return {"message": "ERROR: " + str(e)}, response_status
+            return (
+                {"message": "ERROR: " + str(e), "is_schema_validation_error": True},
+                response_status,
+            )
 
         # make output
         if is_sparse(out_data):
