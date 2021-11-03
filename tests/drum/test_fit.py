@@ -250,7 +250,7 @@ class TestFit:
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
         assert "Starting Fit" in stdout
-        assert "Starting Prediction " in stdout
+        assert "Starting Prediction" in stdout
 
     @pytest.mark.parametrize(
         "framework, problem, docker, parameters",
