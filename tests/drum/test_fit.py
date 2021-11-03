@@ -827,11 +827,13 @@ class TestFit:
             assert_if_fail=False,
         )
 
-        # The predict server will not return the full stacktrace since it is ran in a forked process
         if error_in_predict_server:
             assert (
                 "Schema validation found mismatch between output dataset and the supplied schema"
                 in stdout
             )
         else:
-            assert "DrumSchemaValidationException" in stderr
+            assert (
+                "Schema validation found mismatch between input dataset and the supplied schema"
+                in stderr
+            )
