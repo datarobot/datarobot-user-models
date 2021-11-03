@@ -9,7 +9,7 @@ from uuid import uuid4
 import pandas as pd
 import pytest
 import requests
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, DEFAULT
 
 from datarobot_drum.drum.enum import CUSTOM_FILE_NAME, CustomHooks, ArgumentsOptions
 
@@ -45,9 +45,12 @@ from .constants import (
 )
 from datarobot_drum.drum.enum import RunMode
 from custom_model_runner.datarobot_drum.drum.drum import CMRunner
+from custom_model_runner.datarobot_drum.drum.main import main
 from datarobot_drum.drum.runtime import DrumRuntime
 from argparse import Namespace
+from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
+from datarobot_drum.drum.enum import ExitCodes
 
 
 class TestOtherCases:
@@ -442,3 +445,29 @@ class TestOtherCases:
                     "Specifying output_requirements in model_metadata.yaml is only valid for custom transform tasks."
                     in str(ex.value)
                 )
+
+    def test_drum_exits_code_when_custom_task_schema_validation_exception_is_raised(self):
+        runtime_options = Namespace(
+            code_dir="",
+            disable_strict_validation=False,
+            logging_level="warning",
+            subparser_name=RunMode.FIT.value,
+            target_type="regression",
+            verbose=False,
+            content_type=None,
+        )
+        from datarobot_drum.drum.drum import CMRunner
+
+        with patch.multiple(
+            CMRunnerArgsRegistry,
+            get_arg_parser=DEFAULT,
+            extend_sys_argv_with_env_vars=DEFAULT,
+            verify_options=DEFAULT,
+        ) as mock_cmrunner_args_registry:
+            mock_arg_registry = mock_cmrunner_args_registry["get_arg_parser"].return_value
+            mock_arg_registry.parse_args.return_value = runtime_options
+            with patch.object(CMRunner, "run",) as mock_run:
+                mock_run.side_effect = DrumSchemaValidationException()
+                with pytest.raises(SystemExit) as ex:
+                    main()
+                assert ex.value.code == ExitCodes.SCHEMA_VALIDATION_ERROR.value
