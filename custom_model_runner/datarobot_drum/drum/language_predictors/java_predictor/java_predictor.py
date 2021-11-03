@@ -175,7 +175,7 @@ class JavaPredictor(BaseLanguagePredictor):
             out_csv = self._predictor_via_py4j.predict(input_text_bytes)
 
         out_df = pd.read_csv(StringIO(out_csv))
-        return out_df
+        return out_df.values, out_df.columns
 
     def _transform(self, **kwargs):
         raise DrumCommonException("Transform feature is not supported for Java/Scala")

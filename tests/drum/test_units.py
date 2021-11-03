@@ -50,6 +50,7 @@ from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPre
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.push import _push_inference, _push_training, drum_push
 from datarobot_drum.drum.utils import DrumUtils
+from datarobot_drum.drum.data_marshalling import _marshal_labels
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils import StructuredInputReadUtils
 
@@ -83,48 +84,6 @@ class TestOrderIntuition:
             self.regression_filename, target_col_name="Grade 2014", is_anomaly=True
         )
         assert classes is None
-
-
-class TestValidatePredictions:
-    def test_class_labels(self):
-        positive_label = "poslabel"
-        negative_label = "neglabel"
-        adapter = PythonModelAdapter(model_dir=None, target_type=TargetType.BINARY)
-        df = pd.DataFrame({positive_label: [0.1, 0.2, 0.3], negative_label: [0.9, 0.8, 0.7]})
-        adapter._validate_predictions(
-            to_validate=df, class_labels=[positive_label, negative_label],
-        )
-        with pytest.raises(DrumCommonException):
-            df = pd.DataFrame({positive_label: [0.1, 0.2, 0.3], negative_label: [0.9, 0.8, 0.7]})
-            adapter._validate_predictions(
-                to_validate=df, class_labels=["yes", "no"],
-            )
-
-    def test_regression_predictions_header(self):
-        adapter = PythonModelAdapter(model_dir=None, target_type=TargetType.REGRESSION)
-        df = pd.DataFrame({"Predictions": [0.1, 0.2, 0.3]})
-        adapter._validate_predictions(
-            to_validate=df, class_labels=None,
-        )
-        with pytest.raises(ValueError):
-            df = pd.DataFrame({"other_name": [0.1, 0.2, 0.3]})
-            adapter._validate_predictions(
-                to_validate=df, class_labels=None,
-            )
-
-    def test_add_to_one(self):
-        positive_label = "poslabel"
-        negative_label = "neglabel"
-        for predictor in [PythonPredictor(), RPredictor(), JavaPredictor()]:
-            predictor._target_type = TargetType.BINARY
-            df_good = pd.DataFrame(
-                {positive_label: [0.1, 0.2, 0.3], negative_label: [0.9, 0.8, 0.7]}
-            )
-            predictor.validate_output(df_good)
-
-            df_bad = pd.DataFrame({positive_label: [1, 1, 1], negative_label: [-1, 0, 0]})
-            with pytest.raises(ValueError):
-                predictor.validate_output(df_bad)
 
 
 modelID = "5f1f15a4d6111f01cb7f91f"
@@ -746,14 +705,17 @@ def test_sklearn_predictor_wrong_dtype_labels(data_dtype, label_dtype):
     estimator.fit(X, y)
     adapter = PythonModelAdapter(model_dir=None, target_type=TargetType.BINARY)
     adapter._predictor_to_use = SKLearnPredictor()
-    out = adapter.predict(
+    preds, cols = adapter.predict(
         estimator,
         positive_class_label=str(label_dtype(0)),
         negative_class_label=str(label_dtype(1)),
         binary_data=csv_bytes,
         target_type=TargetType.BINARY,
     )
-    assert all(out.columns == [str(label_dtype(0)), str(label_dtype(1))])
+    marshalled_cols = _marshal_labels(
+        request_labels=[str(label_dtype(1)), str(label_dtype(0))], model_labels=cols,
+    )
+    assert marshalled_cols == [str(label_dtype(0)), str(label_dtype(1))]
 
 
 def test_endswith_extension_ignore_case():
@@ -827,18 +789,7 @@ def test_predictor_extension():
 
 @pytest.mark.parametrize(
     "target_type, predictor_cls",
-    itertools.product(
-        [
-            TargetType.BINARY,
-            TargetType.MULTICLASS,
-            TargetType.REGRESSION,
-            TargetType.UNSTRUCTURED,
-            TargetType.ANOMALY,
-            TargetType.UNSTRUCTURED,
-            TargetType.TRANSFORM,
-        ],
-        [PythonPredictor, RPredictor, JavaPredictor],
-    ),
+    itertools.product([TargetType.TRANSFORM,], [PythonPredictor, RPredictor, JavaPredictor],),
 )
 def test_validate_model_metadata_output_requirements(target_type, predictor_cls):
     """The validation on the specs defined in the output_requirements of model metadata is only triggered when the
@@ -868,10 +819,10 @@ def test_validate_model_metadata_output_requirements(target_type, predictor_cls)
 
     if target_type == TargetType.TRANSFORM:
         with pytest.raises(DrumSchemaValidationException) as ex:
-            predictor.validate_output(df_to_validate)
+            predictor._schema_validator.validate_outputs(df_to_validate)
         assert str(ex.value) == (
             "schema validation failed for output:\n ['Datatypes incorrect. Data has types: NUM, which includes values "
             "that are not in CAT.']"
         )
     else:
-        predictor.validate_output(df_to_validate)
+        predictor._schema_validator.validate_outputs(df_to_validate)

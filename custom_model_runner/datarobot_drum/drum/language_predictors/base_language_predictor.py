@@ -6,19 +6,21 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
 import time
-
 from abc import ABC, abstractmethod
+
 import numpy as np
 
 from datarobot_drum.drum.common import read_model_metadata_yaml
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
-    StructuredDtoKeys,
     ModelInfoKeys,
+    REGRESSION_PRED_COLUMN,
+    StructuredDtoKeys,
     TargetType,
 )
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils import StructuredInputReadUtils
+from datarobot_drum.drum.data_marshalling import marshal_predictions
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -41,6 +43,8 @@ class BaseLanguagePredictor(ABC):
         self._code_dir = None
         self._params = None
         self._mlops = None
+        self._schema_validator = None
+        self._target_type = None
 
     def configure(self, params):
         self._code_dir = params["__custom_model_path__"]
@@ -49,6 +53,11 @@ class BaseLanguagePredictor(ABC):
         self._class_labels = params.get("classLabels")
         self._target_type = TargetType(params.get("target_type"))
         self._params = params
+
+        if self._target_type in {TargetType.REGRESSION, TargetType.ANOMALY}:
+            self._class_labels = [REGRESSION_PRED_COLUMN]
+        if self._target_type == TargetType.BINARY:
+            self._class_labels = [self._negative_class_label, self._positive_class_label]
 
         if self._params["monitor"] == "True":
             if not mlops_loaded:
@@ -63,9 +72,8 @@ class BaseLanguagePredictor(ABC):
             )
 
         model_metadata = read_model_metadata_yaml(self._code_dir)
-        self._schema_validator = (
-            SchemaValidator(model_metadata.get("typeSchema", {})) if model_metadata else None
-        )
+        if model_metadata:
+            self._schema_validator = SchemaValidator(model_metadata.get("typeSchema", {}))
 
     def monitor(self, kwargs, predictions, predict_time_ms):
         if self._params["monitor"] == "True":
@@ -95,23 +103,15 @@ class BaseLanguagePredictor(ABC):
                 features_df=df, predictions=mlops_predictions, class_names=class_names
             )
 
-    def validate_output(self, output_df):
-        if self._target_type.value in TargetType.CLASSIFICATION.value:
-            added_probs = output_df.sum(axis=1)
-            good_preds = np.isclose(added_probs, 1)
-            if not np.all(good_preds):
-                bad_rows = output_df[~good_preds]
-                raise ValueError(
-                    "Your prediction probabilities do not add up to 1. \n{}".format(bad_rows)
-                )
-        if self._target_type.value == TargetType.TRANSFORM.value:
-            if self._schema_validator:
-                self._schema_validator.validate_outputs(output_df)
-
     def predict(self, **kwargs):
         start_predict = time.time()
-        predictions = self._predict(**kwargs)
-        self.validate_output(predictions)
+        predictions, labels = self._predict(**kwargs)
+        predictions = marshal_predictions(
+            request_labels=self._class_labels,
+            predictions=predictions,
+            target_type=self._target_type,
+            model_labels=labels,
+        )
         end_predict = time.time()
         execution_time_ms = (end_predict - start_predict) * 1000
         self.monitor(kwargs, predictions, execution_time_ms)
@@ -125,8 +125,8 @@ class BaseLanguagePredictor(ABC):
     def transform(self, **kwargs):
         output = self._transform(**kwargs)
         output_X = output[0]
-        # TODO: [RAPTOR-5765] validate output_y
-        self.validate_output(output_X)
+        if self._target_type.value == TargetType.TRANSFORM.value and self._schema_validator:
+            self._schema_validator.validate_outputs(output_X)
         return output
 
     @abstractmethod

@@ -45,7 +45,7 @@ class H2OPredictorPipeline(name: String) extends BasePredictor(name) {
     val outputColumns = mojoPipeline.getOutputMeta.getColumnNames
     val origLabels = outputColumns.length match { 
       case 1 => Array("Predictions")
-      case 2 => Array(positiveClassLabel, negativeClassLabel)
+      case 2 => Array(negativeClassLabel, positiveClassLabel)
       case _ => classLabels
     }
     headers = outputColumns.length match { 

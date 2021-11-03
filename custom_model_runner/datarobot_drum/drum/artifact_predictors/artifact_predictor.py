@@ -71,26 +71,24 @@ class ArtifactPredictor(ABC):
     @abstractmethod
     def predict(self, data, model, **kwargs):
         """
-        Run prediction on this model
+        This super class will only do a bit of parameter validation
         """
-        self.positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
-        self.negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
         self.class_labels = kwargs.get(CLASS_LABELS_ARG_KEYWORD)
         self.target_type = kwargs[TARGET_TYPE_ARG_KEYWORD]
-        if self.target_type == TargetType.BINARY and None in [
-            self.positive_class_label,
-            self.negative_class_label,
-        ]:
-            raise DrumCommonException(
-                "For `{}` target type both class labels must be provided. Found: {}, {}".format(
-                    self.target_type.value, self.positive_class_label, self.negative_class_label
-                )
-            )
+
         if self.target_type == TargetType.MULTICLASS and not self.class_labels:
             raise DrumCommonException(
                 "For `{}` target, the model's class labels must be provided. found: {}".format(
                     self.target_type, self.class_labels
                 )
             )
+
         if self.target_type == TargetType.BINARY:
-            self.class_labels = [self.negative_class_label, self.positive_class_label]
+            self.class_labels = [
+                kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD),
+                kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD),
+            ]
+            if None in self.class_labels:
+                raise DrumCommonException(
+                    f"For `{self.target_type.value}` target types both class labels must be provided. Found: {self.class_labels}"
+                )

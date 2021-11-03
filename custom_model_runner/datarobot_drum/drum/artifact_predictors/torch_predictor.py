@@ -4,20 +4,12 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-import pickle
-import numpy as np
-import pandas as pd
 import sys
 
-from datarobot_drum.drum.enum import (
-    REGRESSION_PRED_COLUMN,
-    SupportedFrameworks,
-    extra_deps,
-    PythonArtifacts,
-    TargetType,
-)
-from datarobot_drum.drum.exceptions import DrumCommonException
+import numpy as np
+
 from datarobot_drum.drum.artifact_predictors.artifact_predictor import ArtifactPredictor
+from datarobot_drum.drum.enum import extra_deps, PythonArtifacts, SupportedFrameworks
 
 
 class PyTorchPredictor(ArtifactPredictor):
@@ -80,29 +72,5 @@ class PyTorchPredictor(ArtifactPredictor):
         )
         with torch.no_grad():
             predictions = model(data).cpu().data.numpy()
-        if self.target_type.value in TargetType.CLASSIFICATION.value:
-            if predictions.shape[1] == 1:
-                if self.target_type == TargetType.MULTICLASS:
-                    if len(self.class_labels) > 2:
-                        raise DrumCommonException(
-                            "Target type '{}' predictions must return the "
-                            "probability distribution for all class labels".format(self.target_type)
-                        )
-                    pos_label = self.class_labels[1]
-                    neg_label = self.class_labels[0]
-                else:
-                    pos_label = self.positive_class_label
-                    neg_label = self.negative_class_label
-                predictions = pd.DataFrame(predictions, columns=[pos_label])
-                predictions[neg_label] = 1 - predictions[pos_label]
-            else:
-                predictions = pd.DataFrame(predictions, columns=self.class_labels)
-        elif self.target_type in [TargetType.REGRESSION, TargetType.ANOMALY]:
-            predictions = pd.DataFrame(predictions, columns=[REGRESSION_PRED_COLUMN])
-        else:
-            raise DrumCommonException(
-                "Target type '{}' is not supported by '{}' predictor".format(
-                    self.target_type.value, self.__class__.__name__
-                )
-            )
-        return predictions
+
+        return predictions, None
