@@ -210,7 +210,7 @@ class BaseValidator(ABC):
         self.values = [convert_value(value) for value in values]
 
     @abstractmethod
-    def validate(self, dataframe: pd.DataFrame):
+    def validate(self, dataframe: pd.DataFrame, step_label: str = None):
         raise NotImplementedError
 
 
@@ -288,7 +288,7 @@ class DataTypes(BaseValidator):
     def number_of_img_columns(X):
         return len(X.columns[list(X.apply(DataTypes.is_img, result_type="expand"))])
 
-    def validate(self, dataframe):
+    def validate(self, dataframe, step_label=None):
         """Perform validation of the dataframe against the supplied specification."""
         if len(self.values) == 0:
             logger.info("Skipping type validation")
@@ -322,7 +322,8 @@ class DataTypes(BaseValidator):
 
         types_present = [k for k, v in types.items() if v]
 
-        base_error = f"Datatypes incorrect. Data has types: {DataTypes.list_str(types_present)}"
+        input_or_output_data = f"{label.title()} data" if step_label else "Data"
+        base_error = f"Datatypes incorrect. {input_or_output_data} has types: {DataTypes.list_str(types_present)}"
 
         errors = {
             Conditions.EQUALS: f"{base_error}, but expected types to exactly match: {DataTypes.list_str(self.values)}",
@@ -347,7 +348,7 @@ class Sparsity(BaseValidator):
     def __init__(self, condition, values):
         super(Sparsity, self).__init__(condition, values)
 
-    def validate(self, dataframe):
+    def validate(self, dataframe, step_label=None):
 
         _is_sparse = is_sparse(dataframe)
 
@@ -366,13 +367,13 @@ class Sparsity(BaseValidator):
 
         if _is_sparse and value not in sparse_output_allowed_values + sparse_input_allowed_values:
             return [
-                f"Sparse {io_type} data found, however value is set to {value}, expecting dense"
+                f"Sparse {io_type} found, however value is set to {value}, expecting dense"
             ]
         elif (
             not _is_sparse and value not in dense_output_allowed_values + dense_input_allowed_values
         ):
             return [
-                f"Dense {io_type} data found, however value is set to {value}, expecting sparse"
+                f"Dense {io_type} {input_or_output} found, however value is set to {value}, expecting sparse"
             ]
         else:
             return []
@@ -392,7 +393,7 @@ class NumColumns(BaseValidator):
             ]:
                 raise ValueError(f"Value of 0 is not supported for {condition}")
 
-    def validate(self, dataframe):
+    def validate(self, dataframe, step_label=None):
         n_columns = len(dataframe.columns)
 
         conditions_map = {
@@ -411,9 +412,10 @@ class NumColumns(BaseValidator):
             test_value = self.values[0]
 
         passes = conditions_map[self.condition](n_columns, test_value)
+        input_or_output_columns = f"{step_label} columns" if step_label else "columns"
         if not passes:
             return [
-                f"Incorrect number of columns. {n_columns} received. However, the schema dictates that number of columns should be {self.condition} {test_value}"
+                f"Incorrect number of {input_or_output_columns}. {n_columns} received. However, the schema dictates that number of columns should be {self.condition} {test_value}"
             ]
 
         return []
@@ -423,7 +425,7 @@ class ContainsMissing(BaseValidator):
     def __init__(self, condition, values):
         super(ContainsMissing, self).__init__(condition, values)
 
-    def validate(self, dataframe):
+    def validate(self, dataframe, step_label=None):
         missing_output_disallowed = Values.NEVER
         missing_input_disallowed = Values.FORBIDDEN
         if is_sparse(dataframe):
