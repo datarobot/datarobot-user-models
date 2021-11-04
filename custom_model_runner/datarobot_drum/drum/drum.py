@@ -646,12 +646,19 @@ class CMRunner:
                 functional_pipeline_str = json.dumps(pipeline_json)
         return functional_pipeline_str
 
+    def _needs_class_labels(self):
+        if self.target_type == TargetType.BINARY:
+            return self.options.negative_class_label is None or self.options.class_labels is None
+        if self.target_type == TargetType.MULTICLASS:
+            return self.options.class_labels is None
+        return False
+
     def _prepare_fit_pipeline(self, run_language):
 
-        if self.target_type.value in TargetType.CLASSIFICATION.value and (
-            self.options.negative_class_label is None or self.options.class_labels is None
-        ):
+        if self._needs_class_labels():
             # No class label information was supplied, but we may be able to infer the labels
+            if self.target_type.value in TargetType.CLASSIFICATION.value:
+                print("WARNING: class list not supplied.  Using unique target values.")
             possible_class_labels = possibly_intuit_order(
                 self.options.input,
                 self.options.target_csv,
@@ -1102,7 +1109,6 @@ def possibly_intuit_order(
         assert target_col_name is None
 
         y = pd.read_csv(target_data_file, index_col=False)
-        y = y.sample(min(1000, len(y)), random_state=1)
         classes = np.unique(y.iloc[:, 0])
     else:
         assert target_data_file is None
@@ -1113,10 +1119,10 @@ def possibly_intuit_order(
             )
             print(e, file=sys.stderr)
             raise DrumCommonException(e)
-        uniq = df[target_col_name].sample(min(1000, len(df)), random_state=1).unique()
+        uniq = df[target_col_name].unique()
         classes = set(uniq) - {np.nan}
     if len(classes) >= 2:
-        return classes
+        return sorted(classes)
     elif len(classes) == 1:
         raise DrumCommonException("Only one target label was provided, please revise training data")
     return None

@@ -26,6 +26,7 @@ from tests.drum.constants import (
     MULTI_ARTIFACT,
     MULTICLASS,
     MULTICLASS_NUM_LABELS,
+    MULTICLASS_HIGH_CARD,
     MULTICLASS_BINARY,
     NO_CUSTOM,
     POJO,
@@ -133,6 +134,9 @@ _datasets = {
     (None, MULTICLASS_NUM_LABELS): os.path.join(
         TESTS_DATA_PATH, "skyserver_sql2_27_2018_6_51_39_pm_num_class.csv"
     ),
+    (None, MULTICLASS_HIGH_CARD): os.path.join(
+        TESTS_DATA_PATH, "skyserver_sql2_27_2018_6_51_39_pm_num_class.csv"
+    ),
     (None, MULTICLASS_BINARY): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
     (None, SPARSE): os.path.join(TESTS_DATA_PATH, "sparse.mtx"),
     (None, SPARSE_TRANSFORM): os.path.join(TESTS_DATA_PATH, "sparse.mtx"),
@@ -211,6 +215,7 @@ _targets = {
     MULTICLASS: "class",
     MULTICLASS_BINARY: "Species",
     MULTICLASS_NUM_LABELS: "class",
+    MULTICLASS_HIGH_CARD: "run",
     SPARSE: "my_target",
     BINARY_BOOL: "readmitted",
     ANOMALY: None,
@@ -232,6 +237,7 @@ _target_types = {
     MULTICLASS: "multiclass",
     MULTICLASS_BINARY: "multiclass",
     MULTICLASS_NUM_LABELS: "multiclass",
+    MULTICLASS_HIGH_CARD: "multiclass",
     BINARY_BOOL: "binary",
     TRANSFORM: "transform",
 }
@@ -253,6 +259,31 @@ _class_labels = {
     (SKLEARN_MULTICLASS, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (SKLEARN_MULTICLASS, MULTICLASS_NUM_LABELS): ["0", "1", "2"],
     (SKLEARN_MULTICLASS, MULTICLASS_NUM_LABELS): [0, 1, 2],
+    (PYTORCH_MULTICLASS, MULTICLASS_HIGH_CARD): [
+        "752"
+        "756"
+        "308"
+        "727"
+        "745"
+        "1035"
+        "1045"
+        "1140"
+        "1231"
+        "1332"
+        "1334"
+        "1302"
+        "1239"
+        "1119"
+        "1331"
+        "1345"
+        "1350"
+        "1404"
+        "1412"
+        "1336"
+        "1402"
+        "1411"
+        "1356",
+    ],
     (XGB, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (KERAS, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (RDS, MULTICLASS): ["GALAXY", "QSO", "STAR"],
