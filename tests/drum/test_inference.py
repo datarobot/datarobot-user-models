@@ -51,6 +51,7 @@ from .constants import (
     PYTHON_PREDICT_SPARSE,
     PYTHON_TRANSFORM_NO_Y,
     PYTHON_TRANSFORM_NO_Y_DENSE,
+    PYTHON_TRANSFORM_SPARSE,
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
     PYTORCH,
     R,
@@ -65,11 +66,13 @@ from .constants import (
     SKLEARN_TRANSFORM,
     SKLEARN_TRANSFORM_DENSE,
     SPARSE,
+    SPARSE_TRANSFORM,
     TRANSFORM,
     XGB,
     JULIA,
     MLJ,
     R_TRANSFORM,
+    R_TRANSFORM_SPARSE_INPUT,
     R_TRANSFORM_SPARSE_OUTPUT,
     R_VALIDATE_SPARSE_ESTIMATOR,
     UNSTRUCTURED,
@@ -459,6 +462,8 @@ class TestInference:
             (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM_NO_Y, None, False),
             (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_NO_Y_DENSE, None, False),
             (R_TRANSFORM, TRANSFORM, R_TRANSFORM, None, False),
+            (SKLEARN_TRANSFORM, SPARSE_TRANSFORM, PYTHON_TRANSFORM_SPARSE, None, False),
+            (R_TRANSFORM_SPARSE_INPUT, SPARSE_TRANSFORM, R_TRANSFORM_SPARSE_INPUT, None, False),
             (R_TRANSFORM_SPARSE_OUTPUT, TRANSFORM, R_TRANSFORM_SPARSE_OUTPUT, None, False),
         ],
     )
@@ -477,12 +482,14 @@ class TestInference:
             docker,
         ) as run:
             input_dataset = resources.datasets(framework, problem)
-            in_data = pd.read_csv(input_dataset)
+            in_data = resources.input_data(framework, problem)
 
             files = {"X": open(input_dataset)}
             if pass_target:
                 target_dataset = resources.targets(problem)
                 files["y"] = open(target_dataset)
+            if input_dataset.endswith(".mtx"):
+                files["X.colnames"] = open(input_dataset.replace(".mtx", ".columns"))
 
             if use_arrow:
                 files["arrow_version"] = ".2"
@@ -492,7 +499,7 @@ class TestInference:
 
             parsed_response = parse_multi_part_response(response)
 
-            if framework in [SKLEARN_TRANSFORM_DENSE, R_TRANSFORM]:
+            if framework in [SKLEARN_TRANSFORM_DENSE, R_TRANSFORM, R_TRANSFORM_SPARSE_INPUT]:
                 if use_arrow:
                     transformed_out = read_arrow_payload(parsed_response, X_TRANSFORM_KEY)
                     if pass_target:
@@ -526,7 +533,13 @@ class TestInference:
                 actual_num_predictions = transformed_out.shape[0]
                 assert parsed_response["X.format"] == "sparse"
 
-            if framework == SKLEARN_TRANSFORM:
+            if framework == R_TRANSFORM_SPARSE_INPUT:
+                assert type(transformed_out) == pd.DataFrame
+                assert transformed_out.shape[1] == 162
+            elif problem == SPARSE_TRANSFORM:
+                assert type(transformed_out) == csr_matrix
+                assert transformed_out.shape[1] == 162
+            elif framework == SKLEARN_TRANSFORM:
                 assert type(transformed_out) == csr_matrix
                 assert transformed_out.shape[1] == 714
             elif framework == SKLEARN_TRANSFORM_DENSE:

@@ -217,6 +217,7 @@ class PredictMixin:
                     binary_data=feature_binary_data,
                     mimetype=feature_mimetype,
                     charset=feature_charset,
+                    sparse_colnames=colnames_bin_data,
                 )
                 out_target = None
         except DrumSchemaValidationException as e:

@@ -92,9 +92,8 @@ class RPredictor(BaseLanguagePredictor):
     def has_read_input_data_hook(self):
         return bool(r_handler.has_read_input_data_hook()[0])
 
-    def _predict(self, **kwargs):
-        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
-        mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
+    @staticmethod
+    def _get_sparse_colnames(kwargs):
         if kwargs.get(StructuredDtoKeys.SPARSE_COLNAMES):
             sparse_colnames = (
                 kwargs[StructuredDtoKeys.SPARSE_COLNAMES].decode("utf-8").rstrip().split("\n")
@@ -102,6 +101,11 @@ class RPredictor(BaseLanguagePredictor):
             sparse_colnames = ro.vectors.StrVector(sparse_colnames)
         else:
             sparse_colnames = ro.rinterface.NULL
+        return sparse_colnames
+
+    def _predict(self, **kwargs):
+        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
+        mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
         with capture_R_traceback_if_errors(r_handler, logger):
             predictions = r_handler.outer_predict(
                 self._target_type.value,
@@ -111,7 +115,7 @@ class RPredictor(BaseLanguagePredictor):
                 positive_class_label=self._r_positive_class_label,
                 negative_class_label=self._r_negative_class_label,
                 class_labels=self._r_class_labels,
-                sparse_colnames=sparse_colnames,
+                sparse_colnames=self._get_sparse_colnames(kwargs),
             )
 
         with localconverter(ro.default_converter + pandas2ri.converter):
@@ -205,6 +209,7 @@ class RPredictor(BaseLanguagePredictor):
                 else ro.vectors.ByteVector(target_binary_data),
                 mimetype=ro.rinterface.NULL if mimetype is None else mimetype,
                 transformer=self._model,
+                sparse_colnames=self._get_sparse_colnames(kwargs),
             )
 
         with localconverter(ro.default_converter + pandas2ri.converter):
