@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### [1.6.2] - 2021-11-01
 ##### Added
 - support for Java Unstructured Models
+- Add new exit code (3) and improve schema validation exception handling
 
 #### [1.6.1] - 2021-10-22
 ##### Changed
