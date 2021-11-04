@@ -166,10 +166,10 @@ load_serialized_model <- function(model_dir, target_type) {
         labels_to_use <- provided_labels
     } else if (setequal(labels, provided_labels_sanitized)) {
         labels_to_use <- provided_labels_sanitized
-    } else if (setequal(labels, provided_labels_sanitized_float)) {
-        labels_to_use <- provided_labels_sanitized_float
+#    } else if (setequal(labels, provided_labels_sanitized_float)) {
+#        labels_to_use <- provided_labels_sanitized_float
     } else {
-        stop(paste("WRONG", "PRED", paste(labels, collapse=","), "|", "CL", paste(provided_labels_sanitized, collapse=",")))
+        stop(paste("LABELS DON'T MATCH\n", "PRED LABELS:", paste(labels, collapse=","), "\n!=\n", "CLASS LABELS:", paste(provided_labels_sanitized, collapse=",")))
         stop("Wrong class labels. Use class labels according to your dataset")
     }
     # if labels are not on the same order, switch columns
