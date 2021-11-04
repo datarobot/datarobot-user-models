@@ -5,18 +5,10 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import pickle
-import numpy as np
-import pandas as pd
 
-from datarobot_drum.drum.enum import (
-    REGRESSION_PRED_COLUMN,
-    SupportedFrameworks,
-    extra_deps,
-    PythonArtifacts,
-    TargetType,
-)
-from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.artifact_predictors.artifact_predictor import ArtifactPredictor
+from datarobot_drum.drum.enum import extra_deps, PythonArtifacts, SupportedFrameworks, TargetType
+from datarobot_drum.drum.exceptions import DrumCommonException
 
 
 class XGBoostPredictor(ArtifactPredictor):
@@ -75,8 +67,6 @@ class XGBoostPredictor(ArtifactPredictor):
             return model
 
     def predict(self, data, model, **kwargs):
-        # checking if positive/negative class labels were provided
-        # done in the base class
         super(XGBoostPredictor, self).predict(data, model, **kwargs)
 
         import xgboost
@@ -86,27 +76,16 @@ class XGBoostPredictor(ArtifactPredictor):
             xgboost_native = True
             data = xgboost.DMatrix(data)
 
+        labels_to_use = None
+        if hasattr(model, "classes_"):
+            labels_to_use = model.classes_
         if self.target_type.value in TargetType.CLASSIFICATION.value:
             if xgboost_native:
                 predictions = model.predict(data)
-                if self.target_type == TargetType.BINARY or len(self.class_labels) == 2:
-                    negative_preds = 1 - predictions
-                    predictions = np.concatenate(
-                        (negative_preds.reshape(-1, 1), predictions.reshape(-1, 1)), axis=1
-                    )
-                else:
-                    if predictions.shape[1] != len(self.class_labels):
-                        raise DrumCommonException(
-                            "Target type '{}' predictions must return the "
-                            "probability distribution for all class labels".format(self.target_type)
-                        )
-
             else:
                 predictions = model.predict_proba(data)
-            predictions = pd.DataFrame(predictions, columns=self.class_labels)
         elif self.target_type in [TargetType.REGRESSION, TargetType.ANOMALY]:
-            preds = model.predict(data)
-            predictions = pd.DataFrame(data=preds, columns=[REGRESSION_PRED_COLUMN])
+            predictions = model.predict(data)
         else:
             raise DrumCommonException(
                 "Target type '{}' is not supported by '{}' predictor".format(
@@ -114,4 +93,4 @@ class XGBoostPredictor(ArtifactPredictor):
                 )
             )
 
-        return predictions
+        return predictions, labels_to_use

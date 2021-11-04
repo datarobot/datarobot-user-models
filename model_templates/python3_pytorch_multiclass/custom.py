@@ -59,7 +59,7 @@ def transform(data: pd.DataFrame, model: Any) -> pd.DataFrame:
     if preprocessor is None:
         raise ValueError("Preprocessor not loaded")
 
-    return preprocessor.transform(data)
+    return pd.DataFrame(preprocessor.transform(data))
 
 
 def fit(

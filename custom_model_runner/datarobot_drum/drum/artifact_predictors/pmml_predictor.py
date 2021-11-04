@@ -4,17 +4,10 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-import pandas as pd
 
-from datarobot_drum.drum.enum import (
-    REGRESSION_PRED_COLUMN,
-    SupportedFrameworks,
-    extra_deps,
-    PythonArtifacts,
-    TargetType,
-)
-from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.artifact_predictors.artifact_predictor import ArtifactPredictor
+from datarobot_drum.drum.enum import extra_deps, PythonArtifacts, SupportedFrameworks, TargetType
+from datarobot_drum.drum.exceptions import DrumCommonException
 
 
 class PMMLPredictor(ArtifactPredictor):
@@ -55,6 +48,43 @@ class PMMLPredictor(ArtifactPredictor):
         else:
             return False
 
+    def _marshal_predictions(self, predictions, output_fields):
+        name_to_label = {
+            field.name: field.value for field in output_fields if field.feature == "probability"
+        }
+        actual_name_to_lower_label = {k: v.lower() for k, v in name_to_label.items()}
+        expected_lower_labels = [label.lower() for label in self.class_labels]
+        # The PMML file may change the case of labels, so we should validate using lower
+        if not all(
+            label.lower() in actual_name_to_lower_label.values() for label in expected_lower_labels
+        ):
+            raise DrumCommonException(
+                "Target type '{}' predictions must return the "
+                "probability distribution for all class labels {}. "
+                "Predictions had {} columns".format(
+                    self.target_type, self.class_labels, predictions.columns
+                )
+            )
+        # The output may have multiple probability columns for each label.
+        # Assume the first one is the correct one.
+        pred_columns = [
+            next(
+                name
+                for name, lower_label in actual_name_to_lower_label.items()
+                if lower_label == expected_class
+            )
+            for expected_class in expected_lower_labels
+        ]
+        predictions = predictions[pred_columns]
+        # Rename the prediction columns with the expected name from the model.
+        return predictions.rename(
+            columns=lambda col: next(
+                label
+                for label in self.class_labels
+                if label.lower() == actual_name_to_lower_label[col]
+            )
+        )
+
     def predict(self, data, model, **kwargs):
         # checking if positive/negative class labels were provided
         # done in the base class
@@ -63,53 +93,6 @@ class PMMLPredictor(ArtifactPredictor):
         predictions = model.predict(data)
 
         if self.target_type.value in TargetType.CLASSIFICATION.value:
-            name_to_label = {
-                field.name: field.value
-                for field in model.outputFields
-                if field.feature == "probability"
-            }
-            actual_name_to_lower_label = {k: v.lower() for k, v in name_to_label.items()}
-            expected_lower_labels = [label.lower() for label in self.class_labels]
-            # The PMML file may change the case of labels, so we should validate using lower
-            if not all(
-                label.lower() in actual_name_to_lower_label.values()
-                for label in expected_lower_labels
-            ):
-                raise DrumCommonException(
-                    "Target type '{}' predictions must return the "
-                    "probability distribution for all class labels {}. "
-                    "Predictions had {} columns".format(
-                        self.target_type, self.class_labels, predictions.columns
-                    )
-                )
-            # The output may have multiple probability columns for each label.
-            # Assume the first one is the correct one.
-            pred_columns = [
-                next(
-                    name
-                    for name, lower_label in actual_name_to_lower_label.items()
-                    if lower_label == expected_class
-                )
-                for expected_class in expected_lower_labels
-            ]
-            predictions = predictions[pred_columns]
-            # Rename the prediction columns with the expected name from the model.
-            predictions = predictions.rename(
-                columns=lambda col: next(
-                    label
-                    for label in self.class_labels
-                    if label.lower() == actual_name_to_lower_label[col]
-                )
-            )
-        elif self.target_type in [TargetType.REGRESSION, TargetType.ANOMALY]:
-            predictions = predictions.rename(
-                columns={predictions.columns[0]: REGRESSION_PRED_COLUMN}
-            )
-        else:
-            raise DrumCommonException(
-                "Target type '{}' is not supported by '{}' predictor".format(
-                    self.target_type.value, self.__class__.__name__
-                )
-            )
+            predictions = self._marshal_predictions(predictions, model.outputFields)
 
-        return predictions
+        return predictions.values, predictions.columns

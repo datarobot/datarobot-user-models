@@ -1021,7 +1021,7 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, language, target_type",
-        [(None, R_FAIL_CLASSIFICATION_VALIDATION_HOOKS, BINARY,),],
+        [(None, R_FAIL_CLASSIFICATION_VALIDATION_HOOKS, BINARY,)],
     )
     def test_classification_validation_fails(
         self, resources, framework, language, target_type, tmp_path,
@@ -1041,10 +1041,10 @@ class TestInference:
                 target_type=resources.target_types(target_type),
             )
 
-        _, _, stde = _exec_shell_cmd(
+        _, stdo, _ = _exec_shell_cmd(
             cmd,
             "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
             assert_if_fail=False,
         )
 
-        assert "Your prediction probabilities do not add up to 1." in str(stde)
+        assert "Your prediction probabilities do not add up to 1." in str(stdo)

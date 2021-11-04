@@ -5,20 +5,14 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
-import numpy
 import os
-import pandas as pd
-import time
 
 from datarobot_drum.drum.common import SupportedPayloadFormats
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
-    REGRESSION_PRED_COLUMN,
-    CustomHooks,
-    UnstructuredDtoKeys,
-    StructuredDtoKeys,
-    TargetType,
     PayloadFormat,
+    StructuredDtoKeys,
+    UnstructuredDtoKeys,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
@@ -98,7 +92,7 @@ class JlPredictor(BaseLanguagePredictor):
             class_labels=self._class_labels,
         )
 
-        return predictions
+        return predictions.values, predictions.columns
 
     # # TODO: check test coverage for all possible cases: return None/str/bytes, and casting.
     def predict_unstructured(self, data, **kwargs):
