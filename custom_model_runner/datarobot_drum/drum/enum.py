@@ -312,3 +312,9 @@ class PayloadFormat:
     CSV = "csv"
     ARROW = "arrow"
     MTX = "mtx"
+
+
+class ExitCodes(Enum):
+    # This is the DRUM specific exit code. Please avoid using reserved/common exit codes. e.g.,
+    # 1, 2, 126, 127, 128, 128+n, 130, 225*
+    SCHEMA_VALIDATION_ERROR = 3  # used when the program exits due to custom task validation fails.
