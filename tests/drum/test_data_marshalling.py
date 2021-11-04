@@ -137,5 +137,7 @@ def test_marshal_predictions_dont_add_to_one():
 def test_marshal_predictions_add_to_one_weird():
     labels = [1, 2]
     preds = np.array([[-2, 3], [1, 0]])
-    with pytest.raises(DrumCommonException, match="Your predictions have negative values"):
+    with pytest.raises(
+        DrumCommonException, match="Your prediction probabilities have negative values"
+    ):
         marshal_predictions(request_labels=labels, predictions=preds, target_type=TargetType.BINARY)
