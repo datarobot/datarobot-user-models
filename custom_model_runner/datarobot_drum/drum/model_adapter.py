@@ -476,6 +476,8 @@ class PythonModelAdapter:
                 ) from None
 
         if self._custom_hooks.get(CustomHooks.POST_PROCESS):
+            # This is probably not great, a user is likely to want unmarshalled predictions in the
+            # post-process hook.
             predictions = marshal_predictions(
                 request_labels=request_labels,
                 predictions=predictions,
