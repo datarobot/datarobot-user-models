@@ -519,16 +519,16 @@ class CMRunner:
         if self.options.verbose:
             print("Maximum fit memory usage: {}MB".format(int(mem_usage)))
         if self.options.output and not self.options.skip_predict:
-            print("Starting Prediction")
             create_custom_inference_model_folder(self.options.code_dir, self.options.output)
         if not self.options.skip_predict:
+            print("Starting Prediction")
             mem_usage = memory_usage(
                 self.run_test_predict, interval=1, max_usage=True, max_iterations=1,
             )
             if self.options.verbose:
                 print("Maximum server memory usage: {}MB".format(int(mem_usage)))
             pred_str = " and predictions can be made on the fit model! \n "
-            print("Prediction successful")
+            print("Prediction successful for fit validation")
         else:
             pred_str = "however since you specified --skip-predict, predictions were not made \n"
         if remove_temp_output:
@@ -762,7 +762,7 @@ class CMRunner:
         sc.register_report("Full time", "end", StatsOperation.SUB, "start")
         sc.register_report("Init time (incl model loading)", "init", StatsOperation.SUB, "start")
         sc.register_report("Run time (incl reading CSV)", "run", StatsOperation.SUB, "init")
-        with verbose_stdout(True):
+        with verbose_stdout(self.options.verbose):
             sc.enable()
             try:
                 sc.mark("start")
