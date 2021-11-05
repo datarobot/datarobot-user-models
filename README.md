@@ -137,6 +137,56 @@ Check for `generate*` scripts in [./tests/fixtures/drop_in_model_artifacts](./te
 Model examples in [./model_templates](./model_templates) are also used in functional testing. In the most cases, artifacts for those models are the same as in the [./tests/fixtures/drop_in_model_artifacts](./tests/fixtures/drop_in_model_artifacts) and can be simply copied accordingly.
 If artifact for model template is not in the [./tests/fixtures/drop_in_model_artifacts](./tests/fixtures/drop_in_model_artifacts), check template's README for more instructions.
 
+### Adding a new release
+
+1. Create a release PR, make sure tests pass, merge.
+ 
+   In this PR, you will need:
+   - Make sure correct version number is updated in description.py. 
+   - Make sure correct version number is updated in the dr_requirements.txt of each drop-in environment. 
+   - Update environment version IDs in the env_info.json of each drop-in environment. The bson.ObjectId() is used as ID for the environment version. You can run env_version_update.py to update all the IDs. This script changes files in-place, so check everything went as expected.
+   - Update CHANGELOG.md to have proper record with version number and date.
+
+2. Tag the merged release commit with vX.Y.Z tag
+
+   e.g.,
+
+   `git tag v1.5.10 6e5eb9c722fd57211d035ae94b9d78b85bcc09db`
+
+   `git push origin v1.5.10`
+
+3. Publish the new release in PyPI with the Jenkins Job (https://jenkins.hq.datarobot.com/job/Release_DRUM_PyPI/)
+
+   Build parameters:
+   - RELEASE_TAG: The new release number.
+   - PYPI_PASSWORD: If you don’t have PYPI_PASSWORD, reuse another successful job run by rebuilding it (password will be filled in).
+
+4. Update dr_requirements.txt in the testing under DataRobot repo (https://github.com/datarobot/DataRobot)
+
+   Update the dr_requirements.txt in functional testings (e.g., `./tests/raptor_lake_templates/environments/python_base/dr_requirements.txt`) and make sure all testings pass.
+
+5. Update drop-in environments in Staging
+- Run Build_Environments_Installer jenkins job (https://jenkins.hq.datarobot.com/job/Build_Environments_Installer/). After the build, the tarball with all the environments will be generated in S3 (available in the log).
+
+  Build parameters:
+  - CUSTOM_MODEL_INSTALLER_VERSION: Set with the latest version.
+  - CUSTOM_MODEL_INSTALLER_ENV: staging
+- Run Release_Public_Environments_Staging jenkins job (https://jenkins.hq.datarobot.com/job/Release_Public_Environments_Staging/)
+
+  This will install drop-in environments from the built tarball in the Staging.
+
+6. Update drop-in environments in Production (**US/EU**)
+- Run Build_Environments_Installer jenkins job (https://jenkins.hq.datarobot.com/job/Build_Environments_Installer/). After the build, the tarball with all the environments will be generated in S3 (availalbe in the log).
+
+  Build parameters:
+  - CUSTOM_MODEL_INSTALLER_VERSION: Set with the latest version.
+  - CUSTOM_MODEL_INSTALLER_ENV: production
+- Run Release_Public_Environments_Staging jenkins job (https://jenkins.hq.datarobot.com/job/Release_Public_Environments_Production/)
+
+  This will install drop-in environments from the built tarball in the Production.
+
+7. Verify new version has been installed by checking version IDs.
+
 
 ## Communication<a name="communication"></a>
 Some places to ask for help are:
