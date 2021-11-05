@@ -322,8 +322,10 @@ class DataTypes(BaseValidator):
 
         types_present = [k for k, v in types.items() if v]
 
-        input_or_output_data = f"{label.title()} data" if step_label else "Data"
-        base_error = f"Datatypes incorrect. {input_or_output_data} has types: {DataTypes.list_str(types_present)}"
+        input_or_output_data_types = (
+            f"{step_label.title()} data types" if step_label else "Data types"
+        )
+        base_error = f"{input_or_output_data_types} incorrect. Data has types: {DataTypes.list_str(types_present)}"
 
         errors = {
             Conditions.EQUALS: f"{base_error}, but expected types to exactly match: {DataTypes.list_str(self.values)}",
@@ -366,15 +368,11 @@ class Sparsity(BaseValidator):
             io_type = "output"
 
         if _is_sparse and value not in sparse_output_allowed_values + sparse_input_allowed_values:
-            return [
-                f"Sparse {io_type} found, however value is set to {value}, expecting dense"
-            ]
+            return [f"Sparse {io_type} found, however value is set to {value}, expecting dense"]
         elif (
             not _is_sparse and value not in dense_output_allowed_values + dense_input_allowed_values
         ):
-            return [
-                f"Dense {io_type} {input_or_output} found, however value is set to {value}, expecting sparse"
-            ]
+            return [f"Dense {io_type} found, however value is set to {value}, expecting sparse"]
         else:
             return []
 
