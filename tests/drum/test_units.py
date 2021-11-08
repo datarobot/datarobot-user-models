@@ -11,6 +11,7 @@ import os
 import socket
 import tempfile
 import time
+from argparse import Namespace
 from contextlib import closing
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -35,8 +36,9 @@ from datarobot_drum.drum.common import (
     read_model_metadata_yaml,
     validate_config_fields,
 )
-from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, TargetType
+from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, TargetType, RunLanguage, RunMode
 from datarobot_drum.drum.drum import (
+    CMRunner,
     create_custom_inference_model_folder,
     output_in_code_dir,
     possibly_intuit_order,
@@ -50,10 +52,12 @@ from datarobot_drum.drum.language_predictors.python_predictor.python_predictor i
 from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.push import _push_inference, _push_training, drum_push
+from datarobot_drum.drum.runtime import DrumRuntime
 from datarobot_drum.drum.utils import DrumUtils
 from datarobot_drum.drum.data_marshalling import _marshal_labels
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils import StructuredInputReadUtils
+from tests.drum.constants import TESTS_DATA_PATH
 
 
 class TestOrderIntuition:
@@ -615,8 +619,6 @@ def test_push_no_target_name_in_yaml(request, config_yaml, tmp_path):
         f.write(config_yaml)
     config = read_model_metadata_yaml(tmp_path)
 
-    from argparse import Namespace
-
     options = Namespace(code_dir=tmp_path, model_config=config)
     with pytest.raises(DrumCommonException, match="Missing keys: \['targetName'\]"):
         drum_push(options)
@@ -912,3 +914,64 @@ class TestReplaceSanitizedClassNames:
         predictions = pd.DataFrame(np.ones((3, 3)), columns=class_ordering(["a.1", "a.1", "a.1"]))
         with pytest.raises(DrumCommonException, match="Class label names are ambiguous"):
             r_pred._replace_sanitized_class_names(predictions)
+
+
+def test_binary_class_labels_from_env():
+    with DrumRuntime() as runtime:
+        runtime.options = Namespace(
+            negative_class_label="env0",
+            positive_class_label="env1",
+            class_labels=None,
+            code_dir="",
+            disable_strict_validation=False,
+            logging_level="warning",
+            subparser_name=RunMode.FIT,
+            target_type=TargetType.BINARY,
+            verbose=False,
+            content_type=None,
+            input=None,
+            target_csv=None,
+            target=None,
+            row_weights=None,
+            row_weights_csv=None,
+            output=None,
+            num_rows=0,
+            sparse_column_file=None,
+            parameter_file=None,
+        )
+        cmrunner = CMRunner(runtime)
+        pipeline_str = cmrunner._prepare_fit_pipeline(run_language=RunLanguage.PYTHON)
+        assert '"positiveClassLabel": "env1",' in pipeline_str
+        assert '"negativeClassLabel": "env0",' in pipeline_str
+        assert '"classLabels": null,' in pipeline_str
+
+
+def test_binary_class_labels_from_target():
+    test_data_path = os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv")
+    with DrumRuntime() as runtime:
+        runtime.options = Namespace(
+            negative_class_label=None,
+            positive_class_label=None,
+            class_labels=None,
+            code_dir="",
+            disable_strict_validation=False,
+            logging_level="warning",
+            subparser_name=RunMode.FIT,
+            target_type=TargetType.BINARY,
+            verbose=False,
+            content_type=None,
+            input=test_data_path,
+            target_csv=None,
+            target="Species",
+            row_weights=None,
+            row_weights_csv=None,
+            output=None,
+            num_rows=0,
+            sparse_column_file=None,
+            parameter_file=None,
+        )
+        cmrunner = CMRunner(runtime)
+        pipeline_str = cmrunner._prepare_fit_pipeline(run_language=RunLanguage.PYTHON)
+        assert '"positiveClassLabel": "Iris-setosa",' in pipeline_str
+        assert '"negativeClassLabel": "Iris-versicolor",' in pipeline_str
+        assert '"classLabels": null,' in pipeline_str
