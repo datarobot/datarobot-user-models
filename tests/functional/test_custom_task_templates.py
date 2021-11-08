@@ -378,7 +378,7 @@ class TestCustomTaskTemplates(object):
                 # Set the target type in the metadata file sent to DataRobot to the correct type.
                 metadata = yaml.safe_load(open(metadata_filename))
                 metadata["targetType"] = target_type
-                yaml.dump(metadata, open(metadata_filename, "w"))
+                yaml.dump(metadata, open(metadata_filename, "w"), default_flow_style=False)
 
             custom_task_version = dr.CustomTaskVersion.create_clean(
                 custom_task_id=str(custom_task.id),
