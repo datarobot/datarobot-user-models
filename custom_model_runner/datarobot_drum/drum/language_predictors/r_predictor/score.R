@@ -135,6 +135,33 @@ load_serialized_model <- function(model_dir, target_type) {
     data
 }
 
+.match_float_labels <- function(class_labels, predict_labels) {
+    # match float labels with differing string representations
+
+    # no need if string versions already match
+    if (setequal(predict_labels, class_labels) || setequal(predict_labels, make.names(class_labels))) {
+        return(class_labels)
+    }
+    # check if class labels are all numbers
+    class_labels_num <- sapply(class_labels, as.numeric)
+    if (any(is.na(class_labels_num))) {
+        return(class_labels)
+    }
+    # check if prediction labels are numeric
+    pred_labels_num <- sapply(predict_labels, as.numeric)
+    if (any(is.na(pred_labels_num))) {
+        # try again after removing the "X" from make.names()
+        unsanitized_labels <- sapply(predict_labels, sub, pattern="^X", replacement="")
+        pred_labels_num <- sapply(unsanitized_labels, as.numeric)
+    }
+    # give up if they still don't match
+    if (!setequal(pred_labels_num, class_labels_num)) {
+        return(class_labels)
+    }
+    # get the string label from predict labels which matches numeric class label
+    predict_labels[match(class_labels_num, pred_labels_num)]
+}
+
 .predict_regression <- function(data, model, ...) {
     predictions <- data.frame(stats::predict(model, data))
     names(predictions) <- c(REGRESSION_PRED_COLUMN_NAME)
@@ -156,20 +183,16 @@ load_serialized_model <- function(model_dir, target_type) {
     predictions <- data.frame(stats::predict(model, data, type = "prob"))
     labels <- names(predictions)
     provided_labels_sanitized <- make.names(provided_labels)
-    trim_zeros <- function(l) {
-        sub("\\.0$", "", l)
-    }
-    provided_labels_sanitized_float <- sapply(provided_labels_sanitized, trim_zeros)
+    provided_labels_num <- .match_float_labels(provided_labels, labels)
     labels_to_use <- NULL
     # check labels and provided_labels contain the same elements, order doesn't matter
     if (setequal(labels, provided_labels)) {
         labels_to_use <- provided_labels
     } else if (setequal(labels, provided_labels_sanitized)) {
         labels_to_use <- provided_labels_sanitized
-#    } else if (setequal(labels, provided_labels_sanitized_float)) {
-#        labels_to_use <- provided_labels_sanitized_float
+    } else if (setequal(labels, provided_labels_num)) {
+        labels_to_use <- provided_labels_num
     } else {
-        stop(paste("LABELS DON'T MATCH\n", "PRED LABELS:", paste(labels, collapse=","), "\n!=\n", "CLASS LABELS:", paste(provided_labels_sanitized, collapse=",")))
         stop("Wrong class labels. Use class labels according to your dataset")
     }
     # if labels are not on the same order, switch columns
