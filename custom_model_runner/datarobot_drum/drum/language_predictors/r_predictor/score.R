@@ -135,33 +135,6 @@ load_serialized_model <- function(model_dir, target_type) {
     data
 }
 
-.match_float_labels <- function(class_labels, predict_labels) {
-    # match float labels with differing string representations
-
-    # no need if string versions already match
-    if (setequal(predict_labels, class_labels) || setequal(predict_labels, make.names(class_labels))) {
-        return(class_labels)
-    }
-    # check if class labels are all numbers
-    class_labels_num <- sapply(class_labels, as.numeric)
-    if (any(is.na(class_labels_num))) {
-        return(class_labels)
-    }
-    # check if prediction labels are numeric
-    pred_labels_num <- sapply(predict_labels, as.numeric)
-    if (any(is.na(pred_labels_num))) {
-        # try again after removing the "X" from make.names()
-        unsanitized_labels <- sapply(predict_labels, sub, pattern="^X", replacement="")
-        pred_labels_num <- sapply(unsanitized_labels, as.numeric)
-    }
-    # give up if they still don't match
-    if (!setequal(pred_labels_num, class_labels_num)) {
-        return(class_labels)
-    }
-    # get the string label from predict labels which matches numeric class label
-    predict_labels[match(class_labels_num, pred_labels_num)]
-}
-
 .predict_regression <- function(data, model, ...) {
     predictions <- data.frame(stats::predict(model, data))
     names(predictions) <- c(REGRESSION_PRED_COLUMN_NAME)
