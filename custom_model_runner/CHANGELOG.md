@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### [1.6.2] - 2021-11-01
 ##### Added
 - support for Java Unstructured Models
+##### Fixed
+- do not block thread while reading DRUM server stdout during perf tests
 
 #### [1.6.1] - 2021-10-22
 ##### Changed
