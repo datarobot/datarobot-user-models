@@ -43,6 +43,8 @@ import sys
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.common import config_logging
 from datarobot_drum.drum.enum import RunMode
+from datarobot_drum.drum.enum import ExitCodes
+from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from datarobot_drum.drum.runtime import DrumRuntime
 
 
@@ -104,7 +106,10 @@ def main():
 
         from datarobot_drum.drum.drum import CMRunner
 
-        CMRunner(runtime).run()
+        try:
+            CMRunner(runtime).run()
+        except DrumSchemaValidationException:
+            sys.exit(ExitCodes.SCHEMA_VALIDATION_ERROR.value)
 
 
 if __name__ == "__main__":

@@ -12,7 +12,6 @@ import textwrap
 from inspect import signature
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
 from scipy.sparse import issparse
 
@@ -26,22 +25,22 @@ from datarobot_drum.drum.common import (
     reroute_stdout_to_stderr,
     SupportedPayloadFormats,
 )
-from datarobot_drum.drum.enum import (
-    LOGGER_NAME_PREFIX,
-    REGRESSION_PRED_COLUMN,
-    CUSTOM_FILE_NAME,
-    POSITIVE_CLASS_LABEL_ARG_KEYWORD,
-    NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
-    CLASS_LABELS_ARG_KEYWORD,
-    CustomHooks,
-    StructuredDtoKeys,
-    ModelInfoKeys,
-    TargetType,
-    PayloadFormat,
-)
 from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
+from datarobot_drum.drum.data_marshalling import marshal_predictions
+from datarobot_drum.drum.enum import (
+    CLASS_LABELS_ARG_KEYWORD,
+    CUSTOM_FILE_NAME,
+    CustomHooks,
+    LOGGER_NAME_PREFIX,
+    ModelInfoKeys,
+    NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
+    PayloadFormat,
+    POSITIVE_CLASS_LABEL_ARG_KEYWORD,
+    StructuredDtoKeys,
+    TargetType,
+)
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumTransformException
-from datarobot_drum.drum.utils import marshal_labels, StructuredInputReadUtils, DrumUtils
+from datarobot_drum.drum.utils import DrumUtils, StructuredInputReadUtils
 
 RUNNING_LANG_MSG = "Running environment language: Python."
 
@@ -274,29 +273,21 @@ class PythonModelAdapter:
 
     @staticmethod
     def _validate_data(to_validate, hook):
-        if not isinstance(to_validate, (pd.DataFrame, np.ndarray)):
-            raise ValueError(
-                "{} must return a DataFrame; but received {}".format(hook, type(to_validate))
-            )
+        if hook in {CustomHooks.SCORE, CustomHooks.TRANSFORM}:
+            if not isinstance(to_validate, pd.DataFrame):
+                raise ValueError(
+                    f"{hook} must return a dataframe, but received {type(to_validate)}"
+                )
+            if len(to_validate.shape) != 2:
+                raise ValueError(
+                    f"{hook} must return a dataframe of dim 2, but received one with dims {to_validate.shape}"
+                )
 
     @staticmethod
     def _validate_transform_rows(data, output_data):
         if data.shape[0] != output_data.shape[0]:
             raise ValueError(
                 "Transformation resulted in different number of rows than original data"
-            )
-
-    def _validate_predictions(self, to_validate, class_labels):
-        self._validate_data(to_validate, "Predictions")
-        columns_to_validate = set(to_validate.columns)
-        if class_labels:
-            marshal_labels(expected_labels=class_labels, actual_labels=to_validate)
-
-        elif columns_to_validate != {REGRESSION_PRED_COLUMN}:
-            raise ValueError(
-                "Expected predictions to have a single {} column, but encountered {}".format(
-                    REGRESSION_PRED_COLUMN, columns_to_validate
-                )
             )
 
     @property
@@ -441,11 +432,6 @@ class PythonModelAdapter:
     def predict(self, model=None, **kwargs):
         """
         Makes predictions against the model using the custom predict
-        method and returns a pandas DataFrame
-        If the model is a regression model, the DataFrame will have a single column "Predictions"
-        If the model is a classification model, the DataFrame will have a column for each class label
-            with their respective probabilities. Positive/negative class labels will be passed in kwargs under
-            positive_class_label/negative_class_label keywords.
         Parameters
         ----------
         model: Any
@@ -453,51 +439,66 @@ class PythonModelAdapter:
         kwargs
         Returns
         -------
-        pd.DataFrame
+        np.array, list(str)
         """
         data = self.preprocess(model, **kwargs)
 
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
-        class_labels = (
+        request_labels = (
             [label for label in kwargs.get(CLASS_LABELS_ARG_KEYWORD)]
             if kwargs.get(CLASS_LABELS_ARG_KEYWORD)
             else None
         )
         if positive_class_label is not None and negative_class_label is not None:
-            class_labels = [negative_class_label, positive_class_label]
+            request_labels = [negative_class_label, positive_class_label]
 
-        if class_labels:
-            assert all(isinstance(label, str) for label in class_labels)
+        if request_labels:
+            assert all(isinstance(label, str) for label in request_labels)
 
         if self._custom_hooks.get(CustomHooks.SCORE):
             try:
                 # noinspection PyCallingNonCallable
-                predictions = self._custom_hooks.get(CustomHooks.SCORE)(data, model, **kwargs)
+                predictions_df = self._custom_hooks.get(CustomHooks.SCORE)(data, model, **kwargs)
             except Exception as exc:
                 raise type(exc)(
                     "Model score hook failed to make predictions. Exception: {}".format(exc)
                 ).with_traceback(sys.exc_info()[2]) from None
+            self._validate_data(predictions_df, CustomHooks.SCORE)
+            predictions = predictions_df.values
+            model_labels = predictions_df.columns
         else:
             try:
-                predictions = self._predictor_to_use.predict(data, model, **kwargs)
+                predictions, model_labels = self._predictor_to_use.predict(data, model, **kwargs)
             except Exception as exc:
                 raise type(exc)("Failure when making predictions: {}".format(exc)).with_traceback(
                     sys.exc_info()[2]
                 ) from None
 
         if self._custom_hooks.get(CustomHooks.POST_PROCESS):
+            # This is probably not great, a user is likely to want unmarshalled predictions in the
+            # post-process hook.
+            predictions = marshal_predictions(
+                request_labels=request_labels,
+                predictions=predictions,
+                target_type=self._target_type,
+                model_labels=model_labels,
+            )
             try:
                 # noinspection PyCallingNonCallable
-                predictions = self._custom_hooks[CustomHooks.POST_PROCESS](predictions, model)
+                predictions_df = self._custom_hooks[CustomHooks.POST_PROCESS](predictions, model)
             except Exception as exc:
                 raise type(exc)(
                     "Model post-process hook failed to post-process predictions: {}".format(exc)
                 ).with_traceback(sys.exc_info()[2]) from None
+            if not isinstance(predictions_df, pd.DataFrame):
+                raise ValueError(
+                    f"Output of post_process hook must be a dataframe, not a {type(predictions_df)}"
+                )
+            predictions = predictions_df.values
+            model_labels = predictions_df.columns
 
-        self._validate_predictions(predictions, class_labels)
-
-        return predictions
+        return predictions, model_labels
 
     @staticmethod
     def _validate_unstructured_predictions(unstructured_response):

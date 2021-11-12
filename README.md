@@ -4,6 +4,19 @@
 This repository contains tools, templates, and information for assembling, debugging, testing, 
 and running your custom inference models and custom tasks with DataRobot.
 
+The [./task_templates](./task_templates) 
+and [./model_templates](./model_templates)
+folders provide reference examples to
+help users learn how to create custom tasks and/or custom inference models. 
+The templates there are simple, well documented, and can be used as tutorials. 
+These templates should also remain up to date with any API or other changes.
+
+For further examples, provided as-is, that often contain more complex logic please
+see the community examples repo at: https://github.com/datarobot-community/custom-models. 
+Please note that these examples may not stay up to date with the latest API
+or best practices. 
+
+
 For further documentation on this and all other features please visit our 
 comprehensive documentation at: https://docs.datarobot.com/
 

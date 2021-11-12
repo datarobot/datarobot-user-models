@@ -60,8 +60,7 @@ class PythonPredictor(BaseLanguagePredictor):
         if self._class_labels:
             kwargs[CLASS_LABELS_ARG_KEYWORD] = self._class_labels
 
-        predictions = self._model_adapter.predict(model=self._model, **kwargs)
-        return predictions
+        return self._model_adapter.predict(model=self._model, **kwargs)
 
     def _transform(self, **kwargs):
         return self._model_adapter.transform(model=self._model, **kwargs)

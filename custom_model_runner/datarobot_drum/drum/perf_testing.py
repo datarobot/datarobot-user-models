@@ -29,6 +29,7 @@ from datarobot_drum.drum.exceptions import (
     DrumCommonException,
     DrumPerfTestTimeout,
     DrumPredException,
+    DrumSchemaValidationException,
 )
 from datarobot_drum.drum.utils import DrumUtils
 
@@ -696,9 +697,13 @@ class CMRunTests:
 
             response = requests.post(run.url_server_address + endpoint, files=payload)
             if not response.ok:
-                raise DrumCommonException(
-                    "Failure in {} server: {}".format(endpoint[1:-1], response.text)
-                )
+                error_msg = "Failure in {} server: {}".format(endpoint[1:-1], response.text)
+                if response.status_code == 422 and response.json().get(
+                    "is_schema_validation_error"
+                ):
+                    raise DrumSchemaValidationException(error_msg)
+                else:
+                    raise DrumCommonException(error_msg)
             transformed_values = read_x_data_from_response(response)
             self._schema_validator.validate_outputs(transformed_values)
 
