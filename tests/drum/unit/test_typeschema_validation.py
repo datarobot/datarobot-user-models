@@ -214,7 +214,7 @@ class TestSchemaValidator:
         [
             (
                 Conditions.IN,
-                [Values.CAT, Values.NUM, Values.TXT],
+                [Values.CAT, Values.NUM],
                 "iris_binary",
                 "SepalLengthCm",
                 "cats_and_dogs",
@@ -251,14 +251,6 @@ class TestSchemaValidator:
                 "class",
                 "ten_k_diabetes",
                 "readmitted",
-            ),
-            (
-                Conditions.IN,
-                [Values.CAT, Values.TXT],
-                "boston_raises",
-                "RAISE",
-                "iris_binary",
-                "Species",
             ),
             (Conditions.EQUALS, [Values.CAT], "boston_raises", "RAISE", "iris_binary", "Species",),
             (Conditions.EQUALS, [Values.TXT], "boston_raises", "RAISE", "iris_binary", "Species",),
