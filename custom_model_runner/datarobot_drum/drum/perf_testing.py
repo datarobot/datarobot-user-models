@@ -246,7 +246,7 @@ class CMRunTests:
         self._shutdown_endpoint = "/shutdown/"
         self._predict_endpoint = "/predict/"
         self._stats_endpoint = "/stats/"
-        self._timeout = 20
+        self._timeout = 60
         self._server_process = None
 
         self._df_for_test = None
