@@ -47,7 +47,8 @@ def _marshal_labels(request_labels: List[str], model_labels: List[Any]):
         ):
             return _order_by_float(request_labels, model_labels)
         import rpy2.robjects as ro
-        r_request_labels = ro.r['make.names'](request_labels)
+
+        r_request_labels = ro.r["make.names"](request_labels)
         if set(_standardize(r_l) for r_l in r_request_labels) == set(
             _standardize(m_l) for m_l in model_labels
         ):
