@@ -315,9 +315,9 @@ class DataTypes(BaseValidator):
             types[Values.NUM] = (
                 dataframe.select_dtypes(np.number).shape[1] > 0 or num_bool_columns > 0
             )
-            types[Values.TXT] = num_obj_columns - num_img_columns > 0
+            types[Values.TXT] = num_txt_columns > 0
             types[Values.IMG] = num_img_columns > 0
-            types[Values.CAT] = num_obj_columns - num_img_columns > 0
+            types[Values.CAT] = num_obj_columns - num_img_columns
             types[Values.DATE] = dataframe.select_dtypes("datetime").shape[1] > 0
 
         types_present = [k for k, v in types.items() if v]
@@ -331,13 +331,17 @@ class DataTypes(BaseValidator):
             Conditions.NOT_IN: f"{base_error}, but expected no types in: {DataTypes.list_str(self.values)} to be present",
         }
 
+        remapped_values = [Values.CAT if k == Values.TXT else k for k in self.values]
         tests = {
-            Conditions.EQUALS: lambda data_types: set(self.values) == set(data_types),
-            Conditions.NOT_EQUALS: lambda data_types: self.values[0] not in data_types,
-            Conditions.IN: lambda data_types: set(data_types).issubset(set(self.values)),
-            Conditions.NOT_IN: lambda data_types: all(el not in self.values for el in data_types),
+            Conditions.EQUALS: lambda data_types: set(remapped_values) == set(data_types),
+            Conditions.NOT_EQUALS: lambda data_types: remapped_values[0] not in data_types,
+            Conditions.IN: lambda data_types: set(data_types).issubset(set(remapped_values)),
+            Conditions.NOT_IN: lambda data_types: all(
+                el not in remapped_values for el in data_types
+            ),
         }
 
+        types_present = [Values.CAT if k == Values.TXT else k for k in types_present]
         if not tests[self.condition](types_present):
             return [errors[self.condition]]
         return []
