@@ -46,6 +46,13 @@ def _marshal_labels(request_labels: List[str], model_labels: List[Any]):
             _standardize(m_l) for m_l in model_labels
         ):
             return _order_by_float(request_labels, model_labels)
+        if all(isinstance(l, str) and l.startswith("X") for l in model_labels):
+            # undo R's make.names()
+            cleaned_r_labels = [l[1:] for l in model_labels]
+            if set(_standardize(r_l) for r_l in request_labels) == set(
+                _standardize(m_l) for m_l in cleaned_r_labels
+            ):
+                return _order_by_float(request_labels, cleaned_r_labels)
 
         raise DrumCommonException(
             "Expected predictions to have columns {}, but encountered {}".format(
