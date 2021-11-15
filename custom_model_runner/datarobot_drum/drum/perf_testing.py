@@ -7,6 +7,8 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import collections
 import json
 import os
+import select
+
 import psutil
 import pandas as pd
 import numpy as np
@@ -27,6 +29,7 @@ from datarobot_drum.drum.exceptions import (
     DrumCommonException,
     DrumPerfTestTimeout,
     DrumPredException,
+    DrumSchemaValidationException,
 )
 from datarobot_drum.drum.utils import DrumUtils
 
@@ -243,7 +246,7 @@ class CMRunTests:
         self._shutdown_endpoint = "/shutdown/"
         self._predict_endpoint = "/predict/"
         self._stats_endpoint = "/stats/"
-        self._timeout = 20
+        self._timeout = 60
         self._server_process = None
 
         self._df_for_test = None
@@ -308,7 +311,7 @@ class CMRunTests:
     def _wait_for_server_to_start(self):
         while True:
             try:
-                response = requests.get(self._url_server_address)
+                response = requests.get(self._url_server_address, timeout=1)
                 if response.ok:
                     break
             except Exception:
@@ -318,12 +321,19 @@ class CMRunTests:
             self._timeout = self._timeout - 1
             if self._timeout == 0:
                 error_message = "Error: server failed to start while running performance testing."
-                (stdout, stderr) = self._server_process.communicate()
-                if len(stdout):
-                    error_message += "\n{}".format(stdout)
-                if len(stderr):
-                    error_message += "\n{}".format(stderr)
+                server_stdout = self._read_sever_stdout_non_blocking()
+                if len(server_stdout):
+                    error_message += "\n{}".format(server_stdout)
+
                 raise DrumCommonException(error_message)
+
+    def _read_sever_stdout_non_blocking(self):
+        stdout = []
+        while len(select.select([self._server_process_fd_read], [], [], 0)[0]) == 1:
+            out = os.read(self._server_process_fd_read, 1024)
+            stdout.append(out)
+
+        return b"\n".join(stdout).decode("utf-8")
 
     def _build_drum_cmd(self):
         cmd_list = [
@@ -372,12 +382,13 @@ class CMRunTests:
 
         env_vars = os.environ
         env_vars.update({PERF_TEST_SERVER_LABEL: "1"})
+
+        (pipe_r, pipe_w) = os.pipe()
+        self._server_process_fd_read = pipe_r
+        self._server_process_fd_write = pipe_w
+
         self._server_process = subprocess.Popen(
-            cmd_list,
-            env=env_vars,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            encoding="utf-8",
+            cmd_list, env=env_vars, stdout=pipe_w, stderr=pipe_w, encoding="utf-8"
         )
         self._wait_for_server_to_start()
 
@@ -388,6 +399,10 @@ class CMRunTests:
         except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):
             pass
         finally:
+            # cleanup pipe
+            os.close(self._server_process_fd_read)
+            os.close(self._server_process_fd_write)
+
             os.kill(self._server_process.pid, signal.SIGINT)
             os.system("tput init")
 
@@ -682,9 +697,13 @@ class CMRunTests:
 
             response = requests.post(run.url_server_address + endpoint, files=payload)
             if not response.ok:
-                raise DrumCommonException(
-                    "Failure in {} server: {}".format(endpoint[1:-1], response.text)
-                )
+                error_msg = "Failure in {} server: {}".format(endpoint[1:-1], response.text)
+                if response.status_code == 422 and response.json().get(
+                    "is_schema_validation_error"
+                ):
+                    raise DrumSchemaValidationException(error_msg)
+                else:
+                    raise DrumCommonException(error_msg)
             transformed_values = read_x_data_from_response(response)
             self._schema_validator.validate_outputs(transformed_values)
 

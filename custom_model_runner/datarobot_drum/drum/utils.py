@@ -4,33 +4,29 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import io
 import json
-from distutils.util import strtobool
-from pandas import DataFrame
-from typing import Set, Any, List
 import logging
 import os
 import socket
-import io
-import numpy as np
-import pandas as pd
-
-from scipy.io import mmread
 from contextlib import closing, contextmanager
 from functools import partial
 from pathlib import Path
-from datarobot_drum.drum.exceptions import DrumCommonException
 
+import numpy as np
+import pandas as pd
 from jinja2 import BaseLoader, DebugUndefined, Environment
+from scipy.io import mmread
 
 from datarobot_drum.drum.common import get_pyarrow_module
 from datarobot_drum.drum.enum import (
-    LOGGER_NAME_PREFIX,
-    PredictionServerMimetypes,
-    InputFormatToMimetype,
     ArgumentOptionsEnvVars,
     InputFormatExtension,
+    InputFormatToMimetype,
+    LOGGER_NAME_PREFIX,
+    PredictionServerMimetypes,
 )
+from datarobot_drum.drum.exceptions import DrumCommonException
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -374,52 +370,3 @@ def capture_R_traceback_if_errors(r_handler, logger):
                 "t_traceback_err": traceback_exc,
             }
         raise
-
-
-def marshal_labels(expected_labels: List[str], actual_labels: List[Any]):
-    if set(expected_labels) == set(actual_labels):
-        return actual_labels
-
-    if (
-        _can_be_converted_to_float(expected_labels)
-        and _can_be_converted_to_float(actual_labels)
-        and set(floatify(l) for l in expected_labels) == set(floatify(l) for l in actual_labels)
-    ):
-        return _order_by_float(expected_labels, actual_labels)
-
-    raise DrumCommonException(
-        "Expected predictions to have columns {}, but encountered {}".format(
-            expected_labels, actual_labels
-        )
-    )
-
-
-def _order_by_float(expected_labels, actual_labels):
-    """
-    Match the order of actual labels to the values in expected labels
-    Given both can be cast to floats
-    >>> _order_by_float(["1.0", "2.4", "0.4", "1.4"],  [2.4, 1.0, 0.4, 1.4])
-    ['2.4', '1.0', '0.4', '1.4']
-    """
-
-    def get_corresponding_expected_label(a_l):
-        for e_l in expected_labels:
-            if floatify(a_l) == floatify(e_l):
-                return e_l
-
-    return [get_corresponding_expected_label(_l) for _l in actual_labels]
-
-
-def floatify(label):
-    try:
-        return float(label)
-    except ValueError:
-        return float(strtobool(label))
-
-
-def _can_be_converted_to_float(labels):
-    try:
-        [floatify(label) for label in labels]
-        return True
-    except ValueError:
-        return False

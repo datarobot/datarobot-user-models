@@ -2,7 +2,7 @@
 #
 # All rights reserved.
 #
-# 
+#
 #
 # This is proprietary source code of DataRobot, Inc. and its affiliates.
 #
@@ -227,74 +227,6 @@ outer_predict <- function(target_type, binary_data=NULL, mimetype=NULL, model=NU
             stop(sprintf("predictions must be of a data.frame type, received %s", typeof(to_validate)))
         }
     }
-
-
-    .order_by_float <- function(expected_labels, actual_labels) {
-        # If they do match as doubles, use the expected labels, but keep the actual label ordering
-        .get_corresponding_expected_label <- function(a_l) {
-            for (e_l in expected_labels) {
-                if (as.double(a_l) == as.double(e_l)) {
-                    return(e_l)
-                }
-            }
-        }
-        unlist(lapply(actual_labels, .get_corresponding_expected_label))
-    }
-
-    .validate_classification_predictions <- function(to_validate) {
-        .validate_data(to_validate)
-        if (target_type == TargetType$MULTICLASS) {
-            compare_labels <- class_labels
-        } else {  # binary
-            compare_labels <- c(positive_class_label, negative_class_label)
-        }
-
-        # Compare both the literal labels
-        expected_labels <- sort(compare_labels)
-        actual_labels <- sort(names(to_validate))
-
-        # And the labels casted to doubles if possible
-        .if_castable_cast_as_double <- function(x) {
-            x_double <- as.double(x)
-            if (any(is.na(x_double))) {
-                return(x)
-            }
-            x_double
-        }
-        expected_labels_dbl <- .if_castable_cast_as_double(expected_labels)
-        actual_labels_dbl <- .if_castable_cast_as_double(actual_labels)
-
-        labels_to_return <- names(to_validate)
-        if (!identical(expected_labels, actual_labels))  {
-            # If the labels casted as double do not match, error
-            if (!identical(expected_labels_dbl, actual_labels_dbl)) {
-                stop(
-                  sprintf(
-                    "Expected predictions to have columns [%s], but encountered [%s]",
-                    paste(expected_labels, collapse=", "),
-                    paste(actual_labels, collapse=", ")
-                  )
-                )
-            }
-            labels_to_return <- .order_by_float(expected_labels, actual_labels)
-        }
-        labels_to_return
-    }
-
-
-    .validate_regression_predictions <- function(to_validate) {
-        .validate_data(to_validate)
-         if (!identical(names(to_validate), c(REGRESSION_PRED_COLUMN_NAME))) {
-            stop(
-                sprintf(
-                    "Expected predictions to have columns [%s], but encountered [%s]",
-                    paste(c(REGRESSION_PRED_COLUMN_NAME), collapse=", "),
-                    paste(names(to_validate), collapse=", ")
-                )
-            )
-        }
-    }
-
     data <- .load_data(binary_data, mimetype, sparse_colnames = sparse_colnames)
     if (!isFALSE(transform_hook)) {
         data <- transform_hook(data, model)
@@ -314,14 +246,7 @@ outer_predict <- function(target_type, binary_data=NULL, mimetype=NULL, model=NU
         predictions <- post_process_hook(predictions, model)
     }
 
-    if (target_type == TargetType$BINARY || target_type == TargetType$MULTICLASS) {
-        prediction_labels <- .validate_classification_predictions(predictions)
-        names(predictions) <- prediction_labels
-    } else if (target_type == TargetType$REGRESSION || target_type == TargetType$ANOMALY) {
-        .validate_regression_predictions(predictions)
-    } else {
-        stop(sprintf("Unsupported target type %s", target_type))
-    }
+    .validate_data(predictions)
     predictions
 }
 
@@ -368,8 +293,8 @@ predict_unstructured <- function(model=NULL, data, ...) {
 #'
 #' @return list, Two-element list containing transformed X (data.frame or sparseMatrix) and y (vector or NULL)
 #'
-outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=NULL, transformer=NULL){
-    data <- .load_data(binary_data, mimetype=mimetype)
+outer_transform <- function(binary_data=NULL, target_binary_data=NULL, mimetype=NULL, transformer=NULL, sparse_colnames=NULL){
+    data <- .load_data(binary_data, mimetype=mimetype, sparse_colnames=sparse_colnames)
     target_data <- NULL
     if (!is.null(target_binary_data)) {
         target_data <- .load_data(target_binary_data, use_hook=FALSE)

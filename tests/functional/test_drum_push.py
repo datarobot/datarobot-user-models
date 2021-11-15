@@ -68,7 +68,7 @@ class TestDrumPush(object):
             env_id, resources.datasets(framework, problem), problem, get_target(problem)
         )
         with open(os.path.join(custom_model_dir, "model-metadata.yaml"), "w") as outfile:
-            yaml.dump(yaml.safe_load(yaml_string), outfile)
+            yaml.dump(yaml.safe_load(yaml_string), outfile, default_flow_style=False)
 
         cmd = "{} push --code-dir {} --verbose".format(
             ArgumentsOptions.MAIN_COMMAND, custom_model_dir,

@@ -5,19 +5,10 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import pickle
-import pandas as pd
-import numpy as np
 
-from datarobot_drum.drum.enum import (
-    REGRESSION_PRED_COLUMN,
-    SupportedFrameworks,
-    extra_deps,
-    PythonArtifacts,
-    TargetType,
-)
-from datarobot_drum.drum.utils import marshal_labels
-from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.artifact_predictors.artifact_predictor import ArtifactPredictor
+from datarobot_drum.drum.enum import extra_deps, PythonArtifacts, SupportedFrameworks, TargetType
+from datarobot_drum.drum.exceptions import DrumCommonException
 
 
 class SKLearnPredictor(ArtifactPredictor):
@@ -60,39 +51,15 @@ class SKLearnPredictor(ArtifactPredictor):
             return False
 
     def predict(self, data, model, **kwargs):
-        # checking if positive/negative class labels were provided
-        # done in the base class
         super(SKLearnPredictor, self).predict(data, model, **kwargs)
 
+        labels_to_use = None
         if self.target_type.value in TargetType.CLASSIFICATION.value:
             if hasattr(model, "classes_"):
-                labels_to_use = marshal_labels(
-                    expected_labels=list(self.class_labels), actual_labels=list(model.classes_)
-                )
-            else:
-                labels_to_use = self.class_labels
+                labels_to_use = list(model.classes_)
             predictions = model.predict_proba(data)
-            if predictions.shape[1] == 1:
-                if self.target_type == TargetType.MULTICLASS:
-                    raise DrumCommonException(
-                        "Target type '{}' predictions must return the "
-                        "probability distribution for all class labels".format(self.target_type)
-                    )
-                predictions = np.concatenate((1 - predictions, predictions), axis=1)
-            if predictions.shape[1] != len(labels_to_use):
-                raise DrumCommonException(
-                    "Target type '{}' predictions must return the "
-                    "probability distribution for all class labels. "
-                    "Expected {} columns, but recieved {}".format(
-                        self.target_type, len(labels_to_use), predictions.shape[1]
-                    )
-                )
-            predictions = pd.DataFrame(predictions, columns=labels_to_use)
         elif self.target_type in [TargetType.REGRESSION, TargetType.ANOMALY]:
-            predictions = pd.DataFrame(
-                [float(prediction) for prediction in model.predict(data)],
-                columns=[REGRESSION_PRED_COLUMN],
-            )
+            predictions = model.predict(data)
         else:
             raise DrumCommonException(
                 "Target type '{}' is not supported by '{}' predictor".format(
@@ -100,4 +67,4 @@ class SKLearnPredictor(ArtifactPredictor):
                 )
             )
 
-        return predictions
+        return predictions, labels_to_use

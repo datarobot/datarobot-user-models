@@ -18,9 +18,9 @@ import datarobot as dr
 from datarobot.errors import AsyncProcessUnsuccessfulError
 from datarobot_bp_workshop import Workshop
 
-BASE_PIPELINE_TASK_TEMPLATES_DIR = "task_templates/pipelines"
-BASE_ESTIMATOR_TASK_TEMPLATES_DIR = "task_templates/estimators"
-BASE_TRANSFORM_TASK_TEMPLATES_DIR = "task_templates/transforms"
+BASE_PIPELINE_TASK_TEMPLATES_DIR = "task_templates/3_pipelines"
+BASE_ESTIMATOR_TASK_TEMPLATES_DIR = "task_templates/2_estimators"
+BASE_TRANSFORM_TASK_TEMPLATES_DIR = "task_templates/1_transforms"
 BASE_FIXTURE_TASK_TEMPLATES_DIR = "tests/fixtures"
 
 BASE_DATASET_DIR = "tests/testdata"
@@ -378,7 +378,7 @@ class TestCustomTaskTemplates(object):
                 # Set the target type in the metadata file sent to DataRobot to the correct type.
                 metadata = yaml.safe_load(open(metadata_filename))
                 metadata["targetType"] = target_type
-                yaml.dump(metadata, open(metadata_filename, "w"))
+                yaml.dump(metadata, open(metadata_filename, "w"), default_flow_style=False)
 
             custom_task_version = dr.CustomTaskVersion.create_clean(
                 custom_task_id=str(custom_task.id),
@@ -435,7 +435,7 @@ class TestCustomTaskTemplates(object):
                 "sklearn_drop_in_env",
                 "transform",
                 [
-                    "schema validation failed for input",
+                    "Schema validation found mismatch between input dataset and the supplied schema",
                     "Datatypes incorrect. Data has types: NUM, but expected types to exactly match: CAT",
                 ],
             ),

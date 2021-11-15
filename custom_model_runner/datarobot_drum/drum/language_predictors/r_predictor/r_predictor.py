@@ -5,24 +5,23 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
-import numpy
 import os
+
 import pandas as pd
 from scipy.sparse import coo_matrix
 
 from datarobot_drum.drum.common import SupportedPayloadFormats
 from datarobot_drum.drum.enum import (
-    LOGGER_NAME_PREFIX,
-    REGRESSION_PRED_COLUMN,
     CustomHooks,
-    UnstructuredDtoKeys,
+    LOGGER_NAME_PREFIX,
+    PayloadFormat,
     StructuredDtoKeys,
     TargetType,
-    PayloadFormat,
+    UnstructuredDtoKeys,
 )
-from datarobot_drum.drum.utils import capture_R_traceback_if_errors
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
+from datarobot_drum.drum.utils import capture_R_traceback_if_errors
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -92,9 +91,8 @@ class RPredictor(BaseLanguagePredictor):
     def has_read_input_data_hook(self):
         return bool(r_handler.has_read_input_data_hook()[0])
 
-    def _predict(self, **kwargs):
-        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
-        mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
+    @staticmethod
+    def _get_sparse_colnames(kwargs):
         if kwargs.get(StructuredDtoKeys.SPARSE_COLNAMES):
             sparse_colnames = (
                 kwargs[StructuredDtoKeys.SPARSE_COLNAMES].decode("utf-8").rstrip().split("\n")
@@ -102,6 +100,11 @@ class RPredictor(BaseLanguagePredictor):
             sparse_colnames = ro.vectors.StrVector(sparse_colnames)
         else:
             sparse_colnames = ro.rinterface.NULL
+        return sparse_colnames
+
+    def _predict(self, **kwargs):
+        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
+        mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
         with capture_R_traceback_if_errors(r_handler, logger):
             predictions = r_handler.outer_predict(
                 self._target_type.value,
@@ -111,27 +114,23 @@ class RPredictor(BaseLanguagePredictor):
                 positive_class_label=self._r_positive_class_label,
                 negative_class_label=self._r_negative_class_label,
                 class_labels=self._r_class_labels,
-                sparse_colnames=sparse_colnames,
+                sparse_colnames=self._get_sparse_colnames(kwargs),
             )
 
         with localconverter(ro.default_converter + pandas2ri.converter):
-            py_data_object = ro.conversion.rpy2py(predictions)
+            predictions = ro.conversion.rpy2py(predictions)
 
-        # in case of regression, array is returned
-        if isinstance(py_data_object, numpy.ndarray):
-            py_data_object = pd.DataFrame({REGRESSION_PRED_COLUMN: py_data_object})
-
-        if not isinstance(py_data_object, pd.DataFrame):
+        if not isinstance(predictions, pd.DataFrame):
             error_message = (
                 "Expected predictions type: {}, actual: {}. "
                 "Are you trying to run binary classification without class labels provided?".format(
-                    pd.DataFrame, type(py_data_object)
+                    pd.DataFrame, type(predictions)
                 )
             )
             logger.error(error_message)
             raise DrumCommonException(error_message)
 
-        return py_data_object
+        return predictions.values, predictions.columns
 
     # TODO: check test coverage for all possible cases: return None/str/bytes, and casting.
     def predict_unstructured(self, data, **kwargs):
@@ -205,6 +204,7 @@ class RPredictor(BaseLanguagePredictor):
                 else ro.vectors.ByteVector(target_binary_data),
                 mimetype=ro.rinterface.NULL if mimetype is None else mimetype,
                 transformer=self._model,
+                sparse_colnames=self._get_sparse_colnames(kwargs),
             )
 
         with localconverter(ro.default_converter + pandas2ri.converter):

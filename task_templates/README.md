@@ -1,16 +1,71 @@
 # Templates for Custom Tasks
 
-In this directory are three folders - estimators, transforms, and pipelines
+In this directory there are three folders: transforms, estimators, and pipelines. 
 
-* estimators - meant to be used as the prediction step in a blueprint
-* transforms - meant to be used as a preprocessing step in a blueprint
-* pipelines - meant to be added as a single task blueprint, these have preprocessing and an
-  estimator built into a single task
+These are collectively known as "tasks". Each of these folders
+contain code snippets, i.e. tasks, that can be uploaded to DataRobot and incorporated into a blueprint. 
+DataRobot will then run this custom code as part of a blueprint both during model training and 
+model inference (i.e. scoring on new data). To make sure DataRobot can correctly execute this code, 
+there are a few requirements:
 
-Our estimator examples are also different from the pipelines examples because these templates have
-score hooks implemented. The pipelines examples do not have score hooks to demonstrate the automatic
-scoring functionality of the DRUM tool middleware layer. This functionality works if your estimator
-inherits from sklearn, pytorch, keras, or xgboost, and doesn't have any additional functionality.
+1. There must be a custom.py or custom.R file (depending on which language you use)
+2. The custom.py or custom.R file must contain one or multiple hooks.
+   Note: the exact hooks you will use depend on both the task type (estimator or transform) 
+   and the language (R or Python). 
+   DataRobot will call these hooks during either model training or model inference (i.e scoring with new data). 
+   DataRobot will pass in the appropriate data and artifacts (e.g. serialized model) to each hook 
+   as parameters so that they are available to your custom code
+   
+There are also several recommended best practices, although these are not requirements:
+1. You can include a model-metadata.yaml file. This will define what problems your custom task can be used on 
+   (e.g. regression, classification, etc.) and what input it will accept (e.g. sparse vs. dense input). 
+   See detailed documentation on model-metadata 
+   [here](https://github.com/datarobot/datarobot-user-models/blob/master/MODEL-METADATA.md)
+   or in the examples linked below 
+2. You can also include multiple supporting files as needed, e.g. helper files to clean up your code.
+    You can see several examples of this is in the folders linked below
+
+Once uploaded each of these three custom task types (transforms, estimators, pipelines) will appear as a single 
+box in the Blueprint. Please refer to the Composable ML documentation to learn more about how tasks work.
+
+The primary difference between the 3 custom task types are their output and their scope:
+
+* transforms - transform the input data, e.g. one hot encoding, numeric scaling, etc. 
+  Their output is always a dataframe to be used by other transforms or estimators. 
+  Note that the output also includes headers / column names. 
+* estimators - predict (i.e. estimate) a new value using the input data, e.g. Logistic Regression or SVM. 
+  In DataRobot the final task, i.e. box, in any Blueprint must be an estimator. Note: a single Blueprint
+  can, and often does, contain multiple estimators.
+* pipelines - allow a user to create a single task, i.e. box, in the Blueprint that incorporates
+  multiple transforms and/or estimators. This is useful if you have a fully developed model pipeline
+  with preprocessing and just wants to upload the entire functionality to DataRobot. Often 
+  blueprints utilizing pipelines will only have one task, which is connected to all the 
+  input data types, and handles preprocessing and prediction. One advantage of pipelines is that you can 
+  then download the entire trained model from DataRobot as one file. The disadvantage is the component 
+  transforms / estimators in a pipeline can't be used independently by other blueprints, e.g. if 
+  you create a custom missing logic imputation that you want every blueprint to use. 
+  
+
+**Note:** We recommend that you use transforms and estimators instead of pipelines when possible 
+to promote reusable tasks. Transforms and estimators can often be used across multiple blueprints, 
+e.g. a categorical encoding transform might be added to both a linear model and a neural network. 
+Pipelines in contrast are more difficult to reuse because they often tightly couple the transforms 
+and estimators. 
+
+**To summarize**: the key difference between transforms, estimators, and pipelines
+is the "hooks", i.e. functions that are automatically called by DataRobot. Both transforms and estimators support
+the init (mostly for tasks written in R to load libraries), fit, and 
+load_model (used if the model is serialized in a non-standard format) hooks. 
+The difference is that transforms also support the transform hook (to transform input data) while estimators
+support the score hook (to generate predictions at inference time).
+As you would expect, the pipelines support all of the above hooks because they can incorporate 
+both transforms and estimators.
+
+Note: Some estimator and pipeline examples below do not have score hooks. This is to demonstrate that DataRobot
+can automatically apply the correct scoring functionality if your estimator or pipeline uses the default
+sklearn, pytorch, keras, or xgboost scoring functions. E.g. if you have a sklearn multiclass estimator such 
+as a DecisionTreeClassifer and don't have a score hook defined, then DataRobot will automatically call 
+model.predict_proba() and output the results.
 
 If a template is tagged as "Verified", this means we have automated tests which guarantee
 integration functionality with the DataRobot platform
