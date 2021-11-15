@@ -19,7 +19,7 @@ logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 
 def marshal_predictions(
-    request_labels: List[str],
+    request_labels: Union[List[str], None],
     predictions: np.array,
     target_type: TargetType,
     model_labels: Optional[List[Any]] = None,
@@ -162,3 +162,24 @@ def _infer_negative_class_probabilities(predictions, labels):
         pred_df[neg_label] = 1 - pred_df[pos_label]
         return pred_df[[neg_label, pos_label]].values
     return predictions
+
+
+def get_request_labels(
+    class_labels: List[str], positive_class_label: str, negative_class_label: str,
+) -> List[str]:
+    """This function returns the requested class labels for both binary classification and multi-classification cases.
+
+    Parameters
+    ----------
+    class_labels:
+        Class labels. It is part of the parameters to initialize BaseLanguagePredictor.
+    positive_class_label
+        Positive class label. It is one init parameter of BaseLanguagePredictor.
+    negative_class_label
+        Negative class label. It is one init parameter of BaseLanguagePredictor.
+
+    Returns
+    -------
+    Classification labels.
+    """
+    return class_labels if class_labels else [negative_class_label, positive_class_label]

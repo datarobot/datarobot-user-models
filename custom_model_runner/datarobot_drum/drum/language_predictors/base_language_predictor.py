@@ -20,6 +20,7 @@ from datarobot_drum.drum.enum import (
 )
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils import StructuredInputReadUtils
+from datarobot_drum.drum.data_marshalling import get_request_labels
 from datarobot_drum.drum.data_marshalling import marshal_predictions
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
@@ -53,11 +54,6 @@ class BaseLanguagePredictor(ABC):
         self._class_labels = params.get("classLabels")
         self._target_type = TargetType(params.get("target_type"))
         self._params = params
-
-        if self._target_type in {TargetType.REGRESSION, TargetType.ANOMALY}:
-            self._class_labels = [REGRESSION_PRED_COLUMN]
-        if self._target_type == TargetType.BINARY:
-            self._class_labels = [self._negative_class_label, self._positive_class_label]
 
         if self._params["monitor"] == "True":
             if not mlops_loaded:
@@ -105,12 +101,19 @@ class BaseLanguagePredictor(ABC):
 
     def predict(self, **kwargs):
         start_predict = time.time()
-        predictions, labels = self._predict(**kwargs)
+        predictions, labels_in_predictions = self._predict(**kwargs)
+        labels_in_request = (
+            None
+            if self._target_type in {TargetType.REGRESSION, TargetType.ANOMALY}
+            else get_request_labels(
+                self._class_labels, self._positive_class_label, self._negative_class_label,
+            )
+        )
         predictions = marshal_predictions(
-            request_labels=self._class_labels,
+            request_labels=labels_in_request,
             predictions=predictions,
             target_type=self._target_type,
-            model_labels=labels,
+            model_labels=labels_in_predictions,
         )
         end_predict = time.time()
         execution_time_ms = (end_predict - start_predict) * 1000
