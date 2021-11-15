@@ -452,7 +452,7 @@ class TestSchemaValidator:
             (Values.NEVER, False, True),
             (Values.DYNAMIC, True, True),
             (Values.ALWAYS, True, False),
-            (Values.IDENTITY, False, True),
+            (Values.IDENTITY, True, True),
         ],
     )
     def test_sparse_output(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
