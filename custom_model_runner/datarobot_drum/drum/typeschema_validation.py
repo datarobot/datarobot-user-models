@@ -352,7 +352,7 @@ class Sparsity(BaseValidator):
         _is_sparse = is_sparse(dataframe)
 
         sparse_input_allowed_values = [Values.SUPPORTED, Values.REQUIRED]
-        sparse_output_allowed_values = [Values.DYNAMIC, Values.ALWAYS]
+        sparse_output_allowed_values = [Values.DYNAMIC, Values.ALWAYS, Values.IDENTITY]
 
         dense_input_allowed_values = [Values.FORBIDDEN, Values.SUPPORTED]
         dense_output_allowed_values = [Values.NEVER, Values.DYNAMIC, Values.IDENTITY]
