@@ -82,15 +82,7 @@ class TestOtherCases:
 
         stdo_stde = str(stdo) + str(stde)
 
-        if framework == SKLEARN:
-            assert str(stdo_stde).find("Expected predictions to have columns ['no', 'yes']") != -1
-        elif framework == RDS:
-            assert (
-                str(stdo_stde).find(
-                    "Wrong class labels. Use class labels according to your dataset"
-                )
-                != -1
-            )
+        assert str(stdo_stde).find("Expected predictions to have columns ['no', 'yes']") != -1
 
     # testing negative cases: no artifact, no custom;
     @pytest.mark.parametrize(
