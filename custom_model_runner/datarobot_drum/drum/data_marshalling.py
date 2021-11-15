@@ -52,7 +52,7 @@ def _marshal_labels(request_labels: List[str], model_labels: List[Any]):
         if set(_standardize(r_l) for r_l in r_request_labels) == set(
             _standardize(m_l) for m_l in model_labels
         ):
-            return _order_by_float(r_request_labels, model_labels)
+            return _order_by_r_names(request_labels, r_request_labels, model_labels)
         if all(isinstance(l, str) and l.startswith("X") for l in model_labels):
             # undo R's make.names()
             cleaned_r_labels = [l[1:] for l in model_labels]
@@ -67,6 +67,12 @@ def _marshal_labels(request_labels: List[str], model_labels: List[Any]):
             )
         )
     return request_labels
+
+
+def _order_by_r_names(unsanitized_labels, sanitized_labels, actual_labels):
+    """ Match actual labels to R sanitized version of label """
+    label_map = dict(zip(sanitized_labels, unsanitized_labels))
+    return [label_map[_l] for _l in actual_labels]
 
 
 def _order_by_float(expected_labels, actual_labels):
