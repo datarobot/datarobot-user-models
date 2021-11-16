@@ -106,7 +106,7 @@ class BaseLanguagePredictor(ABC):
             get_request_labels(
                 self._class_labels, self._positive_class_label, self._negative_class_label,
             )
-            if self._target_type in {TargetType.CLASSIFICATION, TargetType.MULTICLASS}
+            if self._target_type in {TargetType.BINARY, TargetType.MULTICLASS}
             else None
         )
         predictions = marshal_predictions(

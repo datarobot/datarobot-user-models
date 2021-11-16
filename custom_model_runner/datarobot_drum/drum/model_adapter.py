@@ -450,7 +450,7 @@ class PythonModelAdapter:
             get_request_labels(
                 kwargs.get(CLASS_LABELS_ARG_KEYWORD), positive_class_label, negative_class_label,
             )
-            if self._target_type in {TargetType.CLASSIFICATION, TargetType.MULTICLASS}
+            if self._target_type in {TargetType.BINARY, TargetType.MULTICLASS}
             else None
         )
 
