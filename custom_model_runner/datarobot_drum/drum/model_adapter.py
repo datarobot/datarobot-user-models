@@ -447,11 +447,11 @@ class PythonModelAdapter:
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
         request_labels = (
-            None
-            if self._target_type in {TargetType.REGRESSION, TargetType.ANOMALY}
-            else get_request_labels(
+            get_request_labels(
                 kwargs.get(CLASS_LABELS_ARG_KEYWORD), positive_class_label, negative_class_label,
             )
+            if self._target_type in {TargetType.CLASSIFICATION, TargetType.MULTICLASS}
+            else None
         )
 
         if request_labels is not None:

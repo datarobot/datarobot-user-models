@@ -103,11 +103,11 @@ class BaseLanguagePredictor(ABC):
         start_predict = time.time()
         predictions, labels_in_predictions = self._predict(**kwargs)
         labels_in_request = (
-            None
-            if self._target_type in {TargetType.REGRESSION, TargetType.ANOMALY}
-            else get_request_labels(
+            get_request_labels(
                 self._class_labels, self._positive_class_label, self._negative_class_label,
             )
+            if self._target_type in {TargetType.CLASSIFICATION, TargetType.MULTICLASS}
+            else None
         )
         predictions = marshal_predictions(
             request_labels=labels_in_request,
