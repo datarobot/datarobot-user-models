@@ -26,6 +26,7 @@ from datarobot_drum.drum.common import (
     SupportedPayloadFormats,
 )
 from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
+from datarobot_drum.drum.data_marshalling import get_request_labels
 from datarobot_drum.drum.data_marshalling import marshal_predictions
 from datarobot_drum.drum.enum import (
     CLASS_LABELS_ARG_KEYWORD,
@@ -446,14 +447,14 @@ class PythonModelAdapter:
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
         request_labels = (
-            [label for label in kwargs.get(CLASS_LABELS_ARG_KEYWORD)]
-            if kwargs.get(CLASS_LABELS_ARG_KEYWORD)
+            get_request_labels(
+                kwargs.get(CLASS_LABELS_ARG_KEYWORD), positive_class_label, negative_class_label,
+            )
+            if self._target_type in {TargetType.BINARY, TargetType.MULTICLASS}
             else None
         )
-        if positive_class_label is not None and negative_class_label is not None:
-            request_labels = [negative_class_label, positive_class_label]
 
-        if request_labels:
+        if request_labels is not None:
             assert all(isinstance(label, str) for label in request_labels)
 
         if self._custom_hooks.get(CustomHooks.SCORE):

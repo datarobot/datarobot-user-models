@@ -6,6 +6,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import io
 import os
+from unittest.mock import Mock, patch
 
 import pandas as pd
 import pytest
@@ -116,6 +117,8 @@ from tests.drum.constants import (
     R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
     SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
 )
+from datarobot_drum.drum.model_adapter import PythonModelAdapter
+
 
 _datasets = {
     # If specific dataset should be defined for a framework, use (framework, problem) key.
@@ -760,3 +763,27 @@ def variety_resources(
     resource.target = get_variety_target
     resource.class_labels = get_variety_classes_labels
     return resource
+
+
+@pytest.fixture
+def essential_language_predictor_init_params():
+    return {
+        "__custom_model_path__": "custom_model_path",
+        "monitor": False,
+    }
+
+
+@pytest.fixture
+def mock_python_model_adapter_predict():
+    with patch.object(PythonModelAdapter, "predict") as mock_predict:
+        mock_predict.return_value = None, None
+        yield mock_predict
+
+
+@pytest.fixture
+def mock_python_model_adapter_load_model_from_artifact():
+    with patch.object(
+        PythonModelAdapter, "load_model_from_artifact"
+    ) as mock_load_model_from_artifact:
+        mock_load_model_from_artifact.return_value = Mock()
+        yield mock_load_model_from_artifact
