@@ -602,7 +602,7 @@ class PythonModelAdapter:
                     row_weights=row_weights,
                     parameters=parameters,
                 )
-            elif self._drum_autofit_internal(preprocessed_x, y, output_dir):
+            elif self._drum_autofit_internal(X, y, output_dir):
                 return
             else:
                 hooks = [
