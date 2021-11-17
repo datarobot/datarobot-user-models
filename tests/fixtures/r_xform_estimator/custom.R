@@ -47,6 +47,9 @@ fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, ...){
         'SOPA_jr',
         'KW_jr',
         'XBH/AB_jr')
+    if("some-weights" %in% colnames(X)) {
+        expected_colnames <- c(expected_colnames, "some-weights")
+    }
     stopifnot(colnames(X) == expected_colnames)
     # prep data
     train_df <- X

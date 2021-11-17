@@ -9,7 +9,8 @@ def transform(X, model):
 def fit(
     X, y, output_dir, class_order=None, row_weights=None, **kwargs,
 ):
-    assert list(X.columns) == [
+    feature_columns = [c for c in X.columns if c != "some-weights"]
+    assert feature_columns == [
         "TPA(ADJ)_fr",
         "AVG_fr",
         "OBP_fr",

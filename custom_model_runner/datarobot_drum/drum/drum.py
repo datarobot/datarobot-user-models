@@ -706,6 +706,7 @@ class CMRunner:
             "weights_filename": options.row_weights_csv,
             "target_column": options.target,
             "target_filename": options.target_csv,
+            "target_type": self.target_type.value,
             "positiveClassLabel": options.positive_class_label,
             "negativeClassLabel": options.negative_class_label,
             "classLabels": options.class_labels,

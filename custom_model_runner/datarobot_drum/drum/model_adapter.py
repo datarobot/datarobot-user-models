@@ -590,11 +590,12 @@ class PythonModelAdapter:
         return False
 
     def fit(self, X, y, output_dir, class_order=None, row_weights=None, parameters=None):
-        preprocessed_x = self.preprocess(X)
+        if self._target_type != TargetType.TRANSFORM:
+            X = self.preprocess(X)
         with reroute_stdout_to_stderr():
             if self._custom_hooks.get(CustomHooks.FIT):
                 self._custom_hooks[CustomHooks.FIT](
-                    X=preprocessed_x,
+                    X=X,
                     y=y,
                     output_dir=output_dir,
                     class_order=class_order,
