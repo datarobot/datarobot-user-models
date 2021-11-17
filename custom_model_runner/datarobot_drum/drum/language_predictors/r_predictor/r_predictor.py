@@ -102,6 +102,46 @@ class RPredictor(BaseLanguagePredictor):
             sparse_colnames = ro.rinterface.NULL
         return sparse_colnames
 
+    def _replace_sanitized_class_names(self, data):
+        if self._r_positive_class_label is not ro.rinterface.NULL and self._r_negative_class_label is not ro.rinterface.NULL:
+            class_labels = [self._r_positive_class_label, self._r_negative_class_label]
+        elif self._r_class_labels is not None:
+            class_labels = self._r_class_labels
+        else:
+            raise DrumCommonException("Class labels not available for classification.")
+
+        prediction_labels = data.columns
+
+        if set(prediction_labels) == set(class_labels):
+            return data
+
+        sanitized_class_labels = ro.r["make.names"](class_labels)
+        if set(prediction_labels) == set(sanitized_class_labels):
+            if len(set(sanitized_class_labels)) != len(sanitized_class_labels):
+                raise DrumCommonException("Class label names are ambiguous.")
+            label_map = dict(zip(sanitized_class_labels, class_labels))
+            ordered_labels = [label_map[l] for l in prediction_labels]
+            data.columns = ordered_labels
+            return data
+
+        def floatify(f):
+            try:
+                return float(f)
+            except ValueError:
+                return f
+
+        if all(isinstance(l, str) and l.startswith("X") for l in prediction_labels):
+            float_pred_labels = [floatify(f[1:]) for f in prediction_labels]
+            float_class_labels = [floatify(f) for f in class_labels]
+            if set(float_pred_labels) == set(float_class_labels):
+                label_map = dict(zip(float_class_labels, class_labels))
+                ordered_labels = [label_map[l] for l in float_pred_labels]
+                data.columns = ordered_labels
+                return data
+
+        raise DrumCommonException("ERROR: Expected predictions to have columns {} but encountered {}".format(class_labels, prediction_labels))
+
+        
     def _predict(self, **kwargs):
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
@@ -130,6 +170,8 @@ class RPredictor(BaseLanguagePredictor):
             logger.error(error_message)
             raise DrumCommonException(error_message)
 
+        if self._target_type.value in TargetType.CLASSIFICATION.value:
+            predictions =  self._replace_sanitized_class_names(predictions)
         return predictions.values, predictions.columns
 
     # TODO: check test coverage for all possible cases: return None/str/bytes, and casting.
