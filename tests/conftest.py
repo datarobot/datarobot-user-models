@@ -21,6 +21,8 @@ from tests.drum.constants import (
     BINARY_SPACES,
     CODEGEN,
     CODEGEN_AND_SKLEARN,
+    PYTHON_XFORM_ESTIMATOR,
+    R_XFORM_ESTIMATOR,
     KERAS,
     MOJO,
     MULTI_ARTIFACT,
@@ -170,6 +172,7 @@ _datasets = {
 }
 
 _training_models_paths = {
+    (PYTHON, PYTHON_XFORM_ESTIMATOR): os.path.join(TESTS_FIXTURES_PATH, "python_xform_estimator"),
     (PYTHON, SKLEARN_BINARY): os.path.join(TRAINING_TEMPLATES_PATH, "5_python3_sklearn_binary"),
     (PYTHON, SKLEARN_BINARY_HYPERPARAMETERS): os.path.join(
         TESTS_FIXTURES_PATH, "python3_sklearn_binary_hyperparameters"
@@ -191,6 +194,7 @@ _training_models_paths = {
     (R_FIT, RDS_HYPERPARAMETERS): os.path.join(TESTS_FIXTURES_PATH, "r_lang_hyperparameters"),
     (R_FIT, R_ESTIMATOR_SPARSE): os.path.join(ESTIMATORS_TEMPLATES_PATH, "3_r_sparse_regression"),
     (R_FIT, RDS_SPARSE): os.path.join(TESTS_FIXTURES_PATH, "r_sparse_validation"),
+    (R_FIT, R_XFORM_ESTIMATOR): os.path.join(TESTS_FIXTURES_PATH, "r_xform_estimator"),
     (PYTHON, PYTORCH): os.path.join(TRAINING_TEMPLATES_PATH, "12_python3_pytorch"),
     (PYTHON, PYTORCH_REGRESSION): os.path.join(
         TRAINING_TEMPLATES_PATH, "11_python3_pytorch_regression"

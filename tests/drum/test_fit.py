@@ -28,6 +28,8 @@ from .constants import (
     BINARY_SPACES,
     BINARY_TEXT,
     DOCKER_PYTHON_SKLEARN,
+    PYTHON_XFORM_ESTIMATOR,
+    R_XFORM_ESTIMATOR,
     KERAS,
     MULTICLASS,
     MULTICLASS_BINARY,
@@ -173,6 +175,8 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, problem, docker",
         [
+            (R_XFORM_ESTIMATOR, REGRESSION, None),
+            (PYTHON_XFORM_ESTIMATOR, REGRESSION, None),
             (SKLEARN_SPARSE, SPARSE, None),
             (RDS_SPARSE, SPARSE, None),
             (RDS, BINARY_BOOL, None),
@@ -204,7 +208,7 @@ class TestFit:
     def test_fit(
         self, resources, framework, problem, docker, weights, tmp_path,
     ):
-        if framework in {RDS, RDS_SPARSE}:
+        if framework in {RDS, RDS_SPARSE, R_XFORM_ESTIMATOR}:
             language = R_FIT
         else:
             language = PYTHON
