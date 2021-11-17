@@ -60,6 +60,7 @@ class RFit(ConnectableComponent):
         self.target_filename = None
         self.num_rows = None
         self.parameter_file = None
+        self.target_type = None
 
     def configure(self, params):
         super(RFit, self).configure(params)
@@ -76,6 +77,7 @@ class RFit(ConnectableComponent):
         self.target_filename = self._params.get("targetFilename")
         self.num_rows = self._params["numRows"]
         self.parameter_file = self._params.get("parameterFile")
+        self.target_type = self._params["target_type"]
 
         r_handler.source(R_COMMON_PATH)
         r_handler.source(R_FIT_PATH)
@@ -103,6 +105,7 @@ class RFit(ConnectableComponent):
                 self.negative_class_label or ro.NULL,
                 ro.StrVector(self.class_labels) if self.class_labels else ro.NULL,
                 self.parameter_file or ro.NULL,
+                self.target_type,
             )
         make_sure_artifact_is_small(self.output_dir)
         return []
