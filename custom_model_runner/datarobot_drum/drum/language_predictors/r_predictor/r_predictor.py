@@ -102,7 +102,7 @@ class RPredictor(BaseLanguagePredictor):
             sparse_colnames = ro.rinterface.NULL
         return sparse_colnames
 
-    def _replace_sanitized_class_names(self, data):
+    def _replace_sanitized_class_names(self, predictions):
         """ Match prediction data labels to project class labels.
         Note that this contains only logic specific to R name
         sanitization and relies on marshal_predictions() for
@@ -113,28 +113,28 @@ class RPredictor(BaseLanguagePredictor):
             self._r_positive_class_label is not ro.rinterface.NULL
             and self._r_negative_class_label is not ro.rinterface.NULL
         ):
-            class_labels = [self._r_negative_class_label, self._r_positive_class_label]
+            request_labels = [self._r_negative_class_label, self._r_positive_class_label]
         elif self._r_class_labels is not None:
-            class_labels = self._r_class_labels
+            request_labels = self._r_class_labels
         else:
             raise DrumCommonException("Class labels not available for classification.")
 
-        prediction_labels = data.columns
+        prediction_labels = predictions.columns
 
         # if the labels match then do nothing
-        if set(prediction_labels) == set(class_labels):
-            return data
+        if set(prediction_labels) == set(request_labels):
+            return predictions
 
         # check for match after make.names is applied to class labels
-        sanitized_class_labels = ro.r["make.names"](class_labels)
-        if set(prediction_labels) == set(sanitized_class_labels):
-            if len(set(sanitized_class_labels)) != len(sanitized_class_labels):
+        sanitized_request_labels = ro.r["make.names"](request_labels)
+        if set(prediction_labels) == set(sanitized_request_labels):
+            if len(set(sanitized_request_labels)) != len(sanitized_request_labels):
                 raise DrumCommonException("Class label names are ambiguous.")
-            label_map = dict(zip(sanitized_class_labels, class_labels))
+            label_map = dict(zip(sanitized_request_labels, request_labels))
             # return class labels in the same order as prediction labels
             ordered_labels = [label_map[l] for l in prediction_labels]
-            data.columns = ordered_labels
-            return data
+            predictions.columns = ordered_labels
+            return predictions
 
         def floatify(f):
             try:
@@ -145,15 +145,15 @@ class RPredictor(BaseLanguagePredictor):
         # check for match after sanitized float strings (e.g. X7.1) are converted to plain floats
         if all(isinstance(l, str) and l.startswith("X") for l in prediction_labels):
             float_pred_labels = [floatify(f[1:]) for f in prediction_labels]
-            float_class_labels = [floatify(f) for f in class_labels]
-            if set(float_pred_labels) == set(float_class_labels):
-                label_map = dict(zip(float_class_labels, class_labels))
+            float_request_labels = [floatify(f) for f in request_labels]
+            if set(float_pred_labels) == set(float_request_labels):
+                label_map = dict(zip(float_request_labels, request_labels))
                 # return class labels in the same order as prediction labels
                 ordered_labels = [label_map[l] for l in float_pred_labels]
-                data.columns = ordered_labels
-                return data
+                predictions.columns = ordered_labels
+                return predictions
 
-        return data
+        return predictions
 
     def _predict(self, **kwargs):
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
