@@ -103,7 +103,10 @@ class RPredictor(BaseLanguagePredictor):
         return sparse_colnames
 
     def _replace_sanitized_class_names(self, data):
-        if self._r_positive_class_label is not ro.rinterface.NULL and self._r_negative_class_label is not ro.rinterface.NULL:
+        if (
+            self._r_positive_class_label is not ro.rinterface.NULL
+            and self._r_negative_class_label is not ro.rinterface.NULL
+        ):
             class_labels = [self._r_positive_class_label, self._r_negative_class_label]
         elif self._r_class_labels is not None:
             class_labels = self._r_class_labels
@@ -139,9 +142,12 @@ class RPredictor(BaseLanguagePredictor):
                 data.columns = ordered_labels
                 return data
 
-        raise DrumCommonException("ERROR: Expected predictions to have columns {} but encountered {}".format(class_labels, prediction_labels))
+        raise DrumCommonException(
+            "ERROR: Expected predictions to have columns {} but encountered {}".format(
+                class_labels, prediction_labels
+            )
+        )
 
-        
     def _predict(self, **kwargs):
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
@@ -171,7 +177,7 @@ class RPredictor(BaseLanguagePredictor):
             raise DrumCommonException(error_message)
 
         if self._target_type.value in TargetType.CLASSIFICATION.value:
-            predictions =  self._replace_sanitized_class_names(predictions)
+            predictions = self._replace_sanitized_class_names(predictions)
         return predictions.values, predictions.columns
 
     # TODO: check test coverage for all possible cases: return None/str/bytes, and casting.

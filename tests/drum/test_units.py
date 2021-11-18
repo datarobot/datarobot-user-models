@@ -828,7 +828,7 @@ def test_validate_model_metadata_output_requirements(target_type, predictor_cls)
         predictor._schema_validator.validate_outputs(df_to_validate)
 
 
-@pytest.mark.parametrize('class_ordering', [lambda x: x, lambda x: list(reversed(x))])
+@pytest.mark.parametrize("class_ordering", [lambda x: x, lambda x: list(reversed(x))])
 class TestReplaceSanitizedClassNames:
     def test_replace_sanitized_class_names_same_binary(self, class_ordering):
         r_pred = RPredictor()
@@ -838,7 +838,6 @@ class TestReplaceSanitizedClassNames:
         result = r_pred._replace_sanitized_class_names(predictions)
         assert list(result.columns) == class_ordering(["a", "b"])
 
-
     def test_replace_sanitized_class_names_unsanitary_binary(self, class_ordering):
         r_pred = RPredictor()
         r_pred._r_positive_class_label = "a+1"
@@ -846,7 +845,6 @@ class TestReplaceSanitizedClassNames:
         predictions = pd.DataFrame(np.ones((3, 2)), columns=class_ordering(["a.1", "b.1"]))
         result = r_pred._replace_sanitized_class_names(predictions)
         assert list(result.columns) == class_ordering(["a+1", "b+1"])
-
 
     def test_replace_sanitized_class_names_float_binary(self, class_ordering):
         r_pred = RPredictor()
@@ -856,14 +854,12 @@ class TestReplaceSanitizedClassNames:
         result = r_pred._replace_sanitized_class_names(predictions)
         assert list(result.columns) == class_ordering(["7.0", "7.1"])
 
-
     def test_replace_sanitized_class_names_same_multiclass(self, class_ordering):
         r_pred = RPredictor()
         r_pred._r_class_labels = ["a", "b", "c"]
         predictions = pd.DataFrame(np.ones((3, 3)), columns=class_ordering(["a", "b", "c"]))
         result = r_pred._replace_sanitized_class_names(predictions)
         assert list(result.columns) == class_ordering(["a", "b", "c"])
-
 
     def test_replace_sanitized_class_names_unsanitary_multiclass(self, class_ordering):
         r_pred = RPredictor()
@@ -872,14 +868,12 @@ class TestReplaceSanitizedClassNames:
         result = r_pred._replace_sanitized_class_names(predictions)
         assert list(result.columns) == class_ordering(["a+1", "b-1", "c$1"])
 
-
     def test_replace_sanitized_class_names_float_multiclass(self, class_ordering):
         r_pred = RPredictor()
         r_pred._r_class_labels = ["7.0", "7.1", "7.2"]
         predictions = pd.DataFrame(np.ones((3, 3)), columns=class_ordering(["X7", "X7.1", "X7.2"]))
         result = r_pred._replace_sanitized_class_names(predictions)
         assert list(result.columns) == class_ordering(["7.0", "7.1", "7.2"])
-
 
     def test_replace_sanitized_class_names_ambiguous_multiclass(self, class_ordering):
         r_pred = RPredictor()
