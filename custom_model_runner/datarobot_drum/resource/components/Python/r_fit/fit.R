@@ -2,7 +2,7 @@
 #
 # All rights reserved.
 #
-# 
+#
 #
 # This is proprietary source code of DataRobot, Inc. and its affiliates.
 #
@@ -15,6 +15,7 @@ library(rjson)
 
 init_hook <- FALSE
 fit_hook <- FALSE
+transform_hook <- FALSE
 
 set.seed(1)
 
@@ -41,6 +42,7 @@ init <- function(code_dir) {
   if (isTRUE(custom_loaded)) {
     init_hook <<- getHookMethod("init")
     fit_hook <<- getHookMethod("fit")
+    transform_hook <<- getHookMethod("transform")
   }
 
   if (!isFALSE(init_hook)) {
@@ -60,9 +62,15 @@ load_data <- function(input_filename, sparse_column_filename){
 }
 
 
-process_data <- function(input_filename, sparse_column_filename, target_filename, target_name, num_rows){
+process_data <- function(input_filename, sparse_column_filename, target_filename, target_name,
+                         num_rows, target_type){
     # read X
     df <- load_data(input_filename, sparse_column_filename)
+
+    # run transform if present in custom model
+    if (!isFALSE(transform_hook) && target_type != "transform") {
+        df <- transform_hook(df, NULL)
+    }
 
     # set num_rows
     if (num_rows == 'ALL'){
@@ -158,9 +166,11 @@ process_parameters <- function(parameter_filename){
 
 outer_fit <- function(output_dir, input_filename, sparse_column_filename, target_filename,
                       target_name, num_rows, weights_filename, weights,
-                      positive_class_label, negative_class_label, class_labels, parameter_filename) {
+                      positive_class_label, negative_class_label, class_labels, parameter_filename,
+                      target_type) {
 
-    processed_data <- process_data(input_filename, sparse_column_filename, target_filename, target_name, num_rows)
+    processed_data <- process_data(input_filename, sparse_column_filename, target_filename,
+                                   target_name, num_rows, target_type)
 
     X <- processed_data$X
     y <- processed_data$y

@@ -6,6 +6,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import io
 import os
+from unittest.mock import Mock, patch
 
 import pandas as pd
 import pytest
@@ -21,6 +22,8 @@ from tests.drum.constants import (
     BINARY_SPACES,
     CODEGEN,
     CODEGEN_AND_SKLEARN,
+    PYTHON_XFORM_ESTIMATOR,
+    R_XFORM_ESTIMATOR,
     KERAS,
     MOJO,
     MULTI_ARTIFACT,
@@ -116,6 +119,8 @@ from tests.drum.constants import (
     R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
     SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
 )
+from datarobot_drum.drum.model_adapter import PythonModelAdapter
+
 
 _datasets = {
     # If specific dataset should be defined for a framework, use (framework, problem) key.
@@ -170,6 +175,7 @@ _datasets = {
 }
 
 _training_models_paths = {
+    (PYTHON, PYTHON_XFORM_ESTIMATOR): os.path.join(TESTS_FIXTURES_PATH, "python_xform_estimator"),
     (PYTHON, SKLEARN_BINARY): os.path.join(TRAINING_TEMPLATES_PATH, "5_python3_sklearn_binary"),
     (PYTHON, SKLEARN_BINARY_HYPERPARAMETERS): os.path.join(
         TESTS_FIXTURES_PATH, "python3_sklearn_binary_hyperparameters"
@@ -191,6 +197,7 @@ _training_models_paths = {
     (R_FIT, RDS_HYPERPARAMETERS): os.path.join(TESTS_FIXTURES_PATH, "r_lang_hyperparameters"),
     (R_FIT, R_ESTIMATOR_SPARSE): os.path.join(ESTIMATORS_TEMPLATES_PATH, "3_r_sparse_regression"),
     (R_FIT, RDS_SPARSE): os.path.join(TESTS_FIXTURES_PATH, "r_sparse_validation"),
+    (R_FIT, R_XFORM_ESTIMATOR): os.path.join(TESTS_FIXTURES_PATH, "r_xform_estimator"),
     (PYTHON, PYTORCH): os.path.join(TRAINING_TEMPLATES_PATH, "12_python3_pytorch"),
     (PYTHON, PYTORCH_REGRESSION): os.path.join(
         TRAINING_TEMPLATES_PATH, "11_python3_pytorch_regression"
@@ -760,3 +767,27 @@ def variety_resources(
     resource.target = get_variety_target
     resource.class_labels = get_variety_classes_labels
     return resource
+
+
+@pytest.fixture
+def essential_language_predictor_init_params():
+    return {
+        "__custom_model_path__": "custom_model_path",
+        "monitor": False,
+    }
+
+
+@pytest.fixture
+def mock_python_model_adapter_predict():
+    with patch.object(PythonModelAdapter, "predict") as mock_predict:
+        mock_predict.return_value = None, None
+        yield mock_predict
+
+
+@pytest.fixture
+def mock_python_model_adapter_load_model_from_artifact():
+    with patch.object(
+        PythonModelAdapter, "load_model_from_artifact"
+    ) as mock_load_model_from_artifact:
+        mock_load_model_from_artifact.return_value = Mock()
+        yield mock_load_model_from_artifact

@@ -60,6 +60,8 @@ R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT = "R_transform_sparse_input_y_output"
 R_TRANSFORM_NON_NUMERIC = "R_transform_non_numeric"
 R_ESTIMATOR_SPARSE = "R_estimator_sparse"
 R_VALIDATE_SPARSE_ESTIMATOR = "R_validate_sparse_estimator"
+PYTHON_XFORM_ESTIMATOR = "python_xform_estimator"
+R_XFORM_ESTIMATOR = "r_xform_estimator"
 
 MLJ = "mlj"
 MLJ_BINARY = "mlj_binary"

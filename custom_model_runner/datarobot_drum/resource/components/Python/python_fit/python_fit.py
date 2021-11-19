@@ -10,7 +10,7 @@ import os
 
 from mlpiper.components.connectable_component import ConnectableComponent
 
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, TargetType, TARGET_TYPE_ARG_KEYWORD
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.utils import shared_fit_preprocessing, make_sure_artifact_is_small
 
@@ -52,7 +52,8 @@ class PythonFit(ConnectableComponent):
         self.num_rows = self._params["numRows"]
         self.parameter_file = self._params.get("parameterFile")
 
-        self._model_adapter = PythonModelAdapter(self.custom_model_path)
+        target_type = TargetType(params[TARGET_TYPE_ARG_KEYWORD])
+        self._model_adapter = PythonModelAdapter(self.custom_model_path, target_type)
         sys.path.append(self.custom_model_path)
         self._model_adapter.load_custom_hooks()
 
