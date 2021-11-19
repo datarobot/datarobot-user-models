@@ -118,7 +118,7 @@ def fit(
     joblib.dump(model, "{}/model.pkl".format(output_dir))
 
 
-def transform(data, model):
+def score(data, model, **kwargs):
     """
     Specifically grab the path of preprocessing pipeline, using global code dir set earlier
     Same preprocessing as performed above: change some data types, run the pipeline, and return
@@ -143,8 +143,10 @@ def transform(data, model):
     pipeline = joblib.load(os.path.join(g_code_dir, pipeline_path))
     transformed = pipeline.transform(data)
     data = pd.DataFrame.sparse.from_spmatrix(transformed)
-
-    return data
+    model_path = "model.pkl"
+    model = joblib.load(os.path.join(g_code_dir, model_path))
+    pred = model.predict_proba(data)
+    return pd.DataFrame(pred, columns=model.classes_)
 
 
 def load_model(code_dir):

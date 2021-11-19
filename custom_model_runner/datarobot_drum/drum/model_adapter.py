@@ -324,7 +324,7 @@ class PythonModelAdapter:
 
         return data
 
-    def preprocess(self, model=None, **kwargs):
+    def preprocess(self, data, model=None):
         """
         Preprocess data and then pass on to predict method.
         Loads data, either with read hook or built-in method, and applies transform hook if present
@@ -337,14 +337,6 @@ class PythonModelAdapter:
         -------
         pd.DataFrame
         """
-        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
-        sparse_colnames = kwargs.get(StructuredDtoKeys.SPARSE_COLNAMES)
-        data = self.load_data(
-            input_binary_data,
-            kwargs.get(StructuredDtoKeys.MIMETYPE),
-            sparse_colnames=sparse_colnames,
-        )
-
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
             try:
                 output_data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
@@ -442,7 +434,15 @@ class PythonModelAdapter:
         -------
         np.array, list(str)
         """
-        data = self.preprocess(model, **kwargs)
+        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
+        sparse_colnames = kwargs.get(StructuredDtoKeys.SPARSE_COLNAMES)
+        data = self.load_data(
+            input_binary_data,
+            kwargs.get(StructuredDtoKeys.MIMETYPE),
+            sparse_colnames=sparse_colnames,
+        )
+
+        data = self.preprocess(data, model)
 
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
@@ -591,6 +591,8 @@ class PythonModelAdapter:
         return False
 
     def fit(self, X, y, output_dir, class_order=None, row_weights=None, parameters=None):
+        if self._target_type != TargetType.TRANSFORM:
+            X = self.preprocess(X)
         with reroute_stdout_to_stderr():
             if self._custom_hooks.get(CustomHooks.FIT):
                 self._custom_hooks[CustomHooks.FIT](
