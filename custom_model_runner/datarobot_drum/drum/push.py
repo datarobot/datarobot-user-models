@@ -36,7 +36,7 @@ def _convert_target_type(unconverted_target_type):
 
 def _push_training(model_config, code_dir, endpoint=None, token=None):
     try:
-        from datarobot import CustomTask
+        from datarobot import CustomTask, CustomTaskVersion
     except ImportError:
         raise DrumCommonException(
             "You tried to run custom tasks using a version of the \n"
@@ -60,7 +60,7 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
         )
 
     try:
-        model_version = dr_client.CustomModelVersion.create_clean(
+        model_version = CustomTaskVersion.create_clean(
             model_id,
             base_environment_id=model_config[ModelMetadataKeys.ENVIRONMENT_ID],
             folder_path=code_dir,
