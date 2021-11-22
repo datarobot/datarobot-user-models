@@ -94,6 +94,7 @@ UNSTRUCTURED = "unstructured"
 MULTICLASS = "multiclass"
 TRANSFORM = "transform"
 MULTICLASS_NUM_LABELS = "multiclass_num_labels"
+MULTICLASS_FLOAT_LABELS = "multiclass_float_labels"
 MULTICLASS_HIGH_CARD = "multiclass_high_card"
 MULTICLASS_BINARY = "multiclass_binary"  # special case for testing multiclass with only 2 classes
 SPARSE = "sparse"
