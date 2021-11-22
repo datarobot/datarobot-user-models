@@ -10,6 +10,7 @@ import json
 import os
 import socket
 import tempfile
+import time
 from contextlib import closing
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -274,6 +275,25 @@ version_response = {
     "items": [{"id": "1", "file_name": "hi", "file_path": "hi", "file_source": "hi"}],
 }
 
+tasks_version_response = {
+    "id": "1",
+    "custom_task_id": "1",
+    "version_minor": 1,
+    "version_major": 1,
+    "is_frozen": False,
+    "items": [
+        {
+            "id": "1",
+            "file_name": "hi",
+            "file_path": "hi",
+            "file_source": "hi",
+            "created": str(time.time()),
+        }
+    ],
+    "label": "test",
+    "created": str(time.time()),
+}
+
 
 @pytest.mark.parametrize(
     "config_yaml",
@@ -409,6 +429,15 @@ def version_mocks():
     )
 
 
+def task_version_mock():
+    responses.add(
+        responses.POST,
+        "http://yess/customTasks/{}/versions/".format(modelID),
+        json=tasks_version_response,
+        status=200,
+    )
+
+
 def mock_get_model(model_type="training", target_type="Regression"):
     body = {
         "customModelType": model_type,
@@ -525,6 +554,7 @@ def test_push(request, config_yaml, existing_model_id, multiclass_labels, tmp_pa
     config = read_model_metadata_yaml(tmp_path)
 
     version_mocks()
+    task_version_mock()
     mock_post_blueprint()
     mock_post_add_to_repository()
     mock_get_model(model_type=config["type"], target_type=config["targetType"].capitalize())
@@ -534,8 +564,8 @@ def test_push(request, config_yaml, existing_model_id, multiclass_labels, tmp_pa
     push_fn(config, code_dir="", endpoint="http://Yess", token="okay")
 
     calls = responses.calls
+    custom_tasks_or_models_path = "customTasks" if push_fn == _push_training else "customModels"
     if existing_model_id is None:
-        custom_tasks_or_models_path = "customTasks" if push_fn == _push_training else "customModels"
         assert (
             calls[1].request.path_url == "/{}/".format(custom_tasks_or_models_path)
             and calls[1].request.method == "POST"
@@ -547,7 +577,8 @@ def test_push(request, config_yaml, existing_model_id, multiclass_labels, tmp_pa
     else:
         call_shift = 0
     assert (
-        calls[call_shift + 1].request.path_url == "/customModels/{}/versions/".format(modelID)
+        calls[call_shift + 1].request.path_url
+        == "/{}/{}/versions/".format(custom_tasks_or_models_path, modelID)
         and calls[call_shift + 1].request.method == "POST"
     )
     if push_fn == _push_training:
