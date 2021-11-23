@@ -1,4 +1,6 @@
 [tool.black]
 line-length = 100
+
 [tool.pytest.ini_options]
 addopts = "--doctest-modules"
+markers = ["sequential: marks tests to be executed sequentially"]
