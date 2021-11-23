@@ -142,35 +142,7 @@ load_serialized_model <- function(model_dir, target_type) {
 }
 
 .predict_classification <- function(data, model, ...) {
-    kwargs <- list(...)
-    positive_class_label <- kwargs$positive_class_label
-    negative_class_label <- kwargs$negative_class_label
-    class_labels <- kwargs$class_labels
-    if (!is.null(positive_class_label) && !is.null(negative_class_label)) {
-        provided_labels <- c(positive_class_label, negative_class_label)
-    } else if (!is.null(class_labels)) {
-        provided_labels <- class_labels
-    } else {
-        stop("Class labels were not supplied to .predict_classification")
-    }
-    predictions <- data.frame(stats::predict(model, data, type = "prob"))
-    labels <- names(predictions)
-    provided_labels_sanitized <- make.names(provided_labels)
-    labels_to_use <- NULL
-    # check labels and provided_labels contain the same elements, order doesn't matter
-    if (setequal(labels, provided_labels)) {
-        labels_to_use <- provided_labels
-    } else if (setequal(labels, provided_labels_sanitized)) {
-        labels_to_use <- provided_labels_sanitized
-    } else {
-        stop("Wrong class labels. Use class labels according to your dataset")
-    }
-    # if labels are not on the same order, switch columns
-    if (!identical(labels, labels_to_use)) {
-        predictions <- predictions[, labels_to_use]
-    }
-    names(predictions) <- provided_labels
-    predictions
+    data.frame(stats::predict(model, data, type = "prob"))
 }
 
 .predictors<-list()

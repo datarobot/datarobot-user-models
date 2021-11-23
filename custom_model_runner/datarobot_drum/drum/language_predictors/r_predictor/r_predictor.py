@@ -102,6 +102,59 @@ class RPredictor(BaseLanguagePredictor):
             sparse_colnames = ro.rinterface.NULL
         return sparse_colnames
 
+    def _replace_sanitized_class_names(self, predictions):
+        """ Match prediction data labels to project class labels.
+        Note that this contains only logic specific to R name
+        sanitization and relies on marshal_predictions() for
+        language neutral cases like matching floats and bools """
+
+        # get class labels
+        if (
+            self._r_positive_class_label is not ro.rinterface.NULL
+            and self._r_negative_class_label is not ro.rinterface.NULL
+        ):
+            request_labels = [self._r_negative_class_label, self._r_positive_class_label]
+        elif self._r_class_labels is not None:
+            request_labels = self._r_class_labels
+        else:
+            raise DrumCommonException("Class labels not available for classification.")
+
+        prediction_labels = predictions.columns
+
+        # if the labels match then do nothing
+        if set(prediction_labels) == set(request_labels):
+            return predictions
+
+        # check for match after make.names is applied to class labels
+        sanitized_request_labels = ro.r["make.names"](request_labels)
+        if set(prediction_labels) == set(sanitized_request_labels):
+            if len(set(sanitized_request_labels)) != len(sanitized_request_labels):
+                raise DrumCommonException("Class label names are ambiguous.")
+            label_map = dict(zip(sanitized_request_labels, request_labels))
+            # return class labels in the same order as prediction labels
+            ordered_labels = [label_map[l] for l in prediction_labels]
+            predictions.columns = ordered_labels
+            return predictions
+
+        def floatify(f):
+            try:
+                return float(f)
+            except ValueError:
+                return f
+
+        # check for match after sanitized float strings (e.g. X7.1) are converted to plain floats
+        if all(isinstance(l, str) and l.startswith("X") for l in prediction_labels):
+            float_pred_labels = [floatify(f[1:]) for f in prediction_labels]
+            float_request_labels = [floatify(f) for f in request_labels]
+            if set(float_pred_labels) == set(float_request_labels):
+                label_map = dict(zip(float_request_labels, request_labels))
+                # return class labels in the same order as prediction labels
+                ordered_labels = [label_map[l] for l in float_pred_labels]
+                predictions.columns = ordered_labels
+                return predictions
+
+        return predictions
+
     def _predict(self, **kwargs):
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
@@ -130,6 +183,8 @@ class RPredictor(BaseLanguagePredictor):
             logger.error(error_message)
             raise DrumCommonException(error_message)
 
+        if self._target_type.value in TargetType.CLASSIFICATION.value:
+            predictions = self._replace_sanitized_class_names(predictions)
         return predictions.values, predictions.columns
 
     # TODO: check test coverage for all possible cases: return None/str/bytes, and casting.

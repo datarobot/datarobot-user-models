@@ -101,9 +101,9 @@ class RFit(ConnectableComponent):
                 self.num_rows,
                 self.weights_filename or ro.NULL,
                 weights,
-                self.positive_class_label or ro.NULL,
-                self.negative_class_label or ro.NULL,
-                ro.StrVector(self.class_labels) if self.class_labels else ro.NULL,
+                ro.NULL if self.positive_class_label is None else self.positive_class_label,
+                ro.NULL if self.negative_class_label is None else self.negative_class_label,
+                ro.StrVector([str(l) for l in self.class_labels]) if self.class_labels else ro.NULL,
                 self.parameter_file or ro.NULL,
                 self.target_type,
             )

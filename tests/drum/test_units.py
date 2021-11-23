@@ -10,6 +10,8 @@ import json
 import os
 import socket
 import tempfile
+import time
+from argparse import Namespace
 from contextlib import closing
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -34,8 +36,9 @@ from datarobot_drum.drum.common import (
     read_model_metadata_yaml,
     validate_config_fields,
 )
-from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, TargetType
+from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, TargetType, RunLanguage, RunMode
 from datarobot_drum.drum.drum import (
+    CMRunner,
     create_custom_inference_model_folder,
     output_in_code_dir,
     possibly_intuit_order,
@@ -49,10 +52,12 @@ from datarobot_drum.drum.language_predictors.python_predictor.python_predictor i
 from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.push import _push_inference, _push_training, drum_push
+from datarobot_drum.drum.runtime import DrumRuntime
 from datarobot_drum.drum.utils import DrumUtils
 from datarobot_drum.drum.data_marshalling import _marshal_labels
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils import StructuredInputReadUtils
+from tests.drum.constants import TESTS_DATA_PATH
 
 
 class TestOrderIntuition:
@@ -274,6 +279,25 @@ version_response = {
     "items": [{"id": "1", "file_name": "hi", "file_path": "hi", "file_source": "hi"}],
 }
 
+tasks_version_response = {
+    "id": "1",
+    "custom_task_id": "1",
+    "version_minor": 1,
+    "version_major": 1,
+    "is_frozen": False,
+    "items": [
+        {
+            "id": "1",
+            "file_name": "hi",
+            "file_path": "hi",
+            "file_source": "hi",
+            "created": str(time.time()),
+        }
+    ],
+    "label": "test",
+    "created": str(time.time()),
+}
+
 
 @pytest.mark.parametrize(
     "config_yaml",
@@ -409,6 +433,15 @@ def version_mocks():
     )
 
 
+def task_version_mock():
+    responses.add(
+        responses.POST,
+        "http://yess/customTasks/{}/versions/".format(modelID),
+        json=tasks_version_response,
+        status=200,
+    )
+
+
 def mock_get_model(model_type="training", target_type="Regression"):
     body = {
         "customModelType": model_type,
@@ -525,6 +558,7 @@ def test_push(request, config_yaml, existing_model_id, multiclass_labels, tmp_pa
     config = read_model_metadata_yaml(tmp_path)
 
     version_mocks()
+    task_version_mock()
     mock_post_blueprint()
     mock_post_add_to_repository()
     mock_get_model(model_type=config["type"], target_type=config["targetType"].capitalize())
@@ -534,8 +568,8 @@ def test_push(request, config_yaml, existing_model_id, multiclass_labels, tmp_pa
     push_fn(config, code_dir="", endpoint="http://Yess", token="okay")
 
     calls = responses.calls
+    custom_tasks_or_models_path = "customTasks" if push_fn == _push_training else "customModels"
     if existing_model_id is None:
-        custom_tasks_or_models_path = "customTasks" if push_fn == _push_training else "customModels"
         assert (
             calls[1].request.path_url == "/{}/".format(custom_tasks_or_models_path)
             and calls[1].request.method == "POST"
@@ -547,7 +581,8 @@ def test_push(request, config_yaml, existing_model_id, multiclass_labels, tmp_pa
     else:
         call_shift = 0
     assert (
-        calls[call_shift + 1].request.path_url == "/customModels/{}/versions/".format(modelID)
+        calls[call_shift + 1].request.path_url
+        == "/{}/{}/versions/".format(custom_tasks_or_models_path, modelID)
         and calls[call_shift + 1].request.method == "POST"
     )
     if push_fn == _push_training:
@@ -583,8 +618,6 @@ def test_push_no_target_name_in_yaml(request, config_yaml, tmp_path):
     with open(os.path.join(tmp_path, MODEL_CONFIG_FILENAME), mode="w") as f:
         f.write(config_yaml)
     config = read_model_metadata_yaml(tmp_path)
-
-    from argparse import Namespace
 
     options = Namespace(code_dir=tmp_path, model_config=config)
     with pytest.raises(DrumCommonException, match="Missing keys: \['targetName'\]"):
@@ -826,3 +859,119 @@ def test_validate_model_metadata_output_requirements(target_type, predictor_cls)
         )
     else:
         predictor._schema_validator.validate_outputs(df_to_validate)
+
+
+@pytest.mark.parametrize("class_ordering", [lambda x: x, lambda x: list(reversed(x))])
+class TestReplaceSanitizedClassNames:
+    def test_replace_sanitized_class_names_same_binary(self, class_ordering):
+        r_pred = RPredictor()
+        r_pred._r_positive_class_label = "a"
+        r_pred._r_negative_class_label = "b"
+        predictions = pd.DataFrame(np.ones((3, 2)), columns=class_ordering(["a", "b"]))
+        result = r_pred._replace_sanitized_class_names(predictions)
+        assert list(result.columns) == class_ordering(["a", "b"])
+
+    def test_replace_sanitized_class_names_unsanitary_binary(self, class_ordering):
+        r_pred = RPredictor()
+        r_pred._r_positive_class_label = "a+1"
+        r_pred._r_negative_class_label = "b+1"
+        predictions = pd.DataFrame(np.ones((3, 2)), columns=class_ordering(["a.1", "b.1"]))
+        result = r_pred._replace_sanitized_class_names(predictions)
+        assert list(result.columns) == class_ordering(["a+1", "b+1"])
+
+    def test_replace_sanitized_class_names_float_binary(self, class_ordering):
+        r_pred = RPredictor()
+        r_pred._r_positive_class_label = "7.0"
+        r_pred._r_negative_class_label = "7.1"
+        predictions = pd.DataFrame(np.ones((3, 2)), columns=class_ordering(["X7", "X7.1"]))
+        result = r_pred._replace_sanitized_class_names(predictions)
+        assert list(result.columns) == class_ordering(["7.0", "7.1"])
+
+    def test_replace_sanitized_class_names_same_multiclass(self, class_ordering):
+        r_pred = RPredictor()
+        r_pred._r_class_labels = ["a", "b", "c"]
+        predictions = pd.DataFrame(np.ones((3, 3)), columns=class_ordering(["a", "b", "c"]))
+        result = r_pred._replace_sanitized_class_names(predictions)
+        assert list(result.columns) == class_ordering(["a", "b", "c"])
+
+    def test_replace_sanitized_class_names_unsanitary_multiclass(self, class_ordering):
+        r_pred = RPredictor()
+        r_pred._r_class_labels = ["a+1", "b-1", "c$1"]
+        predictions = pd.DataFrame(np.ones((3, 3)), columns=class_ordering(["a.1", "b.1", "c.1"]))
+        result = r_pred._replace_sanitized_class_names(predictions)
+        assert list(result.columns) == class_ordering(["a+1", "b-1", "c$1"])
+
+    def test_replace_sanitized_class_names_float_multiclass(self, class_ordering):
+        r_pred = RPredictor()
+        r_pred._r_class_labels = ["7.0", "7.1", "7.2"]
+        predictions = pd.DataFrame(np.ones((3, 3)), columns=class_ordering(["X7", "X7.1", "X7.2"]))
+        result = r_pred._replace_sanitized_class_names(predictions)
+        assert list(result.columns) == class_ordering(["7.0", "7.1", "7.2"])
+
+    def test_replace_sanitized_class_names_ambiguous_multiclass(self, class_ordering):
+        r_pred = RPredictor()
+        r_pred._r_class_labels = ["a+1", "a-1", "a$1"]
+        predictions = pd.DataFrame(np.ones((3, 3)), columns=class_ordering(["a.1", "a.1", "a.1"]))
+        with pytest.raises(DrumCommonException, match="Class label names are ambiguous"):
+            r_pred._replace_sanitized_class_names(predictions)
+
+
+def test_binary_class_labels_from_env():
+    with DrumRuntime() as runtime:
+        runtime.options = Namespace(
+            negative_class_label="env0",
+            positive_class_label="env1",
+            class_labels=None,
+            code_dir="",
+            disable_strict_validation=False,
+            logging_level="warning",
+            subparser_name=RunMode.FIT,
+            target_type=TargetType.BINARY,
+            verbose=False,
+            content_type=None,
+            input=None,
+            target_csv=None,
+            target=None,
+            row_weights=None,
+            row_weights_csv=None,
+            output=None,
+            num_rows=0,
+            sparse_column_file=None,
+            parameter_file=None,
+        )
+        cmrunner = CMRunner(runtime)
+        pipeline_str = cmrunner._prepare_fit_pipeline(run_language=RunLanguage.PYTHON)
+        assert '"positiveClassLabel": "env1",' in pipeline_str
+        assert '"negativeClassLabel": "env0",' in pipeline_str
+        assert '"classLabels": null,' in pipeline_str
+
+
+def test_binary_class_labels_from_target():
+    test_data_path = os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv")
+    with DrumRuntime() as runtime:
+        runtime.options = Namespace(
+            negative_class_label=None,
+            positive_class_label=None,
+            class_labels=None,
+            code_dir="",
+            disable_strict_validation=False,
+            logging_level="warning",
+            subparser_name=RunMode.FIT,
+            target_type=TargetType.BINARY,
+            verbose=False,
+            content_type=None,
+            input=test_data_path,
+            target_csv=None,
+            target="Species",
+            row_weights=None,
+            row_weights_csv=None,
+            output=None,
+            num_rows=0,
+            sparse_column_file=None,
+            parameter_file=None,
+        )
+        cmrunner = CMRunner(runtime)
+        pipeline_str = cmrunner._prepare_fit_pipeline(run_language=RunLanguage.PYTHON)
+        assert '"positiveClassLabel": "Iris-setosa",' in pipeline_str
+        assert '"negativeClassLabel": "Iris-versicolor",' in pipeline_str
+        assert '"classLabels": null,' in pipeline_str
