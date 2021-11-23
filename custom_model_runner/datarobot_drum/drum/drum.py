@@ -648,7 +648,10 @@ class CMRunner:
 
     def _needs_class_labels(self):
         if self.target_type == TargetType.BINARY:
-            return self.options.negative_class_label is None or self.options.class_labels is None
+            return (
+                self.options.negative_class_label is None
+                or self.options.positive_class_label is None
+            )
         if self.target_type == TargetType.MULTICLASS:
             return self.options.class_labels is None
         return False

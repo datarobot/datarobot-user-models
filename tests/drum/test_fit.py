@@ -25,6 +25,8 @@ from .constants import (
     ANOMALY,
     BINARY,
     BINARY_BOOL,
+    BINARY_INT,
+    BINARY_INT_TARGET,
     BINARY_SPACES,
     BINARY_TEXT,
     DOCKER_PYTHON_SKLEARN,
@@ -42,6 +44,7 @@ from .constants import (
     PYTORCH_MULTICLASS,
     R_FIT,
     RDS,
+    RDS_BINARY,
     RDS_SPARSE,
     REGRESSION,
     REGRESSION_SINGLE_COL,
@@ -181,6 +184,7 @@ class TestFit:
             (SKLEARN_SPARSE, SPARSE, None),
             (RDS_SPARSE, SPARSE, None),
             (RDS, BINARY_BOOL, None),
+            (RDS_BINARY, BINARY_INT, None),
             (RDS, BINARY_TEXT, None),
             (RDS, REGRESSION, None),
             (RDS, REGRESSION_SINGLE_COL, None),
@@ -210,7 +214,7 @@ class TestFit:
     def test_fit(
         self, resources, framework, problem, docker, weights, tmp_path,
     ):
-        if framework in {RDS, RDS_SPARSE, R_XFORM_ESTIMATOR}:
+        if framework in {RDS, RDS_BINARY, RDS_SPARSE, R_XFORM_ESTIMATOR}:
             language = R_FIT
         else:
             language = PYTHON
@@ -231,7 +235,7 @@ class TestFit:
         cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose --disable-strict-validation".format(
             ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset
         )
-        if problem not in {ANOMALY, SPARSE}:
+        if problem not in {ANOMALY, SPARSE, BINARY_INT}:
             cmd += ' --target "{}"'.format(resources.targets(problem))
 
         if problem == SPARSE:
@@ -243,6 +247,10 @@ class TestFit:
             cmd += " --sparse-column-file {} --target-csv {}".format(
                 sparse_column_file, target_file
             )
+        if problem == BINARY_INT:
+            # target-csv will result in target dtype int instead of str
+            target_dataset = resources.datasets(None, BINARY_INT_TARGET)
+            cmd += " --target-csv {}".format(target_dataset)
 
         if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
@@ -255,7 +263,7 @@ class TestFit:
         cmd += weights_cmd
 
         _, stdout, _ = _exec_shell_cmd(
-            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
         )
         assert "Starting Fit" in stdout
         assert "Starting Prediction" in stdout
