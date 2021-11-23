@@ -329,7 +329,7 @@ class PredictMixin:
         response_status = HTTP_200_OK
         kwargs_params = {}
 
-        data = request.data
+        data = request.get_data()
         mimetype, charset = PredictMixin._validate_content_type_header(request.content_type)
 
         data_binary_or_text, mimetype, charset = _resolve_incoming_unstructured_data(

@@ -107,7 +107,8 @@ class TestUnstructuredMode:
                     url = run.url_server_address + endpoint
                     data = open(input_dataset, "rb").read()
                     params = {"ret_mode": ret_mode}
-                    response = requests.post(url=url, data=data, params=params)
+                    headers = {"Content-Type": "application/x-www-urlencoded"}
+                    response = requests.post(url=url, headers=headers, data=data, params=params)
 
                     assert response.ok
                     if ret_mode == "text":
@@ -264,14 +265,15 @@ class TestUnstructuredMode:
                                 assert response.content == data_text.encode(UTF8)
 
                 # sending binary data
-                headers = {"Content-Type": "application/octet-stream;"}
-                response = requests.post(url=url, data=data_bytes, params=params, headers=headers)
-                assert response.ok
-                content_type_header = response.headers["Content-Type"]
-                mimetype, content_type_params_dict = werkzeug.http.parse_options_header(
-                    content_type_header
-                )
-                assert "application/octet-stream" == mimetype
-                # check params dict is empty
-                assert not any(content_type_params_dict)
-                assert response.content == data_bytes
+                for ct in ["application/octet-stream;", "application/x-www-urlencoded;"]:
+                    headers = {"Content-Type": ct}
+                    response = requests.post(url=url, data=data_bytes, params=params, headers=headers)
+                    assert response.ok
+                    content_type_header = response.headers["Content-Type"]
+                    mimetype, content_type_params_dict = werkzeug.http.parse_options_header(
+                        content_type_header
+                    )
+                    assert "application/octet-stream" == mimetype
+                    # check params dict is empty
+                    assert not any(content_type_params_dict)
+                    assert response.content == data_bytes
