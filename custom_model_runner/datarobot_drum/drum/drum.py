@@ -550,12 +550,12 @@ class CMRunner:
             if self.target_type == TargetType.TRANSFORM:
                 target_df = df[self.options.target]
                 __target_temp = NamedTemporaryFile()
-                target_df.to_csv(__target_temp.name, index=False)
+                target_df.to_csv(__target_temp.name, index=False, line_terminator="\r\n")
             df = df.drop(self.options.target, axis=1)
             # convert to R-friendly missing fields
             if self._get_fit_run_language() == RunLanguage.R:
                 df = handle_missing_colnames(df)
-            df.to_csv(__tempfile.name, index=False)
+            df.to_csv(__tempfile.name, index=False, line_terminator="\r\n")
             self.options.input = __tempfile.name
         if self.target_type == TargetType.TRANSFORM:
             CMRunTests(

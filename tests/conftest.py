@@ -69,6 +69,7 @@ from tests.drum.constants import (
     REGRESSION,
     REGRESSION_SINGLE_COL,
     REGRESSION_INFERENCE,
+    REGRESSION_MULTLILINE_TEXT,
     SIMPLE,
     SKLEARN,
     SKLEARN_ANOMALY,
@@ -134,6 +135,9 @@ _datasets = {
         TESTS_DATA_PATH, "juniors_3_year_stats_regression_inference.csv"
     ),
     (None, REGRESSION_SINGLE_COL): os.path.join(TESTS_DATA_PATH, "regression_single_col.csv"),
+    (None, REGRESSION_MULTLILINE_TEXT): os.path.join(
+        TESTS_DATA_PATH, "de_reviews_small_multiline.csv"
+    ),
     (None, BINARY_TEXT): os.path.join(TESTS_DATA_PATH, "telecomms_churn.csv"),
     (PYPMML, REGRESSION): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
     (None, BINARY): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
@@ -238,6 +242,7 @@ _targets = {
     ANOMALY: None,
     TRANSFORM: os.path.join(TESTS_DATA_PATH, "transform_target.csv"),
     BINARY_SPACES: "Species",
+    REGRESSION_MULTLILINE_TEXT: "rating",
 }
 
 _target_types = {
@@ -246,6 +251,7 @@ _target_types = {
     BINARY_SPACES: "binary",
     REGRESSION: "regression",
     REGRESSION_SINGLE_COL: "regression",
+    REGRESSION_MULTLILINE_TEXT: "regression",
     REGRESSION_INFERENCE: "regression",
     ANOMALY: "anomaly",
     UNSTRUCTURED: "unstructured",
