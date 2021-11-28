@@ -102,6 +102,13 @@ pip install \
     datarobot-mlops
 
 pytest tests/drum/ \
+       -m "sequential" \
+       -k "not test_drum_monitoring_no_mlops_installed" \
+       --junit-xml="$GIT_ROOT/results_integration.xml" \
+       -n 1
+
+pytest tests/drum/ \
+       -m "not sequential" \
        -k "not test_drum_monitoring_no_mlops_installed" \
        --junit-xml="$GIT_ROOT/results_integration.xml" \
        -n auto
