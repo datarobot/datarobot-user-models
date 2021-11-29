@@ -13,4 +13,4 @@ Create a new custom model with these files and use the Python Drop-In Environmen
 
 ### To run locally using 'drum'
 Paths are relative to `datarobot-user-models` root:  
-`drum fit --code-dir task_templates/3_pipelines/python3_anomaly_detection --input tests/testdata/juniors_3_year_stats_regression.csv --target-type anomaly`
+`drum fit --code-dir task_templates/3_pipelines/7_python3_anomaly_detection --input tests/testdata/juniors_3_year_stats_regression.csv --target-type anomaly`
