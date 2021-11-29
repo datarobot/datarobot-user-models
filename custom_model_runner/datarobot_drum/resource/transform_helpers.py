@@ -89,7 +89,7 @@ def make_csv_payload(df):
     df = validate_and_convert_column_names_for_serialization(df)
 
     s_buf = StringIO()
-    df.to_csv(s_buf, index=False)
+    df.to_csv(s_buf, index=False, line_terminator="\r\n")
     return s_buf.getvalue().encode("utf-8")
 
 
