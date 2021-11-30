@@ -10,6 +10,8 @@ import logging
 from cgi import FieldStorage
 from io import BytesIO, StringIO
 
+from packaging import version
+
 from scipy.io import mmwrite, mmread
 from scipy.sparse import issparse
 from scipy.sparse.csr import csr_matrix
@@ -72,7 +74,14 @@ def make_arrow_payload(df, arrow_version):
     pa = verify_pyarrow_module()
     df = validate_and_convert_column_names_for_serialization(df)
 
-    if arrow_version != pa.__version__ and arrow_version < 0.2:
+    pyarrow_available_version = version.parse(pa.__version__)
+    pyarrow_requested_version = version.parse(arrow_version)
+    pyarrow_0_20_version = version.parse("0.20")
+
+    if (
+        pyarrow_requested_version != pyarrow_available_version
+        and pyarrow_requested_version < pyarrow_0_20_version
+    ):
         batch = pa.RecordBatch.from_pandas(df, nthreads=None, preserve_index=False)
         sink = pa.BufferOutputStream()
         options = pa.ipc.IpcWriteOptions(
