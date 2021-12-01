@@ -96,17 +96,25 @@ class TestPerformanceCheck:
 
         input_dataset = resources.datasets(framework, problem)
 
-        cmd = "{} perf-test -i 10 -s 10 --code-dir {} --input {} --target-type {}".format(
+        cmd = [
             ArgumentsOptions.MAIN_COMMAND,
+            "perf-test",
+            "-i",
+            "10",
+            "-s",
+            "10",
+            "--code-dir",
             custom_model_dir,
+            "--input",
             input_dataset,
+            "--target-type",
             resources.target_types(problem),
-        )
+        ]
 
         # wait for drum perf-test server from prev test case to be stopped
         time.sleep(0.5)
         assert _find_drum_perf_test_server_process() is None
-        p = subprocess.Popen(cmd, shell=True, env=os.environ, universal_newlines=True,)
+        p = subprocess.Popen(cmd, env=os.environ, universal_newlines=True,)
         time.sleep(2)
         # kill drum perf-test process, child server should be running
         p.kill()
