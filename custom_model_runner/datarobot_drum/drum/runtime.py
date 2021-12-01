@@ -35,15 +35,16 @@ class DrumRuntime:
         if not exc_type:
             return True  # no exception, just return
 
+        if not self.options:
+            # exception occurred before args were parsed
+            return False  # propagate exception further
+
         logger_drum.warning(
             colored(
                 f"Looks like there is a problem. To get more output information try to run with: {ArgumentsOptions.VERBOSE}",
                 "yellow",
             )
         )
-        if not self.options:
-            # exception occurred before args were parsed
-            return False  # propagate exception further
 
         run_mode = RunMode(self.options.subparser_name)
 
