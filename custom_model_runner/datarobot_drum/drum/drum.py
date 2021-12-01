@@ -10,6 +10,7 @@ import json
 import logging
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -818,7 +819,9 @@ class CMRunner:
         in_docker_fit_target_filename = "/opt/fit_target.csv"
         in_docker_fit_row_weights_filename = "/opt/fit_row_weights.csv"
 
-        docker_cmd = "docker run --rm --entrypoint '' --interactive --user $(id -u):$(id -g)"
+        docker_cmd = "docker run --rm --entrypoint '' --interactive --user {}:{}".format(
+            os.getuid(), os.getgid()
+        )
         docker_cmd_args = ' -v "{}":{}'.format(options.code_dir, in_docker_model)
 
         in_docker_cmd_list = raw_arguments
@@ -903,7 +906,7 @@ class CMRunner:
                     )
                 if options.target and ArgumentsOptions.TARGET in in_docker_cmd_list:
                     DrumUtils.replace_cmd_argument_value(
-                        in_docker_cmd_list, ArgumentsOptions.TARGET, f'"{options.target}"'
+                        in_docker_cmd_list, ArgumentsOptions.TARGET, f"{options.target}"
                     )
                 if options.row_weights_csv:
                     fit_row_weights_filename = os.path.realpath(options.row_weights_csv)
@@ -916,16 +919,16 @@ class CMRunner:
                         in_docker_fit_row_weights_filename,
                     )
 
-        docker_cmd += " {} {} {}".format(
-            docker_cmd_args, options.docker, " ".join(in_docker_cmd_list)
-        )
+        docker_cmd += " {} {}".format(docker_cmd_args, options.docker)
+        docker_cmd = shlex.split(docker_cmd)
+        docker_cmd += in_docker_cmd_list
 
-        self._print_verbose("docker command: [{}]".format(docker_cmd))
+        self._print_verbose("docker command: <{}>".format(docker_cmd))
         return docker_cmd
 
     def _run_inside_docker(self, options, run_mode, raw_arguments):
         self._check_artifacts_and_get_run_language()
-        docker_cmd = self._prepare_docker_command(options, run_mode, raw_arguments)
+        docker_cmd_lst = self._prepare_docker_command(options, run_mode, raw_arguments)
 
         self._print_verbose("Checking DRUM version in container...")
         result = subprocess.run(
@@ -962,7 +965,7 @@ class CMRunner:
                 "Host DRUM version matches container DRUM version: {}".format(host_drum_version)
             )
         self._print_verbose("-" * 20)
-        p = subprocess.Popen(docker_cmd, shell=True)
+        p = subprocess.Popen(docker_cmd_lst)
         try:
             retcode = p.wait()
         except KeyboardInterrupt:
