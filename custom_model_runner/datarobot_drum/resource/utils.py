@@ -7,6 +7,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import os
 import glob
 import shutil
+import shlex
 import subprocess
 
 
@@ -88,18 +89,20 @@ def _create_custom_model_dir(
 
 
 def _exec_shell_cmd(
-    cmd, err_msg, assert_if_fail=True, process_obj_holder=None, env=os.environ, verbose=True
+    cmd, err_msg, assert_if_fail=True, process_obj_holder=None, env=os.environ, verbose=True,
 ):
     """
     Wrapper used by tests and validation to run shell command.
     Can assert that the command does not fail (usually used for tests)
     or return process, stdout and stderr
     """
+    if isinstance(cmd, str):
+        cmd = shlex.split(cmd)
+
     p = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        shell=True,
         env=env,
         universal_newlines=True,
         encoding="utf-8",
