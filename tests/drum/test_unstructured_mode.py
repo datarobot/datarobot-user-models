@@ -267,7 +267,9 @@ class TestUnstructuredMode:
                 # sending binary data
                 for ct in ["application/octet-stream;", "application/x-www-urlencoded;"]:
                     headers = {"Content-Type": ct}
-                    response = requests.post(url=url, data=data_bytes, params=params, headers=headers)
+                    response = requests.post(
+                        url=url, data=data_bytes, params=params, headers=headers
+                    )
                     assert response.ok
                     content_type_header = response.headers["Content-Type"]
                     mimetype, content_type_params_dict = werkzeug.http.parse_options_header(
