@@ -493,7 +493,7 @@ class TestInference:
                 files["X.colnames"] = open(input_dataset.replace(".mtx", ".columns"))
 
             if use_arrow:
-                files["arrow_version"] = ".2"
+                files["arrow_version"] = "0.20"
 
             response = requests.post(run.url_server_address + "/transform/", files=files)
             assert response.ok
