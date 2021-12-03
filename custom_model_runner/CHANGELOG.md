@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Current
 
+#### [1.6.4] - 2021-12-03
+##### Added
+##### Fixed
+- Refactor subprocess.Popen() to call command without shell
+- Fix numeric class labels for R tasks
+
 #### [1.6.3] - 2021-11-16
 ##### Added
 ##### Fixed
