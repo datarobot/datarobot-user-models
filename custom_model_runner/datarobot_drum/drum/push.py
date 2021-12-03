@@ -13,9 +13,8 @@ import datarobot as dr_client
 from datarobot_drum.drum.common import (
     get_metadata,
     validate_config_fields,
-    ModelMetadataKeys,
 )
-from datarobot_drum.drum.enum import RunMode, TargetType
+from datarobot_drum.drum.enum import RunMode, TargetType, ModelMetadataKeys
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 DR_LINK_FORMAT = "{}/model-registry/custom-models/{}"

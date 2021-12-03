@@ -4,22 +4,30 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import json
 import logging
 import os
+import re
 import sys
+from typing import Dict
 from typing import Optional as PythonTypingOptional
 
 from contextlib import contextmanager
 from strictyaml import Bool, Int, Map, Optional, Str, load, YAMLError, Seq, Any
 from pathlib import Path
+import six
+import trafaret as t
 
 from datarobot_drum.drum.enum import (
     MODEL_CONFIG_FILENAME,
+    ModelMetadataKeys,
+    ModelMetadataHyperParamTypes,
     PredictionServerMimetypes,
     TargetType,
     PayloadFormat,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.model_metadata import HyperParameterTrafaret
 
 from datarobot_drum.drum.typeschema_validation import (
     get_type_schema_yaml_validator,
@@ -66,24 +74,6 @@ def get_metadata(options):
     return options.model_config
 
 
-class ModelMetadataKeys(object):
-    NAME = "name"
-    TYPE = "type"
-    TARGET_TYPE = "targetType"
-    ENVIRONMENT_ID = "environmentID"
-    VALIDATION = "validation"
-    MODEL_ID = "modelID"
-    DESCRIPTION = "description"
-    MAJOR_VERSION = "majorVersion"
-    INFERENCE_MODEL = "inferenceModel"
-    TRAINING_MODEL = "trainingModel"
-    HYPERPARAMETERS = "hyperparameters"
-    VALIDATION_SCHEMA = "typeSchema"
-    # customPredictor section is not used by DRUM,
-    # it is a place holder if user wants to add some fields and read them on his own
-    CUSTOM_PREDICTOR = "customPredictor"
-
-
 MODEL_CONFIG_SCHEMA = Map(
     {
         ModelMetadataKeys.NAME: Str(),
@@ -125,6 +115,78 @@ def validate_config_fields(model_config, *fields):
             "The following keys are missing in {} file.\n"
             "Missing keys: {}".format(MODEL_CONFIG_FILENAME, missing_sections)
         )
+
+
+def validate_model_metadata_hyperparameter(hyper_params: Dict) -> None:
+    """Validate hyperparameters section in model metadata yaml.
+
+    Parameters
+    ----------
+    hyper_params:
+        Dictionray representative of hyperparameter section.
+
+    Raises
+    ------
+    DrumCommonException
+        Raised when validation fails.
+    """
+
+    def _validate_param_name(param_name: str):
+        allowed_char_re = r"[a-zA-Z]+[a-zA-Z_]*[a-zA-Z]+$"
+        if re.match(allowed_char_re, param_name) is None:
+            error_msg = (
+                "Invalid param name: {param_name}. "
+                "Only ENG characters and underscore are allowed. The parameter name should not start or"
+                " end with the underscore."
+            )
+            error_msg = error_msg.format(param_name=param_name)
+            raise DrumCommonException(error_msg)
+
+    def _validate_numeric_parameter(param: Dict):
+        param_name = param["name"]
+        param_type = param["type"]
+        min_val = param["min"]
+        max_val = param["max"]
+        default_val = param.get("default")
+        if min_val >= max_val:
+            error_msg = "Invalid {} parameter {}: min must be greater than max".format(
+                param_type, param_name
+            )
+            raise DrumCommonException(error_msg)
+        if default_val:
+            if default_val > max_val or default_val < min_val:
+                error_msg = "Invalid {} parameter {}: values must be between ({}, {})".format(
+                    param_type, param_name, min_val, max_val
+                )
+                raise DrumCommonException(error_msg)
+
+    def _validate_multi_parameter(multi_params: Dict):
+        param_name = multi_params["name"]
+        multi_params = multi_params["values"]
+        for param_type, param in six.iteritems(multi_params):
+            _param = dict(
+                {"name": "{}__{}".format(param_name, param_type), "type": param_type}, **param
+            )
+            if param_type in {"int", "float"}:
+                _validate_numeric_parameter(_param)
+
+    try:
+        for param in hyper_params:
+            param_type = param.get("type")
+            if not param_type:
+                raise DrumCommonException('"type": "is required"')
+            if param_type not in ModelMetadataHyperParamTypes.all():
+                raise DrumCommonException({"type": "is invalid"})
+            HyperParameterTrafaret[param_type].check(param)
+            if param_type == ModelMetadataHyperParamTypes.INT:
+                _validate_numeric_parameter(param)
+            elif param_type == ModelMetadataHyperParamTypes.FLOAT:
+                _validate_numeric_parameter(param)
+            elif param_type == ModelMetadataHyperParamTypes.MULTI:
+                _validate_multi_parameter(param)
+            _validate_param_name(param["name"])
+    except t.DataError as e:
+        raise DrumCommonException(json.dumps(e.as_dict(value=True)))
 
 
 def read_model_metadata_yaml(code_dir) -> PythonTypingOptional[dict]:
@@ -184,6 +246,10 @@ def read_model_metadata_yaml(code_dir) -> PythonTypingOptional[dict]:
                             )
                         model_config[ModelMetadataKeys.INFERENCE_MODEL]["classLabels"] = labels
                         model_config[ModelMetadataKeys.INFERENCE_MODEL]["classLabelsFile"] = None
+
+        if model_config.get(ModelMetadataKeys.HYPERPARAMETERS):
+            hyper_params = model_config[ModelMetadataKeys.HYPERPARAMETERS]
+            validate_model_metadata_hyperparameter(hyper_params)
 
         return model_config
     return None
