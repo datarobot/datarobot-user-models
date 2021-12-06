@@ -159,8 +159,12 @@ class PredictMixin:
 
         arrow_key = "arrow_version"
         arrow_version = request.files.get(arrow_key)
+        # TODO: check implementation of how arrow_version is passed
+        # Currently it is passed as a file content,
+        # so arrow_version is of type werkzeug.datastructures.FileStorage,
+        # that's why io.BytesIO getvalue is called on it.
         if arrow_version is not None:
-            arrow_version = eval(arrow_version.getvalue())
+            arrow_version = arrow_version.getvalue().decode("utf-8")
         use_arrow = arrow_version is not None
 
         try:
@@ -329,7 +333,7 @@ class PredictMixin:
         response_status = HTTP_200_OK
         kwargs_params = {}
 
-        data = request.data
+        data = request.get_data()
         mimetype, charset = PredictMixin._validate_content_type_header(request.content_type)
 
         data_binary_or_text, mimetype, charset = _resolve_incoming_unstructured_data(

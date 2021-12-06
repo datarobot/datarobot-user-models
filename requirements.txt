@@ -8,7 +8,7 @@ requests_toolbelt
 xgboost==1.1.1
 torch==1.6.0
 grpcio==1.34.0
-tensorflow==2.5.1
+tensorflow==2.5.2
 Pillow==8.3.2
 pypmml==0.9.6
 rpy2==3.3.6

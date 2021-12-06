@@ -35,7 +35,7 @@ class TestDrumHelp:
         assert "usage: drum" in str(stdo)
 
     def test_drum_bad_subparser(self):
-        cmd = ("{} some_command".format(ArgumentsOptions.MAIN_COMMAND),)
+        cmd = "{} some_command".format(ArgumentsOptions.MAIN_COMMAND)
         _, _, stde = _exec_shell_cmd(
             cmd,
             "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
