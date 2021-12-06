@@ -12,7 +12,6 @@ from typing import List, Optional, Any, Dict
 import pandas as pd
 import numpy as np
 from sklearn.pipeline import Pipeline
-import torch
 
 from model_utils import (
     fit_image_classifier_pipeline,
