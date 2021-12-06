@@ -47,7 +47,8 @@ from datarobot_drum.drum.enum import (
     RunMode,
     RunLanguage,
     TargetType,
-    TemplateType, ModelMetadataKeys,
+    TemplateType,
+    ModelMetadataKeys,
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumPredException
