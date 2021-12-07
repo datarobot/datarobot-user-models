@@ -16,6 +16,8 @@ import subprocess
 import sys
 import tempfile
 import time
+from typing import Dict
+from typing import Union
 from distutils.dir_util import copy_tree
 from pathlib import Path
 from progress.spinner import Spinner
@@ -74,6 +76,11 @@ class CMRunner:
         self.runtime = runtime
         self.options = runtime.options
         self.options.model_config = read_model_metadata_yaml(self.options.code_dir)
+        self.options.default_parameter_values = (
+            get_default_parameter_values(self.options.model_config)
+            if self.options.model_config
+            else {}
+        )
         self.logger = CMRunner._config_logger(runtime.options)
         self.verbose = runtime.options.verbose
         self.run_mode = RunMode(runtime.options.subparser_name)
@@ -718,6 +725,7 @@ class CMRunner:
             "num_rows": options.num_rows,
             "sparse_column_file": options.sparse_column_file,
             "parameter_file": options.parameter_file,
+            "default_parameter_values": options.default_parameter_values,
         }
 
         functional_pipeline_str = DrumUtils.render_file(functional_pipeline_filepath, replace_data)
@@ -1164,3 +1172,12 @@ def create_custom_inference_model_folder(code_dir, output_dir):
         fp.write(readme)
     if files_in_output & copied_files:
         print("Files were overwritten: {}".format(files_in_output & copied_files))
+
+
+def get_default_parameter_values(model_metadata: Dict) -> Dict[str, Union[int, float, str]]:
+    hyper_param_config = model_metadata.get(ModelMetadataKeys.HYPERPARAMETERS, {})
+    default_params = {}
+    for param_config in hyper_param_config:
+        if param_config.get("default"):
+            default_params[param_config["name"]] = param_config["default"]
+    return default_params
