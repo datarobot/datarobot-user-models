@@ -3,5 +3,6 @@
 
 import os
 from datarobot_drum.drum.main import main
-main()
 
+if __name__ == "__main__":
+    main()
