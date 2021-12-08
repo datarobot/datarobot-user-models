@@ -24,9 +24,21 @@ PARAM_SELECT_NUM_VALUES_MAX_LENGTH = 24
 PARAM_STRING_MAX_LENGTH = 1024
 
 
+class ParamNameTrafaret(t.String):
+    def __init__(self, *args, **kw_args):
+        super(ParamNameTrafaret, self).__init__(*args, max_length=PARAM_NAME_MAX_LENGTH, **kw_args)
+
+    def check_and_return(self, value):
+        try:
+            return super(ParamNameTrafaret, self).check_and_return(value)
+        except t.DataError as e:
+            error_msg = "Invalid parameter name: {}".format(str(e))
+            raise t.DataError(error_msg)
+
+
 IntHyperParameterTrafaret = t.Dict(
     {
-        t.Key("name"): t.String(max_length=PARAM_NAME_MAX_LENGTH),
+        t.Key("name"): ParamNameTrafaret(),
         t.Key("type"): t.Enum("int"),
         t.Key("min"): t.Int,
         t.Key("max"): t.Int,
@@ -36,7 +48,7 @@ IntHyperParameterTrafaret = t.Dict(
 
 FloatHyperParameterTrafaret = t.Dict(
     {
-        t.Key("name"): t.String(max_length=PARAM_NAME_MAX_LENGTH),
+        t.Key("name"): ParamNameTrafaret(),
         t.Key("type"): t.Enum("float"),
         t.Key("min"): t.Float,
         t.Key("max"): t.Float,
@@ -46,7 +58,7 @@ FloatHyperParameterTrafaret = t.Dict(
 
 StringHyperParameterTrafaret = t.Dict(
     {
-        t.Key("name"): t.String(max_length=PARAM_NAME_MAX_LENGTH),
+        t.Key("name"): ParamNameTrafaret(),
         t.Key("type"): t.Enum("string"),
         t.Key("default", optional=True): t.String(
             max_length=PARAM_STRING_MAX_LENGTH, allow_blank=True
@@ -56,7 +68,7 @@ StringHyperParameterTrafaret = t.Dict(
 
 SelectHyperParameterTrafaret = t.Dict(
     {
-        t.Key("name"): t.String(max_length=PARAM_NAME_MAX_LENGTH),
+        t.Key("name"): ParamNameTrafaret(),
         t.Key("type"): t.Enum("select"),
         t.Key("values"): t.List(
             t.String(max_length=PARAM_SELECT_VALUE_MAX_LENGTH, allow_blank=False),
@@ -70,7 +82,7 @@ SelectHyperParameterTrafaret = t.Dict(
 # Multi only supports int, float, or select
 MultiHyperParameterTrafaret = t.Dict(
     {
-        t.Key("name"): t.String(max_length=PARAM_NAME_MAX_LENGTH),
+        t.Key("name"): ParamNameTrafaret(),
         t.Key("type"): t.Enum("multi"),
         t.Key("values"): t.Dict(
             {

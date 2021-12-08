@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Copyright 2021 DataRobot, Inc. and its affiliates.
 All rights reserved.
@@ -9,7 +10,6 @@ import glob
 import itertools
 import json
 import os
-import pdb
 import socket
 import tempfile
 import time
@@ -44,6 +44,7 @@ from datarobot_drum.drum.enum import (
     RunLanguage,
     RunMode,
     ModelMetadataKeys,
+    ModelMetadataMultiHyperParamTypes,
 )
 from datarobot_drum.drum.drum import (
     CMRunner,
@@ -454,11 +455,50 @@ def test_yaml_metadata_missing_fields(tmp_path, config_yaml, request, test_case_
     ],
 )
 @pytest.mark.parametrize(
+    "param_name_value",
+    [
+        "param",
+        "a" * (PARAM_NAME_MAX_LENGTH),
+        "a" * (PARAM_NAME_MAX_LENGTH - 1),
+        "param_param",
+        "param__param",
+    ],
+)
+def test_yaml_metadata__hyper_param_valid_name(
+    request, param_name_value, hyper_param_metadata, tmp_path, basic_model_metadata_yaml,
+):
+    hyper_param_metadata = request.getfixturevalue(hyper_param_metadata)
+    model_metadata = basic_model_metadata_yaml
+    hyper_param_metadata[ModelMetadataKeys.NAME] = param_name_value
+    model_metadata[ModelMetadataKeys.HYPERPARAMETERS] = [hyper_param_metadata]
+
+    with open(os.path.join(tmp_path, MODEL_CONFIG_FILENAME), mode="w") as f:
+        yaml.dump(model_metadata, f)
+        model_metadata = read_model_metadata_yaml(tmp_path)
+        assert len(model_metadata[ModelMetadataKeys.HYPERPARAMETERS]) == 1
+        assert model_metadata[ModelMetadataKeys.HYPERPARAMETERS][0]["name"] == param_name_value
+
+
+@pytest.mark.parametrize(
+    "hyper_param_metadata",
+    [
+        "complete_int_hyper_param",
+        "complete_float_hyper_param",
+        "complete_string_hyper_param",
+        "complete_select_hyper_param",
+        "complete_multi_hyper_param",
+    ],
+)
+@pytest.mark.parametrize(
     "param_name_value, error",
     [
-        ("_param", "The parameter name should not start or end with the underscore.",),
-        ("param_", "The parameter name should not start or end with the underscore.",),
-        ("1" * (PARAM_NAME_MAX_LENGTH + 1), "String is longer than 64 characters",),
+        ("_param", "The parameter name should start or end with the Eng character."),
+        ("param_", "The parameter name should start or end with the Eng character."),
+        (
+            "1" * (PARAM_NAME_MAX_LENGTH + 1),
+            "Invalid parameter name: String is longer than 64 characters",
+        ),
+        ("特徴", "Only Eng characters and underscore are allowed."),
     ],
 )
 def test_yaml_metadata__hyper_param_invalid_name(
@@ -546,7 +586,7 @@ def test_yaml_metadata__int_hyper_param_min_max(
         else:
             with pytest.raises(
                 DrumCommonException,
-                match="Invalid int parameter param_int: min must be greater than max",
+                match="Invalid int parameter param_int: min must be greater than or equal to max",
             ):
                 read_model_metadata_yaml(tmp_path)
 
@@ -579,7 +619,7 @@ def test_yaml_metadata__int_hyper_param_invalid_default_value(
         yaml.dump(model_metadata, f)
         with pytest.raises(
             DrumCommonException,
-            match="Invalid int parameter param_int: values must be between \(1, 2\)",
+            match="Invalid int parameter param_int: values must be between \[1, 2\]",
         ):
             read_model_metadata_yaml(tmp_path)
 
@@ -630,7 +670,7 @@ def test_yaml_metadata__float_hyper_param_min_max(
         else:
             with pytest.raises(
                 DrumCommonException,
-                match="Invalid float parameter param_float: min must be greater than max",
+                match="Invalid float parameter param_float: min must be greater than or equal to max",
             ):
                 read_model_metadata_yaml(tmp_path)
 
@@ -650,7 +690,7 @@ def test_yaml_metadata__float_hyper_param_invalid_default_value(
         yaml.dump(model_metadata, f)
         with pytest.raises(
             DrumCommonException,
-            match="Invalid float parameter param_float: values must be between \(1.0, 2.0\)",
+            match="Invalid float parameter param_float: values must be between \[1.0, 2.0\]",
         ):
             read_model_metadata_yaml(tmp_path)
 
@@ -724,6 +764,26 @@ def test_yaml_metadata__multi_hyper_param_optional_fields(
         model_metadata = read_model_metadata_yaml(tmp_path)
         assert len(model_metadata[ModelMetadataKeys.HYPERPARAMETERS]) == 1
         assert optional_field not in model_metadata[ModelMetadataKeys.HYPERPARAMETERS][0]
+
+
+@pytest.mark.parametrize(
+    "optional_component_param_keys",
+    itertools.combinations(ModelMetadataMultiHyperParamTypes.all(), 1),
+)
+def test_yaml_metadata__multi_hyper_param_optional_component_params(
+    optional_component_param_keys, complete_multi_hyper_param, tmp_path, basic_model_metadata_yaml,
+):
+    model_metadata = basic_model_metadata_yaml
+    for param_key in optional_component_param_keys:
+        complete_multi_hyper_param["values"].pop(param_key)
+    model_metadata[ModelMetadataKeys.HYPERPARAMETERS] = [complete_multi_hyper_param]
+
+    with open(os.path.join(tmp_path, MODEL_CONFIG_FILENAME), mode="w") as f:
+        yaml.dump(model_metadata, f)
+        model_metadata = read_model_metadata_yaml(tmp_path)
+        assert ModelMetadataMultiHyperParamTypes.all() - set(optional_component_param_keys) == set(
+            model_metadata[ModelMetadataKeys.HYPERPARAMETERS][0]["values"].keys()
+        )
 
 
 @pytest.mark.parametrize("required_field", ["name", "type", "values"])

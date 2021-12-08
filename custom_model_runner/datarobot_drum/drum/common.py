@@ -9,7 +9,7 @@ import logging
 import os
 import re
 import sys
-from typing import Dict
+from typing import Dict, List
 from typing import Optional as PythonTypingOptional
 
 from contextlib import contextmanager
@@ -117,13 +117,13 @@ def validate_config_fields(model_config, *fields):
         )
 
 
-def validate_model_metadata_hyperparameter(hyper_params: Dict) -> None:
+def validate_model_metadata_hyperparameter(hyper_params: List) -> None:
     """Validate hyperparameters section in model metadata yaml.
 
     Parameters
     ----------
     hyper_params:
-        Dictionray representative of hyperparameter section.
+        A list of hyperparameter definitions.
 
     Raises
     ------
@@ -136,8 +136,8 @@ def validate_model_metadata_hyperparameter(hyper_params: Dict) -> None:
         if re.match(allowed_char_re, param_name) is None:
             error_msg = (
                 "Invalid param name: {param_name}. "
-                "Only ENG characters and underscore are allowed. The parameter name should not start or"
-                " end with the underscore."
+                "Only Eng characters and underscore are allowed. The parameter name should start or end with the Eng "
+                "character."
             )
             error_msg = error_msg.format(param_name=param_name)
             raise DrumCommonException(error_msg)
@@ -149,13 +149,13 @@ def validate_model_metadata_hyperparameter(hyper_params: Dict) -> None:
         max_val = param["max"]
         default_val = param.get("default")
         if min_val >= max_val:
-            error_msg = "Invalid {} parameter {}: min must be greater than max".format(
+            error_msg = "Invalid {} parameter {}: min must be greater than or equal to max".format(
                 param_type, param_name
             )
             raise DrumCommonException(error_msg)
         if default_val:
             if default_val > max_val or default_val < min_val:
-                error_msg = "Invalid {} parameter {}: values must be between ({}, {})".format(
+                error_msg = "Invalid {} parameter {}: values must be between [{}, {}]".format(
                     param_type, param_name, min_val, max_val
                 )
                 raise DrumCommonException(error_msg)
@@ -164,10 +164,10 @@ def validate_model_metadata_hyperparameter(hyper_params: Dict) -> None:
         param_name = multi_params["name"]
         multi_params = multi_params["values"]
         for param_type, param in six.iteritems(multi_params):
-            _param = dict(
-                {"name": "{}__{}".format(param_name, param_type), "type": param_type}, **param
-            )
             if param_type in {"int", "float"}:
+                _param = dict(
+                    {"name": "{}__{}".format(param_name, param_type), "type": param_type}, **param
+                )
                 _validate_numeric_parameter(_param)
 
     try:
@@ -247,8 +247,8 @@ def read_model_metadata_yaml(code_dir) -> PythonTypingOptional[dict]:
                         model_config[ModelMetadataKeys.INFERENCE_MODEL]["classLabels"] = labels
                         model_config[ModelMetadataKeys.INFERENCE_MODEL]["classLabelsFile"] = None
 
-        if model_config.get(ModelMetadataKeys.HYPERPARAMETERS):
-            hyper_params = model_config[ModelMetadataKeys.HYPERPARAMETERS]
+        hyper_params = model_config.get(ModelMetadataKeys.HYPERPARAMETERS)
+        if hyper_params:
             validate_model_metadata_hyperparameter(hyper_params)
 
         return model_config

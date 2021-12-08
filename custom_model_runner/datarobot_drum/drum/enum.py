@@ -354,3 +354,17 @@ class ModelMetadataHyperParamTypes(object):
             cls.SELECT,
             cls.MULTI,
         }
+
+
+class ModelMetadataMultiHyperParamTypes(object):
+    INT = ModelMetadataHyperParamTypes.INT
+    FLOAT = ModelMetadataHyperParamTypes.FLOAT
+    SELECT = ModelMetadataHyperParamTypes.SELECT
+
+    @classmethod
+    def all(cls):
+        return {
+            cls.INT,
+            cls.FLOAT,
+            cls.SELECT,
+        }
