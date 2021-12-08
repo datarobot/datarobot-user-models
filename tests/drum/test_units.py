@@ -586,7 +586,7 @@ def test_yaml_metadata__int_hyper_param_min_max(
         else:
             with pytest.raises(
                 DrumCommonException,
-                match="Invalid int parameter param_int: min must be greater than or equal to max",
+                match="Invalid int parameter param_int: max must be greater than or equal to min",
             ):
                 read_model_metadata_yaml(tmp_path)
 
@@ -670,7 +670,7 @@ def test_yaml_metadata__float_hyper_param_min_max(
         else:
             with pytest.raises(
                 DrumCommonException,
-                match="Invalid float parameter param_float: min must be greater than or equal to max",
+                match="Invalid float parameter param_float: max must be greater than or equal to min",
             ):
                 read_model_metadata_yaml(tmp_path)
 
