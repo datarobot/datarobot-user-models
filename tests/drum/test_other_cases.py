@@ -498,6 +498,6 @@ class TestOtherCases:
             runtime.options = runtime_options
             with pytest.raises(
                 DrumCommonException,
-                match="Invalid int parameter param_int: max must be greater than or equal to min",
+                match="Invalid int parameter param_int: max must be greater than min",
             ) as ex:
                 CMRunner(runtime)

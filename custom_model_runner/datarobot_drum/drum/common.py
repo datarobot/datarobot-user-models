@@ -149,7 +149,7 @@ def validate_model_metadata_hyperparameter(hyper_params: List) -> None:
         max_val = param["max"]
         default_val = param.get("default")
         if min_val >= max_val:
-            error_msg = "Invalid {} parameter {}: max must be greater than or equal to min".format(
+            error_msg = "Invalid {} parameter {}: max must be greater than min".format(
                 param_type, param_name
             )
             raise DrumCommonException(error_msg)
