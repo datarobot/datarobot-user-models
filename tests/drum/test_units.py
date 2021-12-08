@@ -1552,9 +1552,3 @@ def test_cmrunner_init_default_parameter_values(
                     '"defaultParameterValues": {"penalty": "l2", "dual": "0", "tol": "1e-4", "solver":'
                     ' "lbfgs"}'
                 ) not in pipeline_str
-
-
-def test_test():
-    from datarobot_drum.resource.components.Python.python_fit.python_fit import PythonFit
-
-    PythonFit()
