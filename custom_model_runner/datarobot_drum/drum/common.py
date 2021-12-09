@@ -137,8 +137,8 @@ def validate_model_metadata_hyperparameter(hyper_params: List) -> None:
         if re.match(allowed_char_re, param_name) is None:
             error_msg = (
                 "Invalid param name: {param_name}. "
-                "Only Eng characters and underscore are allowed. The parameter name should start or end with the Eng "
-                "character."
+                "Only Eng characters and underscore are allowed. The parameter name should not start or end with the "
+                "underscore."
             )
             error_msg = error_msg.format(param_name=param_name)
             raise DrumCommonException(error_msg)

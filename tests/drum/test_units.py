@@ -493,8 +493,8 @@ def test_yaml_metadata__hyper_param_valid_name(
 @pytest.mark.parametrize(
     "param_name_value, error",
     [
-        ("_param", "The parameter name should start or end with the Eng character."),
-        ("param_", "The parameter name should start or end with the Eng character."),
+        ("_param", "The parameter name should not start or end with the underscore."),
+        ("param_", "The parameter name should not start or end with the underscore."),
         (
             "1" * (PARAM_NAME_MAX_LENGTH + 1),
             "Invalid parameter name: String is longer than 64 characters",
@@ -768,8 +768,7 @@ def test_yaml_metadata__multi_hyper_param_optional_fields(
 
 
 @pytest.mark.parametrize(
-    "optional_component_param_key",
-    ModelMetadataMultiHyperParamTypes.all(),
+    "optional_component_param_key", ModelMetadataMultiHyperParamTypes.all(),
 )
 def test_yaml_metadata__multi_hyper_param_optional_component_params(
     optional_component_param_key, complete_multi_hyper_param, tmp_path, basic_model_metadata_yaml,
