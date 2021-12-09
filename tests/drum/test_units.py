@@ -458,6 +458,7 @@ def test_yaml_metadata_missing_fields(tmp_path, config_yaml, request, test_case_
     "param_name_value",
     [
         "param",
+        "a",
         "a" * (PARAM_NAME_MAX_LENGTH),
         "a" * (PARAM_NAME_MAX_LENGTH - 1),
         "param_param",
@@ -767,21 +768,22 @@ def test_yaml_metadata__multi_hyper_param_optional_fields(
 
 
 @pytest.mark.parametrize(
-    "optional_component_param_keys",
-    itertools.combinations(ModelMetadataMultiHyperParamTypes.all(), 1),
+    "optional_component_param_key",
+    ModelMetadataMultiHyperParamTypes.all(),
 )
 def test_yaml_metadata__multi_hyper_param_optional_component_params(
-    optional_component_param_keys, complete_multi_hyper_param, tmp_path, basic_model_metadata_yaml,
+    optional_component_param_key, complete_multi_hyper_param, tmp_path, basic_model_metadata_yaml,
 ):
+    """This test verifies the component parameter under the multi-type hyper parameter is default.
+    """
     model_metadata = basic_model_metadata_yaml
-    for param_key in optional_component_param_keys:
-        complete_multi_hyper_param["values"].pop(param_key)
+    complete_multi_hyper_param["values"].pop(optional_component_param_key)
     model_metadata[ModelMetadataKeys.HYPERPARAMETERS] = [complete_multi_hyper_param]
 
     with open(os.path.join(tmp_path, MODEL_CONFIG_FILENAME), mode="w") as f:
         yaml.dump(model_metadata, f)
         model_metadata = read_model_metadata_yaml(tmp_path)
-        assert ModelMetadataMultiHyperParamTypes.all() - set(optional_component_param_keys) == set(
+        assert ModelMetadataMultiHyperParamTypes.all() - set([optional_component_param_key]) == set(
             model_metadata[ModelMetadataKeys.HYPERPARAMETERS][0]["values"].keys()
         )
 

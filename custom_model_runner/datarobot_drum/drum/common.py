@@ -132,7 +132,8 @@ def validate_model_metadata_hyperparameter(hyper_params: List) -> None:
     """
 
     def _validate_param_name(param_name: str):
-        allowed_char_re = r"[a-zA-Z]+[a-zA-Z_]*[a-zA-Z]+$"
+        allowed_char_re = "([a-zA-Z]+[a-zA-Z_]*[a-zA-Z]+|[a-zA-Z]+)$"
+
         if re.match(allowed_char_re, param_name) is None:
             error_msg = (
                 "Invalid param name: {param_name}. "
