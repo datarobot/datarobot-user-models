@@ -20,7 +20,6 @@ from model_utils import (
 )
 
 
-
 def fit(
     X: pd.DataFrame,
     y: pd.Series,
