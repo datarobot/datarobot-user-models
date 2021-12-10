@@ -14,6 +14,7 @@ from tensorflow.keras.layers import GlobalAveragePooling2D  # CNN layers
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.applications import MobileNetV3Large
+
 # TODO: can remove this, no longer needed in v3
 from tensorflow.keras.applications.mobilenet_v3 import preprocess_input
 
@@ -151,7 +152,9 @@ def get_image_augmentation_gen(X_data, y_data, bs, seed) -> Iterator[tuple]:
 def get_pretrained_base_model() -> Model:
     """ A base pretrained model to build on top of """
     weights_file = "mobilenetv3_large.h5"
-    pretrained_model = MobileNetV3Large(include_top=False, input_shape=IMG_SHAPE, weights=weights_file)
+    pretrained_model = MobileNetV3Large(
+        include_top=False, input_shape=IMG_SHAPE, weights=weights_file
+    )
     pretrained_model.trainable = False
     return pretrained_model
 
