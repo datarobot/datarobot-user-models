@@ -13,7 +13,7 @@ from tensorflow.keras.layers import Dense  # core layers
 from tensorflow.keras.layers import GlobalAveragePooling2D  # CNN layers
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.applications import MobileNetV3Large
 from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
 
 # scikit-learn imports
@@ -31,13 +31,14 @@ import base64
 import h5py
 from PIL import Image
 from pathlib import Path
+import os
 
 from typing import List, Iterator
 
 
 # define constants
 
-IMG_SIZE = 150
+IMG_SIZE = 224
 IMG_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
 EPOCHS = 100
 BATCH_SIZE = 32
@@ -111,15 +112,6 @@ def pretrained_preprocess_input(img_arr: np.ndarray) -> np.ndarray:
     return preprocess_input(img_arr)
 
 
-def get_pretrained_base_model() -> Model:
-    """ A base pretrained model to build on top of """
-    from tensorflow.keras.applications import MobileNetV2
-
-    pretrained_model = MobileNetV2(include_top=False, input_shape=IMG_SHAPE, classes=2)
-    pretrained_model.trainable = False
-    return pretrained_model
-
-
 def reshape_numpy_array(data_series: pd.Series) -> np.ndarray:
     """ Convert pd.Series to numpy array and reshape it too """
     return np.asarray(data_series.to_list()).reshape(-1, *IMG_SHAPE)
@@ -156,9 +148,10 @@ def get_image_augmentation_gen(X_data, y_data, bs, seed) -> Iterator[tuple]:
     return image_aug_generator
 
 
-def get_pretrained_base_model() -> Model:
+def get_pretrained_base_model(file_path: str) -> Model:
     """ A base pretrained model to build on top of """
-    pretrained_model = MobileNetV2(include_top=False, input_shape=IMG_SHAPE, classes=NUM_CLASSES)
+    weights_file = "mobilenetv3_large.h5"
+    pretrained_model = MobileNetV3Large(include_top=False, input_shape=IMG_SHAPE, weights=weights_file)
     pretrained_model.trainable = False
     return pretrained_model
 
@@ -318,7 +311,7 @@ def deserialize_estimator_pipeline(input_dir: str) -> Pipeline:
     prep_pipeline.steps.append(
         [
             "feature_extraction",
-            FunctionTransformer(get_pretrained_base_model().predict, validate=False),
+            FunctionTransformer(get_pretrained_base_model(joblib_file_path).predict, validate=False),
         ]
     )
     with h5py.File(model, mode="r") as fp:
@@ -329,7 +322,7 @@ def deserialize_estimator_pipeline(input_dir: str) -> Pipeline:
 
 
 def fit_image_classifier_pipeline(
-    X: pd.DataFrame, y: pd.Series, class_order: List[str]
+    X: pd.DataFrame, y: pd.Series, class_order: List[str], output_dir: str
 ) -> Pipeline:
     """ Fit the estimator pipeline """
     X_train, X_test, y_train, y_test = get_transformed_train_test_split(X, y, class_order)
@@ -342,10 +335,10 @@ def fit_image_classifier_pipeline(
     test_gen = get_image_augmentation_gen(X_test_transformed, y_test, BATCH_SIZE, SEED)
 
     train_features, train_labels = extract_features(
-        train_gen, len(X_train_transformed), get_pretrained_base_model()
+        train_gen, len(X_train_transformed), get_pretrained_base_model(output_dir)
     )
     test_features, test_labels = extract_features(
-        test_gen, len(X_test_transformed), get_pretrained_base_model()
+        test_gen, len(X_test_transformed), get_pretrained_base_model(output_dir)
     )
 
     clf_model = create_image_binary_classification_model()

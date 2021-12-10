@@ -19,6 +19,7 @@ typeSchema:
       condition: IN # can be one of IN or NOT_IN
       value: # can be one or multiple of NUM, TXT, IMG, DATE, CAT, DATE_DURATION, COUNT_DICT, GEO
         - IMG
+        - NUM
 
     # specify how many columns the task requires
     - field: number_of_columns
