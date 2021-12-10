@@ -14,7 +14,8 @@ from tensorflow.keras.layers import GlobalAveragePooling2D  # CNN layers
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.applications import MobileNetV3Large
-from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+# TODO: can remove this, no longer needed in v3
+from tensorflow.keras.applications.mobilenet_v3 import preprocess_input
 
 # scikit-learn imports
 from sklearn.preprocessing import LabelBinarizer, label_binarize, FunctionTransformer
