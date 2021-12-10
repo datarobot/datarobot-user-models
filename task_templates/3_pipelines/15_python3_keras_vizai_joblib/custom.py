@@ -74,7 +74,7 @@ def fit(
         so that the trained object can be used during scoring.
     """
     if class_order:
-        fit_estimator = fit_image_classifier_pipeline(X, y, class_order, output_dir)
+        fit_estimator = fit_image_classifier_pipeline(X, y, class_order)
 
         # Dump the trained object [in this example - a trained PyTorch model]
         # into an artifact [in this example - artifact.joblib]
@@ -106,7 +106,6 @@ def load_model(input_dir: str) -> Pipeline:
     pipelined_model: Pipeline
         Estimator pipeline obj
     """
-    print(input_dir)
     return deserialize_estimator_pipeline(input_dir)
 
 

@@ -31,14 +31,13 @@ import base64
 import h5py
 from PIL import Image
 from pathlib import Path
-import os
 
 from typing import List, Iterator
 
 
 # define constants
 
-IMG_SIZE = 224
+IMG_SIZE = 150
 IMG_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
 EPOCHS = 100
 BATCH_SIZE = 32
@@ -148,7 +147,7 @@ def get_image_augmentation_gen(X_data, y_data, bs, seed) -> Iterator[tuple]:
     return image_aug_generator
 
 
-def get_pretrained_base_model(file_path: str) -> Model:
+def get_pretrained_base_model() -> Model:
     """ A base pretrained model to build on top of """
     weights_file = "mobilenetv3_large.h5"
     pretrained_model = MobileNetV3Large(include_top=False, input_shape=IMG_SHAPE, weights=weights_file)
@@ -166,6 +165,7 @@ def create_image_binary_classification_model() -> Model:
         Compiled binary classification model
     """
 
+    # ToDO make this a copy of what we do in DataRobot, i.e. make an actual Sigmoid
     model = Sequential()
     model.add(GlobalAveragePooling2D())
     model.add(Dense(1, activation="sigmoid"))
@@ -311,7 +311,7 @@ def deserialize_estimator_pipeline(input_dir: str) -> Pipeline:
     prep_pipeline.steps.append(
         [
             "feature_extraction",
-            FunctionTransformer(get_pretrained_base_model(joblib_file_path).predict, validate=False),
+            FunctionTransformer(get_pretrained_base_model().predict, validate=False),
         ]
     )
     with h5py.File(model, mode="r") as fp:
@@ -322,7 +322,7 @@ def deserialize_estimator_pipeline(input_dir: str) -> Pipeline:
 
 
 def fit_image_classifier_pipeline(
-    X: pd.DataFrame, y: pd.Series, class_order: List[str], output_dir: str
+    X: pd.DataFrame, y: pd.Series, class_order: List[str]
 ) -> Pipeline:
     """ Fit the estimator pipeline """
     X_train, X_test, y_train, y_test = get_transformed_train_test_split(X, y, class_order)
@@ -335,10 +335,10 @@ def fit_image_classifier_pipeline(
     test_gen = get_image_augmentation_gen(X_test_transformed, y_test, BATCH_SIZE, SEED)
 
     train_features, train_labels = extract_features(
-        train_gen, len(X_train_transformed), get_pretrained_base_model(output_dir)
+        train_gen, len(X_train_transformed), get_pretrained_base_model()
     )
     test_features, test_labels = extract_features(
-        test_gen, len(X_test_transformed), get_pretrained_base_model(output_dir)
+        test_gen, len(X_test_transformed), get_pretrained_base_model()
     )
 
     clf_model = create_image_binary_classification_model()
