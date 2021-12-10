@@ -49,6 +49,7 @@ from datarobot_drum.drum.enum import (
 from datarobot_drum.drum.drum import (
     CMRunner,
     create_custom_inference_model_folder,
+    get_default_parameter_values,
     output_in_code_dir,
     possibly_intuit_order,
 )
@@ -1488,6 +1489,119 @@ def test_binary_class_labels_from_target():
         assert '"positiveClassLabel": "Iris-setosa",' in pipeline_str
         assert '"negativeClassLabel": "Iris-versicolor",' in pipeline_str
         assert '"classLabels": null,' in pipeline_str
+
+
+@pytest.mark.parametrize(
+    "model_metadata, default_value",
+    [
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {"name": "param_name", "type": "int", "min": 0, "max": 1, "default": 1},
+                ],
+            },
+            1,
+        ),
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {"name": "param_name", "type": "int", "min": 0, "max": 1},
+                ],
+            },
+            0,
+        ),
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {"name": "param_name", "type": "float", "min": 0.0, "max": 1.0, "default": 1.0},
+                ],
+            },
+            1.0,
+        ),
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {"name": "param_name", "type": "float", "min": 0.0, "max": 1.0},
+                ],
+            },
+            0.0,
+        ),
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {"name": "param_name", "type": "string", "default": "string"},
+                ],
+            },
+            "string",
+        ),
+        ({ModelMetadataKeys.HYPERPARAMETERS: [{"name": "param_name", "type": "string"}]}, "",),
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {
+                        "name": "param_name",
+                        "type": "select",
+                        "values": ["value 1", "value 2"],
+                        "default": "value 2",
+                    }
+                ],
+            },
+            "value 2",
+        ),
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {"name": "param_name", "type": "select", "values": ["value 1", "value 2"],}
+                ],
+            },
+            "value 1",
+        ),
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {
+                        "name": "param_name",
+                        "type": "multi",
+                        "values": {
+                            "int": {"min": 0, "max": 1},
+                            "select": {"values": ["value 1", "value 2"]},
+                        },
+                        "default": "value 2",
+                    }
+                ],
+            },
+            "value 2",
+        ),
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {
+                        "name": "param_name",
+                        "type": "multi",
+                        "values": {
+                            "int": {"min": 0, "max": 1},
+                            "select": {"values": ["value 1", "value 2"]},
+                        },
+                    }
+                ],
+            },
+            0,
+        ),
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {"name": "param_name", "type": "multi", "values": {},}
+                ],
+            },
+            None,
+        ),
+    ],
+)
+def test_get_default_parameter_values(model_metadata, default_value):
+    if default_value is not None:
+        assert get_default_parameter_values(model_metadata) == {"param_name": default_value}
+    else:
+        assert not get_default_parameter_values(model_metadata)
 
 
 @pytest.mark.parametrize(
