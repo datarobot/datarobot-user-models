@@ -165,7 +165,6 @@ def create_image_binary_classification_model() -> Model:
         Compiled binary classification model
     """
 
-    # ToDO make this a copy of what we do in DataRobot, i.e. make an actual Sigmoid
     model = Sequential()
     model.add(GlobalAveragePooling2D())
     model.add(Dense(1, activation="sigmoid"))
