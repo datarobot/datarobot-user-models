@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Current
 
+#### [1.6.5] - 2021-12-11
+##### Fixed
+- log4j version
+- wrap main func with "if __name__ == __main__"
+
 #### [1.6.4] - 2021-12-03
 ##### Added
 ##### Fixed
