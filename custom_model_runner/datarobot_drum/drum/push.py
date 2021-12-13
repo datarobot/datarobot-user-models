@@ -70,13 +70,8 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
         print("Error adding model with ID {} and dir {}: {}".format(model_id, code_dir, str(e)))
         raise SystemExit(1)
 
-    # TODO: Update this once the datarobot client is updated to 2.27.0
-    #   see: https://datarobot.atlassian.net/browse/RAPTOR-6865
-    # blue_print = dr_client.UserBlueprint.from_custom_task_version_id(model_version.id)
-    # user_blueprint_id = blue_print.id
-    payload = dict(custom_model_version_id=model_version.id)
-    response = dr_client.client.get_client().post("customTrainingBlueprints/", data=payload)
-    user_blueprint_id = response.json()["userBlueprintId"]
+    blue_print = dr_client.UserBlueprint.from_custom_task_version_id(model_version.id)
+    user_blueprint_id = blue_print.id
 
     print("A user blueprint was created with the ID {}".format(user_blueprint_id))
 
