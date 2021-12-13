@@ -494,6 +494,7 @@ def test_yaml_metadata__hyper_param_valid_name(
     "param_name_value, error",
     [
         ("_param", "The parameter name should not start or end with the underscore."),
+        ("_param_param", "The parameter name should not start or end with the underscore."),
         ("param_", "The parameter name should not start or end with the underscore."),
         (
             "1" * (PARAM_NAME_MAX_LENGTH + 1),
