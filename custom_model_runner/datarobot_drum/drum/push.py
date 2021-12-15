@@ -70,8 +70,8 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
         print("Error adding model with ID {} and dir {}: {}".format(model_id, code_dir, str(e)))
         raise SystemExit(1)
 
-    blue_print = dr_client.UserBlueprint.from_custom_task_version_id(model_version.id)
-    user_blueprint_id = blue_print.id
+    blue_print = dr_client.UserBlueprint.create_from_custom_task_version_id(model_version.id)
+    user_blueprint_id = blue_print.user_blueprint_id
 
     print("A user blueprint was created with the ID {}".format(user_blueprint_id))
 
