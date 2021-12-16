@@ -7,10 +7,10 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 from typing import Tuple
 
 # keras imports
+import keras
 import tensorflow
 from tensorflow.keras.models import Sequential, Model, load_model
-from tensorflow.keras.layers import Dense  # core layers
-from tensorflow.keras.layers import GlobalAveragePooling2D  # CNN layers
+from tensorflow.keras.layers import Dense, BatchNormalization, Dropout, Add, GlobalAveragePooling2D, InputLayer  # core layers
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.applications import MobileNetV3Large
@@ -82,7 +82,9 @@ def extract_features(
 ) -> Tuple[np.ndarray, np.ndarray]:
     """ extract the features using the CNN base model """
     conv_base_actvn_output_shape = tuple(base_model.layers[-1].output.shape[1:])
+    print("conv_base_output_shape", conv_base_actvn_output_shape)
     features = np.zeros((sample_count, *conv_base_actvn_output_shape))
+    print("features shape", features.shape)
     labels = np.zeros((sample_count))
     i = 0
 
@@ -120,7 +122,7 @@ def reshape_numpy_array(data_series: pd.Series) -> np.ndarray:
 
 def get_all_callbacks() -> List[tensorflow.keras.callbacks.Callback]:
     """ List of all keras callbacks """
-    es = EarlyStopping(monitor="val_loss", patience=5, verbose=True, mode="auto", min_delta=1e-4)
+    es = EarlyStopping(monitor="val_loss", patience=3, verbose=True, mode="auto", min_delta=1e-3)
     return [es]
 
 
@@ -159,7 +161,7 @@ def get_pretrained_base_model() -> Model:
     return pretrained_model
 
 
-def create_image_binary_classification_model() -> Model:
+def create_image_binary_classification_model(input_shape) -> Model:
     """
     Create an image binary classification model.
 
@@ -169,9 +171,34 @@ def create_image_binary_classification_model() -> Model:
         Compiled binary classification model
     """
 
+    """
     model = Sequential()
     model.add(GlobalAveragePooling2D())
+    model.add(tensorflow.keras.layers.Dense(64, activation='relu'))
+    model.add(tensorflow.keras.layers.BatchNormalization())
+    model.add(tensorflow.keras.layers.Dropout(0.05))
     model.add(Dense(1, activation="sigmoid"))
+    model.add(tensorflow.keras.layers.BatchNormalization())
+    """
+
+    inputs = InputLayer(shape=input_shape, batch_size=BATCH_SIZE)
+    pooled_inputs = GlobalAveragePooling2D()(inputs)
+
+    # Main Branch
+    X = Dense(64, activation="relu")(pooled_inputs)
+    X = BatchNormalization()(X)
+    X = Dropout(0.05)(X)
+    X = Dense(1, activation="sigmoid")
+    X = BatchNormalization(X)
+
+    # Skip Connection
+    skip = Dense(1)(inputs) # linear
+    skip = BatchNormalization(skip)
+
+    outputs = Add()([X, skip])
+
+    model = keras.Model(inputs=inputs, output=outputs, name="keras_vizai")
+
     model.compile(
         optimizer=tensorflow.keras.optimizers.Adam(),
         loss="binary_crossentropy",
@@ -283,9 +310,10 @@ def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_dir: str) 
         keras_model.save(file, include_optimizer=False)
 
     # save the preprocessor and the model to dictionary
-    model_dict = dict()
-    model_dict["preprocessor_pipeline"] = preprocessor
-    model_dict["model"] = io_container
+    model_dict = dict(
+        preprocessor_pipeline=preprocessor,
+        model=io_container,
+    )
 
     # save the dict obj as a joblib file
     output_file_path = Path(output_dir) / "artifact.joblib"
@@ -344,7 +372,12 @@ def fit_image_classifier_pipeline(
         test_gen, len(X_test_transformed), get_pretrained_base_model()
     )
 
-    clf_model = create_image_binary_classification_model()
+    print("TRAIN FEATURES: ", train_features.shape)
+    print("TRAIN FEATURES TYPE", type(train_features))
+    print("BATCH_SIZE ", train_gen.batch_size)
+
+    # Note: the first channel is the number of samples in the dataset that we transformed
+    clf_model = create_image_binary_classification_model(train_features.shape[1:])
     clf_model.fit(
         x=train_features,
         y=train_labels,
