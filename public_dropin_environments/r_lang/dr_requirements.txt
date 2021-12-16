@@ -2,4 +2,4 @@ numpy==1.19.5
 pandas==1.0.5
 rpy2<=3.3.6
 pyarrow==0.14.1
-datarobot-drum[R]==1.6.5
+datarobot-drum[R]==1.6.6
