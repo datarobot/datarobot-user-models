@@ -36,7 +36,7 @@ def _convert_target_type(unconverted_target_type):
 
 def _push_training(model_config, code_dir, endpoint=None, token=None):
     try:
-        from datarobot import CustomTask, CustomTaskVersion
+        from datarobot import CustomTask, CustomTaskVersion, UserBlueprint
     except ImportError:
         raise DrumCommonException(
             "You tried to run custom tasks using a version of the \n"
@@ -70,31 +70,28 @@ def _push_training(model_config, code_dir, endpoint=None, token=None):
         print("Error adding model with ID {} and dir {}: {}".format(model_id, code_dir, str(e)))
         raise SystemExit(1)
 
-    # TODO: Update this once the datarobot client is updated to 2.27.0
-    #   see: https://datarobot.atlassian.net/browse/RAPTOR-6865
-    # blue_print = dr_client.UserBlueprint.from_custom_task_version_id(model_version.id)
-    # user_blueprint_id = blue_print.id
-    payload = dict(custom_model_version_id=model_version.id)
-    response = dr_client.client.get_client().post("customTrainingBlueprints/", data=payload)
-    user_blueprint_id = response.json()["userBlueprintId"]
-
-    print("A user blueprint was created with the ID {}".format(user_blueprint_id))
+    user_blueprint = UserBlueprint.create_from_custom_task_version_id(
+        custom_task_version_id=str(model_version.id), save_to_catalog=False
+    )
+    print("A user blueprint was created with the ID {}".format(user_blueprint.user_blueprint_id))
 
     _print_model_started_dialogue(model_id)
 
     if "trainOnProject" in model_config.get("trainingModel", ""):
+        pid = model_config["trainingModel"]["trainOnProject"]
+        current_task = "fetching the specified project {}".format(pid)
         try:
-            pid = model_config["trainingModel"]["trainOnProject"]
-            current_task = "fetching the specified project {}".format(pid)
             project = dr_client.Project(pid)
 
-            # TODO: Update this once the datarobot client is updated
-            payload = dict(user_blueprint_id=user_blueprint_id)
             current_task = "adding your model to the menu"
-            response = dr_client.client.get_client().post(
-                "projects/{}/blueprints/fromUserBlueprint/".format(pid), data=payload
+            response = UserBlueprint.add_to_project(
+                pid, user_blueprint_ids=[user_blueprint.user_blueprint_id]
             )
-            blueprint_id = response.json()["id"]
+            if len(response.added_to_menu) != 1:
+                print("There was an error adding your model's blueprint to the project")
+                raise SystemExit(1)
+
+            blueprint_id = response.added_to_menu[0].blueprint_id
 
             current_task = "actually training of blueprint {}".format(blueprint_id)
             model_job_id = project.train(blueprint_id)
