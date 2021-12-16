@@ -11,8 +11,6 @@
     <url>http://datarobot.com</url>
 
     <properties>
-        <distSonatypeMgmtSnapshotsId>datarobot-sonatype-snapshots</distSonatypeMgmtSnapshotsId>
-        <distSonatypeMgmtStagingId>datarobot-sonatype-releases</distSonatypeMgmtStagingId>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>1.8</java.version>
     </properties>
@@ -53,7 +51,7 @@
                 <version>1.6.7</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <serverId>${distSonatypeMgmtStagingId}</serverId>
+                    <serverId>ossrh</serverId>
                     <nexusUrl>https://oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>false</autoReleaseAfterClose>
                 </configuration>
@@ -67,7 +65,7 @@
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
-                        <phase>deploy</phase>
+                        <phase>verify</phase>
                         <goals>
                             <goal>sign</goal>
                         </goals>
@@ -78,13 +76,15 @@
 
     </build>
 
+
+
     <distributionManagement>
         <snapshotRepository>
-            <id>${distSonatypeMgmtSnapshotsId}</id>
+            <id>ossrh</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
         </snapshotRepository>
         <repository>
-            <id>${distSonatypeMgmtStagingId}</id>
+            <id>ossrh</id>
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
