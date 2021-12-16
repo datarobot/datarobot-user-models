@@ -469,14 +469,48 @@ def mock_get_model(model_type="training", target_type="Regression"):
 def mock_post_blueprint():
     responses.add(
         responses.POST,
-        "http://yess/customTrainingBlueprints/",
+        "http://yess/userBlueprints/fromCustomTaskVersionId/",
         json={
+            "blender": False,
+            "blueprintId": "1",
+            "diagram": "{}",
+            "features": ["Custom task"],
+            "featuresText": "Custom task",
+            "icons": [4],
+            "insights": "NA",
+            "modelType": "Custom task",
+            "referenceModel": False,
+            "supportsGpu": True,
+            "shapSupport": False,
+            "supportsNewSeries": False,
             "userBlueprintId": "2",
-            "custom_model": {"id": "1", "name": "1"},
-            "custom_model_version": {"id": "1", "label": "1"},
-            "execution_environment": {"id": "1", "name": "1"},
-            "execution_environment_version": {"id": "1", "label": "1"},
-            "training_history": [],
+            "userId": "userid02302312312",
+            "blueprintContext": {"warnings": [], "errors": []},
+            "vertexContext": [
+                {
+                    "information": {
+                        "inputs": [
+                            "Missing Values: Forbidden",
+                            "Data Type: Numeric",
+                            "Sparsity: Supported",
+                        ],
+                        "outputs": [
+                            "Missing Values: Never",
+                            "Data Type: Numeric",
+                            "Sparsity: Never",
+                        ],
+                    },
+                    "messages": {
+                        "warnings": ["Unexpected input type. Expected Numeric, received All."]
+                    },
+                    "taskId": "1",
+                }
+            ],
+            "supportedTargetTypes": ["binary"],
+            "isTimeSeries": False,
+            "hexColumnNameLookup": [],
+            "customTaskVersionMetadata": [],
+            "decompressedFormat": False,
         },
     )
     responses.add(
@@ -498,8 +532,12 @@ def mock_post_blueprint():
 def mock_post_add_to_repository():
     responses.add(
         responses.POST,
-        "http://yess/projects/{}/blueprints/fromUserBlueprint/".format(projectID),
-        json={"id": "1"},
+        "http://yess/userBlueprintsProjectBlueprints/",
+        json={
+            "addedToMenu": [{"userBlueprintId": "2", "blueprintId": "1"}],
+            "notAddedToMenu": [],
+            "message": "All blueprints successfully added to project repository.",
+        },
     )
 
 
@@ -587,13 +625,12 @@ def test_push(request, config_yaml, existing_model_id, multiclass_labels, tmp_pa
     )
     if push_fn == _push_training:
         assert (
-            calls[call_shift + 2].request.path_url == "/customTrainingBlueprints/"
+            calls[call_shift + 2].request.path_url == "/userBlueprints/fromCustomTaskVersionId/"
             and calls[call_shift + 2].request.method == "POST"
         )
         if "trainingModel" in config:
             assert (
-                calls[call_shift + 3].request.path_url
-                == "/projects/{}/blueprints/fromUserBlueprint/".format(projectID)
+                calls[call_shift + 3].request.path_url == "/userBlueprintsProjectBlueprints/"
                 and calls[call_shift + 3].request.method == "POST"
             )
             assert (
