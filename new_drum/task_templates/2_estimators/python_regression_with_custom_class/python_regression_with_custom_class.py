@@ -11,13 +11,10 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 
 # In this example we use a custom python class, CustomCalibrator, so that we can store the complex state inside the object and then re-use it during scoring.
 
-from typing import List, Optional
-import pickle
 import pandas as pd
-from pathlib import Path
 from CustomCalibrator import CustomCalibrator  # class defined into CustomCalibrator.py
 
-from src.regression_interface import RegressionInterface
+from new_drum.src.regression_interface import RegressionInterface
 
 
 class CustomTask(RegressionInterface):

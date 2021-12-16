@@ -8,7 +8,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 
 import pandas as pd
 from sklearn.tree import DecisionTreeRegressor
-from src.regression_interface import RegressionInterface
+from new_drum.src.regression_interface import RegressionInterface
 
 
 class CustomTask(RegressionInterface):
@@ -40,22 +40,22 @@ class CustomTask(RegressionInterface):
 
         return self
 
-    def score(self, data, **kwargs):
-        """ This hook defines how DataRobot will use the trained object from fit() to score new data.
+    def transform(self, data):
+        """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
-        As an output, this hook is expected to return the scored data.
+        As an output, this hook is expected to return the transformed data.
         The input parameters are passed by DataRobot based on dataset and blueprint configuration.
 
         Parameters
         -------
         data: pd.DataFrame
-            Data that DataRobot passes for scoring.
+            Data that DataRobot passes for transformation.
 
         Returns
         -------
         pd.DataFrame
-            Returns a dataframe with scored data.
-            In case of regression, score() must return a dataframe with a single column with column name "Predictions".
+            Returns a dataframe with transformed data.
         """
 
+        # fillna can take either a value or a method
         return pd.DataFrame(data=self.estimator.predict(data), columns=self.prediction_columns)
