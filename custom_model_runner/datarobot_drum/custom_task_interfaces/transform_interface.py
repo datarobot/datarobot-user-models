@@ -1,7 +1,7 @@
-from .serializable import Serializable
+from datarobot_drum.custom_task_interfaces.serializable import Serializable
+
 
 class TransformerInterface(Serializable):
-
     def fit(self, X, y, **kwargs):
         """ This hook defines how DataRobot will train this task. Even transform tasks need to be
         trained to learn/store information from training data
@@ -36,4 +36,3 @@ class TransformerInterface(Serializable):
             Returns a dataframe with transformed data.
         """
         raise NotImplementedError()
-

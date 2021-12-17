@@ -18,7 +18,6 @@ from datarobot_drum.custom_task_interfaces import RegressionInterface
 
 
 class CustomTask(RegressionInterface):
-
     def fit(self, X, y, row_weights=None, **kwargs):
         """ This hook defines how DataRobot will train this task.
         DataRobot runs this hook when the task is being trained inside a blueprint.

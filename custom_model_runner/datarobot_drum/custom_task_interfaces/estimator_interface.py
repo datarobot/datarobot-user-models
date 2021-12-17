@@ -1,8 +1,7 @@
-from .serializable import Serializable
+from datarobot_drum.custom_task_interfaces.serializable import Serializable
 
 
 class EstimatorInterface(Serializable):
-
     def fit(self, X, y, row_weights=None, **kwargs):
         """ This hook defines how DataRobot will train this task. Even transform tasks need to be
         trained to learn/store information from training data

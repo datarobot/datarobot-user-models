@@ -14,6 +14,7 @@ from .img_utils import (
     img_to_grayscale,
 )
 
+
 def _process_image(raw_data: Union[str, bytes]) -> bytes:
     img = b64_to_img(raw_data)
     img = img_to_grayscale(img)

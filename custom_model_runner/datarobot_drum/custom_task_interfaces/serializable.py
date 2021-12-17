@@ -2,7 +2,7 @@ import pickle
 
 
 class Serializable(object):
-    default_filename = 'artifact'
+    default_filename = "artifact"
 
     def save(self, artifact_directory):
         """
@@ -17,7 +17,7 @@ class Serializable(object):
         -------
         self
         """
-        with open(artifact_directory + Serializable.default_filename, 'w') as fp:
+        with open(artifact_directory + Serializable.default_filename, "w") as fp:
             pickle.dump(self, fp)
         return self
 
@@ -31,5 +31,5 @@ class Serializable(object):
         object
             The deserialized object
         """
-        with open(artifact_directory + Serializable.default_filename, 'w') as fp:
+        with open(artifact_directory + Serializable.default_filename, "w") as fp:
             return pickle.load(fp)
