@@ -35,7 +35,7 @@ class CustomTask(TransformerInterface):
 
         return self
 
-    def transform(self, X):
+    def transform(self, X, **kwargs):
         """
         Parameters
         ----------

@@ -42,7 +42,7 @@ class CustomTask(TransformerInterface):
         """
         pass
 
-    def transform(self, X):
+    def transform(self, X, **kwargs):
         """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
         As an output, this hook is expected to return the transformed data.
