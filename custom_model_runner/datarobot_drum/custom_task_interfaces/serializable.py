@@ -21,15 +21,19 @@ class Serializable(object):
             pickle.dump(self, fp)
         return self
 
-    @staticmethod
-    def load(artifact_directory):
+    @classmethod
+    def load(cls, artifact_directory):
         """
         Deserializes the object stored within `artifact_directory`
 
         Returns
         -------
-        object
+        cls
             The deserialized object
         """
         with open(artifact_directory + Serializable.default_filename, "rb") as fp:
-            return pickle.load(fp)
+            deserialized_object = pickle.load(fp)
+
+        if not isinstance(deserialized_object, cls):
+            raise ValueError("load method must return a {} class".format(cls.__name__))
+        return deserialized_object
