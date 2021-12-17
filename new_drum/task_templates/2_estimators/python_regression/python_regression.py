@@ -8,7 +8,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 
 import pandas as pd
 from sklearn.tree import DecisionTreeRegressor
-from new_drum.src.regression_interface import RegressionInterface
+from datarobot_drum.custom_task_interfaces import RegressionInterface
 
 
 class CustomTask(RegressionInterface):

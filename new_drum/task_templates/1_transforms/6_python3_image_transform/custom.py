@@ -7,12 +7,12 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 from typing import Union, Any
 import pandas as pd
 
-from img_utils import (
+from datarobot_drum.custom_task_interfaces import TransformerInterface
+from .img_utils import (
     b64_to_img,
     img_to_b64,
     img_to_grayscale,
 )
-from new_drum.src.transform import TransformerInterface
 
 def _process_image(raw_data: Union[str, bytes]) -> bytes:
     img = b64_to_img(raw_data)

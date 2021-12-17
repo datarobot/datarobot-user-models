@@ -12,9 +12,9 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 # In this example we use a custom python class, CustomCalibrator, so that we can store the complex state inside the object and then re-use it during scoring.
 
 import pandas as pd
-from CustomCalibrator import CustomCalibrator  # class defined into CustomCalibrator.py
+from .CustomCalibrator import CustomCalibrator  # class defined into CustomCalibrator.py
 
-from new_drum.src.regression_interface import RegressionInterface
+from datarobot_drum.custom_task_interfaces import RegressionInterface
 
 
 class CustomTask(RegressionInterface):

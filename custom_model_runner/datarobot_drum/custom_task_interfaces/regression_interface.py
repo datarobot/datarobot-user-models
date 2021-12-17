@@ -1,4 +1,4 @@
-from .estimator import EstimatorInterface
+from .estimator_interface import EstimatorInterface
 
 
 class RegressionInterface(EstimatorInterface):

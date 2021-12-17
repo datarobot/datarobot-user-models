@@ -8,8 +8,8 @@ import pickle
 import pandas as pd
 from scipy.sparse.csr import csr_matrix
 
+from datarobot_drum.custom_task_interfaces import TransformerInterface
 from .create_transform_pipeline import make_pipeline
-from new_drum.src.transform import TransformerInterface
 
 
 class CustomTask(TransformerInterface):

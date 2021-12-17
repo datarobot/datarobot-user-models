@@ -7,7 +7,8 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 # This custom transform task implements missing values imputation using a median
 
 import pandas as pd
-from new_drum.src.transform import TransformerInterface
+
+from datarobot_drum.custom_task_interfaces import TransformerInterface
 
 
 class CustomTask(TransformerInterface):
