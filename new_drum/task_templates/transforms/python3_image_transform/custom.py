@@ -22,7 +22,6 @@ class CustomTask(TransformerInterface):
         img = img_to_grayscale(img)
         return img_to_b64(img)
 
-
     def fit(self, X, y, **kwargs):
         """ This hook defines how DataRobot will train this task. Even transform tasks need to be trained to learn/store information from training data
         DataRobot runs this hook when the task is being trained inside a blueprint.
