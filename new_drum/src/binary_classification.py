@@ -1,4 +1,4 @@
-from estimator import EstimatorInterface
+from .estimator import EstimatorInterface
 
 
 class BinaryClassificationInterface(EstimatorInterface):

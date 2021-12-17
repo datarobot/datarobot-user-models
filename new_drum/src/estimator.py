@@ -1,4 +1,4 @@
-from serializable import Serializable
+from .serializable import Serializable
 
 
 class EstimatorInterface(Serializable):
@@ -25,14 +25,14 @@ class EstimatorInterface(Serializable):
         """
         raise NotImplementedError()
 
-    def score(self, data, **kwargs):
+    def score(self, X, **kwargs):
         """ This hook defines how DataRobot will use the trained object from fit() to score new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
         As an output, this hook is expected to return the scored data.
         The input parameters are passed by DataRobot based on dataset and blueprint configuration.
         Parameters
         -------
-        data: pd.DataFrame
+        X: pd.DataFrame
             Data that DataRobot passes for scoring.
         Returns
         -------
