@@ -45,7 +45,7 @@ class CustomTask(RegressionInterface):
 
         return self
 
-    def score(self, data, **kwargs):
+    def predict(self, X, **kwargs):
         """ This hook defines how DataRobot will use the trained object from fit() to score new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
         As an output, this hook is expected to return the scored data.
@@ -53,7 +53,7 @@ class CustomTask(RegressionInterface):
 
         Parameters
         -------
-        data: pd.DataFrame
+        X: pd.DataFrame
             Data that DataRobot passes for scoring.
 
         Returns
@@ -63,4 +63,4 @@ class CustomTask(RegressionInterface):
             In case of regression, score() must return a dataframe with a single column with column name "Predictions".
         """
 
-        return pd.DataFrame(data=self.estimator.predict(data), columns=self.prediction_columns)
+        return pd.DataFrame(data=self.estimator.predict(X), columns=self.prediction_columns)

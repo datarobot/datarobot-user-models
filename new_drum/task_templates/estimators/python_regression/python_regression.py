@@ -15,7 +15,7 @@ class CustomTask(RegressionInterface):
     def fit(self, X, y, row_weights=None, **kwargs):
         """ This hook defines how DataRobot will train this task.
         DataRobot runs this hook when the task is being trained inside a blueprint.
-        As an output, this hook is expected to create an artifact containg a trained object, that is then used to score new data.
+        As an output, this hook is expected to create an artifact containing a trained object, that is then used to predict new data.
         The input parameters are passed by DataRobot based on project and blueprint configuration.
 
         Parameters
@@ -39,7 +39,7 @@ class CustomTask(RegressionInterface):
 
         return self
 
-    def transform(self, data):
+    def predict(self, X):
         """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
         As an output, this hook is expected to return the transformed data.
@@ -47,7 +47,7 @@ class CustomTask(RegressionInterface):
 
         Parameters
         -------
-        data: pd.DataFrame
+        X: pd.DataFrame
             Data that DataRobot passes for transformation.
 
         Returns
@@ -57,4 +57,4 @@ class CustomTask(RegressionInterface):
         """
 
         # fillna can take either a value or a method
-        return pd.DataFrame(data=self.estimator.predict(data), columns=self.prediction_columns)
+        return pd.DataFrame(data=self.estimator.predict(X), columns=self.prediction_columns)

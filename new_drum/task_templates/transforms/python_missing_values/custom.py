@@ -36,7 +36,7 @@ class CustomTask(TransformerInterface):
 
         return self
 
-    def transform(self, data):
+    def transform(self, X):
         """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
         As an output, this hook is expected to return the transformed data.
@@ -44,7 +44,7 @@ class CustomTask(TransformerInterface):
 
         Parameters
         -------
-        data: pd.DataFrame
+        X: pd.DataFrame
             Data that DataRobot passes for transformation.
 
         Returns
@@ -54,4 +54,4 @@ class CustomTask(TransformerInterface):
         """
 
         # fillna can take either a value or a method
-        return data.fillna(self.fit_data)
+        return X.fillna(self.fit_data)
