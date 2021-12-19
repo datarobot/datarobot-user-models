@@ -318,3 +318,53 @@ class ExitCodes(Enum):
     # This is the DRUM specific exit code. Please avoid using reserved/common exit codes. e.g.,
     # 1, 2, 126, 127, 128, 128+n, 130, 225*
     SCHEMA_VALIDATION_ERROR = 3  # used when the program exits due to custom task validation fails.
+
+
+class ModelMetadataKeys(object):
+    NAME = "name"
+    TYPE = "type"
+    TARGET_TYPE = "targetType"
+    ENVIRONMENT_ID = "environmentID"
+    VALIDATION = "validation"
+    MODEL_ID = "modelID"
+    DESCRIPTION = "description"
+    MAJOR_VERSION = "majorVersion"
+    INFERENCE_MODEL = "inferenceModel"
+    TRAINING_MODEL = "trainingModel"
+    HYPERPARAMETERS = "hyperparameters"
+    VALIDATION_SCHEMA = "typeSchema"
+    # customPredictor section is not used by DRUM,
+    # it is a place holder if user wants to add some fields and read them on his own
+    CUSTOM_PREDICTOR = "customPredictor"
+
+
+class ModelMetadataHyperParamTypes(object):
+    INT = "int"
+    FLOAT = "float"
+    STRING = "string"
+    SELECT = "select"
+    MULTI = "multi"
+
+    @classmethod
+    def all(cls):
+        return {
+            cls.INT,
+            cls.FLOAT,
+            cls.STRING,
+            cls.SELECT,
+            cls.MULTI,
+        }
+
+
+class ModelMetadataMultiHyperParamTypes(object):
+    INT = ModelMetadataHyperParamTypes.INT
+    FLOAT = ModelMetadataHyperParamTypes.FLOAT
+    SELECT = ModelMetadataHyperParamTypes.SELECT
+
+    @classmethod
+    def all(cls):
+        return {
+            cls.INT,
+            cls.FLOAT,
+            cls.SELECT,
+        }

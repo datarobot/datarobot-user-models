@@ -32,7 +32,6 @@ from mlpiper.pipeline import json_fields
 from datarobot_drum.drum.common import (
     verbose_stdout,
     read_model_metadata_yaml,
-    ModelMetadataKeys,
     get_metadata,
 )
 from datarobot_drum.drum.enum import (
@@ -49,6 +48,7 @@ from datarobot_drum.drum.enum import (
     RunLanguage,
     TargetType,
     TemplateType,
+    ModelMetadataKeys,
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumPredException
