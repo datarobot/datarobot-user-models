@@ -21,7 +21,7 @@ function build_drum() {
     TERMINAL_OPTION="-t"
   fi
 
-  docker run -i ${TERMINAL_OPTION} --user "$(id -u):$(id -g)" -v $CDIR:/tmp/drum $DRUM_BUILDER_IMAGE bash -c "cd /tmp/drum/custom_model_runner && make"
+  docker run -i ${TERMINAL_OPTION} -v $CDIR:/tmp/drum $DRUM_BUILDER_IMAGE bash -c "cd /tmp/drum/custom_model_runner && make"
   docker rmi $DRUM_BUILDER_IMAGE --force
 
 }
