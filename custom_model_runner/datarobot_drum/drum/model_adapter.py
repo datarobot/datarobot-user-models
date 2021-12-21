@@ -39,9 +39,11 @@ from datarobot_drum.drum.enum import (
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
     StructuredDtoKeys,
     TargetType,
+    DRUM_PYTHON_CLASS,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumTransformException
 from datarobot_drum.drum.utils import DrumUtils, StructuredInputReadUtils
+from datarobot_drum.custom_task_interfaces.custom_task_interface import CustomTaskInterface
 
 RUNNING_LANG_MSG = "Running environment language: Python."
 
@@ -66,6 +68,7 @@ class PythonModelAdapter:
         self._model = None
         self._model_dir = model_dir
         self._target_type = target_type
+        self._is_drum_class = None
 
     @staticmethod
     def _apply_sklearn_transformer(data, model):
@@ -81,6 +84,26 @@ class PythonModelAdapter:
             ) from None
         return output_data
 
+    def _load_custom_hooks_for_new_drum(self, custom_module):
+        self._is_drum_class = True
+        custom_task_class = getattr(custom_module, DRUM_PYTHON_CLASS)
+
+        if issubclass(custom_task_class, CustomTaskInterface):
+            for hook in CustomHooks.ALL_PREDICT_FIT_STRUCTURED:
+                self._custom_hooks[hook] = getattr(custom_task_class, hook, None)
+
+            init_func = getattr(custom_task_class, "__init__", None)
+            if init_func:
+                # noinspection PyCallingNonCallable
+                self._custom_hooks[CustomHooks.INIT] = init_func
+            else:
+                self._logger.debug("Custom Tasks require an __init__ method to initialize the self object")
+
+            self._logger.debug("Hooks loaded: {}".format(self._custom_hooks))
+
+        else:
+            raise DrumCommonException("The CustomTask class must inherit from the CustomTaskInterface")
+
     def load_custom_hooks(self):
         custom_file_paths = list(Path(self._model_dir).rglob("{}.py".format(CUSTOM_FILE_NAME)))
         assert len(custom_file_paths) <= 1
@@ -95,6 +118,10 @@ class PythonModelAdapter:
 
         try:
             custom_module = __import__(CUSTOM_FILE_NAME)
+            if getattr(custom_module, DRUM_PYTHON_CLASS):
+                self._load_custom_hooks_for_new_drum(custom_module)
+                return
+
             if self._target_type == TargetType.UNSTRUCTURED:
                 for hook in CustomHooks.ALL_PREDICT_UNSTRUCTURED:
                     self._custom_hooks[hook] = getattr(custom_module, hook, None)
@@ -591,29 +618,44 @@ class PythonModelAdapter:
         return False
 
     def fit(self, X, y, output_dir, class_order=None, row_weights=None, parameters=None):
-        if self._target_type != TargetType.TRANSFORM:
-            X = self.preprocess(X)
-        with reroute_stdout_to_stderr():
-            if self._custom_hooks.get(CustomHooks.FIT):
-                self._custom_hooks[CustomHooks.FIT](
-                    X=X,
-                    y=y,
-                    output_dir=output_dir,
-                    class_order=class_order,
-                    row_weights=row_weights,
-                    parameters=parameters,
-                )
-            elif self._drum_autofit_internal(X, y, output_dir):
-                return
-            else:
-                hooks = [
-                    "{}: {}".format(hook, fn is not None) for hook, fn in self._custom_hooks.items()
-                ]
-                raise DrumCommonException(
-                    "\n\n{}\n"
-                    "\nfit() method must be implemented in a file named 'custom.py' in the provided code_dir: '{}' \n"
-                    "Here is a list of files in this dir. {}\n"
-                    "Here are the hooks your custom.py file has: {}".format(
-                        RUNNING_LANG_MSG, self._model_dir, os.listdir(self._model_dir)[:100], hooks
+        if self._is_drum_class:
+            with reroute_stdout_to_stderr():
+                if self._custom_hooks.get(CustomHooks.FIT):
+                    self._custom_hooks[CustomHooks.FIT](
+                        self._custom_hooks[CustomHooks.INIT],
+                        X=X,
+                        y=y,
+                        output_dir=output_dir,
+                        class_order=class_order,
+                        row_weights=row_weights,
+                        parameters=parameters,
                     )
-                )
+                else:
+                    raise DrumCommonException("Fit method must be defined in your custom.py file")
+        else:
+            if self._target_type != TargetType.TRANSFORM:
+                X = self.preprocess(X)
+            with reroute_stdout_to_stderr():
+                if self._custom_hooks.get(CustomHooks.FIT):
+                    self._custom_hooks[CustomHooks.FIT](
+                        X=X,
+                        y=y,
+                        output_dir=output_dir,
+                        class_order=class_order,
+                        row_weights=row_weights,
+                        parameters=parameters,
+                    )
+                elif self._drum_autofit_internal(X, y, output_dir):
+                    return
+                else:
+                    hooks = [
+                        "{}: {}".format(hook, fn is not None) for hook, fn in self._custom_hooks.items()
+                    ]
+                    raise DrumCommonException(
+                        "\n\n{}\n"
+                        "\nfit() method must be implemented in a file named 'custom.py' in the provided code_dir: '{}' \n"
+                        "Here is a list of files in this dir. {}\n"
+                        "Here are the hooks your custom.py file has: {}".format(
+                            RUNNING_LANG_MSG, self._model_dir, os.listdir(self._model_dir)[:100], hooks
+                        )
+                    )

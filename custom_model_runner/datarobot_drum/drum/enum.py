@@ -56,6 +56,7 @@ MODEL_CONFIG_FILENAME = "model-metadata.yaml"
 
 PERF_TEST_SERVER_LABEL = "__DRUM_PERF_TEST_SERVER__"
 
+DRUM_PYTHON_CLASS = "CustomTask"
 
 LOG_LEVELS = {
     "all": logging.NOTSET,
