@@ -769,7 +769,7 @@ def test_yaml_metadata__multi_hyper_param_optional_fields(
 
 
 @pytest.mark.parametrize(
-    "optional_component_param_key", ModelMetadataMultiHyperParamTypes.all(),
+    "optional_component_param_key", list(ModelMetadataMultiHyperParamTypes.all_list()),
 )
 def test_yaml_metadata__multi_hyper_param_optional_component_params(
     optional_component_param_key, complete_multi_hyper_param, tmp_path, basic_model_metadata_yaml,
