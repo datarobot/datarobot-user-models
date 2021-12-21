@@ -57,13 +57,6 @@ echo "--> Change every environment Dockerfile to install local freshly built DRU
 build_all_dropin_env_dockerfiles "${DRUM_WHEEL_REAL_PATH}"
 
 echo
-echo "--> Installing DRUM Java BasePredictor into Maven repo"
-echo
-pushd $GIT_ROOT/custom_model_runner/datarobot_drum/drum/language_predictors/java_predictor/
-mvn install
-popd
-
-echo
 echo "--> Compiling jar for TestCustomPredictor "
 echo
 pushd $GIT_ROOT/tests/drum/custom_java_predictor

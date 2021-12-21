@@ -363,8 +363,12 @@ class ModelMetadataMultiHyperParamTypes(object):
 
     @classmethod
     def all(cls):
-        return {
+        return set(cls.all_list())
+
+    @classmethod
+    def all_list(cls):
+        return [
             cls.INT,
             cls.FLOAT,
             cls.SELECT,
-        }
+        ]
