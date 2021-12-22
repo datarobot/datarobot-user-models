@@ -391,34 +391,7 @@ class PythonModelAdapter:
 
         return output_data
 
-    def transform(self, model=None, **kwargs):
-        """
-        Standalone transform method, only used for custom transforms.
-
-        Parameters
-        ----------
-        model: Any
-            The model
-        Returns
-        -------
-        pd.DataFrame
-        """
-        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
-        target_binary_data = kwargs.get(StructuredDtoKeys.TARGET_BINARY_DATA)
-        sparse_colnames_bin_data = kwargs.get(StructuredDtoKeys.SPARSE_COLNAMES)
-
-        data = self.load_data(
-            input_binary_data,
-            kwargs.get(StructuredDtoKeys.MIMETYPE),
-            sparse_colnames=sparse_colnames_bin_data,
-        )
-        target_data = None
-
-        if target_binary_data:
-            target_data = self.load_data(
-                target_binary_data, kwargs.get(StructuredDtoKeys.TARGET_MIMETYPE), try_hook=False
-            )
-
+    def _transform_legacy_drum(self, data, target_data, model, **kwargs):
         if self._custom_hooks.get(CustomHooks.TRANSFORM):
             try:
                 transform_hook = self._custom_hooks[CustomHooks.TRANSFORM]
@@ -456,6 +429,48 @@ class PythonModelAdapter:
                 "Transform hook must be implemented for custom transforms, "
                 "for non-sklearn transformer."
             )
+
+    def transform(self, model=None, **kwargs):
+        """
+        Standalone transform method, only used for custom transforms.
+
+        Parameters
+        ----------
+        model: Any
+            The model
+        Returns
+        -------
+        pd.DataFrame
+        """
+        # TODO: this is very similar to predict, could be refactored
+        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
+        target_binary_data = kwargs.get(StructuredDtoKeys.TARGET_BINARY_DATA)
+        sparse_colnames_bin_data = kwargs.get(StructuredDtoKeys.SPARSE_COLNAMES)
+
+        data = self.load_data(
+            input_binary_data,
+            kwargs.get(StructuredDtoKeys.MIMETYPE),
+            sparse_colnames=sparse_colnames_bin_data,
+        )
+        target_data = None
+
+        if target_binary_data:
+            target_data = self.load_data(
+                target_binary_data, kwargs.get(StructuredDtoKeys.TARGET_MIMETYPE), try_hook=False
+            )
+
+        if self._drum_class:
+            try:
+                output_data = self._drum_class_instance.transform(data)
+                output_target = target_data
+            except Exception as exc:
+                raise type(exc)(
+                    "Model transform hook failed to transform dataset: {}".format(exc)
+                ).with_traceback(sys.exc_info()[2]) from None
+        else:
+            output_data, output_target = self._transform_legacy_drum(data, target_data, model, **kwargs)
+
+        return output_data, output_target
 
     def has_read_input_data_hook(self):
         return self._custom_hooks.get(CustomHooks.READ_INPUT_DATA) is not None
