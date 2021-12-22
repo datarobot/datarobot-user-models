@@ -68,7 +68,8 @@ class PythonModelAdapter:
         self._model = None
         self._model_dir = model_dir
         self._target_type = target_type
-        self._is_drum_class = None
+        self._drum_class = None
+        self._drum_class_instance = None
 
     @staticmethod
     def _apply_sklearn_transformer(data, model):
@@ -85,24 +86,44 @@ class PythonModelAdapter:
         return output_data
 
     def _load_custom_hooks_for_new_drum(self, custom_module):
-        self._is_drum_class = True
+        # TODO have self._custom_class
+        # TODO also have self._custom_class_instance, instantiate class. Run fit and save
+        # TODO when doing load, just use load
+        # TODO on load, check to make sure it's an instance of that class
+        # use that instance to score
         custom_task_class = getattr(custom_module, DRUM_PYTHON_CLASS)
 
         if issubclass(custom_task_class, CustomTaskInterface):
-            for hook in CustomHooks.ALL_PREDICT_FIT_STRUCTURED:
-                self._custom_hooks[hook] = getattr(custom_task_class, hook, None)
-
-            init_func = getattr(custom_task_class, "__init__", None)
-            if init_func:
-                # noinspection PyCallingNonCallable
-                self._custom_hooks[CustomHooks.INIT] = init_func
-            else:
-                self._logger.debug("Custom Tasks require an __init__ method to initialize the self object")
+            self._drum_class = custom_task_class
+            self._drum_class_instance = custom_task_class()
 
             self._logger.debug("Hooks loaded: {}".format(self._custom_hooks))
 
         else:
-            raise DrumCommonException("The CustomTask class must inherit from the CustomTaskInterface")
+            raise DrumCommonException(
+                "The CustomTask class must inherit from the CustomTaskInterface"
+            )
+
+    def _load_custom_hooks_for_legacy_drum(self, custom_module):
+        if self._target_type == TargetType.UNSTRUCTURED:
+            for hook in CustomHooks.ALL_PREDICT_UNSTRUCTURED:
+                self._custom_hooks[hook] = getattr(custom_module, hook, None)
+
+            if self._custom_hooks[CustomHooks.SCORE_UNSTRUCTURED] is None:
+                raise DrumCommonException(
+                    "In '{}' mode hook '{}' must be provided.".format(
+                        TargetType.UNSTRUCTURED.value, CustomHooks.SCORE_UNSTRUCTURED,
+                    )
+                )
+        else:
+            for hook in CustomHooks.ALL_PREDICT_FIT_STRUCTURED:
+                self._custom_hooks[hook] = getattr(custom_module, hook, None)
+
+        if self._custom_hooks.get(CustomHooks.INIT):
+            # noinspection PyCallingNonCallable
+            self._custom_hooks[CustomHooks.INIT](code_dir=self._model_dir)
+
+        self._logger.debug("Hooks loaded: {}".format(self._custom_hooks))
 
     def load_custom_hooks(self):
         custom_file_paths = list(Path(self._model_dir).rglob("{}.py".format(CUSTOM_FILE_NAME)))
@@ -118,29 +139,11 @@ class PythonModelAdapter:
 
         try:
             custom_module = __import__(CUSTOM_FILE_NAME)
-            if getattr(custom_module, DRUM_PYTHON_CLASS):
+            if getattr(custom_module, DRUM_PYTHON_CLASS, None):
                 self._load_custom_hooks_for_new_drum(custom_module)
-                return
-
-            if self._target_type == TargetType.UNSTRUCTURED:
-                for hook in CustomHooks.ALL_PREDICT_UNSTRUCTURED:
-                    self._custom_hooks[hook] = getattr(custom_module, hook, None)
-
-                if self._custom_hooks[CustomHooks.SCORE_UNSTRUCTURED] is None:
-                    raise DrumCommonException(
-                        "In '{}' mode hook '{}' must be provided.".format(
-                            TargetType.UNSTRUCTURED.value, CustomHooks.SCORE_UNSTRUCTURED,
-                        )
-                    )
             else:
-                for hook in CustomHooks.ALL_PREDICT_FIT_STRUCTURED:
-                    self._custom_hooks[hook] = getattr(custom_module, hook, None)
+                self._load_custom_hooks_for_legacy_drum(custom_module)
 
-            if self._custom_hooks.get(CustomHooks.INIT):
-                # noinspection PyCallingNonCallable
-                self._custom_hooks[CustomHooks.INIT](code_dir=self._model_dir)
-
-            self._logger.debug("Hooks loaded: {}".format(self._custom_hooks))
         except ImportError as e:
             self._logger.error("Could not load hooks: {}".format(e))
             raise DrumCommonException(
@@ -148,17 +151,7 @@ class PythonModelAdapter:
                 "Failed loading hooks from [{}] : {}".format(RUNNING_LANG_MSG, custom_file_path, e)
             )
 
-    def load_model_from_artifact(self):
-        """
-        Load the serialized model from its artifact.
-        Returns
-        -------
-        Any
-            The deserialized model
-        Raises
-        ------
-        DrumCommonException if model loading failed.
-        """
+    def _load_model_from_artifact_for_legacy_drum(self):
         if self._custom_hooks[CustomHooks.LOAD_MODEL]:
             self._model = self._load_model_via_hook()
         else:
@@ -184,6 +177,24 @@ class PythonModelAdapter:
             )
 
         return self._model
+
+    def load_model_from_artifact(self):
+        """
+        Load the serialized model from its artifact.
+        Returns
+        -------
+        Any
+            The deserialized model
+        Raises
+        ------
+        DrumCommonException if model loading failed.
+        """
+        if self._drum_class:
+            self._drum_class_instance = self._drum_class.load(self._model_dir)
+            return self._drum_class_instance
+
+        else:
+            return self._load_model_from_artifact_for_legacy_drum()
 
     def _load_model_via_hook(self):
         self._logger.debug("Load model hook will be used to load the model")
@@ -449,27 +460,16 @@ class PythonModelAdapter:
     def has_read_input_data_hook(self):
         return self._custom_hooks.get(CustomHooks.READ_INPUT_DATA) is not None
 
-    def predict(self, model=None, **kwargs):
-        """
-        Makes predictions against the model using the custom predict
-        Parameters
-        ----------
-        model: Any
-            The model
-        kwargs
-        Returns
-        -------
-        np.array, list(str)
-        """
-        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
-        sparse_colnames = kwargs.get(StructuredDtoKeys.SPARSE_COLNAMES)
-        data = self.load_data(
-            input_binary_data,
-            kwargs.get(StructuredDtoKeys.MIMETYPE),
-            sparse_colnames=sparse_colnames,
-        )
+    def _predict_new_drum(self, data, **kwargs):
+        try:
+            predictions_df = self._drum_class_instance.predict(data, **kwargs)
+            return predictions_df.values, predictions_df.columns
+        except Exception as exc:
+            raise type(exc)(
+                "Model score hook failed to make predictions. Exception: {}".format(exc)
+            ).with_traceback(sys.exc_info()[2]) from None
 
-        data = self.preprocess(data, model)
+    def _predict_legacy_drum(self, data, model, **kwargs):
 
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
@@ -483,7 +483,6 @@ class PythonModelAdapter:
 
         if request_labels is not None:
             assert all(isinstance(label, str) for label in request_labels)
-
         if self._custom_hooks.get(CustomHooks.SCORE):
             try:
                 # noinspection PyCallingNonCallable
@@ -525,6 +524,36 @@ class PythonModelAdapter:
                 )
             predictions = predictions_df.values
             model_labels = predictions_df.columns
+
+        return predictions, model_labels
+
+    def predict(self, model=None, **kwargs):
+        """
+        Makes predictions against the model using the custom predict
+        Parameters
+        ----------
+        model: Any
+            The model
+        kwargs
+        Returns
+        -------
+        np.array, list(str)
+        """
+        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
+        sparse_colnames = kwargs.get(StructuredDtoKeys.SPARSE_COLNAMES)
+        data = self.load_data(
+            input_binary_data,
+            kwargs.get(StructuredDtoKeys.MIMETYPE),
+            sparse_colnames=sparse_colnames,
+        )
+
+        data = self.preprocess(data, model)
+
+        if self._drum_class:
+            # TODO: include _validate_data but refactor
+            predictions, model_labels = self._predict_new_drum(data, **kwargs)
+        else:
+            predictions, model_labels = self._predict_legacy_drum(data, model, **kwargs)
 
         return predictions, model_labels
 
@@ -618,11 +647,10 @@ class PythonModelAdapter:
         return False
 
     def fit(self, X, y, output_dir, class_order=None, row_weights=None, parameters=None):
-        if self._is_drum_class:
+        if self._drum_class:
             with reroute_stdout_to_stderr():
-                if self._custom_hooks.get(CustomHooks.FIT):
-                    self._custom_hooks[CustomHooks.FIT](
-                        self._custom_hooks[CustomHooks.INIT],
+                try:
+                    self._drum_class_instance.fit(
                         X=X,
                         y=y,
                         output_dir=output_dir,
@@ -630,7 +658,9 @@ class PythonModelAdapter:
                         row_weights=row_weights,
                         parameters=parameters,
                     )
-                else:
+
+                    self._drum_class_instance.save(self._model_dir)
+                except AttributeError:
                     raise DrumCommonException("Fit method must be defined in your custom.py file")
         else:
             if self._target_type != TargetType.TRANSFORM:
@@ -649,13 +679,17 @@ class PythonModelAdapter:
                     return
                 else:
                     hooks = [
-                        "{}: {}".format(hook, fn is not None) for hook, fn in self._custom_hooks.items()
+                        "{}: {}".format(hook, fn is not None)
+                        for hook, fn in self._custom_hooks.items()
                     ]
                     raise DrumCommonException(
                         "\n\n{}\n"
                         "\nfit() method must be implemented in a file named 'custom.py' in the provided code_dir: '{}' \n"
                         "Here is a list of files in this dir. {}\n"
                         "Here are the hooks your custom.py file has: {}".format(
-                            RUNNING_LANG_MSG, self._model_dir, os.listdir(self._model_dir)[:100], hooks
+                            RUNNING_LANG_MSG,
+                            self._model_dir,
+                            os.listdir(self._model_dir)[:100],
+                            hooks,
                         )
                     )
