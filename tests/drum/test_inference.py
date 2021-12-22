@@ -49,8 +49,8 @@ from .constants import (
     PYTHON,
     PYTHON_LOAD_MODEL,
     PYTHON_PREDICT_SPARSE,
-    PYTHON_TRANSFORM_NO_Y,
-    PYTHON_TRANSFORM_NO_Y_DENSE,
+    PYTHON_TRANSFORM,
+    PYTHON_TRANSFORM_DENSE,
     PYTHON_TRANSFORM_SPARSE,
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
     PYTORCH,
@@ -71,7 +71,7 @@ from .constants import (
     XGB,
     JULIA,
     MLJ,
-    R_TRANSFORM,
+    R_TRANSFORM_WITH_Y,
     R_TRANSFORM_SPARSE_INPUT,
     R_TRANSFORM_SPARSE_OUTPUT,
     R_VALIDATE_SPARSE_ESTIMATOR,
@@ -459,10 +459,10 @@ class TestInference:
             # (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, True),
             # (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None, False),
             # (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, False),
-            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM_NO_Y, None, True),
-            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM_NO_Y, None, False),
-            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_NO_Y_DENSE, None, False),
-            (R_TRANSFORM, TRANSFORM, R_TRANSFORM, None, False),
+            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None, True),
+            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None, False),
+            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, False),
+            (R_TRANSFORM_WITH_Y, TRANSFORM, R_TRANSFORM_WITH_Y, None, False),
             (SKLEARN_TRANSFORM, SPARSE_TRANSFORM, PYTHON_TRANSFORM_SPARSE, None, False),
             (R_TRANSFORM_SPARSE_INPUT, SPARSE_TRANSFORM, R_TRANSFORM_SPARSE_INPUT, None, False),
             (R_TRANSFORM_SPARSE_OUTPUT, TRANSFORM, R_TRANSFORM_SPARSE_OUTPUT, None, False),
@@ -500,7 +500,7 @@ class TestInference:
 
             parsed_response = parse_multi_part_response(response)
 
-            if framework in [SKLEARN_TRANSFORM_DENSE, R_TRANSFORM, R_TRANSFORM_SPARSE_INPUT]:
+            if framework in [SKLEARN_TRANSFORM_DENSE, R_TRANSFORM_WITH_Y, R_TRANSFORM_SPARSE_INPUT]:
                 if use_arrow:
                     transformed_out = read_arrow_payload(parsed_response, X_TRANSFORM_KEY)
                     if pass_target:
@@ -546,7 +546,7 @@ class TestInference:
             elif framework == SKLEARN_TRANSFORM_DENSE:
                 assert type(transformed_out) == pd.DataFrame
                 assert transformed_out.shape[1] == 10
-            elif framework == R_TRANSFORM:
+            elif framework == R_TRANSFORM_WITH_Y:
                 assert type(transformed_out) == pd.DataFrame
                 assert transformed_out.shape[1] == 80
 
@@ -556,7 +556,7 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [(SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM_NO_Y, DOCKER_PYTHON_SKLEARN),],
+        [(SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, DOCKER_PYTHON_SKLEARN), ],
     )
     def test_custom_transforms_with_drum_nginx_prediction_server(
         self, resources, framework, problem, language, docker, tmp_path,

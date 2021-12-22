@@ -81,8 +81,8 @@ from .constants import (
     PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION,
     R_TRANSFORM_SPARSE_INPUT,
     R_TRANSFORM_SPARSE_IN_OUT,
+    R_TRANSFORM_WITH_Y,
     R_TRANSFORM,
-    R_TRANSFORM_NO_Y,
     R_TRANSFORM_NO_HOOK,
     R_TRANSFORM_NON_NUMERIC,
     R_ESTIMATOR_SPARSE,
@@ -330,7 +330,7 @@ class TestFit:
         [
             (SKLEARN_TRANSFORM, PYTHON),
             (SKLEARN_TRANSFORM_NO_HOOK, PYTHON),
-            (R_TRANSFORM_NO_Y, R_FIT),
+            (R_TRANSFORM, R_FIT),
             (R_TRANSFORM_NO_HOOK, R_FIT),
         ],
     )
