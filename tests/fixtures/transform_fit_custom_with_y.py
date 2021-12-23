@@ -5,15 +5,15 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import pickle
-import pandas as pd
 from scipy.sparse.csr import csr_matrix
 
 import numpy as np
-
+import pandas as pd
 from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
 
 numeric_selector = make_column_selector(dtype_include=np.number)
 categorical_selector = make_column_selector(dtype_include=np.object)
@@ -82,7 +82,7 @@ def fit(
         pickle.dump(transformer, fp)
 
 
-def transform(X, transformer):
+def transform(X, transformer, y=None):
     """
     Parameters
     ----------
@@ -95,6 +95,6 @@ def transform(X, transformer):
     """
     transformed = transformer.transform(X)
     if type(transformed) == csr_matrix:
-        return pd.DataFrame.sparse.from_spmatrix(transformed)
+        return pd.DataFrame.sparse.from_spmatrix(transformed), y
     else:
-        return pd.DataFrame(transformed)
+        return pd.DataFrame(transformed), y

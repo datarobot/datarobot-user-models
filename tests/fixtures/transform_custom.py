@@ -5,7 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import pandas as pd
-from scipy.sparse.csr import csr_matrix
+from scipy.sparse import issparse
 
 
 def transform(X, transformer, y=None):
@@ -20,7 +20,9 @@ def transform(X, transformer, y=None):
     transformed DataFrame resulting from applying transform to incoming data
     """
     transformed = transformer.transform(X)
-    if type(transformed) == csr_matrix:
-        return pd.DataFrame.sparse.from_spmatrix(transformed), y
+    if issparse(transformed):
+        return pd.DataFrame.sparse.from_spmatrix(
+            transformed, columns=[f"feature_{i}" for i in range(transformed.shape[1])]
+        )
     else:
-        return pd.DataFrame(transformed), y
+        return pd.DataFrame(transformed)
