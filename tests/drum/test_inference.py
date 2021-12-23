@@ -556,7 +556,7 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [(SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, DOCKER_PYTHON_SKLEARN), ],
+        [(SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, DOCKER_PYTHON_SKLEARN),],
     )
     def test_custom_transforms_with_drum_nginx_prediction_server(
         self, resources, framework, problem, language, docker, tmp_path,

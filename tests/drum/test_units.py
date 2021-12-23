@@ -1007,14 +1007,11 @@ def mock_post_blueprint():
 
 
 def mock_post_userblueprint():
-    with open('../fixtures/user_blueprint.json') as f:
+    with open("../fixtures/user_blueprint.json") as f:
         json_data = json.load(f)
     responses.add(
-        responses.POST,
-        "http://yess/userBlueprints/fromCustomTaskVersionId/",
-        json=json_data
+        responses.POST, "http://yess/userBlueprints/fromCustomTaskVersionId/", json=json_data
     )
-
 
 
 def mock_post_add_to_repository():
