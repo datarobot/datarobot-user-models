@@ -602,15 +602,15 @@ _custom_filepaths = {
         os.path.join(TESTS_FIXTURES_PATH, "int_colnames_multiclass.R"),
         "custom.R",
     ),
-    PYTHON_TRANSFORM_WITH_Y: (os.path.join(TESTS_FIXTURES_PATH, "transform_custom_with_y.py"), "custom.py"),
+    PYTHON_TRANSFORM_WITH_Y: (
+        os.path.join(TESTS_FIXTURES_PATH, "transform_custom_with_y.py"),
+        "custom.py",
+    ),
     PYTHON_TRANSFORM_DENSE_WITH_Y: (
         os.path.join(TESTS_FIXTURES_PATH, "transform_custom_with_y.py"),
         "custom.py",
     ),
-    PYTHON_TRANSFORM: (
-        os.path.join(TESTS_FIXTURES_PATH, "transform_custom.py"),
-        "custom.py",
-    ),
+    PYTHON_TRANSFORM: (os.path.join(TESTS_FIXTURES_PATH, "transform_custom.py"), "custom.py",),
     PYTHON_TRANSFORM_DENSE: (
         os.path.join(TESTS_FIXTURES_PATH, "transform_custom.py"),
         "custom.py",
@@ -627,10 +627,7 @@ _custom_filepaths = {
         os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_no_hook.py"),
         "custom.py",
     ),
-    SKLEARN_TRANSFORM: (
-        os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom.py"),
-        "custom.py",
-    ),
+    SKLEARN_TRANSFORM: (os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom.py"), "custom.py",),
     SKLEARN_TRANSFORM_SPARSE_INPUT: (
         os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_sparse_input.py"),
         "custom.py",
@@ -647,7 +644,10 @@ _custom_filepaths = {
         os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_non_numeric.py"),
         "custom.py",
     ),
-    R_TRANSFORM_WITH_Y: (os.path.join(TESTS_FIXTURES_PATH, "r_transform_custom_with_y.R"), "custom.R"),
+    R_TRANSFORM_WITH_Y: (
+        os.path.join(TESTS_FIXTURES_PATH, "r_transform_custom_with_y.R"),
+        "custom.R",
+    ),
     R_TRANSFORM: (os.path.join(TESTS_FIXTURES_PATH, "r_transform_custom.R"), "custom.R",),
     R_TRANSFORM_NO_HOOK: (
         os.path.join(TESTS_FIXTURES_PATH, "r_transform_fit_custom_no_hook.R"),
