@@ -26,7 +26,6 @@ import pandas as pd
 import pyarrow
 import pytest
 import responses
-from bson import ObjectId
 from pandas.testing import assert_frame_equal
 from sklearn.linear_model import LogisticRegression
 
@@ -1006,14 +1005,6 @@ def mock_post_blueprint():
     )
 
 
-def mock_post_userblueprint():
-    with open("../fixtures/user_blueprint.json") as f:
-        json_data = json.load(f)
-    responses.add(
-        responses.POST, "http://yess/userBlueprints/fromCustomTaskVersionId/", json=json_data
-    )
-
-
 def mock_post_add_to_repository():
     responses.add(
         responses.POST,
@@ -1083,7 +1074,6 @@ def test_push(request, config_yaml, existing_model_id, multiclass_labels, tmp_pa
     version_mocks()
     task_version_mock()
     mock_post_blueprint()
-    mock_post_userblueprint()
     mock_post_add_to_repository()
     mock_get_model(model_type=config["type"], target_type=config["targetType"].capitalize())
     mock_get_env()
