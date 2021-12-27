@@ -462,6 +462,8 @@ class PythonModelAdapter:
         if self._drum_class:
             try:
                 output_data = self._drum_class_instance.transform(data)
+                self._validate_data(output_data, CustomHooks.TRANSFORM)
+                self._validate_transform_rows(output_data, data)
                 output_target = target_data
             except Exception as exc:
                 raise type(exc)(
@@ -478,6 +480,7 @@ class PythonModelAdapter:
     def _predict_new_drum(self, data, **kwargs):
         try:
             predictions_df = self._drum_class_instance.predict(data, **kwargs)
+            self._validate_data(predictions_df, CustomHooks.SCORE)
             return predictions_df.values, predictions_df.columns
         except Exception as exc:
             raise type(exc)(
@@ -565,7 +568,6 @@ class PythonModelAdapter:
         data = self.preprocess(data, model)
 
         if self._drum_class:
-            # TODO: include _validate_data but refactor
             predictions, model_labels = self._predict_new_drum(data, **kwargs)
         else:
             predictions, model_labels = self._predict_legacy_drum(data, model, **kwargs)
