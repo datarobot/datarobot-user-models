@@ -4,11 +4,14 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+from typing import Any
+
+import numpy as np
 import pandas as pd
-from scipy.sparse.csr import csr_matrix
 
 from datarobot_drum.custom_task_interfaces import TransformerInterface
-from create_transform_pipeline import make_pipeline
+
+
 
 
 class CustomTask(TransformerInterface):
@@ -30,24 +33,31 @@ class CustomTask(TransformerInterface):
         CustomTask
             returns an object instance of class CustomTask that can be used in chained method calls
         """
-        self.transformer = make_pipeline()
-        self.transformer.fit(X, y)
 
-        return self
+    @staticmethod
+    def _transform_bools(values: pd.Series) -> pd.Series:
+        """ Helper method example. This could also be placed in a separate file as well.
+        """
+        if values.dtype == np.bool:
+            return values.astype(np.int)
+        else:
+            return values
 
     def transform(self, X, **kwargs):
-        """
+        """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
+        DataRobot runs this hook when the task is used for scoring inside a blueprint.
+        As an output, this hook is expected to return the transformed data.
+        The input parameters are passed by DataRobot based on dataset and blueprint configuration.
+
         Parameters
-        ----------
-        X: pd.DataFrame - training data to perform transform on
+        -------
+        X: pd.DataFrame
+            Data that DataRobot passes for transformation.
 
         Returns
         -------
-        transformed DataFrame resulting from applying transform to incoming data
+        pd.DataFrame
+            Returns a dataframe with transformed data.
         """
-        transformed = self.transformer.transform(X)
 
-        if type(transformed) == csr_matrix:
-            return pd.DataFrame.sparse.from_spmatrix(transformed)
-        else:
-            return pd.DataFrame(transformed)
+        return X.apply(self._transform_bools)

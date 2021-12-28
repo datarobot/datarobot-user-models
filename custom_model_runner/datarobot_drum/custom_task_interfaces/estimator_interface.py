@@ -2,6 +2,9 @@ from datarobot_drum.custom_task_interfaces.custom_task_interface import CustomTa
 
 
 class EstimatorInterface(CustomTaskInterface):
+    def __init__(self):
+        self.estimator = None
+
     def predict(self, X, **kwargs):
         """ This hook defines how DataRobot will use the trained object from fit() to predict new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.

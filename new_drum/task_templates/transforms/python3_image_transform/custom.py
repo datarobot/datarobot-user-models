@@ -12,7 +12,7 @@ from img_utils import (
     img_to_b64,
     img_to_grayscale,
 )
-from new_drum.src.transform import TransformerInterface
+from datarobot_drum.custom_task_interfaces import TransformerInterface
 
 
 class CustomTask(TransformerInterface):

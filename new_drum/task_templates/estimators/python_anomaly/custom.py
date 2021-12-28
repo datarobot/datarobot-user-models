@@ -4,21 +4,23 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-# This custom transform task implements missing values imputation using a median
+# This custom estimator task implements anomaly detection using OneClassSVM
 
+from typing import List, Optional
+import pickle
 import pandas as pd
-from MissingImputation import (
-    MissingValuesMedianImputation,
-)  # class defined into MissingImputation.py
+import numpy as np
+from pathlib import Path
+from sklearn.svm import OneClassSVM
 
-from datarobot_drum.custom_task_interfaces import TransformerInterface
+from datarobot_drum.custom_task_interfaces import AnomalyInterface
 
 
-class CustomTask(TransformerInterface):
-    def fit(self, X, y, **kwargs):
-        """ This hook defines how DataRobot will train this task. Even transform tasks need to be trained to learn/store information from training data
+class CustomTask(AnomalyInterface):
+    def fit(self, X, y, row_weights=None, **kwargs):
+        """ This hook defines how DataRobot will train this task.
         DataRobot runs this hook when the task is being trained inside a blueprint.
-        As an output, this hook is expected to create an artifact containg a trained object [in this example - median of each numeric column], that is then used to transform new data.
+        As an output, this hook is expected to create an artifact containing a trained object, that is then used to predict new data.
         The input parameters are passed by DataRobot based on project and blueprint configuration.
 
         Parameters
@@ -26,7 +28,9 @@ class CustomTask(TransformerInterface):
         X: pd.DataFrame
             Training data that DataRobot passes when this task is being trained.
         y: pd.Series
-            Project's target column (None is passed for unsupervised projects).
+            Project's target column.
+        row_weights: np.ndarray (optional, default = None)
+            A list of weights. DataRobot passes it in case of smart downsampling or when weights column is specified in project settings.
 
         Returns
         -------
@@ -34,12 +38,14 @@ class CustomTask(TransformerInterface):
             returns an object instance of class CustomTask that can be used in chained method calls
         """
 
-        self.trn = MissingValuesMedianImputation(X)
-        self.trn.fit(X)
+        # fit OneClassSVM
+        assert y is None
+        self.estimator = OneClassSVM()
+        self.estimator.fit(X, y)
 
         return self
 
-    def transform(self, X, **kwargs):
+    def predict(self, X, **kwargs):
         """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
         As an output, this hook is expected to return the transformed data.
@@ -56,4 +62,4 @@ class CustomTask(TransformerInterface):
             Returns a dataframe with transformed data.
         """
 
-        return self.trn.transform(X)
+        return pd.DataFrame(data=self.estimator.predict(X), columns=self.prediction_columns)

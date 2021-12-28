@@ -12,7 +12,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 # In this example we use a custom python class, CustomCalibrator, so that we can store the complex state inside the object and then re-use it during scoring.
 
 import pandas as pd
-from .CustomCalibrator import CustomCalibrator  # class defined into CustomCalibrator.py
+from CustomCalibrator import CustomCalibrator  # class defined into CustomCalibrator.py
 
 from datarobot_drum.custom_task_interfaces import RegressionInterface
 
@@ -40,7 +40,7 @@ class CustomTask(RegressionInterface):
         """
 
         # fit a DecisionTreeRegressor
-        self.estimator = CustomCalibrator()
+        self.estimator = CustomCalibrator(X)
         self.estimator.fit(X, y)
 
         return self

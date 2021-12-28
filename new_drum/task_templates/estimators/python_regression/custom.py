@@ -56,5 +56,4 @@ class CustomTask(RegressionInterface):
             Returns a dataframe with transformed data.
         """
 
-        # fillna can take either a value or a method
         return pd.DataFrame(data=self.estimator.predict(X), columns=self.prediction_columns)
