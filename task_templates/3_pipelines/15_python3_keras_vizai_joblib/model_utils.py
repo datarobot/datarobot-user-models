@@ -7,13 +7,12 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 from typing import Tuple
 
 # keras imports
-import keras
 import tensorflow
-from tensorflow.keras.models import Sequential, Model, load_model
-from tensorflow.keras.layers import Dense, BatchNormalization, Dropout, Add, GlobalAveragePooling2D, InputLayer  # core layers
+from tensorflow.keras.models import Model, load_model
+from tensorflow.keras.layers import Dense, BatchNormalization, Dropout, Add, GlobalAveragePooling2D, Input  # core layers
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras.applications import MobileNetV3Large
+from tensorflow.keras.applications import MobileNetV3Small
 
 # TODO: can remove this, no longer needed in v3
 from tensorflow.keras.applications.mobilenet_v3 import preprocess_input
@@ -122,7 +121,7 @@ def reshape_numpy_array(data_series: pd.Series) -> np.ndarray:
 
 def get_all_callbacks() -> List[tensorflow.keras.callbacks.Callback]:
     """ List of all keras callbacks """
-    es = EarlyStopping(monitor="val_loss", patience=3, verbose=True, mode="auto", min_delta=1e-3)
+    es = EarlyStopping(monitor="val_loss", patience=5, verbose=True, mode="auto", min_delta=1e-3)
     return [es]
 
 
@@ -153,12 +152,13 @@ def get_image_augmentation_gen(X_data, y_data, bs, seed) -> Iterator[tuple]:
 
 def get_pretrained_base_model() -> Model:
     """ A base pretrained model to build on top of """
-    weights_file = "mobilenetv3_large.h5"
-    pretrained_model = MobileNetV3Large(
+    weights_file = "mobilenetv3_small.h5"
+    pretrained_model = MobileNetV3Small(
         include_top=False, input_shape=IMG_SHAPE, weights=weights_file
     )
     pretrained_model.trainable = False
-    return pretrained_model
+    pool = GlobalAveragePooling2D()(pretrained_model.layers[-1].output)
+    return Model(inputs=pretrained_model.inputs, outputs=pool)
 
 
 def create_image_binary_classification_model(input_shape) -> Model:
@@ -170,34 +170,23 @@ def create_image_binary_classification_model(input_shape) -> Model:
     Model
         Compiled binary classification model
     """
-
-    """
-    model = Sequential()
-    model.add(GlobalAveragePooling2D())
-    model.add(tensorflow.keras.layers.Dense(64, activation='relu'))
-    model.add(tensorflow.keras.layers.BatchNormalization())
-    model.add(tensorflow.keras.layers.Dropout(0.05))
-    model.add(Dense(1, activation="sigmoid"))
-    model.add(tensorflow.keras.layers.BatchNormalization())
-    """
-
-    inputs = InputLayer(shape=input_shape, batch_size=BATCH_SIZE)
-    pooled_inputs = GlobalAveragePooling2D()(inputs)
+    inputs = Input(shape=input_shape)
 
     # Main Branch
-    X = Dense(64, activation="relu")(pooled_inputs)
+    X = Dense(64, activation="relu")(inputs)
     X = BatchNormalization()(X)
     X = Dropout(0.05)(X)
-    X = Dense(1, activation="sigmoid")
-    X = BatchNormalization(X)
+    X = Dense(1, activation="sigmoid")(X)
+    X = BatchNormalization()(X)
 
     # Skip Connection
     skip = Dense(1)(inputs) # linear
-    skip = BatchNormalization(skip)
+    skip = BatchNormalization()(skip)
 
     outputs = Add()([X, skip])
+    outputs = Dense(1, activation="sigmoid")(outputs)
 
-    model = keras.Model(inputs=inputs, output=outputs, name="keras_vizai")
+    model = Model(inputs=inputs, outputs=outputs, name="keras_vizai")
 
     model.compile(
         optimizer=tensorflow.keras.optimizers.Adam(),
