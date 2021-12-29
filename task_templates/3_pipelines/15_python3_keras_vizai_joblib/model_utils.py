@@ -9,12 +9,19 @@ from typing import Tuple
 # keras imports
 import tensorflow
 from tensorflow.keras.models import Model, load_model
-from tensorflow.keras.layers import Dense, BatchNormalization, Dropout, Add, GlobalAveragePooling2D, Input  # core layers
+from tensorflow.keras.layers import (
+    Dense,
+    BatchNormalization,
+    Dropout,
+    Add,
+    GlobalAveragePooling2D,
+    Input,
+)  # core layers
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.applications import MobileNetV3Small
 
-# TODO: can remove this, no longer needed in v3
+# Note: no longer needed in MobileNetV3, kept for backwards compatability
 from tensorflow.keras.applications.mobilenet_v3 import preprocess_input
 
 # scikit-learn imports
@@ -35,9 +42,7 @@ from pathlib import Path
 
 from typing import List, Iterator
 
-
 # define constants
-
 IMG_SIZE = 150
 IMG_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
 EPOCHS = 100
@@ -180,7 +185,7 @@ def create_image_binary_classification_model(input_shape) -> Model:
     X = BatchNormalization()(X)
 
     # Skip Connection
-    skip = Dense(1)(inputs) # linear
+    skip = Dense(1)(inputs)  # linear
     skip = BatchNormalization()(skip)
 
     outputs = Add()([X, skip])
@@ -299,10 +304,7 @@ def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_dir: str) 
         keras_model.save(file, include_optimizer=False)
 
     # save the preprocessor and the model to dictionary
-    model_dict = dict(
-        preprocessor_pipeline=preprocessor,
-        model=io_container,
-    )
+    model_dict = dict(preprocessor_pipeline=preprocessor, model=io_container,)
 
     # save the dict obj as a joblib file
     output_file_path = Path(output_dir) / "artifact.joblib"
@@ -360,10 +362,6 @@ def fit_image_classifier_pipeline(
     test_features, test_labels = extract_features(
         test_gen, len(X_test_transformed), get_pretrained_base_model()
     )
-
-    print("TRAIN FEATURES: ", train_features.shape)
-    print("TRAIN FEATURES TYPE", type(train_features))
-    print("BATCH_SIZE ", train_gen.batch_size)
 
     # Note: the first channel is the number of samples in the dataset that we transformed
     clf_model = create_image_binary_classification_model(train_features.shape[1:])
