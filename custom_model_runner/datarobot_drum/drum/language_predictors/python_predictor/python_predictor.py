@@ -13,6 +13,7 @@ from datarobot_drum.drum.enum import (
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
     CLASS_LABELS_ARG_KEYWORD,
     TARGET_TYPE_ARG_KEYWORD,
+    REGRESSION_PRED_COLUMN,
 )
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
@@ -35,7 +36,16 @@ class PythonPredictor(BaseLanguagePredictor):
         )
 
         sys.path.append(self._code_dir)
-        self._model_adapter.load_custom_hooks()
+        import pydevd_pycharm
+        pydevd_pycharm.settrace('localhost', port=35406, stdoutToServer=True, stderrToServer=True)
+        if params.positiveClassLabel is not None:
+            class_labels = [params.negativeClassLabel, params.positiveClassLabel]
+        elif params.classLabels is not None:
+            class_labels = params.classLabels
+        else:
+            class_labels = REGRESSION_PRED_COLUMN
+
+        self._model_adapter.load_custom_hooks(class_labels)
         self._model = self._model_adapter.load_model_from_artifact()
         if self._model is None:
             raise Exception("Failed to load model")

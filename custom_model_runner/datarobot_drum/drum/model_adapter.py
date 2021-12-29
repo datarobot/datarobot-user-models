@@ -85,17 +85,13 @@ class PythonModelAdapter:
             ) from None
         return output_data
 
-    def _load_custom_hooks_for_new_drum(self, custom_module):
-        # TODO have self._custom_class
-        # TODO also have self._custom_class_instance, instantiate class. Run fit and save
-        # TODO when doing load, just use load
-        # TODO on load, check to make sure it's an instance of that class
+    def _load_custom_hooks_for_new_drum(self, custom_module, class_labels=None):
         # use that instance to score
         custom_task_class = getattr(custom_module, DRUM_PYTHON_CLASS)
 
         if issubclass(custom_task_class, CustomTaskInterface):
             self._drum_class = custom_task_class
-            self._drum_class_instance = custom_task_class()
+            self._drum_class_instance = custom_task_class(class_labels)
 
             self._logger.debug("Hooks loaded: {}".format(self._custom_hooks))
 
@@ -125,7 +121,7 @@ class PythonModelAdapter:
 
         self._logger.debug("Hooks loaded: {}".format(self._custom_hooks))
 
-    def load_custom_hooks(self):
+    def load_custom_hooks(self, class_labels=None):
         custom_file_paths = list(Path(self._model_dir).rglob("{}.py".format(CUSTOM_FILE_NAME)))
         assert len(custom_file_paths) <= 1
 
@@ -140,7 +136,7 @@ class PythonModelAdapter:
         try:
             custom_module = __import__(CUSTOM_FILE_NAME)
             if getattr(custom_module, DRUM_PYTHON_CLASS, None):
-                self._load_custom_hooks_for_new_drum(custom_module)
+                self._load_custom_hooks_for_new_drum(custom_module, class_labels)
             else:
                 self._load_custom_hooks_for_legacy_drum(custom_module)
 
@@ -191,6 +187,7 @@ class PythonModelAdapter:
         """
         if self._drum_class:
             self._drum_class_instance = self._drum_class.load(self._model_dir)
+            assert isinstance(self._drum_class_instance, self._drum_class)
             return self._drum_class_instance
 
         else:
