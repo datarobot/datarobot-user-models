@@ -8,13 +8,21 @@ from typing import Tuple
 
 # keras imports
 import tensorflow
-from tensorflow.keras.models import Sequential, Model, load_model
-from tensorflow.keras.layers import Dense  # core layers
-from tensorflow.keras.layers import GlobalAveragePooling2D  # CNN layers
+from tensorflow.keras.models import Model, load_model
+from tensorflow.keras.layers import (
+    Dense,
+    BatchNormalization,
+    Dropout,
+    Add,
+    GlobalAveragePooling2D,
+    Input,
+)  # core layers
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras.applications import MobileNetV2
-from tensorflow.keras.applications.mobilenet_v2 import preprocess_input
+from tensorflow.keras.applications import MobileNetV3Small
+
+# Note: no longer needed in MobileNetV3, kept for backwards compatability
+from tensorflow.keras.applications.mobilenet_v3 import preprocess_input
 
 # scikit-learn imports
 from sklearn.preprocessing import LabelBinarizer, label_binarize, FunctionTransformer
@@ -34,9 +42,7 @@ from pathlib import Path
 
 from typing import List, Iterator
 
-
 # define constants
-
 IMG_SIZE = 150
 IMG_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
 EPOCHS = 100
@@ -80,7 +86,9 @@ def extract_features(
 ) -> Tuple[np.ndarray, np.ndarray]:
     """ extract the features using the CNN base model """
     conv_base_actvn_output_shape = tuple(base_model.layers[-1].output.shape[1:])
+    print("conv_base_output_shape", conv_base_actvn_output_shape)
     features = np.zeros((sample_count, *conv_base_actvn_output_shape))
+    print("features shape", features.shape)
     labels = np.zeros((sample_count))
     i = 0
 
@@ -111,15 +119,6 @@ def pretrained_preprocess_input(img_arr: np.ndarray) -> np.ndarray:
     return preprocess_input(img_arr)
 
 
-def get_pretrained_base_model() -> Model:
-    """ A base pretrained model to build on top of """
-    from tensorflow.keras.applications import MobileNetV2
-
-    pretrained_model = MobileNetV2(include_top=False, input_shape=IMG_SHAPE, classes=2)
-    pretrained_model.trainable = False
-    return pretrained_model
-
-
 def reshape_numpy_array(data_series: pd.Series) -> np.ndarray:
     """ Convert pd.Series to numpy array and reshape it too """
     return np.asarray(data_series.to_list()).reshape(-1, *IMG_SHAPE)
@@ -127,7 +126,7 @@ def reshape_numpy_array(data_series: pd.Series) -> np.ndarray:
 
 def get_all_callbacks() -> List[tensorflow.keras.callbacks.Callback]:
     """ List of all keras callbacks """
-    es = EarlyStopping(monitor="val_loss", patience=5, verbose=True, mode="auto", min_delta=1e-4)
+    es = EarlyStopping(monitor="val_loss", patience=5, verbose=True, mode="auto", min_delta=1e-3)
     return [es]
 
 
@@ -158,12 +157,16 @@ def get_image_augmentation_gen(X_data, y_data, bs, seed) -> Iterator[tuple]:
 
 def get_pretrained_base_model() -> Model:
     """ A base pretrained model to build on top of """
-    pretrained_model = MobileNetV2(include_top=False, input_shape=IMG_SHAPE, classes=NUM_CLASSES)
+    weights_file = "mobilenetv3_small.h5"
+    pretrained_model = MobileNetV3Small(
+        include_top=False, input_shape=IMG_SHAPE, weights=weights_file
+    )
     pretrained_model.trainable = False
-    return pretrained_model
+    pool = GlobalAveragePooling2D()(pretrained_model.layers[-1].output)
+    return Model(inputs=pretrained_model.inputs, outputs=pool)
 
 
-def create_image_binary_classification_model() -> Model:
+def create_image_binary_classification_model(input_shape) -> Model:
     """
     Create an image binary classification model.
 
@@ -172,10 +175,24 @@ def create_image_binary_classification_model() -> Model:
     Model
         Compiled binary classification model
     """
+    inputs = Input(shape=input_shape)
 
-    model = Sequential()
-    model.add(GlobalAveragePooling2D())
-    model.add(Dense(1, activation="sigmoid"))
+    # Main Branch
+    X = Dense(64, activation="relu")(inputs)
+    X = BatchNormalization()(X)
+    X = Dropout(0.05)(X)
+    X = Dense(1, activation="sigmoid")(X)
+    X = BatchNormalization()(X)
+
+    # Skip Connection
+    skip = Dense(1)(inputs)  # linear
+    skip = BatchNormalization()(skip)
+
+    outputs = Add()([X, skip])
+    outputs = Dense(1, activation="sigmoid")(outputs)
+
+    model = Model(inputs=inputs, outputs=outputs, name="keras_vizai")
+
     model.compile(
         optimizer=tensorflow.keras.optimizers.Adam(),
         loss="binary_crossentropy",
@@ -287,9 +304,7 @@ def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_dir: str) 
         keras_model.save(file, include_optimizer=False)
 
     # save the preprocessor and the model to dictionary
-    model_dict = dict()
-    model_dict["preprocessor_pipeline"] = preprocessor
-    model_dict["model"] = io_container
+    model_dict = dict(preprocessor_pipeline=preprocessor, model=io_container,)
 
     # save the dict obj as a joblib file
     output_file_path = Path(output_dir) / "artifact.joblib"
@@ -348,7 +363,8 @@ def fit_image_classifier_pipeline(
         test_gen, len(X_test_transformed), get_pretrained_base_model()
     )
 
-    clf_model = create_image_binary_classification_model()
+    # Note: the first channel is the number of samples in the dataset that we transformed
+    clf_model = create_image_binary_classification_model(train_features.shape[1:])
     clf_model.fit(
         x=train_features,
         y=train_labels,
