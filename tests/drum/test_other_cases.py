@@ -10,6 +10,7 @@ import pandas as pd
 import pytest
 import requests
 from unittest.mock import Mock, patch, DEFAULT
+import yaml
 
 from datarobot_drum.drum.enum import CUSTOM_FILE_NAME, CustomHooks, ArgumentsOptions
 
@@ -43,12 +44,16 @@ from .constants import (
     R_INT_COLNAMES_MULTICLASS,
     MULTICLASS,
 )
+from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME
+from datarobot_drum.drum.enum import ModelMetadataKeys
+from datarobot_drum.drum.enum import ModelMetadataHyperParamTypes
 from datarobot_drum.drum.enum import RunMode
 from custom_model_runner.datarobot_drum.drum.drum import CMRunner
 from custom_model_runner.datarobot_drum.drum.main import main
 from datarobot_drum.drum.runtime import DrumRuntime
 from argparse import Namespace
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
+from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from datarobot_drum.drum.enum import ExitCodes
 
@@ -463,3 +468,36 @@ class TestOtherCases:
                 with pytest.raises(SystemExit) as ex:
                     main()
                 assert ex.value.code == ExitCodes.SCHEMA_VALIDATION_ERROR.value
+
+    def test_model_metadata_validation_fails__with_hyper_parameters_errors(self, tmp_path):
+        with DrumRuntime() as runtime:
+            runtime_options = Namespace(
+                code_dir=tmp_path,
+                disable_strict_validation=False,
+                logging_level="warning",
+                subparser_name=RunMode.FIT,
+                target_type="regression",
+                verbose=False,
+                content_type=None,
+            )
+            model_templates = {
+                ModelMetadataKeys.NAME: "name",
+                ModelMetadataKeys.TYPE: "training",
+                ModelMetadataKeys.TARGET_TYPE: "regression",
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {
+                        "name": "param_int",
+                        "type": ModelMetadataHyperParamTypes.INT,
+                        "min": 1,
+                        "max": 0,
+                    },
+                ],
+            }
+            with open(os.path.join(tmp_path, MODEL_CONFIG_FILENAME), mode="w") as f:
+                yaml.dump(model_templates, f)
+            runtime.options = runtime_options
+            with pytest.raises(
+                DrumCommonException,
+                match="Invalid int parameter param_int: max must be greater than min",
+            ) as ex:
+                CMRunner(runtime)

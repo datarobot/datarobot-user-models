@@ -8,9 +8,9 @@
   <version>0.1.0</version>
   <dependencies>
      <dependency>
-        <groupId>com.datarobot.drum</groupId>
-        <artifactId>predictors</artifactId>
-        <version>1.0</version>
+        <groupId>com.datarobot</groupId>
+        <artifactId>drum-base-predictor</artifactId>
+        <version>1.0.0</version>
      </dependency>
        <dependency>
          <groupId>junit</groupId>

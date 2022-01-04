@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Current
 
+#### [1.6.6] - 2021-12-16
+##### Updated
+- update log4j version to 2.16.0
+- bump datarobot>=2.27.0
+
 #### [1.6.5] - 2021-12-11
 ##### Fixed
 - update log4j version
