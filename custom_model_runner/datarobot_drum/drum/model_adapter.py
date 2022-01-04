@@ -39,7 +39,7 @@ from datarobot_drum.drum.enum import (
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
     StructuredDtoKeys,
     TargetType,
-    DRUM_PYTHON_CLASS,
+    CUSTOM_PY_CLASS_NAME,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumTransformException
 from datarobot_drum.drum.utils import DrumUtils, StructuredInputReadUtils
@@ -68,8 +68,19 @@ class PythonModelAdapter:
         self._model = None
         self._model_dir = model_dir
         self._target_type = target_type
-        self._drum_class = None
-        self._drum_class_instance = None
+
+        # New custom task class and instance loaded from custom.py
+        self._custom_task_class = None
+        self._custom_task_class_instance = None
+
+    @property
+    def is_custom_task_class(self):
+        """
+        Returns
+        -------
+        True if the code is using the CustomTask class interface. False if it's using the legacy drum hook interface.
+        """
+        return self._custom_task_class
 
     @staticmethod
     def _apply_sklearn_transformer(data, model):
@@ -86,17 +97,11 @@ class PythonModelAdapter:
         return output_data
 
     def _load_custom_hooks_for_new_drum(self, custom_module):
-        # TODO have self._custom_class
-        # TODO also have self._custom_class_instance, instantiate class. Run fit and save
-        # TODO when doing load, just use load
-        # TODO on load, check to make sure it's an instance of that class
         # use that instance to score
-        custom_task_class = getattr(custom_module, DRUM_PYTHON_CLASS)
+        custom_task_class = getattr(custom_module, CUSTOM_PY_CLASS_NAME)
 
         if issubclass(custom_task_class, CustomTaskInterface):
-            self._drum_class = custom_task_class
-            self._drum_class_instance = custom_task_class()
-
+            self._custom_task_class = custom_task_class
             self._logger.debug("Hooks loaded: {}".format(self._custom_hooks))
 
         else:
@@ -139,7 +144,7 @@ class PythonModelAdapter:
 
         try:
             custom_module = __import__(CUSTOM_FILE_NAME)
-            if getattr(custom_module, DRUM_PYTHON_CLASS, None):
+            if getattr(custom_module, CUSTOM_PY_CLASS_NAME, None):
                 self._load_custom_hooks_for_new_drum(custom_module)
             else:
                 self._load_custom_hooks_for_legacy_drum(custom_module)
@@ -189,9 +194,9 @@ class PythonModelAdapter:
         ------
         DrumCommonException if model loading failed.
         """
-        if self._drum_class:
-            self._drum_class_instance = self._drum_class.load(self._model_dir)
-            return self._drum_class_instance
+        if self.is_custom_task_class:
+            self._custom_task_class_instance = self._custom_task_class.load(self._model_dir)
+            return self._custom_task_class_instance
 
         else:
             return self._load_model_from_artifact_for_legacy_drum()
@@ -252,7 +257,6 @@ class PythonModelAdapter:
         return model_artifact_file
 
     def _load_via_predictors(self, model_artifact_file):
-
         model = None
         pred_that_support_artifact = []
         for pred in self._artifact_predictors:
@@ -459,9 +463,9 @@ class PythonModelAdapter:
                 target_binary_data, kwargs.get(StructuredDtoKeys.TARGET_MIMETYPE), try_hook=False
             )
 
-        if self._drum_class:
+        if self.is_custom_task_class:
             try:
-                output_data = self._drum_class_instance.transform(data)
+                output_data = self._custom_task_class_instance.transform(data)
                 self._validate_data(output_data, CustomHooks.TRANSFORM)
                 self._validate_transform_rows(output_data, data)
                 output_target = target_data
@@ -470,7 +474,9 @@ class PythonModelAdapter:
                     "Model transform hook failed to transform dataset: {}".format(exc)
                 ).with_traceback(sys.exc_info()[2]) from None
         else:
-            output_data, output_target = self._transform_legacy_drum(data, target_data, model, **kwargs)
+            output_data, output_target = self._transform_legacy_drum(
+                data, target_data, model, **kwargs
+            )
 
         return output_data, output_target
 
@@ -479,7 +485,7 @@ class PythonModelAdapter:
 
     def _predict_new_drum(self, data, **kwargs):
         try:
-            predictions_df = self._drum_class_instance.predict(data, **kwargs)
+            predictions_df = self._custom_task_class_instance.predict(data, **kwargs)
             self._validate_data(predictions_df, CustomHooks.SCORE)
             return predictions_df.values, predictions_df.columns
         except Exception as exc:
@@ -488,7 +494,6 @@ class PythonModelAdapter:
             ).with_traceback(sys.exc_info()[2]) from None
 
     def _predict_legacy_drum(self, data, model, **kwargs):
-
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
         request_labels = (
@@ -567,7 +572,7 @@ class PythonModelAdapter:
 
         data = self.preprocess(data, model)
 
-        if self._drum_class:
+        if self.is_custom_task_class:
             predictions, model_labels = self._predict_new_drum(data, **kwargs)
         else:
             predictions, model_labels = self._predict_legacy_drum(data, model, **kwargs)
@@ -664,10 +669,11 @@ class PythonModelAdapter:
         return False
 
     def fit(self, X, y, output_dir, class_order=None, row_weights=None, parameters=None):
-        if self._drum_class:
+        if self.is_custom_task_class:
             with reroute_stdout_to_stderr():
                 try:
-                    self._drum_class_instance.fit(
+                    self._custom_task_class_instance = self._custom_task_class()
+                    self._custom_task_class_instance.fit(
                         X=X,
                         y=y,
                         output_dir=output_dir,
@@ -676,7 +682,7 @@ class PythonModelAdapter:
                         parameters=parameters,
                     )
 
-                    self._drum_class_instance.save(self._model_dir)
+                    self._custom_task_class_instance.save(self._model_dir)
                 except AttributeError:
                     raise DrumCommonException("Fit method must be defined in your custom.py file")
         else:

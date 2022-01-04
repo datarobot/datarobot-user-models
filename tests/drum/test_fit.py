@@ -90,6 +90,8 @@ from .constants import (
     R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
     SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
     REGRESSION_MULTLILINE_TEXT,
+    CUSTOM_TASK_INTERFACE_TRANSFORM,
+    CUSTOM_TASK_INTERFACE_REGRESSION,
 )
 
 
@@ -210,6 +212,7 @@ class TestFit:
             (PYTORCH, BINARY_TEXT, None),
             (PYTORCH_MULTICLASS, MULTICLASS, None),
             (PYTORCH_MULTICLASS, MULTICLASS_BINARY, None),
+            (CUSTOM_TASK_INTERFACE_REGRESSION, REGRESSION, None),
         ],
     )
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
@@ -326,28 +329,39 @@ class TestFit:
         )
 
     @pytest.mark.parametrize(
-        "framework, language",
+        "framework, language, is_framework_directory",
         [
-            (SKLEARN_TRANSFORM, PYTHON),
-            (SKLEARN_TRANSFORM_NO_HOOK, PYTHON),
-            (R_TRANSFORM_NO_Y, R_FIT),
-            (R_TRANSFORM_NO_HOOK, R_FIT),
+            (SKLEARN_TRANSFORM, SKLEARN_TRANSFORM, False),
+            (SKLEARN_TRANSFORM_NO_HOOK, SKLEARN_TRANSFORM_NO_HOOK, False),
+            (R_TRANSFORM_NO_Y, R_TRANSFORM_NO_Y, False),
+            (R_TRANSFORM_NO_HOOK, R_TRANSFORM_NO_HOOK, False),
+            (CUSTOM_TASK_INTERFACE_TRANSFORM, PYTHON, True),
         ],
     )
     @pytest.mark.parametrize("problem", [REGRESSION, BINARY, ANOMALY])
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
     def test_transform_fit(
-        self, resources, framework, language, problem, weights, tmp_path,
+        self, resources, framework, is_framework_directory, language, problem, weights, tmp_path,
     ):
+        # TODO: [RAPTOR-6175] Improve the test utils for custom tasks
+        # the is_training parameter should not make assumptions of whether the framework is a single file or directory
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language=framework,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language=language,
+            is_training=is_framework_directory,
         )
 
         input_dataset = resources.datasets(framework, problem)
         input_df = resources.input_data(framework, problem)
 
         weights_cmd, input_dataset, __keep_this_around = self._add_weights_cmd(
-            weights, input_df, input_dataset, r_fit=language == R_FIT
+            weights,
+            input_df,
+            input_dataset,
+            r_fit=framework in [R_TRANSFORM_NO_Y, R_TRANSFORM_NO_HOOK],
         )
 
         target_type = TRANSFORM
