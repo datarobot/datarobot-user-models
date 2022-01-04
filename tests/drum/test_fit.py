@@ -358,10 +358,7 @@ class TestFit:
         input_df = resources.input_data(framework, problem)
 
         weights_cmd, input_dataset, __keep_this_around = self._add_weights_cmd(
-            weights,
-            input_df,
-            input_dataset,
-            r_fit=framework in [R_TRANSFORM_NO_Y, R_TRANSFORM_NO_HOOK],
+            weights, input_df, input_dataset, r_fit=framework in [R_TRANSFORM, R_TRANSFORM_NO_HOOK],
         )
 
         target_type = TRANSFORM
