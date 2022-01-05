@@ -509,6 +509,9 @@ class CMRunner:
         if not self.options.output:
             self.options.output = mkdtemp()
             remove_temp_output = self.options.output
+        else:
+            if self.options.output == self.options.code_dir:
+                raise DrumCommonException("The code directory may not be used as the output directory as well.")
         print("Starting Fit")
         mem_usage = memory_usage(
             self._run_fit_or_predictions_pipelines_in_mlpiper,

@@ -861,3 +861,30 @@ class TestFit:
                 "Schema validation found mismatch between input dataset and the supplied schema"
                 in stderr
             )
+
+
+    def test_fit_fails_code_dir_is_output_dir(self, resources, tmp_path):
+        custom_model_dir = _create_custom_model_dir(
+            resources, tmp_path, SIMPLE, REGRESSION, PYTHON, is_training=True, nested=True,
+        )
+
+        input_dataset = resources.datasets(SKLEARN, REGRESSION)
+
+        output = tmp_path / "output"
+        output.mkdir()
+
+        cmd = '{} fit --target-type {} --code-dir {} --target "{}" --input {} --output {} --verbose'.format(
+            ArgumentsOptions.MAIN_COMMAND,
+            REGRESSION,
+            custom_model_dir,
+            resources.targets(REGRESSION),
+            input_dataset,
+            custom_model_dir
+        )
+        _, stdout, stderr = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+
+        assert "code directory may not be used as the output directory" in stdout
