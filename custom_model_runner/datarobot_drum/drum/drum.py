@@ -77,8 +77,10 @@ class CMRunner:
         self.runtime = runtime
         self.options = runtime.options
         self.options.model_config = read_model_metadata_yaml(self.options.code_dir)
-        self.options.default_parameter_values = get_default_parameter_values(
-            self.options.model_config
+        self.options.default_parameter_values = (
+            get_default_parameter_values(self.options.model_config)
+            if self.options.model_config
+            else {}
         )
         self.logger = CMRunner._config_logger(runtime.options)
         self.verbose = runtime.options.verbose
