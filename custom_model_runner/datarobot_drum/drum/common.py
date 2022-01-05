@@ -154,7 +154,7 @@ def validate_model_metadata_hyperparameter(hyper_params: List) -> None:
                 param_type, param_name
             )
             raise DrumCommonException(error_msg)
-        if default_val:
+        if default_val is not None:
             if default_val > max_val or default_val < min_val:
                 error_msg = "Invalid {} parameter {}: values must be between [{}, {}]".format(
                     param_type, param_name, min_val, max_val
