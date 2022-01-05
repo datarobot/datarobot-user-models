@@ -862,7 +862,6 @@ class TestFit:
                 in stderr
             )
 
-
     def test_fit_fails_code_dir_is_output_dir(self, resources, tmp_path):
         custom_model_dir = _create_custom_model_dir(
             resources, tmp_path, SIMPLE, REGRESSION, PYTHON, is_training=True, nested=True,
@@ -879,7 +878,7 @@ class TestFit:
             custom_model_dir,
             resources.targets(REGRESSION),
             input_dataset,
-            custom_model_dir
+            custom_model_dir,
         )
         _, stdout, stderr = _exec_shell_cmd(
             cmd,
