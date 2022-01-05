@@ -15,13 +15,13 @@ import shutil
 import subprocess
 import sys
 import tempfile
+from tempfile import mkdtemp, NamedTemporaryFile
 import time
 from typing import Dict
 from typing import Union
 from distutils.dir_util import copy_tree
 from pathlib import Path
 from progress.spinner import Spinner
-from tempfile import mkdtemp, NamedTemporaryFile
 
 import numpy as np
 import pandas as pd
@@ -51,6 +51,7 @@ from datarobot_drum.drum.enum import (
     TargetType,
     TemplateType,
     ModelMetadataKeys,
+    ModelMetadataHyperParamTypes,
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumPredException
@@ -76,10 +77,8 @@ class CMRunner:
         self.runtime = runtime
         self.options = runtime.options
         self.options.model_config = read_model_metadata_yaml(self.options.code_dir)
-        self.options.default_parameter_values = (
-            get_default_parameter_values(self.options.model_config)
-            if self.options.model_config
-            else {}
+        self.options.default_parameter_values = get_default_parameter_values(
+            self.options.model_config
         )
         self.logger = CMRunner._config_logger(runtime.options)
         self.verbose = runtime.options.verbose
@@ -945,7 +944,7 @@ class CMRunner:
                 "run",
                 "-it",
                 "--entrypoint",
-                # provide emtpy entrypoint value to unset the one that could be set within the image
+                # provide empty entrypoint value to unset the one that could be set within the image
                 "",
                 options.docker,
                 "sh",
@@ -1174,68 +1173,63 @@ def create_custom_inference_model_folder(code_dir, output_dir):
         print("Files were overwritten: {}".format(files_in_output & copied_files))
 
 
+def _get_default_numeric_param_value(param_config: Dict) -> Union[int, float]:
+    """Get default value of numeric parameter."""
+    return param_config.get("default") or param_config["min"]
+
+
+def _get_default_string_param_value(param_config: Dict) -> str:
+    """Get default value of string parameter."""
+    return param_config.get("default") or ""
+
+
+def _get_default_select_param_value(param_config: Dict) -> str:
+    """Get default value of select parameter."""
+    return param_config.get("default") or param_config["values"][0]
+
+
+def _get_default_multi_param_value(param_config: Dict) -> str:
+    """Get default value of multi parameter."""
+    param_default_value = param_config.get("default")
+    if param_default_value is not None:
+        return param_default_value
+    else:
+        param_values = param_config["values"]
+        if param_values:
+            first_component_param_type = sorted(param_values.keys())[0]
+            first_component_param = param_values[first_component_param_type]
+            if first_component_param_type in {
+                ModelMetadataHyperParamTypes.INT,
+                ModelMetadataHyperParamTypes.FLOAT,
+            }:
+                return _get_default_numeric_param_value(first_component_param)
+            elif first_component_param_type == ModelMetadataHyperParamTypes.SELECT:
+                return _get_default_select_param_value(first_component_param)
+
+
 def get_default_parameter_values(model_metadata: Dict) -> Dict[str, Union[int, float, str]]:
     """Retrieve default parameter values from the hyperparameter section of model-metadata.yaml.
     When `default` is provided, return the default value.
     When `default` is not provided:
         - Return `min` value if it is a numeric parameter.
-        - Return an emtpy string if it is a string parameter.
+        - Return an empty string if it is a string parameter.
         - Return the first allowed value if it is the select parameter.
         - Return the default value of the first component parameter (sorted by parameter type) if it is a multi
           parameter.
     """
-
-    def _get_default_numeric_param_value(param_config: Dict) -> Union[int, float]:
-        """Get default value of numeric parameter."""
-        param_default_value = param_config.get("default")
-        if param_default_value is not None:
-            return param_default_value
-        else:
-            return param_config["min"]
-
-    def _get_default_string_param_value(param_config: Dict) -> str:
-        """Get default value of string parameter."""
-        param_default_value = param_config.get("default")
-        if param_default_value is not None:
-            return param_default_value
-        else:
-            return ""
-
-    def _get_default_select_param_value(param_config: Dict) -> str:
-        """Get default value of select parameter."""
-        param_default_value = param_config.get("default")
-        if param_default_value is not None:
-            return param_default_value
-        else:
-            return param_config["values"][0]
-
-    def _get_default_multi_param_value(param_config: Dict) -> str:
-        """Get default value of multi parameter."""
-        param_default_value = param_config.get("default")
-        if param_default_value is not None:
-            return param_default_value
-        else:
-            param_values = param_config["values"]
-            if param_values:
-                first_component_param_type = sorted(param_values.keys())[0]
-                first_component_param = param_values[first_component_param_type]
-                if first_component_param_type in {"int", "float"}:
-                    return _get_default_numeric_param_value(first_component_param)
-                elif first_component_param_type == "select":
-                    return _get_default_select_param_value(first_component_param)
 
     hyper_param_config = model_metadata.get(ModelMetadataKeys.HYPERPARAMETERS, [])
     default_params = {}
     for param_config in hyper_param_config:
         param_name = param_config["name"]
         param_type = param_config["type"]
-        if param_type in {"int", "float"}:
+        if param_type in {ModelMetadataHyperParamTypes.INT, ModelMetadataHyperParamTypes.FLOAT}:
             default_params[param_name] = _get_default_numeric_param_value(param_config)
-        elif param_type == "string":
+        elif param_type == ModelMetadataHyperParamTypes.STRING:
             default_params[param_name] = _get_default_string_param_value(param_config)
-        elif param_type == "select":
+        elif param_type == ModelMetadataHyperParamTypes.SELECT:
             default_params[param_name] = _get_default_select_param_value(param_config)
-        elif param_type == "multi":
+        elif param_type == ModelMetadataHyperParamTypes.MULTI:
             default_param_value = _get_default_multi_param_value(param_config)
             if default_param_value is not None:
                 default_params[param_name] = default_param_value
