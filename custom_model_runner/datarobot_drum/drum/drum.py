@@ -1177,17 +1177,26 @@ def create_custom_inference_model_folder(code_dir, output_dir):
 
 def _get_default_numeric_param_value(param_config: Dict) -> Union[int, float]:
     """Get default value of numeric parameter."""
-    return param_config.get("default") or param_config["min"]
+    param_default_value = param_config.get("default")
+    if param_default_value is not None:
+        return param_default_value
+    return param_config["min"]
 
 
 def _get_default_string_param_value(param_config: Dict) -> str:
     """Get default value of string parameter."""
-    return param_config.get("default") or ""
+    param_default_value = param_config.get("default")
+    if param_default_value is not None:
+        return param_default_value
+    return ""
 
 
 def _get_default_select_param_value(param_config: Dict) -> str:
     """Get default value of select parameter."""
-    return param_config.get("default") or param_config["values"][0]
+    param_default_value = param_config.get("default")
+    if param_default_value is not None:
+        return param_default_value
+    return param_config["values"][0]
 
 
 def _get_default_multi_param_value(param_config: Dict) -> str:
