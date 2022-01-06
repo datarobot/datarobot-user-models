@@ -2,6 +2,7 @@ description: |
   Builds a release version of the public environment installer.
   This should only be executed after both datarobot/datarobot-user-models and
   datarobot/execution-environment-installer are branched.
+  datarobot/datarobot-user-models should only be branched off a release tag.
 artifact build job: |
   https://jenkins.hq.datarobot.com/job/Build_Environments_Installer/
 artifact build parameters:
