@@ -490,11 +490,25 @@ class CMRunner:
             print(error_message)
             raise DrumCommonException(error_message)
 
+    def _validate_output_dir(self):
+        """Validate that the output directory is not the same as the input.
+                Raises
+        ------
+        DrumCommonException
+            Raised when the code directory is also used as the output directory.
+        """
+        if self.options.output == self.options.code_dir:
+            raise DrumCommonException(
+                "The code directory may not be used as the output directory."
+            )
+
     def run_fit(self):
         """Run when run_model is fit.
 
         Raises
         ------
+        DrumCommonException
+            Raised when the code directory is also used as the output directory.
         DrumPredException
             Raised when prediction fails.
         DrumSchemaValidationException
@@ -509,11 +523,7 @@ class CMRunner:
         if not self.options.output:
             self.options.output = mkdtemp()
             remove_temp_output = self.options.output
-        else:
-            if self.options.output == self.options.code_dir:
-                raise DrumCommonException(
-                    "The code directory may not be used as the output directory as well."
-                )
+        self._validate_output_dir()
         print("Starting Fit")
         mem_usage = memory_usage(
             self._run_fit_or_predictions_pipelines_in_mlpiper,
