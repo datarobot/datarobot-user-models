@@ -61,6 +61,7 @@ class RFit(ConnectableComponent):
         self.num_rows = None
         self.parameter_file = None
         self.target_type = None
+        self.default_parameter_values = None
 
     def configure(self, params):
         super(RFit, self).configure(params)
@@ -78,6 +79,7 @@ class RFit(ConnectableComponent):
         self.num_rows = self._params["numRows"]
         self.parameter_file = self._params.get("parameterFile")
         self.target_type = self._params["target_type"]
+        self.default_parameter_values = self._params.get("defaultParameterValues")
 
         r_handler.source(R_COMMON_PATH)
         r_handler.source(R_FIT_PATH)
@@ -106,6 +108,7 @@ class RFit(ConnectableComponent):
                 ro.StrVector([str(l) for l in self.class_labels]) if self.class_labels else ro.NULL,
                 self.parameter_file or ro.NULL,
                 self.target_type,
+                self.default_parameter_values or ro.NULL,
             )
         make_sure_artifact_is_small(self.output_dir)
         return []

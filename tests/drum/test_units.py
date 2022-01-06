@@ -18,7 +18,7 @@ from contextlib import closing
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
-from unittest.mock import patch
+from unittest.mock import patch, PropertyMock
 import yaml
 
 import numpy as np
@@ -49,6 +49,7 @@ from datarobot_drum.drum.enum import (
 from datarobot_drum.drum.drum import (
     CMRunner,
     create_custom_inference_model_folder,
+    get_default_parameter_values,
     output_in_code_dir,
     possibly_intuit_order,
 )
@@ -1488,3 +1489,180 @@ def test_binary_class_labels_from_target():
         assert '"positiveClassLabel": "Iris-setosa",' in pipeline_str
         assert '"negativeClassLabel": "Iris-versicolor",' in pipeline_str
         assert '"classLabels": null,' in pipeline_str
+
+
+@pytest.mark.parametrize(
+    "model_metadata, default_value",
+    [
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {"name": "param_name", "type": "int", "min": 0, "max": 1, "default": 1},
+                ],
+            },
+            1,
+        ),
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {"name": "param_name", "type": "int", "min": 0, "max": 1},
+                ],
+            },
+            0,
+        ),
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {"name": "param_name", "type": "float", "min": 0.0, "max": 1.0, "default": 1.0},
+                ],
+            },
+            1.0,
+        ),
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {"name": "param_name", "type": "float", "min": 0.0, "max": 1.0},
+                ],
+            },
+            0.0,
+        ),
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {"name": "param_name", "type": "string", "default": "string"},
+                ],
+            },
+            "string",
+        ),
+        ({ModelMetadataKeys.HYPERPARAMETERS: [{"name": "param_name", "type": "string"}]}, "",),
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {
+                        "name": "param_name",
+                        "type": "select",
+                        "values": ["value 1", "value 2"],
+                        "default": "value 2",
+                    }
+                ],
+            },
+            "value 2",
+        ),
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {"name": "param_name", "type": "select", "values": ["value 1", "value 2"],}
+                ],
+            },
+            "value 1",
+        ),
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {
+                        "name": "param_name",
+                        "type": "multi",
+                        "values": {
+                            "int": {"min": 0, "max": 1},
+                            "select": {"values": ["value 1", "value 2"]},
+                        },
+                        "default": "value 2",
+                    }
+                ],
+            },
+            "value 2",
+        ),
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {
+                        "name": "param_name",
+                        "type": "multi",
+                        "values": {
+                            "int": {"min": 0, "max": 1},
+                            "select": {"values": ["value 1", "value 2"]},
+                        },
+                    }
+                ],
+            },
+            0,
+        ),
+        (
+            {
+                ModelMetadataKeys.HYPERPARAMETERS: [
+                    {"name": "param_name", "type": "multi", "values": {},}
+                ],
+            },
+            None,
+        ),
+    ],
+)
+def test_get_default_parameter_values(model_metadata, default_value):
+    if default_value is not None:
+        assert get_default_parameter_values(model_metadata) == {"param_name": default_value}
+    else:
+        assert not get_default_parameter_values(model_metadata)
+
+
+@pytest.mark.parametrize(
+    "has_hyper_param_in_model_metadata, model_metadata_name, default_parameters",
+    [
+        (
+            True,
+            "model-metadata.yaml",
+            {"penalty": "l2", "dual": "0", "tol": "1e-4", "solver": "lbfgs"},
+        ),
+        (False, "model-metadata-no-hyperparameter.yaml", {}),
+        (False, "no", {}),
+    ],
+)
+def test_cmrunner_init_default_parameter_values(
+    has_hyper_param_in_model_metadata, model_metadata_name, default_parameters,
+):
+    """Test initialization of default task parameters:
+    - When model metadata is provided, the default task parameters are created from hyperparameters of model metadata.
+    - When model metadata without hyperparameter is provided, there is no default task parameter.
+    - When model metadata is not provided, there is no default task parameter.
+    """
+
+    with patch(
+        "datarobot_drum.drum.common.MODEL_CONFIG_FILENAME",
+        new_callable=PropertyMock(return_value=model_metadata_name),
+    ):
+        test_data_path = os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv")
+        code_dir_path = os.path.join(TESTS_DATA_PATH, "hyperparameters")
+        with DrumRuntime() as runtime:
+            runtime.options = Namespace(
+                negative_class_label=None,
+                positive_class_label=None,
+                class_labels=None,
+                code_dir=code_dir_path,
+                disable_strict_validation=False,
+                logging_level="warning",
+                subparser_name=RunMode.FIT,
+                target_type=TargetType.BINARY,
+                verbose=False,
+                content_type=None,
+                input=test_data_path,
+                target_csv=None,
+                target="Species",
+                row_weights=None,
+                row_weights_csv=None,
+                output=None,
+                num_rows=0,
+                sparse_column_file=None,
+                parameter_file=None,
+            )
+            cm_runner = CMRunner(runtime)
+            assert cm_runner.options.default_parameter_values == default_parameters
+            pipeline_str = cm_runner._prepare_fit_pipeline(run_language=RunLanguage.PYTHON)
+            if has_hyper_param_in_model_metadata:
+                assert (
+                    '"defaultParameterValues": {"penalty": "l2", "dual": "0", "tol": "1e-4", "solver":'
+                    ' "lbfgs"}'
+                ) in pipeline_str
+            else:
+                assert (
+                    '"defaultParameterValues": {"penalty": "l2", "dual": "0", "tol": "1e-4", "solver":'
+                    ' "lbfgs"}'
+                ) not in pipeline_str
