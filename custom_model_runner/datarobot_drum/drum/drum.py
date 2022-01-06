@@ -498,9 +498,7 @@ class CMRunner:
             Raised when the code directory is also used as the output directory.
         """
         if self.options.output == self.options.code_dir:
-            raise DrumCommonException(
-                "The code directory may not be used as the output directory."
-            )
+            raise DrumCommonException("The code directory may not be used as the output directory.")
 
     def run_fit(self):
         """Run when run_model is fit.
