@@ -25,7 +25,11 @@ class EstimatorInterface(CustomTaskInterface):
 
 
 class BinaryEstimatorInterface(EstimatorInterface):
-    pass
+    def predict(self, X, **kwargs):
+        pass
+
+    def predict_proba(self, X, **kwargs):
+        raise NotImplementedError()
 
 
 class RegressionEstimatorInterface(EstimatorInterface):
@@ -33,7 +37,11 @@ class RegressionEstimatorInterface(EstimatorInterface):
 
 
 class MulticlassEstimatorInterface(EstimatorInterface):
-    pass
+    def predict(self, X, **kwargs):
+        pass
+
+    def predict_proba(self, X, **kwargs):
+        raise NotImplementedError()
 
 
 class AnomalyEstimatorInterface(EstimatorInterface):

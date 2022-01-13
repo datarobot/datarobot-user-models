@@ -4,13 +4,15 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+# This custom estimator task implements a decision tree classifier
+
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 
-from datarobot_drum.custom_task_interfaces import MulticlassEstimatorInterface
+from datarobot_drum.custom_task_interfaces import BinaryEstimatorInterface
 
 
-class CustomTask(MulticlassEstimatorInterface):
+class CustomTask(BinaryEstimatorInterface):
     def fit(self, X, y, row_weights=None, **kwargs):
         """ This hook defines how DataRobot will train this task.
         DataRobot runs this hook when the task is being trained inside a blueprint.
@@ -32,12 +34,13 @@ class CustomTask(MulticlassEstimatorInterface):
             returns an object instance of class CustomTask that can be used in chained method calls
         """
 
+        # fit DecisionTreeClassifier
         self.estimator = DecisionTreeClassifier()
         self.estimator.fit(X, y)
 
         return self
 
-    def predict(self, X, **kwargs):
+    def predict_proba(self, X, **kwargs):
         """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
         As an output, this hook is expected to return the transformed data.
@@ -54,4 +57,4 @@ class CustomTask(MulticlassEstimatorInterface):
             Returns a dataframe with transformed data.
         """
 
-        return pd.DataFrame(data=self.estimator.predict(X))
+        return pd.DataFrame(data=self.estimator.predict_proba(X), columns=self.estimator.classes_)

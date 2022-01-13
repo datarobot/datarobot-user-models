@@ -485,7 +485,10 @@ class PythonModelAdapter:
 
     def _predict_new_drum(self, data, **kwargs):
         try:
-            predictions_df = self._custom_task_class_instance.predict(data, **kwargs)
+            if self._target_type in {TargetType.BINARY, TargetType.MULTICLASS}:
+                predictions_df = self._custom_task_class_instance.predict_proba(data, **kwargs)
+            else:
+                predictions_df = self._custom_task_class_instance.predict(data, **kwargs)
             self._validate_data(predictions_df, CustomHooks.SCORE)
             return predictions_df.values, predictions_df.columns
         except Exception as exc:

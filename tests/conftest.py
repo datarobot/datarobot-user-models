@@ -123,6 +123,7 @@ from tests.drum.constants import (
     R_INT_COLNAMES_MULTICLASS,
     R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
     SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
+    CUSTOM_TASK_INTERFACE_BINARY,
     CUSTOM_TASK_INTERFACE_REGRESSION,
     CUSTOM_TASK_INTERFACE_TRANSFORM,
 )
@@ -229,8 +230,11 @@ _training_models_paths = {
     (PYTHON, CUSTOM_TASK_INTERFACE_REGRESSION): os.path.join(
         TESTS_FIXTURES_PATH, "custom_task_interface_regression"
     ),
+    (PYTHON, CUSTOM_TASK_INTERFACE_BINARY): os.path.join(
+        TESTS_FIXTURES_PATH, "custom_task_interface_binary"
+    ),
     (PYTHON, CUSTOM_TASK_INTERFACE_TRANSFORM): os.path.join(
-        TESTS_FIXTURES_PATH, "custom_task_interface_transform"
+        TESTS_FIXTURES_PATH, "custom_task_interface_transform_missing_values"
     ),
 }
 
@@ -277,8 +281,10 @@ _target_types = {
 
 _class_labels = {
     (SKLEARN_BINARY, BINARY): ["Iris-setosa", "Iris-versicolor"],
+    (CUSTOM_TASK_INTERFACE_BINARY, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (SKLEARN_BINARY_HYPERPARAMETERS, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (SKLEARN_BINARY, BINARY_SPACES): ["Iris setosa", "Iris versicolor"],
+    (CUSTOM_TASK_INTERFACE_BINARY, BINARY_SPACES): ["Iris setosa", "Iris versicolor"],
     (SKLEARN, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (XGB, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (KERAS, BINARY): ["Iris-setosa", "Iris-versicolor"],
@@ -394,11 +400,13 @@ _class_labels = {
     (PYTORCH, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (CODEGEN, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (SKLEARN_BINARY, BINARY_TEXT): ["False", "True"],
+    (CUSTOM_TASK_INTERFACE_BINARY, BINARY_TEXT): ["False", "True"],
     (XGB, BINARY_TEXT): ["False", "True"],
     (KERAS, BINARY_TEXT): ["False", "True"],
     (POJO, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (MOJO, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (SKLEARN_BINARY, MULTICLASS_BINARY): ["Iris-setosa", "Iris-versicolor"],
+    (CUSTOM_TASK_INTERFACE_BINARY, MULTICLASS_BINARY): ["Iris-setosa", "Iris-versicolor"],
     (SKLEARN, MULTICLASS_BINARY): ["Iris-setosa", "Iris-versicolor"],
     (XGB, MULTICLASS_BINARY): ["Iris-setosa", "Iris-versicolor"],
     (KERAS, MULTICLASS_BINARY): ["Iris-setosa", "Iris-versicolor"],
@@ -547,6 +555,7 @@ _artifacts = {
     (R_TRANSFORM_NON_NUMERIC, ANOMALY): None,
     (R_ESTIMATOR_SPARSE, REGRESSION): None,
     (R_VALIDATE_SPARSE_ESTIMATOR, REGRESSION): None,
+    (CUSTOM_TASK_INTERFACE_BINARY, BINARY): None,
     (CUSTOM_TASK_INTERFACE_REGRESSION, REGRESSION): None,
     (CUSTOM_TASK_INTERFACE_TRANSFORM, TRANSFORM): None,
     (CUSTOM_TASK_INTERFACE_TRANSFORM, BINARY): None,
