@@ -7,6 +7,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import logging
 import sys
 
+from datarobot_drum.drum.common import to_bool
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
@@ -16,7 +17,12 @@ from datarobot_drum.drum.enum import (
 )
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
+from datarobot_drum.drum.language_predictors.base_language_predictor import mlops_loaded
 from datarobot_drum.drum.exceptions import DrumCommonException
+
+if mlops_loaded:
+    # Try only if it was already loaded.
+    from datarobot.mlops.mlops import MLOps
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -25,10 +31,12 @@ class PythonPredictor(BaseLanguagePredictor):
     def __init__(self):
         super(PythonPredictor, self).__init__()
         self._model_adapter = None
-        self._mlops = None
 
     def configure(self, params):
         super(PythonPredictor, self).configure(params)
+
+        if to_bool(params.get("monitor_embedded")):
+            self._init_mlops(params)
 
         self._model_adapter = PythonModelAdapter(
             model_dir=self._code_dir, target_type=self._target_type
@@ -39,6 +47,19 @@ class PythonPredictor(BaseLanguagePredictor):
         self._model = self._model_adapter.load_model_from_artifact()
         if self._model is None:
             raise Exception("Failed to load model")
+
+    def _init_mlops(self, params):
+
+        self._mlops = (
+            MLOps()
+            .set_model_id(params["model_id"])
+            .set_deployment_id(params["deployment_id"])
+            .agent(
+                mlops_service_url=params["external_webserver_url"],
+                mlops_api_token=params["api_token"],
+            )
+            .init()
+        )
 
     @property
     def supported_payload_formats(self):
@@ -66,6 +87,8 @@ class PythonPredictor(BaseLanguagePredictor):
         return self._model_adapter.transform(model=self._model, **kwargs)
 
     def predict_unstructured(self, data, **kwargs):
+        if self._mlops:
+            kwargs["mlops"] = self._mlops
         str_or_tuple = self._model_adapter.predict_unstructured(
             model=self._model, data=data, **kwargs
         )

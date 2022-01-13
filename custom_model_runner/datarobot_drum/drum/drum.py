@@ -612,9 +612,12 @@ class CMRunner:
             "customModelPath": os.path.abspath(options.code_dir),
             "run_language": run_language.value,
             "monitor": options.monitor,
+            "monitor_embedded": options.monitor_embedded,
             "model_id": options.model_id,
             "deployment_id": options.deployment_id,
             "monitor_settings": options.monitor_settings,
+            "external_webserver_url": options.webserver,
+            "api_token": options.api_token,
             "query_params": '"{}"'.format(options.query)
             if getattr(options, "query", None) is not None
             else "null",

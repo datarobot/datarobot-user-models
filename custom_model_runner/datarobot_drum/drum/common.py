@@ -9,6 +9,7 @@ import logging
 import os
 import re
 import sys
+from distutils.util import strtobool
 from typing import Dict, List
 from typing import Optional as PythonTypingOptional
 
@@ -306,3 +307,11 @@ def verify_pyarrow_module():
     if pyarrow is None:
         raise ModuleNotFoundError("Please install pyarrow to support Arrow format")
     return pyarrow
+
+
+def to_bool(value):
+    if value is None:
+        return False
+    if isinstance(value, bool):
+        return value
+    return strtobool(value)

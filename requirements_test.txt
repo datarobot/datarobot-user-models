@@ -1,6 +1,7 @@
 dr-usertool
-# PyYAML is constrained by dr-usertool and its deps
+# PyYAML & drca are constrained by dr-usertool and its deps
 PyYAML>=3.11
+drca==0.2.42
 pytest
 pytest-runner
 pytest-xdist

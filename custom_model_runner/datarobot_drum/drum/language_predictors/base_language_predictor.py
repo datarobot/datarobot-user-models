@@ -5,16 +5,14 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
+import os
 import time
 from abc import ABC, abstractmethod
 
-import numpy as np
-
-from datarobot_drum.drum.common import read_model_metadata_yaml
+from datarobot_drum.drum.common import read_model_metadata_yaml, to_bool
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     ModelInfoKeys,
-    REGRESSION_PRED_COLUMN,
     StructuredDtoKeys,
     TargetType,
 )
@@ -55,9 +53,9 @@ class BaseLanguagePredictor(ABC):
         self._target_type = TargetType(params.get("target_type"))
         self._params = params
 
-        if self._params["monitor"] == "True":
-            if not mlops_loaded:
-                raise Exception("MLOps module was not imported: {}".format(mlops_import_error))
+        self._validate_mlops_monitoring_requirments(self._params)
+
+        if to_bool(params.get("monitor")):
             # TODO: if server use async, if batch, use sync etc.. some way of passing params
             self._mlops = (
                 MLOps()
@@ -71,8 +69,23 @@ class BaseLanguagePredictor(ABC):
         if model_metadata:
             self._schema_validator = SchemaValidator(model_metadata.get("typeSchema", {}))
 
+    @staticmethod
+    def _validate_mlops_monitoring_requirments(params):
+        if (
+            to_bool(params.get("monitor")) or to_bool(params.get("monitor_embedded"))
+        ) and not mlops_loaded:
+            # Note that for the case of monitoring from environment variable for the java
+            # this package is not really needed, but it'll anyway be available
+            raise Exception("MLOps module was not imported: {}".format(mlops_import_error))
+
+    @staticmethod
+    def _validate_expected_env_variables(*args):
+        for env_var in args:
+            if not os.environ.get(env_var):
+                raise Exception(f"A valid environment variable '{env_var}' is missing!")
+
     def monitor(self, kwargs, predictions, predict_time_ms):
-        if self._params["monitor"] == "True":
+        if to_bool(self._params.get("monitor")):
             self._mlops.report_deployment_stats(
                 num_predictions=len(predictions), execution_time_ms=predict_time_ms
             )

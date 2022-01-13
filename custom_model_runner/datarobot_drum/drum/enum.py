@@ -202,9 +202,12 @@ class ArgumentsOptions:
     LANGUAGE = "--language"
     NUM_ROWS = "--num-rows"
     MONITOR = "--monitor"
+    MONITOR_EMBEDDED = "--monitor-embedded"
     DEPLOYMENT_ID = "--deployment-id"
     MODEL_ID = "--model-id"
     MONITOR_SETTINGS = "--monitor-settings"
+    DR_WEBSERVER = "--webserver"
+    DR_API_TOKEN = "--api-token"
     DEPLOYMENT_CONFIG = "--deployment-config"
     QUERY = "--query"
     CONTENT_TYPE = "--content-type"
@@ -246,6 +249,7 @@ class ArgumentOptionsEnvVars:
     DEPLOYMENT_CONFIG = "DEPLOYMENT_CONFIG"
 
     MONITOR = "MONITOR"
+    MONITOR_EMBEDDED = "MLOPS_REPORTING_FROM_UNSTRUCTURED_MODELS"
     WITH_ERROR_SERVER = "WITH_ERROR_SERVER"
     SHOW_STACKTRACE = "SHOW_STACKTRACE"
     PRODUCTION = "PRODUCTION"
@@ -263,7 +267,20 @@ class ArgumentOptionsEnvVars:
         MAX_WORKERS,
         DEPLOYMENT_CONFIG,
     ]
-    BOOL_VARS = [WITH_ERROR_SERVER, SHOW_STACKTRACE, PRODUCTION, MONITOR, SKIP_PREDICT]
+    BOOL_VARS = [
+        WITH_ERROR_SERVER,
+        SHOW_STACKTRACE,
+        PRODUCTION,
+        MONITOR,
+        MONITOR_EMBEDDED,
+        SKIP_PREDICT,
+    ]
+
+    @classmethod
+    def to_arg_option(cls, env_var):
+        if env_var == cls.MONITOR_EMBEDDED:
+            return ArgumentsOptions.MONITOR_EMBEDDED
+        return ArgumentsOptions.__dict__[env_var]
 
 
 class RunMode(Enum):
