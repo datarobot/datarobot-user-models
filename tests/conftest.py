@@ -21,6 +21,7 @@ from tests.drum.constants import (
     BINARY_INT_TARGET,
     SPARSE_COLUMNS,
     BINARY_TEXT,
+    BINARY_NUM_ONLY,
     BINARY_SPACES,
     CODEGEN,
     CODEGEN_AND_SKLEARN,
@@ -125,7 +126,13 @@ from tests.drum.constants import (
     SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
     CUSTOM_TASK_INTERFACE_BINARY,
     CUSTOM_TASK_INTERFACE_REGRESSION,
+    CUSTOM_TASK_INTERFACE_ANOMALY,
+    CUSTOM_TASK_INTERFACE_MULTICLASS,
     CUSTOM_TASK_INTERFACE_TRANSFORM,
+    CUSTOM_TASK_INTERFACE_PYTORCH_BINARY,
+    CUSTOM_TASK_INTERFACE_PYTORCH_MULTICLASS,
+    CUSTOM_TASK_INTERFACE_KERAS_REGRESSION,
+    CUSTOM_TASK_INTERFACE_XGB_REGRESSION,
 )
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 
@@ -142,6 +149,7 @@ _datasets = {
         TESTS_DATA_PATH, "de_reviews_small_multiline.csv"
     ),
     (None, BINARY_TEXT): os.path.join(TESTS_DATA_PATH, "telecomms_churn.csv"),
+    (None, BINARY_NUM_ONLY): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
     (PYPMML, REGRESSION): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
     (None, BINARY): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
     (None, ANOMALY): os.path.join(TESTS_DATA_PATH, "juniors_3_year_stats_regression_inference.csv"),
@@ -230,11 +238,29 @@ _training_models_paths = {
     (PYTHON, CUSTOM_TASK_INTERFACE_REGRESSION): os.path.join(
         TESTS_FIXTURES_PATH, "custom_task_interface_regression"
     ),
+    (PYTHON, CUSTOM_TASK_INTERFACE_ANOMALY): os.path.join(
+        TESTS_FIXTURES_PATH, "custom_task_interface_anomaly"
+    ),
     (PYTHON, CUSTOM_TASK_INTERFACE_BINARY): os.path.join(
         TESTS_FIXTURES_PATH, "custom_task_interface_binary"
     ),
+    (PYTHON, CUSTOM_TASK_INTERFACE_MULTICLASS): os.path.join(
+        TESTS_FIXTURES_PATH, "custom_task_interface_multiclass"
+    ),
     (PYTHON, CUSTOM_TASK_INTERFACE_TRANSFORM): os.path.join(
         TESTS_FIXTURES_PATH, "custom_task_interface_transform_missing_values"
+    ),
+    (PYTHON, CUSTOM_TASK_INTERFACE_KERAS_REGRESSION): os.path.join(
+        TESTS_FIXTURES_PATH, "custom_task_interface_keras_regression"
+    ),
+    (PYTHON, CUSTOM_TASK_INTERFACE_XGB_REGRESSION): os.path.join(
+        TESTS_FIXTURES_PATH, "custom_task_interface_xgboost_regression"
+    ),
+    (PYTHON, CUSTOM_TASK_INTERFACE_PYTORCH_BINARY): os.path.join(
+        TESTS_FIXTURES_PATH, "custom_task_interface_pytorch_binary"
+    ),
+    (PYTHON, CUSTOM_TASK_INTERFACE_PYTORCH_MULTICLASS): os.path.join(
+        TESTS_FIXTURES_PATH, "custom_task_interface_pytorch_multiclass"
     ),
 }
 
@@ -243,6 +269,7 @@ _targets = {
     REGRESSION: "Grade 2014",
     REGRESSION_SINGLE_COL: "target",
     BINARY_TEXT: "Churn",
+    BINARY_NUM_ONLY: "Species",
     MULTICLASS: "class",
     MULTICLASS_BINARY: "Species",
     MULTICLASS_NUM_LABELS: "class",
@@ -260,6 +287,7 @@ _targets = {
 _target_types = {
     BINARY: "binary",
     BINARY_TEXT: "binary",
+    BINARY_NUM_ONLY: "binary",
     BINARY_SPACES: "binary",
     REGRESSION: "regression",
     REGRESSION_SINGLE_COL: "regression",
@@ -400,7 +428,7 @@ _class_labels = {
     (PYTORCH, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (CODEGEN, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (SKLEARN_BINARY, BINARY_TEXT): ["False", "True"],
-    (CUSTOM_TASK_INTERFACE_BINARY, BINARY_TEXT): ["False", "True"],
+    (CUSTOM_TASK_INTERFACE_BINARY, BINARY_NUM_ONLY): ["Iris-setosa", "Iris-versicolor"],
     (XGB, BINARY_TEXT): ["False", "True"],
     (KERAS, BINARY_TEXT): ["False", "True"],
     (POJO, MULTICLASS): ["GALAXY", "QSO", "STAR"],
@@ -557,10 +585,16 @@ _artifacts = {
     (R_VALIDATE_SPARSE_ESTIMATOR, REGRESSION): None,
     (CUSTOM_TASK_INTERFACE_BINARY, BINARY): None,
     (CUSTOM_TASK_INTERFACE_REGRESSION, REGRESSION): None,
+    (CUSTOM_TASK_INTERFACE_ANOMALY, ANOMALY): None,
     (CUSTOM_TASK_INTERFACE_TRANSFORM, TRANSFORM): None,
     (CUSTOM_TASK_INTERFACE_TRANSFORM, BINARY): None,
+    (CUSTOM_TASK_INTERFACE_MULTICLASS, MULTICLASS): None,
     (CUSTOM_TASK_INTERFACE_TRANSFORM, REGRESSION): None,
     (CUSTOM_TASK_INTERFACE_TRANSFORM, MULTICLASS): None,
+    (CUSTOM_TASK_INTERFACE_PYTORCH_BINARY, BINARY): None,
+    (CUSTOM_TASK_INTERFACE_PYTORCH_MULTICLASS, MULTICLASS): None,
+    (CUSTOM_TASK_INTERFACE_KERAS_REGRESSION, REGRESSION): None,
+    (CUSTOM_TASK_INTERFACE_XGB_REGRESSION, REGRESSION): None,
 }
 
 _custom_filepaths = {
