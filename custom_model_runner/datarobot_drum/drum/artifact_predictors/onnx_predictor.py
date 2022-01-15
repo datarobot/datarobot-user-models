@@ -71,5 +71,7 @@ class ONNXPredictor(ArtifactPredictor):
 
         input_name = [input.name for input in self._model.get_inputs()]
         out_name = [output.name for output in self._model.get_outputs()]
-        predictions = self._model.run(out_name, {input_name[0]: data})
-        return predictions, None
+        predictions = self._model.run(out_name, {input_name[0]: data.to_numpy(np.float32)})
+
+        #TODO:Asli - check if we can return labels instead of None
+        return predictions[0], None
