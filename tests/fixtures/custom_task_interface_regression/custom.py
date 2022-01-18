@@ -7,7 +7,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 # This custom estimator task implements a decision tree regressor
 
 import pandas as pd
-from sklearn.tree import DecisionTreeRegressor
+from sklearn.linear_model import Ridge
 from datarobot_drum.custom_task_interfaces import RegressionEstimatorInterface
 
 
@@ -32,7 +32,7 @@ class CustomTask(RegressionEstimatorInterface):
         CustomTask
             returns an object instance of class CustomTask that can be used in chained method calls
         """
-        self.estimator = DecisionTreeRegressor()
+        self.estimator = Ridge()
         self.estimator.fit(X, y)
 
         return self

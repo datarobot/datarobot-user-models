@@ -7,7 +7,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 # This custom estimator task implements anomaly detection using OneClassSVM
 
 import pandas as pd
-from sklearn.svm import OneClassSVM
+from sklearn.ensemble import IsolationForest
 
 from datarobot_drum.custom_task_interfaces import AnomalyEstimatorInterface
 
@@ -36,8 +36,8 @@ class CustomTask(AnomalyEstimatorInterface):
 
         # fit OneClassSVM
         assert y is None
-        self.estimator = OneClassSVM()
-        self.estimator.fit(X, y)
+        self.estimator = IsolationForest()
+        self.estimator.fit(X)
 
         return self
 
