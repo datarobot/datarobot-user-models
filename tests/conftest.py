@@ -123,6 +123,8 @@ from tests.drum.constants import (
     R_INT_COLNAMES_MULTICLASS,
     R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
     SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
+    CUSTOM_TASK_INTERFACE_REGRESSION,
+    CUSTOM_TASK_INTERFACE_TRANSFORM,
 )
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 
@@ -223,6 +225,12 @@ _training_models_paths = {
     ),
     (PYTHON, PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION): os.path.join(
         TESTS_FIXTURES_PATH, "validate_transform_fail_output_schema_validation"
+    ),
+    (PYTHON, CUSTOM_TASK_INTERFACE_REGRESSION): os.path.join(
+        TESTS_FIXTURES_PATH, "custom_task_interface_regression"
+    ),
+    (PYTHON, CUSTOM_TASK_INTERFACE_TRANSFORM): os.path.join(
+        TESTS_FIXTURES_PATH, "custom_task_interface_transform"
     ),
 }
 
@@ -539,6 +547,11 @@ _artifacts = {
     (R_TRANSFORM_NON_NUMERIC, ANOMALY): None,
     (R_ESTIMATOR_SPARSE, REGRESSION): None,
     (R_VALIDATE_SPARSE_ESTIMATOR, REGRESSION): None,
+    (CUSTOM_TASK_INTERFACE_REGRESSION, REGRESSION): None,
+    (CUSTOM_TASK_INTERFACE_TRANSFORM, TRANSFORM): None,
+    (CUSTOM_TASK_INTERFACE_TRANSFORM, BINARY): None,
+    (CUSTOM_TASK_INTERFACE_TRANSFORM, REGRESSION): None,
+    (CUSTOM_TASK_INTERFACE_TRANSFORM, MULTICLASS): None,
 }
 
 _custom_filepaths = {
