@@ -60,9 +60,12 @@ class CustomTask(RegressionEstimatorInterface):
         self
         """
 
+        # If your estimator is not pickle-able, you can serialize it using its native method,
+        # i.e. in this case for keras we use model.save, and then set the estimator to none
         self.estimator.model.save(Path(artifact_directory) / "model")
-        # Avoid saving the same (potentially large) model twice
         self.estimator.model = None
+
+        # Now that the estimator is none, it won't be pickled with the CustomTask class (i.e. this one)
         with open(Path(artifact_directory) / "artifact.pkl", "wb") as fp:
             pickle.dump(self, fp)
 
