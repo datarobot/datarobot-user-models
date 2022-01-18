@@ -219,13 +219,7 @@ class TestCustomTaskTemplates(object):
                 "regression",
                 None,
             ),
-            (
-                "pipeline",
-                "3_r_lang",
-                "project_binary_iris",
-                "r_drop_in_env",
-                "binary",
-                None),
+            ("pipeline", "3_r_lang", "project_binary_iris", "r_drop_in_env", "binary", None),
             (
                 "pipeline",
                 "3_r_lang",
