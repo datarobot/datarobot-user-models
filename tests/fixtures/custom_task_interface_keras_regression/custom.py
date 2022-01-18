@@ -16,9 +16,7 @@ import pickle
 
 from datarobot_drum.custom_task_interfaces import RegressionEstimatorInterface
 
-from example_code import (
-    build_regressor,
-)
+from example_code import build_regressor
 
 
 class CustomTask(RegressionEstimatorInterface):

@@ -100,5 +100,7 @@ class CustomTask(BinaryEstimatorInterface):
         # TODO have helper function to add in 2 columns for binary
         # have get_positive_class_labels(kwargs) -> gets rid of magic strings
         predictions = pd.DataFrame(predictions, columns=[kwargs["positive_class_label"]])
-        predictions[kwargs["negative_class_label"]] = 1 - predictions[kwargs["positive_class_label"]]
+        predictions[kwargs["negative_class_label"]] = (
+            1 - predictions[kwargs["positive_class_label"]]
+        )
         return predictions

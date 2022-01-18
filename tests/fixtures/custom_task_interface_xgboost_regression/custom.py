@@ -54,4 +54,3 @@ class CustomTask(RegressionEstimatorInterface):
 
         # Regression
         return pd.DataFrame(data=self.estimator.predict(X))
-
