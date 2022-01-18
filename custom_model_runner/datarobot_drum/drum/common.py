@@ -154,7 +154,7 @@ def validate_model_metadata_hyperparameter(hyper_params: List) -> None:
                 param_type, param_name
             )
             raise DrumCommonException(error_msg)
-        if default_val:
+        if default_val is not None:
             if default_val > max_val or default_val < min_val:
                 error_msg = "Invalid {} parameter {}: values must be between [{}, {}]".format(
                     param_type, param_name, min_val, max_val
@@ -178,7 +178,7 @@ def validate_model_metadata_hyperparameter(hyper_params: List) -> None:
                 raise DrumCommonException('"type": "is required"')
             if param_type not in ModelMetadataHyperParamTypes.all():
                 raise DrumCommonException({"type": "is invalid"})
-            HyperParameterTrafaret[param_type].check(param)
+            param = HyperParameterTrafaret[param_type].transform(param)
             if param_type == ModelMetadataHyperParamTypes.INT:
                 _validate_numeric_parameter(param)
             elif param_type == ModelMetadataHyperParamTypes.FLOAT:
