@@ -10,7 +10,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 # During score(), it multiplies incoming data by the calibration coefficient.
 
 import pandas as pd
-from CustomCalibrator import CustomCalibrator  # class defined into CustomCalibrator.py
+from custom_calibrator import CustomCalibrator  # class defined into CustomCalibrator.py
 
 from datarobot_drum.custom_task_interfaces import RegressionEstimatorInterface
 

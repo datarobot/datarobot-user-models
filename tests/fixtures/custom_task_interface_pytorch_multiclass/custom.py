@@ -11,6 +11,7 @@ import torch
 import os
 from datarobot_drum.custom_task_interfaces import MulticlassEstimatorInterface
 from sklearn.preprocessing import LabelEncoder
+import pickle
 
 from model_utils import (
     build_classifier,
@@ -63,7 +64,15 @@ class CustomTask(MulticlassEstimatorInterface):
         self
         """
 
-        torch.save(self, Path(artifact_directory) / "torch_class.pth")
+        # If your estimator is not pickle-able, you can serialize it using its native method,
+        # i.e. in this case for keras we use model.save, and then set the estimator to none
+        torch.save(self.estimator, Path(artifact_directory) / "torch_class.pth")
+        self.estimator = None
+
+        # Now that the estimator is none, it won't be pickled with the CustomTask class (i.e. this one)
+        with open(Path(artifact_directory) / "artifact.pkl", "wb") as fp:
+            pickle.dump(self, fp)
+
         return self
 
     @classmethod
@@ -76,7 +85,11 @@ class CustomTask(MulticlassEstimatorInterface):
         cls
             The deserialized object
         """
-        return torch.load(Path(artifact_directory) / "torch_class.pth")
+        with open(Path(artifact_directory) / "artifact.pkl", "rb") as fp:
+            custom_task = pickle.load(fp)
+
+        custom_task.estimator = torch.load(Path(artifact_directory) / "torch_class.pth")
+        return custom_task
 
     def predict_proba(self, X, **kwargs):
         """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
@@ -98,4 +111,4 @@ class CustomTask(MulticlassEstimatorInterface):
         data_tensor = torch.from_numpy(X.values).type(torch.FloatTensor)
         predictions = self.estimator(data_tensor).cpu().data.numpy()
 
-        return pd.DataFrame(data=predictions, columns=kwargs["class_labels"])
+        return pd.DataFrame(data=predictions, columns=self.lb.classes_)
