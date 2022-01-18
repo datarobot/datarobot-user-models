@@ -21,7 +21,8 @@
                 "positiveClassLabel": {{ positiveClassLabel | jsonify }},
                 "negativeClassLabel": {{ negativeClassLabel | jsonify }},
                 "classLabels": {{ classLabels | jsonify }},
-                "__custom_model_path__": "{{ customModelPath }}"
+                "__custom_model_path__": "{{ customModelPath }}",
+                "defaultParameterValues": {{default_parameter_values | jsonify }}
               }
           }
       ]

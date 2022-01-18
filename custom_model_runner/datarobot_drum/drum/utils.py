@@ -239,6 +239,8 @@ def shared_fit_preprocessing(fit_class):
     parameters = None
     if fit_class.parameter_file:
         parameters = json.load(open(fit_class.parameter_file))
+    elif fit_class.default_parameter_values:
+        parameters = fit_class.default_parameter_values
 
     row_weights = extract_weights(X, fit_class)
     class_order = extract_class_order(fit_class)

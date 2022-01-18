@@ -167,7 +167,7 @@ process_parameters <- function(parameter_filename){
 outer_fit <- function(output_dir, input_filename, sparse_column_filename, target_filename,
                       target_name, num_rows, weights_filename, weights,
                       positive_class_label, negative_class_label, class_labels, parameter_filename,
-                      target_type) {
+                      target_type, default_parameter_values) {
 
     processed_data <- process_data(input_filename, sparse_column_filename, target_filename,
                                    target_name, num_rows, target_type)
@@ -180,6 +180,10 @@ outer_fit <- function(output_dir, input_filename, sparse_column_filename, target
     row_weights <- process_weights(X, weights_filename, weights, na_rows, sample_rows)
 
     parameters <- process_parameters(parameter_filename)
+
+    if (is.null(parameters) && !is.null(default_parameter_values)){
+        parameters <- default_parameter_values
+    }
 
     if (!is.null(positive_class_label) && !is.null(negative_class_label)){
         class_order <- c(negative_class_label, positive_class_label)

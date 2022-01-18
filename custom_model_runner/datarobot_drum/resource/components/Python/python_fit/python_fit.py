@@ -35,6 +35,7 @@ class PythonFit(ConnectableComponent):
         self._model_adapter = None
         self.num_rows = None
         self.parameter_file = None
+        self.default_parameter_values = None
 
     def configure(self, params):
         super(PythonFit, self).configure(params)
@@ -51,6 +52,7 @@ class PythonFit(ConnectableComponent):
         self.target_filename = self._params.get("targetFilename")
         self.num_rows = self._params["numRows"]
         self.parameter_file = self._params.get("parameterFile")
+        self.default_parameter_values = self._params["defaultParameterValues"]
 
         target_type = TargetType(params[TARGET_TYPE_ARG_KEYWORD])
         self._model_adapter = PythonModelAdapter(self.custom_model_path, target_type)

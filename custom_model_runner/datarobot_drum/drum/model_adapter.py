@@ -80,7 +80,7 @@ class PythonModelAdapter:
         -------
         True if the code is using the CustomTask class interface. False if it's using the legacy drum hook interface.
         """
-        return self._custom_task_class
+        return self._custom_task_class is not None
 
     @staticmethod
     def _apply_sklearn_transformer(data, model):
