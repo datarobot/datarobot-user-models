@@ -286,14 +286,6 @@ class TestCustomTaskTemplates(object):
             ),
             (
                 "fixture",
-                "custom_task_interface_anomaly",
-                "project_anomaly_juniors_grade",
-                "sklearn_drop_in_env",
-                "anomaly",
-                None,
-            ),
-            (
-                "fixture",
                 "custom_task_interface_multiclass",
                 "project_multiclass_skyserver",
                 "sklearn_drop_in_env",
