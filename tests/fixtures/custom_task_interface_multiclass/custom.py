@@ -5,7 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import pandas as pd
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 
 from datarobot_drum.custom_task_interfaces import MulticlassEstimatorInterface
 
@@ -32,7 +32,7 @@ class CustomTask(MulticlassEstimatorInterface):
             returns an object instance of class CustomTask that can be used in chained method calls
         """
 
-        self.estimator = DecisionTreeClassifier()
+        self.estimator = GradientBoostingClassifier()
         self.estimator.fit(X, y)
 
         return self
