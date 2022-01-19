@@ -62,6 +62,8 @@ R_ESTIMATOR_SPARSE = "R_estimator_sparse"
 R_VALIDATE_SPARSE_ESTIMATOR = "R_validate_sparse_estimator"
 PYTHON_XFORM_ESTIMATOR = "python_xform_estimator"
 R_XFORM_ESTIMATOR = "r_xform_estimator"
+CUSTOM_TASK_INTERFACE_REGRESSION = "custom_task_interface_regression"
+CUSTOM_TASK_INTERFACE_TRANSFORM = "custom_task_interface_transform"
 
 MLJ = "mlj"
 MLJ_BINARY = "mlj_binary"
