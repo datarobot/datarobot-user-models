@@ -4,14 +4,15 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-# This custom estimator task implements a decision tree regressor
+# This custom estimator task implements anomaly detection using OneClassSVM
 
 import pandas as pd
-from sklearn.linear_model import Ridge
-from datarobot_drum.custom_task_interfaces import RegressionEstimatorInterface
+from sklearn.ensemble import IsolationForest
+
+from datarobot_drum.custom_task_interfaces import AnomalyEstimatorInterface
 
 
-class CustomTask(RegressionEstimatorInterface):
+class CustomTask(AnomalyEstimatorInterface):
     def fit(self, X, y, row_weights=None, **kwargs):
         """ This hook defines how DataRobot will train this task.
         DataRobot runs this hook when the task is being trained inside a blueprint.
@@ -32,8 +33,11 @@ class CustomTask(RegressionEstimatorInterface):
         CustomTask
             returns an object instance of class CustomTask that can be used in chained method calls
         """
-        self.estimator = Ridge()
-        self.estimator.fit(X, y)
+
+        # fit OneClassSVM
+        assert y is None
+        self.estimator = IsolationForest()
+        self.estimator.fit(X)
 
         return self
 
@@ -53,4 +57,5 @@ class CustomTask(RegressionEstimatorInterface):
         pd.DataFrame
             Returns a dataframe with transformed data.
         """
+
         return pd.DataFrame(data=self.estimator.predict(X))
