@@ -4,14 +4,20 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-# This custom estimator task implements a decision tree regressor
-
+from pathlib import Path
 import pandas as pd
-from sklearn.linear_model import Ridge
-from datarobot_drum.custom_task_interfaces import RegressionEstimatorInterface
+import torch
+from sklearn.preprocessing import LabelEncoder
+
+from datarobot_drum.custom_task_interfaces import BinaryEstimatorInterface
+
+from model_utils import (
+    build_classifier,
+    train_classifier,
+)
 
 
-class CustomTask(RegressionEstimatorInterface):
+class CustomTask(BinaryEstimatorInterface):
     def fit(self, X, y, row_weights=None, **kwargs):
         """ This hook defines how DataRobot will train this task.
         DataRobot runs this hook when the task is being trained inside a blueprint.
@@ -32,12 +38,46 @@ class CustomTask(RegressionEstimatorInterface):
         CustomTask
             returns an object instance of class CustomTask that can be used in chained method calls
         """
-        self.estimator = Ridge()
-        self.estimator.fit(X, y)
+        self.lb = LabelEncoder().fit(y)
+        y = self.lb.transform(y)
 
+        # For reproducible results
+        torch.manual_seed(0)
+        self.estimator, self.optimizer, self.criterion = build_classifier(X, len(self.lb.classes_))
+        train_classifier(X, y, self.estimator, self.optimizer, self.criterion)
         return self
 
-    def predict(self, X, **kwargs):
+    def save(self, artifact_directory):
+        """
+        Serializes the object and stores it in `artifact_directory`
+
+        Parameters
+        ----------
+        artifact_directory: str
+            Path to the directory to save the serialized artifact(s) to.
+
+        Returns
+        -------
+        self
+        """
+
+        torch.save(self, Path(artifact_directory) / "torch_class.pth")
+        return self
+
+    @classmethod
+    def load(cls, artifact_directory):
+        """
+        Deserializes the object stored within `artifact_directory`
+
+        Returns
+        -------
+        cls
+            The deserialized object
+        """
+        return torch.load(Path(artifact_directory) / "torch_class.pth")
+
+    # TODO consider putting directly positive_class_label and negative_class_label into function signature directly
+    def predict_proba(self, X, **kwargs):
         """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
         As an output, this hook is expected to return the transformed data.
@@ -53,4 +93,12 @@ class CustomTask(RegressionEstimatorInterface):
         pd.DataFrame
             Returns a dataframe with transformed data.
         """
-        return pd.DataFrame(data=self.estimator.predict(X))
+
+        data_tensor = torch.from_numpy(X.values).type(torch.FloatTensor)
+        predictions = self.estimator(data_tensor).cpu().data.numpy()
+
+        predictions = pd.DataFrame(predictions, columns=[kwargs["positive_class_label"]])
+        predictions[kwargs["negative_class_label"]] = (
+            1 - predictions[kwargs["positive_class_label"]]
+        )
+        return predictions

@@ -4,10 +4,10 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-# This custom estimator task implements a decision tree regressor
 
 import pandas as pd
-from sklearn.linear_model import Ridge
+
+from create_pipeline import make_regressor_pipeline
 from datarobot_drum.custom_task_interfaces import RegressionEstimatorInterface
 
 
@@ -32,10 +32,8 @@ class CustomTask(RegressionEstimatorInterface):
         CustomTask
             returns an object instance of class CustomTask that can be used in chained method calls
         """
-        self.estimator = Ridge()
+        self.estimator = make_regressor_pipeline(X)
         self.estimator.fit(X, y)
-
-        return self
 
     def predict(self, X, **kwargs):
         """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
@@ -53,4 +51,6 @@ class CustomTask(RegressionEstimatorInterface):
         pd.DataFrame
             Returns a dataframe with transformed data.
         """
+
+        # Regression
         return pd.DataFrame(data=self.estimator.predict(X))

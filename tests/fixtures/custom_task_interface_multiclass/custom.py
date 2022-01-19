@@ -4,14 +4,13 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-# This custom estimator task implements a decision tree regressor
-
 import pandas as pd
-from sklearn.linear_model import Ridge
-from datarobot_drum.custom_task_interfaces import RegressionEstimatorInterface
+from sklearn.ensemble import GradientBoostingClassifier
+
+from datarobot_drum.custom_task_interfaces import MulticlassEstimatorInterface
 
 
-class CustomTask(RegressionEstimatorInterface):
+class CustomTask(MulticlassEstimatorInterface):
     def fit(self, X, y, row_weights=None, **kwargs):
         """ This hook defines how DataRobot will train this task.
         DataRobot runs this hook when the task is being trained inside a blueprint.
@@ -32,12 +31,13 @@ class CustomTask(RegressionEstimatorInterface):
         CustomTask
             returns an object instance of class CustomTask that can be used in chained method calls
         """
-        self.estimator = Ridge()
+
+        self.estimator = GradientBoostingClassifier()
         self.estimator.fit(X, y)
 
         return self
 
-    def predict(self, X, **kwargs):
+    def predict_proba(self, X, **kwargs):
         """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
         As an output, this hook is expected to return the transformed data.
@@ -53,4 +53,4 @@ class CustomTask(RegressionEstimatorInterface):
         pd.DataFrame
             Returns a dataframe with transformed data.
         """
-        return pd.DataFrame(data=self.estimator.predict(X))
+        return pd.DataFrame(data=self.estimator.predict_proba(X), columns=self.estimator.classes_)

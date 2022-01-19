@@ -4,18 +4,28 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-# This custom estimator task implements a decision tree regressor
-
+from typing import Union
 import pandas as pd
-from sklearn.linear_model import Ridge
-from datarobot_drum.custom_task_interfaces import RegressionEstimatorInterface
+
+from img_utils import (
+    b64_to_img,
+    img_to_b64,
+    img_to_grayscale,
+)
+from datarobot_drum.custom_task_interfaces import TransformerInterface
 
 
-class CustomTask(RegressionEstimatorInterface):
-    def fit(self, X, y, row_weights=None, **kwargs):
-        """ This hook defines how DataRobot will train this task.
+class CustomTask(TransformerInterface):
+    @staticmethod
+    def _process_image(raw_data: Union[str, bytes]) -> bytes:
+        img = b64_to_img(raw_data)
+        img = img_to_grayscale(img)
+        return img_to_b64(img)
+
+    def fit(self, X, y, **kwargs):
+        """ This hook defines how DataRobot will train this task. Even transform tasks need to be trained to learn/store information from training data
         DataRobot runs this hook when the task is being trained inside a blueprint.
-        As an output, this hook is expected to create an artifact containing a trained object, that is then used to predict new data.
+        As an output, this hook is expected to create an artifact containg a trained object [in this example - median of each numeric column], that is then used to transform new data.
         The input parameters are passed by DataRobot based on project and blueprint configuration.
 
         Parameters
@@ -23,21 +33,16 @@ class CustomTask(RegressionEstimatorInterface):
         X: pd.DataFrame
             Training data that DataRobot passes when this task is being trained.
         y: pd.Series
-            Project's target column.
-        row_weights: np.ndarray (optional, default = None)
-            A list of weights. DataRobot passes it in case of smart downsampling or when weights column is specified in project settings.
+            Project's target column (None is passed for unsupervised projects).
 
         Returns
         -------
         CustomTask
             returns an object instance of class CustomTask that can be used in chained method calls
         """
-        self.estimator = Ridge()
-        self.estimator.fit(X, y)
+        pass
 
-        return self
-
-    def predict(self, X, **kwargs):
+    def transform(self, X, **kwargs):
         """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
         As an output, this hook is expected to return the transformed data.
@@ -53,4 +58,5 @@ class CustomTask(RegressionEstimatorInterface):
         pd.DataFrame
             Returns a dataframe with transformed data.
         """
-        return pd.DataFrame(data=self.estimator.predict(X))
+
+        return X.applymap(self._process_image)
