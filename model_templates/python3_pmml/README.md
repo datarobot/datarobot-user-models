@@ -4,7 +4,7 @@ This model is intended to work with the [Python 3 pypmml Drop-In Environment](..
 
 The supplied pmml file (iris_bin.pmml) is a pypmml model trained on [iris_binary_training.csv](../../tests/testdata/iris_binary_training.csv)
 with a Species as the target (classification), though any binary or regression model trained using the libraries
-outlined in [Python 3 pypmml Drop-In Environment](../../public_dropin_environments/python3_pypmml) will work.
+outlined in [Python 3 pmml Drop-In Environment](../../public_dropin_environments/python3_pmml) will work.
 
 ## Instructions
 Create a new custom model with these files and use the Python Drop-In Environment with it
