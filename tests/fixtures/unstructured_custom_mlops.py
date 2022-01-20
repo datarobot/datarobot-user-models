@@ -11,20 +11,15 @@ def load_model(input_dir):
 
 
 def score_unstructured(model, data, query, **kwargs):
-    print("Model: ", model)
-    print("Incoming content type params: ", kwargs)
-    print("Incoming data type: ", type(data))
-    print("Incoming data: ", data)
-
     mlops = kwargs.get("mlops")
-    print(f"MLOps supported: {mlops is not None}")
+    assert mlops is not None
 
-    print("Incoming query params: ", query)
     if isinstance(data, bytes):
         data = data.decode("utf8")
 
-    data = data.strip().replace("  ", " ")
     words_count = data.count(" ") + 1
+
+    mlops.report_deployment_stats(num_predictions=1, execution_time_ms=0.05)
 
     ret_mode = query.get("ret_mode", "")
     if ret_mode == "binary":
@@ -33,4 +28,5 @@ def score_unstructured(model, data, query, **kwargs):
         ret = ret_data, ret_kwargs
     else:
         ret = str(words_count)
+
     return ret

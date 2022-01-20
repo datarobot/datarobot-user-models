@@ -7,6 +7,8 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import argparse
 import os
 import sys
+import tempfile
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 from unittest.mock import patch
 
@@ -177,3 +179,182 @@ class TestBooleanArgumentOptions:
             assert sys.argv.count(ArgumentsOptions.WITH_ERROR_SERVER) == 1
             assert sys.argv.count(ArgumentsOptions.SKIP_PREDICT) == 1
             unset_drum_supported_env_vars()
+
+
+class TestMonitorArgs:
+    @pytest.fixture(scope="session")
+    def tmp_dir_with_dataset(self):
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            input_filepath = Path(tmpdirname) / "input.csv"
+            open(input_filepath, "wb").write(b"a,b,c\n1,2,3")
+            yield str(input_filepath)
+
+    @pytest.fixture
+    def minimal_score_cmd_args(self, tmp_dir_with_dataset):
+        return ["score", "--code-dir", "/tmp", "--input", tmp_dir_with_dataset]
+
+    @pytest.fixture
+    def binary_score_cmd_args(self, minimal_score_cmd_args):
+        minimal_score_cmd_args.extend(["--target-type", "binary"])
+        return minimal_score_cmd_args
+
+    @pytest.fixture
+    def unstructured_score_cmd_args(self, minimal_score_cmd_args):
+        minimal_score_cmd_args.extend(["--target-type", "unstructured"])
+        return minimal_score_cmd_args
+
+    @pytest.fixture
+    def monitor_cmd_args(self):
+        return [
+            "--monitor",
+            "--deployment-id",
+            "123",
+            "--model-id",
+            "456",
+            "--monitor-settings",
+            "aaa;bbb",
+        ]
+
+    @pytest.fixture
+    def monitor_embedded_cmd_args(self):
+        return [
+            "--monitor-embedded",
+            "--deployment-id",
+            "123",
+            "--model-id",
+            "456",
+            "--webserver",
+            "http://aaa.bbb.ccc",
+            "--api-token",
+            "zzz",
+        ]
+
+    @pytest.fixture
+    def monitor_env_vars(self):
+        os.environ[ArgumentOptionsEnvVars.MONITOR] = "True"
+        os.environ["DEPLOYMENT_ID"] = "e123"
+        os.environ["MODEL_ID"] = "e456"
+        os.environ["MONITOR_SETTINGS"] = "e;aaa;bbb"
+        yield
+        os.environ.pop(ArgumentOptionsEnvVars.MONITOR)
+        os.environ.pop("DEPLOYMENT_ID")
+        os.environ.pop("MODEL_ID")
+        os.environ.pop("MONITOR_SETTINGS")
+
+    @pytest.fixture
+    def monitor_embedded_env_vars(self):
+        os.environ[ArgumentOptionsEnvVars.MONITOR_EMBEDDED] = "true"
+        os.environ["DEPLOYMENT_ID"] = "e123"
+        os.environ["MODEL_ID"] = "e456"
+        os.environ["EXTERNAL_WEB_SERVER_URL"] = "e-http://aaa.bbb.ccc"
+        os.environ["API_TOKEN"] = "e-zzz"
+        yield
+        os.environ.pop(ArgumentOptionsEnvVars.MONITOR_EMBEDDED)
+        os.environ.pop("DEPLOYMENT_ID")
+        os.environ.pop("MODEL_ID")
+        os.environ.pop("EXTERNAL_WEB_SERVER_URL")
+        os.environ.pop("API_TOKEN")
+
+    @staticmethod
+    def _set_sys_argv(cmd_line_args):
+        # This is required because the sys.argv is manipulated by the 'CMRunnerArgsRegistry'
+        cmd_line_args.insert(0, sys.argv[0])
+        sys.argv = cmd_line_args
+
+    @staticmethod
+    def _execute_arg_parser(success=True):
+        arg_parser = CMRunnerArgsRegistry.get_arg_parser()
+        CMRunnerArgsRegistry.extend_sys_argv_with_env_vars()
+        if success:
+            options = arg_parser.parse_args()
+            CMRunnerArgsRegistry.verify_options(options)
+        else:
+            with pytest.raises(SystemExit):
+                options = arg_parser.parse_args()
+                CMRunnerArgsRegistry.verify_options(options)
+
+    def test_binary_monitor_from_cmd_line_args_success(
+        self, binary_score_cmd_args, monitor_cmd_args
+    ):
+        binary_score_cmd_args.extend(monitor_cmd_args)
+        self._set_sys_argv(binary_score_cmd_args)
+        self._execute_arg_parser()
+
+    @pytest.mark.usefixtures("monitor_env_vars")
+    def test_binary_monitor_from_env_vars_success(self, binary_score_cmd_args):
+        self._set_sys_argv(binary_score_cmd_args)
+        self._execute_arg_parser()
+
+    @pytest.mark.usefixtures("monitor_env_vars")
+    def test_binary_monitor_from_cmd_line_and_env_vars_success(
+        self, binary_score_cmd_args, monitor_cmd_args
+    ):
+        # pop the last 2 elements in order to take them from the environment
+        monitor_cmd_args = monitor_cmd_args[0:-2]
+        binary_score_cmd_args.extend(monitor_cmd_args)
+        self._set_sys_argv(binary_score_cmd_args)
+        self._execute_arg_parser()
+
+    def test_binary_monitor_embedded_cmd_args_failure(
+        self, binary_score_cmd_args, monitor_embedded_cmd_args
+    ):
+        binary_score_cmd_args.extend(monitor_embedded_cmd_args)
+        self._set_sys_argv(binary_score_cmd_args)
+        self._execute_arg_parser(success=False)
+
+    @pytest.mark.usefixtures("monitor_embedded_env_vars")
+    def test_binary_monitor_embedded_from_env_vars_failure(self, binary_score_cmd_args):
+        self._set_sys_argv(binary_score_cmd_args)
+        self._execute_arg_parser(success=False)
+
+    def test_binary_mutually_exclusive_args_failure(
+        self, binary_score_cmd_args, monitor_cmd_args, monitor_embedded_cmd_args
+    ):
+        args = binary_score_cmd_args
+        args.extend(monitor_cmd_args)
+        args.extend(monitor_embedded_cmd_args)
+        self._set_sys_argv(args)
+        self._execute_arg_parser(success=False)
+
+    def test_unstructured_monitor_embedded_from_cmd_line_args_success(
+        self, unstructured_score_cmd_args, monitor_embedded_cmd_args
+    ):
+        unstructured_score_cmd_args.extend(monitor_embedded_cmd_args)
+        self._set_sys_argv(unstructured_score_cmd_args)
+        self._execute_arg_parser()
+
+    @pytest.mark.usefixtures("monitor_embedded_env_vars")
+    def test_unstructured_monitor_from_env_vars_success(self, unstructured_score_cmd_args):
+        self._set_sys_argv(unstructured_score_cmd_args)
+        self._execute_arg_parser()
+
+    @pytest.mark.usefixtures("monitor_embedded_env_vars")
+    def test_unstructured_monitor_from_cmd_line_and_env_vars_success(
+        self, unstructured_score_cmd_args, monitor_embedded_cmd_args
+    ):
+        # pop the last 2 elements in order to take them from the environment
+        monitor_embedded_cmd_args = monitor_embedded_cmd_args[0:-2]
+        unstructured_score_cmd_args.extend(monitor_embedded_cmd_args)
+        self._set_sys_argv(unstructured_score_cmd_args)
+        self._execute_arg_parser()
+
+    def test_unstructured_monitor_cmd_args_failure(
+        self, unstructured_score_cmd_args, monitor_cmd_args
+    ):
+        unstructured_score_cmd_args.extend(monitor_cmd_args)
+        self._set_sys_argv(unstructured_score_cmd_args)
+        self._execute_arg_parser(success=False)
+
+    @pytest.mark.usefixtures("monitor_env_vars")
+    def test_unstructured_monitor_from_env_vars_failure(self, unstructured_score_cmd_args):
+        self._set_sys_argv(unstructured_score_cmd_args)
+        self._execute_arg_parser(success=False)
+
+    def test_unstructured_mutually_exclusive_args_failure(
+        self, unstructured_score_cmd_args, monitor_cmd_args, monitor_embedded_cmd_args
+    ):
+        args = unstructured_score_cmd_args
+        args.extend(monitor_cmd_args)
+        args.extend(monitor_embedded_cmd_args)
+        self._set_sys_argv(args)
+        self._execute_arg_parser(success=False)

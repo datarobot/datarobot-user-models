@@ -529,12 +529,23 @@ class CMRunnerArgsRegistry(object):
     @staticmethod
     def _reg_args_monitoring(*parsers):
         for parser in parsers:
-            parser.add_argument(
+            group = parser.add_mutually_exclusive_group()
+            group.add_argument(
                 ArgumentsOptions.MONITOR,
                 action="store_true",
                 help="Monitor predictions using DataRobot MLOps. The argument can also be provided by setting {} env var. "
                 "Monitoring can not be used in unstructured mode.".format(
                     ArgumentOptionsEnvVars.MONITOR
+                ),
+            )
+            group.add_argument(
+                ArgumentsOptions.MONITOR_EMBEDDED,
+                action="store_true",
+                help=(
+                    "Enables a model to use MLOps library in order to report statistics. "
+                    "The argument can also be provided by setting "
+                    f"the '{ArgumentOptionsEnvVars.MONITOR_EMBEDDED}' env var. "
+                    "Embedded monitoring is enabled for unstructured models only."
                 ),
             )
 
@@ -554,6 +565,18 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.MONITOR_SETTINGS,
                 default=os.environ.get("MONITOR_SETTINGS", None),
                 help="MLOps setting to use for connecting with the MLOps Agent (env: MONITOR_SETTINGS)",
+            )
+
+            parser.add_argument(
+                ArgumentsOptions.DR_WEBSERVER,
+                default=os.environ.get("EXTERNAL_WEB_SERVER_URL", None),
+                help="DataRobot external web server URL",
+            )
+
+            parser.add_argument(
+                ArgumentsOptions.DR_API_TOKEN,
+                default=os.environ.get("API_TOKEN", None),
+                help="DataRobot API token",
             )
 
     @staticmethod
@@ -885,37 +908,55 @@ class CMRunnerArgsRegistry(object):
 
     @staticmethod
     def verify_monitoring_options(options, parser_name):
-        if options.subparser_name in [ArgumentsOptions.SERVER, ArgumentsOptions.SCORE]:
-            if options.monitor:
-                if options.target_type == TargetType.UNSTRUCTURED.value:
-                    print("Error: MLOps monitoring can not be used in unstructured mode.")
-                    exit(1)
-                missing_args = []
+        if parser_name in [ArgumentsOptions.SERVER, ArgumentsOptions.SCORE]:
+            missing_args = []
+            if options.monitor or options.monitor_embedded:
                 if options.model_id is None:
                     missing_args.append(ArgumentsOptions.MODEL_ID)
                 if options.deployment_id is None:
                     missing_args.append(ArgumentsOptions.DEPLOYMENT_ID)
+
+            if options.monitor:
+                if options.target_type == TargetType.UNSTRUCTURED.value:
+                    print("Error: MLOps monitoring can not be used in unstructured mode.")
+                    exit(1)
                 if options.monitor_settings is None:
                     missing_args.append(ArgumentsOptions.MONITOR_SETTINGS)
 
-                if len(missing_args) > 0:
-                    print("\n")
-                    print("Error: MLOps Monitoring requires all monitoring options to be present.")
-                    print("Note: The following MLOps monitoring option(s) is/are missing:")
-                    for arg in missing_args:
-                        print("  {}".format(arg))
-                    print("\n")
-                    print("These options can also be obtained via environment variables")
-                    print("\n")
-                    CMRunnerArgsRegistry._parsers[parser_name].print_help()
+            elif options.monitor_embedded:
+                if options.target_type != TargetType.UNSTRUCTURED.value:
+                    print(
+                        "Error: MLOps embedded monitoring is supported for unstructured modes "
+                        "only."
+                    )
                     exit(1)
+                if options.webserver is None:
+                    missing_args.append(ArgumentsOptions.DR_WEBSERVER)
+                if options.api_token is None:
+                    missing_args.append(ArgumentsOptions.DR_API_TOKEN)
+
+            if len(missing_args) > 0:
+                print("\n")
+                print("Error: MLOps Monitoring requires all monitoring options to be present.")
+                print("Note: The following MLOps monitoring option(s) is/are missing:")
+                for arg in missing_args:
+                    print("  {}".format(arg))
+                print("\n")
+                print("These options can also be obtained via environment variables")
+                print("\n")
+                CMRunnerArgsRegistry._parsers[parser_name].print_help()
+                exit(1)
+
         # Monitor options are used to fill in pipeline json,
         # so define them for the modes different from score and server
         else:
             options.monitor = False
+            options.monitor_embedded = False
             options.model_id = None
             options.deployment_id = None
             options.monitor_settings = None
+            options.webserver = None
+            options.api_token = None
 
     @staticmethod
     def verify_options(options):
@@ -1010,6 +1051,17 @@ class CMRunnerArgsRegistry(object):
                     return True
             return False
 
+        def _skip_mutually_exclusive_options(env_var_key, mutually_exclusive_options):
+            for opt1, opt2 in mutually_exclusive_options:
+                if (
+                    env_var_key == getattr(ArgumentOptionsEnvVars, opt1)
+                    and getattr(ArgumentsOptions, opt2) in sys.argv
+                    or env_var_key == getattr(ArgumentOptionsEnvVars, opt2)
+                    and getattr(ArgumentsOptions, opt1) in sys.argv
+                ):
+                    return True
+                return False
+
         if len(sys.argv) == 1:
             return
         sub_parser_command = sys.argv[1]
@@ -1026,23 +1078,20 @@ class CMRunnerArgsRegistry(object):
                 env_var_value is not None
                 # and if argument related to env var is supported by parser
                 and _is_arg_registered_in_subparser(
-                    sub_parser, ArgumentsOptions.__dict__[env_var_key]
+                    sub_parser, ArgumentOptionsEnvVars.to_arg_option(env_var_key)
                 )
                 # and if argument related to env var is not already in sys.argv
-                and ArgumentsOptions.__dict__[env_var_key] not in sys.argv
+                and ArgumentOptionsEnvVars.to_arg_option(env_var_key) not in sys.argv
             ):
-                # special handling for --class_labels_file as it and --class-labels can not be provided together
-                if (
-                    env_var_key == ArgumentOptionsEnvVars.CLASS_LABELS_FILE
-                    and ArgumentsOptions.CLASS_LABELS in sys.argv
-                    or env_var_key == ArgumentOptionsEnvVars.CLASS_LABELS
-                    and ArgumentsOptions.CLASS_LABELS_FILE in sys.argv
+                if _skip_mutually_exclusive_options(
+                    env_var_key,
+                    [("CLASS_LABELS", "CLASS_LABELS_FILE"), ("MONITOR", "MONITOR_EMBEDDED")],
                 ):
                     continue
 
                 args_to_add = []
                 if env_var_key in ArgumentOptionsEnvVars.VALUE_VARS:
-                    args_to_add = [ArgumentsOptions.__dict__[env_var_key]]
+                    args_to_add = [ArgumentOptionsEnvVars.to_arg_option(env_var_key)]
                     if env_var_key == ArgumentOptionsEnvVars.CLASS_LABELS:
                         args_to_add.extend(env_var_value.split())
                     else:
@@ -1050,6 +1099,6 @@ class CMRunnerArgsRegistry(object):
                 elif env_var_key in ArgumentOptionsEnvVars.BOOL_VARS:
                     # StrBool() -> ToBool() in trafaret>=2.0.0
                     if t.StrBool().check(env_var_value):
-                        args_to_add = [ArgumentsOptions.__dict__[env_var_key]]
+                        args_to_add = [ArgumentOptionsEnvVars.to_arg_option(env_var_key)]
 
                 sys.argv.extend(args_to_add)

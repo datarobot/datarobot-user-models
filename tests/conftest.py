@@ -124,6 +124,7 @@ from tests.drum.constants import (
     R_INT_COLNAMES_MULTICLASS,
     R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
     SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
+    PYTHON_UNSTRUCTURED_MLOPS,
     CUSTOM_TASK_INTERFACE_BINARY,
     CUSTOM_TASK_INTERFACE_REGRESSION,
     CUSTOM_TASK_INTERFACE_ANOMALY,
@@ -645,6 +646,10 @@ _custom_filepaths = {
     R_FIT: (os.path.join(TESTS_FIXTURES_PATH, "fit_custom.R"), "custom.R"),
     PYTHON_UNSTRUCTURED: (os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom.py"), "custom.py"),
     R_UNSTRUCTURED: (os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom.R"), "custom.R"),
+    PYTHON_UNSTRUCTURED_MLOPS: (
+        os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom_mlops.py"),
+        "custom.py",
+    ),
     PYTHON_UNSTRUCTURED_PARAMS: (
         os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom_params.py"),
         "custom.py",
