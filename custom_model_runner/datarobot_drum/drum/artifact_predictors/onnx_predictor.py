@@ -8,6 +8,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 from datarobot_drum.drum.artifact_predictors.artifact_predictor import ArtifactPredictor
 from datarobot_drum.drum.enum import extra_deps, PythonArtifacts, SupportedFrameworks
 
+import numpy as np
 
 class ONNXPredictor(ArtifactPredictor):
     def __init__(self):
@@ -69,9 +70,9 @@ class ONNXPredictor(ArtifactPredictor):
     def predict(self, data, model, **kwargs):
         super(ONNXPredictor, self).predict(data, model, **kwargs)
 
-        input_name = [input.name for input in self._model.get_inputs()]
-        out_name = [output.name for output in self._model.get_outputs()]
-        predictions = self._model.run(out_name, {input_name[0]: data.to_numpy(np.float32)})
+        input_names = [i.name for i in model.get_inputs()]
+        out_names = [o.name for o in model.get_outputs()]
+        predictions = model.run(out_names, {input_names[0]: data.to_numpy(np.float32)})
 
         #TODO:Asli - check if we can return labels instead of None
         return predictions[0], None
