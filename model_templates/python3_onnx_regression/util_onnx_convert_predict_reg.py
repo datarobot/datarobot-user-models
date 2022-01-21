@@ -1,11 +1,11 @@
 import torch.onnx
 
-ONNX_MODEL_PATH = "multiclass_SDSS.onnx"
+ONNX_MODEL_PATH = "regression_juniors.onnx"
 
 
 def convert_to_onnx(model):
     model.eval()
-    dummy_input = torch.zeros(5, 10)
+    dummy_input = torch.zeros(1, 33)
     dynamic_axes = {'modelInput': {0: 'batch'}, 'modelOutput': {0: 'batch'}}
     torch.onnx.export(model,
                       args=dummy_input,
@@ -19,7 +19,7 @@ def convert_to_onnx(model):
 
 
 def load_and_convert():
-    model = torch.load("artifact.pth")
+    model = torch.load("torch_reg.pth")
     model.eval()
     print(model)
     convert_to_onnx(model)
@@ -40,16 +40,15 @@ if __name__ == "__main__":
     import numpy as np
     import pickle
 
-    test_input = "/Users/asli.demiroz/repos/datarobot-user-models/tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv"
+    test_input = "/Users/asli.demiroz/repos/datarobot-user-models/tests/testdata/juniors_3_year_stats_regression.csv"
     test_df = pd.read_csv(test_input)
+    print(test_df.shape)
 
-    with open("preprocessor.pkl", mode="rb") as f:
-        preprocessor = pickle.load(f)
-    if preprocessor is None:
-        raise ValueError("Preprocessor not loaded")
+    for target_col in ["Grade 2014", "Species"]:
+        if target_col in test_df:
+            test_df.pop(target_col)
+    test_df = test_df.fillna(0)
 
-    transformed_df = pd.DataFrame(preprocessor.transform(test_df))
-
-    ort_inputs = {ort_session.get_inputs()[0].name: transformed_df.to_numpy(np.float32)}
+    ort_inputs = {ort_session.get_inputs()[0].name: test_df.to_numpy(np.float32)}
     ort_outs = ort_session.run(None, ort_inputs)
     print(ort_outs)
