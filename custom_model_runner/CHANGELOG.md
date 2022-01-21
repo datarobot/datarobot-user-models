@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Current
 
+#### [1.6.7] - 2022-01-21
+##### Updated
+- update log4j version to 2.17.1
+
 #### [1.6.6] - 2021-12-16
 ##### Updated
 - update log4j version to 2.16.0
