@@ -131,3 +131,8 @@ class GenericPredictorComponent(ConnectableComponent):
             )
             predictions.to_csv(output_filename, index=False)
         return []
+
+    def terminate(self):
+        terminate_op = getattr(self._predictor, "terminate", None)
+        if callable(terminate_op):
+            terminate_op()

@@ -124,6 +124,7 @@ class CMRunner:
                 verbose=self.verbose,
             )
         self._input_df = None
+        self._pipeline_executor = None
 
     @property
     def input_df(self):
@@ -498,6 +499,11 @@ class CMRunner:
             print(error_message)
             raise DrumCommonException(error_message)
 
+    def terminate(self):
+        """It is being called upon shutdown in server mode"""
+        if self._pipeline_executor:
+            self._pipeline_executor.cleanup_pipeline()
+
     def _validate_output_dir(self):
         """Validate that the output directory is not the same as the input.
                 Raises
@@ -780,10 +786,12 @@ class CMRunner:
             spark_jars=None,
         )
 
-        _pipeline_executor = Executor(config).standalone(True).set_verbose(self.options.verbose)
+        self._pipeline_executor = (
+            Executor(config).standalone(True).set_verbose(self.options.verbose)
+        )
         # assign logger with the name drum.mlpiper.Executor to mlpiper Executor
-        _pipeline_executor.set_logger(
-            logging.getLogger(LOGGER_NAME_PREFIX + "." + _pipeline_executor.logger_name())
+        self._pipeline_executor.set_logger(
+            logging.getLogger(LOGGER_NAME_PREFIX + "." + self._pipeline_executor.logger_name())
         )
 
         self.logger.info(
@@ -804,14 +812,14 @@ class CMRunner:
             try:
                 sc.mark("start")
 
-                _pipeline_executor.init_pipeline()
+                self._pipeline_executor.init_pipeline()
                 self.runtime.initialization_succeeded = True
                 sc.mark("init")
 
-                _pipeline_executor.run_pipeline(cleanup=False)
+                self._pipeline_executor.run_pipeline(cleanup=False)
                 sc.mark("run")
             finally:
-                _pipeline_executor.cleanup_pipeline()
+                self._pipeline_executor.cleanup_pipeline()
                 sc.mark("end")
                 sc.disable()
         self.logger.info(

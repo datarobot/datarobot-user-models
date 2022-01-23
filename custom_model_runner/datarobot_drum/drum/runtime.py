@@ -27,6 +27,7 @@ class DrumRuntime:
     def __init__(self):
         self.initialization_succeeded = False
         self.options = None
+        self.cm_runner = None
 
     def __enter__(self):
         return self

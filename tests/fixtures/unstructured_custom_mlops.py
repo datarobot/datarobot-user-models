@@ -19,7 +19,8 @@ def score_unstructured(model, data, query, **kwargs):
 
     words_count = data.count(" ") + 1
 
-    mlops.report_deployment_stats(num_predictions=1, execution_time_ms=0.05)
+    for count in range(1, 11):
+        mlops.report_deployment_stats(num_predictions=1, execution_time_ms=0.05)
 
     ret_mode = query.get("ret_mode", "")
     if ret_mode == "binary":

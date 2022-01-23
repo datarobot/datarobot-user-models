@@ -89,7 +89,13 @@ def _create_custom_model_dir(
 
 
 def _exec_shell_cmd(
-    cmd, err_msg, assert_if_fail=True, process_obj_holder=None, env=os.environ, verbose=True,
+    cmd,
+    err_msg,
+    assert_if_fail=True,
+    process_obj_holder=None,
+    env=os.environ,
+    verbose=True,
+    capture_output=True,
 ):
     """
     Wrapper used by tests and validation to run shell command.
@@ -101,8 +107,8 @@ def _exec_shell_cmd(
 
     p = subprocess.Popen(
         cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stdout=subprocess.PIPE if capture_output else None,
+        stderr=subprocess.PIPE if capture_output else None,
         env=env,
         universal_newlines=True,
         encoding="utf-8",
@@ -111,17 +117,21 @@ def _exec_shell_cmd(
     if process_obj_holder is not None:
         process_obj_holder.process = p
 
-    (stdout, stderr) = p.communicate()
+    if capture_output:
+        (stdout, stderr) = p.communicate()
+    else:
+        stdout, stderr = None, None
 
     if process_obj_holder is not None:
         process_obj_holder.out_stream = stdout
         process_obj_holder.err_stream = stderr
 
     if verbose:
-        if len(stdout):
-            print("stdout: {}".format(stdout))
-        if len(stderr):
-            print("stderr: {}".format(stderr))
+        if capture_output:
+            if len(stdout):
+                print("stdout: {}".format(stdout))
+            if len(stderr):
+                print("stderr: {}".format(stderr))
     if assert_if_fail:
         assert p.returncode == 0, err_msg
 
