@@ -21,26 +21,7 @@ from model_utils import (
 
 class CustomTask(MulticlassEstimatorInterface):
     def fit(self, X, y, row_weights=None, **kwargs):
-        """ This hook defines how DataRobot will train this task.
-        DataRobot runs this hook when the task is being trained inside a blueprint.
-        As an output, this hook is expected to create an artifact containing a trained object, that is then used to predict new data.
-        The input parameters are passed by DataRobot based on project and blueprint configuration.
-
-        Parameters
-        -------
-        X: pd.DataFrame
-            Training data that DataRobot passes when this task is being trained.
-        y: pd.Series
-            Project's target column.
-        row_weights: np.ndarray (optional, default = None)
-            A list of weights. DataRobot passes it in case of smart downsampling or when weights column is specified in project settings.
-
-        Returns
-        -------
-        CustomTask
-            returns an object instance of class CustomTask that can be used in chained method calls
-        """
-
+        """Note how we encode the class labels and store them on self to be used in the predict hook"""
         self.lb = LabelEncoder().fit(y)
         y = self.lb.transform(y)
 
@@ -92,22 +73,7 @@ class CustomTask(MulticlassEstimatorInterface):
         return custom_task
 
     def predict_proba(self, X, **kwargs):
-        """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
-        DataRobot runs this hook when the task is used for scoring inside a blueprint.
-        As an output, this hook is expected to return the transformed data.
-        The input parameters are passed by DataRobot based on dataset and blueprint configuration.
-
-        Parameters
-        -------
-        X: pd.DataFrame
-            Data that DataRobot passes for transformation.
-
-        Returns
-        -------
-        pd.DataFrame
-            Returns a dataframe with transformed data.
-        """
-
+        """Note how the column names come from the encoded class labels in the fit hook above"""
         data_tensor = torch.from_numpy(X.values).type(torch.FloatTensor)
         predictions = self.estimator(data_tensor).cpu().data.numpy()
 

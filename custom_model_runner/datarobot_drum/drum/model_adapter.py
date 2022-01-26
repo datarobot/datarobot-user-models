@@ -685,9 +685,12 @@ class PythonModelAdapter:
                         parameters=parameters,
                     )
 
-                    self._custom_task_class_instance.save(self._model_dir)
+                    try:
+                        self._custom_task_class_instance.save(self._model_dir)
+                    except AttributeError:
+                        raise DrumCommonException("There appears to be an issue with your save hook in custom.py")
                 except AttributeError:
-                    raise DrumCommonException("Fit method must be defined in your custom.py file")
+                    raise DrumCommonException("There appears to be an issue with your fit hook in custom.py")
         else:
             if self._target_type != TargetType.TRANSFORM:
                 X = self.preprocess(X)

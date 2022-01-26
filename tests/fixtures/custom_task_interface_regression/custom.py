@@ -14,9 +14,10 @@ from datarobot_drum.custom_task_interfaces import RegressionEstimatorInterface
 class CustomTask(RegressionEstimatorInterface):
     def fit(self, X, y, row_weights=None, **kwargs):
         """ This hook defines how DataRobot will train this task.
-        DataRobot runs this hook when the task is being trained inside a blueprint.
-        As an output, this hook is expected to create an artifact containing a trained object, that is then used to predict new data.
+        DataRobot will run this hook when the task is trained inside a blueprint.
         The input parameters are passed by DataRobot based on project and blueprint configuration.
+        The output is the trained Custom Task instance, which allows a user to easily test, e.g.
+        task.fit(...).save(...) or task.fit(...).predict_proba(...)
 
         Parameters
         -------
@@ -25,7 +26,8 @@ class CustomTask(RegressionEstimatorInterface):
         y: pd.Series
             Project's target column.
         row_weights: np.ndarray (optional, default = None)
-            A list of weights. DataRobot passes it in case of smart downsampling or when weights column is specified in project settings.
+            A list of weights. DataRobot passes it in case of smart downsampling or when weights column
+            is specified in project settings.
 
         Returns
         -------
@@ -38,10 +40,10 @@ class CustomTask(RegressionEstimatorInterface):
         return self
 
     def predict(self, X, **kwargs):
-        """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
+        """ This hook defines how DataRobot will use the trained estimator from fit() to predict on new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
-        As an output, this hook is expected to return the transformed data.
         The input parameters are passed by DataRobot based on dataset and blueprint configuration.
+        The output is the estimator's predictions on the new data in a tabular format (typically a pandas dataframe)
 
         Parameters
         -------
@@ -53,4 +55,6 @@ class CustomTask(RegressionEstimatorInterface):
         pd.DataFrame
             Returns a dataframe with transformed data.
         """
+
+        # Note how regression estimators only use one column, so no explicit column names are needed
         return pd.DataFrame(data=self.estimator.predict(X))
