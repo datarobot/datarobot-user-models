@@ -38,7 +38,7 @@ typeSchema:
     # Specify what data types the task could output. A task can only output a single data type.
     - field: data_types
       condition: EQUALS # only EQUALS should be used as a task can only output a single data type
-      value: INT # can be one of types NUM, TXT, IMG, DATE, CAT, DATE_DURATION, COUNT_DICT, GEO
+      value: NUM # can be one of types NUM, TXT, IMG, DATE, CAT, DATE_DURATION, COUNT_DICT, GEO
 
     # specify how many columns the task outputs
     - field: number_of_columns
