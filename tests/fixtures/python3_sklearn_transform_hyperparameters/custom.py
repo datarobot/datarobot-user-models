@@ -6,6 +6,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 from datarobot_drum.custom_task_interfaces import TransformerInterface
 
+import pandas as pd
 import numpy as np
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import KBinsDiscretizer
@@ -96,4 +97,4 @@ class CustomTask(TransformerInterface):
         X = self.missing_vals_transformer.transform(X)
         # Then bin them
         X = self.kbins_transformer.transform(X)
-        return X
+        return pd.DataFrame.sparse.from_spmatrix(X)
