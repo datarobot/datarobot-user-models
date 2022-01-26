@@ -4,82 +4,98 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-import pickle
-import pandas as pd
-from scipy.sparse.csr import csr_matrix
+from datarobot_drum.custom_task_interfaces import TransformerInterface
 
-from create_transform_pipeline import make_pipeline
-
-
-def fit(
-    X: pd.DataFrame, y: pd.Series, output_dir: str, parameters: dict, **kwargs,
-):
-    """
-    This hook must be implemented with your fitting code, for running drum in the fit mode.
-
-    This hook MUST ALWAYS be implemented for custom tasks. For custom transformers, the
-    transform hook below is also required.
-
-    For inference models, this hook can stick around unimplemented, and won’t be triggered.
-
-    Parameters
-    ----------
-    X: pd.DataFrame - training data to perform fit on
-    y: pd.Series - target data to perform fit on
-    output_dir: the path to write output. This is the path provided in '--output' parameter of the
-        'drum fit' command.
-    parameters: dict
-        A dictionary of parameters defined within the model-metadata.yaml file.
-    kwargs: Added for forwards compatibility
-
-    Returns
-    -------
-    Nothing
-    """
-    transformer = make_pipeline()
-
-    if not parameters:
-        raise ValueError("Did not receive parameters")
-
-    # Parameters are provided during fit as a dict with names set according to your model-metadata.yaml file.
-    # In this example, we set the various transformer parameters in our sklearn pipeline.
-    transformer.set_params(
-        **{
-            "num__imputer__strategy": parameters["numeric_imputer_strategy"],
-            "num__scaler__with_mean": parameters["numeric_standardize_with_mean"],
-            "cat__imputer__fill_value": parameters["categorical_fill"],
-        }
-    )
-
-    # Only set numeric imputer's fill value if the strategy is constant
-    if parameters["numeric_imputer_strategy"] == "constant":
-        transformer.set_params(num__imputer__fill_value=parameters["numeric_imputer_constant_fill"])
-
-    transformer.fit(X, y)
-
-    # You must serialize out your transformer to the output_dir given, however if you wish to change this
-    # code, you will probably have to add a load_model method to read the serialized model back in
-    # When prediction is done.
-    # Check out this doc for more information on serialization https://github.com/datarobot/custom-\
-    # model-templates/tree/master/custom_model_runner#python
-    # NOTE: We currently set a 10GB limit to the size of the serialized model or transformer
-    with open("{}/artifact.pkl".format(output_dir), "wb") as fp:
-        pickle.dump(transformer, fp)
+import numpy as np
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import KBinsDiscretizer
 
 
-def transform(X, transformer, y=None):
-    """
-    Parameters
-    ----------
-    X: pd.DataFrame - training data to perform transform on
-    transformer: object - trained transformer object
-    y: pd.Series (optional) - target data to perform transform on
-    Returns
-    -------
-    transformed DataFrame resulting from applying transform to incoming data
-    """
-    transformed = transformer.transform(X)
-    if type(transformed) == csr_matrix:
-        return pd.DataFrame.sparse.from_spmatrix(transformed)
-    else:
-        return pd.DataFrame(transformed)
+class CustomTask(TransformerInterface):
+
+    def fit(self, X, y, parameters=None, **kwargs):
+        """ This numeric transform example showcases how to define and use hyperparameters. Hyperparameters are defined
+        in model-metadata.yaml, and are passed into fit as a dict.
+
+        This transformer computes missing values using Sklearn's SimpleImputer, then transforms the output of that into
+        bins using KBinsDiscretizer.
+
+        Parameters
+        -------
+        X: pd.DataFrame
+            Training data
+        y: pd.Series
+            Project's target column.
+        parameters: dict[str, Any] or None
+            Dict containing mapping of parameter names and values. The parameter value's type can be an int, float, or
+            str depending on the parameter definition's type in model-metadata.yaml.
+
+            In this specific example, the parameters are:
+                seed: int
+                    Numpy seed that gets set for reproducible fit behavior.
+                missing_values_strategy: (multi) str or float
+                    Strategy for imputing missing values. Can be one of {'mean', 'median', 'most_frequent'} or a float.
+                    If it's a float, we set the SimpleImputer strategy to be constant, and use the float as the fill
+                    value.
+                kbins_n_bins: int
+                    Number of bins to produce.
+                kbins_strategy: (select) str
+                    Strategy for binning. Can be one of {'uniform', 'quantile', 'kmeans'}.
+                print_message: (string) str
+                    A string parameter showcasing that you can pass arbitrary strings as parameters. In this example, we
+                    simply print it, but this can be used for practically anything such as passing JSON, a list, dict,
+                    etc as a string, then parsing it in your custom task.
+
+            See how they are defined in model-metadata.yaml.
+
+        Returns
+        -------
+        CustomTask
+        """
+        # Parameters should always be passed in as a dict if hyperparameters are defined in the model-metadata.
+        if parameters is None:
+            raise ValueError(
+                'Parameters were not passed into the custom task. '
+                'Ensure your model metadata contains hyperparameter definitions'
+            )
+
+        # A useless parameter show-casing you can pass arbitrary strings
+        print(parameters['print_message'])
+
+        # Set the seed for reproducible fit behavior.
+        np.random.seed(parameters['seed'])
+
+        # First fit the SimpleImputer. Check the missing_values parameter to see if it's a numeric, if so, use the
+        # 'constant' strategy and set the fill value to the numeric.
+        missing_values_fill_value = None
+        if isinstance(parameters['missing_values_strategy'], (int, float)):
+            missing_values_strategy = 'constant'
+            missing_values_fill_value = parameters['missing_values_strategy']
+        else:
+            missing_values_strategy = parameters['missing_values_strategy']
+
+        self.missing_vals_transformer = SimpleImputer(
+            strategy=missing_values_strategy,
+            fill_value=missing_values_fill_value,
+        ).fit(X, y)
+
+        # Then, we need to transform the data to use as training data for the second transformer.
+        X = self.missing_vals_transformer.transform(X)
+
+        # Now we fit the second transformer, and use hyperparameters to choose the number of bins and strategy.
+        self.kbins_transformer = KBinsDiscretizer(
+            n_bins=parameters['kbins_n_bins'],
+            strategy=parameters['kbins_strategy'],
+            encode='onehot',
+        )
+        self.kbins_transformer.fit(X, y)
+
+        # Both transformers are fit, so now we can use them in the transform function defined below.
+        return self
+
+    def transform(self, X, **kwargs):
+        # Impute the missing values
+        X = self.missing_vals_transformer.transform(X)
+        # Then bin them
+        X = self.kbins_transformer.transform(X)
+        return X
