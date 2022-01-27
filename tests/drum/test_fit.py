@@ -319,10 +319,7 @@ class TestFit:
         target_type = resources.target_types(problem) if "transform" not in framework else TRANSFORM
 
         cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
-            ArgumentsOptions.MAIN_COMMAND,
-            target_type,
-            custom_model_dir,
-            input_dataset,
+            ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset,
         )
         if problem != ANOMALY:
             cmd += ' --target "{}"'.format(resources.targets(problem))
