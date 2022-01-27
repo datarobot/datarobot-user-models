@@ -285,15 +285,15 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, problem, docker, parameters",
         [
-            # (SKLEARN_BINARY_HYPERPARAMETERS, BINARY_TEXT, None, SKLEARN_BINARY_PARAMETERS),
-            # (SKLEARN_BINARY_HYPERPARAMETERS, BINARY_SPACES, None, SKLEARN_BINARY_PARAMETERS),
+            (SKLEARN_BINARY_HYPERPARAMETERS, BINARY_TEXT, None, SKLEARN_BINARY_PARAMETERS),
+            (SKLEARN_BINARY_HYPERPARAMETERS, BINARY_SPACES, None, SKLEARN_BINARY_PARAMETERS),
             (
                 SKLEARN_TRANSFORM_HYPERPARAMETERS,
                 BINARY_NUM_ONLY,
                 None,
                 SKLEARN_TRANSFORM_PARAMETERS,
             ),
-            # (RDS_HYPERPARAMETERS, BINARY_TEXT, None, RDS_PARAMETERS),
+            (RDS_HYPERPARAMETERS, BINARY_TEXT, None, RDS_PARAMETERS),
         ],
     )
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
