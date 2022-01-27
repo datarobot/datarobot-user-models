@@ -287,8 +287,6 @@ def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_dir: str) 
 
     # extract and save the preprocessor
     preprocessor = estimator_pipeline[:-1]
-
-    # save the dict obj as a joblib file
     output_file_path = Path(output_dir) / "artifact.joblib"
     joblib.dump(preprocessor, output_file_path)
 
@@ -307,7 +305,7 @@ def deserialize_estimator_pipeline(input_dir: str) -> Pipeline:
     pipeline: Pipeline
         Constructed pipeline with necessary preprocessor steps and estimator to predict/score.
     """
-    # load the dictionary obj from the joblib file
+    # Load the preprocessor object
     joblib_file_path = Path(input_dir) / "artifact.joblib"
     prep_pipeline = joblib.load(joblib_file_path)
     prep_pipeline.steps.append(
@@ -316,7 +314,9 @@ def deserialize_estimator_pipeline(input_dir: str) -> Pipeline:
             FunctionTransformer(get_pretrained_base_model().predict, validate=False),
         ]
     )
+    # Load the keras model
     keras_model = load_model(Path(input_dir) / "model")
 
+    # Rebuild the original pipeline
     pipeline = Pipeline([("preprocessor", prep_pipeline), ("estimator", keras_model)], verbose=True)
     return pipeline
