@@ -108,7 +108,9 @@ class RFit(ConnectableComponent):
                 ro.StrVector([str(l) for l in self.class_labels]) if self.class_labels else ro.NULL,
                 self.parameter_file or ro.NULL,
                 self.target_type,
-                self.default_parameter_values or ro.NULL,
+                ro.DataFrame(self.default_parameter_values)
+                if self.default_parameter_values
+                else ro.NULL,
             )
         make_sure_artifact_is_small(self.output_dir)
         return []

@@ -296,9 +296,9 @@ class TestFit:
             (RDS_HYPERPARAMETERS, BINARY_TEXT, None, RDS_PARAMETERS),
         ],
     )
-    @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
+    @pytest.mark.parametrize("use_parameters_file", [True, False])
     def test_fit_hyperparameters(
-        self, resources, framework, problem, docker, parameters, weights, tmp_path,
+        self, resources, framework, problem, docker, parameters, use_parameters_file, tmp_path,
     ):
         if framework == RDS_HYPERPARAMETERS:
             language = R_FIT
@@ -316,11 +316,7 @@ class TestFit:
         )
 
         input_dataset = resources.datasets(framework, problem)
-        input_df = resources.input_data(framework, problem)
-
-        weights_cmd, input_dataset, __keep_this_around = self._add_weights_cmd(
-            weights, input_df, input_dataset, r_fit=language == R_FIT
-        )
+        parameter_file = resources.datasets(framework, parameters)
 
         target_type = resources.target_types(problem) if "transform" not in framework else TRANSFORM
 
@@ -329,6 +325,8 @@ class TestFit:
         )
         if problem != ANOMALY:
             cmd += ' --target "{}"'.format(resources.targets(problem))
+        if use_parameters_file:  # will use default values from model-metadata if False
+            cmd += " --parameter-file {}".format(parameter_file)
 
         if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
@@ -336,8 +334,6 @@ class TestFit:
             )
         if docker:
             cmd += " --docker {} ".format(docker)
-
-        cmd += weights_cmd
 
         _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)

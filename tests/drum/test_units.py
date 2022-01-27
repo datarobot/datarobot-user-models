@@ -1610,7 +1610,7 @@ def test_get_default_parameter_values(model_metadata, default_value):
         (
             True,
             "model-metadata.yaml",
-            {"penalty": "l2", "dual": "0", "tol": "1e-4", "solver": "lbfgs"},
+            {"penalty": "l2", "dual": 0, "tol": 0.0001, "solver": "lbfgs"},
         ),
         (False, "model-metadata-no-hyperparameter.yaml", {}),
         (False, "no", {}),
@@ -1658,11 +1658,11 @@ def test_cmrunner_init_default_parameter_values(
             pipeline_str = cm_runner._prepare_fit_pipeline(run_language=RunLanguage.PYTHON)
             if has_hyper_param_in_model_metadata:
                 assert (
-                    '"defaultParameterValues": {"penalty": "l2", "dual": "0", "tol": "1e-4", "solver":'
+                    '"defaultParameterValues": {"penalty": "l2", "dual": 0, "tol": 0.0001, "solver":'
                     ' "lbfgs"}'
                 ) in pipeline_str
             else:
                 assert (
-                    '"defaultParameterValues": {"penalty": "l2", "dual": "0", "tol": "1e-4", "solver":'
+                    '"defaultParameterValues": {"penalty": "l2", "dual": 0, "tol": 0.0001, "solver":'
                     ' "lbfgs"}'
                 ) not in pipeline_str

@@ -1,6 +1,7 @@
 {
-  "numeric_imputer_strategy": "constant",
-  "numeric_imputer_constant_fill": -50.0,
-  "numeric_standardize_with_mean": 0,
-  "categorical_fill": "unicode compatibility: 🚀"
+  "seed": 5,
+  "kbins_n_bins": 4,
+  "kbins_strategy": "uniform",
+  "missing_values_strategy": 64.0,
+  "print_message": "unicode support 🚀"
 }
