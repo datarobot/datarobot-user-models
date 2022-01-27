@@ -285,15 +285,15 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, problem, docker, parameters",
         [
-            (SKLEARN_BINARY_HYPERPARAMETERS, BINARY_TEXT, None, SKLEARN_BINARY_PARAMETERS),
-            (SKLEARN_BINARY_HYPERPARAMETERS, BINARY_SPACES, None, SKLEARN_BINARY_PARAMETERS),
+            # (SKLEARN_BINARY_HYPERPARAMETERS, BINARY_TEXT, None, SKLEARN_BINARY_PARAMETERS),
+            # (SKLEARN_BINARY_HYPERPARAMETERS, BINARY_SPACES, None, SKLEARN_BINARY_PARAMETERS),
             (
                 SKLEARN_TRANSFORM_HYPERPARAMETERS,
                 BINARY_NUM_ONLY,
                 None,
                 SKLEARN_TRANSFORM_PARAMETERS,
             ),
-            (RDS_HYPERPARAMETERS, BINARY_TEXT, None, RDS_PARAMETERS),
+            # (RDS_HYPERPARAMETERS, BINARY_TEXT, None, RDS_PARAMETERS),
         ],
     )
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
@@ -306,7 +306,13 @@ class TestFit:
             language = PYTHON
 
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language, is_training=True,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
+            is_training=True,
+            include_metadata=True,
         )
 
         input_dataset = resources.datasets(framework, problem)
