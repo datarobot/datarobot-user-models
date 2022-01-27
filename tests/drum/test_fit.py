@@ -310,7 +310,6 @@ class TestFit:
         )
 
         input_dataset = resources.datasets(framework, problem)
-        parameter_file = resources.datasets(framework, parameters)
         input_df = resources.input_data(framework, problem)
 
         weights_cmd, input_dataset, __keep_this_around = self._add_weights_cmd(
@@ -319,12 +318,11 @@ class TestFit:
 
         target_type = resources.target_types(problem) if "transform" not in framework else TRANSFORM
 
-        cmd = "{} fit --target-type {} --code-dir {} --input {} --parameter-file {} --verbose ".format(
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
             ArgumentsOptions.MAIN_COMMAND,
             target_type,
             custom_model_dir,
             input_dataset,
-            parameter_file,
         )
         if problem != ANOMALY:
             cmd += ' --target "{}"'.format(resources.targets(problem))
