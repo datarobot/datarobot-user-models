@@ -687,7 +687,7 @@ class PythonModelAdapter:
 
                     try:
                         self._custom_task_class_instance.save(self._model_dir)
-                    except AttributeError:
+                    except Exception:
                         raise DrumCommonException("There appears to be an issue with your save hook in custom.py")
                 except AttributeError:
                     raise DrumCommonException("There appears to be an issue with your fit hook in custom.py")

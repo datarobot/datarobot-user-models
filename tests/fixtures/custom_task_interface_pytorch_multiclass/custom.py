@@ -46,7 +46,7 @@ class CustomTask(MulticlassEstimatorInterface):
         """
 
         # If your estimator is not pickle-able, you can serialize it using its native method,
-        # i.e. in this case for keras we use model.save, and then set the estimator to none
+        # i.e. in this case for pytorch we use model.save, and then set the estimator to none
         torch.save(self.estimator, Path(artifact_directory) / "torch_class.pth")
         self.estimator = None
 

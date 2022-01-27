@@ -15,7 +15,7 @@ from PIL import Image
 
 # keras imports
 import tensorflow
-from tensorflow.keras.models import Model, load_model
+from tensorflow.keras.models import Model, load_model, save_model
 from tensorflow.keras.layers import (
     Dense,
     BatchNormalization,
@@ -281,26 +281,16 @@ def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_dir: str) 
     -------
     Nothing
     """
-    # extract preprocessor pipeline
-    preprocessor = estimator_pipeline[:-1]
-
-    # extract keras model from the pipeline obj
+    # extract keras model from the pipeline obj and use native serialization
     keras_model = estimator_pipeline[-1]
+    tensorflow.keras.models.save_model(keras_model, Path(output_dir) / "model")
 
-    # save the model (in '.h5' format - as its easy to load using keras' load_model() later)
-    # to BytesIO obj (in RAM - as its easy to joblib dump later)
-    io_container = io.BytesIO()
-    with h5py.File(io_container, mode="w") as file:
-        # setting 'include_optimizer' to True is only needed when warm starting.
-        # Will save a lot of space as well
-        keras_model.save(file, include_optimizer=False)
-
-    # save the preprocessor and the model to dictionary
-    model_dict = dict(preprocessor_pipeline=preprocessor, model=io_container,)
+    # extract and save the preprocessor
+    preprocessor = estimator_pipeline[:-1]
 
     # save the dict obj as a joblib file
     output_file_path = Path(output_dir) / "artifact.joblib"
-    joblib.dump(model_dict, output_file_path)
+    joblib.dump(preprocessor, output_file_path)
 
 
 def deserialize_estimator_pipeline(input_dir: str) -> Pipeline:
@@ -319,17 +309,14 @@ def deserialize_estimator_pipeline(input_dir: str) -> Pipeline:
     """
     # load the dictionary obj from the joblib file
     joblib_file_path = Path(input_dir) / "artifact.joblib"
-    estimator_dict = joblib.load(joblib_file_path)
-    model = estimator_dict["model"]
-    prep_pipeline = estimator_dict["preprocessor_pipeline"]
+    prep_pipeline = joblib.load(joblib_file_path)
     prep_pipeline.steps.append(
         [
             "feature_extraction",
             FunctionTransformer(get_pretrained_base_model().predict, validate=False),
         ]
     )
-    with h5py.File(model, mode="r") as fp:
-        keras_model = load_model(fp)
+    keras_model = load_model(Path(input_dir) / "model")
 
     pipeline = Pipeline([("preprocessor", prep_pipeline), ("estimator", keras_model)], verbose=True)
     return pipeline
