@@ -75,8 +75,8 @@ def extract_features_from_pretrained_network(
     # using base model to predict and extract the features
     for inputs_batch, labels_batch in generator:
         features_batch = base_model.predict(inputs_batch)
-        features[i * BATCH_SIZE : (i + 1) * BATCH_SIZE] = features_batch
-        labels[i * BATCH_SIZE : (i + 1) * BATCH_SIZE] = labels_batch.squeeze()
+        features[i * BATCH_SIZE: (i + 1) * BATCH_SIZE] = features_batch
+        labels[i * BATCH_SIZE: (i + 1) * BATCH_SIZE] = labels_batch.squeeze()
         i += 1
         if i * BATCH_SIZE >= sample_count:
             break
@@ -215,7 +215,7 @@ def make_X_transformer_pipeline(X: pd.DataFrame, image_col) -> Pipeline:
 
 
 def fit_image_classifier_pipeline(
-    X: pd.DataFrame, y: pd.Series, class_order: List[str], image_col="image",
+    X: pd.DataFrame, y: pd.Series, class_order: List[str], image_col='image',
 ) -> Model:
     """ DataRobot stores images as base64 strings. So this function will use a pipeline to convert the base64 string to
     an array of pixels. We use a pipeline because we will need to apply the same transformation both while the model

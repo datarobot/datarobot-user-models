@@ -19,7 +19,9 @@ class Serializable(object):
         self
         """
 
-        with open(os.path.join(artifact_directory, Serializable.default_artifact_filename), "wb") as fp:
+        with open(
+            os.path.join(artifact_directory, Serializable.default_artifact_filename), "wb"
+        ) as fp:
             pickle.dump(self, fp)
         return self
 
@@ -33,7 +35,9 @@ class Serializable(object):
         cls
             The deserialized object
         """
-        with open(os.path.join(artifact_directory, Serializable.default_artifact_filename), "rb") as fp:
+        with open(
+            os.path.join(artifact_directory, Serializable.default_artifact_filename), "rb"
+        ) as fp:
             deserialized_object = pickle.load(fp)
 
         if not isinstance(deserialized_object, cls):

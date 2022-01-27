@@ -19,7 +19,7 @@ from datarobot_drum.custom_task_interfaces import BinaryEstimatorInterface
 
 class CustomTask(BinaryEstimatorInterface):
     def fit(self, X, y, row_weights=None, **kwargs):
-        self.estimator = fit_image_classifier_pipeline(X, y, kwargs.get("class_order"))
+        self.estimator = fit_image_classifier_pipeline(X, y, kwargs.get('class_order'))
         return self
 
     def save(self, artifact_directory):
@@ -34,6 +34,7 @@ class CustomTask(BinaryEstimatorInterface):
         # Now that the estimator is none, it won't be pickled with the CustomTask class (i.e. this one)
         with open(Path(artifact_directory) / "artifact.pkl", "wb") as fp:
             pickle.dump(self, fp)
+
 
     @classmethod
     def load(cls, artifact_directory):
@@ -56,7 +57,7 @@ class CustomTask(BinaryEstimatorInterface):
         predictions = self.estimator.predict(X)
         predictions_df = pd.DataFrame(predictions, columns=[kwargs["positive_class_label"]])
         predictions_df[kwargs["negative_class_label"]] = (
-            1 - predictions_df[kwargs["positive_class_label"]]
+                1 - predictions_df[kwargs["positive_class_label"]]
         )
 
         return predictions_df
