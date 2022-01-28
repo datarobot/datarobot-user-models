@@ -18,6 +18,7 @@ from model_utils import build_classifier, train_classifier, save_torch_model
 
 preprocessor = None
 
+
 def load_model(code_dir: str) -> Any:
     """
     Can be used to load supported models if your model has multiple artifacts, or for loading
