@@ -1191,12 +1191,12 @@ def create_custom_inference_model_folder(code_dir, output_dir):
         print("Files were overwritten: {}".format(files_in_output & copied_files))
 
 
-def _get_default_numeric_param_value(param_config: Dict) -> Union[int, float]:
+def _get_default_numeric_param_value(param_config: Dict, cast_to_int: bool) -> Union[int, float]:
     """Get default value of numeric parameter."""
     param_default_value = param_config.get("default")
-    if param_default_value is not None:
-        return param_default_value
-    return param_config["min"]
+    if param_default_value is None:
+        param_default_value = param_config["min"]
+    return int(param_default_value) if cast_to_int else float(param_default_value)
 
 
 def _get_default_string_param_value(param_config: Dict) -> str:
@@ -1215,7 +1215,7 @@ def _get_default_select_param_value(param_config: Dict) -> str:
     return param_config["values"][0]
 
 
-def _get_default_multi_param_value(param_config: Dict) -> str:
+def _get_default_multi_param_value(param_config: Dict) -> Union[int, float, str]:
     """Get default value of multi parameter."""
     param_default_value = param_config.get("default")
     if param_default_value is not None:
@@ -1225,11 +1225,10 @@ def _get_default_multi_param_value(param_config: Dict) -> str:
         if param_values:
             first_component_param_type = sorted(param_values.keys())[0]
             first_component_param = param_values[first_component_param_type]
-            if first_component_param_type in {
-                ModelMetadataHyperParamTypes.INT,
-                ModelMetadataHyperParamTypes.FLOAT,
-            }:
-                return _get_default_numeric_param_value(first_component_param)
+            if first_component_param_type == ModelMetadataHyperParamTypes.INT:
+                return _get_default_numeric_param_value(first_component_param, cast_to_int=True)
+            elif first_component_param_type == ModelMetadataHyperParamTypes.FLOAT:
+                return _get_default_numeric_param_value(first_component_param, cast_to_int=False)
             elif first_component_param_type == ModelMetadataHyperParamTypes.SELECT:
                 return _get_default_select_param_value(first_component_param)
 
@@ -1244,14 +1243,19 @@ def get_default_parameter_values(model_metadata: Dict) -> Dict[str, Union[int, f
         - Return the default value of the first component parameter (sorted by parameter type) if it is a multi
           parameter.
     """
-
     hyper_param_config = model_metadata.get(ModelMetadataKeys.HYPERPARAMETERS, [])
     default_params = {}
     for param_config in hyper_param_config:
         param_name = param_config["name"]
         param_type = param_config["type"]
-        if param_type in {ModelMetadataHyperParamTypes.INT, ModelMetadataHyperParamTypes.FLOAT}:
-            default_params[param_name] = _get_default_numeric_param_value(param_config)
+        if param_type == ModelMetadataHyperParamTypes.INT:
+            default_params[param_name] = _get_default_numeric_param_value(
+                param_config, cast_to_int=True
+            )
+        elif param_type == ModelMetadataHyperParamTypes.FLOAT:
+            default_params[param_name] = _get_default_numeric_param_value(
+                param_config, cast_to_int=False
+            )
         elif param_type == ModelMetadataHyperParamTypes.STRING:
             default_params[param_name] = _get_default_string_param_value(param_config)
         elif param_type == ModelMetadataHyperParamTypes.SELECT:

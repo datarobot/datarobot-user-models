@@ -287,13 +287,18 @@ class TestFit:
         [
             (SKLEARN_BINARY_HYPERPARAMETERS, BINARY_TEXT, None, SKLEARN_BINARY_PARAMETERS),
             (SKLEARN_BINARY_HYPERPARAMETERS, BINARY_SPACES, None, SKLEARN_BINARY_PARAMETERS),
-            (SKLEARN_TRANSFORM_HYPERPARAMETERS, REGRESSION, None, SKLEARN_TRANSFORM_PARAMETERS),
+            (
+                SKLEARN_TRANSFORM_HYPERPARAMETERS,
+                BINARY_NUM_ONLY,
+                None,
+                SKLEARN_TRANSFORM_PARAMETERS,
+            ),
             (RDS_HYPERPARAMETERS, BINARY_TEXT, None, RDS_PARAMETERS),
         ],
     )
-    @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
+    @pytest.mark.parametrize("use_parameters_file", [True, False])
     def test_fit_hyperparameters(
-        self, resources, framework, problem, docker, parameters, weights, tmp_path,
+        self, resources, framework, problem, docker, parameters, use_parameters_file, tmp_path,
     ):
         if framework == RDS_HYPERPARAMETERS:
             language = R_FIT
@@ -301,28 +306,27 @@ class TestFit:
             language = PYTHON
 
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language, is_training=True,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
+            is_training=True,
+            include_metadata=True,
         )
 
         input_dataset = resources.datasets(framework, problem)
         parameter_file = resources.datasets(framework, parameters)
-        input_df = resources.input_data(framework, problem)
-
-        weights_cmd, input_dataset, __keep_this_around = self._add_weights_cmd(
-            weights, input_df, input_dataset, r_fit=language == R_FIT
-        )
 
         target_type = resources.target_types(problem) if "transform" not in framework else TRANSFORM
 
-        cmd = "{} fit --target-type {} --code-dir {} --input {} --parameter-file {} --verbose ".format(
-            ArgumentsOptions.MAIN_COMMAND,
-            target_type,
-            custom_model_dir,
-            input_dataset,
-            parameter_file,
+        cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
+            ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset,
         )
         if problem != ANOMALY:
             cmd += ' --target "{}"'.format(resources.targets(problem))
+        if use_parameters_file:  # will use default values from model-metadata if False
+            cmd += " --parameter-file {}".format(parameter_file)
 
         if problem in [BINARY, MULTICLASS]:
             cmd = _cmd_add_class_labels(
@@ -330,8 +334,6 @@ class TestFit:
             )
         if docker:
             cmd += " --docker {} ".format(docker)
-
-        cmd += weights_cmd
 
         _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
