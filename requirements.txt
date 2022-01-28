@@ -16,5 +16,4 @@ strictyaml==1.4.2
 docker>=4.2.2<5.0.0
 flask
 termcolor
-onnx==1.10.2
 onnxruntime==1.10.0
