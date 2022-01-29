@@ -12,6 +12,7 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 import numpy as np
 import pandas as pd
 
+
 class ONNXPredictor(ArtifactPredictor):
     def __init__(self):
         super(ONNXPredictor, self).__init__(
@@ -21,7 +22,6 @@ class ONNXPredictor(ArtifactPredictor):
 
     def is_framework_present(self):
         try:
-            #TODO: Asli: Any better checks?
             from onnxruntime import onnxruntime_validation
 
             return True
@@ -48,6 +48,7 @@ class ONNXPredictor(ArtifactPredictor):
 
         try:
             import onnxruntime
+
             return isinstance(model, onnxruntime.InferenceSession)
         except Exception as e:
             self._logger.debug("Exception: {}".format(e))
@@ -66,9 +67,7 @@ class ONNXPredictor(ArtifactPredictor):
         session_result = model.run(None, {input_names[0]: data.to_numpy(np.float32)})
 
         if len(session_result) == 0:
-            raise DrumCommonException(
-                "ONNX model should return at least 1 output."
-            )
+            raise DrumCommonException("ONNX model should return at least 1 output.")
 
         if len(session_result) == 1:
             preds = session_result[0]
@@ -79,17 +78,15 @@ class ONNXPredictor(ArtifactPredictor):
     def _handle_multiple_outputs(self, model, session_result):
         if self.target_type not in [TargetType.BINARY, TargetType.MULTICLASS]:
             return session_result[0]
-        else: # For binary / multiclass target types, ONNX models might have the proba output in subsequent fields
+        else:  # For binary / multiclass target types, ONNX models might have the proba output in subsequent fields
             output_names = [o.name for o in model.get_outputs()]
             for idx, out_name in enumerate(output_names):
                 if "prob" in out_name:
                     preds = session_result[idx]
                     # Now check for possibly zipmapped probs, eg. [{label1:prob1, label2:prob2}]
-                    if isinstance(preds,list):
+                    if isinstance(preds, list):
                         pd_preds = pd.DataFrame(preds)
                         preds = pd_preds.values
                     return preds
             # If no output with "*prob*" in name found, return the first output
             return session_result[0]
-
-
