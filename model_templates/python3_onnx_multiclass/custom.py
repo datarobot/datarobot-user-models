@@ -11,7 +11,6 @@ import onnxruntime
 
 preprocessor = None
 
-# drum score --code-dir /Users/asli.demiroz/repos/datarobot-user-models/model_templates/python3_onnx_multiclass --input /Users/asli.demiroz/repos/datarobot-user-models/tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv --class-labels-file /Users/asli.demiroz/repos/datarobot-user-models/model_templates/python3_pytorch_multiclass/class_labels.txt --target-type multiclass
 
 def load_model(code_dir: str):
     """
@@ -30,7 +29,6 @@ def load_model(code_dir: str):
     with open(os.path.join(code_dir, "preprocessor.pkl"), mode="rb") as f:
         preprocessor = pickle.load(f)
 
-    import onnxruntime
     ort_session = onnxruntime.InferenceSession(os.path.join(code_dir, "multiclass_SDSS.onnx"))
     return ort_session
 
