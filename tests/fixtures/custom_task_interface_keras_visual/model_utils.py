@@ -283,7 +283,7 @@ def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_dir: str) 
     """
     # extract keras model from the pipeline obj and use native serialization
     keras_model = estimator_pipeline[-1]
-    tensorflow.keras.models.save_model(keras_model, Path(output_dir) / "model")
+    tensorflow.keras.models.save_model(keras_model, Path(output_dir) / "model.h5")
 
     # extract and save the preprocessor
     preprocessor = estimator_pipeline[:-1]
@@ -315,7 +315,7 @@ def deserialize_estimator_pipeline(input_dir: str) -> Pipeline:
         ]
     )
     # Load the keras model
-    keras_model = load_model(Path(input_dir) / "model")
+    keras_model = load_model(Path(input_dir) / "model.h5")
 
     # Rebuild the original pipeline
     pipeline = Pipeline([("preprocessor", prep_pipeline), ("estimator", keras_model)], verbose=True)

@@ -11,18 +11,36 @@ import pandas as pd
 import tensorflow as tf
 import pickle
 
-from datarobot_drum.custom_task_interfaces import RegressionEstimatorInterface
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.callbacks import EarlyStopping
 
-from example_code import build_regressor
+from datarobot_drum.custom_task_interfaces import RegressionEstimatorInterface
 
 
 class CustomTask(RegressionEstimatorInterface):
     def fit(self, X, y, row_weights=None, **kwargs):
-        """Note how in this fit we use a helper function in a separate file to build our model"""
-        self.estimator = build_regressor(X)
-
         tf.random.set_seed(1234)
-        self.estimator.fit(X, y)
+        input_dim, output_dim = len(X.columns), 1
+
+        model = Sequential(
+            [
+                Dense(
+                    input_dim, activation="relu", input_dim=input_dim, kernel_initializer="normal"
+                ),
+                Dense(input_dim // 2, activation="relu", kernel_initializer="normal"),
+                Dense(output_dim, kernel_initializer="normal"),
+            ]
+        )
+        model.compile(loss="mse", optimizer="adam", metrics=["mae", "mse"])
+
+        callback = EarlyStopping(monitor="loss", patience=3)
+        model.fit(
+            X, y, epochs=20, batch_size=8, validation_split=0.33, verbose=1, callbacks=[callback]
+        )
+
+        # Attach the model to our object for future use
+        self.estimator = model
         return self
 
     def save(self, artifact_directory):
@@ -41,8 +59,8 @@ class CustomTask(RegressionEstimatorInterface):
 
         # If your estimator is not pickle-able, you can serialize it using its native method,
         # i.e. in this case for keras we use model.save, and then set the estimator to none
-        keras.models.save_model(self.estimator.model, Path(artifact_directory) / "model")
-        self.estimator.model = None
+        keras.models.save_model(self.estimator, Path(artifact_directory) / "model.h5")
+        self.estimator = None
 
         # Now that the estimator is none, it won't be pickled with the CustomTask class (i.e. this one)
         with open(Path(artifact_directory) / "artifact.pkl", "wb") as fp:
@@ -60,14 +78,12 @@ class CustomTask(RegressionEstimatorInterface):
         cls
             The deserialized object
         """
-
         with open(Path(artifact_directory) / "artifact.pkl", "rb") as fp:
             custom_task = pickle.load(fp)
 
-        custom_task.estimator.model = keras.models.load_model(Path(artifact_directory) / "model")
+        custom_task.estimator = keras.models.load_model(Path(artifact_directory) / "model.h5")
 
         return custom_task
 
     def predict(self, X, **kwargs):
-
         return pd.DataFrame(data=self.estimator.predict(X))
