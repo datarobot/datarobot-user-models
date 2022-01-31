@@ -4,7 +4,6 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-# This custom estimator task implements anomaly detection using OneClassSVM
 
 import pandas as pd
 from sklearn.ensemble import IsolationForest
@@ -22,5 +21,5 @@ class CustomTask(AnomalyEstimatorInterface):
 
     def predict(self, X, **kwargs):
 
-        # Note how anomaly estimators only use one column, so no explicit column names are needed
+        # Note how anomaly estimators only output one column, so no explicit column names are needed
         return pd.DataFrame(data=self.estimator.predict(X))

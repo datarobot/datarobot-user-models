@@ -27,4 +27,5 @@ class CustomTask(RegressionEstimatorInterface):
         """We use the predict function from the CustomCalibrator class to multiply incoming data by
         the calibration coefficient.
         """
+        # Note how the regression estimator only outputs one column, so no explicit column names are needed
         return pd.DataFrame(data=self.estimator.predict(X))

@@ -63,7 +63,10 @@ class CustomTask(BinaryEstimatorInterface):
         data_tensor = torch.from_numpy(X.values).type(torch.FloatTensor)
         predictions = self.estimator(data_tensor).cpu().data.numpy()
 
-        # The positive class probability comes directly from the pytorch prediction
+        # Note that binary estimators require two columns in the output, the positive and negative class labels
+        # So we need to pass in the the class names derived from the estimator as column names OR
+        # we can use the class labels from DataRobot stored in
+        # kwargs['positive_class_label'] and kwargs['negative_class_label']
         predictions = pd.DataFrame(predictions, columns=[kwargs["positive_class_label"]])
 
         # The negative class probability is just the inverse of what the model predicts above

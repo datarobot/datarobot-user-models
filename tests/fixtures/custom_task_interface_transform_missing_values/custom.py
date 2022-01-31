@@ -35,7 +35,8 @@ class CustomTask(TransformerInterface):
             returns an object instance of class CustomTask that can be used in chained method calls
         """
 
-        # Note that for transforms we typically save everything used in the transform hook below to self
+        # Any information derived from the training data (i.e. median values for each column) should be stored to self.
+        # Then, in the transform hook below, we use this information to transform any data that passes through this task
         self.fit_data = X.median(axis=0, numeric_only=True, skipna=True).to_dict()
         return self
 

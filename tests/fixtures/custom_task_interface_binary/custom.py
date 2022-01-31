@@ -59,5 +59,8 @@ class CustomTask(BinaryEstimatorInterface):
             Returns a dataframe with transformed data.
         """
 
-        # Note that binary estimators require 2 columns, one for each class.
+        # Note that binary estimators require two columns in the output, the positive and negative class labels
+        # So we need to pass in the the class names derived from the estimator as column names OR
+        # we can use the class labels from DataRobot stored in
+        # kwargs['positive_class_label'] and kwargs['negative_class_label']
         return pd.DataFrame(data=self.estimator.predict_proba(X), columns=self.estimator.classes_)

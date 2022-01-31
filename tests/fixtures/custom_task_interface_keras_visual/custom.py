@@ -54,6 +54,11 @@ class CustomTask(BinaryEstimatorInterface):
     def predict_proba(self, X, **kwargs):
         """Note that for binary problems we need to specify the positive and negative class labels"""
         predictions = self.estimator.predict(X)
+
+        # Note that binary estimators require two columns in the output, the positive and negative class labels
+        # So we need to pass in the the class names derived from the estimator as column names OR
+        # we can use the class labels from DataRobot stored in
+        # kwargs['positive_class_label'] and kwargs['negative_class_label']
         predictions_df = pd.DataFrame(predictions, columns=[kwargs["positive_class_label"]])
         predictions_df[kwargs["negative_class_label"]] = (
             1 - predictions_df[kwargs["positive_class_label"]]

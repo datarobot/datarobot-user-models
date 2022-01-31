@@ -77,4 +77,6 @@ class CustomTask(MulticlassEstimatorInterface):
         data_tensor = torch.from_numpy(X.values).type(torch.FloatTensor)
         predictions = self.estimator(data_tensor).cpu().data.numpy()
 
+        # Note that multiclass estimators require one column per class in the output
+        # So we need to pass in the the class names derived from the estimator as column names.
         return pd.DataFrame(data=predictions, columns=self.lb.classes_)

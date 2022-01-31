@@ -56,5 +56,5 @@ class CustomTask(RegressionEstimatorInterface):
             Returns a dataframe with transformed data.
         """
 
-        # Note how regression estimators only use one column, so no explicit column names are needed
+        # note how the regression estimator only outputs one column, so no explicit column names are needed
         return pd.DataFrame(data=self.estimator.predict(X))

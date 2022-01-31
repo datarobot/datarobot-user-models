@@ -56,5 +56,6 @@ class CustomTask(MulticlassEstimatorInterface):
             Returns a dataframe with transformed data.
         """
 
-        # Note how multiclass estimators require one column per class
+        # Note that multiclass estimators require one column per class in the output
+        # So we need to pass in the the class names derived from the estimator as column names.
         return pd.DataFrame(data=self.estimator.predict_proba(X), columns=self.estimator.classes_)

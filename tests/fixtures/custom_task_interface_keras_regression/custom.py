@@ -86,4 +86,5 @@ class CustomTask(RegressionEstimatorInterface):
         return custom_task
 
     def predict(self, X, **kwargs):
+        # Note how the regression estimator only outputs one column, so no explicit column names are needed
         return pd.DataFrame(data=self.estimator.predict(X))

@@ -3,7 +3,7 @@ import pickle
 
 
 class Serializable(object):
-    default_artifact_filename = "artifact.pkl"
+    default_artifact_filename = "drum_artifact.pkl"
 
     def save(self, artifact_directory):
         """
