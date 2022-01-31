@@ -16,7 +16,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 START_TIME=$(date +%s)
 cd /opt || exit 1
-. v3.7/bin/activate
+. test_venv/bin/activate
 
 echo "-- running drum tests - assuming running inside Docker"
 cd $SCRIPT_DIR || exit 1

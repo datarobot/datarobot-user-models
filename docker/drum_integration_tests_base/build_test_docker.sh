@@ -28,5 +28,5 @@ echo "Building docker image for drum tests"
 docker build -t $IMAGE_NAME ./
 
 # Image is ready at this moment, but run make on drum to pull in all the java deps and commit the image
-docker run -t -v $GIT_ROOT/custom_model_runner:/tmp/drum ${IMAGE_NAME} bash -c ". /opt/v3.7/bin/activate && cd /tmp/drum && make"
+docker run -t -v $GIT_ROOT/custom_model_runner:/tmp/drum ${IMAGE_NAME} bash -c ". /opt/test_venv/bin/activate && cd /tmp/drum && make"
 docker commit `docker ps -lq` $IMAGE_NAME

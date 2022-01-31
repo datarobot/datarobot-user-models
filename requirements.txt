@@ -2,11 +2,11 @@ numpy==1.19.5
 h5py==3.1.0
 scipy>=1.1,<2
 pandas==1.0.5
-scikit-learn==0.23.1
+scikit-learn>=0.23.1,<=0.24.2
 sagemaker-scikit-learn-extension==1.1.0
 requests_toolbelt
 xgboost==1.1.1
-torch==1.6.0
+torch>=1.6.0,<=1.9.1
 grpcio==1.34.0
 tensorflow==2.5.2
 Pillow==8.3.2
