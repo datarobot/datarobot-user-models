@@ -1,10 +1,10 @@
 # model-metadata.yaml allows to specify task input/output requirements to help validate a blueprint where it's used.
 # It's also valuable if you are using `drum push`
 # see MODEL-METADATA.md and VALIDATION-SCHEMA.md for full explanations of fields
-name: custom_task_interface_anomaly
+name: custom_task_interface_regression_with_custom_class
 type: training # training (for custom tasks) or inference (for custom inference models)
 environmentID: 5e8c889607389fe0f466c72d # optional, only required when using "drum push" to select environment
-targetType: anomaly # can be one of: transform, binary, regression, anomaly, multiclass, unstructured (unstructured is only available for inference models)
+targetType: regression # can be one of: transform, binary, regression, anomaly, multiclass, unstructured (unstructured is only available for inference models)
 
 # This part below defines the task's schema. Using this schema, on the fly,
 # DataRobot will validate if the task requirements match neighboring tasks in a blueprint
@@ -28,7 +28,7 @@ typeSchema:
     # specify if the task accepts data in sparse format (CSR format for python, dgTMatrix for R)
     - field: sparse
       condition: EQUALS # only EQUALS is supported
-      value: SUPPORTED # one of: FORBIDDEN, SUPPORTED, REQUIRED
+      value: FORBIDDEN # one of: FORBIDDEN, SUPPORTED, REQUIRED
 
     # specify if the task accepts missing values
     - field: contains_missing
