@@ -15,6 +15,8 @@ ENV PATH="/opt/v3.7/bin:$PATH"
 # **Don't modify this file!**
 COPY dr_requirements.txt dr_requirements.txt
 
+# TODO: remove once pyarrow is pinned to the same version across the repo
+RUN python3 -m pip install pip==20.2.4
 # '--upgrade-strategy eager' will upgrade dependencies
 # according to package requirements or to the latest
 RUN python3 -m pip install -U --upgrade-strategy eager -r dr_requirements.txt --no-cache-dir && \
