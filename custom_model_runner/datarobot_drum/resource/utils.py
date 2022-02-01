@@ -154,7 +154,7 @@ def _cmd_add_class_labels(
             os.environ[ArgumentOptionsEnvVars.NEGATIVE_CLASS_LABEL] = neg
         else:
             cmd = cmd + " --positive-class-label '{}' --negative-class-label '{}'".format(
-                re.escapce(pos), re.escape(neg)
+                re.escape(pos), re.escape(neg)
             )
     elif labels and target_type == MULTICLASS:
         if multiclass_label_file:
