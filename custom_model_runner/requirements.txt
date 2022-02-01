@@ -15,7 +15,7 @@ scipy>=1.1,<2
 strictyaml==1.4.2
 texttable
 py4j~=0.10.9.0
-pyarrow==2.0.0
+pyarrow
 Pillow==8.3.2
 julia==0.5.6
 termcolor
