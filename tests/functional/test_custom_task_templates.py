@@ -292,6 +292,14 @@ class TestCustomTaskTemplates(object):
                 "multiclass",
                 None,
             ),
+            (
+                "fixture",
+                "custom_task_interface_multiclass",
+                "project_multiclass_iris",
+                "sklearn_drop_in_env",
+                "multiclass",
+                None,
+            ),
         ],
     )
     def test_custom_task_templates(

@@ -6,6 +6,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import os
 import glob
+import re
 import shutil
 import shlex
 import subprocess
@@ -152,7 +153,9 @@ def _cmd_add_class_labels(
             os.environ[ArgumentOptionsEnvVars.POSITIVE_CLASS_LABEL] = pos
             os.environ[ArgumentOptionsEnvVars.NEGATIVE_CLASS_LABEL] = neg
         else:
-            cmd = cmd + " --positive-class-label '{}' --negative-class-label '{}'".format(pos, neg)
+            cmd = cmd + " --positive-class-label '{}' --negative-class-label '{}'".format(
+                re.escapce(pos), re.escape(neg)
+            )
     elif labels and target_type == MULTICLASS:
         if multiclass_label_file:
             multiclass_label_file.truncate(0)
@@ -166,7 +169,7 @@ def _cmd_add_class_labels(
                 cmd += " --class-labels-file {}".format(multiclass_label_file.name)
         else:
             # stringify(for numeric) and join labels
-            labels_str = " ".join(["{}".format(label) for label in labels])
+            labels_str = " ".join([re.escape("{}".format(label)) for label in labels])
             if pass_args_as_env_vars:
                 os.environ[ArgumentOptionsEnvVars.CLASS_LABELS] = labels_str
             else:
