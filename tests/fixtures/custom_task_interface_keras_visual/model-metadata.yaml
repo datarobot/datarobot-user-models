@@ -1,0 +1,36 @@
+# model-metadata.yaml allows to specify task input/output requirements to help validate a blueprint where it's used.
+# It's also valuable if you are using `drum push`
+# see MODEL-METADATA.md and VALIDATION-SCHEMA.md for full explanations of fields
+name: custom_task_interface_keras_visual
+type: training # training (for custom tasks) or inference (for custom inference models)
+environmentID: 5e8c886607389fe0f466c729 # optional, only required when using "drum push" to select environment
+targetType: binary  # can be one of: transform, binary, regression, anomaly, multiclass, unstructured (unstructured is only available for inference models)
+
+# This part below defines the task's schema. Using this schema, on the fly,
+# DataRobot will validate if the task requirements match neighboring tasks in a blueprint
+# Note that it's only available for tasks, and not for inference models
+# Every condition (and the whole section) is optional
+typeSchema:
+  # Specify what data types this task allows as input
+  input_requirements:
+
+    # specify what data types this task allows as input
+    - field: data_types
+      condition: IN # can be one of IN or NOT_IN
+      value: # can be one or multiple of NUM, TXT, IMG, DATE, CAT, DATE_DURATION, COUNT_DICT, GEO
+        - IMG
+
+    # specify how many columns the task requires
+    - field: number_of_columns
+      condition: EQUALS # can be one of EQUALS, IN, NOT_EQUALS, NOT_IN, GREATER_THAN, LESS_THAN, NOT_GREATER_THAN, NOT_LESS_THAN
+      value: 1 # non-negative integer value
+
+    # specify if the task accepts data in sparse format (CSR format for python, dgTMatrix for R)
+    - field: sparse
+      condition: EQUALS # only EQUALS is supported
+      value: FORBIDDEN # one of: FORBIDDEN, SUPPORTED, REQUIRED
+
+    # specify if the task accepts missing values
+    - field: contains_missing
+      condition: EQUALS # only EQUALS is supported
+      value: FORBIDDEN # can be one of FORBIDDEN, SUPPORTED

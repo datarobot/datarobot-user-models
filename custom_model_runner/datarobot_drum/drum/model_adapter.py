@@ -685,9 +685,18 @@ class PythonModelAdapter:
                         parameters=parameters,
                     )
 
-                    self._custom_task_class_instance.save(self._model_dir)
+                    try:
+                        self._custom_task_class_instance.save(self._model_dir)
+                    except Exception:
+                        raise DrumCommonException(
+                            "An error occurred when saving your custom task. "
+                            "Ensure all variables stored on self are pickle-able or excluded when saving"
+                        )
                 except AttributeError:
-                    raise DrumCommonException("Fit method must be defined in your custom.py file")
+                    raise DrumCommonException(
+                        "There appears to be an issue with your fit method OR it is missing entirely. "
+                        "Please verify that that the fit method in custom.py is present and runs without errors."
+                    )
         else:
             if self._target_type != TargetType.TRANSFORM:
                 X = self.preprocess(X)

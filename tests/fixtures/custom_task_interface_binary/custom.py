@@ -15,9 +15,10 @@ from datarobot_drum.custom_task_interfaces import BinaryEstimatorInterface
 class CustomTask(BinaryEstimatorInterface):
     def fit(self, X, y, row_weights=None, **kwargs):
         """ This hook defines how DataRobot will train this task.
-        DataRobot runs this hook when the task is being trained inside a blueprint.
-        As an output, this hook is expected to create an artifact containing a trained object, that is then used to predict new data.
+        DataRobot will run this hook when the task is trained inside a blueprint.
         The input parameters are passed by DataRobot based on project and blueprint configuration.
+        The output is the trained Custom Task instance, which allows a user to easily test, e.g.
+        task.fit(...).save(...) or task.fit(...).predict_proba(...)
 
         Parameters
         -------
@@ -26,7 +27,8 @@ class CustomTask(BinaryEstimatorInterface):
         y: pd.Series
             Project's target column.
         row_weights: np.ndarray (optional, default = None)
-            A list of weights. DataRobot passes it in case of smart downsampling or when weights column is specified in project settings.
+            A list of weights. DataRobot passes it in case of smart downsampling or when weights column
+            is specified in project settings.
 
         Returns
         -------
@@ -41,10 +43,10 @@ class CustomTask(BinaryEstimatorInterface):
         return self
 
     def predict_proba(self, X, **kwargs):
-        """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
+        """ This hook defines how DataRobot will use the trained estimator from fit() to predict on new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
-        As an output, this hook is expected to return the transformed data.
         The input parameters are passed by DataRobot based on dataset and blueprint configuration.
+        The output is the estimator's predictions on the new data in a tabular format (typically a pandas dataframe)
 
         Parameters
         -------
@@ -57,4 +59,8 @@ class CustomTask(BinaryEstimatorInterface):
             Returns a dataframe with transformed data.
         """
 
+        # Note that binary estimators require two columns in the output, the positive and negative class labels
+        # So we need to pass in the the class names derived from the estimator as column names OR
+        # we can use the class labels from DataRobot stored in
+        # kwargs['positive_class_label'] and kwargs['negative_class_label']
         return pd.DataFrame(data=self.estimator.predict_proba(X), columns=self.estimator.classes_)
