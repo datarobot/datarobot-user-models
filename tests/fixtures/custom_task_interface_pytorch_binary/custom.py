@@ -61,7 +61,10 @@ class CustomTask(BinaryEstimatorInterface):
         cls
             The deserialized object
         """
-        return torch.load(Path(artifact_directory) / "torch_class.pth")
+        custom_task = cls.load_task(artifact_directory)
+        custom_task.estimator = torch.load(Path(artifact_directory) / "torch_class.pth")
+
+        return custom_task
 
     def predict_proba(self, X, **kwargs):
         """Since pytorch only outputs a single probability, i.e. the probability of the positive class,
