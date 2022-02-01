@@ -1,6 +1,8 @@
 import os
 import pickle
 
+from datarobot_drum.drum.exceptions import DrumCommonException
+
 
 class Serializable(object):
     default_artifact_filename = "drum_artifact.pkl"
@@ -19,16 +21,74 @@ class Serializable(object):
         self
         """
 
+        self.save_task(artifact_directory)
+
+        # For use in easy chaining, e.g. CustomTask().fit().save().load()
+        return self
+
+    def save_task(self, artifact_directory, exclude=None):
+        """
+        Helper function that abstracts away pickling the CustomTask object. It also can
+        automatically set to None previously serialized objects, e.g. when using keras you likely
+        want to serialize self.estimator using model.save() or keras.models.save_model() and then
+        pass in exclude='estimator'
+
+        Parameters
+        ----------
+        artifact_directory: str
+            Path to the directory to save the serialized artifact(s) to.
+        exclude: str or List[str]
+            Objects on the CustomTask object we want to exclude form serialization by setting to None
+
+        Returns
+        -------
+        None
+
+        """
+
+        if exclude:
+            for custom_task_object in exclude:
+                try:
+                    # We need to
+                    getattr(self, custom_task_object)
+                except AttributeError:
+                    raise DrumCommonException(f"The object named {custom_task_object} passed in exclude= was not found")
+
+                setattr(self, custom_task_object, None)
+
         with open(
-            os.path.join(artifact_directory, Serializable.default_artifact_filename), "wb"
+                os.path.join(artifact_directory, Serializable.default_artifact_filename), "wb"
         ) as fp:
             pickle.dump(self, fp)
-        return self
 
     @classmethod
     def load(cls, artifact_directory):
         """
         Deserializes the object stored within `artifact_directory`
+
+        Parameters
+        ----------
+        artifact_directory: str
+            Path to the directory to save the serialized artifact(s) to.
+
+        Returns
+        -------
+        cls
+            The deserialized object
+        """
+
+        return cls.load_task(artifact_directory)
+
+    @classmethod
+    def load_task(cls, artifact_directory):
+        """
+        Helper method to abstract deserializing the pickle object stored within `artifact_directory` and
+        returning the model
+
+        Parameters
+        ----------
+        artifact_directory: str
+            Path to the directory to save the serialized artifact(s) to.
 
         Returns
         -------
@@ -36,12 +96,12 @@ class Serializable(object):
             The deserialized object
         """
         with open(
-            os.path.join(artifact_directory, Serializable.default_artifact_filename), "rb"
+                os.path.join(artifact_directory, Serializable.default_artifact_filename), "rb"
         ) as fp:
             deserialized_object = pickle.load(fp)
 
         if not isinstance(deserialized_object, cls):
-            raise ValueError("load method must return a {} class".format(cls.__name__))
+            raise ValueError("load_task method must return a {} class".format(cls.__name__))
         return deserialized_object
 
 

@@ -60,11 +60,9 @@ class CustomTask(RegressionEstimatorInterface):
         # If your estimator is not pickle-able, you can serialize it using its native method,
         # i.e. in this case for keras we use model.save, and then set the estimator to none
         keras.models.save_model(self.estimator, Path(artifact_directory) / "model.h5")
-        self.estimator = None
 
-        # Now that the estimator is none, it won't be pickled with the CustomTask class (i.e. this one)
-        with open(Path(artifact_directory) / "artifact.pkl", "wb") as fp:
-            pickle.dump(self, fp)
+        # Helper method to handle serializing, via pickle, the CustomTask class
+        self.save_task(artifact_directory, exclude=['estimator'])
 
         return self
 
@@ -78,8 +76,9 @@ class CustomTask(RegressionEstimatorInterface):
         cls
             The deserialized object
         """
-        with open(Path(artifact_directory) / "artifact.pkl", "rb") as fp:
-            custom_task = pickle.load(fp)
+
+        # Helper method to load the serialized CustomTask class
+        custom_task = cls.load_task(artifact_directory)
 
         custom_task.estimator = keras.models.load_model(Path(artifact_directory) / "model.h5")
 
