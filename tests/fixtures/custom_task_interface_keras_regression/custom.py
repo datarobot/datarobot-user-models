@@ -62,7 +62,7 @@ class CustomTask(RegressionEstimatorInterface):
         keras.models.save_model(self.estimator, Path(artifact_directory) / "model.h5")
 
         # Helper method to handle serializing, via pickle, the CustomTask class
-        self.save_task(artifact_directory, exclude=['estimator'])
+        self.save_task(artifact_directory, exclude=["estimator"])
 
         return self
 

@@ -29,7 +29,7 @@ class CustomTask(BinaryEstimatorInterface):
         serialize_estimator_pipeline(self.estimator, artifact_directory)
 
         # Helper method to handle serializing, via pickle, the CustomTask class
-        self.save_task(artifact_directory, exclude=['estimator'])
+        self.save_task(artifact_directory, exclude=["estimator"])
 
         return self
 

@@ -52,12 +52,14 @@ class Serializable(object):
                     # We need to
                     getattr(self, custom_task_object)
                 except AttributeError:
-                    raise DrumCommonException(f"The object named {custom_task_object} passed in exclude= was not found")
+                    raise DrumCommonException(
+                        f"The object named {custom_task_object} passed in exclude= was not found"
+                    )
 
                 setattr(self, custom_task_object, None)
 
         with open(
-                os.path.join(artifact_directory, Serializable.default_artifact_filename), "wb"
+            os.path.join(artifact_directory, Serializable.default_artifact_filename), "wb"
         ) as fp:
             pickle.dump(self, fp)
 
@@ -96,7 +98,7 @@ class Serializable(object):
             The deserialized object
         """
         with open(
-                os.path.join(artifact_directory, Serializable.default_artifact_filename), "rb"
+            os.path.join(artifact_directory, Serializable.default_artifact_filename), "rb"
         ) as fp:
             deserialized_object = pickle.load(fp)
 
