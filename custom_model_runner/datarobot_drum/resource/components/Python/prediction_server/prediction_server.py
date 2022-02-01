@@ -98,8 +98,12 @@ class PredictionServer(ConnectableComponent, PredictMixin):
 
         self._predictor.configure(params)
 
+    def _terminate(self):
+        if hasattr(self._predictor, "terminate"):
+            self._predictor.terminate()
+
     def _materialize(self, parent_data_objs, user_data):
-        model_api = base_api_blueprint()
+        model_api = base_api_blueprint(self._terminate)
 
         @model_api.route("/capabilities/", methods=["GET"])
         def capabilities():
@@ -200,3 +204,8 @@ class PredictionServer(ConnectableComponent, PredictMixin):
             self._stats_collector.print_reports()
 
         return []
+
+    def terminate(self):
+        terminate_op = getattr(self._predictor, "terminate", None)
+        if callable(terminate_op):
+            terminate_op()

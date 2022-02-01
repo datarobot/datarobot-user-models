@@ -4,8 +4,6 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-import pickle
-from pathlib import Path
 import pandas as pd
 
 from model_utils import (
@@ -33,6 +31,8 @@ class CustomTask(BinaryEstimatorInterface):
         # Helper method to handle serializing, via pickle, the CustomTask class
         self.save_task(artifact_directory, exclude=['estimator'])
 
+        return self
+
     @classmethod
     def load(cls, artifact_directory):
         """Note how we load the serialized objects in the reverse order of the save function above.
@@ -44,7 +44,6 @@ class CustomTask(BinaryEstimatorInterface):
         """
         # Helper method to load the serialized CustomTask class
         custom_task = cls.load_task(artifact_directory)
-
         custom_task.estimator = deserialize_estimator_pipeline(artifact_directory)
 
         return custom_task

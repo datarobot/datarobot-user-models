@@ -101,3 +101,7 @@ class PythonPredictor(BaseLanguagePredictor):
                 "Wrong type returned in unstructured mode: {}".format(type(str_or_tuple))
             )
         return ret
+
+    def terminate(self):
+        if self._mlops:
+            self._mlops.shutdown()

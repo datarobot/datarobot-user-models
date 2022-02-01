@@ -76,10 +76,8 @@ class CustomTask(RegressionEstimatorInterface):
         cls
             The deserialized object
         """
-
         # Helper method to load the serialized CustomTask class
         custom_task = cls.load_task(artifact_directory)
-
         custom_task.estimator = keras.models.load_model(Path(artifact_directory) / "model.h5")
 
         return custom_task

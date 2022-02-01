@@ -4,13 +4,18 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import contextlib
 import json
 import multiprocessing
 import os
 import re
+import time
+from subprocess import TimeoutExpired
 
+from retry import retry
 import pytest
 import pandas as pd
+import requests
 from flask import Flask, request
 
 from datarobot_drum.drum.enum import ArgumentsOptions
@@ -29,6 +34,7 @@ from datarobot_drum.resource.utils import (
     _cmd_add_class_labels,
     _create_custom_model_dir,
 )
+from .utils import SimpleCache
 
 
 class TestMLOpsMonitoring:
@@ -45,28 +51,45 @@ class TestMLOpsMonitoring:
         except ImportError:
             yield
 
-    @pytest.fixture
-    def local_webserver_stub(self):
-        app = Flask(__name__)
+    @contextlib.contextmanager
+    def local_webserver_stub(self, expected_pred_requests_queries=0):
 
-        @app.route("/api/v2/version/")
-        def version():
-            return json.dumps({"major": 2, "minor": 28, "versionString": "2.28.0"}), 200
+        init_cache_data = {"actual_version_queries": 0, "actual_pred_requests_queries": 0}
+        with SimpleCache(init_cache_data) as cache:
+            app = Flask(__name__)
 
-        @app.route(
-            "/api/v2/deployments/<deployment_id>/predictionResults/fromJSON/", methods=["POST"]
-        )
-        def post_prediction_results(deployment_id):
-            assert deployment_id is not None
-            assert request.json is not None
-            return json.dumps({"message": "ok"}), 202
+            @app.route("/api/v2/version/")
+            def version():
+                cache.inc_value("actual_version_queries")
+                return json.dumps({"major": 2, "minor": 28, "versionString": "2.28.0"}), 200
 
-        proc = multiprocessing.Process(
-            target=lambda: app.run(host="localhost", port=13909, debug=True, use_reloader=False)
-        )
-        proc.start()
-        yield
-        proc.terminate()
+            @app.route(
+                "/api/v2/deployments/<deployment_id>/predictionRequests/fromJSON/", methods=["POST"]
+            )
+            def post_prediction_requests(deployment_id):
+                stats = request.get_json()
+                cache.inc_value("actual_pred_requests_queries", value=len(stats["data"]))
+                return json.dumps({"message": "ok"}), 202
+
+            proc = multiprocessing.Process(
+                target=lambda: app.run(host="localhost", port=13909, debug=True, use_reloader=False)
+            )
+            proc.start()
+
+            yield
+
+            @retry((AssertionError,), delay=1, tries=10)
+            def _verify_expected_queries():
+                cache_data = cache.read_cache()
+                assert cache_data["actual_version_queries"] == 3
+                if expected_pred_requests_queries:
+                    assert (
+                        cache_data["actual_pred_requests_queries"] == expected_pred_requests_queries
+                    )
+
+            _verify_expected_queries()
+
+            proc.terminate()
 
     @staticmethod
     def _drum_with_monitoring(
@@ -79,9 +102,6 @@ class TestMLOpsMonitoring:
             resources, tmp_path, framework, problem, language,
         )
 
-        mlops_spool_dir = tmp_path / "mlops_spool"
-        os.mkdir(str(mlops_spool_dir))
-
         input_dataset = resources.datasets(framework, problem)
         output = tmp_path / "output"
 
@@ -93,11 +113,15 @@ class TestMLOpsMonitoring:
             resources.target_types(problem),
         )
         if is_embedded:
+            mlops_spool_dir = None
             cmd += (
                 " --monitor-embedded --model-id 555 --deployment-id 777 "
                 " --webserver http://localhost:13909 --api-token aaabbb"
             )
         else:
+            mlops_spool_dir = tmp_path / "mlops_spool"
+            os.mkdir(str(mlops_spool_dir))
+
             monitor_settings = "spooler_type=filesystem;directory={};max_files=1;file_max_size=1024000".format(
                 mlops_spool_dir
             )
@@ -187,7 +211,6 @@ class TestMLOpsMonitoring:
         "framework, problem, language, docker",
         [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_MLOPS, None)],
     )
-    @pytest.mark.usefixtures("local_webserver_stub")
     def test_drum_unstructured_model_monitoring_with_mlops_installed(
         self, resources, framework, problem, language, docker, tmp_path
     ):
@@ -195,10 +218,69 @@ class TestMLOpsMonitoring:
             resources, framework, problem, language, docker, tmp_path, is_embedded=True
         )
 
-        _exec_shell_cmd(
-            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
-        )
+        with self.local_webserver_stub():
+            _exec_shell_cmd(
+                cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+            )
 
         with open(output_file) as f:
             out_data = f.read()
             assert "10" in out_data
+
+    @pytest.mark.parametrize(
+        "framework, problem, language, docker",
+        [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_MLOPS, None)],
+    )
+    def test_graceful_shutdown_in_server_run_mode_non_production(
+        self, resources, framework, problem, language, docker, tmp_path
+    ):
+        custom_model_dir = _create_custom_model_dir(
+            resources, tmp_path, framework, problem, language,
+        )
+
+        pred_server_host = "localhost:13908"
+        cmd = (
+            f"{ArgumentsOptions.MAIN_COMMAND} server "
+            f"--address {pred_server_host} "
+            f"--code-dir {custom_model_dir} "
+            f"--target-type {resources.target_types(problem)} "
+            "--monitor-embedded "
+            "--model-id 555 "
+            "--deployment-id 777 "
+            "--webserver http://localhost:13909 "
+            "--api-token aaabbb"
+        )
+
+        with self.local_webserver_stub(expected_pred_requests_queries=10):
+            proc, _, _ = _exec_shell_cmd(
+                cmd, err_msg=f"Failed in: {cmd}", assert_if_fail=False, capture_output=False
+            )
+
+            @retry((requests.exceptions.ConnectionError,), delay=1, tries=10)
+            def _check_health():
+                ping_url = f"http://{pred_server_host}"
+                print(f"Trying to ping to {ping_url}")
+                response = requests.get(ping_url)
+                print(f"Response: {response}")
+                assert response.ok and response.json()["message"] == "OK"
+
+            try:
+                start_time = time.time()
+                _check_health()
+                print(f"Check health took {time.time()-start_time} sec")
+
+                message = "There are four words"
+                print(f"Sending prediction ...")
+                response = requests.post(
+                    f"http://{pred_server_host}/predictUnstructured/",
+                    headers={"Accept": "text/plain", "Content-Type": "text/plain"},
+                    data=message,
+                )
+                assert response.ok and int(response.text) == (message.count(" ") + 1)
+                print(f"Prediction succeeded")
+            finally:
+                proc.terminate()
+                try:
+                    proc.wait(7)
+                except TimeoutExpired:
+                    proc.kill()

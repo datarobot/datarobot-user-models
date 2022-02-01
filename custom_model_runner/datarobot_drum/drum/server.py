@@ -22,11 +22,13 @@ def get_flask_app(api_blueprint):
     return app
 
 
-def base_api_blueprint():
+def base_api_blueprint(termination_hook=None):
     model_api = Blueprint("model_api", __name__)
 
     @model_api.route("/shutdown/", methods=["POST"])
     def shutdown():
+        if termination_hook:
+            termination_hook()
         func = request.environ.get("werkzeug.server.shutdown")
         if func is None:
             raise RuntimeError("Not running with the Werkzeug Server")

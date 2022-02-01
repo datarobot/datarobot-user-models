@@ -58,23 +58,24 @@ def main():
             # has its own cleanup
             print("\nCtrl+C pressed, aborting drum")
 
-            if (
-                runtime.options
-                and runtime.options.docker
-                and RunMode(runtime.options.subparser_name) == RunMode.SERVER
-            ):
-                try:
-                    import requests
-                except ImportError:
-                    print(
-                        "WARNING: 'requests' package is not found - "
-                        "cannot send shutdown to server",
-                        file=sys.stderr,
-                    )
+            if runtime.options and RunMode(runtime.options.subparser_name) == RunMode.SERVER:
+                if runtime.options.docker:
+                    try:
+                        import requests
+                    except ImportError:
+                        print(
+                            "WARNING: 'requests' package is not found - "
+                            "cannot send shutdown to server",
+                            file=sys.stderr,
+                        )
+                    else:
+                        url = "http://{}/shutdown/".format(runtime.options.address)
+                        print("Sending shutdown to server: {}".format(url))
+                        requests.post(url, timeout=2)
                 else:
-                    url = "http://{}/shutdown/".format(runtime.options.address)
-                    print("Sending shutdown to server: {}".format(url))
-                    requests.post(url, timeout=2)
+                    if runtime.cm_runner:
+                        runtime.cm_runner.terminate()
+
             os._exit(130)
 
         arg_parser = CMRunnerArgsRegistry.get_arg_parser()
@@ -103,11 +104,13 @@ def main():
             pass
         else:
             signal.signal(signal.SIGINT, signal_handler)
+            signal.signal(signal.SIGTERM, signal_handler)
 
         from datarobot_drum.drum.drum import CMRunner
 
         try:
-            CMRunner(runtime).run()
+            runtime.cm_runner = CMRunner(runtime)
+            runtime.cm_runner.run()
         except DrumSchemaValidationException:
             sys.exit(ExitCodes.SCHEMA_VALIDATION_ERROR.value)
 
