@@ -295,8 +295,8 @@ class TestCustomTaskTemplates(object):
                 None,
             ),
             (
-                "fixture",
-                "custom_task_interface_multiclass",
+                "pipeline",
+                "6_python3_sklearn_multiclass",
                 "project_multiclass_iris",
                 "sklearn_drop_in_env",
                 "multiclass",
