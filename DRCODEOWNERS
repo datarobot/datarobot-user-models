@@ -24,7 +24,14 @@
 /custom_model_runner/datarobot_drum/drum/custom_fit_wrapper.py      @datarobot/core-modeling
 /custom_model_runner/datarobot_drum/drum/typeschema_validation.py   @datarobot/core-modeling
 /custom_model_runner/datarobot_drum/resource/default_typeschema     @datarobot/core-modeling
-/public_dropin_environments                                         @datarobot/custom-models @datarobot/core-modeling
+/public_dropin_environments/java_codegen                            @datarobot/custom-models
+/public_dropin_environments/julia_mlj                               @datarobot/custom-models
+/public_dropin_environments/python3_keras                           @datarobot/custom-models @datarobot/core-modeling
+/public_dropin_environments/python3_pmml                            @datarobot/custom-models @datarobot/core-modeling
+/public_dropin_environments/python3_pytorch                         @datarobot/custom-models @datarobot/core-modeling
+/public_dropin_environments/python3_sklearn                         @datarobot/custom-models @datarobot/core-modeling
+/public_dropin_environments/python3_xgboost                         @datarobot/custom-models @datarobot/core-modeling
+/public_dropin_environments/r_lang                                  @datarobot/custom-models
 /task_templates                                                     @datarobot/core-modeling
 /tests/drum                                                         @datarobot/custom-models @datarobot/core-modeling
 /tests/functional/test_custom_task_templates.py                     @datarobot/core-modeling
