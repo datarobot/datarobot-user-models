@@ -1,10 +1,8 @@
 # This is the default base image for use with user models and workflows.
 # It contains a variety of common useful data-science packages and tools.
-FROM ubuntu:18.04
+FROM rocker/r-ubuntu:20.04
 
-RUN echo '29 Aug 2019'
-
-ENV LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive
+RUN echo '3 Feb 2022'
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
@@ -35,12 +33,21 @@ RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && \
     /usr/sbin/update-locale LANG=en_US.UTF-8
 
 RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9 && \
-    add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/'
+    add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/'
 
 RUN apt-get install -y --no-install-recommends \
         r-cran-littler \
         r-base \
-        r-base-dev && \
+        r-base-dev \
+        r-cran-recipes \
+        r-cran-glmnet \
+        r-cran-rjson \
+        r-cran-e1071 \
+        r-cran-plumber \
+        r-cran-caret \
+        r-cran-tidyverse \
+        r-cran-pack \
+        r-cran-rook && \
     rm -rf /var/lib/apt/lists/
 
 RUN pip3 install -U pip
@@ -50,15 +57,15 @@ RUN pip3 install --no-cache-dir setuptools wheel
 RUN echo "r <- getOption('repos'); r['CRAN'] <- 'http://cran.rstudio.com'; options(repos = r);" > ~/.Rprofile
 
 # Install R Packages
-RUN Rscript -e "install.packages('devtools', Ncpus=4)" && \
-    Rscript -e "install.packages('tidyverse', Ncpus=4)" && \
-    Rscript -e "install.packages('caret', Ncpus=4)" && \
-    Rscript -e "install.packages('recipes', Ncpus=4)" && \
-    Rscript -e "install.packages('glmnet', Ncpus=4)" && \
-    Rscript -e "install.packages('plumber', Ncpus=4)" && \
-    Rscript -e "install.packages('Rook', Ncpus=4)" && \
-    Rscript -e "install.packages('rjson', Ncpus=4)" && \
-    Rscript -e "install.packages('e1071', Ncpus=4)"
+RUN Rscript -e "install.packages('devtools', Ncpus=4)"
+#RUN Rscript -e "install.packages('tidyverse', Ncpus=4)"
+#RUN Rscript -e "install.packages('caret', Ncpus=4)"
+#RUN Rscript -e "install.packages('recipes', Ncpus=4)"
+#RUN Rscript -e "install.packages('glmnet', Ncpus=4)"
+#RUN Rscript -e "install.packages('plumber', Ncpus=4)"
+#RUN Rscript -e "install.packages('Rook', Ncpus=4)"
+#RUN Rscript -e "install.packages('rjson', Ncpus=4)"
+#RUN Rscript -e "install.packages('e1071', Ncpus=4)"
 
 # Install caret models
 RUN Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$forReg, c(1)]), Ncpus=4)'
