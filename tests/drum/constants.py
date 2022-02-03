@@ -121,6 +121,7 @@ TARGET_NAME_DUPLICATED_Y = "target_name_duplicated_y"
 SKLEARN_BINARY_PARAMETERS = "sklearn_binary_parameters"
 SKLEARN_TRANSFORM_PARAMETERS = "sklearn_transform_parameters"
 RDS_PARAMETERS = "r_parameters"
+MULTICLASS_LABEL_SPACES = "iris_with_spaces_full"
 
 # Language keywords
 PYTHON = "python3"

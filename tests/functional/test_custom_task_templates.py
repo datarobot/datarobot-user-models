@@ -294,14 +294,6 @@ class TestCustomTaskTemplates(object):
                 "multiclass",
                 None,
             ),
-            (
-                "pipeline",
-                "6_python3_sklearn_multiclass",
-                "project_multiclass_iris",
-                "sklearn_drop_in_env",
-                "multiclass",
-                None,
-            ),
         ],
     )
     def test_custom_task_templates(
