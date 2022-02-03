@@ -116,7 +116,7 @@ class TestDrumDocker:
             custom_model_dir = shutil.copytree(custom_model_dir, tmp_dir)
             with open(os.path.join(custom_model_dir, "requirements.txt"), mode="w") as f:
                 f.write("deps_are_not_supported_in_java")
-        else:
+        elif framework == PYTORCH:
             tmp_dir = tmp_path / "tmp_code_dir"
             custom_model_dir = shutil.copytree(custom_model_dir, tmp_dir)
             with open(os.path.join(custom_model_dir, "requirements.txt"), mode="a") as f:
