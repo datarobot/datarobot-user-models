@@ -6,7 +6,6 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import os
 import glob
-import re
 import shutil
 import shlex
 import subprocess
