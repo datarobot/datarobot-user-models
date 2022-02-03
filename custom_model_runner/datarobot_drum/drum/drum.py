@@ -1051,7 +1051,11 @@ class CMRunner:
 
                 with open(os.path.join(temp_context_dir, "Dockerfile"), mode="a") as f:
                     if self.options.language == RunLanguage.PYTHON.value:
-                        f.write("\nRUN pip3 install {}".format(" ".join(lines)))
+                        f.write(
+                            "\nRUN pip3 install {}".format(
+                                " ".join(['"{}"'.format(item) for item in lines])
+                            )
+                        )
                     elif self.options.language == RunLanguage.R.value:
                         quoted_lines = ["'{}'".format(ll) for ll in lines]
                         deps_str = ", ".join(quoted_lines)
