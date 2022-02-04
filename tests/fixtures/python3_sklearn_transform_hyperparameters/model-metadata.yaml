@@ -1,15 +1,13 @@
 name: drumpush-transform
 type: training
 targetType: transform
-# modelID: optional
-environmentID: 5e8c889607389fe0f466c72d
-#trainingModel:
-#  trainOnProject: optional project on which to train
-validation:
-  # Path is relative to this file
-  input: ../../../tests/testdata/iris_binary_training.csv
-  targetName: Species
+
+# This part below defines the task's schema. Using this schema, on the fly,
+# DataRobot will validate if the task requirements match neighboring tasks in a blueprint
+# Note that it's only available for tasks, and not for inference models
+# Every condition (and the whole section) is optional
 typeSchema:
+  # Specify what data types this task allows as input
   input_requirements:
 
     # specify what data types this task allows as input
@@ -33,6 +31,7 @@ typeSchema:
       condition: EQUALS # only EQUALS is supported
       value: SUPPORTED # can be one of FORBIDDEN, SUPPORTED
 
+  # Specify what data types this task allows as output
   output_requirements:
 
     # Specify what data types the task could output. A task can only output a single data type.
@@ -55,6 +54,10 @@ typeSchema:
       condition: EQUALS # only EQUALS is supported
       value: NEVER # can be one of NEVER, DYNAMIC (i.e. might output missing values)
 
+# Hyperparameters are definitions of parameters that can be passed into a custom task's fit method. When constructing a
+# blueprint using this task in DataRobot, you can specify specific values you want passed for each parameter. After the
+# blueprint trains, you can also modify these parameters via advanced tuning. Below are examples of each possible
+# parameter type.
 hyperparameters:
   # int: Integer value, must provide a min and max. Default is optional, will use the min value if not provided
   - name: seed
