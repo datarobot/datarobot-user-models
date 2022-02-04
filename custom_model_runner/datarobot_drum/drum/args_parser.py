@@ -499,7 +499,7 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.PARAMETER_FILE,
                 default=None,
                 type=CMRunnerArgsRegistry._is_valid_file,
-                help="Model parameters stored in a JSON file",
+                help="Task parameters stored in a JSON file. Should contain a single mapping of parameter names to values",
             )
 
     @staticmethod

@@ -100,6 +100,7 @@ from .constants import (
     CUSTOM_TASK_INTERFACE_PYTORCH_MULTICLASS,
     CUSTOM_TASK_INTERFACE_KERAS_REGRESSION,
     CUSTOM_TASK_INTERFACE_XGB_REGRESSION,
+    BINARY_NUM_TARGET,
 )
 
 
@@ -293,7 +294,7 @@ class TestFit:
                 None,
                 SKLEARN_TRANSFORM_PARAMETERS,
             ),
-            (RDS_HYPERPARAMETERS, BINARY_TEXT, None, RDS_PARAMETERS),
+            (RDS_HYPERPARAMETERS, BINARY_NUM_TARGET, None, RDS_PARAMETERS),
         ],
     )
     @pytest.mark.parametrize("use_parameters_file", [True, False])

@@ -134,6 +134,7 @@ from tests.drum.constants import (
     CUSTOM_TASK_INTERFACE_PYTORCH_MULTICLASS,
     CUSTOM_TASK_INTERFACE_KERAS_REGRESSION,
     CUSTOM_TASK_INTERFACE_XGB_REGRESSION,
+    BINARY_NUM_TARGET,
 )
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 
@@ -151,6 +152,7 @@ _datasets = {
     ),
     (None, BINARY_TEXT): os.path.join(TESTS_DATA_PATH, "telecomms_churn.csv"),
     (None, BINARY_NUM_ONLY): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
+    (None, BINARY_NUM_TARGET): os.path.join(TESTS_DATA_PATH, "iris_with_binary.csv"),
     (PYPMML, REGRESSION): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
     (None, BINARY): os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv"),
     (None, ANOMALY): os.path.join(TESTS_DATA_PATH, "juniors_3_year_stats_regression_inference.csv"),
@@ -271,6 +273,7 @@ _targets = {
     REGRESSION_SINGLE_COL: "target",
     BINARY_TEXT: "Churn",
     BINARY_NUM_ONLY: "Species",
+    BINARY_NUM_TARGET: "target",
     MULTICLASS: "class",
     MULTICLASS_BINARY: "Species",
     MULTICLASS_NUM_LABELS: "class",
@@ -289,6 +292,7 @@ _target_types = {
     BINARY: "binary",
     BINARY_TEXT: "binary",
     BINARY_NUM_ONLY: "binary",
+    BINARY_NUM_TARGET: "binary",
     BINARY_SPACES: "binary",
     REGRESSION: "regression",
     REGRESSION_SINGLE_COL: "regression",
@@ -430,6 +434,7 @@ _class_labels = {
     (CODEGEN, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (SKLEARN_BINARY, BINARY_TEXT): ["False", "True"],
     (CUSTOM_TASK_INTERFACE_BINARY, BINARY_NUM_ONLY): ["Iris-setosa", "Iris-versicolor"],
+    (CUSTOM_TASK_INTERFACE_BINARY, BINARY_NUM_TARGET): [0, 1],
     (XGB, BINARY_TEXT): ["False", "True"],
     (KERAS, BINARY_TEXT): ["False", "True"],
     (POJO, MULTICLASS): ["GALAXY", "QSO", "STAR"],
