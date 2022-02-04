@@ -499,7 +499,10 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.PARAMETER_FILE,
                 default=None,
                 type=CMRunnerArgsRegistry._is_valid_file,
-                help="Task parameters stored in a JSON file. Should contain a single mapping of parameter names to values",
+                help="Task parameters stored in a JSON file. "
+                "Should contain a single mapping of parameter names to values. "
+                "If the task contains hyperparameters and this file is not provided, "
+                "then it will use the default parameters.",
             )
 
     @staticmethod
