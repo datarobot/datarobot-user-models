@@ -151,7 +151,9 @@ class TestCustomTaskTemplates(object):
 
     @pytest.fixture(scope="session")
     def project_multiclass_iris(self):
-        proj = dr.Project.create(sourcedata=os.path.join(BASE_DATASET_DIR, "iris_with_spaces.csv"))
+        proj = dr.Project.create(
+            sourcedata=os.path.join(BASE_DATASET_DIR, "iris_with_spaces_full.csv")
+        )
         proj.set_target(target="Species", mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 

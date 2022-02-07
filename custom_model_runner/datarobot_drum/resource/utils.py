@@ -165,10 +165,12 @@ def _cmd_add_class_labels(
             else:
                 cmd += " --class-labels-file {}".format(multiclass_label_file.name)
         else:
-            # stringify(for numeric) and join labels
-            labels_str = " ".join(["{}".format(label) for label in labels])
             if pass_args_as_env_vars:
+                # stringify(for numeric) and join labels
+                labels_str = " ".join(["{}".format(label) for label in labels])
                 os.environ[ArgumentOptionsEnvVars.CLASS_LABELS] = labels_str
             else:
+                # stringify(for numeric), quote (for spaces) and join labels
+                labels_str = " ".join(['"{}"'.format(label) for label in labels])
                 cmd += " --class-labels {}".format(labels_str)
     return cmd
