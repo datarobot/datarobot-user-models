@@ -42,7 +42,13 @@ class CustomTask(BinaryEstimatorInterface):
         self
         """
 
-        torch.save(self, Path(artifact_directory) / "torch_class.pth")
+        # If your estimator is not pickle-able, you can serialize it using its native method,
+        # i.e. in this case for pytorch we use model.save, and then set the estimator to none
+        torch.save(self.estimator, Path(artifact_directory) / "torch_class.pth")
+
+        # Helper method to handle serializing, via pickle, the CustomTask class
+        self.save_task(artifact_directory, exclude=["estimator"])
+
         return self
 
     @classmethod
@@ -55,7 +61,10 @@ class CustomTask(BinaryEstimatorInterface):
         cls
             The deserialized object
         """
-        return torch.load(Path(artifact_directory) / "torch_class.pth")
+        custom_task = cls.load_task(artifact_directory)
+        custom_task.estimator = torch.load(Path(artifact_directory) / "torch_class.pth")
+
+        return custom_task
 
     def predict_proba(self, X, **kwargs):
         """Since pytorch only outputs a single probability, i.e. the probability of the positive class,

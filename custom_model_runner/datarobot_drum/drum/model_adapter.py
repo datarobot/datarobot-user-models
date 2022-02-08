@@ -687,6 +687,8 @@ class PythonModelAdapter:
 
                     try:
                         self._custom_task_class_instance.save(self._model_dir)
+                    except DrumCommonException:
+                        raise
                     except Exception:
                         raise DrumCommonException(
                             "An error occurred when saving your custom task. "

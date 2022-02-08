@@ -4,8 +4,6 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-import pickle
-from pathlib import Path
 import pandas as pd
 
 from model_utils import (
@@ -29,11 +27,11 @@ class CustomTask(BinaryEstimatorInterface):
         # Because we use a pipeline to convert our images from base64 to pixel values
         # for our neural network, we need our own serialization strategy
         serialize_estimator_pipeline(self.estimator, artifact_directory)
-        self.estimator = None
 
-        # Now that the estimator is none, it won't be pickled with the CustomTask class (i.e. this one)
-        with open(Path(artifact_directory) / "artifact.pkl", "wb") as fp:
-            pickle.dump(self, fp)
+        # Helper method to handle serializing, via pickle, the CustomTask class
+        self.save_task(artifact_directory, exclude=["estimator"])
+
+        return self
 
     @classmethod
     def load(cls, artifact_directory):
@@ -44,9 +42,8 @@ class CustomTask(BinaryEstimatorInterface):
         Also note this is a class method so we attach everything to custom_task which is automatically
         coverted back to an object that is passed to the predict hook below in self
         """
-        with open(Path(artifact_directory) / "artifact.pkl", "rb") as fp:
-            custom_task = pickle.load(fp)
-
+        # Helper method to load the serialized CustomTask class
+        custom_task = cls.load_task(artifact_directory)
         custom_task.estimator = deserialize_estimator_pipeline(artifact_directory)
 
         return custom_task
