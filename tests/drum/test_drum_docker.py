@@ -116,6 +116,11 @@ class TestDrumDocker:
             custom_model_dir = shutil.copytree(custom_model_dir, tmp_dir)
             with open(os.path.join(custom_model_dir, "requirements.txt"), mode="w") as f:
                 f.write("deps_are_not_supported_in_java")
+        elif framework == PYTORCH:
+            tmp_dir = tmp_path / "tmp_code_dir"
+            custom_model_dir = shutil.copytree(custom_model_dir, tmp_dir)
+            with open(os.path.join(custom_model_dir, "requirements.txt"), mode="a") as f:
+                f.write("scipy>=1.1,<2")  # test that adding a min,max version also works correctly
         docker_env = os.path.join(PUBLIC_DROPIN_ENVS_PATH, env_dir)
         input_dataset = resources.datasets(framework, problem)
 

@@ -135,6 +135,7 @@ from tests.drum.constants import (
     CUSTOM_TASK_INTERFACE_KERAS_REGRESSION,
     CUSTOM_TASK_INTERFACE_XGB_REGRESSION,
     BINARY_NUM_TARGET,
+    MULTICLASS_LABEL_SPACES,
 )
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 
@@ -197,6 +198,7 @@ _datasets = {
     (R_TRANSFORM_SPARSE_OUTPUT, TRANSFORM): os.path.join(
         TESTS_DATA_PATH, "10k_diabetes_sample.csv"
     ),
+    (None, MULTICLASS_LABEL_SPACES): os.path.join(TESTS_DATA_PATH, "iris_with_spaces_full.csv"),
 }
 
 _training_models_paths = {
@@ -286,6 +288,7 @@ _targets = {
     TRANSFORM: os.path.join(TESTS_DATA_PATH, "transform_target.csv"),
     BINARY_SPACES: "Species",
     REGRESSION_MULTLILINE_TEXT: "rating",
+    MULTICLASS_LABEL_SPACES: "Species",
 }
 
 _target_types = {
@@ -310,6 +313,7 @@ _target_types = {
     BINARY_BOOL: "binary",
     BINARY_INT: "binary",
     TRANSFORM: "transform",
+    MULTICLASS_LABEL_SPACES: "multiclass",
 }
 
 _class_labels = {
