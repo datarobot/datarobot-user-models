@@ -9,15 +9,11 @@
 # Released under the terms of DataRobot Tool and Utility Agreement.
 init <- function(code_dir) {
   # custom init function to load required libraries
-  library(tidyverse)
   library(caret)
-  library(recipes)
   library(e1071)
-  library(gbm)
-  source(file.path(code_dir, 'create_pipeline.R'))
 }
 
-fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, parameters=NULL, ...){
+fit <- function(X, y, output_dir, parameters=NULL, ...){
     #' User-provided fit method, required for custom training
     #'
     #' Trains a regression or classification model using gbm (via caret)
@@ -25,16 +21,6 @@ fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, parameters
     #' @param y data.frame column or array - target data to perform fit on
     #' @param output_dir the path to write output. This is the path provided in '--output' parameter of the
     #' 'drum fit' command.
-    #' @param class_order : A two element long list dictating the order of classes which should be used for
-    #'  modeling. Class order will always be passed to fit by DataRobot for classification tasks,
-    #'  and never otherwise. When models predict, they output a likelihood of one class, with a
-    #'  value from 0 to 1. The likelihood of the other class is 1 - this likelihood. Class order
-    #'  dictates that the first element in the list will be the 0 class, and the second will be the
-    #'  1 class.
-    #' @param row_weights: An array of non-negative numeric values which can be used to dictate how important
-    #'  a row is. Row weights is only optionally used, and there will be no filtering for which
-    #'  custom models support this. There are two situations when values will be passed into
-    #'  row_weights, during smart downsampling and when weights are explicitly provided by the user
     #' @param parameters: A dataframe containing parameter name to value mapping
     #' @param ...: Added for forwards compatibility
     #' @return Nothing
@@ -43,12 +29,37 @@ fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, parameters
     stop("parameters not found")
   }
 
-  if (!is.null(class_order)){
-    model <- create_pipeline(X, y, parameters, 'classification')
-  } else {
-    model <- create_pipeline(X, y, parameters, 'regression')
-  }
+  svmParameters <- expand.grid(cost = parameters$cost, weight = parameters$weight)
+  model <- train(X, y = make.names(y), method = "svmLinearWeights", tuneGrid = svmParameters, trControl = trainControl(classProbs = TRUE))
+
   # Save model
   model_path <- file.path(output_dir, 'artifact.rds')
   saveRDS(model, file = model_path)
+}
+
+score <- function(data, model, ...){
+  " This hook defines how DataRobot will use the trained object from fit() to score new data.
+  DataRobot runs this hook when the task is used for scoring inside a blueprint.
+  As an output, this hook is expected to return the scored data.
+  The input parameters are passed by DataRobot based on dataset and blueprint configuration.
+
+  Parameters
+  -------
+  data: data.frame
+      Data that DataRobot passes for scoring.
+  model: Any
+      Trained object, extracted by DataRobot from the artifact created in fit().
+      In this example, contains trained SVM extracted from artifact.rds.
+
+  Returns
+  -------
+  data.frame
+      Returns a dataframe with scored data
+      In case of classification (binary or multiclass), must return a dataframe with a column per class
+      with class names used as column names
+      and probabilities of classes as values (each row must sum to 1.0)
+  "
+  scores <- predict(model, newdata = data, type = "prob")
+  names(scores) <- c('0', '1')
+  return(scores)
 }
