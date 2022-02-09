@@ -1,2 +1,2 @@
 pyarrow==0.14.1
-datarobot-drum==1.6.6
+datarobot-drum==1.7.0
