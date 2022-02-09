@@ -52,16 +52,19 @@ def validate_and_convert_column_names_for_serialization(df):
     """
     columns = df.columns.values
 
-    # rstrip
-    columns = [str(colname).rstrip() for colname in columns]
+    # Strip all outer whitespace
+    columns = [str(colname).strip() for colname in columns]
 
     # Replace newlines
     columns = [colname.replace("\n", "\\n") for colname in columns]
 
-    if len(set(columns)) != df.shape[1]:
+    # Remove any empty colnames
+    columns = [colname for colname in columns if colname]
+
+    if len(columns) != df.shape[1]:
         raise ValueError(
             "Column name serialization check failed, deserializing column names resulted in {}, expected {}\n"
-            "Ensure there are no duplicate column names or trailing whitespace".format(
+            "Ensure there are no column names made up entirely of whitespace".format(
                 len(columns), df.shape[1]
             )
         )

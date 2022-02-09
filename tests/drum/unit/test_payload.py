@@ -19,19 +19,25 @@ from datarobot_drum.resource.transform_helpers import (
     [
         (["a", "b", "c"], ["a", "b", "c"]),
         (
-            ["newline_rstrip\n", "trailing    ", "replace_new\nline"],
-            ["newline_rstrip", "trailing", "replace_new\\nline"],
+            ["newline strip\n", "    trailing    ", "replace_new\nline"],
+            ["newline strip", "trailing", "replace_new\\nline"],
         ),
-        (["a", "dupe", "dupe"], None),
+        (["a", "dupe", "dupe"], ["a", "dupe", "dupe"]),
+        (["unicode okay ⏎"], ["unicode okay ⏎"]),
+        ([" ", "first col empty should error"], None),
+        ([" \n\n ", "first col empty should error"], None),
+        ([" \t\t ", "first col empty should error"], None),
     ],
 )
 @pytest.mark.parametrize("sparse", [True, False])
 def test_validate_and_convert_column_names_for_serialization(columns, expected_columns, sparse):
+    num_columns = len(columns)
     if sparse:
-        df = pd.DataFrame.sparse.from_spmatrix(coo_matrix(np.zeros([10, 3])), columns=columns)
+        df = pd.DataFrame.sparse.from_spmatrix(coo_matrix(np.zeros([10, num_columns])))
     else:
-        df = pd.DataFrame(np.zeros([10, 3]), columns=columns)
+        df = pd.DataFrame(np.zeros([10, num_columns]))
 
+    df.columns = columns
     if not expected_columns:
         with pytest.raises(ValueError):
             validate_and_convert_column_names_for_serialization(df)
