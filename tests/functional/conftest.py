@@ -102,12 +102,11 @@ def pytorch_drop_in_env():
     environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
     return environment.id, environment_version.id
 
+
 @pytest.fixture(scope="session")
 def onnx_drop_in_env():
     env_dir = os.path.join(PUBLIC_DROPIN_ENVS_PATH, "python3_onnx")
-    environment = dr.ExecutionEnvironment.create(
-        name="python3_onnx", programming_language="python"
-    )
+    environment = dr.ExecutionEnvironment.create(name="python3_onnx", programming_language="python")
     environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
     return environment.id, environment_version.id
 

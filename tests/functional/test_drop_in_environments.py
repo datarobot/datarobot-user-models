@@ -201,20 +201,14 @@ class TestDropInEnvironments(object):
     def onnx_binary_custom_model(self, onnx_drop_in_env):
         env_id, _ = onnx_drop_in_env
         return self.make_custom_model(
-            "onnx_bin.onnx",
-            env_id,
-            "yes",
-            "no",
-            custom_predict_path=CUSTOM_PREDICT_PY_PATH
+            "onnx_bin.onnx", env_id, "yes", "no", custom_predict_path=CUSTOM_PREDICT_PY_PATH
         )
 
     @pytest.fixture(scope="session")
     def onnx_regression_custom_model(self, pytorch_drop_in_env):
         env_id, _ = onnx_drop_in_env
         return self.make_custom_model(
-            "onnx_reg.onnx",
-            env_id,
-            custom_predict_path=CUSTOM_PREDICT_PY_PATH
+            "onnx_reg.onnx", env_id, custom_predict_path=CUSTOM_PREDICT_PY_PATH
         )
 
     @pytest.fixture(scope="session")
@@ -328,7 +322,7 @@ class TestDropInEnvironments(object):
             ("sklearn_drop_in_env", "sklearn_regression_custom_model", "regression_testing_data"),
             ("keras_drop_in_env", "keras_regression_custom_model", "regression_testing_data"),
             ("pytorch_drop_in_env", "torch_regression_custom_model", "regression_testing_data"),
-            #("onnx_drop_in_env", "onnx_regression_custom_model", "regression_testing_data"),
+            # ("onnx_drop_in_env", "onnx_regression_custom_model", "regression_testing_data"),
             ("xgboost_drop_in_env", "xgb_regression_custom_model", "regression_testing_data"),
             ("r_drop_in_env", "r_regression_custom_model", "regression_testing_data"),
             (
