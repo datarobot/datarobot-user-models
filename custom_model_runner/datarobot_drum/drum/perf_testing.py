@@ -78,7 +78,7 @@ def _find_drum_perf_test_server_process():
         try:
             if proc.environ().get(PERF_TEST_SERVER_LABEL, False):
                 return proc.pid
-        except (psutil.AccessDenied, psutil.ZombieProcess) as e:
+        except (psutil.AccessDenied, psutil.ZombieProcess, psutil.NoSuchProcess) as e:
             continue
     return None
 
