@@ -76,7 +76,8 @@ reported if a mismatch is present.
 
 ### ignoring validation
 During development of a task it might be useful to disable the validation.  In that case the `--disable-strict-validation`
-may be used to ignore any errors.  
+may be used to ignore any errors.  Note that when run in DataRobot errors will not be ignored.  This applies only to local 
+development. 
 
 ## Transform Task default schema
 The [default schema](custom_model_runner/datarobot_drum/resource/default_typeschema/model-metadata.yaml) is used when a 

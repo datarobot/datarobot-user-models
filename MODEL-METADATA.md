@@ -42,12 +42,13 @@ on. If this is supplied, the code you supplied will start to run against this pi
 ### Validation Schema
 The validation schema is used to define input and output requirements for the task (See detailed documentation in VALIDATION-SCHEMA.md).  The validation is used to
 communicate the acceptable inputs for the model along with the expected output.  This will be verified when running `drum fit`
+Detailed information about using schema validation can be found [here](#VALIDATION-SCHEMA.md), along with examples the task templates.
 * typeSchema (optional): Top level dictionary that contains the input and output schema definitions
   * input_requirements (optional):  Specifications that apply to the models input.  The specifications provided as a list.
   * output_requirements (optional): Specifications that define the expected output of the model. The specifications provided as a list.
     
 All specifications contain the following fields:
-* field: which specification is being defined, one of `data_types`, `sparse`, `number_of_columns`
+* field: which specification is being defined, one of `data_types`, `sparse`, `number_of_columns`, `contains_missing`
 * condition: defines how the values in the `value` field are used
 * value: A list or single value, depending upon the condition used
 
@@ -67,3 +68,10 @@ All specifications contain the following fields:
 - condition: "EQUALS", "IN", "NOT_EQUALS", "NOT_IN", "GREATER_THAN", "LESS_THAN", "NOT_GREATER_THAN", "NOT_LESS_THAN"
 - value: Integer value >= 0 (for value of 0 only GREATER_THAN is allowed)
    
+#### contains missing (input) allowed values
+- condition: "EQUALS"
+- value: "FORBIDDEN", "SUPPORTED"
+
+#### contains missing (output) allowed values
+- condition: "EQUALS"
+- value: "NEVER", "DYNAMIC"
