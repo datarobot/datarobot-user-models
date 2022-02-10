@@ -4,7 +4,6 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-# This custom transform task implements missing values imputation using a median
 
 from datarobot_drum.custom_task_interfaces import TransformerInterface
 
@@ -37,7 +36,7 @@ class CustomTask(TransformerInterface):
 
         # Any information derived from the training data (i.e. median values for each column) should be stored to self.
         # Then, in the transform hook below, we use this information to transform any data that passes through this task
-        self.fit_data = X.median(axis=0, numeric_only=True, skipna=True).to_dict()
+        self.medians = X.median(axis=0, numeric_only=True, skipna=True).to_dict()
         return self
 
     def transform(self, X, **kwargs):
@@ -58,4 +57,4 @@ class CustomTask(TransformerInterface):
         pd.DataFrame
             Returns a dataframe with transformed data.
         """
-        return X.fillna(self.fit_data)
+        return X.fillna(self.medians)
