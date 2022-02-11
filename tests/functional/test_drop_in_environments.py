@@ -205,7 +205,7 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def onnx_regression_custom_model(self, pytorch_drop_in_env):
+    def onnx_regression_custom_model(self, onnx_drop_in_env):
         env_id, _ = onnx_drop_in_env
         return self.make_custom_model(
             "onnx_reg.onnx", env_id, custom_predict_path=CUSTOM_PREDICT_PY_PATH
