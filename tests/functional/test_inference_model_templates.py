@@ -108,7 +108,7 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
-                "python3_onnx",
+                "python3_onnx_regression",
                 "python",
                 "onnx_drop_in_env",
                 "regression_testing_data",
