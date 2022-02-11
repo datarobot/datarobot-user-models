@@ -21,6 +21,8 @@ def transform(data, model):
     pd.DataFrame
     """
     # Remove target columns if they're in the dataset and impute with zeros
-    data.pop("Grade 2014")
+    for target_col in ["Grade 2014", "Species"]:
+        if target_col in data:
+            data.pop(target_col)
     data = data.fillna(0)
     return data
