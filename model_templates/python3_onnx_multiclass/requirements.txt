@@ -1,0 +1,1 @@
+sagemaker-scikit-learn-extension==2.1.0

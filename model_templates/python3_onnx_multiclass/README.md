@@ -11,4 +11,4 @@ with `class` as the target (multiclass).
 
 ### To run locally using 'drum'
 Paths are relative to `datarobot-user-models` root:  
-`drum score --code-dir model_templates/python3_onnx_multiclass --input tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv --target-type multiclass --class-labels-file model_templates/python3_pytorch_multiclass/class_labels.txt`
+`drum score --code-dir model_templates/python3_onnx_multiclass --input tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv --target-type multiclass --class-labels-file model_templates/python3_onnx_multiclass/class_labels.txt`
