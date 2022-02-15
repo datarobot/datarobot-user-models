@@ -22,6 +22,7 @@ def mock_fit_class():
     class MockFitClass(object):
         num_rows = "ALL"
         input_filename = None
+        sparse_column_file = None
 
         target_filename = None
         target_name = None
