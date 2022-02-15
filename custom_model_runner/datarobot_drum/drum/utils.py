@@ -196,6 +196,10 @@ def shared_fit_preprocessing(fit_class):
         df = pd.DataFrame.sparse.from_spmatrix(mmread(fit_class.input_filename), columns=colnames)
     else:
         df = pd.read_csv(fit_class.input_filename)
+        # If the DataFrame only contains a single column, treat blank lines as NANs
+        if df.shape[1] == 1:
+            logger.info("Input data only contains a single column, treating blank lines as NaNs")
+            df = pd.read_csv(fit_class.input_filename, skip_blank_lines=False)
 
     # get num rows to use
     if fit_class.num_rows == "ALL":
