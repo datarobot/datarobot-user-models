@@ -20,6 +20,8 @@ from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
 from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPredictor
 from datarobot_drum.drum.artifact_predictors.torch_predictor import PyTorchPredictor
 from datarobot_drum.drum.artifact_predictors.xgboost_predictor import XGBoostPredictor
+from datarobot_drum.drum.artifact_predictors.onnx_predictor import ONNXPredictor
+
 from datarobot_drum.drum.common import (
     get_pyarrow_module,
     reroute_stdout_to_stderr,
@@ -62,6 +64,7 @@ class PythonModelAdapter:
             PyTorchPredictor(),
             PMMLPredictor(),
             SKLearnPredictor(),
+            ONNXPredictor(),
         ]
         self._predictor_to_use = None
         self._custom_hooks = {hook: None for hook in CustomHooks.ALL_PREDICT_FIT_STRUCTURED}

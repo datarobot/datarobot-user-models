@@ -76,6 +76,7 @@ class SupportedFrameworks:
     KERAS = "keras"
     XGBOOST = "xgboost"
     PYPMML = "pypmml"
+    ONNX = "onnx"
 
 
 extra_deps = {
@@ -84,6 +85,7 @@ extra_deps = {
     SupportedFrameworks.KERAS: ["scipy", "numpy", "h5py", "tensorflow>=2.2.1"],
     SupportedFrameworks.XGBOOST: ["scipy", "numpy", "xgboost"],
     SupportedFrameworks.PYPMML: ["pypmml"],
+    SupportedFrameworks.ONNX: ["onnxruntime"],
 }
 
 
@@ -161,7 +163,15 @@ class PythonArtifacts:
     KERAS_EXTENSION = ".h5"
     JOBLIB_EXTENSION = ".joblib"
     PYPMML_EXTENSION = ".pmml"
-    ALL = [PKL_EXTENSION, TORCH_EXTENSION, KERAS_EXTENSION, JOBLIB_EXTENSION, PYPMML_EXTENSION]
+    ONNX_EXTENSION = ".onnx"
+    ALL = [
+        PKL_EXTENSION,
+        TORCH_EXTENSION,
+        KERAS_EXTENSION,
+        JOBLIB_EXTENSION,
+        PYPMML_EXTENSION,
+        ONNX_EXTENSION,
+    ]
 
 
 class RArtifacts:
@@ -365,13 +375,7 @@ class ModelMetadataHyperParamTypes(object):
 
     @classmethod
     def all(cls):
-        return {
-            cls.INT,
-            cls.FLOAT,
-            cls.STRING,
-            cls.SELECT,
-            cls.MULTI,
-        }
+        return {cls.INT, cls.FLOAT, cls.STRING, cls.SELECT, cls.MULTI}
 
 
 class ModelMetadataMultiHyperParamTypes(object):
@@ -385,8 +389,4 @@ class ModelMetadataMultiHyperParamTypes(object):
 
     @classmethod
     def all_list(cls):
-        return [
-            cls.INT,
-            cls.FLOAT,
-            cls.SELECT,
-        ]
+        return [cls.INT, cls.FLOAT, cls.SELECT]

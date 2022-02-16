@@ -41,13 +41,14 @@ for examples you can use as a template.
 The DRUM tool has built-in support for the following libraries. If your model is based on one of these libraries, DRUM expects your model artifact to have a matching file extension.
 
 ### Python libraries
-| Library | File Extension | Example |
-| --- | --- | --- |
-| scikit-learn | *.pkl | sklean-regressor.pkl |
-| xgboost | *.pkl | xgboost-regressor.pkl |
-| PyTorch | *.pth | torch-regressor.pth |
-| tf.keras (tensorflow>=2.2.1) | *.h5 | keras-regressor.h5 |
-| pmml | *.pmml | pmml-regressor.pmml |
+| Library                     | File Extension | Example               |
+|-----------------------------|--------------|-----------------------|
+| scikit-learn                | *.pkl        | sklean-regressor.pkl  |
+| xgboost                     | *.pkl        | xgboost-regressor.pkl |
+| PyTorch                     | *.pth        | torch-regressor.pth   |
+| tf.keras (tensorflow>=2.2.1) | *.h5         | keras-regressor.h5    |
+| ONNX     | *.onnx       | onnx-regressor.onnx   |
+| pmml                        | *.pmml       | pmml-regressor.pmml   |
 
 
 ### R libraries

@@ -34,7 +34,7 @@ def generate_artifacts_dir():
     for filename in glob.glob(r"{}/*.csv".format(TESTS_DATASET_DIR)):
         shutil.copy2(filename, test_artifacts_dir)
 
-    for file_wildcard in ["*.ipynb", "PyTorch.*", "*.rds", "*.jar", "*.pmml"]:
+    for file_wildcard in ["*.ipynb", "PyTorch.*", "*.rds", "*.jar", "*.pmml", "*.onnx"]:
         for filename in glob.glob(r"{}/{}".format(SOURCE_ARTIFACTS_PATH, file_wildcard)):
             shutil.copy2(filename, test_artifacts_dir)
 
