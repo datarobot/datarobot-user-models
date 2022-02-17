@@ -188,14 +188,9 @@ def shared_fit_preprocessing(fit_class):
         class_order: array specifying class order, or None
         row_weights: pd.Series of row weights, or None
     """
-    # read in data
-    if DrumUtils.endswith_extension_ignore_case(fit_class.input_filename, InputFormatExtension.MTX):
-        colnames = None
-        if fit_class.sparse_column_file:
-            colnames = [column.strip() for column in open(fit_class.sparse_column_file).readlines()]
-        df = pd.DataFrame.sparse.from_spmatrix(mmread(fit_class.input_filename), columns=colnames)
-    else:
-        df = pd.read_csv(fit_class.input_filename)
+    df = StructuredInputReadUtils.read_structured_input_file_as_df(
+        filename=fit_class.input_filename, sparse_column_file=fit_class.sparse_column_file
+    )
 
     # get num rows to use
     if fit_class.num_rows == "ALL":
@@ -348,8 +343,18 @@ class StructuredInputReadUtils:
                 df.fillna(value=np.nan, inplace=True)
 
                 return df
-            else:
-                return pd.read_csv(io.BytesIO(binary_data))
+            else:  # CSV format
+                df = pd.read_csv(io.BytesIO(binary_data))
+
+                # If the DataFrame only contains a single column, treat blank lines as NANs
+                if df.shape[1] == 1:
+                    logger.info(
+                        "Input data only contains a single column, treating blank lines as NaNs"
+                    )
+                    df = pd.read_csv(io.BytesIO(binary_data), skip_blank_lines=False)
+
+                return df
+
         except pd.errors.ParserError as e:
             raise DrumCommonException(
                 "Pandas failed to read input binary data {}".format(binary_data)
