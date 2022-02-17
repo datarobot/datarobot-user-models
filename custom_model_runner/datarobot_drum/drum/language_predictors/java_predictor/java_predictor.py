@@ -67,8 +67,11 @@ class JavaPredictor(BaseLanguagePredictor):
         self._java_Xmx = os.environ.get(EnvVarNames.DRUM_JAVA_XMX)
         self._custom_predictor_class = os.environ.get(EnvVarNames.DRUM_JAVA_CUSTOM_PREDICTOR_CLASS)
 
-        # find DRUM system file `predictors.jar` next to the current file in its installation dir
-        self._jar_files = glob.glob(os.path.join(os.path.dirname(__file__), "*.jar"))
+        # init with only one system file `drum-py4j-entrypoint*.jar`
+        # don't include default predictors it may cause deps conflict
+        self._jar_files = glob.glob(
+            os.path.join(os.path.dirname(__file__), "drum-py4j-entrypoint*.jar")
+        )
 
     def configure(self, params):
         super(JavaPredictor, self).configure(params)
@@ -221,11 +224,19 @@ class JavaPredictor(BaseLanguagePredictor):
         self._cleanup()
 
     def _run_java_server_entry_point(self):
-        java_cp = ":".join(self._jar_files)
+
         custom_class_path = os.environ.get(EnvVarNames.DRUM_JAVA_CUSTOM_CLASS_PATH)
-        if custom_class_path is not None:
-            java_cp = "{}:{}".format(java_cp, custom_class_path)
+        if custom_class_path:
             self.logger.debug("Custom class path: {}".format(custom_class_path))
+            self._jar_files.append(custom_class_path)
+        else:
+            # find DRUM system file `predictors.jar` next to the current file in its installation dir
+            _drum_default_predictors_jar = glob.glob(
+                os.path.join(os.path.dirname(__file__), "drum-predictors-*.jar")
+            )
+            self._jar_files.extend(_drum_default_predictors_jar)
+
+        java_cp = ":".join(self._jar_files)
 
         self.logger.debug("Full Java class path: {}".format(java_cp))
 
