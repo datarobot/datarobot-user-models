@@ -26,13 +26,14 @@
 /custom_model_runner/datarobot_drum/resource/default_typeschema     @datarobot/core-modeling
 /public_dropin_environments/java_codegen                            @datarobot/custom-models
 /public_dropin_environments/julia_mlj                               @datarobot/custom-models
+/public_dropin_environments/python3_onnx                            @datarobot/custom-models
+/model_templates/*onnx                                              @datarobot/custom-models
 /public_dropin_environments/python3_keras                           @datarobot/custom-models @datarobot/core-modeling
 /public_dropin_environments/python3_pmml                            @datarobot/custom-models @datarobot/core-modeling
 /public_dropin_environments/python3_pytorch                         @datarobot/custom-models @datarobot/core-modeling
 /public_dropin_environments/python3_sklearn                         @datarobot/custom-models @datarobot/core-modeling
 /public_dropin_environments/python3_xgboost                         @datarobot/custom-models @datarobot/core-modeling
 /public_dropin_environments/r_lang                                  @datarobot/custom-models @datarobot/core-modeling
-**/*onnx                                                            @datarobot/custom-models
 /task_templates                                                     @datarobot/core-modeling
 /tests/drum                                                         @datarobot/custom-models @datarobot/core-modeling
 /tests/functional/test_custom_task_templates.py                     @datarobot/core-modeling
