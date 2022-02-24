@@ -26,6 +26,8 @@
 /custom_model_runner/datarobot_drum/resource/default_typeschema     @datarobot/core-modeling
 /public_dropin_environments/java_codegen                            @datarobot/custom-models
 /public_dropin_environments/julia_mlj                               @datarobot/custom-models
+/public_dropin_environments/python3_onnx                            @datarobot/custom-models
+/model_templates/*onnx                                              @datarobot/custom-models
 /public_dropin_environments/python3_keras                           @datarobot/custom-models @datarobot/core-modeling
 /public_dropin_environments/python3_pmml                            @datarobot/custom-models @datarobot/core-modeling
 /public_dropin_environments/python3_pytorch                         @datarobot/custom-models @datarobot/core-modeling
