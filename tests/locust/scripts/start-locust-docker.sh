@@ -109,7 +109,7 @@ case "${unameOut}" in
 esac
 
 
-CMD="docker run -ti
+CMD="docker run --rm 
      --network $network \
      --user $(id -u):$(id -g) \
      -v ${START_DIR}:/home/locust \
