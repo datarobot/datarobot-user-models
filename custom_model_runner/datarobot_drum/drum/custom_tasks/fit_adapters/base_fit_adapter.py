@@ -17,6 +17,7 @@ class BaseFitAdapter(ABC):
     This class acts as a layer between the DRUM CLI and running a custom task's fit method. It will convert the
     cli arguments (mostly paths) into tangible variables to be passed into fit.
     """
+
     def __init__(
         self,
         custom_task_folder_path,
