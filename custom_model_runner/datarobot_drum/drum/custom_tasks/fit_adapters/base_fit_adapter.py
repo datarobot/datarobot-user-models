@@ -53,11 +53,16 @@ class BaseFitAdapter(ABC):
             Optional. Name of the positive class label if target type is binary
         negative_class_label: str or None
             Optional. Name of the negative class label if target type is binary
-        class_labels: str
-        parameters_file: str
-        default_parameter_values: str
-        output_dir: str
-        num_rows: int
+        class_labels: list[str] or None
+            Optional. List of class labels
+        parameters_file: str or None
+            Optional. Path to the hyperparameter values
+        default_parameter_values: dict[str, Any] or None
+            Optional. Dict containing default parameter values from the model metadata
+        output_dir: str or None
+            Optional. Output directory to store the fit artifacts
+        num_rows: int or None
+            Optional. Number of rows
         """
         self.custom_task_folder_path = custom_task_folder_path
         self.input_filename = input_filename
