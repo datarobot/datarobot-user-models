@@ -7,8 +7,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import logging
 import os
 
-from mlpiper.components.connectable_component import ConnectableComponent
-
+from datarobot_drum.drum.custom_tasks.fit_adapters.base_fit_adapter import BaseFitAdapter
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.utils import (
     make_sure_artifact_is_small,
@@ -43,49 +42,13 @@ R_COMMON_PATH = os.path.abspath(
 r_handler = ro.r
 
 
-class RFit(ConnectableComponent):
-    def __init__(self, engine):
-        super(RFit, self).__init__(engine)
-        self.target_name = None
-        self.output_dir = None
-        self.estimator = None
-        self.positive_class_label = None
-        self.negative_class_label = None
-        self.class_labels = None
-        self.custom_model_path = None
-        self.input_filename = None
-        self.sparse_column_file = None
-        self.weights = None
-        self.weights_filename = None
-        self.target_filename = None
-        self.num_rows = None
-        self.parameter_file = None
-        self.target_type = None
-        self.default_parameter_values = None
-
-    def configure(self, params):
-        super(RFit, self).configure(params)
-        self.custom_model_path = self._params["__custom_model_path__"]
-        self.input_filename = self._params["inputFilename"]
-        self.sparse_column_file = self._params["sparseColumnFile"]
-        self.target_name = self._params.get("targetColumn")
-        self.output_dir = self._params["outputDir"]
-        self.positive_class_label = self._params.get("positiveClassLabel")
-        self.negative_class_label = self._params.get("negativeClassLabel")
-        self.class_labels = self._params.get("classLabels")
-        self.weights = self._params["weights"]
-        self.weights_filename = self._params["weightsFilename"]
-        self.target_filename = self._params.get("targetFilename")
-        self.num_rows = self._params["numRows"]
-        self.parameter_file = self._params.get("parameterFile")
-        self.target_type = self._params["target_type"]
-        self.default_parameter_values = self._params.get("defaultParameterValues")
-
+class RFitAdapter(BaseFitAdapter):
+    def configure(self):
         r_handler.source(R_COMMON_PATH)
         r_handler.source(R_FIT_PATH)
-        r_handler.init(self.custom_model_path)
+        r_handler.init(self.custom_task_folder_path)
 
-    def _materialize(self, parent_data_objs, user_data):
+    def outer_fit(self):
         # make sure our output dir ends with a slash
         if self.output_dir[-1] != "/":
             self.output_dir += "/"
@@ -97,7 +60,7 @@ class RFit(ConnectableComponent):
             r_handler.outer_fit(
                 self.output_dir,
                 self.input_filename,
-                self.sparse_column_file or ro.NULL,
+                self.sparse_column_filename or ro.NULL,
                 self.target_filename or ro.NULL,
                 target_name,
                 self.num_rows,
@@ -106,7 +69,7 @@ class RFit(ConnectableComponent):
                 ro.NULL if self.positive_class_label is None else self.positive_class_label,
                 ro.NULL if self.negative_class_label is None else self.negative_class_label,
                 ro.StrVector([str(l) for l in self.class_labels]) if self.class_labels else ro.NULL,
-                self.parameter_file or ro.NULL,
+                self.parameters_file or ro.NULL,
                 self.target_type,
                 ro.DataFrame(self.default_parameter_values)
                 if self.default_parameter_values

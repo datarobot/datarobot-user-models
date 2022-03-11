@@ -36,6 +36,8 @@ from datarobot_drum.drum.common import (
     read_model_metadata_yaml,
     get_metadata,
 )
+from datarobot_drum.drum.custom_tasks.fit_adapters.python.python_fit_adapter import PythonFitAdapter
+from datarobot_drum.drum.custom_tasks.fit_adapters.r.r_fit_adapter import RFitAdapter
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     CUSTOM_FILE_NAME,
@@ -55,6 +57,7 @@ from datarobot_drum.drum.enum import (
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumPredException
+from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.push import drum_push, setup_validation_options
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
@@ -537,12 +540,7 @@ class CMRunner:
             remove_temp_output = self.options.output
         self._validate_output_dir()
         print("Starting Fit")
-        mem_usage = memory_usage(
-            self._run_fit_or_predictions_pipelines_in_mlpiper,
-            interval=1,
-            max_usage=True,
-            max_iterations=1,
-        )
+        mem_usage = memory_usage(self._run_fit, interval=1, max_usage=True, max_iterations=1,)
         print("Fit successful")
         if self.options.verbose:
             print("Maximum fit memory usage: {}MB".format(int(mem_usage)))
@@ -569,6 +567,19 @@ class CMRunner:
             print("Success 🎉")
 
     def run_test_predict(self):
+        """
+        Run after fit has completed. Performs various inference checks including prediction
+        consistency and output data matching defined schema.
+
+        Raises
+        ------
+        DrumCommonException
+            Raised when the code directory is also used as the output directory.
+        DrumPredException
+            Raised when prediction fails.
+        DrumSchemaValidationException
+            Raised when model metadata validation fails.
+        """
         self.options.code_dir = self.options.output
         self.options.output = os.devnull
         __target_temp = None
@@ -687,7 +698,14 @@ class CMRunner:
             return self.options.class_labels is None
         return False
 
-    def _prepare_fit_pipeline(self, run_language):
+    def _run_fit(self):
+        run_language = self._check_artifacts_and_get_run_language()
+        if run_language == RunLanguage.PYTHON:
+            fit_adapter_class = PythonFitAdapter
+        elif run_language == RunLanguage.R:
+            fit_adapter_class = RFitAdapter
+        else:
+            raise ValueError("drum fit only supports Python and R")
 
         if self._needs_class_labels():
             # No class label information was supplied, but we may be able to infer the labels
@@ -727,40 +745,33 @@ class CMRunner:
                     "labels could not be inferred from the target.".format(self.target_type.value)
                 )
 
-        options = self.options
-        # functional pipeline is predictor pipeline
-        # they are a little different for batch and server predictions.
-        functional_pipeline_name = self._functional_pipelines[(self.run_mode, run_language)]
-        functional_pipeline_filepath = DrumUtils.get_pipeline_filepath(functional_pipeline_name)
-        # fields to replace in the functional pipeline (predictor)
-        replace_data = {
-            "customModelPath": os.path.abspath(options.code_dir),
-            "input_filename": options.input,
-            "weights": options.row_weights,
-            "weights_filename": options.row_weights_csv,
-            "target_column": options.target,
-            "target_filename": options.target_csv,
-            "target_type": self.target_type.value,
-            "positiveClassLabel": options.positive_class_label,
-            "negativeClassLabel": options.negative_class_label,
-            "classLabels": options.class_labels,
-            "output_dir": options.output,
-            "num_rows": options.num_rows,
-            "sparse_column_file": options.sparse_column_file,
-            "parameter_file": options.parameter_file,
-            "default_parameter_values": options.default_parameter_values,
-        }
+        fit_adapter = fit_adapter_class(
+            custom_task_folder_path=self.options.code_dir,
+            input_filename=self.options.input,
+            target_name=self.options.target,
+            target_filename=self.options.target_csv,
+            weights=self.options.row_weights,
+            weights_filename=self.options.row_weights_csv,
+            sparse_column_filename=self.options.sparse_column_file,
+            target_type=self.target_type,
+            positive_class_label=self.options.positive_class_label,
+            negative_class_label=self.options.negative_class_label,
+            class_labels=self.options.class_labels,
+            parameters_file=self.options.parameter_file,
+            default_parameter_values=self.options.default_parameter_values,
+            output_dir=self.options.output,
+            num_rows=self.options.num_rows,
+        )
 
-        functional_pipeline_str = DrumUtils.render_file(functional_pipeline_filepath, replace_data)
-        return functional_pipeline_str
+        fit_adapter.outer_fit()
 
     def _run_fit_or_predictions_pipelines_in_mlpiper(self):
+        run_language = self._check_artifacts_and_get_run_language()
+
         if self.run_mode == RunMode.SERVER:
-            run_language = self._check_artifacts_and_get_run_language()
             # in prediction server mode infra pipeline == prediction server runner pipeline
             infra_pipeline_str = self._prepare_prediction_server_or_batch_pipeline(run_language)
         elif self.run_mode == RunMode.SCORE:
-            run_language = self._check_artifacts_and_get_run_language()
             tmp_output_filename = None
             # if output is not provided, output into tmp file and print
             if not self.options.output:
@@ -769,9 +780,6 @@ class CMRunner:
                 self.options.output = tmp_output_filename = __tmp_output_file.name
             # in batch prediction mode infra pipeline == predictor pipeline
             infra_pipeline_str = self._prepare_prediction_server_or_batch_pipeline(run_language)
-        elif self.run_mode == RunMode.FIT:
-            run_language = self._get_fit_run_language()
-            infra_pipeline_str = self._prepare_fit_pipeline(run_language)
         else:
             error_message = "{} mode is not supported here".format(self.run_mode)
             print(error_message)
