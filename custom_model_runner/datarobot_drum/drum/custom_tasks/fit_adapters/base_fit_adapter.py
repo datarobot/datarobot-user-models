@@ -5,29 +5,24 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
-import sys
-import os
+from abc import ABC
 
-from mlpiper.components.connectable_component import ConnectableComponent
-
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, TargetType, TARGET_TYPE_ARG_KEYWORD
-from datarobot_drum.drum.model_adapter import PythonModelAdapter
-from datarobot_drum.drum.utils import shared_fit_preprocessing, make_sure_artifact_is_small
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 
-class BaseFitAdapter(object):
+class BaseFitAdapter(ABC):
     def __init__(
         self,
-        custom_task_folder_path=None,
-        input_filename=None,
+        custom_task_folder_path,
+        input_filename,
+        target_type,
         target_name=None,
         target_filename=None,
         weights=None,
         weights_filename=None,
         sparse_column_filename=None,
-        target_type=None,
         positive_class_label=None,
         negative_class_label=None,
         class_labels=None,
@@ -36,6 +31,34 @@ class BaseFitAdapter(object):
         output_dir=None,
         num_rows=None,
     ):
+        """
+        Parameters
+        ----------
+        custom_task_folder_path: str
+            Path to the custom task folder
+        input_filename: str
+            Path to the input training dataset
+        target_type: str
+        target_name: str or None
+            Optional. Name of the target column in the input training dataset
+        target_filename: str or None
+            Optional. Path to the target values if it's not included in the input training dataset
+        weights: str or None
+            Optional. Name of the weights column in the input training dataset
+        weights_filename: str or None
+            Optional. Path to the weight values if it's not included in the input training dataset
+        sparse_column_filename: str or None
+            Optional. Path to the column names if it's not included in the input training dataset
+        positive_class_label: str or None
+            Optional. Name of the positive class label if target type is binary
+        negative_class_label: str or None
+            Optional. Name of the negative class label if target type is binary
+        class_labels: str
+        parameters_file: str
+        default_parameter_values: str
+        output_dir: str
+        num_rows: int
+        """
         self.custom_task_folder_path = custom_task_folder_path
         self.input_filename = input_filename
         self.target_name = target_name
@@ -56,4 +79,4 @@ class BaseFitAdapter(object):
         pass
 
     def outer_fit(self):
-        pass
+        raise NotImplementedError("FitAdapters must define outer_fit")

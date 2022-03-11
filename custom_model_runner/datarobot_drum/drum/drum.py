@@ -748,12 +748,12 @@ class CMRunner:
         fit_adapter = fit_adapter_class(
             custom_task_folder_path=self.options.code_dir,
             input_filename=self.options.input,
+            target_type=self.target_type.value,
             target_name=self.options.target,
             target_filename=self.options.target_csv,
             weights=self.options.row_weights,
             weights_filename=self.options.row_weights_csv,
             sparse_column_filename=self.options.sparse_column_file,
-            target_type=self.target_type,
             positive_class_label=self.options.positive_class_label,
             negative_class_label=self.options.negative_class_label,
             class_labels=self.options.class_labels,
@@ -762,7 +762,7 @@ class CMRunner:
             output_dir=self.options.output,
             num_rows=self.options.num_rows,
         )
-
+        fit_adapter.configure()
         fit_adapter.outer_fit()
 
     def _run_fit_or_predictions_pipelines_in_mlpiper(self):
