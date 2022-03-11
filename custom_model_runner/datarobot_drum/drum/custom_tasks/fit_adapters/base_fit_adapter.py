@@ -13,6 +13,10 @@ logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 
 class BaseFitAdapter(ABC):
+    """
+    This class acts as a layer between the DRUM CLI and running a custom task's fit method. It will convert the
+    cli arguments (mostly paths) into tangible variables to be passed into fit.
+    """
     def __init__(
         self,
         custom_task_folder_path,
@@ -81,6 +85,9 @@ class BaseFitAdapter(ABC):
         self.num_rows = num_rows
 
     def configure(self):
+        """
+        Configure things before running fit. For example, adding custom task code to the sys.path
+        """
         pass
 
     def outer_fit(self):
