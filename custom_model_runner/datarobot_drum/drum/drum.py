@@ -23,7 +23,6 @@ from distutils.dir_util import copy_tree
 from pathlib import Path
 from progress.spinner import Spinner
 
-import numpy as np
 import pandas as pd
 
 from memory_profiler import memory_usage
@@ -57,7 +56,6 @@ from datarobot_drum.drum.enum import (
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumPredException
-from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.push import drum_push, setup_validation_options
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
@@ -477,7 +475,7 @@ class CMRunner:
         self._print_welcome_header()
 
         if self.run_mode in [RunMode.SERVER, RunMode.SCORE]:
-            self._run_fit_or_predictions_pipelines_in_mlpiper()
+            self._run_predictions_pipelines_in_mlpiper()
         elif self.run_mode == RunMode.FIT:
             self.run_fit()
         elif self.run_mode == RunMode.PERF_TEST:
@@ -688,16 +686,6 @@ class CMRunner:
                 functional_pipeline_str = json.dumps(pipeline_json)
         return functional_pipeline_str
 
-    def _needs_class_labels(self):
-        if self.target_type == TargetType.BINARY:
-            return (
-                self.options.negative_class_label is None
-                or self.options.positive_class_label is None
-            )
-        if self.target_type == TargetType.MULTICLASS:
-            return self.options.class_labels is None
-        return False
-
     def _run_fit(self):
         run_language = self._check_artifacts_and_get_run_language()
         if run_language == RunLanguage.PYTHON:
@@ -707,48 +695,10 @@ class CMRunner:
         else:
             raise ValueError("drum fit only supports Python and R")
 
-        if self._needs_class_labels():
-            # No class label information was supplied, but we may be able to infer the labels
-            if self.target_type.value in TargetType.CLASSIFICATION.value:
-                print("WARNING: class list not supplied.  Using unique target values.")
-            possible_class_labels = possibly_intuit_order(
-                self.options.input,
-                self.options.target_csv,
-                self.options.target,
-                self.target_type == TargetType.ANOMALY,
-            )
-            if possible_class_labels is not None:
-                if self.target_type == TargetType.BINARY:
-                    if len(possible_class_labels) != 2:
-                        raise DrumCommonException(
-                            "Target type {} requires exactly 2 class labels. Detected {}: {}".format(
-                                TargetType.BINARY, len(possible_class_labels), possible_class_labels
-                            )
-                        )
-                    (
-                        self.options.positive_class_label,
-                        self.options.negative_class_label,
-                    ) = possible_class_labels
-                elif self.target_type == TargetType.MULTICLASS:
-                    if len(possible_class_labels) < 2:
-                        raise DrumCommonException(
-                            "Target type {} requires more than 2 class labels. Detected {}: {}".format(
-                                TargetType.MULTICLASS,
-                                len(possible_class_labels),
-                                possible_class_labels,
-                            )
-                        )
-                    self.options.class_labels = list(possible_class_labels)
-            else:
-                raise DrumCommonException(
-                    "Target type {} requires class label information. No labels were supplied and "
-                    "labels could not be inferred from the target.".format(self.target_type.value)
-                )
-
         fit_adapter = fit_adapter_class(
             custom_task_folder_path=self.options.code_dir,
             input_filename=self.options.input,
-            target_type=self.target_type.value,
+            target_type=self.target_type,
             target_name=self.options.target,
             target_filename=self.options.target_csv,
             weights=self.options.row_weights,
@@ -765,7 +715,7 @@ class CMRunner:
         fit_adapter.configure()
         fit_adapter.outer_fit()
 
-    def _run_fit_or_predictions_pipelines_in_mlpiper(self):
+    def _run_predictions_pipelines_in_mlpiper(self):
         run_language = self._check_artifacts_and_get_run_language()
 
         if self.run_mode == RunMode.SERVER:
@@ -1145,34 +1095,6 @@ class CMRunner:
             )
 
         return ret_docker_image
-
-
-def possibly_intuit_order(
-    input_data_file, target_data_file=None, target_col_name=None, is_anomaly=False,
-):
-    if is_anomaly:
-        return None
-    elif target_data_file:
-        assert target_col_name is None
-
-        y = pd.read_csv(target_data_file, index_col=False)
-        classes = np.unique(y.iloc[:, 0])
-    else:
-        assert target_data_file is None
-        df = pd.read_csv(input_data_file)
-        if not target_col_name in df.columns:
-            e = "The column '{}' does not exist in your dataframe. \nThe columns in your dataframe are these: {}".format(
-                target_col_name, list(df.columns)
-            )
-            print(e, file=sys.stderr)
-            raise DrumCommonException(e)
-        uniq = df[target_col_name].unique()
-        classes = set(uniq) - {np.nan}
-    if len(classes) >= 2:
-        return sorted(classes)
-    elif len(classes) == 1:
-        raise DrumCommonException("Only one target label was provided, please revise training data")
-    return None
 
 
 def output_in_code_dir(code_dir, output_dir):

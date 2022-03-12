@@ -21,6 +21,7 @@ logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 class PythonFitAdapter(BaseFitAdapter):
     def configure(self):
+        super(PythonFitAdapter, self).configure()
         sys.path.append(self.custom_task_folder_path)
 
     def _extract_weights(self, X):

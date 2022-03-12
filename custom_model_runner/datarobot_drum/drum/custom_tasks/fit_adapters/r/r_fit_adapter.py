@@ -44,6 +44,8 @@ r_handler = ro.r
 
 class RFitAdapter(BaseFitAdapter):
     def configure(self):
+        super(RFitAdapter, self).configure()
+
         r_handler.source(R_COMMON_PATH)
         r_handler.source(R_FIT_PATH)
         r_handler.init(self.custom_task_folder_path)
@@ -56,6 +58,7 @@ class RFitAdapter(BaseFitAdapter):
         weights = self.weights if self.weights else ro.NULL
         target_name = self.target_name if self.target_name else ro.NULL
 
+        # TODO: read files in python, pass values to R instead of filepaths
         with capture_R_traceback_if_errors(r_handler, logger):
             r_handler.outer_fit(
                 self.output_dir,
@@ -70,7 +73,7 @@ class RFitAdapter(BaseFitAdapter):
                 ro.NULL if self.negative_class_label is None else self.negative_class_label,
                 ro.StrVector([str(l) for l in self.class_labels]) if self.class_labels else ro.NULL,
                 self.parameters_file or ro.NULL,
-                self.target_type,
+                self.target_type.value,  # target_type is an enum, pass its string value into R
                 ro.DataFrame(self.default_parameter_values)
                 if self.default_parameter_values
                 else ro.NULL,

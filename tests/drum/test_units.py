@@ -52,6 +52,8 @@ from datarobot_drum.drum.drum import (
     create_custom_inference_model_folder,
     get_default_parameter_values,
     output_in_code_dir,
+)
+from datarobot_drum.drum.custom_tasks.fit_adapters.classification_labels_util import (
     possibly_intuit_order,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -82,7 +84,7 @@ class TestOrderIntuition:
     one_target_filename = os.path.join(tests_data_path, "one_target.csv")
 
     def test_colname(self):
-        classes = possibly_intuit_order(self.binary_filename, target_col_name="Species")
+        classes = possibly_intuit_order(self.binary_filename, target_name="Species")
         assert set(classes) == {"Iris-versicolor", "Iris-setosa"}
 
     def test_colfile(self):
@@ -92,16 +94,16 @@ class TestOrderIntuition:
                 target_series = df["Species"]
                 target_series.to_csv(f, index=False, header="Target")
 
-            classes = possibly_intuit_order(self.binary_filename, target_data_file=target_file.name)
+            classes = possibly_intuit_order(self.binary_filename, target_filename=target_file.name)
             assert set(classes) == {"Iris-versicolor", "Iris-setosa"}
 
     def test_badfile(self):
         with pytest.raises(DrumCommonException):
-            possibly_intuit_order(self.one_target_filename, target_col_name="Species")
+            possibly_intuit_order(self.one_target_filename, target_name="Species")
 
     def test_unsupervised(self):
         classes = possibly_intuit_order(
-            self.regression_filename, target_col_name="Grade 2014", is_anomaly=True
+            self.regression_filename, target_name="Grade 2014", is_anomaly=True
         )
         assert classes is None
 

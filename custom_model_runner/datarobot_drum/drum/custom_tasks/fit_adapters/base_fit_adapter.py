@@ -7,7 +7,11 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import logging
 from abc import ABC
 
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.custom_tasks.fit_adapters.classification_labels_util import (
+    needs_class_labels,
+    infer_class_labels,
+)
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, TargetType
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -43,7 +47,7 @@ class BaseFitAdapter(ABC):
             Path to the custom task folder
         input_filename: str
             Path to the input training dataset
-        target_type: str
+        target_type: datarobot_drum.drum.enum.TargetType
         target_name: str or None
             Optional. Name of the target column in the input training dataset
         target_filename: str or None
@@ -71,12 +75,12 @@ class BaseFitAdapter(ABC):
         """
         self.custom_task_folder_path = custom_task_folder_path
         self.input_filename = input_filename
+        self.target_type = target_type
         self.target_name = target_name
         self.target_filename = target_filename
         self.weights = weights
         self.weights_filename = weights_filename
         self.sparse_column_filename = sparse_column_filename
-        self.target_type = target_type
         self.positive_class_label = positive_class_label
         self.negative_class_label = negative_class_label
         self.class_labels = class_labels
@@ -85,11 +89,30 @@ class BaseFitAdapter(ABC):
         self.output_dir = output_dir
         self.num_rows = num_rows
 
+    def _infer_class_labels_if_needed(self):
+        if needs_class_labels(
+            target_type=self.target_type,
+            negative_class_label=self.negative_class_label,
+            positive_class_label=self.positive_class_label,
+            class_labels=self.class_labels,
+        ):
+            class_labels = infer_class_labels(
+                target_type=self.target_type,
+                input_filename=self.input_filename,
+                target_filename=self.target_filename,
+                target_name=self.target_name,
+            )
+
+            if self.target_type == TargetType.BINARY:
+                self.positive_class_label, self.negative_class_label = class_labels
+            elif self.target_type == TargetType.MULTICLASS:
+                self.class_labels = class_labels
+
     def configure(self):
         """
-        Configure things before running fit. For example, adding custom task code to the sys.path
+        Configure things before running fit. Should always be called from child classes.
         """
-        pass
+        self._infer_class_labels_if_needed()
 
     def outer_fit(self):
         raise NotImplementedError("FitAdapters must define outer_fit")
