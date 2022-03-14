@@ -35,6 +35,10 @@ from datarobot_drum.drum.common import (
     read_model_metadata_yaml,
     get_metadata,
 )
+from datarobot_drum.drum.custom_tasks.fit_adapters.classification_labels_util import (
+    needs_class_labels,
+    infer_class_labels,
+)
 from datarobot_drum.drum.custom_tasks.fit_adapters.python.python_fit_adapter import PythonFitAdapter
 from datarobot_drum.drum.custom_tasks.fit_adapters.r.r_fit_adapter import RFitAdapter
 from datarobot_drum.drum.enum import (
@@ -515,6 +519,25 @@ class CMRunner:
         if self.options.output == self.options.code_dir:
             raise DrumCommonException("The code directory may not be used as the output directory.")
 
+    def _infer_class_labels_if_not_provided(self):
+        if needs_class_labels(
+            target_type=self.target_type,
+            negative_class_label=self.options.negative_class_label,
+            positive_class_label=self.options.positive_class_label,
+            class_labels=self.options.class_labels,
+        ):
+            class_labels = infer_class_labels(
+                target_type=self.target_type,
+                input_filename=self.options.input,
+                target_filename=self.options.target_csv,
+                target_name=self.options.target,
+            )
+
+            if self.target_type == TargetType.BINARY:
+                self.options.positive_class_label, self.options.negative_class_label = class_labels
+            elif self.target_type == TargetType.MULTICLASS:
+                self.options.class_labels = class_labels
+
     def run_fit(self):
         """Run when run_model is fit.
 
@@ -527,16 +550,25 @@ class CMRunner:
         DrumSchemaValidationException
             Raised when model metadata validation fails.
         """
-        self.schema_validator.validate_type_schema(self.target_type)
+        # Remove target from the input dataframe
         input_data = self.input_df
         if self.options.target:
             input_data = input_data.drop(self.options.target, axis=1)
+
+        # Validate schema target type and input data
+        self.schema_validator.validate_type_schema(self.target_type)
         self.schema_validator.validate_inputs(input_data)
+
+        # Create output directory for artifact if output directory is defined
         remove_temp_output = None
         if not self.options.output:
             self.options.output = mkdtemp()
             remove_temp_output = self.options.output
         self._validate_output_dir()
+
+        # Infer class labels if not provdied in the cli args
+        self._infer_class_labels_if_not_provided()
+
         print("Starting Fit")
         mem_usage = memory_usage(self._run_fit, interval=1, max_usage=True, max_iterations=1,)
         print("Fit successful")

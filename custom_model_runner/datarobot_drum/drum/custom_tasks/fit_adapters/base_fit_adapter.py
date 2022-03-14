@@ -7,11 +7,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import logging
 from abc import ABC
 
-from datarobot_drum.drum.custom_tasks.fit_adapters.classification_labels_util import (
-    needs_class_labels,
-    infer_class_labels,
-)
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, TargetType
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -89,30 +85,11 @@ class BaseFitAdapter(ABC):
         self.output_dir = output_dir
         self.num_rows = num_rows
 
-    def _infer_class_labels_if_needed(self):
-        if needs_class_labels(
-            target_type=self.target_type,
-            negative_class_label=self.negative_class_label,
-            positive_class_label=self.positive_class_label,
-            class_labels=self.class_labels,
-        ):
-            class_labels = infer_class_labels(
-                target_type=self.target_type,
-                input_filename=self.input_filename,
-                target_filename=self.target_filename,
-                target_name=self.target_name,
-            )
-
-            if self.target_type == TargetType.BINARY:
-                self.positive_class_label, self.negative_class_label = class_labels
-            elif self.target_type == TargetType.MULTICLASS:
-                self.class_labels = class_labels
-
     def configure(self):
         """
-        Configure things before running fit. Should always be called from child classes.
+        Configure things before running fit.
         """
-        self._infer_class_labels_if_needed()
+        pass
 
     def outer_fit(self):
         raise NotImplementedError("FitAdapters must define outer_fit")

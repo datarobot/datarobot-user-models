@@ -32,7 +32,7 @@ def possibly_intuit_order(
         assert target_name is None
 
         y = pd.read_csv(target_filename, index_col=False)
-        classes = np.unique(y.iloc[:, 0])
+        classes = np.unique(y.iloc[:, 0].astype(str))
     else:
         assert target_filename is None
         df = pd.read_csv(input_filename)
@@ -42,7 +42,7 @@ def possibly_intuit_order(
             )
             print(e, file=sys.stderr)
             raise DrumCommonException(e)
-        uniq = df[target_name].unique()
+        uniq = df[target_name].astype(str).unique()
         classes = set(uniq) - {np.nan}
     if len(classes) >= 2:
         return sorted(classes)
