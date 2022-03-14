@@ -227,7 +227,7 @@ class TestFit:
             (SKLEARN_MULTICLASS, MULTICLASS_LABEL_SPACES, None),
         ],
     )
-    @pytest.mark.parametrize("weights", [WEIGHTS_CSV])
+    @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
     def test_fit(
         self, resources, framework, problem, docker, weights, tmp_path,
     ):
