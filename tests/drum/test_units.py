@@ -1449,7 +1449,16 @@ class TestReplaceSanitizedClassNames:
             r_pred._replace_sanitized_class_names(predictions)
 
 
-def test_binary_class_labels_from_target():
+@pytest.mark.parametrize(
+    "target_type, expected_pos_label, expected_neg_label, expected_class_labels",
+    [
+        (TargetType.BINARY, "Iris-setosa", "Iris-versicolor", None),
+        (TargetType.MULTICLASS, None, None, ["Iris-setosa", "Iris-versicolor"]),
+    ],
+)
+def test_class_labels_from_target(
+    target_type, expected_pos_label, expected_neg_label, expected_class_labels
+):
     test_data_path = os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv")
     with DrumRuntime() as runtime:
         runtime.options = Namespace(
@@ -1460,7 +1469,7 @@ def test_binary_class_labels_from_target():
             disable_strict_validation=False,
             logging_level="warning",
             subparser_name=RunMode.FIT,
-            target_type=TargetType.BINARY,
+            target_type=target_type,
             verbose=False,
             content_type=None,
             input=test_data_path,
@@ -1476,9 +1485,9 @@ def test_binary_class_labels_from_target():
         cmrunner = CMRunner(runtime)
         cmrunner._prepare_fit()
 
-        assert cmrunner.options.negative_class_label == "Iris-versicolor"
-        assert cmrunner.options.positive_class_label == "Iris-setosa"
-        assert cmrunner.options.class_labels is None
+        assert cmrunner.options.negative_class_label == expected_neg_label
+        assert cmrunner.options.positive_class_label == expected_pos_label
+        assert cmrunner.options.class_labels == expected_class_labels
 
 
 @pytest.mark.parametrize(
