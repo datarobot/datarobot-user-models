@@ -538,6 +538,19 @@ class CMRunner:
             elif self.target_type == TargetType.MULTICLASS:
                 self.options.class_labels = class_labels
 
+    def _prepare_fit(self):
+        # Remove target from the input dataframe
+        input_data = self.input_df
+        if self.options.target:
+            input_data = input_data.drop(self.options.target, axis=1)
+
+        # Validate schema target type and input data
+        self.schema_validator.validate_type_schema(self.target_type)
+        self.schema_validator.validate_inputs(input_data)
+
+        # Infer class labels if not provdied in the cli args
+        self._infer_class_labels_if_not_provided()
+
     def run_fit(self):
         """Run when run_model is fit.
 
@@ -550,14 +563,7 @@ class CMRunner:
         DrumSchemaValidationException
             Raised when model metadata validation fails.
         """
-        # Remove target from the input dataframe
-        input_data = self.input_df
-        if self.options.target:
-            input_data = input_data.drop(self.options.target, axis=1)
-
-        # Validate schema target type and input data
-        self.schema_validator.validate_type_schema(self.target_type)
-        self.schema_validator.validate_inputs(input_data)
+        self._prepare_fit()
 
         # Create output directory for artifact if output directory is defined
         remove_temp_output = None
@@ -565,9 +571,6 @@ class CMRunner:
             self.options.output = mkdtemp()
             remove_temp_output = self.options.output
         self._validate_output_dir()
-
-        # Infer class labels if not provdied in the cli args
-        self._infer_class_labels_if_not_provided()
 
         print("Starting Fit")
         mem_usage = memory_usage(self._run_fit, interval=1, max_usage=True, max_iterations=1,)
