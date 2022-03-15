@@ -23,7 +23,6 @@ from distutils.dir_util import copy_tree
 from pathlib import Path
 from progress.spinner import Spinner
 
-import numpy as np
 import pandas as pd
 
 from memory_profiler import memory_usage
@@ -36,6 +35,12 @@ from datarobot_drum.drum.common import (
     read_model_metadata_yaml,
     get_metadata,
 )
+from datarobot_drum.drum.custom_tasks.fit_adapters.classification_labels_util import (
+    needs_class_labels,
+    infer_class_labels,
+)
+from datarobot_drum.drum.custom_tasks.fit_adapters.python.python_fit_adapter import PythonFitAdapter
+from datarobot_drum.drum.custom_tasks.fit_adapters.r.r_fit_adapter import RFitAdapter
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     CUSTOM_FILE_NAME,
@@ -474,7 +479,7 @@ class CMRunner:
         self._print_welcome_header()
 
         if self.run_mode in [RunMode.SERVER, RunMode.SCORE]:
-            self._run_fit_or_predictions_pipelines_in_mlpiper()
+            self._run_predictions_pipelines_in_mlpiper()
         elif self.run_mode == RunMode.FIT:
             self.run_fit()
         elif self.run_mode == RunMode.PERF_TEST:
@@ -514,6 +519,38 @@ class CMRunner:
         if self.options.output == self.options.code_dir:
             raise DrumCommonException("The code directory may not be used as the output directory.")
 
+    def _infer_class_labels_if_not_provided(self):
+        if needs_class_labels(
+            target_type=self.target_type,
+            negative_class_label=self.options.negative_class_label,
+            positive_class_label=self.options.positive_class_label,
+            class_labels=self.options.class_labels,
+        ):
+            class_labels = infer_class_labels(
+                target_type=self.target_type,
+                input_filename=self.options.input,
+                target_filename=self.options.target_csv,
+                target_name=self.options.target,
+            )
+
+            if self.target_type == TargetType.BINARY:
+                self.options.positive_class_label, self.options.negative_class_label = class_labels
+            elif self.target_type == TargetType.MULTICLASS:
+                self.options.class_labels = class_labels
+
+    def _prepare_fit(self):
+        # Remove target from the input dataframe
+        input_data = self.input_df
+        if self.options.target:
+            input_data = input_data.drop(self.options.target, axis=1)
+
+        # Validate schema target type and input data
+        self.schema_validator.validate_type_schema(self.target_type)
+        self.schema_validator.validate_inputs(input_data)
+
+        # Infer class labels if not provdied in the cli args
+        self._infer_class_labels_if_not_provided()
+
     def run_fit(self):
         """Run when run_model is fit.
 
@@ -526,23 +563,17 @@ class CMRunner:
         DrumSchemaValidationException
             Raised when model metadata validation fails.
         """
-        self.schema_validator.validate_type_schema(self.target_type)
-        input_data = self.input_df
-        if self.options.target:
-            input_data = input_data.drop(self.options.target, axis=1)
-        self.schema_validator.validate_inputs(input_data)
+        self._prepare_fit()
+
+        # Create output directory for artifact if output directory is defined
         remove_temp_output = None
         if not self.options.output:
             self.options.output = mkdtemp()
             remove_temp_output = self.options.output
         self._validate_output_dir()
+
         print("Starting Fit")
-        mem_usage = memory_usage(
-            self._run_fit_or_predictions_pipelines_in_mlpiper,
-            interval=1,
-            max_usage=True,
-            max_iterations=1,
-        )
+        mem_usage = memory_usage(self._run_fit, interval=1, max_usage=True, max_iterations=1,)
         print("Fit successful")
         if self.options.verbose:
             print("Maximum fit memory usage: {}MB".format(int(mem_usage)))
@@ -569,6 +600,19 @@ class CMRunner:
             print("Success 🎉")
 
     def run_test_predict(self):
+        """
+        Run after fit has completed. Performs various inference checks including prediction
+        consistency and output data matching defined schema.
+
+        Raises
+        ------
+        DrumCommonException
+            Raised when the code directory is also used as the output directory.
+        DrumPredException
+            Raised when prediction fails.
+        DrumSchemaValidationException
+            Raised when model metadata validation fails.
+        """
         self.options.code_dir = self.options.output
         self.options.output = os.devnull
         __target_temp = None
@@ -677,90 +721,42 @@ class CMRunner:
                 functional_pipeline_str = json.dumps(pipeline_json)
         return functional_pipeline_str
 
-    def _needs_class_labels(self):
-        if self.target_type == TargetType.BINARY:
-            return (
-                self.options.negative_class_label is None
-                or self.options.positive_class_label is None
-            )
-        if self.target_type == TargetType.MULTICLASS:
-            return self.options.class_labels is None
-        return False
+    def _run_fit(self):
+        run_language = self._check_artifacts_and_get_run_language()
+        if run_language == RunLanguage.PYTHON:
+            fit_adapter_class = PythonFitAdapter
+        elif run_language == RunLanguage.R:
+            fit_adapter_class = RFitAdapter
+        else:
+            raise ValueError("drum fit only supports Python and R")
 
-    def _prepare_fit_pipeline(self, run_language):
+        fit_adapter = fit_adapter_class(
+            custom_task_folder_path=self.options.code_dir,
+            input_filename=self.options.input,
+            target_type=self.target_type,
+            target_name=self.options.target,
+            target_filename=self.options.target_csv,
+            weights=self.options.row_weights,
+            weights_filename=self.options.row_weights_csv,
+            sparse_column_filename=self.options.sparse_column_file,
+            positive_class_label=self.options.positive_class_label,
+            negative_class_label=self.options.negative_class_label,
+            class_labels=self.options.class_labels,
+            parameters_file=self.options.parameter_file,
+            default_parameter_values=self.options.default_parameter_values,
+            output_dir=self.options.output,
+            num_rows=self.options.num_rows,
+        )
+        fit_adapter.configure()
+        fit_adapter.outer_fit()
 
-        if self._needs_class_labels():
-            # No class label information was supplied, but we may be able to infer the labels
-            if self.target_type.value in TargetType.CLASSIFICATION.value:
-                print("WARNING: class list not supplied.  Using unique target values.")
-            possible_class_labels = possibly_intuit_order(
-                self.options.input,
-                self.options.target_csv,
-                self.options.target,
-                self.target_type == TargetType.ANOMALY,
-            )
-            if possible_class_labels is not None:
-                if self.target_type == TargetType.BINARY:
-                    if len(possible_class_labels) != 2:
-                        raise DrumCommonException(
-                            "Target type {} requires exactly 2 class labels. Detected {}: {}".format(
-                                TargetType.BINARY, len(possible_class_labels), possible_class_labels
-                            )
-                        )
-                    (
-                        self.options.positive_class_label,
-                        self.options.negative_class_label,
-                    ) = possible_class_labels
-                elif self.target_type == TargetType.MULTICLASS:
-                    if len(possible_class_labels) < 2:
-                        raise DrumCommonException(
-                            "Target type {} requires more than 2 class labels. Detected {}: {}".format(
-                                TargetType.MULTICLASS,
-                                len(possible_class_labels),
-                                possible_class_labels,
-                            )
-                        )
-                    self.options.class_labels = list(possible_class_labels)
-            else:
-                raise DrumCommonException(
-                    "Target type {} requires class label information. No labels were supplied and "
-                    "labels could not be inferred from the target.".format(self.target_type.value)
-                )
+    def _run_predictions_pipelines_in_mlpiper(self):
+        run_language = self._check_artifacts_and_get_run_language()
 
-        options = self.options
-        # functional pipeline is predictor pipeline
-        # they are a little different for batch and server predictions.
-        functional_pipeline_name = self._functional_pipelines[(self.run_mode, run_language)]
-        functional_pipeline_filepath = DrumUtils.get_pipeline_filepath(functional_pipeline_name)
-        # fields to replace in the functional pipeline (predictor)
-        replace_data = {
-            "customModelPath": os.path.abspath(options.code_dir),
-            "input_filename": options.input,
-            "weights": options.row_weights,
-            "weights_filename": options.row_weights_csv,
-            "target_column": options.target,
-            "target_filename": options.target_csv,
-            "target_type": self.target_type.value,
-            "positiveClassLabel": options.positive_class_label,
-            "negativeClassLabel": options.negative_class_label,
-            "classLabels": options.class_labels,
-            "output_dir": options.output,
-            "num_rows": options.num_rows,
-            "sparse_column_file": options.sparse_column_file,
-            "parameter_file": options.parameter_file,
-            "default_parameter_values": options.default_parameter_values,
-        }
-
-        functional_pipeline_str = DrumUtils.render_file(functional_pipeline_filepath, replace_data)
-        return functional_pipeline_str
-
-    def _run_fit_or_predictions_pipelines_in_mlpiper(self):
         if self.run_mode == RunMode.SERVER:
-            run_language = self._check_artifacts_and_get_run_language()
             # in prediction server mode infra pipeline == prediction server runner pipeline
             infra_pipeline_str = self._prepare_prediction_server_or_batch_pipeline(run_language)
         elif self.run_mode == RunMode.SCORE:
-            run_language = self._check_artifacts_and_get_run_language()
             tmp_output_filename = None
             # if output is not provided, output into tmp file and print
             if not self.options.output:
@@ -769,9 +765,6 @@ class CMRunner:
                 self.options.output = tmp_output_filename = __tmp_output_file.name
             # in batch prediction mode infra pipeline == predictor pipeline
             infra_pipeline_str = self._prepare_prediction_server_or_batch_pipeline(run_language)
-        elif self.run_mode == RunMode.FIT:
-            run_language = self._get_fit_run_language()
-            infra_pipeline_str = self._prepare_fit_pipeline(run_language)
         else:
             error_message = "{} mode is not supported here".format(self.run_mode)
             print(error_message)
@@ -1137,34 +1130,6 @@ class CMRunner:
             )
 
         return ret_docker_image
-
-
-def possibly_intuit_order(
-    input_data_file, target_data_file=None, target_col_name=None, is_anomaly=False,
-):
-    if is_anomaly:
-        return None
-    elif target_data_file:
-        assert target_col_name is None
-
-        y = pd.read_csv(target_data_file, index_col=False)
-        classes = np.unique(y.iloc[:, 0])
-    else:
-        assert target_data_file is None
-        df = pd.read_csv(input_data_file)
-        if not target_col_name in df.columns:
-            e = "The column '{}' does not exist in your dataframe. \nThe columns in your dataframe are these: {}".format(
-                target_col_name, list(df.columns)
-            )
-            print(e, file=sys.stderr)
-            raise DrumCommonException(e)
-        uniq = df[target_col_name].unique()
-        classes = set(uniq) - {np.nan}
-    if len(classes) >= 2:
-        return sorted(classes)
-    elif len(classes) == 1:
-        raise DrumCommonException("Only one target label was provided, please revise training data")
-    return None
 
 
 def output_in_code_dir(code_dir, output_dir):
