@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import itertools
 import os
 from textwrap import dedent
 from typing import List, Union
@@ -15,7 +16,15 @@ from scipy import sparse
 import yaml
 from strictyaml import load, YAMLValidationError
 
-from datarobot_drum.drum.exceptions import DrumSchemaValidationException
+from datarobot_drum.drum.common import read_model_metadata_yaml, validate_config_fields
+from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, ModelMetadataKeys, TargetType
+
+from datarobot_drum.drum.exceptions import DrumSchemaValidationException, DrumCommonException
+from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import JavaPredictor
+from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
+    PythonPredictor,
+)
+from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
 from datarobot_drum.drum.typeschema_validation import (
     NumColumns,
     Conditions,
@@ -853,3 +862,141 @@ def test_num_col_values(condition, value, fails):
             NumColumns(condition, value)
     else:
         NumColumns(condition, value)
+
+
+def test_read_model_metadata_properly_casts_typeschema(tmp_path, training_metadata_yaml):
+    config_yaml = training_metadata_yaml + dedent(
+        """
+        typeSchema:
+           input_requirements:
+           - field: number_of_columns
+             condition: IN
+             value:
+               - 1
+               - 2
+           - field: data_types
+             condition: EQUALS
+             value:
+               - NUM
+               - TXT
+           output_requirements:
+           - field: number_of_columns
+             condition: IN
+             value: 2
+           - field: data_types
+             condition: EQUALS
+             value: NUM
+        """
+    )
+    with open(os.path.join(tmp_path, MODEL_CONFIG_FILENAME), mode="w") as f:
+        f.write(config_yaml)
+
+    yaml_conf = read_model_metadata_yaml(tmp_path)
+    output_reqs = yaml_conf["typeSchema"]["output_requirements"]
+    input_reqs = yaml_conf["typeSchema"]["input_requirements"]
+
+    value_key = "value"
+    expected_as_int_list = next(
+        (el for el in input_reqs if el["field"] == "number_of_columns")
+    ).get(value_key)
+    expected_as_str_list = next((el for el in input_reqs if el["field"] == "data_types")).get(
+        value_key
+    )
+    expected_as_int = next((el for el in output_reqs if el["field"] == "number_of_columns")).get(
+        value_key
+    )
+    expected_as_str = next((el for el in output_reqs if el["field"] == "data_types")).get(value_key)
+
+    assert all(isinstance(el, int) for el in expected_as_int_list)
+    assert all(isinstance(el, str) for el in expected_as_str_list)
+    assert isinstance(expected_as_str_list, list)
+
+    assert isinstance(expected_as_int, int)
+    assert isinstance(expected_as_str, str)
+
+
+@pytest.mark.parametrize(
+    "target_type, predictor_cls",
+    itertools.product([TargetType.TRANSFORM,], [PythonPredictor, RPredictor, JavaPredictor],),
+)
+def test_validate_model_metadata_output_requirements(target_type, predictor_cls):
+    """The validation on the specs defined in the output_requirements of model metadata is only triggered when the
+    custom task is a transform task. This test checks this functionality.
+
+    Expected results:
+        - If the custom task is a transform task, the validation on the specs defined in the output_requirements will
+          be triggered. In this case, the exception is raised due to the violation of output_requirements.
+        - If the custom task is not a transform task, the validation on the spec defined in the output_requirements will
+          not be triggered.
+    """
+
+    proba_pred_output = pd.DataFrame({"class_0": [0.1, 0.2, 0.3], "class_1": [0.9, 0.8, 0.7]})
+    num_pred_output = pd.DataFrame(np.arange(10))
+    predictor = predictor_cls()
+    predictor._target_type = target_type
+    type_schema = {
+        "input_requirements": [{"field": "data_types", "condition": "IN", "value": "NUM"}],
+        "output_requirements": [{"field": "data_types", "condition": "IN", "value": "CAT"}],
+    }
+    predictor._schema_validator = SchemaValidator(type_schema=type_schema)
+    df_to_validate = (
+        proba_pred_output
+        if target_type.value in TargetType.CLASSIFICATION.value
+        else num_pred_output
+    )
+
+    if target_type == TargetType.TRANSFORM:
+        with pytest.raises(DrumSchemaValidationException) as ex:
+            predictor._schema_validator.validate_outputs(df_to_validate)
+        assert str(ex.value) == (
+            "schema validation failed for output:\n ['Datatypes incorrect. Data has types: NUM, which includes values "
+            "that are not in CAT.']"
+        )
+    else:
+        predictor._schema_validator.validate_outputs(df_to_validate)
+
+
+@pytest.mark.parametrize(
+    "config_yaml, test_case_number",
+    [
+        ("custom_predictor_metadata_yaml", 1),
+        ("inference_binary_metadata_no_label", 2),
+        ("inference_multiclass_metadata_yaml_no_labels", 3),
+        ("inference_multiclass_metadata_yaml_labels_and_label_file", 4),
+        ("inference_multiclass_metadata_yaml", 100),
+        ("inference_multiclass_metadata_yaml_label_file", 100),
+    ],
+)
+def test_yaml_metadata_missing_fields(tmp_path, config_yaml, request, test_case_number):
+    config_yaml = request.getfixturevalue(config_yaml)
+    with open(os.path.join(tmp_path, MODEL_CONFIG_FILENAME), mode="w") as f:
+        f.write(config_yaml)
+
+    if test_case_number == 1:
+        conf = read_model_metadata_yaml(tmp_path)
+        with pytest.raises(
+            DrumCommonException, match="Missing keys: \['validation', 'environmentID'\]"
+        ):
+            validate_config_fields(
+                conf,
+                ModelMetadataKeys.CUSTOM_PREDICTOR,
+                ModelMetadataKeys.VALIDATION,
+                ModelMetadataKeys.ENVIRONMENT_ID,
+            )
+    elif test_case_number == 2:
+        with pytest.raises(DrumCommonException, match="Missing keys: \['negativeClassLabel'\]"):
+            read_model_metadata_yaml(tmp_path)
+    elif test_case_number == 3:
+        with pytest.raises(
+            DrumCommonException,
+            match="Error - for multiclass classification, either the class labels or a class labels file must be provided in model-metadata.yaml file",
+        ):
+            read_model_metadata_yaml(tmp_path)
+    elif test_case_number == 4:
+        with pytest.raises(
+            DrumCommonException,
+            match="Error - for multiclass classification, either the class labels or a class labels file should be provided in model-metadata.yaml file, but not both",
+        ):
+            read_model_metadata_yaml(tmp_path)
+    elif test_case_number == 100:
+        read_model_metadata_yaml(tmp_path)
