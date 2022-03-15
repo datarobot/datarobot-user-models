@@ -11,4 +11,4 @@ For this sample model, custom.py contains additional data pre-processing that th
 
 ### To run locally using 'drum'
 Paths are relative to `./datarobot-user-models`:   
-`drum score --code-dir model_templates/python3_onnx_binary --target-type binary --input tests/testdata/iris_binary_training.csv`
+`drum score --code-dir model_templates/python3_onnx_binary --target-type binary --input tests/testdata/iris_binary_training.csv --positive-class-label Iris-versicolor --negative-class-label Iris-setosa`
