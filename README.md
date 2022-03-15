@@ -65,7 +65,7 @@ Other resources:
 
 Materials for getting started:
 
-* [Custom models walk-through](https://community.datarobot.com/t5/knowledge-base/working-with-custom-models/ta-p/6082)
+* [Walk-through to create, test, and deploy custom inference models](https://docs.datarobot.com/en/docs/mlops/deployment/custom-models/index.html)
 * Code examples:
     * [Custom inference models templates](https://github.com/datarobot/datarobot-user-models/tree/master/model_templates)
     * [Environment Templates](https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments)
