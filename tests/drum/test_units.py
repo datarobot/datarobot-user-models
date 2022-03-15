@@ -40,7 +40,6 @@ from datarobot_drum.drum.common import (
 from datarobot_drum.drum.enum import (
     MODEL_CONFIG_FILENAME,
     TargetType,
-    RunLanguage,
     RunMode,
     ModelMetadataKeys,
 )
@@ -48,6 +47,8 @@ from datarobot_drum.drum.drum import (
     CMRunner,
     create_custom_inference_model_folder,
     output_in_code_dir,
+)
+from datarobot_drum.drum.custom_tasks.fit_adapters.classification_labels_util import (
     possibly_intuit_order,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -74,7 +75,11 @@ class TestOrderIntuition:
     one_target_filename = os.path.join(tests_data_path, "one_target.csv")
 
     def test_colname(self):
-        classes = possibly_intuit_order(self.binary_filename, target_col_name="Species")
+        classes = possibly_intuit_order(
+            input_filename=self.binary_filename,
+            target_type=TargetType.BINARY,
+            target_name="Species",
+        )
         assert set(classes) == {"Iris-versicolor", "Iris-setosa"}
 
     def test_colfile(self):
@@ -84,16 +89,26 @@ class TestOrderIntuition:
                 target_series = df["Species"]
                 target_series.to_csv(f, index=False, header="Target")
 
-            classes = possibly_intuit_order(self.binary_filename, target_data_file=target_file.name)
+            classes = possibly_intuit_order(
+                input_filename=self.binary_filename,
+                target_type=TargetType.BINARY,
+                target_filename=target_file.name,
+            )
             assert set(classes) == {"Iris-versicolor", "Iris-setosa"}
 
     def test_badfile(self):
         with pytest.raises(DrumCommonException):
-            possibly_intuit_order(self.one_target_filename, target_col_name="Species")
+            possibly_intuit_order(
+                input_filename=self.one_target_filename,
+                target_type=TargetType.BINARY,
+                target_name="Species",
+            )
 
     def test_unsupervised(self):
         classes = possibly_intuit_order(
-            self.regression_filename, target_col_name="Grade 2014", is_anomaly=True
+            input_filename=self.regression_filename,
+            target_type=TargetType.ANOMALY,
+            target_name="Grade 2014",
         )
         assert classes is None
 
@@ -962,37 +977,16 @@ class TestReplaceSanitizedClassNames:
             r_pred._replace_sanitized_class_names(predictions)
 
 
-def test_binary_class_labels_from_env():
-    with DrumRuntime() as runtime:
-        runtime.options = Namespace(
-            negative_class_label="env0",
-            positive_class_label="env1",
-            class_labels=None,
-            code_dir="",
-            disable_strict_validation=False,
-            logging_level="warning",
-            subparser_name=RunMode.FIT,
-            target_type=TargetType.BINARY,
-            verbose=False,
-            content_type=None,
-            input=None,
-            target_csv=None,
-            target=None,
-            row_weights=None,
-            row_weights_csv=None,
-            output=None,
-            num_rows=0,
-            sparse_column_file=None,
-            parameter_file=None,
-        )
-        cmrunner = CMRunner(runtime)
-        pipeline_str = cmrunner._prepare_fit_pipeline(run_language=RunLanguage.PYTHON)
-        assert '"positiveClassLabel": "env1",' in pipeline_str
-        assert '"negativeClassLabel": "env0",' in pipeline_str
-        assert '"classLabels": null,' in pipeline_str
-
-
-def test_binary_class_labels_from_target():
+@pytest.mark.parametrize(
+    "target_type, expected_pos_label, expected_neg_label, expected_class_labels",
+    [
+        (TargetType.BINARY, "Iris-setosa", "Iris-versicolor", None),
+        (TargetType.MULTICLASS, None, None, ["Iris-setosa", "Iris-versicolor"]),
+    ],
+)
+def test_class_labels_from_target(
+    target_type, expected_pos_label, expected_neg_label, expected_class_labels
+):
     test_data_path = os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv")
     with DrumRuntime() as runtime:
         runtime.options = Namespace(
@@ -1003,7 +997,7 @@ def test_binary_class_labels_from_target():
             disable_strict_validation=False,
             logging_level="warning",
             subparser_name=RunMode.FIT,
-            target_type=TargetType.BINARY,
+            target_type=target_type,
             verbose=False,
             content_type=None,
             input=test_data_path,
@@ -1017,71 +1011,8 @@ def test_binary_class_labels_from_target():
             parameter_file=None,
         )
         cmrunner = CMRunner(runtime)
-        pipeline_str = cmrunner._prepare_fit_pipeline(run_language=RunLanguage.PYTHON)
-        assert '"positiveClassLabel": "Iris-setosa",' in pipeline_str
-        assert '"negativeClassLabel": "Iris-versicolor",' in pipeline_str
-        assert '"classLabels": null,' in pipeline_str
+        cmrunner._prepare_fit()
 
-
-@pytest.mark.parametrize(
-    "has_hyper_param_in_model_metadata, model_metadata_name, default_parameters",
-    [
-        (
-            True,
-            "model-metadata.yaml",
-            {"penalty": "l2", "dual": 0, "tol": 0.0001, "solver": "lbfgs"},
-        ),
-        (False, "model-metadata-no-hyperparameter.yaml", {}),
-        (False, "no", {}),
-    ],
-)
-def test_cmrunner_init_default_parameter_values(
-    has_hyper_param_in_model_metadata, model_metadata_name, default_parameters,
-):
-    """Test initialization of default task parameters:
-    - When model metadata is provided, the default task parameters are created from hyperparameters of model metadata.
-    - When model metadata without hyperparameter is provided, there is no default task parameter.
-    - When model metadata is not provided, there is no default task parameter.
-    """
-
-    with patch(
-        "datarobot_drum.drum.common.MODEL_CONFIG_FILENAME",
-        new_callable=PropertyMock(return_value=model_metadata_name),
-    ):
-        test_data_path = os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv")
-        code_dir_path = os.path.join(TESTS_DATA_PATH, "hyperparameters")
-        with DrumRuntime() as runtime:
-            runtime.options = Namespace(
-                negative_class_label=None,
-                positive_class_label=None,
-                class_labels=None,
-                code_dir=code_dir_path,
-                disable_strict_validation=False,
-                logging_level="warning",
-                subparser_name=RunMode.FIT,
-                target_type=TargetType.BINARY,
-                verbose=False,
-                content_type=None,
-                input=test_data_path,
-                target_csv=None,
-                target="Species",
-                row_weights=None,
-                row_weights_csv=None,
-                output=None,
-                num_rows=0,
-                sparse_column_file=None,
-                parameter_file=None,
-            )
-            cm_runner = CMRunner(runtime)
-            assert cm_runner.options.default_parameter_values == default_parameters
-            pipeline_str = cm_runner._prepare_fit_pipeline(run_language=RunLanguage.PYTHON)
-            if has_hyper_param_in_model_metadata:
-                assert (
-                    '"defaultParameterValues": {"penalty": "l2", "dual": 0, "tol": 0.0001, "solver":'
-                    ' "lbfgs"}'
-                ) in pipeline_str
-            else:
-                assert (
-                    '"defaultParameterValues": {"penalty": "l2", "dual": 0, "tol": 0.0001, "solver":'
-                    ' "lbfgs"}'
-                ) not in pipeline_str
+        assert cmrunner.options.negative_class_label == expected_neg_label
+        assert cmrunner.options.positive_class_label == expected_pos_label
+        assert cmrunner.options.class_labels == expected_class_labels

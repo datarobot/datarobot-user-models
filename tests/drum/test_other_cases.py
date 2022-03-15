@@ -43,6 +43,7 @@ from .constants import (
     R_INT_COLNAMES_BINARY,
     R_INT_COLNAMES_MULTICLASS,
     MULTICLASS,
+    TESTS_DATA_PATH,
 )
 from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME
 from datarobot_drum.drum.enum import ModelMetadataKeys
@@ -409,9 +410,22 @@ class TestOtherCases:
         transform custom task. Before testing logic in CMRunner.run_fit() is executed, the model metadata will be first
         validated. Exception will be raised when output_requirements is defined in a non-transform task.
         """
+        test_data_path = os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv")
         with DrumRuntime() as runtime:
             runtime_options = Namespace(
+                input=test_data_path,
                 code_dir="",
+                negative_class_label=None,
+                positive_class_label=None,
+                class_labels=None,
+                target_csv=None,
+                target="Species",
+                row_weights=None,
+                row_weights_csv=None,
+                output=None,
+                num_rows=0,
+                sparse_column_file=None,
+                parameter_file=None,
                 disable_strict_validation=False,
                 logging_level="warning",
                 subparser_name=RunMode.FIT,
