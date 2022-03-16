@@ -7,8 +7,9 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import numpy as np
 import pandas as pd
 import pytest
+from sklearn.linear_model import LogisticRegression
 
-
+from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPredictor
 from datarobot_drum.drum.data_marshalling import (
     _marshal_labels,
     _order_by_float,
@@ -16,6 +17,7 @@ from datarobot_drum.drum.data_marshalling import (
 )
 from datarobot_drum.drum.enum import TargetType, REGRESSION_PRED_COLUMN
 from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.model_adapter import PythonModelAdapter
 
 
 def test_marshal_labels():
@@ -141,3 +143,31 @@ def test_marshal_predictions_add_to_one_weird():
         DrumCommonException, match="Your prediction probabilities have negative values"
     ):
         marshal_predictions(request_labels=labels, predictions=preds, target_type=TargetType.BINARY)
+
+
+@pytest.mark.parametrize("data_dtype,label_dtype", [(int, int), (float, int), (int, float)])
+def test_sklearn_predictor_wrong_dtype_labels(data_dtype, label_dtype):
+    """
+    This test makes sure that the target values can be ints, and the class labels be floats, and
+    everything still works okay.
+
+    TODO: Remove model adapter portion and only test _marshal_labels
+    """
+    X = pd.DataFrame({"col1": range(10)})
+    y = pd.Series(data=[data_dtype(0)] * 5 + [data_dtype(1)] * 5)
+    csv_bytes = bytes(X.to_csv(index=False), encoding="utf-8")
+    estimator = LogisticRegression()
+    estimator.fit(X, y)
+    adapter = PythonModelAdapter(model_dir=None, target_type=TargetType.BINARY)
+    adapter._predictor_to_use = SKLearnPredictor()
+    preds, cols = adapter.predict(
+        estimator,
+        positive_class_label=str(label_dtype(0)),
+        negative_class_label=str(label_dtype(1)),
+        binary_data=csv_bytes,
+        target_type=TargetType.BINARY,
+    )
+    marshalled_cols = _marshal_labels(
+        request_labels=[str(label_dtype(1)), str(label_dtype(0))], model_labels=cols,
+    )
+    assert marshalled_cols == [str(label_dtype(0)), str(label_dtype(1))]
