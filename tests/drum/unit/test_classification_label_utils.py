@@ -12,7 +12,7 @@ from datarobot_drum.drum.drum import CMRunner
 from datarobot_drum.drum.enum import TargetType, RunMode
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.runtime import DrumRuntime
-from drum.constants import TESTS_DATA_PATH
+from tests.drum.constants import TESTS_DATA_PATH
 
 
 class TestOrderIntuition:
