@@ -21,7 +21,7 @@ logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 class DrumUtils:
     current_path = os.path.dirname(__file__)
-    resource_path = os.path.abspath(os.path.join(current_path, "..", "resource"))
+    resource_path = os.path.abspath(os.path.join(current_path, "..", "..", "resource"))
     assert os.path.exists(resource_path)
 
     def __init__(self):
