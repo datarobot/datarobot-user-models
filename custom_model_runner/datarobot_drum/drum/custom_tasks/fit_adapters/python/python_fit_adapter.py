@@ -14,7 +14,8 @@ from datarobot_drum.drum.custom_tasks.fit_adapters.base_fit_adapter import BaseF
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
-from datarobot_drum.drum.utils import make_sure_artifact_is_small, StructuredInputReadUtils
+from datarobot_drum.drum.utils.drum_utils import make_sure_artifact_is_small
+from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 

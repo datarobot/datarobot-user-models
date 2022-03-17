@@ -64,11 +64,8 @@ from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.push import drum_push, setup_validation_options
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
-from datarobot_drum.drum.utils import (
-    DrumUtils,
-    handle_missing_colnames,
-    StructuredInputReadUtils,
-)
+from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
+from datarobot_drum.drum.utils.drum_utils import DrumUtils, handle_missing_colnames
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 
 import docker.errors

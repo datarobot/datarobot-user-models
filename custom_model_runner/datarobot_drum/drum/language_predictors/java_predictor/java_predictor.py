@@ -32,7 +32,7 @@ from datarobot_drum.drum.enum import (
 )
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.utils import DrumUtils
+from datarobot_drum.drum.utils.drum_utils import DrumUtils
 
 from py4j.java_gateway import GatewayParameters, CallbackServerParameters, JavaGateway
 from py4j.java_collections import MapConverter

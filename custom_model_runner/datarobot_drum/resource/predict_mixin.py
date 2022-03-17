@@ -22,7 +22,7 @@ from datarobot_drum.drum.server import (
     HTTP_200_OK,
     HTTP_422_UNPROCESSABLE_ENTITY,
 )
-from datarobot_drum.drum.utils import StructuredInputReadUtils
+from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from datarobot_drum.resource.deployment_config_helpers import build_pps_response_json_str
 from datarobot_drum.resource.transform_helpers import (
     is_sparse,

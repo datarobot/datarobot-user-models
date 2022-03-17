@@ -17,7 +17,7 @@ from datarobot_drum.drum.enum import (
     TargetType,
 )
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
-from datarobot_drum.drum.utils import StructuredInputReadUtils
+from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from datarobot_drum.drum.data_marshalling import get_request_labels
 from datarobot_drum.drum.data_marshalling import marshal_predictions
 

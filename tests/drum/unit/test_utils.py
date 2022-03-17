@@ -15,7 +15,8 @@ from unittest.mock import Mock
 import pytest
 
 from datarobot_drum.drum.drum import create_custom_inference_model_folder, output_in_code_dir
-from datarobot_drum.drum.utils import capture_R_traceback_if_errors, DrumUtils
+from datarobot_drum.drum.utils.stacktraces import capture_R_traceback_if_errors
+from datarobot_drum.drum.utils.drum_utils import DrumUtils
 
 logger = logging.getLogger(__name__)
 

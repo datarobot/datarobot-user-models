@@ -16,7 +16,7 @@ from datarobot_drum.drum.enum import (
     TARGET_TYPE_ARG_KEYWORD,
     TargetType,
 )
-from datarobot_drum.drum.utils import DrumUtils
+from datarobot_drum.drum.utils.drum_utils import DrumUtils
 
 
 class ArtifactPredictor(ABC):

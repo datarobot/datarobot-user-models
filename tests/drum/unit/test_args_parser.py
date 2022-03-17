@@ -17,7 +17,7 @@ import pytest
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.enum import ArgumentsOptions, ArgumentOptionsEnvVars
 from datarobot_drum.resource.utils import _exec_shell_cmd
-from datarobot_drum.drum.utils import unset_drum_supported_env_vars
+from datarobot_drum.drum.utils.drum_utils import unset_drum_supported_env_vars
 
 
 class TestDrumHelp:

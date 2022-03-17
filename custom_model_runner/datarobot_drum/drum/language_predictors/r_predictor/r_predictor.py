@@ -21,7 +21,7 @@ from datarobot_drum.drum.enum import (
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
-from datarobot_drum.drum.utils import capture_R_traceback_if_errors
+from datarobot_drum.drum.utils.stacktraces import capture_R_traceback_if_errors
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
