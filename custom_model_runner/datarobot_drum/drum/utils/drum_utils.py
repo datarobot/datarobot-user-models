@@ -1,4 +1,11 @@
+"""
+Copyright 2022 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import json
+import logging
 import os
 import socket
 from contextlib import closing
@@ -7,8 +14,9 @@ from pathlib import Path
 
 from jinja2 import Environment, BaseLoader, DebugUndefined
 
-from datarobot_drum.drum.enum import ArgumentOptionsEnvVars
-from datarobot_drum.drum.utils import logger
+from datarobot_drum.drum.enum import ArgumentOptionsEnvVars, LOGGER_NAME_PREFIX
+
+logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 
 class DrumUtils:

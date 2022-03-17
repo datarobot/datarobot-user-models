@@ -1,4 +1,11 @@
+"""
+Copyright 2022 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
 import io
+import logging
 import os
 
 import numpy as np
@@ -6,9 +13,15 @@ import pandas as pd
 from scipy.io import mmread
 
 from datarobot_drum.drum.common import get_pyarrow_module
-from datarobot_drum.drum.enum import InputFormatToMimetype, PredictionServerMimetypes
+from datarobot_drum.drum.enum import (
+    InputFormatToMimetype,
+    PredictionServerMimetypes,
+    LOGGER_NAME_PREFIX,
+)
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.utils import logger
+
+
+logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 
 class StructuredInputReadUtils:

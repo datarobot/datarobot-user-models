@@ -1,4 +1,15 @@
+"""
+Copyright 2022 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
+import logging
 from contextlib import contextmanager
+
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
+
+logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 
 @contextmanager
