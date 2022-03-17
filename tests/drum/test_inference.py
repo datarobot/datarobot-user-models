@@ -85,7 +85,8 @@ from datarobot_drum.resource.utils import (
     _exec_shell_cmd,
 )
 
-from datarobot_drum.drum.utils import StructuredInputReadUtils, unset_drum_supported_env_vars
+from datarobot_drum.drum.utils.drum_utils import unset_drum_supported_env_vars
+from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 
 
 class TestInference:

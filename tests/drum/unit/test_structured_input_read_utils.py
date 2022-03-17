@@ -12,7 +12,7 @@ import numpy as np
 import pyarrow
 from pandas._testing import assert_frame_equal
 
-from datarobot_drum.drum.utils import StructuredInputReadUtils
+from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 
 
 class TestStructuredInputReadUtils(object):

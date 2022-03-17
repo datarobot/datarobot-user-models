@@ -31,7 +31,7 @@ from datarobot_drum.drum.exceptions import (
     DrumPredException,
     DrumSchemaValidationException,
 )
-from datarobot_drum.drum.utils import DrumUtils
+from datarobot_drum.drum.utils.drum_utils import DrumUtils
 
 from datarobot_drum.drum.enum import (
     RESPONSE_PREDICTIONS_KEY,

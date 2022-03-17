@@ -22,7 +22,7 @@ from datarobot_drum.resource.unstructured_helpers import (
     _resolve_outgoing_unstructured_data,
 )
 
-from datarobot_drum.drum.utils import StructuredInputReadUtils
+from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 
 from mlpiper.components.connectable_component import ConnectableComponent
 

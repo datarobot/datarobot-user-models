@@ -15,7 +15,10 @@ import scipy.sparse as sp
 from scipy.io import mmwrite
 
 from datarobot_drum.drum.enum import ArgumentsOptions, InputFormatExtension
-from datarobot_drum.drum.utils import handle_missing_colnames, unset_drum_supported_env_vars
+from datarobot_drum.drum.utils.drum_utils import (
+    handle_missing_colnames,
+    unset_drum_supported_env_vars,
+)
 from datarobot_drum.resource.utils import (
     _cmd_add_class_labels,
     _create_custom_model_dir,

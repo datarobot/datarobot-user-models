@@ -9,10 +9,8 @@ import os
 
 from datarobot_drum.drum.custom_tasks.fit_adapters.base_fit_adapter import BaseFitAdapter
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
-from datarobot_drum.drum.utils import (
-    make_sure_artifact_is_small,
-    capture_R_traceback_if_errors,
-)
+from datarobot_drum.drum.utils.drum_utils import make_sure_artifact_is_small
+from datarobot_drum.drum.utils.stacktraces import capture_R_traceback_if_errors
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 

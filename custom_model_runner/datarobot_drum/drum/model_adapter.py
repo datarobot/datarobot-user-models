@@ -44,7 +44,8 @@ from datarobot_drum.drum.enum import (
     CUSTOM_PY_CLASS_NAME,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumTransformException
-from datarobot_drum.drum.utils import DrumUtils, StructuredInputReadUtils
+from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
+from datarobot_drum.drum.utils.drum_utils import DrumUtils
 from datarobot_drum.custom_task_interfaces.custom_task_interface import CustomTaskInterface
 
 RUNNING_LANG_MSG = "Running environment language: Python."

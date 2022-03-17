@@ -11,7 +11,7 @@ import signal
 import time
 from threading import Thread
 
-from datarobot_drum.drum.utils import DrumUtils
+from datarobot_drum.drum.utils.drum_utils import DrumUtils
 from datarobot_drum.drum.enum import ArgumentsOptions, ArgumentOptionsEnvVars
 from datarobot_drum.resource.utils import _exec_shell_cmd, _cmd_add_class_labels
 
