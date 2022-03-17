@@ -1,0 +1,44 @@
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.datarobot.mlops.tools.pulljar</groupId>
+    <artifactId>com.datarobot.mlops.tools.pulljar</artifactId>
+    <version>1.0.0</version>
+
+    <properties>
+        <mlops.version>${env.DATAROBOT_MLOPS_VERSION}</mlops.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.datarobot</groupId>
+            <artifactId>datarobot-mlops</artifactId>
+            <version>${mlops.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-3rd</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <overWriteIfNewer>true</overWriteIfNewer>
+                            <outputDirectory>${basedir}</outputDirectory>
+                            <includeArtifactIds>
+                                datarobot-mlops
+                            </includeArtifactIds>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
