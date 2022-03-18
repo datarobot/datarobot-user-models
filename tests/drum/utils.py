@@ -9,6 +9,11 @@ import tempfile
 from contextlib import ContextDecorator
 from pathlib import Path
 
+import pandas as pd
+from scipy.io import mmwrite
+
+from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
+
 
 def test_data() -> Path:
     top_dir = Path(__file__).parent.parent

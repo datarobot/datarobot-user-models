@@ -21,6 +21,7 @@ import pandas as pd
 
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from datarobot_drum.drum.enum import TargetType
+from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
 
 logger = logging.getLogger("drum." + __name__)
 
@@ -190,10 +191,6 @@ def _get_mapping(field: Fields, values: List[Values]) -> Map:
     return Map({"field": Enum(str(field)), "condition": conditions, "value": value_enum})
 
 
-def is_sparse(dataframe: pd.DataFrame) -> bool:
-    return dataframe.dtypes.apply(pd.api.types.is_sparse).any()
-
-
 class BaseValidator(ABC):
     def __init__(self, condition: Conditions, values: List[Union[str, int]]):
         if len(values) > 1 and condition in Conditions.single_value_conditions():
@@ -295,7 +292,7 @@ class DataTypes(BaseValidator):
             return []
         types = dict()
 
-        if is_sparse(dataframe):
+        if is_sparse_dataframe(dataframe):
             # only numeric can be a csr or matrix market sparse matrix
             types[Values.NUM] = True
             types[Values.TXT] = False
@@ -353,7 +350,7 @@ class Sparsity(BaseValidator):
 
     def validate(self, dataframe):
 
-        _is_sparse = is_sparse(dataframe)
+        _is_sparse = is_sparse_dataframe(dataframe)
 
         sparse_input_allowed_values = [Values.SUPPORTED, Values.REQUIRED]
         sparse_output_allowed_values = [Values.DYNAMIC, Values.ALWAYS, Values.IDENTITY]
@@ -430,7 +427,7 @@ class ContainsMissing(BaseValidator):
     def validate(self, dataframe):
         missing_output_disallowed = Values.NEVER
         missing_input_disallowed = Values.FORBIDDEN
-        if is_sparse(dataframe):
+        if is_sparse_dataframe(dataframe):
             # sparse but not NA...
             any_missing = False
         else:

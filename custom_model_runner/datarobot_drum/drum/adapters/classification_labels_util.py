@@ -36,7 +36,7 @@ def possibly_intuit_order(
     else:
         assert target_filename is None
         df = pd.read_csv(input_filename)
-        if not target_name in df.columns:
+        if target_name not in df.columns:
             e = "The column '{}' does not exist in your dataframe. \nThe columns in your dataframe are these: {}".format(
                 target_name, list(df.columns)
             )
