@@ -242,6 +242,11 @@ class DrumCLIAdapter(object):
         Validate that the output directory is not the same as the input.
         If no output dir exists, then assign a temporary directory to it.
 
+        Returns
+        -------
+        DrumCLIAdapter
+            self
+
         Raises
         ------
         DrumCommonException
@@ -253,6 +258,8 @@ class DrumCLIAdapter(object):
         if not self.output_dir:
             self.output_dir = mkdtemp()
             self._cleanup_output_dir = True
+
+        return self
 
     def validate(self):
         """

@@ -4,7 +4,9 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import json
 import os
+import tempfile
 
 import pytest
 import pandas as pd
@@ -257,6 +259,28 @@ class TestDrumCLIAdapterFailures(object):
 
 
 class TestDrumCLIAdapterDenseData(object):
+    @pytest.mark.parametrize(
+        "input_filename, expected_df",
+        [
+            ("dense_csv", "dense_df"),
+            ("dense_csv_with_target", "dense_df_with_target"),
+            ("dense_csv_with_target_and_weights", "dense_df_with_target_and_weights"),
+        ],
+    )
+    def test_dense_input_file_is_read_correctly(
+        self, request, input_filename, expected_df,
+    ):
+        input_filename = request.getfixturevalue(input_filename)
+        expected_df = request.getfixturevalue(expected_df)
+
+        drum_cli_adapter = DrumCLIAdapter(
+            custom_task_folder_path="path/to/nothing",
+            input_filename=input_filename,
+            target_type=TargetType.ANOMALY,
+        )
+
+        pd.testing.assert_frame_equal(drum_cli_adapter.input_dataframe, expected_df)
+
     def test_input_file_contains_X(
         self, dense_csv, dense_df, column_names,
     ):
@@ -317,6 +341,18 @@ class TestDrumCLIAdapterDenseData(object):
 
 
 class TestDrumCLIAdapterSparseData(object):
+    def test_sparse_input_file_is_read_correctly(
+        self, sparse_mtx, sparse_df, sparse_column_names_file
+    ):
+        drum_cli_adapter = DrumCLIAdapter(
+            custom_task_folder_path="path/to/nothing",
+            input_filename=sparse_mtx,
+            sparse_column_filename=sparse_column_names_file,
+            target_type=TargetType.ANOMALY,
+        )
+
+        pd.testing.assert_frame_equal(drum_cli_adapter.input_dataframe, sparse_df)
+
     def test_sparse_input_file_contains_X(
         self, sparse_mtx, sparse_df, sparse_column_names_file, column_names,
     ):
@@ -481,3 +517,85 @@ class TestDrumCLIAdapterSampling(object):
             pd.testing.assert_series_equal(
                 expected_sampled_col_values, pd.Series(col_data), check_names=False
             )
+
+
+class TestDrumCLIParameters(object):
+    @pytest.fixture
+    def parameters(self):
+        return {"param_1": 1, "param_2": 2}
+
+    @pytest.fixture
+    def parameters_file(self):
+        with tempfile.NamedTemporaryFile(suffix=".json") as temp_file:
+            with open(temp_file.name, "w") as f:
+                json.dump({"param_1": 1, "param_2": 2}, f)
+
+            yield temp_file.name
+
+    @pytest.fixture
+    def default_parameter_values(self):
+        return {"param_1": 0, "param_2": 0}
+
+    def test_parameters_default_to_empty_dict(self):
+        drum_cli_adapter = DrumCLIAdapter(
+            custom_task_folder_path="a/path",
+            input_filename="path/to/nothing",
+            target_type=TargetType.REGRESSION,
+        )
+
+        assert drum_cli_adapter.parameters == {}
+        assert drum_cli_adapter.default_parameters == {}
+        assert drum_cli_adapter.parameters_for_fit == {}
+
+    def test_parameters_used_for_fit_if_file_provided(
+        self, parameters, parameters_file, default_parameter_values
+    ):
+        drum_cli_adapter = DrumCLIAdapter(
+            custom_task_folder_path="a/path",
+            input_filename="path/to/nothing",
+            target_type=TargetType.REGRESSION,
+            parameters_file=parameters_file,
+            default_parameter_values=default_parameter_values,
+        )
+
+        assert drum_cli_adapter.parameters == parameters
+        assert drum_cli_adapter.default_parameters == default_parameter_values
+        assert drum_cli_adapter.parameters_for_fit == parameters
+
+    def test_default_parameters_used_for_fit_if_file_not_provided(self, default_parameter_values):
+        drum_cli_adapter = DrumCLIAdapter(
+            custom_task_folder_path="a/path",
+            input_filename="path/to/nothing",
+            target_type=TargetType.REGRESSION,
+            default_parameter_values=default_parameter_values,
+        )
+
+        assert drum_cli_adapter.parameters == {}
+        assert drum_cli_adapter.default_parameters == default_parameter_values
+        assert drum_cli_adapter.parameters_for_fit == default_parameter_values
+
+
+class TestDrumCLIAdapterOutputDir(object):
+    def test_temp_output_dir_set_when_provided(self):
+        output_dir = "output/path"
+        drum_cli_adapter = DrumCLIAdapter(
+            custom_task_folder_path="a/path",
+            input_filename="path/to/nothing",
+            target_type=TargetType.REGRESSION,
+            output_dir=output_dir,
+        )._validate_output_dir()
+
+        assert drum_cli_adapter.output_dir == output_dir
+
+    def test_temp_output_dir_created_and_cleaned_up_when_not_provided(self):
+        drum_cli_adapter = DrumCLIAdapter(
+            custom_task_folder_path="a/path",
+            input_filename="path/to/nothing",
+            target_type=TargetType.REGRESSION,
+        )._validate_output_dir()
+
+        assert os.path.isdir(drum_cli_adapter.output_dir)
+
+        drum_cli_adapter.cleanup_output_directory_if_necessary()
+
+        assert not os.path.isdir(drum_cli_adapter.output_dir)
