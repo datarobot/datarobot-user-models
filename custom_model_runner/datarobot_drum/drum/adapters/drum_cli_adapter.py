@@ -1,5 +1,5 @@
 """
-Copyright 2021 DataRobot, Inc. and its affiliates.
+Copyright 2022 DataRobot, Inc. and its affiliates.
 All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
@@ -8,7 +8,6 @@ import json
 import logging
 import shutil
 import sys
-from ctypes import Union
 from tempfile import mkdtemp
 from typing import Optional
 
