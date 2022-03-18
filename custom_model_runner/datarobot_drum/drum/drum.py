@@ -15,10 +15,9 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from tempfile import mkdtemp, NamedTemporaryFile
+from tempfile import NamedTemporaryFile
 import time
-from typing import Dict
-from typing import Union
+from typing import Dict, Callable, Union
 from distutils.dir_util import copy_tree
 from pathlib import Path
 from progress.spinner import Spinner
@@ -30,17 +29,14 @@ from mlpiper.pipeline.executor import Executor
 from mlpiper.pipeline.executor_config import ExecutorConfig
 from mlpiper.pipeline import json_fields
 
+from datarobot_drum.drum.adapters.drum_cli_adapter import DrumCLIAdapter
+from datarobot_drum.drum.adapters.r.r_model_adapter import RModelAdapter
 from datarobot_drum.drum.common import (
     verbose_stdout,
     read_model_metadata_yaml,
     get_metadata,
 )
-from datarobot_drum.drum.custom_tasks.fit_adapters.classification_labels_util import (
-    needs_class_labels,
-    infer_class_labels,
-)
-from datarobot_drum.drum.custom_tasks.fit_adapters.python.python_fit_adapter import PythonFitAdapter
-from datarobot_drum.drum.custom_tasks.fit_adapters.r.r_fit_adapter import RFitAdapter
+
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     CUSTOM_FILE_NAME,
@@ -60,6 +56,7 @@ from datarobot_drum.drum.enum import (
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumPredException
+from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.push import drum_push, setup_validation_options
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
@@ -506,47 +503,56 @@ class CMRunner:
         if self._pipeline_executor:
             self._pipeline_executor.cleanup_pipeline()
 
-    def _validate_output_dir(self):
-        """Validate that the output directory is not the same as the input.
-                Raises
-        ------
-        DrumCommonException
-            Raised when the code directory is also used as the output directory.
+    def _get_python_fit_function(self, cli_adapter: DrumCLIAdapter) -> Callable:
         """
-        if self.options.output == self.options.code_dir:
-            raise DrumCommonException("The code directory may not be used as the output directory.")
+        Parameters
+        ----------
+        cli_adapter: DrumCLIAdapter
 
-    def _infer_class_labels_if_not_provided(self):
-        if needs_class_labels(
-            target_type=self.target_type,
-            negative_class_label=self.options.negative_class_label,
-            positive_class_label=self.options.positive_class_label,
-            class_labels=self.options.class_labels,
-        ):
-            class_labels = infer_class_labels(
-                target_type=self.target_type,
-                input_filename=self.options.input,
-                target_filename=self.options.target_csv,
-                target_name=self.options.target,
+        Returns
+        -------
+        Callable
+            Function that will run the custom task's fit
+        """
+        model_adapter = PythonModelAdapter(
+            model_dir=cli_adapter.custom_task_folder_path, target_type=cli_adapter.target_type
+        )
+        model_adapter.load_custom_hooks()
+
+        def _run_fit():
+            # TODO: Sampling should be baked into X, y, row_weights. We cannot because R samples within the R code
+            model_adapter.fit(
+                X=cli_adapter.sample_data_if_necessary(cli_adapter.X),
+                y=cli_adapter.sample_data_if_necessary(cli_adapter.y),
+                output_dir=cli_adapter.output_dir,
+                row_weights=cli_adapter.sample_data_if_necessary(cli_adapter.weights),
+                parameters=cli_adapter.parameters_for_fit,
             )
 
-            if self.target_type == TargetType.BINARY:
-                self.options.positive_class_label, self.options.negative_class_label = class_labels
-            elif self.target_type == TargetType.MULTICLASS:
-                self.options.class_labels = class_labels
+        return _run_fit
 
-    def _prepare_fit(self):
-        # Remove target from the input dataframe
-        input_data = self.input_df
-        if self.options.target:
-            input_data = input_data.drop(self.options.target, axis=1)
+    def _get_r_fit_function(self, cli_adapter: DrumCLIAdapter) -> Callable:
+        """
+        Parameters
+        ----------
+        cli_adapter: DrumCLIAdapter
 
-        # Validate schema target type and input data
-        self.schema_validator.validate_type_schema(self.target_type)
-        self.schema_validator.validate_inputs(input_data)
+        Returns
+        -------
+        Callable
+            Function that will run the custom task's fit
+        """
+        model_adapter = RModelAdapter(
+            custom_task_folder_path=cli_adapter.custom_task_folder_path,
+            target_type=cli_adapter.target_type,
+        )
+        model_adapter.load_custom_hooks()
 
-        # Infer class labels if not provdied in the cli args
-        self._infer_class_labels_if_not_provided()
+        def _run_fit():
+            # TODO: Only pass in X, y, output_dir, row_weights, parameters
+            model_adapter.fit(cli_adapter)
+
+        return _run_fit
 
     def run_fit(self):
         """Run when run_model is fit.
@@ -560,18 +566,40 @@ class CMRunner:
         DrumSchemaValidationException
             Raised when model metadata validation fails.
         """
-        self._prepare_fit()
+        cli_adapter = DrumCLIAdapter(
+            custom_task_folder_path=self.options.code_dir,
+            input_filename=self.options.input,
+            target_type=self.target_type,
+            target_name=self.options.target,
+            target_filename=self.options.target_csv,
+            weights_name=self.options.row_weights,
+            weights_filename=self.options.row_weights_csv,
+            sparse_column_filename=self.options.sparse_column_file,
+            positive_class_label=self.options.positive_class_label,
+            negative_class_label=self.options.negative_class_label,
+            class_labels=self.options.class_labels,
+            parameters_file=self.options.parameter_file,
+            default_parameter_values=self.options.default_parameter_values,
+            output_dir=self.options.output,
+            num_rows=self.options.num_rows,
+        ).validate()
 
-        # Create output directory for artifact if output directory is defined
-        remove_temp_output = None
-        if not self.options.output:
-            self.options.output = mkdtemp()
-            remove_temp_output = self.options.output
-        self._validate_output_dir()
+        # Validate schema target type and input data
+        self.schema_validator.validate_type_schema(cli_adapter.target_type)
+        self.schema_validator.validate_inputs(cli_adapter.X)
+
+        run_language = self._check_artifacts_and_get_run_language()
+        if run_language == RunLanguage.PYTHON:
+            fit_function = self._get_python_fit_function(cli_adapter=cli_adapter)
+        elif run_language == RunLanguage.R:
+            fit_function = self._get_r_fit_function(cli_adapter=cli_adapter)
+        else:
+            raise ValueError("drum fit only supports Python and R")
 
         print("Starting Fit")
-        mem_usage = memory_usage(self._run_fit, interval=1, max_usage=True, max_iterations=1,)
+        mem_usage = memory_usage(fit_function, interval=1, max_usage=True, max_iterations=1,)
         print("Fit successful")
+
         if self.options.verbose:
             print("Maximum fit memory usage: {}MB".format(int(mem_usage)))
         if self.options.output and not self.options.skip_predict:
@@ -587,12 +615,12 @@ class CMRunner:
             print("Prediction successful for fit validation")
         else:
             pred_str = "however since you specified --skip-predict, predictions were not made \n"
-        if remove_temp_output:
+
+        if cli_adapter.cleanup_output_directory_if_necessary():
             print(
                 "Validation Complete 🎉 Your model can be fit to your data, {}"
                 "You're ready to add it to DataRobot. ".format(pred_str)
             )
-            shutil.rmtree(remove_temp_output)
         else:
             print("Success 🎉")
 
@@ -717,35 +745,6 @@ class CMRunner:
                 pipeline_json[json_fields.PIPELINE_SYSTEM_CONFIG_FIELD] = system_config
                 functional_pipeline_str = json.dumps(pipeline_json)
         return functional_pipeline_str
-
-    def _run_fit(self):
-        run_language = self._check_artifacts_and_get_run_language()
-        if run_language == RunLanguage.PYTHON:
-            fit_adapter_class = PythonFitAdapter
-        elif run_language == RunLanguage.R:
-            fit_adapter_class = RFitAdapter
-        else:
-            raise ValueError("drum fit only supports Python and R")
-
-        fit_adapter = fit_adapter_class(
-            custom_task_folder_path=self.options.code_dir,
-            input_filename=self.options.input,
-            target_type=self.target_type,
-            target_name=self.options.target,
-            target_filename=self.options.target_csv,
-            weights=self.options.row_weights,
-            weights_filename=self.options.row_weights_csv,
-            sparse_column_filename=self.options.sparse_column_file,
-            positive_class_label=self.options.positive_class_label,
-            negative_class_label=self.options.negative_class_label,
-            class_labels=self.options.class_labels,
-            parameters_file=self.options.parameter_file,
-            default_parameter_values=self.options.default_parameter_values,
-            output_dir=self.options.output,
-            num_rows=self.options.num_rows,
-        )
-        fit_adapter.configure()
-        fit_adapter.outer_fit()
 
     def _run_predictions_pipelines_in_mlpiper(self):
         run_language = self._check_artifacts_and_get_run_language()
