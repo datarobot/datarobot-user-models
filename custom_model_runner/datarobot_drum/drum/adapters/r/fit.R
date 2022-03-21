@@ -133,7 +133,7 @@ process_weights <- function(X, weights_filename, weights, na_rows, sample_rows){
                   weights,
                   "is not one of the columns in your training data", sep=' '))
     }
-    row_weights <- X[, weights, drop=FALSE]
+    row_weights <- X[, weights, drop=TRUE]
   } else {
     row_weights = NULL
   }

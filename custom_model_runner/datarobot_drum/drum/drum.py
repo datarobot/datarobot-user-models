@@ -674,7 +674,6 @@ class CMRunner:
             df.to_csv(__tempfile.name, index=False, line_terminator="\r\n")
             self.options.input = __tempfile.name
 
-
         if self.target_type == TargetType.TRANSFORM:
             CMRunTests(
                 self.options, self.run_mode, self.target_type, self.schema_validator
