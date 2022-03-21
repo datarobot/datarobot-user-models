@@ -133,9 +133,10 @@ process_weights <- function(X, weights_filename, weights, na_rows, sample_rows){
                   weights,
                   "is not one of the columns in your training data", sep=' '))
     }
-    row_weights <- X[, weights, drop=TRUE]
+    X <- df[,!(names(df) %in% c(weights)), drop=FALSE]
+    row_weights <- X[, weights, drop=FALSE]
   } else {
-    row_weights = NULL
+    row_weights <- NULL
   }
 
   # Drop the NA rows found from y (if applicable) then use the same sample_rows as X (and y if present)
