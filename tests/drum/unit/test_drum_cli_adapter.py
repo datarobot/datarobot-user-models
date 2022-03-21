@@ -586,6 +586,8 @@ class TestDrumCLIAdapterOutputDir(object):
         )._validate_output_dir()
 
         assert drum_cli_adapter.output_dir == output_dir
+        assert drum_cli_adapter.persist_output
+        assert not drum_cli_adapter.cleanup_output_directory_if_necessary()
 
     def test_temp_output_dir_created_and_cleaned_up_when_not_provided(self):
         drum_cli_adapter = DrumCLIAdapter(
@@ -594,8 +596,12 @@ class TestDrumCLIAdapterOutputDir(object):
             target_type=TargetType.REGRESSION,
         )._validate_output_dir()
 
+        # Ensure output is not to be persisted
+        assert not drum_cli_adapter.persist_output
+
+        # Ensure output_dir is pointing to a temporary directory
         assert os.path.isdir(drum_cli_adapter.output_dir)
 
-        drum_cli_adapter.cleanup_output_directory_if_necessary()
-
+        # Ensure temp directory gets cleaned up
+        assert drum_cli_adapter.cleanup_output_directory_if_necessary()
         assert not os.path.isdir(drum_cli_adapter.output_dir)

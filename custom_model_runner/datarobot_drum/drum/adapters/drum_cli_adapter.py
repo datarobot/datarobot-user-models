@@ -97,9 +97,10 @@ class DrumCLIAdapter(object):
         self.output_dir = output_dir
         self.num_rows = num_rows
 
-        # Computed post init
+        self.persist_output = self.output_dir is not None
+
+        # Lazy loaded variables
         self._input_dataframe = None
-        self._cleanup_output_dir = False
 
     @property
     def input_dataframe(self):
@@ -255,9 +256,8 @@ class DrumCLIAdapter(object):
         if self.output_dir == self.custom_task_folder_path:
             raise DrumCommonException("The code directory may not be used as the output directory.")
 
-        if not self.output_dir:
+        if not self.persist_output:
             self.output_dir = mkdtemp()
-            self._cleanup_output_dir = True
 
         return self
 
@@ -296,6 +296,6 @@ class DrumCLIAdapter(object):
         bool
             True if output directory was cleaned up. False otherwise.
         """
-        if self._cleanup_output_dir:
+        if not self.persist_output:
             shutil.rmtree(self.output_dir)
-        return self._cleanup_output_dir
+        return not self.persist_output

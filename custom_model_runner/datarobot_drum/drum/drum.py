@@ -527,6 +527,7 @@ class CMRunner:
                 output_dir=cli_adapter.output_dir,
                 row_weights=cli_adapter.sample_data_if_necessary(cli_adapter.weights),
                 parameters=cli_adapter.parameters_for_fit,
+                class_order=cli_adapter.class_labels,
             )
 
         return _run_fit
@@ -588,6 +589,7 @@ class CMRunner:
         self.schema_validator.validate_type_schema(cli_adapter.target_type)
         self.schema_validator.validate_inputs(cli_adapter.X)
 
+        # TODO: Decouple check_artifacts_and_get_run_language from CLI, add it as part of validate in DrumCLIAdapter
         run_language = self._check_artifacts_and_get_run_language()
         if run_language == RunLanguage.PYTHON:
             fit_function = self._get_python_fit_function(cli_adapter=cli_adapter)
@@ -602,9 +604,18 @@ class CMRunner:
 
         if self.options.verbose:
             print("Maximum fit memory usage: {}MB".format(int(mem_usage)))
-        if self.options.output and not self.options.skip_predict:
-            create_custom_inference_model_folder(self.options.code_dir, self.options.output)
+        if cli_adapter.persist_output or not self.options.skip_predict:
+            create_custom_inference_model_folder(
+                code_dir=cli_adapter.custom_task_folder_path, output_dir=cli_adapter.output_dir
+            )
         if not self.options.skip_predict:
+            # TODO: Use cli_adapter within run_test_predict instead of setting self.options
+            # This is assigning things that were computed in DrumCLIAdapter, for compatability
+            self.options.output = cli_adapter.output_dir
+            self.options.positive_class_label = cli_adapter.positive_class_label
+            self.options.negative_class_label = cli_adapter.negative_class_label
+            self.options.class_labels = cli_adapter.class_labels
+
             print("Starting Prediction")
             mem_usage = memory_usage(
                 self.run_test_predict, interval=1, max_usage=True, max_iterations=1,
