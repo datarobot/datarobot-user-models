@@ -527,7 +527,7 @@ class CMRunner:
                 output_dir=cli_adapter.output_dir,
                 row_weights=cli_adapter.sample_data_if_necessary(cli_adapter.weights),
                 parameters=cli_adapter.parameters_for_fit,
-                class_order=cli_adapter.class_labels,
+                class_order=cli_adapter.class_ordering,
             )
 
         return _run_fit
