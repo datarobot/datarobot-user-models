@@ -133,8 +133,8 @@ process_weights <- function(X, weights_filename, weights, na_rows, sample_rows){
                   weights,
                   "is not one of the columns in your training data", sep=' '))
     }
-    X <- df[,!(names(df) %in% c(weights)), drop=FALSE]
     row_weights <- X[, weights, drop=FALSE]
+    X <- X[,!(names(X) %in% c(weights)), drop=FALSE]
   } else {
     row_weights <- NULL
   }
@@ -144,7 +144,7 @@ process_weights <- function(X, weights_filename, weights, na_rows, sample_rows){
     row_weights <- row_weights[!na_rows,, drop=FALSE]
     row_weights <- row_weights[sample_rows,, drop=FALSE]
   }
-  row_weights
+  return(list('X' = X, 'row_weights' = row_weights))
 }
 
 
@@ -178,7 +178,9 @@ outer_fit <- function(output_dir, input_filename, sparse_column_filename, target
     na_rows <- processed_data$na_rows
     sample_rows <- processed_data$sample_rows
 
-    row_weights <- process_weights(X, weights_filename, weights, na_rows, sample_rows)
+    processed_data <- process_weights(X, weights_filename, weights, na_rows, sample_rows)
+    X <- processed_data$X
+    row_weights <- processed_data$row_weights
 
     parameters <- process_parameters(parameter_filename)
 
