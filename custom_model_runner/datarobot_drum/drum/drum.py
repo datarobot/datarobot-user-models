@@ -591,6 +591,7 @@ class CMRunner:
 
         # TODO: Decouple check_artifacts_and_get_run_language from CLI, add it as part of validate in DrumCLIAdapter
         run_language = self._check_artifacts_and_get_run_language()
+
         if run_language == RunLanguage.PYTHON:
             fit_function = self._get_python_fit_function(cli_adapter=cli_adapter)
         elif run_language == RunLanguage.R:
@@ -652,19 +653,28 @@ class CMRunner:
         self.options.code_dir = self.options.output
         self.options.output = os.devnull
         __target_temp = None
-        if self.options.target:
+
+        if self.options.target or self.options.row_weights:
             __tempfile = NamedTemporaryFile()
             df = self.input_df
-            if self.target_type == TargetType.TRANSFORM:
+            if self.target_type == TargetType.TRANSFORM and self.options.target:
                 target_df = df[self.options.target]
                 __target_temp = NamedTemporaryFile()
                 target_df.to_csv(__target_temp.name, index=False, line_terminator="\r\n")
-            df = df.drop(self.options.target, axis=1)
+
+            if self.options.target:
+                df = df.drop(self.options.target, axis=1)
+
+            if self.options.row_weights:
+                df = df.drop(self.options.row_weights, axis=1)
+
             # convert to R-friendly missing fields
             if self._get_fit_run_language() == RunLanguage.R:
                 df = handle_missing_colnames(df)
             df.to_csv(__tempfile.name, index=False, line_terminator="\r\n")
             self.options.input = __tempfile.name
+
+
         if self.target_type == TargetType.TRANSFORM:
             CMRunTests(
                 self.options, self.run_mode, self.target_type, self.schema_validator
