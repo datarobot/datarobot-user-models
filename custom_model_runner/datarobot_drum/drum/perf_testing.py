@@ -239,8 +239,11 @@ class CMRunTests:
         self._schema_validator = schema_validator
         self._verbose = self.options.verbose
         self._input_csv = self.options.input
+        self._sparse_column_file = (
+            self.options.sparse_column_file if "sparse_column_file" in self.options else None
+        )
         self._input_df = StructuredInputReadUtils.read_structured_input_file_as_df(
-            filename=self._input_csv, sparse_column_file=self.options.sparse_column_file
+            filename=self._input_csv, sparse_column_file=self._sparse_column_file
         )
 
         self._server_addr = "localhost"
