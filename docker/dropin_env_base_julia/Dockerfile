@@ -1,6 +1,6 @@
 # This is the default base image for use with user models and workflows.
 # It contains a variety of common useful data-science packages and tools.
-FROM datarobot/python3-dropin-env-base
+FROM datarobot/dropin-env-base:latest
 
 # Install the list of custom Python requirements, e.g. keras, xgboost, etc.
 COPY requirements.txt requirements.txt
@@ -20,7 +20,7 @@ ENV JULIA_SYS_IMAGE $HOME/julia/sys.so
 ENV JULIA_PROJECT $HOME/julia
 ENV PATH $PATH:$JULIA_HOME/bin
 COPY sysim.jl $HOME/julia/sysim.jl
-ENV PYTHON /usr/local/bin/python 
+ENV PYTHON /usr/bin/python3
 RUN julia "$HOME/julia/sysim.jl" && \
     chmod -R 777 $HOME/.julia/logs/manifest_usage.toml && \
     rm julia-1.5.4-linux-x86_64.tar.gz

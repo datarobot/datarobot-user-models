@@ -1,5 +1,5 @@
 # This is the default base image for use with user models and workflows.
-FROM datarobot/dropin-env-base:debian10-py3.7-jdk11
+FROM datarobot/dropin-env-base-jdk:latest
 
 # Install the list of core requirements, e.g. sklearn, numpy, pandas, flask.
 # **Don't modify this file!**
