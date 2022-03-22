@@ -66,6 +66,5 @@ RUN Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLooku
 
 RUN rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 
-# do the trick to install drum deps
-RUN pip3 install --no-cache-dir datarobot-drum
-RUN pip3 uninstall -y datarobot-drum
+COPY requirements.txt requirements.txt
+RUN pip3 install -r requirements.txt
