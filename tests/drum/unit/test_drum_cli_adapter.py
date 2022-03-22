@@ -191,8 +191,7 @@ class TestDrumCLIAdapterLabels(object):
 
 class TestDrumCLIAdapterFailures(object):
     @pytest.mark.parametrize(
-        "target_type",
-        [TargetType.BINARY, TargetType.REGRESSION, TargetType.MULTICLASS, TargetType.TRANSFORM],
+        "target_type", [TargetType.BINARY, TargetType.REGRESSION, TargetType.MULTICLASS],
     )
     def test_target_data_missing(self, dense_csv, target_type):
         with pytest.raises(
@@ -203,6 +202,18 @@ class TestDrumCLIAdapterFailures(object):
                 input_filename=dense_csv,
                 target_type=target_type,
             ).y
+
+    @pytest.mark.parametrize(
+        "target_type", [TargetType.ANOMALY, TargetType.TRANSFORM],
+    )
+    def test_target_data_missing_okay(self, dense_csv, target_type):
+        y = DrumCLIAdapter(
+            custom_task_folder_path="path/to/nothing",
+            input_filename=dense_csv,
+            target_type=target_type,
+        ).y
+
+        assert y is None
 
     def test_input_file_contains_X_missing_y(
         self, dense_csv, target_col_name,
