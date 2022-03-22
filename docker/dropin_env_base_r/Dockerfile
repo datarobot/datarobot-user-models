@@ -2,7 +2,7 @@
 # It contains a variety of common useful data-science packages and tools.
 FROM ubuntu:18.04
 
-RUN echo '29 Aug 2019'
+RUN echo '22 Mar 2022'
 
 ENV LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive
 
@@ -20,6 +20,7 @@ RUN apt-get update && \
         libxml2-dev \
         python3-pip \
         python3-dev \
+        openjdk-11-jre \
         libgomp1 \
         gcc \
         libc6-dev \
@@ -65,6 +66,15 @@ RUN Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLooku
 RUN Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$forClass, c(1)]), Ncpus=4)'
 
 RUN rm -rf /tmp/downloaded_packages/ /tmp/*.rds
+
+RUN apt update -y && apt install -y software-properties-common && \
+    add-apt-repository -y ppa:deadsnakes/ppa && \
+    apt update -y && apt install -y python3.7 python3.7-dev
+
+RUN python3.7 -m pip install setuptools wheel virtualenv && \
+    python3.7 -m virtualenv /opt/v3.7
+
+ENV PATH="/opt/v3.7/bin:$PATH"
 
 COPY requirements.txt requirements.txt
 RUN pip3 install -r requirements.txt
