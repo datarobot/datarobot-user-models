@@ -118,6 +118,7 @@ load_serialized_model <- function(model_dir, target_type) {
     if (use_hook && !isFALSE(read_input_data_hook)) {
         data <- read_input_data_hook(binary_data)
     } else if (!is.null(mimetype) && mimetype == "text/mtx") {
+        print("hi, sparse file")
         tmp_file_name <- tempfile()
         f <- file(tmp_file_name, "w+b")
         writeBin(binary_data, f)

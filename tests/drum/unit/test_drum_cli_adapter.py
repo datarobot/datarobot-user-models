@@ -18,7 +18,7 @@ from datarobot_drum.drum.adapters.drum_cli_adapter import DrumCLIAdapter
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
-from drum.constants import TESTS_DATA_PATH
+from ..constants import TESTS_DATA_PATH
 
 
 @pytest.fixture

@@ -96,7 +96,7 @@ process_data <- function(input_filename, sparse_column_filename, target_filename
             target_name <- colnames(y)
         # Otherwise, separate X and y from df
         } else {
-            X <- df[,!(names(df) %in% c(target_name)), drop=FALSE]
+            X <- df[,!(colnames(df) %in% c(target_name)), drop=FALSE]
             y <- df[,target_name, drop=FALSE]
         }
 
@@ -134,7 +134,7 @@ process_weights <- function(X, weights_filename, weights, na_rows, sample_rows){
                   "is not one of the columns in your training data", sep=' '))
     }
     row_weights <- X[, weights, drop=FALSE]
-    X <- X[,!(names(X) %in% c(weights)), drop=FALSE]
+    X <- X[,!(colnames(X) %in% c(weights)), drop=FALSE]
   } else {
     row_weights <- NULL
   }

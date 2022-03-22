@@ -203,6 +203,7 @@ fit <- function(X, y, output_dir, class_order=NULL, row_weights=NULL, ...){
         "abduct",
         "abducted"
     )
+    # TODO: Never have weights in sparse input X
 	if("some-weights" %in% colnames(X)) {
 		expected_colnames <- c(expected_colnames, "some-weights")
 	}
@@ -244,7 +245,7 @@ score <- function(data, model, ...){
     data <- as(data, "dgCMatrix")
 
     # Predict, and set the column name to 'Predictions'
-    predictions = data.frame(predict(model, newx = data, s=0.01, type="response"))
+    predictions <- data.frame(predict(model, newx = data, s=0.01, type="response"))
     colnames(predictions) <- "Predictions"
 
     return(predictions)

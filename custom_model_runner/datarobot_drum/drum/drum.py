@@ -28,6 +28,7 @@ from memory_profiler import memory_usage
 from mlpiper.pipeline.executor import Executor
 from mlpiper.pipeline.executor_config import ExecutorConfig
 from mlpiper.pipeline import json_fields
+from scipy.io import mmwrite
 
 from datarobot_drum.drum.adapters.drum_cli_adapter import DrumCLIAdapter
 from datarobot_drum.drum.adapters.r.r_model_adapter import RModelAdapter
@@ -61,6 +62,7 @@ from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.push import drum_push, setup_validation_options
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
+from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from datarobot_drum.drum.utils.drum_utils import DrumUtils, handle_missing_colnames
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
@@ -655,7 +657,6 @@ class CMRunner:
         __target_temp = None
 
         if self.options.target or self.options.row_weights:
-            __tempfile = NamedTemporaryFile()
             df = self.input_df
             if self.target_type == TargetType.TRANSFORM and self.options.target:
                 target_df = df[self.options.target]
@@ -668,10 +669,28 @@ class CMRunner:
             if self.options.row_weights:
                 df = df.drop(self.options.row_weights, axis=1)
 
+                # If weights was included in the sparse input training data, drop it from the column file
+                # TODO: Always force weights + target to be separate files with sparse input
+                if self.options.sparse_column_file:
+                    sparse_colnames = StructuredInputReadUtils.read_sparse_column_file_as_list(
+                        self.options.sparse_column_file
+                    )
+                    if self.options.row_weights in sparse_colnames:
+                        sparse_colnames.remove(self.options.row_weights)
+
+                        with open(self.options.sparse_column_file, "w") as file:
+                            file.write("\n".join(sparse_colnames))
+
             # convert to R-friendly missing fields
             if self._get_fit_run_language() == RunLanguage.R:
                 df = handle_missing_colnames(df)
-            df.to_csv(__tempfile.name, index=False, line_terminator="\r\n")
+
+            if is_sparse_dataframe(df):
+                __tempfile = NamedTemporaryFile(suffix=".mtx")
+                mmwrite(__tempfile.name, df.sparse.to_coo())
+            else:
+                __tempfile = NamedTemporaryFile(suffix=".csv")
+                df.to_csv(__tempfile.name, index=False, line_terminator="\r\n")
             self.options.input = __tempfile.name
 
         if self.target_type == TargetType.TRANSFORM:

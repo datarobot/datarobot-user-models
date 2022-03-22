@@ -164,6 +164,8 @@ class DrumCLIAdapter(object):
 
             y = pd.read_csv(self.target_filename, index_col=False)
             return y.iloc[:, 0]
+        elif self.target_type == TargetType.TRANSFORM:
+            return None  # It is valid for a transform to have no target (ie when the project target type is anomaly)
         else:
             raise DrumCommonException("Must provide target name or target filename to drum fit")
 
