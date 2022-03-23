@@ -17,6 +17,8 @@ init_hook <- FALSE
 fit_hook <- FALSE
 transform_hook <- FALSE
 
+TARGET_TYPE <- NULL
+
 set.seed(1)
 
 str_right <- function(string, n) {
@@ -32,7 +34,8 @@ get_nested_path <- function(path, file_pattern){
     )
 }
 
-init <- function(code_dir) {
+init <- function(code_dir, target_type) {
+    TARGET_TYPE <<- target_type
     custom_path <- get_nested_path(code_dir, 'custom.[Rr]')
     if(length(custom_path) >= 1){
         custom_loaded <- import(custom_path[1])
@@ -62,6 +65,10 @@ init <- function(code_dir) {
 #'
 
 outer_fit <- function(X, y, output_dir, class_order, row_weights, parameters) {
+    if (!isFALSE(transform_hook) && TARGET_TYPE != "transform") {
+        X <- transform_hook(X, NULL)
+    }
+
     if (!isFALSE(fit_hook)) {
         kwargs <- list()
         kwargs <- append(kwargs, list(X=X,
