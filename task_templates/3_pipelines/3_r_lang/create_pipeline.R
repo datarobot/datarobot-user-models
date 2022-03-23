@@ -12,7 +12,7 @@ create_pipeline<-function(X, y, model_type='regression') {
   train_df <- X
   train_df$target <- unlist(y)
   if (model_type == 'classification'){
-    train_df$target <- as.factor(train_df$target)
+    train_df$target <- as.vector(as.factor(train_df$target))
   }
 
   # set up the modeling pipeline
@@ -26,14 +26,22 @@ create_pipeline<-function(X, y, model_type='regression') {
     step_other(all_nominal(), -all_outcomes()) %>%
     step_dummy(all_nominal(), -all_outcomes())
 
-  # Run the model using caret
-  set.seed(1234)
-  model <- train(
-    model_recipe, 
-    train_df, 
-    method = "gbm", 
-    trControl = trainControl(method = "cv", number = 3, seeds=list(c(2,2,2), c(2,2,2), c(2,2,2), c(2)))
-  )
+    gbmGrid <- expand.grid(
+      n.trees = 50,
+      interaction.depth=3,
+      shrinkage = 0.1,
+      n.minobsinnode = 20
+    )
 
-  return(model)
+    # Run the model using caret
+    set.seed(1234)
+    model <- train(
+      model_recipe,
+      train_df,
+      method = "gbm",
+      trControl = trainControl(method = "cv", number = 3, seeds=list(c(2,2,2), c(2,2,2), c(2,2,2), c(2))),
+      tuneGrid = gbmGrid
+    )
+
+    return(model)
 }
