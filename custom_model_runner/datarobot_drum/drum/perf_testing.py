@@ -24,6 +24,7 @@ from scipy.sparse import vstack
 from texttable import Texttable
 from tempfile import mkdtemp, mkstemp
 
+from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.exceptions import (
     DrumCommonException,
@@ -238,7 +239,12 @@ class CMRunTests:
         self._schema_validator = schema_validator
         self._verbose = self.options.verbose
         self._input_csv = self.options.input
-        self._input_df = pd.read_csv(self._input_csv)
+        self._sparse_column_file = (
+            self.options.sparse_column_file if "sparse_column_file" in self.options else None
+        )
+        self._input_df = StructuredInputReadUtils.read_structured_input_file_as_df(
+            filename=self._input_csv, sparse_column_file=self._sparse_column_file
+        )
 
         self._server_addr = "localhost"
         self._server_port = DrumUtils.find_free_port()

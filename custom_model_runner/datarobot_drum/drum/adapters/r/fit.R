@@ -96,7 +96,7 @@ process_data <- function(input_filename, sparse_column_filename, target_filename
             target_name <- colnames(y)
         # Otherwise, separate X and y from df
         } else {
-            X <- df[,!(names(df) %in% c(target_name)), drop=FALSE]
+            X <- df[,!(colnames(df) %in% c(target_name)), drop=FALSE]
             y <- df[,target_name, drop=FALSE]
         }
 
@@ -134,8 +134,9 @@ process_weights <- function(X, weights_filename, weights, na_rows, sample_rows){
                   "is not one of the columns in your training data", sep=' '))
     }
     row_weights <- X[, weights, drop=FALSE]
+    X <- X[,!(colnames(X) %in% c(weights)), drop=FALSE]
   } else {
-    row_weights = NULL
+    row_weights <- NULL
   }
 
   # Drop the NA rows found from y (if applicable) then use the same sample_rows as X (and y if present)
@@ -143,7 +144,7 @@ process_weights <- function(X, weights_filename, weights, na_rows, sample_rows){
     row_weights <- row_weights[!na_rows,, drop=FALSE]
     row_weights <- row_weights[sample_rows,, drop=FALSE]
   }
-  row_weights
+  return(list('X' = X, 'row_weights' = row_weights))
 }
 
 
@@ -177,7 +178,9 @@ outer_fit <- function(output_dir, input_filename, sparse_column_filename, target
     na_rows <- processed_data$na_rows
     sample_rows <- processed_data$sample_rows
 
-    row_weights <- process_weights(X, weights_filename, weights, na_rows, sample_rows)
+    processed_data <- process_weights(X, weights_filename, weights, na_rows, sample_rows)
+    X <- processed_data$X
+    row_weights <- processed_data$row_weights
 
     parameters <- process_parameters(parameter_filename)
 

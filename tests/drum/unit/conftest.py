@@ -1,7 +1,20 @@
+"""
+Copyright 2022 DataRobot, Inc. and its affiliates.
+All rights reserved.
+This is proprietary source code of DataRobot, Inc. and its affiliates.
+Released under the terms of DataRobot Tool and Utility Agreement.
+"""
+import tempfile
+from contextlib import contextmanager
 from textwrap import dedent
 
 import pytest
 from tempfile import NamedTemporaryFile
+
+import pandas as pd
+from scipy.io import mmwrite
+
+from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
 
 
 @pytest.fixture
@@ -195,3 +208,27 @@ def custom_predictor_metadata_yaml():
            arbitraryField: This info is read directly by a custom predictor
         """
     )
+
+
+###############################################################################
+# HELPER FUNCS
+
+
+@pytest.fixture
+def df_to_temporary_file() -> callable:
+    @contextmanager
+    def _to_temporary_file(df: pd.DataFrame, header=True) -> callable:
+        is_sparse = is_sparse_dataframe(df)
+        suffix = ".mtx" if is_sparse else ".csv"
+
+        target_file = tempfile.NamedTemporaryFile(suffix=suffix)
+        if is_sparse_dataframe(df):
+            mmwrite(target_file.name, df.sparse.to_coo())
+        else:
+            df.to_csv(target_file.name, index=False, header=header)
+
+        yield target_file.name
+
+        target_file.close()
+
+    return _to_temporary_file
