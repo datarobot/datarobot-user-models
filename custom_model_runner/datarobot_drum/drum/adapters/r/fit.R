@@ -34,7 +34,7 @@ get_nested_path <- function(path, file_pattern){
     )
 }
 
-init <- function(code_dir, target_type) {
+outer_init <- function(code_dir, target_type) {
     TARGET_TYPE <<- target_type
     custom_path <- get_nested_path(code_dir, 'custom.[Rr]')
     if(length(custom_path) >= 1){

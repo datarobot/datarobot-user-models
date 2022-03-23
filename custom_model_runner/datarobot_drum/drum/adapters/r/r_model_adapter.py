@@ -59,7 +59,7 @@ class RModelAdapter(object):
 
             RModelAdapter.R_RUNTIME.source(R_COMMON_PATH)
             RModelAdapter.R_RUNTIME.source(R_FIT_PATH)
-            RModelAdapter.R_RUNTIME.init(self.custom_task_folder_path, self.target_type.value)
+            RModelAdapter.R_RUNTIME.outer_init(self.custom_task_folder_path, self.target_type.value)
         except ImportError:
             error_message = (
                 "rpy2 package is not installed."
