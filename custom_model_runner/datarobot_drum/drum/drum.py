@@ -505,7 +505,7 @@ class CMRunner:
         if self._pipeline_executor:
             self._pipeline_executor.cleanup_pipeline()
 
-    def _get_python_fit_function(self, cli_adapter: DrumCLIAdapter) -> Callable:
+    def _get_fit_function(self, cli_adapter: DrumCLIAdapter) -> Callable:
         """
         Parameters
         ----------
@@ -516,9 +516,21 @@ class CMRunner:
         Callable
             Function that will run the custom task's fit
         """
-        model_adapter = PythonModelAdapter(
-            model_dir=cli_adapter.custom_task_folder_path, target_type=cli_adapter.target_type
-        )
+        # TODO: Decouple check_artifacts_and_get_run_language from CLI, add it as part of validate in DrumCLIAdapter
+        run_language = self._check_artifacts_and_get_run_language()
+
+        if run_language == RunLanguage.PYTHON:
+            model_adapter = PythonModelAdapter(
+                model_dir=cli_adapter.custom_task_folder_path, target_type=cli_adapter.target_type
+            )
+        elif run_language == RunLanguage.R:
+            model_adapter = RModelAdapter(
+                custom_task_folder_path=cli_adapter.custom_task_folder_path,
+                target_type=cli_adapter.target_type,
+            )
+        else:
+            raise ValueError("drum fit only supports Python and R")
+
         model_adapter.load_custom_hooks()
 
         def _run_fit():
@@ -531,29 +543,6 @@ class CMRunner:
                 parameters=cli_adapter.parameters_for_fit,
                 class_order=cli_adapter.class_ordering,
             )
-
-        return _run_fit
-
-    def _get_r_fit_function(self, cli_adapter: DrumCLIAdapter) -> Callable:
-        """
-        Parameters
-        ----------
-        cli_adapter: DrumCLIAdapter
-
-        Returns
-        -------
-        Callable
-            Function that will run the custom task's fit
-        """
-        model_adapter = RModelAdapter(
-            custom_task_folder_path=cli_adapter.custom_task_folder_path,
-            target_type=cli_adapter.target_type,
-        )
-        model_adapter.load_custom_hooks()
-
-        def _run_fit():
-            # TODO: Only pass in X, y, output_dir, row_weights, parameters
-            model_adapter.fit(cli_adapter)
 
         return _run_fit
 
@@ -591,15 +580,7 @@ class CMRunner:
         self.schema_validator.validate_type_schema(cli_adapter.target_type)
         self.schema_validator.validate_inputs(cli_adapter.X)
 
-        # TODO: Decouple check_artifacts_and_get_run_language from CLI, add it as part of validate in DrumCLIAdapter
-        run_language = self._check_artifacts_and_get_run_language()
-
-        if run_language == RunLanguage.PYTHON:
-            fit_function = self._get_python_fit_function(cli_adapter=cli_adapter)
-        elif run_language == RunLanguage.R:
-            fit_function = self._get_r_fit_function(cli_adapter=cli_adapter)
-        else:
-            raise ValueError("drum fit only supports Python and R")
+        fit_function = self._get_fit_function(cli_adapter=cli_adapter)
 
         print("Starting Fit")
         mem_usage = memory_usage(fit_function, interval=1, max_usage=True, max_iterations=1,)
