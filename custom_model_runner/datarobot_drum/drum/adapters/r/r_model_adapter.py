@@ -95,7 +95,7 @@ class RModelAdapter(object):
                     x=self.R.FloatVector(coo_matrix.data),
                     dims=self.R.IntVector(list(coo_matrix.shape)),
                     dimnames=self.R.ListVector([("0", self.R.NULL), ("1", list(py_type.columns))]),
-                    repr="T",  # triplet format (same as coo)
+                    giveCsparse=0,  # returns triplet format (same as coo)
                 )
                 return r_sparse_matrix
             else:
