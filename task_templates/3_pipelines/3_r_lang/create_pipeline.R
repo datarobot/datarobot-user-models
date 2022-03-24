@@ -28,9 +28,9 @@ create_pipeline<-function(X, y, model_type='regression') {
 
     gbmGrid <- expand.grid(
       n.trees = 50,
-      interaction.depth=3,
+      interaction.depth=1,
       shrinkage = 0.1,
-      n.minobsinnode = 20
+      n.minobsinnode = 10
     )
 
     # Run the model using caret
