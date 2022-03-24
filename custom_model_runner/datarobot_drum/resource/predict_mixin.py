@@ -92,6 +92,14 @@ class PredictMixin:
             return binary_data
         return None
 
+    def _get_sparse_column_names(self, logger):
+        sparse_column_data = self._fetch_additional_files_from_request(
+            SPARSE_COLNAMES, logger=logger
+        )
+        if sparse_column_data:
+            return StructuredInputReadUtils.read_sparse_column_data_as_list(sparse_column_data)
+        return None
+
     def _check_mimetype_support(self, mimetype):
         # TODO: self._predictor.supported_payload_formats is property so gets initialized on every call, make it a method?
         mimetype_supported = self._predictor.supported_payload_formats.is_mimetype_supported(
@@ -114,7 +122,7 @@ class PredictMixin:
         try:
 
             binary_data, mimetype, charset = self._fetch_data_from_request("X", logger=logger)
-            sparse_data = self._fetch_additional_files_from_request(SPARSE_COLNAMES, logger=logger)
+            sparse_column_names = self._get_sparse_column_names(logger=logger)
 
             mimetype_support_error_response = self._check_mimetype_support(mimetype)
             if mimetype_support_error_response is not None:
@@ -124,7 +132,10 @@ class PredictMixin:
             return {"message": "ERROR: " + str(e)}, response_status
 
         out_data = self._predictor.predict(
-            binary_data=binary_data, mimetype=mimetype, charset=charset, sparse_colnames=sparse_data
+            binary_data=binary_data,
+            mimetype=mimetype,
+            charset=charset,
+            sparse_colnames=sparse_column_names,
         )
 
         if self._target_type == TargetType.UNSTRUCTURED:
@@ -171,19 +182,10 @@ class PredictMixin:
             feature_binary_data, feature_mimetype, feature_charset = self._fetch_data_from_request(
                 "X", logger=logger
             )
+            sparse_column_names = self._get_sparse_column_names(logger=logger)
             mimetype_support_error_response = self._check_mimetype_support(feature_mimetype)
             if mimetype_support_error_response is not None:
                 return mimetype_support_error_response
-        except ValueError as e:
-            response_status = HTTP_422_UNPROCESSABLE_ENTITY
-            return {"message": "ERROR: " + str(e)}, response_status
-
-        try:
-            colnames_bin_data = None
-            if SPARSE_COLNAMES in request.files.keys():
-                colnames_bin_data = self._fetch_additional_files_from_request(
-                    SPARSE_COLNAMES, logger=logger
-                )
         except ValueError as e:
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             return {"message": "ERROR: " + str(e)}, response_status
@@ -210,14 +212,14 @@ class PredictMixin:
                     target_binary_data=target_binary_data,
                     target_mimetype=target_mimetype,
                     target_charset=target_charset,
-                    sparse_colnames=colnames_bin_data,
+                    sparse_colnames=sparse_column_names,
                 )
             else:
                 out_data, _ = self._predictor.transform(
                     binary_data=feature_binary_data,
                     mimetype=feature_mimetype,
                     charset=feature_charset,
-                    sparse_colnames=colnames_bin_data,
+                    sparse_colnames=sparse_column_names,
                 )
                 out_target = None
         except DrumSchemaValidationException as e:

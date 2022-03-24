@@ -51,11 +51,14 @@ class StructuredInputReadUtils:
         return InputFormatToMimetype.get(os.path.splitext(filename)[1])
 
     @staticmethod
+    def read_sparse_column_data_as_list(sparse_column_data):
+        sparse_columns_raw = io.BytesIO(sparse_column_data).readlines()
+        return [column.strip().decode("utf-8") for column in sparse_columns_raw]
+
+    @staticmethod
     def read_sparse_column_file_as_list(sparse_column_file):
         with open(sparse_column_file, "rb") as f:
-            sparse_columns_raw = f.readlines()
-
-        return [column.strip().decode("utf-8") for column in sparse_columns_raw]
+            return StructuredInputReadUtils.read_sparse_column_data_as_list(f.read())
 
     @staticmethod
     def read_structured_input_data_as_df(binary_data, mimetype, sparse_colnames=None):
