@@ -137,6 +137,13 @@ class DrumCLIAdapter(object):
         return self._lazy_load_binary_data()._input_binary_mimetype
 
     @property
+    def sparse_column_names(self):
+        if self.sparse_column_filename:
+            return StructuredInputReadUtils.read_sparse_column_file_as_list(
+                self.sparse_column_filename
+            )
+
+    @property
     def input_dataframe(self):
         """
         Returns

@@ -93,14 +93,10 @@ class RPredictor(BaseLanguagePredictor):
 
     @staticmethod
     def _get_sparse_colnames(kwargs):
-        if kwargs.get(StructuredDtoKeys.SPARSE_COLNAMES):
-            sparse_colnames = (
-                kwargs[StructuredDtoKeys.SPARSE_COLNAMES].decode("utf-8").rstrip().split("\n")
-            )
-            sparse_colnames = ro.vectors.StrVector(sparse_colnames)
-        else:
-            sparse_colnames = ro.rinterface.NULL
-        return sparse_colnames
+        sparse_colnames = kwargs.get(StructuredDtoKeys.SPARSE_COLNAMES)
+        if sparse_colnames:
+            return ro.vectors.StrVector(sparse_colnames)
+        return ro.rinterface.NULL
 
     def _replace_sanitized_class_names(self, predictions):
         """ Match prediction data labels to project class labels.

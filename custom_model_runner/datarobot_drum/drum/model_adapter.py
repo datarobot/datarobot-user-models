@@ -451,15 +451,13 @@ class PythonModelAdapter:
         pd.DataFrame
         """
         # TODO: this is very similar to predict, could be refactored
-        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
-        target_binary_data = kwargs.get(StructuredDtoKeys.TARGET_BINARY_DATA)
-        sparse_colnames_bin_data = kwargs.get(StructuredDtoKeys.SPARSE_COLNAMES)
-
         data = self.load_data(
-            input_binary_data,
-            kwargs.get(StructuredDtoKeys.MIMETYPE),
-            sparse_colnames=sparse_colnames_bin_data,
+            binary_data=kwargs.get(StructuredDtoKeys.BINARY_DATA),
+            mimetype=kwargs.get(StructuredDtoKeys.MIMETYPE),
+            sparse_colnames=kwargs.get(StructuredDtoKeys.SPARSE_COLNAMES),
         )
+
+        target_binary_data = kwargs.get(StructuredDtoKeys.TARGET_BINARY_DATA)
         target_data = None
 
         if target_binary_data:
@@ -569,12 +567,10 @@ class PythonModelAdapter:
         -------
         np.array, list(str)
         """
-        input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
-        sparse_colnames = kwargs.get(StructuredDtoKeys.SPARSE_COLNAMES)
         data = self.load_data(
-            input_binary_data,
-            kwargs.get(StructuredDtoKeys.MIMETYPE),
-            sparse_colnames=sparse_colnames,
+            binary_data=kwargs.get(StructuredDtoKeys.BINARY_DATA),
+            mimetype=kwargs.get(StructuredDtoKeys.MIMETYPE),
+            sparse_colnames=kwargs.get(StructuredDtoKeys.SPARSE_COLNAMES),
         )
 
         data = self.preprocess(data, model)

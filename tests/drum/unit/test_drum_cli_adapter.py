@@ -352,6 +352,15 @@ class TestDrumCLIAdapterDenseData(object):
 
 
 class TestDrumCLIAdapterSparseData(object):
+    def test_sparse_column_names_are_read_correctly(self, column_names, sparse_column_names_file):
+        sparse_column_names = DrumCLIAdapter(
+            custom_task_folder_path="path/to/nothing",
+            target_type=TargetType.ANOMALY,
+            sparse_column_filename=sparse_column_names_file,
+        ).sparse_column_names
+
+        assert sparse_column_names == column_names
+
     def test_sparse_input_file_is_read_correctly(
         self, sparse_mtx, sparse_df, sparse_column_names_file
     ):
