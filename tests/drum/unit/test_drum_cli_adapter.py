@@ -15,7 +15,7 @@ import scipy
 import scipy.sparse
 
 from datarobot_drum.drum.adapters.drum_cli_adapter import DrumCLIAdapter
-from datarobot_drum.drum.enum import TargetType
+from datarobot_drum.drum.enum import TargetType, InputFormatExtension, PredictionServerMimetypes
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe, is_sparse_series
 from ..constants import TESTS_DATA_PATH
@@ -558,9 +558,7 @@ class TestDrumCLIParameters(object):
 
     def test_parameters_default_to_empty_dict(self):
         drum_cli_adapter = DrumCLIAdapter(
-            custom_task_folder_path="a/path",
-            input_filename="path/to/nothing",
-            target_type=TargetType.REGRESSION,
+            custom_task_folder_path="a/path", target_type=TargetType.REGRESSION,
         )
 
         assert drum_cli_adapter.parameters == {}
@@ -572,7 +570,6 @@ class TestDrumCLIParameters(object):
     ):
         drum_cli_adapter = DrumCLIAdapter(
             custom_task_folder_path="a/path",
-            input_filename="path/to/nothing",
             target_type=TargetType.REGRESSION,
             parameters_file=parameters_file,
             default_parameter_values=default_parameter_values,
@@ -585,7 +582,6 @@ class TestDrumCLIParameters(object):
     def test_default_parameters_used_for_fit_if_file_not_provided(self, default_parameter_values):
         drum_cli_adapter = DrumCLIAdapter(
             custom_task_folder_path="a/path",
-            input_filename="path/to/nothing",
             target_type=TargetType.REGRESSION,
             default_parameter_values=default_parameter_values,
         )
@@ -600,7 +596,6 @@ class TestDrumCLIAdapterOutputDir(object):
         output_dir = "output/path"
         drum_cli_adapter = DrumCLIAdapter(
             custom_task_folder_path="a/path",
-            input_filename="path/to/nothing",
             target_type=TargetType.REGRESSION,
             output_dir=output_dir,
         )._validate_output_dir()
@@ -611,9 +606,7 @@ class TestDrumCLIAdapterOutputDir(object):
 
     def test_temp_output_dir_created_and_cleaned_up_when_not_provided(self):
         drum_cli_adapter = DrumCLIAdapter(
-            custom_task_folder_path="a/path",
-            input_filename="path/to/nothing",
-            target_type=TargetType.REGRESSION,
+            custom_task_folder_path="a/path", target_type=TargetType.REGRESSION,
         )._validate_output_dir()
 
         # Ensure output is not to be persisted
@@ -625,3 +618,62 @@ class TestDrumCLIAdapterOutputDir(object):
         # Ensure temp directory gets cleaned up
         assert drum_cli_adapter.cleanup_output_directory_if_necessary()
         assert not os.path.isdir(drum_cli_adapter.output_dir)
+
+
+class TestDrumCLIAdapterInputFilenameSetter(object):
+    def test_input_filename_setter_and_lazy_loaded_dataframe(self, dense_csv, sparse_mtx):
+        drum_cli_adapter = DrumCLIAdapter(
+            custom_task_folder_path="path/to/nothing",
+            input_filename=dense_csv,
+            target_type=TargetType.ANOMALY,
+        )
+
+        # Lazy load the input dataframe by calling X, ensure lazy loaded works
+        _ = drum_cli_adapter.X
+        assert drum_cli_adapter._input_dataframe is not None
+        assert id(drum_cli_adapter._input_dataframe) == id(drum_cli_adapter.input_dataframe)
+
+        # Set input_filename to None, ensure lazy loaded _input_dataframe is cleared
+        drum_cli_adapter.input_filename = None
+        assert drum_cli_adapter._input_dataframe is None
+
+        # Set input_filename to sparse_mtx, ensure lazy_loaded _input_dataframe is updated and is sparse
+        drum_cli_adapter.input_filename = sparse_mtx
+        _ = drum_cli_adapter.X
+        assert drum_cli_adapter._input_dataframe is not None
+        assert id(drum_cli_adapter._input_dataframe) == id(drum_cli_adapter.input_dataframe)
+        assert is_sparse_dataframe(drum_cli_adapter._input_dataframe)
+
+    def test_input_filename_setter_and_lazy_loaded_binary_data(self, dense_csv, sparse_mtx):
+        drum_cli_adapter = DrumCLIAdapter(
+            custom_task_folder_path="path/to/nothing",
+            input_filename=dense_csv,
+            target_type=TargetType.ANOMALY,
+        )
+
+        # Lazy load the input binary_data and mimetype by calling input_binary_data, ensure lazy loaded works
+        _ = drum_cli_adapter.input_binary_data
+        assert drum_cli_adapter._input_binary_data is not None
+        assert (
+            drum_cli_adapter._input_binary_mimetype is None
+        )  # dense mimetype is None, TODO: update!
+        assert id(drum_cli_adapter._input_binary_data) == id(drum_cli_adapter.input_binary_data)
+        assert id(drum_cli_adapter._input_binary_mimetype) == id(
+            drum_cli_adapter.input_binary_mimetype
+        )
+
+        # Set input_filename to None, ensure lazy loaded _input_binary_data/mimetype is cleared
+        drum_cli_adapter.input_filename = None
+        assert drum_cli_adapter._input_binary_data is None
+        assert drum_cli_adapter._input_binary_mimetype is None
+
+        # Set input_filename to sparse_mtx, ensure lazy_loaded _input_binary_data/mimetype is updated and is sparse
+        drum_cli_adapter.input_filename = sparse_mtx
+        _ = drum_cli_adapter.input_binary_mimetype
+        assert drum_cli_adapter._input_binary_data is not None
+        assert drum_cli_adapter._input_binary_mimetype is not None
+        assert id(drum_cli_adapter._input_binary_data) == id(drum_cli_adapter.input_binary_data)
+        assert id(drum_cli_adapter._input_binary_mimetype) == id(
+            drum_cli_adapter.input_binary_mimetype
+        )
+        assert drum_cli_adapter.input_binary_mimetype == PredictionServerMimetypes.TEXT_MTX
