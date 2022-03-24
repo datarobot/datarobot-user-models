@@ -9,3 +9,7 @@ import pandas as pd
 
 def is_sparse_dataframe(dataframe: pd.DataFrame) -> bool:
     return hasattr(dataframe, "sparse")
+
+
+def is_sparse_series(series: pd.Series) -> bool:
+    return hasattr(series, "sparse")

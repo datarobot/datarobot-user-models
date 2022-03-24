@@ -7,8 +7,10 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import logging
 import os
 
-from datarobot_drum.drum.adapters.drum_cli_adapter import DrumCLIAdapter
+import pandas as pd
+
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
 from datarobot_drum.drum.utils.drum_utils import make_sure_artifact_is_small
 from datarobot_drum.drum.utils.stacktraces import capture_R_traceback_if_errors
 
@@ -27,6 +29,7 @@ R_COMMON_PATH = os.path.abspath(
 class RModelAdapter(object):
     R = None
     R_RUNTIME = None
+    R_PANDAS = None
 
     def __init__(
         self, custom_task_folder_path, target_type,
@@ -45,16 +48,18 @@ class RModelAdapter(object):
         try:
             import rpy2.robjects as ro
             from rpy2.robjects import pandas2ri
+            from rpy2.robjects.packages import importr
             from rpy2.robjects.conversion import localconverter
 
             pandas2ri.activate()
+            RModelAdapter.R_PANDAS = pandas2ri
 
             RModelAdapter.R = ro
             RModelAdapter.R_RUNTIME = ro.r
 
             RModelAdapter.R_RUNTIME.source(R_COMMON_PATH)
             RModelAdapter.R_RUNTIME.source(R_FIT_PATH)
-            RModelAdapter.R_RUNTIME.init(self.custom_task_folder_path)
+            RModelAdapter.R_RUNTIME.outer_init(self.custom_task_folder_path, self.target_type.value)
         except ImportError:
             error_message = (
                 "rpy2 package is not installed."
@@ -64,51 +69,85 @@ class RModelAdapter(object):
             logger.error(error_message)
             exit(1)
 
-    def fit(self, drum_cli_adapter):
+    def _convert_bool_to_str(self, pd_type):
         """
-        TODO: decouple drum_cli_adapter from this function. This should match (python) ModelAdapter.fit args
-        This will involve transforming python datatypes to R datatypes
+        R does not like native python bool types, so convert them into strings.
+        """
+        d = {True: "True", False: "False"}
+        if isinstance(pd_type, pd.DataFrame):
+            mask = pd_type.applymap(type) != bool
+            return pd_type.where(mask, pd_type.replace(d))
+        # else, Series
+        if pd_type.dtype == bool:
+            return pd_type.replace(d)
+        return pd_type
+
+    def _convert(self, py_type):
+        """
+        Converts native python type into R types, to be passed into R functions.
+        """
+        if isinstance(py_type, pd.DataFrame):
+            if is_sparse_dataframe(py_type):
+                coo_matrix = py_type.sparse.to_coo()
+                r_sparse_matrix = self.R_RUNTIME("Matrix::sparseMatrix")(
+                    i=self.R.IntVector(coo_matrix.row + 1),
+                    j=self.R.IntVector(coo_matrix.col + 1),
+                    x=self.R.FloatVector(coo_matrix.data),
+                    dims=self.R.IntVector(list(coo_matrix.shape)),
+                    dimnames=self.R.ListVector([("0", self.R.NULL), ("1", list(py_type.columns))]),
+                    giveCsparse=0,  # returns triplet format (same as coo)
+                )
+                return r_sparse_matrix
+            else:
+                return self.R_PANDAS.py2rpy_pandasdataframe(self._convert_bool_to_str(py_type))
+        elif isinstance(py_type, pd.Series):
+            return self.R_PANDAS.py2rpy_pandasseries(self._convert_bool_to_str(py_type))
+        elif isinstance(py_type, list):
+            return self.R.StrVector(py_type)
+        elif isinstance(py_type, dict):
+            return self.R.ListVector(py_type)
+        elif isinstance(py_type, str):
+            return py_type
+        elif py_type is None:
+            return self.R.NULL
+        else:
+            raise ValueError(f"Error converting python variable of type '{type(py_type)}' to R")
+
+    def fit(self, X, y, output_dir, class_order=None, row_weights=None, parameters=None):
+        """
+        Trains an R-based custom task.
 
         Parameters
         ----------
-        drum_cli_adapter: DrumCLIAdapter
+        X: pd.DataFrame
+            Training data. Could be sparse or dense
+        y: pd.Series
+            Target values
+        output_dir: str
+            Output directory to store the artifact
+        class_order: list or None
+            Expected order of classification labels
+        row_weights: pd.Series or None
+            Class weights
+        parameters: dict or None
+            Hyperparameter values
 
         Returns
         -------
         RModelAdapter
         """
-        r = RModelAdapter.R
-        r_runtime = RModelAdapter.R_RUNTIME
-
         # make sure our output dir ends with a slash
-        if drum_cli_adapter.output_dir[-1] != "/":
-            drum_cli_adapter.output_dir += "/"
+        if output_dir[-1] != "/":
+            output_dir += "/"
 
-        # TODO: read files in python, pass values to R instead of filepaths
-        with capture_R_traceback_if_errors(r_runtime, logger):
-            r_runtime.outer_fit(
-                drum_cli_adapter.output_dir,
-                drum_cli_adapter.input_filename,
-                drum_cli_adapter.sparse_column_filename or r.NULL,
-                drum_cli_adapter.target_filename or r.NULL,
-                drum_cli_adapter.target_name or r.NULL,
-                drum_cli_adapter.num_rows,
-                drum_cli_adapter.weights_filename or r.NULL,
-                drum_cli_adapter.weights_name or r.NULL,
-                r.NULL
-                if drum_cli_adapter.positive_class_label is None
-                else drum_cli_adapter.positive_class_label,
-                r.NULL
-                if drum_cli_adapter.negative_class_label is None
-                else drum_cli_adapter.negative_class_label,
-                r.StrVector([str(l) for l in drum_cli_adapter.class_labels])
-                if drum_cli_adapter.class_labels
-                else r.NULL,
-                drum_cli_adapter.parameters_file or r.NULL,
-                drum_cli_adapter.target_type.value,  # target_type is an enum, pass its string value into R
-                r.DataFrame(drum_cli_adapter.default_parameter_values)
-                if drum_cli_adapter.default_parameter_values
-                else r.NULL,
+        with capture_R_traceback_if_errors(self.R_RUNTIME, logger):
+            self.R_RUNTIME.outer_fit(
+                X=self._convert(X),
+                y=self._convert(y),
+                output_dir=self._convert(output_dir),
+                class_order=self._convert(class_order),
+                row_weights=self._convert(row_weights),
+                parameters=self._convert(parameters),
             )
-        make_sure_artifact_is_small(drum_cli_adapter.output_dir)
+        make_sure_artifact_is_small(output_dir)
         return self

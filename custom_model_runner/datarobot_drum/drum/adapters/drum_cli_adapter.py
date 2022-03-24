@@ -19,6 +19,7 @@ from datarobot_drum.drum.adapters.classification_labels_util import (
 )
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, TargetType
 from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.utils.dataframe import is_sparse_series
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
@@ -158,7 +159,10 @@ class DrumCLIAdapter(object):
                 print(e, file=sys.stderr)
                 raise DrumCommonException(e)
 
-            return self.input_dataframe[self.target_name]
+            y = self.input_dataframe[self.target_name]
+            if is_sparse_series(y):
+                return y.sparse.to_dense()
+            return y
         elif self.target_filename:
             assert self.target_name is None
 
@@ -186,6 +190,9 @@ class DrumCLIAdapter(object):
                     )
                 )
             weights = self.input_dataframe[self.weights_name]
+            if is_sparse_series(weights):
+                return weights.sparse.to_dense()
+            return weights
         else:
             weights = None
         return weights

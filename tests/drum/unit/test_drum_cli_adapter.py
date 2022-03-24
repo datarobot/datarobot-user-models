@@ -17,7 +17,7 @@ import scipy.sparse
 from datarobot_drum.drum.adapters.drum_cli_adapter import DrumCLIAdapter
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
+from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe, is_sparse_series
 from ..constants import TESTS_DATA_PATH
 
 
@@ -374,6 +374,8 @@ class TestDrumCLIAdapterSparseData(object):
             sparse_column_filename=sparse_column_names_file,
         )
 
+        assert is_sparse_dataframe(drum_cli_adapter.X)
+
         pd.testing.assert_frame_equal(drum_cli_adapter.X, sparse_df)
         assert drum_cli_adapter.y is None
         assert drum_cli_adapter.weights is None
@@ -397,6 +399,9 @@ class TestDrumCLIAdapterSparseData(object):
             target_filename=target_csv,
             sparse_column_filename=sparse_column_names_file,
         )
+
+        assert is_sparse_dataframe(drum_cli_adapter.X)
+        assert not is_sparse_series(drum_cli_adapter.y)
 
         pd.testing.assert_frame_equal(drum_cli_adapter.X, sparse_df)
         pd.testing.assert_series_equal(drum_cli_adapter.y, target_series)
@@ -426,6 +431,10 @@ class TestDrumCLIAdapterSparseData(object):
             weights_filename=weights_csv,
             sparse_column_filename=sparse_column_names_file,
         )
+
+        assert is_sparse_dataframe(drum_cli_adapter.X)
+        assert not is_sparse_series(drum_cli_adapter.y)
+        assert not is_sparse_series(drum_cli_adapter.weights)
 
         pd.testing.assert_frame_equal(drum_cli_adapter.X, sparse_df)
         pd.testing.assert_series_equal(drum_cli_adapter.y, target_series)

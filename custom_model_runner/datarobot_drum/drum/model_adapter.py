@@ -676,6 +676,28 @@ class PythonModelAdapter:
         return False
 
     def fit(self, X, y, output_dir, class_order=None, row_weights=None, parameters=None):
+        """
+        Trains a Python-based custom task.
+
+        Parameters
+        ----------
+        X: pd.DataFrame
+            Training data. Could be sparse or dense
+        y: pd.Series
+            Target values
+        output_dir: str
+            Output directory to store the artifact
+        class_order: list or None
+            Expected order of classification labels
+        row_weights: pd.Series or None
+            Class weights
+        parameters: dict or None
+            Hyperparameter values
+
+        Returns
+        -------
+        PythonModelAdapter
+        """
         if self.is_custom_task_class:
             with reroute_stdout_to_stderr():
                 try:
