@@ -629,30 +629,7 @@ class TestDrumCLIAdapterOutputDir(object):
         assert not os.path.isdir(drum_cli_adapter.output_dir)
 
 
-class TestDrumCLIAdapterInputFilenameSetter(object):
-    def test_input_filename_setter_and_lazy_loaded_dataframe(self, dense_csv, sparse_mtx):
-        drum_cli_adapter = DrumCLIAdapter(
-            custom_task_folder_path="path/to/nothing",
-            input_filename=dense_csv,
-            target_type=TargetType.ANOMALY,
-        )
-
-        # Lazy load the input dataframe by calling X, ensure lazy loaded works
-        _ = drum_cli_adapter.X
-        assert drum_cli_adapter._input_dataframe is not None
-        assert id(drum_cli_adapter._input_dataframe) == id(drum_cli_adapter.input_dataframe)
-
-        # Set input_filename to None, ensure lazy loaded _input_dataframe is cleared
-        drum_cli_adapter.input_filename = None
-        assert drum_cli_adapter._input_dataframe is None
-
-        # Set input_filename to sparse_mtx, ensure lazy_loaded _input_dataframe is updated and is sparse
-        drum_cli_adapter.input_filename = sparse_mtx
-        _ = drum_cli_adapter.X
-        assert drum_cli_adapter._input_dataframe is not None
-        assert id(drum_cli_adapter._input_dataframe) == id(drum_cli_adapter.input_dataframe)
-        assert is_sparse_dataframe(drum_cli_adapter._input_dataframe)
-
+class TestDrumCLIAdapterBinaryDataProperties(object):
     def test_input_filename_setter_and_lazy_loaded_binary_data(self, dense_csv, sparse_mtx):
         drum_cli_adapter = DrumCLIAdapter(
             custom_task_folder_path="path/to/nothing",
@@ -670,19 +647,3 @@ class TestDrumCLIAdapterInputFilenameSetter(object):
         assert id(drum_cli_adapter._input_binary_mimetype) == id(
             drum_cli_adapter.input_binary_mimetype
         )
-
-        # Set input_filename to None, ensure lazy loaded _input_binary_data/mimetype is cleared
-        drum_cli_adapter.input_filename = None
-        assert drum_cli_adapter._input_binary_data is None
-        assert drum_cli_adapter._input_binary_mimetype is None
-
-        # Set input_filename to sparse_mtx, ensure lazy_loaded _input_binary_data/mimetype is updated and is sparse
-        drum_cli_adapter.input_filename = sparse_mtx
-        _ = drum_cli_adapter.input_binary_mimetype
-        assert drum_cli_adapter._input_binary_data is not None
-        assert drum_cli_adapter._input_binary_mimetype is not None
-        assert id(drum_cli_adapter._input_binary_data) == id(drum_cli_adapter.input_binary_data)
-        assert id(drum_cli_adapter._input_binary_mimetype) == id(
-            drum_cli_adapter.input_binary_mimetype
-        )
-        assert drum_cli_adapter.input_binary_mimetype == PredictionServerMimetypes.TEXT_MTX

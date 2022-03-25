@@ -84,7 +84,7 @@ class DrumCLIAdapter(object):
         """
         self.custom_task_folder_path = custom_task_folder_path
         self.target_type = target_type
-        self._input_filename = input_filename  # has setter property
+        self.input_filename = input_filename
         self.target_name = target_name
         self.target_filename = target_filename
         self.weights_name = weights_name
@@ -101,19 +101,6 @@ class DrumCLIAdapter(object):
         self.persist_output = self.output_dir is not None
 
         # Lazy loaded variables
-        self._input_dataframe = None
-        self._input_binary_data = None
-        self._input_binary_mimetype = None
-
-    @property
-    def input_filename(self):
-        return self._input_filename
-
-    @input_filename.setter
-    def input_filename(self, val):
-        self._input_filename = val
-
-        # reset all lazy-loaded variables derived from input_filename
         self._input_dataframe = None
         self._input_binary_data = None
         self._input_binary_mimetype = None
