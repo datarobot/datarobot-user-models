@@ -355,7 +355,6 @@ class PythonModelAdapter:
         }
 
     def load_data(self, binary_data, mimetype, try_hook=True, sparse_colnames=None):
-
         if self._custom_hooks.get(CustomHooks.READ_INPUT_DATA) and try_hook:
             try:
                 data = self._custom_hooks[CustomHooks.READ_INPUT_DATA](binary_data)

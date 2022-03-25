@@ -6,6 +6,8 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
 import urllib
+from typing import Optional
+
 import werkzeug
 from pandas import DataFrame
 
@@ -34,15 +36,17 @@ class GenericPredictorComponent(ConnectableComponent):
         self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
         self._run_language = None
         self._predictor = None
-        self._target_type = None
-        self.cli_adapter = None
+        self.cli_adapter: Optional[DrumCLIAdapter] = None
 
     def configure(self, params):
         super(GenericPredictorComponent, self).configure(params)
         self._run_language = RunLanguage(params.get("run_language"))
 
+        # Input filename is available at configuration time, so include it in the CLI adapter here.
         self.cli_adapter = DrumCLIAdapter(
             custom_task_folder_path=params["__custom_model_path__"],
+            input_filename=params["input_filename"],
+            sparse_column_filename=params.get("sparse_column_file"),
             target_type=TargetType(params[TARGET_TYPE_ARG_KEYWORD]),
             positive_class_label=params.get("positiveClassLabel"),
             negative_class_label=params.get("negativeClassLabel"),
@@ -116,16 +120,15 @@ class GenericPredictorComponent(ConnectableComponent):
         return []
 
     def _materialize(self, parent_data_objs, user_data):
-        input_filename = self._params["input_filename"]
         output_filename = self._params.get("output_filename")
 
-        if self._target_type == TargetType.UNSTRUCTURED:
-            return self._materialize_unstructured(input_filename, output_filename)
+        if self.cli_adapter.target_type == TargetType.UNSTRUCTURED:
+            # TODO: add support to use cli_adapter for unstructured
+            return self._materialize_unstructured(
+                input_filename=self._params["input_filename"], output_filename=output_filename,
+            )
 
-        # Update the CLI adapter with the input filename
-        self.cli_adapter.input_filename = self._params["input_filename"]
-
-        if self._target_type == TargetType.TRANSFORM:
+        if self.cli_adapter.target_type == TargetType.TRANSFORM:
             transformed_output = self._predictor.transform(
                 binary_data=self.cli_adapter.input_binary_data,
                 mimetype=self.cli_adapter.input_binary_mimetype,
