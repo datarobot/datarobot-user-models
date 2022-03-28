@@ -5,6 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
+
 from datarobot_drum.drum.adapters.cli.shared.drum_class_label_adapter import DrumClassLabelAdapter
 from datarobot_drum.drum.adapters.cli.shared.drum_input_file_adapter import DrumInputFileAdapter
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX

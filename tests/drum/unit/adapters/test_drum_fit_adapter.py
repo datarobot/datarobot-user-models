@@ -5,7 +5,6 @@ import tempfile
 import numpy as np
 import pandas as pd
 import pytest
-
 from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.exceptions import DrumCommonException

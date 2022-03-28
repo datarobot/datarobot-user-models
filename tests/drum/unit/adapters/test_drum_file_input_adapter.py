@@ -1,10 +1,10 @@
 import numpy as np
 import pandas as pd
 import pytest
-
 from datarobot_drum.drum.adapters.cli.shared.drum_input_file_adapter import DrumInputFileAdapter
 from datarobot_drum.drum.enum import TargetType
-from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe, is_sparse_series
+from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
+from datarobot_drum.drum.utils.dataframe import is_sparse_series
 
 
 class TestDrumInputFileAdapterDenseData(object):

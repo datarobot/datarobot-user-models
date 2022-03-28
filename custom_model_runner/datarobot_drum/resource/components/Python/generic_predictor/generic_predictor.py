@@ -9,21 +9,15 @@ import urllib
 from typing import Optional
 
 import werkzeug
-
 from datarobot_drum.drum.adapters.cli.drum_score_adapter import DrumScoreAdapter
-from datarobot_drum.drum.enum import (
-    LOGGER_NAME_PREFIX,
-    TARGET_TYPE_ARG_KEYWORD,
-    UnstructuredDtoKeys,
-    RunLanguage,
-    TargetType,
-)
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.enum import TARGET_TYPE_ARG_KEYWORD
+from datarobot_drum.drum.enum import RunLanguage
+from datarobot_drum.drum.enum import TargetType
+from datarobot_drum.drum.enum import UnstructuredDtoKeys
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.resource.unstructured_helpers import (
-    _resolve_incoming_unstructured_data,
-    _resolve_outgoing_unstructured_data,
-)
-
+from datarobot_drum.resource.unstructured_helpers import _resolve_incoming_unstructured_data
+from datarobot_drum.resource.unstructured_helpers import _resolve_outgoing_unstructured_data
 from mlpiper.components.connectable_component import ConnectableComponent
 
 
