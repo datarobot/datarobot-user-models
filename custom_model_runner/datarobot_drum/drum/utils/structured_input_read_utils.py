@@ -37,11 +37,11 @@ class StructuredInputReadUtils:
         binary_data, mimetype = StructuredInputReadUtils.read_structured_input_file_as_binary(
             filename
         )
+        sparse_colnames = None
         if sparse_column_file:
-            with open(sparse_column_file, "rb") as file:
-                sparse_colnames = file.read()
-        else:
-            sparse_colnames = None
+            sparse_colnames = StructuredInputReadUtils.read_sparse_column_file_as_list(
+                sparse_column_file
+            )
         return StructuredInputReadUtils.read_structured_input_data_as_df(
             binary_data, mimetype, sparse_colnames
         )
@@ -51,24 +51,21 @@ class StructuredInputReadUtils:
         return InputFormatToMimetype.get(os.path.splitext(filename)[1])
 
     @staticmethod
+    def read_sparse_column_data_as_list(sparse_column_data):
+        sparse_columns_raw = io.BytesIO(sparse_column_data).readlines()
+        return [column.strip().decode("utf-8") for column in sparse_columns_raw]
+
+    @staticmethod
     def read_sparse_column_file_as_list(sparse_column_file):
         with open(sparse_column_file, "rb") as f:
-            sparse_columns_raw = f.readlines()
-
-        return [column.strip().decode("utf-8") for column in sparse_columns_raw]
+            return StructuredInputReadUtils.read_sparse_column_data_as_list(f.read())
 
     @staticmethod
     def read_structured_input_data_as_df(binary_data, mimetype, sparse_colnames=None):
         try:
             if mimetype == PredictionServerMimetypes.TEXT_MTX:
-                columns = None
-                if sparse_colnames:
-                    columns = [
-                        column.strip().decode("utf-8")
-                        for column in io.BytesIO(sparse_colnames).readlines()
-                    ]
                 return pd.DataFrame.sparse.from_spmatrix(
-                    mmread(io.BytesIO(binary_data)), columns=columns
+                    mmread(io.BytesIO(binary_data)), columns=sparse_colnames
                 )
             elif mimetype == PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM:
                 df = get_pyarrow_module().ipc.deserialize_pandas(binary_data)

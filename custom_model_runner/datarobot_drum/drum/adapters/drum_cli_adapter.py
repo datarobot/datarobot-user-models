@@ -27,15 +27,15 @@ logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 class DrumCLIAdapter(object):
     """
-    This class acts as a layer between the DRUM CLI and running a custom task's fit method. It will convert the
-    cli arguments (mostly paths) into tangible variables to be passed into fit.
+    This class acts as a layer between DRUM CLI/MLPiper and running a custom task's fit/predict method. It will convert
+    the arguments (mostly paths) into tangible variables to be passed into fit or predict.
     """
 
     def __init__(
         self,
         custom_task_folder_path,
-        input_filename,
         target_type,
+        input_filename=None,
         target_name=None,
         target_filename=None,
         weights_name=None,
@@ -54,9 +54,9 @@ class DrumCLIAdapter(object):
         ----------
         custom_task_folder_path: str
             Path to the custom task folder
-        input_filename: str
-            Path to the input training dataset
         target_type: datarobot_drum.drum.enum.TargetType
+        input_filename: str or None
+            Path to the input training dataset
         target_name: str or None
             Optional. Name of the target column in the input training dataset
         target_filename: str or None
@@ -83,8 +83,8 @@ class DrumCLIAdapter(object):
             Optional. Number of rows
         """
         self.custom_task_folder_path = custom_task_folder_path
-        self.input_filename = input_filename
         self.target_type = target_type
+        self.input_filename = input_filename
         self.target_name = target_name
         self.target_filename = target_filename
         self.weights_name = weights_name
@@ -102,6 +102,33 @@ class DrumCLIAdapter(object):
 
         # Lazy loaded variables
         self._input_dataframe = None
+        self._input_binary_data = None
+        self._input_binary_mimetype = None
+
+    def _lazy_load_binary_data(self):
+        if self._input_binary_data is None:
+            (
+                self._input_binary_data,
+                self._input_binary_mimetype,
+            ) = StructuredInputReadUtils.read_structured_input_file_as_binary(
+                filename=self.input_filename
+            )
+        return self
+
+    @property
+    def input_binary_data(self):
+        return self._lazy_load_binary_data()._input_binary_data
+
+    @property
+    def input_binary_mimetype(self):
+        return self._lazy_load_binary_data()._input_binary_mimetype
+
+    @property
+    def sparse_column_names(self):
+        if self.sparse_column_filename:
+            return StructuredInputReadUtils.read_sparse_column_file_as_list(
+                self.sparse_column_filename
+            )
 
     @property
     def input_dataframe(self):
@@ -270,9 +297,9 @@ class DrumCLIAdapter(object):
 
         return self
 
-    def validate(self):
+    def validate_for_fit(self):
         """
-        After initialization, validate and configure the inputs.
+        After initialization, validate and configure the inputs for fit.
 
         Returns
         -------

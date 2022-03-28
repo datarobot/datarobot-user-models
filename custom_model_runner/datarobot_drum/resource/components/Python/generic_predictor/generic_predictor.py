@@ -6,9 +6,12 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
 import urllib
+from typing import Optional
+
 import werkzeug
 from pandas import DataFrame
 
+from datarobot_drum.drum.adapters.drum_cli_adapter import DrumCLIAdapter
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     TARGET_TYPE_ARG_KEYWORD,
@@ -33,12 +36,22 @@ class GenericPredictorComponent(ConnectableComponent):
         self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
         self._run_language = None
         self._predictor = None
-        self._target_type = None
+        self.cli_adapter: Optional[DrumCLIAdapter] = None
 
     def configure(self, params):
         super(GenericPredictorComponent, self).configure(params)
         self._run_language = RunLanguage(params.get("run_language"))
-        self._target_type = TargetType(params[TARGET_TYPE_ARG_KEYWORD])
+
+        # Input filename is available at configuration time, so include it in the CLI adapter here.
+        self.cli_adapter = DrumCLIAdapter(
+            custom_task_folder_path=params["__custom_model_path__"],
+            input_filename=params["input_filename"],
+            sparse_column_filename=params.get("sparse_column_file"),
+            target_type=TargetType(params[TARGET_TYPE_ARG_KEYWORD]),
+            positive_class_label=params.get("positiveClassLabel"),
+            negative_class_label=params.get("negativeClassLabel"),
+            class_labels=params.get("classLabels"),
+        )
 
         if self._run_language == RunLanguage.PYTHON:
             from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
@@ -71,63 +84,63 @@ class GenericPredictorComponent(ConnectableComponent):
 
         self._predictor.configure(params)
 
+    def _materialize_unstructured(self, input_filename, output_filename):
+        kwargs_params = {}
+        query_params = dict(urllib.parse.parse_qsl(self._params.get("query_params")))
+        mimetype, content_type_params_dict = werkzeug.http.parse_options_header(
+            self._params.get("content_type")
+        )
+        charset = content_type_params_dict.get("charset")
+
+        with open(input_filename, "rb") as f:
+            data_binary = f.read()
+
+        data_binary_or_text, mimetype, charset = _resolve_incoming_unstructured_data(
+            data_binary, mimetype, charset,
+        )
+        kwargs_params[UnstructuredDtoKeys.MIMETYPE] = mimetype
+        if charset is not None:
+            kwargs_params[UnstructuredDtoKeys.CHARSET] = charset
+        kwargs_params[UnstructuredDtoKeys.QUERY] = query_params
+
+        ret_data, ret_kwargs = self._predictor.predict_unstructured(
+            data_binary_or_text, **kwargs_params
+        )
+        _, _, response_charset = _resolve_outgoing_unstructured_data(ret_data, ret_kwargs)
+
+        # only for screen printout convenience we take pred data directly from unstructured_response
+        if isinstance(ret_data, bytes):
+            with open(output_filename, "wb") as f:
+                f.write(ret_data)
+        else:
+            if ret_data is None:
+                ret_data = "Return value from prediction is: None (NULL in R)"
+            with open(output_filename, "w", encoding=response_charset) as f:
+                f.write(ret_data)
+        return []
+
     def _materialize(self, parent_data_objs, user_data):
-        input_filename = self._params["input_filename"]
         output_filename = self._params.get("output_filename")
 
-        if self._target_type == TargetType.UNSTRUCTURED:
-            kwargs_params = {}
-            query_params = dict(urllib.parse.parse_qsl(self._params.get("query_params")))
-            mimetype, content_type_params_dict = werkzeug.http.parse_options_header(
-                self._params.get("content_type")
+        if self.cli_adapter.target_type == TargetType.UNSTRUCTURED:
+            # TODO: add support to use cli_adapter for unstructured
+            return self._materialize_unstructured(
+                input_filename=self._params["input_filename"], output_filename=output_filename,
             )
-            charset = content_type_params_dict.get("charset")
 
-            with open(input_filename, "rb") as f:
-                data_binary = f.read()
-
-            data_binary_or_text, mimetype, charset = _resolve_incoming_unstructured_data(
-                data_binary, mimetype, charset,
-            )
-            kwargs_params[UnstructuredDtoKeys.MIMETYPE] = mimetype
-            if charset is not None:
-                kwargs_params[UnstructuredDtoKeys.CHARSET] = charset
-            kwargs_params[UnstructuredDtoKeys.QUERY] = query_params
-
-            ret_data, ret_kwargs = self._predictor.predict_unstructured(
-                data_binary_or_text, **kwargs_params
-            )
-            _, _, response_charset = _resolve_outgoing_unstructured_data(ret_data, ret_kwargs)
-
-            # only for screen printout convenience we take pred data directly from unstructured_response
-            if isinstance(ret_data, bytes):
-                with open(output_filename, "wb") as f:
-                    f.write(ret_data)
-            else:
-                if ret_data is None:
-                    ret_data = "Return value from prediction is: None (NULL in R)"
-                with open(output_filename, "w", encoding=response_charset) as f:
-                    f.write(ret_data)
-        elif self._target_type == TargetType.TRANSFORM:
-            binary_data, mimetype = StructuredInputReadUtils.read_structured_input_file_as_binary(
-                input_filename
-            )
+        if self.cli_adapter.target_type == TargetType.TRANSFORM:
             transformed_output = self._predictor.transform(
-                binary_data=binary_data, mimetype=mimetype
+                binary_data=self.cli_adapter.input_binary_data,
+                mimetype=self.cli_adapter.input_binary_mimetype,
+                # TODO: add sparse colnames
             )
             transformed_df = transformed_output[0]
             transformed_df.to_csv(output_filename, index=False)
         else:
-            binary_data, mimetype = StructuredInputReadUtils.read_structured_input_file_as_binary(
-                input_filename
-            )
-            if self._params["sparse_column_file"]:
-                with open(self._params["sparse_column_file"], "rb") as f:
-                    sparse_colnames_bin = f.read()
-            else:
-                sparse_colnames_bin = None
             predictions = self._predictor.predict(
-                binary_data=binary_data, mimetype=mimetype, sparse_colnames=sparse_colnames_bin
+                binary_data=self.cli_adapter.input_binary_data,
+                mimetype=self.cli_adapter.input_binary_mimetype,
+                sparse_colnames=self.cli_adapter.sparse_column_names,
             )
             predictions.to_csv(output_filename, index=False)
         return []

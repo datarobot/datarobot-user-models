@@ -574,7 +574,7 @@ class CMRunner:
             default_parameter_values=self.options.default_parameter_values,
             output_dir=self.options.output,
             num_rows=self.options.num_rows,
-        ).validate()
+        ).validate_for_fit()
 
         # Validate schema target type and input data
         self.schema_validator.validate_type_schema(cli_adapter.target_type)
