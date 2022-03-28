@@ -30,7 +30,7 @@ from mlpiper.pipeline.executor_config import ExecutorConfig
 from mlpiper.pipeline import json_fields
 from scipy.io import mmwrite
 
-from datarobot_drum.drum.adapters.drum_cli_adapter import DrumCLIAdapter
+from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
 from datarobot_drum.drum.adapters.r.r_model_adapter import RModelAdapter
 from datarobot_drum.drum.common import (
     verbose_stdout,
@@ -505,11 +505,11 @@ class CMRunner:
         if self._pipeline_executor:
             self._pipeline_executor.cleanup_pipeline()
 
-    def _get_fit_function(self, cli_adapter: DrumCLIAdapter) -> Callable:
+    def _get_fit_function(self, cli_adapter: DrumFitAdapter) -> Callable:
         """
         Parameters
         ----------
-        cli_adapter: DrumCLIAdapter
+        cli_adapter: DrumFitAdapter
 
         Returns
         -------
@@ -558,7 +558,7 @@ class CMRunner:
         DrumSchemaValidationException
             Raised when model metadata validation fails.
         """
-        cli_adapter = DrumCLIAdapter(
+        cli_adapter = DrumFitAdapter(
             custom_task_folder_path=self.options.code_dir,
             input_filename=self.options.input,
             target_type=self.target_type,
@@ -574,7 +574,7 @@ class CMRunner:
             default_parameter_values=self.options.default_parameter_values,
             output_dir=self.options.output,
             num_rows=self.options.num_rows,
-        ).validate_for_fit()
+        ).validate()
 
         # Validate schema target type and input data
         self.schema_validator.validate_type_schema(cli_adapter.target_type)
@@ -594,7 +594,7 @@ class CMRunner:
             )
         if not self.options.skip_predict:
             # TODO: Use cli_adapter within run_test_predict instead of setting self.options
-            # This is assigning things that were computed in DrumCLIAdapter, for compatability
+            # This is assigning things that were computed in DrumFitAdapter, for compatability
             self.options.output = cli_adapter.output_dir
             self.options.positive_class_label = cli_adapter.positive_class_label
             self.options.negative_class_label = cli_adapter.negative_class_label

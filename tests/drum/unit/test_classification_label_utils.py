@@ -10,7 +10,7 @@ from tempfile import NamedTemporaryFile
 import pandas as pd
 import pytest
 
-from datarobot_drum.drum.adapters.classification_labels_util import possibly_intuit_order
+from datarobot_drum.drum.adapters.cli.shared.drum_class_label_adapter import possibly_intuit_order
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.exceptions import DrumCommonException
 from tests.drum.constants import TESTS_DATA_PATH
