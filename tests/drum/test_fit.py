@@ -915,3 +915,38 @@ class TestFit:
         )
 
         assert "code directory may not be used as the output directory" in stdout
+
+    @pytest.mark.parametrize("skip_predict", [True, False])
+    @pytest.mark.parametrize("output_fit_metadata", [True, False])
+    def test_fit_with_fit_metadata(self, resources, tmp_path, skip_predict, output_fit_metadata):
+        custom_model_dir = _create_custom_model_dir(
+            resources, tmp_path, SIMPLE, REGRESSION, PYTHON, is_training=True, nested=True,
+        )
+
+        input_dataset = resources.datasets(SKLEARN, REGRESSION)
+
+        output = tmp_path / "output"
+        output.mkdir()
+
+        cmd = '{} fit --target-type {} --code-dir {} --target "{}" --input {} --verbose --output {}'.format(
+            ArgumentsOptions.MAIN_COMMAND,
+            REGRESSION,
+            custom_model_dir,
+            resources.targets(REGRESSION),
+            input_dataset,
+            output,
+        )
+        if skip_predict:
+            cmd += " --skip-predict"
+        if output_fit_metadata:
+            cmd += " --enable-fit-metadata"
+        _, stdout, _ = _exec_shell_cmd(
+            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+        )
+        if skip_predict:
+            assert "Prediction started" not in stdout
+            assert "predictions can be made on the fit model" not in stdout
+            assert not os.path.exists(output / "fit_runtime_data.yaml")
+        elif output_fit_metadata:
+            print(os.listdir(output))
+            assert os.path.exists(output / "fit_runtime_data.yaml")
