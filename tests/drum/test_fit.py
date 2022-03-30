@@ -14,6 +14,7 @@ import pytest
 import scipy.sparse as sp
 from scipy.io import mmwrite
 
+from datarobot_drum.drum.common import FIT_METADATA_FILENAME
 from datarobot_drum.drum.enum import ArgumentsOptions, InputFormatExtension
 from datarobot_drum.drum.utils.drum_utils import (
     handle_missing_colnames,
@@ -946,7 +947,6 @@ class TestFit:
         if skip_predict:
             assert "Prediction started" not in stdout
             assert "predictions can be made on the fit model" not in stdout
-            assert not os.path.exists(output / "fit_runtime_data.yaml")
+            assert not os.path.exists(output / FIT_METADATA_FILENAME)
         elif output_fit_metadata:
-            print(os.listdir(output))
-            assert os.path.exists(output / "fit_runtime_data.yaml")
+            assert os.path.exists(output / FIT_METADATA_FILENAME)

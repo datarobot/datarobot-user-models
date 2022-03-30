@@ -32,6 +32,7 @@ from datarobot_drum.drum.adapters.r.r_model_adapter import RModelAdapter
 from datarobot_drum.drum.common import get_metadata
 from datarobot_drum.drum.common import read_model_metadata_yaml
 from datarobot_drum.drum.common import verbose_stdout
+
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.enum import CUSTOM_FILE_NAME
 from datarobot_drum.drum.enum import LOG_LEVELS
@@ -1165,8 +1166,8 @@ class CMRunner:
             "input_filesize": os.path.getsize(self.options.input) / 1e6,
         }
         # in run_predict the code dir is set to the output and output is set to /dev/null
-        output_path = Path(self.options.code_dir) / "fit_runtime_data.yaml"
-        yaml.dump(report_information, open(output_path, "w"))
+        output_path = Path(self.options.code_dir) / FIT_METADATA_FILENAME
+        json.dump(report_information, open(output_path, "w"))
 
 
 def output_in_code_dir(code_dir, output_dir):
