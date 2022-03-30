@@ -10,8 +10,10 @@ import tempfile
 import pandas as pd
 import numpy as np
 import pyarrow
+import pytest
 from pandas._testing import assert_frame_equal
 
+from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 
 
@@ -66,3 +68,12 @@ class TestStructuredInputReadUtils(object):
         # To do an exact comparison, compare None and np.nan "masks".
         assert_frame_equal(csv_df.applymap(is_nan), arrow_df.applymap(is_nan))
         assert_frame_equal(csv_df.applymap(is_none), arrow_df.applymap(is_none))
+
+    def test_read_structured_input_csv_unicode_error_handled(self):
+        data = 'a\nb\nc\nd\ne\n'
+        tmp_file = tempfile.NamedTemporaryFile(suffix=".csv")
+        with open(tmp_file.name, "w", encoding='utf-16') as f:
+            f.write(data)
+        with pytest.raises(DrumCommonException):
+            StructuredInputReadUtils.read_structured_input_file_as_df(tmp_file.name)
+        tmp_file.close()

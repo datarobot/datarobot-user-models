@@ -84,8 +84,11 @@ class StructuredInputReadUtils:
 
                 return df
             else:  # CSV format
-                df = pd.read_csv(io.BytesIO(binary_data))
-
+                try:
+                    df = pd.read_csv(io.BytesIO(binary_data))
+                except UnicodeDecodeError:
+                    logger.error("A non UTF-8 encoding was encountered while opening the data.\nSave this using utf-8 encoding, for example with pandas to_csv('filename.csv', encoding='utf-8').")
+                    raise DrumCommonException("Supplied CVS input must utilize UTF-8 encoding.  ")
                 # If the DataFrame only contains a single column, treat blank lines as NANs
                 if df.shape[1] == 1:
                     logger.info(
