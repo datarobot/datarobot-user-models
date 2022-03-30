@@ -14,7 +14,6 @@ pypmml==0.9.6
 rpy2==3.3.6
 strictyaml==1.4.2
 docker>=4.2.2<5.0.0
-flask==2.0.1
-click==8.0.3
+flask
 termcolor
 onnxruntime==1.10.0
