@@ -249,7 +249,6 @@ class CMRunTests:
         self._server_addr = "localhost"
         self._server_port = DrumUtils.find_free_port()
         self._url_server_address = "http://{}:{}".format(self._server_addr, self._server_port)
-        self._shutdown_endpoint = "/shutdown/"
         self._predict_endpoint = "/predict/"
         self._stats_endpoint = "/stats/"
         self._timeout = 60
@@ -394,23 +393,24 @@ class CMRunTests:
         self._server_process_fd_write = pipe_w
 
         self._server_process = subprocess.Popen(
-            cmd_list, env=env_vars, stdout=pipe_w, stderr=pipe_w, encoding="utf-8"
+            cmd_list,
+            env=env_vars,
+            stdout=pipe_w,
+            stderr=pipe_w,
+            encoding="utf-8",
+            preexec_fn=os.setsid,
         )
+
         self._wait_for_server_to_start()
 
     def _stop_drum_server(self):
-        print("Test is done stopping drum server")
-        try:
-            requests.post(self._url_server_address + self._shutdown_endpoint, timeout=5)
-        except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):
-            pass
-        finally:
-            # cleanup pipe
-            os.close(self._server_process_fd_read)
-            os.close(self._server_process_fd_write)
+        print("Test is done, stopping drum server")
+        # cleanup pipe
+        os.close(self._server_process_fd_read)
+        os.close(self._server_process_fd_write)
 
-            os.kill(self._server_process.pid, signal.SIGINT)
-            os.system("tput init")
+        os.killpg(os.getpgid(self._server_process.pid), signal.SIGINT)
+        os.system("tput init")
 
     def _run_test_case(self, tc, results):
         print(
@@ -486,7 +486,6 @@ class CMRunTests:
     def _init_signals(self):
         def signal_handler(sig, frame):
             print("\nCtrl+C pressed, aborting test")
-            print("Sending shutdown to server")
             self._stop_drum_server()
             os.system("tput init")
             sys.exit(0)
@@ -527,9 +526,8 @@ class CMRunTests:
         results = self._run_all_test_cases()
         self._reset_signals()
         self._stop_drum_server()
-        in_docker = self.options.docker is not None
         str_report = PerfTestResultsFormatter(
-            results, in_docker=in_docker, show_inside_server=self.options.in_server
+            results, in_docker=bool(self.options.docker), show_inside_server=self.options.in_server
         ).get_tbl_str()
 
         print("\n" + str_report)

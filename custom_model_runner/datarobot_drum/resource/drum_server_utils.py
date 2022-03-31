@@ -153,38 +153,26 @@ class DrumServerRun:
         return self
 
     def _shutdown_server(self):
-        if not self._with_nginx:
-            response = requests.post(self.url_server_address + "/shutdown/")
-            assert response.ok
-            time.sleep(1)
-            self._server_thread.join()
-        else:
-            # When running with nginx:
-            # this test starts drum process with --docker option,
-            # that process starts drum server inside docker.
-            # nginx server doesn't have shutdown API, so we need to kill it
+        # Server has to be killed
+        # This loop kill all the chain except for docker
+        os.killpg(os.getpgid(self._process_object_holder.process.pid), signal.SIGTERM)
 
-            # This loop kill all the chain except for docker
-            os.killpg(os.getpgid(self._process_object_holder.process.pid), signal.SIGTERM)
+        # kill drum running in the docker (maybe not needed after adding group kill ^)
+        try:
+            for proc in psutil.process_iter():
+                if "{}".format(ArgumentsOptions.MAIN_COMMAND) in proc.name().lower():
+                    cmdline_lst = proc.cmdline()
+                    if "{}".format(ArgumentsOptions.SERVER) in cmdline_lst:
+                        # check if --production in cmdline and port number in any param in cmdline
+                        if any("{:}".format(self.port) in param for param in cmdline_lst):
+                            proc.terminate()
+                            time.sleep(0.3)
+                            proc.kill()
+                            break
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            pass
 
-            # kill drum running in the docker (maybe not needed after adding group kill ^)
-            try:
-                for proc in psutil.process_iter():
-                    if "{}".format(ArgumentsOptions.MAIN_COMMAND) in proc.name().lower():
-                        cmdline_lst = proc.cmdline()
-                        if "{}".format(ArgumentsOptions.SERVER) in cmdline_lst:
-                            # check if --production in cmdline and port number in any param in cmdline
-                            if "--production" in cmdline_lst and any(
-                                "{:}".format(self.port) in param for param in cmdline_lst
-                            ):
-                                proc.terminate()
-                                time.sleep(0.3)
-                                proc.kill()
-                                break
-            except (psutil.NoSuchProcess, psutil.AccessDenied):
-                pass
-
-            self._server_thread.join(timeout=5)
+        self._server_thread.join(timeout=5)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # shutdown server

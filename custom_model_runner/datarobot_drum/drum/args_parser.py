@@ -726,9 +726,6 @@ class CMRunnerArgsRegistry(object):
         A GET URL_PREFIX/ route, which checks if the server is alive.
         Example: GET http://localhost:6789/
 
-        A POST URL_PREFIX/shutdown/ route, which shuts the server down.
-        Example: POST http://localhost:6789/shutdown/
-
         A POST URL_PREFIX/predict/ route, which returns predictions on data.
         Example: POST http://localhost:6789/predict/
         For this /predict/ route, provide inference data 
