@@ -1,3 +1,4 @@
+werkzeug==2.1.0
 argcomplete==1.11.1
 datarobot>=2.27.0
 # trafaret version pinning is defined by `datarobot`
@@ -22,4 +23,4 @@ termcolor
 packaging
 markupsafe==2.0.1
 # This is needed for flask to work correctly in tests
-click==8.0.3
+click>=7.1.2,<8.1.0
