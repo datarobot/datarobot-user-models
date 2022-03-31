@@ -1,24 +1,24 @@
 argcomplete==1.11.1
-click<8.1.0
 datarobot>=2.27.0
+# trafaret version pinning is defined by `datarobot`
+trafaret!=1.1.0,<2.0,>=0.7
 docker>=4.2.2,<5.0.0
 flask
+werkzeug==2.0.3
 jinja2
-julia<=0.5.7
-markupsafe==2.0.1
 memory_profiler<1.0.0
 mlpiper~=2.5.0
 numpy
-packaging
 pandas>=1.0.5,<1.3.1
-Pillow<=9.0.1
 progress
-py4j~=0.10.9.0
-pyarrow>=0.14.1,<=3.0.0
 requests
 scipy>=1.1,<2
 strictyaml==1.4.2
-termcolor
 texttable
-# trafaret version pinning is defined by `datarobot`
-trafaret!=1.1.0,<2.0,>=0.7
+py4j~=0.10.9.0
+pyarrow>=0.14.1,<=3.0.0
+Pillow<=9.0.1
+julia<=0.5.7
+termcolor
+packaging
+markupsafe==2.0.1
