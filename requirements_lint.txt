@@ -1,2 +1,2 @@
 black==19.10b0
-click==7.1.2
+click<8.1.0
