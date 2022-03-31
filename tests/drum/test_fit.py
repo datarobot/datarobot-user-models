@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import json
 import os
 import shutil
 from tempfile import NamedTemporaryFile
@@ -950,3 +951,7 @@ class TestFit:
             assert not os.path.exists(output / FIT_METADATA_FILENAME)
         elif output_fit_metadata:
             assert os.path.exists(output / FIT_METADATA_FILENAME)
+            data = json.load(open(output / FIT_METADATA_FILENAME))
+            assert "fit_memory_usage" in data.keys()
+            assert 150 > data["fit_memory_usage"] > 100
+            assert 180 > data["prediction_memory_usage"] > 100
