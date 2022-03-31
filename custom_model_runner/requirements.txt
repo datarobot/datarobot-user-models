@@ -21,3 +21,4 @@ julia<=0.5.7
 termcolor
 packaging
 markupsafe==2.0.1
+click==7.1.2
