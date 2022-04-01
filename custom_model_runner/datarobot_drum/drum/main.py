@@ -59,22 +59,8 @@ def main():
             print("\nCtrl+C pressed, aborting drum")
 
             if runtime.options and RunMode(runtime.options.subparser_name) == RunMode.SERVER:
-                if runtime.options.docker:
-                    try:
-                        import requests
-                    except ImportError:
-                        print(
-                            "WARNING: 'requests' package is not found - "
-                            "cannot send shutdown to server",
-                            file=sys.stderr,
-                        )
-                    else:
-                        url = "http://{}/shutdown/".format(runtime.options.address)
-                        print("Sending shutdown to server: {}".format(url))
-                        requests.post(url, timeout=2)
-                else:
-                    if runtime.cm_runner:
-                        runtime.cm_runner.terminate()
+                if runtime.cm_runner:
+                    runtime.cm_runner.terminate()
 
             os._exit(130)
 

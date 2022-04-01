@@ -4,7 +4,7 @@ datarobot>=2.27.0
 trafaret!=1.1.0,<2.0,>=0.7
 docker>=4.2.2,<5.0.0
 flask
-werkzeug==2.0.3
+werkzeug<2.2.0
 jinja2
 memory_profiler<1.0.0
 mlpiper~=2.5.0

@@ -72,11 +72,9 @@ class TestDrumServerFailures:
             with pytest.raises(AssertionError, match="Server failed to start"), drum_server_run:
                 pass
 
-        # nginx test runs in docker; to stop the process we kill it, so don't check return code
-        if with_nginx:
-            return
-        assert drum_server_run.process.returncode == 1
-        assert error_message in drum_server_run.process.err_stream
+            # If server is started with error server or with_nginx (in docker), it is killed in the end of test.
+            # So where is no expected error message in err_stream
+            assert error_message in drum_server_run.process.err_stream
 
     @pytest.mark.parametrize(
         "with_error_server, with_nginx, docker",
@@ -97,11 +95,6 @@ class TestDrumServerFailures:
             assert response.status_code == 200
             response = requests.get(run.url_server_address + "/ping/")
             assert response.status_code == 200
-
-        # nginx test runs in docker; to stop the process we kill it, so don't check return code
-        if with_nginx:
-            return
-        assert drum_server_run.process.returncode == 0
 
     @pytest.mark.parametrize(
         "with_error_server, with_nginx, docker",
@@ -199,8 +192,3 @@ class TestDrumServerFailures:
             )
             assert response.status_code == 422
             assert response.json()["message"] == error_message
-
-        # nginx test runs in docker; to stop the process we kill it, so don't check return code
-        if with_nginx:
-            return
-        assert drum_server_run.process.returncode == 0

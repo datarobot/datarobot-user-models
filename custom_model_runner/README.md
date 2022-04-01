@@ -247,10 +247,6 @@ Response:
 A GET **URL_PREFIX/capabilities/** route, shows payload formats supported by the running model.  
 Example: GET http://localhost:6789/capabilities/
 
-* Shutdown route:   
-A POST **URL_PREFIX/shutdown/** route, shuts the server down.  
-Example: POST http://localhost:6789/shutdown/
-
 * Structured predictions routes:   
 A POST **URL_PREFIX/predict/** and **URL_PREFIX/predictions/** routes, which returns predictions on data.  
 Example: POST http://localhost:6789/predict/; POST http://localhost:6789/predictions/  
