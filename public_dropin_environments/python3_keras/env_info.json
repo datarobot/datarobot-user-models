@@ -3,6 +3,6 @@
   "name": "[DataRobot] Python 3 Keras Drop-In",
   "description": "This template environment can be used to create artifact-only keras custom models. This environment contains keras backed by tensorflow and only requires your model artifact as a .h5 file and optionally a custom.py file.",
   "programmingLanguage": "python",
-  "environmentVersionId": "623c22da81ae41f304ebc640",
+  "environmentVersionId": "62476fd3c367f60d6d5c4136",
   "isPublic": true
 }
