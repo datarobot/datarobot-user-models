@@ -15,59 +15,57 @@ import shutil
 import subprocess
 import sys
 import tempfile
-from tempfile import NamedTemporaryFile
 import time
-from typing import Dict, Callable, Union
 from distutils.dir_util import copy_tree
 from pathlib import Path
-from progress.spinner import Spinner
+from tempfile import NamedTemporaryFile
+from typing import Callable
+from typing import Dict
+from typing import Union
 
+import docker.errors
 import pandas as pd
-
-from memory_profiler import memory_usage
-from mlpiper.pipeline.executor import Executor
-from mlpiper.pipeline.executor_config import ExecutorConfig
-from mlpiper.pipeline import json_fields
-from scipy.io import mmwrite
-
-from datarobot_drum.drum.adapters.drum_cli_adapter import DrumCLIAdapter
+from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
 from datarobot_drum.drum.adapters.r.r_model_adapter import RModelAdapter
-from datarobot_drum.drum.common import (
-    verbose_stdout,
-    read_model_metadata_yaml,
-    get_metadata,
-)
-
-from datarobot_drum.drum.enum import (
-    LOGGER_NAME_PREFIX,
-    CUSTOM_FILE_NAME,
-    LOG_LEVELS,
-    PythonArtifacts,
-    RArtifacts,
-    JavaArtifacts,
-    JuliaArtifacts,
-    ArgumentsOptions,
-    ArgumentOptionsEnvVars,
-    RunMode,
-    RunLanguage,
-    TargetType,
-    TemplateType,
-    ModelMetadataKeys,
-    ModelMetadataHyperParamTypes,
-)
+from datarobot_drum.drum.common import get_metadata
+from datarobot_drum.drum.common import read_model_metadata_yaml
+from datarobot_drum.drum.common import verbose_stdout
 from datarobot_drum.drum.description import version as drum_version
-from datarobot_drum.drum.exceptions import DrumCommonException, DrumPredException
+from datarobot_drum.drum.enum import CUSTOM_FILE_NAME
+from datarobot_drum.drum.enum import LOG_LEVELS
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.enum import ArgumentOptionsEnvVars
+from datarobot_drum.drum.enum import ArgumentsOptions
+from datarobot_drum.drum.enum import JavaArtifacts
+from datarobot_drum.drum.enum import JuliaArtifacts
+from datarobot_drum.drum.enum import ModelMetadataHyperParamTypes
+from datarobot_drum.drum.enum import ModelMetadataKeys
+from datarobot_drum.drum.enum import PythonArtifacts
+from datarobot_drum.drum.enum import RArtifacts
+from datarobot_drum.drum.enum import RunLanguage
+from datarobot_drum.drum.enum import RunMode
+from datarobot_drum.drum.enum import TargetType
+from datarobot_drum.drum.enum import TemplateType
+from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.exceptions import DrumPredException
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from datarobot_drum.drum.perf_testing import CMRunTests
-from datarobot_drum.drum.push import drum_push, setup_validation_options
+from datarobot_drum.drum.push import drum_push
+from datarobot_drum.drum.push import setup_validation_options
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
+from datarobot_drum.drum.utils.drum_utils import DrumUtils
+from datarobot_drum.drum.utils.drum_utils import handle_missing_colnames
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
-from datarobot_drum.drum.utils.drum_utils import DrumUtils, handle_missing_colnames
-from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
-
-import docker.errors
+from datarobot_drum.profiler.stats_collector import StatsCollector
+from datarobot_drum.profiler.stats_collector import StatsOperation
+from memory_profiler import memory_usage
+from mlpiper.pipeline import json_fields
+from mlpiper.pipeline.executor import Executor
+from mlpiper.pipeline.executor_config import ExecutorConfig
+from progress.spinner import Spinner
+from scipy.io import mmwrite
 
 SERVER_PIPELINE = "prediction_server_pipeline.json.j2"
 PREDICTOR_PIPELINE = "prediction_pipeline.json.j2"
@@ -505,11 +503,11 @@ class CMRunner:
         if self._pipeline_executor:
             self._pipeline_executor.cleanup_pipeline()
 
-    def _get_fit_function(self, cli_adapter: DrumCLIAdapter) -> Callable:
+    def _get_fit_function(self, cli_adapter: DrumFitAdapter) -> Callable:
         """
         Parameters
         ----------
-        cli_adapter: DrumCLIAdapter
+        cli_adapter: DrumFitAdapter
 
         Returns
         -------
@@ -558,7 +556,7 @@ class CMRunner:
         DrumSchemaValidationException
             Raised when model metadata validation fails.
         """
-        cli_adapter = DrumCLIAdapter(
+        cli_adapter = DrumFitAdapter(
             custom_task_folder_path=self.options.code_dir,
             input_filename=self.options.input,
             target_type=self.target_type,
@@ -574,7 +572,7 @@ class CMRunner:
             default_parameter_values=self.options.default_parameter_values,
             output_dir=self.options.output,
             num_rows=self.options.num_rows,
-        ).validate_for_fit()
+        ).validate()
 
         # Validate schema target type and input data
         self.schema_validator.validate_type_schema(cli_adapter.target_type)
@@ -594,7 +592,7 @@ class CMRunner:
             )
         if not self.options.skip_predict:
             # TODO: Use cli_adapter within run_test_predict instead of setting self.options
-            # This is assigning things that were computed in DrumCLIAdapter, for compatability
+            # This is assigning things that were computed in DrumFitAdapter, for compatability
             self.options.output = cli_adapter.output_dir
             self.options.positive_class_label = cli_adapter.positive_class_label
             self.options.negative_class_label = cli_adapter.negative_class_label

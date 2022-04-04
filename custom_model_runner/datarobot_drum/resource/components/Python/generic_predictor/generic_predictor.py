@@ -9,24 +9,15 @@ import urllib
 from typing import Optional
 
 import werkzeug
-from pandas import DataFrame
-
-from datarobot_drum.drum.adapters.drum_cli_adapter import DrumCLIAdapter
-from datarobot_drum.drum.enum import (
-    LOGGER_NAME_PREFIX,
-    TARGET_TYPE_ARG_KEYWORD,
-    UnstructuredDtoKeys,
-    RunLanguage,
-    TargetType,
-)
+from datarobot_drum.drum.adapters.cli.drum_score_adapter import DrumScoreAdapter
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.enum import TARGET_TYPE_ARG_KEYWORD
+from datarobot_drum.drum.enum import RunLanguage
+from datarobot_drum.drum.enum import TargetType
+from datarobot_drum.drum.enum import UnstructuredDtoKeys
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.resource.unstructured_helpers import (
-    _resolve_incoming_unstructured_data,
-    _resolve_outgoing_unstructured_data,
-)
-
-from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
-
+from datarobot_drum.resource.unstructured_helpers import _resolve_incoming_unstructured_data
+from datarobot_drum.resource.unstructured_helpers import _resolve_outgoing_unstructured_data
 from mlpiper.components.connectable_component import ConnectableComponent
 
 
@@ -36,14 +27,14 @@ class GenericPredictorComponent(ConnectableComponent):
         self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
         self._run_language = None
         self._predictor = None
-        self.cli_adapter: Optional[DrumCLIAdapter] = None
+        self.cli_adapter: Optional[DrumScoreAdapter] = None
 
     def configure(self, params):
         super(GenericPredictorComponent, self).configure(params)
         self._run_language = RunLanguage(params.get("run_language"))
 
         # Input filename is available at configuration time, so include it in the CLI adapter here.
-        self.cli_adapter = DrumCLIAdapter(
+        self.cli_adapter = DrumScoreAdapter(
             custom_task_folder_path=params["__custom_model_path__"],
             input_filename=params["input_filename"],
             sparse_column_filename=params.get("sparse_column_file"),
