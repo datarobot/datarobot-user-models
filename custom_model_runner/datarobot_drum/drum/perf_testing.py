@@ -465,7 +465,7 @@ class CMRunTests:
         bar.finish()
 
         # TODO: even if prediction request fail we should try and get server stats
-        response = self.check_server_stats()
+        response = requests.get(self._url_server_address + self._stats_endpoint)
 
         if response.ok:
             tc_results.server_stats = response.text
@@ -798,3 +798,6 @@ class CMRunTests:
                     __tempfile_sample,
                 )
                 raise DrumPredException(message)
+
+    def check_server_stats(self):
+        pass
