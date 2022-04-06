@@ -29,7 +29,7 @@ import docker.errors
 import pandas as pd
 from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
 from datarobot_drum.drum.adapters.r.r_model_adapter import RModelAdapter
-from datarobot_drum.drum.common import get_metadata
+from datarobot_drum.drum.common import get_metadata, FIT_METADATA_FILENAME
 from datarobot_drum.drum.common import read_model_metadata_yaml
 from datarobot_drum.drum.common import verbose_stdout
 
