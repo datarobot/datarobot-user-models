@@ -70,7 +70,7 @@ class TestStructuredInputReadUtils(object):
         assert_frame_equal(csv_df.applymap(is_none), arrow_df.applymap(is_none))
 
     def test_read_structured_input_csv_unicode_error_handled(self):
-        data = "a\nb\nc\nd\ne\n"
+        data = "a\nb\nc\nd\ne\nf\n"
         tmp_file = tempfile.NamedTemporaryFile(suffix=".csv")
         with open(tmp_file.name, "w", encoding="utf-16") as f:
             f.write(data)
