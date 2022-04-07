@@ -234,6 +234,7 @@ class ArgumentsOptions:
     SPARSE_COLFILE = "--sparse-column-file"
     PARAMETER_FILE = "--parameter-file"
     DISABLE_STRICT_VALIDATION = "--disable-strict-validation"
+    ENABLE_PREDICT_METRICS_REPORT = "--enable-fit-metadata"
 
     MAIN_COMMAND = "drum" if not DEBUG else "./custom_model_runner/bin/drum"
 

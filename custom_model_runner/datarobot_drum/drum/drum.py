@@ -23,13 +23,16 @@ from typing import Callable
 from typing import Dict
 from typing import Union
 
+import yaml
+
 import docker.errors
 import pandas as pd
 from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
 from datarobot_drum.drum.adapters.r.r_model_adapter import RModelAdapter
-from datarobot_drum.drum.common import get_metadata
+from datarobot_drum.drum.common import get_metadata, FIT_METADATA_FILENAME
 from datarobot_drum.drum.common import read_model_metadata_yaml
 from datarobot_drum.drum.common import verbose_stdout
+
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.enum import CUSTOM_FILE_NAME
 from datarobot_drum.drum.enum import LOG_LEVELS
@@ -581,11 +584,12 @@ class CMRunner:
         fit_function = self._get_fit_function(cli_adapter=cli_adapter)
 
         print("Starting Fit")
-        mem_usage = memory_usage(fit_function, interval=1, max_usage=True, max_iterations=1,)
+        fit_mem_usage = memory_usage(fit_function, interval=1, max_usage=True, max_iterations=1,)
         print("Fit successful")
 
         if self.options.verbose:
-            print("Maximum fit memory usage: {}MB".format(int(mem_usage)))
+            print("Maximum fit memory usage: {}MB".format(int(fit_mem_usage)))
+
         if cli_adapter.persist_output or not self.options.skip_predict:
             create_custom_inference_model_folder(
                 code_dir=cli_adapter.custom_task_folder_path, output_dir=cli_adapter.output_dir
@@ -604,6 +608,8 @@ class CMRunner:
             )
             if self.options.verbose:
                 print("Maximum server memory usage: {}MB".format(int(mem_usage)))
+            if self.options.enable_fit_metadata:
+                self._generate_runtime_report_file(fit_mem_usage, mem_usage)
             pred_str = " and predictions can be made on the fit model! \n "
             print("Prediction successful for fit validation")
         else:
@@ -672,17 +678,18 @@ class CMRunner:
                 df.to_csv(__tempfile.name, index=False, line_terminator="\r\n")
             self.options.input = __tempfile.name
 
-        if self.target_type == TargetType.TRANSFORM:
-            CMRunTests(
-                self.options, self.run_mode, self.target_type, self.schema_validator
-            ).check_transform_server(__target_temp)
-        else:
-            try:
+        try:
+            if self.target_type == TargetType.TRANSFORM:
                 CMRunTests(
-                    self.options, self.run_mode, self.target_type, self.schema_validator
+                    self.options, self.target_type, self.schema_validator
+                ).check_transform_server(__target_temp)
+            else:
+
+                CMRunTests(
+                    self.options, self.target_type, self.schema_validator
                 ).check_prediction_side_effects()
-            except DrumPredException as e:
-                self.logger.warning(e)
+        except DrumPredException as e:
+            self.logger.warning(e)
 
     def _generate_template(self):
         CMTemplateGenerator(
@@ -1144,6 +1151,24 @@ class CMRunner:
             )
 
         return ret_docker_image
+
+    def _generate_runtime_report_file(self, fit_mem_usage: float, pred_mem_usage: float) -> None:
+        """
+        Saves information related to running a fit pipeline.  All data is reported in Mb
+
+        Parameters:
+            fit_mem_usage: Memory footprint of running the fit job
+            pred_mem_usage: Memory footprint of running the check for prediction side effects
+        """
+        print(self.options.input, self.options)
+        report_information = {
+            "fit_memory_usage": fit_mem_usage,
+            "prediction_memory_usage": pred_mem_usage,
+            "input_dataframe_size": self.input_df.memory_usage(deep=True).sum() / 1e6,
+        }
+        # in run_predict the code dir is set to the output and output is set to /dev/null
+        output_path = Path(self.options.code_dir) / FIT_METADATA_FILENAME
+        json.dump(report_information, open(output_path, "w"))
 
 
 def output_in_code_dir(code_dir, output_dir):

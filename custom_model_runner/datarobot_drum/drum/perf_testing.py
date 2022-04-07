@@ -233,7 +233,7 @@ class CMRunTests:
     NA_VALUE = "NA"
     TEST_CASE_FAIL_VALUE = "Fail"
 
-    def __init__(self, options, run_mode, target_type=None, schema_validator=None):
+    def __init__(self, options, target_type=None, schema_validator=None):
         self.options = options
         self.target_type = target_type
         self._schema_validator = schema_validator

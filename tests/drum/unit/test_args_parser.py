@@ -161,6 +161,28 @@ class TestStrictValidationParser(object):
         assert not options.disable_strict_validation
 
 
+class TestFitMetricsReportParser(object):
+    @pytest.fixture
+    def parser(self):
+        test_parser = argparse.ArgumentParser()
+        subparsers = test_parser.add_subparsers(dest="command")
+        label_parser = subparsers.add_parser("dummy")
+        CMRunnerArgsRegistry._reg_arg_report_fit_predict_metadata(label_parser)
+        return test_parser
+
+    def test_enable_metadata_report(self, parser):
+        args = "dummy --enable-fit-metadata".split()
+        with patch.object(sys, "argv", args):
+            options = parser.parse_args(args)
+        assert options.enable_fit_metadata
+
+    def test_disable_metadata_report(self, parser):
+        args = "dummy".split()
+        with patch.object(sys, "argv", args):
+            options = parser.parse_args(args)
+        assert not options.enable_fit_metadata
+
+
 class TestBooleanArgumentOptions:
     def test_boolean_argument_options_passed_through_env_var(self):
         args = f"{ArgumentsOptions.MAIN_COMMAND} server  --with-error-server --skip-predict".split()

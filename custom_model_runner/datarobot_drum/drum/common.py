@@ -315,3 +315,6 @@ def to_bool(value):
     if isinstance(value, bool):
         return value
     return strtobool(value)
+
+
+FIT_METADATA_FILENAME = "fit_runtime_data.json"
