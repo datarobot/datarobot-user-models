@@ -74,6 +74,8 @@ class TestStructuredInputReadUtils(object):
         tmp_file = tempfile.NamedTemporaryFile(suffix=".csv")
         with open(tmp_file.name, "w", encoding="utf-16") as f:
             f.write(data)
-        with pytest.raises(DrumCommonException, match="Supplied CSV input file encoding must be UTF-8."):
+        with pytest.raises(
+            DrumCommonException, match="Supplied CSV input file encoding must be UTF-8."
+        ):
             StructuredInputReadUtils.read_structured_input_file_as_df(tmp_file.name)
         tmp_file.close()
