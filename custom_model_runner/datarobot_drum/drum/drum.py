@@ -1160,10 +1160,11 @@ class CMRunner:
             fit_mem_usage: Memory footprint of running the fit job
             pred_mem_usage: Memory footprint of running the check for prediction side effects
         """
+        print(self.options.input, self.options)
         report_information = {
             "fit_memory_usage": fit_mem_usage,
             "prediction_memory_usage": pred_mem_usage,
-            "input_filesize": os.path.getsize(self.options.input) / 1e6,
+            "input_dataframe_size": self.input_df.memory_usage(deep=True).sum() / 1e6,
         }
         # in run_predict the code dir is set to the output and output is set to /dev/null
         output_path = Path(self.options.code_dir) / FIT_METADATA_FILENAME

@@ -798,6 +798,3 @@ class CMRunTests:
                     __tempfile_sample,
                 )
                 raise DrumPredException(message)
-
-    def check_server_stats(self):
-        pass
