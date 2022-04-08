@@ -47,14 +47,12 @@ from .constants import (
     PYTHON,
     PYTORCH,
     PYTORCH_REGRESSION,
-    PYTORCH_MULTICLASS,
     R_FIT,
     RDS,
     RDS_BINARY,
     RDS_SPARSE,
     REGRESSION,
     REGRESSION_SINGLE_COL,
-    SIMPLE,
     SKLEARN,
     SKLEARN_ANOMALY,
     SKLEARN_BINARY,
@@ -87,7 +85,6 @@ from .constants import (
     PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION,
     R_TRANSFORM_SPARSE_INPUT,
     R_TRANSFORM_SPARSE_IN_OUT,
-    R_TRANSFORM_WITH_Y,
     R_TRANSFORM,
     R_TRANSFORM_NO_HOOK,
     R_TRANSFORM_NON_NUMERIC,
@@ -676,33 +673,6 @@ class TestFit:
         # clear env vars as it may affect next test cases
         unset_drum_supported_env_vars()
 
-    @pytest.mark.parametrize("skip_predict", [True, False])
-    def test_fit_simple(self, resources, tmp_path, skip_predict):
-        custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, SIMPLE, REGRESSION, PYTHON, is_training=True, nested=True,
-        )
-
-        input_dataset = resources.datasets(SKLEARN, REGRESSION)
-
-        output = tmp_path / "output"
-        output.mkdir()
-
-        cmd = '{} fit --target-type {} --code-dir {} --target "{}" --input {} --verbose'.format(
-            ArgumentsOptions.MAIN_COMMAND,
-            REGRESSION,
-            custom_model_dir,
-            resources.targets(REGRESSION),
-            input_dataset,
-        )
-        if skip_predict:
-            cmd += " --skip-predict"
-        _, stdout, _ = _exec_shell_cmd(
-            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
-        )
-        if skip_predict:
-            assert "Prediction started" not in stdout
-            assert "predictions can be made on the fit model" not in stdout
-
     @pytest.mark.parametrize(
         "framework, problem, language, is_framework_directory",
         [
@@ -894,7 +864,13 @@ class TestFit:
 
     def test_fit_fails_code_dir_is_output_dir(self, resources, tmp_path):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, SIMPLE, REGRESSION, PYTHON, is_training=True, nested=True,
+            resources,
+            tmp_path,
+            SKLEARN_REGRESSION,
+            REGRESSION,
+            PYTHON,
+            is_training=True,
+            nested=True,
         )
 
         input_dataset = resources.datasets(SKLEARN, REGRESSION)
@@ -922,7 +898,13 @@ class TestFit:
     @pytest.mark.parametrize("output_fit_metadata", [True, False])
     def test_fit_with_fit_metadata(self, resources, tmp_path, skip_predict, output_fit_metadata):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, SIMPLE, REGRESSION, PYTHON, is_training=True, nested=True,
+            resources,
+            tmp_path,
+            SKLEARN_REGRESSION,
+            REGRESSION,
+            PYTHON,
+            is_training=True,
+            nested=True,
         )
 
         input_dataset = resources.datasets(SKLEARN, REGRESSION)

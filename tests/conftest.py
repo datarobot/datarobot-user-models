@@ -72,7 +72,6 @@ from tests.drum.constants import (
     REGRESSION_SINGLE_COL,
     REGRESSION_INFERENCE,
     REGRESSION_MULTLILINE_TEXT,
-    SIMPLE,
     SKLEARN,
     SKLEARN_ANOMALY,
     SKLEARN_BINARY,
@@ -217,7 +216,6 @@ _training_models_paths = {
     (PYTHON, SKLEARN_TRANSFORM_HYPERPARAMETERS): os.path.join(
         TESTS_FIXTURES_PATH, "python3_sklearn_transform_hyperparameters"
     ),
-    (PYTHON, SIMPLE): os.path.join(TRAINING_TEMPLATES_PATH, "1_simple"),
     (PYTHON, SKLEARN_SPARSE): os.path.join(TESTS_FIXTURES_PATH, "validate_sparse_columns"),
     (PYTHON, KERAS): os.path.join(TRAINING_TEMPLATES_PATH, "14_python3_keras_joblib"),
     (PYTHON, XGB): os.path.join(TRAINING_TEMPLATES_PATH, "4_python3_xgboost"),
