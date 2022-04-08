@@ -6,7 +6,6 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
 import os
-import pickle
 import sys
 import textwrap
 from inspect import signature
@@ -27,7 +26,6 @@ from datarobot_drum.drum.common import (
     reroute_stdout_to_stderr,
     SupportedPayloadFormats,
 )
-from datarobot_drum.drum.custom_fit_wrapper import MAGIC_MARKER
 from datarobot_drum.drum.data_marshalling import get_request_labels
 from datarobot_drum.drum.data_marshalling import marshal_predictions
 from datarobot_drum.drum.enum import (
