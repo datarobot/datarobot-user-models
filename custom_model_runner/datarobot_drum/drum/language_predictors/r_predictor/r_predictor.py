@@ -49,25 +49,13 @@ r_handler = ro.r
 
 
 class RPredictor(BaseLanguagePredictor):
-    def __init__(self,):
-        super(RPredictor, self).__init__()
-        self._r_positive_class_label = ro.rinterface.NULL
-        self._r_negative_class_label = ro.rinterface.NULL
-        self._r_class_labels = ro.rinterface.NULL
-
-    def configure(self, params):
-        super(RPredictor, self).configure(params)
-
-        self._r_positive_class_label = self._positive_class_label or ro.rinterface.NULL
-        self._r_negative_class_label = self._negative_class_label or ro.rinterface.NULL
-        self._r_class_labels = (
-            ro.rinterface.NULL if self._class_labels is None else StrVector(self._class_labels)
-        )
+    def mlpiper_configure(self, params):
+        super(RPredictor, self).mlpiper_configure(params)
 
         r_handler.source(R_COMMON_PATH)
         r_handler.source(R_SCORE_PATH)
-        r_handler.init(self._code_dir, self._target_type.value)
-        if self._target_type == TargetType.UNSTRUCTURED:
+        r_handler.init(self._code_dir, self.target_type.value)
+        if self.target_type == TargetType.UNSTRUCTURED:
             for hook_name in [
                 CustomHooks.LOAD_MODEL,
                 CustomHooks.SCORE_UNSTRUCTURED,
@@ -79,7 +67,7 @@ class RPredictor(BaseLanguagePredictor):
                         )
                     )
 
-        self._model = r_handler.load_serialized_model(self._code_dir, self._target_type.value)
+        self._model = r_handler.load_serialized_model(self._code_dir, self.target_type.value)
 
     @property
     def supported_payload_formats(self):
@@ -105,28 +93,21 @@ class RPredictor(BaseLanguagePredictor):
         language neutral cases like matching floats and bools """
 
         # get class labels
-        if (
-            self._r_positive_class_label is not ro.rinterface.NULL
-            and self._r_negative_class_label is not ro.rinterface.NULL
-        ):
-            request_labels = [self._r_negative_class_label, self._r_positive_class_label]
-        elif self._r_class_labels is not None:
-            request_labels = self._r_class_labels
-        else:
+        if not self.class_ordering:
             raise DrumCommonException("Class labels not available for classification.")
 
         prediction_labels = predictions.columns
 
         # if the labels match then do nothing
-        if set(prediction_labels) == set(request_labels):
+        if set(prediction_labels) == set(self.class_ordering):
             return predictions
 
         # check for match after make.names is applied to class labels
-        sanitized_request_labels = ro.r["make.names"](request_labels)
+        sanitized_request_labels = ro.r["make.names"](self.class_ordering)
         if set(prediction_labels) == set(sanitized_request_labels):
             if len(set(sanitized_request_labels)) != len(sanitized_request_labels):
                 raise DrumCommonException("Class label names are ambiguous.")
-            label_map = dict(zip(sanitized_request_labels, request_labels))
+            label_map = dict(zip(sanitized_request_labels, self.class_ordering))
             # return class labels in the same order as prediction labels
             ordered_labels = [label_map[l] for l in prediction_labels]
             predictions.columns = ordered_labels
@@ -141,9 +122,9 @@ class RPredictor(BaseLanguagePredictor):
         # check for match after sanitized float strings (e.g. X7.1) are converted to plain floats
         if all(isinstance(l, str) and l.startswith("X") for l in prediction_labels):
             float_pred_labels = [floatify(f[1:]) for f in prediction_labels]
-            float_request_labels = [floatify(f) for f in request_labels]
+            float_request_labels = [floatify(f) for f in self.class_ordering]
             if set(float_pred_labels) == set(float_request_labels):
-                label_map = dict(zip(float_request_labels, request_labels))
+                label_map = dict(zip(float_request_labels, self.class_ordering))
                 # return class labels in the same order as prediction labels
                 ordered_labels = [label_map[l] for l in float_pred_labels]
                 predictions.columns = ordered_labels
@@ -156,13 +137,13 @@ class RPredictor(BaseLanguagePredictor):
         mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
         with capture_R_traceback_if_errors(r_handler, logger):
             predictions = r_handler.outer_predict(
-                self._target_type.value,
+                self.target_type.value,
                 binary_data=ro.vectors.ByteVector(input_binary_data),
-                mimetype=ro.rinterface.NULL if mimetype is None else mimetype,
+                mimetype=ro.NULL if mimetype is None else mimetype,
                 model=self._model,
-                positive_class_label=self._r_positive_class_label,
-                negative_class_label=self._r_negative_class_label,
-                class_labels=self._r_class_labels,
+                positive_class_label=self.positive_class_label or ro.NULL,
+                negative_class_label=self.negative_class_label or ro.NULL,
+                class_labels=ro.StrVector(self.class_labels) if self.class_labels else ro.NULL,
                 sparse_colnames=self._get_sparse_colnames(kwargs),
             )
 
@@ -179,7 +160,7 @@ class RPredictor(BaseLanguagePredictor):
             logger.error(error_message)
             raise DrumCommonException(error_message)
 
-        if self._target_type.value in TargetType.CLASSIFICATION.value:
+        if self.target_type.value in TargetType.CLASSIFICATION.value:
             predictions = self._replace_sanitized_class_names(predictions)
         return predictions.values, predictions.columns
 

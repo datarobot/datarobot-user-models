@@ -53,22 +53,22 @@ def test_lang_predictor_configure(predictor_params, essential_language_predictor
         init_params = copy.deepcopy(essential_language_predictor_init_params)
         init_params.update(predictor_params)
         lang_predictor = FakeLanguagePredictor()
-        lang_predictor.configure(init_params)
+        lang_predictor.mlpiper_configure(init_params)
         if (
             predictor_params.get("positiveClassLabel") is not None
             and predictor_params.get("negativeClassLabel") is not None
         ):
-            assert lang_predictor._positive_class_label == predictor_params["positiveClassLabel"]
-            assert lang_predictor._negative_class_label == predictor_params["negativeClassLabel"]
-            assert lang_predictor._class_labels is None
+            assert lang_predictor.positive_class_label == predictor_params["positiveClassLabel"]
+            assert lang_predictor.negative_class_label == predictor_params["negativeClassLabel"]
+            assert lang_predictor.class_labels is None
         elif predictor_params.get("classLabels"):
-            assert lang_predictor._positive_class_label is None
-            assert lang_predictor._negative_class_label is None
-            assert lang_predictor._class_labels == ["a", "b", "c"]
+            assert lang_predictor.positive_class_label is None
+            assert lang_predictor.negative_class_label is None
+            assert lang_predictor.class_labels == ["a", "b", "c"]
         else:
-            assert lang_predictor._positive_class_label is None
-            assert lang_predictor._negative_class_label is None
-            assert lang_predictor._class_labels is None
+            assert lang_predictor.positive_class_label is None
+            assert lang_predictor.negative_class_label is None
+            assert lang_predictor.class_labels is None
 
         mock_read_model_metadata_yaml.assert_called_once_with("custom_model_path")
 
@@ -113,7 +113,7 @@ class TestPythonPredictor(object):
             init_params = copy.deepcopy(essential_language_predictor_init_params)
             init_params.update(predictor_params)
             py_predictor = PythonPredictor()
-            py_predictor.configure(init_params)
+            py_predictor.mlpiper_configure(init_params)
             pred_params = {"target_type": predictor_params["target_type"]}
             py_predictor.predict(**pred_params)
 
@@ -143,53 +143,43 @@ class TestPythonPredictor(object):
 @pytest.mark.parametrize("class_ordering", [lambda x: x, lambda x: list(reversed(x))])
 class TestRPredictor(object):
     def test_r_predictor_replace_sanitized_class_names_same_binary(self, class_ordering):
-        r_pred = RPredictor()
-        r_pred._r_positive_class_label = "a"
-        r_pred._r_negative_class_label = "b"
+        r_pred = RPredictor(positive_class_label="a", negative_class_label="b")
         predictions = pd.DataFrame(np.ones((3, 2)), columns=class_ordering(["a", "b"]))
         result = r_pred._replace_sanitized_class_names(predictions)
         assert list(result.columns) == class_ordering(["a", "b"])
 
     def test_r_predictor_replace_sanitized_class_names_unsanitary_binary(self, class_ordering):
-        r_pred = RPredictor()
-        r_pred._r_positive_class_label = "a+1"
-        r_pred._r_negative_class_label = "b+1"
+        r_pred = RPredictor(positive_class_label="a+1", negative_class_label="b+1")
         predictions = pd.DataFrame(np.ones((3, 2)), columns=class_ordering(["a.1", "b.1"]))
         result = r_pred._replace_sanitized_class_names(predictions)
         assert list(result.columns) == class_ordering(["a+1", "b+1"])
 
     def test_r_predictor_replace_sanitized_class_names_float_binary(self, class_ordering):
-        r_pred = RPredictor()
-        r_pred._r_positive_class_label = "7.0"
-        r_pred._r_negative_class_label = "7.1"
+        r_pred = RPredictor(positive_class_label="7.0", negative_class_label="7.1")
         predictions = pd.DataFrame(np.ones((3, 2)), columns=class_ordering(["X7", "X7.1"]))
         result = r_pred._replace_sanitized_class_names(predictions)
         assert list(result.columns) == class_ordering(["7.0", "7.1"])
 
     def test_r_predictor_replace_sanitized_class_names_same_multiclass(self, class_ordering):
-        r_pred = RPredictor()
-        r_pred._r_class_labels = ["a", "b", "c"]
+        r_pred = RPredictor(class_labels=["a", "b", "c"])
         predictions = pd.DataFrame(np.ones((3, 3)), columns=class_ordering(["a", "b", "c"]))
         result = r_pred._replace_sanitized_class_names(predictions)
         assert list(result.columns) == class_ordering(["a", "b", "c"])
 
     def test_r_predictor_replace_sanitized_class_names_unsanitary_multiclass(self, class_ordering):
-        r_pred = RPredictor()
-        r_pred._r_class_labels = ["a+1", "b-1", "c$1"]
+        r_pred = RPredictor(class_labels=["a+1", "b-1", "c$1"])
         predictions = pd.DataFrame(np.ones((3, 3)), columns=class_ordering(["a.1", "b.1", "c.1"]))
         result = r_pred._replace_sanitized_class_names(predictions)
         assert list(result.columns) == class_ordering(["a+1", "b-1", "c$1"])
 
     def test_r_predictor_replace_sanitized_class_names_float_multiclass(self, class_ordering):
-        r_pred = RPredictor()
-        r_pred._r_class_labels = ["7.0", "7.1", "7.2"]
+        r_pred = RPredictor(class_labels=["7.0", "7.1", "7.2"])
         predictions = pd.DataFrame(np.ones((3, 3)), columns=class_ordering(["X7", "X7.1", "X7.2"]))
         result = r_pred._replace_sanitized_class_names(predictions)
         assert list(result.columns) == class_ordering(["7.0", "7.1", "7.2"])
 
     def test_r_predictor_replace_sanitized_class_names_ambiguous_multiclass(self, class_ordering):
-        r_pred = RPredictor()
-        r_pred._r_class_labels = ["a+1", "a-1", "a$1"]
+        r_pred = RPredictor(class_labels=["a+1", "a-1", "a$1"])
         predictions = pd.DataFrame(np.ones((3, 3)), columns=class_ordering(["a.1", "a.1", "a.1"]))
         with pytest.raises(DrumCommonException, match="Class label names are ambiguous"):
             r_pred._replace_sanitized_class_names(predictions)

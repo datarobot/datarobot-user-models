@@ -56,14 +56,14 @@ class JlPredictor(BaseLanguagePredictor):
     def __init__(self,):
         super(JlPredictor, self).__init__()
 
-    def configure(self, params):
-        super(JlPredictor, self).configure(params)
+    def mlpiper_configure(self, params):
+        super(JlPredictor, self).mlpiper_configure(params)
         logger.info(f"loading {JL_SCORE_PATH}")
         jl.eval(f'include("{JL_SCORE_PATH}")')
         logger.info(f"{JL_SCORE_PATH} loaded")
         from julia import Main
 
-        Main.init(self._code_dir, self._target_type.value)
+        Main.init(self._code_dir, self.target_type.value)
         self._model = Main.load_serialized_model(self._code_dir)
 
     @property
@@ -83,13 +83,13 @@ class JlPredictor(BaseLanguagePredictor):
         mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
 
         predictions = Main.outer_predict(
-            self._target_type.value,
+            self.target_type.value,
             binary_data=input_binary_data,
             mimetype=mimetype,
             model=self._model,
-            positive_class_label=self._positive_class_label,
-            negative_class_label=self._negative_class_label,
-            class_labels=self._class_labels,
+            positive_class_label=self.positive_class_label,
+            negative_class_label=self.negative_class_label,
+            class_labels=self.class_labels,
         )
 
         return predictions.values, predictions.columns

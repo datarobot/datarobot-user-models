@@ -118,7 +118,7 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
                 )
 
                 self._predictor = RPredictor()
-            self._predictor.configure(self._params)
+            self._predictor.mlpiper_configure(self._params)
         except Exception as e:
             self._error_response = {"message": "ERROR: {}".format(e)}
 

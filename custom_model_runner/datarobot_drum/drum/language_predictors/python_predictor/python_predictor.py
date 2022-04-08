@@ -32,14 +32,14 @@ class PythonPredictor(BaseLanguagePredictor):
         super(PythonPredictor, self).__init__()
         self._model_adapter = None
 
-    def configure(self, params):
-        super(PythonPredictor, self).configure(params)
+    def mlpiper_configure(self, params):
+        super(PythonPredictor, self).mlpiper_configure(params)
 
         if to_bool(params.get("monitor_embedded")):
             self._init_mlops(params)
 
         self._model_adapter = PythonModelAdapter(
-            model_dir=self._code_dir, target_type=self._target_type
+            model_dir=self._code_dir, target_type=self.target_type
         )
 
         sys.path.append(self._code_dir)
@@ -74,12 +74,12 @@ class PythonPredictor(BaseLanguagePredictor):
         return self._model_adapter.has_read_input_data_hook()
 
     def _predict(self, **kwargs):
-        kwargs[TARGET_TYPE_ARG_KEYWORD] = self._target_type
-        if self._positive_class_label is not None and self._negative_class_label is not None:
-            kwargs[POSITIVE_CLASS_LABEL_ARG_KEYWORD] = self._positive_class_label
-            kwargs[NEGATIVE_CLASS_LABEL_ARG_KEYWORD] = self._negative_class_label
-        if self._class_labels:
-            kwargs[CLASS_LABELS_ARG_KEYWORD] = self._class_labels
+        kwargs[TARGET_TYPE_ARG_KEYWORD] = self.target_type
+        if self.positive_class_label is not None and self.negative_class_label is not None:
+            kwargs[POSITIVE_CLASS_LABEL_ARG_KEYWORD] = self.positive_class_label
+            kwargs[NEGATIVE_CLASS_LABEL_ARG_KEYWORD] = self.negative_class_label
+        if self.class_labels:
+            kwargs[CLASS_LABELS_ARG_KEYWORD] = self.class_labels
 
         return self._model_adapter.predict(model=self._model, **kwargs)
 

@@ -73,7 +73,7 @@ class GenericPredictorComponent(ConnectableComponent):
                 "Prediction server doesn't support language: {} ".format(self._run_language)
             )
 
-        self._predictor.configure(params)
+        self._predictor.mlpiper_configure(params)
 
     def _materialize_unstructured(self, input_filename, output_filename):
         kwargs_params = {}
