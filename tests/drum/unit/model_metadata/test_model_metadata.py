@@ -933,7 +933,7 @@ def test_validate_model_metadata_output_requirements(target_type, predictor_cls)
     proba_pred_output = pd.DataFrame({"class_0": [0.1, 0.2, 0.3], "class_1": [0.9, 0.8, 0.7]})
     num_pred_output = pd.DataFrame(np.arange(10))
     predictor = predictor_cls()
-    predictor._target_type = target_type
+    predictor.target_type = target_type
     type_schema = {
         "input_requirements": [{"field": "data_types", "condition": "IN", "value": "NUM"}],
         "output_requirements": [{"field": "data_types", "condition": "IN", "value": "CAT"}],

@@ -88,7 +88,7 @@ class TestOtherCases:
 
         stdo_stde = str(stdo) + str(stde)
 
-        assert str(stdo_stde).find("Expected predictions to have columns ['no', 'yes']") != -1
+        assert "Expected predictions to have columns ['yes', 'no']" in stdo_stde
 
     # testing negative cases: no artifact, no custom;
     @pytest.mark.parametrize(

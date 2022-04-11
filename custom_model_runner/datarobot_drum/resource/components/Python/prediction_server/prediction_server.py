@@ -96,7 +96,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
                 "Prediction server doesn't support language: {} ".format(self._run_language)
             )
 
-        self._predictor.configure(params)
+        self._predictor.mlpiper_configure(params)
 
     def _terminate(self):
         if hasattr(self._predictor, "terminate"):

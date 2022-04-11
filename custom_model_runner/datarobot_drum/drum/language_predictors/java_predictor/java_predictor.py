@@ -73,8 +73,8 @@ class JavaPredictor(BaseLanguagePredictor):
             os.path.join(os.path.dirname(__file__), "drum-py4j-entrypoint*.jar")
         )
 
-    def configure(self, params):
-        super(JavaPredictor, self).configure(params)
+    def mlpiper_configure(self, params):
+        super(JavaPredictor, self).mlpiper_configure(params)
 
         # retrieve the relevant extensions of the java predictor
         # changed from last version significantly due to associating
