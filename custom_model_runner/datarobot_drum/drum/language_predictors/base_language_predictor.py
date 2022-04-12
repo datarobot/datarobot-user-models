@@ -8,7 +8,9 @@ import logging
 import os
 import time
 from abc import ABC, abstractmethod
+from typing import Optional, List
 
+from datarobot_drum.drum.adapters.cli.shared.drum_class_label_adapter import DrumClassLabelAdapter
 from datarobot_drum.drum.common import read_model_metadata_yaml, to_bool
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
@@ -33,26 +35,41 @@ except ImportError as e:
     mlops_import_error = "Error importing MLOps python module: {}".format(e)
 
 
-class BaseLanguagePredictor(ABC):
-    def __init__(self):
+class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
+    def __init__(
+        self,
+        target_type: TargetType = None,
+        positive_class_label: Optional[str] = None,
+        negative_class_label: Optional[str] = None,
+        class_labels: Optional[List[str]] = None,
+    ):
+        # TODO: Only use init, and do not initialize using mlpiper configure
+        DrumClassLabelAdapter.__init__(
+            self,
+            target_type=target_type,
+            positive_class_label=positive_class_label,
+            negative_class_label=negative_class_label,
+            class_labels=class_labels,
+        )
         self._model = None
-        self._positive_class_label = None
-        self._negative_class_label = None
-        self._class_labels = None
         self._code_dir = None
         self._params = None
         self._mlops = None
         self._schema_validator = None
-        self._target_type = None
 
-    def configure(self, params):
+    def mlpiper_configure(self, params):
+        """
+        Set class instance variables based in mlpiper input.
+        TODO: Remove this function entirely, and have MLPiper init variables using the actual class init.
+        """
+        # DrumClassLabelAdapter fields
+        self.positive_class_label = params.get("positiveClassLabel")
+        self.negative_class_label = params.get("negativeClassLabel")
+        self.class_labels = params.get("classLabels")
+        self.target_type = TargetType(params.get("target_type"))
+
         self._code_dir = params["__custom_model_path__"]
-        self._positive_class_label = params.get("positiveClassLabel")
-        self._negative_class_label = params.get("negativeClassLabel")
-        self._class_labels = params.get("classLabels")
-        self._target_type = TargetType(params.get("target_type"))
         self._params = params
-
         self._validate_mlops_monitoring_requirments(self._params)
 
         if to_bool(params.get("monitor")):
@@ -115,17 +132,10 @@ class BaseLanguagePredictor(ABC):
     def predict(self, **kwargs):
         start_predict = time.time()
         predictions, labels_in_predictions = self._predict(**kwargs)
-        labels_in_request = (
-            get_request_labels(
-                self._class_labels, self._positive_class_label, self._negative_class_label,
-            )
-            if self._target_type in {TargetType.BINARY, TargetType.MULTICLASS}
-            else None
-        )
         predictions = marshal_predictions(
-            request_labels=labels_in_request,
+            request_labels=self.class_ordering,
             predictions=predictions,
-            target_type=self._target_type,
+            target_type=self.target_type,
             model_labels=labels_in_predictions,
         )
         end_predict = time.time()
@@ -141,7 +151,7 @@ class BaseLanguagePredictor(ABC):
     def transform(self, **kwargs):
         output = self._transform(**kwargs)
         output_X = output[0]
-        if self._target_type.value == TargetType.TRANSFORM.value and self._schema_validator:
+        if self.target_type.value == TargetType.TRANSFORM.value and self._schema_validator:
             self._schema_validator.validate_outputs(output_X)
         return output
 
@@ -157,14 +167,14 @@ class BaseLanguagePredictor(ABC):
 
     def model_info(self):
         model_info = {
-            ModelInfoKeys.TARGET_TYPE: self._target_type.value,
+            ModelInfoKeys.TARGET_TYPE: self.target_type.value,
             ModelInfoKeys.CODE_DIR: self._code_dir,
         }
 
-        if self._target_type == TargetType.BINARY:
-            model_info.update({ModelInfoKeys.POSITIVE_CLASS_LABEL: self._positive_class_label})
-            model_info.update({ModelInfoKeys.NEGATIVE_CLASS_LABEL: self._negative_class_label})
-        elif self._target_type == TargetType.MULTICLASS:
-            model_info.update({ModelInfoKeys.CLASS_LABELS: self._class_labels})
+        if self.target_type == TargetType.BINARY:
+            model_info.update({ModelInfoKeys.POSITIVE_CLASS_LABEL: self.positive_class_label})
+            model_info.update({ModelInfoKeys.NEGATIVE_CLASS_LABEL: self.negative_class_label})
+        elif self.target_type == TargetType.MULTICLASS:
+            model_info.update({ModelInfoKeys.CLASS_LABELS: self.class_labels})
 
         return model_info

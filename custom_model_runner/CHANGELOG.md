@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Removed
 - Removed drum autofit functionality
 
+#### [1.9.3] - 2022-04-08
+##### Added
+- Fit runtime report file
+
 #### [1.9.2] - 2022-04-01
 ##### Fixed
 - Pin werkzeug<2.2.0
