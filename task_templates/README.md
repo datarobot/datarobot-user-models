@@ -110,9 +110,6 @@ DRUM doesn't perform sanitation of missing or strange(containing parenthesis, sl
 
 Except for where noted, our pipelines are verified within our functional test framework.
 
-1. `simple` - A pipeline where you don't even need a custom.py file. The drum_autofit function will
-    mark the pipeline object so that DRUM knows that this is the object you want to use to train your
-    model
 2. `python3_sklearn_regression` - Preprocessing with numeric, categorical and text, then SVD, with a
     Ridge regression estimator at the end
 3. `r_lang` - This R pipeline can support either binary classification or regression out of the box.
