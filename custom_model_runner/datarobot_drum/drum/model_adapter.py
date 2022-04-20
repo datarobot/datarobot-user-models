@@ -41,7 +41,11 @@ from datarobot_drum.drum.enum import (
     TargetType,
     CUSTOM_PY_CLASS_NAME,
 )
-from datarobot_drum.drum.exceptions import DrumCommonException, DrumTransformException
+from datarobot_drum.drum.exceptions import (
+    DrumCommonException,
+    DrumTransformException,
+    DrumSerializationError,
+)
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from datarobot_drum.drum.utils.drum_utils import DrumUtils
 from datarobot_drum.custom_task_interfaces.custom_task_interface import CustomTaskInterface
@@ -653,10 +657,10 @@ class PythonModelAdapter:
 
                     try:
                         self._custom_task_class_instance.save(self._model_dir)
-                    except DrumCommonException:
+                    except DrumSerializationError:
                         raise
                     except Exception:
-                        raise DrumCommonException(
+                        raise DrumSerializationError(
                             "An error occurred when saving your custom task. "
                             "Ensure all variables stored on self are pickle-able or excluded when saving"
                         )

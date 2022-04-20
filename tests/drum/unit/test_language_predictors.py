@@ -20,9 +20,10 @@ from custom_model_runner.datarobot_drum.drum.language_predictors.python_predicto
     PythonPredictor,
 )
 from datarobot_drum.drum.enum import TargetType
-from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.exceptions import DrumCommonException, DrumSerializationError
 from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import JavaPredictor
 from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
+from datarobot_drum.drum.model_adapter import PythonModelAdapter
 
 
 class FakeLanguagePredictor(BaseLanguagePredictor):
@@ -138,6 +139,21 @@ class TestPythonPredictor(object):
                 mock_python_model_adapter_predict.assert_called_once_with(
                     model=called_model, target_type=predictor_params["target_type"],
                 )
+
+    def test_python_predictor_fails_to_load_artifact(
+        self, essential_language_predictor_init_params
+    ):
+        """ Ensure the model adapter raises a drum serialization error if it cannot load the artifact """
+        init_params = dict(
+            essential_language_predictor_init_params, **{"target_type": TargetType.BINARY.value}
+        )
+        py_predictor = PythonPredictor()
+
+        with pytest.raises(DrumSerializationError), patch.object(
+            PythonModelAdapter, "load_model_from_artifact"
+        ) as mock_load:
+            mock_load.side_effect = Exception("artifact had an oops")
+            py_predictor.mlpiper_configure(init_params)
 
 
 @pytest.mark.parametrize("class_ordering", [lambda x: x, lambda x: list(reversed(x))])
