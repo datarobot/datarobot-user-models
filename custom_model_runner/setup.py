@@ -48,7 +48,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
-        "License :: OSI Approved :: Apache Software License",
+        "License :: Other/Proprietary License",
         "Operating System :: MacOS",
         "Operating System :: POSIX",
         "Operating System :: Unix",
