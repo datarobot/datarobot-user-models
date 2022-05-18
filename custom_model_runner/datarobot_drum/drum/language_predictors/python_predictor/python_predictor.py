@@ -48,7 +48,9 @@ class PythonPredictor(BaseLanguagePredictor):
         try:
             self._model = self._model_adapter.load_model_from_artifact()
         except Exception as e:
-            raise DrumSerializationError("An error occurred when loading your artifact") from e
+            raise DrumSerializationError(
+                f"An error occurred when loading your artifact: {str(e)}"
+            ) from e
         if self._model is None:
             raise Exception("Failed to load model")
 

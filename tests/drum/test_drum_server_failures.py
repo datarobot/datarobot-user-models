@@ -109,7 +109,7 @@ class TestDrumServerFailures:
         """
         _, _, custom_model_dir, server_run_args = params
 
-        error_message = "Could not find model artifact file"
+        error_message = "An error occurred when loading your artifact"
 
         # remove model artifact
         for item in os.listdir(custom_model_dir):
