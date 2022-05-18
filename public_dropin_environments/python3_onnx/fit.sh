@@ -15,7 +15,7 @@ export sparse_colnames="${INPUT_DIRECTORY}/X.colnames"
 export parameters="${INPUT_DIRECTORY}/parameters.json"
 
 CMD="drum fit --target-type ${TARGET_TYPE} --input ${X} --num-rows ALL --output ${ARTIFACT_DIRECTORY} \
---code-dir ${CODEPATH} --verbose"
+--code-dir ${CODEPATH} --verbose --enable-fit-metadata "
 
 if [ "${TARGET_TYPE}" != "anomaly" ]; then
     CMD="${CMD} --target-csv ${INPUT_DIRECTORY}/y.csv"
