@@ -270,6 +270,7 @@ class TestInferenceModelTemplates(object):
             custom_model_version_id=model_version.id,
             dataset_id=test_data_id,
             max_wait=900,
+            maximum_memory=512 * 1024 * 1024,
         )
 
         assert test.overall_status == "succeeded"
