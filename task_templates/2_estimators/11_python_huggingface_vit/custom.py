@@ -47,7 +47,7 @@ class CustomTask(BinaryEstimatorInterface):
         train_encoded = self.extractor(
             images=X.iloc[:, 0].apply(b64_to_img).values.tolist(), return_tensors="pt"
         )
-        train_dataset = DataSet(train_encoded, y.map(lambda v: int(self.label2id[v])))
+        train_dataset = DataSet(train_encoded, y.map(lambda v: int(self.label2id[str(v)])))
 
         # Setup training arguments and the Huggingface trainer to facilitate fine tuning
         training_args = TrainingArguments(
@@ -63,6 +63,7 @@ class CustomTask(BinaryEstimatorInterface):
         for i, label in enumerate(class_order):
             self.label2id[label] = str(i)
             self.id2label[str(i)] = label
+        print("Label to ID mapping: ", self.label2id)
 
     def save(self, artifact_directory):
         """
@@ -100,7 +101,7 @@ class CustomTask(BinaryEstimatorInterface):
         custom_task.estimator = AutoModelForImageClassification.from_pretrained(
             Path(artifact_directory) / "vit"
         )
-        custom_task.extractor = AutoFeatureExtractor.from_pretrained("google/vit-base-patch16-224")
+        custom_task.extractor = AutoFeatureExtractor.from_pretrained("vit-base-patch16-224")
 
         return custom_task
 
