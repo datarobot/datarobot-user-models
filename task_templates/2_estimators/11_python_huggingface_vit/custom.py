@@ -1,4 +1,3 @@
-import sys
 from pathlib import Path
 
 from transformers import (
@@ -9,7 +8,6 @@ from transformers import (
 )
 
 
-from typing import List, Optional, Any, Dict
 import pandas as pd
 import numpy as np
 import torch
