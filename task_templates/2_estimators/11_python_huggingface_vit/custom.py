@@ -29,22 +29,24 @@ class DataSet(torch.utils.data.Dataset):
 class CustomTask(BinaryEstimatorInterface):
     def fit(self, X, y, row_weights=None, **kwargs):
         self.class_order_to_lookup(kwargs['class_order'])
-        # load original model
+        # load base transformer featurizer and model
         self.extractor = AutoFeatureExtractor.from_pretrained("google/vit-base-patch16-224")
         estimator = AutoModelForImageClassification.from_pretrained("google/vit-base-patch16-224",
                                                                          num_labels=len(kwargs['class_order']),
                                                                          id2label=self.id2label,
                                                                          label2id=self.label2id,
                                                                          ignore_mismatched_sizes=True,)
+
         # Create a training dataset with pytorch
+        # Images are in b64 encoded format, and have to be turned into Image objects and then encoded using the encoder
         train_encoded = self.extractor(images=X.iloc[:, 0].apply(b64_to_img).values.tolist(), return_tensors="pt")
         train_dataset = DataSet(train_encoded, y.map(lambda v: int(self.label2id[v])))
 
+        # Setup training arguments and the Huggingface trainer to facilitate fine tuning
         training_args = TrainingArguments(
             output_dir=kwargs['output_dir']+'/training_tmp',
             num_train_epochs=3,
             no_cuda=True,
-            #do_train=True,
         )
         trainer = Trainer(
             model=estimator,
@@ -55,6 +57,7 @@ class CustomTask(BinaryEstimatorInterface):
         self.estimator=trainer
 
     def class_order_to_lookup(self, class_order):
+        # Fine tuning a Huggingface estimator requires having a mapping from label to id and from id to label
         self.label2id, self.id2label = dict(), dict()
         for i, label in enumerate(class_order):
             self.label2id[label] = str(i)
@@ -75,7 +78,7 @@ class CustomTask(BinaryEstimatorInterface):
         """
 
         # If your estimator is not pickle-able, you can serialize it using its native method,
-        # i.e. in this case for pytorch we use model.save, and then set the estimator to none
+        # i.e. in this case for Hugginface we use save_model, and then set the estimator to none
         self.estimator.save_model(Path(artifact_directory)/'vit')
         # # Helper method to handle serializing, via pickle, the CustomTask class
         self.save_task(artifact_directory, exclude=["estimator"])
@@ -93,26 +96,25 @@ class CustomTask(BinaryEstimatorInterface):
             The deserialized object
         """
         custom_task = cls.load_task(artifact_directory)
-        custom_task.estimator = AutoModelForImageClassification.from_pretrained(Path(artifact_directory)/'vit'
-                                                                                )
-
+        custom_task.estimator = AutoModelForImageClassification.from_pretrained(Path(artifact_directory)/'vit')
         custom_task.extractor = AutoFeatureExtractor.from_pretrained("google/vit-base-patch16-224")
 
         return custom_task
 
     def predict_proba(self, X, **kwargs):
-        print('predicting')
         assert len(X.columns) == 1, "This only works with a single image column"
+        # Transform the B64 encoded string into images that the model can work with
         images = X.iloc[:, 0].apply(b64_to_img).values.tolist()
         batch_size = 5
         size = len(images)
         preds = None
+        # Batch up the predictions to keep memory usage lower
         for idx in range(0, size, batch_size):
             img_slice = images[idx:idx+batch_size]
             inputs = self.extractor(images=img_slice, return_tensors="pt")
             outputs = self.estimator(**inputs)
+            # Get the predicted probability as numpy values
             predictions = torch.nn.functional.softmax(outputs.logits, dim=-1).detach().numpy()
-            print(predictions.shape)
             if preds is None:
                 preds = predictions
             else:
