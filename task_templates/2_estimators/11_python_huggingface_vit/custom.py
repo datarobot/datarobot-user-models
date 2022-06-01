@@ -30,8 +30,8 @@ class CustomTask(BinaryEstimatorInterface):
     def fit(self, X, y, row_weights=None, **kwargs):
         self.class_order_to_lookup(kwargs['class_order'])
         # load base transformer featurizer and model
-        self.extractor = AutoFeatureExtractor.from_pretrained("google/vit-base-patch16-224")
-        estimator = AutoModelForImageClassification.from_pretrained("google/vit-base-patch16-224",
+        self.extractor = AutoFeatureExtractor.from_pretrained("vit-base-patch16-224")
+        estimator = AutoModelForImageClassification.from_pretrained("vit-base-patch16-224",
                                                                          num_labels=len(kwargs['class_order']),
                                                                          id2label=self.id2label,
                                                                          label2id=self.label2id,
