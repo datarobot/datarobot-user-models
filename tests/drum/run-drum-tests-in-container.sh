@@ -97,12 +97,15 @@ pytest tests/drum/ \
        --junit-xml="$GIT_ROOT/results_integration.xml" \
        -n 1
 
+TEST_RESULT_1=$?
+
 pytest tests/drum/ \
        -m "not sequential" \
        --junit-xml="$GIT_ROOT/results_integration.xml" \
        -n auto
 
-TEST_RESULT=$?
+TEST_RESULT_2=$?
+
 END_TIME=$(date +%s)
 TOTAL_TIME=$((END_TIME - START_TIME))
 PREP_TIME=$((DONE_PREP_TIME - START_TIME))
@@ -112,10 +115,11 @@ echo "Total test time: $TOTAL_TIME"
 echo "Prep time:     : $PREP_TIME"
 echo "Test time:     : $TEST_TIME"
 
-if [ $TEST_RESULT -ne 0 -o $TEST_RESULT_NO_MLOPS -ne 0 ] ; then
+if [ $TEST_RESULT_1 -ne 0 -o $TEST_RESULT_2 -ne 0 -o $TEST_RESULT_NO_MLOPS -ne 0 ] ; then
   echo "Got error in one of the tests"
   echo "NO MLOps Tests: $TEST_RESULT_NO_MLOPS"
-  echo "Rest of tests: $TEST_RESULT"
+  echo "Sequential tests: $TEST_RESULT_1"
+  echo "Non sequential tests: $TEST_RESULT_2"
   exit 1
 else
   exit 0
