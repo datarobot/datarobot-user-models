@@ -8,4 +8,4 @@ due to file size.  Custom tasks run within DataRobot do not have access to the i
 pretrained model files to the task and uploading it.  
 `git clone https://huggingface.co/google/vit-base-patch16-224`
 
-`drum fit --code-dir task_templates/2_estimators/python-huggingface-vit --input tests/testdata/cats_dogs_small_training.csv --target-type binary --target class`
+`drum fit --code-dir task_templates/2_estimators/11_python_huggingface_vit --input tests/testdata/cats_dogs_small_training.csv --target-type binary --target class`
