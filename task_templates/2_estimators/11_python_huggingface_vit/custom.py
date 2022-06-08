@@ -104,7 +104,9 @@ class CustomTask(BinaryEstimatorInterface):
         custom_task.estimator = AutoModelForImageClassification.from_pretrained(
             Path(artifact_directory) / "vit"
         )
-        custom_task.extractor = AutoFeatureExtractor.from_pretrained(Path(artifact_directory) / custom_task.model_name)
+        custom_task.extractor = AutoFeatureExtractor.from_pretrained(
+            Path(artifact_directory) / custom_task.model_name
+        )
 
         return custom_task
 
