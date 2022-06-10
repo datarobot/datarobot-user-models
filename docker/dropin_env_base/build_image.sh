@@ -9,10 +9,10 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 IMAGE_NAME=datarobot/dropin-env-base
-IMAGE_TAG=debian10-py3.7-jre11-drum1.8.0-mlops8.0.7
+IMAGE_TAG=debian10-py3.7-jre11.0.15-drum1.9.3-mlops8.1.3
 
 pwd
 
 echo "Building docker image: ${IMAGE_NAME}:${IMAGE_TAG}"
-DATAROBOT_MLOPS_VERSION=8.0.7 ${SCRIPT_DIR}/pull_artifacts.sh
+DATAROBOT_MLOPS_VERSION=8.1.3 ${SCRIPT_DIR}/pull_artifacts.sh
 docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
