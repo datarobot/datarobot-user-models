@@ -5,13 +5,13 @@ Dockerfile: https://github.com/datarobot/datarobot-user-models/blob/master/docke
 
 ## Description
 This image is used as a base for Python and Java drop in environments.
-Based on openjdk:11.0.12-jdk-slim-buster
+Based on openjdk:11.0.15-jdk-slim-buster
 Contains
 * Debian 10
 * JDK 11
 * Python 3.7
-* DRUM 1.8.0
-* datarobot-mlops 8.0.7
+* DRUM 1.9.3
+* datarobot-mlops 8.1.3
 
 ## Guidelines
 DataRobot guidelines for publishing images to Docker Hub
