@@ -915,6 +915,16 @@ def test_read_model_metadata_properly_casts_typeschema(tmp_path, training_metada
     assert isinstance(expected_as_str, str)
 
 
+def test_empty_metadata_failure_message(capsys, tmp_path):
+    with open(os.path.join(tmp_path, MODEL_CONFIG_FILENAME), mode="w") as f:
+        f.write("")
+    with pytest.raises(SystemExit) as sysexit:
+        _ = read_model_metadata_yaml(tmp_path)
+        captured = capsys.readouterr()
+        assert "The model_metadata.yaml file appears to be empty." in captured.out
+        assert sysexit.value.code == 1
+
+
 @pytest.mark.parametrize(
     "target_type, predictor_cls",
     itertools.product([TargetType.TRANSFORM,], [PythonPredictor, RPredictor, JavaPredictor],),
