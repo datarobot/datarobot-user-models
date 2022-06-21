@@ -526,6 +526,30 @@ class TestSchemaValidator:
         with pytest.raises(DrumSchemaValidationException, match=match_str):
             validator.validate_inputs(ten_k_diabetes)
 
+    @pytest.mark.parametrize(
+        "target",
+        [
+            TargetType.BINARY,
+            TargetType.MULTICLASS,
+            TargetType.ANOMALY,
+            TargetType.REGRESSION,
+            TargetType.TRANSFORM,
+        ],
+    )
+    def test_schema_with_outputs_check_target_type(self, target, capsys):
+        print(target)
+        validator = SchemaValidator(type_schema={}, use_default_type_schema=True)
+        if target == TargetType.TRANSFORM:
+            validator.validate_type_schema(target)
+        else:
+            with pytest.raises(DrumSchemaValidationException):
+                validator.validate_type_schema(target)
+                captured = capsys.readouterr()
+                assert (
+                    "Specifying output_requirements in model_metadata.yaml is only valid for custom transform tasks."
+                    in captured.out
+                )
+
 
 class TestRevalidateTypeSchemaDataTypes:
     field = Fields.DATA_TYPES
