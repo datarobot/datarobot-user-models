@@ -5,6 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import os
+import sys
 from abc import ABC, abstractmethod
 import base64
 import logging
@@ -583,8 +584,8 @@ class SchemaValidator:
         DrumSchemaValidationException
             Raised when target type is not transform and output_requirements exists in the model metadata typeSchema.
         """
-
         if target_type != TargetType.TRANSFORM and self._output_validators:
-            raise DrumSchemaValidationException(
-                "Specifying output_requirements in model_metadata.yaml is only valid for custom transform tasks."
-            )
+            msg = "Specifying output_requirements in model_metadata.yaml is only valid for custom transform tasks."
+
+            print(msg, file=sys.stderr)
+            raise DrumSchemaValidationException(msg)

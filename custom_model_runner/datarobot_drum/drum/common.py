@@ -14,7 +14,7 @@ from typing import Dict, List
 from typing import Optional as PythonTypingOptional
 
 from contextlib import contextmanager
-from strictyaml import Bool, Int, Map, Optional, Str, load, YAMLError, Seq, Any
+from strictyaml import Bool, Int, Map, Optional, Str, load, YAMLError, Seq, Any, YAMLValidationError
 from pathlib import Path
 import six
 import trafaret as t
@@ -202,7 +202,10 @@ def read_model_metadata_yaml(code_dir) -> PythonTypingOptional[dict]:
                     revalidate_typeschema(model_config["typeSchema"])
                 model_config = model_config.data
             except YAMLError as e:
-                print(e)
+                if "found a blank string" in e.problem:
+                    print("The model_metadata.yaml file appears to be empty.")
+                else:
+                    print(e)
                 raise SystemExit(1)
 
         if model_config[ModelMetadataKeys.TARGET_TYPE] == TargetType.BINARY.value:
