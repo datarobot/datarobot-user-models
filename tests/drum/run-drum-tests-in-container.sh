@@ -24,22 +24,25 @@ pwd
 GIT_ROOT=$(git rev-parse --show-toplevel)
 echo "GIT_ROOT: $GIT_ROOT"
 
-pushd $GIT_ROOT/custom_model_runner || exit 1
-
-echo
-echo "--> Building wheel"
-echo
-make clean && make
-DRUM_WHEEL=$(find dist/datarobot_drum*.whl)
-DRUM_WHEEL_FILENAME=$(basename $DRUM_WHEEL)
-DRUM_WHEEL_REAL_PATH=$(realpath $DRUM_WHEEL)
+if [ -n "${PIPELINE_CONTROLLER}" ]; then
+  # The "jenkins_artifacts" folder is created in the groovy script
+  DRUM_WHEEL_REAL_PATH="$(realpath "$(find jenkins_artifacts/datarobot_drum*.whl)")"
+else
+  pushd $GIT_ROOT/custom_model_runner || exit 1
+  echo
+  echo "--> Building wheel"
+  echo
+  make clean && make
+  DRUM_WHEEL_REAL_PATH="$(realpath "$(find dist/datarobot_drum*.whl)")"
+  pop
+fi
 
 echo "DRUM_WHEEL_REAL_PATH: $DRUM_WHEEL_REAL_PATH"
 
 echo
 echo "--> Installing wheel"
 echo
-pip install "${DRUM_WHEEL}[R]"
+pip install "${DRUM_WHEEL_REAL_PATH}[R]"
 popd
 
 echo "--> julia check "
