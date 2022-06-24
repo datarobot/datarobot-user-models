@@ -206,6 +206,8 @@ def get_transformed_train_test_split(
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
     """ split train/test data after apply label encoder on y """
     assert len(X_df) == len(y_series)
+    # handle possible float or int values coming from DR.
+    y_series = y_series.astype(str)
     # preprocessing steps
     if class_order:
         y_series = label_binarize(y_series, classes=class_order)

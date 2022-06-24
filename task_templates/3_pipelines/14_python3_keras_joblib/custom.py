@@ -44,7 +44,7 @@ def fit(
     y: pd.Series
         Project's target column. In the case of anomaly detection None is passed
     output_dir: str
-        A path to the output folder (also provided in --output paramter of 'drum fit' command)
+        A path to the output folder (also provided in --output parameter of 'drum fit' command)
         The artifact [in this example - containing the trained sklearn pipeline]
         must be saved into this folder.
     class_order: Optional[List[str]]
@@ -70,7 +70,8 @@ def fit(
         so that the trained object can be used during scoring.
     """
     if class_order:
-        y = label_binarize(y, classes=class_order)
+        # handle possible float or int values coming from DR.
+        y = label_binarize(y.astype(str), classes=class_order)
         estimator = make_classifier_pipeline(X, len(class_order))
     else:
         estimator = make_regressor_pipeline(X)
@@ -92,8 +93,8 @@ def load_model(code_dir: str) -> Pipeline:
 
     This keras estimator requires 'load_model()' to be overridden. Coz as it involves pipeline of
     preprocessor and estimator bundled together, it requires a special handling (oppose to usually
-    simple keras.models.load_model() or unpickling) to load the model. Currently there is no elegant
-    default method to save the keras classifier/regressor along with the sklearn pipeline. Hence we
+    simple keras.models.load_model() or unpickling) to load the model. Currently, there is no elegant
+    default method to save the keras classifier/regressor along with the sklearn pipeline. Hence, we
     use deserialize_estimator_pipeline() to load the model pipeline to predict.
 
     Parameters
