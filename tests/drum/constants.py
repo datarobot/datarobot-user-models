@@ -24,6 +24,18 @@ PUBLIC_DROPIN_ENVS_PATH = os.path.join(REPO_ROOT_PATH, "public_dropin_environmen
 TRAINING = "training"
 INFERENCE = "inference"
 
+# Framework environments keywords:
+PYTHON_SKLEARN = "python3_sklearn"
+PYTHON_XGBOOST = "python3_xgboost"
+PYTHON_KERAS = "python3_keras"
+PYTHON_PYTORCH = "python3_pytorch"
+PYTHON_ONNX = "python3_onnx"
+PYTHON_PYPMML = "python3_pmml"
+R_LANG = "r_lang"
+JAVA = "java"
+JULIA = "julia"
+
+
 # Framework keywords
 XGB = "xgboost"
 KERAS = "keras"
