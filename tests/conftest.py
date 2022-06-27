@@ -14,6 +14,15 @@ import yaml
 from scipy.io import mmread
 
 from tests.drum.constants import (
+    PYTHON_SKLEARN,
+    PYTHON_XGBOOST,
+    PYTHON_KERAS,
+    PYTHON_PYTORCH,
+    PYTHON_ONNX,
+    PYTHON_PYPMML,
+    R_LANG,
+    JAVA,
+    JULIA,
     ANOMALY,
     BINARY,
     BINARY_BOOL,
@@ -104,7 +113,6 @@ from tests.drum.constants import (
     TESTS_DATA_PATH,
     TESTS_FIXTURES_PATH,
     TRAINING_TEMPLATES_PATH,
-    TRANSFORM_TEMPLATES_PATH,
     ESTIMATORS_TEMPLATES_PATH,
     TRANSFORM,
     UNSTRUCTURED,
@@ -118,7 +126,6 @@ from tests.drum.constants import (
     RDS_PARAMETERS,
     RDS_HYPERPARAMETERS,
     MLJ,
-    JLSO,
     JULIA,
     R_INT_COLNAMES_BINARY,
     R_INT_COLNAMES_MULTICLASS,
@@ -138,6 +145,102 @@ from tests.drum.constants import (
     MULTICLASS_LABEL_SPACES,
 )
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
+
+
+framework_envs = {
+    PYTHON_SKLEARN: [
+        SKLEARN,
+        SKLEARN_ANOMALY,
+        MULTI_ARTIFACT,
+        SKLEARN_TRANSFORM,
+        SKLEARN_TRANSFORM_DENSE,
+        SKLEARN_TRANSFORM_HYPERPARAMETERS,
+        SKLEARN_TRANSFORM_NO_HOOK,
+        SKLEARN_TRANSFORM_NON_NUMERIC,
+        SKLEARN_TRANSFORM_WITH_Y,
+        SKLEARN_TRANSFORM_SPARSE_IN_OUT,
+        SKLEARN_TRANSFORM_SPARSE_INPUT,
+        SKLEARN_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
+        PYTHON_XFORM_ESTIMATOR,
+        SKLEARN_SPARSE,
+        SKLEARN_BINARY,
+        SKLEARN_REGRESSION,
+        CUSTOM_TASK_INTERFACE_BINARY,
+        CUSTOM_TASK_INTERFACE_REGRESSION,
+        CUSTOM_TASK_INTERFACE_ANOMALY,
+        CUSTOM_TASK_INTERFACE_MULTICLASS,
+        CUSTOM_TASK_INTERFACE_TRANSFORM,
+        SKLEARN_MULTICLASS,
+        SKLEARN_BINARY_HYPERPARAMETERS,
+        SKLEARN_PRED_CONSISTENCY,
+        PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION,
+    ],
+    PYTHON_XGBOOST: [XGB, CUSTOM_TASK_INTERFACE_XGB_REGRESSION],
+    PYTHON_KERAS: [KERAS, CUSTOM_TASK_INTERFACE_KERAS_REGRESSION],
+    PYTHON_PYTORCH: [
+        PYTORCH,
+        PYTORCH_REGRESSION,
+        CUSTOM_TASK_INTERFACE_PYTORCH_BINARY,
+        CUSTOM_TASK_INTERFACE_PYTORCH_MULTICLASS,
+    ],
+    PYTHON_ONNX: [ONNX],
+    PYTHON_PYPMML: [PYPMML],
+    R_LANG: [
+        R_ESTIMATOR_SPARSE,
+        R_VALIDATE_SPARSE_ESTIMATOR,
+        RDS,
+        RDS_SPARSE,
+        R_TRANSFORM,
+        R_TRANSFORM_NO_HOOK,
+        R_TRANSFORM_NON_NUMERIC,
+        R_TRANSFORM_WITH_Y,
+        R_TRANSFORM_SPARSE_IN_OUT,
+        R_TRANSFORM_SPARSE_INPUT,
+        R_TRANSFORM_SPARSE_OUTPUT,
+        R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
+        R_XFORM_ESTIMATOR,
+        RDS_HYPERPARAMETERS,
+    ],
+    JAVA: [CODEGEN, MOJO, POJO],
+    JULIA: [MLJ],
+}
+
+
+def is_framework_in_env(framework, env):
+    if not env:
+        return False
+    return framework in framework_envs[env]
+
+
+def skip_if_framework_not_in_env(framework, framework_env):
+    if not is_framework_in_env(framework, framework_env):
+        pytest.skip(
+            "Provided framework: {} != test case framework: {}".format(framework_env, framework)
+        )
+
+
+def pytest_addoption(parser):
+    parser.addoption(
+        "--framework-env",
+        required=False,
+        choices=[
+            PYTHON_SKLEARN,
+            PYTHON_XGBOOST,
+            PYTHON_KERAS,
+            PYTHON_PYTORCH,
+            PYTHON_ONNX,
+            PYTHON_PYPMML,
+            R_LANG,
+            JAVA,
+            JULIA,
+        ],
+        default=None,
+    )
+
+
+@pytest.fixture(scope="session")
+def framework_env(pytestconfig):
+    return pytestconfig.getoption("framework_env")
 
 
 _datasets = {

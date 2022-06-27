@@ -73,3 +73,30 @@ function build_docker_image_with_cmrun() {
   echo
   docker images
 }
+
+function build_docker_image_with_drum() {
+  orig_docker_context_dir=$1
+  image_name=$2
+  drum_wheel=$3
+
+  docker_dir=/tmp/cmrun_docker.$$
+
+  echo "Building docker image:"
+  echo "orig_docker_context_dir: $orig_docker_context_dir"
+  echo "image_name:              $image_name"
+  echo "drum_wheel:              $drum_wheel"
+  echo "docker_dir:              $docker_dir"
+
+  rm -rf $docker_dir
+  cp -a $orig_docker_context_dir $docker_dir
+
+  cp $drum_wheel $docker_dir
+
+  pushd $docker_dir || exit 1
+  docker build -t $image_name ./
+  popd
+  rm -rf $docker_dir
+  echo
+  echo
+  docker images
+}
