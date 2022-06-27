@@ -10,9 +10,15 @@ set -ex
 
 source "$(dirname "$0")/../tools/image-build-utils.sh"
 
-build_drum
-DRUM_WHEEL="$(realpath "$(find custom_model_runner/dist/datarobot_drum*.whl)")"
-build_all_dropin_env_dockerfiles "$DRUM_WHEEL"
+if [ -n "${PIPELINE_CONTROLLER}" ]; then
+  # The "jenkins_artifacts" folder is created in the groovy script
+  DRUM_WHEEL_REAL_PATH="$(realpath "$(find jenkins_artifacts/datarobot_drum*.whl)")"
+else
+  build_drum
+  DRUM_WHEEL_REAL_PATH="$(realpath "$(find custom_model_runner/dist/datarobot_drum*.whl)")"
+fi
+
+build_all_dropin_env_dockerfiles "$DRUM_WHEEL_REAL_PATH"
 
 # newer version of pip has a more reliable dependency parser
 pip install pip==21.3
