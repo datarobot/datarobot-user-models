@@ -8,10 +8,23 @@ from datarobot_drum.drum.language_predictors.java_predictor.java_predictor impor
 
 
 class ScoringCodePredictor(JavaPredictor):
-    def __init__(self, code_dir, target_type):
+    def __init__(
+        self,
+        code_dir,
+        target_type,
+        negative_class_label=None,
+        positive_class_label=None,
+        class_labels=None,
+    ):
         super(ScoringCodePredictor, self).__init__()
 
-        params = {"__custom_model_path__": code_dir, "target_type": target_type}
+        params = {
+            "__custom_model_path__": code_dir,
+            "target_type": target_type,
+            "negativeClassLabel": negative_class_label,
+            "positiveClassLabel": positive_class_label,
+            "classLabels": class_labels,
+        }
 
         self.mlpiper_configure(params)
 
