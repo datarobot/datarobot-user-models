@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 from transformers import (
@@ -36,7 +35,7 @@ class CustomTask(BinaryEstimatorInterface):
         self.pretrained_location = Path(__file__).resolve().parent / self.model_name
         self.class_order_to_lookup(kwargs["class_order"])
         # load base transformer featurizer and model
-        self.extractor = AutoFeatureExtractor.from_pretrained(self.pretrained_location)
+        extractor = AutoFeatureExtractor.from_pretrained(self.pretrained_location)
         estimator = AutoModelForImageClassification.from_pretrained(
             self.pretrained_location,
             num_labels=len(kwargs["class_order"]),
@@ -47,7 +46,7 @@ class CustomTask(BinaryEstimatorInterface):
 
         # Create a training dataset with pytorch
         # Images are in b64 encoded format, and have to be turned into Image objects and then encoded using the encoder
-        train_encoded = self.extractor(
+        train_encoded = extractor(
             images=X.iloc[:, 0].apply(b64_to_img).values.tolist(), return_tensors="pt"
         )
         train_dataset = DataSet(train_encoded, y.map(lambda v: int(self.label2id[str(v)])))
