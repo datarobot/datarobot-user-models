@@ -11,7 +11,6 @@ node('release-dev && memory-intense'){
     withQuantum([
         bash: '''\
             set -exuo pipefail
-            ls -la jenkins_artifacts
             pushd DataRobot
             make update_env
             export LRS_POLL_DELAY_SECONDS=1
@@ -23,10 +22,17 @@ node('release-dev && memory-intense'){
             export CLIENT_VERSION=\$(git rev-parse --short HEAD)
             ./start.sh --kubernetes-k3d --kubernetes-validate
             popd
+        '''.stripIndent(),
+        venvName: "datarobot-dev"
+    ])
+    withQuantum([
+        bash: '''\
+            set -exuo pipefail
+            ls -la jenkins_artifacts
             ./jenkins/test3_training_model_templates.sh
         '''.stripIndent(),
         pythonVersion: '3',
-        venvName: "datarobot-dev"
+        venvName: "datarobot-user-models"
     ])
   }
 }

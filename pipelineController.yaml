@@ -38,6 +38,15 @@ test_drop_in_envs: &test_drop_in_envs
 
 repositoryTasks:
   pr:
+    phrase:
+      - regex: ".*black_check.*"
+        script: *black_check
+      - regex: ".*build_drum.*"
+        script: *build_drum
+      - regex: ".*test_inference_model_templates.*"
+        script:
+          - *build_drum
+          - *test_inference_model_templates
     change:
       - changedFilesRegex: '.*'
         script:

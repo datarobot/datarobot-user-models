@@ -20,8 +20,7 @@ fi
 
 build_all_dropin_env_dockerfiles "$DRUM_WHEEL_REAL_PATH"
 
-# newer version of pip has a more reliable dependency parser
-pip install pip==21.3
+pip install pip==22.1.2
 # installing DRUM into the test env is required for push test
 pip install -U $DRUM_WHEEL_REAL_PATH
 # requirements_test may install newer packages for testing, e.g. `datarobot`
