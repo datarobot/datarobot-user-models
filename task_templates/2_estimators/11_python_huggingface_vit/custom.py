@@ -54,9 +54,13 @@ class CustomTask(BinaryEstimatorInterface):
 
         # Setup training arguments and the Huggingface trainer to facilitate fine tuning
         training_args = TrainingArguments(
-            output_dir=kwargs["output_dir"] + "/training_tmp", num_train_epochs=3, no_cuda=True,
+            output_dir=kwargs["output_dir"] + "/training_tmp",
+            num_train_epochs=3,
+            no_cuda=True,
+            jit_mode_eval=True,
+            use_ipex=True,
         )
-        trainer = Trainer(model=estimator, args=training_args, train_dataset=train_dataset,)
+        trainer = Trainer(model=estimator, args=training_args, train_dataset=train_dataset)
         trainer.train()
         self.estimator = trainer
 
