@@ -1,2 +1,2 @@
-torch==1.6.0
+torch==1.9.1
 sagemaker-scikit-learn-extension==2.1.0

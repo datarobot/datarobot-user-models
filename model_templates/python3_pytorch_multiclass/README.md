@@ -12,7 +12,7 @@ The supplied pth file is a PyTorch model trained on [skyserver_sql2_27_2018_6_51
 with a `class` as the target (multiclass).
 
 The model was trained using:
-`drum fit -cd task_templates/3_pipelines/python3_pytorch_multiclass/ --target-type multiclass --target class --input tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv --output model_templates/python3_pytorch_multiclass/`
+`drum fit --code-dir task_templates/3_pipelines/python3_pytorch_multiclass/ --target-type multiclass --target class --input tests/testdata/skyserver_sql2_27_2018_6_51_39_pm.csv --output model_templates/python3_pytorch_multiclass/`
 
 ## Instructions
 Create a new custom model with these files and use the Python Drop-In Environment with it

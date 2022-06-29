@@ -9,6 +9,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 
 # pylint: disable-all
 from __future__ import absolute_import
+from math import sqrt
 from pathlib import Path
 
 import torch
@@ -36,7 +37,8 @@ class MultiModel(nn.Module):
         return out
 
 
-def train_epoch(model, opt, criterion, X, y, batch_size=50):
+def train_epoch(model, opt, criterion, X, y):
+    batch_size = int(sqrt(X.shape[0]))
     model.train()
     losses = []
     for beg_i in range(0, X.size(0), batch_size):
@@ -67,7 +69,7 @@ def build_classifier(X, num_labels):
     return class_model, class_opt, class_criterion
 
 
-def train_classifier(X, y, class_model, class_opt, class_criterion, n_epochs=5):
+def train_classifier(X, y, class_model, class_opt, class_criterion, n_epochs=10):
     bin_t_X = torch.from_numpy(X).type(torch.FloatTensor)
     bin_t_y = torch.from_numpy(y).type(class_model.expected_target_type)
 
