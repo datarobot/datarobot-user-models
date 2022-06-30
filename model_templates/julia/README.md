@@ -171,11 +171,11 @@ drum perf-test --code-dir model_templates/julia/jl_iris_binary --target-type bin
 
 You can either provide the path to the Dockerfile
 
-Check out [Julia environment](../../public_dropin_environments/julia_mlj) in public_dropin_environments
+Check out [Julia environment](../../example_dropin_environments/julia_mlj) in public_dropin_environments
 
 `drum score --code-dir ./julia/jl_iris_binary --target-type binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor --docker ../../public_dropin_environments/julia_mlj/`
 
-or provide the name of the docker image that has already been built [Julia MLJ Drop-In Environment](../../public_dropin_environments/julia_mlj/), for example, docker image is `drum_julia`.
+or provide the name of the docker image that has already been built [Julia MLJ Drop-In Environment](../../example_dropin_environments/julia_mlj/), for example, docker image is `drum_julia`.
 
 `drum score --code-dir ./julia/jl_iris_binary --target-type binary --input ../../tests/testdata/iris_binary_training.csv --positive-class-label Iris-setosa --negative-class-label Iris-versicolor --docker drum_julia`
 
