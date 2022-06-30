@@ -208,7 +208,7 @@ class TestInferenceModelTemplates(object):
                 None,
                 "model_templates/python3_onnx_multiclass/class_labels.txt",
             ),
-            (
+            pytest.param(
                 "julia/jl_grade",
                 "other",
                 "julia_drop_in_env",
@@ -218,6 +218,7 @@ class TestInferenceModelTemplates(object):
                 None,
                 None,
                 None,
+                marks=pytest.mark.skip("Fails to build environment during the test"),
             ),
         ],
     )
