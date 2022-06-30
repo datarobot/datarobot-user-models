@@ -89,17 +89,9 @@ echo "Running pytest:"
 cd $GIT_ROOT || exit 1
 DONE_PREP_TIME=$(date +%s)
 
-TEST_RESULT_NO_MLOPS=$?
-
 pip install \
     --extra-index-url https://artifactory.int.datarobot.com/artifactory/api/pypi/python-all/simple \
     datarobot-mlops
-
-pytest tests/drum/ \
-       -m "sequential" \
-       --junit-xml="$GIT_ROOT/results_integration.xml"
-
-TEST_RESULT_1=$?
 
 pytest tests/drum/ \
        -m "not sequential" \
@@ -117,10 +109,8 @@ echo "Total test time: $TOTAL_TIME"
 echo "Prep time:     : $PREP_TIME"
 echo "Test time:     : $TEST_TIME"
 
-if [ $TEST_RESULT_1 -ne 0 -o $TEST_RESULT_2 -ne 0 -o $TEST_RESULT_NO_MLOPS -ne 0 ] ; then
-  echo "Got error in one of the tests"
-  echo "NO MLOps Tests: $TEST_RESULT_NO_MLOPS"
-  echo "Sequential tests: $TEST_RESULT_1"
+if [ $TEST_RESULT_2 -ne 0 ] ; then
+  echo "Got error in one of the tests:"
   echo "Non sequential tests: $TEST_RESULT_2"
   exit 1
 else
