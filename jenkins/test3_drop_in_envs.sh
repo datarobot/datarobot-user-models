@@ -7,6 +7,7 @@
 # Released under the terms of DataRobot Tool and Utility Agreement.
 
 set -ex
+GIT_ROOT=$(git rev-parse --show-toplevel)
 
 source "$(dirname "$0")/../tools/image-build-utils.sh"
 
@@ -27,4 +28,4 @@ pip install -U "$DRUM_WHEEL_REAL_PATH"
 pip install -r requirements_test.txt
 
 py.test tests/functional/test_drop_in_environments.py \
-        --junit-xml="$CDIR/results_drop_in.xml"
+        --junit-xml="${GIT_ROOT}/results_drop_in.xml"

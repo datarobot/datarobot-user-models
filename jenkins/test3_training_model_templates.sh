@@ -7,6 +7,7 @@
 # Released under the terms of DataRobot Tool and Utility Agreement.
 
 set -ex
+GIT_ROOT=$(git rev-parse --show-toplevel)
 
 source "$(dirname "$0")/../tools/image-build-utils.sh"
 
@@ -29,4 +30,4 @@ pip install -r requirements_test.txt
 # put tests in this exact order as they build images and as a result jenkins instance may run out of space
 py.test tests/functional/test_custom_task_templates.py \
         tests/functional/test_drum_push.py \
-        --junit-xml="$CDIR/results_drop_in.xml"
+        --junit-xml="${GIT_ROOT}/results_drop_in.xml"
