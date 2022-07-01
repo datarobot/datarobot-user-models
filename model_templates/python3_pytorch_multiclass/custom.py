@@ -5,6 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 
+"""
 This example shows how to create a multiclass neural net with pytorch
 """
 import os
