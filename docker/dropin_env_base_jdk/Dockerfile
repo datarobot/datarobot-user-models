@@ -1,5 +1,5 @@
 # This is the default base image for use with user models and workflows.
-FROM openjdk:11.0.15-jdk-slim-buster
+FROM openjdk:11.0.15-jdk-slim-bullseye
 
 RUN apt update && apt upgrade -y && apt install -y python3 python3-pip python3-distutils fontconfig nginx && \
     pip3 install --upgrade pip && \

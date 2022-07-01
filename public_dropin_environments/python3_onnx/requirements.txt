@@ -1,2 +1,2 @@
-numpy==1.19.5
-onnxruntime==1.10.0
+numpy==1.22.0
+onnxruntime==1.11.0
