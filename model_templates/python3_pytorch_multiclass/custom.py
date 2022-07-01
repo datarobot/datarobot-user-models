@@ -4,8 +4,8 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-"""
-In this example we see how to create a multiclass neural net with pytorch
+
+This example shows how to create a multiclass neural net with pytorch
 """
 import os
 import pickle
