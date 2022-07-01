@@ -127,7 +127,7 @@ public class TestCustomPredictor extends BasePredictor {
             default:
                 String retString = null;
                 try {
-                    retString = objectMapper.writeValueAsString(count);;
+                    retString = objectMapper.writeValueAsString(count);
                 } catch (JsonProcessingException e) {
                     e.printStackTrace();
                 }
