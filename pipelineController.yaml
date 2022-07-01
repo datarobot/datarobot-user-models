@@ -8,15 +8,15 @@ build_drum: &build_drum
   definition: jenkins/build_drum.groovy
   phase: 1
 
-test_integration_all_in_one: &test_integration_all_in_one
-  taskName: test_integration_all_in_one
+test_integration_in_a_single_container: &test_integration_in_a_single_container
+  taskName: test_integration_in_a_single_container
   definition: jenkins/run_integration_tests_in_a_single_container.groovy
   environment:
     PIPELINE_CONTROLLER: 1
   phase: 2
 
-test_integration_all_in_one_bare_metal: &test_integration_all_in_one_bare_metal
-  taskName: test_integration_all_in_one_bare_metal
+test_integration_without_container: &test_integration_without_container
+  taskName: test_integration_without_container
   definition: jenkins/run_integration_tests_without_container.groovy
   environment:
     PIPELINE_CONTROLLER: 1
@@ -52,14 +52,14 @@ repositoryTasks:
         script:
           - *black_check
           - *build_drum
-      - regex: ".*test_integration_all_in_one.*"
+      - regex: ".*test_integration_in_a_single_container.*"
         script:
           - *build_drum
-          - *test_integration_all_in_one
-      - regex: ".*test_integration_all_in_one_bare_metal.*"
+          - *test_integration_in_a_single_container
+      - regex: ".*test_integration_without_container.*"
         script:
           - *build_drum
-          - *test_integration_all_in_one_bare_metal
+          - *test_integration_without_container
       - regex: ".*test_inference_model_templates.*"
         script:
           - *build_drum
@@ -77,8 +77,8 @@ repositoryTasks:
         script:
           - *black_check
           - *build_drum
-          - *test_integration_all_in_one_bare_metal
-          - *test_integration_all_in_one
+          - *test_integration_without_container
+          - *test_integration_in_a_single_container
           - *test_inference_model_templates
           - *test_training_model_templates
           - *test_drop_in_envs
