@@ -1,6 +1,5 @@
 numpy==1.19.5
 pandas==1.0.5
-scikit-learn==0.23.1
-sagemaker-scikit-learn-extension==1.1.0
+scikit-learn==0.24.2
 # In general we want DRUM not to depend on uwsgi, so install it explicitly for the tests
 uwsgi
