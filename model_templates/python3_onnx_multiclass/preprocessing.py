@@ -6,11 +6,10 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import numpy as np
 import pandas as pd
-from sagemaker_sklearn_extension.feature_extraction.text import MultiColumnTfidfVectorizer
 from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.decomposition import TruncatedSVD
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.impute import SimpleImputer
-from sklearn.linear_model import LogisticRegression, Ridge
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
@@ -88,7 +87,7 @@ categorical_pipeline = Pipeline(
 text_pipeline = Pipeline(
     steps=[
         ("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
-        ("tfidf", MultiColumnTfidfVectorizer(ngram_range=(1, 2))),
+        ("tfidf", TfidfVectorizer(ngram_range=(1, 2))),
     ]
 )
 
