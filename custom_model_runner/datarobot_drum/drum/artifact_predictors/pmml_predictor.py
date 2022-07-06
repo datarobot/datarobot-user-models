@@ -50,7 +50,9 @@ class PMMLPredictor(ArtifactPredictor):
 
     def _marshal_predictions(self, predictions, output_fields):
         name_to_label = {
-            field.name: field.value for field in output_fields if field.feature == "probability"
+            field.name: str(field.value)
+            for field in output_fields
+            if field.feature == "probability"
         }
         actual_name_to_lower_label = {k: v.lower() for k, v in name_to_label.items()}
         expected_lower_labels = [label.lower() for label in self.class_labels]
