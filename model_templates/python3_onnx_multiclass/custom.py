@@ -51,4 +51,9 @@ def transform(data: pd.DataFrame, model) -> pd.DataFrame:
     if preprocessor is None:
         raise ValueError("Preprocessor not loaded")
 
+    # Remove target columns if they're in the dataset
+    for target_col in ["class"]:
+        if target_col in data:
+            data.pop(target_col)
+
     return pd.DataFrame(preprocessor.transform(data))
