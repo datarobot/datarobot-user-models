@@ -94,7 +94,8 @@ pip install \
 
 pytest tests/drum/ \
        -m "sequential" \
-       --junit-xml="$GIT_ROOT/results_integration.xml"
+       --junit-xml="$GIT_ROOT/results_integration.xml" \
+       -n 1
 
 pytest tests/drum/ \
        -m "not sequential" \
