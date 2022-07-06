@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### [1.9.5] - 2022-07-06
 ##### Fixed
-- stringify class labels for PMML model
+- Stringify class labels for PMML model
 
 #### [1.9.4] - 2022-06-13
 ##### Removed

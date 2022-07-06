@@ -2,7 +2,7 @@
 # It contains a variety of common useful data-science packages and tools.
 
 # pypmml uses py4j and java as backend, so use java based env
-FROM datarobot/dropin-env-base:latest
+FROM datarobot/dropin-env-base:debian11-py3.9-jre11.0.15-drum1.9.4-mlops8.1.3
 
 # Install the list of core requirements, e.g. sklearn, numpy, pandas, flask.
 # **Don't modify this file!**
