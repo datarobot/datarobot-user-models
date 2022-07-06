@@ -130,7 +130,7 @@ Julia models are supported by usage of [pyjulia](https://pyjulia.readthedocs.io/
 
 pyjulia does NOT work with statically linked libpython.  See this trouble shooting [article](https://pyjulia.readthedocs.io/en/latest/troubleshooting.html).  Other issues arise when using a different versions of python to build Julia PyCall vs what currently being called with (often seen with pyenv).
 
-The simplest way to getting DRUM working with Julia is to leverage the [Julia Dropin Environment](public_dropin_environments/julia_mlj)
+The simplest way to getting DRUM working with Julia is to leverage the [Julia Dropin Environment](example_dropin_environments/julia_mlj)
 
 See details [here](model_templates/julia/README.md) on setting up Julia for use with DRUM
 
