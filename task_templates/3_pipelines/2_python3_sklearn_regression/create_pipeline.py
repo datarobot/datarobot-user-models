@@ -108,7 +108,8 @@ sparse_preprocessing_pipeline = ColumnTransformer(
     transformers=[
         ("num", numeric_pipeline, numeric_selector),
         ("cat", categorical_pipeline, categorical_selector),
-        ("txt", text_pipeline, text_selector),
+        # comment out because of TfidfVectorizer
+        # ("txt", text_pipeline, text_selector),
     ]
 )
 
