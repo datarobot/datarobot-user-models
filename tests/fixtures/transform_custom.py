@@ -19,6 +19,9 @@ def transform(X, transformer, y=None):
     -------
     transformed DataFrame resulting from applying transform to incoming data
     """
+    for target_col in ["readmitted"]:
+        if target_col in X:
+            X.pop(target_col)
     transformed = transformer.transform(X)
     if issparse(transformed):
         return pd.DataFrame.sparse.from_spmatrix(

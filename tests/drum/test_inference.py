@@ -414,6 +414,8 @@ class TestInference:
 
             assert ModelInfoKeys.MODEL_METADATA in response_dict
 
+    # to retrain sklearn_transform.pkl artifact for the current test do:
+    # drum fit --code-dir task_templates/1_transforms/3_python3_sklearn_transform --input tests/testdata/10k_diabetes_sample.csv --target-type transform --target readmitted --output <some dir>
     @pytest.mark.parametrize(
         "framework, problem, language, docker, use_arrow",
         [
