@@ -95,7 +95,9 @@ categorical_pipeline = Pipeline(
 
 # Sklearn's TfidfVectorizer can only handle one column of text at a time,
 # and will fail on datasets with more than one text column.
-# MultiColumnTfidfVectorizer from sagemaker-scikit-learn-extension may be useful to handle multiple text columns.
+# MultiColumnTfidfVectorizer from sagemaker-scikit-learn-extension may be useful to handle multiple text columns,
+# but currently it is not compatible with scikit-learn:
+# Checked with scikit-learn==0.24.2: ImportError: cannot import name 'VectorizerMixin' from 'sklearn.feature_extraction.text'
 text_pipeline = Pipeline(
     steps=[
         ("imputer", SimpleImputer(strategy="constant", fill_value="missing")),

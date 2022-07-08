@@ -5,8 +5,6 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import numpy as np
-import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.decomposition import TruncatedSVD
 from sklearn.impute import SimpleImputer
@@ -26,34 +24,7 @@ numeric_selector = make_column_selector(dtype_include=np.number)
 # Note that it will return True for text columns as well
 # This means that text variables will be be treated as both text AND categoricals
 # This is ok, but if you don't like it, you could write a more complicated is_categorical function
-# that first calls is_text
 categorical_selector = make_column_selector(dtype_include=np.object)
-
-# Helper function to use in text_selector
-def is_text(x):
-    """
-    Decide if a pandas series is text, using a very simple heuristic:
-    1. Count the number of elements in the series that contain 1 or more whitespace character
-    2. If >75% of the elements have whitespace, the Series is text
-
-    Parameters
-    ----------
-    x: pd.Series - Series to be analyzed for text
-
-    Returns
-    -------
-    boolean: True for is text, False for not text
-    """
-    if pd.api.types.is_string_dtype(x):
-        pct_rows_with_whitespace = (x.str.count(r"\s") > 0).sum() / x.shape[0]
-        return pct_rows_with_whitespace > 0.75
-    return False
-
-
-# This selector tells sklearn which columns in a pd.DataFrame are text
-# Returns a list of strings
-def text_selector(X):
-    return X.columns[list(X.apply(is_text, result_type="expand"))]
 
 
 ##############################
@@ -82,27 +53,19 @@ categorical_pipeline = Pipeline(
     ]
 )
 
-# For text, we:
-# 1. Impute missing values with the string "missing"
-# 2. Tfidf encode the text, using 1-grams and 2-grams.
-
-# Sklearn's TfidfVectorizer can only handle one column of text at a time,
-# and will fail on datasets with more than one text column.
-# MultiColumnTfidfVectorizer from sagemaker-scikit-learn-extension may be useful to handle multiple text columns.
-text_pipeline = Pipeline(
-    steps=[
-        ("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
-        ("tfidf", TfidfVectorizer(ngram_range=(1, 2))),
-    ]
-)
-
 # Sparse preprocessing pipeline, for models such as Ridge that handle sparse input well
 sparse_preprocessing_pipeline = ColumnTransformer(
     transformers=[
         ("num", numeric_pipeline, numeric_selector),
         ("cat", categorical_pipeline, categorical_selector),
-        # comment out because of TfidfVectorizer
-        # ("txt", text_pipeline, text_selector),
+        # Text preprocessing pipeline has been removed from here: https://github.com/datarobot/datarobot-user-models/pull/663
+        # Either TfidfVectorizer (scikit-learn) or MultiColumnTfidfVectorizer (sagemaker-scikit-learn-extension)
+        # can be used to process text.
+        # TfidfVectorizer can only handle one column of text at a time,
+        # and will fail on datasets with more than one text column.
+        # MultiColumnTfidfVectorizer may be useful to handle multiple text columns,
+        # but currently it is not compatible with scikit-learn:
+        # Checked with scikit-learn==0.24.2: ImportError: cannot import name 'VectorizerMixin' from 'sklearn.feature_extraction.text'
     ]
 )
 
