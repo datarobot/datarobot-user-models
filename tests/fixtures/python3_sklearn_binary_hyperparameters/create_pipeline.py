@@ -65,7 +65,7 @@ sparse_preprocessing_pipeline = ColumnTransformer(
         # and will fail on datasets with more than one text column.
         # MultiColumnTfidfVectorizer may be useful to handle multiple text columns,
         # but currently it is not compatible with scikit-learn:
-        # Checked with scikit-learn==0.24.2: ImportError: cannot import name 'VectorizerMixin' from 'sklearn.feature_extraction.text'
+        # https://github.com/aws/sagemaker-scikit-learn-extension/issues/42
     ]
 )
 
