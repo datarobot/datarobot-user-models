@@ -93,11 +93,6 @@ categorical_pipeline = Pipeline(
 # 1. Impute missing values with the string "missing"
 # 2. Tfidf encode the text, using 1-grams and 2-grams.
 
-# Sklearn's TfidfVectorizer can only handle one column of text at a time,
-# and will fail on datasets with more than one text column.
-# MultiColumnTfidfVectorizer from sagemaker-scikit-learn-extension may be useful to handle multiple text columns,
-# but currently it is not compatible with scikit-learn:
-# https://github.com/aws/sagemaker-scikit-learn-extension/issues/42
 text_pipeline = Pipeline(
     steps=[
         ("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
