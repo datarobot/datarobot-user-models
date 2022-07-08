@@ -1,11 +1,15 @@
 node('multi-executor && ubuntu:focal'){
-  checkout scm
-  sh """#!/bin/bash
-  set -xe
-  virtualenv .venv -p python3.8
-  source .venv/bin/activate
-  pip install -U pip
-  pip install --only-binary=:all: -r requirements_lint.txt
-  black --check .
-  """
+    stage('build_drum') {
+        checkout scm
+        withQuantum([
+            bash: '''\
+                set -exuo pipefail
+                pip install -U pip
+                pip install --only-binary=:all: -r requirements_lint.txt
+                black --check .
+            '''.stripIndent(),
+            pythonVersion: '3',
+            venvName: "datarobot-user-models"
+        ])
+    }
 }

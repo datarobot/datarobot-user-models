@@ -5,9 +5,8 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import numpy as np
-import pandas as pd
-from sagemaker_sklearn_extension.feature_extraction.text import MultiColumnTfidfVectorizer
 from sklearn.compose import ColumnTransformer, make_column_selector
+from sklearn.decomposition import TruncatedSVD
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
@@ -39,6 +38,17 @@ sparse_preprocessing_pipeline = ColumnTransformer(
     ]
 )
 
+# Dense preprocessing pipeline, for models such as XGboost that do not do well with
+# extremely wide, sparse data
+# This preprocessing will work with linear models such as Ridge too
+dense_preprocessing_pipeline = Pipeline(
+    steps=[
+        ("preprocessing", sparse_preprocessing_pipeline),
+        ("SVD", TruncatedSVD(n_components=10, random_state=42, algorithm="randomized")),
+    ]
+)
+
 
 def make_pipeline():
     return sparse_preprocessing_pipeline
+    # return dense_preprocessing_pipeline

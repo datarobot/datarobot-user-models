@@ -18,7 +18,7 @@ You don't need to edit custom.py, but you can if you would like to. It mostly is
 ### Feature identification
 - Helper function to identify numeric data types
 - Helper function to identify categorical data types
-- Helper function to identify text data types (This is pretty cool, and demonstrates how one might write more advanced column selectors for complicated blueporints)
+- Helper function to identify text data types (This is pretty cool, and demonstrates how one might write more advanced column selectors for complicated blueprints)
 
 ### Preprocessing
 Numerics:

@@ -414,6 +414,10 @@ class TestInference:
 
             assert ModelInfoKeys.MODEL_METADATA in response_dict
 
+    # The fitting code for the sklearn transform is in task_templates/1_transforms/3_python3_sklearn_transform
+    # To retrain sklearn_transform.pkl / sklearn_transform_dense.pkl artifacts adjust code to use sparse / dense
+    # Run DRUM using command:
+    # drum fit --code-dir task_templates/1_transforms/3_python3_sklearn_transform --input tests/testdata/10k_diabetes_sample.csv --target-type transform --target readmitted --output <some dir>
     @pytest.mark.parametrize(
         "framework, problem, language, docker, use_arrow",
         [

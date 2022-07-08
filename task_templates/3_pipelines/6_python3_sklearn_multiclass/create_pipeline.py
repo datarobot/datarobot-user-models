@@ -6,9 +6,9 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import numpy as np
 import pandas as pd
-from sagemaker_sklearn_extension.feature_extraction.text import MultiColumnTfidfVectorizer
 from sklearn.compose import ColumnTransformer, make_column_selector
 from sklearn.decomposition import TruncatedSVD
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression, Ridge
 from sklearn.pipeline import Pipeline
@@ -92,10 +92,18 @@ categorical_pipeline = Pipeline(
 # For text, we:
 # 1. Impute missing values with the string "missing"
 # 2. Tfidf encode the text, using 1-grams and 2-grams.
+
 text_pipeline = Pipeline(
     steps=[
         ("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
-        ("tfidf", MultiColumnTfidfVectorizer(ngram_range=(1, 2))),
+        # Either TfidfVectorizer (scikit-learn) or MultiColumnTfidfVectorizer (sagemaker-scikit-learn-extension)
+        # can be used to process text.
+        # TfidfVectorizer can only handle one column of text at a time,
+        # and will fail on datasets with more than one text column.
+        # MultiColumnTfidfVectorizer may be useful to handle multiple text columns,
+        # but currently it is not compatible with scikit-learn:
+        # https://github.com/aws/sagemaker-scikit-learn-extension/issues/42
+        ("tfidf", TfidfVectorizer(ngram_range=(1, 2))),
     ]
 )
 
