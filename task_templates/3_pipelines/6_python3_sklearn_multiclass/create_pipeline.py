@@ -101,6 +101,13 @@ categorical_pipeline = Pipeline(
 text_pipeline = Pipeline(
     steps=[
         ("imputer", SimpleImputer(strategy="constant", fill_value="missing")),
+        # Either TfidfVectorizer (scikit-learn) or MultiColumnTfidfVectorizer (sagemaker-scikit-learn-extension)
+        # can be used to process text.
+        # TfidfVectorizer can only handle one column of text at a time,
+        # and will fail on datasets with more than one text column.
+        # MultiColumnTfidfVectorizer may be useful to handle multiple text columns,
+        # but currently it is not compatible with scikit-learn:
+        # https://github.com/aws/sagemaker-scikit-learn-extension/issues/42
         ("tfidf", TfidfVectorizer(ngram_range=(1, 2))),
     ]
 )
@@ -110,13 +117,6 @@ sparse_preprocessing_pipeline = ColumnTransformer(
     transformers=[
         ("num", numeric_pipeline, numeric_selector),
         ("cat", categorical_pipeline, categorical_selector),
-        # Either TfidfVectorizer (scikit-learn) or MultiColumnTfidfVectorizer (sagemaker-scikit-learn-extension)
-        # can be used to process text.
-        # TfidfVectorizer can only handle one column of text at a time,
-        # and will fail on datasets with more than one text column.
-        # MultiColumnTfidfVectorizer may be useful to handle multiple text columns,
-        # but currently it is not compatible with scikit-learn:
-        # https://github.com/aws/sagemaker-scikit-learn-extension/issues/42
         ("txt", text_pipeline, text_selector),
     ]
 )
