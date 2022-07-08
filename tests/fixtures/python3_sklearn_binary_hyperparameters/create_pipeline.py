@@ -58,7 +58,7 @@ sparse_preprocessing_pipeline = ColumnTransformer(
     transformers=[
         ("num", numeric_pipeline, numeric_selector),
         ("cat", categorical_pipeline, categorical_selector),
-        # Text preprocessing pipeline has been removed from here: https://github.com/datarobot/datarobot-user-models/pull/663
+        # Text preprocessing pipeline has been removed: https://github.com/datarobot/datarobot-user-models/pull/663
         # Either TfidfVectorizer (scikit-learn) or MultiColumnTfidfVectorizer (sagemaker-scikit-learn-extension)
         # can be used to process text.
         # TfidfVectorizer can only handle one column of text at a time,
