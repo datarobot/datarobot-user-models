@@ -94,7 +94,7 @@ categorical_pipeline = Pipeline(
 # 2. Tfidf encode the text, using 1-grams and 2-grams.
 
 # Sklearn's TfidfVectorizer can only handle one column of text at a time,
-# and will fail on datastes with more than one text column.
+# and will fail on datasets with more than one text column.
 # MultiColumnTfidfVectorizer from sagemaker-scikit-learn-extension may be useful to handle multiple text columns.
 text_pipeline = Pipeline(
     steps=[
