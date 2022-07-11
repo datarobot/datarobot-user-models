@@ -4,7 +4,7 @@ The custom.R template includes a basic fit and init method that can be used to t
 The expected arguments to the fit method should remain the same, although the internal functionality can be tweaked to 
 use different modeling or preprocessing techniques.
 
-Inside you will find an .init hook, which loads required libaries and
+Inside you will find an .init hook, which loads required libraries and
 a fit hook that makes predictions. 
 
 ### To run locally using 'drum'
