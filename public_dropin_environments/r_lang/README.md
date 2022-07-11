@@ -10,8 +10,8 @@ This environment has built for R with support for the [caret](http://topepo.gith
 library of models.
 
 ### Other dependencies
-This environment uses **cmrun** to run custom model.
-**cmrun** uses `rpy2` package (by default the latest version is installed) to run R.
+This environment uses **DRUM** to run custom model.
+**DRUM** uses `rpy2` package (by default the latest version is installed) to run R.
 You may need to adjust **rpy2** and **pandas** versions for compatibility.
 
 ### Supported Model Types
@@ -51,4 +51,4 @@ The structure of your custom model archive should look like:
   - artifact.rds
   - custom.R (if needed)
 
-Please read [datarobot-cmrunner](../../custom_model_runner/README.md) documentation on how to assemble **custom.R**.
+Please read [datarobot-drum](../../custom_model_runner/README.md) documentation on how to assemble **custom.R**.
