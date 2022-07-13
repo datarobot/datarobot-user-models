@@ -20,7 +20,7 @@ create_pipeline<-function(X, y, model_type='regression') {
     # Drop constant columns
     step_zv(all_predictors()) %>%
     # Numeric preprocessing
-    step_medianimpute(all_numeric()) %>%
+    step_impute_median(all_numeric()) %>%
     step_normalize(all_numeric(), -all_outcomes()) %>%
     # Categorical preprocessing
     step_other(all_nominal(), -all_outcomes()) %>%

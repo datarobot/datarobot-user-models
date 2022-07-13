@@ -34,7 +34,7 @@ bin_model_recipe <- recipe(Species ~ ., data = bin_df) %>%
   # Drop constant columns
   step_zv(all_predictors()) %>% 
   # Numeric preprocessing
-  step_medianimpute(all_numeric()) %>%
+  step_impute_median(all_numeric()) %>%
   step_normalize(all_numeric(), -all_outcomes()) %>% 
   # Categorical preprocessing
   step_other(all_nominal(), -all_outcomes()) %>% 
@@ -45,7 +45,7 @@ reg_model_recipe <- recipe(Grade_2014 ~ ., data = reg_df) %>%
   # Drop constant columns
   step_zv(all_predictors()) %>% 
   # Numeric preprocessing
-  step_medianimpute(all_numeric()) %>%
+  step_impute_median(all_numeric()) %>%
   step_normalize(all_numeric(), -all_outcomes()) %>% 
   # Categorical preprocessing
   step_other(all_nominal(), -all_outcomes()) %>% 
@@ -55,7 +55,7 @@ multi_model_recipe <- recipe(class ~ ., data = multi_df) %>%
   # Drop constant columns
   step_zv(all_predictors()) %>%
   # Numeric preprocessing
-  step_medianimpute(all_numeric()) %>%
+  step_impute_median(all_numeric()) %>%
   step_normalize(all_numeric(), -all_outcomes()) %>%
   # Categorical preprocessing
   step_other(all_nominal(), -all_outcomes()) %>%
