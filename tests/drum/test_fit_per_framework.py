@@ -352,6 +352,8 @@ class TestFit:
             (SKLEARN_TRANSFORM, SKLEARN_TRANSFORM, False),
             (SKLEARN_TRANSFORM_NO_HOOK, SKLEARN_TRANSFORM_NO_HOOK, False),
             (CUSTOM_TASK_INTERFACE_TRANSFORM, PYTHON, True),
+            (R_TRANSFORM, R_TRANSFORM, False),
+            (R_TRANSFORM_NO_HOOK, R_TRANSFORM_NO_HOOK, False),
         ],
     )
     @pytest.mark.parametrize("problem", [REGRESSION, BINARY, ANOMALY])
