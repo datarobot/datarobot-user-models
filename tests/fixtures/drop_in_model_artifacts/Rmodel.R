@@ -34,18 +34,19 @@ bin_model_recipe <- recipe(Species ~ ., data = bin_df) %>%
   # Drop constant columns
   step_zv(all_predictors()) %>% 
   # Numeric preprocessing
-  step_medianimpute(all_numeric()) %>%
+  step_impute_median(all_numeric()) %>%
   step_normalize(all_numeric(), -all_outcomes()) %>% 
   # Categorical preprocessing
   step_other(all_nominal(), -all_outcomes()) %>% 
   step_dummy(all_nominal(), -all_outcomes())
 
 # change space to underscore in the dataset before training
+# For the regression model has to rename the target column in Juniors dataset "Grade 2014" -> "Grade_2014"
 reg_model_recipe <- recipe(Grade_2014 ~ ., data = reg_df) %>%
   # Drop constant columns
   step_zv(all_predictors()) %>% 
   # Numeric preprocessing
-  step_medianimpute(all_numeric()) %>%
+  step_impute_median(all_numeric()) %>%
   step_normalize(all_numeric(), -all_outcomes()) %>% 
   # Categorical preprocessing
   step_other(all_nominal(), -all_outcomes()) %>% 
@@ -55,7 +56,7 @@ multi_model_recipe <- recipe(class ~ ., data = multi_df) %>%
   # Drop constant columns
   step_zv(all_predictors()) %>%
   # Numeric preprocessing
-  step_medianimpute(all_numeric()) %>%
+  step_impute_median(all_numeric()) %>%
   step_normalize(all_numeric(), -all_outcomes()) %>%
   # Categorical preprocessing
   step_other(all_nominal(), -all_outcomes()) %>%

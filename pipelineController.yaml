@@ -43,6 +43,69 @@ test_drop_in_envs: &test_drop_in_envs
     PIPELINE_CONTROLLER: 1
   phase: 2
 
+test_integration_python_keras: &test_integration_python_keras
+  taskName: test_integration_python_keras
+  definition: jenkins/run_integration_tests_per_framework.groovy
+  environment:
+    FRAMEWORK: python3_keras
+  phase: 2
+
+test_integration_python_onnx: &test_integration_python_onnx
+  taskName: test_integration_python_onnx
+  definition: jenkins/run_integration_tests_per_framework.groovy
+  environment:
+    FRAMEWORK: python3_onnx
+  phase: 2
+
+test_integration_python_pmml: &test_integration_python_pmml
+  taskName: test_integration_python_pmml
+  definition: jenkins/run_integration_tests_per_framework.groovy
+  environment:
+    FRAMEWORK: python3_pmml
+  phase: 2
+
+test_integration_python_pytorch: &test_integration_python_pytorch
+  taskName: test_integration_python_pytorch
+  definition: jenkins/run_integration_tests_per_framework.groovy
+  environment:
+    FRAMEWORK: python3_pytorch
+  phase: 2
+
+test_integration_python_sklearn: &test_integration_python_sklearn
+  taskName: test_integration_python_sklearn
+  definition: jenkins/run_integration_tests_per_framework.groovy
+  environment:
+    FRAMEWORK: python3_sklearn
+  phase: 2
+
+test_integration_python_xgboost: &test_integration_python_xgboost
+  taskName: test_integration_python_xgboost
+  definition: jenkins/run_integration_tests_per_framework.groovy
+  environment:
+    FRAMEWORK: python3_xgboost
+  phase: 2
+
+test_integration_r_environment: &test_integration_r_environment
+  taskName: test_integration_r_environment
+  definition: jenkins/run_integration_tests_per_framework.groovy
+  environment:
+    FRAMEWORK: r_lang
+  phase: 2
+
+test_integration_java_environment: &test_integration_java_environment
+  taskName: test_integration_java_environment
+  definition: jenkins/run_integration_tests_per_framework.groovy
+  environment:
+    FRAMEWORK: java
+  phase: 2
+
+test_integration_julia_environment: &test_integration_julia_environment
+  taskName: test_integration_julia_environment
+  definition: jenkins/run_integration_tests_per_framework.groovy
+  environment:
+    FRAMEWORK: julia
+  phase: 2
+
 repositoryTasks:
   pr:
     phrase:
@@ -72,6 +135,42 @@ repositoryTasks:
         script:
           - *build_drum
           - *test_drop_in_envs
+      - regex: ".*test_integration_python_keras.*"
+        script:
+          - *build_drum
+          - *test_integration_python_keras
+      - regex: ".*test_integration_python_onnx.*"
+        script:
+          - *build_drum
+          - *test_integration_python_onnx
+      - regex: ".*test_integration_python_pmml.*"
+        script:
+          - *build_drum
+          - *test_integration_python_pmml
+      - regex: ".*test_integration_python_pytorch.*"
+        script:
+          - *build_drum
+          - *test_integration_python_pytorch
+      - regex: ".*test_integration_python_sklearn.*"
+        script:
+          - *build_drum
+          - *test_integration_python_sklearn
+      - regex: ".*test_integration_python_xgboost.*"
+        script:
+          - *build_drum
+          - *test_integration_python_xgboost
+      - regex: ".*test_integration_r_environment.*"
+        script:
+          - *build_drum
+          - *test_integration_r_environment
+      - regex: ".*test_integration_java_environment.*"
+        script:
+          - *build_drum
+          - *test_integration_java_environment
+      - regex: ".*test_integration_julia_environment.*"
+        script:
+          - *build_drum
+          - *test_integration_julia_environment
     change:
       - changedFilesRegex: '.*'
         script:
@@ -82,3 +181,12 @@ repositoryTasks:
           - *test_inference_model_templates
           - *test_training_model_templates
           - *test_drop_in_envs
+          - *test_integration_python_keras
+          - *test_integration_python_onnx
+          - *test_integration_python_pmml
+          - *test_integration_python_pytorch
+          - *test_integration_python_sklearn
+          - *test_integration_python_xgboost
+          - *test_integration_r_environment
+          - *test_integration_java_environment
+          - *test_integration_julia_environment

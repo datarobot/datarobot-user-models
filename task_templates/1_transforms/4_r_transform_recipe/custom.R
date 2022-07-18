@@ -46,7 +46,6 @@ fit <- function(X, y, output_dir, ...){
     # Drop constant columns
     step_zv(all_predictors()) %>%
     # Numeric preprocessing
-    step_medianimpute(all_numeric()) %>%
     step_normalize(all_numeric(), -all_outcomes()) %>%
     # Categorical preprocessing
     step_other(all_nominal(), -all_outcomes()) %>%
