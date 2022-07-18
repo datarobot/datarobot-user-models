@@ -34,4 +34,4 @@ typeSchema:
     # specify if the task accepts missing values
     - field: contains_missing
       condition: EQUALS # only EQUALS is supported
-      value: SUPPORTED # can be one of FORBIDDEN, SUPPORTED
+      value: FORBIDDEN # can be one of FORBIDDEN, SUPPORTED
