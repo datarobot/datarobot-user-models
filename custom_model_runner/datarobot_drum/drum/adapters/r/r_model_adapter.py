@@ -49,7 +49,6 @@ class RModelAdapter(object):
             import rpy2.robjects as ro
             from rpy2.robjects import pandas2ri
             from rpy2.robjects.packages import importr
-            from rpy2.robjects.conversion import localconverter
 
             pandas2ri.activate()
             RModelAdapter.R_PANDAS = pandas2ri
