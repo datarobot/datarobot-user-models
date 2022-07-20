@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### [1.9.6] - 2022-07-19
 ##### Changed
-- bumped rpy2>3.3.6,<=3.4.5
+- bumped rpy2>=3.5.2
 - fixed typechecking in R unstructured prediction
 
 #### [1.9.5] - 2022-07-06

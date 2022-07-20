@@ -19,13 +19,16 @@ from datarobot_drum.resource.utils import (
 )
 
 from tests.drum.constants import (
+    R_NO_ARTIFACTS,
+    SKLEARN_NO_ARTIFACTS,
     PYTHON_UNSTRUCTURED,
     PYTHON_UNSTRUCTURED_PARAMS,
     R_UNSTRUCTURED,
     R_UNSTRUCTURED_PARAMS,
     UNSTRUCTURED,
-    DOCKER_PYTHON_SKLEARN,
 )
+
+from tests.conftest import skip_if_framework_not_in_env
 
 UTF8 = "utf8"
 UTF16 = "utf16"
@@ -37,13 +40,23 @@ class TestUnstructuredMode:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
-            (None, UNSTRUCTURED, PYTHON_UNSTRUCTURED, None),
-            (None, UNSTRUCTURED, R_UNSTRUCTURED, None),
+            (SKLEARN_NO_ARTIFACTS, UNSTRUCTURED, PYTHON_UNSTRUCTURED, None),
+            (R_NO_ARTIFACTS, UNSTRUCTURED, R_UNSTRUCTURED, None),
         ],
     )
     def test_unstructured_models_batch(
-        self, resources, framework, problem, language, docker, mimetype, ret_mode, tmp_path,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        mimetype,
+        ret_mode,
+        tmp_path,
+        framework_env,
     ):
+        skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
             resources, tmp_path, framework, problem, language,
         )
@@ -80,14 +93,14 @@ class TestUnstructuredMode:
     @pytest.mark.parametrize(
         "framework, problem, language, nginx, docker",
         [
-            (None, UNSTRUCTURED, PYTHON_UNSTRUCTURED, False, None),
-            (None, UNSTRUCTURED, R_UNSTRUCTURED, False, None),
-            (None, UNSTRUCTURED, PYTHON_UNSTRUCTURED, True, DOCKER_PYTHON_SKLEARN),
+            (SKLEARN_NO_ARTIFACTS, UNSTRUCTURED, PYTHON_UNSTRUCTURED, False, None),
+            (R_NO_ARTIFACTS, UNSTRUCTURED, R_UNSTRUCTURED, False, None),
         ],
     )
     def test_custom_models_with_drum_prediction_server(
-        self, resources, framework, problem, language, nginx, docker, tmp_path,
+        self, resources, framework, problem, language, nginx, docker, tmp_path, framework_env,
     ):
+        skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
             resources, tmp_path, framework, problem, language,
         )
@@ -117,11 +130,13 @@ class TestUnstructuredMode:
                         assert 10 == int.from_bytes(response.content, byteorder="big")
 
     @pytest.mark.parametrize(
-        "framework, problem, language", [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED),],
+        "framework, problem, language",
+        [(SKLEARN_NO_ARTIFACTS, UNSTRUCTURED, PYTHON_UNSTRUCTURED),],
     )
     def test_unstructured_mode_prediction_server_wrong_endpoint(
-        self, resources, framework, problem, language, tmp_path,
+        self, resources, framework, problem, language, tmp_path, framework_env,
     ):
+        skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
             resources, tmp_path, framework, problem, language,
         )
@@ -138,13 +153,14 @@ class TestUnstructuredMode:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
-            (None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_PARAMS, None),
-            (None, UNSTRUCTURED, R_UNSTRUCTURED_PARAMS, None),
+            (SKLEARN_NO_ARTIFACTS, UNSTRUCTURED, PYTHON_UNSTRUCTURED_PARAMS, None),
+            (R_NO_ARTIFACTS, UNSTRUCTURED, R_UNSTRUCTURED_PARAMS, None),
         ],
     )
     def test_response_content_type(
-        self, resources, framework, problem, language, docker, tmp_path,
+        self, resources, framework, problem, language, docker, tmp_path, framework_env,
     ):
+        skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
             resources, tmp_path, framework, problem, language,
         )
@@ -192,16 +208,17 @@ class TestUnstructuredMode:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
-            (None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_PARAMS, None),
-            (None, UNSTRUCTURED, R_UNSTRUCTURED_PARAMS, None),
+            (SKLEARN_NO_ARTIFACTS, UNSTRUCTURED, PYTHON_UNSTRUCTURED_PARAMS, None),
+            (R_NO_ARTIFACTS, UNSTRUCTURED, R_UNSTRUCTURED_PARAMS, None),
         ],
     )
     # In this test hook returns only data value or a tuple (data, None),
     # Check Content-Type header value.
     # Incoming data is sent back.
     def test_response_one_var_return(
-        self, resources, framework, problem, language, docker, tmp_path,
+        self, resources, framework, problem, language, docker, tmp_path, framework_env,
     ):
+        skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
             resources, tmp_path, framework, problem, language,
         )

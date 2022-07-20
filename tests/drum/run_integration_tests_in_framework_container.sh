@@ -24,7 +24,8 @@ pip install pytest pytest-xdist
 
 pytest tests/drum/test_inference_per_framework.py \
        tests/drum/test_fit_per_framework.py \
-       tests/drum/test_other_cases_framework.py \
+       tests/drum/test_other_cases_per_framework.py \
+       tests/drum/test_unstructured_mode_per_framework.py \
        --framework-env $1 \
        --junit-xml="$GIT_ROOT/results_integration.xml" \
        -n auto

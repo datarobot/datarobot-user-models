@@ -100,6 +100,7 @@ class TestDrumDocker:
         [
             (PYTORCH, MULTICLASS, "python3_pytorch_multiclass", "python3_sklearn", False),
             (PYTORCH, MULTICLASS, "python3_pytorch_multiclass", "python3_sklearn", True),
+            # there is requirements file in the R unstructured model template
             (None, UNSTRUCTURED, "r_unstructured", "r_lang", False),
             (None, UNSTRUCTURED, "r_unstructured", "r_lang", True),
             (CODEGEN, REGRESSION, "java_codegen", "java_codegen", False),

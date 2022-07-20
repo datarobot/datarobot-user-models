@@ -575,6 +575,8 @@ _artifacts = {
     (None, REGRESSION): None,
     (None, BINARY): None,
     (None, UNSTRUCTURED): None,
+    (SKLEARN_NO_ARTIFACTS, UNSTRUCTURED): None,
+    (R_NO_ARTIFACTS, UNSTRUCTURED): None,
     (SKLEARN, SPARSE): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_dtr_sparse.pkl"),
     (SKLEARN, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_reg.pkl"),
     (SKLEARN, REGRESSION_INFERENCE): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_reg.pkl"),

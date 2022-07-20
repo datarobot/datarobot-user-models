@@ -46,6 +46,7 @@ class TestOtherCases:
     def test_bin_models_with_wrong_labels(
         self, resources, framework, problem, language, tmp_path, framework_env
     ):
+        skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
             resources, tmp_path, framework, problem, language,
         )
@@ -114,6 +115,7 @@ class TestOtherCases:
     def test_custom_model_with_all_hooks(
         self, resources, framework, language, hooks_list, target_type, tmp_path, framework_env
     ):
+        skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(resources, tmp_path, framework, None, language,)
 
         input_dataset = resources.datasets(framework, REGRESSION)
@@ -143,7 +145,15 @@ class TestOtherCases:
     )
     @pytest.mark.parametrize("label_type", [int, float])
     def test_custom_model_R_int_colnames_in_prediction_output(
-        self, resources, framework, language, hooks_list, target_type, label_type, tmp_path, framework_env
+        self,
+        resources,
+        framework,
+        language,
+        hooks_list,
+        target_type,
+        label_type,
+        tmp_path,
+        framework_env,
     ):
         skip_if_framework_not_in_env(framework, framework_env)
 
