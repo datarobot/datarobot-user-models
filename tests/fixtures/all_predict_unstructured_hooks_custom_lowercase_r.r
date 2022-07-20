@@ -1,4 +1,4 @@
-prediction_value <- NaN
+prediction_value <<- NaN
 
 init <- function(...) {
     #library(stringr)
