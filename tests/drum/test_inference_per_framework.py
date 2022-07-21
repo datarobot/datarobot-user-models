@@ -8,24 +8,19 @@ import json
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
 
-import io
 import os
 import pandas as pd
-import pyarrow
 import pytest
 import requests
-import scipy
 from scipy.sparse import csr_matrix
 
 from datarobot_drum.drum.enum import (
     X_TRANSFORM_KEY,
     Y_TRANSFORM_KEY,
     MODEL_CONFIG_FILENAME,
-    PredictionServerMimetypes,
     ModelInfoKeys,
     ArgumentsOptions,
     TargetType,
-    EnvVarNames,
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.resource.transform_helpers import (
@@ -37,7 +32,6 @@ from datarobot_drum.resource.transform_helpers import (
 from .constants import (
     BINARY,
     CODEGEN,
-    DOCKER_PYTHON_SKLEARN,
     KERAS,
     MOJO,
     MULTI_ARTIFACT,
@@ -56,7 +50,6 @@ from .constants import (
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
     PYTORCH,
     R,
-    R_FAIL_CLASSIFICATION_VALIDATION_HOOKS,
     R_PREDICT_SPARSE,
     RDS,
     RDS_SPARSE,
@@ -75,8 +68,6 @@ from .constants import (
     R_TRANSFORM_WITH_Y,
     R_TRANSFORM_SPARSE_INPUT,
     R_TRANSFORM_SPARSE_OUTPUT,
-    R_VALIDATE_SPARSE_ESTIMATOR,
-    UNSTRUCTURED,
 )
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
 from datarobot_drum.resource.utils import (
@@ -86,7 +77,6 @@ from datarobot_drum.resource.utils import (
 )
 
 from datarobot_drum.drum.utils.drum_utils import unset_drum_supported_env_vars
-from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 
 
 from tests.conftest import skip_if_framework_not_in_env

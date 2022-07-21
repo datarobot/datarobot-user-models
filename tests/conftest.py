@@ -49,6 +49,7 @@ from tests.drum.constants import (
     POJO,
     PYPMML,
     PYTHON,
+    SKLEARN_NO_ARTIFACTS,
     PYTHON_ALL_PREDICT_STRUCTURED_HOOKS,
     PYTHON_ALL_PREDICT_UNSTRUCTURED_HOOKS,
     PYTHON_NO_ARTIFACT_REGRESSION_HOOKS,
@@ -64,6 +65,7 @@ from tests.drum.constants import (
     PYTORCH,
     PYTORCH_REGRESSION,
     PYTORCH_MULTICLASS,
+    R_NO_ARTIFACTS,
     R,
     R_ALL_PREDICT_STRUCTURED_HOOKS,
     R_ALL_PREDICT_STRUCTURED_HOOKS_LOWERCASE_R,
@@ -150,6 +152,7 @@ from datarobot_drum.drum.model_adapter import PythonModelAdapter
 framework_envs = {
     PYTHON_SKLEARN: [
         SKLEARN,
+        SKLEARN_NO_ARTIFACTS,
         SKLEARN_ANOMALY,
         MULTI_ARTIFACT,
         SKLEARN_TRANSFORM,
@@ -200,6 +203,7 @@ framework_envs = {
         R_TRANSFORM_SPARSE_INPUT_Y_OUTPUT,
         R_XFORM_ESTIMATOR,
         RDS_HYPERPARAMETERS,
+        R_NO_ARTIFACTS,
     ],
     JAVA: [CODEGEN, MOJO, POJO],
     JULIA: [MLJ],
@@ -566,9 +570,13 @@ _class_labels = {
 
 _artifacts = {
     (None, None): None,
+    (R_NO_ARTIFACTS, None): None,
+    (SKLEARN_NO_ARTIFACTS, None): None,
     (None, REGRESSION): None,
     (None, BINARY): None,
     (None, UNSTRUCTURED): None,
+    (SKLEARN_NO_ARTIFACTS, UNSTRUCTURED): None,
+    (R_NO_ARTIFACTS, UNSTRUCTURED): None,
     (SKLEARN, SPARSE): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_dtr_sparse.pkl"),
     (SKLEARN, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_reg.pkl"),
     (SKLEARN, REGRESSION_INFERENCE): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_reg.pkl"),

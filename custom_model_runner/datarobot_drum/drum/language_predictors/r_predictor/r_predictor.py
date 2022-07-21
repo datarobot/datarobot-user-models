@@ -84,7 +84,7 @@ class RPredictor(BaseLanguagePredictor):
         sparse_colnames = kwargs.get(StructuredDtoKeys.SPARSE_COLNAMES)
         if sparse_colnames:
             return ro.vectors.StrVector(sparse_colnames)
-        return ro.rinterface.NULL
+        return ro.NULL
 
     def _replace_sanitized_class_names(self, predictions):
         """ Match prediction data labels to project class labels.
@@ -167,19 +167,15 @@ class RPredictor(BaseLanguagePredictor):
     # TODO: check test coverage for all possible cases: return None/str/bytes, and casting.
     def predict_unstructured(self, data, **kwargs):
         def _r_is_character(r_val):
-            _is_character = ro.r("is.character")
-            return bool(_is_character(r_val))
+            return isinstance(r_val, ro.vectors.StrVector)
 
         def _r_is_raw(r_val):
-            _is_raw = ro.r("is.raw")
-            return bool(_is_raw(r_val))
+            return isinstance(r_val, ro.vectors.ByteVector)
 
         def _r_is_null(r_val):
-            return r_val == ro.rinterface.NULL
+            return r_val == ro.NULL
 
         def _cast_r_to_py(r_val):
-            # TODO: consider checking type against rpy2 proxy object like: isinstance(list_data_kwargs, ro.vectors.ListVector)
-            # instead of calling R interpreter
             if _r_is_null(r_val):
                 return None
             elif _r_is_raw(r_val):
@@ -201,7 +197,9 @@ class RPredictor(BaseLanguagePredictor):
         data_binary_or_text = data
 
         if UnstructuredDtoKeys.QUERY in kwargs:
-            kwargs[UnstructuredDtoKeys.QUERY] = ro.ListVector(kwargs[UnstructuredDtoKeys.QUERY])
+            kwargs[UnstructuredDtoKeys.QUERY] = ro.vectors.ListVector(
+                kwargs[UnstructuredDtoKeys.QUERY]
+            )
 
         # if data_binary_or_text is str it will be auto converted into R character type;
         # otherwise if it is bytes, manually convert it into byte vector (raw)
@@ -231,30 +229,36 @@ class RPredictor(BaseLanguagePredictor):
         with capture_R_traceback_if_errors(r_handler, logger):
             transformations = r_handler.outer_transform(
                 binary_data=ro.vectors.ByteVector(input_binary_data),
-                target_binary_data=ro.rinterface.NULL
+                target_binary_data=ro.NULL
                 if target_binary_data is None
                 else ro.vectors.ByteVector(target_binary_data),
-                mimetype=ro.rinterface.NULL if mimetype is None else mimetype,
+                mimetype=ro.NULL if mimetype is None else mimetype,
                 transformer=self._model,
                 sparse_colnames=self._get_sparse_colnames(kwargs),
             )
 
-        with localconverter(ro.default_converter + pandas2ri.converter):
-            py_data_object = ro.conversion.rpy2py(transformations)
-
-        if not isinstance(py_data_object, ro.ListVector) or len(py_data_object) != 3:
+        if not isinstance(transformations, ro.vectors.ListVector) or len(transformations) != 3:
             error_message = "Expected transform to return a three-element list containing X, y and colnames, got {}. ".format(
-                type(py_data_object)
+                type(transformations)
             )
             raise DrumCommonException(error_message)
 
-        output_X = py_data_object[0]
-        output_y = py_data_object[1] if py_data_object[1] is not ro.NULL else None
-        colnames = py_data_object[2] if py_data_object[2] is not ro.NULL else None
+        with localconverter(ro.default_converter + pandas2ri.converter):
+            output_X = ro.conversion.rpy2py(transformations[0])
+            output_y = (
+                ro.conversion.rpy2py(transformations[1])
+                if transformations[1] is not ro.NULL
+                else None
+            )
+            colnames = (
+                ro.conversion.rpy2py(transformations[2])
+                if transformations[2] is not ro.NULL
+                else None
+            )
 
         if not isinstance(output_X, pd.DataFrame):
             error_message = "Expected transform output type: {}, actual: {}.".format(
-                pd.DataFrame, type(py_data_object)
+                ro.vectors.DataFrame, type(transformations[0])
             )
             raise DrumCommonException(error_message)
 
