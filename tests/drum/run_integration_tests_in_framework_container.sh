@@ -22,6 +22,11 @@ echo "Running pytest:"
 
 pip install pytest pytest-xdist
 
+# install 'pack' package in R env for tests
+if [ "$1" = "r_lang" ]; then
+    Rscript -e "install.packages('pack', Ncpus=4)"
+fi
+
 pytest tests/drum/test_inference_per_framework.py \
        tests/drum/test_fit_per_framework.py \
        tests/drum/test_other_cases_per_framework.py \
