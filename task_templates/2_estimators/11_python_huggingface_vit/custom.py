@@ -30,7 +30,13 @@ class DataSet(torch.utils.data.Dataset):
 
 
 class CustomTask(BinaryEstimatorInterface):
-    def fit(self, X, y, row_weights=None, **kwargs):
+    def fit(self, X, y, row_weights=None, parameters=None, **kwargs):
+        if parameters is None:
+            raise ValueError(
+                "Parameters were not passed into the custom task. "
+                "Ensure your model metadata contains hyperparameter definitions"
+            )
+
         self.model_name = "vit-base-patch16-224"
         self.pretrained_location = Path(__file__).resolve().parent / self.model_name
         self.class_order_to_lookup(kwargs["class_order"])
@@ -54,7 +60,7 @@ class CustomTask(BinaryEstimatorInterface):
         # Setup training arguments and the Huggingface trainer to facilitate fine tuning
         training_args = TrainingArguments(
             output_dir=kwargs["output_dir"] + "/training_tmp",
-            num_train_epochs=3,
+            num_train_epochs=parameters["epochs"],
             no_cuda=True,
             jit_mode_eval=True,
             use_ipex=True,
