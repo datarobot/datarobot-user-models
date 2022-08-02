@@ -229,14 +229,7 @@ class TestSchemaValidator:
                 "cats_and_dogs",
                 "class",
             ),
-            (
-                Conditions.EQUALS,
-                [Values.NUM],
-                "iris_binary",
-                "Species",
-                "ten_k_diabetes",
-                "readmitted",
-            ),
+            (Conditions.EQUALS, [Values.NUM], "iris_binary", "Species", "cats_and_dogs", "class",),
             (
                 Conditions.NOT_IN,
                 [Values.TXT],
@@ -297,6 +290,21 @@ class TestSchemaValidator:
         bad_data.drop(failing_target, inplace=True, axis=1)
         with pytest.raises(DrumSchemaValidationException):
             validator.validate_inputs(bad_data)
+
+    def test_integer_categorical_type_equivelancy(self):
+        """
+        This tests the special case where integer numerics can be considered categoricals.
+        """
+        yaml_str = input_requirements_yaml(Fields.DATA_TYPES, Conditions.EQUALS, [Values.CAT])
+        schema_dict = self.yaml_str_to_schema_dict(yaml_str)
+        validator = SchemaValidator(schema_dict)
+
+        data = pd.DataFrame({"a": range(100)}, dtype=np.int32)
+        assert validator.validate_inputs(data)
+
+        data = data.astype(np.float32)
+        with pytest.raises(DrumSchemaValidationException):
+            validator.validate_inputs(data)
 
     @pytest.mark.parametrize("condition", Conditions.non_numeric())
     @pytest.mark.parametrize(
@@ -514,7 +522,7 @@ class TestSchemaValidator:
     def test_data_types_error_message(self, ten_k_diabetes):
         """This tests the error formatting for the list of Values"""
         condition = Conditions.IN
-        values = [Values.CAT, Values.IMG]
+        values = [Values.DATE, Values.IMG]
         target = "readmitted"
 
         yaml_str = input_requirements_yaml(Fields.DATA_TYPES, condition, values)
@@ -522,7 +530,7 @@ class TestSchemaValidator:
         validator = SchemaValidator(schema_dict)
         ten_k_diabetes.drop(target, inplace=True, axis=1)
 
-        match_str = r"has types:( \w+,?){2,3}.*, which includes values that are not in CAT, IMG"
+        match_str = r"has types:( \w+,?){2,3}.*, which includes values that are not in DATE, IMG"
         with pytest.raises(DrumSchemaValidationException, match=match_str):
             validator.validate_inputs(ten_k_diabetes)
 
@@ -965,7 +973,7 @@ def test_validate_model_metadata_output_requirements(target_type, predictor_cls)
     """
 
     proba_pred_output = pd.DataFrame({"class_0": [0.1, 0.2, 0.3], "class_1": [0.9, 0.8, 0.7]})
-    num_pred_output = pd.DataFrame(np.arange(10))
+    num_pred_output = pd.DataFrame(np.arange(10), dtype=np.float32)
     predictor = predictor_cls()
     predictor.target_type = target_type
     type_schema = {

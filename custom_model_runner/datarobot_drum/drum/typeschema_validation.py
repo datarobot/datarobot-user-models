@@ -15,7 +15,7 @@ from io import BytesIO
 import operator
 from typing import List, Type, TypeVar, Union
 
-from PIL import Image
+from PIL import Image, UnidentifiedImageError
 from strictyaml import Map, Optional, Seq, Int, Enum, Str, YAML
 import numpy as np
 import pandas as pd
@@ -230,14 +230,14 @@ class DataTypes(BaseValidator):
         super(DataTypes, self).__init__(condition, values)
 
     @staticmethod
-    def list_str(l):
+    def list_str(l: list) -> str:
         """f-strings do not do a great job dealing with lists of objects.  The __str__ method isn't called on the
         contained objects, and the result is in [].  This provides the nicely formatted representation we want
         in the error message"""
         return ", ".join(sorted([str(x) for x in l]))
 
     @staticmethod
-    def is_text(x):
+    def is_text(x: pd.Series) -> bool:
         """
         Decide if a pandas series is text, using a very simple heuristic:
         1. Count the number of elements in the series that contain 1 or more whitespace character
@@ -268,7 +268,7 @@ class DataTypes(BaseValidator):
         return False
 
     @staticmethod
-    def is_img(x):
+    def is_img(x: pd.Series) -> bool:
         def convert(data):
             return Image.open(BytesIO(base64.b64decode(data)))
 
@@ -279,14 +279,14 @@ class DataTypes(BaseValidator):
             return False
 
     @staticmethod
-    def number_of_text_columns(X):
+    def number_of_text_columns(X: pd.DataFrame) -> int:
         return len(X.columns[list(X.apply(DataTypes.is_text, result_type="expand"))])
 
     @staticmethod
-    def number_of_img_columns(X):
+    def number_of_img_columns(X: pd.DataFrame) -> int:
         return len(X.columns[list(X.apply(DataTypes.is_img, result_type="expand"))])
 
-    def validate(self, dataframe):
+    def validate(self, dataframe: pd.DataFrame) -> list:
         """Perform validation of the dataframe against the supplied specification."""
         if len(self.values) == 0:
             logger.info("Skipping type validation")
@@ -300,6 +300,8 @@ class DataTypes(BaseValidator):
             types[Values.IMG] = False
             types[Values.CAT] = False
             types[Values.DATE] = False
+            num_possible_numeric_categorical = 0
+            num_numeric = 1
         else:
             num_bool_columns = dataframe.select_dtypes("boolean").shape[1]
             num_txt_columns = self.number_of_text_columns(dataframe)
@@ -310,9 +312,9 @@ class DataTypes(BaseValidator):
                 logger.warning(
                     "Boolean values were present in the data, which are passed as numeric input in DataRobot.  You may need to convert boolean values to integers/floats for your model"
                 )
-            types[Values.NUM] = (
-                dataframe.select_dtypes(np.number).shape[1] > 0 or num_bool_columns > 0
-            )
+            num_possible_numeric_categorical = dataframe.select_dtypes("integer").shape[1]
+            num_numeric = dataframe.select_dtypes(np.number).shape[1]
+            types[Values.NUM] = num_numeric > 0 or num_bool_columns > 0
             types[Values.TXT] = num_txt_columns > 0
             types[Values.IMG] = num_img_columns > 0
             types[Values.CAT] = num_obj_columns - num_img_columns
@@ -329,7 +331,13 @@ class DataTypes(BaseValidator):
             Conditions.NOT_IN: f"{base_error}, but expected no types in: {DataTypes.list_str(self.values)} to be present",
         }
 
+        # Treat Cat and TXT as equivalent
         remapped_values = [Values.CAT if k == Values.TXT else k for k in self.values]
+        # Treat Cat and NUM as equivalent
+        remapped_values = [
+            Values.CAT if k == Values.NUM and num_possible_numeric_categorical == num_numeric else k
+            for k in remapped_values
+        ]
         tests = {
             Conditions.EQUALS: lambda data_types: set(remapped_values) == set(data_types),
             Conditions.NOT_EQUALS: lambda data_types: remapped_values[0] not in data_types,
@@ -340,6 +348,10 @@ class DataTypes(BaseValidator):
         }
 
         types_present = [Values.CAT if k == Values.TXT else k for k in types_present]
+        types_present = [
+            Values.CAT if k == Values.NUM and num_possible_numeric_categorical == num_numeric else k
+            for k in types_present
+        ]
         if not tests[self.condition](types_present):
             return [errors[self.condition]]
         return []
