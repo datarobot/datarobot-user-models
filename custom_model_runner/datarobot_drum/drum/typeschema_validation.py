@@ -15,7 +15,7 @@ from io import BytesIO
 import operator
 from typing import List, Type, TypeVar, Union
 
-from PIL import Image, UnidentifiedImageError
+from PIL import Image
 from strictyaml import Map, Optional, Seq, Int, Enum, Str, YAML
 import numpy as np
 import pandas as pd
