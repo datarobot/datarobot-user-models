@@ -24,7 +24,7 @@ extras_require = {
     "torch": extra_deps[SupportedFrameworks.TORCH],
     "keras": extra_deps[SupportedFrameworks.KERAS],
     "xgboost": extra_deps[SupportedFrameworks.XGBOOST],
-    "R": ["rpy2>=3.5.2;python_version>='3.6'"],
+    "R": ["rpy2==3.5.2;python_version>='3.6'"],
     "pypmml": extra_deps[SupportedFrameworks.PYPMML],
     "trainingModels": ["datarobot>=2.26.0"],
     "uwsgi": ["uwsgi"],
