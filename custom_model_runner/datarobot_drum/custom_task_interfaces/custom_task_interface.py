@@ -1,5 +1,6 @@
 import os
 import pickle
+import sys
 
 from datarobot_drum.drum.exceptions import DrumCommonException
 
@@ -139,3 +140,8 @@ class CustomTaskInterface(Serializable):
         EstimatorInterface
         """
         raise NotImplementedError()
+
+    def log_message(self, message):
+        """Prints the message to the logs and then flushes the buffer."""
+        print(message)
+        sys.stdout.flush()
