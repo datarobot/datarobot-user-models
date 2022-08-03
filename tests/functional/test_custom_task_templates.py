@@ -373,7 +373,7 @@ class TestCustomTaskTemplates(object):
             (
                 "fixture",
                 "validate_transform_fail_input_schema_validation",
-                "project_binary_diabetes",
+                "project_binary_iris",
                 "sklearn_drop_in_env",
                 "transform",
                 [
@@ -384,7 +384,7 @@ class TestCustomTaskTemplates(object):
             (
                 "fixture",
                 "validate_transform_fail_output_schema_validation",
-                "project_binary_diabetes",
+                "project_binary_iris",
                 "sklearn_drop_in_env",
                 "transform",
                 [
