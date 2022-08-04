@@ -6,7 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### [Current]
 ##### Changed
+
+#### [1.9.8] - 2022-08-04
+##### Changed
 - added logging method to custom task interface
+##### Fixed
+- Typeschema correctly handles integer numeric categorical values
 
 #### [1.9.7] - 2022-08-02
 ##### Changed
