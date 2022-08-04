@@ -14,7 +14,6 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 from typing import List, Optional
 import pickle
 import pandas as pd
-import numpy as np
 from pathlib import Path
 from CustomCalibrator import CustomCalibrator  # class defined into CustomCalibrator.py
 
