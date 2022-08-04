@@ -48,7 +48,7 @@ class TestDrumDocker:
         )
 
         if docker_build_fails:
-            dockerfile += "\nRUN pip install datarobot-drum==1.9.8"
+            dockerfile += "\nRUN pip install datarobot-drum==1.1.11"
 
         custom_model_dir = tmp_path / "custom_model"
         custom_model_dir.mkdir(parents=True, exist_ok=True)
