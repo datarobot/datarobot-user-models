@@ -1,3 +1,3 @@
 pandas==1.0.5
-pyarrow==0.14.1
+pyarrow==0.15.1
 datarobot-drum==1.9.4
