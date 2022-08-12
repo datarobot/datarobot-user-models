@@ -374,6 +374,20 @@ class TestSchemaValidator:
         data.loc[np.array(sample(range(len(data)), 10)), :] = np.nan
         assert validator.validate_inputs(data)
 
+    def test_all_nan_is_num_not_img(self):
+        yaml_str = input_requirements_yaml(Fields.DATA_TYPES, Conditions.EQUALS, [Values.IMG])
+        schema_dict = self.yaml_str_to_schema_dict(yaml_str)
+        img_validator = SchemaValidator(schema_dict)
+
+        yaml_str = input_requirements_yaml(Fields.DATA_TYPES, Conditions.EQUALS, [Values.NUM])
+        schema_dict = self.yaml_str_to_schema_dict(yaml_str)
+        num_validator = SchemaValidator(schema_dict)
+
+        data = pd.DataFrame({"data": [np.nan] * 100})
+        with pytest.raises(DrumSchemaValidationException):
+            img_validator.validate_inputs(data)
+        assert num_validator.validate_inputs(data)
+
     @pytest.mark.parametrize(
         "single_value_condition",
         [

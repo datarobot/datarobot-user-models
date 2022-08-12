@@ -270,13 +270,18 @@ class DataTypes(BaseValidator):
 
     @staticmethod
     def is_img(x: pd.Series) -> bool:
+        def is_number(value):
+            return isinstance(value, numbers.Number)
+
         def convert(data):
-            if isinstance(data, numbers.Number) and np.isnan(data):
+            if is_number(data) and np.isnan(data):
                 return np.nan
             return Image.open(BytesIO(base64.b64decode(data)))
 
         try:
-            x.apply(convert)
+            result = x.apply(convert)
+            if np.all(result.apply(is_number)) and np.all(result.apply(np.isnan)):
+                return False
             return True
         except Exception as e:
             print(e)
