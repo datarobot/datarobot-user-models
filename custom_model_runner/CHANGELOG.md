@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### [Current]
 ##### Changed
+##### Fixed
+- Handle missing values in image typeschema validator 
 
 #### [1.9.8] - 2022-08-04
 ##### Changed
