@@ -7,7 +7,7 @@ pytest-runner
 pytest-xdist
 responses
 urllib3 >= 1.25.0
-datarobot>=2.28.1
+datarobot==2.27.0
 datarobot-bp-workshop==0.2.3
 requests >= 2.24.0
 scikit-learn==0.24.2
