@@ -141,7 +141,8 @@ class CustomTaskInterface(Serializable):
         """
         raise NotImplementedError()
 
-    def log_message(self, message):
+    @staticmethod
+    def log_message(message):
         """Prints the message to the logs and then flushes the buffer."""
         print(message)
         sys.stdout.flush()
