@@ -75,7 +75,7 @@ RUN apt update -y && apt install -y software-properties-common libsqlite3-dev li
 # an installation prefix other than `/usr/local' using `--prefix',
 # for instance `--prefix=$HOME'.
 RUN apt install -y python3.7-dev
-# Create wirtual env
+# Create virtual env
 RUN python3.7 -m pip install -U pip && \
     python3.7 -m pip install setuptools wheel virtualenv && \
     python3.7 -m virtualenv /opt/v3.7
@@ -86,7 +86,7 @@ COPY requirements_drum.txt requirements_dropin.txt /tmp/
 
 # uwsgi is an extra dependency and it shouldn't be in requirements_drum.txt, so install it explicitly
 RUN cd /opt && . v3.7/bin/activate && \
-    pip install -r /tmp/requirements_drum.txt -r /tmp/requirements_dropin.txt uwsgi && \
+    pip3 install -r /tmp/requirements_drum.txt -r /tmp/requirements_dropin.txt uwsgi && \
     rm -rf /root/.cache/pip
 
 # # install julia 1.5.4
