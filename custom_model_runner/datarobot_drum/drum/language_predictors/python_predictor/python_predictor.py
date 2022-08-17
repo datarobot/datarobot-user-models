@@ -52,11 +52,11 @@ class PythonPredictor(BaseLanguagePredictor):
             raise Exception("Failed to load model")
 
     def _init_mlops(self, params):
-
         self._mlops = (
             MLOps()
             .set_model_id(params["model_id"])
             .set_deployment_id(params["deployment_id"])
+            .set_channel_config(self._params["monitor_settings"])
             .agent(
                 mlops_service_url=params["external_webserver_url"],
                 mlops_api_token=params["api_token"],

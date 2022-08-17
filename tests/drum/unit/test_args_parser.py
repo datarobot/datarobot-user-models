@@ -245,6 +245,8 @@ class TestMonitorArgs:
             "123",
             "--model-id",
             "456",
+            "--monitor-settings",
+            "aaa;bbb",
             "--webserver",
             "http://aaa.bbb.ccc",
             "--api-token",
@@ -270,12 +272,14 @@ class TestMonitorArgs:
         os.environ["MODEL_ID"] = "e456"
         os.environ["EXTERNAL_WEB_SERVER_URL"] = "e-http://aaa.bbb.ccc"
         os.environ["API_TOKEN"] = "e-zzz"
+        os.environ["MONITOR_SETTINGS"] = "e;aaa;bbb"
         yield
         os.environ.pop(ArgumentOptionsEnvVars.MONITOR_EMBEDDED)
         os.environ.pop("DEPLOYMENT_ID")
         os.environ.pop("MODEL_ID")
         os.environ.pop("EXTERNAL_WEB_SERVER_URL")
         os.environ.pop("API_TOKEN")
+        os.environ.pop("MONITOR_SETTINGS")
 
     @staticmethod
     def _set_sys_argv(cmd_line_args):

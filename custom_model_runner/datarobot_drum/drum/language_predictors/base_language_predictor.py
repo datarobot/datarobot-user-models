@@ -20,7 +20,6 @@ from datarobot_drum.drum.enum import (
 )
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
-from datarobot_drum.drum.data_marshalling import get_request_labels
 from datarobot_drum.drum.data_marshalling import marshal_predictions
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
@@ -70,7 +69,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
 
         self._code_dir = params["__custom_model_path__"]
         self._params = params
-        self._validate_mlops_monitoring_requirments(self._params)
+        self._validate_mlops_monitoring_requirements(self._params)
 
         if to_bool(params.get("monitor")):
             # TODO: if server use async, if batch, use sync etc.. some way of passing params
@@ -87,7 +86,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             self._schema_validator = SchemaValidator(model_metadata.get("typeSchema", {}))
 
     @staticmethod
-    def _validate_mlops_monitoring_requirments(params):
+    def _validate_mlops_monitoring_requirements(params):
         if (
             to_bool(params.get("monitor")) or to_bool(params.get("monitor_embedded"))
         ) and not mlops_loaded:
