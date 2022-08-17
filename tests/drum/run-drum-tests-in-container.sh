@@ -74,9 +74,7 @@ echo "Running pytest:"
 cd $GIT_ROOT || exit 1
 DONE_PREP_TIME=$(date +%s)
 
-pip install \
-    --extra-index-url https://artifactory.int.datarobot.com/artifactory/api/pypi/python-all/simple \
-    datarobot-mlops
+pip install datarobot-mlops==8.1.3
 
 pytest tests/drum/ \
        -m "not sequential" \
