@@ -29,7 +29,7 @@ pip install -U pip
 pip install pytest pytest-runner pytest-xdist retry
 pip install \
     --extra-index-url https://artifactory.int.datarobot.com/artifactory/api/pypi/python-all/simple \
-    datarobot-mlops
+    datarobot-mlops==8.1.3
 
 pushd ${GIT_ROOT} || exit 1
 
