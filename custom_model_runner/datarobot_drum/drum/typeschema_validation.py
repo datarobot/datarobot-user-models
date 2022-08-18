@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import numbers
 import os
 import sys
 from abc import ABC, abstractmethod
@@ -269,13 +270,21 @@ class DataTypes(BaseValidator):
 
     @staticmethod
     def is_img(x: pd.Series) -> bool:
+        def is_number(value):
+            return isinstance(value, numbers.Number)
+
         def convert(data):
+            if is_number(data) and np.isnan(data):
+                return np.nan
             return Image.open(BytesIO(base64.b64decode(data)))
 
         try:
-            x.apply(convert)
+            result = x.apply(convert)
+            if np.all(result.apply(is_number)) and np.all(result.apply(np.isnan)):
+                return False
             return True
-        except:
+        except Exception as e:
+            print(e)
             return False
 
     @staticmethod

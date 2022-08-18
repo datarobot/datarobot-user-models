@@ -6,6 +6,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import itertools
 import os
+from random import sample
 from textwrap import dedent
 from typing import List, Union
 
@@ -283,11 +284,11 @@ class TestSchemaValidator:
         validator = SchemaValidator(schema_dict)
 
         good_data = request.getfixturevalue(passing_dataset)
-        good_data.drop(passing_target, inplace=True, axis=1)
+        good_data = good_data.drop(passing_target, axis=1)
         assert validator.validate_inputs(good_data)
 
         bad_data = request.getfixturevalue(failing_dataset)
-        bad_data.drop(failing_target, inplace=True, axis=1)
+        bad_data = bad_data.drop(failing_target, axis=1)
         with pytest.raises(DrumSchemaValidationException):
             validator.validate_inputs(bad_data)
 
@@ -361,6 +362,31 @@ class TestSchemaValidator:
         a special case that is encountered when testing the output of transforms that output images"""
         img = np.random.bytes(32)
         assert not DataTypes.is_text(img)
+
+    def test_img_with_nan(self, request):
+        """Test the case where there are also NaN values in along with image values."""
+        yaml_str = input_requirements_yaml(Fields.DATA_TYPES, Conditions.EQUALS, [Values.IMG])
+        schema_dict = self.yaml_str_to_schema_dict(yaml_str)
+        validator = SchemaValidator(schema_dict)
+
+        data = request.getfixturevalue("cats_and_dogs")
+        data = data.drop("class", axis=1)
+        data.loc[np.array(sample(range(len(data)), 10)), :] = np.nan
+        assert validator.validate_inputs(data)
+
+    def test_all_nan_is_num_not_img(self):
+        yaml_str = input_requirements_yaml(Fields.DATA_TYPES, Conditions.EQUALS, [Values.IMG])
+        schema_dict = self.yaml_str_to_schema_dict(yaml_str)
+        img_validator = SchemaValidator(schema_dict)
+
+        yaml_str = input_requirements_yaml(Fields.DATA_TYPES, Conditions.EQUALS, [Values.NUM])
+        schema_dict = self.yaml_str_to_schema_dict(yaml_str)
+        num_validator = SchemaValidator(schema_dict)
+
+        data = pd.DataFrame({"data": [np.nan] * 100})
+        with pytest.raises(DrumSchemaValidationException):
+            img_validator.validate_inputs(data)
+        assert num_validator.validate_inputs(data)
 
     @pytest.mark.parametrize(
         "single_value_condition",
