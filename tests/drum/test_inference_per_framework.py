@@ -8,16 +8,21 @@ import json
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
 
+import io
 import os
 import pandas as pd
+import pyarrow
 import pytest
 import requests
+import scipy
 from scipy.sparse import csr_matrix
+
 
 from datarobot_drum.drum.enum import (
     X_TRANSFORM_KEY,
     Y_TRANSFORM_KEY,
     MODEL_CONFIG_FILENAME,
+    PredictionServerMimetypes,
     ModelInfoKeys,
     ArgumentsOptions,
     TargetType,
@@ -50,7 +55,6 @@ from .constants import (
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
     PYTORCH,
     R,
-    R_PREDICT_SPARSE,
     RDS,
     RDS_SPARSE,
     REGRESSION,
@@ -68,6 +72,9 @@ from .constants import (
     R_TRANSFORM_WITH_Y,
     R_TRANSFORM_SPARSE_INPUT,
     R_TRANSFORM_SPARSE_OUTPUT,
+    R_VALIDATE_SPARSE_ESTIMATOR,
+    R_FAIL_CLASSIFICATION_VALIDATION_HOOKS,
+    R_PREDICT_SPARSE,
 )
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
 from datarobot_drum.resource.utils import (
@@ -77,7 +84,7 @@ from datarobot_drum.resource.utils import (
 )
 
 from datarobot_drum.drum.utils.drum_utils import unset_drum_supported_env_vars
-
+from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 
 from tests.conftest import skip_if_framework_not_in_env
 
@@ -778,3 +785,165 @@ class TestInference:
                 in stdo_stde
             )
             assert any([case_1, case_2, case_3])
+
+    @pytest.mark.parametrize(
+        "framework, problem, language, supported_payload_formats",
+        [
+            (SKLEARN, REGRESSION, PYTHON, {"csv": None, "mtx": None, "arrow": pyarrow.__version__}),
+            (RDS, REGRESSION, R, {"csv": None, "mtx": None}),
+            (CODEGEN, REGRESSION, NO_CUSTOM, {"csv": None}),
+        ],
+    )
+    def test_predictors_supported_payload_formats(
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        supported_payload_formats,
+        tmp_path,
+        framework_env,
+    ):
+        skip_if_framework_not_in_env(framework, framework_env)
+        custom_model_dir = _create_custom_model_dir(
+            resources, tmp_path, framework, problem, language,
+        )
+
+        with DrumServerRun(
+            resources.target_types(problem),
+            resources.class_labels(framework, problem),
+            custom_model_dir,
+        ) as run:
+            response = requests.get(run.url_server_address + "/capabilities/")
+
+            assert response.ok
+            assert response.json() == {"supported_payload_formats": supported_payload_formats}
+
+    @pytest.mark.parametrize(
+        "framework, problem, language", [(SKLEARN, REGRESSION_INFERENCE, PYTHON),],
+    )
+    # Don't run this test case with nginx as it is still running from the prev test case.
+    @pytest.mark.parametrize("nginx", [False])
+    def test_predictions_python_arrow_mtx(
+        self, resources, framework, problem, language, nginx, tmp_path, framework_env
+    ):
+        skip_if_framework_not_in_env(framework, framework_env)
+        custom_model_dir = _create_custom_model_dir(
+            resources, tmp_path, framework, problem, language,
+        )
+
+        with DrumServerRun(
+            resources.target_types(problem),
+            resources.class_labels(framework, problem),
+            custom_model_dir,
+            nginx=nginx,
+        ) as run:
+            input_dataset = resources.datasets(framework, problem)
+            df = pd.read_csv(input_dataset)
+            arrow_dataset_buf = pyarrow.ipc.serialize_pandas(df, preserve_index=False).to_pybytes()
+
+            sink = io.BytesIO()
+            scipy.io.mmwrite(sink, scipy.sparse.csr_matrix(df.values))
+            mtx_dataset_buf = sink.getvalue()
+
+            # do predictions
+            for endpoint in ["/predict/", "/predictions/"]:
+                for post_args in [
+                    {"files": {"X": ("X.arrow", arrow_dataset_buf)}},
+                    {"files": {"X": ("X.mtx", mtx_dataset_buf)}},
+                    {
+                        "data": arrow_dataset_buf,
+                        "headers": {
+                            "Content-Type": "{};".format(
+                                PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM
+                            )
+                        },
+                    },
+                    {
+                        "data": mtx_dataset_buf,
+                        "headers": {
+                            "Content-Type": "{};".format(PredictionServerMimetypes.TEXT_MTX)
+                        },
+                    },
+                ]:
+                    response = requests.post(run.url_server_address + endpoint, **post_args)
+
+                    assert response.ok
+                    actual_num_predictions = len(
+                        json.loads(response.text)[RESPONSE_PREDICTIONS_KEY]
+                    )
+                    in_data = pd.read_csv(input_dataset)
+                    assert in_data.shape[0] == actual_num_predictions
+
+    @pytest.mark.parametrize(
+        "framework, problem, language", [(RDS_SPARSE, REGRESSION, R_VALIDATE_SPARSE_ESTIMATOR),],
+    )
+    @pytest.mark.parametrize("nginx", [False, True])
+    def test_predictions_r_mtx(
+        self, resources, framework, problem, language, nginx, tmp_path, framework_env
+    ):
+        skip_if_framework_not_in_env(framework, framework_env)
+        custom_model_dir = _create_custom_model_dir(
+            resources, tmp_path, framework, problem, language,
+        )
+
+        with DrumServerRun(
+            resources.target_types(problem),
+            resources.class_labels(framework, problem),
+            custom_model_dir,
+            nginx=nginx,
+        ) as run:
+            input_dataset = resources.datasets(framework, SPARSE)
+
+            # do predictions
+            for endpoint in ["/predict/", "/predictions/"]:
+                for post_args in [
+                    {"files": {"X": ("X.mtx", open(input_dataset))}},
+                    {
+                        "data": open(input_dataset, "rb"),
+                        "headers": {
+                            "Content-Type": "{};".format(PredictionServerMimetypes.TEXT_MTX)
+                        },
+                    },
+                ]:
+                    response = requests.post(run.url_server_address + endpoint, **post_args)
+
+                    assert response.ok
+                    actual_num_predictions = len(
+                        json.loads(response.text)[RESPONSE_PREDICTIONS_KEY]
+                    )
+                    in_data = StructuredInputReadUtils.read_structured_input_file_as_df(
+                        input_dataset
+                    )
+                    assert in_data.shape[0] == actual_num_predictions
+
+    @pytest.mark.parametrize(
+        "framework, language, target_type",
+        [(None, R_FAIL_CLASSIFICATION_VALIDATION_HOOKS, BINARY,)],
+    )
+    def test_classification_validation_fails(
+        self, resources, framework, language, target_type, tmp_path, framework_env
+    ):
+        skip_if_framework_not_in_env(framework, framework_env)
+        custom_model_dir = _create_custom_model_dir(resources, tmp_path, framework, None, language,)
+
+        input_dataset = resources.datasets(framework, BINARY)
+
+        cmd = "{} score --code-dir {} --input {} --target-type {}".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, target_type
+        )
+
+        if resources.target_types(target_type) in [BINARY, MULTICLASS]:
+            cmd = _cmd_add_class_labels(
+                cmd,
+                resources.class_labels(framework, target_type),
+                target_type=resources.target_types(target_type),
+            )
+
+        _, stdo, _ = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+
+        assert "Your prediction probabilities do not add up to 1." in str(stdo)
