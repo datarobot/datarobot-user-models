@@ -2,13 +2,14 @@
 # It contains a variety of common useful data-science packages and tools.
 FROM rocker/tidyverse:4.2.1
 
-RUN echo '10 Jul 2022'
+RUN echo '22 Aug 2022'
 
 ENV LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
           python3-pip \
+          python3-dev \
           libglpk-dev \
           nginx \
           && \
@@ -31,4 +32,4 @@ RUN Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLooku
 RUN rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 
 COPY requirements.txt requirements.txt
-RUN python3 -m pip install -r requirements.txt
+RUN pip3 install -U pip && pip3 install -r requirements.txt
