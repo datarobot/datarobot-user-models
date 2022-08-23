@@ -1,6 +1,6 @@
 # Java(JDK) drop-in environments base image
 Repository name: **datarobot/dropin-env-base-jdk**
-Latest date: 07-01-2022
+Latest date: 08-22-2022
 Dockerfile: https://github.com/datarobot/datarobot-user-models/blob/master/docker/dropin_env_base_jdk/Dockerfile
 
 ## Description
@@ -10,7 +10,7 @@ Contains
 * Debian 11
 * JDK 11
 * Python 3.9
-* DRUM 1.9.4
+* DRUM 1.9.8
 * datarobot-mlops 8.1.3
 
 ## Guidelines

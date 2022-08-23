@@ -2,7 +2,7 @@
 # It contains a variety of common useful data-science packages and tools.
 
 # pypmml uses py4j and java as backend, so use java based env
-FROM datarobot/dropin-env-base:debian11-py3.9-jre11.0.15-drum1.9.4-mlops8.1.3
+FROM datarobot/dropin-env-base:debian11-py3.9-jre11.0.15-drum1.9.8-mlops8.1.3
 
 # Install the list of core requirements, e.g. sklearn, numpy, pandas, flask.
 # **Don't modify this file!**
@@ -10,7 +10,8 @@ COPY dr_requirements.txt dr_requirements.txt
 
 # '--upgrade-strategy eager' will upgrade installed dependencies
 # according to package requirements or to the latest
-RUN pip3 install -U --upgrade-strategy eager --no-cache-dir -r dr_requirements.txt  && \
+RUN pip3 install -U pip && \
+    pip3 install -U --upgrade-strategy eager --no-cache-dir -r dr_requirements.txt  && \
     rm -rf dr_requirements.txt
 
 # Install the list of custom Python requirements, e.g. keras, xgboost, etc.

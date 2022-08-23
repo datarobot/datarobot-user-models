@@ -9,7 +9,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 IMAGE_NAME=datarobot/dropin-env-base
-IMAGE_TAG=debian11-py3.9-jre11.0.15-drum1.9.4-mlops8.1.3
+IMAGE_TAG=debian11-py3.9-jre11.0.15-drum1.9.8-mlops8.1.3
 
 pwd
 
