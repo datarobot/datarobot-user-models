@@ -2,7 +2,7 @@ import os
 import pickle
 import sys
 
-from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.exceptions import DrumCommonException, DrumSerializationError
 
 
 class Serializable(object):
@@ -55,7 +55,7 @@ class Serializable(object):
                     # Ensure the variable actually exists in the custom task
                     variables_to_restore[custom_task_variable] = getattr(self, custom_task_variable)
                 except AttributeError:
-                    raise DrumCommonException(
+                    raise DrumSerializationError(
                         f"The object named {custom_task_variable} passed in exclude= was not found"
                     )
 
@@ -110,7 +110,7 @@ class Serializable(object):
             deserialized_object = pickle.load(fp)
 
         if not isinstance(deserialized_object, cls):
-            raise DrumCommonException(
+            raise DrumSerializationError(
                 "load_task method must return a {} class".format(cls.__name__)
             )
         return deserialized_object
