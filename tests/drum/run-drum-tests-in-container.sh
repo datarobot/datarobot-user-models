@@ -80,6 +80,7 @@ pip install datarobot-mlops==8.1.3
 
 
 pytest tests/drum/ \
+       -k "not test_inference_custom_java_predictor.py and not test_mlops_monitoring.py" \
        -m "not sequential" \
        --junit-xml="$GIT_ROOT/results_integration.xml" \
        -n auto
