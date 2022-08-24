@@ -58,7 +58,7 @@ class PythonPredictor(BaseLanguagePredictor):
 
         if not self._params["monitor_settings"]:
             self._mlops_spool_dir = tempfile.mkdtemp()
-            monitor_settings = "spooler_type=FILESYSTEM;directory={};max_files=1;file_max_size=1024000".format(
+            monitor_settings = "spooler_type=FILESYSTEM;directory={};max_files=5;file_max_size=10485760".format(
                 self._mlops_spool_dir
             )
         else:
