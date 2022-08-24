@@ -93,7 +93,14 @@ class TestMLOpsMonitoring:
 
     @staticmethod
     def _drum_with_monitoring(
-        resources, framework, problem, language, docker, tmp_path, is_embedded=False
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        tmp_path,
+        is_embedded=False,
+        with_monitor_settings=True,
     ):
         """
         We expect the run of drum to be ok, since mlops is assumed to be installed.
@@ -112,21 +119,24 @@ class TestMLOpsMonitoring:
             output,
             resources.target_types(problem),
         )
-        mlops_spool_dir = tmp_path / "mlops_spool"
-        os.mkdir(str(mlops_spool_dir))
+        mlops_spool_dir = None
 
         cmd += " --model-id 555 --deployment-id 777"
         cmd += " --monitor-embedded" if is_embedded else " --monitor"
 
-        # spooler_type is case-insensitive in the next datarobot-mlops release
-        monitor_settings = "spooler_type={};directory={};max_files=1;file_max_size=1024000".format(
-            "FILESYSTEM" if is_embedded else "filesystem", mlops_spool_dir
-        )
+        if with_monitor_settings:
+            mlops_spool_dir = tmp_path / "mlops_spool"
+            os.mkdir(str(mlops_spool_dir))
 
-        cmd += ' --monitor-settings="{}"'.format(monitor_settings)
+            # spooler_type is case-insensitive in the next datarobot-mlops release
+            monitor_settings = "spooler_type={};directory={};max_files=1;file_max_size=1024000".format(
+                "FILESYSTEM" if is_embedded else "filesystem", mlops_spool_dir
+            )
+
+            cmd += ' --monitor-settings="{}"'.format(monitor_settings)
 
         if is_embedded:
-            cmd += " --webserver http://localhost:13909 --api-token aaabbb".format(monitor_settings)
+            cmd += " --webserver http://localhost:13909 --api-token aaabbb"
 
         if problem == BINARY:
             cmd = _cmd_add_class_labels(
@@ -210,12 +220,27 @@ class TestMLOpsMonitoring:
         "framework, problem, language, docker",
         [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_MLOPS, None)],
     )
+    @pytest.mark.parametrize(
+        "with_monitor_settings", [False, True],
+    )
     def test_drum_unstructured_model_monitoring_with_mlops_installed(
-        self, resources, framework, problem, language, docker, tmp_path
+        self, resources, framework, problem, language, docker, tmp_path, with_monitor_settings
     ):
-        cmd, _, output_file, _ = TestMLOpsMonitoring._drum_with_monitoring(
-            resources, framework, problem, language, docker, tmp_path, is_embedded=True
+        cmd, _, output_file, mlops_spool_dir = TestMLOpsMonitoring._drum_with_monitoring(
+            resources,
+            framework,
+            problem,
+            language,
+            docker,
+            tmp_path,
+            is_embedded=True,
+            with_monitor_settings=with_monitor_settings,
         )
+
+        if with_monitor_settings:
+            assert os.path.exists(mlops_spool_dir)
+        else:
+            assert mlops_spool_dir is None
 
         with self.local_webserver_stub():
             _exec_shell_cmd(

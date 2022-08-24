@@ -946,8 +946,6 @@ class CMRunnerArgsRegistry(object):
                     missing_args.append(ArgumentsOptions.DR_WEBSERVER)
                 if options.api_token is None:
                     missing_args.append(ArgumentsOptions.DR_API_TOKEN)
-                if options.monitor_settings is None:
-                    missing_args.append(ArgumentsOptions.MONITOR_SETTINGS)
 
             if len(missing_args) > 0:
                 print("\n")
