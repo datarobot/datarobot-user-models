@@ -24,7 +24,6 @@ from datarobot_drum.drum.utils.drum_utils import unset_drum_supported_env_vars
 
 
 class TestInferenceCustomJavaPredictor:
-    @pytest.mark.sequential
     @pytest.mark.parametrize(
         "problem, class_labels",
         [(REGRESSION, None), (BINARY, ["no", "yes"]), (UNSTRUCTURED, None),],

@@ -174,7 +174,6 @@ class TestMLOpsMonitoring:
         "framework, problem, language, docker", [(SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None),],
     )
     @pytest.mark.usefixtures("mask_mlops_installation")
-    @pytest.mark.sequential
     def test_drum_regression_model_monitoring_no_mlops_installed(
         self, resources, framework, problem, language, docker, tmp_path
     ):
