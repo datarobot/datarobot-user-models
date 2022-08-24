@@ -11,36 +11,26 @@ build_drum: &build_drum
 test_integration_in_a_single_container: &test_integration_in_a_single_container
   taskName: test_integration_in_a_single_container
   definition: jenkins/run_integration_tests_in_a_single_container.groovy
-  environment:
-    PIPELINE_CONTROLLER: 1
   phase: 2
 
 test_integration_without_container: &test_integration_without_container
   taskName: test_integration_without_container
   definition: jenkins/run_integration_tests_without_container.groovy
-  environment:
-    PIPELINE_CONTROLLER: 1
   phase: 2
 
 test_inference_model_templates: &test_inference_model_templates
   taskName: test_inference_model_templates
   definition: jenkins/test_inference_model_templates.groovy
-  environment:
-    PIPELINE_CONTROLLER: 1
   phase: 2
 
 test_training_model_templates: &test_training_model_templates
   taskName: test_training_model_templates
   definition: jenkins/test_training_model_templates.groovy
-  environment:
-    PIPELINE_CONTROLLER: 1
   phase: 2
 
 test_drop_in_envs: &test_drop_in_envs
   taskName: test_drop_in_envs
   definition: jenkins/test_drop_in_envs.groovy
-  environment:
-    PIPELINE_CONTROLLER: 1
   phase: 2
 
 test_integration_python_keras: &test_integration_python_keras

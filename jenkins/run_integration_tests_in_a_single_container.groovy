@@ -7,6 +7,12 @@ node('multi-executor && ubuntu:focal'){
       unstash 'drum_wheel'
   }
   sh "ls -la jenkins_artifacts"
-  sh "echo $PIPELINE_CONTROLLER"
-  sh 'bash jenkins/test_integration.sh'
+  withQuantum([
+      bash: '''\
+           set -exuo pipefail
+           bash jenkins/test_integration_in_single_container.sh
+      '''.stripIndent(),
+      pythonVersion: '3',
+      venvName: "datarobot-user-models"
+  ])
 }
