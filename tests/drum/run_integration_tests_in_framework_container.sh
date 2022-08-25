@@ -22,15 +22,23 @@ echo "Running pytest:"
 
 pip install pytest pytest-xdist
 
+
+TESTS_TO_RUN="tests/drum/test_inference_per_framework.py \
+              tests/drum/test_fit_per_framework.py \
+              tests/drum/test_other_cases_per_framework.py \
+              tests/drum/test_unstructured_mode_per_framework.py
+             "
+
 # install 'pack' package in R env for tests
 if [ "$1" = "r_lang" ]; then
     Rscript -e "install.packages('pack', Ncpus=4)"
+    TESTS_TO_RUN+="tests/drum/unit/test_language_predictors.py \
+                   tests/drum/unit/test_utils.py \
+                   tests/drum/unit/model_metadata/test_model_metadata.py
+                  "
 fi
 
-pytest tests/drum/test_inference_per_framework.py \
-       tests/drum/test_fit_per_framework.py \
-       tests/drum/test_other_cases_per_framework.py \
-       tests/drum/test_unstructured_mode_per_framework.py \
+pytest ${TESTS_TO_RUN} \
        --framework-env $1 \
        --junit-xml="$GIT_ROOT/results_integration.xml" \
        -n auto

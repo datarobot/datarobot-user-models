@@ -24,6 +24,8 @@ try:
     import rpy2.robjects as ro
     from rpy2.robjects import pandas2ri
     from rpy2.rinterface_lib.embedded import RRuntimeError
+
+    r_supported = True
 except ImportError:
     error_message = (
         "rpy2 package is not installed."
@@ -31,9 +33,10 @@ except ImportError:
         "Available for Python>=3.6"
     )
     logger.error(error_message)
-    exit(1)
+    r_supported = False
 
 
+@pytest.mark.skipif(not r_supported, reason="requires R framework to be installed")
 def test_R_traceback_captured():
     r_handler = ro.r
     mock_logger = Mock()
