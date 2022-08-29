@@ -4,7 +4,7 @@
     <groupId>com.datarobot</groupId>
     <artifactId>drum-predictors</artifactId>
     <packaging>jar</packaging>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
 
     <name>drum-predictors</name>
     <url>http://datarobot.com</url>
@@ -18,7 +18,12 @@
         <dependency>
             <groupId>com.datarobot</groupId>
             <artifactId>datarobot-prediction</artifactId>
-            <version>2.1.6</version>
+            <version>2.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.9.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
