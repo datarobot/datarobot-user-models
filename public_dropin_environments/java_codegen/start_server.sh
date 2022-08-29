@@ -6,8 +6,12 @@
 #
 # Released under the terms of DataRobot Tool and Utility Agreement.
 echo "Starting Custom Model environment with DRUM prediction server"
-echo "Environment variables:"
-env
+
+if [ "${ENABLE_CUSTOM_MODEL_RUNTIME_ENV_DUMP}" = 1 ]; then
+    echo "Environment variables:"
+    env
+fi
+
 echo
 
 CMD="drum server $@"
