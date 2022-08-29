@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### [Current]
 ##### Changed
+- bump com.datarobot.datarobot-prediction package to 2.2.1
 ##### Fixed
 - Handle missing values in image typeschema validator 
 
