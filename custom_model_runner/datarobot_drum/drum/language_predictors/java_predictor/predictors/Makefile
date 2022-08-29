@@ -8,3 +8,8 @@ build: clean verify
 
 clean:
 	rm -rf *.jar
+
+build_no_clean: verify
+	mvn scala:compile -DdisplayCmd=true -DrecompileModel=all
+	mvn package
+        
