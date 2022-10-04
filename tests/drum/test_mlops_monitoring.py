@@ -128,7 +128,7 @@ class TestMLOpsMonitoring:
             mlops_spool_dir = tmp_path / "mlops_spool"
             os.mkdir(str(mlops_spool_dir))
 
-            # spooler_type is case-insensitive in the next datarobot-mlops release
+            # spooler_type is case-insensitive in the datarobot-mlops==8.3.0
             monitor_settings = "spooler_type={};directory={};max_files=1;file_max_size=1024000".format(
                 "FILESYSTEM" if is_embedded else "filesystem", mlops_spool_dir
             )
