@@ -238,7 +238,7 @@ class TestMonitorArgs:
         ]
 
     @pytest.fixture
-    def monitor_embedded_cmd_args(self):
+    def monitor_embedded_cmd_args_without_monitor_settings(self):
         return [
             "--monitor-embedded",
             "--deployment-id",
@@ -318,9 +318,9 @@ class TestMonitorArgs:
         self._execute_arg_parser()
 
     def test_binary_monitor_embedded_cmd_args_failure(
-        self, binary_score_cmd_args, monitor_embedded_cmd_args
+        self, binary_score_cmd_args, monitor_embedded_cmd_args_without_monitor_settings
     ):
-        binary_score_cmd_args.extend(monitor_embedded_cmd_args)
+        binary_score_cmd_args.extend(monitor_embedded_cmd_args_without_monitor_settings)
         self._set_sys_argv(binary_score_cmd_args)
         self._execute_arg_parser(success=False)
 
@@ -330,33 +330,54 @@ class TestMonitorArgs:
         self._execute_arg_parser(success=False)
 
     def test_binary_mutually_exclusive_args_failure(
-        self, binary_score_cmd_args, monitor_cmd_args, monitor_embedded_cmd_args
+        self,
+        binary_score_cmd_args,
+        monitor_cmd_args,
+        monitor_embedded_cmd_args_without_monitor_settings,
     ):
         args = binary_score_cmd_args
         args.extend(monitor_cmd_args)
-        args.extend(monitor_embedded_cmd_args)
+        args.extend(monitor_embedded_cmd_args_without_monitor_settings)
         self._set_sys_argv(args)
         self._execute_arg_parser(success=False)
 
+    @pytest.mark.parametrize(
+        "monitor_settings", [(), ("--monitor-settings", "aaa;bbb")],
+    )
     def test_unstructured_monitor_embedded_from_cmd_line_args_success(
-        self, unstructured_score_cmd_args, monitor_embedded_cmd_args
+        self,
+        unstructured_score_cmd_args,
+        monitor_embedded_cmd_args_without_monitor_settings,
+        monitor_settings,
     ):
-        unstructured_score_cmd_args.extend(monitor_embedded_cmd_args)
+        unstructured_score_cmd_args.extend(monitor_embedded_cmd_args_without_monitor_settings)
+        unstructured_score_cmd_args.extend(monitor_settings)
         self._set_sys_argv(unstructured_score_cmd_args)
         self._execute_arg_parser()
 
+    @pytest.mark.parametrize(
+        "env_var_key, env_var_value", [(None, None), ("MONITOR_SETTINGS", "aaa;bbb")],
+    )
     @pytest.mark.usefixtures("monitor_embedded_env_vars")
-    def test_unstructured_monitor_from_env_vars_success(self, unstructured_score_cmd_args):
+    def test_unstructured_monitor_from_env_vars_success(
+        self, unstructured_score_cmd_args, env_var_key, env_var_value
+    ):
+        if env_var_key:
+            os.environ[env_var_key] = env_var_value
         self._set_sys_argv(unstructured_score_cmd_args)
         self._execute_arg_parser()
+        if env_var_key:
+            os.environ.pop(env_var_key)
 
     @pytest.mark.usefixtures("monitor_embedded_env_vars")
     def test_unstructured_monitor_from_cmd_line_and_env_vars_success(
-        self, unstructured_score_cmd_args, monitor_embedded_cmd_args
+        self, unstructured_score_cmd_args, monitor_embedded_cmd_args_without_monitor_settings
     ):
         # pop the last 2 elements in order to take them from the environment
-        monitor_embedded_cmd_args = monitor_embedded_cmd_args[0:-2]
-        unstructured_score_cmd_args.extend(monitor_embedded_cmd_args)
+        monitor_embedded_cmd_args_without_monitor_settings = monitor_embedded_cmd_args_without_monitor_settings[
+            0:-2
+        ]
+        unstructured_score_cmd_args.extend(monitor_embedded_cmd_args_without_monitor_settings)
         self._set_sys_argv(unstructured_score_cmd_args)
         self._execute_arg_parser()
 
@@ -373,10 +394,13 @@ class TestMonitorArgs:
         self._execute_arg_parser(success=False)
 
     def test_unstructured_mutually_exclusive_args_failure(
-        self, unstructured_score_cmd_args, monitor_cmd_args, monitor_embedded_cmd_args
+        self,
+        unstructured_score_cmd_args,
+        monitor_cmd_args,
+        monitor_embedded_cmd_args_without_monitor_settings,
     ):
         args = unstructured_score_cmd_args
         args.extend(monitor_cmd_args)
-        args.extend(monitor_embedded_cmd_args)
+        args.extend(monitor_embedded_cmd_args_without_monitor_settings)
         self._set_sys_argv(args)
         self._execute_arg_parser(success=False)

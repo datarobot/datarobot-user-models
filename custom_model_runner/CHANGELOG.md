@@ -4,32 +4,32 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
-#### [Current]
+#### [1.9.10] - 2022-10-05
 ##### Changed
-- pin `datarobot==2.28.1`
+- Pin `datarobot==2.28.1`
+- Require monitor settings for embedded monitor
 
 #### [1.9.9] - 2022-09-29
 ##### Changed
-- bump com.datarobot.datarobot-prediction package to 2.2.1
+- Bump com.datarobot.datarobot-prediction package to 2.2.1
 ##### Fixed
-- pin `datarobot==2.27.0`
+- Pin `datarobot==2.27.0`
 - Handle missing values in image typeschema validator 
 
 #### [1.9.8] - 2022-08-04
 ##### Changed
-- added logging method to custom task interface
+- Added logging method to custom task interface
 ##### Fixed
 - Typeschema correctly handles integer numeric categorical values
 
 #### [1.9.7] - 2022-08-02
 ##### Changed
-- pin flask<2.2.0 rpy2==3.5.2
+- Pin flask<2.2.0 rpy2==3.5.2
 
 #### [1.9.6] - 2022-07-19
 ##### Changed
-- bumped rpy2>=3.5.2
-- fixed typechecking in R predictor
+- Bumped rpy2>=3.5.2
+- Fixed typechecking in R predictor
 
 #### [1.9.5] - 2022-07-06
 ##### Fixed
@@ -63,7 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### [1.7.2dev1] - 2022-02-16
 ##### Fixed
-- don't include default drum java predictors into java classpath when working with custom predictor
+- Don't include default drum java predictors into java classpath when working with custom predictor
 
 #### [1.7.1] - 2022-02-10
 ##### Fixed

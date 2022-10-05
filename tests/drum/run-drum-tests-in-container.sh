@@ -74,9 +74,13 @@ echo "Running pytest:"
 cd $GIT_ROOT || exit 1
 DONE_PREP_TIME=$(date +%s)
 
-pip install datarobot-mlops==8.1.3
+# > NOTE: when pinning datarobot-mlops to 8.2.1 and higher you may need to reinstall datarobot package
+# as datarobot-mlops overwrites site-packages/datarobot. [AGENT-3504]
+pip install datarobot-mlops==8.2.7
+
 
 pytest tests/drum/ \
+       -k "not test_inference_custom_java_predictor.py and not test_mlops_monitoring.py" \
        -m "not sequential" \
        --junit-xml="$GIT_ROOT/results_integration.xml" \
        -n auto

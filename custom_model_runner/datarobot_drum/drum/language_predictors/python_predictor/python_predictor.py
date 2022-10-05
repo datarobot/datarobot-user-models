@@ -5,6 +5,8 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
+import tempfile
+import shutil
 import sys
 
 from datarobot_drum.drum.common import to_bool
@@ -31,6 +33,7 @@ class PythonPredictor(BaseLanguagePredictor):
     def __init__(self):
         super(PythonPredictor, self).__init__()
         self._model_adapter = None
+        self._mlops_spool_dir = None
 
     def mlpiper_configure(self, params):
         super(PythonPredictor, self).mlpiper_configure(params)
@@ -53,10 +56,18 @@ class PythonPredictor(BaseLanguagePredictor):
 
     def _init_mlops(self, params):
 
+        monitor_settings = self._params.get("monitor_settings")
+        if not monitor_settings:
+            self._mlops_spool_dir = tempfile.mkdtemp()
+            monitor_settings = "spooler_type=FILESYSTEM;directory={};max_files=5;file_max_size=10485760".format(
+                self._mlops_spool_dir
+            )
+
         self._mlops = (
             MLOps()
             .set_model_id(params["model_id"])
             .set_deployment_id(params["deployment_id"])
+            .set_channel_config(monitor_settings)
             .agent(
                 mlops_service_url=params["external_webserver_url"],
                 mlops_api_token=params["api_token"],
@@ -108,3 +119,5 @@ class PythonPredictor(BaseLanguagePredictor):
     def terminate(self):
         if self._mlops:
             self._mlops.shutdown()
+            if self._mlops_spool_dir:
+                shutil.rmtree(self._mlops_spool_dir)

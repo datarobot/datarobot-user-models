@@ -22,7 +22,7 @@
                 "monitor_embedded": "{{ monitor_embedded }}",
                 "model_id": "{{ model_id }}",
                 "deployment_id": "{{ deployment_id }}",
-                "monitor_settings": "{{ monitor_settings }}",
+                "monitor_settings": {{ monitor_settings | jsonify }},
                 "external_webserver_url": "{{ external_webserver_url }}",
                 "api_token": "{{ api_token }}",
                 "single_uwsgi_worker": "{{ single_uwsgi_worker }}",
