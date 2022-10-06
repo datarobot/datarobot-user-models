@@ -8,5 +8,5 @@ node('multi-executor && ubuntu:focal'){
   }
   sh "ls -la jenkins_artifacts"
   sh "echo $PIPELINE_CONTROLLER"
-  sh 'bash jenkins/test3_mlpiper_custom_models.sh'
+  sh 'bash jenkins/test_integration.sh'
 }
