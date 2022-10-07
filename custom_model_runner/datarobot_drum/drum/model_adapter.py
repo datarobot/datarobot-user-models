@@ -215,11 +215,11 @@ class PythonModelAdapter:
             model = self._custom_hooks[CustomHooks.LOAD_MODEL](self._model_dir)
         except Exception as exc:
             raise type(exc)(
-                "Model loading hook failed to load model: {}".format(exc)
+                "'load_model' hook failed to load model: {}".format(exc)
             ).with_traceback(sys.exc_info()[2]) from None
 
-        if not model:
-            raise DrumCommonException("Model loading hook failed to load model")
+        if model is None:
+            raise DrumCommonException("'load_model' hook failed to load model, None is returned.")
 
         self._logger.debug("Model was successfully loaded by load hook")
         return model
