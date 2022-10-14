@@ -10,7 +10,7 @@ node('multi-executor && ubuntu:focal'){
         bash: '''\
             set -exuo pipefail
             ls -la jenkins_artifacts
-            jenkins/test3_mlpiper_custom_models_without_container.sh
+            jenkins/test_integration_without_container.sh
         '''.stripIndent(),
         pythonVersion: '3',
         venvName: "datarobot-user-models"

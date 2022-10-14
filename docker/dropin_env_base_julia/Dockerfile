@@ -1,6 +1,6 @@
 # This is the default base image for use with user models and workflows.
 # It contains a variety of common useful data-science packages and tools.
-FROM datarobot/dropin-env-base:latest
+FROM datarobot/dropin-env-base:debian10-py3.7-jre11.0.15-drum1.9.3-mlops8.1.3
 
 # Install the list of custom Python requirements, e.g. keras, xgboost, etc.
 COPY requirements.txt requirements.txt

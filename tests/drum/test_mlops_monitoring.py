@@ -9,8 +9,9 @@ import json
 import multiprocessing
 import os
 import re
-import time
 from subprocess import TimeoutExpired
+import time
+
 
 from retry import retry
 import pytest
@@ -18,7 +19,11 @@ import pandas as pd
 import requests
 from flask import Flask, request
 
+from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
+from datarobot_drum.drum.drum import CMRunner
 from datarobot_drum.drum.enum import ArgumentsOptions
+from datarobot_drum.drum.enum import RunMode
+from datarobot_drum.drum.runtime import DrumRuntime
 
 from .constants import (
     SKLEARN,
@@ -27,6 +32,8 @@ from .constants import (
     BINARY,
     UNSTRUCTURED,
     PYTHON_UNSTRUCTURED_MLOPS,
+    PUBLIC_DROPIN_ENVS_PATH,
+    PYTHON_SKLEARN,
 )
 
 from datarobot_drum.resource.utils import (
@@ -216,22 +223,21 @@ class TestMLOpsMonitoring:
         assert str(stdo).find("MLOps monitoring can not be used in unstructured mode") != -1
 
     @pytest.mark.parametrize(
-        "framework, problem, language, docker",
-        [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_MLOPS, None)],
+        "framework, problem, language", [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_MLOPS)],
     )
     @pytest.mark.parametrize(
         "with_monitor_settings", [False, True],
     )
-    def test_drum_unstructured_model_monitoring_with_mlops_installed(
-        self, resources, framework, problem, language, docker, tmp_path, with_monitor_settings
+    def test_drum_unstructured_model_embedded_monitoring(
+        self, resources, framework, problem, language, tmp_path, with_monitor_settings
     ):
         cmd, _, output_file, mlops_spool_dir = TestMLOpsMonitoring._drum_with_monitoring(
             resources,
             framework,
             problem,
             language,
-            docker,
-            tmp_path,
+            docker=None,
+            tmp_path=tmp_path,
             is_embedded=True,
             with_monitor_settings=with_monitor_settings,
         )
@@ -245,6 +251,54 @@ class TestMLOpsMonitoring:
             _exec_shell_cmd(
                 cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
             )
+
+        with open(output_file) as f:
+            out_data = f.read()
+            assert "10" in out_data
+
+    @pytest.mark.parametrize(
+        "framework, problem, language", [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_MLOPS)],
+    )
+    def test_drum_unstructured_model_embedded_monitoring_in_sklearn_env(
+        self, resources, framework, problem, language, tmp_path
+    ):
+        cmd, _, output_file, mlops_spool_dir = TestMLOpsMonitoring._drum_with_monitoring(
+            resources,
+            framework,
+            problem,
+            language,
+            docker=None,
+            tmp_path=tmp_path,
+            is_embedded=True,
+            # Only test without explicitly provided monitor settings. Spooler folder will be created by default by DRUM.
+            # If explicitly provide spooler folder, it should be mapped in `docker run`
+            with_monitor_settings=False,
+        )
+
+        cmd += " --docker {}/{}".format(PUBLIC_DROPIN_ENVS_PATH, PYTHON_SKLEARN)
+
+        arg_parser = CMRunnerArgsRegistry.get_arg_parser()
+        args = cmd.split()
+
+        # drop first `drum` token from the args list to be correctly parsed by arg_parser
+        options = arg_parser.parse_args(args[1:])
+        CMRunnerArgsRegistry.verify_options(options)
+        runtime = DrumRuntime()
+        runtime.options = options
+        cm_runner = CMRunner(runtime)
+
+        # This command tries to build the image and returns cmd to start DRUM in container
+        docker_cmd_lst = cm_runner._prepare_docker_command(options, RunMode.SCORE, args)
+
+        # Configure network for the container and map the stub server port.
+        # I'm not sure, I want to add the following logic into DRUM itself. It should be considered expert usage
+        docker_cmd_lst.insert(3, "--net")
+        docker_cmd_lst.insert(4, "host")
+        docker_cmd_lst.insert(5, "-p")
+        docker_cmd_lst.insert(6, "13909:13909")
+
+        with self.local_webserver_stub():
+            _exec_shell_cmd(docker_cmd_lst, "Failed in command line! {}".format(docker_cmd_lst))
 
         with open(output_file) as f:
             out_data = f.read()

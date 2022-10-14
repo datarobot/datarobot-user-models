@@ -1,6 +1,6 @@
 # This is the default base image for use with user models and workflows.
 # It contains a variety of common useful data-science packages and tools.
-FROM datarobot/dropin-env-base-r:ubuntu20.04-r4.2.1-py3.8-jre11-drum1.9.8-mlops8.1.3
+FROM datarobot/dropin-env-base-r:ubuntu20.04-r4.2.1-py3.8-jre11-drum1.9.10-mlops8.2.7
 # Install the list of core requirements, e.g. numpy, pandas, flask, rpy2.
 # **Don't modify this file!**
 COPY dr_requirements.txt dr_requirements.txt
