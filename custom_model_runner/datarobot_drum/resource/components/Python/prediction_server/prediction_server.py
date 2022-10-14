@@ -6,6 +6,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
 import sys
+from pathlib import Path
 from mlpiper.components.connectable_component import ConnectableComponent
 
 from datarobot_drum.drum.common import (
@@ -18,6 +19,7 @@ from datarobot_drum.drum.enum import (
     ModelInfoKeys,
     RunLanguage,
     TargetType,
+    FLASK_EXT_FILE_NAME,
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -192,6 +194,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         cli.show_server_banner = lambda *x: None
 
         app = get_flask_app(model_api)
+        self.load_custom_hooks(app)
 
         host = self._params.get("host", None)
         port = self._params.get("port", None)
@@ -209,3 +212,24 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         terminate_op = getattr(self._predictor, "terminate", None)
         if callable(terminate_op):
             terminate_op()
+
+    def load_custom_hooks(self, app):
+        custom_file_paths = list(Path(self._code_dir).rglob("{}.py".format(FLASK_EXT_FILE_NAME)))
+        assert len(custom_file_paths) <= 1
+
+        if len(custom_file_paths) == 0:
+            print("No {}.py file detected in {}".format(FLASK_EXT_FILE_NAME, self._code_dir))
+            return
+
+        custom_file_path = custom_file_paths[0]
+        print("Detected {} .. trying to load hooks".format(custom_file_path))
+        sys.path.insert(0, str(custom_file_path.parent))
+
+        try:
+            custom_module = __import__(FLASK_EXT_FILE_NAME)
+            custom_module.init_app(app)
+        except ImportError as e:
+            logger.error("Could not load hooks", exc_info=True)
+            raise DrumCommonException(
+                "Failed to extend Flask app from [{}] : {}".format(custom_file_path, e)
+            )
