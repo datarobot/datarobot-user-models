@@ -10,7 +10,7 @@ node('multi-executor && ubuntu:focal'){
   withQuantum([
       bash: '''\
            set -exuo pipefail
-           bash jenkins/test_integration_in_single_container.sh
+           bash jenkins/test_integration_in_container.sh
       '''.stripIndent(),
       pythonVersion: '3',
       venvName: "datarobot-user-models"

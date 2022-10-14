@@ -8,5 +8,5 @@ node('multi-executor && ubuntu:focal'){
   }
   sh "ls -la jenkins_artifacts"
   sh "echo $FRAMEWORK"
-  sh 'bash jenkins/run_integration_tests_per_framework.sh $FRAMEWORK'
+  sh 'bash jenkins/test_integration_per_framework.sh $FRAMEWORK'
 }

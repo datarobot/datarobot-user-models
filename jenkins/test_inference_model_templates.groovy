@@ -26,7 +26,7 @@ node('release-dev && memory-intense'){
         bash: '''\
             set -exuo pipefail
             ls -la jenkins_artifacts
-            ./jenkins/test3_inference_model_templates.sh
+            ./jenkins/test_inference_model_templates.sh
         '''.stripIndent(),
         pythonVersion: '3',
         venvName: "datarobot-user-models"
