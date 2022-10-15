@@ -46,10 +46,12 @@ def init_app(app):
         # application, we need to ignore authentication headers and
         # let the request through to avoid unwanted interactions with
         # CORS.
-        if request.method != 'OPTIONS' and request.endpoint not in no_auth_endpoints:
+        if request.method != "OPTIONS" and request.endpoint not in no_auth_endpoints:
             user = token_auth.authenticate(auth, None)
             if user in (False, None):
                 return token_auth.auth_error_callback(401)
 
-    logger.info('Please authenticate to the server:\n\t`curl -H "Authorization: Bearer %s" ...`',
-                AUTHORIZED_TOKEN)
+    logger.info(
+        'Please authenticate to the server:\n\t`curl -H "Authorization: Bearer %s" ...`',
+        AUTHORIZED_TOKEN,
+    )
