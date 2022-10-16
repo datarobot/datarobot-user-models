@@ -218,11 +218,11 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         assert len(custom_file_paths) <= 1
 
         if len(custom_file_paths) == 0:
-            print("No {}.py file detected in {}".format(FLASK_EXT_FILE_NAME, self._code_dir))
+            logger.info("No %s.py file detected in %s", FLASK_EXT_FILE_NAME, self._code_dir)
             return
 
         custom_file_path = custom_file_paths[0]
-        print("Detected {} .. trying to load hooks".format(custom_file_path))
+        logger.info("Detected %s .. trying to load hooks", custom_file_path)
         sys.path.insert(0, str(custom_file_path.parent))
 
         try:
