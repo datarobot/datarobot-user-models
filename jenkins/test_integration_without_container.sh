@@ -10,8 +10,8 @@
 
 # root repo folder
 GIT_ROOT=$(git rev-parse --show-toplevel)
-echo "GIT_ROOT: $GIT_ROOT"
-
+echo "GIT_ROOT: ${GIT_ROOT}"
+source ${GIT_ROOT}/tests/drum/integration-helpers.sh
 
 # Installing and configuring java/javac 11 in the jenkins worker
 sudo apt update
@@ -20,12 +20,13 @@ sudo update-alternatives --set java /usr/lib/jvm/java-11-openjdk-amd64/bin/java
 sudo update-alternatives --auto javac
 export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
 
-echo "DEBUG: print java version"
+title "DEBUG: print java version"
 java -version
 javac -version
 
+title "Installing requirements for all the tests:  ${GIT_ROOT}/requirements_test.txt"
 pip install -U pip
-pip install pytest pytest-runner pytest-xdist retry scikit-learn==0.24.2
+pip install -r $GIT_ROOT/requirements_test.txt -i https://artifactory.int.datarobot.com/artifactory/api/pypi/python-all/simple
 
 # > NOTE: when pinning datarobot-mlops to 8.2.1 and higher you may need to reinstall datarobot package
 # as datarobot-mlops overwrites site-packages/datarobot. [AGENT-3504]
@@ -36,32 +37,67 @@ pushd ${GIT_ROOT} || exit 1
 # The "jenkins_artifacts" folder is created in the groovy script
 DRUM_WHEEL_REAL_PATH="$(realpath "$(find jenkins_artifacts/datarobot_drum*.whl)")"
 echo
-echo "--> Installing wheel: ${DRUM_WHEEL_REAL_PATH}"
+title "Installing wheel: ${DRUM_WHEEL_REAL_PATH}"
 echo
 pip install "${DRUM_WHEEL_REAL_PATH}"
 
 echo
-echo "--> Compiling jar for TestCustomPredictor "
-echo
+title "Compiling jar for TestCustomPredictor "
 pushd $GIT_ROOT/tests/drum/custom_java_predictor
 mvn package
 popd
 
+# Change every environment Dockerfile to install freshly built DRUM wheel
+source "${GIT_ROOT}/tools/image-build-utils.sh"
+title "Change every environment Dockerfile to install local freshly built DRUM wheel: ${DRUM_WHEEL_REAL_PATH}"
+build_all_dropin_env_dockerfiles "${DRUM_WHEEL_REAL_PATH}"
+
+echo
+title "Build 'python3_sklearn_test_env' image from public_dropin_environments/python3_sklearn/*"
+
+TMP_DOCKER_CONTEXT=$(mktemp -d)
+
+pushd "${GIT_ROOT}/public_dropin_environments/python3_sklearn/"
+cp * ${TMP_DOCKER_CONTEXT}
+popd
+
+echo "uwsgi" >> ${TMP_DOCKER_CONTEXT}/requirements.txt
+echo 'ENTRYPOINT ["this_is_fake_entrypoint_to_make_sure_drum_unsets_it_when_runs_with_--docker_param"]' >> $TMP_DOCKER_CONTEXT/Dockerfile
+docker build -t python3_sklearn_test_env ${TMP_DOCKER_CONTEXT}/
+
+echo
+title "Running pytest:"
 
 # only run here tests which were sequential historically
 pytest tests/drum/test_inference_custom_java_predictor.py tests/drum/test_mlops_monitoring.py \
-       --junit-xml="$GIT_ROOT/results_integration.xml" \
+       --junit-xml="${GIT_ROOT}/results_integration.xml" \
        -n 1
 
 TEST_RESULT_1=$?
 
+pytest tests/drum/ \
+       -k "not test_inference_custom_java_predictor.py and not test_mlops_monitoring.py" \
+       -m "not sequential" \
+       --junit-xml="${GIT_ROOT}/results_integration.xml" \
+       -n auto
+
+TEST_RESULT_2=$?
+
 popd
 
-if [ $TEST_RESULT_1 -ne 0 ] ; then
-  echo "Got error in one of the tests"
-  echo "Sequential tests: $TEST_RESULT_1"
+
+if [ ${TEST_RESULT_1} -ne 0 ] ; then
+  echo "Got error in one of the tests:"
+  echo "Sequential tests: ${TEST_RESULT_1}"
+  exit 1
+elif [ ${TEST_RESULT_2} -ne 0 ] ; then
+  echo "Got error in one of the tests:"
+  echo "Non sequential tests: ${TEST_RESULT_2}"
   exit 1
 else
   exit 0
 fi
 
+
+echo "Done running tests: ${TEST_RESULT_1} ${TEST_RESULT_2}"
+exit ${TEST_RESULT_2}
