@@ -879,7 +879,7 @@ class Resource:
 
 @pytest.fixture(scope="session")
 def get_dataset_filename():
-    def _foo(framework, problem):
+    def _get_dataset_filename(framework, problem):
         framework_key = framework
         problem_key = problem
         # if specific dataset for framework was not defined,
@@ -887,60 +887,60 @@ def get_dataset_filename():
         framework_key = None if (framework_key, problem_key) not in _datasets else framework_key
         return _datasets[(framework_key, problem_key)]
 
-    return _foo
+    return _get_dataset_filename
 
 
 @pytest.fixture(scope="session")
 def get_paths_to_training_models():
-    def _foo(language, framework):
+    def _get_paths_to_training_models(language, framework):
         return _training_models_paths[(language, framework)]
 
-    return _foo
+    return _get_paths_to_training_models
 
 
 @pytest.fixture(scope="session")
 def get_target():
-    def _foo(problem):
+    def _get_target(problem):
         return _targets[problem]
 
-    return _foo
+    return _get_target
 
 
 @pytest.fixture(scope="session")
 def get_target_type():
-    def _foo(problem):
+    def _get_target_type(problem):
         return _target_types.get(problem, problem)
 
-    return _foo
+    return _get_target_type
 
 
 @pytest.fixture(scope="session")
 def get_class_labels():
-    def _foo(framework, problem):
+    def _get_class_labels(framework, problem):
         return _class_labels.get((framework, problem), None)
 
-    return _foo
+    return _get_class_labels
 
 
 @pytest.fixture(scope="session")
 def get_artifacts():
-    def _foo(framework, problem):
+    def _get_artifacts(framework, problem):
         return _artifacts[(framework, problem)]
 
-    return _foo
+    return _get_artifacts
 
 
 @pytest.fixture(scope="session")
 def get_custom():
-    def _foo(language):
+    def _get_custom(language):
         return _custom_filepaths[language]
 
-    return _foo
+    return _get_custom
 
 
 @pytest.fixture(scope="session")
 def get_input_data(get_dataset_filename):
-    def _foo(framework, problem):
+    def _get_input_data(framework, problem):
         dataset_path = get_dataset_filename(framework, problem)
         column_file = dataset_path.replace(".mtx", ".columns")
         if problem in {SPARSE, SPARSE_TRANSFORM}:
@@ -953,7 +953,7 @@ def get_input_data(get_dataset_filename):
         else:
             return pd.read_csv(dataset_path)
 
-    return _foo
+    return _get_input_data
 
 
 @pytest.fixture(scope="session")
