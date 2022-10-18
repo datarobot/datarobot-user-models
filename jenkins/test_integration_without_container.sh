@@ -24,7 +24,6 @@ echo "DEBUG: print java version"
 java -version
 javac -version
 
-
 pip install -U pip
 pip install pytest pytest-runner pytest-xdist retry scikit-learn==0.24.2
 
@@ -32,9 +31,9 @@ pip install pytest pytest-runner pytest-xdist retry scikit-learn==0.24.2
 # as datarobot-mlops overwrites site-packages/datarobot. [AGENT-3504]
 pip install datarobot-mlops==8.2.7
 
-
 pushd ${GIT_ROOT} || exit 1
 
+# The "jenkins_artifacts" folder is created in the groovy script
 DRUM_WHEEL_REAL_PATH="$(realpath "$(find jenkins_artifacts/datarobot_drum*.whl)")"
 echo
 echo "--> Installing wheel: ${DRUM_WHEEL_REAL_PATH}"

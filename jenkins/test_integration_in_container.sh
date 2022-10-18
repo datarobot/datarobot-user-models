@@ -8,9 +8,10 @@
 # This file will be executed from the root of the repository in a python3 virtualenv.
 # It will run the test of drum inside a predefined docker image:
 
-DOCKER_IMAGE="datarobot/drum_integration_tests_base"
-CDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
-FULL_PATH_CODE_DIR=$(realpath $CDIR)
+# root repo folder
+GIT_ROOT=$(git rev-parse --show-toplevel)
+echo "GIT_ROOT: $GIT_ROOT"
+
 
 # Installing and configuring java/javac 11 in the jenkins worker
 sudo apt update
@@ -23,37 +24,28 @@ echo "DEBUG: print java version"
 java -version
 javac -version
 
-
-echo "FULL_PATH_CODE_DIR: $FULL_PATH_CODE_DIR"
-
-echo "Running tests inside docker:"
-cd $FULL_PATH_CODE_DIR || exit 1
-
-
-echo
-echo "--- env ----"
-export
-echo
-echo
-
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-
-START_TIME=$(date +%s)
-
-GIT_ROOT=$(git rev-parse --show-toplevel)
-echo "GIT_ROOT: $GIT_ROOT"
-
 pip install -U pip
+pip install pytest pytest-runner pytest-xdist retry scikit-learn==0.24.2
 
+# > NOTE: when pinning datarobot-mlops to 8.2.1 and higher you may need to reinstall datarobot package
+# as datarobot-mlops overwrites site-packages/datarobot. [AGENT-3504]
+pip install datarobot-mlops==8.2.7
+
+pushd ${GIT_ROOT} || exit 1
 
 # The "jenkins_artifacts" folder is created in the groovy script
 DRUM_WHEEL_REAL_PATH="$(realpath "$(find jenkins_artifacts/datarobot_drum*.whl)")"
-echo "DRUM_WHEEL_REAL_PATH: $DRUM_WHEEL_REAL_PATH"
 echo
-echo "--> Installing wheel"
+echo "--> Installing wheel: ${DRUM_WHEEL_REAL_PATH}"
 echo
 pip install "${DRUM_WHEEL_REAL_PATH}"
 
+echo
+echo "--> Compiling jar for TestCustomPredictor "
+echo
+pushd $GIT_ROOT/tests/drum/custom_java_predictor
+mvn package
+popd
 
 # Change every environment Dockerfile to install freshly built DRUM wheel
 source "${GIT_ROOT}/tools/image-build-utils.sh"
@@ -79,13 +71,13 @@ pip install -r $GIT_ROOT/requirements_dev.txt -i https://artifactory.int.datarob
 echo
 echo "Running pytest:"
 
-cd $GIT_ROOT || exit 1
-DONE_PREP_TIME=$(date +%s)
+# only run here tests which were sequential historically
 
-# > NOTE: when pinning datarobot-mlops to 8.2.1 and higher you may need to reinstall datarobot package
-# as datarobot-mlops overwrites site-packages/datarobot. [AGENT-3504]
-pip install datarobot-mlops==8.2.7
+pytest tests/drum/test_inference_custom_java_predictor.py tests/drum/test_mlops_monitoring.py \
+       --junit-xml="$GIT_ROOT/results_integration.xml" \
+       -n 1
 
+TEST_RESULT_1=$?
 
 pytest tests/drum/ \
        -k "not test_inference_custom_java_predictor.py and not test_mlops_monitoring.py" \
@@ -95,16 +87,14 @@ pytest tests/drum/ \
 
 TEST_RESULT_2=$?
 
-END_TIME=$(date +%s)
-TOTAL_TIME=$((END_TIME - START_TIME))
-PREP_TIME=$((DONE_PREP_TIME - START_TIME))
-TEST_TIME=$((END_TIME - DONE_PREP_TIME))
+popd
 
-echo "Total test time: $TOTAL_TIME"
-echo "Prep time:     : $PREP_TIME"
-echo "Test time:     : $TEST_TIME"
 
-if [ $TEST_RESULT_2 -ne 0 ] ; then
+if [ $TEST_RESULT_1 -ne 0 ] ; then
+  echo "Got error in one of the tests:"
+  echo "Sequential tests: $TEST_RESULT_1"
+  exit 1
+elif [ $TEST_RESULT_2 -ne 0 ] ; then
   echo "Got error in one of the tests:"
   echo "Non sequential tests: $TEST_RESULT_2"
   exit 1
@@ -113,5 +103,5 @@ else
 fi
 
 
-echo "Done running tests: $TEST_RESULT_2"
+echo "Done running tests: $TEST_RESULT_1 $TEST_RESULT_2"
 exit $TEST_RESULT_2
