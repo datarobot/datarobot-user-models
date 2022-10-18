@@ -49,7 +49,6 @@ popd
 
 
 # only run here tests which were sequential historically
-
 pytest tests/drum/test_inference_custom_java_predictor.py tests/drum/test_mlops_monitoring.py \
        --junit-xml="$GIT_ROOT/results_integration.xml" \
        -n 1
