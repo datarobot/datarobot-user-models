@@ -12,6 +12,17 @@ DOCKER_IMAGE="datarobot/drum_integration_tests_base"
 CDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
 FULL_PATH_CODE_DIR=$(realpath $CDIR)
 
+# Installing and configuring java/javac 11 in the jenkins worker
+sudo apt update
+sudo apt install --no-install-recommends -y openjdk-11-jdk openjdk-11-jre zip
+sudo update-alternatives --set java /usr/lib/jvm/java-11-openjdk-amd64/bin/java
+sudo update-alternatives --auto javac
+export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64
+
+echo "DEBUG: print java version"
+java -version
+javac -version
+
 
 echo "FULL_PATH_CODE_DIR: $FULL_PATH_CODE_DIR"
 
