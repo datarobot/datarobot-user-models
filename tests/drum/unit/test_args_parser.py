@@ -5,6 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import argparse
+import contextlib
 import os
 import sys
 import tempfile
@@ -18,6 +19,25 @@ from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.enum import ArgumentsOptions, ArgumentOptionsEnvVars
 from datarobot_drum.resource.utils import _exec_shell_cmd
 from datarobot_drum.drum.utils.drum_utils import unset_drum_supported_env_vars
+
+
+def set_sys_argv(cmd_line_args):
+    # This is required because the sys.argv is manipulated by the 'CMRunnerArgsRegistry'
+    cmd_line_args = cmd_line_args.copy()
+    cmd_line_args.insert(0, sys.argv[0])
+    sys.argv = cmd_line_args
+
+
+def execute_arg_parser(success=True):
+    arg_parser = CMRunnerArgsRegistry.get_arg_parser()
+    CMRunnerArgsRegistry.extend_sys_argv_with_env_vars()
+    if success:
+        options = arg_parser.parse_args()
+        CMRunnerArgsRegistry.verify_options(options)
+    else:
+        with pytest.raises(SystemExit):
+            options = arg_parser.parse_args()
+            CMRunnerArgsRegistry.verify_options(options)
 
 
 class TestDrumHelp:
@@ -193,6 +213,7 @@ class TestBooleanArgumentOptions:
             os.environ[ArgumentOptionsEnvVars.MONITOR] = "False"
             os.environ[ArgumentOptionsEnvVars.WITH_ERROR_SERVER] = "1"
             os.environ[ArgumentOptionsEnvVars.SKIP_PREDICT] = "False"
+            os.environ[ArgumentOptionsEnvVars.ALLOW_DR_API_ACCESS_FOR_ALL_CUSTOM_MODELS] = "True"
             CMRunnerArgsRegistry.extend_sys_argv_with_env_vars()
             assert ArgumentsOptions.PRODUCTION in sys.argv
             assert ArgumentsOptions.MONITOR not in sys.argv
@@ -200,6 +221,7 @@ class TestBooleanArgumentOptions:
             assert ArgumentsOptions.SKIP_PREDICT in sys.argv
             assert sys.argv.count(ArgumentsOptions.WITH_ERROR_SERVER) == 1
             assert sys.argv.count(ArgumentsOptions.SKIP_PREDICT) == 1
+            assert ArgumentsOptions.ALLOW_DR_API_ACCESS_FOR_ALL_CUSTOM_MODELS in sys.argv
             unset_drum_supported_env_vars()
 
 
@@ -277,35 +299,17 @@ class TestMonitorArgs:
         os.environ.pop("EXTERNAL_WEB_SERVER_URL")
         os.environ.pop("API_TOKEN")
 
-    @staticmethod
-    def _set_sys_argv(cmd_line_args):
-        # This is required because the sys.argv is manipulated by the 'CMRunnerArgsRegistry'
-        cmd_line_args.insert(0, sys.argv[0])
-        sys.argv = cmd_line_args
-
-    @staticmethod
-    def _execute_arg_parser(success=True):
-        arg_parser = CMRunnerArgsRegistry.get_arg_parser()
-        CMRunnerArgsRegistry.extend_sys_argv_with_env_vars()
-        if success:
-            options = arg_parser.parse_args()
-            CMRunnerArgsRegistry.verify_options(options)
-        else:
-            with pytest.raises(SystemExit):
-                options = arg_parser.parse_args()
-                CMRunnerArgsRegistry.verify_options(options)
-
     def test_binary_monitor_from_cmd_line_args_success(
         self, binary_score_cmd_args, monitor_cmd_args
     ):
         binary_score_cmd_args.extend(monitor_cmd_args)
-        self._set_sys_argv(binary_score_cmd_args)
-        self._execute_arg_parser()
+        set_sys_argv(binary_score_cmd_args)
+        execute_arg_parser()
 
     @pytest.mark.usefixtures("monitor_env_vars")
     def test_binary_monitor_from_env_vars_success(self, binary_score_cmd_args):
-        self._set_sys_argv(binary_score_cmd_args)
-        self._execute_arg_parser()
+        set_sys_argv(binary_score_cmd_args)
+        execute_arg_parser()
 
     @pytest.mark.usefixtures("monitor_env_vars")
     def test_binary_monitor_from_cmd_line_and_env_vars_success(
@@ -314,20 +318,20 @@ class TestMonitorArgs:
         # pop the last 2 elements in order to take them from the environment
         monitor_cmd_args = monitor_cmd_args[0:-2]
         binary_score_cmd_args.extend(monitor_cmd_args)
-        self._set_sys_argv(binary_score_cmd_args)
-        self._execute_arg_parser()
+        set_sys_argv(binary_score_cmd_args)
+        execute_arg_parser()
 
     def test_binary_monitor_embedded_cmd_args_failure(
         self, binary_score_cmd_args, monitor_embedded_cmd_args_without_monitor_settings
     ):
         binary_score_cmd_args.extend(monitor_embedded_cmd_args_without_monitor_settings)
-        self._set_sys_argv(binary_score_cmd_args)
-        self._execute_arg_parser(success=False)
+        set_sys_argv(binary_score_cmd_args)
+        execute_arg_parser(success=False)
 
     @pytest.mark.usefixtures("monitor_embedded_env_vars")
     def test_binary_monitor_embedded_from_env_vars_failure(self, binary_score_cmd_args):
-        self._set_sys_argv(binary_score_cmd_args)
-        self._execute_arg_parser(success=False)
+        set_sys_argv(binary_score_cmd_args)
+        execute_arg_parser(success=False)
 
     def test_binary_mutually_exclusive_args_failure(
         self,
@@ -338,8 +342,8 @@ class TestMonitorArgs:
         args = binary_score_cmd_args
         args.extend(monitor_cmd_args)
         args.extend(monitor_embedded_cmd_args_without_monitor_settings)
-        self._set_sys_argv(args)
-        self._execute_arg_parser(success=False)
+        set_sys_argv(args)
+        execute_arg_parser(success=False)
 
     @pytest.mark.parametrize(
         "monitor_settings", [(), ("--monitor-settings", "aaa;bbb")],
@@ -352,8 +356,8 @@ class TestMonitorArgs:
     ):
         unstructured_score_cmd_args.extend(monitor_embedded_cmd_args_without_monitor_settings)
         unstructured_score_cmd_args.extend(monitor_settings)
-        self._set_sys_argv(unstructured_score_cmd_args)
-        self._execute_arg_parser()
+        set_sys_argv(unstructured_score_cmd_args)
+        execute_arg_parser()
 
     @pytest.mark.parametrize(
         "env_var_key, env_var_value", [(None, None), ("MONITOR_SETTINGS", "aaa;bbb")],
@@ -364,8 +368,8 @@ class TestMonitorArgs:
     ):
         if env_var_key:
             os.environ[env_var_key] = env_var_value
-        self._set_sys_argv(unstructured_score_cmd_args)
-        self._execute_arg_parser()
+        set_sys_argv(unstructured_score_cmd_args)
+        execute_arg_parser()
         if env_var_key:
             os.environ.pop(env_var_key)
 
@@ -378,20 +382,20 @@ class TestMonitorArgs:
             0:-2
         ]
         unstructured_score_cmd_args.extend(monitor_embedded_cmd_args_without_monitor_settings)
-        self._set_sys_argv(unstructured_score_cmd_args)
-        self._execute_arg_parser()
+        set_sys_argv(unstructured_score_cmd_args)
+        execute_arg_parser()
 
     def test_unstructured_monitor_cmd_args_failure(
         self, unstructured_score_cmd_args, monitor_cmd_args
     ):
         unstructured_score_cmd_args.extend(monitor_cmd_args)
-        self._set_sys_argv(unstructured_score_cmd_args)
-        self._execute_arg_parser(success=False)
+        set_sys_argv(unstructured_score_cmd_args)
+        execute_arg_parser(success=False)
 
     @pytest.mark.usefixtures("monitor_env_vars")
     def test_unstructured_monitor_from_env_vars_failure(self, unstructured_score_cmd_args):
-        self._set_sys_argv(unstructured_score_cmd_args)
-        self._execute_arg_parser(success=False)
+        set_sys_argv(unstructured_score_cmd_args)
+        execute_arg_parser(success=False)
 
     def test_unstructured_mutually_exclusive_args_failure(
         self,
@@ -402,5 +406,61 @@ class TestMonitorArgs:
         args = unstructured_score_cmd_args
         args.extend(monitor_cmd_args)
         args.extend(monitor_embedded_cmd_args_without_monitor_settings)
-        self._set_sys_argv(args)
-        self._execute_arg_parser(success=False)
+        set_sys_argv(args)
+        execute_arg_parser(success=False)
+
+
+class TestDrApiAccess:
+    @pytest.fixture(
+        scope="class",
+        params=[
+            ["score", "--target-type", "binary", "--code-dir", "/tmp", "--input", __file__],
+            [
+                "server",
+                "--target-type",
+                "unstructured",
+                "--code-dir",
+                "/tmp",
+                "--address",
+                "127.0.1.1",
+            ],
+        ],
+    )
+    def _cli_args(self, request):
+        yield request.param
+
+    @contextlib.contextmanager
+    def _dr_api_access_env_vars(self, enabled=True, skipped_env_var=None):
+        args = {
+            ArgumentOptionsEnvVars.ALLOW_DR_API_ACCESS_FOR_ALL_CUSTOM_MODELS: str(enabled),
+            "EXTERNAL_WEB_SERVER_URL": "http://aaa.bbb.ccc",
+            "API_TOKEN": "zzz123",
+        }
+        for env_var, value in args.items():
+            if env_var != skipped_env_var:
+                os.environ[env_var] = value
+
+        yield
+
+        for env_var in args:
+            os.environ.pop(env_var, None)
+
+    def test_dr_api_access_from_env_var_success(self, _cli_args):
+        with self._dr_api_access_env_vars():
+            set_sys_argv(_cli_args)
+            execute_arg_parser()
+
+    @pytest.mark.parametrize("missing_mandatory_env_var", ["EXTERNAL_WEB_SERVER_URL", "API_TOKEN"])
+    def test_dr_api_access_from_env_var_missing_var(self, _cli_args, missing_mandatory_env_var):
+        with self._dr_api_access_env_vars(enabled=True, skipped_env_var=missing_mandatory_env_var):
+            set_sys_argv(_cli_args)
+            with pytest.raises(SystemExit) as ex:
+                execute_arg_parser()
+
+    @pytest.mark.parametrize(
+        "missing_mandatory_env_var", [None, "EXTERNAL_WEB_SERVER_URL", "API_TOKEN"]
+    )
+    def test_dr_api_access_inactive_success(self, _cli_args, missing_mandatory_env_var):
+        with self._dr_api_access_env_vars(enabled=False, skipped_env_var=missing_mandatory_env_var):
+            set_sys_argv(_cli_args)
+            execute_arg_parser()

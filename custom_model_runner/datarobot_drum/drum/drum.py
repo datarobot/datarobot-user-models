@@ -717,6 +717,7 @@ class CMRunner:
             "monitor_settings": options.monitor_settings,
             "external_webserver_url": options.webserver,
             "api_token": options.api_token,
+            "allow_dr_api_access": options.allow_dr_api_access,
             "query_params": '"{}"'.format(options.query)
             if getattr(options, "query", None) is not None
             else "null",

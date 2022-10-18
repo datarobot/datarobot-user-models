@@ -9,6 +9,7 @@ import tempfile
 import shutil
 import sys
 
+import datarobot as dr
 from datarobot_drum.drum.common import to_bool
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
@@ -38,6 +39,11 @@ class PythonPredictor(BaseLanguagePredictor):
     def mlpiper_configure(self, params):
         super(PythonPredictor, self).mlpiper_configure(params)
 
+        if to_bool(params.get("allow_dr_api_access")):
+            logger.info("Initializing DataRobot Python client.")
+            dr_api_endpoint = self._dr_api_url(params["external_webserver_url"])
+            dr.Client(token=params["api_token"], endpoint=dr_api_endpoint)
+
         if to_bool(params.get("monitor_embedded")):
             self._init_mlops(params)
 
@@ -53,6 +59,12 @@ class PythonPredictor(BaseLanguagePredictor):
             raise DrumSerializationError(f"An error occurred when loading your artifact: {str(e)}")
         if self._model is None:
             raise Exception("Failed to load model")
+
+    @staticmethod
+    def _dr_api_url(endpoint):
+        if not endpoint.endswith("api/v2"):
+            endpoint = f"{endpoint}/api/v2"
+        return endpoint
 
     def _init_mlops(self, params):
 
