@@ -8,9 +8,9 @@ build_drum: &build_drum
   definition: jenkins/build_drum.groovy
   phase: 1
 
-test_integration_without_container: &test_integration_without_container
-  taskName: test_integration_without_container
-  definition: jenkins/test_integration_without_container.groovy
+test_integration_general: &test_integration_general
+  taskName: test_integration_general
+  definition: jenkins/test_integration_general.groovy
   phase: 2
 
 test_inference_model_templates: &test_inference_model_templates
@@ -100,10 +100,10 @@ repositoryTasks:
         script:
           - *black_check
           - *build_drum
-      - regex: ".*test_integration_without_container.*"
+      - regex: ".*test_integration_general.*"
         script:
           - *build_drum
-          - *test_integration_without_container
+          - *test_integration_general
       - regex: ".*test_inference_model_templates.*"
         script:
           - *build_drum
@@ -157,7 +157,7 @@ repositoryTasks:
         script:
           - *black_check
           - *build_drum
-          - *test_integration_without_container
+          - *test_integration_general
           - *test_inference_model_templates
           - *test_training_model_templates
           - *test_drop_in_envs
