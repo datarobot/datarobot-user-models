@@ -12,4 +12,6 @@ datarobot-bp-workshop==0.2.5
 requests >= 2.24.0
 scikit-learn==0.24.2
 retry
+# > NOTE: when pinning datarobot-mlops to 8.2.1 and higher you may need to reinstall datarobot package
+# as datarobot-mlops overwrites site-packages/datarobot. [AGENT-3504]
 datarobot-mlops==8.2.7
