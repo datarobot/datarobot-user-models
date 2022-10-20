@@ -25,11 +25,15 @@ java -version
 javac -version
 
 pip install -U pip
-pip install pytest pytest-runner pytest-xdist retry scikit-learn==0.24.2
+#pip install pytest pytest-runner pytest-xdist retry scikit-learn==0.24.2
+# test custom java predictor fails if these packages are installed before
+title "Installing requirements for all the tests:  ${GIT_ROOT}/requirements_test.txt"
+pip install -r ${GIT_ROOT}/requirements_test.txt
+
 
 # > NOTE: when pinning datarobot-mlops to 8.2.1 and higher you may need to reinstall datarobot package
 # as datarobot-mlops overwrites site-packages/datarobot. [AGENT-3504]
-pip install datarobot-mlops==8.2.7
+# pip install datarobot-mlops==8.2.7
 
 pushd ${GIT_ROOT} || exit 1
 
@@ -73,9 +77,6 @@ pytest tests/drum/test_inference_custom_java_predictor.py tests/drum/test_mlops_
        -n 1
 TEST_RESULT_1=$?
 
-# test custom java predictor fails if these packages are installed before
-title "Installing requirements for all the tests:  ${GIT_ROOT}/requirements_test.txt"
-pip install -r $GIT_ROOT/requirements_test.txt -i https://artifactory.int.datarobot.com/artifactory/api/pypi/python-all/simple
 
 pytest tests/drum/ \
        -k "not test_inference_custom_java_predictor.py and not test_mlops_monitoring.py" \
