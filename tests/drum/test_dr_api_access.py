@@ -190,14 +190,19 @@ class TestDrApiAccess:
         )
 
         with self.local_webserver_stub(webserver_port, expected_version_queries=desired_num_pings):
-            os.environ.update(
-                {
-                    "ALLOW_DR_API_ACCESS_FOR_ALL_CUSTOM_MODELS": "True",
-                    "EXTERNAL_WEB_SERVER_URL": f"http://{self.WEBSERVER_HOST}:{webserver_port}",
-                    "API_TOKEN": self.API_TOKEN,
-                }
-            )
+            try:
+                os.environ.update(
+                    {
+                        "ALLOW_DR_API_ACCESS_FOR_ALL_CUSTOM_MODELS": "True",
+                        "EXTERNAL_WEB_SERVER_URL": f"http://{self.WEBSERVER_HOST}:{webserver_port}",
+                        "API_TOKEN": self.API_TOKEN,
+                    }
+                )
 
-            _exec_shell_cmd(
-                cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
-            )
+                _exec_shell_cmd(
+                    cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+                )
+            finally:
+                os.environ.pop("ALLOW_DR_API_ACCESS_FOR_ALL_CUSTOM_MODELS", None)
+                os.environ.pop("EXTERNAL_WEB_SERVER_URL", None)
+                os.environ.pop("API_TOKEN", None)
