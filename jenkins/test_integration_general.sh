@@ -25,8 +25,6 @@ java -version
 javac -version
 
 pip install -U pip
-#pip install pytest pytest-runner pytest-xdist retry scikit-learn==0.24.2
-# test custom java predictor fails if these packages are installed before
 title "Installing requirements for all the tests:  ${GIT_ROOT}/requirements_test.txt"
 pip install -r ${GIT_ROOT}/requirements_test.txt
 

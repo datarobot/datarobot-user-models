@@ -51,7 +51,14 @@ class TestDrumPush(object):
         ],
     )
     def test_drum_push_training(
-        self, resources, framework, problem, language, tmp_path, get_target, sklearn_drop_in_env,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        tmp_path,
+        get_target_factory,
+        sklearn_drop_in_env,
     ):
         custom_model_dir = _create_custom_model_dir(
             resources,
@@ -65,7 +72,7 @@ class TestDrumPush(object):
 
         env_id, _ = sklearn_drop_in_env
         yaml_string = get_push_yaml(
-            env_id, resources.datasets(framework, problem), problem, get_target(problem)
+            env_id, resources.datasets(framework, problem), problem, get_target_factory(problem)
         )
         with open(os.path.join(custom_model_dir, "model-metadata.yaml"), "w") as outfile:
             yaml.dump(yaml.safe_load(yaml_string), outfile, default_flow_style=False)

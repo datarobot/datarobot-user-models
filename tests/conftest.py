@@ -878,7 +878,7 @@ class Resource:
 
 
 @pytest.fixture(scope="session")
-def get_dataset_filename():
+def get_dataset_filename_factory():
     def _get_dataset_filename(framework, problem):
         framework_key = framework
         problem_key = problem
@@ -891,7 +891,7 @@ def get_dataset_filename():
 
 
 @pytest.fixture(scope="session")
-def get_paths_to_training_models():
+def get_paths_to_training_models_factory():
     def _get_paths_to_training_models(language, framework):
         return _training_models_paths[(language, framework)]
 
@@ -899,7 +899,7 @@ def get_paths_to_training_models():
 
 
 @pytest.fixture(scope="session")
-def get_target():
+def get_target_factory():
     def _get_target(problem):
         return _targets[problem]
 
@@ -907,7 +907,7 @@ def get_target():
 
 
 @pytest.fixture(scope="session")
-def get_target_type():
+def get_target_type_factory():
     def _get_target_type(problem):
         return _target_types.get(problem, problem)
 
@@ -915,7 +915,7 @@ def get_target_type():
 
 
 @pytest.fixture(scope="session")
-def get_class_labels():
+def get_class_labels_factory():
     def _get_class_labels(framework, problem):
         return _class_labels.get((framework, problem), None)
 
@@ -923,7 +923,7 @@ def get_class_labels():
 
 
 @pytest.fixture(scope="session")
-def get_artifacts():
+def get_artifacts_factory():
     def _get_artifacts(framework, problem):
         return _artifacts[(framework, problem)]
 
@@ -931,7 +931,7 @@ def get_artifacts():
 
 
 @pytest.fixture(scope="session")
-def get_custom():
+def get_custom_factory():
     def _get_custom(language):
         return _custom_filepaths[language]
 
@@ -939,9 +939,9 @@ def get_custom():
 
 
 @pytest.fixture(scope="session")
-def get_input_data(get_dataset_filename):
+def get_input_data_factory(get_dataset_filename_factory):
     def _get_input_data(framework, problem):
-        dataset_path = get_dataset_filename(framework, problem)
+        dataset_path = get_dataset_filename_factory(framework, problem)
         column_file = dataset_path.replace(".mtx", ".columns")
         if problem in {SPARSE, SPARSE_TRANSFORM}:
             with open(column_file) as f:
@@ -958,24 +958,24 @@ def get_input_data(get_dataset_filename):
 
 @pytest.fixture(scope="session")
 def resources(
-    get_dataset_filename,
-    get_paths_to_training_models,
-    get_target,
-    get_target_type,
-    get_class_labels,
-    get_artifacts,
-    get_custom,
-    get_input_data,
+    get_dataset_filename_factory,
+    get_paths_to_training_models_factory,
+    get_target_factory,
+    get_target_type_factory,
+    get_class_labels_factory,
+    get_artifacts_factory,
+    get_custom_factory,
+    get_input_data_factory,
 ):
     resource = Resource()
-    resource.datasets = get_dataset_filename
-    resource.training_models = get_paths_to_training_models
-    resource.targets = get_target
-    resource.target_types = get_target_type
-    resource.class_labels = get_class_labels
-    resource.artifacts = get_artifacts
-    resource.custom = get_custom
-    resource.input_data = get_input_data
+    resource.datasets = get_dataset_filename_factory
+    resource.training_models = get_paths_to_training_models_factory
+    resource.targets = get_target_factory
+    resource.target_types = get_target_type_factory
+    resource.class_labels = get_class_labels_factory
+    resource.artifacts = get_artifacts_factory
+    resource.custom = get_custom_factory
+    resource.input_data = get_input_data_factory
     return resource
 
 
