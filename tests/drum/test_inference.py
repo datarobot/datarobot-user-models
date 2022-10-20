@@ -25,16 +25,11 @@ from datarobot_drum.resource.transform_helpers import (
 )
 from .constants import (
     BINARY,
-    CODEGEN,
     DOCKER_PYTHON_SKLEARN,
     MULTICLASS,
-    NO_CUSTOM,
     PYTHON,
     PYTHON_TRANSFORM,
-    R,
-    RDS,
     REGRESSION,
-    REGRESSION_INFERENCE,
     RESPONSE_PREDICTIONS_KEY,
     SKLEARN,
     SKLEARN_TRANSFORM,

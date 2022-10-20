@@ -5,6 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import itertools
+import logging
 import os
 from random import sample
 from textwrap import dedent
@@ -25,7 +26,6 @@ from datarobot_drum.drum.language_predictors.java_predictor.java_predictor impor
 from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
     PythonPredictor,
 )
-from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
 from datarobot_drum.drum.typeschema_validation import (
     NumColumns,
     Conditions,
@@ -41,6 +41,20 @@ from datarobot_drum.drum.typeschema_validation import (
 )
 
 from tests.drum.utils import test_data
+
+logger = logging.getLogger(__name__)
+try:
+    from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
+
+    r_supported = True
+except (ImportError, ModuleNotFoundError, DrumCommonException):
+    error_message = (
+        "rpy2 package is not installed."
+        "Install datarobot-drum using 'pip install datarobot-drum[R]'"
+        "Available for Python>=3.6"
+    )
+    logger.error(error_message)
+    r_supported = False
 
 
 def get_data(dataset_name: str) -> pd.DataFrame:
@@ -985,7 +999,7 @@ def test_empty_metadata_failure_message(capsys, tmp_path):
 
 @pytest.mark.parametrize(
     "target_type, predictor_cls",
-    itertools.product([TargetType.TRANSFORM,], [PythonPredictor, RPredictor, JavaPredictor],),
+    itertools.product([TargetType.TRANSFORM,], [PythonPredictor, JavaPredictor],),
 )
 def test_validate_model_metadata_output_requirements(target_type, predictor_cls):
     """The validation on the specs defined in the output_requirements of model metadata is only triggered when the
@@ -1022,6 +1036,11 @@ def test_validate_model_metadata_output_requirements(target_type, predictor_cls)
         )
     else:
         predictor._schema_validator.validate_outputs(df_to_validate)
+
+
+@pytest.mark.skipif(not r_supported, reason="requires R framework to be installed")
+def test_validate_model_metadata_output_requirements_r():
+    test_validate_model_metadata_output_requirements(TargetType.TRANSFORM, RPredictor)
 
 
 @pytest.mark.parametrize(

@@ -5,6 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import copy
+import logging
 import socket
 from contextlib import closing
 
@@ -22,8 +23,16 @@ from custom_model_runner.datarobot_drum.drum.language_predictors.python_predicto
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumSerializationError
 from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import JavaPredictor
-from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
+
+logger = logging.getLogger(__name__)
+
+try:
+    from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
+
+    r_supported = True
+except (ImportError, ModuleNotFoundError, DrumCommonException):
+    r_supported = False
 
 
 class FakeLanguagePredictor(BaseLanguagePredictor):
@@ -156,6 +165,7 @@ class TestPythonPredictor(object):
             py_predictor.mlpiper_configure(init_params)
 
 
+@pytest.mark.skipif(not r_supported, reason="requires R framework to be installed")
 @pytest.mark.parametrize("class_ordering", [lambda x: x, lambda x: list(reversed(x))])
 class TestRPredictor(object):
     def test_r_predictor_replace_sanitized_class_names_same_binary(self, class_ordering):

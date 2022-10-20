@@ -7,6 +7,6 @@ node('multi-executor && ubuntu:focal'){
       unstash 'drum_wheel'
   }
   sh "ls -la jenkins_artifacts"
-  sh "echo $PIPELINE_CONTROLLER"
-  sh 'bash jenkins/test_integration.sh'
+  sh "echo $FRAMEWORK"
+  sh 'bash jenkins/test_integration_per_framework.sh $FRAMEWORK'
 }

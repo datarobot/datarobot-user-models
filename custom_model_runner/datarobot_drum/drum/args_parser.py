@@ -986,7 +986,8 @@ class CMRunnerArgsRegistry(object):
             ):
                 print("Performance testing is not implemented for unstructured models.")
                 exit(1)
-            if options.production:
+            # Don't check uwsgi on host when running with docker, e.g: 'drum server ...  --docker img'
+            if options.production and not options.docker:
                 if options.verbose:
                     print("Checking if uwsgi is installed...")
                 result = subprocess.run(

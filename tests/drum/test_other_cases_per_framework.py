@@ -16,6 +16,7 @@ from datarobot_drum.resource.utils import (
 )
 
 from .constants import (
+    CODEGEN_AND_SKLEARN,
     SKLEARN,
     SKLEARN_NO_ARTIFACTS,
     RDS,
@@ -34,12 +35,13 @@ from .constants import (
     R_INT_COLNAMES_BINARY,
     R_INT_COLNAMES_MULTICLASS,
     MULTICLASS,
+    NO_CUSTOM,
 )
 
 from tests.conftest import skip_if_framework_not_in_env
 
 
-class TestOtherCases:
+class TestOtherCasesPerFramework:
     @pytest.mark.parametrize(
         "framework, problem, language", [(SKLEARN, BINARY, PYTHON), (RDS, BINARY, R)]
     )
@@ -178,3 +180,93 @@ class TestOtherCases:
 
         preds = pd.read_csv(output)
         assert all(preds.columns == [str(l) for l in labels])
+
+    # R version of current test cases is run in the dedicated env as rpy2 installation is required
+    @pytest.mark.parametrize(
+        "framework, language, target_type",
+        [(R_NO_ARTIFACTS, R, REGRESSION),],  # no artifact, custom.R without load_model
+    )
+    def test_detect_language(
+        self, resources, framework, language, tmp_path, framework_env, target_type
+    ):
+        skip_if_framework_not_in_env(framework, framework_env)
+
+        custom_model_dir = _create_custom_model_dir(resources, tmp_path, framework, None, language,)
+
+        input_dataset = resources.datasets(framework, REGRESSION)
+        cmd = "{} score --code-dir {} --input {} --target-type {}".format(
+            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, target_type,
+        )
+
+        p, stdo, stde = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+
+        stdo_stde = str(stdo) + str(stde)
+
+        case_4 = (
+            str(stdo_stde).find(
+                "Could not find a serialized model artifact with .rds extension, supported by default R predictor. "
+                "If your artifact is not supported by default predictor, implement custom.load_model hook."
+            )
+            != -1
+        )
+
+        assert any([case_4])
+
+    # R version of current test cases is run in the dedicated env as rpy2 installation is required
+    @pytest.mark.parametrize(
+        "framework, problem, language, set_language",
+        [
+            (
+                CODEGEN_AND_SKLEARN,
+                REGRESSION,
+                NO_CUSTOM,
+                "r",
+            ),  # java and sklearn artifacts, no custom.py
+        ],
+    )
+    def test_set_language(
+        self, resources, framework, problem, language, set_language, tmp_path, framework_env
+    ):
+        skip_if_framework_not_in_env("rds", framework_env)
+
+        custom_model_dir = _create_custom_model_dir(
+            resources, tmp_path, framework, problem, language,
+        )
+        input_dataset = resources.datasets(framework, problem)
+        cmd = "{} score --code-dir {} --input {} --target-type {}".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            custom_model_dir,
+            input_dataset,
+            resources.target_types(problem),
+        )
+        if set_language:
+            cmd += " --language {}".format(set_language)
+        if problem == BINARY:
+            cmd += " --positive-class-label yes --negative-class-label no"
+
+        p, stdo, stde = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+        if not set_language:
+            stdo_stde = str(stdo) + str(stde)
+            cases_4_5_6_7 = (
+                str(stdo_stde).find("Can not detect language by artifacts and/or custom.py/R files")
+                != -1
+            )
+            assert cases_4_5_6_7
+        if framework == CODEGEN_AND_SKLEARN and set_language == "r":
+            stdo_stde = str(stdo) + str(stde)
+            case = (
+                str(stdo_stde).find(
+                    "Could not find a serialized model artifact with .rds extension, supported by default R predictor. "
+                    "If your artifact is not supported by default predictor, implement custom.load_model hook."
+                )
+                != -1
+            )
+            assert case

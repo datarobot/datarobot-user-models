@@ -171,7 +171,8 @@ R_UNSTRUCTURED = "r_unstructured"
 R_UNSTRUCTURED_PARAMS = "r_unstructured_params"
 PYTHON_XGBOOST_CLASS_LABELS_VALIDATION = "predictions_and_class_labels_validation"
 
-DOCKER_PYTHON_SKLEARN = "cmrunner_test_env_python_sklearn"
+DOCKER_PYTHON_SKLEARN = "python3_sklearn_test_env"
+
 
 RESPONSE_PREDICTIONS_KEY = "predictions"
 RESPONSE_TRANSFORM_KEY = "transformations"
