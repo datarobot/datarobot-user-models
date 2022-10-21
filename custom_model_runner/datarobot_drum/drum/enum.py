@@ -235,6 +235,7 @@ class ArgumentsOptions:
     PARAMETER_FILE = "--parameter-file"
     DISABLE_STRICT_VALIDATION = "--disable-strict-validation"
     ENABLE_PREDICT_METRICS_REPORT = "--enable-fit-metadata"
+    ALLOW_DR_API_ACCESS_FOR_ALL_CUSTOM_MODELS = "--allow-dr-api-access"
 
     MAIN_COMMAND = "drum" if not DEBUG else "./custom_model_runner/bin/drum"
 
@@ -268,6 +269,8 @@ class ArgumentOptionsEnvVars:
 
     SKIP_PREDICT = "SKIP_PREDICT"
 
+    ALLOW_DR_API_ACCESS_FOR_ALL_CUSTOM_MODELS = "ALLOW_DR_API_ACCESS_FOR_ALL_CUSTOM_MODELS"
+
     VALUE_VARS = [
         TARGET_TYPE,
         CODE_DIR,
@@ -286,6 +289,7 @@ class ArgumentOptionsEnvVars:
         MONITOR,
         MONITOR_EMBEDDED,
         SKIP_PREDICT,
+        ALLOW_DR_API_ACCESS_FOR_ALL_CUSTOM_MODELS,
     ]
 
     @classmethod

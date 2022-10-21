@@ -147,7 +147,7 @@ from tests.drum.constants import (
     MULTICLASS_LABEL_SPACES,
 )
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
-
+from tests.drum.constants import PYTHON_UNSTRUCTURED_DR_API_ACCESS
 
 framework_envs = {
     PYTHON_SKLEARN: [
@@ -774,6 +774,10 @@ _custom_filepaths = {
     R_UNSTRUCTURED: (os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom.R"), "custom.R"),
     PYTHON_UNSTRUCTURED_MLOPS: (
         os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom_mlops.py"),
+        "custom.py",
+    ),
+    PYTHON_UNSTRUCTURED_DR_API_ACCESS: (
+        os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom_dr_api_access.py"),
         "custom.py",
     ),
     PYTHON_UNSTRUCTURED_PARAMS: (

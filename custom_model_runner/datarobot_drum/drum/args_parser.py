@@ -570,18 +570,6 @@ class CMRunnerArgsRegistry(object):
                 help="MLOps setting to use for connecting with the MLOps Agent (env: MONITOR_SETTINGS)",
             )
 
-            parser.add_argument(
-                ArgumentsOptions.DR_WEBSERVER,
-                default=os.environ.get("EXTERNAL_WEB_SERVER_URL", None),
-                help="DataRobot external web server URL",
-            )
-
-            parser.add_argument(
-                ArgumentsOptions.DR_API_TOKEN,
-                default=os.environ.get("API_TOKEN", None),
-                help="DataRobot API token",
-            )
-
     @staticmethod
     def _reg_args_deployment_config(*parsers):
         for parser in parsers:
@@ -643,6 +631,28 @@ class CMRunnerArgsRegistry(object):
                 action="store_true",
                 default=False,
                 help="Generate a report from prediction runtime metrics (ie memory usage).",
+            )
+
+    @staticmethod
+    def _reg_arg_dr_api_access(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.ALLOW_DR_API_ACCESS_FOR_ALL_CUSTOM_MODELS,
+                action="store_true",
+                default=False,
+                help="Generate a report from prediction runtime metrics (ie memory usage).",
+            )
+
+            parser.add_argument(
+                ArgumentsOptions.DR_WEBSERVER,
+                default=os.environ.get("EXTERNAL_WEB_SERVER_URL", None),
+                help="DataRobot external web server URL",
+            )
+
+            parser.add_argument(
+                ArgumentsOptions.DR_API_TOKEN,
+                default=os.environ.get("API_TOKEN", None),
+                help="DataRobot API token",
             )
 
     @staticmethod
@@ -902,6 +912,8 @@ class CMRunnerArgsRegistry(object):
 
         CMRunnerArgsRegistry._reg_args_monitoring(score_parser, server_parser)
 
+        CMRunnerArgsRegistry._reg_arg_dr_api_access(score_parser, server_parser)
+
         CMRunnerArgsRegistry._reg_arg_target_type(
             score_parser, perf_test_parser, server_parser, fit_parser, validation_parser
         )
@@ -967,8 +979,28 @@ class CMRunnerArgsRegistry(object):
             options.model_id = None
             options.deployment_id = None
             options.monitor_settings = None
-            options.webserver = None
-            options.api_token = None
+
+    @staticmethod
+    def verify_dr_api_access_options(options, parser_name):
+        if parser_name in [ArgumentsOptions.SERVER, ArgumentsOptions.SCORE]:
+            missing_args = []
+            if options.allow_dr_api_access:
+                if options.webserver is None:
+                    missing_args.append(ArgumentsOptions.DR_WEBSERVER)
+                if options.api_token is None:
+                    missing_args.append(ArgumentsOptions.DR_API_TOKEN)
+
+            if len(missing_args) > 0:
+                print("\n")
+                print("Error: DataRobot APIs access requires certain option(s) that are missing.")
+                print("Missing options:")
+                for arg in missing_args:
+                    print("  {}".format(arg))
+                print("\n")
+                print("These options can also be obtained via environment variables.")
+                print("\n")
+                CMRunnerArgsRegistry._parsers[parser_name].print_help()
+                exit(1)
 
     @staticmethod
     def verify_options(options):
@@ -1036,7 +1068,9 @@ class CMRunnerArgsRegistry(object):
                 )
             )
             exit(1)
+
         CMRunnerArgsRegistry.verify_monitoring_options(options, options.subparser_name)
+        CMRunnerArgsRegistry.verify_dr_api_access_options(options, options.subparser_name)
 
     @staticmethod
     def extend_sys_argv_with_env_vars():
