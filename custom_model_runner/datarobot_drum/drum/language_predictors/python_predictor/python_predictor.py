@@ -41,7 +41,7 @@ class PythonPredictor(BaseLanguagePredictor):
 
         if to_bool(params.get("allow_dr_api_access")):
             logger.info("Initializing DataRobot Python client.")
-            dr_api_endpoint = self._dr_api_url(params["external_webserver_url"])
+            dr_api_endpoint = self._dr_api_url(endpoint=params["external_webserver_url"])
             dr.Client(token=params["api_token"], endpoint=dr_api_endpoint)
 
         if to_bool(params.get("monitor_embedded")):
