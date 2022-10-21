@@ -26,12 +26,10 @@ javac -version
 
 pip install -U pip
 title "Installing requirements for all the tests:  ${GIT_ROOT}/requirements_test.txt"
-pip install -r ${GIT_ROOT}/requirements_test.txt
-
-
 # > NOTE: when pinning datarobot-mlops to 8.2.1 and higher you may need to reinstall datarobot package
 # as datarobot-mlops overwrites site-packages/datarobot. [AGENT-3504]
-# pip install datarobot-mlops==8.2.7
+pip install datarobot-mlops==8.2.7
+pip install -r ${GIT_ROOT}/requirements_test.txt
 
 pushd ${GIT_ROOT} || exit 1
 
@@ -67,7 +65,7 @@ echo 'ENTRYPOINT ["this_is_fake_entrypoint_to_make_sure_drum_unsets_it_when_runs
 docker build -t python3_sklearn_test_env ${TMP_DOCKER_CONTEXT}/
 
 echo
-title "Running pytest:"
+title "Running tests: sequential test cases Java Custom Predictor and MLOps Monitoring"
 
 # only run here tests which were sequential historically
 pytest tests/drum/test_inference_custom_java_predictor.py tests/drum/test_mlops_monitoring.py \
@@ -75,7 +73,7 @@ pytest tests/drum/test_inference_custom_java_predictor.py tests/drum/test_mlops_
        -n 1
 TEST_RESULT_1=$?
 
-
+title "Running tests: all other cases in parallel"
 pytest tests/drum/ \
        -k "not test_inference_custom_java_predictor.py and not test_mlops_monitoring.py" \
        -m "not sequential" \
