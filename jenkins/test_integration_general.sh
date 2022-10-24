@@ -8,9 +8,17 @@
 # This file will be executed from the root of the repository in a python3 virtualenv.
 # It will run the test of drum inside a predefined docker image:
 
-# root repo folder
+set -ex
 GIT_ROOT=$(git rev-parse --show-toplevel)
-echo "GIT_ROOT: ${GIT_ROOT}"
+
+if [ -z $1 ]; then
+    echo "Path to DRUM wheel must be provided as a parameter"
+    exit 1
+fi
+
+DRUM_WHEEL_REAL_PATH=$1
+
+
 source ${GIT_ROOT}/tests/drum/integration-helpers.sh
 
 # Installing and configuring java/javac 11 in the jenkins worker
@@ -33,8 +41,6 @@ pip install -r ${GIT_ROOT}/requirements_test.txt
 
 pushd ${GIT_ROOT} || exit 1
 
-# The "jenkins_artifacts" folder is created in the groovy script
-DRUM_WHEEL_REAL_PATH="$(realpath "$(find jenkins_artifacts/datarobot_drum*.whl)")"
 echo
 title "Installing wheel: ${DRUM_WHEEL_REAL_PATH}"
 echo

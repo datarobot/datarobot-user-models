@@ -27,7 +27,7 @@ node('release-dev && memory-intense'){
         bash: '''\
             set -exuo pipefail
             ls -la jenkins_artifacts
-            ./jenkins/test_training_model_templates.sh
+            ./jenkins/test_training_model_templates.sh "$(realpath "$(find jenkins_artifacts/datarobot_drum*.whl)")"
         '''.stripIndent(),
         pythonVersion: '3',
         venvName: "datarobot-user-models"

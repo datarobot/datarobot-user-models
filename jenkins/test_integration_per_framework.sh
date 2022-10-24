@@ -7,38 +7,40 @@
 # Released under the terms of DataRobot Tool and Utility Agreement.
 
 set -ex
-
 GIT_ROOT=$(git rev-parse --show-toplevel)
 
+if [ -z $1 ]; then
+    echo "Path to DRUM wheel must be provided as a parameter"
+    exit 1
+fi
+
+DRUM_WHEEL_REAL_PATH=$1
 
 source "${GIT_ROOT}/tools/image-build-utils.sh"
 source "${GIT_ROOT}/tests/drum/integration-helpers.sh"
 
 ENVS_DIR="public_dropin_environments"
 
-if [ "$1" = "python3_keras" ]; then
+if [ "$2" = "python3_keras" ]; then
     DOCKER_IMAGE="python3_keras"
-elif [ "$1" = "python3_onnx" ]; then
+elif [ "$2" = "python3_onnx" ]; then
     DOCKER_IMAGE="python3_onnx"
-elif [ "$1" = "python3_pmml" ]; then
+elif [ "$2" = "python3_pmml" ]; then
     DOCKER_IMAGE="python3_pmml"
-elif [ "$1" = "python3_pytorch" ]; then
+elif [ "$2" = "python3_pytorch" ]; then
     DOCKER_IMAGE="python3_pytorch"
-elif [ "$1" = "python3_sklearn" ]; then
+elif [ "$2" = "python3_sklearn" ]; then
     DOCKER_IMAGE="python3_sklearn"
-elif [ "$1" = "python3_xgboost" ]; then
+elif [ "$2" = "python3_xgboost" ]; then
     DOCKER_IMAGE="python3_xgboost"
-elif [ "$1" = "r_lang" ]; then
+elif [ "$2" = "r_lang" ]; then
     DOCKER_IMAGE="r_lang"
-elif [ "$1" = "java" ]; then
+elif [ "$2" = "java" ]; then
     DOCKER_IMAGE="java_codegen"
-elif [ "$1" = "julia" ]; then
+elif [ "$2" = "julia" ]; then
     ENVS_DIR="example_dropin_environments"
     DOCKER_IMAGE="julia_mlj"
 fi;
-
-# The "jenkins_artifacts" folder is created in the groovy script
-DRUM_WHEEL_REAL_PATH="$(realpath "$(find jenkins_artifacts/datarobot_drum*.whl)")"
 
 build_dropin_env_dockerfile "${GIT_ROOT}/${ENVS_DIR}/${DOCKER_IMAGE}" ${DRUM_WHEEL_REAL_PATH} || exit 1
 
@@ -90,7 +92,7 @@ docker run -i \
       -i $TERMINAM_OPTION\
       --entrypoint "" \
       $DOCKER_IMAGE \
-      ./tests/drum/run_integration_tests_in_framework_container.sh $1
+      ./tests/drum/run_integration_tests_in_framework_container.sh $2
 
 TEST_RESULT=$?
 
