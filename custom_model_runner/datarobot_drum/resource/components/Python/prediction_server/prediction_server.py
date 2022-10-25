@@ -194,7 +194,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         cli.show_server_banner = lambda *x: None
 
         app = get_flask_app(model_api)
-        self.load_custom_hooks(app)
+        self.load_flask_extensions(app)
 
         host = self._params.get("host", None)
         port = self._params.get("port", None)
@@ -213,7 +213,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         if callable(terminate_op):
             terminate_op()
 
-    def load_custom_hooks(self, app):
+    def load_flask_extensions(self, app):
         custom_file_paths = list(Path(self._code_dir).rglob("{}.py".format(FLASK_EXT_FILE_NAME)))
         assert len(custom_file_paths) <= 1
 
@@ -222,7 +222,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
             return
 
         custom_file_path = custom_file_paths[0]
-        logger.info("Detected %s .. trying to load hooks", custom_file_path)
+        logger.info("Detected %s .. trying to load Flask extensions", custom_file_path)
         sys.path.insert(0, str(custom_file_path.parent))
 
         try:
