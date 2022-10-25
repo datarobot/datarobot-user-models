@@ -13,14 +13,16 @@ logger = logging.getLogger(__name__)
 
 token_auth = HTTPTokenAuth()
 
-# Hard-code users for demo purposes but in a real setup this data would be
-# fetched from a database, for example.
-AUTHORIZED_TOKEN = "dummy_demo_token"
+AUTHENTICATION_TOKEN = "DUMMY_TOKEN_123"
 
 
 @token_auth.verify_token
 def verify(token):
-    if token == AUTHORIZED_TOKEN:
+    # Hard-code users for demo purposes but in a real setup this data would be
+    # fetched from a database or secure key vault, for example.
+    if token == AUTHENTICATION_TOKEN:
+        # flask_httpauth requires this function to return a username on successful authentication
+        # so it can be used for authorization (but we aren't implementing that for this sample).
         return "dummy_user"
 
 
@@ -41,11 +43,9 @@ def init_app(app):
     def check_auth():
         auth = token_auth.get_auth()
 
-        # Flask normally handles OPTIONS requests on its own, but in
-        # the case it is configured to forward those to the
-        # application, we need to ignore authentication headers and
-        # let the request through to avoid unwanted interactions with
-        # CORS.
+        # Flask normally handles OPTIONS requests on its own, but in the case it is configured to
+        # forward those to the application, we need to ignore authentication headers and let the
+        # request through to avoid unwanted interactions with CORS.
         if request.method != "OPTIONS" and request.endpoint not in no_auth_endpoints:
             user = token_auth.authenticate(auth, None)
             if user in (False, None):
@@ -53,5 +53,5 @@ def init_app(app):
 
     logger.info(
         'Please authenticate to the server:\n\t`curl -H "Authorization: Bearer %s" ...`',
-        AUTHORIZED_TOKEN,
+        AUTHENTICATION_TOKEN,
     )
