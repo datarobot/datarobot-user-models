@@ -4,10 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+#### [1.9.12] - 2022-10-25
+##### Added
+- Add support for a new hook (`custom_flask.py`) in the model-dir to allow extending the Flask
+  application when drum is running in server mode.
+- Add a new model template sample (`python3_sklearn_flask_ext`) to illustrate a potential
+  authentication use-case using the new `custom_flask.py` hook.
+
 #### [1.9.11] - 2022-10-24
 ##### Changed
 - Add support to initialize DR Python client in order to allow DR API access.
-- Discover `custom_flask.py` in the model-dir to allow extending drum in server-mode
 
 #### [1.9.10] - 2022-10-05
 ##### Changed
