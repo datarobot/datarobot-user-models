@@ -138,7 +138,8 @@ class PythonModelAdapter:
 
     def load_custom_hooks(self):
         custom_file_paths = list(Path(self._model_dir).rglob("{}.py".format(CUSTOM_FILE_NAME)))
-        assert len(custom_file_paths) <= 1
+        if len(custom_file_paths) > 1:
+            raise RuntimeError("Found too many custom hook files: {}".format(custom_file_paths))
 
         if len(custom_file_paths) == 0:
             print("No {}.py file detected in {}".format(CUSTOM_FILE_NAME, self._model_dir))

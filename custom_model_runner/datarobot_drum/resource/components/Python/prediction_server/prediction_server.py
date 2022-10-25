@@ -215,7 +215,8 @@ class PredictionServer(ConnectableComponent, PredictMixin):
 
     def load_flask_extensions(self, app):
         custom_file_paths = list(Path(self._code_dir).rglob("{}.py".format(FLASK_EXT_FILE_NAME)))
-        assert len(custom_file_paths) <= 1
+        if len(custom_file_paths) > 1:
+            raise RuntimeError("Found too many custom hook files: {}".format(custom_file_paths))
 
         if len(custom_file_paths) == 0:
             logger.info("No %s.py file detected in %s", FLASK_EXT_FILE_NAME, self._code_dir)
