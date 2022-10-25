@@ -10,7 +10,7 @@ from flask import request, jsonify
 def init_app(app):
     @app.before_request
     def check_header():
-        # Allow ping route with no Auth otherwise tests would fail
+        # Allow ping route with no Auth otherwise test setup would fail
         if request.endpoint != "model_api.ping":
             try:
                 token = request.headers["X-Auth"]
