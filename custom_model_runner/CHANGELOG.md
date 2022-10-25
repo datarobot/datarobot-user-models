@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Added
 - Add support for a new hook (`custom_flask.py`) in the model-dir to allow extending the Flask
   application when drum is running in server mode.
-- Add a new model template sample (`python3_sklearn_flask_ext`) to illustrate a potential
+- Add a new model template sample (`flask_extension_httpauth`) to illustrate a potential
   authentication use-case using the new `custom_flask.py` hook.
 
 #### [1.9.11] - 2022-10-24

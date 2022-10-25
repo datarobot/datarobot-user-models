@@ -7,6 +7,9 @@ when making any requests to it.
 
 For completeness, we also include all the model related files from the [Python Sklearn Inference Model Template](../python3_sklearn/).
 
+Note: it is **not** necessary (nor recommended) to add authentication to custom models that are created in DataRobot MLOps.
+This example is simply to demonstration the flexibility of the `custom_flask.py` hook.
+
 ## Instructions
 Create a new custom model with these files and use the Python Drop-In Environment with it
 
