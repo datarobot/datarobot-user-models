@@ -42,7 +42,6 @@ def _run_server_thread(cmd, process_obj_holder, verbose=True):
         assert_if_fail=False,
         process_obj_holder=process_obj_holder,
         verbose=verbose,
-        capture_output=False,
     )
 
 
