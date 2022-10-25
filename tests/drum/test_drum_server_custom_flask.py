@@ -16,17 +16,14 @@ from .constants import (
     TESTS_FIXTURES_PATH,
 )
 from datarobot_drum.resource.drum_server_utils import DrumServerRun
-from datarobot_drum.resource.utils import (
-    _create_custom_model_dir,
-)
+from datarobot_drum.resource.utils import _create_custom_model_dir
 from datarobot_drum.drum.utils.drum_utils import unset_drum_supported_env_vars
 
 
 class TestDrumServerCustomAuth:
     @pytest.fixture(scope="class")
     def custom_flask_script(self):
-        return (Path(TESTS_FIXTURES_PATH) / "custom_flask_demo_auth.py",
-                "custom_flask.py")
+        return (Path(TESTS_FIXTURES_PATH) / "custom_flask_demo_auth.py", "custom_flask.py")
 
     @pytest.fixture(scope="class")
     def custom_model_dir(self, custom_flask_script, resources, tmp_path_factory):
@@ -58,13 +55,15 @@ class TestDrumServerCustomAuth:
         assert response.json()["message"] == "Missing X-Auth header"
 
     def test_bad_auth_token(self, drum_server):
-        response = requests.get(drum_server.url_server_address + "/info/",
-                                headers={"X-Auth": "token"})
+        response = requests.get(
+            drum_server.url_server_address + "/info/", headers={"X-Auth": "token"}
+        )
         assert response.status_code == 401
         assert response.json()["message"] == "Auth token is invalid"
 
     def test_successful_auth(self, drum_server):
-        response = requests.get(drum_server.url_server_address + "/info/",
-                                headers={"X-Auth": "t0k3n"})
+        response = requests.get(
+            drum_server.url_server_address + "/info/", headers={"X-Auth": "t0k3n"}
+        )
         assert response.ok
         assert response.json()["drumServer"] == "flask"
