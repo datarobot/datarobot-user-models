@@ -22,14 +22,18 @@ node('release-dev && memory-intense'){
         popd
     '''.stripIndent()
 
-    withQuantum([
-        bash: '''\
-            set -exuo pipefail
-            ls -la jenkins_artifacts
-            ./jenkins/test_inference_model_templates.sh
-        '''.stripIndent(),
-        pythonVersion: '3',
-        venvName: "datarobot-user-models"
-    ])
+    try {
+      withQuantum([
+          bash: '''\
+              set -exuo pipefail
+              ls -la jenkins_artifacts
+              ./jenkins/test_inference_model_templates.sh
+          '''.stripIndent(),
+          pythonVersion: '3',
+          venvName: "datarobot-user-models"
+      ])
+    } finally {
+      junit allowEmptyResults: true, testResults: '**/results*.xml'
+    }
   }
 }
