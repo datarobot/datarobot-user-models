@@ -4,3 +4,6 @@ line-length = 100
 [tool.pytest.ini_options]
 addopts = "--doctest-modules"
 markers = ["sequential: marks tests to be executed sequentially"]
+junit_family = "xunit2"
+junit_logging = "all"
+junit_log_passing_tests = false
