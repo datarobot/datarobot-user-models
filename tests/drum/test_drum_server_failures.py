@@ -72,8 +72,8 @@ class TestDrumServerFailures:
                 assert error_message in response.json()["message"]
         else:
             # DrumServerRun tries to ping the server.
-            # if ping fails for timeout, AssertionError("Server failed to start") is risen
-            with pytest.raises(AssertionError, match="Server failed to start"), drum_server_run:
+            # if ping fails for timeout, TimeoutError("Server failed to start") is risen
+            with pytest.raises(TimeoutError, match="Server failed to start"), drum_server_run:
                 pass
 
             # If server is started with error server or with_nginx (in docker), it is killed in the end of test.
