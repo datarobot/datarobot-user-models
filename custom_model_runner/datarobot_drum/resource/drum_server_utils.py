@@ -158,9 +158,10 @@ class DrumServerRun:
         except ProcessLookupError:
             logger.warning("server at pid=%s is already gone", pid)
 
-        self._server_thread.join(timeout=5)
+        self._server_thread.join(timeout=10)
         if self._server_thread.is_alive():
             os.killpg(os.getpgid(self._process_object_holder.process.pid), signal.SIGKILL)
+            self._server_thread.join(timeout=2)
             raise TimeoutError("Server failed to shutdown gracefully in allotted time")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
