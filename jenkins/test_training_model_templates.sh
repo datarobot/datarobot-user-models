@@ -9,11 +9,13 @@
 set -ex
 GIT_ROOT=$(git rev-parse --show-toplevel)
 
+if [ -z $1 ]; then
+    echo "Path to DRUM wheel must be provided as a parameter"
+    exit 1
+fi
+DRUM_WHEEL_REAL_PATH=$1
+
 source "$(dirname "$0")/../tools/image-build-utils.sh"
-
-# The "jenkins_artifacts" folder is created in the groovy script
-DRUM_WHEEL_REAL_PATH="$(realpath "$(find jenkins_artifacts/datarobot_drum*.whl)")"
-
 build_all_dropin_env_dockerfiles "$DRUM_WHEEL_REAL_PATH"
 
 pip install pip==22.1.2

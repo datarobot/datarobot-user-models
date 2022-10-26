@@ -10,7 +10,7 @@ node('multi-executor && ubuntu:focal'){
         bash: '''\
             set -exuo pipefail
             ls -la jenkins_artifacts
-            jenkins/test_integration_general.sh
+            jenkins/test_integration_general.sh "$(realpath "$(find jenkins_artifacts/datarobot_drum*.whl)")"
         '''.stripIndent(),
         pythonVersion: '3',
         venvName: "datarobot-user-models"
