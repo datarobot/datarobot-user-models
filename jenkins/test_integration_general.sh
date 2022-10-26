@@ -69,7 +69,7 @@ title "Running tests: sequential test cases Java Custom Predictor and MLOps Moni
 
 # only run here tests which were sequential historically
 pytest tests/drum/test_inference_custom_java_predictor.py tests/drum/test_mlops_monitoring.py \
-       --junit-xml="${GIT_ROOT}/results_integration.xml" \
+       --junit-xml="${GIT_ROOT}/results_integration_serial.xml" \
        -n 1
 TEST_RESULT_1=$?
 
@@ -77,7 +77,7 @@ title "Running tests: all other cases in parallel"
 pytest tests/drum/ \
        -k "not test_inference_custom_java_predictor.py and not test_mlops_monitoring.py" \
        -m "not sequential" \
-       --junit-xml="${GIT_ROOT}/results_integration.xml" \
+       --junit-xml="${GIT_ROOT}/results_integration_parallel.xml" \
        -n auto
 TEST_RESULT_2=$?
 
