@@ -21,6 +21,9 @@ REGRESSION_PRED_COLUMN = "Predictions"
 CUSTOM_FILE_NAME = "custom"
 
 
+FLASK_EXT_FILE_NAME = "custom_flask"
+
+
 POSITIVE_CLASS_LABEL_ARG_KEYWORD = "positive_class_label"
 
 

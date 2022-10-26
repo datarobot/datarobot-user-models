@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+#### [1.9.12] - 2022-10-25
+##### Added
+- Add support for a new hook (`custom_flask.py`) in the model-dir to allow extending the Flask
+  application when drum is running in server mode.
+- Add a new model template sample (`flask_extension_httpauth`) to illustrate a potential
+  authentication use-case using the new `custom_flask.py` hook.
+
 #### [1.9.11] - 2022-10-24
 ##### Changed
 - Add support to initialize DR Python client in order to allow DR API access.
@@ -18,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump com.datarobot.datarobot-prediction package to 2.2.1
 ##### Fixed
 - Pin `datarobot==2.27.0`
-- Handle missing values in image typeschema validator 
+- Handle missing values in image typeschema validator
 
 #### [1.9.8] - 2022-08-04
 ##### Changed
@@ -62,7 +69,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### [1.8.0] - 2022-02-18
 ##### Added
-- Built-in support for ONNX models 
+- Built-in support for ONNX models
 - Support for new custom (training) task templates
 
 #### [1.7.2dev1] - 2022-02-16
@@ -164,7 +171,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### [1.5.11] - 2021-08-19
 ##### Fixed
 - Apply default schema to transforms
-##### Added 
+##### Added
 - type schema to pipeline examples
 
 #### [1.5.10] - 2021-07-30
@@ -306,7 +313,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### [1.4.5] - 2020-12-02
 ##### Added
--  **/transform** endpoint added to prediction server 
+-  **/transform** endpoint added to prediction server
 ##### Changes
 - Allow multiclass to function with only 2 labels
 
@@ -375,12 +382,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### [1.1.4] - 2020-08-04
 ##### Added
 - the docker flag now takes a directory, and will build a docker image
-- the `push` verb lets you add your code into DataRobot. 
+- the `push` verb lets you add your code into DataRobot.
 - H2O models support
 - r_lang fit component, pipeline, and template
 ##### Changed
 - search custom.py recursively in the code dir
-- set rpy2 dependcy <= 3.2.7 to avoid pandas import error 
+- set rpy2 dependcy <= 3.2.7 to avoid pandas import error
 
 ## [1.1.3] - 2020-07-17
 ### Added
@@ -427,7 +434,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - change command `cmrun predict` to `cmrun score`
 
 ### Added
-- `new` subcommand for model templates creation 
+- `new` subcommand for model templates creation
 
 ## [1.0.16] - 2020-05-05
 ### Changed
@@ -435,7 +442,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.15] - 2020-05-04
 ### Changed
-- require to use sub-command, e.g. `cmrun predict`  
+- require to use sub-command, e.g. `cmrun predict`
 
 ## [1.0.14] - 2020-04-30
 ### Changed
