@@ -151,10 +151,12 @@ class DrumServerRun:
         return self
 
     def _shutdown_server(self):
-        # Server has to be killed
-        pid = self._process_object_holder.process.pid
+        # When we are in PRODUCTION=1 mode, drum doesn't setup signal handlers (see main.py:89)
+        # so just go right to forcefully killing the processes.
+        sig = signal.SIGTERM if not self._with_nginx else signal.SIGKILL
         try:
-            os.killpg(os.getpgid(pid), signal.SIGTERM)
+            pid = self._process_object_holder.process.pid
+            os.killpg(os.getpgid(pid), sig)
         except ProcessLookupError:
             logger.warning("server at pid=%s is already gone", pid)
 
