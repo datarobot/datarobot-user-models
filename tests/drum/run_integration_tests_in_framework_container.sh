@@ -15,6 +15,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "-- running drum tests - assuming running inside Docker"
 
+# Needed when binding mount files owned by different user into docker container.
+git config --global --add safe.directory /home/jenkins-slave/workspace
+
 GIT_ROOT=$(git rev-parse --show-toplevel)
 echo "GIT_ROOT: $GIT_ROOT"
 echo
