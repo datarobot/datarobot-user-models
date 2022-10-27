@@ -54,7 +54,6 @@ class TestDrumServerFailures:
             with_error_server=with_error_server,
             nginx=with_nginx,
             docker=docker,
-            fail_on_shutdown_error=False  # for now server may not exit cleanly when failed
         )
 
         if with_error_server or with_nginx:
@@ -95,7 +94,6 @@ class TestDrumServerFailures:
             with_error_server=with_error_server,
             nginx=with_nginx,
             docker=docker,
-            fail_on_shutdown_error=False  # for now server may not exit cleanly when failed
         )
 
         with drum_server_run as run:
@@ -174,7 +172,6 @@ class TestDrumServerFailures:
             with_error_server=with_error_server,
             nginx=with_nginx,
             docker=docker,
-            fail_on_shutdown_error=False  # for now server may not exit cleanly when failed
         )
 
         with drum_server_run as run:
