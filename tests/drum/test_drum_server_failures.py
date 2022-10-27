@@ -50,10 +50,7 @@ class TestDrumServerFailures:
         self, server_run_args, with_error_server, error_message, with_nginx=False, docker=None
     ):
         drum_server_run = DrumServerRun(
-            **server_run_args,
-            with_error_server=with_error_server,
-            nginx=with_nginx,
-            docker=docker,
+            **server_run_args, with_error_server=with_error_server, nginx=with_nginx, docker=docker,
         )
 
         if with_error_server or with_nginx:
@@ -90,10 +87,7 @@ class TestDrumServerFailures:
         os.remove(os.path.join(custom_model_dir, "custom.py"))
 
         drum_server_run = DrumServerRun(
-            **server_run_args,
-            with_error_server=with_error_server,
-            nginx=with_nginx,
-            docker=docker,
+            **server_run_args, with_error_server=with_error_server, nginx=with_nginx, docker=docker,
         )
 
         with drum_server_run as run:
@@ -168,10 +162,7 @@ class TestDrumServerFailures:
         os.remove(os.path.join(custom_model_dir, "custom.py"))
 
         drum_server_run = DrumServerRun(
-            **server_run_args,
-            with_error_server=with_error_server,
-            nginx=with_nginx,
-            docker=docker,
+            **server_run_args, with_error_server=with_error_server, nginx=with_nginx, docker=docker,
         )
 
         with drum_server_run as run:
