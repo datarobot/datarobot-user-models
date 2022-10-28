@@ -87,7 +87,11 @@ def main():
         # mlpiper restful_component relies on SIGINT to shutdown nginx and uwsgi,
         # so we don't intercept it.
         if hasattr(runtime.options, "production") and runtime.options.production:
-            pass
+
+            def raise_keyboard_interrupt(sig, frame):
+                raise KeyboardInterrupt("Triggered from {}".format(sig))
+
+            signal.signal(signal.SIGTERM, raise_keyboard_interrupt)
         else:
             signal.signal(signal.SIGINT, signal_handler)
             signal.signal(signal.SIGTERM, signal_handler)

@@ -85,7 +85,8 @@ class DrumServerRun:
         else:
             self.url_server_address = "http://localhost:{}".format(self.port)
 
-        cmd = "{} server".format(ArgumentsOptions.MAIN_COMMAND)
+        log_level = logging.getLevelName(logging.root.level).lower()
+        cmd = "{} server --logging-level={}".format(ArgumentsOptions.MAIN_COMMAND, log_level)
 
         if pass_args_as_env_vars:
             os.environ[ArgumentOptionsEnvVars.CODE_DIR] = str(custom_model_dir)
@@ -135,7 +136,9 @@ class DrumServerRun:
 
     def __enter__(self):
         self._server_thread = Thread(
-            target=_run_server_thread, args=(self._cmd, self._process_object_holder, self._verbose)
+            name="DRUM Server",
+            target=_run_server_thread,
+            args=(self._cmd, self._process_object_holder, self._verbose),
         )
         self._server_thread.start()
         time.sleep(0.5)
@@ -151,16 +154,21 @@ class DrumServerRun:
         return self
 
     def _shutdown_server(self):
+        pid = self._process_object_holder.process.pid
+        pgid = None
         try:
-            pid = self._process_object_holder.process.pid
-            os.killpg(os.getpgid(pid), signal.SIGTERM)
+            pgid = os.getpgid(pid)
+            logger.info("Sending signal to ProcessGroup: %s", pgid)
+            os.killpg(pgid, signal.SIGTERM)
         except ProcessLookupError:
             logger.warning("server at pid=%s is already gone", pid)
 
         self._server_thread.join(timeout=10)
         if self._server_thread.is_alive():
-            os.killpg(os.getpgid(self._process_object_holder.process.pid), signal.SIGKILL)
-            self._server_thread.join(timeout=2)
+            if pgid is not None:
+                logger.warning("Forcefully killing process group: %s", pgid)
+                os.killpg(pgid, signal.SIGKILL)
+                self._server_thread.join(timeout=2)
             raise TimeoutError("Server failed to shutdown gracefully in allotted time")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
