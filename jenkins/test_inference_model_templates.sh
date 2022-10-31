@@ -22,6 +22,6 @@ pip install -U $DRUM_WHEEL_REAL_PATH
 # requirements_test may install newer packages for testing, e.g. `datarobot`
 pip install -r requirements_test.txt
 
-py.test -vvv tests/functional/test_inference_model_templates.py \
+py.test tests/functional/test_inference_model_templates.py \
         --junit-xml="${GIT_ROOT}/results_drop_in.xml"
 
