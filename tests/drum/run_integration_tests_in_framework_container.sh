@@ -36,7 +36,7 @@ if [ "$1" = "r_lang" ]; then
                   "
 fi
 
-pytest ${TESTS_TO_RUN} \
+pytest -vvv ${TESTS_TO_RUN} \
        --framework-env $1 \
        --junit-xml="./results_integration.xml" \
        --reruns 3 --reruns-delay 2 \
