@@ -4,12 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-#### [1.9.12] - 2022-10-25
+#### [1.9.12] - 2022-10-31
 ##### Added
-- Add support for a new hook (`custom_flask.py`) in the model-dir to allow extending the Flask
-  application when drum is running in server mode.
-- Add a new model template sample (`flask_extension_httpauth`) to illustrate a potential
-  authentication use-case using the new `custom_flask.py` hook.
+- Add support for a new hook (`custom_flask.py`) in the model-dir to allow extending the Flask application when drum is running in server mode.
+- Add a new model template sample (`flask_extension_httpauth`) to illustrate a potential authentication use-case using the new `custom_flask.py` hook.
+##### Changed
+- Improve handling of SIGTERM to support cleaner shutdowns.
+- Use `--init` flag when running docker containers to improve how signals are propigated to child processes.
 
 #### [1.9.11] - 2022-10-24
 ##### Changed
