@@ -11,7 +11,9 @@ Note: it is **not** necessary (nor recommended) to add authentication to custom 
 This example is simply to demonstration the flexibility of the `custom_flask.py` hook.
 
 ## Instructions
-Create a new custom model with these files and use the Python Drop-In Environment with it
+Create a new custom model with these files and use the Python Drop-In Environment with it.
+
+**Important:** extending the web server is only available when running **without** the `--production` flag (or `PRODUCTION=1` environment variable).
 
 ### To run locally using 'drum'
 Paths are relative to `./datarobot-user-models`:
