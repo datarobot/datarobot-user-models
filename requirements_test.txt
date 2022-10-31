@@ -5,6 +5,7 @@ drca==0.2.42
 pytest
 pytest-runner
 pytest-xdist
+pytest-rerunfailures
 responses
 urllib3 >= 1.25.0
 datarobot==2.28.1
