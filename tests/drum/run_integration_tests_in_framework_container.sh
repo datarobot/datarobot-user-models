@@ -18,7 +18,7 @@ echo "-- running drum tests - assuming running inside Docker"
 echo
 echo "Running pytest:"
 
-pip install pytest pytest-xdist pytest-rerunfailures
+pip install pytest pytest-xdist
 
 
 TESTS_TO_RUN="tests/drum/test_inference_per_framework.py \
@@ -39,7 +39,6 @@ fi
 pytest ${TESTS_TO_RUN} \
        --framework-env $1 \
        --junit-xml="./results_integration.xml" \
-       --reruns 3 --reruns-delay 2 \
        -n auto
 
 TEST_RESULT=$?
