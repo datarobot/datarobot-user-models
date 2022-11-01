@@ -4,8 +4,8 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import logging
 import os
-import psutil
 import requests
 import signal
 import time
@@ -15,30 +15,24 @@ from datarobot_drum.drum.utils.drum_utils import DrumUtils
 from datarobot_drum.drum.enum import ArgumentsOptions, ArgumentOptionsEnvVars
 from datarobot_drum.resource.utils import _exec_shell_cmd, _cmd_add_class_labels
 
+logger = logging.getLogger(__name__)
 
-def _wait_for_server(url, timeout, process_holder):
+
+def _wait_for_server(url, timeout):
     # waiting for ping to succeed
     while True:
         try:
             response = requests.get(url)
             if response.ok:
                 break
+            logger.debug("server is not ready: %s\n%s", response, response.text)
         except Exception:
             pass
 
         time.sleep(1)
         timeout -= 1
         if timeout <= 0:
-            if process_holder is not None:
-                print("Killing subprocess: {}".format(process_holder.process.pid))
-                try:
-                    os.killpg(os.getpgid(process_holder.process.pid), signal.SIGTERM)
-                    time.sleep(0.25)
-                    os.killpg(os.getpgid(process_holder.process.pid), signal.SIGKILL)
-                except psutil.ProcessLookupError:
-                    assert False, "Server failed to start: url: {}".format(url)
-
-            assert timeout, "Server failed to start: url: {}".format(url)
+            raise TimeoutError("Server failed to start: url: {}".format(url))
 
 
 def _run_server_thread(cmd, process_obj_holder, verbose=True):
@@ -91,7 +85,8 @@ class DrumServerRun:
         else:
             self.url_server_address = "http://localhost:{}".format(self.port)
 
-        cmd = "{} server".format(ArgumentsOptions.MAIN_COMMAND)
+        log_level = logging.getLevelName(logging.root.level).lower()
+        cmd = "{} server --logging-level={}".format(ArgumentsOptions.MAIN_COMMAND, log_level)
 
         if pass_args_as_env_vars:
             os.environ[ArgumentOptionsEnvVars.CODE_DIR] = str(custom_model_dir)
@@ -141,21 +136,40 @@ class DrumServerRun:
 
     def __enter__(self):
         self._server_thread = Thread(
-            target=_run_server_thread, args=(self._cmd, self._process_object_holder, self._verbose)
+            name="DRUM Server",
+            target=_run_server_thread,
+            args=(self._cmd, self._process_object_holder, self._verbose),
         )
         self._server_thread.start()
         time.sleep(0.5)
-
-        _wait_for_server(
-            self.url_server_address, timeout=30, process_holder=self._process_object_holder
-        )
+        try:
+            _wait_for_server(self.url_server_address, timeout=30)
+        except TimeoutError:
+            try:
+                self._shutdown_server()
+            except TimeoutError as e:
+                logger.error("server shutdown failure: %s", e)
+            raise
 
         return self
 
     def _shutdown_server(self):
-        # Server has to be killed
-        os.killpg(os.getpgid(self._process_object_holder.process.pid), signal.SIGTERM)
-        self._server_thread.join(timeout=5)
+        pid = self._process_object_holder.process.pid
+        pgid = None
+        try:
+            pgid = os.getpgid(pid)
+            logger.info("Sending signal to ProcessGroup: %s", pgid)
+            os.killpg(pgid, signal.SIGTERM)
+        except ProcessLookupError:
+            logger.warning("server at pid=%s is already gone", pid)
+
+        self._server_thread.join(timeout=10)
+        if self._server_thread.is_alive():
+            if pgid is not None:
+                logger.warning("Forcefully killing process group: %s", pgid)
+                os.killpg(pgid, signal.SIGKILL)
+                self._server_thread.join(timeout=2)
+            raise TimeoutError("Server failed to shutdown gracefully in allotted time")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # shutdown server
@@ -165,7 +179,7 @@ class DrumServerRun:
             try:
                 self._shutdown_server()
             except Exception:
-                pass
+                logger.warning("shutdown failure", exc_info=True)
 
     @property
     def process(self):

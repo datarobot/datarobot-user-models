@@ -50,7 +50,7 @@ class TestDrumServerFailures:
         self, server_run_args, with_error_server, error_message, with_nginx=False, docker=None
     ):
         drum_server_run = DrumServerRun(
-            **server_run_args, with_error_server=with_error_server, nginx=with_nginx, docker=docker
+            **server_run_args, with_error_server=with_error_server, nginx=with_nginx, docker=docker,
         )
 
         if with_error_server or with_nginx:
@@ -68,8 +68,8 @@ class TestDrumServerFailures:
                 assert error_message in response.json()["message"]
         else:
             # DrumServerRun tries to ping the server.
-            # if ping fails for timeout, AssertionError("Server failed to start") is risen
-            with pytest.raises(AssertionError, match="Server failed to start"), drum_server_run:
+            # if ping fails for timeout, TimeoutError("Server failed to start") is risen
+            with pytest.raises(TimeoutError, match="Server failed to start"), drum_server_run:
                 pass
 
             # If server is started with error server or with_nginx (in docker), it is killed in the end of test.
@@ -87,7 +87,7 @@ class TestDrumServerFailures:
         os.remove(os.path.join(custom_model_dir, "custom.py"))
 
         drum_server_run = DrumServerRun(
-            **server_run_args, with_error_server=with_error_server, nginx=with_nginx, docker=docker
+            **server_run_args, with_error_server=with_error_server, nginx=with_nginx, docker=docker,
         )
 
         with drum_server_run as run:
@@ -162,7 +162,7 @@ class TestDrumServerFailures:
         os.remove(os.path.join(custom_model_dir, "custom.py"))
 
         drum_server_run = DrumServerRun(
-            **server_run_args, with_error_server=with_error_server, nginx=with_nginx, docker=docker
+            **server_run_args, with_error_server=with_error_server, nginx=with_nginx, docker=docker,
         )
 
         with drum_server_run as run:

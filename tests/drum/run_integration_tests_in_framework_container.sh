@@ -15,8 +15,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "-- running drum tests - assuming running inside Docker"
 
-GIT_ROOT=$(git rev-parse --show-toplevel)
-echo "GIT_ROOT: $GIT_ROOT"
 echo
 echo "Running pytest:"
 
@@ -40,7 +38,7 @@ fi
 
 pytest ${TESTS_TO_RUN} \
        --framework-env $1 \
-       --junit-xml="$GIT_ROOT/results_integration.xml" \
+       --junit-xml="./results_integration.xml" \
        -n auto
 
 TEST_RESULT=$?

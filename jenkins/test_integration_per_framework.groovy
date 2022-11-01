@@ -6,7 +6,11 @@ node('multi-executor && ubuntu:focal'){
   dir('jenkins_artifacts'){
       unstash 'drum_wheel'
   }
-  sh "ls -la jenkins_artifacts"
-  sh "echo $FRAMEWORK"
-  sh 'bash jenkins/test_integration_per_framework.sh $FRAMEWORK'
+  try {
+    sh "ls -la jenkins_artifacts"
+    sh "echo $FRAMEWORK"
+    sh 'bash jenkins/test_integration_per_framework.sh $FRAMEWORK'
+  } finally {
+    junit allowEmptyResults: true, testResults: '**/results*.xml'
+  }
 }
