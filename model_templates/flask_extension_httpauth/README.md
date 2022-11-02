@@ -2,7 +2,7 @@
 
 This sample illustrates how you can add third-party or custom Flask extensions when DRUM is in server mode. To demonstrate one potential use case, the `custom_flask.py` file in this model directory extends the HTTP server to require a specific [Bearer Token](https://swagger.io/docs/specification/authentication/bearer-authentication/) when making any requests to it. For completeness, this directory also includes all model-related files from the [Python Sklearn Inference Model Template](../python3_sklearn/).
 
-**Note**: It is _not_ necessary (or recommended) to add authentication to custom models created in DataRobot MLOps. This example is simply to demonstrate the flexibility of the `custom_flask.py` hook.
+**Note**: It is _not_ necessary (or recommended) to add authentication to custom models that will be deployed in DataRobot MLOps — the platform will layer its standard API authentication on top of your custom model for you. This example is simply to demonstrate the flexibility of the `custom_flask.py` hook or to show how you can add authentication to a 'drum' model that is served externally.
 
 To extend the HTTP server, first create a new custom model with the files in this directory and the Python Drop-In Environment.
 
