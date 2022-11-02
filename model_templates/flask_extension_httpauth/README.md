@@ -8,7 +8,7 @@ To extend the HTTP server, first create a new custom model with the files in thi
 
 **Important**: You can only extend the web server when running it _without_ the `--production` flag (or `PRODUCTION=1` environment variable).
 
-To run this example locally with, use the following command with paths relative to `./datarobot-user-models`:
+To run this example locally, use the following command with paths relative to `./datarobot-user-models`:
 
 ```
 drum server --docker public_dropin_environments/python3_sklearn --code-dir model_templates/python3_sklearn_flask_ext/ --target-type regression --address localhost:8080
