@@ -7,6 +7,9 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import logging
 
 from flask import request
+# To show the flexibility of this hook, this example utilizes an open-source, third-party
+# extension but you can also just as easily customize the Flask server without using any
+# additional dependencies if desired.
 from flask_httpauth import HTTPTokenAuth
 
 logger = logging.getLogger(__name__)
