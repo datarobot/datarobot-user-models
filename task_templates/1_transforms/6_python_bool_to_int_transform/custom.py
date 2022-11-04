@@ -4,15 +4,17 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-# This custom transform task implements missing values imputation using a median
+from typing import Any
 
+import numpy as np
 import pandas as pd
 
 from datarobot_drum.custom_task_interfaces import TransformerInterface
 
 
+
 class CustomTask(TransformerInterface):
-    def fit(self, X: pd.DataFrame, y:pd.Series, **kwargs) -> None:
+    def fit(self, X:pd.DataFrame, y:pd.Series, **kwargs)->None:
         """ This hook defines how DataRobot will train this task. Even transform tasks need to be trained to learn/store information from training data
         DataRobot runs this hook when the task is being trained inside a blueprint.
         The input parameters are passed by DataRobot based on project and blueprint configuration.
@@ -28,12 +30,17 @@ class CustomTask(TransformerInterface):
         -------
         None
         """
+        pass
 
-        # compute medians for all numeric features on training data, store them in a dictionary
-        self.median = X.median(axis=0, numeric_only=True, skipna=True).to_dict()
+    @staticmethod
+    def transform_bools(values: pd.Series) -> pd.Series:
+        if values.dtype == np.bool:
+            return values.astype(np.int)
+        else:
+            return values
 
-    def transform(self, data:pd.DataFrame)->pd.DataFrame:
-        """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
+    def transform(self, data:pd.DataFrame)->None:
+        """This hook defines how DataRobot will use the trained object from fit() to transform new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
         As an output, this hook is expected to return the transformed data.
         The input parameters are passed by DataRobot based on dataset and blueprint configuration.
@@ -43,10 +50,11 @@ class CustomTask(TransformerInterface):
         data: pd.DataFrame
             Data that DataRobot passes for transformation.
 
+
         Returns
         -------
         pd.DataFrame
             Returns a dataframe with transformed data.
         """
 
-        return data.fillna(self.median)
+        return data.apply(self.transform_bools)
