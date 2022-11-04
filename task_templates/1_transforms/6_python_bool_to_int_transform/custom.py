@@ -12,9 +12,8 @@ import pandas as pd
 from datarobot_drum.custom_task_interfaces import TransformerInterface
 
 
-
 class CustomTask(TransformerInterface):
-    def fit(self, X:pd.DataFrame, y:pd.Series, **kwargs)->None:
+    def fit(self, X: pd.DataFrame, y: pd.Series, **kwargs) -> None:
         """ This hook defines how DataRobot will train this task. Even transform tasks need to be trained to learn/store information from training data
         DataRobot runs this hook when the task is being trained inside a blueprint.
         The input parameters are passed by DataRobot based on project and blueprint configuration.
@@ -39,7 +38,7 @@ class CustomTask(TransformerInterface):
         else:
             return values
 
-    def transform(self, data:pd.DataFrame)->None:
+    def transform(self, data: pd.DataFrame) -> None:
         """This hook defines how DataRobot will use the trained object from fit() to transform new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
         As an output, this hook is expected to return the transformed data.

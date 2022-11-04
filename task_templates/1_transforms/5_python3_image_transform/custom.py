@@ -15,9 +15,8 @@ from img_utils import (
 )
 
 
-
 class CustomTask(TransformerInterface):
-    def fit(self, X:pd.DataFrame, y:pd.Series, **kwargs)->None:
+    def fit(self, X: pd.DataFrame, y: pd.Series, **kwargs) -> None:
         """This hook defines how DataRobot will train this task. Even transform tasks need to be trained to learn/store information from training data
             DataRobot runs this hook when the task is being trained inside a blueprint.
             The input parameters are passed by DataRobot based on project and blueprint configuration.
@@ -41,7 +40,7 @@ class CustomTask(TransformerInterface):
         img = img_to_grayscale(img)
         return img_to_b64(img)
 
-    def transform(self, data:pd.DataFrame)->pd.DataFrame:
+    def transform(self, data: pd.DataFrame) -> pd.DataFrame:
         """This hook defines how DataRobot will use the trained object from fit() to transform new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
         As an output, this hook is expected to return the transformed data.
