@@ -1,2 +1,2 @@
-https://flask-httpauth.readthedocs.io/en/latest/
+# https://flask-httpauth.readthedocs.io/en/latest/
 Flask-HTTPAuth==4.7.0
