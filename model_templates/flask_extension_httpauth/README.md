@@ -1,22 +1,22 @@
 ## Extending Web Server Behavior
 
-This sample is meant to illustrate how you can add thirdparty or your own custom Flask extensions
-when drum is in server-mode. To demonstrate one potential usecase, the `custom_flask.py` file in
-this model directory will extend the HTTP server to require a specific [Bearer Token](https://swagger.io/docs/specification/authentication/bearer-authentication/)
-when making any requests to it.
+This example illustrates how you can add custom Flask extensions when DRUM is in server mode. To
+demonstrate one potential use case, the `custom_flask.py` file in this model directory extends
+the HTTP server to require a specific [Bearer Token](https://swagger.io/docs/specification/authentication/bearer-authentication/)
+when making any requests to it. For completeness, this directory also includes all model-related
+files from the [Python Sklearn Inference Model Template](../python3_sklearn/).
 
-For completeness, we also include all the model related files from the [Python Sklearn Inference Model Template](../python3_sklearn/).
+**Note**: It is _not_ necessary (or recommended) to add authentication to custom models that will
+be deployed in DataRobot MLOps — the platform will layer its standard API authentication on top of
+your custom model for you. This example is simply to demonstrate the flexibility of the
+`custom_flask.py` hook or to show how you can add authentication to a 'drum' model that is served
+externally.
 
-Note: it is **not** necessary (nor recommended) to add authentication to custom models that are created in DataRobot MLOps.
-This example is simply to demonstration the flexibility of the `custom_flask.py` hook.
+**Important**: You can only extend the web server when running it _without_ the `--production` flag
+(or `PRODUCTION=1` environment variable).
 
-## Instructions
-Create a new custom model with these files and use the Python Drop-In Environment with it.
+To run this example locally, use the following command with paths relative to `./datarobot-user-models`:
 
-**Important:** extending the web server is only available when running **without** the `--production` flag (or `PRODUCTION=1` environment variable).
-
-### To run locally using 'drum'
-Paths are relative to `./datarobot-user-models`:
 ```
 drum server --docker public_dropin_environments/python3_sklearn --code-dir model_templates/python3_sklearn_flask_ext/ --target-type regression --address localhost:8080
 ```
