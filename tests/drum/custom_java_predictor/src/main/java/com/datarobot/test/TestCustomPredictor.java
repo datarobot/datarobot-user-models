@@ -19,6 +19,27 @@ import java.util.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.appender.ConsoleAppender;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.core.config.LoggerConfig;
+import org.apache.logging.log4j.core.layout.PatternLayout;
+
+
+/***
+To run this test from CLI:
+compile TestCustomPredictor
+
+run the command:
+
+DRUM_JAVA_CUSTOM_CLASS_PATH=tests/drum/custom_java_predictor/* DRUM_JAVA_CUSTOM_PREDICTOR_CLASS=com.datarobot.test.TestCustomPredictor drum score --code-dir tests/drum/custom_java_predictor/ --target-type regression --input tests/testdata/juniors_3_year_stats_regression.csv
+***/
+
+
 public class TestCustomPredictor extends BasePredictor {
     private String negativeClassLabel = null;
     private String positiveClassLabel = null;
@@ -35,6 +56,29 @@ public class TestCustomPredictor extends BasePredictor {
         super(name);
     }
 
+    private void initCustomLogger(String loggerName) {
+        // Example on how to create a logger with customized pattern and appender
+        String PATTERN = "%d [%p|%c|%C{1}] %m%n";
+
+        LoggerContext context = (LoggerContext) LogManager.getContext();
+        Configuration config = context.getConfiguration();
+
+        PatternLayout.Builder builder = PatternLayout.newBuilder().withPattern(PATTERN);
+        PatternLayout layout = builder.build();
+
+        ConsoleAppender.Builder consoleAppenderBuilder = ConsoleAppender.newBuilder()
+            .withName("CONSOLE_APPENDER_NAME")
+            .withLayout(layout);
+        ConsoleAppender consoleApp = consoleAppenderBuilder.build();
+        consoleApp.start();
+
+        LoggerConfig loggerConfig = new LoggerConfig("ConfigName", Level.INFO, false);
+        loggerConfig.addAppender(consoleApp, null, null);
+        config.addLogger(loggerName, loggerConfig);
+
+        context.updateLoggers(config);
+    }
+
     @Override
     public void configure(Map<String, Object> params) {
         this.params = params;
@@ -45,6 +89,20 @@ public class TestCustomPredictor extends BasePredictor {
         this.negativeClassLabel = (String) this.params.get("negativeClassLabel");
         this.positiveClassLabel = (String) this.params.get("positiveClassLabel");
         this.classLabels = (String[]) this.params.get("classLabels");
+
+
+        String customLoggerName = "MyCustomLogger";
+        initCustomLogger(customLoggerName);
+        Logger logger = LogManager.getLogger(TestCustomPredictor.class);
+        // logging level is defined by DRUM, to modify, provide --logging-level <level>
+        logger.info("Default logger - INFO");
+        logger.warn("Default logger - WARN");
+        logger.error("Default logger - ERROR");
+
+        Logger customLogger = LogManager.getContext().getLogger(customLoggerName);
+        customLogger.info("Customized logger - INFO");
+        customLogger.warn("Customized logger - WARN");
+        customLogger.error("Customized logger - ERROR");
     }
 
     public String predictReader(Reader in) throws IOException {
