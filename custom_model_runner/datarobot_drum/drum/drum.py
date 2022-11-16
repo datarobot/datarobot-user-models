@@ -821,21 +821,20 @@ class CMRunner:
         sc.register_report("Full time", "end", StatsOperation.SUB, "start")
         sc.register_report("Init time (incl model loading)", "init", StatsOperation.SUB, "start")
         sc.register_report("Run time (incl reading CSV)", "run", StatsOperation.SUB, "init")
-        with verbose_stdout(self.options.verbose):
-            sc.enable()
-            try:
-                sc.mark("start")
+        sc.enable()
+        try:
+            sc.mark("start")
 
-                self._pipeline_executor.init_pipeline()
-                self.runtime.initialization_succeeded = True
-                sc.mark("init")
+            self._pipeline_executor.init_pipeline()
+            self.runtime.initialization_succeeded = True
+            sc.mark("init")
 
-                self._pipeline_executor.run_pipeline(cleanup=False)
-                sc.mark("run")
-            finally:
-                self._pipeline_executor.cleanup_pipeline()
-                sc.mark("end")
-                sc.disable()
+            self._pipeline_executor.run_pipeline(cleanup=False)
+            sc.mark("run")
+        finally:
+            self._pipeline_executor.cleanup_pipeline()
+            sc.mark("end")
+            sc.disable()
         self.logger.info(
             "<<< Finish {} in the {} mode".format(
                 ArgumentsOptions.MAIN_COMMAND, self.run_mode.value

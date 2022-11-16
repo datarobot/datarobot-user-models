@@ -142,11 +142,13 @@ class PythonModelAdapter:
             raise RuntimeError("Found too many custom hook files: {}".format(custom_file_paths))
 
         if len(custom_file_paths) == 0:
-            print("No {}.py file detected in {}".format(CUSTOM_FILE_NAME, self._model_dir))
+            self._logger.info(
+                "No {}.py file detected in {}".format(CUSTOM_FILE_NAME, self._model_dir)
+            )
             return
 
         custom_file_path = custom_file_paths[0]
-        print("Detected {} .. trying to load hooks".format(custom_file_path))
+        self._logger.info("Detected {} .. trying to load hooks".format(custom_file_path))
         sys.path.insert(0, os.path.dirname(custom_file_path))
 
         try:
