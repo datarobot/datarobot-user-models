@@ -26,6 +26,7 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.resource_monitor import ResourceMonitor
 
+from datarobot_drum.resource.components.Python.prediction_server.stdout_flusher import StdoutFlusher
 from datarobot_drum.resource.deployment_config_helpers import parse_validate_deployment_config_file
 from datarobot_drum.resource.predict_mixin import PredictMixin
 
@@ -51,6 +52,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         self._target_type = None
         self._code_dir = None
         self._deployment_config = None
+        self._stdout_flusher = StdoutFlusher()
 
     def configure(self, params):
         super(PredictionServer, self).configure(params)
@@ -98,11 +100,22 @@ class PredictionServer(ConnectableComponent, PredictMixin):
                 "Prediction server doesn't support language: {} ".format(self._run_language)
             )
 
+        self._stdout_flusher.start()
         self._predictor.mlpiper_configure(params)
 
     def _terminate(self):
         if hasattr(self._predictor, "terminate"):
             self._predictor.terminate()
+        self._stdout_flusher.stop()
+
+    def _pre_predict_and_transform(self):
+        self._stats_collector.enable()
+        self._stats_collector.mark("start")
+
+    def _post_predict_and_transform(self):
+        self._stats_collector.mark("finish")
+        self._stats_collector.disable()
+        self._stdout_flusher.set_last_activity_time()
 
     def _materialize(self, parent_data_objs, user_data):
         model_api = base_api_blueprint(self._terminate)
@@ -132,14 +145,13 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         def predict():
             logger.debug("Entering predict() endpoint")
 
-            self._stats_collector.enable()
-            self._stats_collector.mark("start")
+            self._pre_predict_and_transform()
 
             try:
                 response, response_status = self.do_predict_structured(logger=logger)
             finally:
-                self._stats_collector.mark("finish")
-                self._stats_collector.disable()
+                self._post_predict_and_transform()
+
             return response, response_status
 
         @model_api.route("/transform/", methods=["POST"])
@@ -147,14 +159,13 @@ class PredictionServer(ConnectableComponent, PredictMixin):
 
             logger.debug("Entering transform() endpoint")
 
-            self._stats_collector.enable()
-            self._stats_collector.mark("start")
+            self._pre_predict_and_transform()
 
             try:
                 response, response_status = self.do_transform(logger=logger)
             finally:
-                self._stats_collector.mark("finish")
-                self._stats_collector.disable()
+                self._post_predict_and_transform()
+
             return response, response_status
 
         @model_api.route("/predictionsUnstructured/", methods=["POST"])
@@ -162,14 +173,13 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         def predict_unstructured():
             logger.debug("Entering predict() endpoint")
 
-            self._stats_collector.enable()
-            self._stats_collector.mark("start")
+            self._pre_predict_and_transform()
 
             try:
                 response, response_status = self.do_predict_unstructured(logger=logger)
             finally:
-                self._stats_collector.mark("finish")
-                self._stats_collector.disable()
+                self._post_predict_and_transform()
+
             return response, response_status
 
         @model_api.route("/stats/", methods=["GET"])

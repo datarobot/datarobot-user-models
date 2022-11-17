@@ -409,7 +409,7 @@ class CMRunTests:
         os.close(self._server_process_fd_read)
         os.close(self._server_process_fd_write)
 
-        os.killpg(os.getpgid(self._server_process.pid), signal.SIGINT)
+        _kill_drum_perf_test_server_process(self._server_process.pid)
         os.system("tput init")
 
     def _run_test_case(self, tc, results):
