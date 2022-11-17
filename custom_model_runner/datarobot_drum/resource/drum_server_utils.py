@@ -169,7 +169,8 @@ class DrumServerRun:
                 logger.warning("Forcefully killing process group: %s", pgid)
                 os.killpg(pgid, signal.SIGKILL)
                 self._server_thread.join(timeout=5)
-            raise TimeoutError("Server failed to shutdown gracefully in allotted time")
+            if self._server_thread.is_alive():
+                raise TimeoutError("Server failed to shutdown gracefully in allotted time")
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         # shutdown server
