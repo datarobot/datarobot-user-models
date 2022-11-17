@@ -20,7 +20,7 @@ class StdoutFlusher:
         self._flusher_thread.start()
 
     def is_alive(self):
-        """Check if the stdout flusher thread is avlive."""
+        """Check if the stdout flusher thread is alive."""
 
         return self._flusher_thread.is_alive()
 
