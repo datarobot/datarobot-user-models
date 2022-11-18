@@ -4,11 +4,11 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-# In some cases, avg(prediction) might not match avg(actuals)
+# In some cases, avg(predictions) might not match avg(actuals)
 # This task, added as a calibrator in the end of a regression blueprint, can help to fix that
 # During fit(), it computes and stores the calibration coefficient that is equal to avg(actuals) / avg(predicted) on
 # training data
-# During score(), it multiplies incoming data by the calibration coefficient
+# During predict(), it multiplies incoming data by the calibration coefficient
 
 import numpy as np
 import pandas as pd
@@ -19,7 +19,7 @@ from datarobot_drum.custom_task_interfaces import RegressionEstimatorInterface
 class CustomTask(RegressionEstimatorInterface):
     def fit(self, X: pd.DataFrame, y: pd.Series, **kwargs,) -> None:
 
-        self.multiplier = sum(y) / sum(X[X.columns[0]])
+        self.alibration_coefficient  = sum(y) / sum(X[X.columns[0]])
 
     def predict(
         self, data: pd.DataFrame, **kwargs,  # data that needs to be scored
@@ -29,6 +29,6 @@ class CustomTask(RegressionEstimatorInterface):
 
         # In case of regression, must return a dataframe with a single column with column name "Predictions"
         return pd.DataFrame(
-            data=np.array(data[data.columns[0]] * self.multiplier).reshape(-1, 1),
+            data=np.array(data[data.columns[0]] * self.alibration_coefficient ).reshape(-1, 1),
             columns=["Predictions"],
         )

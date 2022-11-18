@@ -33,7 +33,8 @@ class CustomTask(TransformerInterface):
         self.median = X.median(axis=0, numeric_only=True, skipna=True).to_dict()
 
     def transform(self, data: pd.DataFrame) -> pd.DataFrame:
-        """ This hook defines how DataRobot will use the trained object from fit() to transform new data.
+        """ TThis hook defines how DataRobot will use the trained object from fit() to transform new data.
+        In this example, the trained object is a dictionary with medians per column.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
         As an output, this hook is expected to return the transformed data.
         The input parameters are passed by DataRobot based on dataset and blueprint configuration.
