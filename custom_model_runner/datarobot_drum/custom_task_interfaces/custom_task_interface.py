@@ -122,8 +122,6 @@ class CustomTaskInterface(Serializable):
         This hook defines how DataRobot will train this task. Even transform tasks need to be
         trained to learn/store information from training data
         DataRobot runs this hook when the task is being trained inside a blueprint.
-        As an output, this hook is expected to create an artifact containing a trained object,
-        that is then used to transform new data.
         The input parameters are passed by DataRobot based on project and blueprint configuration.
 
         Parameters
