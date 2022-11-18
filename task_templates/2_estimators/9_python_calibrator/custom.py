@@ -19,7 +19,7 @@ from datarobot_drum.custom_task_interfaces import RegressionEstimatorInterface
 class CustomTask(RegressionEstimatorInterface):
     def fit(self, X: pd.DataFrame, y: pd.Series, **kwargs,) -> None:
 
-        self.alibration_coefficient  = sum(y) / sum(X[X.columns[0]])
+        self.calibration_coefficient = sum(y) / sum(X[X.columns[0]])
 
     def predict(
         self, data: pd.DataFrame, **kwargs,  # data that needs to be scored
@@ -29,6 +29,6 @@ class CustomTask(RegressionEstimatorInterface):
 
         # In case of regression, must return a dataframe with a single column with column name "Predictions"
         return pd.DataFrame(
-            data=np.array(data[data.columns[0]] * self.alibration_coefficient ).reshape(-1, 1),
+            data=np.array(data[data.columns[0]] * self.calibration_coefficient).reshape(-1, 1),
             columns=["Predictions"],
         )
