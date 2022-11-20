@@ -40,12 +40,10 @@ class DrumRuntime:
             # exception occurred before args were parsed
             return False  # propagate exception further
 
-        logger_drum.warning(
-            colored(
-                f"Looks like there is a problem. To get more output information try to run with: {ArgumentsOptions.VERBOSE}",
-                "yellow",
-            )
-        )
+        msg = "Looks like there is a problem."
+        if not self.options.verbose:
+            msg += f" To get more output information try to run with: '{ArgumentsOptions.VERBOSE}'."
+        logger_drum.warning(colored(msg, "yellow"))
 
         run_mode = RunMode(self.options.subparser_name)
 
