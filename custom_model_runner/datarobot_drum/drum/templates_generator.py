@@ -5,7 +5,6 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import os
-import shutil
 import logging
 import time
 import pprint
@@ -14,7 +13,6 @@ from jinja2 import Environment, FileSystemLoader
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     CUSTOM_FILE_NAME,
-    CustomHooks,
     ArgumentsOptions,
     RunLanguage,
     TemplateType,
