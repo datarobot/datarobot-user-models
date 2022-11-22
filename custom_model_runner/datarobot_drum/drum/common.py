@@ -14,7 +14,7 @@ from typing import Dict, List
 from typing import Optional as PythonTypingOptional
 
 from contextlib import contextmanager
-from strictyaml import Bool, Int, Map, Optional, Str, load, YAMLError, Seq, Any, YAMLValidationError
+from strictyaml import Bool, Int, Map, Optional, Str, load, YAMLError, Seq, Any
 from pathlib import Path
 import six
 import trafaret as t

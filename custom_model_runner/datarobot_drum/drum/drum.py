@@ -23,7 +23,6 @@ from typing import Callable
 from typing import Dict
 from typing import Union
 
-import yaml
 
 import docker.errors
 import pandas as pd
@@ -31,7 +30,6 @@ from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
 from datarobot_drum.drum.adapters.r.r_model_adapter import RModelAdapter
 from datarobot_drum.drum.common import get_metadata, FIT_METADATA_FILENAME
 from datarobot_drum.drum.common import read_model_metadata_yaml
-from datarobot_drum.drum.common import verbose_stdout
 
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.enum import CUSTOM_FILE_NAME
