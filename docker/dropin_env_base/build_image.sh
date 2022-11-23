@@ -15,4 +15,4 @@ pwd
 
 echo "Building docker image: ${IMAGE_NAME}:${IMAGE_TAG}"
 DATAROBOT_MLOPS_VERSION=8.2.7 ${SCRIPT_DIR}/pull_artifacts.sh
-docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+docker build --build-arg DATAROBOT_MLOPS_VERSION=8.2.7 -t ${IMAGE_NAME}:${IMAGE_TAG} .
