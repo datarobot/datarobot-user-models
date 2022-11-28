@@ -14,5 +14,6 @@ IMAGE_TAG=debian11-py3.9-jre11.0.16-drum1.9.10-mlops8.2.7
 pwd
 
 echo "Building docker image: ${IMAGE_NAME}:${IMAGE_TAG}"
-DATAROBOT_MLOPS_VERSION=8.2.7 ${SCRIPT_DIR}/pull_artifacts.sh
-docker build --build-arg DATAROBOT_MLOPS_VERSION=8.2.7 -t ${IMAGE_NAME}:${IMAGE_TAG} .
+export DATAROBOT_MLOPS_VERSION=8.2.7
+${SCRIPT_DIR}/pull_artifacts.sh
+docker build --build-arg DATAROBOT_MLOPS_VERSION=${DATAROBOT_MLOPS_VERSION} -t ${IMAGE_NAME}:${IMAGE_TAG} .
