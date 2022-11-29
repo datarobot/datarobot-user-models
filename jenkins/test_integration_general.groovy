@@ -1,5 +1,4 @@
 node('multi-executor && ubuntu:focal'){
-  checkout scm
   stage ('test_integration_all_in_one_bare_metal') {
     checkout scm
 
