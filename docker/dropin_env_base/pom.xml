@@ -16,6 +16,12 @@
             <version>${mlops.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.datarobot</groupId>
+            <artifactId>mlops-agent</artifactId>
+            <version>${mlops.version}</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -33,7 +39,7 @@
                             <overWriteIfNewer>true</overWriteIfNewer>
                             <outputDirectory>${basedir}</outputDirectory>
                             <includeArtifactIds>
-                                datarobot-mlops
+                                datarobot-mlops,mlops-agent
                             </includeArtifactIds>
                         </configuration>
                     </execution>
