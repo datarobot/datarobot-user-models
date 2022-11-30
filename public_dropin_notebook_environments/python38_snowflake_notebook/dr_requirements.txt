@@ -1,0 +1,4 @@
+jupyter_kernel_gateway==2.5.1
+jupyter_core==5.0.0rc2
+pandas==1.5.1
+mistune==2.0.4

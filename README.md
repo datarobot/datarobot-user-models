@@ -2,7 +2,7 @@
 
 ## What is this repository? <a name="what_is_it"></a>
 This repository contains tools, templates, and information for assembling, debugging, testing, 
-and running your custom inference models and custom tasks with DataRobot.
+and running your custom inference models, custom tasks and custom notebook environments with DataRobot.
 
 The [./task_templates](./task_templates) 
 and [./model_templates](./model_templates)
