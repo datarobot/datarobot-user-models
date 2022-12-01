@@ -30,7 +30,7 @@ COPY ./.Rprofile ${WORKDIR}/
 COPY ./jupyter_kernel_gateway_config.py ./start_server.sh ${WORKDIR}/
 COPY ./agent/agent.py ${WORKDIR}${AGENTDIR}/
 COPY ./agent/cgroup_monitor.py ${WORKDIR}${AGENTDIR}/
-COPY ./requirements-base.txt ./agent/requirements-agent.txt ${WORKDIR}/
+COPY ./dr_requirements.txt ./agent/requirements-agent.txt ${WORKDIR}/
 COPY ./setup-base.R ${WORKDIR}/
 
 RUN microdnf update \
@@ -65,10 +65,10 @@ RUN curl -O https://cdn.rstudio.com/r/centos-8/pkgs/R-${R_VERSION}-1-1.x86_64.rp
 
 RUN microdnf install -y java-11-openjdk-devel && R CMD javareconf && microdnf clean all
 
-RUN pip3 install --no-cache-dir -r ${WORKDIR}/requirements-base.txt \
+RUN pip3 install --no-cache-dir -r ${WORKDIR}/dr_requirements.txt \
     && pip3 install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt \
     && rm ${WORKDIR}/requirements-agent.txt \
-    && rm ${WORKDIR}/requirements-base.txt \
+    && rm ${WORKDIR}/dr_requirements.txt \
     && chmod a+x ${WORKDIR}/start_server.sh
 
 RUN R < setup-base.R --no-save && rm ${WORKDIR}/setup-base.R

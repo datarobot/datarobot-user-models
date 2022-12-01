@@ -12,7 +12,7 @@ In this repository, we provide several example environments that you can use and
 
 These sample environments each define the libraries available in the environment 
 and are designed to allow for simple custom notebook environments to be made that 
-consist solely of your model's artifacts and an optional custom code file, if necessary.
+consist solely of your custom packages if necessary.
 
 For detailed information on how to run notebooks that work in these environments, 
 reference the links above for each environment.
