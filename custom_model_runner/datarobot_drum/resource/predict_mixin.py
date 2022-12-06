@@ -345,6 +345,7 @@ class PredictMixin:
         if charset is not None:
             kwargs_params[UnstructuredDtoKeys.CHARSET] = charset
         kwargs_params[UnstructuredDtoKeys.QUERY] = request.args
+        kwargs_params[UnstructuredDtoKeys.HEADERS] = dict(request.headers)
 
         ret_data, ret_kwargs = self._predictor.predict_unstructured(
             data_binary_or_text, **kwargs_params

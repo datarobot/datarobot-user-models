@@ -200,6 +200,7 @@ Include any necessary hooks in a file called `custom.py` for Python models, `cus
         - `mimetype: str` - indicates the nature and format of the data, taken from request Content-Type header or `--content-type` CLI arg in batch mode;
         - `charset: str` - indicates encoding for text data, taken from request Content-Type header or `--content-type` CLI arg in batch mode;
         - `query: dict` - params passed as query params in http request or in CLI `--query` argument in batch mode.
+        - `headers: dict` - request headers passed in http request.
     - This method should return:
         - a single value `return data: str/bytes`
         - a tuple `return data: str/bytes, kwargs: dict[str, str]`
