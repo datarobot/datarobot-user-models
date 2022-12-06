@@ -15,4 +15,5 @@ For specific version information, see [requirements](requirements.txt).
 
 ### Using this environment in notebooks
 
-Upon successful build, the custom environment can be used in notebooks, by selecting it from `ENVIRONMENT` settings > `Image`.
+Upon successful build, the custom environment can be used in notebooks, by selecting it 
+from `ENVIRONMENT` settings > `Image` in the notebook sidebar.

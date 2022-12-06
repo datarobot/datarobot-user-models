@@ -16,6 +16,9 @@ see the community examples repo at: https://github.com/datarobot-community/custo
 Please note that these examples may not stay up to date with the latest API
 or best practices. 
 
+The [./public_dropin_notebook_environments](./public_dropin_notebook_environments) contains template examples 
+(sample Dockerfile and context) for how to create custom images to use as the environments for DataRobot Notebooks.
+
 
 For further documentation on this and all other features please visit our 
 comprehensive documentation at: https://docs.datarobot.com/
