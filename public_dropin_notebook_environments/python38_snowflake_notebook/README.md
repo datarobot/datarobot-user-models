@@ -4,7 +4,8 @@ This template environment can be used to create custom Python 3.8 notebook envir
 
 ## Supported Libraries
 
-This environment has been built for Python 3.8 with the Snowflake Python Connector, Snowpark, and other dependencies and packages.
+This environment has been built for Python 3.8 with the Snowflake Python Connector, Snowpark, and 
+includes commonly used OSS machine learning and data science libraries.
 For specific version information, see [requirements](requirements.txt).
 
 ## Instructions

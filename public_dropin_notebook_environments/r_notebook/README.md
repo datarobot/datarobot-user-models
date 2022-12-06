@@ -4,7 +4,7 @@ This template environment can be used to create custom R notebook environments.
 
 ## Supported Libraries
 
-This environment has been built for R and supported libraries.
+This environment has been built for R and includes commonly used OSS machine learning and data science R packages.
 For specific version information, see [requirements](requirements.txt).
 
 ## Instructions

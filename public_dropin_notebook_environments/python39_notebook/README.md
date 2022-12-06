@@ -4,7 +4,7 @@ This template environment can be used to create custom Python 3.9 notebook envir
 
 ## Supported Libraries
 
-This environment has been built for python 3.9 and supported libraries.
+This environment has been built for python 3.9 and includes commonly used OSS machine learning and data science libraries.
 For specific version information, see [requirements](requirements.txt).
 
 ## Instructions
