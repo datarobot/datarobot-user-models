@@ -21,8 +21,8 @@ async def websocket_endpoint(websocket: WebSocket):
     while True:
         await websocket.send_json(
             {
-                'cpu_percent': cgroup_monitor.cpu_usage_percentage(),
-                'mem_percent': cgroup_monitor.memory_usage_percentage(),
+                "cpu_percent": cgroup_monitor.cpu_usage_percentage(),
+                "mem_percent": cgroup_monitor.memory_usage_percentage(),
             }
         )
 

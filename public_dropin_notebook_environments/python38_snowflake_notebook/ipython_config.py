@@ -7,4 +7,4 @@
 # publication of such source code.
 
 # This need to load extensions automaticaly when kernel starting
-c.InteractiveShellApp.extensions = ['dataframe_formatter']
+c.InteractiveShellApp.extensions = ["dataframe_formatter"]

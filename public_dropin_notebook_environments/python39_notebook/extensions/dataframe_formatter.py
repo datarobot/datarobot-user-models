@@ -49,7 +49,7 @@ class DataframeFilterParams(Entity):
 
 def _get_dataframe_columns(df: DataFrame) -> list[dict[str, typing.Any]]:
     schema = io.json.build_table_schema(df)
-    return schema['fields']
+    return schema["fields"]
 
 
 # DataFrame pagination if pagination attrs exist
@@ -65,7 +65,7 @@ def _paginate_dataframe(df: DataFrame, pagination: DataframePaginationAttributes
 
 
 def _sort_dataframe(df: DataFrame, sort_by: str) -> DataFrame:
-    sorting_list = sort_by.split(',')
+    sorting_list = sort_by.split(",")
     sort_by_list = []
     ascending_list = []
     for sort_key in sorting_list:
@@ -79,7 +79,9 @@ def _sort_dataframe(df: DataFrame, sort_by: str) -> DataFrame:
     return sorted_df
 
 
-def _aggregate_dataframe(df: DataFrame, aggregation_params: DataframeAggregationParams) -> DataFrame:
+def _aggregate_dataframe(
+    df: DataFrame, aggregation_params: DataframeAggregationParams
+) -> DataFrame:
     try:
         aggregated = df.groupby(aggregation_params.group_by).aggregate(
             {f"{aggregation_params.aggregate_by}": aggregation_params.aggregation_func}
@@ -93,24 +95,26 @@ def _aggregate_dataframe(df: DataFrame, aggregation_params: DataframeAggregation
 
 
 def _transform_to_json(data: DataFrame):
-    return json.loads(data.to_json(orient='table', index=True))['data']
+    return json.loads(data.to_json(orient="table", index=True))["data"]
 
 
 # This formatter can operate with a data that we are received as a DataFrame
-def formatter(val: "DataFrame", formatter: typing.Callable[..., list[str]] = None, **formatter_kwargs):
+def formatter(
+    val: "DataFrame", formatter: typing.Callable[..., list[str]] = None, **formatter_kwargs
+):
     dataframe_limit = 5000
     dataframe_id = id(val)
     pagination = DataframePaginationAttributes(limit=10, offset=0)
     data = val
-    sort_by = ''
+    sort_by = ""
     columns = _get_dataframe_columns(val)
     # check if it's a dataframe for ChartCell then return full dataframe
-    if hasattr(val, 'attrs') and 'returnAll' in val.attrs and val.attrs['returnAll']:
-        if 'aggregation' in val.attrs:
+    if hasattr(val, "attrs") and "returnAll" in val.attrs and val.attrs["returnAll"]:
+        if "aggregation" in val.attrs:
             aggregation = DataframeAggregationParams(
-                group_by=val.attrs['aggregation']['group_by'],
-                aggregate_by=val.attrs['aggregation']['aggregate_by'],
-                aggregation_func=val.attrs['aggregation']['aggregation_func'],
+                group_by=val.attrs["aggregation"]["group_by"],
+                aggregate_by=val.attrs["aggregation"]["aggregate_by"],
+                aggregation_func=val.attrs["aggregation"]["aggregation_func"],
             )
             data = _aggregate_dataframe(val, aggregation)
 
@@ -119,20 +123,20 @@ def formatter(val: "DataFrame", formatter: typing.Callable[..., list[str]] = Non
             data = _paginate_dataframe(data, pagination)
 
         return {
-            'columns': columns,
-            'data': _transform_to_json(data),
-            'referenceId': dataframe_id,
+            "columns": columns,
+            "data": _transform_to_json(data),
+            "referenceId": dataframe_id,
         }
 
     # Sorting step, gets attrs that has been setuped in DataframeProcessor
-    if hasattr(val, 'attrs') and 'sort_by' in val.attrs:
-        data = _sort_dataframe(df=data, sort_by=val.attrs['sort_by'])
-        sort_by = val.attrs['sort_by']
+    if hasattr(val, "attrs") and "sort_by" in val.attrs:
+        data = _sort_dataframe(df=data, sort_by=val.attrs["sort_by"])
+        sort_by = val.attrs["sort_by"]
 
     # Pagination step, gets attrs that has been setuped in DataframeProcessor
-    if hasattr(val, 'attrs') and 'pagination' in val.attrs:
+    if hasattr(val, "attrs") and "pagination" in val.attrs:
         pagination = DataframePaginationAttributes(
-            limit=val.attrs['pagination']['limit'], offset=val.attrs['pagination']['offset']
+            limit=val.attrs["pagination"]["limit"], offset=val.attrs["pagination"]["offset"]
         )
     # is dataframe length is less than pagingation limit
     # no need to paginate it
@@ -140,14 +144,14 @@ def formatter(val: "DataFrame", formatter: typing.Callable[..., list[str]] = Non
         data = _paginate_dataframe(data, pagination)
 
     return {
-        'data': _transform_to_json(data),
-        'columns': columns,
-        'count': len(data.index),
-        'totalCount': len(val.index),
-        'offset': int(pagination.offset),
-        'limit': int(pagination.limit),
-        'referenceId': dataframe_id,
-        'sortedBy': sort_by,
+        "data": _transform_to_json(data),
+        "columns": columns,
+        "count": len(data.index),
+        "totalCount": len(val.index),
+        "offset": int(pagination.offset),
+        "limit": int(pagination.limit),
+        "referenceId": dataframe_id,
+        "sortedBy": sort_by,
     }
 
 
@@ -159,10 +163,10 @@ class DataFrameFormatter(BaseFormatter):
     so it will return as a new mime type: application/vnd.dataframe in output.
     """
 
-    format_type = Unicode('application/vnd.dataframe')
+    format_type = Unicode("application/vnd.dataframe")
     _return_type = (list, dict)
 
-    print_method = ObjectName('_repr_json_')
+    print_method = ObjectName("_repr_json_")
 
     def _check_return(self, r, obj):
         """Check that a return value is appropriate
@@ -189,6 +193,6 @@ def load_ipython_extension(ipython):
         ipython.display_formatter.formatters["application/vnd.dataframe"] = DataFrameFormatter()
         dataframe_formatter = ipython.display_formatter.formatters["application/vnd.dataframe"]
         dataframe_formatter.for_type(DataFrame, formatter)
-        print('Pandas DataFrame MimeType Extension loaded')
+        print("Pandas DataFrame MimeType Extension loaded")
     else:
         print("Please make `pip install pandas` to use DataFrame extension")
