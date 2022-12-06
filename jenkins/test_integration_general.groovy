@@ -1,4 +1,4 @@
-node('multi-executor && ubuntu:focal'){
+node('16xCPU~32xRAM && ubuntu:focal'){
   stage ('test_integration_all_in_one_bare_metal') {
     checkout scm
 
