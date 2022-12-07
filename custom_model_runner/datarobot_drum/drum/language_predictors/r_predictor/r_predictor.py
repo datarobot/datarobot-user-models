@@ -200,6 +200,10 @@ class RPredictor(BaseLanguagePredictor):
             kwargs[UnstructuredDtoKeys.QUERY] = ro.vectors.ListVector(
                 kwargs[UnstructuredDtoKeys.QUERY]
             )
+        if UnstructuredDtoKeys.HEADERS in kwargs:
+            kwargs[UnstructuredDtoKeys.HEADERS] = ro.vectors.ListVector(
+                kwargs[UnstructuredDtoKeys.HEADERS]
+            )
 
         # if data_binary_or_text is str it will be auto converted into R character type;
         # otherwise if it is bytes, manually convert it into byte vector (raw)
