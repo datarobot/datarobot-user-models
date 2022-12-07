@@ -22,10 +22,8 @@ def score_unstructured(model, data, query, **kwargs):
     mlops = kwargs.get("mlops")
     print(f"MLOps supported: {mlops is not None}")
 
-    headers = None
-    if "headers" in kwargs:
-        headers = kwargs["headers"]
-        print("Incoming request headers: ", headers)
+    headers = kwargs.get("headers")
+    print("Incoming request headers: ", headers)
     print("Incoming query params: ", query)
 
     if headers and "multipart/form-data" in headers.get("Content-Type"):
