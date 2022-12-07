@@ -39,10 +39,7 @@ def score_unstructured(model, data, query, **kwargs):
         filestorage = files.get("filekey")
         data = filestorage.stream.read()
 
-    if isinstance(data, bytes):
-        text_data = data.decode("utf8")
-    else:
-        text_data = data
+    text_data = data.decode("utf8") if isinstance(data, bytes) else data
 
     text_data = text_data.strip().replace("  ", " ")
     words_count = text_data.count(" ") + 1
