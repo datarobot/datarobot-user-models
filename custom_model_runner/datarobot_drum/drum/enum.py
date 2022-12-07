@@ -110,6 +110,7 @@ class CustomHooks:
 class UnstructuredDtoKeys:
     DATA = "data"
     QUERY = "query"
+    HEADERS = "headers"
     MIMETYPE = "mimetype"
     CHARSET = "charset"
 

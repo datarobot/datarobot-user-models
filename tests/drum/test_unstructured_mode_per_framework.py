@@ -18,6 +18,8 @@ from datarobot_drum.resource.utils import (
     _create_custom_model_dir,
 )
 
+from requests_toolbelt import MultipartEncoder
+
 from tests.drum.constants import (
     R_NO_ARTIFACTS,
     SKLEARN_NO_ARTIFACTS,
@@ -128,6 +130,34 @@ class TestUnstructuredMode:
                         assert response.text == "10"
                     else:
                         assert 10 == int.from_bytes(response.content, byteorder="big")
+
+    @pytest.mark.parametrize(
+        "framework, problem, language",
+        [(SKLEARN_NO_ARTIFACTS, UNSTRUCTURED, PYTHON_UNSTRUCTURED),],
+    )
+    def test_unstructured_model_multipart_form_data_with_drum_prediction_server(
+        self, resources, framework, problem, language, tmp_path, framework_env,
+    ):
+        skip_if_framework_not_in_env(framework, framework_env)
+        custom_model_dir = _create_custom_model_dir(
+            resources, tmp_path, framework, problem, language,
+        )
+
+        with DrumServerRun(
+            "unstructured", resources.class_labels(framework, problem), custom_model_dir,
+        ) as run:
+            input_dataset = resources.datasets(framework, problem)
+
+            for endpoint in ["/predictUnstructured/", "/predictionsUnstructured/"]:
+                # do predictions
+                mp = MultipartEncoder({"filekey": ("filename.txt", open(input_dataset, "rb"))})
+                headers = {"Content-Type": mp.content_type}
+                url = run.url_server_address + endpoint
+                params = {"ret_mode": "text"}
+                response = requests.post(url=url, headers=headers, data=mp, params=params)
+
+                assert response.ok
+                assert response.text == "10"
 
     @pytest.mark.parametrize(
         "framework, problem, language",

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### [1.9.14] - In Progress
 ##### Added
 - Enable users to print logs from their custom models without any special flags or requirements.
+- Pass request headers into the score_unstructured() hook.
 
 #### [1.9.13] - 2022-11-08
 ##### Changed

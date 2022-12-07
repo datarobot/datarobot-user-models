@@ -86,3 +86,16 @@ Open output file `out_file`. It should contain text `10`, which is the word coun
 
 Now change `ret_mode` to `binary`. You will be unable to open `out_file` as a text file. On a Linux system, use the command `xxd out_file`. You should see `00000000: 0000 000a`.   
 `0000 000a` - is 4 bytes, representing integer `10`.
+
+
+#### Submitting text and multipart form data request to unstructured model
+This example shows how to parse multipart form data in the score_unstructured() hook.  
+Start unstructured model in the DRUM `server` mode:  
+`drum server --code-dir model_templates/python3_unstructured --target-type unstructured --address localhost:6789 --verbose`
+
+Try to submit request using curl:  
+In-body text input:  
+`curl -i -X POST "http://localhost:6789/predictionsUnstructured/"  -d @<path to data>/datarobot-user-models/tests/testdata/unstructured_data.txt`
+
+Multipart form data input:  
+`curl -i -X POST "http://localhost:6789/predictionsUnstructured/"  -F filekey=@<path to data>/datarobot-user-models/tests/testdata/unstructured_data.txt`
