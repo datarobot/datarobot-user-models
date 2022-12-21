@@ -14,7 +14,7 @@ import psutil  # type: ignore
 # Parts of this code have been reused from repo:
 # https://github.com/neptune-ai/neptune-client/blob/master/LICENSE
 
-NANO_SECS = 10**9
+NANO_SECS = 10 ** 9
 
 
 class SystemWatcher:
