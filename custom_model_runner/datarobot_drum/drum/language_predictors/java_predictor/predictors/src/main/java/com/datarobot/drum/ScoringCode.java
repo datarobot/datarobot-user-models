@@ -1,9 +1,11 @@
 package com.datarobot.drum;
 
+import com.datarobot.prediction.Explanation;
 import com.datarobot.prediction.IClassificationPredictor;
 import com.datarobot.prediction.IPredictorInfo;
 import com.datarobot.prediction.IRegressionPredictor;
 import com.datarobot.prediction.Predictors;
+import com.datarobot.prediction.Score;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
@@ -16,6 +18,7 @@ import java.util.*;
 public class ScoringCode extends BasePredictor {
     private IPredictorInfo model;
     private boolean isRegression;
+    private boolean withExplanations = false;
     private String negativeClassLabel = null;
     private String positiveClassLabel = null;
     private String[] classLabels = null;
@@ -56,18 +59,79 @@ public class ScoringCode extends BasePredictor {
     private String predictionsToString(List<?> predictions) throws Exception {
         CSVPrinter csvPrinter = null;
 
+        ArrayList<String> explanationsHeaders = null;
+        if (this.withExplanations) {
+            if (predictions.size() > 0) {
+                explanationsHeaders = new ArrayList<String>();
+                var scoreObj = (Score)predictions.get(0);
+                var explList = scoreObj.getPredictionExplanation();
+                for (int i = 1; i <= explList.size(); i++) {
+                    var prefix = "explanation_" + String.valueOf(i);
+                    explanationsHeaders.add(prefix + "_feature_name");
+                    explanationsHeaders.add(prefix + "_strength");
+                    explanationsHeaders.add(prefix + "_actual_value");
+                    explanationsHeaders.add(prefix + "_qualitative_strength");
+                }
+            }
+        }
+
         try {
+            var headers = new ArrayList<String>();
             if (this.isRegression) {
-                csvPrinter = new CSVPrinter(new StringWriter(), CSVFormat.DEFAULT.withHeader("Predictions"));
-                for (var value : predictions) {
-                    csvPrinter.printRecord(value);
+                headers.add("Predictions");
+                if (this.withExplanations) {
+                    headers.addAll(explanationsHeaders);
+                    csvPrinter = new CSVPrinter(new StringWriter(), CSVFormat.DEFAULT.withHeader(headers.toArray(String[]::new)));
+                    for (var value : predictions) {
+                        var scoreObj = (Score)value;
+                        var score = scoreObj.getScore();
+                        List<Explanation> explList = scoreObj.getPredictionExplanation();
+                        var values = new ArrayList<>();
+                        values.add(score);
+                        for (Explanation expl : explList) {
+                            values.add(expl.getFeatureName());
+                            values.add(expl.getStrength());
+                            values.add(expl.getFeatureValue());
+                            values.add(expl.getStrengthScore());
+                        }
+                        csvPrinter.printRecord(values);
+                    }
+                } else {
+                    csvPrinter = new CSVPrinter(new StringWriter(), CSVFormat.DEFAULT.withHeader(headers.toArray(String[]::new)));
+                    for (var value : predictions) {
+                        csvPrinter.printRecord(value);
+                    }
                 }
             } else {
-                csvPrinter = new CSVPrinter(new StringWriter(), CSVFormat.DEFAULT.withHeader(this.classLabels));
-                for (var val : predictions) {
-                    HashMap<String, Double> value = (HashMap<String, Double>) val;
-                    var predRow = Arrays.stream(this.classLabels).map(value::get).toArray(Double[]::new);
-                    csvPrinter.printRecord(predRow);
+                headers.addAll(Arrays.asList(this.classLabels));
+                if (this.withExplanations) {
+                    headers.addAll(explanationsHeaders);
+                    csvPrinter = new CSVPrinter(new StringWriter(), CSVFormat.DEFAULT.withHeader(headers.toArray(String[]::new)));
+
+                    for (var value : predictions) {
+                        var predRow = new ArrayList<>();
+                        var scoreObj = (Score)value;
+
+                        HashMap<String, Double> score = (HashMap<String, Double>) scoreObj.getScore();
+                        var scores = Arrays.stream(this.classLabels).map(score::get).toArray(Double[]::new);
+                        predRow.addAll(Arrays.asList(scores));
+
+                        List<Explanation> explList = scoreObj.getPredictionExplanation();
+                        for (Explanation expl : explList) {
+                            predRow.add(expl.getFeatureName());
+                            predRow.add(expl.getStrength());
+                            predRow.add(expl.getFeatureValue());
+                            predRow.add(expl.getStrengthScore());
+                        }
+                        csvPrinter.printRecord(predRow);
+                    }
+                } else {
+                    csvPrinter = new CSVPrinter(new StringWriter(), CSVFormat.DEFAULT.withHeader(headers.toArray(String[]::new)));
+                    for(var val : predictions) {
+                        HashMap<String, Double> value = (HashMap<String, Double>) val;
+                        var predRow = Arrays.stream(this.classLabels).map(value::get).toArray(Double[]::new);
+                        csvPrinter.printRecord(Arrays.asList(predRow));
+                    }
                 }
             }
         } catch (IOException e) {
@@ -86,6 +150,7 @@ public class ScoringCode extends BasePredictor {
         this.negativeClassLabel = (String) this.params.get("negativeClassLabel");
         this.positiveClassLabel = (String) this.params.get("positiveClassLabel");
         this.classLabels = (String[]) this.params.get("classLabels");
+        this.withExplanations = (boolean) this.params.getOrDefault("withExplanations", false);
 
         if (this.negativeClassLabel != null && this.positiveClassLabel != null) {
             this.classLabels = new String[]{this.positiveClassLabel, this.negativeClassLabel};
@@ -113,18 +178,31 @@ public class ScoringCode extends BasePredictor {
     }
 
     private Object scoreRow(Map<String, ?> row) {
+        Object scoreObj = null;
         if (isRegression) {
-            return ((IRegressionPredictor) model).score(row);
-        } else {
-            var prediction = ((IClassificationPredictor) model).score(row);
-            var originalClassLabels = ((IClassificationPredictor) model).getClassLabels();
-            if (originalClassLabels.length == 2) {
-                var remappedPrediction = new HashMap<String, Double>();
-                remappedPrediction.put(this.classLabels[1], prediction.get(originalClassLabels[1]));
-                remappedPrediction.put(this.classLabels[0], prediction.get(originalClassLabels[0]));
-                prediction = remappedPrediction;
+            if (withExplanations) {
+                scoreObj = (Object)((IRegressionPredictor) model).scoreWithExplanations(row);
+            } else {
+                scoreObj = ((IRegressionPredictor) model).score(row);
             }
-            return prediction;
+        } else {
+            Map<String, Double> scoreValueRef = null;
+            if (withExplanations) {
+                var sc = ((IClassificationPredictor) model).scoreWithExplanations(row);
+                scoreValueRef = sc.getScore();
+                scoreObj = (Object)sc;
+            } else {
+                scoreObj = ((IClassificationPredictor) model).score(row);
+                scoreValueRef = (Map<String, Double>)scoreObj;
+            }
+
+            var originalClassLabels = ((IClassificationPredictor) model).getClassLabels();
+
+            if (originalClassLabels.length == 2) {
+                scoreValueRef.put(this.classLabels[1], scoreValueRef.remove(originalClassLabels[1]));
+                scoreValueRef.put(this.classLabels[0], scoreValueRef.remove(originalClassLabels[0]));
+            }
         }
+        return scoreObj;
     }
 }

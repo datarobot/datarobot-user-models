@@ -15,6 +15,7 @@ import time
 import atexit
 import pandas as pd
 import re
+import numpy as np
 from itertools import chain
 import tempfile
 
@@ -22,6 +23,7 @@ from io import StringIO
 from contextlib import closing
 
 from datarobot_drum.drum.common import SupportedPayloadFormats
+from datarobot_drum.drum.common import TargetType
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     StructuredDtoKeys,
@@ -30,9 +32,10 @@ from datarobot_drum.drum.enum import (
     EnvVarNames,
     PayloadFormat,
 )
+from datarobot_drum.drum.data_marshalling import marshal_predictions
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.utils.drum_utils import DrumUtils
+
 
 from py4j.java_gateway import GatewayParameters, CallbackServerParameters, JavaGateway
 from py4j.java_collections import MapConverter
@@ -182,6 +185,33 @@ class JavaPredictor(BaseLanguagePredictor):
 
         out_df = pd.read_csv(StringIO(out_csv))
         return out_df.values, out_df.columns
+
+    def predict_with_explanations(self, **kwargs):
+        start_predict = time.time()
+        predictions, labels_in_predictions = self._predict(**kwargs)
+        explanations = None
+        if self.target_type == TargetType.REGRESSION:
+            explanations = pd.DataFrame(predictions[:, 1:], columns=labels_in_predictions[1:])
+            predictions = predictions[:, 0]
+        elif self.target_type.value in TargetType.CLASSIFICATION.value:
+            num_classes = len(self.class_ordering)
+            explanations = pd.DataFrame(predictions[:, num_classes:], columns=labels_in_predictions[num_classes:])
+            predictions = predictions[:, 0: num_classes]
+            labels_in_predictions = labels_in_predictions[0: num_classes]
+
+        predictions = predictions.astype("float64")
+        predictions = marshal_predictions(
+            request_labels=self.class_ordering,
+            predictions=predictions,
+            target_type=self.target_type,
+            model_labels=labels_in_predictions,
+        )
+        end_predict = time.time()
+        execution_time_ms = (end_predict - start_predict) * 1000
+        self.monitor(kwargs, predictions, execution_time_ms)
+
+        # return pd.concat([predictions, explanations], axis=1)
+        return predictions, explanations
 
     def predict_unstructured(self, data, **kwargs):
         mimetype = kwargs.get(UnstructuredDtoKeys.MIMETYPE, "")
