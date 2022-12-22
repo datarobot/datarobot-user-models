@@ -2,7 +2,7 @@
 
 ## What is this repository? <a name="what_is_it"></a>
 This repository contains tools, templates, and information for assembling, debugging, testing, 
-and running your custom inference models and custom tasks with DataRobot.
+and running your custom inference models, custom tasks and custom notebook environments with DataRobot.
 
 The [./task_templates](./task_templates) 
 and [./model_templates](./model_templates)
@@ -15,6 +15,9 @@ For further examples, provided as-is, that often contain more complex logic plea
 see the community examples repo at: https://github.com/datarobot-community/custom-models. 
 Please note that these examples may not stay up to date with the latest API
 or best practices. 
+
+The [./public_dropin_notebook_environments](./public_dropin_notebook_environments) contains template examples 
+(sample Dockerfile and context) for how to create custom images to use as the environments for DataRobot Notebooks.
 
 
 For further documentation on this and all other features please visit our 
