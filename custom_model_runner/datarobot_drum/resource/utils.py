@@ -10,7 +10,6 @@ import shutil
 import shlex
 import subprocess
 
-
 from datarobot_drum.drum.enum import (
     ArgumentOptionsEnvVars,
     PythonArtifacts,
