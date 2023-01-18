@@ -239,7 +239,23 @@ The best way to debug in batch mode is to provide `--output` file. Returned data
 - `str` data -> text file, using default `utf8` or returned in kwargs charset;
 - `bytes` data -> binary file.  
   (Returned `kwargs` are not shown in the batch mode, but you can still print them during debugging).
+
+#### Auxiliaries
+Users may use the `datarobot_drum.RuntimeParameters` in their code (e.g. `custom.py`) to read
+runtime-parameters that are delivered to the executed custom model. The runtime-parameters are
+supposed to be defined by the user via the DataRobot web UI.
+
+Here is a simple example of reading a string and credential runtime parameters:
+```
+from datarobot_drum import RuntimeParameters
+
+def load_model(code_dir):
+    target_url = RuntimeParameters.get("TARGET_URL")
+    s3_creds = RuntimeParameters.get("AWS_CREDENIAL")
+    ...
+```
   
+
 ## Test an inference model with DRUM locally <a name="test_inference_model_drum"></a>
 
 Custom model runner (DRUM) is a tool that helps to assemble, test, and run custom models. 

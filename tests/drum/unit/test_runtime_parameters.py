@@ -28,7 +28,6 @@ class TestRuntimeParameters:
                     "aws_access_key_id": "123aaa",
                     "aws_secret_access_key": "3425sdd",
                     "aws_session_token": "12345abcde",
-                    "name": "My AWS Key",
                 },
             ),
             (
@@ -48,8 +47,7 @@ class TestRuntimeParameters:
         formatted_runtime_param_name = f"MLOPS_RUNTIME_PARAM_{runtime_param_name}"
         runtime_param_env_value = json.dumps({"type": runtime_param_type.value, "payload": payload})
         with patch.dict(os.environ, {formatted_runtime_param_name: runtime_param_env_value}):
-            payload = RuntimeParameters.get(runtime_param_name)
-            assert payload == payload
+            assert RuntimeParameters.get(runtime_param_name) == payload
 
     @pytest.mark.parametrize(
         "runtime_param_type, payload",
@@ -95,7 +93,6 @@ class TestRuntimeParameters:
             "aws_access_key_id": "123aaa",  # Mutual exclusive
             "aws_secret_access_key": "3425sdd",  # Mutual exclusive
             "aws_session_token": "123aaa",  # Mutual exclusive
-            "name": "My AWS Key",
         }
         for invalid_credential_type in ("s4", "S3"):
             payload["credential_type"] = invalid_credential_type
@@ -110,7 +107,6 @@ class TestRuntimeParameters:
             "aws_access_key_id": "123aaa",  # Mutual exclusive
             "aws_secret_access_key": "3425sdd",  # Mutual exclusive
             "aws_session_token": "123aaa",  # Mutual exclusive
-            "name": "My AWS Key",
         }
         for missing_attr in (
             "credential_type",
@@ -130,7 +126,6 @@ class TestRuntimeParameters:
             "aws_access_key_id": "123aaa",  # Mutual exclusive
             "aws_secret_access_key": "3425sdd",  # Mutual exclusive
             "aws_session_token": "123aaa",  # Mutual exclusive
-            "name": "My AWS Key",
         }
         for missing_attr in (
             "credential_type",

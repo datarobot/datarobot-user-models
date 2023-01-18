@@ -58,7 +58,6 @@ class TestRuntimeParameters:
                     "aws_access_key_id": "123",
                     "aws_secret_access_key": "abc",
                     "aws_session_token": "456edf",
-                    "name": "My AWS Credential",
                 },
             },
         }

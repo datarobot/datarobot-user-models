@@ -13,10 +13,6 @@ class RuntimeParameterTypes(Enum):
     STRING = "string"
     CREDENTIAL = "credential"
 
-    @classmethod
-    def all(cls):
-        return [v.value for k, v in cls.__dict__.items() if isinstance(v, cls)]
-
 
 RuntimeParameterPayloadTrafaret = t.Dict(
     {
@@ -26,15 +22,6 @@ RuntimeParameterPayloadTrafaret = t.Dict(
 ) | t.Dict(
     {
         t.Key("type"): t.Enum(RuntimeParameterTypes.CREDENTIAL.value),
-        t.Key("payload"): t.Dict(
-            {
-                t.Key("credential_type"): t.Enum("s3"),
-                t.Key("region", optional=True): t.String,
-                t.Key("aws_access_key_id"): t.String,
-                t.Key("aws_secret_access_key"): t.String,
-                t.Key("aws_session_token"): t.String,
-                t.Key("name", optional=True): t.String,
-            }
-        ),
+        t.Key("payload"): t.Dict({t.Key("credential_type"): t.Enum("s3")}).allow_extra("*"),
     }
 )

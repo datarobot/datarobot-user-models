@@ -8,16 +8,18 @@ import json
 import os
 import trafaret as t
 
-from datarobot_drum.runtime_parameters.runtime_parameters_schema import (
-    RuntimeParameterPayloadTrafaret,
-)
-from datarobot_drum.runtime_parameters.exceptions import InvalidJsonException
-from datarobot_drum.runtime_parameters.exceptions import InvalidRuntimeParam
+from .runtime_parameters_schema import RuntimeParameterPayloadTrafaret
+from .exceptions import InvalidJsonException
+from .exceptions import InvalidRuntimeParam
 
 
 class RuntimeParameters:
-    def __int__(self):
-        pass
+    """
+    A class that is used to read runtime-parameters that are delivered to the executed
+    custom model. The runtime parameters are supposed to be defined by the user via the DataRobot
+    web UI. Do not try to bypass this class by writing your own proprietary code, because the
+    internal implementation may change over time.
+    """
 
     @staticmethod
     def get(key):
