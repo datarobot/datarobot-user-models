@@ -101,6 +101,17 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
+    def _reg_args_runtime_parameters_file(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.RUNTIME_PARAMS_FILE,
+                default=None,
+                required=False,
+                type=CMRunnerArgsRegistry._is_valid_file,
+                help="Path to a runtime parameter values file.",
+            )
+
+    @staticmethod
     def _reg_arg_output(*parsers):
         for parser in parsers:
             prog_name_lst = CMRunnerArgsRegistry._tokenize_parser_prog(parser)
@@ -927,6 +938,10 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_arg_strict_validation(fit_parser, push_parser)
 
         CMRunnerArgsRegistry._reg_arg_report_fit_predict_metadata(fit_parser, push_parser)
+
+        CMRunnerArgsRegistry._reg_args_runtime_parameters_file(
+            score_parser, perf_test_parser, server_parser, validation_parser
+        )
 
         return parser
 

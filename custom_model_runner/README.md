@@ -138,6 +138,40 @@ Null value imputation   PASSED
 ```
 In case of check failure more information will be provided.
 
+### Runtime Parameters
+The runtime parameters are parameters that the user creates via the DataRobot WEB UI, under the
+custom model assembly tag. When the associated custom model version is being executed
+(testing/deployment) the runtime parameters are delivered to it for further handling. These
+runtime parameters can be read from the model's custom code (.e.g `cusotm.py`) using the
+`RuntimeParameters` class.
+
+Here is an example:
+```
+from datarobot_drum import RuntimeParameters
+
+def load_model(code_dir):
+    url = RuntimeParameters.get("URL_PARAM_1")
+    aws_credential = RuntimeParameters.get("AWS_CREDENTIAL_PARAM_1")
+    ...
+```
+
+During testing and debug in a local development environment, the user can write down the runtime
+parameters into a file and provide it as an input to the `drum` utility.
+
+Here is an example of such a file, whose name can be anything:
+```
+URL_PARAM_1: http://any-desired-location/
+AWS_CRED_PARAM_1:
+    credentialType: s3
+    awsAccessKeyId: ABDEFGHIJK...
+    awsSecretAccessKey: asdjDFSDJafslkjsdDLKGDSDlkjlkj...
+    awsSessionToken: null
+```
+
+And here is how you use it when running the drum utility:
+```
+drum score --runtime-params-file <filepath> --code-dir ~/user_code_dir/ --target-type <target type> --input dataset.csv
+```
 
 ### Prediction server mode
 <a name="server"></a>
