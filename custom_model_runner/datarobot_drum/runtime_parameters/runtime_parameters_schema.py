@@ -22,6 +22,6 @@ RuntimeParameterPayloadTrafaret = t.Dict(
 ) | t.Dict(
     {
         t.Key("type"): t.Enum(RuntimeParameterTypes.CREDENTIAL.value),
-        t.Key("payload"): t.Dict({t.Key("credential_type"): t.Enum("s3")}).allow_extra("*"),
+        t.Key("payload"): t.Dict({t.Key("credential_type"): t.String}).allow_extra("*"),
     }
 )

@@ -62,7 +62,7 @@ class TestRuntimeParameters:
             },
         }
         if is_missing_attr:
-            expected_runtime_params["SOME_AWS_CRED_KEY"]["payload"].pop("aws_access_key_id")
+            expected_runtime_params["SOME_AWS_CRED_KEY"]["payload"].pop("credential_type")
 
         expected_runtime_param_filepath = Path(custom_model_dir) / EXPECTED_RUNTIME_PARAMS_FILE_NAME
         with open(expected_runtime_param_filepath, "w", encoding="utf-8") as fd:
@@ -87,5 +87,7 @@ class TestRuntimeParameters:
         stderr = self._test_custom_model_with_runtime_params(
             resources, tmp_path, is_missing_attr=True
         )
-        assert "Invalid runtime parameter! " in stderr
-        assert re.search(r".*{'aws_access_key_id': DataError\(is required\)}.*", stderr)
+        assert re.search(
+            r".*Invalid runtime parameter!.*{'credential_type': DataError\(is " r"required\)}.*",
+            stderr,
+        )
