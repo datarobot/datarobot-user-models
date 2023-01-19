@@ -148,6 +148,8 @@ from tests.drum.constants import (
 )
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from tests.drum.constants import PYTHON_UNSTRUCTURED_DR_API_ACCESS
+from tests.drum.constants import PYTHON_UNSTRUCTURED_RUNTIME_PARAMS
+
 
 framework_envs = {
     PYTHON_SKLEARN: [
@@ -778,6 +780,10 @@ _custom_filepaths = {
     ),
     PYTHON_UNSTRUCTURED_DR_API_ACCESS: (
         os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom_dr_api_access.py"),
+        "custom.py",
+    ),
+    PYTHON_UNSTRUCTURED_RUNTIME_PARAMS: (
+        os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom_runtime_parameters.py"),
         "custom.py",
     ),
     PYTHON_UNSTRUCTURED_PARAMS: (
