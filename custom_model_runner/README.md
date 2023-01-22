@@ -142,7 +142,7 @@ In case of check failure more information will be provided.
 The runtime parameters are parameters that the user creates via the DataRobot WEB UI, under the
 custom model assembly tag. When the associated custom model version is being executed
 (testing/deployment) the runtime parameters are delivered to it for further handling. These
-runtime parameters can be read from the model's custom code (.e.g `cusotm.py`) using the
+runtime parameters can be read from the model's custom code (.e.g `custom.py`) using the
 `RuntimeParameters` class.
 
 Here is an example:
