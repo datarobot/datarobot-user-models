@@ -158,7 +158,7 @@ def load_model(code_dir):
 During testing and debug in a local development environment, the user can write the runtime
 parameters into a file and provide it as an input to the `drum` utility.
 
-Here is an example of such a file, whose name can be anything:
+Here is an example of such a file, whose name can be anything with an expected suffix of `.yaml`:
 ```
 URL_PARAM_1: http://any-desired-location/
 AWS_CRED_PARAM_1:
