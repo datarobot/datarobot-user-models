@@ -53,7 +53,7 @@ class RuntimeParameters:
 
     @classmethod
     def mangled_param_name(cls, param_name):
-        return f"{cls.PARAM_PREFIX}{param_name}"
+        return f"{cls.PARAM_PREFIX}_{param_name}"
 
 
 class RuntimeParametersLoader:
