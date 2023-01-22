@@ -27,7 +27,7 @@ class RuntimeParameters:
     internal implementation may change over time.
     """
 
-    PARAM_PREFIX = "MLOPS_RUNTIME_PARAM_"
+    PARAM_PREFIX = "MLOPS_RUNTIME_PARAM"
 
     @classmethod
     def get(cls, key):
