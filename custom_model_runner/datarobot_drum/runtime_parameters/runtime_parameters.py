@@ -87,7 +87,7 @@ class RuntimeParametersLoader:
                     print(f"Invalid runtime parameter values YAML content! {str(exc)}")
                     exit(-1)
         except FileNotFoundError:
-            print(f"Runtime parameter values file does not exist!")
+            print("Runtime parameter values file does not exist!")
             exit(-1)
 
     def setup_environment_variables(self):
