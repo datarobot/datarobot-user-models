@@ -81,7 +81,7 @@ class RuntimeParametersLoader:
                 try:
                     self._yaml_content = yaml.safe_load(file)
                     if not self._yaml_content:
-                        print(f"Runtime parameter values YAML file is empty!")
+                        print("Runtime parameter values YAML file is empty!")
                         exit(-1)
                 except yaml.YAMLError as exc:
                     print(f"Invalid runtime parameter values YAML content! {str(exc)}")
