@@ -66,6 +66,10 @@ class TestDrumServerFailures:
 
                 assert response.status_code == 513
                 assert error_message in response.json()["message"]
+            # Note: when running in docker (production) the error is not caught by process output
+            # stream
+            if not docker:
+                assert error_message in run.process.err_stream
         else:
             # DrumServerRun tries to ping the server.
             # if ping fails for timeout, TimeoutError("Server failed to start") is risen
