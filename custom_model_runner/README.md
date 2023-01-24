@@ -139,13 +139,10 @@ Null value imputation   PASSED
 In case of check failure more information will be provided.
 
 ### Runtime Parameters
-The runtime parameters are parameters that the user creates via the DataRobot WEB UI, under the
-custom model assembly tag. When the associated custom model version is being executed
-(testing/deployment) the runtime parameters are delivered to it for further handling. These
-runtime parameters can be read from the model's custom code (.e.g `custom.py`) using the
-`RuntimeParameters` class.
+Runtime parameters are created by the user via the custom model's version create routes (.e.g
+DataRobot WEB UI, DataRobot client, etc.). These runtime parameters can then be loaded into the
+custom model using the `RuntimeParameters` class, as follows:
 
-Here is an example:
 ```
 from datarobot_drum import RuntimeParameters
 
@@ -156,9 +153,9 @@ def load_model(code_dir):
 ```
 
 During testing and debug in a local development environment, the user can write the runtime
-parameters into a file and provide it as an input to the `drum` utility.
+parameters into a YAML file and provide it as an input to the `drum` utility. The YAML file
+can have any name ending with .yaml and should follow the example layout below:
 
-Here is an example of such a file, whose name can be anything with an expected suffix of `.yaml`:
 ```
 URL_PARAM_1: http://any-desired-location/
 AWS_CRED_PARAM_1:
@@ -169,6 +166,7 @@ AWS_CRED_PARAM_1:
 ```
 
 And here is how you use it when running the drum utility:
+
 ```
 drum score --runtime-params-file <filepath> --code-dir ~/user_code_dir/ --target-type <target type> --input dataset.csv
 ```
