@@ -13,8 +13,11 @@ from unittest.mock import patch
 import pytest
 import yaml
 
+from datarobot_drum.runtime_parameters.exceptions import InvalidEmptyYamlContent
+from datarobot_drum.runtime_parameters.exceptions import InvalidInputFilePath
 from datarobot_drum.runtime_parameters.exceptions import InvalidJsonException
 from datarobot_drum.runtime_parameters.exceptions import InvalidRuntimeParam
+from datarobot_drum.runtime_parameters.exceptions import InvalidYamlContent
 from datarobot_drum.runtime_parameters.runtime_parameters import RuntimeParameters
 from datarobot_drum.runtime_parameters.runtime_parameters import RuntimeParametersLoader
 from datarobot_drum.runtime_parameters.runtime_parameters_schema import RuntimeParameterTypes
@@ -144,17 +147,20 @@ class TestRuntimeParameters:
 
 class TestRuntimeParametersLoader:
     def test_none_filepath(self):
-        with pytest.raises(SystemExit):
+        with pytest.raises(InvalidInputFilePath) as exc:
             RuntimeParametersLoader(None)
+        assert "Empty runtime parameter values file path!" in str(exc.value)
 
     def test_file_not_exists(self):
-        with pytest.raises(SystemExit):
+        with pytest.raises(InvalidInputFilePath) as exc:
             RuntimeParametersLoader("/tmp/non-existing-12er.yaml")
+        assert "Runtime parameter values file does not exist!" in str(exc.value)
 
     def test_empty_file(self):
         with NamedTemporaryFile("w", encoding="utf-8") as file:
-            with pytest.raises(SystemExit):
+            with pytest.raises(InvalidEmptyYamlContent) as exc:
                 RuntimeParametersLoader(file.name)
+            assert "Runtime parameter values YAML file is empty!" in str(exc.value)
 
     @contextlib.contextmanager
     def _runtime_params_yaml_file(self, yaml_content):
@@ -167,8 +173,9 @@ class TestRuntimeParametersLoader:
         valid_yaml_content = yaml.dump({"PARAM_STR": "Some value"})
         invalid_yaml_content = f"[{valid_yaml_content}"
         with self._runtime_params_yaml_file(invalid_yaml_content) as filepath:
-            with pytest.raises(SystemExit):
+            with pytest.raises(InvalidYamlContent) as exc:
                 RuntimeParametersLoader(filepath)
+            assert "Invalid runtime parameter values YAML content!" in str(exc.value)
 
     def test_setup_success(self):
         runtime_parameter_values = {

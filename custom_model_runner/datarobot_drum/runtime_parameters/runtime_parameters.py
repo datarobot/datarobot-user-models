@@ -11,8 +11,12 @@ import re
 import trafaret as t
 import yaml
 
+from .exceptions import ErrorLoadingRuntimeParameter
+from .exceptions import InvalidEmptyYamlContent
+from .exceptions import InvalidInputFilePath
 from .exceptions import InvalidJsonException
 from .exceptions import InvalidRuntimeParam
+from .exceptions import InvalidYamlContent
 from .runtime_parameters_schema import RuntimeParameterCredentialPayloadTrafaret
 from .runtime_parameters_schema import RuntimeParameterPayloadTrafaret
 from .runtime_parameters_schema import RuntimeParameterStringPayloadTrafaret
@@ -73,22 +77,24 @@ class RuntimeParametersLoader:
 
     def __init__(self, values_filepath):
         if not values_filepath:
-            print("Empty runtime parameter values file path!")
-            exit(-1)
+            raise InvalidInputFilePath("Empty runtime parameter values file path!")
 
         try:
             with open(values_filepath, encoding="utf-8") as file:
                 try:
                     self._yaml_content = yaml.safe_load(file)
                     if not self._yaml_content:
-                        print("Runtime parameter values YAML file is empty!")
-                        exit(-1)
+                        raise InvalidEmptyYamlContent(
+                            "Runtime parameter values YAML file is empty!"
+                        )
                 except yaml.YAMLError as exc:
-                    print(f"Invalid runtime parameter values YAML content! {str(exc)}")
-                    exit(-1)
+                    raise InvalidYamlContent(
+                        f"Invalid runtime parameter values YAML content! {str(exc)}"
+                    )
         except FileNotFoundError:
-            print("Runtime parameter values file does not exist!")
-            exit(-1)
+            raise InvalidInputFilePath(
+                f"Runtime parameter values file does not exist! filepath: {values_filepath}"
+            )
 
     def setup_environment_variables(self):
         credential_payload_trafaret = RuntimeParameterCredentialPayloadTrafaret()
@@ -108,8 +114,9 @@ class RuntimeParametersLoader:
                         {"type": RuntimeParameterTypes.STRING.value, "payload": param_value}
                     )
             except t.DataError as exc:
-                print(f"Failed to load runtime parameter '{param_key}'. {str(exc)}")
-                exit(-1)
+                raise ErrorLoadingRuntimeParameter(
+                    f"Failed to load runtime parameter '{param_key}'. {str(exc)}"
+                )
             namespaced_param_key = RuntimeParameters.namespaced_param_name(param_key)
             os.environ[namespaced_param_key] = json.dumps(payload)
 
