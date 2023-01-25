@@ -31,7 +31,7 @@ class RuntimeParameters:
 
     @classmethod
     def get(cls, key):
-        runtime_param_key = cls.mangled_param_name(key)
+        runtime_param_key = cls.namespaced_param_name(key)
         if runtime_param_key not in os.environ:
             raise ValueError(f"Runtime parameter '{key}' does not exist!")
 
@@ -52,7 +52,7 @@ class RuntimeParameters:
         return transformed_env_value["payload"]
 
     @classmethod
-    def mangled_param_name(cls, param_name):
+    def namespaced_param_name(cls, param_name):
         return f"{cls.PARAM_PREFIX}_{param_name}"
 
 
@@ -110,8 +110,8 @@ class RuntimeParametersLoader:
             except t.DataError as exc:
                 print(f"Failed to load runtime parameter '{param_key}'. {str(exc)}")
                 exit(-1)
-            mangled_param_key = RuntimeParameters.mangled_param_name(param_key)
-            os.environ[mangled_param_key] = json.dumps(payload)
+            namespaced_param_key = RuntimeParameters.namespaced_param_name(param_key)
+            os.environ[namespaced_param_key] = json.dumps(payload)
 
     @classmethod
     def credential_attributes_to_underscore(cls, credential_dict):

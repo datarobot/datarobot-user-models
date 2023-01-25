@@ -48,9 +48,9 @@ class TestRuntimeParameters:
     )
     def test_valid(self, runtime_param_type, payload):
         runtime_param_name = "AAA"
-        formatted_runtime_param_name = RuntimeParameters.mangled_param_name(runtime_param_name)
+        namespaced_runtime_param_name = RuntimeParameters.namespaced_param_name(runtime_param_name)
         runtime_param_env_value = json.dumps({"type": runtime_param_type.value, "payload": payload})
-        with patch.dict(os.environ, {formatted_runtime_param_name: runtime_param_env_value}):
+        with patch.dict(os.environ, {namespaced_runtime_param_name: runtime_param_env_value}):
             assert RuntimeParameters.get(runtime_param_name) == payload
 
     @pytest.mark.parametrize(
@@ -84,9 +84,9 @@ class TestRuntimeParameters:
     @staticmethod
     def _read_runtime_param_and_expect_to_fail(type, payload):
         runtime_param_name = "AAA"
-        formatted_runtime_param_name = RuntimeParameters.mangled_param_name(runtime_param_name)
+        namespaced_runtime_param_name = RuntimeParameters.namespaced_param_name(runtime_param_name)
         runtime_param_env_value = json.dumps({"type": type, "payload": payload})
-        with patch.dict(os.environ, {formatted_runtime_param_name: runtime_param_env_value}):
+        with patch.dict(os.environ, {namespaced_runtime_param_name: runtime_param_env_value}):
             with pytest.raises(InvalidRuntimeParam, match=r".*Invalid runtime parameter!.*"):
                 RuntimeParameters.get(runtime_param_name)
 
@@ -130,12 +130,12 @@ class TestRuntimeParameters:
 
     def test_invalid_json_env_value(self):
         runtime_param_name = "AAA"
-        formatted_runtime_param_name = RuntimeParameters.mangled_param_name(runtime_param_name)
+        namespaced_runtime_param_name = RuntimeParameters.namespaced_param_name(runtime_param_name)
         runtime_param_value = json.dumps(
             {"type": RuntimeParameterTypes.STRING.value, "payload": "abc"}
         )
         invalid_env_value = runtime_param_value + " - invalid"
-        with patch.dict(os.environ, {formatted_runtime_param_name: invalid_env_value}):
+        with patch.dict(os.environ, {namespaced_runtime_param_name: invalid_env_value}):
             with pytest.raises(
                 InvalidJsonException, match=r".*Invalid runtime parameter json payload.*"
             ):
@@ -195,4 +195,4 @@ class TestRuntimeParametersLoader:
                 assert actual_value == expected_value
         finally:
             for param_name, param_value in runtime_parameter_values.items():
-                os.environ.pop(RuntimeParameters.mangled_param_name(param_name))
+                os.environ.pop(RuntimeParameters.namespaced_param_name(param_name))
