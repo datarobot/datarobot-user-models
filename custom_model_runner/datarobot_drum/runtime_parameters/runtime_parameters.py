@@ -6,11 +6,21 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import json
 import os
-import trafaret as t
+import re
 
-from .runtime_parameters_schema import RuntimeParameterPayloadTrafaret
+import trafaret as t
+import yaml
+
+from .exceptions import ErrorLoadingRuntimeParameter
+from .exceptions import InvalidEmptyYamlContent
+from .exceptions import InvalidInputFilePath
 from .exceptions import InvalidJsonException
 from .exceptions import InvalidRuntimeParam
+from .exceptions import InvalidYamlContent
+from .runtime_parameters_schema import RuntimeParameterCredentialPayloadTrafaret
+from .runtime_parameters_schema import RuntimeParameterPayloadTrafaret
+from .runtime_parameters_schema import RuntimeParameterStringPayloadTrafaret
+from .runtime_parameters_schema import RuntimeParameterTypes
 
 
 class RuntimeParameters:
@@ -21,9 +31,11 @@ class RuntimeParameters:
     internal implementation may change over time.
     """
 
-    @staticmethod
-    def get(key):
-        runtime_param_key = f"MLOPS_RUNTIME_PARAM_{key}"
+    PARAM_PREFIX = "MLOPS_RUNTIME_PARAM"
+
+    @classmethod
+    def get(cls, key):
+        runtime_param_key = cls.namespaced_param_name(key)
         if runtime_param_key not in os.environ:
             raise ValueError(f"Runtime parameter '{key}' does not exist!")
 
@@ -42,3 +54,76 @@ class RuntimeParameters:
             )
 
         return transformed_env_value["payload"]
+
+    @classmethod
+    def namespaced_param_name(cls, param_name):
+        return f"{cls.PARAM_PREFIX}_{param_name}"
+
+
+class RuntimeParametersLoader:
+    """
+    This class is used by DRUM to load runtime parameter values from a provided YAML file. It is
+    used by DRUM only when executing externally to DataRobot, in a local development environment.
+
+    Here is an example for such `runtime_param_values.yaml` file:
+    ```
+    PARAM_STR_1: "Example for a string value"
+    PARAM_CRED_1:
+      credentialType: s3
+      awsAccessKeyId: ABDEFGHIJK...
+      awsSecretAccessKey: asdjDFSDJafslkjsdDLKGDSDlkjlkj...
+      awsSessionToken: null
+    """
+
+    def __init__(self, values_filepath):
+        if not values_filepath:
+            raise InvalidInputFilePath("Empty runtime parameter values file path!")
+
+        try:
+            with open(values_filepath, encoding="utf-8") as file:
+                try:
+                    self._yaml_content = yaml.safe_load(file)
+                    if not self._yaml_content:
+                        raise InvalidEmptyYamlContent(
+                            "Runtime parameter values YAML file is empty!"
+                        )
+                except yaml.YAMLError as exc:
+                    raise InvalidYamlContent(
+                        f"Invalid runtime parameter values YAML content! {str(exc)}"
+                    )
+        except FileNotFoundError:
+            raise InvalidInputFilePath(
+                f"Runtime parameter values file does not exist! filepath: {values_filepath}"
+            )
+
+    def setup_environment_variables(self):
+        credential_payload_trafaret = RuntimeParameterCredentialPayloadTrafaret()
+        string_payload_trafaret = RuntimeParameterStringPayloadTrafaret()
+        for param_key, param_value in self._yaml_content.items():
+            try:
+                if isinstance(param_value, dict):  # Only credentials are provided as dict
+                    credential_payload = self.credential_attributes_to_underscore(param_value)
+                    payload = credential_payload_trafaret.check(
+                        {
+                            "type": RuntimeParameterTypes.CREDENTIAL.value,
+                            "payload": credential_payload,
+                        }
+                    )
+                elif isinstance(param_value, str):  # All remaining supported cases
+                    payload = string_payload_trafaret.check(
+                        {"type": RuntimeParameterTypes.STRING.value, "payload": param_value}
+                    )
+            except t.DataError as exc:
+                raise ErrorLoadingRuntimeParameter(
+                    f"Failed to load runtime parameter '{param_key}'. {str(exc)}"
+                )
+            namespaced_param_key = RuntimeParameters.namespaced_param_name(param_key)
+            os.environ[namespaced_param_key] = json.dumps(payload)
+
+    @classmethod
+    def credential_attributes_to_underscore(cls, credential_dict):
+        return {cls._camel_to_underscore(key): value for key, value in credential_dict.items()}
+
+    @staticmethod
+    def _camel_to_underscore(camel_str):
+        return re.sub(r"([A-Z])+([a-z]+)", r"_\1\2", camel_str).lower()

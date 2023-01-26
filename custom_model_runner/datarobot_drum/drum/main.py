@@ -47,6 +47,8 @@ from datarobot_drum.drum.enum import RunMode
 from datarobot_drum.drum.enum import ExitCodes
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from datarobot_drum.drum.runtime import DrumRuntime
+from datarobot_drum.runtime_parameters.exceptions import RuntimeParameterException
+from datarobot_drum.runtime_parameters.runtime_parameters import RuntimeParametersLoader
 
 
 def main():
@@ -83,6 +85,12 @@ def main():
 
         options = arg_parser.parse_args()
         CMRunnerArgsRegistry.verify_options(options)
+        if "runtime_params_file" in options and options.runtime_params_file:
+            try:
+                RuntimeParametersLoader(options.runtime_params_file).setup_environment_variables()
+            except RuntimeParameterException as exc:
+                print(str(exc))
+                exit(255)
         runtime.options = options
 
         # mlpiper restful_component relies on SIGINT to shutdown nginx and uwsgi,

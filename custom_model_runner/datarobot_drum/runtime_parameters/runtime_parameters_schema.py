@@ -14,14 +14,27 @@ class RuntimeParameterTypes(Enum):
     CREDENTIAL = "credential"
 
 
-RuntimeParameterPayloadTrafaret = t.Dict(
-    {
-        t.Key("type"): t.Enum(RuntimeParameterTypes.STRING.value),
-        t.Key("payload"): t.String(allow_blank=True),
-    }
-) | t.Dict(
-    {
-        t.Key("type"): t.Enum(RuntimeParameterTypes.CREDENTIAL.value),
-        t.Key("payload"): t.Dict({t.Key("credential_type"): t.String}).allow_extra("*"),
-    }
+class RuntimeParameterPayloadBaseTrafaret(t.Dict):
+    def __init__(self, param_type, definition):
+        assert definition, "Valid trafaret definition must be provided!"
+        base_definition = {t.Key("type"): t.Enum(param_type)}
+        definition.update(base_definition)
+        super().__init__(definition)
+
+
+class RuntimeParameterStringPayloadTrafaret(RuntimeParameterPayloadBaseTrafaret):
+    def __init__(self):
+        super().__init__(RuntimeParameterTypes.STRING.value, {t.Key("payload"): t.String})
+
+
+class RuntimeParameterCredentialPayloadTrafaret(RuntimeParameterPayloadBaseTrafaret):
+    def __init__(self):
+        super().__init__(
+            RuntimeParameterTypes.CREDENTIAL.value,
+            {t.Key("payload"): t.Dict({t.Key("credential_type"): t.String}).allow_extra("*")},
+        )
+
+
+RuntimeParameterPayloadTrafaret = (
+    RuntimeParameterStringPayloadTrafaret | RuntimeParameterCredentialPayloadTrafaret
 )
