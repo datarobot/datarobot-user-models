@@ -377,7 +377,7 @@ class ModelMetadataKeys(object):
     CUSTOM_PREDICTOR = "customPredictor"
     # runtimeParameters section is not used by DRUM; it is used by the MLOps platform
     # so can be present in the file but should be ignored.
-    RUNTIME_PARAMETERS = "runtimeParameters"
+    RUNTIME_PARAMETERS = "runtimeParameterDefinitions"
 
 
 class ModelMetadataHyperParamTypes(object):
