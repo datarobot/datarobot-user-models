@@ -9,7 +9,7 @@ import os
 import re
 
 import trafaret as t
-import yaml
+import strictyaml
 
 from .exceptions import ErrorLoadingRuntimeParameter
 from .exceptions import InvalidEmptyYamlContent
@@ -82,12 +82,12 @@ class RuntimeParametersLoader:
         try:
             with open(values_filepath, encoding="utf-8") as file:
                 try:
-                    self._yaml_content = yaml.safe_load(file)
+                    self._yaml_content = strictyaml.load(file.read())
                     if not self._yaml_content:
                         raise InvalidEmptyYamlContent(
                             "Runtime parameter values YAML file is empty!"
                         )
-                except yaml.YAMLError as exc:
+                except strictyaml.YAMLError as exc:
                     raise InvalidYamlContent(
                         f"Invalid runtime parameter values YAML content! {str(exc)}"
                     )
