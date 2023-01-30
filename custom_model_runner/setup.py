@@ -4,34 +4,47 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import importlib.util
+from pathlib import Path
 from setuptools import setup, find_packages
-import os
 
-from datarobot_drum.drum.description import version, project_name
-from datarobot_drum.drum.enum import SupportedFrameworks, extra_deps
+def direct_import(path):
+    # Direct imports are needed because datarobot_drum/__init__.py imports other modules
+    # that depend on 3rd party libraries and `setup.py` **must** be able to run in a blank
+    # virutalenv. This code snippet was adapted from and simply loads the module directly
+    # without loading all its parents:
+    #   https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly
+    module_path = path.resolve()
+    spec = importlib.util.spec_from_file_location(module_path.stem, module_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 # The directory containing this file
-root = os.path.dirname(os.path.abspath(__file__))
+root = Path(__file__).absolute().parent
+description = direct_import(root / 'datarobot_drum' / 'drum' / 'description.py')
+enum = direct_import(root / 'datarobot_drum' / 'drum' / 'enum.py')
 
-with open(os.path.join(root, "requirements.txt")) as f:
+
+with open(root / "requirements.txt") as f:
     requirements = f.read().splitlines()
 
-with open(os.path.join(root, "README.md")) as f:
+with open(root / "README.md") as f:
     long_desc = f.read()
 
 extras_require = {
-    "scikit-learn": extra_deps[SupportedFrameworks.SKLEARN],
-    "torch": extra_deps[SupportedFrameworks.TORCH],
-    "keras": extra_deps[SupportedFrameworks.KERAS],
-    "xgboost": extra_deps[SupportedFrameworks.XGBOOST],
+    "scikit-learn": enum.extra_deps[enum.SupportedFrameworks.SKLEARN],
+    "torch": enum.extra_deps[enum.SupportedFrameworks.TORCH],
+    "keras": enum.extra_deps[enum.SupportedFrameworks.KERAS],
+    "xgboost": enum.extra_deps[enum.SupportedFrameworks.XGBOOST],
     "R": ["rpy2==3.5.2;python_version>='3.6'"],
-    "pypmml": extra_deps[SupportedFrameworks.PYPMML],
+    "pypmml": enum.extra_deps[enum.SupportedFrameworks.PYPMML],
     "uwsgi": ["uwsgi"],
 }
 
 setup(
-    name=project_name,
-    version=version,
+    name=description.project_name,
+    version=description.version,
     description="DRUM - develop, test and deploy custom models",
     long_description=long_desc,
     long_description_content_type="text/markdown",
