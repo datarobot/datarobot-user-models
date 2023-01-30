@@ -38,22 +38,22 @@ class RuntimeParameters:
     _UNSET = object()
 
     @classmethod
-    def get(cls, key, default=_UNSET):
+    def get(cls, key, fallback=_UNSET):
         """
         Fetches the value of a runtime parameter as set by the platform. A ValueError is
-        raised if the parameter is not set unless if a default argument was provided.
+        raised if the parameter is not set and no fallback argument was provided.
 
         Parameters
         ----------
         key: str
             The name of the runtime parameter
-        default: ANY (optional)
+        fallback: ANY (optional)
             If specified, will be returned if no value has been set by the platform
 
 
         Returns
         -------
-        The value of the runtime parameter or the default (if specified)
+        The value of the runtime parameter or the fallback (if specified)
 
 
         Raises
@@ -67,10 +67,10 @@ class RuntimeParameters:
         """
         runtime_param_key = cls.namespaced_param_name(key)
         if runtime_param_key not in os.environ:
-            if default is cls._UNSET:
-                raise ValueError(f"Runtime parameter '{key}' does not exist!")
+            if fallback is cls._UNSET:
+                raise ValueError(f"Runtime parameter '{key}' does not exist and no fallback provided!")
             else:
-                return default
+                return fallback
 
         try:
             env_value = json.loads(os.environ[runtime_param_key])
