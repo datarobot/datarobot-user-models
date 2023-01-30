@@ -33,11 +33,46 @@ class RuntimeParameters:
 
     PARAM_PREFIX = "MLOPS_RUNTIME_PARAM"
 
+    # Used to determine if a user has specified a default or not since None is a valid
+    # user input.
+    _UNSET = object()
+
     @classmethod
-    def get(cls, key):
+    def get(cls, key, fallback=_UNSET):
+        """
+        Fetches the value of a runtime parameter as set by the platform. A ValueError is
+        raised if the parameter is not set and no fallback argument was provided.
+
+        Parameters
+        ----------
+        key: str
+            The name of the runtime parameter
+        fallback: ANY (optional)
+            If specified, will be returned if no value has been set by the platform
+
+
+        Returns
+        -------
+        The value of the runtime parameter or the fallback (if specified)
+
+
+        Raises
+        ------
+        ValueError
+            Raised when the parameter key was not set by the platform
+        InvalidJsonException
+            Raised if there were issues decoding the value of the parameter
+        InvalidRuntimeParam
+            Raised if the value of the parameter doesn't match the declared type
+        """
         runtime_param_key = cls.namespaced_param_name(key)
         if runtime_param_key not in os.environ:
-            raise ValueError(f"Runtime parameter '{key}' does not exist!")
+            if fallback is cls._UNSET:
+                raise ValueError(
+                    f"Runtime parameter '{key}' does not exist and no fallback provided!"
+                )
+            else:
+                return fallback
 
         try:
             env_value = json.loads(os.environ[runtime_param_key])
