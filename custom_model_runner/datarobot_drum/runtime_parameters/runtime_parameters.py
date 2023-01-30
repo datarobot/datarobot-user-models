@@ -68,7 +68,9 @@ class RuntimeParameters:
         runtime_param_key = cls.namespaced_param_name(key)
         if runtime_param_key not in os.environ:
             if fallback is cls._UNSET:
-                raise ValueError(f"Runtime parameter '{key}' does not exist and no fallback provided!")
+                raise ValueError(
+                    f"Runtime parameter '{key}' does not exist and no fallback provided!"
+                )
             else:
                 return fallback
 
