@@ -8,6 +8,7 @@ import importlib.util
 from pathlib import Path
 from setuptools import setup, find_packages
 
+
 def direct_import(path):
     # Direct imports are needed because datarobot_drum/__init__.py imports other modules
     # that depend on 3rd party libraries and `setup.py` **must** be able to run in a blank
@@ -20,10 +21,11 @@ def direct_import(path):
     spec.loader.exec_module(module)
     return module
 
+
 # The directory containing this file
 root = Path(__file__).absolute().parent
-description = direct_import(root / 'datarobot_drum' / 'drum' / 'description.py')
-enum = direct_import(root / 'datarobot_drum' / 'drum' / 'enum.py')
+description = direct_import(root / "datarobot_drum" / "drum" / "description.py")
+enum = direct_import(root / "datarobot_drum" / "drum" / "enum.py")
 
 
 with open(root / "requirements.txt") as f:
