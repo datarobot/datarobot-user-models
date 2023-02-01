@@ -118,7 +118,7 @@ class RuntimeParametersLoader:
         try:
             with open(values_filepath, encoding="utf-8") as file:
                 try:
-                    self._yaml_content = yaml.safe_load(file.read())
+                    self._yaml_content = yaml.safe_load(file)
                     if not self._yaml_content:
                         raise InvalidEmptyYamlContent(
                             "Runtime parameter values YAML file is empty!"
