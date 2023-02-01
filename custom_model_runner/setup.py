@@ -4,7 +4,6 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-import importlib.util
 from pathlib import Path
 from setuptools import setup, find_packages
 
