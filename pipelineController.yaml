@@ -11,71 +11,71 @@ build_drum: &build_drum
 test_integration_general: &test_integration_general
   taskName: test_integration_general
   definition: jenkins/test_integration_general.groovy
-  phase: 2
+  phase: 3
 
 test_inference_model_templates: &test_inference_model_templates
   taskName: test_inference_model_templates
   definition: jenkins/test_inference_model_templates.groovy
-  phase: 2
+  phase: 3
 
 test_training_model_templates: &test_training_model_templates
   taskName: test_training_model_templates
   definition: jenkins/test_training_model_templates.groovy
-  phase: 2
+  phase: 3
 
 test_drop_in_envs: &test_drop_in_envs
   taskName: test_drop_in_envs
   definition: jenkins/test_drop_in_envs.groovy
-  phase: 2
+  phase: 3
 
 test_integration_python_keras: &test_integration_python_keras
   taskName: test_integration_python_keras
   definition: jenkins/test_integration_per_framework.groovy
   environment:
     FRAMEWORK: python3_keras
-  phase: 2
+  phase: 3
 
 test_integration_python_onnx: &test_integration_python_onnx
   taskName: test_integration_python_onnx
   definition: jenkins/test_integration_per_framework.groovy
   environment:
     FRAMEWORK: python3_onnx
-  phase: 2
+  phase: 3
 
 test_integration_python_pmml: &test_integration_python_pmml
   taskName: test_integration_python_pmml
   definition: jenkins/test_integration_per_framework.groovy
   environment:
     FRAMEWORK: python3_pmml
-  phase: 2
+  phase: 3
 
 test_integration_python_pytorch: &test_integration_python_pytorch
   taskName: test_integration_python_pytorch
   definition: jenkins/test_integration_per_framework.groovy
   environment:
     FRAMEWORK: python3_pytorch
-  phase: 2
+  phase: 3
 
 test_integration_python_sklearn: &test_integration_python_sklearn
   taskName: test_integration_python_sklearn
   definition: jenkins/test_integration_per_framework.groovy
   environment:
     FRAMEWORK: python3_sklearn
-  phase: 2
+  phase: 3
 
 test_integration_python_xgboost: &test_integration_python_xgboost
   taskName: test_integration_python_xgboost
   definition: jenkins/test_integration_per_framework.groovy
   environment:
     FRAMEWORK: python3_xgboost
-  phase: 2
+  phase: 3
 
 test_integration_r_environment: &test_integration_r_environment
   taskName: test_integration_r_environment
   definition: jenkins/test_integration_per_framework.groovy
   environment:
     FRAMEWORK: r_lang
-  phase: 2
+  phase: 3
 
 test_integration_java_environment: &test_integration_java_environment
   taskName: test_integration_java_environment
@@ -89,7 +89,7 @@ test_integration_julia_environment: &test_integration_julia_environment
   definition: jenkins/test_integration_per_framework.groovy
   environment:
     FRAMEWORK: julia
-  phase: 2
+  phase: 3
 
 repositoryTasks:
   pr:
