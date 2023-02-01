@@ -4,34 +4,36 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+from pathlib import Path
 from setuptools import setup, find_packages
-import os
 
-from datarobot_drum.drum.description import version, project_name
-from datarobot_drum.drum.enum import SupportedFrameworks, extra_deps
 
 # The directory containing this file
-root = os.path.dirname(os.path.abspath(__file__))
+root = Path(__file__).absolute().parent
 
-with open(os.path.join(root, "requirements.txt")) as f:
+# It is not safe to import modules from the package we are building so this is an
+# idiomatic way to keep things DRY.
+meta = {}
+with open(root / "datarobot_drum" / "drum" / "enum.py", mode="r", encoding="utf-8") as f:
+    exec(f.read(), meta)
+with open(root / "datarobot_drum" / "drum" / "description.py", mode="r", encoding="utf-8") as f:
+    exec(f.read(), meta)
+SupportedFrameworks = meta["SupportedFrameworks"]
+extra_deps = meta["extra_deps"]
+
+with open(root / "requirements.txt") as f:
     requirements = f.read().splitlines()
 
-with open(os.path.join(root, "README.md")) as f:
+with open(root / "README.md") as f:
     long_desc = f.read()
 
-extras_require = {
-    "scikit-learn": extra_deps[SupportedFrameworks.SKLEARN],
-    "torch": extra_deps[SupportedFrameworks.TORCH],
-    "keras": extra_deps[SupportedFrameworks.KERAS],
-    "xgboost": extra_deps[SupportedFrameworks.XGBOOST],
-    "R": ["rpy2==3.5.2;python_version>='3.6'"],
-    "pypmml": extra_deps[SupportedFrameworks.PYPMML],
-    "uwsgi": ["uwsgi"],
-}
+extras_require = {framework: extra_deps[framework] for framework in SupportedFrameworks.ALL}
+extras_require["R"] = ["rpy2==3.5.2;python_version>='3.6'"]
+extras_require["uwsgi"] = ["uwsgi"]
 
 setup(
-    name=project_name,
-    version=version,
+    name=meta["project_name"],
+    version=meta["__version__"],
     description="DRUM - develop, test and deploy custom models",
     long_description=long_desc,
     long_description_content_type="text/markdown",

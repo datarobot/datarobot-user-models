@@ -101,6 +101,7 @@ MODEL_CONFIG_SCHEMA = Map(
         Optional(ModelMetadataKeys.HYPERPARAMETERS): Any(),
         Optional(ModelMetadataKeys.VALIDATION_SCHEMA): get_type_schema_yaml_validator(),
         Optional(ModelMetadataKeys.CUSTOM_PREDICTOR): Any(),
+        Optional(ModelMetadataKeys.RUNTIME_PARAMETERS): Any(),
     }
 )
 

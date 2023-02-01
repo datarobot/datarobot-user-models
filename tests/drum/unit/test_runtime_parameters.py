@@ -192,7 +192,7 @@ class TestRuntimeParametersLoader:
             with self._runtime_params_yaml_file(valid_yaml_content) as filepath:
                 RuntimeParametersLoader(filepath).setup_environment_variables()
 
-            for param_name, param_value in runtime_parameter_values.items():
+            for param_name, _ in runtime_parameter_values.items():
                 actual_value = RuntimeParameters.get(param_name)
                 expected_value = runtime_parameter_values[param_name]
                 if isinstance(expected_value, dict):
@@ -201,5 +201,5 @@ class TestRuntimeParametersLoader:
                     )
                 assert actual_value == expected_value
         finally:
-            for param_name, param_value in runtime_parameter_values.items():
+            for param_name, _ in runtime_parameter_values.items():
                 os.environ.pop(RuntimeParameters.namespaced_param_name(param_name))

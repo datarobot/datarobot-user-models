@@ -98,7 +98,8 @@ class RuntimeParameters:
 class RuntimeParametersLoader:
     """
     This class is used by DRUM to load runtime parameter values from a provided YAML file. It is
-    used by DRUM only when executing externally to DataRobot, in a local development environment.
+    used by DRUM only when executing externally to DataRobot (i.e. in a local development
+    environment).
 
     Here is an example for such `runtime_param_values.yaml` file:
     ```

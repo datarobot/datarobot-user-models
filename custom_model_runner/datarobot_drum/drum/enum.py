@@ -80,6 +80,7 @@ class SupportedFrameworks:
     XGBOOST = "xgboost"
     PYPMML = "pypmml"
     ONNX = "onnx"
+    ALL = [SKLEARN, TORCH, KERAS, XGBOOST, PYPMML, ONNX]
 
 
 extra_deps = {
@@ -375,6 +376,9 @@ class ModelMetadataKeys(object):
     # customPredictor section is not used by DRUM,
     # it is a place holder if user wants to add some fields and read them on his own
     CUSTOM_PREDICTOR = "customPredictor"
+    # runtimeParameters section is not used by DRUM; it is used by the MLOps platform
+    # so can be present in the file but should be ignored.
+    RUNTIME_PARAMETERS = "runtimeParameterDefinitions"
 
 
 class ModelMetadataHyperParamTypes(object):
