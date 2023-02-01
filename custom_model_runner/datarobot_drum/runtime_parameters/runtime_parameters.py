@@ -9,7 +9,7 @@ import os
 import re
 
 import trafaret as t
-import strictyaml
+import yaml
 
 from .exceptions import ErrorLoadingRuntimeParameter
 from .exceptions import InvalidEmptyYamlContent
@@ -98,7 +98,8 @@ class RuntimeParameters:
 class RuntimeParametersLoader:
     """
     This class is used by DRUM to load runtime parameter values from a provided YAML file. It is
-    used by DRUM only when executing externally to DataRobot, in a local development environment.
+    used by DRUM only when executing externally to DataRobot (i.e. in a local development
+    environment).
 
     Here is an example for such `runtime_param_values.yaml` file:
     ```
@@ -117,12 +118,12 @@ class RuntimeParametersLoader:
         try:
             with open(values_filepath, encoding="utf-8") as file:
                 try:
-                    self._yaml_content = strictyaml.load(file.read()).data
+                    self._yaml_content = yaml.safe_load(file.read())
                     if not self._yaml_content:
                         raise InvalidEmptyYamlContent(
                             "Runtime parameter values YAML file is empty!"
                         )
-                except strictyaml.YAMLError as exc:
+                except yaml.YAMLError as exc:
                     raise InvalidYamlContent(
                         f"Invalid runtime parameter values YAML content! {str(exc)}"
                     )
