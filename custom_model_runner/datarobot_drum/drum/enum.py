@@ -80,6 +80,7 @@ class SupportedFrameworks:
     XGBOOST = "xgboost"
     PYPMML = "pypmml"
     ONNX = "onnx"
+    ALL = [SKLEARN, TORCH, KERAS, XGBOOST, PYPMML, ONNX]
 
 
 extra_deps = {

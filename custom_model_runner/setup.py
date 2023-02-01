@@ -9,24 +9,18 @@ from pathlib import Path
 from setuptools import setup, find_packages
 
 
-def direct_import(path):
-    # Direct imports are needed because datarobot_drum/__init__.py imports other modules
-    # that depend on 3rd party libraries and `setup.py` **must** be able to run in a blank
-    # virutalenv. This code snippet was adapted from and simply loads the module directly
-    # without loading all its parents:
-    #   https://docs.python.org/3/library/importlib.html#importing-a-source-file-directly
-    module_path = path.resolve()
-    spec = importlib.util.spec_from_file_location(module_path.stem, module_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
 # The directory containing this file
 root = Path(__file__).absolute().parent
-description = direct_import(root / "datarobot_drum" / "drum" / "description.py")
-enum = direct_import(root / "datarobot_drum" / "drum" / "enum.py")
 
+# It is not safe to import modules from the package we are building so this is an
+# idiomatic way to keep things DRY.
+meta = {}
+with open(root / "datarobot_drum" / "drum" / "enum.py", mode="r", encoding="utf-8") as f:
+    exec(f.read(), meta)
+with open(root / "datarobot_drum" / "drum" / "description.py", mode="r", encoding="utf-8") as f:
+    exec(f.read(), meta)
+SupportedFrameworks = meta["SupportedFrameworks"]
+extra_deps = meta["extra_deps"]
 
 with open(root / "requirements.txt") as f:
     requirements = f.read().splitlines()
@@ -34,19 +28,13 @@ with open(root / "requirements.txt") as f:
 with open(root / "README.md") as f:
     long_desc = f.read()
 
-extras_require = {
-    "scikit-learn": enum.extra_deps[enum.SupportedFrameworks.SKLEARN],
-    "torch": enum.extra_deps[enum.SupportedFrameworks.TORCH],
-    "keras": enum.extra_deps[enum.SupportedFrameworks.KERAS],
-    "xgboost": enum.extra_deps[enum.SupportedFrameworks.XGBOOST],
-    "R": ["rpy2==3.5.2;python_version>='3.6'"],
-    "pypmml": enum.extra_deps[enum.SupportedFrameworks.PYPMML],
-    "uwsgi": ["uwsgi"],
-}
+extras_require = {framework: extra_deps[framework] for framework in SupportedFrameworks.ALL}
+extras_require["R"] = ["rpy2==3.5.2;python_version>='3.6'"]
+extras_require["uwsgi"] = ["uwsgi"]
 
 setup(
-    name=description.project_name,
-    version=description.version,
+    name=meta["project_name"],
+    version=meta["__version__"],
     description="DRUM - develop, test and deploy custom models",
     long_description=long_desc,
     long_description_content_type="text/markdown",
