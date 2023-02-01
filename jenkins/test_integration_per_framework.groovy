@@ -1,4 +1,4 @@
-node('multi-executor && ubuntu:focal'){
+node('16xCPU~32xRAM && ubuntu:focal'){
   stage ('test_integration_per_framework') {
     checkout scm
     dir('jenkins_artifacts'){
