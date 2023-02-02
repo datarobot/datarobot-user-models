@@ -10,17 +10,20 @@ import warnings
 
 import datarobot as dr
 import pytest
+from urllib.parse import urlparse
 from dr_usertool.datarobot_user_database import DataRobotUserDatabase
 from dr_usertool.utils import get_permissions
 
 from tests.drum.constants import TESTS_DATA_PATH, PUBLIC_DROPIN_ENVS_PATH
 
-ENDPOINT_URL = "http://localhost/api/v2"
+WEBSERVER_URL = "http://localhost"
+ENDPOINT_URL = WEBSERVER_URL + "/api/v2"
 
 
 def dr_usertool_setup():
     mongo_host = os.environ.get("MONGO_HOST", os.environ.get("HOST", "127.0.0.1")).strip()
-    return DataRobotUserDatabase.setup("adhoc", "", mongo_host=mongo_host)
+    webserver = urlparse(WEBSERVER_URL)
+    return DataRobotUserDatabase.setup("adhoc", webserver.hostname, mongo_host=mongo_host, protocol=webserver.scheme)
 
 
 @pytest.hookimpl(trylast=True)
@@ -32,8 +35,9 @@ def pytest_configure(config):
 
         # User credentials
         user_username = "local-custom-model-templates-tests-{}@datarobot.com".format(suffix)
-        user_api_token = "lkjkljnm988989jkr5645tv_{}".format(suffix)
-        user_permissions = get_permissions("tests/fixtures/user_permissions.json", user_api_token)
+        user_password = "lkjkljnm988989jkr5645tv_{}".format(suffix)
+        user_api_key_name = "drum-functional-tests"
+        user_permissions = get_permissions("tests/fixtures/user_permissions.json", user_api_key_name)
 
         # Add user
         DataRobotUserDatabase.add_user(
@@ -41,13 +45,18 @@ def pytest_configure(config):
             env,
             user_username,
             invite_code="autogen",
+            password=user_password,
             app_user_manager=False,
             permissions=user_permissions,
-            api_token=user_api_token,
+            api_key_name="drum-functional-tests",
             activated=True,
             unix_user="datarobot_imp",
         )
-        os.environ["DATAROBOT_API_TOKEN"] = user_api_token
+
+        user_api_keys = DataRobotUserDatabase.get_api_keys(env, user_username, user_password)
+        user_api_key = user_api_keys["data"][0]["key"]
+
+        os.environ["DATAROBOT_API_TOKEN"] = user_api_key
         os.environ["DATAROBOT_ENDPOINT"] = ENDPOINT_URL
         config.user_username = user_username
 
