@@ -52,7 +52,7 @@ def pytest_configure(config):
             password=user_password,
             app_user_manager=False,
             permissions=user_permissions,
-            api_key_name="drum-functional-tests",
+            api_key_name=user_api_key_name,
             activated=True,
             unix_user="datarobot_imp",
         )
