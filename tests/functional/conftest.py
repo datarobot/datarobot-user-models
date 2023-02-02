@@ -7,14 +7,14 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import os
 import uuid
 import warnings
+from urllib.parse import urlparse
 
 import datarobot as dr
 import pytest
-from urllib.parse import urlparse
 from dr_usertool.datarobot_user_database import DataRobotUserDatabase
 from dr_usertool.utils import get_permissions
 
-from tests.drum.constants import TESTS_DATA_PATH, PUBLIC_DROPIN_ENVS_PATH
+from tests.drum.constants import PUBLIC_DROPIN_ENVS_PATH, TESTS_DATA_PATH
 
 WEBSERVER_URL = "http://localhost"
 ENDPOINT_URL = WEBSERVER_URL + "/api/v2"
@@ -23,7 +23,9 @@ ENDPOINT_URL = WEBSERVER_URL + "/api/v2"
 def dr_usertool_setup():
     mongo_host = os.environ.get("MONGO_HOST", os.environ.get("HOST", "127.0.0.1")).strip()
     webserver = urlparse(WEBSERVER_URL)
-    return DataRobotUserDatabase.setup("adhoc", webserver.hostname, mongo_host=mongo_host, protocol=webserver.scheme)
+    return DataRobotUserDatabase.setup(
+        "adhoc", webserver.hostname, mongo_host=mongo_host, protocol=webserver.scheme
+    )
 
 
 @pytest.hookimpl(trylast=True)
@@ -37,7 +39,9 @@ def pytest_configure(config):
         user_username = "local-custom-model-templates-tests-{}@datarobot.com".format(suffix)
         user_password = "lkjkljnm988989jkr5645tv_{}".format(suffix)
         user_api_key_name = "drum-functional-tests"
-        user_permissions = get_permissions("tests/fixtures/user_permissions.json", user_api_key_name)
+        user_permissions = get_permissions(
+            "tests/fixtures/user_permissions.json", user_api_key_name
+        )
 
         # Add user
         DataRobotUserDatabase.add_user(
