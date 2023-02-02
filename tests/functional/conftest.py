@@ -60,7 +60,7 @@ def pytest_configure(config):
         user_api_keys = DataRobotUserDatabase.get_api_keys(env, user_username, user_password)
         user_api_key = user_api_keys["data"][0]["key"]
 
-        os.environ["DATAROBOT_API_TOKEN"] = user_api_key
+        os.environ["DATAROBOT_API_TOKEN"] = user_api_key  # TODO: rename to DATAROBOT_API_KEY
         os.environ["DATAROBOT_ENDPOINT"] = ENDPOINT_URL
         config.user_username = user_username
 
