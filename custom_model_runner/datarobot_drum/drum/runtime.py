@@ -45,6 +45,9 @@ class DrumRuntime:
             msg += f" To get more output information try to run with: '{ArgumentsOptions.VERBOSE}'."
         logger_drum.warning(colored(msg, "yellow"))
 
+        if exc_value:
+            logger_drum.error(exc_value)
+
         run_mode = RunMode(self.options.subparser_name)
 
         if (
@@ -53,8 +56,6 @@ class DrumRuntime:
             and not (run_mode == RunMode.SERVER and self.options.with_error_server)
         ):
             if exc_type == DrumCommonException:
-                print()
-                print(exc_value)
                 exit(1)
             return False
 

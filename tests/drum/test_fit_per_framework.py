@@ -915,7 +915,7 @@ class TestFit:
             assert_if_fail=False,
         )
 
-        assert "code directory may not be used as the output directory" in stdout
+        assert "code directory may not be used as the output directory" in stderr
 
     @pytest.mark.parametrize("skip_predict", [True, False])
     @pytest.mark.parametrize("output_fit_metadata", [True, False])

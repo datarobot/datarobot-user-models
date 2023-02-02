@@ -81,7 +81,7 @@ class TestDrumDocker:
         # As code dir is a fake, explicitly provide language.
         cmd += " --language python"
 
-        _, stdo, _ = _exec_shell_cmd(
+        _, stdout, stderr = _exec_shell_cmd(
             cmd,
             "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
             assert_if_fail=False,
@@ -90,10 +90,10 @@ class TestDrumDocker:
         if docker_build_fails:
             assert re.search(
                 r"Could not find a version that satisfies the requirement datarobot-drum==1.1.111",
-                stdo,
+                stderr,
             )
         else:
-            assert re.search(r"Image successfully built; tag: {};".format(expected_tag), stdo,)
+            assert re.search(r"Image successfully built; tag: {};".format(expected_tag), stdout)
 
     @pytest.mark.parametrize(
         "framework, problem, code_dir, env_dir, skip_deps_install",
