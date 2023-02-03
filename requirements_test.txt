@@ -1,4 +1,4 @@
-dr-usertool==0.5.18
+dr-usertool>=1.0.3,<2
 # PyYAML & drca are constrained by dr-usertool and its deps
 PyYAML>=3.11
 drca==0.2.42
