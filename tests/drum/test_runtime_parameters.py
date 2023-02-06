@@ -9,6 +9,8 @@ import pytest
 import yaml
 
 from datarobot_drum.drum.enum import ArgumentsOptions
+from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME
+from datarobot_drum.drum.enum import ModelMetadataKeys
 
 from datarobot_drum.resource.utils import _create_custom_model_dir
 from datarobot_drum.resource.utils import _exec_shell_cmd
@@ -23,20 +25,36 @@ def _setup_expected_runtime_parameters(custom_model_dir, is_missing_attr):
         "SOME_AWS_CRED_KEY": {
             "type": "credential",
             "payload": {
-                "credential_type": "s3",
+                "credentialType": "s3",
                 "region": "us-west",
-                "aws_access_key_id": "123",
-                "aws_secret_access_key": "abc",
-                "aws_session_token": "456edf",
+                "awsAccessKeyId": "123",
+                "awsSecretAccessKey": "abc",
+                "awsSessionToken": "456edf",
             },
         },
     }
     if is_missing_attr:
-        expected_runtime_params["SOME_AWS_CRED_KEY"]["payload"].pop("credential_type")
+        expected_runtime_params["SOME_AWS_CRED_KEY"]["payload"].pop("credentialType")
 
-    expected_runtime_param_filepath = Path(custom_model_dir) / EXPECTED_RUNTIME_PARAMS_FILE_NAME
-    with open(expected_runtime_param_filepath, "w", encoding="utf-8") as fd:
-        json.dump(expected_runtime_params, fd)
+    model_dir = Path(custom_model_dir)
+    expected_runtime_param_filepath = model_dir / EXPECTED_RUNTIME_PARAMS_FILE_NAME
+    # Need to dump as JSON because custom.py for this test expects it
+    expected_runtime_param_filepath.write_text(json.dumps(expected_runtime_params))
+
+    expected_runtime_def_filepath = model_dir / MODEL_CONFIG_FILENAME
+    expected_runtime_def_filepath.write_text(
+        # Need to dump as YAML because strictyaml doesn't support JSONesque style
+        yaml.dump(
+            {
+                ModelMetadataKeys.NAME: "my model",
+                ModelMetadataKeys.TYPE: "inference",
+                ModelMetadataKeys.TARGET_TYPE: "unstructured",
+                ModelMetadataKeys.RUNTIME_PARAMETERS: [
+                    dict(fieldName=k, type=v["type"]) for k, v in expected_runtime_params.items()
+                ],
+            },
+        )
+    )
     return expected_runtime_params, expected_runtime_param_filepath
 
 
@@ -99,7 +117,7 @@ class TestRuntimeParametersFromEnv:
             resources, tmp_path, is_missing_attr=True
         )
         assert re.search(
-            r".*Invalid runtime parameter!.*{'credential_type': DataError\(is " r"required\)}.*",
+            r".*Invalid runtime parameter!.*{'credentialType': DataError\(is " r"required\)}.*",
             stderr,
         )
 
@@ -183,6 +201,6 @@ class TestRuntimeParametersFromValuesFile:
             resources, tmp_path, runtime_param_values_stream, is_missing_attr=True
         )
         assert re.search(
-            r".*Failed to load runtime parameter.*{'credential_type': DataError\(is required\)}.*",
+            r".*Failed to load runtime parameter.*{'credentialType': DataError\(is required\)}.*",
             stdout,
         )
