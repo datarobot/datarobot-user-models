@@ -31,20 +31,20 @@ class TestRuntimeParameters:
             (
                 RuntimeParameterTypes.CREDENTIAL,
                 {
-                    "credential_type": "s3",
-                    "aws_access_key_id": "123aaa",
-                    "aws_secret_access_key": "3425sdd",
-                    "aws_session_token": "12345abcde",
+                    "credentialType": "s3",
+                    "awsAccessKeyId": "123aaa",
+                    "awsSecretAccessKey": "3425sdd",
+                    "awsSessionToken": "12345abcde",
                 },
             ),
             (
                 RuntimeParameterTypes.CREDENTIAL,
                 {
-                    "credential_type": "s3",
+                    "credentialType": "s3",
                     "region": "us-west",
-                    "aws_access_key_id": "123aaa",
-                    "aws_secret_access_key": "3425sdd",
-                    "aws_session_token": "12345abcde",
+                    "awsAccessKeyId": "123aaa",
+                    "awsSecretAccessKey": "3425sdd",
+                    "awsSessionToken": "12345abcde",
                 },
             ),
         ],
@@ -64,19 +64,19 @@ class TestRuntimeParameters:
             (
                 "CREDENTIAL",
                 {
-                    "credential_type": "s3",
-                    "aws_access_key_id": "123aaa",
-                    "aws_secret_access_key": "3425sdd",
-                    "aws_session_token": "12345abcde",
+                    "credentialType": "s3",
+                    "awsAccessKeyId": "123aaa",
+                    "awsSecretAccessKey": "3425sdd",
+                    "awsSessionToken": "12345abcde",
                 },
             ),
             (
                 "creds",
                 {
-                    "credential_type": "s3",
-                    "aws_access_key_id": "123aaa",
-                    "aws_secret_access_key": "3425sdd",
-                    "aws_session_token": "12345abcde",
+                    "credentialType": "s3",
+                    "awsAccessKeyId": "123aaa",
+                    "awsSecretAccessKey": "3425sdd",
+                    "awsSessionToken": "12345abcde",
                 },
             ),
         ],
@@ -95,17 +95,17 @@ class TestRuntimeParameters:
 
     def test_missing_mandatory_aws_credential_attribute(self):
         payload = {
-            "credential_type": "s3",
+            "credentialType": "s3",
             "region": "us-west",
-            "aws_access_key_id": "123aaa",
-            "aws_secret_access_key": "3425sdd",
-            "aws_session_token": "123aaa",
+            "awsAccessKeyId": "123aaa",
+            "awsSecretAccessKey": "3425sdd",
+            "awsSessionToken": "123aaa",
         }
         for missing_attr in (
-            "credential_type",
-            "aws_access_key_id",
-            "aws_secret_access_key",
-            "aws_session_token",
+            "credentialType",
+            "awsAccessKeyId",
+            "awsSecretAccessKey",
+            "awsSessionToken",
         ):
             payload.pop(missing_attr)
             self._read_runtime_param_and_expect_to_fail(
@@ -114,17 +114,17 @@ class TestRuntimeParameters:
 
     def test_empty_mandatory_aws_credential_attribute(self):
         payload = {
-            "credential_type": "s3",
+            "credentialType": "s3",
             "region": "us-west",
-            "aws_access_key_id": "123aaa",
-            "aws_secret_access_key": "3425sdd",
-            "aws_session_token": "123aaa",
+            "awsAccessKeyId": "123aaa",
+            "awsSecretAccessKey": "3425sdd",
+            "awsSessionToken": "123aaa",
         }
         for missing_attr in (
-            "credential_type",
-            "aws_access_key_id",
-            "aws_secret_access_key",
-            "aws_session_token",
+            "credentialType",
+            "awsAccessKeyId",
+            "awsSecretAccessKey",
+            "awsSessionToken",
         ):
             payload[missing_attr] = ""
             self._read_runtime_param_and_expect_to_fail(
@@ -195,10 +195,6 @@ class TestRuntimeParametersLoader:
             for param_name, _ in runtime_parameter_values.items():
                 actual_value = RuntimeParameters.get(param_name)
                 expected_value = runtime_parameter_values[param_name]
-                if isinstance(expected_value, dict):
-                    expected_value = RuntimeParametersLoader.credential_attributes_to_underscore(
-                        runtime_parameter_values[param_name]
-                    )
                 assert actual_value == expected_value
         finally:
             for param_name, _ in runtime_parameter_values.items():
