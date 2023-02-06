@@ -147,7 +147,10 @@ class RuntimeParametersLoader:
             )
         self._parameter_definitions = {}
         for parameter in parameters:
-            data = RuntimeParameterDefinitionTrafaret.check(parameter)
+            try:
+                data = RuntimeParameterDefinitionTrafaret.check(parameter)
+            except t.DataError as exc:
+                raise ErrorLoadingRuntimeParameter(f"Failed to load runtime parameter: {str(exc)}")
             self._parameter_definitions[data["name"]] = self.ParameterDefinition(**data)
 
     def setup_environment_variables(self):
