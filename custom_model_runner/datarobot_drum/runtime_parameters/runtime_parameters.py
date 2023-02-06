@@ -24,6 +24,7 @@ from .runtime_parameters_schema import RuntimeParameterCredentialPayloadTrafaret
 from .runtime_parameters_schema import RuntimeParameterPayloadTrafaret
 from .runtime_parameters_schema import RuntimeParameterStringPayloadTrafaret
 from .runtime_parameters_schema import RuntimeParameterTypes
+from .runtime_parameters_schema import RuntimeParameterDefinitionTrafaret
 
 
 class RuntimeParameters:
@@ -104,26 +105,27 @@ class RuntimeParametersLoader:
     ```
     """
 
-    ParameterDefinition = namedtuple("ParameterDefinition", ["type", "default"])
+    ParameterDefinition = namedtuple("ParameterDefinition", ["name", "type", "default"])
 
     def __init__(self, values_filepath, code_dir):
-        self._load_parameter_definitions(code_dir)
-
         if not values_filepath:
             raise InvalidInputFilePath("Empty runtime parameter values file path!")
+        if not code_dir:
+            raise InvalidInputFilePath("Empty code-dir path!")
+
+        self._load_parameter_definitions(code_dir)
 
         try:
             with open(values_filepath, encoding="utf-8") as file:
-                try:
-                    self._yaml_content = yaml.safe_load(file)
-                    if not self._yaml_content:
-                        raise InvalidEmptyYamlContent(
-                            "Runtime parameter values YAML file is empty!"
-                        )
-                except yaml.YAMLError as exc:
-                    raise InvalidYamlContent(
-                        f"Invalid runtime parameter values YAML content! {str(exc)}"
+                self._yaml_content = yaml.safe_load(file)
+                if not self._yaml_content:
+                    raise InvalidEmptyYamlContent(
+                        "Runtime parameter values YAML file is empty!"
                     )
+        except yaml.YAMLError as exc:
+            raise InvalidYamlContent(
+                f"Invalid runtime parameter values YAML content! {str(exc)}"
+            )
         except FileNotFoundError:
             raise InvalidInputFilePath(
                 f"Runtime parameter values file does not exist! filepath: {values_filepath}"
@@ -133,6 +135,10 @@ class RuntimeParametersLoader:
         try:
             with open(os.path.join(code_dir, MODEL_CONFIG_FILENAME)) as file:
                 model_metadata = yaml.safe_load(file)
+        except yaml.YAMLError as exc:
+            raise InvalidYamlContent(
+                f"Invalid model-metadata YAML content! {str(exc)}"
+            )
         except FileNotFoundError:
             raise InvalidInputFilePath(
                 f"{MODEL_CONFIG_FILENAME} must exist to use runtime parameters"
@@ -146,10 +152,8 @@ class RuntimeParametersLoader:
             )
         self._parameter_definitions = {}
         for parameter in parameters:
-            name = parameter["fieldName"]
-            type = RuntimeParameterTypes(parameter["type"])
-            default = parameter.get("defaultValue")
-            self._parameter_definitions[name] = self.ParameterDefinition(type, default)
+            data = RuntimeParameterDefinitionTrafaret.check(parameter)
+            self._parameter_definitions[data["name"]] = self.ParameterDefinition(**data)
 
     def setup_environment_variables(self):
         credential_payload_trafaret = RuntimeParameterCredentialPayloadTrafaret()

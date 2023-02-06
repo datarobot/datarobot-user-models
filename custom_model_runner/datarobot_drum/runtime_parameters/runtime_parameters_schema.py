@@ -14,6 +14,16 @@ class RuntimeParameterTypes(Enum):
     CREDENTIAL = "credential"
 
 
+class NativeEnumTrafaret(t.Enum):
+    def __init__(self, enum_type):
+        self.variants = [t.value for t in enum_type]
+        self.enum_type = enum_type
+
+    def transform(self, value, context=None):
+        self.check_value(value)
+        return self.enum_type(value)
+
+
 class RuntimeParameterPayloadBaseTrafaret(t.Dict):
     def __init__(self, param_type, definition):
         assert definition, "Valid trafaret definition must be provided!"
@@ -38,3 +48,10 @@ class RuntimeParameterCredentialPayloadTrafaret(RuntimeParameterPayloadBaseTrafa
 RuntimeParameterPayloadTrafaret = (
     RuntimeParameterStringPayloadTrafaret | RuntimeParameterCredentialPayloadTrafaret
 )
+
+
+RuntimeParameterDefinitionTrafaret = t.Dict({
+    t.Key("fieldName", to_name="name"): t.String,
+    t.Key("type"): NativeEnumTrafaret(RuntimeParameterTypes),
+    t.Key("defaultValue", optional=True, default=None, to_name="default"): t.Any | t.Null,
+}).ignore_extra("*")
