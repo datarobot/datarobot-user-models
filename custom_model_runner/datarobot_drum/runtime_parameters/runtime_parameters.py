@@ -6,7 +6,6 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import json
 import os
-import re
 from collections import namedtuple
 
 import trafaret as t
@@ -118,8 +117,8 @@ class RuntimeParametersLoader:
         try:
             with open(values_filepath, encoding="utf-8") as file:
                 self._yaml_content = yaml.safe_load(file)
-                if not self._yaml_content:
-                    raise InvalidEmptyYamlContent("Runtime parameter values YAML file is empty!")
+            if not self._yaml_content:
+                raise InvalidEmptyYamlContent("Runtime parameter values YAML file is empty!")
         except yaml.YAMLError as exc:
             raise InvalidYamlContent(f"Invalid runtime parameter values YAML content! {str(exc)}")
         except FileNotFoundError:
@@ -131,6 +130,8 @@ class RuntimeParametersLoader:
         try:
             with open(os.path.join(code_dir, MODEL_CONFIG_FILENAME)) as file:
                 model_metadata = yaml.safe_load(file)
+            if not model_metadata:
+                raise InvalidEmptyYamlContent("Model-metadata YAML file is empty!")
         except yaml.YAMLError as exc:
             raise InvalidYamlContent(f"Invalid model-metadata YAML content! {str(exc)}")
         except FileNotFoundError:

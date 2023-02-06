@@ -34,14 +34,17 @@ class RuntimeParameterPayloadBaseTrafaret(t.Dict):
 
 class RuntimeParameterStringPayloadTrafaret(RuntimeParameterPayloadBaseTrafaret):
     def __init__(self):
-        super().__init__(RuntimeParameterTypes.STRING.value, {t.Key("payload"): t.String})
+        super().__init__(RuntimeParameterTypes.STRING.value, {t.Key("payload"): t.Null | t.String})
 
 
 class RuntimeParameterCredentialPayloadTrafaret(RuntimeParameterPayloadBaseTrafaret):
     def __init__(self):
         super().__init__(
             RuntimeParameterTypes.CREDENTIAL.value,
-            {t.Key("payload"): t.Dict({t.Key("credentialType"): t.String}).allow_extra("*")},
+            {
+                t.Key("payload"): t.Null
+                | t.Dict({t.Key("credentialType"): t.String}).allow_extra("*")
+            },
         )
 
 
@@ -54,6 +57,6 @@ RuntimeParameterDefinitionTrafaret = t.Dict(
     {
         t.Key("fieldName", to_name="name"): t.String,
         t.Key("type"): NativeEnumTrafaret(RuntimeParameterTypes),
-        t.Key("defaultValue", optional=True, default=None, to_name="default"): t.Any | t.Null,
+        t.Key("defaultValue", optional=True, default=None, to_name="default"): t.Any,
     }
 ).ignore_extra("*")
