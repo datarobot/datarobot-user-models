@@ -7,10 +7,13 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import json
 import os
 import re
+from collections import namedtuple
 
 import trafaret as t
 import yaml
 
+from ..drum.enum import MODEL_CONFIG_FILENAME
+from ..drum.enum import ModelMetadataKeys
 from .exceptions import ErrorLoadingRuntimeParameter
 from .exceptions import InvalidEmptyYamlContent
 from .exceptions import InvalidInputFilePath
@@ -98,9 +101,14 @@ class RuntimeParametersLoader:
       awsAccessKeyId: ABDEFGHIJK...
       awsSecretAccessKey: asdjDFSDJafslkjsdDLKGDSDlkjlkj...
       awsSessionToken: null
+    ```
     """
 
-    def __init__(self, values_filepath):
+    ParameterDefinition = namedtuple("ParameterDefinition", ["type", "default"])
+
+    def __init__(self, values_filepath, code_dir):
+        self._load_parameter_definitions(code_dir)
+
         if not values_filepath:
             raise InvalidInputFilePath("Empty runtime parameter values file path!")
 
@@ -121,22 +129,49 @@ class RuntimeParametersLoader:
                 f"Runtime parameter values file does not exist! filepath: {values_filepath}"
             )
 
+    def _load_parameter_definitions(self, code_dir):
+        try:
+            with open(os.path.join(code_dir, MODEL_CONFIG_FILENAME)) as file:
+                model_metadata = yaml.safe_load(file)
+        except FileNotFoundError:
+            raise InvalidYamlContent(
+                f"{MODEL_CONFIG_FILENAME} must exist to use runtime parameters"
+            )
+
+        parameters = model_metadata.get(ModelMetadataKeys.RUNTIME_PARAMETERS)
+        if not parameters:
+            raise InvalidYamlContent(
+                f"{MODEL_CONFIG_FILENAME}: YAML file must contain at least one "
+                f"parameter definition in the section '{ModelMetadataKeys.RUNTIME_PARAMETERS}'"
+            )
+        self._parameter_definitions = {}
+        for parameter in parameters:
+            name = parameter["fieldName"]
+            type = RuntimeParameterTypes(parameter["type"])
+            default = parameter.get("defaultValue")
+            self._parameter_definitions[name] = self.ParameterDefinition(type, default)
+
     def setup_environment_variables(self):
         credential_payload_trafaret = RuntimeParameterCredentialPayloadTrafaret()
         string_payload_trafaret = RuntimeParameterStringPayloadTrafaret()
-        for param_key, param_value in self._yaml_content.items():
+        for param_key, param_definition in self._parameter_definitions.items():
+            param_value = self._yaml_content.get(param_key, param_definition.default)
+
             try:
-                if isinstance(param_value, dict):  # Only credentials are provided as dict
-                    credential_payload = self.credential_attributes_to_underscore(param_value)
+                if param_definition.type == RuntimeParameterTypes.CREDENTIAL:
                     payload = credential_payload_trafaret.check(
                         {
                             "type": RuntimeParameterTypes.CREDENTIAL.value,
-                            "payload": credential_payload,
+                            "payload": param_value,
                         }
                     )
-                elif isinstance(param_value, str):  # All remaining supported cases
+                elif param_definition.type == RuntimeParameterTypes.STRING:
                     payload = string_payload_trafaret.check(
                         {"type": RuntimeParameterTypes.STRING.value, "payload": param_value}
+                    )
+                else:
+                    raise ErrorLoadingRuntimeParameter(
+                        f"Unsupported type '{param_definition.type} for parameter {param_key}"
                     )
             except t.DataError as exc:
                 raise ErrorLoadingRuntimeParameter(
@@ -144,11 +179,3 @@ class RuntimeParametersLoader:
                 )
             namespaced_param_key = RuntimeParameters.namespaced_param_name(param_key)
             os.environ[namespaced_param_key] = json.dumps(payload)
-
-    @classmethod
-    def credential_attributes_to_underscore(cls, credential_dict):
-        return {cls._camel_to_underscore(key): value for key, value in credential_dict.items()}
-
-    @staticmethod
-    def _camel_to_underscore(camel_str):
-        return re.sub(r"([A-Z])+([a-z]+)", r"_\1\2", camel_str).lower()

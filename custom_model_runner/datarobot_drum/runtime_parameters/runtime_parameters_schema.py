@@ -31,7 +31,7 @@ class RuntimeParameterCredentialPayloadTrafaret(RuntimeParameterPayloadBaseTrafa
     def __init__(self):
         super().__init__(
             RuntimeParameterTypes.CREDENTIAL.value,
-            {t.Key("payload"): t.Dict({t.Key("credential_type"): t.String}).allow_extra("*")},
+            {t.Key("payload"): t.Dict({t.Key("credentialType"): t.String}).allow_extra("*")},
         )
 
 
