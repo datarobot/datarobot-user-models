@@ -119,13 +119,9 @@ class RuntimeParametersLoader:
             with open(values_filepath, encoding="utf-8") as file:
                 self._yaml_content = yaml.safe_load(file)
                 if not self._yaml_content:
-                    raise InvalidEmptyYamlContent(
-                        "Runtime parameter values YAML file is empty!"
-                    )
+                    raise InvalidEmptyYamlContent("Runtime parameter values YAML file is empty!")
         except yaml.YAMLError as exc:
-            raise InvalidYamlContent(
-                f"Invalid runtime parameter values YAML content! {str(exc)}"
-            )
+            raise InvalidYamlContent(f"Invalid runtime parameter values YAML content! {str(exc)}")
         except FileNotFoundError:
             raise InvalidInputFilePath(
                 f"Runtime parameter values file does not exist! filepath: {values_filepath}"
@@ -136,9 +132,7 @@ class RuntimeParametersLoader:
             with open(os.path.join(code_dir, MODEL_CONFIG_FILENAME)) as file:
                 model_metadata = yaml.safe_load(file)
         except yaml.YAMLError as exc:
-            raise InvalidYamlContent(
-                f"Invalid model-metadata YAML content! {str(exc)}"
-            )
+            raise InvalidYamlContent(f"Invalid model-metadata YAML content! {str(exc)}")
         except FileNotFoundError:
             raise InvalidInputFilePath(
                 f"{MODEL_CONFIG_FILENAME} must exist to use runtime parameters"

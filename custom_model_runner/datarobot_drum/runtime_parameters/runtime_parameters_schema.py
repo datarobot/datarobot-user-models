@@ -50,8 +50,10 @@ RuntimeParameterPayloadTrafaret = (
 )
 
 
-RuntimeParameterDefinitionTrafaret = t.Dict({
-    t.Key("fieldName", to_name="name"): t.String,
-    t.Key("type"): NativeEnumTrafaret(RuntimeParameterTypes),
-    t.Key("defaultValue", optional=True, default=None, to_name="default"): t.Any | t.Null,
-}).ignore_extra("*")
+RuntimeParameterDefinitionTrafaret = t.Dict(
+    {
+        t.Key("fieldName", to_name="name"): t.String,
+        t.Key("type"): NativeEnumTrafaret(RuntimeParameterTypes),
+        t.Key("defaultValue", optional=True, default=None, to_name="default"): t.Any | t.Null,
+    }
+).ignore_extra("*")

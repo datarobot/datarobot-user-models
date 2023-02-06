@@ -205,9 +205,7 @@ class TestRuntimeParametersLoader:
             RuntimeParametersLoader(runtime_params_values_file, model_metadata_file.parent)
 
     def test_metadata_file_not_exists(self, runtime_params_values_file, empty_code_dir):
-        with pytest.raises(
-            InvalidInputFilePath, match="must exist to use runtime parameters"
-        ):
+        with pytest.raises(InvalidInputFilePath, match="must exist to use runtime parameters"):
             RuntimeParametersLoader(runtime_params_values_file, empty_code_dir)
 
     def test_empty_file(self, runtime_params_values_file, model_metadata_file):
