@@ -134,7 +134,7 @@ class RuntimeParametersLoader:
             with open(os.path.join(code_dir, MODEL_CONFIG_FILENAME)) as file:
                 model_metadata = yaml.safe_load(file)
         except FileNotFoundError:
-            raise InvalidYamlContent(
+            raise InvalidInputFilePath(
                 f"{MODEL_CONFIG_FILENAME} must exist to use runtime parameters"
             )
 
