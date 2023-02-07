@@ -4,15 +4,15 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-import contextlib
 import json
 import os
-from tempfile import NamedTemporaryFile
 from unittest.mock import patch
 
 import pytest
 import yaml
 
+from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME
+from datarobot_drum.drum.enum import ModelMetadataKeys
 from datarobot_drum.runtime_parameters.exceptions import InvalidEmptyYamlContent
 from datarobot_drum.runtime_parameters.exceptions import InvalidInputFilePath
 from datarobot_drum.runtime_parameters.exceptions import InvalidJsonException
@@ -31,20 +31,20 @@ class TestRuntimeParameters:
             (
                 RuntimeParameterTypes.CREDENTIAL,
                 {
-                    "credential_type": "s3",
-                    "aws_access_key_id": "123aaa",
-                    "aws_secret_access_key": "3425sdd",
-                    "aws_session_token": "12345abcde",
+                    "credentialType": "s3",
+                    "awsAccessKeyId": "123aaa",
+                    "awsSecretAccessKey": "3425sdd",
+                    "awsSessionToken": "12345abcde",
                 },
             ),
             (
                 RuntimeParameterTypes.CREDENTIAL,
                 {
-                    "credential_type": "s3",
+                    "credentialType": "s3",
                     "region": "us-west",
-                    "aws_access_key_id": "123aaa",
-                    "aws_secret_access_key": "3425sdd",
-                    "aws_session_token": "12345abcde",
+                    "awsAccessKeyId": "123aaa",
+                    "awsSecretAccessKey": "3425sdd",
+                    "awsSessionToken": "12345abcde",
                 },
             ),
         ],
@@ -64,19 +64,19 @@ class TestRuntimeParameters:
             (
                 "CREDENTIAL",
                 {
-                    "credential_type": "s3",
-                    "aws_access_key_id": "123aaa",
-                    "aws_secret_access_key": "3425sdd",
-                    "aws_session_token": "12345abcde",
+                    "credentialType": "s3",
+                    "awsAccessKeyId": "123aaa",
+                    "awsSecretAccessKey": "3425sdd",
+                    "awsSessionToken": "12345abcde",
                 },
             ),
             (
                 "creds",
                 {
-                    "credential_type": "s3",
-                    "aws_access_key_id": "123aaa",
-                    "aws_secret_access_key": "3425sdd",
-                    "aws_session_token": "12345abcde",
+                    "credentialType": "s3",
+                    "awsAccessKeyId": "123aaa",
+                    "awsSecretAccessKey": "3425sdd",
+                    "awsSessionToken": "12345abcde",
                 },
             ),
         ],
@@ -95,17 +95,17 @@ class TestRuntimeParameters:
 
     def test_missing_mandatory_aws_credential_attribute(self):
         payload = {
-            "credential_type": "s3",
+            "credentialType": "s3",
             "region": "us-west",
-            "aws_access_key_id": "123aaa",
-            "aws_secret_access_key": "3425sdd",
-            "aws_session_token": "123aaa",
+            "awsAccessKeyId": "123aaa",
+            "awsSecretAccessKey": "3425sdd",
+            "awsSessionToken": "123aaa",
         }
         for missing_attr in (
-            "credential_type",
-            "aws_access_key_id",
-            "aws_secret_access_key",
-            "aws_session_token",
+            "credentialType",
+            "awsAccessKeyId",
+            "awsSecretAccessKey",
+            "awsSessionToken",
         ):
             payload.pop(missing_attr)
             self._read_runtime_param_and_expect_to_fail(
@@ -114,17 +114,17 @@ class TestRuntimeParameters:
 
     def test_empty_mandatory_aws_credential_attribute(self):
         payload = {
-            "credential_type": "s3",
+            "credentialType": "s3",
             "region": "us-west",
-            "aws_access_key_id": "123aaa",
-            "aws_secret_access_key": "3425sdd",
-            "aws_session_token": "123aaa",
+            "awsAccessKeyId": "123aaa",
+            "awsSecretAccessKey": "3425sdd",
+            "awsSessionToken": "123aaa",
         }
         for missing_attr in (
-            "credential_type",
-            "aws_access_key_id",
-            "aws_secret_access_key",
-            "aws_session_token",
+            "credentialType",
+            "awsAccessKeyId",
+            "awsSecretAccessKey",
+            "awsSessionToken",
         ):
             payload[missing_attr] = ""
             self._read_runtime_param_and_expect_to_fail(
@@ -146,40 +146,10 @@ class TestRuntimeParameters:
 
 
 class TestRuntimeParametersLoader:
-    def test_none_filepath(self):
-        with pytest.raises(InvalidInputFilePath) as exc:
-            RuntimeParametersLoader(None)
-        assert "Empty runtime parameter values file path!" in str(exc.value)
-
-    def test_file_not_exists(self):
-        with pytest.raises(InvalidInputFilePath) as exc:
-            RuntimeParametersLoader("/tmp/non-existing-12er.yaml")
-        assert "Runtime parameter values file does not exist!" in str(exc.value)
-
-    def test_empty_file(self):
-        with NamedTemporaryFile("w", encoding="utf-8") as file:
-            with pytest.raises(InvalidEmptyYamlContent) as exc:
-                RuntimeParametersLoader(file.name)
-            assert "Runtime parameter values YAML file is empty!" in str(exc.value)
-
-    @contextlib.contextmanager
-    def _runtime_params_yaml_file(self, yaml_content):
-        with NamedTemporaryFile("w", encoding="utf-8") as file:
-            file.write(yaml_content)
-            file.flush()
-            yield file.name
-
-    def test_invalid_yaml_content(self):
-        valid_yaml_content = yaml.dump({"PARAM_STR": "Some value"})
-        invalid_yaml_content = f"[{valid_yaml_content}"
-        with self._runtime_params_yaml_file(invalid_yaml_content) as filepath:
-            with pytest.raises(InvalidYamlContent) as exc:
-                RuntimeParametersLoader(filepath)
-            assert "Invalid runtime parameter values YAML content!" in str(exc.value)
-
-    def test_setup_success(self):
-        runtime_parameter_values = {
-            "STR_PARAM": "Some value",
+    @pytest.fixture
+    def runtime_parameter_values(self):
+        return {
+            "STR_PARAM1": "Some value",
             "S3_CRED_PARAM": {
                 "credentialType": "s3",
                 "awsAccessKeyId": "AWOUIEOIUI",
@@ -187,19 +157,106 @@ class TestRuntimeParametersLoader:
                 "awsSessionToken": None,
             },
         }
-        try:
-            valid_yaml_content = yaml.dump(runtime_parameter_values)
-            with self._runtime_params_yaml_file(valid_yaml_content) as filepath:
-                RuntimeParametersLoader(filepath).setup_environment_variables()
 
-            for param_name, _ in runtime_parameter_values.items():
+    @pytest.fixture
+    def runtime_parameter_definitions(self):
+        return [
+            {"fieldName": "STR_PARAM1", "type": "string", "defaultValue": "Hello world!"},
+            {"fieldName": "STR_PARAM2", "type": "string", "defaultValue": "goodbye"},
+            {"fieldName": "S3_CRED_PARAM", "type": "credential", "description": "a secret"},
+            {"fieldName": "OTHER_CRED_PARAM", "type": "credential", "defaultValue": None},
+        ]
+
+    @pytest.fixture
+    def runtime_params_values_file(self, tmp_path, runtime_parameter_values):
+        p = tmp_path / ".runtime_param_values.yaml"
+        p.write_text(yaml.dump(runtime_parameter_values))
+        return p
+
+    @pytest.fixture
+    def empty_code_dir(self, tmp_path):
+        p = tmp_path / "model-data"
+        p.mkdir()
+        return p
+
+    @pytest.fixture
+    def model_metadata_file(self, empty_code_dir, runtime_parameter_definitions):
+        f = empty_code_dir / MODEL_CONFIG_FILENAME
+        content = {
+            ModelMetadataKeys.NAME: "model name",
+            ModelMetadataKeys.TYPE: "inference",
+            ModelMetadataKeys.TARGET_TYPE: "regression",
+            ModelMetadataKeys.RUNTIME_PARAMETERS: runtime_parameter_definitions,
+        }
+        f.write_text(yaml.dump(content))
+        return f
+
+    def test_none_values_path(self, model_metadata_file):
+        with pytest.raises(InvalidInputFilePath, match="Empty runtime parameter values file path!"):
+            RuntimeParametersLoader(None, model_metadata_file.parent)
+
+    def test_none_metadata(self, runtime_params_values_file):
+        with pytest.raises(InvalidInputFilePath, match="Empty code-dir path!"):
+            RuntimeParametersLoader(runtime_params_values_file, None)
+
+    def test_values_file_not_exists(self, runtime_params_values_file, model_metadata_file):
+        runtime_params_values_file.unlink()
+        with pytest.raises(
+            InvalidInputFilePath, match="Runtime parameter values file does not exist!"
+        ):
+            RuntimeParametersLoader(runtime_params_values_file, model_metadata_file.parent)
+
+    def test_metadata_file_not_exists(self, runtime_params_values_file, empty_code_dir):
+        with pytest.raises(InvalidInputFilePath, match="must exist to use runtime parameters"):
+            RuntimeParametersLoader(runtime_params_values_file, empty_code_dir)
+
+    def test_empty_values_file(self, runtime_params_values_file, model_metadata_file):
+        runtime_params_values_file.write_text("")
+        with pytest.raises(
+            InvalidEmptyYamlContent, match="Runtime parameter values YAML file is empty!"
+        ):
+            RuntimeParametersLoader(runtime_params_values_file, model_metadata_file.parent)
+
+    def test_empty_metadata_file(self, runtime_params_values_file, model_metadata_file):
+        model_metadata_file.write_text("")
+        with pytest.raises(InvalidEmptyYamlContent, match="Model-metadata YAML file is empty!"):
+            RuntimeParametersLoader(runtime_params_values_file, model_metadata_file.parent)
+
+    def test_no_defs_metadata_file(self, runtime_params_values_file, model_metadata_file):
+        model_metadata_file.write_text("name: my model")
+        with pytest.raises(InvalidYamlContent, match="must contain at least one parameter def"):
+            RuntimeParametersLoader(runtime_params_values_file, model_metadata_file.parent)
+
+    def test_invalid_values_yaml_content(self, runtime_params_values_file, model_metadata_file):
+        invalid_yaml_content = "['something': 1"
+        runtime_params_values_file.write_text(invalid_yaml_content)
+        with pytest.raises(
+            InvalidYamlContent, match="Invalid runtime parameter values YAML content!"
+        ):
+            RuntimeParametersLoader(runtime_params_values_file, model_metadata_file.parent)
+
+    def test_invalid_metadata_yaml_content(self, runtime_params_values_file, model_metadata_file):
+        invalid_yaml_content = "['something': 1"
+        model_metadata_file.write_text(invalid_yaml_content)
+        with pytest.raises(InvalidYamlContent, match="Invalid model-metadata YAML content!"):
+            RuntimeParametersLoader(runtime_params_values_file, model_metadata_file.parent)
+
+    def test_setup_success(
+        self,
+        runtime_parameter_values,
+        runtime_params_values_file,
+        runtime_parameter_definitions,
+        model_metadata_file,
+    ):
+        loader = RuntimeParametersLoader(runtime_params_values_file, model_metadata_file.parent)
+        with patch.dict("os.environ"):
+            loader.setup_environment_variables()
+
+            for param_def in runtime_parameter_definitions:
+                param_name = param_def["fieldName"]
+                default = param_def.get("defaultValue")
+                override_value = runtime_parameter_values.get(param_name)
+                expected_value = override_value if override_value is not None else default
+
                 actual_value = RuntimeParameters.get(param_name)
-                expected_value = runtime_parameter_values[param_name]
-                if isinstance(expected_value, dict):
-                    expected_value = RuntimeParametersLoader.credential_attributes_to_underscore(
-                        runtime_parameter_values[param_name]
-                    )
                 assert actual_value == expected_value
-        finally:
-            for param_name, _ in runtime_parameter_values.items():
-                os.environ.pop(RuntimeParameters.namespaced_param_name(param_name))

@@ -87,7 +87,8 @@ def main():
         CMRunnerArgsRegistry.verify_options(options)
         if "runtime_params_file" in options and options.runtime_params_file:
             try:
-                RuntimeParametersLoader(options.runtime_params_file).setup_environment_variables()
+                loader = RuntimeParametersLoader(options.runtime_params_file, options.code_dir)
+                loader.setup_environment_variables()
             except RuntimeParameterException as exc:
                 print(str(exc))
                 exit(255)
