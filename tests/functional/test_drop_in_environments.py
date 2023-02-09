@@ -309,35 +309,30 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.mark.parametrize(
-        "env, model, test_data_id",
+        "model, test_data_id",
         [
-            ("java_drop_in_env", "java_binary_custom_model", "binary_testing_data"),
-            ("sklearn_drop_in_env", "sklearn_binary_custom_model", "binary_testing_data"),
-            ("keras_drop_in_env", "keras_binary_custom_model", "binary_testing_data"),
-            ("pytorch_drop_in_env", "torch_binary_custom_model", "binary_testing_data"),
-            ("onnx_drop_in_env", "onnx_binary_custom_model", "binary_testing_data"),
-            ("xgboost_drop_in_env", "xgb_binary_custom_model", "binary_testing_data"),
-            ("r_drop_in_env", "r_binary_custom_model", "binary_testing_data"),
-            ("java_drop_in_env", "java_regression_custom_model", "regression_testing_data"),
-            ("sklearn_drop_in_env", "sklearn_regression_custom_model", "regression_testing_data"),
-            ("keras_drop_in_env", "keras_regression_custom_model", "regression_testing_data"),
-            ("pytorch_drop_in_env", "torch_regression_custom_model", "regression_testing_data"),
-            ("onnx_drop_in_env", "onnx_regression_custom_model", "regression_testing_data"),
-            ("xgboost_drop_in_env", "xgb_regression_custom_model", "regression_testing_data"),
-            ("r_drop_in_env", "r_regression_custom_model", "regression_testing_data"),
-            (
-                "sklearn_drop_in_env",
-                "python_multi_artifact_regression_custom_model",
-                "regression_testing_data",
-            ),
-            ("r_drop_in_env", "r_multi_artifact_binary_custom_model", "binary_testing_data"),
-            ("sklearn_drop_in_env", "sklearn_multiclass_custom_model", "multiclass_testing_data"),
-            ("java_drop_in_env", "pojo_multiclass_custom_model", "multiclass_testing_data"),
-            ("java_drop_in_env", "mojo_multiclass_custom_model", "multiclass_testing_data"),
+            ("java_binary_custom_model", "binary_testing_data"),
+            ("sklearn_binary_custom_model", "binary_testing_data"),
+            ("keras_binary_custom_model", "binary_testing_data"),
+            ("torch_binary_custom_model", "binary_testing_data"),
+            ("onnx_binary_custom_model", "binary_testing_data"),
+            ("xgb_binary_custom_model", "binary_testing_data"),
+            ("r_binary_custom_model", "binary_testing_data"),
+            ("java_regression_custom_model", "regression_testing_data"),
+            ("sklearn_regression_custom_model", "regression_testing_data"),
+            ("keras_regression_custom_model", "regression_testing_data"),
+            ("torch_regression_custom_model", "regression_testing_data"),
+            ("onnx_regression_custom_model", "regression_testing_data"),
+            ("xgb_regression_custom_model", "regression_testing_data"),
+            ("r_regression_custom_model", "regression_testing_data"),
+            ("python_multi_artifact_regression_custom_model", "regression_testing_data"),
+            ("r_multi_artifact_binary_custom_model", "binary_testing_data"),
+            ("sklearn_multiclass_custom_model", "multiclass_testing_data"),
+            ("pojo_multiclass_custom_model", "multiclass_testing_data"),
+            ("mojo_multiclass_custom_model", "multiclass_testing_data"),
         ],
     )
-    def test_drop_in_environments(self, request, env, model, test_data_id):
-        env_id, env_version_id = request.getfixturevalue(env)
+    def test_drop_in_environments(self, request, model, test_data_id):
         model_id, model_version_id = request.getfixturevalue(model)
         test_data_id = request.getfixturevalue(test_data_id)
 
@@ -383,26 +378,19 @@ class TestDropInEnvironments(object):
         assert test_passed, "Feature impact test has timed out. " + error_message
 
     @pytest.mark.parametrize(
-        "env, model, test_data_id",
+        "model, test_data_id",
         [
-            (
-                "sklearn_drop_in_env",
-                "bad_python_multi_artifact_binary_custom_model",
-                "binary_testing_data",
-            ),
-            ("r_drop_in_env", "bad_r_multi_artifact_binary_custom_model", "binary_testing_data"),
+            ("bad_python_multi_artifact_binary_custom_model", "binary_testing_data"),
+            ("bad_r_multi_artifact_binary_custom_model", "binary_testing_data"),
         ],
     )
-    def test_fail_multi_artifacts(self, request, env, model, test_data_id):
-        env_id, env_version_id = request.getfixturevalue(env)
+    def test_fail_multi_artifacts(self, request, model, test_data_id):
         model_id, model_version_id = request.getfixturevalue(model)
         test_data_id = request.getfixturevalue(test_data_id)
 
         test = dr.CustomModelTest.create(
             custom_model_id=model_id,
             custom_model_version_id=model_version_id,
-            environment_id=env_id,
-            environment_version_id=env_version_id,
             dataset_id=test_data_id,
         )
         assert test.overall_status == "failed"

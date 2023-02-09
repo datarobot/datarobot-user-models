@@ -235,7 +235,7 @@ class TestInferenceModelTemplates(object):
         neg_label,
         class_labels_file,
     ):
-        env_id, env_version_id = request.getfixturevalue(env)
+        env_id, _ = request.getfixturevalue(env)
         test_data_id = request.getfixturevalue(dataset)
 
         create_params = dict(
