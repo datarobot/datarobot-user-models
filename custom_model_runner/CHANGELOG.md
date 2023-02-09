@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+#### [1.10.0] - 2023-02-10
+##### Added
+- Runtime parameters support
+- Support for `runtimeParameterDefinitions` section in the `model-metadata.yaml` file.
+- New CLI flag `--runtime-params-file` which injects Runtime Parameter values into the variables defined in the model metadata.
+- `RuntimeParameters` class that simplifies accessing runtime parameters from within a model's `custom.py` file.
+##### Changed
+- Pin: `datarobot==3.0.2`, `dr-usertool==1.0.0`, `datarobot-bp-workshop==0.2.6`
 
 #### [1.9.14] - 2023-01-11
 ##### Added
