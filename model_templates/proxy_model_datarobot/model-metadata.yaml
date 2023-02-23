@@ -1,0 +1,18 @@
+name: proxy-model-datarobot
+type: inference
+targetType: regression
+
+runtimeParameterDefinitions:
+  - fieldName: DATAROBOT_ENDPOINT
+    type: string
+    defaultValue: https://app.datarobot.com
+    description: URL of remote DataRobot instance
+
+  - fieldName: DATAROBOT_API_KEY
+    type: credential
+    description: An HTTP Basic credential that contains the DataRobot API key in the password field (the username field is ignored)
+
+  - fieldName: deploymentID
+    type: string
+    description: ID of the deployment to use
+
