@@ -36,6 +36,9 @@ endpoint: demo-endpoint
 # Override the default value if your endpoint does not reside in the `eastus` region
 #region: eastus
 
+# This is the API key you can get from the `Consume` tab in the Endpoint's UI. We
+# will structure the data the same as the DataRobot Platform will when you associate
+# the runtime parameter with a credential stored in the Credential Manager.
 API_KEY:
   credentialType: basic
   username: robot
