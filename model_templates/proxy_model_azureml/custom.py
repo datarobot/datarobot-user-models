@@ -11,7 +11,8 @@ import urllib.request
 from types import SimpleNamespace
 
 import pandas as pd
-from datarobot_drum.runtime_parameters.runtime_parameters import RuntimeParameters
+
+from datarobot_drum import RuntimeParameters
 
 logger = logging.getLogger(__name__)
 
