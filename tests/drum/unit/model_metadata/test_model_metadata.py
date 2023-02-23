@@ -1062,7 +1062,7 @@ def test_yaml_metadata_missing_fields(tmp_path, config_yaml, request, test_case_
     if test_case_number == 1:
         conf = read_model_metadata_yaml(tmp_path)
         with pytest.raises(
-            DrumCommonException, match=r"Missing keys: ['validation', 'environmentID']"
+            DrumCommonException, match=r"Missing keys: \['validation', 'environmentID'\]"
         ):
             validate_config_fields(
                 conf,
