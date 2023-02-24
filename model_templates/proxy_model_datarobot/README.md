@@ -11,7 +11,7 @@ This sample proxy model illustrates how you can use custom model infrastructure 
 First, you will need to have an existing deployment in the DataRobot MLOps platform.
 
 Next, create a new _Custom Inference Model_ in the DataRobot platform of type `Proxy` and select
-the `Target type` and `Target name` to match the model trained in AzureML.
+the `Target type` and `Target name` to match the model already deployed in DataRobot MLOps.
 
 Finally, upload the files in this example in the Assemble tab and select public network access in the
 resource settings. In addition, there will be several runtime parameters that will need to be
