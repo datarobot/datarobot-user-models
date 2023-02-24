@@ -21,7 +21,7 @@ enter a **Target type** and **Target name** matching the model trained in AzureM
 
 Finally, on the **Assemble** tab, upload the files in this example and select public network access in the
 **Resource Settings**. After the example files are uploaded, you can configure the Runtime Parameters
-filled in with the appropriate information.
+with the appropriate information.
 
 ## Run locally with `drum`
 
