@@ -1,11 +1,10 @@
 # DataRobot Proxy Model Example
 
-This model is intended to work with any Python based drop-in environment. Any additional
+This model is intended to work with any Python-based drop-in environment. Any additional
 dependencies needed to connect to the remote model are listed in the `requirements.txt`
 file.
 
-This sample proxy model shows how the custom model infrastructure can be used to connect (e.g. proxy) data back and forth between potentially two different
-DataRobot clusters or different deployments in the same cluster.
+This sample proxy model illustrates how you can use custom model infrastructure as a proxy between two DataRobot clusters or deployments in the same cluster.
 
 ## Instructions
 
@@ -18,9 +17,9 @@ Finally, upload the files in this example in the Assemble tab and select public 
 resource settings. In addition, there will be several runtime parameters that will need to be
 filled in with the appropriate information.
 
-## To run locally using 'drum'
+## Run locally with `drum`
 
-You'll need to create a _values file_ that sets overrides for the parameters defined in this
+Create a _values file_ to set overrides for the parameters defined in this
 example. An example could look as follows:
 
 ```yaml
@@ -45,4 +44,4 @@ Paths are relative to `./datarobot-user-models`:
 drum score --logging-level info --code-dir model_templates/proxy_model_datarobot --target-type <target_type> --input <path_to_inference_dataset> --runtime-params-file <path_to_values_file>
 ```
 
-_**Note:** additional CLI flags may be needed depending on your model's target type_
+> **Note:** Additional CLI flags may be needed depending on your model's target type.

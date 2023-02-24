@@ -4,7 +4,7 @@ This model is intended to work with any Python-based drop-in environment. Any ad
 dependencies needed to connect to the remote model are listed in the `requirements.txt`
 file.
 
-This sample proxy model shows how you can use custom model infrastructure as a proxy between the DataRobot MLOps platform and a remote model hosted in AzureML.
+This sample proxy model illustrates how you can use custom model infrastructure as a proxy between the DataRobot MLOps platform and a remote model hosted in AzureML.
 
 ## Instructions
 
@@ -20,7 +20,7 @@ Next, create a new _Custom Inference Model_ in the DataRobot platform. Select th
 enter a **Target type** and **Target name** matching the model trained in AzureML.
 
 Finally, on the **Assemble** tab, upload the files in this example and select public network access in the
-**Resource Settings**. After the example files are uploaded, you can configure the Runtime Parameters
+**Resource Settings**. After the example files are uploaded, you can configure the **Runtime Parameters**
 with the appropriate information.
 
 ## Run locally with `drum`

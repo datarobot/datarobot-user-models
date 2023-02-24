@@ -5,25 +5,22 @@ The supplied pkl file is a scikit-learn model trained on [juniors_3_year_stats_r
 with a `Grade 2014` as the target (regression), though any binary or regression model trained using the libraries
 outlined in [Python 3 Scikit-Learn Drop-In Environment](../../public_dropin_environments/python3_sklearn) will work.
 
-For this example, the custom.py contains a dummy `transform()` function that demonstrates how
-it is possible to access runtime parameter values that were set in the DataRobot Custom
-Models platform.
+In this example, the `custom.py` file contains a dummy `transform()` function that demonstrates how
+to access runtime parameter values set in a _Custom Inference Model_ in the DataRobot platform.
 
 ## Instructions
 
-This example contains an example `model-metadata.yaml` file that has a `runtimeParameterDefinitions` section where all runtime parameters must be declared. The `custom.py`
-script utilizes the helper functions from the `datarobot_drum.RuntimeParameters` class. This
-class is available in `datarobot-drum` package version 1.10 and newer (which ships in the
+This example contains a `model-metadata.yaml` file with a `runtimeParameterDefinitions` section where you must declare the runtime parameters. 
+The `custom.py` script uses the helper functions from the `datarobot_drum.RuntimeParameters` class, available in `datarobot-drum` package version 1.10 and newer (included in the
 latest pre-built drop-in environments).
 
-Create a new custom model with these files and use the Python Drop-In Environment with and be
-sure to upload the `model-metadata.yaml` file to the top-level of the model. After adding the
-metadata file, the custom models platform will read the parameter definitions and update the
-UI to display the default values and allow you to override them and/or associate credentials.
+Create a new custom model with these files and the Python Drop-In Environment. Ensure that you upload the `model-metadata.yaml` file to the top-level of the model's file structure. After you add the
+metadata file, DataRobot reads the parameter definitions and updates the **Assembly** tab
+UI to display the default values, allowing you to override them and provide any required credentials.
 
-## To run locally using 'drum'
+## Run locally with `drum`
 
-You'll need to create a _values file_ that sets overrides for the parameters defined in this
+Create a _values file_ to set overrides for the parameters defined in this
 example. An example could look as follows:
 
 ```yaml
