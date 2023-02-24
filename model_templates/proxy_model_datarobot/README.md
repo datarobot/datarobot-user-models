@@ -44,4 +44,4 @@ Paths are relative to `./datarobot-user-models`:
 drum score --logging-level info --code-dir model_templates/proxy_model_datarobot --target-type <target_type> --input <path_to_inference_dataset> --runtime-params-file <path_to_values_file>
 ```
 
-> **Note:** Additional CLI flags may be needed depending on your model's target type.
+> **Note**: Additional CLI flags may be needed depending on your model's target type.
