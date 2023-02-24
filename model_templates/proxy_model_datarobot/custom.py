@@ -19,27 +19,27 @@ MAX_PREDICTION_FILE_SIZE_BYTES = 52428800  # 50 MB
 
 def load_model(code_dir):
     logger.info("Loading Runtime Parameters...")
-    public_api_url = RuntimeParameters.get('DATAROBOT_ENDPOINT') + '/api/v2'
+    public_api_url = RuntimeParameters.get("DATAROBOT_ENDPOINT") + "/api/v2"
     global DEPLOYMENT_ID
-    DEPLOYMENT_ID = RuntimeParameters.get('deploymentID')
+    DEPLOYMENT_ID = RuntimeParameters.get("deploymentID")
 
     global API_KEY
-    API_KEY = RuntimeParameters.get('DATAROBOT_API_KEY')['password']
+    API_KEY = RuntimeParameters.get("DATAROBOT_API_KEY")["password"]
     logger.info("Using deployment=%s on server=%s", DEPLOYMENT_ID, public_api_url)
 
     headers = {
-        'Content-Type': 'application/json; charset=UTF-8',
-        'Authorization': f'Bearer {API_KEY}',
+        "Content-Type": "application/json; charset=UTF-8",
+        "Authorization": f"Bearer {API_KEY}",
     }
     resp = requests.get(f"{public_api_url}/deployments/{DEPLOYMENT_ID}/", headers=headers)
     resp.raise_for_status()
-    pred_server = resp.json()['defaultPredictionServer']
-    logger.info("Using prediction server=%s", pred_server['url'])
+    pred_server = resp.json()["defaultPredictionServer"]
+    logger.info("Using prediction server=%s", pred_server["url"])
 
     global API_URL
-    API_URL = pred_server['url'] + '/predApi/v1.0/deployments/{deployment_id}/predictions'
+    API_URL = pred_server["url"] + "/predApi/v1.0/deployments/{deployment_id}/predictions"
     global DATAROBOT_KEY
-    DATAROBOT_KEY = pred_server['datarobot-key']
+    DATAROBOT_KEY = pred_server["datarobot-key"]
 
     return object()  # model placeholder
 
@@ -53,8 +53,8 @@ def score(data, model, **kwargs):
 
     # Convert the prediction request response to the required data structure that
     # DRUM expects.
-    predictions = [item['prediction'] for item in response['data']]
-    predictions_data = pd.DataFrame({'Predictions': predictions})
+    predictions = [item["prediction"] for item in response["data"]]
+    predictions_data = pd.DataFrame({"Predictions": predictions})
 
     return predictions_data
 
@@ -97,11 +97,10 @@ def make_datarobot_deployment_predictions(data, deployment_id):
         # As default, we expect CSV as input data.
         # Should you wish to supply JSON instead,
         # comment out the line below and use the line after that instead:
-        'Content-Type': 'text/plain; charset=UTF-8',
+        "Content-Type": "text/plain; charset=UTF-8",
         # 'Content-Type': 'application/json; charset=UTF-8',
-
-        'Authorization': 'Bearer {}'.format(API_KEY),
-        'DataRobot-Key': DATAROBOT_KEY,
+        "Authorization": "Bearer {}".format(API_KEY),
+        "DataRobot-Key": DATAROBOT_KEY,
     }
 
     url = API_URL.format(deployment_id=deployment_id)
@@ -146,6 +145,5 @@ def _raise_dataroboterror_for_status(response):
     try:
         response.raise_for_status()
     except requests.exceptions.HTTPError:
-        err_msg = '{code} Error: {msg}'.format(
-            code=response.status_code, msg=response.text)
+        err_msg = "{code} Error: {msg}".format(code=response.status_code, msg=response.text)
         raise DataRobotPredictionError(err_msg)

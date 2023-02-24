@@ -15,7 +15,7 @@ def mask(value, visible=3):
 
 
 def transform(data, model):
-    print("="*40)
+    print("=" * 40)
     print("Loading the following Runtime Parameters:")
     option1 = RuntimeParameters.get("option1")
     print(f"\toption1: {option1}")
@@ -33,7 +33,7 @@ def transform(data, model):
         )
     else:
         print("No credential data set")
-    print("="*40)
+    print("=" * 40)
 
     # This transform function is just for illustrative purposes so just
     # return the data back unaltered.
