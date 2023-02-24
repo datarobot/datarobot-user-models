@@ -130,7 +130,7 @@ class TestCustomTaskTemplates(object):
         proj = dr.Project.create(
             sourcedata=os.path.join(BASE_DATASET_DIR, "juniors_3_year_stats_regression.csv")
         )
-        proj.set_target(target="Grade 2014", mode=dr.AUTOPILOT_MODE.MANUAL)
+        proj.analyze_and_model(target="Grade 2014", mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
     @pytest.fixture(scope="session")
@@ -138,7 +138,7 @@ class TestCustomTaskTemplates(object):
         proj = dr.Project.create(
             sourcedata=os.path.join(BASE_DATASET_DIR, "juniors_3_year_stats_regression.csv")
         )
-        proj.set_target(unsupervised_mode=True, mode=dr.AUTOPILOT_MODE.MANUAL)
+        proj.analyze_and_model(unsupervised_mode=True, mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
     @pytest.fixture(scope="session")
@@ -146,7 +146,7 @@ class TestCustomTaskTemplates(object):
         proj = dr.Project.create(
             sourcedata=os.path.join(BASE_DATASET_DIR, "iris_binary_training.csv")
         )
-        proj.set_target(target="Species", mode=dr.AUTOPILOT_MODE.MANUAL)
+        proj.analyze_and_model(target="Species", mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
     @pytest.fixture(scope="session")
@@ -154,14 +154,14 @@ class TestCustomTaskTemplates(object):
         proj = dr.Project.create(
             sourcedata=os.path.join(BASE_DATASET_DIR, "iris_with_spaces_full.csv")
         )
-        proj.set_target(target="Species", mode=dr.AUTOPILOT_MODE.MANUAL)
+        proj.analyze_and_model(target="Species", mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
     @pytest.fixture(scope="session")
     def project_weight_test(self):
         proj = dr.Project.create(sourcedata=os.path.join(BASE_DATASET_DIR, "weight_test.csv"))
         advanced_options = dr.helpers.AdvancedOptions(weights="weights")
-        proj.set_target(
+        proj.analyze_and_model(
             target="target", mode=dr.AUTOPILOT_MODE.MANUAL, advanced_options=advanced_options
         )
         return proj.id
@@ -171,13 +171,13 @@ class TestCustomTaskTemplates(object):
         proj = dr.Project.create(
             sourcedata=os.path.join(BASE_DATASET_DIR, "cats_dogs_small_training.csv")
         )
-        proj.set_target(target="class", mode=dr.AUTOPILOT_MODE.MANUAL)
+        proj.analyze_and_model(target="class", mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
     @pytest.fixture(scope="session")
     def project_binary_diabetes(self):
         proj = dr.Project.create(sourcedata=os.path.join(BASE_DATASET_DIR, "10k_diabetes.csv"))
-        proj.set_target(target="readmitted", mode=dr.AUTOPILOT_MODE.MANUAL)
+        proj.analyze_and_model(target="readmitted", mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
     @pytest.fixture(scope="session")
@@ -185,7 +185,7 @@ class TestCustomTaskTemplates(object):
         proj = dr.Project.create(
             sourcedata=os.path.join(BASE_DATASET_DIR, "10k_diabetes_no_text.csv")
         )
-        proj.set_target(target="readmitted", mode=dr.AUTOPILOT_MODE.MANUAL)
+        proj.analyze_and_model(target="readmitted", mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
     @pytest.fixture(scope="session")
@@ -193,7 +193,7 @@ class TestCustomTaskTemplates(object):
         proj = dr.Project.create(
             sourcedata=os.path.join(BASE_DATASET_DIR, "skyserver_sql2_27_2018_6_51_39_pm.csv")
         )
-        proj.set_target(target="class", mode=dr.AUTOPILOT_MODE.MANUAL)
+        proj.analyze_and_model(target="class", mode=dr.AUTOPILOT_MODE.MANUAL)
         return proj.id
 
     @pytest.fixture(scope="session")
@@ -203,7 +203,7 @@ class TestCustomTaskTemplates(object):
         proj = dr.Project.create(
             sourcedata=os.path.join(BASE_DATASET_DIR, "skyserver_manual_partition.csv")
         )
-        proj.set_target(
+        proj.analyze_and_model(
             target="class",
             mode=dr.AUTOPILOT_MODE.MANUAL,
             partitioning_method=dr.UserCV("partition", "H"),

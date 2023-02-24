@@ -40,7 +40,7 @@ from datarobot_drum.drum.typeschema_validation import (
     ContainsMissing,
 )
 
-from tests.drum.utils import test_data
+from tests.drum.utils import get_test_data
 
 logger = logging.getLogger(__name__)
 try:
@@ -58,7 +58,7 @@ except (ImportError, ModuleNotFoundError, DrumCommonException):
 
 
 def get_data(dataset_name: str) -> pd.DataFrame:
-    test_data_dir = test_data()
+    test_data_dir = get_test_data()
     return pd.read_csv(test_data_dir / dataset_name)
 
 
@@ -1062,7 +1062,7 @@ def test_yaml_metadata_missing_fields(tmp_path, config_yaml, request, test_case_
     if test_case_number == 1:
         conf = read_model_metadata_yaml(tmp_path)
         with pytest.raises(
-            DrumCommonException, match="Missing keys: \['validation', 'environmentID'\]"
+            DrumCommonException, match=r"Missing keys: \['validation', 'environmentID'\]"
         ):
             validate_config_fields(
                 conf,
