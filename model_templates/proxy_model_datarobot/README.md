@@ -6,6 +6,8 @@ file.
 
 This sample proxy model illustrates how you can use custom model infrastructure as a proxy between two DataRobot clusters or deployments in the same cluster.
 
+> :warning: Proxy Models is currently a _Beta Feature_ that will need to be enabled by your administrator.
+
 ## Instructions
 
 First, you will need to have an existing deployment in the DataRobot MLOps platform.

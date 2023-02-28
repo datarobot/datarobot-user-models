@@ -8,9 +8,11 @@ outlined in [Python 3 Scikit-Learn Drop-In Environment](../../public_dropin_envi
 In this example, the `custom.py` file contains a dummy `transform()` function that demonstrates how
 to access runtime parameter values set in a _Custom Inference Model_ in the DataRobot platform.
 
+> :warning: Runtime Parameters is currently a _Beta Feature_ that will need to be enabled by your administrator.
+
 ## Instructions
 
-This example contains a `model-metadata.yaml` file with a `runtimeParameterDefinitions` section where you must declare the runtime parameters. 
+This example contains a `model-metadata.yaml` file with a `runtimeParameterDefinitions` section where you must declare the runtime parameters.
 The `custom.py` script uses the helper functions from the `datarobot_drum.RuntimeParameters` class, available in `datarobot-drum` package version 1.10 and newer (included in the
 latest pre-built drop-in environments).
 

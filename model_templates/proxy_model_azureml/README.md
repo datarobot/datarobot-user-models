@@ -6,6 +6,8 @@ file.
 
 This sample proxy model illustrates how you can use custom model infrastructure as a proxy between the DataRobot MLOps platform and a remote model hosted in AzureML.
 
+> :warning: Proxy Models is currently a _Beta Feature_ that will need to be enabled by your administrator.
+
 ## Instructions
 
 First, you create a new _online endpoint_ in AzureML from a trained model. You should
