@@ -1,0 +1,21 @@
+name: runtime-params-example
+type: inference
+targetType: regression
+
+runtimeParameterDefinitions:
+  - fieldName: option1
+    type: string
+    defaultValue: ABCD 123
+    description: Input any text that helps inform others what this param does.
+
+  - fieldName: option2
+    type: string
+    description: However, a description is optional...
+
+  - fieldName: option3
+    type: string
+
+  - fieldName: encryption_key
+    type: credential
+    description: Some secret injected by DataRobot and stored in the Credential Manager.
+

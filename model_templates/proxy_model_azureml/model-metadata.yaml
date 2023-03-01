@@ -1,0 +1,26 @@
+name: proxy-model-azure
+type: inference
+targetType: regression
+
+runtimeParameterDefinitions:
+  - fieldName: endpoint
+    type: string
+    description: The name of the AzureML endpoint.
+
+  - fieldName: region
+    type: string
+    defaultValue: eastus
+    description: The region name the endpoint resides in.
+
+  - fieldName: API_KEY
+    type: credential
+    description: An HTTP Basic credential that contains the Endpoint's API key in the password field (the username field is ignored).
+
+  - fieldName: deployment
+    type: string
+    description: Optional name of specific deployment to use (if left blank we will use default endpoint routing).
+
+  - fieldName: verifySSL
+    type: string
+    defaultValue: "true"
+    description: Wether to verify certificate trust chain

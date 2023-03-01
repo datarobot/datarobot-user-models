@@ -22,3 +22,6 @@ The [model_templates](.) folder contains sample models that work with the provid
 * [R sample model](r_lang)
 * [Java sample model](java_codegen)
 * [Julia sample models](julia)
+* [Sample model with runtime parameters](python3_sklearn_runtime_params)
+* [Proxy Model sample for AzureML](proxy_model_azureml)
+* [Proxy Model sample for DataRobot](proxy_model_datarobot)

@@ -1,0 +1,4 @@
+datarobot-drum>=1.10
+requests
+urllib3[secure]
+certifi
