@@ -2,8 +2,6 @@
 # It contains a variety of common useful data-science packages and tools.
 FROM rocker/tidyverse:4.2.1
 
-RUN echo '22 Aug 2022'
-
 ENV LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && \
