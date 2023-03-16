@@ -65,5 +65,5 @@ setup(
     scripts=["bin/drum"],
     install_requires=requirements,
     extras_require=extras_require,
-    python_requires=">=3.4,<3.10",
+    python_requires=">=3.4,<3.11",
 )
