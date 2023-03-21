@@ -1,4 +1,4 @@
-# Python 3 Keras Drop-In Template Environment
+# Python 3 ONNX Drop-In Template Environment
 
 This template environment can be used to create artifact-only ONNX custom models.
 Your custom model directory needs only contain your model artifact if you use the
