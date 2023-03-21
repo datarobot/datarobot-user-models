@@ -117,7 +117,8 @@ class TestRuntimeParametersFromEnv:
             resources, tmp_path, is_missing_attr=True
         )
         assert re.search(
-            r".*Invalid runtime parameter!.*{'credentialType': DataError\(is " r"required\)}.*",
+            r".*Invalid runtime parameter!.*{\\\\\\'credentialType\\\\\\': DataError\(\\\\\\'is "
+            r"required\\\\\\'\)}.*",
             stderr,
         )
 
@@ -201,6 +202,6 @@ class TestRuntimeParametersFromValuesFile:
             resources, tmp_path, runtime_param_values_stream, is_missing_attr=True
         )
         assert re.search(
-            r".*Failed to load runtime parameter.*{'credentialType': DataError\(is required\)}.*",
+            r".*Failed to load runtime parameter.*{\\'credentialType\\': DataError\(\\'is required\\'\)}.*",
             stdout,
         )

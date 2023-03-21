@@ -1159,8 +1159,7 @@ class CMRunnerArgsRegistry(object):
                     else:
                         args_to_add.extend([env_var_value])
                 elif env_var_key in ArgumentOptionsEnvVars.BOOL_VARS:
-                    # StrBool() -> ToBool() in trafaret>=2.0.0
-                    if t.StrBool().check(env_var_value):
+                    if t.ToBool().check(env_var_value):
                         args_to_add = [ArgumentOptionsEnvVars.to_arg_option(env_var_key)]
 
                 sys.argv.extend(args_to_add)
