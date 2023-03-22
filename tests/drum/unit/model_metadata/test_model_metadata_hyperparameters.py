@@ -1,3 +1,4 @@
+import copy
 import os
 
 import pytest
@@ -16,6 +17,9 @@ from datarobot_drum.drum.model_metadata import (
     PARAM_STRING_MAX_LENGTH,
     PARAM_SELECT_VALUE_MAX_LENGTH,
     PARAM_SELECT_NUM_VALUES_MAX_LENGTH,
+    IntHyperParameterTrafaret,
+    FloatHyperParameterTrafaret,
+    MultiHyperParameterTrafaret,
 )
 
 
@@ -81,6 +85,30 @@ def complete_multi_hyper_param():
         },
         "default": "value 1",
     }
+
+
+class TestHyperParameterTrafaretTransform:
+    def test_to_int(self, complete_int_hyper_param):
+        actual = complete_int_hyper_param.copy()
+        for k, v in actual.items():
+            actual[k] = str(v)
+        assert complete_int_hyper_param == IntHyperParameterTrafaret.transform(actual)
+
+    def test_to_float(self, complete_float_hyper_param):
+        actual = complete_float_hyper_param.copy()
+        for k, v in actual.items():
+            actual[k] = str(v)
+        assert complete_float_hyper_param == FloatHyperParameterTrafaret.transform(actual)
+
+    def test_to_multi(self, complete_multi_hyper_param):
+        actual = copy.deepcopy(complete_multi_hyper_param)
+
+        for value_key in ["int", "float"]:
+            value_dict = actual["values"][value_key]
+            for k, v in value_dict.items():
+                value_dict[k] = str(v)
+
+        assert complete_multi_hyper_param == MultiHyperParameterTrafaret.transform(actual)
 
 
 @pytest.mark.parametrize(
