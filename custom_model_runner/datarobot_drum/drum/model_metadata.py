@@ -40,9 +40,9 @@ IntHyperParameterTrafaret = t.Dict(
     {
         t.Key("name"): ParamNameTrafaret(),
         t.Key("type"): t.Enum("int"),
-        t.Key("min"): t.Int,
-        t.Key("max"): t.Int,
-        t.Key("default", optional=True): t.Int,
+        t.Key("min"): t.ToInt,
+        t.Key("max"): t.ToInt,
+        t.Key("default", optional=True): t.ToInt,
     }
 )
 
@@ -50,9 +50,9 @@ FloatHyperParameterTrafaret = t.Dict(
     {
         t.Key("name"): ParamNameTrafaret(),
         t.Key("type"): t.Enum("float"),
-        t.Key("min"): t.Float,
-        t.Key("max"): t.Float,
-        t.Key("default", optional=True): t.Float,
+        t.Key("min"): t.ToFloat,
+        t.Key("max"): t.ToFloat,
+        t.Key("default", optional=True): t.ToFloat,
     }
 )
 
@@ -86,9 +86,11 @@ MultiHyperParameterTrafaret = t.Dict(
         t.Key("type"): t.Enum("multi"),
         t.Key("values"): t.Dict(
             {
-                t.Key("int", optional=True): t.Dict({t.Key("min"): t.Int, t.Key("max"): t.Int,}),
+                t.Key("int", optional=True): t.Dict(
+                    {t.Key("min"): t.ToInt, t.Key("max"): t.ToInt,}
+                ),
                 t.Key("float", optional=True): t.Dict(
-                    {t.Key("min"): t.Float, t.Key("max"): t.Float,}
+                    {t.Key("min"): t.ToFloat, t.Key("max"): t.ToFloat,}
                 ),
                 t.Key("select", optional=True): t.Dict(
                     {
