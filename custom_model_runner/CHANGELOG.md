@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### [1.10.1] - 2023-03-23
 ##### Changed
 - bump DRUM to support Py<3.11
-- bump datarobot==3.1.0, pyarrow<=10.0.1, pandas<1.4.0, trafaret>=2.0.0,<2.2.0
+- bump datarobot==3.1.0, pyarrow<=10.0.1, pandas<1.4.0, trafaret>=2.0.0,<2.2.0, rpy2==3.5.9
 
 #### [1.10.0] - 2023-02-10
 ##### Added
