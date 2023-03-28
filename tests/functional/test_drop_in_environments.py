@@ -10,6 +10,7 @@ import os
 import time
 import pytest
 import datarobot as dr
+from datarobot.enums import DEFAULT_MAX_WAIT
 
 BASE_FIXTURE_DIR = "tests/fixtures"
 ARTIFACT_DIR = "drop_in_model_artifacts"
@@ -336,10 +337,17 @@ class TestDropInEnvironments(object):
         model_id, model_version_id = request.getfixturevalue(model)
         test_data_id = request.getfixturevalue(test_data_id)
 
+        max_wait = DEFAULT_MAX_WAIT
+        if model.startswith("torch_"):
+            # The torch drop-in is very large, and it takes approx. 7 minutes just to pull the
+            # image in k8s.
+            max_wait *= 2
+
         test = dr.CustomModelTest.create(
             custom_model_id=model_id,
             custom_model_version_id=model_version_id,
             dataset_id=test_data_id,
+            max_wait=max_wait,
         )
 
         assert test.overall_status == "succeeded"
