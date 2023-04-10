@@ -3,4 +3,4 @@ numpy==1.22.0
 pandas<=1.5.3
 scikit-learn==0.24.2
 Pillow==9.3.0
-protobuf==3.19.4
+protobuf==3.19.5
