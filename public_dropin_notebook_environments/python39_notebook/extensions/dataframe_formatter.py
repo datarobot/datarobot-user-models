@@ -62,7 +62,7 @@ class DataframesProcessSteps(str, Enum):
 
 Columns = List[Dict[str, Any]]
 
-index_key = '_dr_df_index'
+index_key = "_dr_df_index"
 
 
 def _register_exception(
@@ -81,7 +81,7 @@ def _register_exception(
 
 def _set_index(df: DataFrame) -> DataFrame:
     if isinstance(df.index, DatetimeIndex):
-        df.index = df.index.strftime('%Y-%m-%dT%H:%M:%S.%f')
+        df.index = df.index.strftime("%Y-%m-%dT%H:%M:%S.%f")
 
     df.index = df.index.rename(index_key)
     return df
@@ -97,13 +97,21 @@ def _validate_columns(data: DataFrame) -> None:
     Returns:
         None
     """
-    convertable_types = ['int64', 'float64', 'bool', 'category', 'object', 'datetime64[ns]', 'timedelta[ns]']
+    convertable_types = [
+        "int64",
+        "float64",
+        "bool",
+        "category",
+        "object",
+        "datetime64[ns]",
+        "timedelta[ns]",
+    ]
     for column in data.columns:
         dtype = data[column].dtype
         if dtype not in convertable_types:
             # Try to keep datetime dtype, remove the timezone information
             # but converting to UTC, so yielding naive UTC time
-            if hasattr(data[column], 'dt') and hasattr(data[column].dt, 'tz_convert'):
+            if hasattr(data[column], "dt") and hasattr(data[column].dt, "tz_convert"):
                 data[column] = data[column].dt.tz_convert(None)
             else:
                 # Otherwise, keep going working with dataframe but set pandas column type to str
@@ -112,7 +120,7 @@ def _validate_columns(data: DataFrame) -> None:
 
 def _get_dataframe_columns(df: DataFrame) -> Columns:
     schema = io.json.build_table_schema(_set_index(df))
-    columns = cast(Columns, schema['fields'])
+    columns = cast(Columns, schema["fields"])
     return columns
 
 
@@ -124,7 +132,7 @@ def _paginate_dataframe(df: DataFrame, pagination: DataframePaginationAttributes
 
 
 def _sort_dataframe(df: DataFrame, sort_by: str) -> DataFrame:
-    sorting_list = sort_by.split(',')
+    sorting_list = sort_by.split(",")
     sort_by_list = []
     ascending_list = []
     for sort_key in sorting_list:
@@ -133,7 +141,9 @@ def _sort_dataframe(df: DataFrame, sort_by: str) -> DataFrame:
     return df.sort_values(by=sort_by_list, ascending=ascending_list, ignore_index=False)
 
 
-def _aggregate_dataframe(df: DataFrame, aggregation_params: DataframeAggregationParams) -> DataFrame:
+def _aggregate_dataframe(
+    df: DataFrame, aggregation_params: DataframeAggregationParams
+) -> DataFrame:
     aggregated = df.groupby(aggregation_params.group_by).aggregate(
         {f"{aggregation_params.aggregate_by}": aggregation_params.aggregation_func}
     )
@@ -144,7 +154,7 @@ def _transform_to_json(data: DataFrame) -> Any:
     if isinstance(data, list):
         return data
 
-    return json.loads(data.to_json(orient='table', index=True))['data']
+    return json.loads(data.to_json(orient="table", index=True))["data"]
 
 
 def _prepare_df_for_chart_cell(val: DataFrame, columns: List[str]) -> Union[DataFrame, List[str]]:
@@ -152,7 +162,9 @@ def _prepare_df_for_chart_cell(val: DataFrame, columns: List[str]) -> Union[Data
         data = []
     elif len(columns) == 1:
         # Return counts if only one column was selected or selected count of records
-        dataframe = val.groupby(columns)[columns[0]].count().reset_index(name="count").set_index('count')
+        dataframe = (
+            val.groupby(columns)[columns[0]].count().reset_index(name="count").set_index("count")
+        )
         data = _set_index(dataframe)
     else:
         # Return only selected columns
@@ -172,7 +184,7 @@ def formatter(  # noqa: C901,PLR0912
     dataframe_id = id(val)
     pagination = DataframePaginationAttributes(limit=10, offset=0)
     data = val
-    sort_by = ''
+    sort_by = ""
     selected_columns = []
     _validate_columns(data)
     try:
@@ -181,33 +193,37 @@ def formatter(  # noqa: C901,PLR0912
         error.append(_register_exception(e, DataframesProcessSteps.GET_COLUMNS.value))
 
     # check if it's a dataframe for ChartCell then return full dataframe
-    if hasattr(val, 'attrs') and 'returnAll' in val.attrs and val.attrs['returnAll']:
+    if hasattr(val, "attrs") and "returnAll" in val.attrs and val.attrs["returnAll"]:
         # Validate what to return to UI
-        if hasattr(val, 'attrs') and 'selected_columns' in val.attrs:
-            selected_columns = list(filter(lambda item: item is not index_key, val.attrs['selected_columns']))
+        if hasattr(val, "attrs") and "selected_columns" in val.attrs:
+            selected_columns = list(
+                filter(lambda item: item is not index_key, val.attrs["selected_columns"])
+            )
             try:
                 data = _prepare_df_for_chart_cell(val=data, columns=selected_columns)
             except Exception as e:
-                error.append(_register_exception(e, DataframesProcessSteps.CHART_CELL_DATAFRAME.value))
+                error.append(
+                    _register_exception(e, DataframesProcessSteps.CHART_CELL_DATAFRAME.value)
+                )
             if len(selected_columns) < 2:
                 # Reset `returnAll` attribute to prevent returning a whole DF on next formatter call
-                val.attrs.update({'returnAll': False})
+                val.attrs.update({"returnAll": False})
                 data = [] if len(error) > 0 else data
 
                 return {
-                    'columns': columns,
-                    'data': _transform_to_json(data),
-                    'referenceId': dataframe_id,
-                    'error': error,
-                    'indexKey': index_key,
+                    "columns": columns,
+                    "data": _transform_to_json(data),
+                    "referenceId": dataframe_id,
+                    "error": error,
+                    "indexKey": index_key,
                 }
 
         aggregation_func = val.attrs.get("aggregation", {}).get("aggregation_func")
-        if aggregation_func and aggregation_func != 'no-aggregation':
+        if aggregation_func and aggregation_func != "no-aggregation":
             aggregation = DataframeAggregationParams(
-                group_by=val.attrs['aggregation']['group_by'],
-                aggregate_by=val.attrs['aggregation']['aggregate_by'],
-                aggregation_func=val.attrs['aggregation']['aggregation_func'],
+                group_by=val.attrs["aggregation"]["group_by"],
+                aggregate_by=val.attrs["aggregation"]["aggregate_by"],
+                aggregation_func=val.attrs["aggregation"]["aggregation_func"],
             )
             try:
                 data = _aggregate_dataframe(data, aggregation)
@@ -222,28 +238,28 @@ def formatter(  # noqa: C901,PLR0912
                 error.append(_register_exception(e, DataframesProcessSteps.PAGINATION.value))
 
         # Reset `returnAll` attribute to prevent returning a whole DF on next formatter call
-        val.attrs.update({'returnAll': False})
+        val.attrs.update({"returnAll": False})
 
         return {
-            'columns': columns,
-            'data': _transform_to_json(data),
-            'referenceId': dataframe_id,
-            'error': error,
-            'indexKey': index_key,
+            "columns": columns,
+            "data": _transform_to_json(data),
+            "referenceId": dataframe_id,
+            "error": error,
+            "indexKey": index_key,
         }
 
     # Sorting step, gets attrs that has been setup in DataframeProcessor
-    if hasattr(val, 'attrs') and 'sort_by' in val.attrs:
+    if hasattr(val, "attrs") and "sort_by" in val.attrs:
         try:
-            data = _sort_dataframe(df=data, sort_by=val.attrs['sort_by'])
-            sort_by = val.attrs['sort_by']
+            data = _sort_dataframe(df=data, sort_by=val.attrs["sort_by"])
+            sort_by = val.attrs["sort_by"]
         except Exception as e:
             error.append(_register_exception(e, DataframesProcessSteps.SORTING.value))
 
     # Pagination step, gets attrs that has been setup in DataframeProcessor
-    if hasattr(val, 'attrs') and 'pagination' in val.attrs:
+    if hasattr(val, "attrs") and "pagination" in val.attrs:
         pagination = DataframePaginationAttributes(
-            limit=val.attrs['pagination']['limit'], offset=val.attrs['pagination']['offset']
+            limit=val.attrs["pagination"]["limit"], offset=val.attrs["pagination"]["offset"]
         )
 
     # If dataframe length is less than pagination limit no need to paginate it
@@ -254,16 +270,16 @@ def formatter(  # noqa: C901,PLR0912
             error.append(_register_exception(e, DataframesProcessSteps.PAGINATION.value))
 
     return {
-        'data': _transform_to_json(data),
-        'columns': columns,
-        'count': len(data.index),
-        'totalCount': len(val.index),
-        'offset': int(pagination.offset),
-        'limit': int(pagination.limit),
-        'referenceId': dataframe_id,
-        'sortedBy': sort_by,
-        'indexKey': index_key,
-        'error': error,
+        "data": _transform_to_json(data),
+        "columns": columns,
+        "count": len(data.index),
+        "totalCount": len(val.index),
+        "offset": int(pagination.offset),
+        "limit": int(pagination.limit),
+        "referenceId": dataframe_id,
+        "sortedBy": sort_by,
+        "indexKey": index_key,
+        "error": error,
     }
 
 
@@ -276,10 +292,10 @@ class DataFrameFormatter(BaseFormatter):  # type: ignore[misc]
     so it will return as a new mime type: application/vnd.dataframe in output.
     """
 
-    format_type = Unicode('application/vnd.dataframe')
+    format_type = Unicode("application/vnd.dataframe")
     _return_type = (list, dict)
 
-    print_method = ObjectName('_repr_json_')
+    print_method = ObjectName("_repr_json_")
 
     def _check_return(self, r: Any, obj: Any) -> Any:
         """Check that a return value is appropriate
@@ -306,6 +322,6 @@ def load_ipython_extension(ipython: Magics) -> None:
         ipython.display_formatter.formatters["application/vnd.dataframe"] = DataFrameFormatter()
         dataframe_formatter = ipython.display_formatter.formatters["application/vnd.dataframe"]
         dataframe_formatter.for_type(DataFrame, formatter)
-        print('Pandas DataFrame MimeType Extension loaded')
+        print("Pandas DataFrame MimeType Extension loaded")
     else:
         print("Please make `pip install pandas` to use DataFrame extension")
