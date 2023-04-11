@@ -131,11 +131,11 @@ class TestFit:
                 )
                 mmwrite(__keep_this_around.name, sp.csr_matrix(df.to_numpy()))
             else:
-                df.to_csv(__keep_this_around.name, index=False, line_terminator="\r\n")
+                df.to_csv(__keep_this_around.name, index=False)
             return " --row-weights " + colname, __keep_this_around.name, __keep_this_around
         elif weights == WEIGHTS_CSV:
             __keep_this_around = NamedTemporaryFile("w")
-            weights_data.to_csv(__keep_this_around.name, index=False, line_terminator="\r\n")
+            weights_data.to_csv(__keep_this_around.name, index=False)
             return " --row-weights-csv " + __keep_this_around.name, input_name, __keep_this_around
 
         __keep_this_around = NamedTemporaryFile("w")
@@ -577,7 +577,7 @@ class TestFit:
                     feature_df = df
                 else:
                     feature_df = df.loc[:, df.columns != get_target(problem)]
-                feature_df.to_csv(fp, index=False, line_terminator="\r\n")
+                feature_df.to_csv(fp, index=False)
 
         if problem != ANOMALY:
             # Target data
@@ -585,7 +585,7 @@ class TestFit:
             if not is_sparse:
                 with open(target_file, "w+") as fp:
                     target_series = df[get_target(problem)]
-                    target_series.to_csv(fp, index=False, header="Target", line_terminator="\r\n")
+                    target_series.to_csv(fp, index=False, header="Target")
             if is_sparse:
                 shutil.copyfile(get_dataset_filename(None, SPARSE_TARGET), target_file)
 

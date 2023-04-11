@@ -101,10 +101,11 @@ def make_csv_payload(df):
     df = validate_and_convert_column_names_for_serialization(df)
 
     s_buf = StringIO()
-    df.to_csv(s_buf, index=False, line_terminator="\r\n")
+    df.to_csv(s_buf, index=False)
     # Remove the last 2 characters (\r\n) from the string.  This is required for R
     # to properly load a single column dataset from a string.
-    return s_buf.getvalue()[:-2].encode("utf-8")
+    return s_buf.getvalue().encode("utf-8")
+    # return s_buf.getvalue()[:-2].encode("utf-8")
 
 
 def read_arrow_payload(response_dict, transform_key):
