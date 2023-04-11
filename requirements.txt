@@ -1,7 +1,7 @@
 numpy>=1.20.3
 h5py==3.1.0
 scipy>=1.1,<2
-pandas<=2.0.2
+pandas<=2.0.3
 scikit-learn==1.0.2
 requests_toolbelt
 xgboost==1.1.1
