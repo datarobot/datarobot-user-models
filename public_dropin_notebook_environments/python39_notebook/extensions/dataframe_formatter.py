@@ -65,10 +65,7 @@ Columns = List[Dict[str, Any]]
 index_key = "_dr_df_index"
 
 
-def _register_exception(
-    e: Exception,
-    step: str,
-) -> Dict[str, Any]:
+def _register_exception(e: Exception, step: str,) -> Dict[str, Any]:
     exc_info = sys.exc_info()
     traceback_msg = traceback.format_exception(*exc_info)
 
@@ -175,9 +172,7 @@ def _prepare_df_for_chart_cell(val: DataFrame, columns: List[str]) -> Union[Data
 
 # This formatter can operate with a data that we are received as a DataFrame
 def formatter(  # noqa: C901,PLR0912
-    val: "DataFrame",
-    formatter: Optional[Callable[..., List[str]]] = None,
-    **formatter_kwargs: Any,
+    val: "DataFrame", formatter: Optional[Callable[..., List[str]]] = None, **formatter_kwargs: Any,
 ) -> Dict[str, Any]:
     error = []
     dataframe_limit = 5000
