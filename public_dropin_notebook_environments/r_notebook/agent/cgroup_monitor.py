@@ -14,7 +14,7 @@ import psutil  # type: ignore
 # Parts of this code have been reused from repo:
 # https://github.com/neptune-ai/neptune-client/blob/master/LICENSE
 
-NANO_SECS = 10 ** 9
+NANO_SECS = 10**9
 
 
 class SystemWatcher:
@@ -119,9 +119,7 @@ class CGroupWatcher:
         else:
             usage_diff = cpu_cum_usage_nanos - self._last_cpu_cum_usage_nanos
             time_diff = current_timestamp_nanos - self._last_cpu_usage_ts_nanos
-            current_usage = (
-                float(usage_diff) / float(time_diff) / self.cpu_usage_limit_in_cores() * 100.0
-            )
+            current_usage = float(usage_diff) / float(time_diff) / self.cpu_usage_limit_in_cores() * 100.0
 
         self._last_cpu_usage_ts_nanos = current_timestamp_nanos
         self._last_cpu_cum_usage_nanos = cpu_cum_usage_nanos

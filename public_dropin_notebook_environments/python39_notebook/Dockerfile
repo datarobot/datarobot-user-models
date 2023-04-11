@@ -1,8 +1,8 @@
-ARG WORKDIR=/nbx
-ARG AGENTDIR=/agent
+ARG WORKDIR=/etc/system/kernel
+ARG AGENTDIR=/etc/system/kernel/agent
 ARG VENV_PATH=${WORKDIR}/.venv
 
-ARG UNAME=nbx
+ARG UNAME=notebooks
 ARG UID=90909
 ARG GID=90909
 
@@ -25,43 +25,63 @@ RUN microdnf update \
     && microdnf install -y python$PYTHON_VERSION-$PYTHON_EXACT_VERSION python$PYTHON_VERSION-devel-$PYTHON_EXACT_VERSION \
       gcc-8.5.0 glibc-devel-2.28 libffi-devel-3.1 graphviz-2.40.1 \
       openblas-0.3.15 python$PYTHON_VERSION-scipy shadow-utils-2:4.6 passwd-0.80 git-2.31.1 openssh-server tar-2:1.30 gzip-1.9 unzip-6.0 zip-3.0 wget-1.19.5 \
-    && pip3 install -U --no-cache-dir pip==21.3.1 \
+  java-11-openjdk-headless-1:11.0.18.0.10 \
+  && pip3 install -U --no-cache-dir pip==22.3.1 \
     && microdnf clean all
 
-RUN pip3 install --no-cache-dir pip==22.3.1
+RUN pip3 install --no-cache-dir pip==22.3.1 setuptools==66.0.0
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     VENV_PATH=${VENV_PATH}
 
 ENV PATH="$VENV_PATH/bin:$PATH"
-ENV PYTHONPATH="/home/nbx/.ipython/extensions"
+ENV PYTHONPATH="/home/notebooks/.ipython/extensions"
 
 RUN python3 -m venv ${VENV_PATH}
 WORKDIR ${WORKDIR}
 
-COPY ./extensions /home/nbx/.ipython/extensions
+COPY ./extensions /home/notebooks/.ipython/extensions
 COPY ./jupyter_kernel_gateway_config.py ./start_server.sh ${WORKDIR}/
-COPY ./agent/agent.py ${WORKDIR}${AGENTDIR}/
-COPY ./agent/cgroup_monitor.py ${WORKDIR}${AGENTDIR}/
+COPY ./agent/agent.py ${AGENTDIR}/
+COPY ./agent/cgroup_monitor.py ${AGENTDIR}/
 COPY ./ipython_config.py /etc/ipython/
 
+# Adding SSHD requirements
 COPY ./sshd_config /etc/ssh/
 RUN cp -a /etc/ssh /etc/ssh.cache && rm -rf /var/cache/apk/*
 RUN mkdir /etc/authorized_keys
 
 # Removing pip leftovers to not have trivy complain
 RUN rm -rf /lib/python3.9/site-packages/pip-20.2.4.dist-info && \
-    rm -rf /nbx/.venv/lib/python3.9/site-packages/pip-20.2.4.dist-info && \
+  rm -rf /etc/system/kernel/.venv/lib/python3.9/site-packages/pip-20.2.4.dist-info && \
     rm -rf /lib/python3.8/site-packages/pip-19.3.1.dist-info && \
-    rm -rf /nbx/.venv/lib/python3.8/site-packages/pip-19.3.1.dist-info
+  rm -rf /etc/system/kernel/.venv/lib/python3.8/site-packages/pip-19.3.1.dist-info
 
 # Custom user to run the image from
 
 RUN groupadd -g $GID -o $UNAME && \
     useradd -l -m -u $UID -g $GID -o -s /bin/bash $UNAME
 
-RUN chown -R $UNAME:$UNAME ${WORKDIR} ${VENV_PATH} /home/nbx /etc/ssh /etc/authorized_keys
+# Prompt customizations
+COPY ./setup-prompt.sh /etc/profile.d/setup-prompt.sh
+
+# remove microdnf
+RUN microdnf remove microdnf
+
+# sshd prep
+COPY ./setup-ssh.sh ${WORKDIR}/
+# set user limits
+COPY ./common-user-limits.sh ${WORKDIR}/
+
+# Adding SSHD requirements
+RUN chown -R $UNAME:$UNAME ${WORKDIR} ${VENV_PATH} /home/notebooks /etc/ssh /etc/authorized_keys \
+  # sshd prep
+  && touch /etc/profile.d/notebooks-load-env.sh \
+  && chown -R $UNAME:$UNAME /etc/profile.d/notebooks-load-env.sh \
+  # Limit max processes
+  && touch /etc/profile.d/bash-profile-load.sh \
+  && chown -R $UNAME:$UNAME /etc/profile.d/bash-profile-load.sh
 
 USER $UNAME
 
@@ -106,12 +126,20 @@ ARG UNAME
 
 ARG WORKDIR
 
+ARG GIT_COMMIT
+
+LABEL com.datarobot.repo-name="notebooks"
+LABEL com.datarobot.repo-sha=$GIT_COMMIT
+
 # Removing pip leftovers to not have trivy complain
 RUN rm -rf /lib/python3.9/site-packages/pip-20.2.4.dist-info && \
-    rm -rf /nbx/.venv/lib/python3.9/site-packages/pip-20.2.4.dist-info && \
+  rm -rf "${VENV_PATH}"/lib/python3.9/site-packages/pip-20.2.4.dist-info && \
     rm -rf /lib/python3.8/site-packages/pip-19.3.1.dist-info && \
-    rm -rf /nbx/.venv/lib/python3.8/site-packages/pip-19.3.1.dist-info
+  rm -rf "${VENV_PATH}"/lib/python3.8/site-packages/pip-19.3.1.dist-info && \
+  rm -rf "${VENV_PATH}"/lib/python3.9/site-packages/setuptools-50.3.2.dist-info && \
+  rm -rf "${VENV_PATH}"/lib/python3.8/site-packages/setuptools-41.6.0.dist-info
 
-RUN chown -R $UNAME:$UNAME ${WORKDIR} /home/nbx
+
+RUN chown -R $UNAME:$UNAME ${WORKDIR} /home/notebooks
 
 COPY --from=builder --chown=$UNAME $WORKDIR $WORKDIR

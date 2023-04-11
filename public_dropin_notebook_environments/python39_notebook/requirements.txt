@@ -7,7 +7,6 @@ eli5==0.13.0
 gensim==4.2.0
 graphviz==0.20.1
 imblearn
-ipywidgets==8.0.2
 joblib==1.2.0
 latexify-py==0.1.1
 lime==0.2.0.1
