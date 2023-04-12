@@ -79,7 +79,7 @@ class MulticlassEstimatorInterface(EstimatorInterface):
         -------
         pd.DataFrame
             Returns a dataframe with probabilities for each class labels.
-            
+
             Note that multiclass estimators require one column per class in the output
             So we need to pass in the the class names derived from the estimator as column names.
 
