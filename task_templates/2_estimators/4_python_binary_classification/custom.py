@@ -33,7 +33,7 @@ class CustomTask(BinaryEstimatorInterface):
         self.estimator = DecisionTreeClassifier()
         self.estimator.fit(X, y)
 
-    def score(self, data: pd.DataFrame, **kwargs) -> pd.DataFrame:
+    def predict_proba(self, data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         """ This hook defines how DataRobot will use the trained object from fit() to score new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
         As an output, this hook is expected to return the scored data.
