@@ -44,9 +44,12 @@ class BinaryEstimatorInterface(EstimatorInterface):
         Returns
         -------
         pd.DataFrame
-            Returns a dataframe with predict data.
-            In case of regression, predict() must return a dataframe with a single column with column
-            name "Predictions".
+            Returns a dataframe with probabilities for both class labels.
+
+            Note that binary estimators require two columns in the output, the positive and negative class labels.
+            So we need to pass in the class names derived from the estimator as column names OR
+            we can use the class labels from DataRobot stored in
+            kwargs['positive_class_label'] and kwargs['negative_class_label']
         """
         raise NotImplementedError()
 
@@ -75,9 +78,11 @@ class MulticlassEstimatorInterface(EstimatorInterface):
         Returns
         -------
         pd.DataFrame
-            Returns a dataframe with predict data.
-            In case of regression, predict() must return a dataframe with a single column with column
-            name "Predictions".
+            Returns a dataframe with probabilities for each class labels.
+            
+            Note that multiclass estimators require one column per class in the output
+            So we need to pass in the the class names derived from the estimator as column names.
+
         """
         raise NotImplementedError()
 
