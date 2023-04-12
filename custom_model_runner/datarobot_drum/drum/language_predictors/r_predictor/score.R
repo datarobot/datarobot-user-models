@@ -106,7 +106,7 @@ load_serialized_model <- function(model_dir, target_type) {
             },
             error = function(err) {
                 stop("\n\n", RUNNING_LANG_MSG, "\n",
-                  "Could not load searialized model artifact: ", model_artifact
+                  "Could not load serialized model artifact: ", model_artifact
                 )
             }
         )
@@ -130,7 +130,7 @@ load_serialized_model <- function(model_dir, target_type) {
         }
     } else {
         tmp <- stri_conv(binary_data, "utf8")
-        data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE), check.names = FALSE)
+        data <- read.csv(text=gsub("\r?\n|\r","\n", tmp, fixed=TRUE), check.names = FALSE)
     }
     data
 }
