@@ -47,9 +47,7 @@ class BinaryEstimatorInterface(EstimatorInterface):
             Returns a dataframe with probabilities for both class labels.
 
             Note that binary estimators require two columns in the output, the positive and negative class labels.
-            So we need to pass in the class names derived from the estimator as column names OR
-            we can use the class labels from DataRobot stored in
-            kwargs['positive_class_label'] and kwargs['negative_class_label']
+            So we need to pass in the class names derived from the estimator as column names.
         """
         raise NotImplementedError()
 
