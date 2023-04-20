@@ -26,12 +26,12 @@ EXPOSE 22
 
 WORKDIR ${WORKDIR}
 
-COPY ./r/.Rprofile ${WORKDIR}/
-COPY ./r/jupyter_kernel_gateway_config.py ./start_server.sh ${WORKDIR}/
+COPY ./.Rprofile ${WORKDIR}/
+COPY ./jupyter_kernel_gateway_config.py ./start_server.sh ${WORKDIR}/
 COPY ./agent/agent.py ${AGENTDIR}/
 COPY ./agent/cgroup_monitor.py ${AGENTDIR}/
 COPY ./dr_requirements.txt ./agent/requirements-agent.txt ${WORKDIR}/
-COPY ./r/setup-base.R ${WORKDIR}/
+COPY ./setup-base.R ${WORKDIR}/
 
 # Prompt customizations
 COPY ./setup-prompt.sh /etc/profile.d/setup-prompt.sh
@@ -100,7 +100,7 @@ RUN curl https://github.com/jgm/pandoc/releases/download/2.18/pandoc-2.18-linux-
 	&& rm pandoc-2.18-linux-amd64.tar.gz
 
 RUN R -e 'install.packages("renv")'
-COPY ./r/renv.lock ${WORKDIR}/
+COPY ./renv.lock ${WORKDIR}/
 
 COPY --from=base --chown=$UNAME $WORKDIR $WORKDIR
 
