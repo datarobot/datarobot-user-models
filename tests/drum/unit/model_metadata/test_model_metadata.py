@@ -321,7 +321,7 @@ class TestSchemaValidator:
         data[40] = np.NAN
         assert validator.validate_inputs(data)
 
-        data = data.astype(np.float32)/10
+        data = data.astype(np.float32) / 10
         with pytest.raises(DrumSchemaValidationException):
             validator.validate_inputs(data)
 
