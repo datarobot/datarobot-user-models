@@ -10,4 +10,4 @@ c.KernelGatewayApp.prespawn_count = 1
 c.KernelGatewayApp.max_kernels = 1
 c.KernelGatewayApp.default_kernel_name = "ir"
 c.JupyterWebsocketPersonality.list_kernels = True
-c.KernelRestarter.restart_limit = 0
+c.KernelRestarter.restart_limit = 3

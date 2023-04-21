@@ -1,8 +1,8 @@
-ARG WORKDIR=/nbx
-ARG R_VERSION=4.2.1
-ARG AGENTDIR=/agent
+ARG WORKDIR=/etc/system/kernel
+ARG AGENTDIR=/etc/system/kernel/agent
+ARG R_VERSION=4.2.2
 
-ARG UNAME=nbx
+ARG UNAME=notebooks
 ARG UID=90909
 ARG GID=90909
 
@@ -28,10 +28,17 @@ WORKDIR ${WORKDIR}
 
 COPY ./.Rprofile ${WORKDIR}/
 COPY ./jupyter_kernel_gateway_config.py ./start_server.sh ${WORKDIR}/
-COPY ./agent/agent.py ${WORKDIR}${AGENTDIR}/
-COPY ./agent/cgroup_monitor.py ${WORKDIR}${AGENTDIR}/
+COPY ./agent/agent.py ${AGENTDIR}/
+COPY ./agent/cgroup_monitor.py ${AGENTDIR}/
 COPY ./dr_requirements.txt ./agent/requirements-agent.txt ${WORKDIR}/
 COPY ./setup-base.R ${WORKDIR}/
+
+# Prompt customizations
+COPY ./setup-prompt.sh /etc/profile.d/setup-prompt.sh
+# sshd prep
+COPY ./setup-ssh.sh ${WORKDIR}/
+# set user limits
+COPY ./common-user-limits.sh ${WORKDIR}/
 
 RUN microdnf update \
     && microdnf install -y tar-2:1.30 gzip-1.9 python39-3.9.13 bzip2-devel-1.0.6 cmake-3.20.2 gcc-8.5.0 gcc-c++-8.5.0  \
@@ -40,6 +47,7 @@ RUN microdnf update \
     xz-devel-5.2.4 zip-3.0 zlib-devel-1.2.11 libxml2-devel-2.9.7 openssl-devel-1:1.1.1k libpng-devel-2:1.6.34 \
     libjpeg-turbo-devel-1.5.3 shadow-utils-2:4.6 git-2.31.1 wget-1.19.5 fontconfig-devel-2.13.1 glib2-devel-2.56.4  \
     libtiff-devel-4.0.9 \
+  && microdnf install -y openssh-server \
     && microdnf clean all
 
 # Requirements to install 'devtools'
@@ -75,7 +83,7 @@ RUN R < setup-base.R --no-save && rm ${WORKDIR}/setup-base.R
 
 RUN mkdir ${WORKDIR}/renv
 
-FROM base AS kernel
+FROM base AS kernel-prep
 
 ARG WORKDIR
 ARG UNAME
@@ -101,18 +109,58 @@ COPY ./sshd_config /etc/ssh/
 RUN cp -a /etc/ssh /etc/ssh.cache \
     && rm -rf /var/cache/apk/* \
     && mkdir /etc/authorized_keys \
-    && chown -R $UNAME:$UNAME ${WORKDIR} /home/nbx /etc/ssh /etc/authorized_keys
+  && chown -R $UNAME:$UNAME ${WORKDIR} /home/notebooks /etc/ssh /etc/authorized_keys \
+  # sshd prep
+  && touch /etc/profile.d/notebooks-load-env.sh \
+  && chown -R $UNAME:$UNAME /etc/profile.d/notebooks-load-env.sh \
+  # Limit max processes
+  && touch /etc/profile.d/bash-profile-load.sh \
+  && chown -R $UNAME:$UNAME /etc/profile.d/bash-profile-load.sh
 
 USER $UNAME
 
-# Remove files that are marked by trivy as vulnerabilities
-RUN R -e 'renv::restore()' && rm renv.lock && rm -rf /home/nbx/.cache/R/renv/cache/v5/R-4.2/x86_64-pc-linux-gnu/sass/0.4.2/1b191143d7d3444d504277843f3a95fe/sass/doc/sass.html \
-    && rm -rf /nbx/renv/survminer/doc/Playing_with_fonts_and_texts.html \
-    && rm -rf /home/nbx/.cache/R/renv/cache/v5/R-4.2/x86_64-pc-linux-gnu/openssl/2.0.4/e86c5ffeb8474a9e03d75f5d2919683e/openssl/doc/keys.html \
-    && rm -rf /home/nbx/.cache/R/renv/cache/v5/R-4.2/x86_64-pc-linux-gnu/openssl/2.0.4/e86c5ffeb8474a9e03d75f5d2919683e/openssl/doc/secure_rng.html \
-    && rm -rf /home/nbx/.cache/R/renv/cache/v5/R-4.2/x86_64-pc-linux-gnu/survminer/0.4.9/3f29f006a8eb499eff91d8b72325756e/survminer/doc/Specifiying_weights_in_log-rank_comparisons.html \
-    && rm -rf /home/nbx/.cache/R/renv/cache/v5/R-4.2/x86_64-pc-linux-gnu/survminer/0.4.9/3f29f006a8eb499eff91d8b72325756e/survminer/doc/Playing_with_fonts_and_texts.html \
-    && rm -rf /nbx/renv/openssl/doc/keys.html \
-    && rm -rf /nbx/renv/sass/doc/sass.html \
-    && rm -rf /nbx/renv/survminer/doc/Specifiying_weights_in_log-rank_comparisons.html \
-    && rm -rf /nbx/renv/openssl/doc/secure_rng.html
+RUN R -e 'renv::restore()' && rm renv.lock \
+  # Restore the R environment from lockfile, then
+  # Remove files that are marked by trivy as vulnerabilities
+  && rm -rf /home/notebooks/.cache/R/renv/cache/v5/R-4.2/x86_64-pc-linux-gnu/sass/0.4.2/1b191143d7d3444d504277843f3a95fe/sass/doc/sass.html \
+  && rm -rf $WORKDIR/renv/survminer/doc/Playing_with_fonts_and_texts.html \
+  && rm -rf /home/notebooks/.cache/R/renv/cache/v5/R-4.2/x86_64-pc-linux-gnu/openssl/2.0.4/e86c5ffeb8474a9e03d75f5d2919683e/openssl/doc/keys.html \
+  && rm -rf /home/notebooks/.cache/R/renv/cache/v5/R-4.2/x86_64-pc-linux-gnu/openssl/2.0.4/e86c5ffeb8474a9e03d75f5d2919683e/openssl/doc/secure_rng.html \
+  && rm -rf /home/notebooks/.cache/R/renv/cache/v5/R-4.2/x86_64-pc-linux-gnu/survminer/0.4.9/3f29f006a8eb499eff91d8b72325756e/survminer/doc/Specifiying_weights_in_log-rank_comparisons.html \
+  && rm -rf /home/notebooks/.cache/R/renv/cache/v5/R-4.2/x86_64-pc-linux-gnu/survminer/0.4.9/3f29f006a8eb499eff91d8b72325756e/survminer/doc/Playing_with_fonts_and_texts.html \
+  && rm -rf $WORKDIR/renv/openssl/doc/keys.html \
+  && rm -rf $WORKDIR/renv/sass/doc/sass.html \
+  && rm -rf $WORKDIR/renv/survminer/doc/Specifiying_weights_in_log-rank_comparisons.html \
+  && rm -rf $WORKDIR/renv/openssl/doc/secure_rng.html
+
+
+FROM kernel-prep as kernel
+
+ARG GIT_COMMIT
+
+LABEL com.datarobot.repo-name="notebooks"
+LABEL com.datarobot.repo-sha=$GIT_COMMIT
+
+USER root
+
+# remove microdnf
+RUN microdnf remove microdnf
+
+USER $UNAME
+
+FROM kernel-prep as devel
+# This stage should only be used in local development
+
+ARG GIT_COMMIT
+
+LABEL com.datarobot.repo-name="notebooks"
+LABEL com.datarobot.repo-sha=$GIT_COMMIT
+
+USER root
+
+# install things that devs would actually like to use, and possibly things
+# we want to pull up a stage to the production kernel
+RUN microdnf install -y procps-ng-3.3.15 vim-enhanced-2:8.0.1763 \
+  && microdnf clean all
+
+USER $UNAME
