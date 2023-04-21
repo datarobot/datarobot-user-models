@@ -308,7 +308,6 @@ class DataTypes(BaseValidator):
     def number_of_integer_equivalent_numeric_columns(X: pd.DataFrame) -> int:
         return len(X.columns[list(X.apply(DataTypes.is_integer_numeric, result_type="expand"))])
 
-
     def validate(self, dataframe: pd.DataFrame) -> list:
         """Perform validation of the dataframe against the supplied specification."""
         if len(self.values) == 0:
@@ -335,7 +334,9 @@ class DataTypes(BaseValidator):
                 logger.warning(
                     "Boolean values were present in the data, which are passed as numeric input in DataRobot.  You may need to convert boolean values to integers/floats for your model"
                 )
-            num_possible_numeric_categorical = self.number_of_integer_equivalent_numeric_columns(dataframe)
+            num_possible_numeric_categorical = self.number_of_integer_equivalent_numeric_columns(
+                dataframe
+            )
             num_numeric = dataframe.select_dtypes(np.number).shape[1]
             types[Values.NUM] = num_numeric > 0 or num_bool_columns > 0
             types[Values.TXT] = num_txt_columns > 0
