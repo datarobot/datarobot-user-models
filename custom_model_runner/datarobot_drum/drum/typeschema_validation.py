@@ -287,12 +287,26 @@ class DataTypes(BaseValidator):
             return False
 
     @staticmethod
+    def is_integer_numeric(x: pd.Series) -> bool:
+        """Integer numerics can be considered categoricals.  They do not always get
+        passed in as ints.  For example if there are NaN values in an integer column it will
+        actually be handled as a float by pandas."""
+        try:
+            return np.all(x == x.astype(pd.Int64Dtype()))
+        except:
+            return False
+
+    @staticmethod
     def number_of_text_columns(X: pd.DataFrame) -> int:
         return len(X.columns[list(X.apply(DataTypes.is_text, result_type="expand"))])
 
     @staticmethod
     def number_of_img_columns(X: pd.DataFrame) -> int:
         return len(X.columns[list(X.apply(DataTypes.is_img, result_type="expand"))])
+
+    @staticmethod
+    def number_of_integer_equivalent_numeric_columns(X: pd.DataFrame) -> int:
+        return len(X.columns[list(X.apply(DataTypes.is_integer_numeric, result_type="expand"))])
 
     def validate(self, dataframe: pd.DataFrame) -> list:
         """Perform validation of the dataframe against the supplied specification."""
@@ -320,7 +334,9 @@ class DataTypes(BaseValidator):
                 logger.warning(
                     "Boolean values were present in the data, which are passed as numeric input in DataRobot.  You may need to convert boolean values to integers/floats for your model"
                 )
-            num_possible_numeric_categorical = dataframe.select_dtypes("integer").shape[1]
+            num_possible_numeric_categorical = self.number_of_integer_equivalent_numeric_columns(
+                dataframe
+            )
             num_numeric = dataframe.select_dtypes(np.number).shape[1]
             types[Values.NUM] = num_numeric > 0 or num_bool_columns > 0
             types[Values.TXT] = num_txt_columns > 0

@@ -318,6 +318,10 @@ class TestSchemaValidator:
         assert validator.validate_inputs(data)
 
         data = data.astype(np.float32)
+        data[40] = np.NAN
+        assert validator.validate_inputs(data)
+
+        data = data.astype(np.float32) / 10
         with pytest.raises(DrumSchemaValidationException):
             validator.validate_inputs(data)
 
@@ -1013,7 +1017,7 @@ def test_validate_model_metadata_output_requirements(target_type, predictor_cls)
     """
 
     proba_pred_output = pd.DataFrame({"class_0": [0.1, 0.2, 0.3], "class_1": [0.9, 0.8, 0.7]})
-    num_pred_output = pd.DataFrame(np.arange(10), dtype=np.float32)
+    num_pred_output = pd.DataFrame(np.arange(10) / 2, dtype=np.float32)
     predictor = predictor_cls()
     predictor.target_type = target_type
     type_schema = {
