@@ -23,6 +23,8 @@ node('release-dev && memory-intense'){
         popd
     '''.stripIndent()
 
+    createInitialAdminUser()
+
     try {
       withQuantum([
           bash: '''\
