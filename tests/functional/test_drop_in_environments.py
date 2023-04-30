@@ -313,24 +313,24 @@ class TestDropInEnvironments(object):
         "model, test_data_id",
         [
             ("java_binary_custom_model", "binary_testing_data"),
-            # ("sklearn_binary_custom_model", "binary_testing_data"),
-            # ("keras_binary_custom_model", "binary_testing_data"),
-            # ("torch_binary_custom_model", "binary_testing_data"),
-            # ("onnx_binary_custom_model", "binary_testing_data"),
-            # ("xgb_binary_custom_model", "binary_testing_data"),
-            # ("r_binary_custom_model", "binary_testing_data"),
-            # ("java_regression_custom_model", "regression_testing_data"),
-            # ("sklearn_regression_custom_model", "regression_testing_data"),
-            # ("keras_regression_custom_model", "regression_testing_data"),
-            # ("torch_regression_custom_model", "regression_testing_data"),
-            # ("onnx_regression_custom_model", "regression_testing_data"),
-            # ("xgb_regression_custom_model", "regression_testing_data"),
-            # ("r_regression_custom_model", "regression_testing_data"),
-            # ("python_multi_artifact_regression_custom_model", "regression_testing_data"),
-            # ("r_multi_artifact_binary_custom_model", "binary_testing_data"),
-            # ("sklearn_multiclass_custom_model", "multiclass_testing_data"),
-            # ("pojo_multiclass_custom_model", "multiclass_testing_data"),
-            # ("mojo_multiclass_custom_model", "multiclass_testing_data"),
+            ("sklearn_binary_custom_model", "binary_testing_data"),
+            ("keras_binary_custom_model", "binary_testing_data"),
+            ("torch_binary_custom_model", "binary_testing_data"),
+            ("onnx_binary_custom_model", "binary_testing_data"),
+            ("xgb_binary_custom_model", "binary_testing_data"),
+            ("r_binary_custom_model", "binary_testing_data"),
+            ("java_regression_custom_model", "regression_testing_data"),
+            ("sklearn_regression_custom_model", "regression_testing_data"),
+            ("keras_regression_custom_model", "regression_testing_data"),
+            ("torch_regression_custom_model", "regression_testing_data"),
+            ("onnx_regression_custom_model", "regression_testing_data"),
+            ("xgb_regression_custom_model", "regression_testing_data"),
+            ("r_regression_custom_model", "regression_testing_data"),
+            ("python_multi_artifact_regression_custom_model", "regression_testing_data"),
+            ("r_multi_artifact_binary_custom_model", "binary_testing_data"),
+            ("sklearn_multiclass_custom_model", "multiclass_testing_data"),
+            ("pojo_multiclass_custom_model", "multiclass_testing_data"),
+            ("mojo_multiclass_custom_model", "multiclass_testing_data"),
         ],
     )
     def test_drop_in_environments(self, request, model, test_data_id):
@@ -352,53 +352,53 @@ class TestDropInEnvironments(object):
 
         assert test.overall_status == "succeeded"
 
-    # @pytest.mark.parametrize(
-    #     "model, test_data_id",
-    #     [
-    #         ("java_binary_custom_model", "binary_testing_data"),
-    #         ("java_regression_custom_model", "regression_testing_data"),
-    #         ("sklearn_binary_custom_model", "binary_testing_data"),
-    #         ("sklearn_regression_custom_model", "regression_testing_data"),
-    #         ("r_binary_custom_model", "binary_testing_data"),
-    #         ("r_regression_custom_model", "regression_testing_data"),
-    #     ],
-    # )
-    # def test_feature_impact(self, request, model, test_data_id):
-    #     model_id, model_version_id = request.getfixturevalue(model)
-    #     test_data_id = request.getfixturevalue(test_data_id)
-    #
-    #     model_version = dr.CustomModelVersion.get(model_id, model_version_id)
-    #     model = dr.CustomInferenceModel.get(model_id)
-    #     model.assign_training_data(test_data_id)
-    #     model_version.calculate_feature_impact(max_wait=1200)
-    #
-    #     test_passed = False
-    #     error_message = ""
-    #     for i in range(300):
-    #         try:
-    #             model_version.get_feature_impact()
-    #             test_passed = True
-    #             break
-    #         except (dr.errors.ClientError, dr.errors.ClientError) as e:
-    #             error_message = "get_feature_impact() response: " + str(e)
-    #         time.sleep(1)
-    #
-    #     assert test_passed, "Feature impact test has timed out. " + error_message
-    #
-    # @pytest.mark.parametrize(
-    #     "model, test_data_id",
-    #     [
-    #         ("bad_python_multi_artifact_binary_custom_model", "binary_testing_data"),
-    #         ("bad_r_multi_artifact_binary_custom_model", "binary_testing_data"),
-    #     ],
-    # )
-    # def test_fail_multi_artifacts(self, request, model, test_data_id):
-    #     model_id, model_version_id = request.getfixturevalue(model)
-    #     test_data_id = request.getfixturevalue(test_data_id)
-    #
-    #     test = dr.CustomModelTest.create(
-    #         custom_model_id=model_id,
-    #         custom_model_version_id=model_version_id,
-    #         dataset_id=test_data_id,
-    #     )
-    #     assert test.overall_status == "failed"
+    @pytest.mark.parametrize(
+        "model, test_data_id",
+        [
+            ("java_binary_custom_model", "binary_testing_data"),
+            ("java_regression_custom_model", "regression_testing_data"),
+            ("sklearn_binary_custom_model", "binary_testing_data"),
+            ("sklearn_regression_custom_model", "regression_testing_data"),
+            ("r_binary_custom_model", "binary_testing_data"),
+            ("r_regression_custom_model", "regression_testing_data"),
+        ],
+    )
+    def test_feature_impact(self, request, model, test_data_id):
+        model_id, model_version_id = request.getfixturevalue(model)
+        test_data_id = request.getfixturevalue(test_data_id)
+
+        model_version = dr.CustomModelVersion.get(model_id, model_version_id)
+        model = dr.CustomInferenceModel.get(model_id)
+        model.assign_training_data(test_data_id)
+        model_version.calculate_feature_impact(max_wait=1200)
+
+        test_passed = False
+        error_message = ""
+        for i in range(300):
+            try:
+                model_version.get_feature_impact()
+                test_passed = True
+                break
+            except (dr.errors.ClientError, dr.errors.ClientError) as e:
+                error_message = "get_feature_impact() response: " + str(e)
+            time.sleep(1)
+
+        assert test_passed, "Feature impact test has timed out. " + error_message
+
+    @pytest.mark.parametrize(
+        "model, test_data_id",
+        [
+            ("bad_python_multi_artifact_binary_custom_model", "binary_testing_data"),
+            ("bad_r_multi_artifact_binary_custom_model", "binary_testing_data"),
+        ],
+    )
+    def test_fail_multi_artifacts(self, request, model, test_data_id):
+        model_id, model_version_id = request.getfixturevalue(model)
+        test_data_id = request.getfixturevalue(test_data_id)
+
+        test = dr.CustomModelTest.create(
+            custom_model_id=model_id,
+            custom_model_version_id=model_version_id,
+            dataset_id=test_data_id,
+        )
+        assert test.overall_status == "failed"
