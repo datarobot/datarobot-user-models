@@ -201,6 +201,7 @@ Include any necessary hooks in a file called `custom.py` for Python models, `cus
         - `charset: str` - indicates encoding for text data, taken from request Content-Type header or `--content-type` CLI arg in batch mode;
         - `query: dict` - params passed as query params in http request or in CLI `--query` argument in batch mode.
         - `headers: dict` - request headers passed in http request.
+        - `mlops` - a client library to report statistics back to DataRobot (see: )
     - This method should return:
         - a single value `return data: str/bytes`
         - a tuple `return data: str/bytes, kwargs: dict[str, str]`
@@ -226,6 +227,57 @@ Following rules apply:
 As mentioned above `score_unstructured` can return:
 - a single data value `return data`
 - a tuple - data and additional params `return data, {"mimetype": "some/type", "charset": "some_charset"}
+
+#### MLOps reporting
+Users may report MLOps statistics from their unstructured custom inference models, whose target
+type is one of `Regression`, `Binary`, `Multiclass`.
+In order to do it, the user is required to try and read the `mlops` input argument from the `kwargs`
+as follows:
+
+```
+mlops = kwargs.get('mlops')
+```
+
+If the `mlops` is not `None`, the user may use the following methods:
+- `report_deployment_stats(num_predictions: int, execution_time: float`) - report the number of
+  predictions and execution time to DataRobot MLOps.
+  - `num_predictions` - number of predictions.
+  - `execution_time` - time in milliseconds that it took to calculate all the predictions.
+- `report_predictions_data(features_df: pandas.DataFrame, predictions: list, association_ids:
+  list, class_names: list)` -
+  a method to report the features along with their predictions and association IDs:
+  - `features_df` - a Dataframe containing features to track and monitor. All the features
+    in the dataframe are reported. Omit the features from the dataframe that do not need
+    reporting.
+  - `predictions` - list of predictions.  For Regression deployments, this is a 1D list
+    containing prediction values.  For Classification deployments, this is a 2D list, in
+    which the inner list is the list of probabilities for each class type
+    Regression Predictions: e.g., [1, 2, 4, 3, 2]
+    Binary Classification: e.g., [[0.2, 0.8], [0.3, 0.7]].
+  - `association_ids` - an optional list of association IDs corresponding to each
+    prediction. Used for accuracy calculations.  Association IDs have to be unique for each
+    prediction to report. The number of `predictions` should be equal to number of
+    `association_ids` in the list
+  - `class_names` - names of predicted classes, e.g. ["class1", "class2", "class3"]. For
+    classification deployments, class names must be in the same order as the prediction
+    probabilities reported. If not specified, this prediction order defaults to the order
+    of the class names on the deployment. This argument is ignored for Regression deployments.
+
+Notes:
+  * By the time of writing this documentation, it is required to enable the feature flag:
+    `MLOPS_REPORTING_FROM_UNSTRUCTURED_MODELS` in DataRobot.
+  * The `--target-type` input argument must be `unstructured`.
+  * To test such unstructured custom model with MLOps reporting locally, it is required to run
+    the `drum` utility with the following input arguments (or alternatively with their
+    corresponding environment variables):
+    * `--webserver` (env: `EXTERNAL_WEB_SERVER_URL`) - DataRobot external web server URL.
+    * `--api-token` (env: `API_TOKEN`) - DataRobot API token.
+    * `--monitor-embedded` (env: `MLOPS_REPORTING_FROM_UNSTRUCTURED_MODELS`) - enables a model
+      to use MLOps library in order to report statistics.
+    * `--deployment-id` (env: `DEPLOYMENT_ID`) - deployment ID to use for monitoring model
+      predictions.
+    * `--model-id` (env: `MODEL_ID`) - the deployed model ID to use for monitoring predictions.
+
 
 ##### In server mode
 Following rules apply:
