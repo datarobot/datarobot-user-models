@@ -136,7 +136,6 @@ load_serialized_model <- function(model_dir, target_type) {
             data <- read.csv(text=text, check.names = FALSE, blank.lines.skip =FALSE)
         }
     }
-    sprintf(dim(data))
     data
 }
 
