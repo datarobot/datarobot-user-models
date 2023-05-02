@@ -20,11 +20,18 @@ WEBSERVER_URL = "http://localhost"
 ENDPOINT_URL = WEBSERVER_URL + "/api/v2"
 
 
+def get_admin_api_key():
+    admin_api_key = os.environ.get("APP_ADMIN_API_KEY")
+    if not admin_api_key:
+        raise ValueError("APP_ADMIN_API_KEY environment variable is not set")
+    return admin_api_key
+
+
 def dr_usertool_setup():
-    mongo_host = os.environ.get("MONGO_HOST", os.environ.get("HOST", "127.0.0.1")).strip()
     webserver = urlparse(WEBSERVER_URL)
+    admin_api_key = get_admin_api_key()
     return DataRobotUserDatabase.setup(
-        "adhoc", webserver.hostname, mongo_host=mongo_host, protocol=webserver.scheme
+        "adhoc", webserver.hostname, protocol=webserver.scheme, admin_api_key=admin_api_key
     )
 
 
@@ -33,11 +40,12 @@ def pytest_configure(config):
     # check for skipping setup on xdist master process
     if not config.pluginmanager.getplugin("dsession"):
         suffix = str(uuid.uuid4().int)
-        env, db = dr_usertool_setup()
+        env = dr_usertool_setup()
+        admin_api_key = get_admin_api_key()
 
         # User credentials
         user_username = "local-custom-model-templates-tests-{}@datarobot.com".format(suffix)
-        user_password = "lkjkljnm988989jkr5645tv_{}".format(suffix)
+        user_password = "Lkjkljnm988989jkr5645tv_{}".format(suffix)
         user_api_key_name = "drum-functional-tests"
         user_permissions = get_permissions(
             "tests/fixtures/user_permissions.json", user_api_key_name
@@ -45,12 +53,10 @@ def pytest_configure(config):
 
         # Add user
         DataRobotUserDatabase.add_user(
-            db,
             env,
             user_username,
-            invite_code="autogen",
+            admin_api_key=admin_api_key,
             password=user_password,
-            app_user_manager=False,
             permissions=user_permissions,
             api_key_name=user_api_key_name,
             activated=True,
@@ -69,8 +75,9 @@ def pytest_configure(config):
 def pytest_unconfigure(config):
     if not config.pluginmanager.getplugin("dsession"):
         warnings.simplefilter("ignore")
-        _, db = dr_usertool_setup()
-        DataRobotUserDatabase.delete_user(db, config.user_username)
+        env = dr_usertool_setup()
+        admin_api_key = get_admin_api_key()
+        DataRobotUserDatabase.delete_user(env, config.user_username, admin_api_key=admin_api_key)
         warnings.simplefilter("error")
 
 
