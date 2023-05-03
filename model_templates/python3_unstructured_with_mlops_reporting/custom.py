@@ -31,6 +31,8 @@ def score_unstructured(model, data, query, **kwargs):
     print(f"Incoming kwargs: {kwargs}", flush=True)
     print(f"Incoming query params: {query}", flush=True)
 
+    # The 'mlops' instance is available only when the 'MLOPS_REPORTING_FROM_UNSTRUCTURED_MODELS'
+    # feature-flag is enabled.
     mlops = kwargs.get("mlops")
 
     df = _get_prediction_request_dataframe(data)
