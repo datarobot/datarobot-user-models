@@ -18,6 +18,7 @@ from scipy.sparse.csr import csr_matrix
 
 from datarobot_drum.drum.common import verify_pyarrow_module
 from datarobot_drum.drum.enum import X_FORMAT_KEY, X_TRANSFORM_KEY
+from datarobot_drum.drum.utils.dataframe import read_csv
 
 
 def filter_urllib3_logging():
@@ -115,7 +116,7 @@ def read_arrow_payload(response_dict, transform_key):
 
 def read_csv_payload(response_dict, transform_key):
     bytes = response_dict[transform_key]
-    return pd.read_csv(BytesIO(bytes))
+    return read_csv(BytesIO(bytes))
 
 
 def make_mtx_payload(df):

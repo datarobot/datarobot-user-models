@@ -19,7 +19,7 @@ from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
-
+from datarobot_drum.drum.utils.dataframe import read_csv
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -84,20 +84,7 @@ class StructuredInputReadUtils:
 
                 return df
             else:  # CSV format
-                try:
-                    df = pd.read_csv(io.BytesIO(binary_data))
-                except UnicodeDecodeError:
-                    logger.error(
-                        "A non UTF-8 encoding was encountered while opening the data.\nSave this using utf-8 encoding, for example with pandas to_csv('filename.csv', encoding='utf-8')."
-                    )
-                    raise DrumCommonException("Supplied CSV input file encoding must be UTF-8.")
-                # If the DataFrame only contains a single column, treat blank lines as NANs
-                if df.shape[1] == 1:
-                    logger.info(
-                        "Input data only contains a single column, treating blank lines as NaNs"
-                    )
-                    df = pd.read_csv(io.BytesIO(binary_data), skip_blank_lines=False)
-
+                df = read_csv(io.BytesIO(binary_data))
                 return df
 
         except pd.errors.ParserError as e:

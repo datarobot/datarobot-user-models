@@ -24,6 +24,7 @@ from scipy.sparse import vstack
 from texttable import Texttable
 from tempfile import mkdtemp, mkstemp
 
+from datarobot_drum.drum.utils.dataframe import read_csv
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.exceptions import (
@@ -68,7 +69,7 @@ def _get_samples_df(df, samples):
 
 
 def _get_approximate_samples_in_csv_size(file, target_csv_size):
-    df = pd.read_csv(file)
+    df = read_csv(file)
     file_size = os.stat(file).st_size
     lines_multiplier = target_csv_size / file_size
     return int(df.shape[0] * lines_multiplier) + 1
@@ -735,7 +736,7 @@ class CMRunTests:
                 ),
             }
         else:
-            df = pd.read_csv(self.options.input)
+            df = read_csv(self.options.input)
             samplesize = min(1000, max(int(len(df) * 0.1), 10))
             data_subset = df.sample(n=samplesize, random_state=42)
             subset_payload = make_csv_payload(data_subset)
