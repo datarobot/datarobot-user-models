@@ -35,6 +35,8 @@ def read_csv(csv: Union[str, BytesIO]) -> pd.DataFrame:
         raise DrumCommonException("Supplied CSV input file encoding must be UTF-8.")
     # If the DataFrame only contains a single column, treat blank lines as NANs
     if df.shape[1] == 1:
+        if isinstance(csv, BytesIO):
+            csv.seek(0)
         logger.info(
             "Input data only contains a single column, treating blank lines as NaNs"
         )
