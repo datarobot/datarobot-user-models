@@ -130,7 +130,11 @@ load_serialized_model <- function(model_dir, target_type) {
         }
     } else {
         tmp <- stri_conv(binary_data, "utf8")
-        data <- read.csv(text=gsub("\r","", tmp, fixed=TRUE), check.names = FALSE)
+        text <- gsub("\r","", tmp, fixed=TRUE)
+        data <- read.csv(text=text, check.names = FALSE)
+        if (ncol(data) == 1) {
+            data <- read.csv(text=text, check.names = FALSE, blank.lines.skip = FALSE)
+        }
     }
     data
 }
