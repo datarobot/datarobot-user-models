@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+#### [1.10.2] - 2023-05-16
+##### Fixed
+- Handling of single column datasets in R with missing values
+##### Changed
+- Example and documentation for MLOps reporting from unstructured models
+- Upgrade dr-usertool to 2.x 
+
 #### [1.10.2] - 2023-04-24
 ##### Fixed
 - Typeschema numeric categorical equivalency with missing values
