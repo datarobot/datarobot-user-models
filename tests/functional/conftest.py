@@ -39,12 +39,12 @@ def dr_usertool_setup():
 def pytest_configure(config):
     # check for skipping setup on xdist master process
     if not config.pluginmanager.getplugin("dsession"):
-        suffix = str(uuid.uuid4().int)
+        suffix = str(uuid.uuid4())
         env = dr_usertool_setup()
         admin_api_key = get_admin_api_key()
 
         # User credentials
-        user_username = "local-custom-model-templates-tests-{}@datarobot.com".format(suffix)
+        user_username = "local-custom-model-tests-{}@datarobot.com".format(suffix)
         user_password = "Lkjkljnm988989jkr5645tv_{}".format(suffix)
         user_api_key_name = "drum-functional-tests"
         user_permissions = get_permissions(
