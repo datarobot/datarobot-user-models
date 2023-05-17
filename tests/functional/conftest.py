@@ -44,7 +44,9 @@ def pytest_configure(config):
         admin_api_key = get_admin_api_key()
 
         # User credentials
-        user_username = "local-custom-model-templates-tests-{}@datarobot.com".format(suffix)
+        name_part = "local-custom-model-templates-tests-{}".format(suffix)[0:64]
+        # limited to 64 characters due to Auth0 limitations.
+        user_username = "{}@datarobot.com".format(name_part)
         user_password = "Lkjkljnm988989jkr5645tv_{}".format(suffix)
         user_api_key_name = "drum-functional-tests"
         user_permissions = get_permissions(
