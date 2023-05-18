@@ -10,7 +10,13 @@ import asyncio
 
 from websockets.exceptions import ConnectionClosedOK, ConnectionClosedError
 
-from cgroup_watchers import CGroupFileReader, CGroupWatcher, DummyWatcher, SystemWatcher, CGroupVersionUnsupported
+from cgroup_watchers import (
+    CGroupFileReader,
+    CGroupWatcher,
+    DummyWatcher,
+    SystemWatcher,
+    CGroupVersionUnsupported,
+)
 from fastapi import FastAPI, WebSocket
 import logging
 import ecs_logging
@@ -39,14 +45,18 @@ async def websocket_endpoint(websocket: WebSocket):
         while True:
             await websocket.send_json(
                 {
-                    'cpu_percent': watcher.cpu_usage_percentage(),
-                    'mem_percent': watcher.memory_usage_percentage(),
+                    "cpu_percent": watcher.cpu_usage_percentage(),
+                    "mem_percent": watcher.memory_usage_percentage(),
                 }
             )
 
             await asyncio.sleep(3)
     except ConnectionClosedError:
-        logger.warning("utilization consumer unconnected", extra={"connection": websocket.client}, exc_info=True)
+        logger.warning(
+            "utilization consumer unconnected",
+            extra={"connection": websocket.client},
+            exc_info=True,
+        )
     except ConnectionClosedOK:
         # https://github.com/encode/starlette/issues/759
         logger.info("utilization consumer unconnected", extra={"connection": websocket.client})
