@@ -66,10 +66,9 @@ ENV PATH="$VENV_PATH/bin:$PATH" \
 RUN python3 -m venv ${VENV_PATH}
 WORKDIR ${WORKDIR}
 
+COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
 COPY ./extensions /home/notebooks/.ipython/extensions
 COPY ./jupyter_kernel_gateway_config.py ./start_server.sh ${WORKDIR}/
-COPY ./agent/agent.py ${AGENTDIR}/
-COPY ./agent/cgroup_monitor.py ${AGENTDIR}/
 COPY ./ipython_config.py /etc/ipython/
 
 # Adding SSHD requirements

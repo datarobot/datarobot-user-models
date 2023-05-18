@@ -5,9 +5,9 @@
 #  and its affiliates.
 #  The copyright notice above does not evidence any actual or intended
 #  publication of such source code.
-import os
 import re
 import time
+from pathlib import Path
 
 import psutil  # type: ignore
 
@@ -15,6 +15,11 @@ import psutil  # type: ignore
 # https://github.com/neptune-ai/neptune-client/blob/master/LICENSE
 
 NANO_SECS = 10 ** 9
+
+
+class CGroupVersionUnsupported(Exception):
+    """There are two versions of CGroups, the agent is compatible with V1 only.
+     This error occurs when the agent was tried to be ran in V2"""
 
 
 class SystemWatcher:
@@ -34,55 +39,68 @@ class SystemWatcher:
 class CGroupFileReader:
     def __init__(self) -> None:
         cgroup_memory_dir = self._cgroup_mount_dir(subsystem="memory")
-        self._memory_usage_file = os.path.join(cgroup_memory_dir, "memory.usage_in_bytes")
-        self._memory_limit_file = os.path.join(cgroup_memory_dir, "memory.limit_in_bytes")
-
         cgroup_cpu_dir = self._cgroup_mount_dir(subsystem="cpu")
-        self._cpu_period_file = os.path.join(cgroup_cpu_dir, "cpu.cfs_period_us")
-        self._cpu_quota_file = os.path.join(cgroup_cpu_dir, "cpu.cfs_quota_us")
-
         cgroup_cpuacct_dir = self._cgroup_mount_dir(subsystem="cpuacct")
-        self._cpuacct_usage_file = os.path.join(cgroup_cpuacct_dir, "cpuacct.usage")
+
+        self._memory_usage_file = cgroup_memory_dir / "memory.usage_in_bytes"
+        self._memory_limit_file = cgroup_memory_dir / "memory.limit_in_bytes"
+
+        self._cpu_period_file = cgroup_cpu_dir / "cpu.cfs_period_us"
+        self._cpu_quota_file = cgroup_cpu_dir / "cpu.cfs_quota_us"
+
+        self._cpuacct_usage_file = cgroup_cpuacct_dir / "cpuacct.usage"
 
     def memory_usage_in_bytes(self) -> int:
-        return self._read_file(self._memory_usage_file)
+        return self._read_metric(self._memory_usage_file)
 
     def memory_limit_in_bytes(self) -> int:
-        return self._read_file(self._memory_limit_file)
+        return self._read_metric(self._memory_limit_file)
 
     def cpu_quota_micros(self) -> int:
-        return self._read_file(self._cpu_quota_file)
+        return self._read_metric(self._cpu_quota_file)
 
     def cpu_period_micros(self) -> int:
-        return self._read_file(self._cpu_period_file)
+        return self._read_metric(self._cpu_period_file)
 
     def cpuacct_usage_nanos(self) -> int:
-        return self._read_file(self._cpuacct_usage_file)
+        return self._read_metric(self._cpuacct_usage_file)
 
-    def _read_file(self, filename: str) -> int:
+    def _read_metric(self, filename: Path) -> int:
         with open(filename) as f:
             return int(f.read())
 
-    def _cgroup_mount_dir(self, subsystem: str) -> str:
+    def _cgroup_mount_dir(self, subsystem: str) -> Path:
         """
         :param subsystem: cgroup subsystem like memory, cpu etc.
         :return: directory where subsystem is mounted
         """
-        with open("/proc/mounts", "r") as f:
-            for line in f.readlines():
-                split_line = re.split(r"\s+", line)
-                mount_dir = split_line[1]
+        try:
+            with open("/proc/mounts", "r") as f:
+                for line in f.readlines():
+                    split_line = re.split(r"\s+", line)
+                    mount_dir = split_line[1]
 
-                if "cgroup" in mount_dir:
-                    dirname = mount_dir.split("/")[-1]
-                    subsystems = dirname.split(",")
-                    if subsystem in subsystems:
-                        return mount_dir
+                    if "cgroup" in mount_dir:
+                        dirname = mount_dir.split("/")[-1]
+                        subsystems = dirname.split(",")
 
-        assert False, f'Mount directory for "{subsystem}" subsystem not found'
+                        if subsystem in subsystems:
+                            return Path(mount_dir)
+        except FileNotFoundError:
+            ...
+
+        raise CGroupVersionUnsupported
 
 
-class CGroupWatcher:
+class BaseWatcher:
+    def cpu_usage_percentage(self) -> float:
+        raise NotImplementedError
+
+    def memory_usage_percentage(self) -> float:
+        raise NotImplementedError
+
+
+class CGroupWatcher(BaseWatcher):
     def __init__(self, cgroup_file_reader: CGroupFileReader, system_watcher: SystemWatcher) -> None:
         self._cgroup_file_reader = cgroup_file_reader
         self._system_watcher = system_watcher
@@ -119,9 +137,7 @@ class CGroupWatcher:
         else:
             usage_diff = cpu_cum_usage_nanos - self._last_cpu_cum_usage_nanos
             time_diff = current_timestamp_nanos - self._last_cpu_usage_ts_nanos
-            current_usage = (
-                float(usage_diff) / float(time_diff) / self.cpu_usage_limit_in_cores() * 100.0
-            )
+            current_usage = float(usage_diff) / float(time_diff) / self.cpu_usage_limit_in_cores() * 100.0
 
         self._last_cpu_usage_ts_nanos = current_timestamp_nanos
         self._last_cpu_cum_usage_nanos = cpu_cum_usage_nanos
@@ -135,3 +151,11 @@ class CGroupWatcher:
     @staticmethod
     def _limit(value: float, lower_limit: float, upper_limit: float) -> float:
         return max(lower_limit, min(value, upper_limit))
+
+
+class DummyWatcher(BaseWatcher):
+    def cpu_usage_percentage(self) -> float:
+        return 0.1
+
+    def memory_usage_percentage(self) -> float:
+        return 0.1

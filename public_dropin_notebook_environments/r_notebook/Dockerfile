@@ -45,10 +45,9 @@ EXPOSE 22
 
 WORKDIR ${WORKDIR}
 
+COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
 COPY ./.Rprofile ${WORKDIR}/
 COPY ./jupyter_kernel_gateway_config.py ./start_server.sh ${WORKDIR}/
-COPY ./agent/agent.py ${AGENTDIR}/
-COPY ./agent/cgroup_monitor.py ${AGENTDIR}/
 COPY ./dr_requirements.txt ./agent/requirements-agent.txt ${WORKDIR}/
 COPY ./setup-common.R ${WORKDIR}/
 
