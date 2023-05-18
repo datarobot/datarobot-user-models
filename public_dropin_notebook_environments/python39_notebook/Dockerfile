@@ -1,3 +1,22 @@
+# Copyright 2023 DataRobot, Inc. and its affiliates.
+# All rights reserved.
+# DataRobot, Inc. Confidential.
+# This is unpublished proprietary source code of DataRobot, Inc.
+# and its affiliates.
+# The copyright notice above does not evidence any actual or intended
+# publication of such source code.
+
+
+###################   !NOTA BENE!   #######################
+#   All the files, parameters and packages are necessary  #
+#   for the proper functioning of Notebooks.              #
+#   If needed, you can include any system package         #
+#   that will be installed through microdnf or            #
+#   add a required package to the requirements.txt file.  #
+#   Please note that removing predefined packages         #
+#   may result in issues with Notebooks functionality.    #
+###########################################################
+
 ARG WORKDIR=/etc/system/kernel
 ARG AGENTDIR=/etc/system/kernel/agent
 ARG VENV_PATH=${WORKDIR}/.venv
@@ -6,8 +25,15 @@ ARG UNAME=notebooks
 ARG UID=90909
 ARG GID=90909
 
+# You can specify a diferent python version here
+# be sure that package available in microdnf repo
+# to check use this bash commands:
+# ```bash```
+# docker run --rm -it registry.access.redhat.com/ubi8/ubi-minimal:8.7 bash
+# microdnf repoquery python3*
+# ```
 ARG PYTHON_VERSION=39
-ARG PYTHON_EXACT_VERSION=3.9.13
+ARG PYTHON_EXACT_VERSION=3.9.16
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.7 AS base
 # some globally required dependencies
@@ -21,11 +47,12 @@ ARG VENV_PATH
 ARG PYTHON_VERSION
 ARG PYTHON_EXACT_VERSION
 
+# Add any package that will be installed on system level here:
 RUN microdnf update \
     && microdnf install -y python$PYTHON_VERSION-$PYTHON_EXACT_VERSION python$PYTHON_VERSION-devel-$PYTHON_EXACT_VERSION \
       gcc-8.5.0 glibc-devel-2.28 libffi-devel-3.1 graphviz-2.40.1 \
-      openblas-0.3.15 python$PYTHON_VERSION-scipy shadow-utils-2:4.6 passwd-0.80 git-2.31.1 openssh-server tar-2:1.30 gzip-1.9 unzip-6.0 zip-3.0 wget-1.19.5 \
-  java-11-openjdk-headless-1:11.0.19.0.7 \
+  openblas-0.3.15 python$PYTHON_VERSION-scipy shadow-utils-2:4.6 passwd-0.80 git-2.39.1 openssh-server tar-2:1.30 gzip-1.9 unzip-6.0 zip-3.0 wget-1.19.5 \
+  java-11-openjdk-headless-1:11.0.19.0.7 vim-minimal-2:8.0.1763 nano-2.9.8 \
   && pip3 install -U --no-cache-dir pip==22.3.1 \
     && microdnf clean all
 
@@ -35,8 +62,8 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     VENV_PATH=${VENV_PATH}
 
-ENV PATH="$VENV_PATH/bin:$PATH"
-ENV PYTHONPATH="/home/notebooks/.ipython/extensions"
+ENV PATH="$VENV_PATH/bin:$PATH" \
+  PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
 RUN python3 -m venv ${VENV_PATH}
 WORKDIR ${WORKDIR}
