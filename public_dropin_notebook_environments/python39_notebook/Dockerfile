@@ -25,7 +25,7 @@ ARG UNAME=notebooks
 ARG UID=90909
 ARG GID=90909
 
-# You can specify a diferent python version here
+# You can specify a different python version here
 # be sure that package available in microdnf repo
 # to check use this bash commands:
 # ```bash```
