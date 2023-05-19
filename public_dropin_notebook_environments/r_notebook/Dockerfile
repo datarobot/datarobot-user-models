@@ -49,7 +49,7 @@ COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
 COPY ./.Rprofile ${WORKDIR}/
 COPY ./jupyter_kernel_gateway_config.py ./start_server.sh ${WORKDIR}/
 COPY ./dr_requirements.txt ./agent/requirements-agent.txt ${WORKDIR}/
-COPY ./setup-common.R ${WORKDIR}/
+COPY ./setup-base.R ${WORKDIR}/
 
 # Prompt customizations
 COPY ./setup-prompt.sh /etc/profile.d/setup-prompt.sh
@@ -98,8 +98,9 @@ RUN pip3 install --no-cache-dir -r ${WORKDIR}/dr_requirements.txt \
   && rm ${WORKDIR}/dr_requirements.txt \
   && chmod a+x ${WORKDIR}/start_server.sh
 
-RUN R < setup-common.R --no-save && rm ${WORKDIR}/setup-common.R
+RUN R < setup-base.R --no-save && rm ${WORKDIR}/setup-base.R
 
+RUN mkdir ${WORKDIR}/renv
 
 FROM base AS kernel-prep
 
