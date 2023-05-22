@@ -49,7 +49,7 @@ ARG PYTHON_EXACT_VERSION
 RUN microdnf update \
   && microdnf install -y python$PYTHON_VERSION-$PYTHON_EXACT_VERSION python$PYTHON_VERSION-devel-$PYTHON_EXACT_VERSION \
   gcc-8.5.0 glibc-devel-2.28 libffi-devel-3.1 graphviz-2.40.1 \
-  openblas-0.3.15 python$PYTHON_VERSION-scipy shadow-utils-2:4.6 passwd-0.80 git-2.39.1 openssh-server tar-2:1.30 gzip-1.9 unzip-6.0 zip-3.0 wget-1.19.5 \
+  openblas-0.3.15 python$PYTHON_VERSION-scipy shadow-utils-2:4.6 passwd-0.80 git-2.39.3 openssh-server tar-2:1.30 gzip-1.9 unzip-6.0 zip-3.0 wget-1.19.5 \
   java-11-openjdk-headless-1:11.0.19.0.7 vim-minimal-2:8.0.1763 nano-2.9.8 \
   && pip3 install -U --no-cache-dir pip==22.3.1 \
   && microdnf clean all
