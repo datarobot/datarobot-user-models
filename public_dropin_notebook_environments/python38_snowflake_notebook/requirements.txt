@@ -1,7 +1,10 @@
 altair==4.2.0
 dask==2022.9.2
 datarobot-bp-workshop==0.2.6
-datarobot==3.0.2
+datarobot-drum==1.10.3
+datarobot-model-metrics==0.1.5
+datarobot-predict==1.0.0
+datarobot==3.1.0
 dummyPy==0.3
 eli5==0.13.0
 gensim==4.2.0
@@ -12,7 +15,6 @@ latexify-py==0.1.1
 lime==0.2.0.1
 matplotlib==3.6.1
 mistune==2.0.4
-nltk==3.7
 numpy==1.23.3
 openpyxl==3.0.10
 pandas==1.5.1

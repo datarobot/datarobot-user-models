@@ -11,3 +11,8 @@ c.KernelGatewayApp.max_kernels = 1
 c.KernelGatewayApp.default_kernel_name = "ir"
 c.JupyterWebsocketPersonality.list_kernels = True
 c.KernelRestarter.restart_limit = 3
+
+c.KernelGatewayApp.logging_config = {
+    "formatters": {"console": {"class": "ecs_logging.StdlibFormatter"},},
+    "loggers": {"KernelGatewayApp": {"handlers": ["console"],}},
+}
