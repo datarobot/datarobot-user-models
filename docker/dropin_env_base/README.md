@@ -10,7 +10,7 @@ Contains
 * Debian 11
 * JRE 11
 * Python 3.9
-* DRUM 1.10.2
+* DRUM 1.10.3
 * datarobot-mlops 9.0.7
 
 ## Guidelines
