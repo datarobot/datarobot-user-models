@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### [1.10.4] - 2023-05-24
 ##### Changed
 - Bump flask<=2.3.2 werkzeug<=2.3.4 markupsafe<=2.1.2
+- Bump DR scoring code, H2O artifacts for Java predictor
 
 #### [1.10.3] - 2023-05-16
 ##### Fixed
