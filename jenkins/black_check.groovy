@@ -1,15 +1,16 @@
 node('multi-executor && ubuntu:focal'){
-    stage('build_drum') {
-        checkout scm
-        withQuantum([
-            bash: '''\
-                set -exuo pipefail
-                pip install -U pip
-                pip install --only-binary=:all: -r requirements_lint.txt
-                black --check .
-            '''.stripIndent(),
-            pythonVersion: '3',
-            venvName: "datarobot-user-models"
-        ])
+    checkout scm
+
+    docker.image('python:3.8').inside() {
+        stage('black_check') {
+            sh"""#!/bin/bash
+            set -exuo pipefail
+            python -m venv /tmp/venv
+            . /tmp/venv/bin/activate
+            pip install -U pip
+            pip install -r requirements_lint.txt
+            black --check --diff .
+            """
+        }
     }
 }
