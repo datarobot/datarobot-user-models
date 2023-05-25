@@ -26,7 +26,13 @@ title "DEBUG: print java version"
 java -version
 javac -version
 
+
+title "Create python3 virtual environment"
+sudo apt install python3.9-venv
+python3 -m venv /tmp/venv
+. /tmp/venv/bin/activate
 pip install -U pip
+
 title "Installing datarobot-mlops and pulling mlops-agent"
 # > NOTE: when pinning datarobot-mlops to 8.2.1 and higher you may need to reinstall datarobot package
 # as datarobot-mlops overwrites site-packages/datarobot. [AGENT-3504]

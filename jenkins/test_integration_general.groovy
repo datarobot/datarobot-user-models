@@ -6,15 +6,11 @@ node('multi-executor && ubuntu:focal'){
         unstash 'drum_wheel'
     }
     try {
-      withQuantum([
-          bash: '''\
-              set -exuo pipefail
-              ls -la jenkins_artifacts
-              jenkins/test_integration_general.sh
-          '''.stripIndent(),
-          pythonVersion: '3',
-          venvName: "datarobot-user-models"
-      ])
+        sh"""#!/bin/bash
+        set -exuo pipefail
+        ls -la jenkins_artifacts
+        jenkins/test_integration_general.sh
+        """
     } finally {
       junit allowEmptyResults: true, testResults: '**/results*.xml'
     }
