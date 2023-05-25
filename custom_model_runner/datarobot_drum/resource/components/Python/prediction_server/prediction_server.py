@@ -11,8 +11,8 @@ from mlpiper.components.connectable_component import ConnectableComponent
 
 from datarobot_drum.drum.common import (
     make_predictor_capabilities,
-    read_model_metadata_yaml,
 )
+from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     TARGET_TYPE_ARG_KEYWORD,

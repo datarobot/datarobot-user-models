@@ -546,9 +546,7 @@ class SchemaValidator:
         """
         self._using_default_type_schema = False
         if not type_schema and use_default_type_schema:
-            from datarobot_drum.drum.common import (
-                read_model_metadata_yaml,
-            )  # local import to prevent cyclic dependency
+            from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
 
             type_schema = read_model_metadata_yaml(
                 SchemaValidator._DEFAULT_TYPE_SCHEMA_CODEDIR_PATH

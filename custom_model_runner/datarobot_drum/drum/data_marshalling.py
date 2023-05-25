@@ -11,7 +11,7 @@ from typing import Any, List, Optional, Union
 import numpy as np
 import pandas as pd
 
-from datarobot_drum.drum.common import TargetType
+from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     PRED_COLUMN,

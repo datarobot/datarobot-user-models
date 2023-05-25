@@ -20,7 +20,7 @@ from scipy import sparse
 import yaml
 from strictyaml import load, YAMLValidationError
 
-from datarobot_drum.drum.common import read_model_metadata_yaml, validate_config_fields
+from datarobot_drum.drum.model_metadata import read_model_metadata_yaml, validate_config_fields
 from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, ModelMetadataKeys, TargetType
 
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException, DrumCommonException

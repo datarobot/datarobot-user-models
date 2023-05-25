@@ -30,7 +30,7 @@ from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
 from datarobot_drum.drum.adapters.model_adapters.abstract_model_adapter import AbstractModelAdapter
 from datarobot_drum.drum.adapters.model_adapters.r_model_adapter import RModelAdapter
 from datarobot_drum.drum.common import get_metadata, FIT_METADATA_FILENAME
-from datarobot_drum.drum.common import read_model_metadata_yaml
+from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
 
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.enum import CUSTOM_FILE_NAME

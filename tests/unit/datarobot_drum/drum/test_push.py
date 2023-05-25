@@ -12,7 +12,7 @@ from argparse import Namespace
 import pytest
 import responses
 
-from datarobot_drum.drum.common import read_model_metadata_yaml
+from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
 from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, TargetType, RunMode
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.push import (
