@@ -16,7 +16,7 @@ DRUM_WHEEL_REAL_PATH="$(realpath "$(find jenkins_artifacts/datarobot_drum*.whl)"
 
 build_all_dropin_env_dockerfiles "$DRUM_WHEEL_REAL_PATH"
 
-pip install pip==22.1.2
+pip install -U pip
 # installing DRUM into the test env is required for push test
 pip install -U $DRUM_WHEEL_REAL_PATH
 # requirements_test may install newer packages for testing, e.g. `datarobot`
