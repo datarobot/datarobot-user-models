@@ -60,7 +60,7 @@ def pytest_configure(config):
             # already exists
             pass
         org = DataRobotUserDatabase.get_organization(environment=env, organization_name=org_name)
-        org_id = org['id']
+        org_id = org["id"]
 
         # Add user
         DataRobotUserDatabase.add_user(
