@@ -51,6 +51,17 @@ def pytest_configure(config):
             "tests/fixtures/user_permissions.json", user_api_key_name
         )
 
+        # Add organization
+        org_name = "local-custom-model-tests-org"
+        try:
+            # ensure it exists
+            DataRobotUserDatabase.add_organization(environment=env, organization_name=org_name)
+        except ValueError:
+            # already exists
+            pass
+        org = DataRobotUserDatabase.get_organization(environment=env, organization_name=org_name)
+        org_id = org["id"]
+
         # Add user
         DataRobotUserDatabase.add_user(
             env,
@@ -61,6 +72,7 @@ def pytest_configure(config):
             api_key_name=user_api_key_name,
             activated=True,
             unix_user="datarobot_imp",
+            organization_id=org_id,
         )
 
         user_api_keys = DataRobotUserDatabase.get_api_keys(env, user_username, user_password)
