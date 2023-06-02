@@ -1,14 +1,14 @@
+datarobot==3.1.0
+datarobot-bp-workshop==0.2.6
 dr-usertool>=3
-# PyYAML & drca are constrained by dr-usertool and its deps
-PyYAML>=3.11
-drca==0.2.42
+docker>=4.2.2,<5.0.0
 pytest
 pytest-runner
 pytest-xdist
-responses
-urllib3 >= 1.25.0
-datarobot==3.0.2
-datarobot-bp-workshop==0.2.6
+# PyYAML & drca are constrained by dr-usertool and its deps
+PyYAML>=3.11
 requests >= 2.24.0
-scikit-learn==0.24.2
+responses
 retry
+scikit-learn==0.24.2
+urllib3>=1.25.0,<2.0.0
