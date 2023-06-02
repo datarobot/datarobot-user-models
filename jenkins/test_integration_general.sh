@@ -45,8 +45,9 @@ mkdir -p "${MLOPS_AGENT_JAR_DIR}"
 curl --output "${MLOPS_AGENT_JAR_DIR}"/mlops-agent-${MLOPS_AGENT_VERSION}.jar ${REPO_BASE}/mlops-agent/${MLOPS_AGENT_VERSION}/mlops-agent-${MLOPS_AGENT_VERSION}.jar
 export MLOPS_MONITORING_AGENT_JAR_PATH=${MLOPS_AGENT_JAR_DIR}/mlops-agent-${MLOPS_AGENT_VERSION}.jar
 
-title "Installing requirements for all the tests:  ${GIT_ROOT}/requirements_test_integration_general.txt"
-pip install -r ${GIT_ROOT}/requirements_test_integration_general.txt
+title "Installing requirements for all the tests:  ${GIT_ROOT}/requirements_test.txt"
+pip install -r ${GIT_ROOT}/requirements_test.txt
+
 pushd ${GIT_ROOT} || exit 1
 
 # The "jenkins_artifacts" folder is created in the groovy script
