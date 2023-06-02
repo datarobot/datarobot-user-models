@@ -10,5 +10,4 @@ PyYAML>=3.11
 requests >= 2.24.0
 responses
 retry
-scikit-learn==0.24.2
 urllib3>=1.25.0,<2.0.0
