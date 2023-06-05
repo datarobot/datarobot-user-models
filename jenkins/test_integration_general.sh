@@ -36,11 +36,13 @@ pip install -U pip
 title "Installing datarobot-mlops and pulling mlops-agent"
 # > NOTE: when pinning datarobot-mlops to 8.2.1 and higher you may need to reinstall datarobot package
 # as datarobot-mlops overwrites site-packages/datarobot. [AGENT-3504]
-pip install datarobot-mlops==8.2.7
+
+MLOPS_VERSION="9.0.7"
+pip install datarobot-mlops==${MLOPS_VERSION}
 
 MLOPS_AGENT_JAR_DIR="/tmp/jars"
 REPO_BASE="https://artifactory.devinfra.drdev.io/artifactory/datarobot-maven-dev/com/datarobot"
-MLOPS_AGENT_VERSION="8.2.7"
+MLOPS_AGENT_VERSION=${MLOPS_VERSION}
 mkdir -p "${MLOPS_AGENT_JAR_DIR}"
 curl --output "${MLOPS_AGENT_JAR_DIR}"/mlops-agent-${MLOPS_AGENT_VERSION}.jar ${REPO_BASE}/mlops-agent/${MLOPS_AGENT_VERSION}/mlops-agent-${MLOPS_AGENT_VERSION}.jar
 export MLOPS_MONITORING_AGENT_JAR_PATH=${MLOPS_AGENT_JAR_DIR}/mlops-agent-${MLOPS_AGENT_VERSION}.jar

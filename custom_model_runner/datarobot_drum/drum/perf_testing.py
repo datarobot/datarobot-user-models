@@ -63,7 +63,7 @@ def _get_samples_df(df, samples):
         multiplier = int(samples / nrows)
         remainder = samples % nrows
         ret_df = pd.concat([df] * multiplier, ignore_index=True)
-        ret_df = ret_df.append(df.head(n=remainder))
+        ret_df = pd.concat([ret_df, df.head(n=remainder)])
         return ret_df
 
 

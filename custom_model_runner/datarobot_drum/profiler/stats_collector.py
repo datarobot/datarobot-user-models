@@ -46,10 +46,7 @@ class StatsCollector(object):
             elif tup[2] == StatsOperation.ADD:
                 self._iter_dict[tup[0]] = self._iter_dict[tup[1]] + self._iter_dict[tup[3]]
 
-        if self._stats_df is None:
-            self._stats_df = pd.DataFrame(self._iter_dict, index=[0])
-        else:
-            self._stats_df = self._stats_df.append(self._iter_dict, ignore_index=True)
+        self._stats_df = pd.concat([self._stats_df, pd.DataFrame(self._iter_dict, index=[0])])
 
         self._iter_dict.clear()
         self._enabled = False
