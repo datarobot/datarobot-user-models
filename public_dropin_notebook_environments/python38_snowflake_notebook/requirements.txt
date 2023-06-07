@@ -1,10 +1,10 @@
 altair==4.2.0
 dask==2022.9.2
 datarobot-bp-workshop==0.2.6
-datarobot-drum==1.10.3
+datarobot-drum==1.10.5
 datarobot-model-metrics==0.1.5
 datarobot-predict==1.0.0
-datarobot==3.1.0
+datarobot==3.1.1
 dummyPy==0.3
 eli5==0.13.0
 gensim==4.2.0

@@ -284,10 +284,10 @@ def formatter(  # noqa: C901,PLR0912
 # Ignoring mypy error: Class cannot subclass "BaseFormatter" (has type "Any")
 class DataFrameFormatter(BaseFormatter):  # type: ignore[misc]
     """A DataFrame formatter. This is basically a copy of the JSONFormatter
-    so it will return as a new mime type: application/vnd.dataframe in output.
+    so it will return as a new mime type: application/vnd.dataframe+json in output.
     """
 
-    format_type = Unicode("application/vnd.dataframe")
+    format_type = Unicode("application/vnd.dataframe+json")
     _return_type = (list, dict)
 
     print_method = ObjectName("_repr_json_")
@@ -314,9 +314,14 @@ class DataFrameFormatter(BaseFormatter):  # type: ignore[misc]
 # Load our extension into ipython kernel
 def load_ipython_extension(ipython: Magics) -> None:
     if is_pandas_loaded:
-        ipython.display_formatter.formatters["application/vnd.dataframe"] = DataFrameFormatter()
-        dataframe_formatter = ipython.display_formatter.formatters["application/vnd.dataframe"]
-        dataframe_formatter.for_type(DataFrame, formatter)
+        ipython.display_formatter.formatters[
+            "application/vnd.dataframe+json"
+        ] = DataFrameFormatter()
+        dataframe_json_formatter = ipython.display_formatter.formatters[
+            "application/vnd.dataframe+json"
+        ]
+        dataframe_json_formatter.for_type(DataFrame, formatter)
+
         print("Pandas DataFrame MimeType Extension loaded")
     else:
         print("Please make `pip install pandas` to use DataFrame extension")
