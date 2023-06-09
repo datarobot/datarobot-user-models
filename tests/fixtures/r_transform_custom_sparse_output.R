@@ -34,7 +34,7 @@ transform <- function(X, transformer, ...){
   for (i in 1:ncol(X)) {
     X[is.na(X[,i]), i] <- X_median[i]
   }
-  out <- Matrix(as.matrix(X), sparse=TRUE)
+  out <- Matrix(data.matrix(X), sparse=TRUE)
   f <- function(i) paste("feature_", i, sep="")
   colnames(out) <- sapply(0:(ncol(out)-1), f)
   out
