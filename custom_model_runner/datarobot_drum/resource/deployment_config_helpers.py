@@ -7,7 +7,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import json
 
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.enum import TargetType
+from datarobot_drum.drum.enum import TargetType, TEXT_GENERATION_PRED_COLUMN
 
 
 def parse_validate_deployment_config_file(filename):
@@ -57,6 +57,8 @@ def build_pps_response_json_str(out_data, deployment_config, target_type):
         f = map_regression_prediction
     elif target_type == TargetType.BINARY:
         f = map_binary_prediction
+    elif target_type == TargetType.TEXT_GENERATION:
+        f = map_text_generation_prediction
     else:
         raise DrumCommonException("target type '{}' is not supported".format(target_type))
 
@@ -100,5 +102,14 @@ def map_binary_prediction(row, index, target_info, class_names):
         "prediction": decision,
         "predictionValues": prediction_values,
         "predictionThreshold": decision_threshold,
+        "rowId": index,
+    }
+
+
+def map_text_generation_prediction(row, index, target_info, class_names):
+    pred_value = row.iloc[0]
+    return {
+        "prediction": pred_value,
+        "predictionValues": [{"label": TEXT_GENERATION_PRED_COLUMN, "value": pred_value}],
         "rowId": index,
     }
