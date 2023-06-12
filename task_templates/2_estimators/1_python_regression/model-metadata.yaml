@@ -34,3 +34,20 @@ typeSchema:
     - field: contains_missing
       condition: EQUALS # only EQUALS is supported
       value: FORBIDDEN # can be one of FORBIDDEN, SUPPORTED
+
+hyperparameters:
+  - name: criterion
+    type: select
+    values:
+      - squared_error
+      - friedman_mse
+      - absolue_error
+      - poisson
+    default: squared_error
+
+  - name: splitter
+    type: select
+    values:
+      - best
+      - random
+    default: best

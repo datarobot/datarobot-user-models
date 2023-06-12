@@ -34,3 +34,24 @@ typeSchema:
     - field: contains_missing
       condition: EQUALS # only EQUALS is supported
       value: FORBIDDEN # can be one of FORBIDDEN, SUPPORTED
+
+hyperparameters:
+  - name: kernel
+    type: select
+    values:
+      - linear
+      - poly
+      - rbf
+      - sigmoid
+      - precomputed
+    default: rbf
+  - name: degree
+    type: int
+    min: 1
+    max: 10
+    default: 3
+  - name: max_iterations
+    type: int
+    min: -1
+    max: 10
+    default: 1
