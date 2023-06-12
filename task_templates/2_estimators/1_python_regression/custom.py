@@ -35,7 +35,9 @@ class CustomTask(RegressionEstimatorInterface):
         """
 
         # fit a DecisionTreeRegressor
-        self.estimator = DecisionTreeRegressor(criterion=parameters['criterion'], splitter=parameters['splitter'])
+        self.estimator = DecisionTreeRegressor(
+            criterion=parameters["criterion"], splitter=parameters["splitter"]
+        )
         self.estimator.fit(X, y)
 
     def predict(self, data: pd.DataFrame, **kwargs):

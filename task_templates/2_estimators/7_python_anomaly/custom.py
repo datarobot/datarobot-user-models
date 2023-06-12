@@ -34,7 +34,11 @@ class CustomTask(AnomalyEstimatorInterface):
 
         # fit OneClassSVM
         assert y is None
-        self.estimator = OneClassSVM(kernel=parameters['kernel'], degree=parameters['degree'], max_iter=parameters['max_iterations'])
+        self.estimator = OneClassSVM(
+            kernel=parameters["kernel"],
+            degree=parameters["degree"],
+            max_iter=parameters["max_iterations"],
+        )
         self.estimator.fit(X, y)
 
     def predict(self, data, **kwargs):

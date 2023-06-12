@@ -30,7 +30,9 @@ class CustomTask(BinaryEstimatorInterface):
         """
 
         # fit DecisionTreeClassifier
-        self.estimator = DecisionTreeClassifier(criterion=parameters['criterion'], splitter=parameters['splitter'])
+        self.estimator = DecisionTreeClassifier(
+            criterion=parameters["criterion"], splitter=parameters["splitter"]
+        )
         self.estimator.fit(X, y)
 
     def predict_proba(self, data: pd.DataFrame, **kwargs) -> pd.DataFrame:
