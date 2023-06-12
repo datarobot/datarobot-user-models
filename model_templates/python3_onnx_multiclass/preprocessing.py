@@ -25,7 +25,7 @@ numeric_selector = make_column_selector(dtype_include=np.number)
 # This means that text variables will be be treated as both text AND categoricals
 # This is ok, but if you don't like it, you could write a more complicated is_categorical function
 # that first calls is_text
-categorical_selector = make_column_selector(dtype_include=np.object)
+categorical_selector = make_column_selector(dtype_include=object)
 
 # Helper function to use in text_selector
 def is_text(x):

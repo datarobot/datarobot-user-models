@@ -17,7 +17,7 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 
 numeric_selector = make_column_selector(dtype_include=np.number)
-categorical_selector = make_column_selector(dtype_include=np.object)
+categorical_selector = make_column_selector(dtype_include=object)
 
 
 numeric_pipeline = Pipeline(

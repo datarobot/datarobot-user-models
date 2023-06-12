@@ -71,11 +71,11 @@ class TestFit:
                 )
                 mmwrite(__keep_this_around.name, sp.csr_matrix(df.to_numpy()))
             else:
-                df.to_csv(__keep_this_around.name, index=False, line_terminator="\r\n")
+                df.to_csv(__keep_this_around.name, index=False, lineterminator="\r\n")
             return " --row-weights " + colname, __keep_this_around.name, __keep_this_around
         elif weights == WEIGHTS_CSV:
             __keep_this_around = NamedTemporaryFile("w")
-            weights_data.to_csv(__keep_this_around.name, index=False, line_terminator="\r\n")
+            weights_data.to_csv(__keep_this_around.name, index=False, lineterminator="\r\n")
             return " --row-weights-csv " + __keep_this_around.name, input_name, __keep_this_around
 
         __keep_this_around = NamedTemporaryFile("w")
