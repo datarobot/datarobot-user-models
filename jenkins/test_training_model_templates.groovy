@@ -6,8 +6,14 @@ node('release-dev && memory-intense'){
         unstash 'drum_wheel'
     }
 
-    checkoutDataRobot()
+    sh"""#!/bin/bash
+    echo "Install Python 3.8, because Quantum's Py3.7 is to old for some packages "
+    sudo apt-get update
+    sudo apt-get install -y python3.8 python3.8-dev python3.8-distutils python3.8-venv
+    python3.8 -m venv /tmp/venv_py_3_8
+    """
 
+    checkoutDataRobot()
     sh '''
         set -exuo pipefail
         pushd DataRobot
@@ -26,15 +32,12 @@ node('release-dev && memory-intense'){
     createInitialAdminUser()
 
     try {
-      withQuantum([
-          bash: '''\
-              set -exuo pipefail
-              ls -la jenkins_artifacts
-              ./jenkins/test_training_model_templates.sh
-          '''.stripIndent(),
-          pythonVersion: '3',
-          venvName: "datarobot-user-models"
-      ])
+        sh"""#!/bin/bash
+        set -exuo pipefail
+        . /tmp/venv_py_3_8/bin/activate
+        ls -la jenkins_artifacts
+        ./jenkins/test_training_model_templates.sh
+        """
     } finally {
       junit allowEmptyResults: true, testResults: '**/results*.xml'
     }
