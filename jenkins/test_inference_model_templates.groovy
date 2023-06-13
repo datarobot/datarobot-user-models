@@ -7,7 +7,7 @@ node('release-dev && memory-intense'){
     }
 
     sh"""#!/bin/bash
-    echo "Install Python 3.8, because Quantum's Py3.7 is to old for some packages "
+    echo "Install Python 3.8, because Quantum's Py3.7 is too old for some packages "
     sudo apt-get update
     sudo apt-get install -y python3.8 python3.8-dev python3.8-distutils python3.8-venv
     python3.8 -m venv /tmp/venv_py_3_8
