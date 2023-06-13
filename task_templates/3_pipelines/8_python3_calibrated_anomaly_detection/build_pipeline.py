@@ -26,7 +26,7 @@ numeric_selector = make_column_selector(dtype_include=np.number)
 # This selector tells sklearn which columns in a pd.DataFrame are categorical
 # Note that it will return True for text columns as well
 # This is ok, but if you don't like it, you could write a more complicated is_categorical function
-categorical_selector = make_column_selector(dtype_include=np.object)
+categorical_selector = make_column_selector(dtype_include=object)
 
 
 ##############################

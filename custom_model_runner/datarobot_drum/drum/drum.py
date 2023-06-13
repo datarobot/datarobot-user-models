@@ -643,7 +643,7 @@ class CMRunner:
             if self.target_type == TargetType.TRANSFORM and self.options.target:
                 target_df = df[self.options.target]
                 __target_temp = NamedTemporaryFile()
-                target_df.to_csv(__target_temp.name, index=False, line_terminator="\r\n")
+                target_df.to_csv(__target_temp.name, index=False, lineterminator="\r\n")
 
             if self.options.target:
                 df = df.drop(self.options.target, axis=1)
@@ -672,7 +672,7 @@ class CMRunner:
                 mmwrite(__tempfile.name, df.sparse.to_coo())
             else:
                 __tempfile = NamedTemporaryFile(suffix=".csv")
-                df.to_csv(__tempfile.name, index=False, line_terminator="\r\n")
+                df.to_csv(__tempfile.name, index=False, lineterminator="\r\n")
             self.options.input = __tempfile.name
 
         try:
