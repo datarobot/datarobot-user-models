@@ -24,6 +24,8 @@ class CustomTask(BinaryEstimatorInterface):
             Training data that DataRobot passes when this task is being trained.
         y: pd.Series
             Project's target column.
+        parameters: dict (optional, default = None)
+            A dictionary of hyperparameters defined in the model-metadata.yaml file for the task.
         Returns
         -------
         None

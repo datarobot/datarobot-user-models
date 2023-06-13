@@ -24,6 +24,8 @@ class CustomTask(RegressionEstimatorInterface):
             Training data that DataRobot passes when this task is being trained.
         y: pd.Series
             Project's target column.
+        parameters: dict (optional, default = None)
+            A dictionary of hyperparameters defined in the model-metadata.yaml file for the task.
         row_weights: np.ndarray (optional, default = None)
             A list of weights. DataRobot passes it in case of smart downsampling or when weights column is specified in project settings.
 
