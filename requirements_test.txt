@@ -10,7 +10,5 @@ PyYAML>=3.11
 requests >= 2.24.0
 responses
 retry
-# Note: keep it as this file is installed in quantum, which is Py3.7
-scikit-learn==1.0.2; python_version=="3.7"
-scikit-learn==1.0.2; python_version>="3.8"
+scikit-learn==1.0.2
 urllib3>=1.25.0,<2.0.0

@@ -37,6 +37,7 @@ node('release-dev && memory-intense'){
       . /tmp/venv_py_3_8/bin/activate
       ls -la jenkins_artifacts
       ./jenkins/test_inference_model_templates.sh
+      """
     } finally {
       junit allowEmptyResults: true, testResults: '**/results*.xml'
     }
