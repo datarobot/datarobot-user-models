@@ -3,6 +3,6 @@
   "name": "[DataRobot] Python 3.9 XGBoost Drop-In",
   "description": "This template environment can be used to create artifact-only xgboost custom models. This environment contains xgboost and only requires your model artifact as a .pkl file and optionally a custom.py file.",
   "programmingLanguage": "python",
-  "environmentVersionId": "646e89a78dd3f088e11e1cc8",
+  "environmentVersionId": "64880fc68dd3f03e74e371d1",
   "isPublic": true
 }
