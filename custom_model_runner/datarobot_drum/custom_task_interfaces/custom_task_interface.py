@@ -117,7 +117,7 @@ class Serializable(object):
 
 
 class CustomTaskInterface(Serializable):
-    def fit(self, X, y, row_weights=None, **kwargs):
+    def fit(self, X, y, parameters=None, row_weights=None, **kwargs):
         """
         This hook defines how DataRobot will train this task. Even transform tasks need to be
         trained to learn/store information from training data
@@ -130,6 +130,8 @@ class CustomTaskInterface(Serializable):
             Training data that DataRobot passes when this task is being trained.
         y: pd.Series
             Project's target column (None is passed for unsupervised projects).
+        parameters: dict (optional, default = None)
+            A dictionary of hyperparameters defined in the model-metadata.yaml file for the task.
         row_weights: np.ndarray (optional, default = None)
             A list of weights. DataRobot passes it in case of smart downsampling or when weights
             column is specified in project settings.

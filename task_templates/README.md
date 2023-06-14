@@ -87,25 +87,25 @@ DRUM doesn't perform sanitation of missing or strange(containing parenthesis, sl
 4. `custom_class_python` - Shows how to define your own transformation class without relying on
    external libraries
 5. `python3_image_transform` - Shows how to handle input and output of image data type with DataRobot
-6. `python3_sklearn_transform_hyperparameters` - Hyperparameters functionality is currently still in
-  development
+6. `python3_bool_to_int_transform` - A simple transform that converts boolean true/false to integer 1/0
 
 ## Estimators
 
-1. `python_regression` - Implements a linear regressor with SGD training
+1. `python_regression` - Implements a linear regressor with SGD training with hyperparameter definition
 2. `r_regression` - Implements a GLM regressor in R
 3. `r_sparse_regression` - Demonstrates how to use sparse input with R
 4. `python_binary_classification` - Shows how to create an estimator for binary
-  classification problems
+  classification problems, with hyperparameters
 5. `r_binary_classification` - Implements a GLM binary classifier in R
 6. `python_multiclass_classification` - Implements a linear classifier with SGD training
-7. `python_anomaly` - Shows how to create an anomaly estimator
+7. `python_anomaly` - Shows how to create an anomaly estimator with hyperparameters
 8. `r_anomaly_detection`  - Shows how to create an anomaly estimator in R
 9. `python_regression_with_custom_class` - Uses a custom python class, CustomCalibrator, which
   implements fit and score from scratch with no external libraries
 10. `python_calibrator` - Shows how to create an estimator task for doing prediction calibration,
   which is usually done in DataRobot as an additional estimator step after the main estimator
-
+11. `python_huggingface_vit` - Shows the workflow of fine-tuning a huggingface model return values set to properly work
+  with DataRobot.  
 ## Pipelines
 
 Except for where noted, our pipelines are verified within our functional test framework.

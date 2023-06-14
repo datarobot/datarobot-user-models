@@ -13,7 +13,7 @@ from datarobot_drum.custom_task_interfaces import BinaryEstimatorInterface
 
 
 class CustomTask(BinaryEstimatorInterface):
-    def fit(self, X: pd.DataFrame, y: pd.Series, **kwargs) -> None:
+    def fit(self, X: pd.DataFrame, y: pd.Series, parameters=None, **kwargs) -> None:
         """ This hook defines how DataRobot will train this task.
         DataRobot runs this hook when the task is being trained inside a blueprint.
         The input parameters are passed by DataRobot based on project and blueprint configuration.
@@ -24,13 +24,17 @@ class CustomTask(BinaryEstimatorInterface):
             Training data that DataRobot passes when this task is being trained.
         y: pd.Series
             Project's target column.
+        parameters: dict (optional, default = None)
+            A dictionary of hyperparameters defined in the model-metadata.yaml file for the task.
         Returns
         -------
         None
         """
 
         # fit DecisionTreeClassifier
-        self.estimator = DecisionTreeClassifier()
+        self.estimator = DecisionTreeClassifier(
+            criterion=parameters["criterion"], splitter=parameters["splitter"]
+        )
         self.estimator.fit(X, y)
 
     def predict_proba(self, data: pd.DataFrame, **kwargs) -> pd.DataFrame:

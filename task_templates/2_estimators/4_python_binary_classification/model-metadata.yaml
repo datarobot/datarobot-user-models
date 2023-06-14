@@ -34,3 +34,18 @@ typeSchema:
     - field: contains_missing
       condition: EQUALS # only EQUALS is supported
       value: FORBIDDEN # can be one of FORBIDDEN, SUPPORTED
+
+hyperparameters:
+  - name: criterion
+    type: select
+    values:
+      - gini
+      - entropy
+    default: gini
+
+  - name: splitter
+    type: select
+    values:
+      - best
+      - random
+    default: best

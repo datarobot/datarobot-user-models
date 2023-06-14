@@ -13,7 +13,7 @@ from datarobot_drum.custom_task_interfaces import AnomalyEstimatorInterface
 
 
 class CustomTask(AnomalyEstimatorInterface):
-    def fit(self, X: pd.DataFrame, y: pd.Series, **kwargs):
+    def fit(self, X: pd.DataFrame, y: pd.Series, parameters=None, **kwargs):
         """ This hook defines how DataRobot will train this task.
         DataRobot runs this hook when the task is being trained inside a blueprint.
         The input parameters are passed by DataRobot based on project and blueprint configuration.
@@ -24,7 +24,8 @@ class CustomTask(AnomalyEstimatorInterface):
             Training data that DataRobot passes when this task is being trained.
         y: pd.Series
             Project's target column. For anomaly, it's None
-
+        parameters: dict (optional, default = None)
+            A dictionary of hyperparameters defined in the model-metadata.yaml file for the task.
         Returns
         -------
         None
@@ -34,7 +35,11 @@ class CustomTask(AnomalyEstimatorInterface):
 
         # fit OneClassSVM
         assert y is None
-        self.estimator = OneClassSVM()
+        self.estimator = OneClassSVM(
+            kernel=parameters["kernel"],
+            degree=parameters["degree"],
+            max_iter=parameters["max_iterations"],
+        )
         self.estimator.fit(X, y)
 
     def predict(self, data, **kwargs):
