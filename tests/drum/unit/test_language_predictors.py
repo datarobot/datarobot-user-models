@@ -52,6 +52,7 @@ class FakeLanguagePredictor(BaseLanguagePredictor):
         {"positiveClassLabel": 1, "negativeClassLabel": 0, "target_type": TargetType.BINARY,},
         {"classLabels": ["a", "b", "c"], "target_type": TargetType.MULTICLASS,},
         {"target_type": TargetType.REGRESSION},
+        {"target_type": TargetType.TEXT_GENERATION},
     ],
 )
 def test_lang_predictor_configure(predictor_params, essential_language_predictor_init_params):
@@ -102,6 +103,7 @@ class TestPythonPredictor(object):
                 ["a", "b", "c"],
             ),
             ({"target_type": TargetType.REGRESSION,}, np.array([1, 2]), None),
+            ({"target_type": TargetType.TEXT_GENERATION,}, np.array(["a", "b"]), None),
         ],
     )
     def test_python_predictor_predict(

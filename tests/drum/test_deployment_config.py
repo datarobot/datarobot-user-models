@@ -26,6 +26,7 @@ from tests.drum.constants import (
     PYTHON,
     REGRESSION,
     SKLEARN,
+    TEXT_GENERATION,
 )
 
 from datarobot_drum.resource.utils import _create_custom_model_dir
@@ -39,6 +40,7 @@ class TestDeploymentConfig:
     deployment_config_regression = os.path.join(TESTS_DEPLOYMENT_CONFIG_PATH, "regression.json")
     deployment_config_binary = os.path.join(TESTS_DEPLOYMENT_CONFIG_PATH, "binary.json")
     deployment_config_multiclass = os.path.join(TESTS_DEPLOYMENT_CONFIG_PATH, "multiclass.json")
+    deployment_config_text_generation = os.path.join(TESTS_DEPLOYMENT_CONFIG_PATH, "text_generation.json")
 
     def test_parse_deployment_config_file(self):
         not_json = '{"target: {"class_mapping": null, "missing_maps_to": null, "name": "Grade 2014", "prediction_threshold": 0.5, "type": "Regression" }}'
@@ -218,6 +220,33 @@ class TestDeploymentConfig:
                 {"label": class_labels[0], "value": row[class_labels[0]]},
                 {"label": class_labels[1], "value": row[class_labels[1]]},
             ]
+
+    def test_map_text_generation_prediction(self):
+        d = {"Predictions": ["Completion1", 'Completion2', "Completion3"]}
+        df = pd.DataFrame(data=d)
+        config = parse_validate_deployment_config_file(self.deployment_config_text_generation)
+        assert config["target"]["name"] == None
+        assert config["target"]["type"] == "textgeneration"
+
+        response = build_pps_response_json_str(df, config, TargetType.TEXT_GENERATION)
+        response_json = json.loads(response)
+        assert isinstance(response_json, dict)
+        assert "data" in response_json
+        predictions_list = response_json["data"]
+        assert isinstance(predictions_list, list)
+        assert len(predictions_list) == df.shape[0]
+
+        pred_iter = iter(predictions_list)
+        for index, row in df.iterrows():
+            pred_item = next(pred_iter)
+            print(pred_item)
+            assert isinstance(pred_item, dict)
+            assert pred_item["rowId"] == index
+            assert pred_item["prediction"] == row[0]
+            assert isinstance(pred_item["predictionValues"], list)
+            assert len(pred_item["predictionValues"]) == 1
+            assert pred_item["predictionValues"][0]["label"] == config["target"]["name"]
+            assert pred_item["predictionValues"][0]["value"] == row[0]
 
     @pytest.mark.parametrize(
         "framework, problem, language, deployment_config",

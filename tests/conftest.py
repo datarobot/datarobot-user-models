@@ -145,6 +145,8 @@ from tests.drum.constants import (
     CUSTOM_TASK_INTERFACE_XGB_REGRESSION,
     BINARY_NUM_TARGET,
     MULTICLASS_LABEL_SPACES,
+    TEXT_GENERATION,
+    PYTHON_TEXT_GENERATION,
 )
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 from tests.drum.constants import PYTHON_UNSTRUCTURED_DR_API_ACCESS
@@ -308,6 +310,7 @@ _datasets = {
         TESTS_DATA_PATH, "10k_diabetes_sample.csv"
     ),
     (None, MULTICLASS_LABEL_SPACES): os.path.join(TESTS_DATA_PATH, "iris_with_spaces_full.csv"),
+    (None, TEXT_GENERATION): os.path.join(TESTS_DATA_PATH, "prompts.csv"),
 }
 
 _training_models_paths = {
@@ -397,6 +400,7 @@ _targets = {
     BINARY_SPACES: "Species",
     REGRESSION_MULTLILINE_TEXT: "rating",
     MULTICLASS_LABEL_SPACES: "Species",
+    TEXT_GENERATION: "COMPLETION",
 }
 
 _target_types = {
@@ -422,6 +426,7 @@ _target_types = {
     BINARY_INT: "binary",
     TRANSFORM: "transform",
     MULTICLASS_LABEL_SPACES: "multiclass",
+    TEXT_GENERATION: "textgeneration"
 }
 
 _class_labels = {
@@ -772,6 +777,7 @@ _custom_filepaths = {
         "custom.r",
     ),
     R_FIT: (os.path.join(TESTS_FIXTURES_PATH, "fit_custom.R"), "custom.R"),
+    PYTHON_TEXT_GENERATION: (os.path.join(TESTS_FIXTURES_PATH, "text_generation_custom.py"), "custom.py"),
     PYTHON_UNSTRUCTURED: (os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom.py"), "custom.py"),
     R_UNSTRUCTURED: (os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom.R"), "custom.R"),
     PYTHON_UNSTRUCTURED_MLOPS: (
