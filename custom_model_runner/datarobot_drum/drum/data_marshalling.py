@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 
 from datarobot_drum.drum.common import TargetType
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, REGRESSION_PRED_COLUMN
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, REGRESSION_PRED_COLUMN, TEXT_GENERATION_PRED_COLUMN
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
@@ -36,7 +36,7 @@ def marshal_predictions(
     if target_type.value in TargetType.CLASSIFICATION.value:
         return _classification_marshal_preds(predictions, request_labels, model_labels)
     elif target_type.value in TargetType.SINGLE_COL.value:
-        return _single_col_marshal_preds(predictions)
+        return _single_col_marshal_preds(predictions, target_type)
     return predictions
 
 
@@ -97,9 +97,12 @@ def _classification_marshal_preds(predictions, request_labels, model_labels):
     return pd.DataFrame(predictions, columns=request_labels)
 
 
-def _single_col_marshal_preds(predictions):
+def _single_col_marshal_preds(predictions, target_type):
     _validate_predictions_are_one_dimensional(predictions)
-    return pd.DataFrame(predictions, columns=[REGRESSION_PRED_COLUMN])
+    if target_type == TargetType.REGRESSION:
+        return pd.DataFrame(predictions, columns=[REGRESSION_PRED_COLUMN])
+    elif target_type == TargetType.TEXT_GENERATION:
+        return pd.DataFrame(predictions, columns=[TEXT_GENERATION_PRED_COLUMN])
 
 
 def _validate_dimensionality_and_type(predictions):
@@ -119,7 +122,8 @@ def _validate_dimensionality_and_type(predictions):
 def _validate_predictions_are_one_dimensional(predictions):
     if predictions.shape[1] != 1:
         raise DrumCommonException(
-            f"Regression and anomaly predictions must contain only 1 column. Your predictions have {predictions.shape[1]} columns"
+            f"Regression, Text Generation and anomaly predictions must contain only 1 column. "
+            f"Your predictions have {predictions.shape[1]} columns"
         )
 
 

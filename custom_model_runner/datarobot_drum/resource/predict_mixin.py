@@ -152,8 +152,9 @@ class PredictMixin:
                 response = '{{"predictions":{df_json}}}'.format(df_json=df_json_str)
                 return response
 
-            # float32 is not JSON serializable, so cast to float, which is float64
-            out_data = out_data.astype("float")
+            if self._target_type != TargetType.TEXT_GENERATION:
+                # float32 is not JSON serializable, so cast to float, which is float64
+                out_data = out_data.astype("float")
             if self._deployment_config is not None:
                 response = build_pps_response_json_str(
                     out_data, self._deployment_config, self._target_type

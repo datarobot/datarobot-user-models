@@ -57,6 +57,8 @@ def build_pps_response_json_str(out_data, deployment_config, target_type):
         f = map_regression_prediction
     elif target_type == TargetType.BINARY:
         f = map_binary_prediction
+    elif target_type == TargetType.TEXT_GENERATION:
+        f = map_text_generation_prediction
     else:
         raise DrumCommonException("target type '{}' is not supported".format(target_type))
 
@@ -100,5 +102,15 @@ def map_binary_prediction(row, index, target_info, class_names):
         "prediction": decision,
         "predictionValues": prediction_values,
         "predictionThreshold": decision_threshold,
+        "rowId": index,
+    }
+
+
+def map_text_generation_prediction(row, index, target_info, class_names):
+    label = target_info["name"]
+    pred_value = row.iloc[0]
+    return {
+        "prediction": pred_value,
+        "predictionValues": [{"label": label, "value": pred_value}],
         "rowId": index,
     }
