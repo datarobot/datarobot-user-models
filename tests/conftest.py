@@ -781,7 +781,7 @@ _custom_filepaths = {
     R_FIT: (os.path.join(TESTS_FIXTURES_PATH, "fit_custom.R"), "custom.R"),
     PYTHON_TEXT_GENERATION: (
         os.path.join(TESTS_FIXTURES_PATH, "text_generation_custom.py"),
-        "custom.py"
+        "custom.py",
     ),
     PYTHON_UNSTRUCTURED: (os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom.py"), "custom.py"),
     R_UNSTRUCTURED: (os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom.R"), "custom.R"),

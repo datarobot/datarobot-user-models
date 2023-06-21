@@ -18,7 +18,7 @@ class TestDrumFitAdapterFailures(object):
             TargetType.BINARY,
             TargetType.REGRESSION,
             TargetType.MULTICLASS,
-            TargetType.TEXT_GENERATION
+            TargetType.TEXT_GENERATION,
         ],
     )
     def test_target_data_missing(self, dense_csv, target_type):
