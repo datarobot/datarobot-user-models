@@ -12,7 +12,11 @@ import numpy as np
 import pandas as pd
 
 from datarobot_drum.drum.common import TargetType
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, REGRESSION_PRED_COLUMN, TEXT_GENERATION_PRED_COLUMN
+from datarobot_drum.drum.enum import (
+    LOGGER_NAME_PREFIX,
+    REGRESSION_PRED_COLUMN,
+    TEXT_GENERATION_PRED_COLUMN
+)
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)

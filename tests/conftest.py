@@ -426,7 +426,7 @@ _target_types = {
     BINARY_INT: "binary",
     TRANSFORM: "transform",
     MULTICLASS_LABEL_SPACES: "multiclass",
-    TEXT_GENERATION: "textgeneration"
+    TEXT_GENERATION: "textgeneration",
 }
 
 _class_labels = {
@@ -779,7 +779,10 @@ _custom_filepaths = {
         "custom.r",
     ),
     R_FIT: (os.path.join(TESTS_FIXTURES_PATH, "fit_custom.R"), "custom.R"),
-    PYTHON_TEXT_GENERATION: (os.path.join(TESTS_FIXTURES_PATH, "text_generation_custom.py"), "custom.py"),
+    PYTHON_TEXT_GENERATION: (
+        os.path.join(TESTS_FIXTURES_PATH, "text_generation_custom.py"),
+        "custom.py"
+    ),
     PYTHON_UNSTRUCTURED: (os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom.py"), "custom.py"),
     R_UNSTRUCTURED: (os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom.R"), "custom.R"),
     PYTHON_UNSTRUCTURED_MLOPS: (

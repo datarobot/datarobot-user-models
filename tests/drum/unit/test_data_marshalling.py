@@ -138,7 +138,7 @@ def test_marshal_predictions_reshape_text_generation_happy():
 
 def test_marshal_predictions_text_generation_invalid_dtype():
     # A (2,2,2) predictions are not valid text gen predictions
-    preds = np.array([[['a', 'b'], ['c', 'd']], [['e', 'f'], ['g', 'h']]])
+    preds = np.array([[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]])
     labels = [TEXT_GENERATION_PRED_COLUMN]
     with pytest.raises(
         DrumCommonException, match="predictions must return a np array, but received"
@@ -153,7 +153,7 @@ def test_marshal_predictions_text_generation_invalid_dtype():
 
 
 def test_marshal_predictions_bad_shape_regression():
-    preds = np.array([['a', 'c', 'd'], ['p', 'q', 'r']])
+    preds = np.array([["a", "c", "d"], ["p", "q", "r"]])
     labels = [TEXT_GENERATION_PRED_COLUMN]
     with pytest.raises(DrumCommonException, match="must contain only 1 column"):
         marshal_predictions(

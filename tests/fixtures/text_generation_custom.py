@@ -6,6 +6,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import pandas as pd
 
+
 def load_model(input_dir):
     return "placeholder"
 

@@ -15,7 +15,8 @@ from datarobot_drum.drum.enum import (
     TargetType,
     UnstructuredDtoKeys,
     X_TRANSFORM_KEY,
-    Y_TRANSFORM_KEY, TEXT_GENERATION_PRED_COLUMN,
+    Y_TRANSFORM_KEY,
+    TEXT_GENERATION_PRED_COLUMN,
 )
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from datarobot_drum.drum.server import (

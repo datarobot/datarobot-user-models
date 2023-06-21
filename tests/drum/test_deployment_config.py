@@ -11,7 +11,7 @@ import pandas as pd
 import pytest
 import requests
 
-from datarobot_drum.drum.enum import ArgumentOptionsEnvVars, TargetType
+from datarobot_drum.drum.enum import ArgumentOptionsEnvVars, TargetType, TEXT_GENERATION_PRED_COLUMN
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.resource.deployment_config_helpers import (
     parse_validate_deployment_config_file,
@@ -40,7 +40,9 @@ class TestDeploymentConfig:
     deployment_config_regression = os.path.join(TESTS_DEPLOYMENT_CONFIG_PATH, "regression.json")
     deployment_config_binary = os.path.join(TESTS_DEPLOYMENT_CONFIG_PATH, "binary.json")
     deployment_config_multiclass = os.path.join(TESTS_DEPLOYMENT_CONFIG_PATH, "multiclass.json")
-    deployment_config_text_generation = os.path.join(TESTS_DEPLOYMENT_CONFIG_PATH, "text_generation.json")
+    deployment_config_text_generation = os.path.join(
+        TESTS_DEPLOYMENT_CONFIG_PATH, "text_generation.json"
+    )
 
     def test_parse_deployment_config_file(self):
         not_json = '{"target: {"class_mapping": null, "missing_maps_to": null, "name": "Grade 2014", "prediction_threshold": 0.5, "type": "Regression" }}'
@@ -222,7 +224,7 @@ class TestDeploymentConfig:
             ]
 
     def test_map_text_generation_prediction(self):
-        d = {"Predictions": ["Completion1", 'Completion2', "Completion3"]}
+        d = {"Predictions": ["Completion1", "Completion2", "Completion3"]}
         df = pd.DataFrame(data=d)
         config = parse_validate_deployment_config_file(self.deployment_config_text_generation)
         assert config["target"]["name"] == None
@@ -245,7 +247,7 @@ class TestDeploymentConfig:
             assert pred_item["prediction"] == row[0]
             assert isinstance(pred_item["predictionValues"], list)
             assert len(pred_item["predictionValues"]) == 1
-            assert pred_item["predictionValues"][0]["label"] == config["target"]["name"]
+            assert pred_item["predictionValues"][0]["label"] == TEXT_GENERATION_PRED_COLUMN
             assert pred_item["predictionValues"][0]["value"] == row[0]
 
     @pytest.mark.parametrize(
