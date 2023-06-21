@@ -146,12 +146,10 @@ class PredictMixin:
 
             def _build_drum_response_json_str(out_data, target_type):
                 if len(out_data.columns) == 1:
-                    if target_type == TargetType.REGRESSION:
-                        out_data = out_data[REGRESSION_PRED_COLUMN]
-                    elif target_type == TargetType.TEXT_GENERATION:
+                    if target_type == TargetType.TEXT_GENERATION:
                         out_data = out_data[TEXT_GENERATION_PRED_COLUMN]
                     else:
-                        raise ValueError("Invalid target type")
+                        out_data = out_data[REGRESSION_PRED_COLUMN]
                 # df.to_json() is much faster.
                 # But as it returns string, we have to assemble final json using strings.
                 df_json_str = out_data.to_json(orient="records")

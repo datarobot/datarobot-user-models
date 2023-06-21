@@ -103,10 +103,10 @@ def _classification_marshal_preds(predictions, request_labels, model_labels):
 
 def _single_col_marshal_preds(predictions, target_type):
     _validate_predictions_are_one_dimensional(predictions)
-    if target_type == TargetType.REGRESSION:
-        return pd.DataFrame(predictions, columns=[REGRESSION_PRED_COLUMN])
-    elif target_type == TargetType.TEXT_GENERATION:
+    if target_type == TargetType.TEXT_GENERATION:
         return pd.DataFrame(predictions, columns=[TEXT_GENERATION_PRED_COLUMN])
+    else:
+        return pd.DataFrame(predictions, columns=[REGRESSION_PRED_COLUMN])
 
 
 def _validate_dimensionality_and_type(predictions):
