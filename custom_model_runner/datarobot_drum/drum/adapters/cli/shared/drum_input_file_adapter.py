@@ -52,10 +52,7 @@ class DrumInputFileAdapter(object):
         """
         self.target_type = target_type
         self.input_filename = input_filename
-        if self.target_type == TargetType.TEXT_GENERATION:
-            self.target_name = TEXT_GENERATION_PRED_COLUMN
-        else:
-            self.target_name = target_name
+        self.target_name = target_name
         self.target_filename = target_filename
         self.weights_name = weights_name
         self.weights_filename = weights_filename
