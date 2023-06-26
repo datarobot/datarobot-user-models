@@ -13,7 +13,13 @@ from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
 
 class TestDrumFitAdapterFailures(object):
     @pytest.mark.parametrize(
-        "target_type", [TargetType.BINARY, TargetType.REGRESSION, TargetType.MULTICLASS],
+        "target_type",
+        [
+            TargetType.BINARY,
+            TargetType.REGRESSION,
+            TargetType.MULTICLASS,
+            TargetType.TEXT_GENERATION,
+        ],
     )
     def test_target_data_missing(self, dense_csv, target_type):
         with pytest.raises(

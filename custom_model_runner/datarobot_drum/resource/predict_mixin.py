@@ -16,6 +16,7 @@ from datarobot_drum.drum.enum import (
     UnstructuredDtoKeys,
     X_TRANSFORM_KEY,
     Y_TRANSFORM_KEY,
+    TEXT_GENERATION_PRED_COLUMN,
 )
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from datarobot_drum.drum.server import (
@@ -143,23 +144,27 @@ class PredictMixin:
 
         else:
 
-            def _build_drum_response_json_str(out_data):
+            def _build_drum_response_json_str(out_data, target_type):
                 if len(out_data.columns) == 1:
-                    out_data = out_data[REGRESSION_PRED_COLUMN]
+                    if target_type == TargetType.TEXT_GENERATION:
+                        out_data = out_data[TEXT_GENERATION_PRED_COLUMN]
+                    else:
+                        out_data = out_data[REGRESSION_PRED_COLUMN]
                 # df.to_json() is much faster.
                 # But as it returns string, we have to assemble final json using strings.
                 df_json_str = out_data.to_json(orient="records")
                 response = '{{"predictions":{df_json}}}'.format(df_json=df_json_str)
                 return response
 
-            # float32 is not JSON serializable, so cast to float, which is float64
-            out_data = out_data.astype("float")
+            if self._target_type != TargetType.TEXT_GENERATION:
+                # float32 is not JSON serializable, so cast to float, which is float64
+                out_data = out_data.astype("float")
             if self._deployment_config is not None:
                 response = build_pps_response_json_str(
                     out_data, self._deployment_config, self._target_type
                 )
             else:
-                response = _build_drum_response_json_str(out_data)
+                response = _build_drum_response_json_str(out_data, self._target_type)
 
         response = Response(response, mimetype=PredictionServerMimetypes.APPLICATION_JSON)
 
