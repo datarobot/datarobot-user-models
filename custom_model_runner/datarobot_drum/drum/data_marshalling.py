@@ -15,7 +15,6 @@ from datarobot_drum.drum.common import TargetType
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     REGRESSION_PRED_COLUMN,
-    TEXT_GENERATION_PRED_COLUMN,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 
@@ -40,7 +39,7 @@ def marshal_predictions(
     if target_type.value in TargetType.CLASSIFICATION.value:
         return _classification_marshal_preds(predictions, request_labels, model_labels)
     elif target_type.value in TargetType.SINGLE_COL.value:
-        return _single_col_marshal_preds(predictions, target_type)
+        return _single_col_marshal_preds(predictions)
     return predictions
 
 
@@ -101,12 +100,9 @@ def _classification_marshal_preds(predictions, request_labels, model_labels):
     return pd.DataFrame(predictions, columns=request_labels)
 
 
-def _single_col_marshal_preds(predictions, target_type):
+def _single_col_marshal_preds(predictions):
     _validate_predictions_are_one_dimensional(predictions)
-    if target_type == TargetType.TEXT_GENERATION:
-        return pd.DataFrame(predictions, columns=[TEXT_GENERATION_PRED_COLUMN])
-    else:
-        return pd.DataFrame(predictions, columns=[REGRESSION_PRED_COLUMN])
+    return pd.DataFrame(predictions, columns=[REGRESSION_PRED_COLUMN])
 
 
 def _validate_dimensionality_and_type(predictions):
