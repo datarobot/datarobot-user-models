@@ -15,7 +15,7 @@ DEBUG = os.environ.get("DEBUG")
 LOGGER_NAME_PREFIX = "drum"
 
 
-REGRESSION_PRED_COLUMN = "Predictions"
+PRED_COLUMN = "Predictions"
 
 
 CUSTOM_FILE_NAME = "custom"

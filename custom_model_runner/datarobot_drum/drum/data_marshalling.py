@@ -14,7 +14,7 @@ import pandas as pd
 from datarobot_drum.drum.common import TargetType
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
-    REGRESSION_PRED_COLUMN,
+    PRED_COLUMN,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 
@@ -102,7 +102,7 @@ def _classification_marshal_preds(predictions, request_labels, model_labels):
 
 def _single_col_marshal_preds(predictions):
     _validate_predictions_are_one_dimensional(predictions)
-    return pd.DataFrame(predictions, columns=[REGRESSION_PRED_COLUMN])
+    return pd.DataFrame(predictions, columns=[PRED_COLUMN])
 
 
 def _validate_dimensionality_and_type(predictions):
