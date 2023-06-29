@@ -9,7 +9,7 @@ import sys
 from typing import Optional
 
 import pandas as pd
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, TEXT_GENERATION_PRED_COLUMN
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.utils.dataframe import is_sparse_series

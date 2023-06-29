@@ -16,7 +16,6 @@ from datarobot_drum.drum.enum import (
     UnstructuredDtoKeys,
     X_TRANSFORM_KEY,
     Y_TRANSFORM_KEY,
-    TEXT_GENERATION_PRED_COLUMN,
 )
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from datarobot_drum.drum.server import (
@@ -144,12 +143,9 @@ class PredictMixin:
 
         else:
 
-            def _build_drum_response_json_str(out_data, target_type):
+            def _build_drum_response_json_str(out_data):
                 if len(out_data.columns) == 1:
-                    if target_type == TargetType.TEXT_GENERATION:
-                        out_data = out_data[TEXT_GENERATION_PRED_COLUMN]
-                    else:
-                        out_data = out_data[REGRESSION_PRED_COLUMN]
+                    out_data = out_data[REGRESSION_PRED_COLUMN]
                 # df.to_json() is much faster.
                 # But as it returns string, we have to assemble final json using strings.
                 df_json_str = out_data.to_json(orient="records")
@@ -164,7 +160,7 @@ class PredictMixin:
                     out_data, self._deployment_config, self._target_type
                 )
             else:
-                response = _build_drum_response_json_str(out_data, self._target_type)
+                response = _build_drum_response_json_str(out_data)
 
         response = Response(response, mimetype=PredictionServerMimetypes.APPLICATION_JSON)
 

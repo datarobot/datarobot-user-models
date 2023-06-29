@@ -7,7 +7,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import json
 
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.enum import TargetType, TEXT_GENERATION_PRED_COLUMN
+from datarobot_drum.drum.enum import TargetType
 
 
 def parse_validate_deployment_config_file(filename):
@@ -110,6 +110,6 @@ def map_text_generation_prediction(row, index, target_info, class_names):
     pred_value = row.iloc[0]
     return {
         "prediction": pred_value,
-        "predictionValues": [{"label": TEXT_GENERATION_PRED_COLUMN, "value": pred_value}],
+        "predictionValues": [{"label": target_info["name"], "value": pred_value}],
         "rowId": index,
     }

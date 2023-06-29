@@ -15,7 +15,7 @@ from datarobot_drum.drum.data_marshalling import (
     _order_by_float,
     marshal_predictions,
 )
-from datarobot_drum.drum.enum import TargetType, REGRESSION_PRED_COLUMN, TEXT_GENERATION_PRED_COLUMN
+from datarobot_drum.drum.enum import TargetType, REGRESSION_PRED_COLUMN
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.model_adapter import PythonModelAdapter
 
@@ -129,17 +129,17 @@ def test_marshal_predictions_bad_shape_regression():
 
 def test_marshal_predictions_reshape_text_generation_happy():
     preds = np.array(["a", "b", "c"])
-    labels = [TEXT_GENERATION_PRED_COLUMN]
+    labels = [REGRESSION_PRED_COLUMN]
     res = marshal_predictions(
         request_labels=labels, predictions=preds, target_type=TargetType.TEXT_GENERATION
     )
-    assert res.equals(pd.DataFrame({TEXT_GENERATION_PRED_COLUMN: preds}))
+    assert res.equals(pd.DataFrame({REGRESSION_PRED_COLUMN: preds}))
 
 
 def test_marshal_predictions_text_generation_invalid_dtype():
     # A (2,2,2) predictions are not valid text gen predictions
     preds = np.array([[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]])
-    labels = [TEXT_GENERATION_PRED_COLUMN]
+    labels = [REGRESSION_PRED_COLUMN]
     with pytest.raises(
         DrumCommonException, match="predictions must return a np array, but received"
     ):
@@ -154,7 +154,7 @@ def test_marshal_predictions_text_generation_invalid_dtype():
 
 def test_marshal_predictions_bad_shape_regression():
     preds = np.array([["a", "c", "d"], ["p", "q", "r"]])
-    labels = [TEXT_GENERATION_PRED_COLUMN]
+    labels = [REGRESSION_PRED_COLUMN]
     with pytest.raises(DrumCommonException, match="must contain only 1 column"):
         marshal_predictions(
             request_labels=labels, predictions=preds, target_type=TargetType.REGRESSION

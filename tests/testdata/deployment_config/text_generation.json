@@ -2,7 +2,7 @@
     "target": {
         "class_mapping": null,
         "missing_maps_to": null,
-        "name": null,
+        "name": "completion",
         "prediction_threshold": null,
         "type": "textgeneration"
     }

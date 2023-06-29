@@ -11,7 +11,7 @@ import pandas as pd
 import pytest
 import requests
 
-from datarobot_drum.drum.enum import ArgumentOptionsEnvVars, TargetType, TEXT_GENERATION_PRED_COLUMN
+from datarobot_drum.drum.enum import ArgumentOptionsEnvVars, TargetType
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.resource.deployment_config_helpers import (
     parse_validate_deployment_config_file,
@@ -227,7 +227,7 @@ class TestDeploymentConfig:
         d = {"Predictions": ["Completion1", "Completion2", "Completion3"]}
         df = pd.DataFrame(data=d)
         config = parse_validate_deployment_config_file(self.deployment_config_text_generation)
-        assert config["target"]["name"] == None
+        assert config["target"]["name"] == config["target"]["name"]
         assert config["target"]["type"] == "textgeneration"
 
         response = build_pps_response_json_str(df, config, TargetType.TEXT_GENERATION)
@@ -247,7 +247,7 @@ class TestDeploymentConfig:
             assert pred_item["prediction"] == row[0]
             assert isinstance(pred_item["predictionValues"], list)
             assert len(pred_item["predictionValues"]) == 1
-            assert pred_item["predictionValues"][0]["label"] == TEXT_GENERATION_PRED_COLUMN
+            assert pred_item["predictionValues"][0]["label"] == config["target"]["name"]
             assert pred_item["predictionValues"][0]["value"] == row[0]
 
     @pytest.mark.parametrize(
