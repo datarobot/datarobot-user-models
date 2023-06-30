@@ -37,7 +37,7 @@ title "Installing datarobot-mlops and pulling mlops-agent"
 # > NOTE: when pinning datarobot-mlops to 8.2.1 and higher you may need to reinstall datarobot package
 # as datarobot-mlops overwrites site-packages/datarobot. [AGENT-3504]
 
-MLOPS_VERSION="9.0.7"
+MLOPS_VERSION="9.1.3"
 pip install datarobot-mlops==${MLOPS_VERSION}
 
 MLOPS_AGENT_JAR_DIR="/tmp/jars"
