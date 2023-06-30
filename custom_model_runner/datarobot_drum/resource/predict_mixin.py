@@ -10,7 +10,7 @@ from requests_toolbelt import MultipartEncoder
 
 from datarobot_drum.drum.enum import (
     PredictionServerMimetypes,
-    REGRESSION_PRED_COLUMN,
+    PRED_COLUMN,
     SPARSE_COLNAMES,
     TargetType,
     UnstructuredDtoKeys,
@@ -145,7 +145,7 @@ class PredictMixin:
 
             def _build_drum_response_json_str(out_data):
                 if len(out_data.columns) == 1:
-                    out_data = out_data[REGRESSION_PRED_COLUMN]
+                    out_data = out_data[PRED_COLUMN]
                 # df.to_json() is much faster.
                 # But as it returns string, we have to assemble final json using strings.
                 df_json_str = out_data.to_json(orient="records")
