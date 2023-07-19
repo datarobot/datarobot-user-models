@@ -129,7 +129,7 @@ def xgboost_drop_in_env():
 def pytorch_drop_in_env():
     env_dir = os.path.join(PUBLIC_DROPIN_ENVS_PATH, "python3_pytorch")
     environment = dr.ExecutionEnvironment.create(
-        name="python3_pytorch", programming_language="python"
+        name="python3_pytorch", programming_language="python", max_wait=1200
     )
     environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
     return environment.id, environment_version.id
