@@ -264,7 +264,9 @@ class TestInferenceModelTemplates(object):
         )
 
         if model_version.dependencies:
-            dr.CustomModelVersionDependencyBuild.start_build(model.id, model_version.id)
+            dr.CustomModelVersionDependencyBuild.start_build(
+                model.id, model_version.id, max_wait=1200
+            )
 
         test = dr.CustomModelTest.create(
             custom_model_id=model.id,
