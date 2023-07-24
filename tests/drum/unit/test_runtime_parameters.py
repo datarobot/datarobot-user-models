@@ -28,7 +28,7 @@ class TestRuntimeParameters:
         "runtime_param_type, payload",
         [
             (RuntimeParameterTypes.STRING, "Some string value"),
-            ( RuntimeParameterTypes.CREDENTIAL, { "credentialType": "askdfjsdk" }),
+            (RuntimeParameterTypes.CREDENTIAL, {"credentialType": "askdfjsdk"}),
             (
                 RuntimeParameterTypes.CREDENTIAL,
                 {
@@ -53,8 +53,8 @@ class TestRuntimeParameters:
         [
             ("STRING", "Some string value"),
             ("str", "Some string value"),
-            ( "CREDENTIAL", {"credentialType": "s3"}),
-            ( "creds", { "credentialType": "s3", }),
+            ("CREDENTIAL", {"credentialType": "s3"}),
+            ("creds", {"credentialType": "s3"}),
         ],
     )
     def test_invalid_credential_type(self, runtime_param_type, payload):
@@ -79,9 +79,7 @@ class TestRuntimeParameters:
         }
         required = "credentialType"
         payload.pop(required)
-        self._read_runtime_param_and_expect_to_fail(
-            RuntimeParameterTypes.CREDENTIAL.value, payload
-        )
+        self._read_runtime_param_and_expect_to_fail(RuntimeParameterTypes.CREDENTIAL.value, payload)
 
     def test_credential_empty_credential_type(self):
         payload = {
@@ -91,9 +89,7 @@ class TestRuntimeParameters:
             "awsSecretAccessKey": "3425sdd",
             "awsSessionToken": "123aaa",
         }
-        self._read_runtime_param_and_expect_to_fail(
-            RuntimeParameterTypes.CREDENTIAL.value, payload
-        )
+        self._read_runtime_param_and_expect_to_fail(RuntimeParameterTypes.CREDENTIAL.value, payload)
 
     def test_invalid_json_env_value(self):
         runtime_param_name = "AAA"
