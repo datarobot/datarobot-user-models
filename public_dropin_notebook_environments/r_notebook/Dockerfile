@@ -90,7 +90,7 @@ RUN curl -O https://cdn.rstudio.com/r/centos-8/pkgs/R-${R_VERSION}-1-1.x86_64.rp
   && ln -s /opt/R/${R_VERSION}/bin/R /usr/local/bin/R \
   && ln -s /opt/R/${R_VERSION}/bin/Rscript /usr/local/bin/Rscript
 
-RUN microdnf install -y java-11-openjdk-devel && R CMD javareconf && microdnf clean all
+RUN microdnf install -y java-1.8.0-openjdk-devel java-11-openjdk-devel && R CMD javareconf && microdnf clean all
 
 RUN pip3 install --no-cache-dir -r ${WORKDIR}/dr_requirements.txt \
   && pip3 install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt \
