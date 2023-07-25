@@ -28,7 +28,6 @@ class TestRuntimeParameters:
         "runtime_param_type, payload",
         [
             (RuntimeParameterTypes.STRING, "Some string value"),
-            (RuntimeParameterTypes.CREDENTIAL, {"credentialType": "askdfjsdk"}),
             (
                 RuntimeParameterTypes.CREDENTIAL,
                 {
