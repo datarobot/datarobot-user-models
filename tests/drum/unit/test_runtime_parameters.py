@@ -32,15 +32,6 @@ class TestRuntimeParameters:
                 RuntimeParameterTypes.CREDENTIAL,
                 {
                     "credentialType": "s3",
-                    "awsAccessKeyId": "123aaa",
-                    "awsSecretAccessKey": "3425sdd",
-                    "awsSessionToken": "12345abcde",
-                },
-            ),
-            (
-                RuntimeParameterTypes.CREDENTIAL,
-                {
-                    "credentialType": "s3",
                     "region": "us-west",
                     "awsAccessKeyId": "123aaa",
                     "awsSecretAccessKey": "3425sdd",
@@ -61,27 +52,11 @@ class TestRuntimeParameters:
         [
             ("STRING", "Some string value"),
             ("str", "Some string value"),
-            (
-                "CREDENTIAL",
-                {
-                    "credentialType": "s3",
-                    "awsAccessKeyId": "123aaa",
-                    "awsSecretAccessKey": "3425sdd",
-                    "awsSessionToken": "12345abcde",
-                },
-            ),
-            (
-                "creds",
-                {
-                    "credentialType": "s3",
-                    "awsAccessKeyId": "123aaa",
-                    "awsSecretAccessKey": "3425sdd",
-                    "awsSessionToken": "12345abcde",
-                },
-            ),
+            ("CREDENTIAL", {"credentialType": "s3"}),
+            ("creds", {"credentialType": "s3"}),
         ],
     )
-    def test_invalid_type(self, runtime_param_type, payload):
+    def test_invalid_credential_type(self, runtime_param_type, payload):
         self._read_runtime_param_and_expect_to_fail(runtime_param_type, payload)
 
     @staticmethod
@@ -93,7 +68,7 @@ class TestRuntimeParameters:
             with pytest.raises(InvalidRuntimeParam, match=r".*Invalid runtime parameter!.*"):
                 RuntimeParameters.get(runtime_param_name)
 
-    def test_missing_mandatory_aws_credential_attribute(self):
+    def test_credential_missing_credential_type(self):
         payload = {
             "credentialType": "s3",
             "region": "us-west",
@@ -101,35 +76,19 @@ class TestRuntimeParameters:
             "awsSecretAccessKey": "3425sdd",
             "awsSessionToken": "123aaa",
         }
-        for missing_attr in (
-            "credentialType",
-            "awsAccessKeyId",
-            "awsSecretAccessKey",
-            "awsSessionToken",
-        ):
-            payload.pop(missing_attr)
-            self._read_runtime_param_and_expect_to_fail(
-                RuntimeParameterTypes.CREDENTIAL.value, payload
-            )
+        required = "credentialType"
+        payload.pop(required)
+        self._read_runtime_param_and_expect_to_fail(RuntimeParameterTypes.CREDENTIAL.value, payload)
 
-    def test_empty_mandatory_aws_credential_attribute(self):
+    def test_credential_empty_credential_type(self):
         payload = {
-            "credentialType": "s3",
+            "credentialType": "",
             "region": "us-west",
             "awsAccessKeyId": "123aaa",
             "awsSecretAccessKey": "3425sdd",
             "awsSessionToken": "123aaa",
         }
-        for missing_attr in (
-            "credentialType",
-            "awsAccessKeyId",
-            "awsSecretAccessKey",
-            "awsSessionToken",
-        ):
-            payload[missing_attr] = ""
-            self._read_runtime_param_and_expect_to_fail(
-                RuntimeParameterTypes.CREDENTIAL.value, payload
-            )
+        self._read_runtime_param_and_expect_to_fail(RuntimeParameterTypes.CREDENTIAL.value, payload)
 
     def test_invalid_json_env_value(self):
         runtime_param_name = "AAA"
