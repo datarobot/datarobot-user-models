@@ -133,7 +133,7 @@ ARG PYTHON_VERSION
 COPY ./kernel.json ${VENV_PATH}/share/jupyter/kernels/python3/
 COPY ./requirements.txt ${WORKDIR}/
 COPY ./requirements-gpu.txt ${WORKDIR}/
-RUN pip3 install --no-cache-dir -r ${WORKDIR}/requirements.txt \
+RUN pip3 install --use-deprecated=legacy-resolver --no-cache-dir -r ${WORKDIR}/requirements.txt \
   && pip3 install --no-cache-dir -r ${WORKDIR}/requirements-gpu.txt \
   && rm ${WORKDIR}/requirements.txt \
   && rm ${WORKDIR}/requirements-gpu.txt
