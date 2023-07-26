@@ -1,0 +1,11 @@
+accelerate==0.21.0
+langchain==0.0.234
+onnx==1.14.0
+onnxruntime-gpu==1.15.1
+openai==0.27.8
+tensorflow==2.13.0
+tiktoken==0.4.0
+torch==2.0.1
+torchaudio==2.0.2
+torchvision==0.15.2
+transformers==4.30.2
