@@ -12,6 +12,7 @@ import requests
 
 from datarobot_drum.drum.enum import PythonArtifacts, RunMode
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
+from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR, HTTP_200_OK
 
 from .constants import SKLEARN, REGRESSION, BINARY, DOCKER_PYTHON_SKLEARN, PYTHON
 from datarobot_drum.resource.utils import _create_custom_model_dir
@@ -56,15 +57,25 @@ class TestDrumServerFailures:
         if with_error_server or with_nginx:
             # assert that error the server is up and message is propagated via API
             with drum_server_run as run:
+                # check / route
+                response = requests.get(run.url_server_address + "/")
+                assert response.status_code == HTTP_513_DRUM_PIPELINE_ERROR
+                assert error_message in response.json()["message"]
+
+                # check /ping/ route
+                response = requests.get(run.url_server_address + "/ping/")
+                assert response.status_code == HTTP_513_DRUM_PIPELINE_ERROR
+                assert error_message in response.json()["message"]
+
                 # check /health/ route
                 response = requests.get(run.url_server_address + "/health/")
-                assert response.status_code == 513
+                assert response.status_code == HTTP_513_DRUM_PIPELINE_ERROR
                 assert error_message in response.json()["message"]
 
                 # check /predict/ route
                 response = requests.post(run.url_server_address + "/predict/")
 
-                assert response.status_code == 513
+                assert response.status_code == HTTP_513_DRUM_PIPELINE_ERROR
                 assert error_message in response.json()["message"]
             # Note: when running in docker (production) the error is not caught by process output
             # stream
@@ -96,9 +107,9 @@ class TestDrumServerFailures:
 
         with drum_server_run as run:
             response = requests.get(run.url_server_address + "/")
-            assert response.status_code == 200
+            assert response.status_code == HTTP_200_OK
             response = requests.get(run.url_server_address + "/ping/")
-            assert response.status_code == 200
+            assert response.status_code == HTTP_200_OK
 
     @pytest.mark.parametrize(
         "with_error_server, with_nginx, docker",

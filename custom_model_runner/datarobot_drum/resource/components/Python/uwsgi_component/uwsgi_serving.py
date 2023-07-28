@@ -124,11 +124,17 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
 
     @FlaskRoute("{}/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def ping(self, url_params, form_params):
-        return HTTP_200_OK, {"message": "OK"}
+        if self._error_response:
+            return HTTP_513_DRUM_PIPELINE_ERROR, self._error_response
+        else:
+            return HTTP_200_OK, {"message": "OK"}
 
     @FlaskRoute("{}/ping/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def ping2(self, url_params, form_params):
-        return HTTP_200_OK, {"message": "OK"}
+        if self._error_response:
+            return HTTP_513_DRUM_PIPELINE_ERROR, self._error_response
+        else:
+            return HTTP_200_OK, {"message": "OK"}
 
     @FlaskRoute(
         "{}/capabilities/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"]

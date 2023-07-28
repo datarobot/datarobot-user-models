@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: DRUM prediction server.
   description: DRUM prediction server.
-  version: "1.5.3"
+  version: "1.10.8"
 paths:
   /URL_PREFIX/:
     $ref: "#/paths/~1URL_PREFIX~1ping~1"
@@ -22,6 +22,18 @@ paths:
                     description: Status message.
               example: 
                 message: OK
+        513:
+          description: 'Not healthy. Requires DRUM server has to be started with --with-error-server option'
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Status message
+              example:
+                message: "ERROR: \n\nRunning environment language: Python.\n Failed loading hooks from [/tmp/model/python3_sklearn/custom.py] : No module named 'andas'"
   /URL_PREFIX/health/:
     get:
       description: Get functional health status, e.g. whether model is loaded and functioning properly.

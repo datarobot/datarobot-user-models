@@ -32,3 +32,8 @@ def base_api_blueprint(termination_hook=None):
         return {"message": "OK"}, HTTP_200_OK
 
     return model_api
+
+
+def empty_api_blueprint(termination_hook=None):
+    model_api = Blueprint("model_api", __name__)
+    return model_api

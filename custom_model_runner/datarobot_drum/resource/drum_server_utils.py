@@ -11,6 +11,8 @@ import signal
 import time
 from threading import Thread
 
+from datarobot_drum.drum.server import HTTP_200_OK
+from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
 from datarobot_drum.drum.utils.drum_utils import DrumUtils
 from datarobot_drum.drum.enum import ArgumentsOptions, ArgumentOptionsEnvVars
 from datarobot_drum.resource.utils import _exec_shell_cmd, _cmd_add_class_labels
@@ -23,7 +25,7 @@ def _wait_for_server(url, timeout):
     while True:
         try:
             response = requests.get(url)
-            if response.ok:
+            if response.status_code in [HTTP_200_OK, HTTP_513_DRUM_PIPELINE_ERROR]:
                 break
             logger.debug("server is not ready: %s\n%s", response, response.text)
         except Exception:
