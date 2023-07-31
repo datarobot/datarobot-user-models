@@ -126,15 +126,13 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
     def ping(self, url_params, form_params):
         if self._error_response:
             return HTTP_513_DRUM_PIPELINE_ERROR, self._error_response
-        else:
-            return HTTP_200_OK, {"message": "OK"}
+        return HTTP_200_OK, {"message": "OK"}
 
     @FlaskRoute("{}/ping/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def ping2(self, url_params, form_params):
         if self._error_response:
             return HTTP_513_DRUM_PIPELINE_ERROR, self._error_response
-        else:
-            return HTTP_200_OK, {"message": "OK"}
+        return HTTP_200_OK, {"message": "OK"}
 
     @FlaskRoute(
         "{}/capabilities/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"]
@@ -149,15 +147,13 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
         model_info.update({ModelInfoKeys.DRUM_VERSION: drum_version})
         model_info.update({ModelInfoKeys.DRUM_SERVER: "nginx + uwsgi"})
         model_info.update({ModelInfoKeys.MODEL_METADATA: read_model_metadata_yaml(self._code_dir)})
-
         return HTTP_200_OK, model_info
 
     @FlaskRoute("{}/health/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def health(self, url_params, form_params):
         if self._error_response:
             return HTTP_513_DRUM_PIPELINE_ERROR, self._error_response
-        else:
-            return HTTP_200_OK, {"message": "OK"}
+        return HTTP_200_OK, {"message": "OK"}
 
     @FlaskRoute("{}/stats/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def prediction_server_stats(self, url_params, form_params):

@@ -35,5 +35,4 @@ def base_api_blueprint(termination_hook=None):
 
 
 def empty_api_blueprint(termination_hook=None):
-    model_api = Blueprint("model_api", __name__)
-    return model_api
+    return Blueprint("model_api", __name__)

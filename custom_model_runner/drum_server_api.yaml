@@ -23,7 +23,7 @@ paths:
               example: 
                 message: OK
         513:
-          description: 'Not healthy. Requires DRUM server has to be started with --with-error-server option'
+          description: 'Error loading/initializing model. Requires DRUM server has to be started with --with-error-server option'
           content:
             application/json:
               schema:
@@ -51,7 +51,7 @@ paths:
               example:
                 message: OK
         513:
-          description: 'Not healthy. Requires DRUM server has to be started with --with-error-server option'
+          description: 'Error loading/initializing model. Requires DRUM server has to be started with --with-error-server option'
           content:
             application/json:
               schema:
