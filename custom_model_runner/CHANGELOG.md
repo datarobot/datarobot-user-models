@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Added
 - Make /(root) and ping endpoints return 513 in case of server startup error
 - Bump supported Python version to 3.11
+- Pin datarobot>=3.1.0,<3.2
 
 #### [1.10.7] - 2023-06-30
 ##### Added

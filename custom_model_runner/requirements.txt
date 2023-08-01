@@ -1,5 +1,5 @@
 argcomplete==1.11.1
-datarobot==3.1.0
+datarobot>=3.1.0,<3.2
 # trafaret version pinning is defined by `datarobot`
 trafaret>=2.0.0,<2.2.0
 docker>=4.2.2,<5.0.0
