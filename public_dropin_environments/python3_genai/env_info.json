@@ -1,0 +1,8 @@
+{
+  "id": "64c964448dd3f0c07f47d040",
+  "name": "[DataRobot] Python 3.9 GenAI",
+  "description": "This template environment can be used to create artifact-only PyTorch custom models. This environment contains PyTorch and requires only your model artifact as a .pth file, any other code needed to deserialize your model, and optionally a custom.py file. If you are deploying a GenAI-powered custom model, this env includes common dependencies.",
+  "programmingLanguage": "python",
+  "environmentVersionId": "64c964588dd3f0c0907e6f78",
+  "isPublic": true
+}
