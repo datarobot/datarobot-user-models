@@ -1,15 +1,21 @@
 # Python 3 GenAI Drop-In Template Environment
 
-This template environment can be used to create artifact-only PyTorch custom models.
-Your custom model directory needs only contain your model artifact if you use the
-environment correctly.
+This template environment can be used to create GenAI-powered custom models and includes common dependencies for workflows using OpenAI, Langchain, vector DBs, or transformers in PyTorch. 
 
 ## Supported Libraries
 
-This environment has built for python 3 and has support for the following scientific libraries.
-For specific version information, see [requirements](requirements.txt).
+This environment is built for python 3 and has support for the following libraries.
+For specific version information and the complete list of included packages, see [requirements](requirements.txt).
 
-- PyTorch
+- openai
+- langchain
+- transformers
+- sentence-transformers
+- torch
+- faiss-cpu
+- numpy
+- pandas
+- scikit-learn
 
 ## Instructions
 
@@ -19,26 +25,10 @@ in step 1.
 
 ### Creating models for this environment
 
-To use this environment, your custom model archive must contain a single serialized model artifact
-with `.pth` file extension as well as any other custom code needed to use your serialized model, including
-the file that defines your torch network.
+To use this environment, your custom model archive will typically contain a `custom.py` file containing the necessary hooks, as well as other files needed for your workflow. You can implement the hook functions such as `load_model` and `score_unstructured`, as documented [here](../../custom_model_runner/README.md)
+
+Within your `custom.py` code, by importing the necessary dependencies found in this environment, you can implement your Python code under the related custom hook functions, to build your GenAI workflows. 
+
+If you need additional dependencies, you can add those packages in your `requirements.txt` file that you include within your custom model archive and DataRobot will make them available to your custom Python code after you build the environment.
 
 
-This environment makes the following assumption about your serialized model:
-- The data sent to custom model can be used to make predictions without
-additional pre-processing
-- Regression models return a single floating point per row of prediction data
-- Binary classification models return one floating point value <= 1.0 or two floating point values that sum to 1.0 per row of prediction data.
-  - Single value output is assumed to be the positive class probability
-  - Multi value it is assumed that the first value is the negative class probability, the second is the positive class probability
-- There is a single .pth file present
-  
-If these assumptions are incorrect for your model, you should make a copy of [custom.py](https://github.com/datarobot/datarobot-user-models/blob/master/model_templates/python3_pytorch/custom.py), modify it as needed, and include in your custom model archive.
-
-The structure of your custom model archive should look like:
-
-- custom_model.tar.gz
-  - artifact.pth
-  - custom.py (if needed)
-
-Please read [datarobot-cmrunner](../../custom_model_runner/README.md) documentation on how to assemble **custom.py**.
