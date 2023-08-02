@@ -1,0 +1,11 @@
+cloudpickle==2.2.1
+torch==2.0.1
+transformers==4.30.2
+openai==0.27.8
+langchain==0.0.233
+sentence-transformers==2.2.2
+faiss-cpu==1.7.4
+numpy==1.23.5
+pandas<=1.5.3
+scikit-learn==1.0.2
+scipy>=1.1,<1.11
