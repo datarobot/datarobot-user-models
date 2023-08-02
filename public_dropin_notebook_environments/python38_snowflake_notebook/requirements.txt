@@ -20,7 +20,7 @@ openpyxl==3.0.10
 pandas==1.5.1
 plotly==5.10.0
 scikit-learn==1.1.2
-scipy==1.9.2
+scipy==1.10.0
 seaborn==0.12.0
 shap==0.41.0
 snowflake-connector-python[secure-local-storage,pandas]==3.0.4
