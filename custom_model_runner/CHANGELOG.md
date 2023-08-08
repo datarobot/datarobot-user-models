@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+#### [1.10.9] - 2023-08-08
+##### Added
+- Pin pandas<=2.0.3
+
 #### [1.10.8] - 2023-08-01
 ##### Added
 - Make /(root) and ping endpoints return 513 in case of server startup error
