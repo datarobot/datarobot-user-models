@@ -13,10 +13,8 @@ echo
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 
-echo "-- running drum tests - assuming running inside Docker"
-
-echo
-echo "Running pytest:"
+echo "-- Assuming running integration tests in framework container (inside Docker), for env: $1"
+echo "Installing pytest"
 
 pip install pytest pytest-xdist
 
