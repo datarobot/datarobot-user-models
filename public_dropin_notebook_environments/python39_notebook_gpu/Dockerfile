@@ -41,11 +41,11 @@ ARG PYTHON_VERSION
 ARG PYTHON_EXACT_VERSION
 
 # Add any package that will be installed on system level here:
-RUN yum update \
+RUN yum update -y \
   && yum install -y python$PYTHON_VERSION-$PYTHON_EXACT_VERSION python$PYTHON_VERSION-devel-$PYTHON_EXACT_VERSION \
   gcc-11.3.1 gcc-c++-11.3.1 glibc-devel-2.34 libffi-devel-3.4.2 python3-pip-21.2.3 \
   openblas-0.3.21 python$PYTHON_VERSION-scipy shadow-utils-2:4.9 passwd-0.80 git-2.39.3 openssh-server tar-2:1.34 gzip-1.12 unzip-6.0 zip-3.0 wget-1.21.1 \
-  java-11-openjdk-headless-1:11.0.20.0.8-2.el9 vim-minimal-2:8.2.2637 nano-5.6.1 \
+  java-11-openjdk-headless-11.0.20.0.8-3.el9.x86_64 vim-minimal-2:8.2.2637 nano-5.6.1 \
   && pip3 install -U --no-cache-dir pip==23.1.2 \
   && yum clean all
 
