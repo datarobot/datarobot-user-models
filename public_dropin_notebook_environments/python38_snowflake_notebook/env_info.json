@@ -3,7 +3,7 @@
   "name": "[DataRobot] Python 3.8 Snowflake Notebook Drop-In",
   "description": "This template environment can be used to create Python 3.8 Snowflake notebook environments.",
   "programmingLanguage": "python",
-  "environmentVersionId": "64bf11146a899d1758120334",
+  "environmentVersionId": "64df5d116a899d7550c4d034",
   "isPublic": true,
   "useCases": [
     "notebook"
