@@ -17,7 +17,7 @@ def load_model(code_dir: str) -> Any:
     -------
     If used, this hook must return a non-None value
     """
-    return 'dummy'
+    return "dummy"
 
 
 def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
@@ -37,5 +37,5 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     This method should return predictions as a dataframe with the following format:
       Regression: must have a single column called `Predictions` with numerical values
     """
-    preds = pd.DataFrame([42 for _ in range(data.shape[0])], columns=['Predictions'])
+    preds = pd.DataFrame([42 for _ in range(data.shape[0])], columns=["Predictions"])
     return preds
