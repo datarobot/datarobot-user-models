@@ -167,8 +167,8 @@ AWS_CRED_PARAM_1:
     awsSessionToken: null
 ```
 
-For credential type params, the value matches the payload of the Credentials REST API.
-A more complete example can be found [here](https://github.com/datarobot/datarobot-user-models/blob/master/model_templates/python3_sklearn_runtime_params/README.md).
+For credential type parameters, the value matches the Credentials REST API payload.
+For a complete example, see the following [model template with runtime parameters](https://github.com/datarobot/datarobot-user-models/blob/master/model_templates/python3_sklearn_runtime_params/README.md).
 
 And here is how you use it when running the drum utility:
 
