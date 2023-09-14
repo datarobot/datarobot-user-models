@@ -153,17 +153,22 @@ def load_model(code_dir):
 ```
 
 During testing and debug in a local development environment, the user can write the runtime
-parameters into a YAML file and provide it as an input to the `drum` utility. The YAML file
+parameter values into a YAML file and provide it as an input to the `drum` utility. The YAML file
 can have any name ending with .yaml and should follow the example layout below:
 
 ```
 URL_PARAM_1: http://any-desired-location/
 AWS_CRED_PARAM_1:
+    # See the REST API documentation for details on all supported credential types:
+    #     https://docs.datarobot.com/en/docs/api/reference/public-api/credentials.html#properties_3
     credentialType: s3
     awsAccessKeyId: ABDEFGHIJK...
     awsSecretAccessKey: asdjDFSDJafslkjsdDLKGDSDlkjlkj...
     awsSessionToken: null
 ```
+
+For credential type params, the value matches the payload of the Credentials REST API.
+A more complete example can be found [here](https://github.com/datarobot/datarobot-user-models/blob/master/model_templates/python3_sklearn_runtime_params/README.md).
 
 And here is how you use it when running the drum utility:
 
