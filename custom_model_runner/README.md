@@ -152,7 +152,7 @@ def load_model(code_dir):
     ...
 ```
 
-During testing and debug in a local development environment, the user can write the runtime
+During testing and debugging in a local development environment, the user can write the runtime
 parameter values into a YAML file and provide it as an input to the `drum` utility. The YAML file
 can have any name ending with .yaml and should follow the example layout below:
 
