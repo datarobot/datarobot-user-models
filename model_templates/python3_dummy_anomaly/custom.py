@@ -27,7 +27,7 @@ def load_model(code_dir: str) -> Any:
     -------
     If used, this hook must return a non-None value
     """
-    return 'dummy'
+    return "dummy"
 
 
 def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:

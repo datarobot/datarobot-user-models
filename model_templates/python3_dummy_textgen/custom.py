@@ -27,7 +27,7 @@ def load_model(code_dir: str) -> Any:
     -------
     If used, this hook must return a non-None value
     """
-    return 'dummy'
+    return "dummy"
 
 
 def score(data, model, **kwargs):
@@ -51,7 +51,7 @@ def score(data, model, **kwargs):
     This method should return results as a dataframe with the following format:
       Text Generation: must have column with target, containing text data for each input row.
     """
-    data = list(data['input'])
-    flipped = [''.join(reversed(inp)) for inp in data]
-    result = pd.DataFrame({'output': flipped})
+    data = list(data["input"])
+    flipped = ["".join(reversed(inp)) for inp in data]
+    result = pd.DataFrame({"output": flipped})
     return result
