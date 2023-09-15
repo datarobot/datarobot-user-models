@@ -12,3 +12,12 @@ Create a new custom model with this `custom.py` and use any Python Drop-In Envir
 Paths are relative to `./datarobot-user-models`:
 
 `drum score --code-dir model_templates/python3_dummy_textgen --target-type textgeneration --input tests/testdata/simple_text.csv`
+
+### To run 'drum' locally in server mode and submit request
+Paths are relative to `./datarobot-user-models`:
+
+
+`drum server --code-dir model_templates/python3_dummy_textgen/ --target-type textgeneration --address localhost:6789`
+
+To submit request using `curl`:  
+`curl -X POST http://localhost:6789/predictions/ -H "Content-Type: text/csv" --data-binary @/<absolute path to the file>/tests/testdata/simple_text.csv`
