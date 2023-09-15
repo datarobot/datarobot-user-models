@@ -26,7 +26,7 @@ def load_model(code_dir: str) -> Any:
     -------
     If used, this hook must return a non-None value
     """
-    return "dummy"
+    return 'dummy'
 
 
 def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
@@ -38,20 +38,30 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     DataRobot will add a score hook and call the default predict method for the library
     See https://github.com/datarobot/datarobot-user-models#built-in-model-support for details
 
-    This dummy implementation returns a dataframe with all rows having value 42 in the
-    "Predictions" column, regardless of the provided input dataset.
+    This dummy implementation returns a dataframe with columns, representing all provided classes,
+    assigning 0.75 probability to the first class, and the rest of probability to other classes,
+    regardless of the provided input dataset.
 
     Parameters
     ----------
-    data : is the dataframe to make predictions against. If `transform` is supplied,
-    `data` will be the transformed data.
-    model : is the deserialized model loaded by **drum** or by `load_model`, if supplied
-    kwargs : additional keyword arguments to the method
+    data: pd.DataFrame
+        Is the dataframe to make predictions against. If the `transform` hook is utilized,
+        `data` will be the transformed data
+    model: Any
+        Deserialized model loaded by **drum** or by `load_model`, if supplied
+    kwargs:
+        Additional keyword arguments to the method
+        In case of multiclass model class labels will be provided in the `class_labels` argument.
 
     Returns
     -------
     This method should return predictions as a dataframe with the following format:
-      Regression: must have a single column called `Predictions` with numerical values
+      Multiclass: must have columns for each class label with floating- point class
+        probabilities as values. Each row should sum to 1.0.
+        The original class names defined in the project must be used as column names.
     """
-    preds = pd.DataFrame([42 for _ in range(data.shape[0])], columns=["Predictions"])
-    return preds
+    class_labels = kwargs["class_labels"]
+    M = len(class_labels)
+    data = [[0.75] + (M - 1) * [0.25 / (M - 1)]] * data.shape[0]
+    predictions = pd.DataFrame(data=data, columns=class_labels)
+    return predictions

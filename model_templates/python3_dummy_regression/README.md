@@ -1,6 +1,6 @@
 ## Python Dummy Regression Inference Model Template
 
-This regression model is a very simply example that always yields fixed value 42 for each supplied data row, regardless of the provided input dataset.
+This regression model is a very simple example that always yields fixed value 42 for each supplied data row, regardless of the provided input dataset.
 It works with any Python environment that has `pandas`, any target can be set for this model.
 
 ## Instructions

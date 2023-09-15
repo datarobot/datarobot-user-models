@@ -8,6 +8,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 This example shows how to create a multiclass neural net with pytorch
 """
+
 from typing import Any, Dict
 
 import pandas as pd
@@ -26,10 +27,10 @@ def load_model(code_dir: str) -> Any:
     -------
     If used, this hook must return a non-None value
     """
-    return "dummy"
+    return 'dummy'
 
 
-def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFrame:
+def score(data, model, **kwargs):
     """
     This hook is only needed if you would like to use **drum** with a framework not natively
     supported by the tool.
@@ -38,20 +39,19 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     DataRobot will add a score hook and call the default predict method for the library
     See https://github.com/datarobot/datarobot-user-models#built-in-model-support for details
 
-    This dummy implementation returns a dataframe with all rows having value 42 in the
-    "Predictions" column, regardless of the provided input dataset.
+    This dummy implementation reverses all input text and returns.
 
     Parameters
     ----------
-    data : is the dataframe to make predictions against. If `transform` is supplied,
-    `data` will be the transformed data.
+    data : is the dataframe to make predictions against.
     model : is the deserialized model loaded by **drum** or by `load_model`, if supplied
     kwargs : additional keyword arguments to the method
-
     Returns
     -------
-    This method should return predictions as a dataframe with the following format:
-      Regression: must have a single column called `Predictions` with numerical values
+    This method should return results as a dataframe with the following format:
+      Text Generation: must have column with target, containing text data for each input row.
     """
-    preds = pd.DataFrame([42 for _ in range(data.shape[0])], columns=["Predictions"])
-    return preds
+    data = list(data['input'])
+    flipped = [''.join(reversed(inp)) for inp in data]
+    result = pd.DataFrame({'output': flipped})
+    return result

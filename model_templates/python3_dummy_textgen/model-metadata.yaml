@@ -1,0 +1,9 @@
+name: "config"
+targetType: "textgeneration"
+type: "inference"
+
+runtimeParameterDefinitions:
+  - field_name: transform_mode
+    type: string
+    description: "Type of transform"
+    defaultValue: "reverse"
