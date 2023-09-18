@@ -8,6 +8,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 This example shows how to create a multiclass neural net with pytorch
 """
+
 from typing import Any, Dict
 
 import pandas as pd
@@ -38,9 +39,6 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     DataRobot will add a score hook and call the default predict method for the library
     See https://github.com/datarobot/datarobot-user-models#built-in-model-support for details
 
-    This dummy implementation returns a dataframe with all rows having value 42 in the
-    "Predictions" column, regardless of the provided input dataset.
-
     Parameters
     ----------
     data : is the dataframe to make predictions against. If `transform` is supplied,
@@ -51,7 +49,11 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     Returns
     -------
     This method should return predictions as a dataframe with the following format:
-      Regression: must have a single column called `Predictions` with numerical values
+      Anomaly Detection: must have a single column called `Predictions` with floating point values,
+      denoting probability of a respective row being an anomaly.
     """
-    preds = pd.DataFrame([42 for _ in range(data.shape[0])], columns=["Predictions"])
-    return preds
+    # This will mark every 10th row of the input as 75% probability anomaly.
+    # Other rows are 0% anomaly.
+    predictions = pd.DataFrame([0.0] * data.shape[0], columns=["Predictions"])
+    predictions["Predictions"].iloc[[(i + 1) * 10 - 1 for i in range(data.shape[0] // 10)]] = 0.75
+    return predictions
