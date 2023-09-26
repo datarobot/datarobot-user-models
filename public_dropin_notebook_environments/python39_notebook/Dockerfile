@@ -6,4 +6,4 @@
 # The copyright notice above does not evidence any actual or intended
 # publication of such source code.
 
-FROM datarobot/nbx-kernel-python-3.9.10:86
+FROM datarobotdev/nbx-kernel-python-3.9.10:86
