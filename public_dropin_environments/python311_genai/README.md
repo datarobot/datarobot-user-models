@@ -16,6 +16,9 @@ For specific version information and the complete list of included packages, see
 - numpy
 - pandas
 - scikit-learn
+- optimum
+- onnx
+- google-cloud-aiplatform
 
 ## Instructions
 
