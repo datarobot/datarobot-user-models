@@ -56,6 +56,13 @@ test_integration_python_pytorch: &test_integration_python_pytorch
     FRAMEWORK: python3_pytorch
   phase: 3
 
+test_integration_python311_genai: &test_integration_python311_genai
+  taskName: test_integration_python311_genai
+  definition: jenkins/test_integration_per_framework.groovy
+  environment:
+    FRAMEWORK: python311_genai
+  phase: 3
+
 test_integration_python_sklearn: &test_integration_python_sklearn
   taskName: test_integration_python_sklearn
   definition: jenkins/test_integration_per_framework.groovy
@@ -132,6 +139,10 @@ repositoryTasks:
         script:
           - *build_drum
           - *test_integration_python_pytorch
+      - regex: ".*test_integration_python311_genai.*"
+        script:
+          - *build_drum
+          - *test_integration_python311_genai
       - regex: ".*test_integration_python_sklearn.*"
         script:
           - *build_drum
@@ -165,6 +176,7 @@ repositoryTasks:
           - *test_integration_python_onnx
           - *test_integration_python_pmml
           - *test_integration_python_pytorch
+          - *test_integration_python311_genai
           - *test_integration_python_sklearn
           - *test_integration_python_xgboost
           - *test_integration_r_environment
