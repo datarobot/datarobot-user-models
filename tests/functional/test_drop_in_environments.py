@@ -197,7 +197,7 @@ class TestDropInEnvironments(object):
             custom_predict_path=CUSTOM_PREDICT_PY_PATH,
             other_file_names=["PyTorch.py"],
         )
-    
+
     @pytest.fixture(scope="session")
     def python311_genai_custom_model(self, python311_genai_drop_in_env):
         env_id, _ = python311_genai_drop_in_env
