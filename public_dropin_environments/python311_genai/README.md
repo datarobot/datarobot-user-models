@@ -20,6 +20,7 @@ For specific version information and the complete list of included packages, see
 - onnx
 - onnxruntime
 - google-cloud-aiplatform
+- tiktoken
 
 ## Instructions
 
