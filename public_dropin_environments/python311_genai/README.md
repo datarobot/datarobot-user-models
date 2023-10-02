@@ -18,7 +18,9 @@ For specific version information and the complete list of included packages, see
 - scikit-learn
 - optimum
 - onnx
+- onnxruntime
 - google-cloud-aiplatform
+- tiktoken
 
 ## Instructions
 

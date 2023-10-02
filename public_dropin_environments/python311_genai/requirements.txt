@@ -1,6 +1,6 @@
 cloudpickle==2.2.1
 torch==2.0.1
-transformers==4.30.2
+transformers==4.31.0
 openai==0.27.8
 langchain==0.0.271
 optimum==1.10.1
@@ -8,11 +8,13 @@ onnxruntime==1.15.1
 onnx==1.14.0
 sentence-transformers==2.2.2
 faiss-cpu==1.7.4
-numpy==1.23.5
+numpy==1.25.1
 pandas<=2.0.3
 scikit-learn==1.1.3
 scipy>=1.1,<1.11
+tiktoken==0.5.1
 google-cloud-aiplatform==1.32.0
 aws-request-signer==1.2.0
 pydantic==2.2.1
+pydantic-settings==2.0.3
 aiofiles==23.1.0

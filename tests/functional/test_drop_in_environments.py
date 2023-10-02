@@ -199,6 +199,16 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
+    def python311_genai_custom_model(self, python311_genai_drop_in_env):
+        env_id, _ = python311_genai_drop_in_env
+        return self.make_custom_model(
+            "torch_reg.pth",
+            env_id,
+            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            other_file_names=["PyTorch.py"],
+        )
+
+    @pytest.fixture(scope="session")
     def onnx_binary_custom_model(self, onnx_drop_in_env):
         env_id, _ = onnx_drop_in_env
         return self.make_custom_model(
@@ -331,6 +341,7 @@ class TestDropInEnvironments(object):
             ("sklearn_multiclass_custom_model", "multiclass_testing_data"),
             ("pojo_multiclass_custom_model", "multiclass_testing_data"),
             ("mojo_multiclass_custom_model", "multiclass_testing_data"),
+            ("python311_genai_custom_model", "regression_testing_data"),
         ],
     )
     def test_drop_in_environments(self, request, model, test_data_id):
@@ -338,8 +349,8 @@ class TestDropInEnvironments(object):
         test_data_id = request.getfixturevalue(test_data_id)
 
         max_wait = DEFAULT_MAX_WAIT
-        if model.startswith("torch_"):
-            # The torch drop-in is very large, and it takes approx. 7 minutes just to pull the
+        if model.startswith("torch_") or "genai" in model:
+            # The torch, genai drop-ins are very large, and it takes approx. 7 minutes just to pull the
             # image in k8s.
             max_wait *= 2
 
