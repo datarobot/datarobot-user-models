@@ -14,7 +14,7 @@ fi
 
 echo
 
-CMD="drum server $@"
-echo "Executing command: ${CMD}"
 echo
-exec ${CMD}
+echo "Executing command: drum server $*"
+echo
+exec drum server "$@"
