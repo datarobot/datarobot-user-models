@@ -13,8 +13,6 @@ if [ "${ENABLE_CUSTOM_MODEL_RUNTIME_ENV_DUMP}" = 1 ]; then
 fi
 
 echo
-
-CMD="drum server $@"
-echo "Executing command: ${CMD}"
+echo "Executing command: drum server $*"
 echo
-exec ${CMD}
+exec drum server "$@"
