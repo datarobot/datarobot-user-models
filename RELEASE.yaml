@@ -13,9 +13,8 @@ tags:
 post_branch_cut_pipelines:
   - host: ci5.devinfra.drdev.io
     service: jenkins
-    endpoint: Build_Environments_Installer
+    endpoint: CustomModelsCi5-addons/execution-environment-installer-jenkins_scripts_build_environments_installer_groovy
     variables:
       CUSTOM_MODEL_INSTALLER_VERSION: {}
-      CUSTOM_MODEL_INSTALLER_ENV: release
       EXECUTION_ENVIRONMENT_INSTALLER_SHA: release/{version}
-      CUSTOM_MODEL_TEMPLATES_SHA: release/{version}
+      DATAROBOT_USER_MODELS_SHA: release/{version}
