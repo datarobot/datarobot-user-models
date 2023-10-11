@@ -151,7 +151,7 @@ def _transform_to_json(data: DataFrame) -> Any:
     if isinstance(data, list):
         return data
 
-    return json.loads(data.to_json(orient="table", index=True))["data"]
+    return json.loads(data.to_json(orient="table", index=True, default_handler=str))["data"]
 
 
 def _prepare_df_for_chart_cell(val: DataFrame, columns: List[str]) -> Union[DataFrame, List[str]]:
