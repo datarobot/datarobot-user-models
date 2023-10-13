@@ -9,7 +9,7 @@ dependencies that you want to include for your own custom environments.
 
 In this repository, we provide several example environments that you can use and modify:
 * [Python 3.9 Notebook Environment](python39_notebook)
-* [Python 3.8 + Snowflake Notebook Environment](python38_notebook_snowflake)
+* [Python 3.8 + Snowflake Notebook Environment](python38_snowflake_notebook)
 * [R Notebook Environment](r_notebook)
 
 These sample environments each define the libraries available in the environment 
