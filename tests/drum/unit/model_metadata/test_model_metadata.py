@@ -7,7 +7,9 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import itertools
 import logging
 import os
+from pathlib import Path
 from random import sample
+from tempfile import TemporaryDirectory
 from textwrap import dedent
 from typing import List, Union
 
@@ -940,65 +942,90 @@ def test_num_col_values(condition, value, fails):
         NumColumns(condition, value)
 
 
-def test_read_model_metadata_properly_casts_typeschema(tmp_path, training_metadata_yaml):
-    config_yaml = training_metadata_yaml + dedent(
-        """
-        typeSchema:
-           input_requirements:
-           - field: number_of_columns
-             condition: IN
-             value:
-               - 1
-               - 2
-           - field: data_types
-             condition: EQUALS
-             value:
-               - NUM
-               - TXT
-           output_requirements:
-           - field: number_of_columns
-             condition: IN
-             value: 2
-           - field: data_types
-             condition: EQUALS
-             value: NUM
-        """
-    )
-    with open(os.path.join(tmp_path, MODEL_CONFIG_FILENAME), mode="w") as f:
-        f.write(config_yaml)
-
-    yaml_conf = read_model_metadata_yaml(tmp_path)
-    output_reqs = yaml_conf["typeSchema"]["output_requirements"]
-    input_reqs = yaml_conf["typeSchema"]["input_requirements"]
-
-    value_key = "value"
-    expected_as_int_list = next(
-        (el for el in input_reqs if el["field"] == "number_of_columns")
-    ).get(value_key)
-    expected_as_str_list = next((el for el in input_reqs if el["field"] == "data_types")).get(
-        value_key
-    )
-    expected_as_int = next((el for el in output_reqs if el["field"] == "number_of_columns")).get(
-        value_key
-    )
-    expected_as_str = next((el for el in output_reqs if el["field"] == "data_types")).get(value_key)
-
-    assert all(isinstance(el, int) for el in expected_as_int_list)
-    assert all(isinstance(el, str) for el in expected_as_str_list)
-    assert isinstance(expected_as_str_list, list)
-
-    assert isinstance(expected_as_int, int)
-    assert isinstance(expected_as_str, str)
+@pytest.fixture
+def model_metadata_file_factory():
+    with TemporaryDirectory() as temp_dirname:
+        def _inner(input_dict):
+            file_path = Path(temp_dirname) / MODEL_CONFIG_FILENAME
+            with file_path.open('w') as fp:
+                yaml.dump(input_dict, fp)
+            return temp_dirname
+        yield _inner
 
 
-def test_empty_metadata_failure_message(capsys, tmp_path):
-    with open(os.path.join(tmp_path, MODEL_CONFIG_FILENAME), mode="w") as f:
-        f.write("")
-    with pytest.raises(SystemExit) as sysexit:
-        _ = read_model_metadata_yaml(tmp_path)
-        captured = capsys.readouterr()
-        assert "The model_metadata.yaml file appears to be empty." in captured.out
-        assert sysexit.value.code == 1
+class TestReadModelMetadata:
+
+    @pytest.fixture
+    def minimal_training_metadata(self, environment_id):
+        return {
+            "name": "joe",
+            "type": "training",
+            "targetType": "regression",
+            "environmentID": environment_id,
+            "validation": {"input": "hello"}
+        }
+    def test_minimal_data(self, model_metadata_file_factory, minimal_training_metadata):
+        code_dir = model_metadata_file_factory(minimal_training_metadata)
+        result = read_model_metadata_yaml(code_dir)
+        assert result == minimal_training_metadata
+
+    def test_user_credential_specs(self, model_metadata_file_factory, minimal_training_metadata):
+        credential_specs = [
+            {"key": "HI", "valueFrom": "65170a6bc4b7f4bec89db932", "reminder": "remember"},
+            {"key": "THERE", "valueFrom": "65170a6bc4b7f4bec89db939"},
+        ]
+        minimal_training_metadata["userCredentialSpecifications"] = credential_specs
+        code_dir = model_metadata_file_factory(minimal_training_metadata)
+
+        result = read_model_metadata_yaml(code_dir)
+        assert result["userCredentialSpecifications"] == credential_specs
+
+    def test_read_model_metadata_properly_casts_typeschema(self, model_metadata_file_factory, minimal_training_metadata):
+        type_schema = {
+            'typeSchema': {
+                'input_requirements': [
+                    {'condition': 'IN', 'field': 'number_of_columns', 'value': ["1", "2"]},
+                    {'condition': 'EQUALS', 'field': 'data_types', 'value': ['NUM', 'TXT']}
+                ],
+                'output_requirements': [
+                    {'condition': 'IN', 'field': 'number_of_columns', 'value': 2},
+                    {'condition': 'EQUALS', 'field': 'data_types', 'value': 'NUM'}
+                ]
+            }
+        }
+        minimal_training_metadata.update(type_schema)
+        code_dir = model_metadata_file_factory(minimal_training_metadata)
+
+        yaml_conf = read_model_metadata_yaml(code_dir)
+        output_reqs = yaml_conf["typeSchema"]["output_requirements"]
+        input_reqs = yaml_conf["typeSchema"]["input_requirements"]
+
+        value_key = "value"
+        expected_as_int_list = next(
+            (el for el in input_reqs if el["field"] == "number_of_columns")
+        ).get(value_key)
+        expected_as_str_list = next((el for el in input_reqs if el["field"] == "data_types")).get(
+            value_key
+        )
+        expected_as_int = next((el for el in output_reqs if el["field"] == "number_of_columns")).get(
+            value_key
+        )
+        expected_as_str = next((el for el in output_reqs if el["field"] == "data_types")).get(value_key)
+
+        assert all(isinstance(el, int) for el in expected_as_int_list)
+        assert all(isinstance(el, str) for el in expected_as_str_list)
+        assert isinstance(expected_as_str_list, list)
+
+        assert isinstance(expected_as_int, int)
+        assert isinstance(expected_as_str, str)
+
+    def test_empty_metadata_failure_message(self, capsys, model_metadata_file_factory):
+        with pytest.raises(SystemExit) as sysexit:
+            code_dir = model_metadata_file_factory("")
+            _ = read_model_metadata_yaml(code_dir)
+            captured = capsys.readouterr()
+            assert "The model_metadata.yaml file appears to be empty." in captured.out
+            assert sysexit.value.code == 1
 
 
 @pytest.mark.parametrize(

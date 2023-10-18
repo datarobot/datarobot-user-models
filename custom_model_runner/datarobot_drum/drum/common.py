@@ -102,6 +102,9 @@ MODEL_CONFIG_SCHEMA = Map(
         Optional(ModelMetadataKeys.VALIDATION_SCHEMA): get_type_schema_yaml_validator(),
         Optional(ModelMetadataKeys.CUSTOM_PREDICTOR): Any(),
         Optional(ModelMetadataKeys.RUNTIME_PARAMETERS): Any(),
+        Optional(ModelMetadataKeys.USER_CREDENTIAL_SPECIFICATIONS): Seq(
+            Map({"key": Str(), "valueFrom": Str(), Optional("reminder"): Str()})
+        )
     }
 )
 

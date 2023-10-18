@@ -379,6 +379,7 @@ class ModelMetadataKeys(object):
     CUSTOM_PREDICTOR = "customPredictor"
     # runtimeParameters section is only used for local DRUM testing
     RUNTIME_PARAMETERS = "runtimeParameterDefinitions"
+    USER_CREDENTIAL_SPECIFICATIONS = "userCredentialSpecifications"
 
 
 class ModelMetadataHyperParamTypes(object):
