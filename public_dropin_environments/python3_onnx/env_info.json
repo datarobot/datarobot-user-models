@@ -3,6 +3,6 @@
   "name": "[DataRobot] Python 3.9 ONNX Drop-In",
   "description": "This template environment can be used to create artifact-only ONNX custom models. This environment contains ONNX runtime and only requires your model artifact as an .onnx file and optionally a custom.py file.",
   "programmingLanguage": "python",
-  "environmentVersionId": "64d6704d8dd3f0afcfbd9bad",
+  "environmentVersionId": "65303ebf8dd3f036fa5e9dde",
   "isPublic": true
 }
