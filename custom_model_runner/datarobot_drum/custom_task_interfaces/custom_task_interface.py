@@ -1,8 +1,18 @@
+#
+#  Copyright 2023 DataRobot, Inc. and its affiliates.
+#
+#  All rights reserved.
+#  This is proprietary source code of DataRobot, Inc. and its affiliates.
+#  Released under the terms of DataRobot Tool and Utility Agreement.
+#
+import json
 import os
 import pickle
 import sys
+from pathlib import Path
+from typing import Optional, Dict, Any
 
-from datarobot_drum.drum.exceptions import DrumCommonException, DrumSerializationError
+from datarobot_drum.drum.exceptions import DrumSerializationError
 
 
 class Serializable(object):
@@ -116,7 +126,25 @@ class Serializable(object):
         return deserialized_object
 
 
+
 class CustomTaskInterface(Serializable):
+
+    _secrets: Optional[Dict[str, Any]] = None
+
+    @property
+    def secrets(self) -> Dict[str, Any]:
+        if self._secrets:
+            return self._secrets
+        return {}
+
+    def load_secrets(self, mount_path: Optional[Path], env_var_prefix: Optional[str]):
+        all_secrets = {}
+        env_secrets = _get_environment_secrets(env_var_prefix)
+        mounted_secrets = _get_mounted_secrets(mount_path)
+        all_secrets.update(env_secrets)
+        all_secrets.update(mounted_secrets)
+        self._secrets = all_secrets
+
     def fit(self, X, y, parameters=None, row_weights=None, **kwargs):
         """
         This hook defines how DataRobot will train this task. Even transform tasks need to be
@@ -146,3 +174,27 @@ class CustomTaskInterface(Serializable):
         """Prints the message to the logs and then flushes the buffer."""
         print(message)
         sys.stdout.flush()
+
+
+def _get_environment_secrets(env_var_prefix):
+    if not env_var_prefix:
+        return {}
+
+    full_prefix = f"{env_var_prefix}_"
+    actual_secrets = [(k, v) for k, v in os.environ.items() if k.startswith(full_prefix)]
+
+    return {key.replace(full_prefix, ""): json.loads(value) for key, value in actual_secrets}
+
+
+def _get_mounted_secrets(mount_path):
+    if not mount_path:
+        return {}
+
+    secret_files = [file_path for file_path in mount_path.glob("*") if file_path.is_file()]
+
+    def get_dict(file_path: Path):
+        with file_path.open() as fp:
+            return json.load(fp)
+
+    return {file_path.name: get_dict(file_path) for file_path in secret_files}
+
