@@ -104,7 +104,7 @@ MODEL_CONFIG_SCHEMA = Map(
         Optional(ModelMetadataKeys.RUNTIME_PARAMETERS): Any(),
         Optional(ModelMetadataKeys.USER_CREDENTIAL_SPECIFICATIONS): Seq(
             Map({"key": Str(), "valueFrom": Str(), Optional("reminder"): Str()})
-        )
+        ),
     }
 )
 

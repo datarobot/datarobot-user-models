@@ -356,7 +356,8 @@ class TestMonitorArgs:
         execute_arg_parser(success=False)
 
     @pytest.mark.parametrize(
-        "monitor_settings", [(), ("--monitor-settings", "aaa;bbb")],
+        "monitor_settings",
+        [(), ("--monitor-settings", "aaa;bbb")],
     )
     def test_unstructured_monitor_embedded_from_cmd_line_args_success(
         self,
@@ -370,7 +371,8 @@ class TestMonitorArgs:
         execute_arg_parser()
 
     @pytest.mark.parametrize(
-        "env_var_key, env_var_value", [(None, None), ("MONITOR_SETTINGS", "aaa;bbb")],
+        "env_var_key, env_var_value",
+        [(None, None), ("MONITOR_SETTINGS", "aaa;bbb")],
     )
     @pytest.mark.usefixtures("monitor_embedded_env_vars")
     def test_unstructured_monitor_from_env_vars_success(
@@ -388,9 +390,9 @@ class TestMonitorArgs:
         self, unstructured_score_cmd_args, monitor_embedded_cmd_args_without_monitor_settings
     ):
         # pop the last 2 elements in order to take them from the environment
-        monitor_embedded_cmd_args_without_monitor_settings = monitor_embedded_cmd_args_without_monitor_settings[
-            0:-2
-        ]
+        monitor_embedded_cmd_args_without_monitor_settings = (
+            monitor_embedded_cmd_args_without_monitor_settings[0:-2]
+        )
         unstructured_score_cmd_args.extend(monitor_embedded_cmd_args_without_monitor_settings)
         set_sys_argv(unstructured_score_cmd_args)
         execute_arg_parser()
@@ -483,7 +485,15 @@ class TestUserSecretsArgs:
 
     @pytest.fixture
     def fit_args(self, this_dir):
-        return ["fit", "--code-dir", this_dir, "--input", __file__, "--target", "pronounced-tar-ZHAY"]
+        return [
+            "fit",
+            "--code-dir",
+            this_dir,
+            "--input",
+            __file__,
+            "--target",
+            "pronounced-tar-ZHAY",
+        ]
 
     def test_fit_no_user_secrets_passed(self, fit_args):
         actual = get_args_parser_options(fit_args)
@@ -500,18 +510,19 @@ class TestUserSecretsArgs:
 
     def test_set_fit_from_env_vars(self, fit_args, this_dir):
         prefix = "PREFIX_THIS"
-        env_vars = {
-            "USER_SECRETS_PREFIX": prefix,
-            "USER_SECRETS_MOUNT_PATH": this_dir
-        }
+        env_vars = {"USER_SECRETS_PREFIX": prefix, "USER_SECRETS_MOUNT_PATH": this_dir}
         with patch.dict(os.environ, env_vars):
             actual = get_args_parser_options(fit_args)
 
         assert actual.user_secrets_mount_path == this_dir
         assert actual.user_secrets_prefix == prefix
 
-    def test_mount_path_must_be_valid_directory(self, fit_args):
-        fit_args.extend(["--user-secrets-mount-path", "/not/a/real/directory/"])
+    def test_mount_path_can_be_invalid_directory(self, fit_args):
+        """It is always possible for a give run that one of the other of
+        mounted secrets or env vars exists, we don't want to fail on a missing
+        mount path."""
+        fake_directory = "/not/a/real/directory/"
+        fit_args.extend(["--user-secrets-mount-path", fake_directory])
 
-        with pytest.raises(SystemExit):
-            get_args_parser_options(fit_args)
+        actual = get_args_parser_options(fit_args)
+        assert actual.user_secrets_mount_path == fake_directory

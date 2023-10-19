@@ -201,7 +201,7 @@ class TestSchemaValidator:
     def yaml_str_to_schema_dict(yaml_str: str) -> dict:
         """this emulates how we cast a yaml to a dict for validation in
         `datarobot_drum.drum.common.read_model_metadata_yaml` and these assumptions
-        are tested in: `tests.drum.test_units.test_read_model_metadata_properly_casts_typeschema` """
+        are tested in: `tests.drum.test_units.test_read_model_metadata_properly_casts_typeschema`"""
         schema = load(yaml_str, get_type_schema_yaml_validator())
         revalidate_typeschema(schema)
         return schema.data
@@ -246,7 +246,14 @@ class TestSchemaValidator:
                 "cats_and_dogs",
                 "class",
             ),
-            (Conditions.EQUALS, [Values.NUM], "iris_binary", "Species", "cats_and_dogs", "class",),
+            (
+                Conditions.EQUALS,
+                [Values.NUM],
+                "iris_binary",
+                "Species",
+                "cats_and_dogs",
+                "class",
+            ),
             (
                 Conditions.NOT_IN,
                 [Values.TXT],
@@ -271,8 +278,22 @@ class TestSchemaValidator:
                 "ten_k_diabetes",
                 "readmitted",
             ),
-            (Conditions.EQUALS, [Values.CAT], "boston_raises", "RAISE", "iris_binary", "Species",),
-            (Conditions.EQUALS, [Values.TXT], "boston_raises", "RAISE", "iris_binary", "Species",),
+            (
+                Conditions.EQUALS,
+                [Values.CAT],
+                "boston_raises",
+                "RAISE",
+                "iris_binary",
+                "Species",
+            ),
+            (
+                Conditions.EQUALS,
+                [Values.TXT],
+                "boston_raises",
+                "RAISE",
+                "iris_binary",
+                "Species",
+            ),
             (
                 Conditions.IN,
                 [Values.CAT, Values.TXT],
@@ -281,7 +302,14 @@ class TestSchemaValidator:
                 "iris_binary",
                 "Species",
             ),
-            (Conditions.IN, [Values.NUM], "iris_with_bool", "Species", "cats_and_dogs", "class",),
+            (
+                Conditions.IN,
+                [Values.NUM],
+                "iris_with_bool",
+                "Species",
+                "cats_and_dogs",
+                "class",
+            ),
         ],
         ids=lambda x: str([str(el) for el in x]) if isinstance(x, list) else str(x),
     )
@@ -379,7 +407,8 @@ class TestSchemaValidator:
 
     def test_bytes_not_string(self):
         """Tests that bytes are not counted as a string, and don't error trying to regex against a bytearray.  This is
-        a special case that is encountered when testing the output of transforms that output images"""
+        a special case that is encountered when testing the output of transforms that output images
+        """
         img = np.random.bytes(32)
         assert not DataTypes.is_text(img)
 
@@ -522,7 +551,10 @@ class TestSchemaValidator:
 
     @pytest.mark.parametrize(
         "value, sparse_ok, dense_ok",
-        [(Values.FORBIDDEN, False, True), (Values.REQUIRED, True, False),],
+        [
+            (Values.FORBIDDEN, False, True),
+            (Values.REQUIRED, True, False),
+        ],
     )
     def test_multiple_input_requirements(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
         yaml_str = input_requirements_yaml(Fields.SPARSE, Conditions.EQUALS, [value])
@@ -541,7 +573,11 @@ class TestSchemaValidator:
         self._assert_validation(validator.validate_inputs, dense_df, should_pass=dense_ok)
 
     @pytest.mark.parametrize(
-        "value, sparse_ok, dense_ok", [(Values.NEVER, False, True), (Values.ALWAYS, True, False),],
+        "value, sparse_ok, dense_ok",
+        [
+            (Values.NEVER, False, True),
+            (Values.ALWAYS, True, False),
+        ],
     )
     def test_multiple_output_requirements(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
         yaml_str = output_requirements_yaml(Fields.SPARSE, Conditions.EQUALS, [value])
@@ -945,16 +981,17 @@ def test_num_col_values(condition, value, fails):
 @pytest.fixture
 def model_metadata_file_factory():
     with TemporaryDirectory() as temp_dirname:
+
         def _inner(input_dict):
             file_path = Path(temp_dirname) / MODEL_CONFIG_FILENAME
-            with file_path.open('w') as fp:
+            with file_path.open("w") as fp:
                 yaml.dump(input_dict, fp)
             return temp_dirname
+
         yield _inner
 
 
 class TestReadModelMetadata:
-
     @pytest.fixture
     def minimal_training_metadata(self, environment_id):
         return {
@@ -962,8 +999,9 @@ class TestReadModelMetadata:
             "type": "training",
             "targetType": "regression",
             "environmentID": environment_id,
-            "validation": {"input": "hello"}
+            "validation": {"input": "hello"},
         }
+
     def test_minimal_data(self, model_metadata_file_factory, minimal_training_metadata):
         code_dir = model_metadata_file_factory(minimal_training_metadata)
         result = read_model_metadata_yaml(code_dir)
@@ -980,17 +1018,19 @@ class TestReadModelMetadata:
         result = read_model_metadata_yaml(code_dir)
         assert result["userCredentialSpecifications"] == credential_specs
 
-    def test_read_model_metadata_properly_casts_typeschema(self, model_metadata_file_factory, minimal_training_metadata):
+    def test_read_model_metadata_properly_casts_typeschema(
+        self, model_metadata_file_factory, minimal_training_metadata
+    ):
         type_schema = {
-            'typeSchema': {
-                'input_requirements': [
-                    {'condition': 'IN', 'field': 'number_of_columns', 'value': ["1", "2"]},
-                    {'condition': 'EQUALS', 'field': 'data_types', 'value': ['NUM', 'TXT']}
+            "typeSchema": {
+                "input_requirements": [
+                    {"condition": "IN", "field": "number_of_columns", "value": ["1", "2"]},
+                    {"condition": "EQUALS", "field": "data_types", "value": ["NUM", "TXT"]},
                 ],
-                'output_requirements': [
-                    {'condition': 'IN', 'field': 'number_of_columns', 'value': 2},
-                    {'condition': 'EQUALS', 'field': 'data_types', 'value': 'NUM'}
-                ]
+                "output_requirements": [
+                    {"condition": "IN", "field": "number_of_columns", "value": 2},
+                    {"condition": "EQUALS", "field": "data_types", "value": "NUM"},
+                ],
             }
         }
         minimal_training_metadata.update(type_schema)
@@ -1007,10 +1047,12 @@ class TestReadModelMetadata:
         expected_as_str_list = next((el for el in input_reqs if el["field"] == "data_types")).get(
             value_key
         )
-        expected_as_int = next((el for el in output_reqs if el["field"] == "number_of_columns")).get(
+        expected_as_int = next(
+            (el for el in output_reqs if el["field"] == "number_of_columns")
+        ).get(value_key)
+        expected_as_str = next((el for el in output_reqs if el["field"] == "data_types")).get(
             value_key
         )
-        expected_as_str = next((el for el in output_reqs if el["field"] == "data_types")).get(value_key)
 
         assert all(isinstance(el, int) for el in expected_as_int_list)
         assert all(isinstance(el, str) for el in expected_as_str_list)
@@ -1030,7 +1072,12 @@ class TestReadModelMetadata:
 
 @pytest.mark.parametrize(
     "target_type, predictor_cls",
-    itertools.product([TargetType.TRANSFORM,], [PythonPredictor, JavaPredictor],),
+    itertools.product(
+        [
+            TargetType.TRANSFORM,
+        ],
+        [PythonPredictor, JavaPredictor],
+    ),
 )
 def test_validate_model_metadata_output_requirements(target_type, predictor_cls):
     """The validation on the specs defined in the output_requirements of model metadata is only triggered when the

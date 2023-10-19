@@ -650,13 +650,12 @@ class CMRunnerArgsRegistry(object):
             parser.add_argument(
                 ArgumentsOptions.USER_SECRETS_MOUNT_PATH,
                 default=None,
-                type=CMRunnerArgsRegistry._is_valid_dir,
-                help="The directory where secrets should be stored"
+                help="The directory where secrets should be stored",
             )
             parser.add_argument(
                 ArgumentsOptions.USER_SECRETS_PREFIX,
                 default=None,
-                help="The env var prefix added to user secrets env vars"
+                help="The env var prefix added to user secrets env vars",
             )
 
     @staticmethod
@@ -869,10 +868,18 @@ class CMRunnerArgsRegistry(object):
             score_parser, perf_test_parser, fit_parser, validation_parser
         )
         CMRunnerArgsRegistry._reg_arg_pos_neg_labels(
-            score_parser, perf_test_parser, server_parser, fit_parser, validation_parser,
+            score_parser,
+            perf_test_parser,
+            server_parser,
+            fit_parser,
+            validation_parser,
         )
         CMRunnerArgsRegistry._reg_arg_multiclass_labels(
-            score_parser, perf_test_parser, server_parser, fit_parser, validation_parser,
+            score_parser,
+            perf_test_parser,
+            server_parser,
+            fit_parser,
+            validation_parser,
         )
         CMRunnerArgsRegistry._reg_arg_logging_level(
             score_parser, server_parser, fit_parser, new_parser, new_model_parser, push_parser
@@ -953,7 +960,9 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_arg_strict_validation(fit_parser, push_parser)
 
         CMRunnerArgsRegistry._reg_arg_report_fit_predict_metadata(fit_parser, push_parser)
-        CMRunnerArgsRegistry._reg_arg_custom_task_user_secrets(fit_parser)#, score_parser, server_parser)
+        CMRunnerArgsRegistry._reg_arg_custom_task_user_secrets(
+            fit_parser
+        )  # , score_parser, server_parser)
 
         CMRunnerArgsRegistry._reg_args_runtime_parameters_file(
             score_parser, perf_test_parser, server_parser, validation_parser
@@ -1095,7 +1104,8 @@ class CMRunnerArgsRegistry(object):
         if getattr(options, "skip_deps_install", False) and options.docker is None:
             print(
                 "Argument '{}' can only be used together with '{}'.".format(
-                    ArgumentsOptions.SKIP_DEPS_INSTALL, ArgumentsOptions.DOCKER,
+                    ArgumentsOptions.SKIP_DEPS_INSTALL,
+                    ArgumentsOptions.DOCKER,
                 )
             )
             exit(1)
