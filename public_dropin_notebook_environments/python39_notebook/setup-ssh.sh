@@ -9,4 +9,6 @@ echo "Persisting container environment variables for sshd..."
     echo "set -a"
     env | grep -E -v "^(PWD=|HOME=|TERM=|SHLVL=|LD_PRELOAD=|PS1=|_=)"
     echo "set +a"
+    # setup the working directory for terminal sessions
+    echo "cd $WORKING_DIR"
 } > /etc/profile.d/notebooks-load-env.sh
