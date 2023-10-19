@@ -11,6 +11,7 @@ import sys
 import tempfile
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from typing import List
 from unittest.mock import patch
 
 import pytest
@@ -38,6 +39,15 @@ def execute_arg_parser(success=True):
         with pytest.raises(SystemExit):
             options = arg_parser.parse_args()
             CMRunnerArgsRegistry.verify_options(options)
+
+
+def get_args_parser_options(cli_command: List[str]):
+    set_sys_argv(cli_command)
+    arg_parser = CMRunnerArgsRegistry.get_arg_parser()
+    CMRunnerArgsRegistry.extend_sys_argv_with_env_vars()
+    options = arg_parser.parse_args()
+    CMRunnerArgsRegistry.verify_options(options)
+    return options
 
 
 class TestDrumHelp:
@@ -464,3 +474,44 @@ class TestDrApiAccess:
         with self._dr_api_access_env_vars(enabled=False, skipped_env_var=missing_mandatory_env_var):
             set_sys_argv(_cli_args)
             execute_arg_parser()
+
+
+class TestUserSecretsArgs:
+    @pytest.fixture
+    def this_dir(self):
+        return str(Path(__file__).absolute().parent)
+
+    @pytest.fixture
+    def fit_args(self, this_dir):
+        return ["fit", "--code-dir", this_dir, "--input", __file__, "--target", "pronounced-tar-ZHAY"]
+
+    def test_fit_no_user_secrets_passed(self, fit_args):
+        actual = get_args_parser_options(fit_args)
+        assert actual.user_secrets_mount_path is None
+        assert actual.user_secrets_prefix is None
+
+    def test_set_fit(self, fit_args, this_dir):
+        prefix = "SECRETS"
+        fit_args.extend(["--user-secrets-mount-path", this_dir, "--user-secrets-prefix", prefix])
+
+        actual = get_args_parser_options(fit_args)
+        assert actual.user_secrets_mount_path == this_dir
+        assert actual.user_secrets_prefix == prefix
+
+    def test_set_fit_from_env_vars(self, fit_args, this_dir):
+        prefix = "PREFIX_THIS"
+        env_vars = {
+            "USER_SECRETS_PREFIX": prefix,
+            "USER_SECRETS_MOUNT_PATH": this_dir
+        }
+        with patch.dict(os.environ, env_vars):
+            actual = get_args_parser_options(fit_args)
+
+        assert actual.user_secrets_mount_path == this_dir
+        assert actual.user_secrets_prefix == prefix
+
+    def test_mount_path_must_be_valid_directory(self, fit_args):
+        fit_args.extend(["--user-secrets-mount-path", "/not/a/real/directory/"])
+
+        with pytest.raises(SystemExit):
+            get_args_parser_options(fit_args)

@@ -645,6 +645,21 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
+    def _reg_arg_custom_task_user_secrets(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.USER_SECRETS_MOUNT_PATH,
+                default=None,
+                type=CMRunnerArgsRegistry._is_valid_dir,
+                help="The directory where secrets should be stored"
+            )
+            parser.add_argument(
+                ArgumentsOptions.USER_SECRETS_PREFIX,
+                default=None,
+                help="The env var prefix added to user secrets env vars"
+            )
+
+    @staticmethod
     def _reg_arg_dr_api_access(*parsers):
         for parser in parsers:
             parser.add_argument(
@@ -938,6 +953,7 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_arg_strict_validation(fit_parser, push_parser)
 
         CMRunnerArgsRegistry._reg_arg_report_fit_predict_metadata(fit_parser, push_parser)
+        CMRunnerArgsRegistry._reg_arg_custom_task_user_secrets(fit_parser)#, score_parser, server_parser)
 
         CMRunnerArgsRegistry._reg_args_runtime_parameters_file(
             score_parser, perf_test_parser, server_parser, validation_parser
