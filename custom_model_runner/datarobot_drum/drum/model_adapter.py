@@ -15,8 +15,11 @@ from typing import Optional, Type
 import pandas as pd
 from scipy.sparse import issparse
 
-from datarobot_drum.custom_task_interfaces import BinaryEstimatorInterface, MulticlassEstimatorInterface, \
-    TransformerInterface
+from datarobot_drum.custom_task_interfaces import (
+    BinaryEstimatorInterface,
+    MulticlassEstimatorInterface,
+    TransformerInterface,
+)
 from datarobot_drum.custom_task_interfaces.estimator_interfaces import EstimatorInterface
 from datarobot_drum.drum.artifact_predictors.keras_predictor import KerasPredictor
 from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
@@ -52,7 +55,10 @@ from datarobot_drum.drum.exceptions import (
 )
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from datarobot_drum.drum.utils.drum_utils import DrumUtils
-from datarobot_drum.custom_task_interfaces.custom_task_interface import CustomTaskInterface, secrets_injection_context
+from datarobot_drum.custom_task_interfaces.custom_task_interface import (
+    CustomTaskInterface,
+    secrets_injection_context,
+)
 
 RUNNING_LANG_MSG = "Running environment language: Python."
 
@@ -127,7 +133,8 @@ class PythonModelAdapter:
             if self._custom_hooks[CustomHooks.SCORE_UNSTRUCTURED] is None:
                 raise DrumCommonException(
                     "In '{}' mode hook '{}' must be provided.".format(
-                        TargetType.UNSTRUCTURED.value, CustomHooks.SCORE_UNSTRUCTURED,
+                        TargetType.UNSTRUCTURED.value,
+                        CustomHooks.SCORE_UNSTRUCTURED,
                     )
                 )
         else:
@@ -493,11 +500,8 @@ class PythonModelAdapter:
         return output_data, output_target
 
     def _get_bad_target_type_runtime_error(self):
-        msg = (
-            f"Cannot predict/transform with target_type: {self._target_type} using interface: {self._custom_task_class}"
-        )
+        msg = f"Cannot predict/transform with target_type: {self._target_type} using interface: {self._custom_task_class}"
         return RuntimeError(msg)
-
 
     def has_read_input_data_hook(self):
         return self._custom_hooks.get(CustomHooks.READ_INPUT_DATA) is not None
@@ -505,7 +509,10 @@ class PythonModelAdapter:
     def _predict_new_drum(self, data, **kwargs):
         try:
             if self._target_type in {TargetType.BINARY, TargetType.MULTICLASS}:
-                if not isinstance(self._custom_task_class_instance, (BinaryEstimatorInterface, MulticlassEstimatorInterface)):
+                if not isinstance(
+                    self._custom_task_class_instance,
+                    (BinaryEstimatorInterface, MulticlassEstimatorInterface),
+                ):
                     raise self._get_bad_target_type_runtime_error()
                 predictions_df = self._custom_task_class_instance.predict_proba(data, **kwargs)
             else:
@@ -524,7 +531,9 @@ class PythonModelAdapter:
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
         request_labels = (
             get_request_labels(
-                kwargs.get(CLASS_LABELS_ARG_KEYWORD), positive_class_label, negative_class_label,
+                kwargs.get(CLASS_LABELS_ARG_KEYWORD),
+                positive_class_label,
+                negative_class_label,
             )
             if self._target_type in {TargetType.BINARY, TargetType.MULTICLASS}
             else None
@@ -640,15 +649,15 @@ class PythonModelAdapter:
         return predictions
 
     def fit(
-            self,
-            X,
-            y,
-            output_dir,
-            class_order=None,
-            row_weights=None,
-            parameters=None,
-            user_secrets_mount_path=None,
-            user_secrets_prefix=None
+        self,
+        X,
+        y,
+        output_dir,
+        class_order=None,
+        row_weights=None,
+        parameters=None,
+        user_secrets_mount_path=None,
+        user_secrets_prefix=None,
     ):
         """
         Trains a Python-based custom task.
@@ -679,11 +688,13 @@ class PythonModelAdapter:
         if self.is_custom_task_class:
             with reroute_stdout_to_stderr():
                 try:
-                    self._custom_task_class_instance: CustomTaskInterface = self._custom_task_class()
+                    self._custom_task_class_instance: CustomTaskInterface = (
+                        self._custom_task_class()
+                    )
                     with secrets_injection_context(
                         interface=self._custom_task_class_instance,
                         mount_path=user_secrets_mount_path,
-                        env_var_prefix=None
+                        env_var_prefix=None,
                     ):
                         self._custom_task_class_instance.fit(
                             X=X,

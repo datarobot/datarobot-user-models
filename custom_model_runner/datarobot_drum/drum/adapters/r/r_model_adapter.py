@@ -21,7 +21,14 @@ CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 R_FIT_PATH = os.path.join(CUR_DIR, "fit.R")
 R_COMMON_PATH = os.path.abspath(
     os.path.join(
-        CUR_DIR, "..", "..", "..", "drum", "language_predictors", "r_common_code", "common.R",
+        CUR_DIR,
+        "..",
+        "..",
+        "..",
+        "drum",
+        "language_predictors",
+        "r_common_code",
+        "common.R",
     )
 )
 
@@ -32,7 +39,9 @@ class RModelAdapter(object):
     R_PANDAS = None
 
     def __init__(
-        self, custom_task_folder_path, target_type,
+        self,
+        custom_task_folder_path,
+        target_type,
     ):
         """
         Parameters
@@ -112,7 +121,17 @@ class RModelAdapter(object):
         else:
             raise ValueError(f"Error converting python variable of type '{type(py_type)}' to R")
 
-    def fit(self, X, y, output_dir, class_order=None, row_weights=None, parameters=None, user_secrets_mount_path=None, user_secrets_prefix=None):
+    def fit(
+        self,
+        X,
+        y,
+        output_dir,
+        class_order=None,
+        row_weights=None,
+        parameters=None,
+        user_secrets_mount_path=None,
+        user_secrets_prefix=None,
+    ):
         """
         Trains an R-based custom task.
 
