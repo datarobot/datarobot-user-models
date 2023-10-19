@@ -9,6 +9,7 @@ import json
 import os
 import pickle
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Optional, Dict, Any
 
@@ -135,13 +136,9 @@ class CustomTaskInterface(Serializable):
             return self._secrets
         return {}
 
-    def load_secrets(self, mount_path: Optional[str], env_var_prefix: Optional[str]):
-        all_secrets = {}
-        env_secrets = _get_environment_secrets(env_var_prefix)
-        mounted_secrets = _get_mounted_secrets(mount_path)
-        all_secrets.update(env_secrets)
-        all_secrets.update(mounted_secrets)
-        self._secrets = all_secrets
+    @secrets.setter
+    def secrets(self, secrets: Optional[Dict[str, Any]]):
+        self._secrets = secrets
 
     def fit(self, X, y, parameters=None, row_weights=None, **kwargs):
         """
@@ -172,6 +169,26 @@ class CustomTaskInterface(Serializable):
         """Prints the message to the logs and then flushes the buffer."""
         print(message)
         sys.stdout.flush()
+
+
+@contextmanager
+def secrets_injection_context(
+    interface: CustomTaskInterface, mount_path: Optional[str], env_var_prefix: Optional[str]
+):
+    interface.secrets = load_secrets(mount_path=mount_path, env_var_prefix=env_var_prefix)
+    try:
+        yield
+    finally:
+        interface.secrets = None
+
+
+def load_secrets(mount_path: Optional[str], env_var_prefix: Optional[str]) -> Dict[str, Any]:
+    all_secrets = {}
+    env_secrets = _get_environment_secrets(env_var_prefix)
+    mounted_secrets = _get_mounted_secrets(mount_path)
+    all_secrets.update(env_secrets)
+    all_secrets.update(mounted_secrets)
+    return all_secrets
 
 
 def _get_environment_secrets(env_var_prefix):

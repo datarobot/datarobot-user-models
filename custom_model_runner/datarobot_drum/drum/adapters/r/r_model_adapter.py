@@ -112,7 +112,7 @@ class RModelAdapter(object):
         else:
             raise ValueError(f"Error converting python variable of type '{type(py_type)}' to R")
 
-    def fit(self, X, y, output_dir, class_order=None, row_weights=None, parameters=None):
+    def fit(self, X, y, output_dir, class_order=None, row_weights=None, parameters=None, user_secrets_mount_path=None, user_secrets_prefix=None):
         """
         Trains an R-based custom task.
 
@@ -130,6 +130,10 @@ class RModelAdapter(object):
             Class weights
         parameters: dict or None
             Hyperparameter values
+        user_secrets_mount_path: str or None
+            This value is currently ignored for R models
+        user_secrets_prefix: str or None
+            This value is currently ignored for R models
 
         Returns
         -------

@@ -10,10 +10,14 @@ import sys
 import textwrap
 from inspect import signature
 from pathlib import Path
+from typing import Optional, Type
 
 import pandas as pd
 from scipy.sparse import issparse
 
+from datarobot_drum.custom_task_interfaces import BinaryEstimatorInterface, MulticlassEstimatorInterface, \
+    TransformerInterface
+from datarobot_drum.custom_task_interfaces.estimator_interfaces import EstimatorInterface
 from datarobot_drum.drum.artifact_predictors.keras_predictor import KerasPredictor
 from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
 from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPredictor
@@ -48,7 +52,7 @@ from datarobot_drum.drum.exceptions import (
 )
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from datarobot_drum.drum.utils.drum_utils import DrumUtils
-from datarobot_drum.custom_task_interfaces.custom_task_interface import CustomTaskInterface
+from datarobot_drum.custom_task_interfaces.custom_task_interface import CustomTaskInterface, secrets_injection_context
 
 RUNNING_LANG_MSG = "Running environment language: Python."
 
@@ -76,8 +80,8 @@ class PythonModelAdapter:
         self._target_type = target_type
 
         # New custom task class and instance loaded from custom.py
-        self._custom_task_class = None
-        self._custom_task_class_instance = None
+        self._custom_task_class: Optional[Type[CustomTaskInterface]] = None
+        self._custom_task_class_instance: Optional[CustomTaskInterface] = None
 
     @property
     def is_custom_task_class(self):
@@ -471,6 +475,8 @@ class PythonModelAdapter:
 
         if self.is_custom_task_class:
             try:
+                if not isinstance(self._custom_task_class_instance, TransformerInterface):
+                    raise self._get_bad_target_type_runtime_error()
                 output_data = self._custom_task_class_instance.transform(data)
                 self._validate_data(output_data, CustomHooks.TRANSFORM)
                 self._validate_transform_rows(output_data, data)
@@ -486,14 +492,25 @@ class PythonModelAdapter:
 
         return output_data, output_target
 
+    def _get_bad_target_type_runtime_error(self):
+        msg = (
+            f"Cannot predict/transform with target_type: {self._target_type} using interface: {self._custom_task_class}"
+        )
+        return RuntimeError(msg)
+
+
     def has_read_input_data_hook(self):
         return self._custom_hooks.get(CustomHooks.READ_INPUT_DATA) is not None
 
     def _predict_new_drum(self, data, **kwargs):
         try:
             if self._target_type in {TargetType.BINARY, TargetType.MULTICLASS}:
+                if not isinstance(self._custom_task_class_instance, (BinaryEstimatorInterface, MulticlassEstimatorInterface)):
+                    raise self._get_bad_target_type_runtime_error()
                 predictions_df = self._custom_task_class_instance.predict_proba(data, **kwargs)
             else:
+                if not isinstance(self._custom_task_class_instance, EstimatorInterface):
+                    raise self._get_bad_target_type_runtime_error()
                 predictions_df = self._custom_task_class_instance.predict(data, **kwargs)
             self._validate_data(predictions_df, CustomHooks.SCORE)
             return predictions_df.values, predictions_df.columns
@@ -622,7 +639,17 @@ class PythonModelAdapter:
         PythonModelAdapter._validate_unstructured_predictions(predictions)
         return predictions
 
-    def fit(self, X, y, output_dir, class_order=None, row_weights=None, parameters=None):
+    def fit(
+            self,
+            X,
+            y,
+            output_dir,
+            class_order=None,
+            row_weights=None,
+            parameters=None,
+            user_secrets_mount_path=None,
+            user_secrets_prefix=None
+    ):
         """
         Trains a Python-based custom task.
 
@@ -640,6 +667,10 @@ class PythonModelAdapter:
             Class weights
         parameters: dict or None
             Hyperparameter values
+        user_secrets_mount_path: str or None
+            where to find mounted secrets
+        user_secrets_prefix: str or None
+            how to get user secrets from env vars
 
         Returns
         -------
@@ -648,15 +679,20 @@ class PythonModelAdapter:
         if self.is_custom_task_class:
             with reroute_stdout_to_stderr():
                 try:
-                    self._custom_task_class_instance = self._custom_task_class()
-                    self._custom_task_class_instance.fit(
-                        X=X,
-                        y=y,
-                        output_dir=output_dir,
-                        class_order=class_order,
-                        row_weights=row_weights,
-                        parameters=parameters,
-                    )
+                    self._custom_task_class_instance: CustomTaskInterface = self._custom_task_class()
+                    with secrets_injection_context(
+                        interface=self._custom_task_class_instance,
+                        mount_path=user_secrets_mount_path,
+                        env_var_prefix=None
+                    ):
+                        self._custom_task_class_instance.fit(
+                            X=X,
+                            y=y,
+                            output_dir=output_dir,
+                            class_order=class_order,
+                            row_weights=row_weights,
+                            parameters=parameters,
+                        )
 
                     try:
                         self._custom_task_class_instance.save(self._model_dir)

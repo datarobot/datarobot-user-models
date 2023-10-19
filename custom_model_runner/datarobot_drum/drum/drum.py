@@ -540,6 +540,8 @@ class CMRunner:
                 row_weights=cli_adapter.sample_data_if_necessary(cli_adapter.weights),
                 parameters=cli_adapter.parameters_for_fit,
                 class_order=cli_adapter.class_ordering,
+                user_secrets_mount_path=self.options.user_secrets_mount_path,
+                user_secrets_prefix=self.options.user_secrets_prefix,
             )
 
         return _run_fit

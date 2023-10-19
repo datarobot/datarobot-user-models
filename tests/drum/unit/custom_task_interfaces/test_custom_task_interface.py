@@ -15,7 +15,10 @@ from unittest.mock import patch
 
 import pytest
 
-from datarobot_drum.custom_task_interfaces.custom_task_interface import CustomTaskInterface
+from datarobot_drum.custom_task_interfaces.custom_task_interface import (
+    CustomTaskInterface,
+    secrets_injection_context,
+)
 
 
 @pytest.fixture
@@ -40,21 +43,22 @@ def patch_env(prefix, secrets_dict):
         yield
 
 
-class TestSecrets:
-    def test_empty_secrets(self):
+class TestSecretsInjectionContext:
+    def test_default_empty_secrets(self):
         interface = CustomTaskInterface()
         assert interface.secrets == {}
 
     def test_load_secrets_no_file_no_env_vars(self):
         interface = CustomTaskInterface()
-        interface.load_secrets(None, None)
-
+        with secrets_injection_context(interface, None, None):
+            assert interface.secrets == {}
         assert interface.secrets == {}
 
     def test_load_secrets_mount_path_does_not_exist(self):
         interface = CustomTaskInterface()
-        interface.load_secrets("/nope/not/a/thing", None)
-
+        bad_dir = "/nope/not/a/thing"
+        with secrets_injection_context(interface, bad_dir, None):
+            assert interface.secrets == {}
         assert interface.secrets == {}
 
     def test_secrets_with_mounted_secrets(self, mounted_secrets_factory):
@@ -64,9 +68,9 @@ class TestSecrets:
         }
         secrets_dir = mounted_secrets_factory(secrets)
         interface = CustomTaskInterface()
-        interface.load_secrets(secrets_dir, None)
-
-        assert interface.secrets == secrets
+        with secrets_injection_context(interface, secrets_dir, None):
+            assert interface.secrets == secrets
+        assert not interface.secrets
 
     def test_secrets_with_env_vars(self):
         secrets = {
@@ -77,9 +81,9 @@ class TestSecrets:
 
         interface = CustomTaskInterface()
         with patch_env(prefix, secrets):
-            interface.load_secrets(None, prefix)
-
-        assert interface.secrets == secrets
+            with secrets_injection_context(interface, None, prefix):
+                assert interface.secrets == secrets
+        assert not interface.secrets
 
     def test_secrets_with_mounted_secrets_supersede_env_secrets(self, mounted_secrets_factory):
         mounted_secrets = {
@@ -94,10 +98,9 @@ class TestSecrets:
         secrets_dir = mounted_secrets_factory(mounted_secrets)
         interface = CustomTaskInterface()
 
-        with patch_env(prefix, env_secrets):
-            interface.load_secrets(secrets_dir, prefix)
-
         expected = mounted_secrets.copy()
         expected["THREE"] = env_secrets["THREE"]
-
-        assert interface.secrets == expected
+        with patch_env(prefix, env_secrets):
+            with secrets_injection_context(interface, secrets_dir, prefix):
+                assert interface.secrets == expected
+        assert not interface.secrets
