@@ -77,8 +77,6 @@ class DrumServerRun:
         pass_args_as_env_vars=False,
         verbose=True,
         append_cmd=None,
-        user_secrets_mount_path=None,
-        user_secrets_prefix=None,
     ):
         self.port = DrumUtils.find_free_port()
         self.server_address = "localhost:{}".format(self.port)
@@ -126,12 +124,6 @@ class DrumServerRun:
                 cmd += " --production"
         if verbose:
             cmd += " --verbose"
-
-        if user_secrets_mount_path:
-            cmd += f" --user-secrets-mount-path {user_secrets_mount_path}"
-
-        if user_secrets_prefix:
-            cmd += f" --user-secrets-prefix {user_secrets_prefix}"
 
         if append_cmd is not None:
             cmd += " " + append_cmd
