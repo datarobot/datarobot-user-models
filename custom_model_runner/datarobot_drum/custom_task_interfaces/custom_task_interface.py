@@ -126,9 +126,7 @@ class Serializable(object):
         return deserialized_object
 
 
-
 class CustomTaskInterface(Serializable):
-
     _secrets: Optional[Dict[str, Any]] = None
 
     @property
@@ -137,7 +135,7 @@ class CustomTaskInterface(Serializable):
             return self._secrets
         return {}
 
-    def load_secrets(self, mount_path: Optional[Path], env_var_prefix: Optional[str]):
+    def load_secrets(self, mount_path: Optional[str], env_var_prefix: Optional[str]):
         all_secrets = {}
         env_secrets = _get_environment_secrets(env_var_prefix)
         mounted_secrets = _get_mounted_secrets(mount_path)
@@ -186,15 +184,14 @@ def _get_environment_secrets(env_var_prefix):
     return {key.replace(full_prefix, ""): json.loads(value) for key, value in actual_secrets}
 
 
-def _get_mounted_secrets(mount_path):
-    if not mount_path:
+def _get_mounted_secrets(mount_path: str):
+    if mount_path is None:
         return {}
 
-    secret_files = [file_path for file_path in mount_path.glob("*") if file_path.is_file()]
+    secret_files = [file_path for file_path in Path(mount_path).glob("*") if file_path.is_file()]
 
     def get_dict(file_path: Path):
         with file_path.open() as fp:
             return json.load(fp)
 
     return {file_path.name: get_dict(file_path) for file_path in secret_files}
-

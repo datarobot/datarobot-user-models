@@ -21,6 +21,7 @@ from datarobot_drum.custom_task_interfaces.custom_task_interface import CustomTa
 @pytest.fixture
 def mounted_secrets_factory():
     with TemporaryDirectory(suffix="-secrets") as dir_name:
+
         def inner(secrets_dict: Dict[str, dict]):
             top_dir = Path(dir_name)
             for k, v in secrets_dict.items():
@@ -52,7 +53,7 @@ class TestSecrets:
 
     def test_load_secrets_mount_path_does_not_exist(self):
         interface = CustomTaskInterface()
-        interface.load_secrets(Path("/nope/not/a/thing"), None)
+        interface.load_secrets("/nope/not/a/thing", None)
 
         assert interface.secrets == {}
 
@@ -63,9 +64,10 @@ class TestSecrets:
         }
         secrets_dir = mounted_secrets_factory(secrets)
         interface = CustomTaskInterface()
-        interface.load_secrets(Path(secrets_dir), None)
+        interface.load_secrets(secrets_dir, None)
 
         assert interface.secrets == secrets
+
     def test_secrets_with_env_vars(self):
         secrets = {
             "ONE": {"credential_type": "basic", "username": "1", "password": "y"},
@@ -78,13 +80,14 @@ class TestSecrets:
             interface.load_secrets(None, prefix)
 
         assert interface.secrets == secrets
-    def test_secrets_with_mounted_secrets_supercede_env_secrets(self, mounted_secrets_factory):
+
+    def test_secrets_with_mounted_secrets_supersede_env_secrets(self, mounted_secrets_factory):
         mounted_secrets = {
             "ONE": {"credential_type": "basic", "username": "1", "password": "y"},
             "TWO": {"credential_type": "basic", "username": "2", "password": "z"},
         }
         env_secrets = {
-            "TWO": {"credential_type": "basic", "username": "superceded", "password": "superceded"},
+            "TWO": {"credential_type": "basic", "username": "superseded", "password": "superseded"},
             "THREE": {"credential_type": "basic", "username": "3", "password": "A"},
         }
         prefix = "MY_SUPER_PREFIX"
@@ -92,7 +95,7 @@ class TestSecrets:
         interface = CustomTaskInterface()
 
         with patch_env(prefix, env_secrets):
-            interface.load_secrets(Path(secrets_dir), prefix)
+            interface.load_secrets(secrets_dir, prefix)
 
         expected = mounted_secrets.copy()
         expected["THREE"] = env_secrets["THREE"]
