@@ -203,7 +203,7 @@ class PythonModelAdapter:
 
         return self._model
 
-    def load_model_from_artifact(self, secrets_mount_path: Optional[str], secrets_prefix: Optional[str]):
+    def load_model_from_artifact(self, user_secrets_mount_path: Optional[str], user_secrets_prefix: Optional[str]):
         """
         Load the serialized model from its artifact.
         Returns
@@ -216,7 +216,7 @@ class PythonModelAdapter:
         """
         if self.is_custom_task_class:
             self._custom_task_class_instance = self._custom_task_class.load(self._model_dir)
-            secrets = load_secrets(secrets_mount_path, secrets_prefix)
+            secrets = load_secrets(user_secrets_mount_path, user_secrets_prefix)
             self._custom_task_class_instance.secrets = secrets
             return self._custom_task_class_instance
 
