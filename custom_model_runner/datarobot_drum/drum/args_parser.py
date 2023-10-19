@@ -961,8 +961,8 @@ class CMRunnerArgsRegistry(object):
 
         CMRunnerArgsRegistry._reg_arg_report_fit_predict_metadata(fit_parser, push_parser)
         CMRunnerArgsRegistry._reg_arg_custom_task_user_secrets(
-            fit_parser
-        )  # , score_parser, server_parser)
+            fit_parser, score_parser, server_parser
+        )
 
         CMRunnerArgsRegistry._reg_args_runtime_parameters_file(
             score_parser, perf_test_parser, server_parser, validation_parser

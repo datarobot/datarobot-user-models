@@ -495,34 +495,54 @@ class TestUserSecretsArgs:
             "pronounced-tar-ZHAY",
         ]
 
-    def test_fit_no_user_secrets_passed(self, fit_args):
-        actual = get_args_parser_options(fit_args)
+    @pytest.fixture
+    def score_args(self, this_dir):
+        return [
+            "score",
+            "--code-dir",
+            this_dir,
+            "--input",
+            __file__,
+        ]
+
+    @pytest.fixture
+    def server_args(self, this_dir):
+        return ["server", "--code-dir", this_dir, "--address", "https://allthedice.com"]
+
+    @pytest.fixture(params=["fit_args", "score_args", "server_args"])
+    def parametrized_args(self, request):
+        yield request.getfixturevalue(request.param)
+
+    def test_no_user_secrets_passed(self, parametrized_args):
+        actual = get_args_parser_options(parametrized_args)
         assert actual.user_secrets_mount_path is None
         assert actual.user_secrets_prefix is None
 
-    def test_set_fit(self, fit_args, this_dir):
+    def test_set_user_secrets(self, parametrized_args, this_dir):
         prefix = "SECRETS"
-        fit_args.extend(["--user-secrets-mount-path", this_dir, "--user-secrets-prefix", prefix])
+        parametrized_args.extend(
+            ["--user-secrets-mount-path", this_dir, "--user-secrets-prefix", prefix]
+        )
 
-        actual = get_args_parser_options(fit_args)
+        actual = get_args_parser_options(parametrized_args)
         assert actual.user_secrets_mount_path == this_dir
         assert actual.user_secrets_prefix == prefix
 
-    def test_set_fit_from_env_vars(self, fit_args, this_dir):
+    def test_set_user_secrets_from_env_vars(self, parametrized_args, this_dir):
         prefix = "PREFIX_THIS"
         env_vars = {"USER_SECRETS_PREFIX": prefix, "USER_SECRETS_MOUNT_PATH": this_dir}
         with patch.dict(os.environ, env_vars):
-            actual = get_args_parser_options(fit_args)
+            actual = get_args_parser_options(parametrized_args)
 
         assert actual.user_secrets_mount_path == this_dir
         assert actual.user_secrets_prefix == prefix
 
-    def test_mount_path_can_be_invalid_directory(self, fit_args):
+    def test_mount_path_can_be_invalid_directory(self, parametrized_args):
         """It is always possible for a give run that one of the other of
         mounted secrets or env vars exists, we don't want to fail on a missing
         mount path."""
         fake_directory = "/not/a/real/directory/"
-        fit_args.extend(["--user-secrets-mount-path", fake_directory])
+        parametrized_args.extend(["--user-secrets-mount-path", fake_directory])
 
-        actual = get_args_parser_options(fit_args)
+        actual = get_args_parser_options(parametrized_args)
         assert actual.user_secrets_mount_path == fake_directory
