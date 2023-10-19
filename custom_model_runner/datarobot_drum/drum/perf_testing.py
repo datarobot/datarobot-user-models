@@ -744,7 +744,9 @@ class CMRunTests:
         labels = self.resolve_labels(self.target_type, self.options)
 
         with DrumServerRun(
-            self.target_type.value, labels, self.options.code_dir, verbose=self._verbose
+            self.target_type.value, labels, self.options.code_dir, verbose=self._verbose,
+            user_secrets_prefix=self.options.user_secrets_prefix,
+            user_secrets_mount_path=self.options.user_secrets_mount_path,
         ) as run:
             endpoint = "/predict/"
             payload = {"X": open(self.options.input)}

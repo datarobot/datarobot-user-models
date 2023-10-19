@@ -54,7 +54,10 @@ class PythonPredictor(BaseLanguagePredictor):
         sys.path.append(self._code_dir)
         self._model_adapter.load_custom_hooks()
         try:
-            self._model = self._model_adapter.load_model_from_artifact()
+            logger.info(f"HIIIIIII: {params}")
+            mount_path = params.get("user_secrets_mount_path", None)
+            prefix = params.get("user_secrets_prefix", None)
+            self._model = self._model_adapter.load_model_from_artifact(mount_path, prefix)
         except Exception as e:
             raise DrumSerializationError(f"An error occurred when loading your artifact: {str(e)}")
         if self._model is None:
