@@ -14,10 +14,8 @@ import pandas as pd
 import pytest
 from unittest.mock import patch
 
-from custom_model_runner.datarobot_drum.drum.language_predictors.base_language_predictor import (
-    BaseLanguagePredictor,
-)
-from custom_model_runner.datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
+from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
+from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
     PythonPredictor,
 )
 from datarobot_drum.drum.enum import TargetType
@@ -57,7 +55,7 @@ class FakeLanguagePredictor(BaseLanguagePredictor):
 )
 def test_lang_predictor_configure(predictor_params, essential_language_predictor_init_params):
     with patch(
-        "custom_model_runner.datarobot_drum.drum.language_predictors.base_language_predictor."
+        "datarobot_drum.drum.language_predictors.base_language_predictor."
         "read_model_metadata_yaml"
     ) as mock_read_model_metadata_yaml:
         mock_read_model_metadata_yaml.return_value = ""
@@ -116,7 +114,7 @@ class TestPythonPredictor(object):
         mock_python_model_adapter_predict,
     ):
         with patch(
-            "custom_model_runner.datarobot_drum.drum.language_predictors.base_language_predictor."
+            "datarobot_drum.drum.language_predictors.base_language_predictor."
             "read_model_metadata_yaml"
         ) as mock_read_model_metadata_yaml:
             mock_read_model_metadata_yaml.return_value = ""
