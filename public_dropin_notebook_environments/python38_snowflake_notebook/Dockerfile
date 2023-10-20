@@ -20,8 +20,8 @@ ARG AGENTDIR=/etc/system/kernel/agent
 ARG VENV_PATH=${WORKDIR}/.venv
 
 ARG UNAME=notebooks
-ARG UID=90909
-ARG GID=90909
+ARG UID=10101
+ARG GID=10101
 
 # You can specify a different python version here but be sure that
 # it's available in microdnf repo
