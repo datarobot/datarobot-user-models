@@ -5,10 +5,15 @@
 #  This is proprietary source code of DataRobot, Inc. and its affiliates.
 #  Released under the terms of DataRobot Tool and Utility Agreement.
 #
+import os
 import sys
+from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import List
+from unittest.mock import patch, PropertyMock, ANY
+
+import pandas as pd
 
 #
 #
@@ -21,7 +26,7 @@ import yaml
 
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.drum import CMRunner
-from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME
+from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, RunLanguage
 from datarobot_drum.drum.runtime import DrumRuntime
 
 
@@ -42,13 +47,23 @@ def get_args_parser_options(cli_command: List[str]):
 
 
 @pytest.fixture
+def module_under_test():
+    return "datarobot_drum.drum.drum"
+
+
+@pytest.fixture
 def this_dir():
     return str(Path(__file__).absolute().parent)
 
 
 @pytest.fixture
+def target():
+    return "some-target"
+
+
+@pytest.fixture
 def model_metadata_file_factory():
-    with TemporaryDirectory() as temp_dirname:
+    with TemporaryDirectory(suffix="code-dir") as temp_dirname:
 
         def _inner(input_dict):
             file_path = Path(temp_dirname) / MODEL_CONFIG_FILENAME
@@ -72,7 +87,13 @@ def temp_metadata(environment_id, model_metadata_file_factory):
 
 
 @pytest.fixture
-def fit_args(temp_metadata):
+def output_dir():
+    with TemporaryDirectory(suffix="output-dir") as dir_name:
+        yield dir_name
+
+
+@pytest.fixture
+def fit_args(temp_metadata, target, output_dir):
     return [
         "fit",
         "--code-dir",
@@ -80,9 +101,11 @@ def fit_args(temp_metadata):
         "--input",
         __file__,
         "--target",
-        "pronounced-tar-ZHAY",
+        target,
         "--target-type",
         "regression",
+        "--output",
+        output_dir,
     ]
 
 
@@ -115,7 +138,49 @@ def runtime_factory():
         yield inner
 
 
+@pytest.fixture
+def mock_input_df(target):
+    with patch.object(CMRunner, "input_df", new_callable=PropertyMock) as mock_prop:
+        data = [[1, 2, 3]] * 100
+        mock_prop.return_value = pd.DataFrame(data, columns=[target, target + "a", target + "b"])
+        yield mock_prop
+
+
+@pytest.fixture
+def mock_get_run_language():
+    with patch.object(
+        CMRunner, "_get_fit_run_language", return_value=RunLanguage.PYTHON
+    ) as mock_func:
+        yield mock_func
+
+
+@pytest.fixture
+def mock_cm_run_test_class(module_under_test):
+    with patch(f"{module_under_test}.CMRunTests") as mock_class:
+        yield mock_class
+
+
+@pytest.mark.usefixtures("mock_input_df", "mock_get_run_language", "mock_cm_run_test_class")
 class TestCMRunnerRunTestPredict:
-    def test_thing(self, runtime_factory, fit_args):
+    def test_calls_cm_run_test_class_correctly(
+        self, runtime_factory, fit_args, mock_cm_run_test_class, output_dir
+    ):
         runner = runtime_factory(fit_args)
+        original_options = runner.options
+        original_input = original_options.input
+        target_type = runner.target_type
+        schema_validator = runner.schema_validator
+
+        expected_options = deepcopy(original_options)
+
         runner.run_test_predict()
+
+        expected_options.input = ANY
+        expected_options.output = os.devnull
+        expected_options.code_dir = output_dir
+
+        mock_cm_run_test_class.assert_called_once_with(
+            expected_options, target_type, schema_validator
+        )
+        actual_options = mock_cm_run_test_class.call_args[0][0]
+        assert actual_options.input != original_input
