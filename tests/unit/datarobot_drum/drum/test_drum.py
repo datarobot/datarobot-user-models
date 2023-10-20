@@ -25,7 +25,7 @@ import pytest
 import yaml
 
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
-from datarobot_drum.drum.drum import CMRunner
+from datarobot_drum.drum.drum import CMRunner, output_in_code_dir, create_custom_inference_model_folder
 from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, RunLanguage
 from datarobot_drum.drum.runtime import DrumRuntime
 
@@ -184,3 +184,29 @@ class TestCMRunnerRunTestPredict:
         )
         actual_options = mock_cm_run_test_class.call_args[0][0]
         assert actual_options.input != original_input
+
+
+class TestUtilityFunctions:
+
+    def test_output_dir_copy(self):
+        with TemporaryDirectory() as tempdir:
+            # setup
+            file = Path(tempdir, "test.py")
+            file.touch()
+            Path(tempdir, "__pycache__").mkdir()
+            out_dir = Path(tempdir, "out")
+            out_dir.mkdir()
+
+            # test
+            create_custom_inference_model_folder(tempdir, str(out_dir))
+            assert Path(out_dir, "test.py").exists()
+            assert not Path(out_dir, "__pycache__").exists()
+            assert not Path(out_dir, "out").exists()
+
+
+    def test_output_in_code_dir(self):
+        code_dir = "/test/code/is/here"
+        output_other = "/test/not/code"
+        output_code_dir = "/test/code/is/here/output"
+        assert not output_in_code_dir(code_dir, output_other)
+        assert output_in_code_dir(code_dir, output_code_dir)
