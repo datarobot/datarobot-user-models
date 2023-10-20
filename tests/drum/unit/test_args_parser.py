@@ -11,6 +11,7 @@ import sys
 import tempfile
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from typing import List
 from unittest.mock import patch
 
 import pytest
@@ -38,6 +39,15 @@ def execute_arg_parser(success=True):
         with pytest.raises(SystemExit):
             options = arg_parser.parse_args()
             CMRunnerArgsRegistry.verify_options(options)
+
+
+def get_args_parser_options(cli_command: List[str]):
+    set_sys_argv(cli_command)
+    arg_parser = CMRunnerArgsRegistry.get_arg_parser()
+    CMRunnerArgsRegistry.extend_sys_argv_with_env_vars()
+    options = arg_parser.parse_args()
+    CMRunnerArgsRegistry.verify_options(options)
+    return options
 
 
 class TestDrumHelp:
@@ -464,3 +474,73 @@ class TestDrApiAccess:
         with self._dr_api_access_env_vars(enabled=False, skipped_env_var=missing_mandatory_env_var):
             set_sys_argv(_cli_args)
             execute_arg_parser()
+
+
+class TestUserSecretsArgs:
+    @pytest.fixture
+    def this_dir(self):
+        return str(Path(__file__).absolute().parent)
+
+    @pytest.fixture
+    def fit_args(self, this_dir):
+        return [
+            "fit",
+            "--code-dir",
+            this_dir,
+            "--input",
+            __file__,
+            "--target",
+            "pronounced-tar-ZHAY",
+        ]
+
+    @pytest.fixture
+    def score_args(self, this_dir):
+        return [
+            "score",
+            "--code-dir",
+            this_dir,
+            "--input",
+            __file__,
+        ]
+
+    @pytest.fixture
+    def server_args(self, this_dir):
+        return ["server", "--code-dir", this_dir, "--address", "https://allthedice.com"]
+
+    @pytest.fixture(params=["fit_args", "score_args", "server_args"])
+    def parametrized_args(self, request):
+        yield request.getfixturevalue(request.param)
+
+    def test_no_user_secrets_passed(self, parametrized_args):
+        actual = get_args_parser_options(parametrized_args)
+        assert actual.user_secrets_mount_path is None
+        assert actual.user_secrets_prefix is None
+
+    def test_set_user_secrets(self, parametrized_args, this_dir):
+        prefix = "SECRETS"
+        parametrized_args.extend(
+            ["--user-secrets-mount-path", this_dir, "--user-secrets-prefix", prefix]
+        )
+
+        actual = get_args_parser_options(parametrized_args)
+        assert actual.user_secrets_mount_path == this_dir
+        assert actual.user_secrets_prefix == prefix
+
+    def test_set_user_secrets_from_env_vars(self, parametrized_args, this_dir):
+        prefix = "PREFIX_THIS"
+        env_vars = {"USER_SECRETS_PREFIX": prefix, "USER_SECRETS_MOUNT_PATH": this_dir}
+        with patch.dict(os.environ, env_vars):
+            actual = get_args_parser_options(parametrized_args)
+
+        assert actual.user_secrets_mount_path == this_dir
+        assert actual.user_secrets_prefix == prefix
+
+    def test_mount_path_can_be_invalid_directory(self, parametrized_args):
+        """It is always possible for a give run that one of the other of
+        mounted secrets or env vars exists, we don't want to fail on a missing
+        mount path."""
+        fake_directory = "/not/a/real/directory/"
+        parametrized_args.extend(["--user-secrets-mount-path", fake_directory])
+
+        actual = get_args_parser_options(parametrized_args)
+        assert actual.user_secrets_mount_path == fake_directory
