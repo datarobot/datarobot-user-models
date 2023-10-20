@@ -21,8 +21,8 @@ ARG AGENTDIR=/etc/system/kernel/agent
 ARG R_VERSION=4.2.2
 
 ARG UNAME=notebooks
-ARG UID=90909
-ARG GID=90909
+ARG UID=10101
+ARG GID=10101
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.7 AS base
 ARG WORKDIR
