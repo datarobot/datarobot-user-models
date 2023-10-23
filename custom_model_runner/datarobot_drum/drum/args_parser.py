@@ -612,7 +612,7 @@ class CMRunnerArgsRegistry(object):
 
     @staticmethod
     def _reg_arg_target_type(*parsers):
-        target_types = [e for e in TargetType.ALL.value]
+        target_types = [e.value for e in TargetType]
         for parser in parsers:
             parser.add_argument(
                 ArgumentsOptions.TARGET_TYPE,

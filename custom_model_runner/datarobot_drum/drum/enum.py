@@ -339,11 +339,13 @@ class TargetType(Enum):
     MULTICLASS = "multiclass"
     TRANSFORM = "transform"
     TEXT_GENERATION = "textgeneration"
-    SINGLE_COL = [REGRESSION, ANOMALY, TEXT_GENERATION]
-    ALL = [BINARY, MULTICLASS, REGRESSION, ANOMALY, UNSTRUCTURED, TRANSFORM, TEXT_GENERATION]
+    # ALL = [BINARY, MULTICLASS, REGRESSION, ANOMALY, UNSTRUCTURED, TRANSFORM, TEXT_GENERATION]
 
     def is_classification(self):
         return self in [self.BINARY, self.MULTICLASS]
+
+    def is_single_column(self):
+        return self in [self.REGRESSION, self.ANOMALY, self.TEXT_GENERATION]
 
 
 class TemplateType:
