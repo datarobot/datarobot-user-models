@@ -6,6 +6,8 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
 import os
+from typing import Optional
+
 import requests
 import signal
 import time
@@ -65,9 +67,9 @@ class DrumServerRun:
 
     def __init__(
         self,
-        target_type,
+        target_type: str,
         labels,
-        custom_model_dir,
+        custom_model_dir: str,
         docker=None,
         with_error_server=False,
         show_stacktrace=True,
@@ -75,8 +77,8 @@ class DrumServerRun:
         memory=None,
         fail_on_shutdown_error=True,
         pass_args_as_env_vars=False,
-        verbose=True,
-        append_cmd=None,
+        verbose: bool = True,
+        append_cmd: Optional[str] = None,
     ):
         self.port = DrumUtils.find_free_port()
         self.server_address = "localhost:{}".format(self.port)
@@ -136,6 +138,17 @@ class DrumServerRun:
         self._fail_on_shutdown_error = fail_on_shutdown_error
         self._verbose = verbose
 
+        self._pass_args_as_env_vars = pass_args_as_env_vars
+        self._custom_model_dir = custom_model_dir
+        self._target_type = target_type
+        self._labels = labels
+        self._docker = docker
+        self._memory = memory
+        self._with_error_server = with_error_server
+        self._nginx = nginx
+        self._show_stacktrace = show_stacktrace
+        self._append_cmd = append_cmd
+
     def __enter__(self):
         self._server_thread = Thread(
             name="DRUM Server",
@@ -187,3 +200,49 @@ class DrumServerRun:
     @property
     def process(self):
         return self._process_object_holder or None
+
+    def get_command(self):
+        log_level = logging.getLevelName(logging.root.level).lower()
+        cmd = "{} server --logging-level={}".format(ArgumentsOptions.MAIN_COMMAND, log_level)
+
+        if self._pass_args_as_env_vars:
+            os.environ[ArgumentOptionsEnvVars.CODE_DIR] = str(self._custom_model_dir)
+            os.environ[ArgumentOptionsEnvVars.TARGET_TYPE] = self._target_type
+            os.environ[ArgumentOptionsEnvVars.ADDRESS] = self.server_address
+        else:
+            cmd += " --code-dir {} --target-type {} --address {}".format(
+                self._custom_model_dir, self._target_type, self.server_address
+            )
+
+        if self._labels:
+            cmd = _cmd_add_class_labels(
+                cmd,
+                self._labels,
+                target_type=self._target_type,
+                pass_args_as_env_vars=self._pass_args_as_env_vars,
+            )
+        if self._docker:
+            cmd += " --docker {}".format(self._docker)
+            if self._memory:
+                cmd += " --memory {}".format(self._memory)
+        if self._with_error_server:
+            if self._pass_args_as_env_vars:
+                os.environ[ArgumentOptionsEnvVars.WITH_ERROR_SERVER] = "1"
+            else:
+                cmd += " --with-error-server"
+        if self._show_stacktrace:
+            if self._pass_args_as_env_vars:
+                os.environ[ArgumentOptionsEnvVars.SHOW_STACKTRACE] = "1"
+            else:
+                cmd += " --show-stacktrace"
+        if self._nginx:
+            if self._pass_args_as_env_vars:
+                os.environ[ArgumentOptionsEnvVars.PRODUCTION] = "1"
+            else:
+                cmd += " --production"
+        if self._verbose:
+            cmd += " --verbose"
+
+        if self._append_cmd is not None:
+            cmd += " " + self._append_cmd
+        return cmd

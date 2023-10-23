@@ -6,6 +6,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 from abc import ABC, abstractmethod
 import logging
+from typing import Optional
 
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.enum import (
@@ -26,7 +27,7 @@ class ArtifactPredictor(ABC):
         self.positive_class_label = None
         self.negative_class_label = None
         self.class_labels = None
-        self.target_type = None
+        self.target_type: Optional[TargetType] = None
         self._logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + self.__class__.__name__)
 
     @property
