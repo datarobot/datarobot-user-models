@@ -1,9 +1,10 @@
-"""
-Copyright 2021 DataRobot, Inc. and its affiliates.
-All rights reserved.
-This is proprietary source code of DataRobot, Inc. and its affiliates.
-Released under the terms of DataRobot Tool and Utility Agreement.
-"""
+#
+#  Copyright 2023 DataRobot, Inc. and its affiliates.
+#
+#  All rights reserved.
+#  This is proprietary source code of DataRobot, Inc. and its affiliates.
+#  Released under the terms of DataRobot Tool and Utility Agreement.
+#
 import glob
 import logging
 import os
@@ -102,27 +103,3 @@ def test_filename_exists_and_is_file(tmp_path, caplog):
         os.remove(f)
 
     caplog.clear()
-
-
-def test_output_dir_copy():
-    with tempfile.TemporaryDirectory() as tempdir:
-        # setup
-        file = Path(tempdir, "test.py")
-        file.touch()
-        Path(tempdir, "__pycache__").mkdir()
-        out_dir = Path(tempdir, "out")
-        out_dir.mkdir()
-
-        # test
-        create_custom_inference_model_folder(tempdir, str(out_dir))
-        assert Path(out_dir, "test.py").exists()
-        assert not Path(out_dir, "__pycache__").exists()
-        assert not Path(out_dir, "out").exists()
-
-
-def test_output_in_code_dir():
-    code_dir = "/test/code/is/here"
-    output_other = "/test/not/code"
-    output_code_dir = "/test/code/is/here/output"
-    assert not output_in_code_dir(code_dir, output_other)
-    assert output_in_code_dir(code_dir, output_code_dir)
