@@ -339,7 +339,6 @@ class TargetType(Enum):
     MULTICLASS = "multiclass"
     TRANSFORM = "transform"
     TEXT_GENERATION = "textgeneration"
-    # ALL = [BINARY, MULTICLASS, REGRESSION, ANOMALY, UNSTRUCTURED, TRANSFORM, TEXT_GENERATION]
 
     def is_classification(self):
         return self in [self.BINARY, self.MULTICLASS]

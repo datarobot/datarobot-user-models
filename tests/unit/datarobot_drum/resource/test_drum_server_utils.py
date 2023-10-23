@@ -56,5 +56,17 @@ class TestDrumServerRunGetCommand:
 
         assert runner.get_command() == expected
 
-    # @pytest.mark.parametrize("target_type", [el for el in TargetType if el not in TargetType.])
-    # def test_other_target_types_ignore_lables(self, target_type):
+    @pytest.mark.parametrize(
+        "target_type", [el.value for el in TargetType if not el.is_classification()]
+    )
+    def test_other_target_types_ignore_labels(self, target_type):
+        labels = ["a", "b"]
+        custom_model_dir = "/a/custom/model/dir"
+        runner = DrumServerRun(target_type, labels, custom_model_dir)
+
+        expected = (
+            f"drum server --logging-level=warning --code-dir {custom_model_dir} --target-type {target_type} "
+            f"--address {runner.server_address} --show-stacktrace --verbose"
+        )
+
+        assert runner.get_command() == expected
