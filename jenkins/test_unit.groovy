@@ -2,7 +2,7 @@ node('multi-executor && ubuntu:focal'){
     checkout scm
 
     docker.image('python:3.8').inside() {
-        stage('test_unit')
+        stage('test_unit') {
             try {
                 sh"""#!/bin/bash
                 set -exuo pipefail
@@ -16,5 +16,6 @@ node('multi-executor && ubuntu:focal'){
             } finally {
               junit allowEmptyResults: true, testResults: '**/unit-test-report.xml'
             }
+        }
     }
 }
