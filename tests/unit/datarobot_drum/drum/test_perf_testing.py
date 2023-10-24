@@ -98,6 +98,7 @@ def cm_run_tests(mock_options, target_type, mock_read_structured_input_file_as_d
     return CMRunTests(mock_options, target_type)
 
 
+# TODO
 class TestTestPredictionSideEffects:
     def test_thing(self, cm_run_tests):
         # cm_run_tests.check_prediction_side_effects()

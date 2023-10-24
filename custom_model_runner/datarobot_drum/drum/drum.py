@@ -723,6 +723,8 @@ class CMRunner:
             if getattr(options, "content_type", None) is not None
             else "null",
             "target_type": self.target_type.value,
+            "user_secrets_mount_path": options.user_secrets_mount_path,
+            "user_secrets_prefix": options.user_secrets_prefix,
         }
 
         if self.run_mode == RunMode.SCORE:

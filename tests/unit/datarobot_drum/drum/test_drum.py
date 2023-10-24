@@ -23,6 +23,7 @@ import pandas as pd
 #
 import pytest
 import yaml
+from mlpiper.pipeline.executor import Executor
 
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.drum import (
@@ -31,6 +32,9 @@ from datarobot_drum.drum.drum import (
     create_custom_inference_model_folder,
 )
 from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, RunLanguage
+from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
+    PythonPredictor,
+)
 from datarobot_drum.drum.runtime import DrumRuntime
 
 
@@ -126,7 +130,17 @@ def score_args(this_dir):
 
 @pytest.fixture
 def server_args(this_dir):
-    return ["server", "--code-dir", this_dir, "--address", "https://allthedice.com"]
+    return [
+        "server",
+        "--code-dir",
+        this_dir,
+        "--address",
+        "allthedice.com:1234",
+        "--target-type",
+        "regression",
+        "--language",
+        "python",
+    ]
 
 
 @pytest.fixture
@@ -188,6 +202,36 @@ class TestCMRunnerRunTestPredict:
         )
         actual_options = mock_cm_run_test_class.call_args[0][0]
         assert actual_options.input != original_input
+
+
+@pytest.fixture
+def mock_check_artifacts_and_get_run_language():
+    with patch.object(CMRunner, "_check_artifacts_and_get_run_language") as mock_func:
+        mock_func.return_value = ""
+
+
+@pytest.fixture
+def mock_mlpiper_configure():
+    with patch.object(PythonPredictor, "mlpiper_configure") as mock_func:
+        yield mock_func
+
+
+@pytest.fixture
+def mock_run_pipeline():
+    with patch.object(Executor, "run_pipeline") as mock_func:
+        yield mock_func
+
+
+@pytest.mark.usefixtures("mock_mlpiper_configure", "mock_run_pipeline")
+class TestCMRunnerServer:
+    # TODO test various calls to mlpiper configure
+    #  port some/none, user_secrets_mount_path some/none, user_secrets_prefix some/none,
+    def test_thing(self, runtime_factory, server_args, mock_mlpiper_configure):
+        runner = runtime_factory(server_args)
+        runner.run()
+        print()
+        print(mock_mlpiper_configure.call_args)
+        mock_mlpiper_configure.assert_called_once_with()
 
 
 class TestUtilityFunctions:
