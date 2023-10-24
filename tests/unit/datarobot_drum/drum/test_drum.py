@@ -224,7 +224,7 @@ def mock_run_pipeline():
 
 @pytest.mark.usefixtures("mock_mlpiper_configure", "mock_run_pipeline")
 class TestCMRunnerServer:
-    # TODO test various calls to mlpiper configure
+    # TODO ERIC: test various calls to mlpiper configure
     #  port some/none, user_secrets_mount_path some/none, user_secrets_prefix some/none,
     def test_thing(self, runtime_factory, server_args, mock_mlpiper_configure):
         runner = runtime_factory(server_args)

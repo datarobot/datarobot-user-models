@@ -26,6 +26,7 @@ R_COMMON_PATH = os.path.abspath(
 )
 
 
+# TODO ERIC: have abc ModelAdapter
 class RModelAdapter(object):
     R = None
     R_RUNTIME = None
