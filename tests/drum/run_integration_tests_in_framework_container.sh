@@ -28,7 +28,7 @@ TESTS_TO_RUN="tests/drum/test_inference_per_framework.py \
 # install 'pack' package in R env for tests
 if [ "$1" = "r_lang" ]; then
     Rscript -e "install.packages('pack', Ncpus=4)"
-    TESTS_TO_RUN+="tests/unit/datarobot_drum/drum/language_predictors/test_language_predictors.py::TestRPredictor \
+    TESTS_TO_RUN+="tests/integration/datarobot_drum/drum/language_predictors/test_language_predictors.py::TestRPredictor \
                    tests/unit/datarobot_drum/drum/utils/test_drum_utils.py \
                    tests/unit/datarobot_drum/model_metadata/test_model_metadata.py
                   "
