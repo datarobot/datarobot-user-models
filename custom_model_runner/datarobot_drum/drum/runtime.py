@@ -42,7 +42,7 @@ class DrumRuntime:
 
         msg = "Looks like there is a problem."
         if not self.options.verbose:
-            msg += f" To get more output information try to run with: '{ArgumentsOptions.VERBOSE}'."
+            msg += f" To get more output information try to run locally(not in DataRobot) with: '{ArgumentsOptions.VERBOSE}'."
         logger_drum.warning(colored(msg, "yellow"))
 
         if exc_value:

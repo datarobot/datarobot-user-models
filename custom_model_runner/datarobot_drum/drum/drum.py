@@ -907,7 +907,7 @@ class CMRunner:
             host_port_list = options.address.split(":", 1)
             if len(host_port_list) == 1:
                 raise DrumCommonException(
-                    "Error: when using the docker option provide argument --server host:port"
+                    "Error: when using the docker option provide argument --address host:port"
                 )
             port = int(host_port_list[1])
             host_port_inside_docker = "{}:{}".format("0.0.0.0", port)
