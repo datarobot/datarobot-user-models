@@ -108,9 +108,12 @@ repositoryTasks:
     phrase:
       - regex: ".*black_check.*"
         script: *black_check
+      - regex: ".*test_unit.*"
+        script: *test_unit
       - regex: ".*build_drum.*"
         script:
           - *black_check
+          - *test_unit
           - *build_drum
       - regex: ".*test_integration_general.*"
         script:
@@ -172,6 +175,7 @@ repositoryTasks:
       - changedFilesRegex: '.*'
         script:
           - *black_check
+          - *test_unit
           - *build_drum
           - *test_integration_general
           - *test_inference_model_templates
