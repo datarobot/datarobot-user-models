@@ -3,6 +3,11 @@ black_check: &black_check
   definition: jenkins/black_check.groovy
   phase: 0
 
+test_unit: &test_unit
+  taskName: test_unit
+  definition: jenkins/test_unit.groovy
+  phase: 0
+
 build_drum: &build_drum
   taskName: build_drum
   definition: jenkins/build_drum.groovy
