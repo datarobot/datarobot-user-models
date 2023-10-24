@@ -164,8 +164,6 @@ repositoryTasks:
           - *build_drum
           - *test_integration_julia_environment
     change:
-      - changedFilesRegex: '^public_dropin_notebook_environments/.*'
-        skip: true
       - changedFilesRegex: '.*'
         script:
           - *black_check
