@@ -8,8 +8,9 @@ node('multi-executor && ubuntu:focal'){
             python -m venv /tmp/venv
             . /tmp/venv/bin/activate
             pip install -U pip
-            pip install -r requirements_test.txt
-            pytest tests/unit
+            pip install -r unit_test_requirements.txt
+            pip install -e custom_model_runner/
+            pytest tests/unit --junit-xml="unit-test-report.xml"
             """
         }
     }
