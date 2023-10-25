@@ -10,6 +10,7 @@ import sys
 import textwrap
 from inspect import signature
 from pathlib import Path
+from typing import NoReturn
 
 import pandas as pd
 from scipy.sparse import issparse
@@ -43,6 +44,7 @@ from datarobot_drum.drum.enum import (
 )
 from datarobot_drum.drum.exceptions import (
     DrumCommonException,
+    DrumException,
     DrumTransformException,
     DrumSerializationError,
 )
@@ -51,6 +53,10 @@ from datarobot_drum.drum.utils.drum_utils import DrumUtils
 from datarobot_drum.custom_task_interfaces.custom_task_interface import CustomTaskInterface
 
 RUNNING_LANG_MSG = "Running environment language: Python."
+
+
+class DrumPythonModelAdapterError(DrumException):
+    """Raised in case of error in PythonModelAdapter"""
 
 
 class PythonModelAdapter:
@@ -79,6 +85,10 @@ class PythonModelAdapter:
         self._custom_task_class = None
         self._custom_task_class_instance = None
 
+    def _log_and_raise_final_error(self, exc: Exception, message: str) -> NoReturn:
+        self._logger.error(f"{message} Exception: {exc!r}")
+        raise DrumPythonModelAdapterError(f"{message} Exception: {exc!r}")
+
     @property
     def is_custom_task_class(self):
         """
@@ -100,6 +110,7 @@ class PythonModelAdapter:
             raise type(e)("Couldn't naively apply transformer:" " {}".format(e)).with_traceback(
                 sys.exc_info()[2]
             ) from None
+
         return output_data
 
     def _load_custom_hooks_for_new_drum(self, custom_module):
@@ -217,9 +228,7 @@ class PythonModelAdapter:
         try:
             model = self._custom_hooks[CustomHooks.LOAD_MODEL](self._model_dir)
         except Exception as exc:
-            raise type(exc)(
-                "'load_model' hook failed to load model: {}".format(exc)
-            ).with_traceback(sys.exc_info()[2]) from None
+            self._log_and_raise_final_error(exc, "'load_model' hook failed to load the model.")
 
         if model is None:
             raise DrumCommonException("'load_model' hook failed to load model, None is returned.")
@@ -276,9 +285,9 @@ class PythonModelAdapter:
                 try:
                     model = pred.load_model_from_artifact(model_artifact_file)
                 except Exception as exc:
-                    raise type(exc)(
-                        "Could not load model from artifact file: {}".format(exc)
-                    ).with_traceback(sys.exc_info()[2]) from None
+                    self._log_and_raise_final_error(
+                        exc, "Could not load model from the artifact file."
+                    )
                 break
 
         if model is None:
@@ -364,9 +373,9 @@ class PythonModelAdapter:
             try:
                 data = self._custom_hooks[CustomHooks.READ_INPUT_DATA](binary_data)
             except Exception as exc:
-                raise type(exc)(
-                    "Model read_data hook failed to read input data: {} {}".format(binary_data, exc)
-                ).with_traceback(sys.exc_info()[2]) from None
+                self._log_and_raise_final_error(
+                    exc, "Model 'read_input_data' hook failed to read input data."
+                )
         else:
             data = StructuredInputReadUtils.read_structured_input_data_as_df(
                 binary_data, mimetype, sparse_colnames
@@ -392,9 +401,9 @@ class PythonModelAdapter:
                 output_data = self._custom_hooks[CustomHooks.TRANSFORM](data, model)
 
             except Exception as exc:
-                raise type(exc)(
-                    "Model transform hook failed to transform dataset: {}".format(exc)
-                ).with_traceback(sys.exc_info()[2]) from None
+                self._log_and_raise_final_error(
+                    exc, "Model 'transform hook' failed to transform dataset."
+                )
 
             self._validate_data(output_data, CustomHooks.TRANSFORM)
 
@@ -425,9 +434,9 @@ class PythonModelAdapter:
                 output_target = target_data
 
             except Exception as exc:
-                raise type(exc)(
-                    "Model transform hook failed to transform dataset: {}".format(exc)
-                ).with_traceback(sys.exc_info()[2]) from None
+                self._log_and_raise_final_error(
+                    exc, "Model 'transform hook' failed to transform dataset."
+                )
             self._validate_data(output_data, CustomHooks.TRANSFORM)
             self._validate_transform_rows(output_data, data)
             if output_target is not None:
@@ -476,9 +485,9 @@ class PythonModelAdapter:
                 self._validate_transform_rows(output_data, data)
                 output_target = target_data
             except Exception as exc:
-                raise type(exc)(
-                    "Model transform hook failed to transform dataset: {}".format(exc)
-                ).with_traceback(sys.exc_info()[2]) from None
+                self._log_and_raise_final_error(
+                    exc, "Model 'transform' hook failed to transform dataset."
+                )
         else:
             output_data, output_target = self._transform_legacy_drum(
                 data, target_data, model, **kwargs
@@ -498,9 +507,7 @@ class PythonModelAdapter:
             self._validate_data(predictions_df, CustomHooks.SCORE)
             return predictions_df.values, predictions_df.columns
         except Exception as exc:
-            raise type(exc)(
-                "Model score hook failed to make predictions. Exception: {}".format(exc)
-            ).with_traceback(sys.exc_info()[2]) from None
+            self._log_and_raise_final_error(exc, "Model 'score' hook failed to make predictions.")
 
     def _predict_legacy_drum(self, data, model, **kwargs):
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
@@ -520,10 +527,9 @@ class PythonModelAdapter:
                 # noinspection PyCallingNonCallable
                 predictions_df = self._custom_hooks.get(CustomHooks.SCORE)(data, model, **kwargs)
             except Exception as exc:
-                self._logger.error(
-                    "Model score hook failed to make predictions. Exception: {}".format(exc)
+                self._log_and_raise_final_error(
+                    exc, "Model 'score' hook failed to make predictions."
                 )
-                raise
             self._validate_data(predictions_df, CustomHooks.SCORE)
             predictions = predictions_df.values
             model_labels = predictions_df.columns
@@ -531,9 +537,7 @@ class PythonModelAdapter:
             try:
                 predictions, model_labels = self._predictor_to_use.predict(data, model, **kwargs)
             except Exception as exc:
-                raise type(exc)("Failure when making predictions: {}".format(exc)).with_traceback(
-                    sys.exc_info()[2]
-                ) from None
+                self._log_and_raise_final_error(exc, "Failure when making predictions.")
 
         if self._custom_hooks.get(CustomHooks.POST_PROCESS):
             # This is probably not great, a user is likely to want unmarshalled predictions in the
@@ -548,9 +552,9 @@ class PythonModelAdapter:
                 # noinspection PyCallingNonCallable
                 predictions_df = self._custom_hooks[CustomHooks.POST_PROCESS](predictions, model)
             except Exception as exc:
-                raise type(exc)(
-                    "Model post-process hook failed to post-process predictions: {}".format(exc)
-                ).with_traceback(sys.exc_info()[2]) from None
+                self._log_and_raise_final_error(
+                    exc, "Model 'post_process' hook failed to post-process predictions."
+                )
             if not isinstance(predictions_df, pd.DataFrame):
                 raise ValueError(
                     f"Output of post_process hook must be a dataframe, not a {type(predictions_df)}"
