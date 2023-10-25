@@ -7,15 +7,20 @@
 #
 from argparse import Namespace
 from tempfile import NamedTemporaryFile
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 import pytest
 import pandas as pd
+import responses
 
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 
+
+@pytest.fixture
+def module_under_test():
+    return "datarobot_drum.drum.perf_testing"
 
 @pytest.fixture
 def target():
@@ -98,8 +103,22 @@ def cm_run_tests(mock_options, target_type, mock_read_structured_input_file_as_d
     return CMRunTests(mock_options, target_type)
 
 
-# TODO ERIC: actually run some tests here
+@pytest.fixture
+def mock_server_address():
+    return "https://gimme-the-stufffffff.com"
+
+
+@pytest.fixture
+def mock_drum_server_run_class(module_under_test, mock_server_address):
+    with patch(f"{module_under_test}.DrumServerRun") as mock_class:
+        instance = mock_class.return_value.__enter__.return_value
+        instance.url_server_address = mock_server_address
+        yield mock_class
+
+
+@pytest.mark.usefixtures("mock_drum_server_run_class")
 class TestTestPredictionSideEffects:
-    def test_thing(self, cm_run_tests):
-        # cm_run_tests.check_prediction_side_effects()
-        pass
+    @responses.activate
+    def test_calls_drum_server_run_correctly(self, cm_run_tests, mock_server_address):
+        responses.add(responses.POST, f"{mock_server_address}/predict/")
+        cm_run_tests.check_prediction_side_effects()
