@@ -520,9 +520,10 @@ class PythonModelAdapter:
                 # noinspection PyCallingNonCallable
                 predictions_df = self._custom_hooks.get(CustomHooks.SCORE)(data, model, **kwargs)
             except Exception as exc:
-                raise type(exc)(
+                self._logger.error(
                     "Model score hook failed to make predictions. Exception: {}".format(exc)
-                ).with_traceback(sys.exc_info()[2]) from None
+                )
+                raise
             self._validate_data(predictions_df, CustomHooks.SCORE)
             predictions = predictions_df.values
             model_labels = predictions_df.columns
