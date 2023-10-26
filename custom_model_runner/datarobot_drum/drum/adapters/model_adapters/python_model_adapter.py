@@ -52,7 +52,10 @@ from datarobot_drum.drum.exceptions import (
 )
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from datarobot_drum.drum.utils.drum_utils import DrumUtils
-from datarobot_drum.custom_task_interfaces.custom_task_interface import CustomTaskInterface
+from datarobot_drum.custom_task_interfaces.custom_task_interface import (
+    CustomTaskInterface,
+    secrets_injection_context,
+)
 
 RUNNING_LANG_MSG = "Running environment language: Python."
 
@@ -637,19 +640,26 @@ class PythonModelAdapter(AbstractModelAdapter):
         class_order: Optional[list] = None,
         row_weights: Optional[pd.Series] = None,
         parameters: Optional[dict] = None,
+        user_secrets_mount_path: Optional[str] = None,
+        user_secrets_prefix: Optional[str] = None,
     ) -> "AbstractModelAdapter":
         if self.is_custom_task_class:
             with reroute_stdout_to_stderr():
                 try:
                     self._custom_task_class_instance = self._custom_task_class()
-                    self._custom_task_class_instance.fit(
-                        X=X,
-                        y=y,
-                        output_dir=output_dir,
-                        class_order=class_order,
-                        row_weights=row_weights,
-                        parameters=parameters,
-                    )
+                    with secrets_injection_context(
+                        self._custom_task_class_instance,
+                        user_secrets_mount_path,
+                        user_secrets_prefix,
+                    ):
+                        self._custom_task_class_instance.fit(
+                            X=X,
+                            y=y,
+                            output_dir=output_dir,
+                            class_order=class_order,
+                            row_weights=row_weights,
+                            parameters=parameters,
+                        )
 
                     try:
                         self._custom_task_class_instance.save(self._model_dir)

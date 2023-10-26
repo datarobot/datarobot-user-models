@@ -35,6 +35,8 @@ class AbstractModelAdapter(ABC):
         class_order: Optional[list] = None,
         row_weights: Optional[pd.Series] = None,
         parameters: Optional[dict] = None,
+        user_secrets_mount_path: Optional[str] = None,
+        user_secrets_prefix: Optional[str] = None,
     ) -> "AbstractModelAdapter":
         """
         Trains a custom task.
@@ -53,5 +55,9 @@ class AbstractModelAdapter(ABC):
             Class weights
         parameters:
             Hyperparameter values
+        user_secrets_mount_path:
+            The directory where mounted secrets would be found
+        user_secrets_prefix:
+            The prefix for secret env vars
         """
         raise NotImplementedError()

@@ -288,6 +288,19 @@ class TestCMRunnerFit:
         pd.testing.assert_frame_equal(actual_x, expected_x)
         pd.testing.assert_series_equal(actual_y, expected_y)
 
+    def test_calls_model_adapter_fit_with_secrets(
+        self, runtime_factory, fit_args, mock_model_adapter_fit,
+    ):
+        mount_path = "/path/to/secrets"
+        prefix = "super-secret"
+        fit_args.extend(["--user-secrets-mount-path", mount_path, "--user-secrets-prefix", prefix])
+
+        runtime_factory(fit_args).run()
+
+        called_kwargs = mock_model_adapter_fit.call_args[1]
+        assert called_kwargs["user_secrets_mount_path"] == mount_path
+        assert called_kwargs["user_secrets_prefix"] == prefix
+
     def test_calls_run_test_predict(self, runtime_factory, fit_args, mock_run_test_predict):
         runtime_factory(fit_args).run()
         mock_run_test_predict.assert_called_once_with()
