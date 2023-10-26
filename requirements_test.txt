@@ -1,7 +1,7 @@
 datarobot==3.2.0
 datarobot-bp-workshop==0.2.6
 dr-usertool>=3
-docker>=4.2.2,<5.0.0
+docker==6.0.0
 pytest
 pytest-runner
 pytest-xdist
