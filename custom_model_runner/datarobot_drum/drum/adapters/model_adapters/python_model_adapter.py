@@ -210,9 +210,7 @@ class PythonModelAdapter(AbstractModelAdapter):
         return self._model
 
     def load_model_from_artifact(
-        self,
-        user_secrets_mount_path: Optional[str] = None,
-        user_secrets_prefix: Optional[str] = None,
+        self, user_secrets_mount_path: Optional[str], user_secrets_prefix: Optional[str],
     ):
         """
         Load the serialized model from its artifact.
