@@ -5,10 +5,12 @@
 #  This is proprietary source code of DataRobot, Inc. and its affiliates.
 #  Released under the terms of DataRobot Tool and Utility Agreement.
 #
+import json
 from argparse import Namespace
 from tempfile import NamedTemporaryFile
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
+import numpy as np
 import pytest
 import pandas as pd
 import responses
@@ -21,6 +23,7 @@ from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInpu
 @pytest.fixture
 def module_under_test():
     return "datarobot_drum.drum.perf_testing"
+
 
 @pytest.fixture
 def target():
@@ -100,7 +103,7 @@ def mock_read_structured_input_file_as_df():
 @pytest.fixture
 def cm_run_tests(mock_options, target_type, mock_read_structured_input_file_as_df):
     _ = mock_read_structured_input_file_as_df
-    return CMRunTests(mock_options, target_type)
+    return CMRunTests(mock_options, target_type, schema_validator=Mock())
 
 
 @pytest.fixture
@@ -116,9 +119,56 @@ def mock_drum_server_run_class(module_under_test, mock_server_address):
         yield mock_class
 
 
-@pytest.mark.usefixtures("mock_drum_server_run_class")
+@pytest.fixture
+def mock_np_isclose(module_under_test):
+    with patch(f"{module_under_test}.np.isclose") as mock_func:
+        mock_func.return_value = np.array([True, True])
+        yield mock_func
+
+
+@pytest.mark.usefixtures("mock_drum_server_run_class", "mock_np_isclose")
 class TestTestPredictionSideEffects:
+    @pytest.fixture
+    def predict_response(self, mock_server_address):
+        data = [[1, 2, 3]] * 100
+        responses.add(
+            responses.POST,
+            f"{mock_server_address}/predict/",
+            body=json.dumps({"predictions": data}),
+            content_type="application/json",
+        )
+        yield
+
     @responses.activate
-    def test_calls_drum_server_run_correctly(self, cm_run_tests, mock_server_address):
-        responses.add(responses.POST, f"{mock_server_address}/predict/")
+    @pytest.mark.usefixtures("predict_response")
+    def test_calls_drum_server_run_correctly_no_mount_path(
+        self, cm_run_tests, mock_drum_server_run_class, mock_options, target_type
+    ):
         cm_run_tests.check_prediction_side_effects()
+        labels = cm_run_tests.resolve_labels(target_type, mock_options)
+
+        mock_drum_server_run_class.assert_called_once_with(
+            target_type.value,
+            labels,
+            mock_options.code_dir,
+            verbose=mock_options.verbose,
+            user_secrets_mount_path=None,
+        )
+
+    @responses.activate
+    @pytest.mark.usefixtures("predict_response")
+    def test_calls_drum_server_run_correctly_with_mount_path(
+        self, cm_run_tests, mock_drum_server_run_class, mock_options, target_type
+    ):
+        mount_path = "/a/b/c/d/"
+        mock_options.user_secrets_mount_path = mount_path
+        cm_run_tests.check_prediction_side_effects()
+        labels = cm_run_tests.resolve_labels(target_type, mock_options)
+
+        mock_drum_server_run_class.assert_called_once_with(
+            target_type.value,
+            labels,
+            mock_options.code_dir,
+            verbose=mock_options.verbose,
+            user_secrets_mount_path=mount_path,
+        )
