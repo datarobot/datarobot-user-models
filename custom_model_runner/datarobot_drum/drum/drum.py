@@ -27,6 +27,7 @@ from typing import Union
 import docker.errors
 import pandas as pd
 from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
+from datarobot_drum.drum.adapters.model_adapters.abstract_model_adapter import AbstractModelAdapter
 from datarobot_drum.drum.adapters.model_adapters.r_model_adapter import RModelAdapter
 from datarobot_drum.drum.common import get_metadata, FIT_METADATA_FILENAME
 from datarobot_drum.drum.common import read_model_metadata_yaml
@@ -516,6 +517,7 @@ class CMRunner:
         """
         # TODO: Decouple check_artifacts_and_get_run_language from CLI, add it as part of validate in DrumCLIAdapter
         run_language = self._check_artifacts_and_get_run_language()
+        model_adapter: AbstractModelAdapter
 
         if run_language == RunLanguage.PYTHON:
             model_adapter = PythonModelAdapter(

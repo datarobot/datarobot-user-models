@@ -6,9 +6,11 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
 import os
+from typing import Optional
 
 import pandas as pd
 
+from datarobot_drum.drum.adapters.model_adapters.abstract_model_adapter import AbstractModelAdapter
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
 from datarobot_drum.drum.utils.drum_utils import make_sure_artifact_is_small
@@ -26,8 +28,7 @@ R_COMMON_PATH = os.path.abspath(
 )
 
 
-# TODO ERIC: have abc ModelAdapter
-class RModelAdapter(object):
+class RModelAdapter(AbstractModelAdapter):
     R = None
     R_RUNTIME = None
     R_PANDAS = None
@@ -113,29 +114,15 @@ class RModelAdapter(object):
         else:
             raise ValueError(f"Error converting python variable of type '{type(py_type)}' to R")
 
-    def fit(self, X, y, output_dir, class_order=None, row_weights=None, parameters=None):
-        """
-        Trains an R-based custom task.
-
-        Parameters
-        ----------
-        X: pd.DataFrame
-            Training data. Could be sparse or dense
-        y: pd.Series
-            Target values
-        output_dir: str
-            Output directory to store the artifact
-        class_order: list or None
-            Expected order of classification labels
-        row_weights: pd.Series or None
-            Class weights
-        parameters: dict or None
-            Hyperparameter values
-
-        Returns
-        -------
-        RModelAdapter
-        """
+    def fit(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        output_dir: str,
+        class_order: Optional[list] = None,
+        row_weights: Optional[pd.Series] = None,
+        parameters: Optional[dict] = None,
+    ) -> "AbstractModelAdapter":
         # make sure our output dir ends with a slash
         if output_dir[-1] != "/":
             output_dir += "/"

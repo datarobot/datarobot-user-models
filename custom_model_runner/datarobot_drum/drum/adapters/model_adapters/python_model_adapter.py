@@ -10,11 +10,13 @@ import sys
 import textwrap
 from inspect import signature
 from pathlib import Path
+from typing import Optional
 from typing import NoReturn
 
 import pandas as pd
 from scipy.sparse import issparse
 
+from datarobot_drum.drum.adapters.model_adapters.abstract_model_adapter import AbstractModelAdapter
 from datarobot_drum.drum.artifact_predictors.keras_predictor import KerasPredictor
 from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
 from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPredictor
@@ -59,7 +61,7 @@ class DrumPythonModelAdapterError(DrumException):
     """Raised in case of error in PythonModelAdapter"""
 
 
-class PythonModelAdapter:
+class PythonModelAdapter(AbstractModelAdapter):
     def __init__(self, model_dir, target_type=None):
         self._logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + self.__class__.__name__)
 
@@ -627,29 +629,15 @@ class PythonModelAdapter:
         PythonModelAdapter._validate_unstructured_predictions(predictions)
         return predictions
 
-    def fit(self, X, y, output_dir, class_order=None, row_weights=None, parameters=None):
-        """
-        Trains a Python-based custom task.
-
-        Parameters
-        ----------
-        X: pd.DataFrame
-            Training data. Could be sparse or dense
-        y: pd.Series
-            Target values
-        output_dir: str
-            Output directory to store the artifact
-        class_order: list or None
-            Expected order of classification labels
-        row_weights: pd.Series or None
-            Class weights
-        parameters: dict or None
-            Hyperparameter values
-
-        Returns
-        -------
-        PythonModelAdapter
-        """
+    def fit(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        output_dir: str,
+        class_order: Optional[list] = None,
+        row_weights: Optional[pd.Series] = None,
+        parameters: Optional[dict] = None,
+    ) -> "AbstractModelAdapter":
         if self.is_custom_task_class:
             with reroute_stdout_to_stderr():
                 try:
@@ -706,3 +694,4 @@ class PythonModelAdapter:
                             hooks,
                         )
                     )
+        return self
