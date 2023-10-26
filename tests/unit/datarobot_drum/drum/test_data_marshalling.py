@@ -17,7 +17,7 @@ from datarobot_drum.drum.data_marshalling import (
 )
 from datarobot_drum.drum.enum import TargetType, PRED_COLUMN
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.model_adapter import PythonModelAdapter
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 
 
 def test_marshal_labels():

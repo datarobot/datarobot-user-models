@@ -31,7 +31,7 @@ from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, RunLanguage
 from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
     PythonPredictor,
 )
-from datarobot_drum.drum.model_adapter import PythonModelAdapter
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.runtime import DrumRuntime
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 

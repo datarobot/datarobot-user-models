@@ -23,7 +23,7 @@ from datarobot_drum.drum.language_predictors.python_predictor.python_predictor i
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumSerializationError
 from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import JavaPredictor
-from datarobot_drum.drum.model_adapter import PythonModelAdapter
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 
 logger = logging.getLogger(__name__)
 

@@ -27,7 +27,7 @@ from typing import Union
 import docker.errors
 import pandas as pd
 from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
-from datarobot_drum.drum.adapters.r.r_model_adapter import RModelAdapter
+from datarobot_drum.drum.adapters.model_adapters.r_model_adapter import RModelAdapter
 from datarobot_drum.drum.common import get_metadata, FIT_METADATA_FILENAME
 from datarobot_drum.drum.common import read_model_metadata_yaml
 
@@ -49,7 +49,7 @@ from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.enum import TemplateType
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.exceptions import DrumPredException
-from datarobot_drum.drum.model_adapter import PythonModelAdapter
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.push import drum_push
 from datarobot_drum.drum.push import setup_validation_options
