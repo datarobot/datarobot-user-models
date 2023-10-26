@@ -637,11 +637,11 @@ class PythonModelAdapter(AbstractModelAdapter):
         X: pd.DataFrame,
         y: pd.Series,
         output_dir: str,
-        class_order: Optional[list] = None,
-        row_weights: Optional[pd.Series] = None,
-        parameters: Optional[dict] = None,
-        user_secrets_mount_path: Optional[str] = None,
-        user_secrets_prefix: Optional[str] = None,
+        class_order: Optional[list],
+        row_weights: Optional[pd.Series],
+        parameters: Optional[dict],
+        user_secrets_mount_path: Optional[str],
+        user_secrets_prefix: Optional[str],
     ) -> "AbstractModelAdapter":
         if self.is_custom_task_class:
             with reroute_stdout_to_stderr():
