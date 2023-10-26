@@ -55,6 +55,7 @@ from datarobot_drum.drum.utils.drum_utils import DrumUtils
 from datarobot_drum.custom_task_interfaces.custom_task_interface import (
     CustomTaskInterface,
     secrets_injection_context,
+    load_secrets,
 )
 
 RUNNING_LANG_MSG = "Running environment language: Python."
@@ -208,7 +209,11 @@ class PythonModelAdapter(AbstractModelAdapter):
 
         return self._model
 
-    def load_model_from_artifact(self):
+    def load_model_from_artifact(
+        self,
+        user_secrets_mount_path: Optional[str] = None,
+        user_secrets_prefix: Optional[str] = None,
+    ):
         """
         Load the serialized model from its artifact.
         Returns
@@ -221,6 +226,8 @@ class PythonModelAdapter(AbstractModelAdapter):
         """
         if self.is_custom_task_class:
             self._custom_task_class_instance = self._custom_task_class.load(self._model_dir)
+            secrets = load_secrets(user_secrets_mount_path, user_secrets_prefix)
+            self._custom_task_class_instance.secrets = secrets
             return self._custom_task_class_instance
 
         else:

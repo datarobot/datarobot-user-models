@@ -15,7 +15,6 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from datarobot_drum.custom_task_interfaces.custom_task_interface import secrets_injection_context
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 
 
@@ -26,6 +25,7 @@ class FakeCustomTask:
         self.save_secrets = Mock()
         self.fit_calls = []
         self.save_calls = []
+        self.load_args = []
 
     def fit(self, *args, **kwargs):
         self.fit_calls.append((args, kwargs))
@@ -34,6 +34,12 @@ class FakeCustomTask:
     def save(self, *args, **kwargs):
         self.save_calls.append((args, kwargs))
         self.save_secrets = self.secrets
+
+    @classmethod
+    def load(cls, *args, **kwargs):
+        instance = cls()
+        instance.load_args = (args, kwargs)
+        return instance
 
 
 @pytest.fixture
@@ -172,22 +178,35 @@ class TestFit:
         assert instance.fit_secrets == env_secret
         assert instance.save_secrets is None
 
-    def test_got_it_working(self, mounted_secrets_dir, secrets_prefix):
-        x = FakeCustomTask()
-        print("SECRETS")
-        with secrets_injection_context(x, None, None):
-            print(f"in None, None: {x.secrets}")
-        print(f"out: {x.secrets}")
-        with secrets_injection_context(x, mounted_secrets_dir, None):
-            print(f"in mount, None: {x.secrets}")
-        print(f"out: {x.secrets}")
-        with secrets_injection_context(x, None, secrets_prefix):
-            print(f"in None, prefix: {x.secrets}")
-        print(f"out: {x.secrets}")
-        with secrets_injection_context(x, mounted_secrets_dir, secrets_prefix):
-            print(f"in ALL: {x.secrets}")
-        print(f"out: {x.secrets}")
 
-
+@pytest.mark.usefixtures("secrets")
 class TestLoadModelFromArtifact:
-    pass
+    def test_load_with_no_secrets(self):
+        model_dir = Mock()
+        adapter = TestingPythonModelAdapter(model_dir, Mock())
+        assert adapter.custom_task_instance is None
+        adapter.load_model_from_artifact(
+            user_secrets_mount_path=None, user_secrets_prefix=None,
+        )
+        instance = adapter.custom_task_instance
+        assert instance.secrets == {}
+
+        assert instance.load_args == ((model_dir,), {})
+
+    def test_load_with_mount_secrets(self, mounted_secret, mounted_secrets_dir):
+        adapter = TestingPythonModelAdapter(Mock(), Mock())
+        assert adapter.custom_task_instance is None
+        adapter.load_model_from_artifact(
+            user_secrets_mount_path=mounted_secrets_dir, user_secrets_prefix=None,
+        )
+        instance = adapter.custom_task_instance
+        assert instance.secrets == mounted_secret
+
+    def test_load_with_env_secrets(self, env_secret, secrets_prefix):
+        adapter = TestingPythonModelAdapter(Mock(), Mock())
+        assert adapter.custom_task_instance is None
+        adapter.load_model_from_artifact(
+            user_secrets_mount_path=None, user_secrets_prefix=secrets_prefix,
+        )
+        instance = adapter.custom_task_instance
+        assert instance.secrets == env_secret
