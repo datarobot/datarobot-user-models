@@ -86,7 +86,7 @@ class PythonModelAdapter:
         self._custom_task_class_instance = None
 
     def _log_and_raise_final_error(self, exc: Exception, message: str) -> NoReturn:
-        self._logger.error(f"{message} Exception: {exc!r}")
+        self._logger.exception(f"{message} Exception: {exc!r}")
         raise DrumPythonModelAdapterError(f"{message} Exception: {exc!r}")
 
     @property
