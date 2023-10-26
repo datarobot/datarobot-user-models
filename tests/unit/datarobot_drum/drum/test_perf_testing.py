@@ -172,3 +172,55 @@ class TestTestPredictionSideEffects:
             verbose=mock_options.verbose,
             user_secrets_mount_path=mount_path,
         )
+
+
+@pytest.fixture
+def mock_read_x_data_from_response(module_under_test):
+    with patch(f"{module_under_test}.read_x_data_from_response") as mock_func:
+        yield mock_func
+
+
+@pytest.mark.usefixtures("mock_drum_server_run_class", "mock_read_x_data_from_response")
+class TestCheckTransformServer:
+    @pytest.fixture
+    def transform_response(self, mock_server_address):
+        responses.add(
+            responses.POST, f"{mock_server_address}/transform/", content_type="application/json",
+        )
+        yield
+
+    @responses.activate
+    @pytest.mark.usefixtures("transform_response")
+    def test_calls_drum_server_run_correctly_with_mount_path(
+        self, cm_run_tests, mock_drum_server_run_class, mock_options, target_type
+    ):
+        with NamedTemporaryFile() as temp_file:
+            cm_run_tests.check_transform_server(temp_file)
+        labels = cm_run_tests.resolve_labels(target_type, mock_options)
+
+        mock_drum_server_run_class.assert_called_once_with(
+            target_type.value,
+            labels,
+            mock_options.code_dir,
+            verbose=mock_options.verbose,
+            user_secrets_mount_path=None,
+        )
+
+    @responses.activate
+    @pytest.mark.usefixtures("transform_response")
+    def test_calls_drum_server_run_correctly_no_mount_path(
+        self, cm_run_tests, mock_drum_server_run_class, mock_options, target_type
+    ):
+        mount_path = "/a/b/c/d/"
+        mock_options.user_secrets_mount_path = mount_path
+        with NamedTemporaryFile() as temp_file:
+            cm_run_tests.check_transform_server(temp_file)
+        labels = cm_run_tests.resolve_labels(target_type, mock_options)
+
+        mock_drum_server_run_class.assert_called_once_with(
+            target_type.value,
+            labels,
+            mock_options.code_dir,
+            verbose=mock_options.verbose,
+            user_secrets_mount_path=mount_path,
+        )

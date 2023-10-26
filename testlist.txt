@@ -1,5 +1,5 @@
 - tests/unit/datarobot_drum/drum/test_drum.py: OK
-- tests/unit/datarobot_drum/drum/test_perf_testing.py: TODO
+- tests/unit/datarobot_drum/drum/test_perf_testing.py: OK
 - tests/unit/datarobot_drum/model_metadata/test_model_metadata.py: WTF???? - just that enum crap
 - tests/unit/datarobot_drum/resource/test_drum_server_utils.py: OK
 - tests/unit/datarobot_drum/drum/language_predictors/python_predictor/python_predictor.py: NOT STARTED
@@ -23,7 +23,7 @@ run_test_predict:
     TEST_DRUM: OK
         tests calls datarobot_drum.drum.perf_testing.CMRunTests correctly
 
-    TEST_PERF_TESTING: TODO
+    TEST_PERF_TESTING: OK
         datarobot_drum.drum.perf_testing.CMRunTests
         this is in options passed in on init.  we've tested that options get correctly passed.
 
