@@ -74,6 +74,21 @@ class AzureServicePrincipalSecret(SecretWithoutAnyConfig):
 
 
 @dataclass(frozen=True)
+class SnowflakeOauthUserAccountSecret(AbstractSecret):
+
+    client_id: Optional[str]
+    client_secret: Optional[str]
+    snowflake_account_name: Optional[str]
+    oauth_issuer_type: Optional[str] = None
+    oauth_issuer_url: Optional[str] = None
+    oauth_scopes: Optional[str] = None
+    oauth_config_id: Optional[str] = None
+
+    def is_partial_secret(self) -> bool:
+        return bool(self.oauth_config_id)
+
+
+@dataclass(frozen=True)
 class GCPKey:
     type: str
     project_id: Optional[str] = None
@@ -116,6 +131,7 @@ class SecretType(Enum):
     S3 = auto()
     AZURE = auto()
     AZURE_SERVICE_PRINCIPAL = auto()
+    SNOWFLAKE_OAUTH_USER_ACCOUNT = auto()
 
     @classmethod
     def from_string(cls, input_string: str) -> "SecretType":
@@ -129,6 +145,7 @@ class SecretType(Enum):
             self.S3: S3Secret,
             self.AZURE: AzureSecret,
             self.AZURE_SERVICE_PRINCIPAL: AzureServicePrincipalSecret,
+            self.SNOWFLAKE_OAUTH_USER_ACCOUNT: SnowflakeOauthUserAccountSecret,
         }
         return mapping[self]
 

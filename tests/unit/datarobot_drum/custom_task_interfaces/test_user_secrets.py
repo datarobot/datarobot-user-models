@@ -16,6 +16,7 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     S3Secret,
     AzureSecret,
     AzureServicePrincipalSecret,
+    SnowflakeOauthUserAccountSecret,
 )
 
 
@@ -204,3 +205,70 @@ class TestAzureServicePrincipalSecret:
             client_id="abc", client_secret="abc", azure_tenant_id="abc",
         )
         assert not secret.is_partial_secret()
+
+
+class TestSnowflakeOauthUserAccountSecret:
+    def test_minimal_data(self):
+        secret = dict(
+            credential_type="snowflake_oauth_user_account",
+            client_id="abc",
+            client_secret="abc",
+            snowflake_account_name="abc",
+        )
+        expected = SnowflakeOauthUserAccountSecret(
+            client_id="abc", client_secret="abc", snowflake_account_name="abc",
+        )
+        assert secrets_factory(secret) == expected
+
+    def test_full_data(self):
+        secret = dict(
+            credential_type="snowflake_oauth_user_account",
+            client_id="abc",
+            client_secret="abc",
+            snowflake_account_name="abc",
+            oauth_issuer_type="abc",
+            oauth_issuer_url="abc",
+            oauth_scopes="abc",
+            oauth_config_id="abc",
+        )
+        expected = SnowflakeOauthUserAccountSecret(
+            client_id="abc",
+            client_secret="abc",
+            snowflake_account_name="abc",
+            oauth_issuer_type="abc",
+            oauth_issuer_url="abc",
+            oauth_scopes="abc",
+            oauth_config_id="abc",
+        )
+        assert secrets_factory(secret) == expected
+
+    def test_extra_data(self):
+        secret = dict(
+            credential_type="snowflake_oauth_user_account",
+            client_id="abc",
+            client_secret="abc",
+            snowflake_account_name="abc",
+            ooops="x",
+        )
+        expected = SnowflakeOauthUserAccountSecret(
+            client_id="abc", client_secret="abc", snowflake_account_name="abc",
+        )
+        assert secrets_factory(secret) == expected
+
+    def test_is_partial_secret_false(self):
+        secret = SnowflakeOauthUserAccountSecret(
+            client_id="abc",
+            client_secret="abc",
+            snowflake_account_name="abc",
+            oauth_config_id=None,
+        )
+        assert not secret.is_partial_secret()
+
+    def test_is_partial_secret_true(self):
+        secret = SnowflakeOauthUserAccountSecret(
+            client_id="abc",
+            client_secret="abc",
+            snowflake_account_name="abc",
+            oauth_config_id="abc",
+        )
+        assert secret.is_partial_secret()
