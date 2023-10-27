@@ -5,7 +5,6 @@
 #  This is proprietary source code of DataRobot, Inc. and its affiliates.
 #  Released under the terms of DataRobot Tool and Utility Agreement.
 #
-import pytest
 
 from datarobot_drum.custom_task_interfaces.user_secrets import (
     GCPSecret,
@@ -18,6 +17,7 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     AzureServicePrincipalSecret,
     SnowflakeOauthUserAccountSecret,
     SnowflakeKeyPairUserAccountSecret,
+    AdlsGen2OauthSecret,
 )
 
 
@@ -142,7 +142,7 @@ class TestS3Secret:
         assert secrets_factory(secret) == expected
 
     def test_extra_data(self):
-        secret = {"credential_type": "s3", "oops": "x"}
+        secret = dict(credential_type="s3", oops="x",)
         expected = S3Secret()
         assert secrets_factory(secret) == expected
 
@@ -315,3 +315,30 @@ class TestSnowflakeKeyPairUserAccountSecret:
             username="abc", private_key_str="abc", config_id="abc",
         )
         assert secret.is_partial_secret()
+
+
+class TestAdlsGen2OauthSecret:
+    def test_data(self):
+        secret = dict(
+            credential_type="adls_gen2_oauth",
+            client_id="abc",
+            client_secret="abc",
+            oauth_scopes="abc",
+        )
+        expected = AdlsGen2OauthSecret(client_id="abc", client_secret="abc", oauth_scopes="abc",)
+        assert secrets_factory(secret) == expected
+
+    def test_extra_data(self):
+        secret = dict(
+            credential_type="adls_gen2_oauth",
+            client_id="abc",
+            client_secret="abc",
+            oauth_scopes="abc",
+            oops="x",
+        )
+        expected = AdlsGen2OauthSecret(client_id="abc", client_secret="abc", oauth_scopes="abc",)
+        assert secrets_factory(secret) == expected
+
+    def test_is_partial_secret_false(self):
+        secret = AdlsGen2OauthSecret(client_id="abc", client_secret="abc", oauth_scopes="abc",)
+        assert not secret.is_partial_secret()

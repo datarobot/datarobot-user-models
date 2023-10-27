@@ -85,6 +85,13 @@ class SnowflakeKeyPairUserAccountSecret(AbstractSecret):
 
 
 @dataclass(frozen=True)
+class AdlsGen2OauthSecret(AbstractSecret):
+    client_id: str
+    client_secret: str
+    oauth_scopes: str
+
+
+@dataclass(frozen=True)
 class GCPKey:
     type: str
     project_id: Optional[str] = None
@@ -125,6 +132,7 @@ class SecretType(Enum):
     AZURE_SERVICE_PRINCIPAL = auto()
     SNOWFLAKE_OAUTH_USER_ACCOUNT = auto()
     SNOWFLAKE_KEY_PAIR_USER_ACCOUNT = auto()
+    ADLS_GEN2_OAUTH = auto()
 
     @classmethod
     def from_string(cls, input_string: str) -> "SecretType":
@@ -140,6 +148,7 @@ class SecretType(Enum):
             self.AZURE_SERVICE_PRINCIPAL: AzureServicePrincipalSecret,
             self.SNOWFLAKE_OAUTH_USER_ACCOUNT: SnowflakeOauthUserAccountSecret,
             self.SNOWFLAKE_KEY_PAIR_USER_ACCOUNT: SnowflakeKeyPairUserAccountSecret,
+            self.ADLS_GEN2_OAUTH: AdlsGen2OauthSecret,
         }
         return mapping[self]
 
