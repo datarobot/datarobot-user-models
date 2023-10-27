@@ -7,8 +7,13 @@
 #
 import pytest
 
-from datarobot_drum.custom_task_interfaces.user_secrets import GCPSecret, secrets_factory, GCPKey, \
-    BasicSecret
+from datarobot_drum.custom_task_interfaces.user_secrets import (
+    GCPSecret,
+    secrets_factory,
+    GCPKey,
+    BasicSecret,
+    OauthSecret,
+)
 
 
 class TestGCPSecret:
@@ -30,13 +35,12 @@ class TestGCPSecret:
     def test_is_partial_secret_false(self):
         assert not GCPSecret(gcp_key=None).is_partial_secret()
 
-    @pytest.mark.parametrize("config_id, google_config_id", [
-        ("abc", None), (None, "abc"), ("abc", "def")
-    ])
+    @pytest.mark.parametrize(
+        "config_id, google_config_id", [("abc", None), (None, "abc"), ("abc", "def")]
+    )
     def test_is_partial_secret_true(self, config_id, google_config_id):
         gcp_secret = GCPSecret(gcp_key=None, google_config_id=google_config_id, config_id=config_id)
         assert gcp_secret.is_partial_secret()
-
 
     def test_extra_data(self):
         secret = {"credential_type": "gcp", "gcp_key": None, "ooops": "ac"}
@@ -81,14 +85,34 @@ class TestBasicSecret:
         assert secrets_factory(secret) == expected
 
     def test_full_data(self):
-        secret = {"credential_type": "basic", "username": "abc", "password": "def", "snowflake_account_name": "ghi"}
+        secret = {
+            "credential_type": "basic",
+            "username": "abc",
+            "password": "def",
+            "snowflake_account_name": "ghi",
+        }
         expected = BasicSecret(username="abc", password="def", snowflake_account_name="ghi")
         assert secrets_factory(secret) == expected
 
     def test_extra_data(self):
-        secret = {"credential_type": "basic", "username": "abc", "password": "def", "ooops":"x"}
+        secret = {"credential_type": "basic", "username": "abc", "password": "def", "ooops": "x"}
         expected = BasicSecret(username="abc", password="def")
         assert secrets_factory(secret) == expected
 
     def test_is_partial_secret(self):
         assert not BasicSecret(username="a", password="b").is_partial_secret()
+
+
+class TestOauthSecret:
+    def test_minimal_data(self):
+        secret = {"credential_type": "oauth", "token": "abc", "refresh_token": "def"}
+        expected = OauthSecret(token="abc", refresh_token="def")
+        assert secrets_factory(secret) == expected
+
+    def test_extra_data(self):
+        secret = {"credential_type": "oauth", "token": "abc", "refresh_token": "def", "ooops": "x"}
+        expected = OauthSecret(token="abc", refresh_token="def")
+        assert secrets_factory(secret) == expected
+
+    def test_is_partial_secret(self):
+        assert not OauthSecret(token="a", refresh_token="b").is_partial_secret()

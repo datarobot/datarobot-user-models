@@ -7,6 +7,7 @@
 #
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, fields, is_dataclass
+from enum import Enum, auto
 from typing import Optional, TypeVar, Type, Generic
 
 
@@ -17,7 +18,7 @@ def reduce_kwargs(input_dict, target_class):
     return {k: v for k, v in input_dict.items() if k in field_names}
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class AbstractSecret(Generic[T], ABC):
@@ -31,14 +32,22 @@ class AbstractSecret(Generic[T], ABC):
         return cls(**reduced)
 
 
+class SecretWithoutAnyConfig(AbstractSecret):
+    def is_partial_secret(self) -> bool:
+        return False
+
+
 @dataclass(frozen=True)
-class BasicSecret(AbstractSecret):
+class BasicSecret(SecretWithoutAnyConfig):
     username: str
     password: str
     snowflake_account_name: Optional[str] = None
 
-    def is_partial_secret(self) -> bool:
-        return False
+
+@dataclass(frozen=True)
+class OauthSecret(SecretWithoutAnyConfig):
+    token: str
+    refresh_token: str
 
 
 @dataclass(frozen=True)
@@ -77,7 +86,24 @@ class GCPSecret(AbstractSecret):
         return cls(**reduced_dict)
 
 
+class SecretType(Enum):
+    BASIC = auto()
+    OAUTH = auto()
+    GCP = auto()
+
+    @classmethod
+    def from_string(cls, input_string: str) -> "SecretType":
+        return getattr(cls, input_string.upper())
+
+    def get_secret_class(self) -> Type[AbstractSecret]:
+        mapping = {
+            self.BASIC: BasicSecret,
+            self.OAUTH: OauthSecret,
+            self.GCP: GCPSecret,
+        }
+        return mapping[self]
+
+
 def secrets_factory(input_dict: dict) -> AbstractSecret:
-    if input_dict["credential_type"] == "basic":
-        return BasicSecret.from_dict(input_dict)
-    return GCPSecret.from_dict(input_dict)
+    secret_type = SecretType.from_string(input_dict["credential_type"])
+    return secret_type.get_secret_class().from_dict(input_dict)
