@@ -21,6 +21,7 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     TableauAccessTokenSecret,
     DatabricksAccessTokenAccountSecret,
     ApiTokenSecret,
+    UnknownSecret,
 )
 
 
@@ -406,3 +407,13 @@ class TestApiTokenSecret:
     def test_is_partial_secret_false(self):
         secret = ApiTokenSecret(api_token="abc",)
         assert not secret.is_partial_secret()
+
+
+class TestUnknownSecret:
+    def test_data(self):
+        secret = {"credential_type": "wuuuut", "field": "huh??", "other": "geez!"}
+        expected = UnknownSecret(input_dict=secret)
+        assert secrets_factory(secret) == expected
+
+    def test_is_partial_secret_false(self):
+        assert not UnknownSecret(input_dict={"a": "b"}).is_partial_secret()

@@ -139,6 +139,15 @@ class GCPSecret(AbstractSecret):
         return cls(**reduced_dict)
 
 
+@dataclass
+class UnknownSecret(AbstractSecret):
+    input_dict: dict
+
+    @classmethod
+    def from_dict(cls, input_dict) -> "UnknownSecret":
+        return UnknownSecret(input_dict)
+
+
 class SecretType(Enum):
     BASIC = auto()
     OAUTH = auto()
@@ -152,10 +161,11 @@ class SecretType(Enum):
     TABLEAU_ACCESS_TOKEN = auto()
     DATABRICKS_ACCESS_TOKEN_ACCOUNT = auto()
     API_TOKEN = auto()
+    UNKNOWN = auto()
 
     @classmethod
     def from_string(cls, input_string: str) -> "SecretType":
-        return getattr(cls, input_string.upper())
+        return getattr(cls, input_string.upper(), cls.UNKNOWN)
 
     def get_secret_class(self) -> Type[AbstractSecret]:
         mapping = {
@@ -171,6 +181,7 @@ class SecretType(Enum):
             self.TABLEAU_ACCESS_TOKEN: TableauAccessTokenSecret,
             self.DATABRICKS_ACCESS_TOKEN_ACCOUNT: DatabricksAccessTokenAccountSecret,
             self.API_TOKEN: ApiTokenSecret,
+            self.UNKNOWN: UnknownSecret,
         }
         return mapping[self]
 
