@@ -12,7 +12,9 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     secrets_factory,
     GCPKey,
     BasicSecret,
-    OauthSecret, S3Secret,
+    OauthSecret,
+    S3Secret,
+    AzureSecret,
 )
 
 
@@ -116,27 +118,27 @@ class TestOauthSecret:
 
     def test_is_partial_secret(self):
         assert not OauthSecret(token="a", refresh_token="b").is_partial_secret()
+
+
 class TestS3Secret:
     def test_minimal_data(self):
-        secret = dict(
-            credential_type="s3",
-        )
+        secret = dict(credential_type="s3",)
         expected = S3Secret()
         assert secrets_factory(secret) == expected
 
     def test_full_data(self):
         secret = dict(
             credential_type="s3",
-            aws_access_key_id ="abc",
-            aws_secret_access_key ="abc",
-            aws_session_token ="abc",
-            config_id ="abc",
+            aws_access_key_id="abc",
+            aws_secret_access_key="abc",
+            aws_session_token="abc",
+            config_id="abc",
         )
         expected = S3Secret(
-            aws_access_key_id ="abc",
-            aws_secret_access_key ="abc",
-            aws_session_token ="abc",
-            config_id ="abc",
+            aws_access_key_id="abc",
+            aws_secret_access_key="abc",
+            aws_session_token="abc",
+            config_id="abc",
         )
         assert secrets_factory(secret) == expected
 
@@ -152,3 +154,19 @@ class TestS3Secret:
         assert S3Secret(config_id="abc").is_partial_secret()
 
 
+class TestAzureSecret:
+    def test_minimal_data(self):
+        secret = {
+            "credential_type": "azure",
+            "azure_connection_string": "abc",
+        }
+        expected = AzureSecret(azure_connection_string="abc")
+        assert secrets_factory(secret) == expected
+
+    def test_extra_data(self):
+        secret = {"credential_type": "azure", "azure_connection_string": "abc", "ooops": "x"}
+        expected = AzureSecret(azure_connection_string="abc")
+        assert secrets_factory(secret) == expected
+
+    def test_is_partial_secret(self):
+        assert not AzureSecret(azure_connection_string="a").is_partial_secret()

@@ -62,6 +62,11 @@ class S3Secret(AbstractSecret):
 
 
 @dataclass(frozen=True)
+class AzureSecret(SecretWithoutAnyConfig):
+    azure_connection_string: str
+
+
+@dataclass(frozen=True)
 class GCPKey:
     type: str
     project_id: Optional[str] = None
@@ -102,6 +107,8 @@ class SecretType(Enum):
     OAUTH = auto()
     GCP = auto()
     S3 = auto()
+    AZURE = auto()
+    AZURE_SERVICE_PRINCIPAL = auto()
 
     @classmethod
     def from_string(cls, input_string: str) -> "SecretType":
@@ -113,6 +120,7 @@ class SecretType(Enum):
             self.OAUTH: OauthSecret,
             self.GCP: GCPSecret,
             self.S3: S3Secret,
+            self.AZURE: AzureSecret,
         }
         return mapping[self]
 
