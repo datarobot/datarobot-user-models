@@ -98,6 +98,11 @@ class TableauAccessTokenSecret(AbstractSecret):
 
 
 @dataclass(frozen=True)
+class DatabricksAccessTokenAccountSecret(AbstractSecret):
+    databricks_access_token: str
+
+
+@dataclass(frozen=True)
 class GCPKey:
     type: str
     project_id: Optional[str] = None
@@ -140,6 +145,7 @@ class SecretType(Enum):
     SNOWFLAKE_KEY_PAIR_USER_ACCOUNT = auto()
     ADLS_GEN2_OAUTH = auto()
     TABLEAU_ACCESS_TOKEN = auto()
+    DATABRICKS_ACCESS_TOKEN_ACCOUNT = auto()
 
     @classmethod
     def from_string(cls, input_string: str) -> "SecretType":
@@ -157,6 +163,7 @@ class SecretType(Enum):
             self.SNOWFLAKE_KEY_PAIR_USER_ACCOUNT: SnowflakeKeyPairUserAccountSecret,
             self.ADLS_GEN2_OAUTH: AdlsGen2OauthSecret,
             self.TABLEAU_ACCESS_TOKEN: TableauAccessTokenSecret,
+            self.DATABRICKS_ACCESS_TOKEN_ACCOUNT: DatabricksAccessTokenAccountSecret,
         }
         return mapping[self]
 
