@@ -18,6 +18,7 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     SnowflakeOauthUserAccountSecret,
     SnowflakeKeyPairUserAccountSecret,
     AdlsGen2OauthSecret,
+    TableauAccessTokenSecret,
 )
 
 
@@ -341,4 +342,27 @@ class TestAdlsGen2OauthSecret:
 
     def test_is_partial_secret_false(self):
         secret = AdlsGen2OauthSecret(client_id="abc", client_secret="abc", oauth_scopes="abc",)
+        assert not secret.is_partial_secret()
+
+
+class TestTableauAccessTokenSecret:
+    def test_data(self):
+        secret = dict(
+            credential_type="tableau_access_token", token_name="abc", personal_access_token="abc",
+        )
+        expected = TableauAccessTokenSecret(token_name="abc", personal_access_token="abc",)
+        assert secrets_factory(secret) == expected
+
+    def test_extra_data(self):
+        secret = dict(
+            credential_type="tableau_access_token",
+            token_name="abc",
+            personal_access_token="abc",
+            oops="x",
+        )
+        expected = TableauAccessTokenSecret(token_name="abc", personal_access_token="abc",)
+        assert secrets_factory(secret) == expected
+
+    def test_is_partial_secret_false(self):
+        secret = TableauAccessTokenSecret(token_name="abc", personal_access_token="abc",)
         assert not secret.is_partial_secret()
