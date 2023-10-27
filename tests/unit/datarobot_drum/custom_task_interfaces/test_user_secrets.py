@@ -5,6 +5,7 @@
 #  This is proprietary source code of DataRobot, Inc. and its affiliates.
 #  Released under the terms of DataRobot Tool and Utility Agreement.
 #
+import pytest
 
 from datarobot_drum.custom_task_interfaces.user_secrets import (
     GCPSecret,
@@ -21,7 +22,7 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     TableauAccessTokenSecret,
     DatabricksAccessTokenAccountSecret,
     ApiTokenSecret,
-    UnknownSecret,
+    UnsupportedSecretError,
 )
 
 
@@ -409,11 +410,7 @@ class TestApiTokenSecret:
         assert not secret.is_partial_secret()
 
 
-class TestUnknownSecret:
-    def test_data(self):
-        secret = {"credential_type": "wuuuut", "field": "huh??", "other": "geez!"}
-        expected = UnknownSecret(input_dict=secret)
-        assert secrets_factory(secret) == expected
-
-    def test_is_partial_secret_false(self):
-        assert not UnknownSecret(input_dict={"a": "b"}).is_partial_secret()
+def test_unsupported_secret_type():
+    bad_type = "wuuuuuuuut"
+    with pytest.raises(UnsupportedSecretError, match=f"type: {bad_type!r}"):
+        secrets_factory({"credential_type": bad_type})
