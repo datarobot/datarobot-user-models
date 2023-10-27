@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### [1.10.11] - in progress
 ##### Changed
 - Update error messages
+- Clean up exceptions handling in model_adapter
 
 #### [1.10.10] - 2023-08-14
 ##### Changed
