@@ -12,7 +12,7 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     secrets_factory,
     GCPKey,
     BasicSecret,
-    OauthSecret,
+    OauthSecret, S3Secret,
 )
 
 
@@ -116,3 +116,39 @@ class TestOauthSecret:
 
     def test_is_partial_secret(self):
         assert not OauthSecret(token="a", refresh_token="b").is_partial_secret()
+class TestS3Secret:
+    def test_minimal_data(self):
+        secret = dict(
+            credential_type="s3",
+        )
+        expected = S3Secret()
+        assert secrets_factory(secret) == expected
+
+    def test_full_data(self):
+        secret = dict(
+            credential_type="s3",
+            aws_access_key_id ="abc",
+            aws_secret_access_key ="abc",
+            aws_session_token ="abc",
+            config_id ="abc",
+        )
+        expected = S3Secret(
+            aws_access_key_id ="abc",
+            aws_secret_access_key ="abc",
+            aws_session_token ="abc",
+            config_id ="abc",
+        )
+        assert secrets_factory(secret) == expected
+
+    def test_extra_data(self):
+        secret = {"credential_type": "s3", "oops": "x"}
+        expected = S3Secret()
+        assert secrets_factory(secret) == expected
+
+    def test_is_partial_secret_false(self):
+        assert not S3Secret(config_id=None).is_partial_secret()
+
+    def test_is_partial_secret_true(self):
+        assert S3Secret(config_id="abc").is_partial_secret()
+
+

@@ -51,6 +51,17 @@ class OauthSecret(SecretWithoutAnyConfig):
 
 
 @dataclass(frozen=True)
+class S3Secret(AbstractSecret):
+    aws_access_key_id: Optional[str] = None
+    aws_secret_access_key: Optional[str] = None
+    aws_session_token: Optional[str] = None
+    config_id: Optional[str] = None
+
+    def is_partial_secret(self) -> bool:
+        return bool(self.config_id)
+
+
+@dataclass(frozen=True)
 class GCPKey:
     type: str
     project_id: Optional[str] = None
@@ -90,6 +101,7 @@ class SecretType(Enum):
     BASIC = auto()
     OAUTH = auto()
     GCP = auto()
+    S3 = auto()
 
     @classmethod
     def from_string(cls, input_string: str) -> "SecretType":
@@ -100,6 +112,7 @@ class SecretType(Enum):
             self.BASIC: BasicSecret,
             self.OAUTH: OauthSecret,
             self.GCP: GCPSecret,
+            self.S3: S3Secret,
         }
         return mapping[self]
 
