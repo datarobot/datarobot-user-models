@@ -5,7 +5,6 @@
 #  This is proprietary source code of DataRobot, Inc. and its affiliates.
 #  Released under the terms of DataRobot Tool and Utility Agreement.
 #
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, fields, is_dataclass
 from enum import Enum, auto
 from typing import Optional, TypeVar, Type, Generic
@@ -21,10 +20,10 @@ def reduce_kwargs(input_dict, target_class):
 T = TypeVar("T")
 
 
-class AbstractSecret(Generic[T], ABC):
-    @abstractmethod
+class AbstractSecret(Generic[T]):
     def is_partial_secret(self) -> bool:
-        raise NotImplementedError()
+        config_keys = {"config_id", "oauth_config_id"}
+        return any(getattr(self, key, None) for key in config_keys)
 
     @classmethod
     def from_dict(cls: Type[T], input_dict) -> T:
@@ -32,20 +31,15 @@ class AbstractSecret(Generic[T], ABC):
         return cls(**reduced)
 
 
-class SecretWithoutAnyConfig(AbstractSecret):
-    def is_partial_secret(self) -> bool:
-        return False
-
-
 @dataclass(frozen=True)
-class BasicSecret(SecretWithoutAnyConfig):
+class BasicSecret(AbstractSecret):
     username: str
     password: str
     snowflake_account_name: Optional[str] = None
 
 
 @dataclass(frozen=True)
-class OauthSecret(SecretWithoutAnyConfig):
+class OauthSecret(AbstractSecret):
     token: str
     refresh_token: str
 
@@ -57,17 +51,14 @@ class S3Secret(AbstractSecret):
     aws_session_token: Optional[str] = None
     config_id: Optional[str] = None
 
-    def is_partial_secret(self) -> bool:
-        return bool(self.config_id)
-
 
 @dataclass(frozen=True)
-class AzureSecret(SecretWithoutAnyConfig):
+class AzureSecret(AbstractSecret):
     azure_connection_string: str
 
 
 @dataclass(frozen=True)
-class AzureServicePrincipalSecret(SecretWithoutAnyConfig):
+class AzureServicePrincipalSecret(AbstractSecret):
     client_id: str
     client_secret: str
     azure_tenant_id: str
@@ -84,8 +75,13 @@ class SnowflakeOauthUserAccountSecret(AbstractSecret):
     oauth_scopes: Optional[str] = None
     oauth_config_id: Optional[str] = None
 
-    def is_partial_secret(self) -> bool:
-        return bool(self.oauth_config_id)
+
+@dataclass(frozen=True)
+class SnowflakeKeyPairUserAccountSecret(AbstractSecret):
+    username: Optional[str]
+    private_key_str: Optional[str]
+    passphrase: Optional[str] = None
+    config_id: Optional[str] = None
 
 
 @dataclass(frozen=True)
@@ -109,11 +105,7 @@ class GCPKey:
 @dataclass(frozen=True)
 class GCPSecret(AbstractSecret):
     gcp_key: Optional[GCPKey] = None
-    google_config_id: Optional[str] = None
     config_id: Optional[str] = None
-
-    def is_partial_secret(self) -> bool:
-        return bool(self.config_id or self.google_config_id)
 
     @classmethod
     def from_dict(cls, input_dict):
@@ -132,6 +124,7 @@ class SecretType(Enum):
     AZURE = auto()
     AZURE_SERVICE_PRINCIPAL = auto()
     SNOWFLAKE_OAUTH_USER_ACCOUNT = auto()
+    SNOWFLAKE_KEY_PAIR_USER_ACCOUNT = auto()
 
     @classmethod
     def from_string(cls, input_string: str) -> "SecretType":
@@ -146,6 +139,7 @@ class SecretType(Enum):
             self.AZURE: AzureSecret,
             self.AZURE_SERVICE_PRINCIPAL: AzureServicePrincipalSecret,
             self.SNOWFLAKE_OAUTH_USER_ACCOUNT: SnowflakeOauthUserAccountSecret,
+            self.SNOWFLAKE_KEY_PAIR_USER_ACCOUNT: SnowflakeKeyPairUserAccountSecret,
         }
         return mapping[self]
 
