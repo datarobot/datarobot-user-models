@@ -67,6 +67,13 @@ class AzureSecret(SecretWithoutAnyConfig):
 
 
 @dataclass(frozen=True)
+class AzureServicePrincipalSecret(SecretWithoutAnyConfig):
+    client_id: str
+    client_secret: str
+    azure_tenant_id: str
+
+
+@dataclass(frozen=True)
 class GCPKey:
     type: str
     project_id: Optional[str] = None
@@ -121,6 +128,7 @@ class SecretType(Enum):
             self.GCP: GCPSecret,
             self.S3: S3Secret,
             self.AZURE: AzureSecret,
+            self.AZURE_SERVICE_PRINCIPAL: AzureServicePrincipalSecret,
         }
         return mapping[self]
 

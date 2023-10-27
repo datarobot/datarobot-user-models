@@ -15,6 +15,7 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     OauthSecret,
     S3Secret,
     AzureSecret,
+    AzureServicePrincipalSecret,
 )
 
 
@@ -170,3 +171,36 @@ class TestAzureSecret:
 
     def test_is_partial_secret(self):
         assert not AzureSecret(azure_connection_string="a").is_partial_secret()
+
+
+class TestAzureServicePrincipalSecret:
+    def test_minimal_data(self):
+        secret = {
+            "credential_type": "azure_service_principal",
+            "client_id": "abc",
+            "client_secret": "abc",
+            "azure_tenant_id": "abc",
+        }
+        expected = AzureServicePrincipalSecret(
+            client_id="abc", client_secret="abc", azure_tenant_id="abc",
+        )
+        assert secrets_factory(secret) == expected
+
+    def test_extra_data(self):
+        secret = {
+            "credential_type": "azure_service_principal",
+            "client_id": "abc",
+            "client_secret": "abc",
+            "azure_tenant_id": "abc",
+            "oops": "abc",
+        }
+        expected = AzureServicePrincipalSecret(
+            client_id="abc", client_secret="abc", azure_tenant_id="abc",
+        )
+        assert secrets_factory(secret) == expected
+
+    def test_is_partial_secret(self):
+        secret = AzureServicePrincipalSecret(
+            client_id="abc", client_secret="abc", azure_tenant_id="abc",
+        )
+        assert not secret.is_partial_secret()
