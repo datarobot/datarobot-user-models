@@ -7,7 +7,7 @@
 #
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, fields, is_dataclass
-from typing import Optional
+from typing import Optional, TypeVar, Type, Generic
 
 
 def reduce_kwargs(input_dict, target_class):
@@ -17,10 +17,28 @@ def reduce_kwargs(input_dict, target_class):
     return {k: v for k, v in input_dict.items() if k in field_names}
 
 
-class AbstractSecret(ABC):
+T = TypeVar('T')
+
+
+class AbstractSecret(Generic[T], ABC):
     @abstractmethod
     def is_partial_secret(self) -> bool:
         raise NotImplementedError()
+
+    @classmethod
+    def from_dict(cls: Type[T], input_dict) -> T:
+        reduced = reduce_kwargs(input_dict, cls)
+        return cls(**reduced)
+
+
+@dataclass(frozen=True)
+class BasicSecret(AbstractSecret):
+    username: str
+    password: str
+    snowflake_account_name: Optional[str] = None
+
+    def is_partial_secret(self) -> bool:
+        return False
 
 
 @dataclass(frozen=True)
@@ -48,7 +66,7 @@ class GCPSecret(AbstractSecret):
     config_id: Optional[str] = None
 
     def is_partial_secret(self) -> bool:
-        return bool(self.config_id) or bool(self.google_config_id)
+        return bool(self.config_id or self.google_config_id)
 
     @classmethod
     def from_dict(cls, input_dict):
@@ -60,4 +78,6 @@ class GCPSecret(AbstractSecret):
 
 
 def secrets_factory(input_dict: dict) -> AbstractSecret:
+    if input_dict["credential_type"] == "basic":
+        return BasicSecret.from_dict(input_dict)
     return GCPSecret.from_dict(input_dict)
