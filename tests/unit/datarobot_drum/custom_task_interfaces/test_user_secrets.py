@@ -20,6 +20,7 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     AdlsGen2OauthSecret,
     TableauAccessTokenSecret,
     DatabricksAccessTokenAccountSecret,
+    ApiTokenSecret,
 )
 
 
@@ -388,4 +389,20 @@ class TestDatabricksAccessTokenAccountSecret:
 
     def test_is_partial_secret_false(self):
         secret = DatabricksAccessTokenAccountSecret(databricks_access_token="abc",)
+        assert not secret.is_partial_secret()
+
+
+class TestApiTokenSecret:
+    def test_data(self):
+        secret = dict(credential_type="api_token", api_token="abc",)
+        expected = ApiTokenSecret(api_token="abc",)
+        assert secrets_factory(secret) == expected
+
+    def test_extra_data(self):
+        secret = dict(credential_type="api_token", api_token="abc", oops="x",)
+        expected = ApiTokenSecret(api_token="abc",)
+        assert secrets_factory(secret) == expected
+
+    def test_is_partial_secret_false(self):
+        secret = ApiTokenSecret(api_token="abc",)
         assert not secret.is_partial_secret()
