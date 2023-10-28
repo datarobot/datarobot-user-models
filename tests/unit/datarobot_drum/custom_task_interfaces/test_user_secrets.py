@@ -410,7 +410,8 @@ class TestApiTokenSecret:
         assert not secret.is_partial_secret()
 
 
-def test_unsupported_secret_type():
-    bad_type = "wuuuuuuuut"
-    with pytest.raises(UnsupportedSecretError, match=f"type: {bad_type!r}"):
-        secrets_factory({"credential_type": bad_type})
+class TestUnsupportedSecret:
+    def test_unsupported_secret_type(self):
+        bad_type = "wuuuuuuuut"
+        with pytest.raises(UnsupportedSecretError, match=f"type: {bad_type!r}"):
+            secrets_factory({"credential_type": bad_type})

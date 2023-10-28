@@ -5,42 +5,12 @@
 #  This is proprietary source code of DataRobot, Inc. and its affiliates.
 #  Released under the terms of DataRobot Tool and Utility Agreement.
 #
-import contextlib
-import json
-import os
-from pathlib import Path
-from tempfile import TemporaryDirectory
-from typing import Dict
-from unittest.mock import patch
-
-import pytest
 
 from datarobot_drum.custom_task_interfaces.custom_task_interface import (
     CustomTaskInterface,
     secrets_injection_context,
 )
-
-
-@pytest.fixture
-def mounted_secrets_factory():
-    with TemporaryDirectory(suffix="-secrets") as dir_name:
-
-        def inner(secrets_dict: Dict[str, dict]):
-            top_dir = Path(dir_name)
-            for k, v in secrets_dict.items():
-                target = top_dir / k
-                with target.open("w") as fp:
-                    json.dump(v, fp)
-            return dir_name
-
-        yield inner
-
-
-@contextlib.contextmanager
-def patch_env(prefix, secrets_dict):
-    env_dict = {f"{prefix}_{key}": json.dumps(value) for key, value in secrets_dict.items()}
-    with patch.dict(os.environ, env_dict):
-        yield
+from datarobot_drum.custom_task_interfaces.user_secrets import BasicSecret
 
 
 class TestSecretsInjectionContext:
@@ -68,24 +38,36 @@ class TestSecretsInjectionContext:
         }
         secrets_dir = mounted_secrets_factory(secrets)
         interface = CustomTaskInterface()
+
+        expected_secrets = {
+            "ONE": BasicSecret(username="1", password="y"),
+            "TWO": BasicSecret(username="2", password="z"),
+        }
+
         with secrets_injection_context(interface, secrets_dir, None):
-            assert interface.secrets == secrets
+            assert interface.secrets == expected_secrets
         assert not interface.secrets
 
-    def test_secrets_with_env_vars(self):
+    def test_secrets_with_env_vars(self, env_patcher):
         secrets = {
             "ONE": {"credential_type": "basic", "username": "1", "password": "y"},
             "TWO": {"credential_type": "basic", "username": "2", "password": "z"},
         }
         prefix = "MY_SUPER_PREFIX"
-
         interface = CustomTaskInterface()
-        with patch_env(prefix, secrets):
+
+        expected_secrets = {
+            "ONE": BasicSecret(username="1", password="y"),
+            "TWO": BasicSecret(username="2", password="z"),
+        }
+        with env_patcher(prefix, secrets):
             with secrets_injection_context(interface, None, prefix):
-                assert interface.secrets == secrets
+                assert interface.secrets == expected_secrets
         assert not interface.secrets
 
-    def test_secrets_with_mounted_secrets_supersede_env_secrets(self, mounted_secrets_factory):
+    def test_secrets_with_mounted_secrets_supersede_env_secrets(
+        self, mounted_secrets_factory, env_patcher
+    ):
         mounted_secrets = {
             "ONE": {"credential_type": "basic", "username": "1", "password": "y"},
             "TWO": {"credential_type": "basic", "username": "2", "password": "z"},
@@ -98,9 +80,12 @@ class TestSecretsInjectionContext:
         secrets_dir = mounted_secrets_factory(mounted_secrets)
         interface = CustomTaskInterface()
 
-        expected = mounted_secrets.copy()
-        expected["THREE"] = env_secrets["THREE"]
-        with patch_env(prefix, env_secrets):
+        expected_secrets = {
+            "ONE": BasicSecret(username="1", password="y"),
+            "TWO": BasicSecret(username="2", password="z"),
+            "THREE": BasicSecret(username="3", password="A"),
+        }
+        with env_patcher(prefix, env_secrets):
             with secrets_injection_context(interface, secrets_dir, prefix):
-                assert interface.secrets == expected
+                assert interface.secrets == expected_secrets
         assert not interface.secrets

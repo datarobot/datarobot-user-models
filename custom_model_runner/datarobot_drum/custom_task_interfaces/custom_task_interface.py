@@ -13,6 +13,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Optional, Dict, Any
 
+from datarobot_drum.custom_task_interfaces.user_secrets import secrets_factory
 from datarobot_drum.drum.exceptions import DrumSerializationError
 
 
@@ -175,7 +176,9 @@ class CustomTaskInterface(Serializable):
 def secrets_injection_context(
     interface: CustomTaskInterface, mount_path: Optional[str], env_var_prefix: Optional[str]
 ):
-    interface.secrets = load_secrets(mount_path=mount_path, env_var_prefix=env_var_prefix)
+    secrets = load_secrets(mount_path=mount_path, env_var_prefix=env_var_prefix)
+    secrets = {k: secrets_factory(v) for k, v in secrets.items()}
+    interface.secrets = secrets
     try:
         yield
     finally:

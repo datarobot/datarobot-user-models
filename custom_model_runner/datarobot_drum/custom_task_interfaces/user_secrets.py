@@ -183,5 +183,12 @@ class UnsupportedSecretError(Exception):
 
 
 def secrets_factory(input_dict: dict) -> AbstractSecret:
+    """
+    Casts all secrets to AbstractSecret
+
+    Raises
+    ------
+    UnsupportedSecretError
+    """
     secret_type = SecretType.from_string(input_dict["credential_type"])
     return secret_type.get_secret_class().from_dict(input_dict)
