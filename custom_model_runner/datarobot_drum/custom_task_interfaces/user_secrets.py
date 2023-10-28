@@ -69,7 +69,6 @@ class AzureServicePrincipalSecret(AbstractSecret):
 
 @dataclass(frozen=True)
 class SnowflakeOauthUserAccountSecret(AbstractSecret):
-
     client_id: Optional[str]
     client_secret: Optional[str]
     snowflake_account_name: Optional[str]
@@ -200,7 +199,6 @@ def secrets_factory(input_dict: dict) -> AbstractSecret:
 def load_secrets(
     mount_path: Optional[str], env_var_prefix: Optional[str]
 ) -> Dict[str, AbstractSecret]:
-    """Loads secrets from a secrets mount or env vars"""
     all_secrets = {}
     env_secrets = _get_environment_secrets(env_var_prefix)
     mounted_secrets = _get_mounted_secrets(mount_path)
