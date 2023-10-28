@@ -5,9 +5,12 @@
 #  This is proprietary source code of DataRobot, Inc. and its affiliates.
 #  Released under the terms of DataRobot Tool and Utility Agreement.
 #
+import json
+import os
 from dataclasses import dataclass, fields, is_dataclass
 from enum import Enum, auto
-from typing import Optional, TypeVar, Type, Generic
+from pathlib import Path
+from typing import Optional, TypeVar, Type, Generic, Dict
 
 
 def reduce_kwargs(input_dict, target_class):
@@ -192,3 +195,38 @@ def secrets_factory(input_dict: dict) -> AbstractSecret:
     """
     secret_type = SecretType.from_string(input_dict["credential_type"])
     return secret_type.get_secret_class().from_dict(input_dict)
+
+
+def load_secrets(
+    mount_path: Optional[str], env_var_prefix: Optional[str]
+) -> Dict[str, AbstractSecret]:
+    """Loads secrets from a secrets mount or env vars"""
+    all_secrets = {}
+    env_secrets = _get_environment_secrets(env_var_prefix)
+    mounted_secrets = _get_mounted_secrets(mount_path)
+    all_secrets.update(env_secrets)
+    all_secrets.update(mounted_secrets)
+    return {k: secrets_factory(v) for k, v in all_secrets.items()}
+
+
+def _get_environment_secrets(env_var_prefix):
+    if not env_var_prefix:
+        return {}
+
+    full_prefix = f"{env_var_prefix}_"
+    actual_secrets = [(k, v) for k, v in os.environ.items() if k.startswith(full_prefix)]
+
+    return {key.replace(full_prefix, ""): json.loads(value) for key, value in actual_secrets}
+
+
+def _get_mounted_secrets(mount_path: str):
+    if mount_path is None:
+        return {}
+
+    secret_files = [file_path for file_path in Path(mount_path).glob("*") if file_path.is_file()]
+
+    def get_dict(file_path: Path):
+        with file_path.open() as fp:
+            return json.load(fp)
+
+    return {file_path.name: get_dict(file_path) for file_path in secret_files}

@@ -23,6 +23,7 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     DatabricksAccessTokenAccountSecret,
     ApiTokenSecret,
     UnsupportedSecretError,
+    load_secrets,
 )
 
 
@@ -415,3 +416,64 @@ class TestUnsupportedSecret:
         bad_type = "wuuuuuuuut"
         with pytest.raises(UnsupportedSecretError, match=f"type: {bad_type!r}"):
             secrets_factory({"credential_type": bad_type})
+
+
+class TestLoadSecrets:
+    def test_load_secrets_no_file_no_env_vars(self):
+        secrets = load_secrets(None, None)
+        assert secrets == {}
+
+    def test_load_secrets_mount_path_does_not_exist(self):
+        bad_dir = "/nope/not/a/thing"
+        secrets = load_secrets(bad_dir, None)
+        assert secrets == {}
+
+    def test_secrets_with_mounted_secrets(self, mounted_secrets_factory):
+        secrets = {
+            "ONE": {"credential_type": "basic", "username": "1", "password": "y"},
+            "TWO": {"credential_type": "basic", "username": "2", "password": "z"},
+        }
+        secrets_dir = mounted_secrets_factory(secrets)
+
+        expected_secrets = {
+            "ONE": BasicSecret(username="1", password="y"),
+            "TWO": BasicSecret(username="2", password="z"),
+        }
+
+        assert load_secrets(secrets_dir, None) == expected_secrets
+
+    def test_secrets_with_env_vars(self, env_patcher):
+        secrets = {
+            "ONE": {"credential_type": "basic", "username": "1", "password": "y"},
+            "TWO": {"credential_type": "basic", "username": "2", "password": "z"},
+        }
+        prefix = "MY_SUPER_PREFIX"
+
+        expected_secrets = {
+            "ONE": BasicSecret(username="1", password="y"),
+            "TWO": BasicSecret(username="2", password="z"),
+        }
+        with env_patcher(prefix, secrets):
+            assert load_secrets(None, prefix) == expected_secrets
+
+    def test_secrets_with_mounted_secrets_supersede_env_secrets(
+        self, mounted_secrets_factory, env_patcher
+    ):
+        mounted_secrets = {
+            "ONE": {"credential_type": "basic", "username": "1", "password": "y"},
+            "TWO": {"credential_type": "basic", "username": "2", "password": "z"},
+        }
+        env_secrets = {
+            "TWO": {"credential_type": "basic", "username": "superseded", "password": "superseded"},
+            "THREE": {"credential_type": "basic", "username": "3", "password": "A"},
+        }
+        prefix = "MY_SUPER_PREFIX"
+        secrets_dir = mounted_secrets_factory(mounted_secrets)
+
+        expected_secrets = {
+            "ONE": BasicSecret(username="1", password="y"),
+            "TWO": BasicSecret(username="2", password="z"),
+            "THREE": BasicSecret(username="3", password="A"),
+        }
+        with env_patcher(prefix, env_secrets):
+            assert load_secrets(secrets_dir, prefix) == expected_secrets
