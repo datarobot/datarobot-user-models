@@ -477,3 +477,72 @@ class TestLoadSecrets:
         }
         with env_patcher(prefix, env_secrets):
             assert load_secrets(secrets_dir, prefix) == expected_secrets
+
+    @pytest.mark.parametrize(
+        "secret_dict, expected",
+        [
+            ({"credential_type": "gcp", "gcp_key": None}, GCPSecret(None)),
+            ({"credential_type": "basic", "username": "a", "password": "b"}, BasicSecret("a", "b")),
+            (
+                {"credential_type": "oauth", "token": "a", "refresh_token": "b"},
+                OauthSecret("a", "b"),
+            ),
+            (dict(credential_type="s3"), S3Secret()),
+            (dict(credential_type="azure", azure_connection_string="a"), AzureSecret("a")),
+            (
+                dict(
+                    credential_type="azure_service_principal",
+                    client_id="a",
+                    client_secret="a",
+                    azure_tenant_id="a",
+                ),
+                AzureServicePrincipalSecret("a", "a", "a"),
+            ),
+            (
+                dict(
+                    credential_type="snowflake_oauth_user_account",
+                    client_id="a",
+                    client_secret="a",
+                    snowflake_account_name="a",
+                ),
+                SnowflakeOauthUserAccountSecret("a", "a", "a"),
+            ),
+            (
+                dict(
+                    credential_type="snowflake_key_pair_user_account",
+                    username="a",
+                    private_key_str="a",
+                ),
+                SnowflakeKeyPairUserAccountSecret("a", "a"),
+            ),
+            (
+                dict(
+                    credential_type="adls_gen2_oauth",
+                    client_id="a",
+                    client_secret="a",
+                    oauth_scopes="a",
+                ),
+                AdlsGen2OauthSecret("a", "a", "a"),
+            ),
+            (
+                dict(
+                    credential_type="tableau_access_token",
+                    token_name="a",
+                    personal_access_token="a",
+                ),
+                TableauAccessTokenSecret("a", "a"),
+            ),
+            (
+                dict(
+                    credential_type="databricks_access_token_account", databricks_access_token="a",
+                ),
+                DatabricksAccessTokenAccountSecret("a"),
+            ),
+            (dict(credential_type="api_token", api_token="a"), ApiTokenSecret("a")),
+        ],
+    )
+    def test_load_all_secret_types(self, secret_dict, expected, env_patcher):
+        env_dict = {"a": secret_dict}
+        expected_dict = {"a": expected}
+        with env_patcher("PREFIX", env_dict):
+            assert load_secrets(None, "PREFIX") == expected_dict

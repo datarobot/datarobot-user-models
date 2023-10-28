@@ -15,6 +15,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from datarobot_drum.custom_task_interfaces.user_secrets import secrets_factory
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 
 
@@ -72,7 +73,7 @@ def secrets_prefix():
 @pytest.fixture
 def env_secret():
     return {
-        "FROM_ENV": {"credential_type": "base", "username": "from-env", "password": "env-password"}
+        "FROM_ENV": {"credential_type": "basic", "username": "from-env", "password": "env-password"}
     }
 
 
@@ -80,7 +81,7 @@ def env_secret():
 def mounted_secret():
     return {
         "FROM_MOUNTED": {
-            "credential_type": "base",
+            "credential_type": "basic",
             "username": "from-mounted",
             "password": "mounted-password",
         }
@@ -158,7 +159,9 @@ class TestFit:
         )
 
         instance = adapter.custom_task_instance
-        assert instance.fit_secrets == mounted_secret
+
+        expected_secrets = {k: secrets_factory(v) for k, v in mounted_secret.items()}
+        assert instance.fit_secrets == expected_secrets
         assert instance.save_secrets is None
 
     def test_fit_with_secrets_prefix(self, env_secret, secrets_prefix):
@@ -175,7 +178,8 @@ class TestFit:
         )
 
         instance = adapter.custom_task_instance
-        assert instance.fit_secrets == env_secret
+        expected_secrets = {k: secrets_factory(v) for k, v in env_secret.items()}
+        assert instance.fit_secrets == expected_secrets
         assert instance.save_secrets is None
 
 
@@ -200,7 +204,8 @@ class TestLoadModelFromArtifact:
             user_secrets_mount_path=mounted_secrets_dir, user_secrets_prefix=None,
         )
         instance = adapter.custom_task_instance
-        assert instance.secrets == mounted_secret
+        expected_secrets = {k: secrets_factory(v) for k, v in mounted_secret.items()}
+        assert instance.secrets == expected_secrets
 
     def test_load_with_env_secrets(self, env_secret, secrets_prefix):
         adapter = TestingPythonModelAdapter(Mock(), Mock())
@@ -209,4 +214,5 @@ class TestLoadModelFromArtifact:
             user_secrets_mount_path=None, user_secrets_prefix=secrets_prefix,
         )
         instance = adapter.custom_task_instance
-        assert instance.secrets == env_secret
+        expected_secrets = {k: secrets_factory(v) for k, v in env_secret.items()}
+        assert instance.secrets == expected_secrets
