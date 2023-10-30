@@ -4,7 +4,7 @@ datarobot-bp-workshop==0.2.6
 datarobot-drum==1.10.6
 datarobot-model-metrics==0.2.7
 datarobot-predict==1.0.0
-datarobot==3.2.0b1
+datarobot==3.2.1
 dummyPy==0.3
 eli5==0.13.0
 gensim==4.2.0
