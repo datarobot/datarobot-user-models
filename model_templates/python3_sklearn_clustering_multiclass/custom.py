@@ -42,7 +42,3 @@ def score(data, model: ClusterModel, **kwargs):
         results.loc[:, i] = 0 
         results.loc[results["Prediction"].astype(str) == i, i] = 1
     return results.drop(columns=['Prediction'])
-
-data  = pd.read_csv("/Users/luke.shulman/Projects/datarobot-user-models/tests/testdata/iris_with_spaces_full.csv")
-m = load_model(".")
-score(data, m)
