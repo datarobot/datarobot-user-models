@@ -535,6 +535,8 @@ class CMRunner:
 
         def _run_fit():
             # TODO: Sampling should be baked into X, y, row_weights. We cannot because R samples within the R code
+            possible_mount_path = getattr(self.options, "user_secrets_mount_path", None)
+            possible_prefix = getattr(self.options, "user_secrets_prefix", None)
             model_adapter.fit(
                 X=cli_adapter.sample_data_if_necessary(cli_adapter.X),
                 y=cli_adapter.sample_data_if_necessary(cli_adapter.y),
@@ -542,8 +544,8 @@ class CMRunner:
                 row_weights=cli_adapter.sample_data_if_necessary(cli_adapter.weights),
                 parameters=cli_adapter.parameters_for_fit,
                 class_order=cli_adapter.class_ordering,
-                user_secrets_mount_path=self.options.user_secrets_mount_path,
-                user_secrets_prefix=self.options.user_secrets_prefix,
+                user_secrets_mount_path=possible_mount_path,
+                user_secrets_prefix=possible_prefix,
             )
 
         return _run_fit
@@ -727,8 +729,8 @@ class CMRunner:
             if getattr(options, "content_type", None) is not None
             else "null",
             "target_type": self.target_type.value,
-            "user_secrets_mount_path": options.user_secrets_mount_path,
-            "user_secrets_prefix": options.user_secrets_prefix,
+            "user_secrets_mount_path": getattr(options, "user_secrets_mount_path", None),
+            "user_secrets_prefix": getattr(options, "user_secrets_prefix", None),
         }
 
         if self.run_mode == RunMode.SCORE:

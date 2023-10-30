@@ -305,6 +305,16 @@ class TestCMRunnerFit:
         runtime_factory(fit_args).run()
         mock_run_test_predict.assert_called_once_with()
 
+    def test_handles_missing_options(self, runtime_factory, fit_args, mock_model_adapter_fit):
+        runtime = runtime_factory(fit_args)
+        del runtime.options.user_secrets_mount_path
+        del runtime.options.user_secrets_prefix
+        runtime.run()
+
+        called_kwargs = mock_model_adapter_fit.call_args[1]
+        assert called_kwargs["user_secrets_mount_path"] is None
+        assert called_kwargs["user_secrets_prefix"] is None
+
 
 @pytest.fixture
 def mock_mlpiper_configure():
@@ -372,6 +382,17 @@ class TestCMRunnerServer:
         params = mock_mlpiper_configure.call_args[0][0]
         assert params["user_secrets_prefix"] == secrets_prefix
 
+    def test_handles_missing_options(self, server_args, runtime_factory, mock_mlpiper_configure):
+        runtime = runtime_factory(server_args)
+        del runtime.options.user_secrets_mount_path
+        del runtime.options.user_secrets_prefix
+        runtime.run()
+
+        mock_mlpiper_configure.assert_called_once()
+        params = mock_mlpiper_configure.call_args[0][0]
+        assert params["user_secrets_mount_path"] is None
+        assert params["user_secrets_prefix"] is None
+
 
 @pytest.fixture
 def mock_read_csv(module_under_test):
@@ -431,6 +452,17 @@ class TestCMRunnerScore:
         mock_mlpiper_configure.assert_called_once()
         params = mock_mlpiper_configure.call_args[0][0]
         assert params["user_secrets_prefix"] == secrets_prefix
+
+    def test_handles_missing_options(self, score_args, runtime_factory, mock_mlpiper_configure):
+        runtime = runtime_factory(score_args)
+        del runtime.options.user_secrets_mount_path
+        del runtime.options.user_secrets_prefix
+        runtime.run()
+
+        mock_mlpiper_configure.assert_called_once()
+        params = mock_mlpiper_configure.call_args[0][0]
+        assert params["user_secrets_mount_path"] is None
+        assert params["user_secrets_prefix"] is None
 
 
 class TestUtilityFunctions:
