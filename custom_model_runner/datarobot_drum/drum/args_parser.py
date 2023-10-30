@@ -612,7 +612,7 @@ class CMRunnerArgsRegistry(object):
 
     @staticmethod
     def _reg_arg_target_type(*parsers):
-        target_types = [e for e in TargetType.ALL.value]
+        target_types = [e.value for e in TargetType]
         for parser in parsers:
             parser.add_argument(
                 ArgumentsOptions.TARGET_TYPE,
@@ -953,7 +953,7 @@ class CMRunnerArgsRegistry(object):
 
         CMRunnerArgsRegistry._reg_arg_report_fit_predict_metadata(fit_parser, push_parser)
         CMRunnerArgsRegistry._reg_arg_custom_task_user_secrets(
-            fit_parser, score_parser, server_parser
+            fit_parser, score_parser, server_parser, push_parser,
         )
 
         CMRunnerArgsRegistry._reg_args_runtime_parameters_file(

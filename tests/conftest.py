@@ -149,7 +149,7 @@ from tests.drum.constants import (
     TEXT_GENERATION,
     PYTHON_TEXT_GENERATION,
 )
-from datarobot_drum.drum.model_adapter import PythonModelAdapter
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from tests.drum.constants import PYTHON_UNSTRUCTURED_DR_API_ACCESS
 from tests.drum.constants import PYTHON_UNSTRUCTURED_RUNTIME_PARAMS
 

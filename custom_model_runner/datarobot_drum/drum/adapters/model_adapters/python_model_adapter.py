@@ -10,11 +10,13 @@ import sys
 import textwrap
 from inspect import signature
 from pathlib import Path
+from typing import Optional
 from typing import NoReturn
 
 import pandas as pd
 from scipy.sparse import issparse
 
+from datarobot_drum.drum.adapters.model_adapters.abstract_model_adapter import AbstractModelAdapter
 from datarobot_drum.drum.artifact_predictors.keras_predictor import KerasPredictor
 from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
 from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPredictor
@@ -50,7 +52,11 @@ from datarobot_drum.drum.exceptions import (
 )
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from datarobot_drum.drum.utils.drum_utils import DrumUtils
-from datarobot_drum.custom_task_interfaces.custom_task_interface import CustomTaskInterface
+from datarobot_drum.custom_task_interfaces.custom_task_interface import (
+    CustomTaskInterface,
+    secrets_injection_context,
+    load_secrets,
+)
 
 RUNNING_LANG_MSG = "Running environment language: Python."
 
@@ -59,7 +65,7 @@ class DrumPythonModelAdapterError(DrumException):
     """Raised in case of error in PythonModelAdapter"""
 
 
-class PythonModelAdapter:
+class PythonModelAdapter(AbstractModelAdapter):
     def __init__(self, model_dir, target_type=None):
         self._logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + self.__class__.__name__)
 
@@ -203,7 +209,9 @@ class PythonModelAdapter:
 
         return self._model
 
-    def load_model_from_artifact(self):
+    def load_model_from_artifact(
+        self, user_secrets_mount_path: Optional[str], user_secrets_prefix: Optional[str],
+    ):
         """
         Load the serialized model from its artifact.
         Returns
@@ -216,6 +224,8 @@ class PythonModelAdapter:
         """
         if self.is_custom_task_class:
             self._custom_task_class_instance = self._custom_task_class.load(self._model_dir)
+            secrets = load_secrets(user_secrets_mount_path, user_secrets_prefix)
+            self._custom_task_class_instance.secrets = secrets
             return self._custom_task_class_instance
 
         else:
@@ -627,41 +637,34 @@ class PythonModelAdapter:
         PythonModelAdapter._validate_unstructured_predictions(predictions)
         return predictions
 
-    def fit(self, X, y, output_dir, class_order=None, row_weights=None, parameters=None):
-        """
-        Trains a Python-based custom task.
-
-        Parameters
-        ----------
-        X: pd.DataFrame
-            Training data. Could be sparse or dense
-        y: pd.Series
-            Target values
-        output_dir: str
-            Output directory to store the artifact
-        class_order: list or None
-            Expected order of classification labels
-        row_weights: pd.Series or None
-            Class weights
-        parameters: dict or None
-            Hyperparameter values
-
-        Returns
-        -------
-        PythonModelAdapter
-        """
+    def fit(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        output_dir: str,
+        class_order: Optional[list],
+        row_weights: Optional[pd.Series],
+        parameters: Optional[dict],
+        user_secrets_mount_path: Optional[str],
+        user_secrets_prefix: Optional[str],
+    ) -> "AbstractModelAdapter":
         if self.is_custom_task_class:
             with reroute_stdout_to_stderr():
                 try:
                     self._custom_task_class_instance = self._custom_task_class()
-                    self._custom_task_class_instance.fit(
-                        X=X,
-                        y=y,
-                        output_dir=output_dir,
-                        class_order=class_order,
-                        row_weights=row_weights,
-                        parameters=parameters,
-                    )
+                    with secrets_injection_context(
+                        self._custom_task_class_instance,
+                        user_secrets_mount_path,
+                        user_secrets_prefix,
+                    ):
+                        self._custom_task_class_instance.fit(
+                            X=X,
+                            y=y,
+                            output_dir=output_dir,
+                            class_order=class_order,
+                            row_weights=row_weights,
+                            parameters=parameters,
+                        )
 
                     try:
                         self._custom_task_class_instance.save(self._model_dir)
@@ -706,3 +709,4 @@ class PythonModelAdapter:
                             hooks,
                         )
                     )
+        return self

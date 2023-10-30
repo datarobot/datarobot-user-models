@@ -94,7 +94,7 @@ class PMMLPredictor(ArtifactPredictor):
 
         predictions = model.predict(data)
 
-        if self.target_type.value in TargetType.CLASSIFICATION.value:
+        if self.target_type.is_classification():
             predictions = self._marshal_predictions(predictions, model.outputFields)
 
         return predictions.values, predictions.columns

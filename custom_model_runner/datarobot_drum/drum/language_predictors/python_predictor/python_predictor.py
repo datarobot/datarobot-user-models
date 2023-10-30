@@ -18,7 +18,7 @@ from datarobot_drum.drum.enum import (
     CLASS_LABELS_ARG_KEYWORD,
     TARGET_TYPE_ARG_KEYWORD,
 )
-from datarobot_drum.drum.model_adapter import PythonModelAdapter
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.language_predictors.base_language_predictor import mlops_loaded
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumSerializationError
@@ -54,7 +54,10 @@ class PythonPredictor(BaseLanguagePredictor):
         sys.path.append(self._code_dir)
         self._model_adapter.load_custom_hooks()
         try:
-            self._model = self._model_adapter.load_model_from_artifact()
+            self._model = self._model_adapter.load_model_from_artifact(
+                user_secrets_mount_path=params.get("user_secrets_mount_path"),
+                user_secrets_prefix=params.get("user_secrets_prefix"),
+            )
         except Exception as e:
             raise DrumSerializationError(f"An error occurred when loading your artifact: {str(e)}")
         if self._model is None:

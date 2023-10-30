@@ -36,9 +36,9 @@ def marshal_predictions(
     Predictions DataFrame
     """
     predictions = _validate_dimensionality_and_type(predictions)
-    if target_type.value in TargetType.CLASSIFICATION.value:
+    if target_type.is_classification():
         return _classification_marshal_preds(predictions, request_labels, model_labels)
-    elif target_type.value in TargetType.SINGLE_COL.value:
+    elif target_type.is_single_column():
         return _single_col_marshal_preds(predictions)
     return predictions
 

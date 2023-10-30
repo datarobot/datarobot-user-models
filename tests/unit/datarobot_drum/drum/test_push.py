@@ -13,9 +13,14 @@ import pytest
 import responses
 
 from datarobot_drum.drum.common import read_model_metadata_yaml
-from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, TargetType
+from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, TargetType, RunMode
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.push import drum_push, _push_training, _push_inference
+from datarobot_drum.drum.push import (
+    drum_push,
+    _push_training,
+    _push_inference,
+    setup_validation_options,
+)
 
 
 @pytest.fixture
@@ -318,3 +323,98 @@ def test_push(
             assert len(calls) == 3 + call_shift
     else:
         assert len(calls) == 2 + call_shift
+
+
+class TestSetupValidationOptions:
+    @pytest.fixture
+    def training_options(self):
+        return Namespace(
+            user_secrets_mount_path=None,
+            user_secrets_prefix=None,
+            code_dir="/a/b/c",
+            model_config={
+                "environmentID": "5e8c889607389fe0f466c72d",
+                "name": "joe",
+                "targetType": "regression",
+                "type": "training",
+                "validation": {"input": "hello", "targetName": "target"},
+            },
+        )
+
+    @pytest.fixture
+    def inference_options(self, training_options):
+        training_options.model_config["type"] = "inference"
+        return training_options
+
+    def test_fit_validation_options_no_user_secrets(self, training_options):
+        new_options, run_mode, command = setup_validation_options(training_options)
+        assert run_mode == RunMode.FIT
+        assert new_options.user_secrets_mount_path is None
+        assert new_options.user_secrets_prefix is None
+
+        assert command == [
+            "drum",
+            "RunMode.FIT",
+            "--input",
+            "/a/b/c/hello",
+            "--target",
+            "target",
+            "--code-dir",
+            "/a/b/c",
+        ]
+
+    def test_fit_validation_options_with_user_secrets(self, training_options):
+        mount_path = "/x/y/z"
+        training_options.user_secrets_mount_path = mount_path
+        prefix = "prefix"
+        training_options.user_secrets_prefix = prefix
+        new_options, run_mode, command = setup_validation_options(training_options)
+        assert run_mode == RunMode.FIT
+        assert new_options.user_secrets_mount_path == mount_path
+        assert new_options.user_secrets_prefix == prefix
+
+        assert command == [
+            "drum",
+            "RunMode.FIT",
+            "--input",
+            "/a/b/c/hello",
+            "--target",
+            "target",
+            "--code-dir",
+            "/a/b/c",
+            "--user-secrets-mount-path",
+            mount_path,
+            "--user-secrets-prefix",
+            prefix,
+        ]
+
+    def test_inference_validation_options_no_user_secrets(self, inference_options):
+        new_options, run_mode, command = setup_validation_options(inference_options)
+        assert run_mode == RunMode.SCORE
+        assert new_options.user_secrets_mount_path is None
+        assert new_options.user_secrets_prefix is None
+
+        assert command == ["drum", "RunMode.SCORE", "--input", "/a/b/c/hello", "-cd", "/a/b/c"]
+
+    def test_inference_validation_options_with_user_secrets(self, inference_options):
+        mount_path = "/x/y/z"
+        inference_options.user_secrets_mount_path = mount_path
+        prefix = "prefix"
+        inference_options.user_secrets_prefix = prefix
+        new_options, run_mode, command = setup_validation_options(inference_options)
+        assert run_mode == RunMode.SCORE
+        assert new_options.user_secrets_mount_path == mount_path
+        assert new_options.user_secrets_prefix == prefix
+
+        assert command == [
+            "drum",
+            "RunMode.SCORE",
+            "--input",
+            "/a/b/c/hello",
+            "-cd",
+            "/a/b/c",
+            "--user-secrets-mount-path",
+            mount_path,
+            "--user-secrets-prefix",
+            prefix,
+        ]

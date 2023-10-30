@@ -1039,7 +1039,7 @@ class TestReadModelMetadata:
     "target_type, predictor_cls",
     itertools.product([TargetType.TRANSFORM,], [PythonPredictor, JavaPredictor],),
 )
-def test_validate_model_metadata_output_requirements(target_type, predictor_cls):
+def test_validate_model_metadata_output_requirements(target_type: TargetType, predictor_cls):
     """The validation on the specs defined in the output_requirements of model metadata is only triggered when the
     custom task is a transform task. This test checks this functionality.
 
@@ -1059,11 +1059,7 @@ def test_validate_model_metadata_output_requirements(target_type, predictor_cls)
         "output_requirements": [{"field": "data_types", "condition": "IN", "value": "CAT"}],
     }
     predictor._schema_validator = SchemaValidator(type_schema=type_schema)
-    df_to_validate = (
-        proba_pred_output
-        if target_type.value in TargetType.CLASSIFICATION.value
-        else num_pred_output
-    )
+    df_to_validate = proba_pred_output if target_type.is_classification() else num_pred_output
 
     if target_type == TargetType.TRANSFORM:
         with pytest.raises(DrumSchemaValidationException) as ex:

@@ -507,7 +507,11 @@ class TestUserSecretsArgs:
     def server_args(self, this_dir):
         return ["server", "--code-dir", this_dir, "--address", "https://allthedice.com"]
 
-    @pytest.fixture(params=["fit_args", "score_args", "server_args"])
+    @pytest.fixture
+    def push_args(self, this_dir):
+        return ["push", "--code-dir", this_dir]
+
+    @pytest.fixture(params=["fit_args", "score_args", "server_args", "push_args"])
     def parametrized_args(self, request):
         yield request.getfixturevalue(request.param)
 
