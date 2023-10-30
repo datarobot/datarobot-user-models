@@ -1,4 +1,4 @@
--r requirements.txt
+-r custom_model_runner/requirements.txt
 -r requirements_lint.txt
 -r requirements_test.txt
 
