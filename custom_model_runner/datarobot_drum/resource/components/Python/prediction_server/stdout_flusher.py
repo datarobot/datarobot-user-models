@@ -41,10 +41,16 @@ class StdoutFlusher:
         return time.time()
 
     def _flush_thread_method(self):
-        while not self._event.wait(self._max_time_until_flushing):
-            if self._is_predict_time_set_and_max_waiting_time_expired():
-                self._last_predict_time = None
-                self._flush_stdout()
+        while not self._should_stop():
+            self._process_stdout_flushing()
+
+    def _should_stop(self):
+        return self._event.wait(self._max_time_until_flushing)
+
+    def _process_stdout_flushing(self):
+        if self._is_predict_time_set_and_max_waiting_time_expired():
+            self._last_predict_time = None
+            self._flush_stdout()
 
     def _is_predict_time_set_and_max_waiting_time_expired(self):
         current_time = self._current_time()
