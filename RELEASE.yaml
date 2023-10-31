@@ -1,0 +1,21 @@
+description: |
+  Federalized release for datarobot-user-models.
+
+  This should be executed after datarobot/execution-environment-installer is branched.
+
+  Reference
+  https://datarobot.atlassian.net/wiki/spaces/Ignite/pages/5618761738/Distributed+Release+Metadata+-+RELEASE.yaml
+  https://dev-docs.drdev.io/release/branches/RELEASE.yaml.html
+
+tags:
+  - name: "release/{version}-branchpoint"
+    value: "Branchpoint tag for {version} - via RELEASE.yaml"
+
+post_branch_cut_pipelines:
+  - host: ci5.devinfra.drdev.io
+    service: jenkins
+    endpoint: CustomModelsCi5-addons/execution-environment-installer-jenkins_scripts_build_environments_installer_groovy
+    variables:
+      CUSTOM_MODEL_INSTALLER_VERSION: {}
+      EXECUTION_ENVIRONMENT_INSTALLER_SHA: release/{version}
+      DATAROBOT_USER_MODELS_SHA: release/{version}

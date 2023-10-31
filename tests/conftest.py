@@ -18,6 +18,7 @@ from tests.drum.constants import (
     PYTHON_XGBOOST,
     PYTHON_KERAS,
     PYTHON_PYTORCH,
+    PYTHON311_GENAI,
     PYTHON_ONNX,
     PYTHON_PYPMML,
     R_LANG,
@@ -148,7 +149,7 @@ from tests.drum.constants import (
     TEXT_GENERATION,
     PYTHON_TEXT_GENERATION,
 )
-from datarobot_drum.drum.model_adapter import PythonModelAdapter
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from tests.drum.constants import PYTHON_UNSTRUCTURED_DR_API_ACCESS
 from tests.drum.constants import PYTHON_UNSTRUCTURED_RUNTIME_PARAMS
 
@@ -190,6 +191,7 @@ framework_envs = {
         CUSTOM_TASK_INTERFACE_PYTORCH_BINARY,
         CUSTOM_TASK_INTERFACE_PYTORCH_MULTICLASS,
     ],
+    PYTHON311_GENAI: [PYTHON_TEXT_GENERATION],
     PYTHON_ONNX: [ONNX],
     PYTHON_PYPMML: [PYPMML],
     R_LANG: [
@@ -236,6 +238,7 @@ def pytest_addoption(parser):
             PYTHON_XGBOOST,
             PYTHON_KERAS,
             PYTHON_PYTORCH,
+            PYTHON311_GENAI,
             PYTHON_ONNX,
             PYTHON_PYPMML,
             R_LANG,

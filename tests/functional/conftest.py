@@ -131,7 +131,21 @@ def pytorch_drop_in_env():
     environment = dr.ExecutionEnvironment.create(
         name="python3_pytorch", programming_language="python"
     )
-    environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
+    environment_version = dr.ExecutionEnvironmentVersion.create(
+        environment.id, env_dir, max_wait=1200
+    )
+    return environment.id, environment_version.id
+
+
+@pytest.fixture(scope="session")
+def python311_genai_drop_in_env():
+    env_dir = os.path.join(PUBLIC_DROPIN_ENVS_PATH, "python311_genai")
+    environment = dr.ExecutionEnvironment.create(
+        name="python311_genai", programming_language="python"
+    )
+    environment_version = dr.ExecutionEnvironmentVersion.create(
+        environment.id, env_dir, max_wait=1200
+    )
     return environment.id, environment_version.id
 
 

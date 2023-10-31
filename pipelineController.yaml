@@ -3,6 +3,11 @@ black_check: &black_check
   definition: jenkins/black_check.groovy
   phase: 0
 
+test_unit: &test_unit
+  taskName: test_unit
+  definition: jenkins/test_unit.groovy
+  phase: 0
+
 build_drum: &build_drum
   taskName: build_drum
   definition: jenkins/build_drum.groovy
@@ -56,6 +61,13 @@ test_integration_python_pytorch: &test_integration_python_pytorch
     FRAMEWORK: python3_pytorch
   phase: 3
 
+test_integration_python311_genai: &test_integration_python311_genai
+  taskName: test_integration_python311_genai
+  definition: jenkins/test_integration_per_framework.groovy
+  environment:
+    FRAMEWORK: python311_genai
+  phase: 3
+
 test_integration_python_sklearn: &test_integration_python_sklearn
   taskName: test_integration_python_sklearn
   definition: jenkins/test_integration_per_framework.groovy
@@ -96,9 +108,12 @@ repositoryTasks:
     phrase:
       - regex: ".*black_check.*"
         script: *black_check
+      - regex: ".*test_unit.*"
+        script: *test_unit
       - regex: ".*build_drum.*"
         script:
           - *black_check
+          - *test_unit
           - *build_drum
       - regex: ".*test_integration_general.*"
         script:
@@ -132,6 +147,10 @@ repositoryTasks:
         script:
           - *build_drum
           - *test_integration_python_pytorch
+      - regex: ".*test_integration_python311_genai.*"
+        script:
+          - *build_drum
+          - *test_integration_python311_genai
       - regex: ".*test_integration_python_sklearn.*"
         script:
           - *build_drum
@@ -156,6 +175,7 @@ repositoryTasks:
       - changedFilesRegex: '.*'
         script:
           - *black_check
+          - *test_unit
           - *build_drum
           - *test_integration_general
           - *test_inference_model_templates
@@ -165,6 +185,7 @@ repositoryTasks:
           - *test_integration_python_onnx
           - *test_integration_python_pmml
           - *test_integration_python_pytorch
+          - *test_integration_python311_genai
           - *test_integration_python_sklearn
           - *test_integration_python_xgboost
           - *test_integration_r_environment

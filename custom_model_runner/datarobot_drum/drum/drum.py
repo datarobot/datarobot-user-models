@@ -27,7 +27,8 @@ from typing import Union
 import docker.errors
 import pandas as pd
 from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
-from datarobot_drum.drum.adapters.r.r_model_adapter import RModelAdapter
+from datarobot_drum.drum.adapters.model_adapters.abstract_model_adapter import AbstractModelAdapter
+from datarobot_drum.drum.adapters.model_adapters.r_model_adapter import RModelAdapter
 from datarobot_drum.drum.common import get_metadata, FIT_METADATA_FILENAME
 from datarobot_drum.drum.common import read_model_metadata_yaml
 
@@ -49,7 +50,7 @@ from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.enum import TemplateType
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.exceptions import DrumPredException
-from datarobot_drum.drum.model_adapter import PythonModelAdapter
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.push import drum_push
 from datarobot_drum.drum.push import setup_validation_options
@@ -516,6 +517,7 @@ class CMRunner:
         """
         # TODO: Decouple check_artifacts_and_get_run_language from CLI, add it as part of validate in DrumCLIAdapter
         run_language = self._check_artifacts_and_get_run_language()
+        model_adapter: AbstractModelAdapter
 
         if run_language == RunLanguage.PYTHON:
             model_adapter = PythonModelAdapter(
@@ -533,6 +535,8 @@ class CMRunner:
 
         def _run_fit():
             # TODO: Sampling should be baked into X, y, row_weights. We cannot because R samples within the R code
+            possible_mount_path = getattr(self.options, "user_secrets_mount_path", None)
+            possible_prefix = getattr(self.options, "user_secrets_prefix", None)
             model_adapter.fit(
                 X=cli_adapter.sample_data_if_necessary(cli_adapter.X),
                 y=cli_adapter.sample_data_if_necessary(cli_adapter.y),
@@ -540,6 +544,8 @@ class CMRunner:
                 row_weights=cli_adapter.sample_data_if_necessary(cli_adapter.weights),
                 parameters=cli_adapter.parameters_for_fit,
                 class_order=cli_adapter.class_ordering,
+                user_secrets_mount_path=possible_mount_path,
+                user_secrets_prefix=possible_prefix,
             )
 
         return _run_fit
@@ -723,6 +729,8 @@ class CMRunner:
             if getattr(options, "content_type", None) is not None
             else "null",
             "target_type": self.target_type.value,
+            "user_secrets_mount_path": getattr(options, "user_secrets_mount_path", None),
+            "user_secrets_prefix": getattr(options, "user_secrets_prefix", None),
         }
 
         if self.run_mode == RunMode.SCORE:
@@ -907,7 +915,7 @@ class CMRunner:
             host_port_list = options.address.split(":", 1)
             if len(host_port_list) == 1:
                 raise DrumCommonException(
-                    "Error: when using the docker option provide argument --server host:port"
+                    "Error: when using the docker option provide argument --address host:port"
                 )
             port = int(host_port_list[1])
             host_port_inside_docker = "{}:{}".format("0.0.0.0", port)

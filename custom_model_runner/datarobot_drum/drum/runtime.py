@@ -6,7 +6,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
 from datarobot_drum.drum.server import (
-    base_api_blueprint,
+    empty_api_blueprint,
     get_flask_app,
     HTTP_513_DRUM_PIPELINE_ERROR,
 )
@@ -42,7 +42,7 @@ class DrumRuntime:
 
         msg = "Looks like there is a problem."
         if not self.options.verbose:
-            msg += f" To get more output information try to run with: '{ArgumentsOptions.VERBOSE}'."
+            msg += f" To get more output information try to run locally(not in DataRobot) with: '{ArgumentsOptions.VERBOSE}'."
         logger_drum.warning(colored(msg, "yellow"))
 
         if exc_value:
@@ -92,8 +92,10 @@ class DrumRuntime:
 
 
 def run_error_server(host, port, exc_value):
-    model_api = base_api_blueprint()
+    model_api = empty_api_blueprint()
 
+    @model_api.route("/", methods=["GET"])
+    @model_api.route("/ping/", methods=["GET"])
     @model_api.route("/health/", methods=["GET"])
     def health():
         return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR

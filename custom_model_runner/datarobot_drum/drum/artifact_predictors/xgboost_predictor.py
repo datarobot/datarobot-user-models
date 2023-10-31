@@ -79,7 +79,7 @@ class XGBoostPredictor(ArtifactPredictor):
         labels_to_use = None
         if hasattr(model, "classes_"):
             labels_to_use = model.classes_
-        if self.target_type.value in TargetType.CLASSIFICATION.value:
+        if self.target_type.is_classification():
             if xgboost_native:
                 predictions = model.predict(data)
             else:

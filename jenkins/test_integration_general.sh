@@ -93,7 +93,7 @@ pytest tests/drum/test_inference_custom_java_predictor.py tests/drum/test_mlops_
 TEST_RESULT_1=$?
 
 title "Running tests: all other cases in parallel"
-pytest tests/drum/ \
+pytest tests/drum/ tests/integration \
        -k "not test_inference_custom_java_predictor.py and not test_mlops_monitoring.py" \
        -m "not sequential" \
        --junit-xml="${GIT_ROOT}/results_integration_parallel.xml" \

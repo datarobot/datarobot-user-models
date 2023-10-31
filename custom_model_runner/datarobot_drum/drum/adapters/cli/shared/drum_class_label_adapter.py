@@ -56,7 +56,7 @@ def possibly_intuit_order(
 
 def infer_class_labels(target_type, input_filename, target_filename=None, target_name=None):
     # No class label information was supplied, but we may be able to infer the labels
-    if target_type.value in TargetType.CLASSIFICATION.value:
+    if target_type.is_classification():
         print("WARNING: class list not supplied. Using unique target values.")
 
     possible_class_labels = possibly_intuit_order(

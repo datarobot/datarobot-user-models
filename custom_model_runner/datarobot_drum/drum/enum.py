@@ -242,6 +242,8 @@ class ArgumentsOptions:
     ENABLE_PREDICT_METRICS_REPORT = "--enable-fit-metadata"
     ALLOW_DR_API_ACCESS_FOR_ALL_CUSTOM_MODELS = "--allow-dr-api-access"
     RUNTIME_PARAMS_FILE = "--runtime-params-file"
+    USER_SECRETS_MOUNT_PATH = "--user-secrets-mount-path"
+    USER_SECRETS_PREFIX = "--user-secrets-prefix"
 
     MAIN_COMMAND = "drum" if not DEBUG else "./custom_model_runner/bin/drum"
 
@@ -277,6 +279,8 @@ class ArgumentOptionsEnvVars:
 
     ALLOW_DR_API_ACCESS_FOR_ALL_CUSTOM_MODELS = "ALLOW_DR_API_ACCESS_FOR_ALL_CUSTOM_MODELS"
     RUNTIME_PARAMS_FILE = "RUNTIME_PARAMS_FILE"
+    USER_SECRETS_MOUNT_PATH = "USER_SECRETS_MOUNT_PATH"
+    USER_SECRETS_PREFIX = "USER_SECRETS_PREFIX"
 
     VALUE_VARS = [
         TARGET_TYPE,
@@ -288,6 +292,8 @@ class ArgumentOptionsEnvVars:
         ADDRESS,
         MAX_WORKERS,
         DEPLOYMENT_CONFIG,
+        USER_SECRETS_PREFIX,
+        USER_SECRETS_MOUNT_PATH,
     ]
     BOOL_VARS = [
         WITH_ERROR_SERVER,
@@ -333,9 +339,12 @@ class TargetType(Enum):
     MULTICLASS = "multiclass"
     TRANSFORM = "transform"
     TEXT_GENERATION = "textgeneration"
-    CLASSIFICATION = [BINARY, MULTICLASS]
-    SINGLE_COL = [REGRESSION, ANOMALY, TEXT_GENERATION]
-    ALL = [BINARY, MULTICLASS, REGRESSION, ANOMALY, UNSTRUCTURED, TRANSFORM, TEXT_GENERATION]
+
+    def is_classification(self):
+        return self in [self.BINARY, self.MULTICLASS]
+
+    def is_single_column(self):
+        return self in [self.REGRESSION, self.ANOMALY, self.TEXT_GENERATION]
 
 
 class TemplateType:
@@ -379,6 +388,7 @@ class ModelMetadataKeys(object):
     CUSTOM_PREDICTOR = "customPredictor"
     # runtimeParameters section is only used for local DRUM testing
     RUNTIME_PARAMETERS = "runtimeParameterDefinitions"
+    USER_CREDENTIAL_SPECIFICATIONS = "userCredentialSpecifications"
 
 
 class ModelMetadataHyperParamTypes(object):

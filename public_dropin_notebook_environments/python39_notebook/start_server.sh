@@ -1,4 +1,15 @@
 #!/bin/bash
+
+if [ -z "$1" ]; then
+    # Set default working directory if no argument is provided
+    WORKING_DIR="/home/notebooks"
+else
+    # Use the provided working directory
+    WORKING_DIR="$1"
+fi
+
+export WORKING_DIR
+
 cd /etc/system/kernel/agent || exit
 # shellcheck disable=SC1091
 source /etc/system/kernel/agent/.venv/bin/activate
@@ -15,5 +26,7 @@ cd /etc/system/kernel || exit
 # shellcheck disable=SC1091
 source /etc/system/kernel/.venv/bin/activate
 
-cd /home/notebooks
+# setup the working directory for the kernel
+cd "$WORKING_DIR" || exit
+
 exec jupyter kernelgateway --config=/etc/system/kernel/jupyter_kernel_gateway_config.py --debug

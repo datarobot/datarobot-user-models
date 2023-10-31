@@ -14,7 +14,7 @@ from datarobot_drum.drum.common import (
     get_metadata,
     validate_config_fields,
 )
-from datarobot_drum.drum.enum import RunMode, TargetType, ModelMetadataKeys
+from datarobot_drum.drum.enum import RunMode, TargetType, ModelMetadataKeys, ArgumentsOptions
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 DR_LINK_FORMAT = "{}/model-registry/custom-models/{}"
@@ -189,6 +189,7 @@ def _setup_training_validation(config, options):
     raw_args_for_docker = "drum {run_mode} --input {input} --target {target} --code-dir {code_dir}".format(
         run_mode=RunMode.FIT, input=path, target=options.target, code_dir=options.code_dir
     ).split()
+    _add_secrets_to_docker_args(options, raw_args_for_docker)
 
     return options, RunMode.FIT, raw_args_for_docker
 
@@ -205,7 +206,17 @@ def _setup_inference_validation(config, options):
     raw_args_for_docker = "drum {run_mode} --input {input} -cd {code_dir}".format(
         run_mode=RunMode.SCORE, input=path, code_dir=options.code_dir
     ).split()
+    _add_secrets_to_docker_args(options, raw_args_for_docker)
     return options, RunMode.SCORE, raw_args_for_docker
+
+
+def _add_secrets_to_docker_args(options, raw_args_for_docker):
+    mount_path = options.user_secrets_mount_path
+    if mount_path:
+        raw_args_for_docker.extend([ArgumentsOptions.USER_SECRETS_MOUNT_PATH, mount_path])
+    prefix = options.user_secrets_prefix
+    if prefix:
+        raw_args_for_docker.extend([ArgumentsOptions.USER_SECRETS_PREFIX, prefix])
 
 
 def setup_validation_options(options):

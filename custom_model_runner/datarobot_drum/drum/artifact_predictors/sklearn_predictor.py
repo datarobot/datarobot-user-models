@@ -54,7 +54,7 @@ class SKLearnPredictor(ArtifactPredictor):
         super(SKLearnPredictor, self).predict(data, model, **kwargs)
 
         labels_to_use = None
-        if self.target_type.value in TargetType.CLASSIFICATION.value:
+        if self.target_type.is_classification():
             if hasattr(model, "classes_"):
                 labels_to_use = list(model.classes_)
             predictions = model.predict_proba(data)

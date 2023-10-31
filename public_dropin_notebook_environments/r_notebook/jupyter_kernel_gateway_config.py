@@ -7,7 +7,7 @@
 # publication of such source code.
 c.KernelGatewayApp.ip = "0.0.0.0"  # nosec
 c.KernelGatewayApp.prespawn_count = 1
-c.KernelGatewayApp.max_kernels = 1
+c.KernelGatewayApp.max_kernels = 100
 c.KernelGatewayApp.default_kernel_name = "ir"
 c.JupyterWebsocketPersonality.list_kernels = True
 c.KernelRestarter.restart_limit = 3

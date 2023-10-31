@@ -612,7 +612,7 @@ class CMRunnerArgsRegistry(object):
 
     @staticmethod
     def _reg_arg_target_type(*parsers):
-        target_types = [e for e in TargetType.ALL.value]
+        target_types = [e.value for e in TargetType]
         for parser in parsers:
             parser.add_argument(
                 ArgumentsOptions.TARGET_TYPE,
@@ -642,6 +642,20 @@ class CMRunnerArgsRegistry(object):
                 action="store_true",
                 default=False,
                 help="Generate a report from prediction runtime metrics (ie memory usage).",
+            )
+
+    @staticmethod
+    def _reg_arg_custom_task_user_secrets(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.USER_SECRETS_MOUNT_PATH,
+                default=None,
+                help="The directory where secrets should be stored",
+            )
+            parser.add_argument(
+                ArgumentsOptions.USER_SECRETS_PREFIX,
+                default=None,
+                help="The env var prefix added to user secrets env vars",
             )
 
     @staticmethod
@@ -938,6 +952,9 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_arg_strict_validation(fit_parser, push_parser)
 
         CMRunnerArgsRegistry._reg_arg_report_fit_predict_metadata(fit_parser, push_parser)
+        CMRunnerArgsRegistry._reg_arg_custom_task_user_secrets(
+            fit_parser, score_parser, server_parser, push_parser,
+        )
 
         CMRunnerArgsRegistry._reg_args_runtime_parameters_file(
             score_parser, perf_test_parser, server_parser, validation_parser

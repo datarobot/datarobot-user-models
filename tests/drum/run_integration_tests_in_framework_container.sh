@@ -13,10 +13,8 @@ echo
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 
-echo "-- running drum tests - assuming running inside Docker"
-
-echo
-echo "Running pytest:"
+echo "-- Assuming running integration tests in framework container (inside Docker), for env: $1"
+echo "Installing pytest"
 
 pip install pytest pytest-xdist
 
@@ -30,9 +28,9 @@ TESTS_TO_RUN="tests/drum/test_inference_per_framework.py \
 # install 'pack' package in R env for tests
 if [ "$1" = "r_lang" ]; then
     Rscript -e "install.packages('pack', Ncpus=4)"
-    TESTS_TO_RUN+="tests/drum/unit/test_language_predictors.py::TestRPredictor \
-                   tests/drum/unit/test_utils.py \
-                   tests/drum/unit/model_metadata/test_model_metadata.py
+    TESTS_TO_RUN+="tests/integration/datarobot_drum/drum/language_predictors/test_language_predictors.py::TestRPredictor \
+                   tests/unit/datarobot_drum/drum/utils/test_drum_utils.py \
+                   tests/unit/datarobot_drum/model_metadata/test_model_metadata.py
                   "
 fi
 

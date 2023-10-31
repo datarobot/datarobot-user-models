@@ -160,7 +160,7 @@ class RPredictor(BaseLanguagePredictor):
             logger.error(error_message)
             raise DrumCommonException(error_message)
 
-        if self.target_type.value in TargetType.CLASSIFICATION.value:
+        if self.target_type.is_classification():
             predictions = self._replace_sanitized_class_names(predictions)
         return predictions.values, predictions.columns
 
