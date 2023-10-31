@@ -36,8 +36,8 @@ def score_unstructured(model, data,  **kwargs):
         else:
             data = pd.read_json(data.decode(), orient='records')
     except Exception as e:
-        print(f"well this failed")
         print(e)
+        raise ValueError("Your data failed to seriealize into JSON.")
     
     for col in input_columns:
         if col not in data.columns.to_list():

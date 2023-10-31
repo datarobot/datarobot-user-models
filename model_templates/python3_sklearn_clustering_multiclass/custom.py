@@ -4,7 +4,7 @@
 # Released under the terms of DataRobot Tool and Utility Agreement.
 
 """
-This is an example for unstructured custom inference model with MLOps reporting. It is actually
+This is an example for supporting clustering models within DataRobot as custom multiclass models.
 While it is a clustering model we can use it as multi-class now that the number of clusters is known. 
 
 """
@@ -22,6 +22,18 @@ from collections import namedtuple
 ClusterModel = namedtuple('ClusterModel', ['model', 'class_labels'])
 
 def load_model(input_dir):
+    """Load model hook for the custom model 
+
+    Parameters
+    ----------
+    input_dir : str
+        the current working directory from which the model artifacts will 
+
+    Returns
+    -------
+    _type_
+        _description_
+    """
     model_path = str(Path(input_dir) / "model.pkl")
     class_labels = Path(__file__).parent / Path("class_labels.txt")
     class_labels = class_labels.read_text().split("\n")
@@ -31,6 +43,21 @@ def load_model(input_dir):
 
 
 def score(data, model: ClusterModel, **kwargs):
+    """Scoring hook for the custom model. 
+
+
+    Parameters
+    ----------
+    data : pd.DataFrame
+        The input data for the custom model
+    model : ClusterModel
+        NamedTuple which is the output of the load model hook. 
+
+    Returns
+    -------
+    pd.DataFrame
+        The return data in the form of a pandas dataframe with one column for each output class. 
+    """
     
     input_columns = ['Petal.Length', 'Petal.Width', 'Sepal.Length', 'Sepal.Width']
     for col in input_columns:
