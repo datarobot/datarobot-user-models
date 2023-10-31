@@ -18,7 +18,7 @@
 
 ARG WORKDIR=/etc/system/kernel
 ARG AGENTDIR=/etc/system/kernel/agent
-ARG R_VERSION=4.2.2
+ARG R_VERSION=4.2.3
 
 ARG UNAME=notebooks
 ARG UID=10101
