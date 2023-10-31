@@ -9,7 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Changed
 - Update error messages
 - Clean up exceptions handling in model_adapter
-- added user-secrets-mount-path and user-secrets-prefix
 
 #### [1.10.10] - 2023-08-14
 ##### Changed
