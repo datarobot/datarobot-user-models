@@ -116,7 +116,7 @@ Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$
 
 #### Setting Up Local Env For Testing
 
-1. Create Py venv, >=3.9 is recommended.
+1. Create a virtual environment with Python>=3.9
 1. Install dependencies: `pip install -r ./custom_model_runner/requirements.txt -r requirements_test_unit.txt -r requirements_test.txt -r requirements_lint.txt`
    1. To install drum in `editable` mode: `pip install -e custom_model_runner/`
       1. About editable mode: https://packaging.python.org/en/latest/guides/distributing-packages-using-setuptools/#id64
