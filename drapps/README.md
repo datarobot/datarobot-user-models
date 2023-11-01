@@ -39,11 +39,15 @@ can be used by your application.
 You can find list of available Execution Environments in **Custom Model Workshop**
 on [**Environments page**](https://app.datarobot.com/model-registry/custom-environments)
 
+For a custom Streamlit application, use: `--base-env '[DataRobot] Python 3.9 Streamlit'`.
+
 ### --path
 
 Path to folder which will be used to create custom application. Files from this folder
 will be uploaded to Data Robot and used for creating custom application image. Custom
 application will be started from this image.
+
+To use the current working directory use `--path .`.
 
 ### --name
 
