@@ -2,11 +2,9 @@
 
 ## About 
 
-DRApps is simple CLI tool for creating your custom application in Data Robot cloud.
+DRApps is simple CLI tool for creating your custom application in DataRobot.
 
-Custom application it small web server hosted by Data Robot in Kubernetes environment.
-Data Robot do not provide any storage resources for this server, but you can use Data
-Robot API and other Internet services.
+Custom applications does not provide any storage but you may access the full DataRobot API and other Internet services
 
 ## Installation
 
@@ -97,10 +95,10 @@ tab.
 
 ## Tips for your custom application
 
-Root folder of custom application should contain `start-app.sh` file, that will be
+Root folder of custom application must contain `start-app.sh` file, that will be
 used as entry point for starting your application server.
 
-Web server of the application should listen on **8080** port.
+Web server of the application must listen on **8080** port.
 
 Required packages may be listed in `requirements.txt` in root directory. Packages
 from this file will be installed automatically during application setup.
