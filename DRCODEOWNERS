@@ -24,6 +24,7 @@
 /custom_model_runner/datarobot_drum/drum/custom_fit_wrapper.py      @datarobot/core-modeling
 /custom_model_runner/datarobot_drum/drum/typeschema_validation.py   @datarobot/core-modeling
 /custom_model_runner/datarobot_drum/resource/default_typeschema     @datarobot/core-modeling
+/drapps                                                             @datarobot/no-code-apps
 /public_dropin_environments/java_codegen                            @datarobot/custom-models
 /public_dropin_environments/julia_mlj                               @datarobot/custom-models
 /public_dropin_environments/python3_onnx                            @datarobot/custom-models
