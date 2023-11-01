@@ -68,6 +68,12 @@ URL to Public API of Data Robot. Default value: `https://app.datarobot.com/api/v
 
 You can provide URL to Public API through  `DATAROBOT_ENDPOINT` environment variable.
 
+## Usage example
+
+You can deploy demo streamlit app just by executing from current folder:
+
+    ./drapps.py -t <your_api_token> -e "[Experimental] Python 3.9 Streamlit" -p ./demo-streamlit
+
 ## Script work description
 
 Script works in 4 steps:
