@@ -118,10 +118,14 @@ Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$
 
 #### Setting Up Local Env For Testing
 
-1. create Py 3.7 or 3.8 venv
-1. `pip install -r requirements_dev.txt`
-1. `pip install -e custom_model_runner/`
-1. pytest to your heart's content
+1. Create a virtual environment with Python>=3.9
+1. Install dependencies: `pip install -r ./custom_model_runner/requirements.txt -r requirements_test_unit.txt -r requirements_test.txt -r requirements_lint.txt`
+   1. To install drum in `editable` mode: `pip install -e custom_model_runner/`
+      1. About editable mode: https://packaging.python.org/en/latest/guides/distributing-packages-using-setuptools/#id64
+         https://stackoverflow.com/questions/35064426/when-would-the-e-editable-option-be-useful-with-pip-install
+1. Pytest to your heart's content.
+1. To build DRUM or work on Java predictor, Java 11 is required. To install Java on Ubuntu: `sudo apt install openjdk-11-jdk openjdk-11-jre`.
+1. If you plan to run functional tests, build DRUM or work on Java predictor, Java 11 is required. To install Java on Ubuntu: `sudo apt install openjdk-11-jdk openjdk-11-jre`.
 
 #### DataRobot Confluence
 To get more information, search for `custom models` and `datarobot user models` in DataRobot Confluence.

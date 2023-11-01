@@ -33,6 +33,10 @@ if [ -f "${parameters}" ]; then
     CMD="${CMD} --parameter-file ${parameters}"
 fi
 
+if [ -n "${USER_SECRETS_MOUNT_PATH}" ]; then
+    CMD="${CMD} --user-secrets-mount-path ${USER_SECRETS_MOUNT_PATH}"
+fi
+
 echo "Environment variables:"
 env
 echo "${CMD}"

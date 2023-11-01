@@ -1,11 +1,9 @@
 datarobot==3.1.0
 datarobot-bp-workshop==0.2.6
-dr-usertool>=3
 docker>=4.2.2,<5.0.0
 pytest
 pytest-runner
 pytest-xdist
-# PyYAML & drca are constrained by dr-usertool and its deps
 PyYAML>=3.11
 requests >= 2.24.0
 responses
