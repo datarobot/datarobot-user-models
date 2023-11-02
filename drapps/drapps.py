@@ -23,7 +23,7 @@ def find_base_env_by_name(session, endpoint, base_env_name):
         if env["name"] == base_env_name:
             return env
 
-    msg = f"Can't fine environment with name {base_env_name}"
+    msg = f"Can't find environment with name {base_env_name}"
     raise Exception(msg)
 
 
@@ -172,7 +172,7 @@ def upload(token, base_env, path, name, endpoint):
     app_id = create_custom_app(session, endpoint, name, image["id"])
     click.echo(f"Starting new application version: {app_id}")
 
-    click.echo("Everything seems fine")
+    click.echo("Custom application successfully created")
 
 
 if __name__ == "__main__":
