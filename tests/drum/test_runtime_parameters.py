@@ -118,8 +118,8 @@ class TestRuntimeParametersFromEnv:
             resources, tmp_path, is_missing_attr=True
         )
         assert re.search(
-            r".*Invalid runtime parameter!.*{\\\\\\'credentialType\\\\\\': DataError\(\\\\\\'is "
-            r"required\\\\\\'\)}.*",
+            r".*Invalid runtime parameter!.*{\\\\\\\\\\\\\\\'credentialType\\\\\\\\\\\\\\\': "
+            r"DataError\(\\\\\\\\\\\\\\\'is required\\\\\\\\\\\\\\\'\)}.*",
             stderr,
         )
 
