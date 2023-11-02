@@ -19,7 +19,8 @@ from .exceptions import InvalidInputFilePath
 from .exceptions import InvalidJsonException
 from .exceptions import InvalidRuntimeParam
 from .exceptions import InvalidYamlContent
-from .runtime_parameters_schema import RuntimeParameterCredentialPayloadTrafaret
+from .runtime_parameters_schema import RuntimeParameterCredentialPayloadTrafaret, \
+    RuntimeParameterDeploymentPayloadTrafaret
 from .runtime_parameters_schema import RuntimeParameterPayloadTrafaret
 from .runtime_parameters_schema import RuntimeParameterStringPayloadTrafaret
 from .runtime_parameters_schema import RuntimeParameterTypes
@@ -156,6 +157,7 @@ class RuntimeParametersLoader:
     def setup_environment_variables(self):
         credential_payload_trafaret = RuntimeParameterCredentialPayloadTrafaret()
         string_payload_trafaret = RuntimeParameterStringPayloadTrafaret()
+        deployment_payload_trafaret = RuntimeParameterDeploymentPayloadTrafaret()
         for param_key, param_definition in self._parameter_definitions.items():
             param_value = self._yaml_content.get(param_key, param_definition.default)
 
@@ -167,6 +169,10 @@ class RuntimeParametersLoader:
                 elif param_definition.type == RuntimeParameterTypes.STRING:
                     payload = string_payload_trafaret.check(
                         {"type": RuntimeParameterTypes.STRING.value, "payload": param_value}
+                    )
+                elif param_definition.type == RuntimeParameterTypes.DEPLOYMENT:
+                    payload = deployment_payload_trafaret.check(
+                        {"type": RuntimeParameterTypes.DEPLOYMENT.value, "payload": param_value}
                     )
                 else:
                     raise ErrorLoadingRuntimeParameter(
