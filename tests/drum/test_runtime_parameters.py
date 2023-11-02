@@ -32,7 +32,7 @@ def _setup_expected_runtime_parameters(custom_model_dir, is_missing_attr):
                 "awsSessionToken": "456edf",
             },
         },
-        "SOME_DEPLOYMENT_KEY": {"type": "deployment", "payload": "65415890b9b0fd93778e6935"}
+        "SOME_DEPLOYMENT_KEY": {"type": "deployment", "payload": "65415890b9b0fd93778e6935"},
     }
     if is_missing_attr:
         expected_runtime_params["SOME_AWS_CRED_KEY"]["payload"].pop("credentialType")

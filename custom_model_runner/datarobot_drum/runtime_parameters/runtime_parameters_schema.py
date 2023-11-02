@@ -51,11 +51,15 @@ class RuntimeParameterCredentialPayloadTrafaret(RuntimeParameterPayloadBaseTrafa
 
 class RuntimeParameterDeploymentPayloadTrafaret(RuntimeParameterPayloadBaseTrafaret):
     def __init__(self):
-        super().__init__(RuntimeParameterTypes.DEPLOYMENT.value, {t.Key("payload"): t.Null | t.String})
+        super().__init__(
+            RuntimeParameterTypes.DEPLOYMENT.value, {t.Key("payload"): t.Null | t.String}
+        )
 
 
 RuntimeParameterPayloadTrafaret = (
-    RuntimeParameterStringPayloadTrafaret | RuntimeParameterCredentialPayloadTrafaret | RuntimeParameterDeploymentPayloadTrafaret
+    RuntimeParameterStringPayloadTrafaret
+    | RuntimeParameterCredentialPayloadTrafaret
+    | RuntimeParameterDeploymentPayloadTrafaret
 )
 
 

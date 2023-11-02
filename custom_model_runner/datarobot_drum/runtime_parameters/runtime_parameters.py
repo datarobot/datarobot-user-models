@@ -19,8 +19,10 @@ from .exceptions import InvalidInputFilePath
 from .exceptions import InvalidJsonException
 from .exceptions import InvalidRuntimeParam
 from .exceptions import InvalidYamlContent
-from .runtime_parameters_schema import RuntimeParameterCredentialPayloadTrafaret, \
-    RuntimeParameterDeploymentPayloadTrafaret
+from .runtime_parameters_schema import (
+    RuntimeParameterCredentialPayloadTrafaret,
+    RuntimeParameterDeploymentPayloadTrafaret,
+)
 from .runtime_parameters_schema import RuntimeParameterPayloadTrafaret
 from .runtime_parameters_schema import RuntimeParameterStringPayloadTrafaret
 from .runtime_parameters_schema import RuntimeParameterTypes
