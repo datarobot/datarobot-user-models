@@ -19,6 +19,8 @@ or best practices.
 The [./public_dropin_notebook_environments](./public_dropin_notebook_environments) contains template examples 
 (sample Dockerfile and context) for how to create custom images to use as the environments for DataRobot Notebooks.
 
+The [./drapps](./drapps) contains CLI tool for crating custom applications from local files.
+
 
 For further documentation on this and all other features please visit our 
 comprehensive documentation at: https://docs.datarobot.com/
