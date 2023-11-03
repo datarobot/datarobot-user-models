@@ -20,7 +20,7 @@ texttable
 py4j~=0.10.9.0
 # only constrained by other packages, not DRUM
 pyarrow>=0.14.1,<=10.0.1
-Pillow<=9.3.0
+Pillow<=9.4.0
 julia<=0.5.7
 termcolor
 packaging
