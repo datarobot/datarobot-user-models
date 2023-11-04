@@ -12,6 +12,7 @@ import trafaret as t
 class RuntimeParameterTypes(Enum):
     STRING = "string"
     CREDENTIAL = "credential"
+    DEPLOYMENT = "deployment"
 
 
 class NativeEnumTrafaret(t.Enum):
@@ -48,8 +49,17 @@ class RuntimeParameterCredentialPayloadTrafaret(RuntimeParameterPayloadBaseTrafa
         )
 
 
+class RuntimeParameterDeploymentPayloadTrafaret(RuntimeParameterPayloadBaseTrafaret):
+    def __init__(self):
+        super().__init__(
+            RuntimeParameterTypes.DEPLOYMENT.value, {t.Key("payload"): t.Null | t.String}
+        )
+
+
 RuntimeParameterPayloadTrafaret = (
-    RuntimeParameterStringPayloadTrafaret | RuntimeParameterCredentialPayloadTrafaret
+    RuntimeParameterStringPayloadTrafaret
+    | RuntimeParameterCredentialPayloadTrafaret
+    | RuntimeParameterDeploymentPayloadTrafaret
 )
 
 
