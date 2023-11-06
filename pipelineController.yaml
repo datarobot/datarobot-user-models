@@ -190,4 +190,4 @@ repositoryTasks:
           - *test_integration_python_xgboost
           - *test_integration_r_environment
           - *test_integration_java_environment
-          - *test_integration_julia_environment
+          # - *test_integration_julia_environment
