@@ -38,6 +38,10 @@ setup(
     long_description=long_desc,
     long_description_content_type="text/markdown",
     url="http://datarobot.com",
+    project_urls={
+        "Source": "https://github.com/datarobot/datarobot-user-models",
+        "Changelog": "https://github.com/datarobot/datarobot-user-models/blob/master/custom_model_runner/CHANGELOG.md",
+    },
     author="DataRobot",
     author_email="support@datarobot.com",
     license="Apache License, Version 2.0",
