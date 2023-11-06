@@ -8,4 +8,4 @@
 #
 echo "Starting App"
 
-streamlit run demo-streamlet.py
+streamlit run demo-streamlit.py
