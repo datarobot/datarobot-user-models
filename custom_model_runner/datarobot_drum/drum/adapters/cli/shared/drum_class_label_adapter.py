@@ -27,7 +27,10 @@ def needs_class_labels(
 
 
 def possibly_intuit_order(
-    input_filename, target_type, target_filename=None, target_name=None,
+    input_filename,
+    target_type,
+    target_filename=None,
+    target_name=None,
 ):
     if target_type == TargetType.ANOMALY:
         return None
@@ -84,7 +87,8 @@ def infer_class_labels(target_type, input_filename, target_filename=None, target
         if len(possible_class_labels) < 2:
             raise DrumCommonException(
                 "Target type multiclass requires more than 2 class labels. Detected {}: {}".format(
-                    len(possible_class_labels), possible_class_labels,
+                    len(possible_class_labels),
+                    possible_class_labels,
                 )
             )
 
@@ -97,7 +101,11 @@ class DrumClassLabelAdapter(object):
     """
 
     def __init__(
-        self, target_type, positive_class_label=None, negative_class_label=None, class_labels=None,
+        self,
+        target_type,
+        positive_class_label=None,
+        negative_class_label=None,
+        class_labels=None,
     ):
         """
         Parameters

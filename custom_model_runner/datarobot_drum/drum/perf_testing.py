@@ -169,7 +169,6 @@ class PerfTestResultsFormatter:
         return [value for _ in range(n)]
 
     def _add_mem_info(self, row, server_stats):
-
         if server_stats is not None and "mem_info" in server_stats:
             mem_info = server_stats["mem_info"]
             if self._in_docker:
@@ -677,7 +676,6 @@ class CMRunTests:
         print(tbl_report)
 
     def check_transform_server(self, target_temp_location=None):
-
         with DrumServerRun(
             self.target_type.value,
             self.resolve_labels(self.target_type, self.options),

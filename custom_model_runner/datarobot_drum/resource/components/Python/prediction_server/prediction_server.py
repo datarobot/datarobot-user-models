@@ -156,7 +156,6 @@ class PredictionServer(ConnectableComponent, PredictMixin):
 
         @model_api.route("/transform/", methods=["POST"])
         def transform():
-
             logger.debug("Entering transform() endpoint")
 
             self._pre_predict_and_transform()

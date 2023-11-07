@@ -50,7 +50,11 @@ class TestOtherCasesPerFramework:
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -118,7 +122,13 @@ class TestOtherCasesPerFramework:
         self, resources, framework, language, hooks_list, target_type, tmp_path, framework_env
     ):
         skip_if_framework_not_in_env(framework, framework_env)
-        custom_model_dir = _create_custom_model_dir(resources, tmp_path, framework, None, language,)
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            None,
+            language,
+        )
 
         input_dataset = resources.datasets(framework, REGRESSION)
 
@@ -141,8 +151,18 @@ class TestOtherCasesPerFramework:
     @pytest.mark.parametrize(
         "framework, language, hooks_list, target_type",
         [
-            (R_NO_ARTIFACTS, R_INT_COLNAMES_BINARY, CustomHooks.SCORE, BINARY,),
-            (R_NO_ARTIFACTS, R_INT_COLNAMES_MULTICLASS, CustomHooks.SCORE, MULTICLASS,),
+            (
+                R_NO_ARTIFACTS,
+                R_INT_COLNAMES_BINARY,
+                CustomHooks.SCORE,
+                BINARY,
+            ),
+            (
+                R_NO_ARTIFACTS,
+                R_INT_COLNAMES_MULTICLASS,
+                CustomHooks.SCORE,
+                MULTICLASS,
+            ),
         ],
     )
     @pytest.mark.parametrize("label_type", [int, float])
@@ -159,7 +179,13 @@ class TestOtherCasesPerFramework:
     ):
         skip_if_framework_not_in_env(framework, framework_env)
 
-        custom_model_dir = _create_custom_model_dir(resources, tmp_path, framework, None, language,)
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            None,
+            language,
+        )
         input_dataset = resources.datasets(framework, REGRESSION)
         output = tmp_path / "output"
 
@@ -184,18 +210,29 @@ class TestOtherCasesPerFramework:
     # R version of current test cases is run in the dedicated env as rpy2 installation is required
     @pytest.mark.parametrize(
         "framework, language, target_type",
-        [(R_NO_ARTIFACTS, R, REGRESSION),],  # no artifact, custom.R without load_model
+        [
+            (R_NO_ARTIFACTS, R, REGRESSION),
+        ],  # no artifact, custom.R without load_model
     )
     def test_detect_language(
         self, resources, framework, language, tmp_path, framework_env, target_type
     ):
         skip_if_framework_not_in_env(framework, framework_env)
 
-        custom_model_dir = _create_custom_model_dir(resources, tmp_path, framework, None, language,)
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            None,
+            language,
+        )
 
         input_dataset = resources.datasets(framework, REGRESSION)
         cmd = "{} score --code-dir {} --input {} --target-type {}".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, target_type,
+            ArgumentsOptions.MAIN_COMMAND,
+            custom_model_dir,
+            input_dataset,
+            target_type,
         )
 
         p, stdo, stde = _exec_shell_cmd(
@@ -234,7 +271,11 @@ class TestOtherCasesPerFramework:
         skip_if_framework_not_in_env("rds", framework_env)
 
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
         input_dataset = resources.datasets(framework, problem)
         cmd = "{} score --code-dir {} --input {} --target-type {}".format(

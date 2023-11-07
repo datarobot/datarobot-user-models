@@ -64,7 +64,6 @@ class GenerateH2OArtifacts(object):
 
 
 if __name__ == "__main__":
-
     h2o.init()
     h2o_reg_artifacts = GenerateH2OArtifacts()
     data_location = "../../testdata/juniors_3_year_stats_regression.csv"

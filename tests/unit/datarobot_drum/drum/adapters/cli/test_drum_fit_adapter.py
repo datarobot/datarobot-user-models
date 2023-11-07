@@ -32,7 +32,8 @@ class TestDrumFitAdapterFailures(object):
             ).y
 
     @pytest.mark.parametrize(
-        "target_type", [TargetType.ANOMALY, TargetType.TRANSFORM],
+        "target_type",
+        [TargetType.ANOMALY, TargetType.TRANSFORM],
     )
     def test_target_data_missing_okay(self, dense_csv, target_type):
         y = DrumFitAdapter(
@@ -44,7 +45,9 @@ class TestDrumFitAdapterFailures(object):
         assert y is None
 
     def test_input_file_contains_X_missing_y(
-        self, dense_csv, target_col_name,
+        self,
+        dense_csv,
+        target_col_name,
     ):
         with pytest.raises(
             DrumCommonException,
@@ -58,7 +61,9 @@ class TestDrumFitAdapterFailures(object):
             ).y
 
     def test_input_file_contains_X_missing_weights(
-        self, dense_csv, weights_col_name,
+        self,
+        dense_csv,
+        weights_col_name,
     ):
         with pytest.raises(
             DrumCommonException,
@@ -100,7 +105,11 @@ class TestDrumFitAdapterFailures(object):
 class TestDrumFitAdapterSampling(object):
     @pytest.mark.parametrize("num_rows_to_sample", [1, 4.0, 10, "ALL", "num_rows"])
     @pytest.mark.parametrize(
-        "input_filename, input_df", [("dense_csv", "dense_df"), ("sparse_mtx", "sparse_df"),]
+        "input_filename, input_df",
+        [
+            ("dense_csv", "dense_df"),
+            ("sparse_mtx", "sparse_df"),
+        ],
     )
     def test_sampling(
         self,
@@ -210,7 +219,8 @@ class TestDrumFitAdapterParameters(object):
 
     def test_parameters_default_to_empty_dict(self):
         drum_cli_adapter = DrumFitAdapter(
-            custom_task_folder_path="a/path", target_type=TargetType.REGRESSION,
+            custom_task_folder_path="a/path",
+            target_type=TargetType.REGRESSION,
         )
 
         assert drum_cli_adapter.parameters == {}
@@ -258,7 +268,8 @@ class TestDrumFitAdapterOutputDir(object):
 
     def test_temp_output_dir_created_and_cleaned_up_when_not_provided(self):
         drum_cli_adapter = DrumFitAdapter(
-            custom_task_folder_path="a/path", target_type=TargetType.REGRESSION,
+            custom_task_folder_path="a/path",
+            target_type=TargetType.REGRESSION,
         )._validate_output_dir()
 
         # Ensure output is not to be persisted

@@ -120,7 +120,6 @@ class PredictMixin:
     def _do_predict_structured(self, logger=None):
         response_status = HTTP_200_OK
         try:
-
             binary_data, mimetype, charset = self._fetch_data_from_request("X", logger=logger)
             sparse_column_names = self._get_sparse_column_names(logger=logger)
 
@@ -298,8 +297,10 @@ class PredictMixin:
         return response, response_status
 
     def do_predict_structured(self, logger=None):
-        wrong_target_type_error_message = "This model has target type '{}', use the {{}} endpoint.".format(
-            self._target_type.value
+        wrong_target_type_error_message = (
+            "This model has target type '{}', use the {{}} endpoint.".format(
+                self._target_type.value
+            )
         )
 
         return_error = False
@@ -340,7 +341,9 @@ class PredictMixin:
         mimetype, charset = PredictMixin._validate_content_type_header(request.content_type)
 
         data_binary_or_text, mimetype, charset = _resolve_incoming_unstructured_data(
-            data, mimetype, charset,
+            data,
+            mimetype,
+            charset,
         )
         kwargs_params[UnstructuredDtoKeys.MIMETYPE] = mimetype
         if charset is not None:

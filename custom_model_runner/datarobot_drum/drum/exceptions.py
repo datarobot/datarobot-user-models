@@ -19,20 +19,20 @@ class DrumPerfTestTimeout(DrumException):
 
 
 class DrumPerfTestOOM(DrumException):
-    """ Raised when the container running drum during perf test is OOM """
+    """Raised when the container running drum during perf test is OOM"""
 
 
 class DrumPredException(DrumException):
-    """ Raised when prediction consistency check fails"""
+    """Raised when prediction consistency check fails"""
 
 
 class DrumSchemaValidationException(DrumException):
-    """ Raised when the supplied schema in model_metadata does not match actual input or output data."""
+    """Raised when the supplied schema in model_metadata does not match actual input or output data."""
 
 
 class DrumTransformException(DrumException):
-    """ Raised when there is an issue specific to transform tasks."""
+    """Raised when there is an issue specific to transform tasks."""
 
 
 class DrumSerializationError(DrumException):
-    """ Raised when there is an issue serializing or deserializing a custom task/model """
+    """Raised when there is an issue serializing or deserializing a custom task/model"""

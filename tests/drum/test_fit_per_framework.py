@@ -231,7 +231,12 @@ class TestFit:
             language = PYTHON
 
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language, is_training=True,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
+            is_training=True,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -274,7 +279,8 @@ class TestFit:
         cmd += weights_cmd
 
         _, stdout, _ = _exec_shell_cmd(
-            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
         )
         assert "Starting Fit" in stdout
         assert "Starting Prediction" in stdout
@@ -327,7 +333,10 @@ class TestFit:
         target_type = resources.target_types(problem) if "transform" not in framework else TRANSFORM
 
         cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose ".format(
-            ArgumentsOptions.MAIN_COMMAND, target_type, custom_model_dir, input_dataset,
+            ArgumentsOptions.MAIN_COMMAND,
+            target_type,
+            custom_model_dir,
+            input_dataset,
         )
         if problem != ANOMALY:
             cmd += ' --target "{}"'.format(resources.targets(problem))
@@ -384,7 +393,10 @@ class TestFit:
         input_df = resources.input_data(framework, problem)
 
         weights_cmd, input_dataset, __keep_this_around = self._add_weights_cmd(
-            weights, input_df, input_dataset, r_fit=framework in [R_TRANSFORM, R_TRANSFORM_NO_HOOK],
+            weights,
+            input_df,
+            input_dataset,
+            r_fit=framework in [R_TRANSFORM, R_TRANSFORM_NO_HOOK],
         )
 
         target_type = TRANSFORM
@@ -411,7 +423,10 @@ class TestFit:
 
     @pytest.mark.parametrize(
         "framework, language",
-        [(SKLEARN_TRANSFORM_NON_NUMERIC, PYTHON), (R_TRANSFORM_NON_NUMERIC, R_FIT),],
+        [
+            (SKLEARN_TRANSFORM_NON_NUMERIC, PYTHON),
+            (R_TRANSFORM_NON_NUMERIC, R_FIT),
+        ],
     )
     @pytest.mark.parametrize("problem", [REGRESSION, BINARY, ANOMALY])
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
@@ -422,7 +437,11 @@ class TestFit:
         skip_if_framework_not_in_env(framework, framework_env)
         """Test that with strict validation non numeric transforms fail, but pass when strict validation is disabled."""
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language=framework,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language=framework,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -479,7 +498,11 @@ class TestFit:
         input_dataset = resources.datasets(framework, problem)
         target_type = TRANSFORM
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language=framework,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language=framework,
         )
 
         cmd = "{} fit --target-type {} --code-dir {} --input {} --verbose {}".format(
@@ -507,7 +530,11 @@ class TestFit:
         target_dataset = resources.datasets(None, SPARSE_TARGET)
 
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, REGRESSION, language=framework,
+            resources,
+            tmp_path,
+            framework,
+            REGRESSION,
+            language=framework,
         )
         columns = resources.datasets(framework, SPARSE_COLUMNS)
 
@@ -541,7 +568,11 @@ class TestFit:
         target_dataset = resources.datasets(None, SPARSE_TARGET)
 
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, REGRESSION, language=framework,
+            resources,
+            tmp_path,
+            framework,
+            REGRESSION,
+            language=framework,
         )
         columns = resources.datasets(framework, SPARSE_COLUMNS)
 
@@ -619,7 +650,12 @@ class TestFit:
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, PYTHON, is_training=True,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            PYTHON,
+            is_training=True,
         )
 
         env = os.environ
@@ -746,7 +782,12 @@ class TestFit:
     def test_prediction_consistency(self, resources, tmp_path, framework, problem, framework_env):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, SPARSE, language=PYTHON, is_training=True,
+            resources,
+            tmp_path,
+            framework,
+            SPARSE,
+            language=PYTHON,
+            is_training=True,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -792,7 +833,12 @@ class TestFit:
         framework = SKLEARN_REGRESSION
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, SPARSE, language=PYTHON, is_training=True,
+            resources,
+            tmp_path,
+            framework,
+            SPARSE,
+            language=PYTHON,
+            is_training=True,
         )
 
         input_dataset = resources.datasets(framework, TARGET_NAME_DUPLICATED_X)
@@ -814,7 +860,13 @@ class TestFit:
         framework = SKLEARN_BINARY
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, BINARY, PYTHON, is_training=True, include_metadata=True,
+            resources,
+            tmp_path,
+            framework,
+            BINARY,
+            PYTHON,
+            is_training=True,
+            include_metadata=True,
         )
 
         input_dataset = resources.datasets(SKLEARN, BINARY)
@@ -893,7 +945,13 @@ class TestFit:
         framework = SKLEARN_REGRESSION
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, REGRESSION, PYTHON, is_training=True, nested=True,
+            resources,
+            tmp_path,
+            framework,
+            REGRESSION,
+            PYTHON,
+            is_training=True,
+            nested=True,
         )
 
         input_dataset = resources.datasets(SKLEARN, REGRESSION)
@@ -925,7 +983,13 @@ class TestFit:
         framework = SKLEARN_REGRESSION
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, REGRESSION, PYTHON, is_training=True, nested=True,
+            resources,
+            tmp_path,
+            framework,
+            REGRESSION,
+            PYTHON,
+            is_training=True,
+            nested=True,
         )
 
         input_dataset = resources.datasets(SKLEARN, REGRESSION)

@@ -60,7 +60,6 @@ class TestMLOpsMonitoring:
 
     @contextlib.contextmanager
     def local_webserver_stub(self, expected_pred_requests_queries=0):
-
         init_cache_data = {"actual_version_queries": 0, "actual_pred_requests_queries": 0}
         with SimpleCache(init_cache_data) as cache:
             app = Flask(__name__)
@@ -113,7 +112,11 @@ class TestMLOpsMonitoring:
         We expect the run of drum to be ok, since mlops is assumed to be installed.
         """
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -136,8 +139,10 @@ class TestMLOpsMonitoring:
             os.mkdir(str(mlops_spool_dir))
 
             # spooler_type is case-insensitive in the datarobot-mlops==8.3.0
-            monitor_settings = "spooler_type={};directory={};max_files=1;file_max_size=1024000".format(
-                "FILESYSTEM" if is_embedded else "filesystem", mlops_spool_dir
+            monitor_settings = (
+                "spooler_type={};directory={};max_files=1;file_max_size=1024000".format(
+                    "FILESYSTEM" if is_embedded else "filesystem", mlops_spool_dir
+                )
             )
 
             cmd += ' --monitor-settings="{}"'.format(monitor_settings)
@@ -157,7 +162,10 @@ class TestMLOpsMonitoring:
         return cmd, input_dataset, output, mlops_spool_dir
 
     @pytest.mark.parametrize(
-        "framework, problem, language, docker", [(SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None),],
+        "framework, problem, language, docker",
+        [
+            (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None),
+        ],
     )
     def test_drum_regression_model_monitoring_with_mlops_installed(
         self, resources, framework, problem, language, docker, tmp_path
@@ -178,7 +186,10 @@ class TestMLOpsMonitoring:
         assert os.path.isfile(os.path.join(mlops_spool_dir, "fs_spool.1"))
 
     @pytest.mark.parametrize(
-        "framework, problem, language, docker", [(SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None),],
+        "framework, problem, language, docker",
+        [
+            (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None),
+        ],
     )
     @pytest.mark.usefixtures("mask_mlops_installation")
     def test_drum_regression_model_monitoring_no_mlops_installed(
@@ -203,7 +214,10 @@ class TestMLOpsMonitoring:
         ), "drum should fail when datarobot-mlops is not installed and monitoring is requested"
 
     @pytest.mark.parametrize(
-        "framework, problem, language, docker", [(SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None),],
+        "framework, problem, language, docker",
+        [
+            (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None),
+        ],
     )
     def test_drum_regression_model_monitoring_fails_in_unstructured_mode(
         self, resources, framework, problem, language, docker, tmp_path
@@ -223,10 +237,12 @@ class TestMLOpsMonitoring:
         assert str(stdo).find("MLOps monitoring can not be used in unstructured mode") != -1
 
     @pytest.mark.parametrize(
-        "framework, problem, language", [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_MLOPS)],
+        "framework, problem, language",
+        [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_MLOPS)],
     )
     @pytest.mark.parametrize(
-        "with_monitor_settings", [False, True],
+        "with_monitor_settings",
+        [False, True],
     )
     def test_drum_unstructured_model_embedded_monitoring(
         self, resources, framework, problem, language, tmp_path, with_monitor_settings
@@ -257,7 +273,8 @@ class TestMLOpsMonitoring:
             assert "10" in out_data
 
     @pytest.mark.parametrize(
-        "framework, problem, language", [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_MLOPS)],
+        "framework, problem, language",
+        [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_MLOPS)],
     )
     def test_drum_unstructured_model_embedded_monitoring_in_sklearn_env(
         self, resources, framework, problem, language, tmp_path
@@ -312,13 +329,19 @@ class TestMLOpsMonitoring:
         self, resources, framework, problem, language, docker, tmp_path
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         mlops_spool_dir = tmp_path / "mlops_spool"
         os.mkdir(str(mlops_spool_dir))
-        monitor_settings = "spooler_type=FILESYSTEM;directory={};max_files=1;file_max_size=1024000".format(
-            mlops_spool_dir
+        monitor_settings = (
+            "spooler_type=FILESYSTEM;directory={};max_files=1;file_max_size=1024000".format(
+                mlops_spool_dir
+            )
         )
 
         pred_server_host = "localhost:13908"

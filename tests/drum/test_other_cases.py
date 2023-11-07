@@ -61,10 +61,19 @@ class TestOtherCases:
         ],
     )
     def test_detect_language(
-        self, resources, framework, problem, language, tmp_path,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -132,10 +141,20 @@ class TestOtherCases:
         ],
     )
     def test_set_language(
-        self, resources, framework, problem, language, set_language, tmp_path,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        set_language,
+        tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
         input_dataset = resources.datasets(framework, problem)
         cmd = "{} score --code-dir {} --input {} --target-type {}".format(
@@ -182,7 +201,9 @@ class TestOtherCases:
         assert os.path.isfile(custom_file)
 
     def test_r2d2_drum_prediction_server(
-        self, resources, tmp_path,
+        self,
+        resources,
+        tmp_path,
     ):
         print("current dir: {}".format(os.getcwd()))
 
@@ -206,7 +227,10 @@ class TestOtherCases:
             print(stderr)
             assert p.returncode == 0
 
-            data = pd.DataFrame({"cmd": ["memory"], "arg": [100]}, columns=["cmd", "arg"],)
+            data = pd.DataFrame(
+                {"cmd": ["memory"], "arg": [100]},
+                columns=["cmd", "arg"],
+            )
             print("Sending the following data:")
             print(data)
 
@@ -217,7 +241,10 @@ class TestOtherCases:
             assert response.ok
 
             # Sending the exception command.. should get a failed response
-            data = pd.DataFrame({"cmd": ["exception"], "arg": [100]}, columns=["cmd", "arg"],)
+            data = pd.DataFrame(
+                {"cmd": ["exception"], "arg": [100]},
+                columns=["cmd", "arg"],
+            )
             print("Sending the following data:")
             print(data)
 
@@ -232,7 +259,10 @@ class TestOtherCases:
             assert response.ok
 
             # Killing the docker allocating too much memory
-            data = pd.DataFrame({"cmd": ["memory"], "arg": [1000]}, columns=["cmd", "arg"],)
+            data = pd.DataFrame(
+                {"cmd": ["memory"], "arg": [1000]},
+                columns=["cmd", "arg"],
+            )
 
             print("Sending 1000m data:")
             print(data)
@@ -249,7 +279,8 @@ class TestOtherCases:
         "target_type", ["binary", "regression", "unstructured", "anomaly", "multiclass"]
     )
     def test_model_metadata_validation_fails__when_output_requirement_not_allowed_for_selected_target_types(
-        self, target_type,
+        self,
+        target_type,
     ):
         """The output_requirements of model metadata defines the specs of custom task outputs. It only applies to
         transform custom task. Before testing logic in CMRunner.run_fit() is executed, the model metadata will be first
@@ -322,7 +353,10 @@ class TestOtherCases:
         ) as mock_cmrunner_args_registry:
             mock_arg_registry = mock_cmrunner_args_registry["get_arg_parser"].return_value
             mock_arg_registry.parse_args.return_value = runtime_options
-            with patch.object(CMRunner, "run",) as mock_run:
+            with patch.object(
+                CMRunner,
+                "run",
+            ) as mock_run:
                 mock_run.side_effect = DrumSchemaValidationException()
                 with pytest.raises(SystemExit) as ex:
                     main()

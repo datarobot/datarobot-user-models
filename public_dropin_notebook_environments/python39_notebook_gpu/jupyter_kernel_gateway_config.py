@@ -15,6 +15,12 @@ c.KernelRestarter.restart_limit = (
 )
 
 c.KernelGatewayApp.logging_config = {
-    "formatters": {"console": {"class": "ecs_logging.StdlibFormatter"},},
-    "loggers": {"KernelGatewayApp": {"handlers": ["console"],}},
+    "formatters": {
+        "console": {"class": "ecs_logging.StdlibFormatter"},
+    },
+    "loggers": {
+        "KernelGatewayApp": {
+            "handlers": ["console"],
+        }
+    },
 }

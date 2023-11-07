@@ -30,27 +30,27 @@ IMG_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
 
 
 def get_imputation_img() -> str:
-    """ black image in base64 str for data imputation filling """
+    """black image in base64 str for data imputation filling"""
     black_PIL_img = Image.fromarray(np.zeros(IMG_SHAPE, dtype="float32"), "RGB")
     return get_base64_str_from_PIL_img(black_PIL_img)
 
 
 def get_img_obj_from_base64_str(b64_img_str: str) -> Image:
-    """ given a base64 encoded image str get the PIL.Image object """
+    """given a base64 encoded image str get the PIL.Image object"""
     b64_img = base64.b64decode(b64_img_str)
     b64_img = io.BytesIO(b64_img)
     return Image.open(b64_img)
 
 
 def get_base64_str_from_PIL_img(pillowed_img: Image) -> str:
-    """ given a PIL.Image object return base64 encoded str of the image object """
+    """given a PIL.Image object return base64 encoded str of the image object"""
     buffer = io.BytesIO()
     pillowed_img.save(buffer, format="JPEG")
     return base64.b64encode(buffer.getvalue())
 
 
 def img_preprocessing(pillowed_img: Image) -> np.ndarray:
-    """ given a PIL.Image object resize, convert to RGB and return as np.array """
+    """given a PIL.Image object resize, convert to RGB and return as np.array"""
     img = pillowed_img.resize((IMG_SHAPE[:-1]), Image.LANCZOS)
     img = img.convert("RGB")
     img_arr = np.asarray(img, dtype="float32")
@@ -59,7 +59,7 @@ def img_preprocessing(pillowed_img: Image) -> np.ndarray:
 
 
 def preprocessing_X_transform(data_df: pd.DataFrame, image_feature_name: str) -> pd.DataFrame:
-    """ Apply the preprocessing methods on the data before prediction for the model to work on """
+    """Apply the preprocessing methods on the data before prediction for the model to work on"""
 
     data_df = data_df.copy()
     if image_feature_name in data_df:
@@ -74,7 +74,7 @@ def pretrained_preprocess_input(img_arr: np.ndarray) -> np.ndarray:
 
 
 def get_pretrained_base_model() -> Model:
-    """ A base pretrained model to build on top of """
+    """A base pretrained model to build on top of"""
     from tensorflow.keras.applications import MobileNetV2
 
     pretrained_model = MobileNetV2(include_top=False, input_shape=IMG_SHAPE, classes=2)
@@ -83,19 +83,19 @@ def get_pretrained_base_model() -> Model:
 
 
 def reshape_numpy_array(data_series: pd.Series) -> np.ndarray:
-    """ Convert pd.Series to numpy array and reshape it too """
+    """Convert pd.Series to numpy array and reshape it too"""
     return np.asarray(data_series.to_list()).reshape(-1, *IMG_SHAPE)
 
 
 def apply_image_data_preprocessing(x_data_df: pd.DataFrame, image_feature_name: str) -> np.ndarray:
-    """ Image data preprocessing before fit """
+    """Image data preprocessing before fit"""
     X_data_df = preprocessing_X_transform(x_data_df, image_feature_name)
     X_data = reshape_numpy_array(X_data_df[image_feature_name])
     return X_data
 
 
 def convert_np_to_df(np_array, img_col) -> pd.DataFrame:
-    """ simple utility to convert numpy array to dataframe """
+    """simple utility to convert numpy array to dataframe"""
     return pd.DataFrame(data=np_array, columns=[img_col])
 
 

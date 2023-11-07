@@ -46,27 +46,27 @@ class ArtifactPredictor(ABC):
 
     @abstractmethod
     def framework_requirements(self):
-        """ Return a list of the framework python requirements"""
+        """Return a list of the framework python requirements"""
         pass
 
     @abstractmethod
     def is_framework_present(self):
-        """ Check if the framework can be loaded """
+        """Check if the framework can be loaded"""
         pass
 
     @abstractmethod
     def can_load_artifact(self, artifact_path):
-        """ Check if the model artifact can be loaded """
+        """Check if the model artifact can be loaded"""
         pass
 
     @abstractmethod
     def load_model_from_artifact(self, artifact_path):
-        """ Load the model artifact to a model object"""
+        """Load the model artifact to a model object"""
         pass
 
     @abstractmethod
     def can_use_model(self, model):
-        """ Given a model object, can this predictor use the given model"""
+        """Given a model object, can this predictor use the given model"""
         pass
 
     @abstractmethod

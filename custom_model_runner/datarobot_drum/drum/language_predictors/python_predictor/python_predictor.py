@@ -70,12 +70,13 @@ class PythonPredictor(BaseLanguagePredictor):
         return endpoint
 
     def _init_mlops(self, params):
-
         monitor_settings = self._params.get("monitor_settings")
         if not monitor_settings:
             self._mlops_spool_dir = tempfile.mkdtemp()
-            monitor_settings = "spooler_type=FILESYSTEM;directory={};max_files=5;file_max_size=10485760".format(
-                self._mlops_spool_dir
+            monitor_settings = (
+                "spooler_type=FILESYSTEM;directory={};max_files=5;file_max_size=10485760".format(
+                    self._mlops_spool_dir
+                )
             )
 
         self._mlops = (

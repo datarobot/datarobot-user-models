@@ -115,7 +115,8 @@ def stats_func(pipe, server_url):
                 avg_time = dd["time_info"]["run_predictor_total"]["avg"]
                 if avg_time:
                     worker_stats.max_avg_prediction_time_on_worker = max(
-                        avg_time, worker_stats.max_avg_prediction_time_on_worker,
+                        avg_time,
+                        worker_stats.max_avg_prediction_time_on_worker,
                     )
 
         o = ""
@@ -160,11 +161,24 @@ if __name__ == "__main__":
 
     if fetch_and_show_uwsgi_stats:
         main_conn, worker_stats_conn = Pipe()
-        stats_thread = Process(target=stats_func, args=(worker_stats_conn, args.address,),)
+        stats_thread = Process(
+            target=stats_func,
+            args=(
+                worker_stats_conn,
+                args.address,
+            ),
+        )
         stats_thread.start()
 
     for i in range(args.threads):
-        p = Process(target=request_func, args=(q, params, i,),)
+        p = Process(
+            target=request_func,
+            args=(
+                q,
+                params,
+                i,
+            ),
+        )
         processes.append(p)
         p.start()
 

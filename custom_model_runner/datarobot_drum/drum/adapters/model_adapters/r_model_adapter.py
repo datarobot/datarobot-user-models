@@ -23,7 +23,14 @@ CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 R_FIT_PATH = os.path.join(CUR_DIR, "fit.R")
 R_COMMON_PATH = os.path.abspath(
     os.path.join(
-        CUR_DIR, "..", "..", "..", "drum", "language_predictors", "r_common_code", "common.R",
+        CUR_DIR,
+        "..",
+        "..",
+        "..",
+        "drum",
+        "language_predictors",
+        "r_common_code",
+        "common.R",
     )
 )
 
@@ -34,7 +41,9 @@ class RModelAdapter(AbstractModelAdapter):
     R_PANDAS = None
 
     def __init__(
-        self, custom_task_folder_path, target_type,
+        self,
+        custom_task_folder_path,
+        target_type,
     ):
         """
         Parameters

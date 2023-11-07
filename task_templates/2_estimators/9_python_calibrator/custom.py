@@ -17,14 +17,19 @@ from datarobot_drum.custom_task_interfaces import RegressionEstimatorInterface
 
 
 class CustomTask(RegressionEstimatorInterface):
-    def fit(self, X: pd.DataFrame, y: pd.Series, **kwargs,) -> None:
-
+    def fit(
+        self,
+        X: pd.DataFrame,
+        y: pd.Series,
+        **kwargs,
+    ) -> None:
         self.calibration_coefficient = sum(y) / sum(X[X.columns[0]])
 
     def predict(
-        self, data: pd.DataFrame, **kwargs,  # data that needs to be scored
+        self,
+        data: pd.DataFrame,
+        **kwargs,  # data that needs to be scored
     ) -> pd.DataFrame:  # returns scored data
-
         # This hook defines how DR will use the trained object (stored in the variable `model`) to score new data
 
         # In case of regression, must return a dataframe with a single column with column name "Predictions"

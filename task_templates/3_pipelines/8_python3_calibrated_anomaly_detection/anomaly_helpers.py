@@ -51,7 +51,6 @@ class AnomalyCalibEstimator(BaseEstimator):
         self.model = estimator
 
     def fit(self, X, y):
-
         # Return the classifier
         self.model.fit(X)
         self.calibrator.fit(self.model.decision_function(X).flatten())
@@ -59,7 +58,6 @@ class AnomalyCalibEstimator(BaseEstimator):
         return self
 
     def predict_proba(self, X):
-
         scores = self.model.decision_function(X).flatten()
 
         # Normalize the scores based on the min and max of training data

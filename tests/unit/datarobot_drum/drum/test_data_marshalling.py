@@ -202,6 +202,7 @@ def test_sklearn_predictor_wrong_dtype_labels(data_dtype, label_dtype):
         target_type=TargetType.BINARY,
     )
     marshalled_cols = _marshal_labels(
-        request_labels=[str(label_dtype(1)), str(label_dtype(0))], model_labels=cols,
+        request_labels=[str(label_dtype(1)), str(label_dtype(0))],
+        model_labels=cols,
     )
     assert marshalled_cols == [str(label_dtype(0)), str(label_dtype(1))]

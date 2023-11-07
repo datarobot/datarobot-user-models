@@ -64,7 +64,10 @@ def score(data, model, **kwargs):
     #    'data': [[1, 0.5], [2, 0.75]]}
     payload = {"input_data": data.to_dict(orient="split")}
     response = make_remote_prediction_request(
-        json.dumps(payload).encode("utf-8"), model.url, model.api_key, deployment=model.deployment,
+        json.dumps(payload).encode("utf-8"),
+        model.url,
+        model.api_key,
+        deployment=model.deployment,
     )
 
     # convert the prediction request response to the required data structure

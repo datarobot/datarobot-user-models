@@ -140,7 +140,8 @@ class PythonModelAdapter(AbstractModelAdapter):
             if self._custom_hooks[CustomHooks.SCORE_UNSTRUCTURED] is None:
                 raise DrumCommonException(
                     "In '{}' mode hook '{}' must be provided.".format(
-                        TargetType.UNSTRUCTURED.value, CustomHooks.SCORE_UNSTRUCTURED,
+                        TargetType.UNSTRUCTURED.value,
+                        CustomHooks.SCORE_UNSTRUCTURED,
                     )
                 )
         else:
@@ -210,7 +211,9 @@ class PythonModelAdapter(AbstractModelAdapter):
         return self._model
 
     def load_model_from_artifact(
-        self, user_secrets_mount_path: Optional[str], user_secrets_prefix: Optional[str],
+        self,
+        user_secrets_mount_path: Optional[str],
+        user_secrets_prefix: Optional[str],
     ):
         """
         Load the serialized model from its artifact.
@@ -524,7 +527,9 @@ class PythonModelAdapter(AbstractModelAdapter):
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
         request_labels = (
             get_request_labels(
-                kwargs.get(CLASS_LABELS_ARG_KEYWORD), positive_class_label, negative_class_label,
+                kwargs.get(CLASS_LABELS_ARG_KEYWORD),
+                positive_class_label,
+                negative_class_label,
             )
             if self._target_type in {TargetType.BINARY, TargetType.MULTICLASS}
             else None

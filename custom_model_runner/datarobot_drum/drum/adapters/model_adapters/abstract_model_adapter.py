@@ -17,7 +17,7 @@ class AbstractModelAdapter(ABC):
     def load_custom_hooks(self):
         """Loads the customer code and its hooks: load_model, fit, predict, ... either from the deprecated
         top-level methods in custom.py or from the new interface classes:
-        
+
         - datarobot_drum.custom_task_interfaces.BinaryEstimatorInterface
         - datarobot_drum.custom_task_interfaces.RegressionEstimatorInterface
         - datarobot_drum.custom_task_interfaces.MulticlassEstimatorInterface

@@ -23,7 +23,7 @@ class CustomTask(TransformerInterface):
         return img_to_b64(img)
 
     def fit(self, X, y, **kwargs):
-        """ The transform hook below is stateless and doesn't require a trained transformer, so the fit is blank"""
+        """The transform hook below is stateless and doesn't require a trained transformer, so the fit is blank"""
         pass
 
     def transform(self, X, **kwargs):

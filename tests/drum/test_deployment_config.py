@@ -270,7 +270,11 @@ class TestDeploymentConfig:
         tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         append_cmd = None

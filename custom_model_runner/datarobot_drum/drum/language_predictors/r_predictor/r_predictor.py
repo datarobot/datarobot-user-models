@@ -43,7 +43,14 @@ except ImportError:
 pandas2ri.activate()
 CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 R_SCORE_PATH = os.path.join(CUR_DIR, "score.R")
-R_COMMON_PATH = os.path.abspath(os.path.join(CUR_DIR, "..", "r_common_code", "common.R",))
+R_COMMON_PATH = os.path.abspath(
+    os.path.join(
+        CUR_DIR,
+        "..",
+        "r_common_code",
+        "common.R",
+    )
+)
 
 r_handler = ro.r
 
@@ -87,10 +94,10 @@ class RPredictor(BaseLanguagePredictor):
         return ro.NULL
 
     def _replace_sanitized_class_names(self, predictions):
-        """ Match prediction data labels to project class labels.
+        """Match prediction data labels to project class labels.
         Note that this contains only logic specific to R name
         sanitization and relies on marshal_predictions() for
-        language neutral cases like matching floats and bools """
+        language neutral cases like matching floats and bools"""
 
         # get class labels
         if not self.class_ordering:

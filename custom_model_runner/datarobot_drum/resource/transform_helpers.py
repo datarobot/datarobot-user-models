@@ -141,7 +141,10 @@ def parse_multi_part_response(response):
     fs = FieldStorage(
         fp=BytesIO(response.content),
         headers=response.headers,
-        environ={"REQUEST_METHOD": "POST", "CONTENT_TYPE": response.headers["Content-Type"],},
+        environ={
+            "REQUEST_METHOD": "POST",
+            "CONTENT_TYPE": response.headers["Content-Type"],
+        },
     )
     for child in fs.list:
         key = child.name

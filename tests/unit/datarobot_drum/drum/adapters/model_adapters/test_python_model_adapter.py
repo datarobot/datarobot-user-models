@@ -190,7 +190,8 @@ class TestLoadModelFromArtifact:
         adapter = TestingPythonModelAdapter(model_dir, Mock())
         assert adapter.custom_task_instance is None
         adapter.load_model_from_artifact(
-            user_secrets_mount_path=None, user_secrets_prefix=None,
+            user_secrets_mount_path=None,
+            user_secrets_prefix=None,
         )
         instance = adapter.custom_task_instance
         assert instance.secrets == {}
@@ -201,7 +202,8 @@ class TestLoadModelFromArtifact:
         adapter = TestingPythonModelAdapter(Mock(), Mock())
         assert adapter.custom_task_instance is None
         adapter.load_model_from_artifact(
-            user_secrets_mount_path=mounted_secrets_dir, user_secrets_prefix=None,
+            user_secrets_mount_path=mounted_secrets_dir,
+            user_secrets_prefix=None,
         )
         instance = adapter.custom_task_instance
         expected_secrets = {k: secrets_factory(v) for k, v in mounted_secret.items()}
@@ -211,7 +213,8 @@ class TestLoadModelFromArtifact:
         adapter = TestingPythonModelAdapter(Mock(), Mock())
         assert adapter.custom_task_instance is None
         adapter.load_model_from_artifact(
-            user_secrets_mount_path=None, user_secrets_prefix=secrets_prefix,
+            user_secrets_mount_path=None,
+            user_secrets_prefix=secrets_prefix,
         )
         instance = adapter.custom_task_instance
         expected_secrets = {k: secrets_factory(v) for k, v in env_secret.items()}

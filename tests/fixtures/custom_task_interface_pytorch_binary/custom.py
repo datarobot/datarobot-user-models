@@ -68,7 +68,7 @@ class CustomTask(BinaryEstimatorInterface):
 
     def predict_proba(self, X, **kwargs):
         """Since pytorch only outputs a single probability, i.e. the probability of the positive class,
-         we use the class labels passed in kwargs to label the columns"""
+        we use the class labels passed in kwargs to label the columns"""
         data_tensor = torch.from_numpy(X.values).type(torch.FloatTensor)
         predictions = self.estimator(data_tensor).cpu().data.numpy()
 

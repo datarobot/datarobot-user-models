@@ -63,7 +63,10 @@ class TestDrApiAccess:
 
             proc = multiprocessing.Process(
                 target=lambda: app.run(
-                    host=self.WEBSERVER_HOST, port=webserver_port, debug=True, use_reloader=False,
+                    host=self.WEBSERVER_HOST,
+                    port=webserver_port,
+                    debug=True,
+                    use_reloader=False,
                 )
             )
             proc.start()
@@ -96,7 +99,11 @@ class TestDrApiAccess:
         desired_num_pings=0,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         input_filepath = f"{custom_model_dir}/input.txt"
@@ -122,7 +129,8 @@ class TestDrApiAccess:
         return cmd
 
     @pytest.mark.parametrize(
-        "framework, problem, language", [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_DR_API_ACCESS)],
+        "framework, problem, language",
+        [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_DR_API_ACCESS)],
     )
     def test_no_dr_api_access(
         self, webserver_port, resources, framework, problem, language, tmp_path
@@ -147,7 +155,8 @@ class TestDrApiAccess:
             )
 
     @pytest.mark.parametrize(
-        "framework, problem, language", [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_DR_API_ACCESS)],
+        "framework, problem, language",
+        [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_DR_API_ACCESS)],
     )
     def test_dr_api_access_success_via_cli_input_args(
         self, webserver_port, resources, framework, problem, language, tmp_path
@@ -172,7 +181,8 @@ class TestDrApiAccess:
             )
 
     @pytest.mark.parametrize(
-        "framework, problem, language", [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_DR_API_ACCESS)],
+        "framework, problem, language",
+        [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_DR_API_ACCESS)],
     )
     def test_dr_api_access_success_via_env_vars(
         self, webserver_port, resources, framework, problem, language, tmp_path

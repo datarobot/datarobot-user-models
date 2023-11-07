@@ -13,6 +13,12 @@ c.JupyterWebsocketPersonality.list_kernels = True
 c.KernelRestarter.restart_limit = 3
 
 c.KernelGatewayApp.logging_config = {
-    "formatters": {"console": {"class": "ecs_logging.StdlibFormatter"},},
-    "loggers": {"KernelGatewayApp": {"handlers": ["console"],}},
+    "formatters": {
+        "console": {"class": "ecs_logging.StdlibFormatter"},
+    },
+    "loggers": {
+        "KernelGatewayApp": {
+            "handlers": ["console"],
+        }
+    },
 }

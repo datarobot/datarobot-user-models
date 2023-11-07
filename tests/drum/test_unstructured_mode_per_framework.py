@@ -60,7 +60,11 @@ class TestUnstructuredMode:
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -100,11 +104,23 @@ class TestUnstructuredMode:
         ],
     )
     def test_custom_models_with_drum_prediction_server(
-        self, resources, framework, problem, language, nginx, docker, tmp_path, framework_env,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        nginx,
+        docker,
+        tmp_path,
+        framework_env,
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         with DrumServerRun(
@@ -133,18 +149,32 @@ class TestUnstructuredMode:
 
     @pytest.mark.parametrize(
         "framework, problem, language",
-        [(SKLEARN_NO_ARTIFACTS, UNSTRUCTURED, PYTHON_UNSTRUCTURED),],
+        [
+            (SKLEARN_NO_ARTIFACTS, UNSTRUCTURED, PYTHON_UNSTRUCTURED),
+        ],
     )
     def test_unstructured_model_multipart_form_data_with_drum_prediction_server(
-        self, resources, framework, problem, language, tmp_path, framework_env,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        tmp_path,
+        framework_env,
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         with DrumServerRun(
-            "unstructured", resources.class_labels(framework, problem), custom_model_dir,
+            "unstructured",
+            resources.class_labels(framework, problem),
+            custom_model_dir,
         ) as run:
             input_dataset = resources.datasets(framework, problem)
 
@@ -161,18 +191,32 @@ class TestUnstructuredMode:
 
     @pytest.mark.parametrize(
         "framework, problem, language",
-        [(SKLEARN_NO_ARTIFACTS, UNSTRUCTURED, PYTHON_UNSTRUCTURED),],
+        [
+            (SKLEARN_NO_ARTIFACTS, UNSTRUCTURED, PYTHON_UNSTRUCTURED),
+        ],
     )
     def test_unstructured_mode_prediction_server_wrong_endpoint(
-        self, resources, framework, problem, language, tmp_path, framework_env,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        tmp_path,
+        framework_env,
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         with DrumServerRun(
-            "unstructured", resources.class_labels(framework, problem), custom_model_dir,
+            "unstructured",
+            resources.class_labels(framework, problem),
+            custom_model_dir,
         ) as run:
             for endpoint in ["/predict/", "/predictions/"]:
                 response = requests.post(url=run.url_server_address + endpoint)
@@ -188,18 +232,31 @@ class TestUnstructuredMode:
         ],
     )
     def test_response_content_type(
-        self, resources, framework, problem, language, docker, tmp_path, framework_env,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        tmp_path,
+        framework_env,
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         with DrumServerRun(
-            "unstructured", resources.class_labels(framework, problem), custom_model_dir, docker,
+            "unstructured",
+            resources.class_labels(framework, problem),
+            custom_model_dir,
+            docker,
         ) as run:
-
-            text_data = u"my text, мой текст"
+            text_data = "my text, мой текст"
 
             # Fixtures are not used as don't want to spin up server for each test case
             # Test case with "application/octet-stream" is not very correct as data is returned as text.
@@ -246,15 +303,29 @@ class TestUnstructuredMode:
     # Check Content-Type header value.
     # Incoming data is sent back.
     def test_response_one_var_return(
-        self, resources, framework, problem, language, docker, tmp_path, framework_env,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        tmp_path,
+        framework_env,
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         with DrumServerRun(
-            "unstructured", resources.class_labels(framework, problem), custom_model_dir, docker,
+            "unstructured",
+            resources.class_labels(framework, problem),
+            custom_model_dir,
+            docker,
         ) as run:
             url = run.url_server_address + "/predictUnstructured/"
 
@@ -289,8 +360,8 @@ class TestUnstructuredMode:
                 # Sending text_data encoded with utf16.
                 # Content-Type is not used in the hook, but used by drum to decode.
                 # Expected response content type is default: "text/plain; charset=UTF-8"
-                data_text = u"some text текст"
-                data_bytes = u"some text текст".encode(UTF16)
+                data_text = "some text текст"
+                data_bytes = "some text текст".encode(UTF16)
                 for data in [data_bytes]:
                     for ct in ["text/plain; charset={}".format(UTF16)]:
                         for endpoint in ["/predictUnstructured/", "/predictionsUnstructured/"]:

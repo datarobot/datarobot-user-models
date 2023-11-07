@@ -122,7 +122,8 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                 class_names = list(predictions.columns)
 
             df = StructuredInputReadUtils.read_structured_input_data_as_df(
-                kwargs.get(StructuredDtoKeys.BINARY_DATA), kwargs.get(StructuredDtoKeys.MIMETYPE),
+                kwargs.get(StructuredDtoKeys.BINARY_DATA),
+                kwargs.get(StructuredDtoKeys.MIMETYPE),
             )
             self._mlops.report_predictions_data(
                 features_df=df, predictions=mlops_predictions, class_names=class_names
@@ -144,7 +145,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
 
     @abstractmethod
     def _predict(self, **kwargs):
-        """ Predict on input_filename or binary_data """
+        """Predict on input_filename or binary_data"""
         pass
 
     def transform(self, **kwargs):
@@ -156,12 +157,12 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
 
     @abstractmethod
     def _transform(self, **kwargs):
-        """ Predict on input_filename or binary_data """
+        """Predict on input_filename or binary_data"""
         pass
 
     @abstractmethod
     def has_read_input_data_hook(self):
-        """ Check if read_input_data hook defined in predictor """
+        """Check if read_input_data hook defined in predictor"""
         pass
 
     def model_info(self):

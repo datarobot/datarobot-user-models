@@ -87,10 +87,16 @@ MultiHyperParameterTrafaret = t.Dict(
         t.Key("values"): t.Dict(
             {
                 t.Key("int", optional=True): t.Dict(
-                    {t.Key("min"): t.ToInt, t.Key("max"): t.ToInt,}
+                    {
+                        t.Key("min"): t.ToInt,
+                        t.Key("max"): t.ToInt,
+                    }
                 ),
                 t.Key("float", optional=True): t.Dict(
-                    {t.Key("min"): t.ToFloat, t.Key("max"): t.ToFloat,}
+                    {
+                        t.Key("min"): t.ToFloat,
+                        t.Key("max"): t.ToFloat,
+                    }
                 ),
                 t.Key("select", optional=True): t.Dict(
                     {

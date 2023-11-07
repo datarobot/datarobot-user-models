@@ -29,7 +29,11 @@ class TestDrumServerCustomAuth:
     def custom_model_dir(self, custom_flask_script, resources, tmp_path_factory):
         tmp_dir = tmp_path_factory.mktemp("model_dir")
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_dir, None, UNSTRUCTURED, PYTHON_UNSTRUCTURED,
+            resources,
+            tmp_dir,
+            None,
+            UNSTRUCTURED,
+            PYTHON_UNSTRUCTURED,
         )
         fixture_filename, target_name = custom_flask_script
         shutil.copy2(fixture_filename, custom_model_dir / target_name)

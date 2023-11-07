@@ -23,7 +23,14 @@ CUR_DIR = os.path.dirname(os.path.abspath(__file__))
 JL_SCORE_PATH = os.path.join(CUR_DIR, "score.jl")
 JL_SYSIMAGE_PATH = os.environ.get("JULIA_SYS_IMAGE")
 JL_PROJECT = os.environ.get("JULIA_PROJECT", CUR_DIR)
-JL_COMMON_PATH = os.path.abspath(os.path.join(CUR_DIR, "..", "julia_common_code", "common.jl",))
+JL_COMMON_PATH = os.path.abspath(
+    os.path.join(
+        CUR_DIR,
+        "..",
+        "julia_common_code",
+        "common.jl",
+    )
+)
 JL_INIT = ["--history-file=no"]
 logger.info(f"Julia project director set as {JL_PROJECT}")
 
@@ -53,7 +60,9 @@ jl.eval(f'using Pkg; Pkg.activate("{JL_PROJECT}"); Pkg.instantiate()')
 
 
 class JlPredictor(BaseLanguagePredictor):
-    def __init__(self,):
+    def __init__(
+        self,
+    ):
         super(JlPredictor, self).__init__()
 
     def mlpiper_configure(self, params):

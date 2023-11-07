@@ -34,10 +34,13 @@ from tests.drum.constants import (
 
 class TestDrumDocker:
     @pytest.mark.parametrize(
-        "docker_build_fails", [True, False],
+        "docker_build_fails",
+        [True, False],
     )
     def test_docker_image_creation(
-        self, docker_build_fails, tmp_path,
+        self,
+        docker_build_fails,
+        tmp_path,
     ):
         # py-slim image is used in another test container, so it is already expected to be in the registry
         dockerfile = dedent(
@@ -108,9 +111,15 @@ class TestDrumDocker:
         ],
     )
     def test_docker_image_with_deps_install(
-        self, resources, framework, problem, code_dir, env_dir, skip_deps_install, tmp_path,
+        self,
+        resources,
+        framework,
+        problem,
+        code_dir,
+        env_dir,
+        skip_deps_install,
+        tmp_path,
     ):
-
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, code_dir)
         if framework == CODEGEN and not skip_deps_install:
             tmp_dir = tmp_path / "tmp_code_dir"
@@ -159,7 +168,10 @@ class TestDrumDocker:
                 out_data = pd.read_csv(output)
                 assert in_data.shape[0] == out_data.shape[0]
             else:
-                assert re.search(r"ERROR drum:  Error from docker process:", stde,)
+                assert re.search(
+                    r"ERROR drum:  Error from docker process:",
+                    stde,
+                )
         else:
             if framework is None and problem == UNSTRUCTURED:
                 with open(output) as f:
@@ -179,12 +191,19 @@ class TestDrumDocker:
 
     @pytest.mark.parametrize(
         "framework, problem, code_dir, env_dir",
-        [(PYTORCH, MULTICLASS, "python3_pytorch_multiclass", "python3_pytorch"),],
+        [
+            (PYTORCH, MULTICLASS, "python3_pytorch_multiclass", "python3_pytorch"),
+        ],
     )
     def test_docker_image_with_wrong_dep_install(
-        self, resources, framework, problem, code_dir, env_dir, tmp_path,
+        self,
+        resources,
+        framework,
+        problem,
+        code_dir,
+        env_dir,
+        tmp_path,
     ):
-
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, code_dir)
 
         tmp_dir = tmp_path / "tmp_code_dir"
@@ -218,8 +237,12 @@ class TestDrumDocker:
             assert_if_fail=False,
         )
 
-        assert re.search(r"ERROR drum:  Failed to build a docker image", stde,)
+        assert re.search(
+            r"ERROR drum:  Failed to build a docker image",
+            stde,
+        )
 
         assert re.search(
-            r"Could not find a version that satisfies the requirement non_existing_dep", stde,
+            r"Could not find a version that satisfies the requirement non_existing_dep",
+            stde,
         )
