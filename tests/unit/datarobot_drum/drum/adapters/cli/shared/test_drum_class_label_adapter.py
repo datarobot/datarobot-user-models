@@ -56,10 +56,13 @@ class TestDrumCLIAdapterLabels(object):
         test_data_path = os.path.join(TESTS_DATA_PATH, "iris_binary_training.csv")
         test_target_name = "Species"
 
-        drum_cli_adapter = DrumClassLabelAdapter(target_type=target_type,)
+        drum_cli_adapter = DrumClassLabelAdapter(
+            target_type=target_type,
+        )
 
         drum_cli_adapter._infer_class_labels_if_not_provided(
-            input_filename=test_data_path, target_name=test_target_name,
+            input_filename=test_data_path,
+            target_name=test_target_name,
         )
         assert drum_cli_adapter.negative_class_label == expected_neg_label
         assert drum_cli_adapter.positive_class_label == expected_pos_label

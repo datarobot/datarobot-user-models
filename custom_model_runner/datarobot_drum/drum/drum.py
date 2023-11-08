@@ -132,7 +132,8 @@ class CMRunner:
         if self._input_df is None:
             # Lazy load df
             self._input_df = StructuredInputReadUtils.read_structured_input_file_as_df(
-                self.options.input, self.options.sparse_column_file,
+                self.options.input,
+                self.options.sparse_column_file,
             )
         return self._input_df
 
@@ -386,7 +387,9 @@ class CMRunner:
             error_mes = (
                 "Can not detect language by custom.py/R/jl files.\n"
                 "Detected: language by custom - {}.\n"
-                "Code directory must have either a custom.py/R file".format(custom_language,)
+                "Code directory must have either a custom.py/R file".format(
+                    custom_language,
+                )
             )
             all_files_message = "\n\nFiles(100 first) found in {}:\n{}\n".format(
                 code_dir_abspath, "\n".join(sorted(os.listdir(code_dir_abspath))[0:100])
@@ -431,7 +434,6 @@ class CMRunner:
             custom_language = RunLanguage.Julia
         # if no custom files, look for any other python file to use
         elif len(custom_py_paths) + len(custom_r_paths) == 0:
-
             other_py = list(Path(code_dir_abspath).rglob("*.py"))
 
             other_r = list(Path(code_dir_abspath).rglob("*.r")) + list(
@@ -587,7 +589,12 @@ class CMRunner:
         fit_function = self._get_fit_function(cli_adapter=cli_adapter)
 
         print("Starting Fit")
-        fit_mem_usage = memory_usage(fit_function, interval=1, max_usage=True, max_iterations=1,)
+        fit_mem_usage = memory_usage(
+            fit_function,
+            interval=1,
+            max_usage=True,
+            max_iterations=1,
+        )
         print("Fit successful")
 
         if self.options.verbose:
@@ -607,7 +614,10 @@ class CMRunner:
 
             print("Starting Prediction")
             mem_usage = memory_usage(
-                self.run_test_predict, interval=1, max_usage=True, max_iterations=1,
+                self.run_test_predict,
+                interval=1,
+                max_usage=True,
+                max_iterations=1,
             )
             if self.options.verbose:
                 print("Maximum server memory usage: {}MB".format(int(mem_usage)))
@@ -687,7 +697,6 @@ class CMRunner:
                     self.options, self.target_type, self.schema_validator
                 ).check_transform_server(__target_temp)
             else:
-
                 CMRunTests(
                     self.options, self.target_type, self.schema_validator
                 ).check_prediction_side_effects()

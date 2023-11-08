@@ -50,7 +50,8 @@ class TestMLPiperConfigure:
         predictor.mlpiper_configure(base_configure_params)
 
         mock_load_model_from_artifact.assert_called_once_with(
-            user_secrets_mount_path=None, user_secrets_prefix=None,
+            user_secrets_mount_path=None,
+            user_secrets_prefix=None,
         )
 
     def test_with_user_secrets(
@@ -64,5 +65,6 @@ class TestMLPiperConfigure:
         predictor.mlpiper_configure(base_configure_params)
 
         mock_load_model_from_artifact.assert_called_once_with(
-            user_secrets_mount_path=mount_path, user_secrets_prefix=prefix,
+            user_secrets_mount_path=mount_path,
+            user_secrets_prefix=prefix,
         )

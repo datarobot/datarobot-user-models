@@ -28,6 +28,7 @@ numeric_selector = make_column_selector(dtype_include=np.number)
 # that first calls is_text
 categorical_selector = make_column_selector(dtype_include=object)
 
+
 # Helper function to use in text_selector
 def is_text(x):
     """
@@ -57,7 +58,8 @@ def text_selector(X):
 
 def to_string(x):
     """Handle boolean values as string.  They are treated as an object otherwise, and will not work with categorical
-    when no missing values are present.  If there are missing values they are already correctly treated as a string."""
+    when no missing values are present.  If there are missing values they are already correctly treated as a string.
+    """
     return x.astype(str)
 
 
@@ -115,6 +117,7 @@ sparse_preprocessing_pipeline = ColumnTransformer(
         ("txt", text_pipeline, text_selector),
     ]
 )
+
 
 # Modified TruncatedSVD that doesn't fail if n_components > ncols
 class MyTruncatedSVD(TruncatedSVD):

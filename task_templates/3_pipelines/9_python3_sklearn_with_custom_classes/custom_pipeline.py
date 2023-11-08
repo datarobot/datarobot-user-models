@@ -12,7 +12,7 @@ import numpy as np
 def pipeline(X):
     """
     Simple 2-step sklearn pipeline containing a transform and an estimator steps implemented using custom classes
-    It can be used as a calibration task for a regression: add it in the very end of a blueprint,  and it will 
+    It can be used as a calibration task for a regression: add it in the very end of a blueprint,  and it will
     multiply predictions by a fixed coefficients so that, on training, avg(predicted) = avg(actuals)
     """
     return Pipeline(steps=[("preprocessing", Calibrator(X)), ("model", EmptyEstimator())])
@@ -22,7 +22,7 @@ class Calibrator:
     """
     During fit(), it computes and stores the calibration coefficient that is equal to
     avg(actuals) / avg(predicted) on training data
-    During transform(), it multiplies incoming data by the calibration coefficient 
+    During transform(), it multiplies incoming data by the calibration coefficient
     """
 
     def __init__(self, X):

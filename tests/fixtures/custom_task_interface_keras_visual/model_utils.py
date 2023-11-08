@@ -49,14 +49,14 @@ NUM_CLASSES = 2
 
 
 def get_img_obj_from_base64_str(b64_img_str: str) -> Image:
-    """ given a base64 encoded image str get the PIL.Image object """
+    """given a base64 encoded image str get the PIL.Image object"""
     b64_img = base64.b64decode(b64_img_str)
     b64_img = io.BytesIO(b64_img)
     return Image.open(b64_img)
 
 
 def img_preprocessing(pillowed_img: Image) -> np.ndarray:
-    """ given a PIL.Image object resize, convert to RGB and return as np.array """
+    """given a PIL.Image object resize, convert to RGB and return as np.array"""
     img = pillowed_img.resize((IMG_SHAPE[:-1]), Image.LANCZOS)
     img = img.convert("RGB")
     img_arr = np.asarray(img, dtype="float32")
@@ -66,7 +66,7 @@ def img_preprocessing(pillowed_img: Image) -> np.ndarray:
 def extract_features_from_pretrained_network(
     generator: Iterator[tuple], sample_count: int, base_model: Model
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """ extract the features using the CNN base model """
+    """extract the features using the CNN base model"""
     conv_base_actvn_output_shape = tuple(base_model.layers[-1].output.shape[1:])
     features = np.zeros((sample_count, *conv_base_actvn_output_shape))
     labels = np.zeros((sample_count))
@@ -85,13 +85,13 @@ def extract_features_from_pretrained_network(
 
 
 def get_all_callbacks() -> List[tensorflow.keras.callbacks.Callback]:
-    """ List of all keras callbacks """
+    """List of all keras callbacks"""
     es = EarlyStopping(monitor="val_loss", patience=5, verbose=True, mode="auto", min_delta=1e-3)
     return [es]
 
 
 def get_image_augmentation_gen(X_data, y_data, bs, seed) -> Iterator[tuple]:
-    """ Generator which yields tuple of image data and corresponding labels in np.array """
+    """Generator which yields tuple of image data and corresponding labels in np.array"""
 
     # Note DataRobot currently has its own image augmentation functionality that will be applied
     # We are using the ImageDataGenerator for convenience only
@@ -104,7 +104,7 @@ def get_image_augmentation_gen(X_data, y_data, bs, seed) -> Iterator[tuple]:
 
 
 def get_pretrained_base_model() -> Model:
-    """ A base pretrained model to build on top of """
+    """A base pretrained model to build on top of"""
     weights_file = "mobilenetv3_small.h5"
     pretrained_model = MobileNetV3Small(
         include_top=False, input_shape=IMG_SHAPE, weights=weights_file
@@ -148,7 +148,7 @@ def create_image_binary_classification_model(input_shape) -> Model:
 def get_transformed_train_validation_split(
     X_df: pd.DataFrame, y_series: pd.Series, class_order: List[str]
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
-    """ split train/test data after apply label encoder on y """
+    """split train/test data after apply label encoder on y"""
     assert len(X_df) == len(y_series)
     # preprocessing steps
     y_series = label_binarize(y_series, classes=class_order)
@@ -168,7 +168,7 @@ def get_transformed_train_validation_split(
 
 
 def preprocessing_X_transform(data_df: pd.DataFrame, image_feature_name: str) -> pd.DataFrame:
-    """ Because DataRobot stores images as base64 strings, we need to transform them into pixel values by
+    """Because DataRobot stores images as base64 strings, we need to transform them into pixel values by
     first transforming the strings to bytes, then transforming them into an image, and finally into an
     numpy array of pixels
     """
@@ -182,7 +182,7 @@ def preprocessing_X_transform(data_df: pd.DataFrame, image_feature_name: str) ->
 
 
 def reshape_numpy_array(data_series: pd.Series) -> np.ndarray:
-    """ Convert pd.Series to numpy array and reshape it too """
+    """Convert pd.Series to numpy array and reshape it too"""
     return np.asarray(data_series.to_list()).reshape(-1, *IMG_SHAPE)
 
 
@@ -196,7 +196,7 @@ def apply_image_data_preprocessing(x_data_df: pd.DataFrame, image_feature_name: 
 
 
 def make_X_transformer_pipeline(X: pd.DataFrame, image_col) -> Pipeline:
-    """ Image preprocessing pipeline """
+    """Image preprocessing pipeline"""
 
     img_preprocessing_transformer = Pipeline(
         steps=[
@@ -215,9 +215,12 @@ def make_X_transformer_pipeline(X: pd.DataFrame, image_col) -> Pipeline:
 
 
 def fit_image_classifier_pipeline(
-    X: pd.DataFrame, y: pd.Series, class_order: List[str], image_col="image",
+    X: pd.DataFrame,
+    y: pd.Series,
+    class_order: List[str],
+    image_col="image",
 ) -> Model:
-    """ DataRobot stores images as base64 strings. So this function will use a pipeline to convert the base64 string to
+    """DataRobot stores images as base64 strings. So this function will use a pipeline to convert the base64 string to
     an array of pixels. We use a pipeline because we will need to apply the same transformation both while the model
     is training, i.e. during the fit() hook in custom.py, but also when we are predicting on new data, i.e.
     the predict() hook in custom.py. We will also split the data internally to allow early stopping and

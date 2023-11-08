@@ -12,7 +12,7 @@ class CustomCalibrator:
     In some cases, avg(prediction) might not match avg(actuals)
     This class, used as a calibrator for a regression problem, can help to fix that
     During fit(), it computes and stores the calibration coefficient that is equal to avg(actuals) / avg(predicted) on training data
-    During predict(), it multiplies incoming data by the calibration coefficient 
+    During predict(), it multiplies incoming data by the calibration coefficient
     """
 
     def __init__(self, X):

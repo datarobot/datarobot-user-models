@@ -53,21 +53,21 @@ NUM_CLASSES = 2
 
 
 def get_img_obj_from_base64_str(b64_img_str: str) -> Image:
-    """ given a base64 encoded image str get the PIL.Image object """
+    """given a base64 encoded image str get the PIL.Image object"""
     b64_img = base64.b64decode(b64_img_str)
     b64_img = io.BytesIO(b64_img)
     return Image.open(b64_img)
 
 
 def get_base64_str_from_PIL_img(pillowed_img: Image) -> str:
-    """ given a PIL.Image object return base64 encoded str of the image object """
+    """given a PIL.Image object return base64 encoded str of the image object"""
     buffer = io.BytesIO()
     pillowed_img.save(buffer, format="JPEG")
     return base64.b64encode(buffer.getvalue())
 
 
 def img_preprocessing(pillowed_img: Image) -> np.ndarray:
-    """ given a PIL.Image object resize, convert to RGB and return as np.array """
+    """given a PIL.Image object resize, convert to RGB and return as np.array"""
     img = pillowed_img.resize((IMG_SHAPE[:-1]), Image.LANCZOS)
     img = img.convert("RGB")
     img_arr = np.asarray(img, dtype="float32")
@@ -76,7 +76,7 @@ def img_preprocessing(pillowed_img: Image) -> np.ndarray:
 
 
 def get_imputation_img() -> str:
-    """ black image in base64 str for data imputation filling """
+    """black image in base64 str for data imputation filling"""
     black_PIL_img = Image.fromarray(np.zeros(IMG_SHAPE, dtype="float32"), "RGB")
     return get_base64_str_from_PIL_img(black_PIL_img)
 
@@ -84,7 +84,7 @@ def get_imputation_img() -> str:
 def extract_features(
     generator: Iterator[tuple], sample_count: int, base_model: Model
 ) -> Tuple[np.ndarray, np.ndarray]:
-    """ extract the features using the CNN base model """
+    """extract the features using the CNN base model"""
     conv_base_actvn_output_shape = tuple(base_model.layers[-1].output.shape[1:])
     print("conv_base_output_shape", conv_base_actvn_output_shape)
     features = np.zeros((sample_count, *conv_base_actvn_output_shape))
@@ -105,7 +105,7 @@ def extract_features(
 
 
 def preprocessing_X_transform(data_df: pd.DataFrame, image_feature_name: str) -> pd.DataFrame:
-    """ Apply the preprocessing methods on the data before prediction for the model to work on """
+    """Apply the preprocessing methods on the data before prediction for the model to work on"""
 
     data_df = data_df.copy()
     if image_feature_name in data_df:
@@ -120,25 +120,25 @@ def pretrained_preprocess_input(img_arr: np.ndarray) -> np.ndarray:
 
 
 def reshape_numpy_array(data_series: pd.Series) -> np.ndarray:
-    """ Convert pd.Series to numpy array and reshape it too """
+    """Convert pd.Series to numpy array and reshape it too"""
     return np.asarray(data_series.to_list()).reshape(-1, *IMG_SHAPE)
 
 
 def get_all_callbacks() -> List[tensorflow.keras.callbacks.Callback]:
-    """ List of all keras callbacks """
+    """List of all keras callbacks"""
     es = EarlyStopping(monitor="val_loss", patience=5, verbose=True, mode="auto", min_delta=1e-3)
     return [es]
 
 
 def apply_image_data_preprocessing(x_data_df: pd.DataFrame, image_feature_name: str) -> np.ndarray:
-    """ Image data preprocessing before fit """
+    """Image data preprocessing before fit"""
     X_data_df = preprocessing_X_transform(x_data_df, image_feature_name)
     X_data = reshape_numpy_array(X_data_df[image_feature_name])
     return X_data
 
 
 def get_image_augmentation_gen(X_data, y_data, bs, seed) -> Iterator[tuple]:
-    """ Generator which yields tuple of image data and corresponding labels in np.array """
+    """Generator which yields tuple of image data and corresponding labels in np.array"""
     # normalize by rescaling
     datagen = ImageDataGenerator(
         rescale=1.0 / 255,
@@ -156,7 +156,7 @@ def get_image_augmentation_gen(X_data, y_data, bs, seed) -> Iterator[tuple]:
 
 
 def get_pretrained_base_model() -> Model:
-    """ A base pretrained model to build on top of """
+    """A base pretrained model to build on top of"""
     weights_file = "mobilenetv3_small.h5"
     pretrained_model = MobileNetV3Small(
         include_top=False, input_shape=IMG_SHAPE, weights=weights_file
@@ -204,7 +204,7 @@ def create_image_binary_classification_model(input_shape) -> Model:
 def get_transformed_train_test_split(
     X_df: pd.DataFrame, y_series: pd.Series, class_order: List[str]
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
-    """ split train/test data after apply label encoder on y """
+    """split train/test data after apply label encoder on y"""
     assert len(X_df) == len(y_series)
     # handle possible float or int values coming from DR.
     y_series = y_series.astype(str)
@@ -230,12 +230,12 @@ def get_transformed_train_test_split(
 
 
 def convert_np_to_df(np_array, img_col) -> pd.DataFrame:
-    """ simple utility to convert numpy array to dataframe """
+    """simple utility to convert numpy array to dataframe"""
     return pd.DataFrame(data=np_array, columns=[img_col])
 
 
 def get_image_feature_column(X: pd.DataFrame) -> str:
-    """ Get only the image feature column name from X """
+    """Get only the image feature column name from X"""
     X = X.select_dtypes(object)
     img_features_col_mask = [X[col].str.startswith("/9j/", na=False).any() for col in X]
 
@@ -247,7 +247,7 @@ def get_image_feature_column(X: pd.DataFrame) -> str:
 
 
 def make_X_transformer_pipeline(X: pd.DataFrame) -> Pipeline:
-    """ Image preprocessing pipeline """
+    """Image preprocessing pipeline"""
     img_col = get_image_feature_column(X)
 
     img_preprocessing_transformer = Pipeline(
@@ -306,7 +306,10 @@ def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_dir: str) 
         keras_model.save(file, include_optimizer=False)
 
     # save the preprocessor and the model to dictionary
-    model_dict = dict(preprocessor_pipeline=preprocessor, model=io_container,)
+    model_dict = dict(
+        preprocessor_pipeline=preprocessor,
+        model=io_container,
+    )
 
     # save the dict obj as a joblib file
     output_file_path = Path(output_dir) / "artifact.joblib"
@@ -348,7 +351,7 @@ def deserialize_estimator_pipeline(input_dir: str) -> Pipeline:
 def fit_image_classifier_pipeline(
     X: pd.DataFrame, y: pd.Series, class_order: List[str]
 ) -> Pipeline:
-    """ Fit the estimator pipeline """
+    """Fit the estimator pipeline"""
     X_train, X_test, y_train, y_test = get_transformed_train_test_split(X, y, class_order)
     X_transformer = make_X_transformer_pipeline(X_train)
 

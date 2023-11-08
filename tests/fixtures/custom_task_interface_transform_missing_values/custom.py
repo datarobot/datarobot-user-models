@@ -10,7 +10,7 @@ from datarobot_drum.custom_task_interfaces import TransformerInterface
 
 class CustomTask(TransformerInterface):
     def fit(self, X, y, **kwargs):
-        """ This hook defines how DataRobot will train this task. Transformers will typically learn and/or
+        """This hook defines how DataRobot will train this task. Transformers will typically learn and/or
         store information from training data and then apply it, e.g. learning the median for each column
         and then transforming missing/NaN values to that median.
         Note that when training a blueprint we apply this fit hook. After fit, we run the below transform hook on the
@@ -40,7 +40,7 @@ class CustomTask(TransformerInterface):
         return self
 
     def transform(self, X, **kwargs):
-        """ This hook defines how DataRobot will either use a trained transform from fit() to transform new data,
+        """This hook defines how DataRobot will either use a trained transform from fit() to transform new data,
         e.g. imputing missing values, or will directly apply a stateless transformation, e.g. changing a data type
         DataRobot runs this hook when after fit is run when the blueprint is training and then by itself
         when the blueprint is used to score validation or holdout data

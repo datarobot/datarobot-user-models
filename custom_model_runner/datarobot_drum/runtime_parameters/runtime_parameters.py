@@ -166,7 +166,10 @@ class RuntimeParametersLoader:
             try:
                 if param_definition.type == RuntimeParameterTypes.CREDENTIAL:
                     payload = credential_payload_trafaret.check(
-                        {"type": RuntimeParameterTypes.CREDENTIAL.value, "payload": param_value,}
+                        {
+                            "type": RuntimeParameterTypes.CREDENTIAL.value,
+                            "payload": param_value,
+                        }
                     )
                 elif param_definition.type == RuntimeParameterTypes.STRING:
                     payload = string_payload_trafaret.check(

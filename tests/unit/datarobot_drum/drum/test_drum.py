@@ -289,7 +289,10 @@ class TestCMRunnerFit:
         pd.testing.assert_series_equal(actual_y, expected_y)
 
     def test_calls_model_adapter_fit_with_secrets(
-        self, runtime_factory, fit_args, mock_model_adapter_fit,
+        self,
+        runtime_factory,
+        fit_args,
+        mock_model_adapter_fit,
     ):
         mount_path = "/path/to/secrets"
         prefix = "super-secret"

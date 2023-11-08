@@ -103,10 +103,14 @@ def mock_get_model_generator(model_id, mock_version_response):
             body["language"] = "Python"
             body["trainingDataAssignmentInProgress"] = False
         responses.add(
-            responses.GET, "http://yess/customModels/{}/".format(model_id), json=body,
+            responses.GET,
+            "http://yess/customModels/{}/".format(model_id),
+            json=body,
         )
         responses.add(
-            responses.POST, "http://yess/customModels/".format(model_id), json=body,
+            responses.POST,
+            "http://yess/customModels/".format(model_id),
+            json=body,
         )
 
     return _mock_get_model_generator
@@ -226,7 +230,8 @@ def mock_train_model(project_id):
 
 @responses.activate
 @pytest.mark.parametrize(
-    "config_yaml", ["inference_binary_metadata_yaml_no_target_name"],
+    "config_yaml",
+    ["inference_binary_metadata_yaml_no_target_name"],
 )
 def test_push_no_target_name_in_yaml(request, model_id, config_yaml, tmp_path):
     config_yaml = request.getfixturevalue(config_yaml)

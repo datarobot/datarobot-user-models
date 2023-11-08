@@ -166,7 +166,11 @@ class TestDropInEnvironments(object):
     def keras_binary_custom_model(self, keras_drop_in_env):
         env_id, _ = keras_drop_in_env
         return self.make_custom_model(
-            "keras_bin.h5", env_id, "yes", "no", custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            "keras_bin.h5",
+            env_id,
+            "yes",
+            "no",
+            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
         )
 
     @pytest.fixture(scope="session")
@@ -226,7 +230,11 @@ class TestDropInEnvironments(object):
     def xgb_binary_custom_model(self, xgboost_drop_in_env):
         env_id, _ = xgboost_drop_in_env
         return self.make_custom_model(
-            "xgb_bin.pkl", env_id, "yes", "no", custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            "xgb_bin.pkl",
+            env_id,
+            "yes",
+            "no",
+            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
         )
 
     @pytest.fixture(scope="session")

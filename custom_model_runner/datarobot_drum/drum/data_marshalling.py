@@ -169,7 +169,9 @@ def _infer_negative_class_probabilities(predictions, labels):
 
 
 def get_request_labels(
-    class_labels: List[str], positive_class_label: str, negative_class_label: str,
+    class_labels: List[str],
+    positive_class_label: str,
+    negative_class_label: str,
 ) -> List[str]:
     """This function returns the requested class labels for both binary classification and multi-classification cases.
 

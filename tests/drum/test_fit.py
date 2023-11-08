@@ -92,7 +92,13 @@ class TestFit:
     )
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])
     def test_fit(
-        self, resources, framework, problem, docker, weights, tmp_path,
+        self,
+        resources,
+        framework,
+        problem,
+        docker,
+        weights,
+        tmp_path,
     ):
         if framework in {RDS, RDS_BINARY, RDS_SPARSE, R_XFORM_ESTIMATOR}:
             language = R_FIT
@@ -100,7 +106,12 @@ class TestFit:
             language = PYTHON
 
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language, is_training=True,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
+            is_training=True,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -143,7 +154,8 @@ class TestFit:
         cmd += weights_cmd
 
         _, stdout, _ = _exec_shell_cmd(
-            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
         )
         assert "Starting Fit" in stdout
         assert "Starting Prediction" in stdout

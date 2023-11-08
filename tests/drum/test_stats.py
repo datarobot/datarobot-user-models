@@ -38,10 +38,20 @@ class TestInference:
         ],
     )
     def test_custom_models_with_drum_prediction_server(
-        self, resources, framework, problem, language, docker, tmp_path,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         unset_drum_supported_env_vars()

@@ -246,7 +246,14 @@ class TestSchemaValidator:
                 "cats_and_dogs",
                 "class",
             ),
-            (Conditions.EQUALS, [Values.NUM], "iris_binary", "Species", "cats_and_dogs", "class",),
+            (
+                Conditions.EQUALS,
+                [Values.NUM],
+                "iris_binary",
+                "Species",
+                "cats_and_dogs",
+                "class",
+            ),
             (
                 Conditions.NOT_IN,
                 [Values.TXT],
@@ -271,8 +278,22 @@ class TestSchemaValidator:
                 "ten_k_diabetes",
                 "readmitted",
             ),
-            (Conditions.EQUALS, [Values.CAT], "boston_raises", "RAISE", "iris_binary", "Species",),
-            (Conditions.EQUALS, [Values.TXT], "boston_raises", "RAISE", "iris_binary", "Species",),
+            (
+                Conditions.EQUALS,
+                [Values.CAT],
+                "boston_raises",
+                "RAISE",
+                "iris_binary",
+                "Species",
+            ),
+            (
+                Conditions.EQUALS,
+                [Values.TXT],
+                "boston_raises",
+                "RAISE",
+                "iris_binary",
+                "Species",
+            ),
             (
                 Conditions.IN,
                 [Values.CAT, Values.TXT],
@@ -281,7 +302,14 @@ class TestSchemaValidator:
                 "iris_binary",
                 "Species",
             ),
-            (Conditions.IN, [Values.NUM], "iris_with_bool", "Species", "cats_and_dogs", "class",),
+            (
+                Conditions.IN,
+                [Values.NUM],
+                "iris_with_bool",
+                "Species",
+                "cats_and_dogs",
+                "class",
+            ),
         ],
         ids=lambda x: str([str(el) for el in x]) if isinstance(x, list) else str(x),
     )
@@ -523,7 +551,10 @@ class TestSchemaValidator:
 
     @pytest.mark.parametrize(
         "value, sparse_ok, dense_ok",
-        [(Values.FORBIDDEN, False, True), (Values.REQUIRED, True, False),],
+        [
+            (Values.FORBIDDEN, False, True),
+            (Values.REQUIRED, True, False),
+        ],
     )
     def test_multiple_input_requirements(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
         yaml_str = input_requirements_yaml(Fields.SPARSE, Conditions.EQUALS, [value])
@@ -542,7 +573,11 @@ class TestSchemaValidator:
         self._assert_validation(validator.validate_inputs, dense_df, should_pass=dense_ok)
 
     @pytest.mark.parametrize(
-        "value, sparse_ok, dense_ok", [(Values.NEVER, False, True), (Values.ALWAYS, True, False),],
+        "value, sparse_ok, dense_ok",
+        [
+            (Values.NEVER, False, True),
+            (Values.ALWAYS, True, False),
+        ],
     )
     def test_multiple_output_requirements(self, sparse_df, dense_df, value, sparse_ok, dense_ok):
         yaml_str = output_requirements_yaml(Fields.SPARSE, Conditions.EQUALS, [value])
@@ -1037,7 +1072,12 @@ class TestReadModelMetadata:
 
 @pytest.mark.parametrize(
     "target_type, predictor_cls",
-    itertools.product([TargetType.TRANSFORM,], [PythonPredictor, JavaPredictor],),
+    itertools.product(
+        [
+            TargetType.TRANSFORM,
+        ],
+        [PythonPredictor, JavaPredictor],
+    ),
 )
 def test_validate_model_metadata_output_requirements(target_type: TargetType, predictor_cls):
     """The validation on the specs defined in the output_requirements of model metadata is only triggered when the

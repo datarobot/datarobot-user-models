@@ -14,7 +14,7 @@ from sklearn.preprocessing import KBinsDiscretizer
 
 class CustomTask(TransformerInterface):
     def fit(self, X, y, parameters=None, **kwargs):
-        """ This numeric transform example showcases how to define and use hyperparameters. Hyperparameters are defined
+        """This numeric transform example showcases how to define and use hyperparameters. Hyperparameters are defined
         in model-metadata.yaml, and are passed into fit as a dict.
 
         This transformer computes missing values using Sklearn's SimpleImputer, then transforms the output of that into
@@ -75,7 +75,8 @@ class CustomTask(TransformerInterface):
             missing_values_strategy = parameters["missing_values_strategy"]
 
         self.missing_vals_transformer = SimpleImputer(
-            strategy=missing_values_strategy, fill_value=missing_values_fill_value,
+            strategy=missing_values_strategy,
+            fill_value=missing_values_fill_value,
         ).fit(X, y)
 
         # Then, we need to transform the data to use as training data for the second transformer.

@@ -154,7 +154,10 @@ class TestHyperParameterTrafaretTransform:
             },
             "string",
         ),
-        ({ModelMetadataKeys.HYPERPARAMETERS: [{"name": "param_name", "type": "string"}]}, "",),
+        (
+            {ModelMetadataKeys.HYPERPARAMETERS: [{"name": "param_name", "type": "string"}]},
+            "",
+        ),
         (
             {
                 ModelMetadataKeys.HYPERPARAMETERS: [
@@ -171,7 +174,11 @@ class TestHyperParameterTrafaretTransform:
         (
             {
                 ModelMetadataKeys.HYPERPARAMETERS: [
-                    {"name": "param_name", "type": "select", "values": ["value 1", "value 2"],}
+                    {
+                        "name": "param_name",
+                        "type": "select",
+                        "values": ["value 1", "value 2"],
+                    }
                 ],
             },
             "value 1",
@@ -210,7 +217,11 @@ class TestHyperParameterTrafaretTransform:
         (
             {
                 ModelMetadataKeys.HYPERPARAMETERS: [
-                    {"name": "param_name", "type": "multi", "values": {},}
+                    {
+                        "name": "param_name",
+                        "type": "multi",
+                        "values": {},
+                    }
                 ],
             },
             None,
@@ -246,7 +257,11 @@ def test_get_default_parameter_values(model_metadata, default_value):
     ],
 )
 def test_yaml_metadata__hyper_param_valid_name(
-    request, param_name_value, hyper_param_metadata, tmp_path, basic_model_metadata_yaml,
+    request,
+    param_name_value,
+    hyper_param_metadata,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     hyper_param_metadata = request.getfixturevalue(hyper_param_metadata)
     model_metadata = basic_model_metadata_yaml
@@ -284,7 +299,12 @@ def test_yaml_metadata__hyper_param_valid_name(
     ],
 )
 def test_yaml_metadata__hyper_param_invalid_name(
-    request, param_name_value, error, hyper_param_metadata, tmp_path, basic_model_metadata_yaml,
+    request,
+    param_name_value,
+    error,
+    hyper_param_metadata,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     hyper_param_metadata = request.getfixturevalue(hyper_param_metadata)
     model_metadata = basic_model_metadata_yaml
@@ -299,7 +319,10 @@ def test_yaml_metadata__hyper_param_invalid_name(
 
 @pytest.mark.parametrize("required_field", ["name", "type", "min", "max"])
 def test_yaml_metadata__int_hyper_param_required_fields(
-    required_field, complete_int_hyper_param, tmp_path, basic_model_metadata_yaml,
+    required_field,
+    complete_int_hyper_param,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     model_metadata = basic_model_metadata_yaml
     complete_int_hyper_param.pop(required_field)
@@ -313,7 +336,10 @@ def test_yaml_metadata__int_hyper_param_required_fields(
 
 @pytest.mark.parametrize("optional_field", ["default"])
 def test_yaml_metadata__int_hyper_param_optional_fields(
-    optional_field, complete_int_hyper_param, tmp_path, basic_model_metadata_yaml,
+    optional_field,
+    complete_int_hyper_param,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     model_metadata = basic_model_metadata_yaml
     complete_int_hyper_param.pop(optional_field)
@@ -338,7 +364,11 @@ def test_yaml_metadata__int_hyper_param_optional_fields(
 )
 @pytest.mark.parametrize("invalid_param_type", ["invalid_type"])
 def test_yaml_metadata__hyper_param_invalid_type(
-    request, invalid_param_type, hyper_param_metadata, tmp_path, basic_model_metadata_yaml,
+    request,
+    invalid_param_type,
+    hyper_param_metadata,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     hyper_param_metadata = request.getfixturevalue(hyper_param_metadata)
     model_metadata = basic_model_metadata_yaml
@@ -352,10 +382,18 @@ def test_yaml_metadata__hyper_param_invalid_type(
 
 
 @pytest.mark.parametrize(
-    "min_max, is_valid", [({"min": 1, "max": 0}, False), ({"min": 0, "max": 1}, True),]
+    "min_max, is_valid",
+    [
+        ({"min": 1, "max": 0}, False),
+        ({"min": 0, "max": 1}, True),
+    ],
 )
 def test_yaml_metadata__int_hyper_param_min_max(
-    min_max, is_valid, complete_int_hyper_param, tmp_path, basic_model_metadata_yaml,
+    min_max,
+    is_valid,
+    complete_int_hyper_param,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     model_metadata = basic_model_metadata_yaml
     complete_int_hyper_param.update(min_max)
@@ -373,9 +411,20 @@ def test_yaml_metadata__int_hyper_param_min_max(
                 read_model_metadata_yaml(tmp_path)
 
 
-@pytest.mark.parametrize("min_max", [{"min": 0.1}, {"max": 1.1}, {"min": "0.1"}, {"max": "1.1"},])
+@pytest.mark.parametrize(
+    "min_max",
+    [
+        {"min": 0.1},
+        {"max": 1.1},
+        {"min": "0.1"},
+        {"max": "1.1"},
+    ],
+)
 def test_yaml_metadata__int_hyper_param_invalid_type(
-    min_max, complete_int_hyper_param, tmp_path, basic_model_metadata_yaml,
+    min_max,
+    complete_int_hyper_param,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     model_metadata = basic_model_metadata_yaml
     complete_int_hyper_param.update(min_max)
@@ -388,10 +437,17 @@ def test_yaml_metadata__int_hyper_param_invalid_type(
 
 
 @pytest.mark.parametrize(
-    "hyper_param_config", [{"min": 1, "max": 2, "default": 0}, {"min": 1, "max": 2, "default": 3},]
+    "hyper_param_config",
+    [
+        {"min": 1, "max": 2, "default": 0},
+        {"min": 1, "max": 2, "default": 3},
+    ],
 )
 def test_yaml_metadata__int_hyper_param_invalid_default_value(
-    hyper_param_config, complete_int_hyper_param, tmp_path, basic_model_metadata_yaml,
+    hyper_param_config,
+    complete_int_hyper_param,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     model_metadata = basic_model_metadata_yaml
     complete_int_hyper_param.update(hyper_param_config)
@@ -408,7 +464,10 @@ def test_yaml_metadata__int_hyper_param_invalid_default_value(
 
 @pytest.mark.parametrize("required_field", ["name", "type", "min", "max"])
 def test_yaml_metadata__float_hyper_param_required_fields(
-    required_field, complete_float_hyper_param, tmp_path, basic_model_metadata_yaml,
+    required_field,
+    complete_float_hyper_param,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     model_metadata = basic_model_metadata_yaml
     complete_float_hyper_param.pop(required_field)
@@ -422,7 +481,10 @@ def test_yaml_metadata__float_hyper_param_required_fields(
 
 @pytest.mark.parametrize("optional_field", ["default"])
 def test_yaml_metadata__float_hyper_param_optional_fields(
-    optional_field, complete_float_hyper_param, tmp_path, basic_model_metadata_yaml,
+    optional_field,
+    complete_float_hyper_param,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     model_metadata = basic_model_metadata_yaml
     complete_float_hyper_param.pop(optional_field)
@@ -436,10 +498,18 @@ def test_yaml_metadata__float_hyper_param_optional_fields(
 
 
 @pytest.mark.parametrize(
-    "min_max, is_valid", [({"min": 1.0, "max": 0.0}, False), ({"min": 0.0, "max": 1.0}, True),]
+    "min_max, is_valid",
+    [
+        ({"min": 1.0, "max": 0.0}, False),
+        ({"min": 0.0, "max": 1.0}, True),
+    ],
 )
 def test_yaml_metadata__float_hyper_param_min_max(
-    min_max, is_valid, complete_float_hyper_param, tmp_path, basic_model_metadata_yaml,
+    min_max,
+    is_valid,
+    complete_float_hyper_param,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     model_metadata = basic_model_metadata_yaml
     complete_float_hyper_param.update(min_max)
@@ -459,10 +529,16 @@ def test_yaml_metadata__float_hyper_param_min_max(
 
 @pytest.mark.parametrize(
     "hyper_param_config",
-    [{"min": 1.0, "max": 2.0, "default": 0.0}, {"min": 1.0, "max": 2.0, "default": 3.0},],
+    [
+        {"min": 1.0, "max": 2.0, "default": 0.0},
+        {"min": 1.0, "max": 2.0, "default": 3.0},
+    ],
 )
 def test_yaml_metadata__float_hyper_param_invalid_default_value(
-    hyper_param_config, complete_float_hyper_param, tmp_path, basic_model_metadata_yaml,
+    hyper_param_config,
+    complete_float_hyper_param,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     model_metadata = basic_model_metadata_yaml
     complete_float_hyper_param.update(hyper_param_config)
@@ -479,7 +555,10 @@ def test_yaml_metadata__float_hyper_param_invalid_default_value(
 
 @pytest.mark.parametrize("required_field", ["name", "type"])
 def test_yaml_metadata__string_hyper_param_required_fields(
-    required_field, complete_string_hyper_param, tmp_path, basic_model_metadata_yaml,
+    required_field,
+    complete_string_hyper_param,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     model_metadata = basic_model_metadata_yaml
     complete_string_hyper_param.pop(required_field)
@@ -493,7 +572,10 @@ def test_yaml_metadata__string_hyper_param_required_fields(
 
 @pytest.mark.parametrize("optional_field", ["default"])
 def test_yaml_metadata__stirng_hyper_param_optional_fields(
-    optional_field, complete_string_hyper_param, tmp_path, basic_model_metadata_yaml,
+    optional_field,
+    complete_string_hyper_param,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     model_metadata = basic_model_metadata_yaml
     complete_string_hyper_param.pop(optional_field)
@@ -507,7 +589,9 @@ def test_yaml_metadata__stirng_hyper_param_optional_fields(
 
 
 def test_yaml_metadata__string_hyper_param_invalid_value_size(
-    complete_string_hyper_param, tmp_path, basic_model_metadata_yaml,
+    complete_string_hyper_param,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     model_metadata = basic_model_metadata_yaml
     complete_string_hyper_param["default"] = "1" * (PARAM_STRING_MAX_LENGTH + 1)
@@ -521,7 +605,10 @@ def test_yaml_metadata__string_hyper_param_invalid_value_size(
 
 @pytest.mark.parametrize("required_field", ["name", "type", "values"])
 def test_yaml_metadata__multi_hyper_param_required_fields(
-    required_field, complete_multi_hyper_param, tmp_path, basic_model_metadata_yaml,
+    required_field,
+    complete_multi_hyper_param,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     model_metadata = basic_model_metadata_yaml
     complete_multi_hyper_param.pop(required_field)
@@ -535,7 +622,10 @@ def test_yaml_metadata__multi_hyper_param_required_fields(
 
 @pytest.mark.parametrize("optional_field", ["default"])
 def test_yaml_metadata__multi_hyper_param_optional_fields(
-    optional_field, complete_multi_hyper_param, tmp_path, basic_model_metadata_yaml,
+    optional_field,
+    complete_multi_hyper_param,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     model_metadata = basic_model_metadata_yaml
     complete_multi_hyper_param.pop(optional_field)
@@ -549,13 +639,16 @@ def test_yaml_metadata__multi_hyper_param_optional_fields(
 
 
 @pytest.mark.parametrize(
-    "optional_component_param_key", list(ModelMetadataMultiHyperParamTypes.all_list()),
+    "optional_component_param_key",
+    list(ModelMetadataMultiHyperParamTypes.all_list()),
 )
 def test_yaml_metadata__multi_hyper_param_optional_component_params(
-    optional_component_param_key, complete_multi_hyper_param, tmp_path, basic_model_metadata_yaml,
+    optional_component_param_key,
+    complete_multi_hyper_param,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
-    """This test verifies the component parameter under the multi-type hyper parameter is default.
-    """
+    """This test verifies the component parameter under the multi-type hyper parameter is default."""
     model_metadata = basic_model_metadata_yaml
     complete_multi_hyper_param["values"].pop(optional_component_param_key)
     model_metadata[ModelMetadataKeys.HYPERPARAMETERS] = [complete_multi_hyper_param]
@@ -570,7 +663,10 @@ def test_yaml_metadata__multi_hyper_param_optional_component_params(
 
 @pytest.mark.parametrize("required_field", ["name", "type", "values"])
 def test_yaml_metadata__select_hyper_param_required_fields(
-    required_field, complete_select_hyper_param, tmp_path, basic_model_metadata_yaml,
+    required_field,
+    complete_select_hyper_param,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     model_metadata = basic_model_metadata_yaml
     complete_select_hyper_param.pop(required_field)
@@ -584,7 +680,10 @@ def test_yaml_metadata__select_hyper_param_required_fields(
 
 @pytest.mark.parametrize("optional_field", ["default"])
 def test_yaml_metadata__select_hyper_param_optional_fields(
-    optional_field, complete_select_hyper_param, tmp_path, basic_model_metadata_yaml,
+    optional_field,
+    complete_select_hyper_param,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     model_metadata = basic_model_metadata_yaml
     complete_select_hyper_param.pop(optional_field)
@@ -598,7 +697,9 @@ def test_yaml_metadata__select_hyper_param_optional_fields(
 
 
 def test_yaml_metadata__select_hyper_param_invalid_value_size(
-    complete_select_hyper_param, tmp_path, basic_model_metadata_yaml,
+    complete_select_hyper_param,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     model_metadata = basic_model_metadata_yaml
     complete_select_hyper_param["values"] = ["1" * (PARAM_SELECT_VALUE_MAX_LENGTH + 1)]
@@ -611,7 +712,9 @@ def test_yaml_metadata__select_hyper_param_invalid_value_size(
 
 
 def test_yaml_metadata__select_hyper_param_invalid_value_num(
-    complete_select_hyper_param, tmp_path, basic_model_metadata_yaml,
+    complete_select_hyper_param,
+    tmp_path,
+    basic_model_metadata_yaml,
 ):
     model_metadata = basic_model_metadata_yaml
     complete_select_hyper_param["values"] = ["1"] * (PARAM_SELECT_NUM_VALUES_MAX_LENGTH + 1)

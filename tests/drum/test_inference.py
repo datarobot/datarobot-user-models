@@ -113,14 +113,27 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [(SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),],
+        [
+            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
+        ],
     )
     @pytest.mark.parametrize("pass_args_as_env_vars", [False])
     def test_custom_models_with_drum_prediction_server(
-        self, resources, framework, problem, language, docker, pass_args_as_env_vars, tmp_path,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        pass_args_as_env_vars,
+        tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         unset_drum_supported_env_vars()
@@ -180,11 +193,20 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [(SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),],
+        [
+            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
+        ],
     )
     @pytest.mark.parametrize("pass_args_as_env_vars", [True])
     def test_custom_models_with_drum_prediction_server_with_args_passed_as_env_vars(
-        self, resources, framework, problem, language, docker, pass_args_as_env_vars, tmp_path,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        pass_args_as_env_vars,
+        tmp_path,
     ):
         self.test_custom_models_with_drum_prediction_server(
             resources, framework, problem, language, docker, pass_args_as_env_vars, tmp_path
@@ -192,13 +214,25 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [(SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),],
+        [
+            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
+        ],
     )
     def test_custom_models_with_drum_nginx_prediction_server(
-        self, resources, framework, problem, language, docker, tmp_path,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         with DrumServerRun(
@@ -240,13 +274,25 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [(SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, DOCKER_PYTHON_SKLEARN),],
+        [
+            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, DOCKER_PYTHON_SKLEARN),
+        ],
     )
     def test_custom_transforms_with_drum_nginx_prediction_server(
-        self, resources, framework, problem, language, docker, tmp_path,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         with DrumServerRun(
@@ -281,10 +327,20 @@ class TestInference:
         ],
     )
     def test_custom_models_drum_prediction_server_response(
-        self, resources, framework, problem, language, docker, tmp_path,
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        docker,
+        tmp_path,
     ):
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         with DrumServerRun(

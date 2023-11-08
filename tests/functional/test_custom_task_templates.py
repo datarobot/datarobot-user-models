@@ -47,8 +47,8 @@ class TestCustomTaskTemplates(object):
 
     @staticmethod
     def get_accuracy_threshold(proj: dr.models.Project, target_type: str) -> Tuple[float, bool]:
-        """ Compute accuracy threshold by running a known accurate model and dummy model
-        and averaging their accuracy scores """
+        """Compute accuracy threshold by running a known accurate model and dummy model
+        and averaging their accuracy scores"""
         models = proj.get_models()
         if len(models) > 1:
             # get existing models if project was created by another run of this test

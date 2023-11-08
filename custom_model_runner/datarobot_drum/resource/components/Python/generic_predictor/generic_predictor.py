@@ -87,7 +87,9 @@ class GenericPredictorComponent(ConnectableComponent):
             data_binary = f.read()
 
         data_binary_or_text, mimetype, charset = _resolve_incoming_unstructured_data(
-            data_binary, mimetype, charset,
+            data_binary,
+            mimetype,
+            charset,
         )
         kwargs_params[UnstructuredDtoKeys.MIMETYPE] = mimetype
         if charset is not None:
@@ -116,7 +118,8 @@ class GenericPredictorComponent(ConnectableComponent):
         if self.cli_adapter.target_type == TargetType.UNSTRUCTURED:
             # TODO: add support to use cli_adapter for unstructured
             return self._materialize_unstructured(
-                input_filename=self._params["input_filename"], output_filename=output_filename,
+                input_filename=self._params["input_filename"],
+                output_filename=output_filename,
             )
 
         if self.cli_adapter.target_type == TargetType.TRANSFORM:

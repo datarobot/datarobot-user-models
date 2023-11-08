@@ -20,6 +20,5 @@ class CustomTask(AnomalyEstimatorInterface):
         return self
 
     def predict(self, X, **kwargs):
-
         # Note how anomaly estimators only output one column, so no explicit column names are needed
         return pd.DataFrame(data=self.estimator.predict(X))

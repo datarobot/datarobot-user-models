@@ -356,7 +356,8 @@ class TestMonitorArgs:
         execute_arg_parser(success=False)
 
     @pytest.mark.parametrize(
-        "monitor_settings", [(), ("--monitor-settings", "aaa;bbb")],
+        "monitor_settings",
+        [(), ("--monitor-settings", "aaa;bbb")],
     )
     def test_unstructured_monitor_embedded_from_cmd_line_args_success(
         self,
@@ -370,7 +371,8 @@ class TestMonitorArgs:
         execute_arg_parser()
 
     @pytest.mark.parametrize(
-        "env_var_key, env_var_value", [(None, None), ("MONITOR_SETTINGS", "aaa;bbb")],
+        "env_var_key, env_var_value",
+        [(None, None), ("MONITOR_SETTINGS", "aaa;bbb")],
     )
     @pytest.mark.usefixtures("monitor_embedded_env_vars")
     def test_unstructured_monitor_from_env_vars_success(
@@ -388,9 +390,9 @@ class TestMonitorArgs:
         self, unstructured_score_cmd_args, monitor_embedded_cmd_args_without_monitor_settings
     ):
         # pop the last 2 elements in order to take them from the environment
-        monitor_embedded_cmd_args_without_monitor_settings = monitor_embedded_cmd_args_without_monitor_settings[
-            0:-2
-        ]
+        monitor_embedded_cmd_args_without_monitor_settings = (
+            monitor_embedded_cmd_args_without_monitor_settings[0:-2]
+        )
         unstructured_score_cmd_args.extend(monitor_embedded_cmd_args_without_monitor_settings)
         set_sys_argv(unstructured_score_cmd_args)
         execute_arg_parser()

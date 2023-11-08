@@ -623,13 +623,16 @@ _artifacts = {
     (CODEGEN, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "java_reg.jar"),
     (CODEGEN, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "java_bin.jar"),
     (POJO, REGRESSION): os.path.join(
-        TESTS_ARTIFACTS_PATH, "DRF_model_python_1633108695693_1.java",
+        TESTS_ARTIFACTS_PATH,
+        "DRF_model_python_1633108695693_1.java",
     ),
     (POJO, BINARY): os.path.join(
-        TESTS_ARTIFACTS_PATH, "XGBoost_grid__1_AutoML_20200717_163214_model_159.java",
+        TESTS_ARTIFACTS_PATH,
+        "XGBoost_grid__1_AutoML_20200717_163214_model_159.java",
     ),
     (POJO, MULTICLASS): os.path.join(
-        TESTS_ARTIFACTS_PATH, "XGBoost_3_AutoML_20201016_143029.java",
+        TESTS_ARTIFACTS_PATH,
+        "XGBoost_3_AutoML_20201016_143029.java",
     ),
     (MOJO, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_reg.zip"),
     (MOJO, BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_bin.zip"),
@@ -666,7 +669,8 @@ _artifacts = {
     (RDS, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "r_bin.rds"),
     (CODEGEN, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "java_bin.jar"),
     (POJO, MULTICLASS_BINARY): os.path.join(
-        TESTS_ARTIFACTS_PATH, "XGBoost_grid__1_AutoML_20200717_163214_model_159.java",
+        TESTS_ARTIFACTS_PATH,
+        "XGBoost_grid__1_AutoML_20200717_163214_model_159.java",
     ),
     (MOJO, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "mojo_bin.zip"),
     (PYPMML, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "iris_bin.pmml"),
@@ -752,14 +756,23 @@ _custom_filepaths = {
         os.path.join(TESTS_FIXTURES_PATH, "pred_validation_custom.py"),
         "custom.py",
     ),
-    PYTHON_LOAD_MODEL: (os.path.join(TESTS_FIXTURES_PATH, "load_model_custom.py"), "custom.py",),
+    PYTHON_LOAD_MODEL: (
+        os.path.join(TESTS_FIXTURES_PATH, "load_model_custom.py"),
+        "custom.py",
+    ),
     PYTHON_NO_ARTIFACT_REGRESSION_HOOKS: (
         os.path.join(TESTS_FIXTURES_PATH, "no_artifact_regression_custom.py"),
         "custom.py",
     ),
     # sparse_predict.* for sparse.mtx, checks that data is sparse matrix and contains column names
-    R_PREDICT_SPARSE: (os.path.join(TESTS_FIXTURES_PATH, "sparse_predict.R"), "custom.R",),
-    PYTHON_PREDICT_SPARSE: (os.path.join(TESTS_FIXTURES_PATH, "sparse_predict.py"), "custom.py",),
+    R_PREDICT_SPARSE: (
+        os.path.join(TESTS_FIXTURES_PATH, "sparse_predict.R"),
+        "custom.R",
+    ),
+    PYTHON_PREDICT_SPARSE: (
+        os.path.join(TESTS_FIXTURES_PATH, "sparse_predict.py"),
+        "custom.py",
+    ),
     R: (os.path.join(TESTS_FIXTURES_PATH, "custom.R"), "custom.R"),
     R_ALL_PREDICT_STRUCTURED_HOOKS: (
         os.path.join(TESTS_FIXTURES_PATH, "all_predict_structured_hooks_custom.R"),
@@ -821,7 +834,10 @@ _custom_filepaths = {
         os.path.join(TESTS_FIXTURES_PATH, "transform_custom_with_y.py"),
         "custom.py",
     ),
-    PYTHON_TRANSFORM: (os.path.join(TESTS_FIXTURES_PATH, "transform_custom.py"), "custom.py",),
+    PYTHON_TRANSFORM: (
+        os.path.join(TESTS_FIXTURES_PATH, "transform_custom.py"),
+        "custom.py",
+    ),
     PYTHON_TRANSFORM_DENSE: (
         os.path.join(TESTS_FIXTURES_PATH, "transform_custom.py"),
         "custom.py",
@@ -838,7 +854,10 @@ _custom_filepaths = {
         os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_no_hook.py"),
         "custom.py",
     ),
-    SKLEARN_TRANSFORM: (os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom.py"), "custom.py",),
+    SKLEARN_TRANSFORM: (
+        os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom.py"),
+        "custom.py",
+    ),
     SKLEARN_TRANSFORM_SPARSE_INPUT: (
         os.path.join(TESTS_FIXTURES_PATH, "transform_fit_custom_sparse_input.py"),
         "custom.py",
@@ -859,7 +878,10 @@ _custom_filepaths = {
         os.path.join(TESTS_FIXTURES_PATH, "r_transform_custom_with_y.R"),
         "custom.R",
     ),
-    R_TRANSFORM: (os.path.join(TESTS_FIXTURES_PATH, "r_transform_custom.R"), "custom.R",),
+    R_TRANSFORM: (
+        os.path.join(TESTS_FIXTURES_PATH, "r_transform_custom.R"),
+        "custom.R",
+    ),
     R_TRANSFORM_NO_HOOK: (
         os.path.join(TESTS_FIXTURES_PATH, "r_transform_fit_custom_no_hook.R"),
         "custom.R",

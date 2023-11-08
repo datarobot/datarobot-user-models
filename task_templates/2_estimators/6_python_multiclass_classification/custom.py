@@ -14,7 +14,7 @@ from datarobot_drum.custom_task_interfaces import MulticlassEstimatorInterface
 
 class CustomTask(MulticlassEstimatorInterface):
     def fit(self, X: pd.DataFrame, y: pd.Series, **kwargs) -> None:
-        """ This hook defines how DataRobot will train this task.
+        """This hook defines how DataRobot will train this task.
         DataRobot runs this hook when the task is being trained inside a blueprint.
         The input parameters are passed by DataRobot based on project and blueprint configuration.
 
@@ -37,7 +37,7 @@ class CustomTask(MulticlassEstimatorInterface):
         self.estimator.fit(X, y)
 
     def predict_proba(self, data, **kwargs):
-        """ This hook defines how DataRobot will use the trained object from fit() to score new data.
+        """This hook defines how DataRobot will use the trained object from fit() to score new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
         As an output, this hook is expected to return the scored data.
         The input parameters are passed by DataRobot based on dataset and blueprint configuration.

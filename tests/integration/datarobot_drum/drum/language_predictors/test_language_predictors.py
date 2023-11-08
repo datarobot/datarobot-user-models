@@ -49,8 +49,15 @@ class FakeLanguagePredictor(BaseLanguagePredictor):
 @pytest.mark.parametrize(
     "predictor_params",
     [
-        {"positiveClassLabel": 1, "negativeClassLabel": 0, "target_type": TargetType.BINARY,},
-        {"classLabels": ["a", "b", "c"], "target_type": TargetType.MULTICLASS,},
+        {
+            "positiveClassLabel": 1,
+            "negativeClassLabel": 0,
+            "target_type": TargetType.BINARY,
+        },
+        {
+            "classLabels": ["a", "b", "c"],
+            "target_type": TargetType.MULTICLASS,
+        },
         {"target_type": TargetType.REGRESSION},
         {"target_type": TargetType.TEXT_GENERATION},
     ],
@@ -98,12 +105,27 @@ class TestPythonPredictor(object):
                 [1, 0],
             ),
             (
-                {"classLabels": ["a", "b", "c"], "target_type": TargetType.MULTICLASS,},
+                {
+                    "classLabels": ["a", "b", "c"],
+                    "target_type": TargetType.MULTICLASS,
+                },
                 np.array([[0.1, 0.2, 0.7], [0.1, 0.2, 0.7]]),
                 ["a", "b", "c"],
             ),
-            ({"target_type": TargetType.REGRESSION,}, np.array([1, 2]), None),
-            ({"target_type": TargetType.TEXT_GENERATION,}, np.array(["a", "b"]), None),
+            (
+                {
+                    "target_type": TargetType.REGRESSION,
+                },
+                np.array([1, 2]),
+                None,
+            ),
+            (
+                {
+                    "target_type": TargetType.TEXT_GENERATION,
+                },
+                np.array(["a", "b"]),
+                None,
+            ),
         ],
     )
     def test_python_predictor_predict(
@@ -148,13 +170,14 @@ class TestPythonPredictor(object):
                 )
             else:
                 mock_python_model_adapter_predict.assert_called_once_with(
-                    model=called_model, target_type=predictor_params["target_type"],
+                    model=called_model,
+                    target_type=predictor_params["target_type"],
                 )
 
     def test_python_predictor_fails_to_load_artifact(
         self, essential_language_predictor_init_params
     ):
-        """ Ensure the model adapter raises a drum serialization error if it cannot load the artifact """
+        """Ensure the model adapter raises a drum serialization error if it cannot load the artifact"""
         init_params = dict(
             essential_language_predictor_init_params, **{"target_type": TargetType.BINARY.value}
         )

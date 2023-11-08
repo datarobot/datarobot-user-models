@@ -61,7 +61,9 @@ class TestGCPSecret:
 
     def test_gcp_key_with_extra_fields(self):
         gcp_key = dict(type="abc", ooooops="abc")
-        expected_key = GCPKey("abc",)
+        expected_key = GCPKey(
+            "abc",
+        )
         secret = {"credential_type": "gcp", "gcp_key": gcp_key}
         expected = GCPSecret(gcp_key=expected_key)
         assert secrets_factory(secret) == expected
@@ -79,7 +81,18 @@ class TestGCPSecret:
             auth_provider_x509_cert_url="abc",
             client_x509_cert_url="abc",
         )
-        expected_key = GCPKey("abc", "abc", "abc", "abc", "abc", "abc", "abc", "abc", "abc", "abc",)
+        expected_key = GCPKey(
+            "abc",
+            "abc",
+            "abc",
+            "abc",
+            "abc",
+            "abc",
+            "abc",
+            "abc",
+            "abc",
+            "abc",
+        )
         secret = {"credential_type": "gcp", "gcp_key": gcp_key}
         expected = GCPSecret(gcp_key=expected_key)
         assert secrets_factory(secret) == expected
@@ -127,7 +140,9 @@ class TestOauthSecret:
 
 class TestS3Secret:
     def test_minimal_data(self):
-        secret = dict(credential_type="s3",)
+        secret = dict(
+            credential_type="s3",
+        )
         expected = S3Secret()
         assert secrets_factory(secret) == expected
 
@@ -148,7 +163,10 @@ class TestS3Secret:
         assert secrets_factory(secret) == expected
 
     def test_extra_data(self):
-        secret = dict(credential_type="s3", oops="x",)
+        secret = dict(
+            credential_type="s3",
+            oops="x",
+        )
         expected = S3Secret()
         assert secrets_factory(secret) == expected
 
@@ -186,7 +204,9 @@ class TestAzureServicePrincipalSecret:
             "azure_tenant_id": "abc",
         }
         expected = AzureServicePrincipalSecret(
-            client_id="abc", client_secret="abc", azure_tenant_id="abc",
+            client_id="abc",
+            client_secret="abc",
+            azure_tenant_id="abc",
         )
         assert secrets_factory(secret) == expected
 
@@ -199,13 +219,17 @@ class TestAzureServicePrincipalSecret:
             "oops": "abc",
         }
         expected = AzureServicePrincipalSecret(
-            client_id="abc", client_secret="abc", azure_tenant_id="abc",
+            client_id="abc",
+            client_secret="abc",
+            azure_tenant_id="abc",
         )
         assert secrets_factory(secret) == expected
 
     def test_is_partial_secret(self):
         secret = AzureServicePrincipalSecret(
-            client_id="abc", client_secret="abc", azure_tenant_id="abc",
+            client_id="abc",
+            client_secret="abc",
+            azure_tenant_id="abc",
         )
         assert not secret.is_partial_secret()
 
@@ -219,7 +243,9 @@ class TestSnowflakeOauthUserAccountSecret:
             snowflake_account_name="abc",
         )
         expected = SnowflakeOauthUserAccountSecret(
-            client_id="abc", client_secret="abc", snowflake_account_name="abc",
+            client_id="abc",
+            client_secret="abc",
+            snowflake_account_name="abc",
         )
         assert secrets_factory(secret) == expected
 
@@ -254,7 +280,9 @@ class TestSnowflakeOauthUserAccountSecret:
             ooops="x",
         )
         expected = SnowflakeOauthUserAccountSecret(
-            client_id="abc", client_secret="abc", snowflake_account_name="abc",
+            client_id="abc",
+            client_secret="abc",
+            snowflake_account_name="abc",
         )
         assert secrets_factory(secret) == expected
 
@@ -284,7 +312,10 @@ class TestSnowflakeKeyPairUserAccountSecret:
             username="abc",
             private_key_str="abc",
         )
-        expected = SnowflakeKeyPairUserAccountSecret(username="abc", private_key_str="abc",)
+        expected = SnowflakeKeyPairUserAccountSecret(
+            username="abc",
+            private_key_str="abc",
+        )
         assert secrets_factory(secret) == expected
 
     def test_full_data(self):
@@ -296,7 +327,10 @@ class TestSnowflakeKeyPairUserAccountSecret:
             config_id="abc",
         )
         expected = SnowflakeKeyPairUserAccountSecret(
-            username="abc", private_key_str="abc", passphrase="abc", config_id="abc",
+            username="abc",
+            private_key_str="abc",
+            passphrase="abc",
+            config_id="abc",
         )
         assert secrets_factory(secret) == expected
 
@@ -307,18 +341,25 @@ class TestSnowflakeKeyPairUserAccountSecret:
             private_key_str="abc",
             ooops="x",
         )
-        expected = SnowflakeKeyPairUserAccountSecret(username="abc", private_key_str="abc",)
+        expected = SnowflakeKeyPairUserAccountSecret(
+            username="abc",
+            private_key_str="abc",
+        )
         assert secrets_factory(secret) == expected
 
     def test_is_partial_secret_false(self):
         secret = SnowflakeKeyPairUserAccountSecret(
-            username="abc", private_key_str="abc", config_id=None,
+            username="abc",
+            private_key_str="abc",
+            config_id=None,
         )
         assert not secret.is_partial_secret()
 
     def test_is_partial_secret_true(self):
         secret = SnowflakeKeyPairUserAccountSecret(
-            username="abc", private_key_str="abc", config_id="abc",
+            username="abc",
+            private_key_str="abc",
+            config_id="abc",
         )
         assert secret.is_partial_secret()
 
@@ -331,7 +372,11 @@ class TestAdlsGen2OauthSecret:
             client_secret="abc",
             oauth_scopes="abc",
         )
-        expected = AdlsGen2OauthSecret(client_id="abc", client_secret="abc", oauth_scopes="abc",)
+        expected = AdlsGen2OauthSecret(
+            client_id="abc",
+            client_secret="abc",
+            oauth_scopes="abc",
+        )
         assert secrets_factory(secret) == expected
 
     def test_extra_data(self):
@@ -342,20 +387,33 @@ class TestAdlsGen2OauthSecret:
             oauth_scopes="abc",
             oops="x",
         )
-        expected = AdlsGen2OauthSecret(client_id="abc", client_secret="abc", oauth_scopes="abc",)
+        expected = AdlsGen2OauthSecret(
+            client_id="abc",
+            client_secret="abc",
+            oauth_scopes="abc",
+        )
         assert secrets_factory(secret) == expected
 
     def test_is_partial_secret_false(self):
-        secret = AdlsGen2OauthSecret(client_id="abc", client_secret="abc", oauth_scopes="abc",)
+        secret = AdlsGen2OauthSecret(
+            client_id="abc",
+            client_secret="abc",
+            oauth_scopes="abc",
+        )
         assert not secret.is_partial_secret()
 
 
 class TestTableauAccessTokenSecret:
     def test_data(self):
         secret = dict(
-            credential_type="tableau_access_token", token_name="abc", personal_access_token="abc",
+            credential_type="tableau_access_token",
+            token_name="abc",
+            personal_access_token="abc",
         )
-        expected = TableauAccessTokenSecret(token_name="abc", personal_access_token="abc",)
+        expected = TableauAccessTokenSecret(
+            token_name="abc",
+            personal_access_token="abc",
+        )
         assert secrets_factory(secret) == expected
 
     def test_extra_data(self):
@@ -365,20 +423,29 @@ class TestTableauAccessTokenSecret:
             personal_access_token="abc",
             oops="x",
         )
-        expected = TableauAccessTokenSecret(token_name="abc", personal_access_token="abc",)
+        expected = TableauAccessTokenSecret(
+            token_name="abc",
+            personal_access_token="abc",
+        )
         assert secrets_factory(secret) == expected
 
     def test_is_partial_secret_false(self):
-        secret = TableauAccessTokenSecret(token_name="abc", personal_access_token="abc",)
+        secret = TableauAccessTokenSecret(
+            token_name="abc",
+            personal_access_token="abc",
+        )
         assert not secret.is_partial_secret()
 
 
 class TestDatabricksAccessTokenAccountSecret:
     def test_data(self):
         secret = dict(
-            credential_type="databricks_access_token_account", databricks_access_token="abc",
+            credential_type="databricks_access_token_account",
+            databricks_access_token="abc",
         )
-        expected = DatabricksAccessTokenAccountSecret(databricks_access_token="abc",)
+        expected = DatabricksAccessTokenAccountSecret(
+            databricks_access_token="abc",
+        )
         assert secrets_factory(secret) == expected
 
     def test_extra_data(self):
@@ -387,27 +454,44 @@ class TestDatabricksAccessTokenAccountSecret:
             databricks_access_token="abc",
             oops="x",
         )
-        expected = DatabricksAccessTokenAccountSecret(databricks_access_token="abc",)
+        expected = DatabricksAccessTokenAccountSecret(
+            databricks_access_token="abc",
+        )
         assert secrets_factory(secret) == expected
 
     def test_is_partial_secret_false(self):
-        secret = DatabricksAccessTokenAccountSecret(databricks_access_token="abc",)
+        secret = DatabricksAccessTokenAccountSecret(
+            databricks_access_token="abc",
+        )
         assert not secret.is_partial_secret()
 
 
 class TestApiTokenSecret:
     def test_data(self):
-        secret = dict(credential_type="api_token", api_token="abc",)
-        expected = ApiTokenSecret(api_token="abc",)
+        secret = dict(
+            credential_type="api_token",
+            api_token="abc",
+        )
+        expected = ApiTokenSecret(
+            api_token="abc",
+        )
         assert secrets_factory(secret) == expected
 
     def test_extra_data(self):
-        secret = dict(credential_type="api_token", api_token="abc", oops="x",)
-        expected = ApiTokenSecret(api_token="abc",)
+        secret = dict(
+            credential_type="api_token",
+            api_token="abc",
+            oops="x",
+        )
+        expected = ApiTokenSecret(
+            api_token="abc",
+        )
         assert secrets_factory(secret) == expected
 
     def test_is_partial_secret_false(self):
-        secret = ApiTokenSecret(api_token="abc",)
+        secret = ApiTokenSecret(
+            api_token="abc",
+        )
         assert not secret.is_partial_secret()
 
 
@@ -534,7 +618,8 @@ class TestLoadSecrets:
             ),
             (
                 dict(
-                    credential_type="databricks_access_token_account", databricks_access_token="a",
+                    credential_type="databricks_access_token_account",
+                    databricks_access_token="a",
                 ),
                 DatabricksAccessTokenAccountSecret("a"),
             ),

@@ -57,7 +57,9 @@ def score_unstructured(model, data, query, **kwargs):
 
     if mlops:
         mlops.report_predictions_data(
-            features_df=df, predictions=reporting_predictions, association_ids=association_ids,
+            features_df=df,
+            predictions=reporting_predictions,
+            association_ids=association_ids,
         )
     return str(reporting_predictions)
 

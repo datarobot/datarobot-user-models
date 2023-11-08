@@ -69,6 +69,7 @@ sparse_preprocessing_pipeline = ColumnTransformer(
     ]
 )
 
+
 # Modified TruncatedSVD that doesn't fail if n_components > ncols
 class MyTruncatedSVD(TruncatedSVD):
     def fit_transform(self, X, y=None):

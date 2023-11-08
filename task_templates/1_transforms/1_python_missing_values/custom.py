@@ -13,7 +13,7 @@ from datarobot_drum.custom_task_interfaces import TransformerInterface
 
 class CustomTask(TransformerInterface):
     def fit(self, X: pd.DataFrame, y: pd.Series, **kwargs) -> None:
-        """ This hook defines how DataRobot will train this task. Even transform tasks need to be trained to learn/store information from training data
+        """This hook defines how DataRobot will train this task. Even transform tasks need to be trained to learn/store information from training data
         DataRobot runs this hook when the task is being trained inside a blueprint.
         The input parameters are passed by DataRobot based on project and blueprint configuration.
 
@@ -33,7 +33,7 @@ class CustomTask(TransformerInterface):
         self.median = X.median(axis=0, numeric_only=True, skipna=True).to_dict()
 
     def transform(self, data: pd.DataFrame) -> pd.DataFrame:
-        """ TThis hook defines how DataRobot will use the trained object from fit() to transform new data.
+        """TThis hook defines how DataRobot will use the trained object from fit() to transform new data.
         In this example, the trained object is a dictionary with medians per column.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
         As an output, this hook is expected to return the transformed data.

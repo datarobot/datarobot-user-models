@@ -23,7 +23,7 @@ def fit(
     row_weights: Optional[np.ndarray] = None,
     **kwargs,
 ) -> None:
-    """ This hook MUST ALWAYS be implemented for custom tasks.
+    """This hook MUST ALWAYS be implemented for custom tasks.
 
     This hook defines how DataRobot will train this task.
     DataRobot runs this hook when the task is being trained inside a blueprint.

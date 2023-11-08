@@ -14,7 +14,7 @@ from datarobot_drum.custom_task_interfaces import BinaryEstimatorInterface
 
 class CustomTask(BinaryEstimatorInterface):
     def fit(self, X, y, row_weights=None, **kwargs):
-        """ This hook defines how DataRobot will train this task.
+        """This hook defines how DataRobot will train this task.
         DataRobot will run this hook when the task is trained inside a blueprint.
         The input parameters are passed by DataRobot based on project and blueprint configuration.
         The output is the trained Custom Task instance, which allows a user to easily test, e.g.
@@ -43,7 +43,7 @@ class CustomTask(BinaryEstimatorInterface):
         return self
 
     def predict_proba(self, X, **kwargs):
-        """ This hook defines how DataRobot will use the trained estimator from fit() to predict on new data.
+        """This hook defines how DataRobot will use the trained estimator from fit() to predict on new data.
         DataRobot runs this hook when the task is used for scoring inside a blueprint.
         The input parameters are passed by DataRobot based on dataset and blueprint configuration.
         The output is the estimator's predictions on the new data in a tabular format (typically a pandas dataframe)

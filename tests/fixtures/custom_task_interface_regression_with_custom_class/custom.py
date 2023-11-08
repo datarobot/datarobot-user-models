@@ -13,7 +13,7 @@ from datarobot_drum.custom_task_interfaces import RegressionEstimatorInterface
 
 class CustomTask(RegressionEstimatorInterface):
     def fit(self, X, y, row_weights=None, **kwargs):
-        """ In some cases, avg(prediction) might not match avg(actuals)
+        """In some cases, avg(prediction) might not match avg(actuals)
         This task uses a calibrator in a helper class to fix that. During fit(), it computes and stores
         the calibration coefficient that is equal to avg(actuals) / avg(predicted) on training data
         """

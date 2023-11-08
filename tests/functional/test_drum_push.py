@@ -78,7 +78,8 @@ class TestDrumPush(object):
             yaml.dump(yaml.safe_load(yaml_string), outfile, default_flow_style=False)
 
         cmd = "{} push --code-dir {} --verbose".format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir,
+            ArgumentsOptions.MAIN_COMMAND,
+            custom_model_dir,
         )
         _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)

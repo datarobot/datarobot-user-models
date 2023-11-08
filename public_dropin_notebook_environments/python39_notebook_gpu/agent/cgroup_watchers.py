@@ -14,12 +14,12 @@ import psutil  # type: ignore
 # Parts of this code have been reused from repo:
 # https://github.com/neptune-ai/neptune-client/blob/master/LICENSE
 
-NANO_SECS = 10 ** 9
+NANO_SECS = 10**9
 
 
 class CGroupVersionUnsupported(Exception):
     """There are two versions of CGroups, the agent is compatible with V1 only.
-     This error occurs when the agent was tried to be ran in V2"""
+    This error occurs when the agent was tried to be ran in V2"""
 
 
 class SystemWatcher:

@@ -17,22 +17,30 @@ class TestDrumInputFileAdapterDenseData(object):
         ],
     )
     def test_dense_input_file_is_read_correctly(
-        self, request, input_filename, expected_df,
+        self,
+        request,
+        input_filename,
+        expected_df,
     ):
         input_filename = request.getfixturevalue(input_filename)
         expected_df = request.getfixturevalue(expected_df)
 
         drum_cli_adapter = DrumInputFileAdapter(
-            input_filename=input_filename, target_type=TargetType.ANOMALY,
+            input_filename=input_filename,
+            target_type=TargetType.ANOMALY,
         )
 
         pd.testing.assert_frame_equal(drum_cli_adapter.input_dataframe, expected_df)
 
     def test_input_file_contains_X(
-        self, dense_csv, dense_df, column_names,
+        self,
+        dense_csv,
+        dense_df,
+        column_names,
     ):
         drum_cli_adapter = DrumInputFileAdapter(
-            input_filename=dense_csv, target_type=TargetType.ANOMALY,
+            input_filename=dense_csv,
+            target_type=TargetType.ANOMALY,
         )
 
         pd.testing.assert_frame_equal(drum_cli_adapter.X, dense_df)
@@ -42,7 +50,12 @@ class TestDrumInputFileAdapterDenseData(object):
         assert np.all(drum_cli_adapter.X.columns == column_names)
 
     def test_input_file_contains_X_y(
-        self, dense_csv_with_target, dense_df, column_names, target_col_name, target_series,
+        self,
+        dense_csv_with_target,
+        dense_df,
+        column_names,
+        target_col_name,
+        target_series,
     ):
         drum_cli_adapter = DrumInputFileAdapter(
             input_filename=dense_csv_with_target,
@@ -86,7 +99,8 @@ class TestDrumInputFileAdapterDenseData(object):
 class TestDrumInputFileAdapterSparseData(object):
     def test_sparse_column_names_are_read_correctly(self, column_names, sparse_column_names_file):
         sparse_column_names = DrumInputFileAdapter(
-            target_type=TargetType.ANOMALY, sparse_column_filename=sparse_column_names_file,
+            target_type=TargetType.ANOMALY,
+            sparse_column_filename=sparse_column_names_file,
         ).sparse_column_names
 
         assert sparse_column_names == column_names
@@ -103,7 +117,11 @@ class TestDrumInputFileAdapterSparseData(object):
         pd.testing.assert_frame_equal(drum_cli_adapter.input_dataframe, sparse_df)
 
     def test_sparse_input_file_contains_X(
-        self, sparse_mtx, sparse_df, sparse_column_names_file, column_names,
+        self,
+        sparse_mtx,
+        sparse_df,
+        sparse_column_names_file,
+        column_names,
     ):
         drum_cli_adapter = DrumInputFileAdapter(
             input_filename=sparse_mtx,
@@ -183,7 +201,8 @@ class TestDrumInputFileAdapterSparseData(object):
 class TestDrumInputFileAdapterBinaryDataProperties(object):
     def test_input_filename_setter_and_lazy_loaded_binary_data(self, dense_csv):
         drum_cli_adapter = DrumInputFileAdapter(
-            input_filename=dense_csv, target_type=TargetType.ANOMALY,
+            input_filename=dense_csv,
+            target_type=TargetType.ANOMALY,
         )
 
         # Lazy load the input binary_data and mimetype by calling input_binary_data, ensure lazy loaded works

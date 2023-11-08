@@ -100,7 +100,8 @@ class DrumInputFileAdapter(object):
         if self._input_dataframe is None:
             # Lazy load df
             self._input_dataframe = StructuredInputReadUtils.read_structured_input_file_as_df(
-                self.input_filename, self.sparse_column_filename,
+                self.input_filename,
+                self.sparse_column_filename,
             )
         return self._input_dataframe
 

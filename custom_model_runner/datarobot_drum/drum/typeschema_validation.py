@@ -85,7 +85,7 @@ class Conditions(BaseEnum):
 
 
 class Values(BaseEnum):
-    """All acceptable values for the 'value' field. """
+    """All acceptable values for the 'value' field."""
 
     NUM = auto()
     TXT = auto()
@@ -386,7 +386,6 @@ class Sparsity(BaseValidator):
         super(Sparsity, self).__init__(condition, values)
 
     def validate(self, dataframe):
-
         _is_sparse = is_sparse_dataframe(dataframe)
 
         sparse_input_allowed_values = [Values.SUPPORTED, Values.REQUIRED]
@@ -508,7 +507,8 @@ def revalidate_typeschema(type_schema: YAML):
 
     Perform validation on each dictionary in the both lists.  This is required due to limitations in strictyaml.  See
     the strictyaml documentation on revalidation for details.  This checks that the provided values
-    are valid together while the initial validation only checks that the map is in the right general format."""
+    are valid together while the initial validation only checks that the map is in the right general format.
+    """
 
     for requriment_type in RequirementTypes:
         for req in type_schema.get(str(requriment_type), []):

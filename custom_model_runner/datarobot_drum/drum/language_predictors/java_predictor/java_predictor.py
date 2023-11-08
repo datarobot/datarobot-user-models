@@ -224,7 +224,6 @@ class JavaPredictor(BaseLanguagePredictor):
         self._cleanup()
 
     def _run_java_server_entry_point(self):
-
         custom_class_path = os.environ.get(EnvVarNames.DRUM_JAVA_CUSTOM_CLASS_PATH)
         if custom_class_path:
             self.logger.debug("Custom class path: {}".format(custom_class_path))

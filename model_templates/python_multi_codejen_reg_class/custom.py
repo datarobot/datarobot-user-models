@@ -48,7 +48,10 @@ def load_model(code_dir):
         negative_class_label="GALAXY",
     )
     # Regression predictor.
-    predictor3 = ScoringCodePredictor("{}/skyserver_reg".format(code_dir), "regression",)
+    predictor3 = ScoringCodePredictor(
+        "{}/skyserver_reg".format(code_dir),
+        "regression",
+    )
     return predictor1, predictor2, predictor3
 
 

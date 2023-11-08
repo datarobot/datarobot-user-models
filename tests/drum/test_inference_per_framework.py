@@ -316,7 +316,11 @@ class TestInference:
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         unset_drum_supported_env_vars()
@@ -442,7 +446,11 @@ class TestInference:
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         with DrumServerRun(
@@ -579,7 +587,11 @@ class TestInference:
                         config_yaml += "\n    - {}".format(label)
 
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         with open(os.path.join(custom_model_dir, MODEL_CONFIG_FILENAME), mode="w") as f:
@@ -590,7 +602,10 @@ class TestInference:
         output = tmp_path / "output"
 
         cmd = '{} score --code-dir {} --input "{}" --output {}'.format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output,
+            ArgumentsOptions.MAIN_COMMAND,
+            custom_model_dir,
+            input_dataset,
+            output,
         )
 
         _exec_shell_cmd(
@@ -637,7 +652,11 @@ class TestInference:
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -645,7 +664,10 @@ class TestInference:
         output = tmp_path / "output"
 
         cmd = '{} score --code-dir {} --input "{}" --output {}'.format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output,
+            ArgumentsOptions.MAIN_COMMAND,
+            custom_model_dir,
+            input_dataset,
+            output,
         )
 
         if add_to_cmd is not None:
@@ -732,7 +754,11 @@ class TestInference:
         )
 
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         input_dataset = resources.datasets(framework, problem)
@@ -740,7 +766,10 @@ class TestInference:
         output = tmp_path / "output"
 
         cmd = '{} score --code-dir {} --input "{}" --output {}'.format(
-            ArgumentsOptions.MAIN_COMMAND, custom_model_dir, input_dataset, output,
+            ArgumentsOptions.MAIN_COMMAND,
+            custom_model_dir,
+            input_dataset,
+            output,
         )
 
         def _write_yaml(conf_yaml):
@@ -810,7 +839,11 @@ class TestInference:
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         with DrumServerRun(
@@ -824,7 +857,10 @@ class TestInference:
             assert response.json() == {"supported_payload_formats": supported_payload_formats}
 
     @pytest.mark.parametrize(
-        "framework, problem, language", [(SKLEARN, REGRESSION_INFERENCE, PYTHON),],
+        "framework, problem, language",
+        [
+            (SKLEARN, REGRESSION_INFERENCE, PYTHON),
+        ],
     )
     # Don't run this test case with nginx as it is still running from the prev test case.
     @pytest.mark.parametrize("nginx", [False])
@@ -833,7 +869,11 @@ class TestInference:
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         with DrumServerRun(
@@ -880,7 +920,10 @@ class TestInference:
                     assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(
-        "framework, problem, language", [(RDS_SPARSE, REGRESSION, R_VALIDATE_SPARSE_ESTIMATOR),],
+        "framework, problem, language",
+        [
+            (RDS_SPARSE, REGRESSION, R_VALIDATE_SPARSE_ESTIMATOR),
+        ],
     )
     @pytest.mark.parametrize("nginx", [False, True])
     def test_predictions_r_mtx(
@@ -888,7 +931,11 @@ class TestInference:
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
-            resources, tmp_path, framework, problem, language,
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
         )
 
         with DrumServerRun(
@@ -923,13 +970,25 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, language, target_type",
-        [(None, R_FAIL_CLASSIFICATION_VALIDATION_HOOKS, BINARY,)],
+        [
+            (
+                None,
+                R_FAIL_CLASSIFICATION_VALIDATION_HOOKS,
+                BINARY,
+            )
+        ],
     )
     def test_classification_validation_fails(
         self, resources, framework, language, target_type, tmp_path, framework_env
     ):
         skip_if_framework_not_in_env(framework, framework_env)
-        custom_model_dir = _create_custom_model_dir(resources, tmp_path, framework, None, language,)
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            None,
+            language,
+        )
 
         input_dataset = resources.datasets(framework, BINARY)
 

@@ -29,7 +29,8 @@ categorical_selector = make_column_selector(dtype_include=object)
 
 def to_string(x):
     """Handle boolean values as string.  They are treated as an object otherwise, and will not work with categorical
-    when no missing values are present.  If there are missing values they are already correctly treated as a string."""
+    when no missing values are present.  If there are missing values they are already correctly treated as a string.
+    """
     return x.astype(str)
 
 
@@ -78,6 +79,7 @@ sparse_preprocessing_pipeline = ColumnTransformer(
         # https://github.com/aws/sagemaker-scikit-learn-extension/issues/42
     ]
 )
+
 
 # Modified TruncatedSVD that doesn't fail if n_components > ncols
 class MyTruncatedSVD(TruncatedSVD):
