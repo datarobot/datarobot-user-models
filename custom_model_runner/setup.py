@@ -68,7 +68,7 @@ setup(
         "datarobot_drum.resource.pipelines": ["*"],
         "datarobot_drum.resource.default_typeschema": ["*.yaml"],
     },
-    scripts=["bin/drum", "../drapps/drapps.py"],
+    scripts=["bin/drum", "../drapps/drapps.py", "../drapps/drapps"],
     install_requires=requirements,
     extras_require=extras_require,
     python_requires=">=3.4,<3.12",
