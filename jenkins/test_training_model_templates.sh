@@ -25,4 +25,5 @@ pip install -r requirements_test_functional.txt
 # put tests in this exact order as they build images and as a result jenkins instance may run out of space
 py.test tests/functional/test_custom_task_templates.py \
         tests/functional/test_drum_push.py \
+        -v \
         --junit-xml="${GIT_ROOT}/results_drop_in.xml"
