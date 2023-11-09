@@ -23,5 +23,5 @@ pip install -U $DRUM_WHEEL_REAL_PATH
 pip install -r requirements_test_functional.txt
 
 py.test tests/functional/test_inference_model_templates.py \
+        -v \
         --junit-xml="${GIT_ROOT}/results_drop_in.xml"
-
