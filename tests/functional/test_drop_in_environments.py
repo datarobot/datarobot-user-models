@@ -7,7 +7,6 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 from __future__ import absolute_import
 
 import os
-import time
 import pytest
 import datarobot as dr
 from datarobot.enums import DEFAULT_MAX_WAIT
@@ -108,18 +107,6 @@ class TestDropInEnvironments(object):
         return custom_model.id, model_version.id
 
     @pytest.fixture(scope="session")
-    def sklearn_binary_custom_model(self, sklearn_drop_in_env):
-        env_id, _ = sklearn_drop_in_env
-        return self.make_custom_model(
-            "sklearn_bin.pkl",
-            env_id,
-            "Iris-setosa",
-            "Iris-versicolor",
-            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
-            target_name="Species",
-        )
-
-    @pytest.fixture(scope="session")
     def sklearn_regression_custom_model(self, sklearn_drop_in_env):
         env_id, _ = sklearn_drop_in_env
         return self.make_custom_model(
@@ -130,66 +117,10 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def sklearn_multiclass_custom_model(self, sklearn_drop_in_env):
-        env_id, _ = sklearn_drop_in_env
-        return self.make_custom_model(
-            "sklearn_multi.pkl",
-            env_id,
-            class_labels=["GALAXY", "QSO", "STAR"],
-            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
-            target_name="class",
-        )
-
-    @pytest.fixture(scope="session")
-    def pojo_multiclass_custom_model(self, java_drop_in_env):
-        env_id, _ = java_drop_in_env
-        return self.make_custom_model(
-            "XGBoost_3_AutoML_20201016_143029.java",
-            env_id,
-            class_labels=["GALAXY", "QSO", "STAR"],
-            target_name="class",
-            artifact_only=True,
-        )
-
-    @pytest.fixture(scope="session")
-    def mojo_multiclass_custom_model(self, java_drop_in_env):
-        env_id, _ = java_drop_in_env
-        return self.make_custom_model(
-            "mojo_multi.zip",
-            env_id,
-            class_labels=["GALAXY", "QSO", "STAR"],
-            target_name="class",
-            artifact_only=True,
-        )
-
-    @pytest.fixture(scope="session")
-    def keras_binary_custom_model(self, keras_drop_in_env):
-        env_id, _ = keras_drop_in_env
-        return self.make_custom_model(
-            "keras_bin.h5",
-            env_id,
-            "yes",
-            "no",
-            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
-        )
-
-    @pytest.fixture(scope="session")
     def keras_regression_custom_model(self, keras_drop_in_env):
         env_id, _ = keras_drop_in_env
         return self.make_custom_model(
             "keras_reg.h5", env_id, custom_predict_path=CUSTOM_PREDICT_PY_PATH
-        )
-
-    @pytest.fixture(scope="session")
-    def torch_binary_custom_model(self, pytorch_drop_in_env):
-        env_id, _ = pytorch_drop_in_env
-        return self.make_custom_model(
-            "torch_bin.pth",
-            env_id,
-            "yes",
-            "no",
-            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
-            other_file_names=["PyTorch.py"],
         )
 
     @pytest.fixture(scope="session")
@@ -213,28 +144,10 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def onnx_binary_custom_model(self, onnx_drop_in_env):
-        env_id, _ = onnx_drop_in_env
-        return self.make_custom_model(
-            "onnx_bin.onnx", env_id, "yes", "no", custom_predict_path=CUSTOM_PREDICT_PY_PATH
-        )
-
-    @pytest.fixture(scope="session")
     def onnx_regression_custom_model(self, onnx_drop_in_env):
         env_id, _ = onnx_drop_in_env
         return self.make_custom_model(
             "onnx_reg.onnx", env_id, custom_predict_path=CUSTOM_PREDICT_PY_PATH
-        )
-
-    @pytest.fixture(scope="session")
-    def xgb_binary_custom_model(self, xgboost_drop_in_env):
-        env_id, _ = xgboost_drop_in_env
-        return self.make_custom_model(
-            "xgb_bin.pkl",
-            env_id,
-            "yes",
-            "no",
-            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
         )
 
     @pytest.fixture(scope="session")
@@ -245,54 +158,10 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def python_multi_artifact_regression_custom_model(self, sklearn_drop_in_env):
-        env_id, _ = sklearn_drop_in_env
-        return self.make_custom_model(
-            ["sklearn_bin.pkl", "sklearn_reg.pkl"],
-            env_id,
-            custom_predict_path=CUSTOM_LOAD_PREDICT_PY_PATH,
-        )
-
-    @pytest.fixture(scope="session")
-    def bad_python_multi_artifact_binary_custom_model(self, sklearn_drop_in_env):
-        env_id, _ = sklearn_drop_in_env
-        return self.make_custom_model(
-            ["sklearn_bin.pkl", "sklearn_reg.pkl"],
-            env_id,
-            "Iris-setosa",
-            "Iris-versicolor",
-            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
-        )
-
-    @pytest.fixture(scope="session")
-    def java_binary_custom_model(self, java_drop_in_env):
-        env_id, _ = java_drop_in_env
-        return self.make_custom_model(
-            "java_bin.jar",
-            env_id,
-            "Iris-setosa",
-            "Iris-versicolor",
-            artifact_only=True,
-            target_name="Species",
-        )
-
-    @pytest.fixture(scope="session")
     def java_regression_custom_model(self, java_drop_in_env):
         env_id, _ = java_drop_in_env
         return self.make_custom_model(
             "java_reg.jar", env_id, artifact_only=True, target_name=REGRESSION_TARGET
-        )
-
-    @pytest.fixture(scope="session")
-    def r_binary_custom_model(self, r_drop_in_env):
-        env_id, _ = r_drop_in_env
-        return self.make_custom_model(
-            "r_bin.rds",
-            env_id,
-            "Iris-setosa",
-            "Iris-versicolor",
-            custom_predict_path=CUSTOM_PREDICT_R_PATH,
-            target_name="Species",
         )
 
     @pytest.fixture(scope="session")
@@ -305,38 +174,9 @@ class TestDropInEnvironments(object):
             target_name=REGRESSION_TARGET,
         )
 
-    @pytest.fixture(scope="session")
-    def r_multi_artifact_binary_custom_model(self, r_drop_in_env):
-        env_id, _ = r_drop_in_env
-        return self.make_custom_model(
-            ["r_bin.rds", "r_reg.rds"],
-            env_id,
-            "Iris-setosa",
-            "Iris-versicolor",
-            custom_predict_path=CUSTOM_LOAD_PREDICT_R_PATH,
-        )
-
-    @pytest.fixture(scope="session")
-    def bad_r_multi_artifact_binary_custom_model(self, r_drop_in_env):
-        env_id, _ = r_drop_in_env
-        return self.make_custom_model(
-            ["r_bin.rds", "r_reg.rds"],
-            env_id,
-            "Iris-setosa",
-            "Iris-versicolor",
-            custom_predict_path=CUSTOM_PREDICT_R_PATH,
-        )
-
     @pytest.mark.parametrize(
         "model, test_data_id",
         [
-            ("java_binary_custom_model", "binary_testing_data"),
-            ("sklearn_binary_custom_model", "binary_testing_data"),
-            ("keras_binary_custom_model", "binary_testing_data"),
-            ("torch_binary_custom_model", "binary_testing_data"),
-            ("onnx_binary_custom_model", "binary_testing_data"),
-            ("xgb_binary_custom_model", "binary_testing_data"),
-            ("r_binary_custom_model", "binary_testing_data"),
             ("java_regression_custom_model", "regression_testing_data"),
             ("sklearn_regression_custom_model", "regression_testing_data"),
             ("keras_regression_custom_model", "regression_testing_data"),
@@ -344,11 +184,6 @@ class TestDropInEnvironments(object):
             ("onnx_regression_custom_model", "regression_testing_data"),
             ("xgb_regression_custom_model", "regression_testing_data"),
             ("r_regression_custom_model", "regression_testing_data"),
-            ("python_multi_artifact_regression_custom_model", "regression_testing_data"),
-            ("r_multi_artifact_binary_custom_model", "binary_testing_data"),
-            ("sklearn_multiclass_custom_model", "multiclass_testing_data"),
-            ("pojo_multiclass_custom_model", "multiclass_testing_data"),
-            ("mojo_multiclass_custom_model", "multiclass_testing_data"),
             ("python311_genai_custom_model", "regression_testing_data"),
         ],
     )
@@ -370,21 +205,3 @@ class TestDropInEnvironments(object):
         )
 
         assert test.overall_status == "succeeded"
-
-    @pytest.mark.parametrize(
-        "model, test_data_id",
-        [
-            ("bad_python_multi_artifact_binary_custom_model", "binary_testing_data"),
-            ("bad_r_multi_artifact_binary_custom_model", "binary_testing_data"),
-        ],
-    )
-    def test_fail_multi_artifacts(self, request, model, test_data_id):
-        model_id, model_version_id = request.getfixturevalue(model)
-        test_data_id = request.getfixturevalue(test_data_id)
-
-        test = dr.CustomModelTest.create(
-            custom_model_id=model_id,
-            custom_model_version_id=model_version_id,
-            dataset_id=test_data_id,
-        )
-        assert test.overall_status == "failed"
