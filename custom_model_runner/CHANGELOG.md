@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Changed
 - Bump pillow<=10.1.0
 - Bump black==23.10.1
+- Bump pyarrow<=14.0.1
 - Reformat code according to the latest black rules
 
 
