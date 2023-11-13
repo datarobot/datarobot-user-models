@@ -1,0 +1,50 @@
+# This example is copied from task_templates/2_estimators/4_python_binary_classification
+# with added code to demonstrate using credentials
+
+name: 13_python_credentials_and_internet_access
+type: training
+environmentID: 5e8c889607389fe0f466c72d
+targetType: binary
+
+# These must be actual DataRobot credentials that the author owns. If you click on your
+# credential, you will see the ID in the address bar like so:
+# https://app.datarobot.com/account/credentials-management/655270e368a555f026e2512d
+userCredentialSpecifications:
+  - key: FIRST_CREDENTIAL  # a legal POSIX env var key
+    valueFrom: 655270e368a555f026e2512d  # a credential ID from DataRobot for which you are the owner
+    reminder: my super-cool.com/api api-token  # Optional: any string value that you for a reminder.
+  - key: second_credential
+    valueFrom: 655270fa68a555f026e25130
+
+# Below is copied from task_templates/2_estimators/4_python_binary_classification with
+# the comments removed
+typeSchema:
+  input_requirements:
+    - field: data_types
+      condition: IN
+      value:
+        - NUM
+    - field: number_of_columns
+      condition: NOT_LESS_THAN
+      value: 2
+    - field: sparse
+      condition: EQUALS
+      value: SUPPORTED
+    - field: contains_missing
+      condition: EQUALS
+      value: FORBIDDEN
+
+hyperparameters:
+  - name: criterion
+    type: select
+    values:
+      - gini
+      - entropy
+    default: gini
+
+  - name: splitter
+    type: select
+    values:
+      - best
+      - random
+    default: best

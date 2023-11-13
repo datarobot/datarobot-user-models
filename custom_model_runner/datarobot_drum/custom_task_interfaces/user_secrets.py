@@ -25,6 +25,10 @@ T = TypeVar("T")
 
 class AbstractSecret(Generic[T]):
     def is_partial_secret(self) -> bool:
+        """Some credentials from DataRobot contain admin-owned information.
+        **That information will _not_ be available to the user in their secret**.
+        This method tells you whether your credential has incomplete information because that information was
+        stored separate from the credential itself."""
         config_keys = {"config_id", "oauth_config_id"}
         return any(getattr(self, key, None) for key in config_keys)
 

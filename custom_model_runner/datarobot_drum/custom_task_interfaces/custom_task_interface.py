@@ -9,10 +9,13 @@ import os
 import pickle
 import sys
 from contextlib import contextmanager
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, TypeVar
 
-from datarobot_drum.custom_task_interfaces.user_secrets import load_secrets
+from datarobot_drum.custom_task_interfaces.user_secrets import load_secrets, AbstractSecret
 from datarobot_drum.drum.exceptions import DrumSerializationError
+
+
+Secret = TypeVar("Secret", bound=AbstractSecret)
 
 
 class Serializable(object):
@@ -127,16 +130,40 @@ class Serializable(object):
 
 
 class CustomTaskInterface(Serializable):
-    _secrets: Optional[Dict[str, Any]] = None
+    _secrets: Optional[Dict[str, Secret]] = None
 
     @property
-    def secrets(self) -> Dict[str, Any]:
+    def secrets(self) -> Dict[str, Secret]:
+        """Secrets are a mapping from your model-metadat.yaml file
+
+        ```
+        userCredentialSpecifications:
+          - key: FIRST_CREDENTIAL
+            valueFrom: 655270e368a555f026e2512d
+            reminder: my super-cool.com/api api-token
+          - key: second_credential
+            valueFrom: 655270fa68a555f026e25130
+            reminder: basic - my super-secret.com username and password
+        ```
+
+        inside your interface, you can access these like:
+
+        ```
+        form datarobot_drum.custom_task_interface import BasicSecret, ApiTokenSecret
+        import requests
+
+        api_key: ApiTokenSecret = self.secrets["FIRST_CREDENTIAL"]
+        basic_secret: BasicSecret = self.secrets["second_credential"]
+        headers = {"Authorization": f"Bearer {api_key.api_token}"}
+        response = requests.get("https://super-cool.com/api/cool-thing/", headers=headers)
+        ```
+        """
         if self._secrets:
             return self._secrets
         return {}
 
     @secrets.setter
-    def secrets(self, secrets: Optional[Dict[str, Any]]):
+    def secrets(self, secrets: Optional[Dict[str, Secret]]):
         self._secrets = secrets
 
     def fit(self, X, y, parameters=None, row_weights=None, **kwargs):
