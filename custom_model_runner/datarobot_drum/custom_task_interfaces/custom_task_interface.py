@@ -9,13 +9,10 @@ import os
 import pickle
 import sys
 from contextlib import contextmanager
-from typing import Optional, Dict, TypeVar
+from typing import Optional, Dict, Any
 
-from datarobot_drum.custom_task_interfaces.user_secrets import load_secrets, AbstractSecret
+from datarobot_drum.custom_task_interfaces.user_secrets import load_secrets
 from datarobot_drum.drum.exceptions import DrumSerializationError
-
-
-Secret = TypeVar("Secret", bound=AbstractSecret)
 
 
 class Serializable(object):
@@ -130,10 +127,10 @@ class Serializable(object):
 
 
 class CustomTaskInterface(Serializable):
-    _secrets: Optional[Dict[str, Secret]] = None
+    _secrets: Optional[Dict[str, Any]] = None
 
     @property
-    def secrets(self) -> Dict[str, Secret]:
+    def secrets(self) -> Dict[str, Any]:
         """Secrets are a mapping from your model-metadat.yaml file
 
         ```
@@ -163,7 +160,7 @@ class CustomTaskInterface(Serializable):
         return {}
 
     @secrets.setter
-    def secrets(self, secrets: Optional[Dict[str, Secret]]):
+    def secrets(self, secrets: Optional[Dict[str, Any]]):
         self._secrets = secrets
 
     def fit(self, X, y, parameters=None, row_weights=None, **kwargs):

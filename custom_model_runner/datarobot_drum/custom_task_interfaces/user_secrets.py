@@ -221,7 +221,7 @@ def _get_environment_secrets(env_var_prefix):
     return {key.replace(full_prefix, ""): json.loads(value) for key, value in actual_secrets}
 
 
-def _get_mounted_secrets(mount_path: str):
+def _get_mounted_secrets(mount_path: Optional[str]):
     if mount_path is None:
         return {}
 
