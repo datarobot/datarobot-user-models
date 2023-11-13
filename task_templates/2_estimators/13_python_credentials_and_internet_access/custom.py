@@ -66,9 +66,15 @@ class CustomTask(BinaryEstimatorInterface):
         )
 
     def get_extra_column(self, data):
+        """This is just a quick demo of what you _could_ do"""
         api_token: ApiTokenSecret = self.secrets["CREDENTIAL"]
         headers = {"Authorization": f"Bearer {api_token.api_token}"}
-        payload = data.to_json()  # Don't do this!!!!!
-        response = requests.post("https://cool-column-maker.com/", headers=headers, json=payload)
+        self.log_message(
+            f"using api-token: {api_token}. In actually logs, the secret value will be starred out"
+        )
+        rows = data.shape[0]
+        response = requests.post(
+            "https://cool-column-maker.com/", headers=headers, json={"rows": rows}
+        )
         extra_column = pd.read_json(response.json()["extraColumn"])
         data["Cool Data"] = extra_column
