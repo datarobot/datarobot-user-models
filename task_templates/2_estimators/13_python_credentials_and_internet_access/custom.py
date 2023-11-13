@@ -9,7 +9,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 
-from datarobot_drum.custom_task_interfaces import BinaryEstimatorInterface, BasicSecret, ApiTokenSecret
+from datarobot_drum.custom_task_interfaces import BinaryEstimatorInterface, ApiTokenSecret
 import requests
 
 
@@ -32,7 +32,7 @@ class CustomTask(BinaryEstimatorInterface):
         None
         """
 
-        api_token: ApiTokenSecret = self.secrets["FIRST_CREDENTIAL"]
+        self.get_extra_column(X)
 
         # fit DecisionTreeClassifier
         self.estimator = DecisionTreeClassifier(
@@ -59,7 +59,16 @@ class CustomTask(BinaryEstimatorInterface):
             with class names used as column names
             and probabilities of classes as values (each row must sum to 1.0)
         """
+        self.get_extra_column(data)
 
         return pd.DataFrame(
             data=self.estimator.predict_proba(data), columns=self.estimator.classes_
         )
+
+    def get_extra_column(self, data):
+        api_token: ApiTokenSecret = self.secrets["CREDENTIAL"]
+        headers = {"Authorization": f"Bearer {api_token.api_token}"}
+        payload = data.to_json()  # Don't do this!!!!!
+        response = requests.post("https://cool-column-maker.com/", headers=headers, json=payload)
+        extra_column = pd.read_json(response.json()["extraColumn"])
+        data["Cool Data"] = extra_column

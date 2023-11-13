@@ -10,11 +10,9 @@ targetType: binary
 # credential, you will see the ID in the address bar like so:
 # https://app.datarobot.com/account/credentials-management/655270e368a555f026e2512d
 userCredentialSpecifications:
-  - key: FIRST_CREDENTIAL  # a legal POSIX env var key
+  - key: CREDENTIAL  # a legal POSIX env var key
     valueFrom: 655270e368a555f026e2512d  # a credential ID from DataRobot for which you are the owner
     reminder: my super-cool.com/api api-token  # Optional: any string value that you for a reminder.
-  - key: second_credential
-    valueFrom: 655270fa68a555f026e25130
 
 # Below is copied from task_templates/2_estimators/4_python_binary_classification with
 # the comments removed
