@@ -67,7 +67,7 @@ class CustomTask(BinaryEstimatorInterface):
 
     def get_extra_column(self, data):
         """This is just a quick demo of what you _could_ do"""
-        api_token: ApiTokenSecret = self.secrets["CREDENTIAL"]
+        api_token: ApiTokenSecret = self.secrets["MY_CREDENTIAL"]
         headers = {"Authorization": f"Bearer {api_token.api_token}"}
         self.log_message(
             f"using api-token: {api_token}. In actually logs, the secret value will be starred out"
