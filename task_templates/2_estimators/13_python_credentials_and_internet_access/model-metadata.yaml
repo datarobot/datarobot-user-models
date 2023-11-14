@@ -28,10 +28,6 @@ typeSchema:
     - field: sparse
       condition: EQUALS
       value: SUPPORTED
-# Since this is a fake example, ignoring this requirement so that we can use test data
-#    - field: contains_missing
-#      condition: EQUALS
-#      value: FORBIDDEN
 
 hyperparameters:
   - name: criterion
