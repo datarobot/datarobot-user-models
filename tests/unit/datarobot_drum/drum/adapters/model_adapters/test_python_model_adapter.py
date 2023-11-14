@@ -17,6 +17,7 @@ import pytest
 
 from datarobot_drum.custom_task_interfaces.user_secrets import secrets_factory
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
+from datarobot_drum.drum.exceptions import DrumCommonException
 
 
 class FakeCustomTask:
@@ -219,3 +220,14 @@ class TestLoadModelFromArtifact:
         instance = adapter.custom_task_instance
         expected_secrets = {k: secrets_factory(v) for k, v in env_secret.items()}
         assert instance.secrets == expected_secrets
+
+
+class TestPythonModelAdapterPrivateHelpers:
+    def test_multiple_artifacts_detection_negative(self):
+        with TemporaryDirectory() as dir_name:
+            adapter = TestingPythonModelAdapter(dir_name, Mock())
+            # create two files with the same extension
+            Path(f"{dir_name}/file1.pkl").touch()
+            Path(f"{dir_name}/file2.pkl").touch()
+            with pytest.raises(DrumCommonException, match="Multiple serialized model files found."):
+                adapter._detect_model_artifact_file()

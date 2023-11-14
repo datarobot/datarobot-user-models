@@ -36,6 +36,7 @@ from .constants import (
     R_INT_COLNAMES_MULTICLASS,
     MULTICLASS,
     NO_CUSTOM,
+    R_MULTI_ARTIFACT_NEGATIVE,
 )
 
 from tests.conftest import skip_if_framework_not_in_env
@@ -311,3 +312,47 @@ class TestOtherCasesPerFramework:
                 != -1
             )
             assert case
+
+    @pytest.mark.parametrize(
+        "framework, problem, language",
+        [
+            (
+                R_MULTI_ARTIFACT_NEGATIVE,
+                None,
+                NO_CUSTOM,
+            ),
+        ],
+    )
+    def test_multiple_r_artifacts_negative(
+        self, resources, framework, problem, language, tmp_path, framework_env
+    ):
+        skip_if_framework_not_in_env(framework, framework_env)
+
+        custom_model_dir = _create_custom_model_dir(
+            resources,
+            tmp_path,
+            framework,
+            problem,
+            language,
+        )
+        input_dataset = resources.datasets(framework, REGRESSION)
+        cmd = "{} score --code-dir {} --input {} --target-type {}".format(
+            ArgumentsOptions.MAIN_COMMAND,
+            custom_model_dir,
+            input_dataset,
+            REGRESSION,
+        )
+
+        p, stdo, stde = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+        stdo_stde = str(stdo) + str(stde)
+        match = (
+            str(stdo_stde).find(
+                "Multiple serialized model artifacts found: [r_multi.rds r_reg.rds]"
+            )
+            != -1
+        )
+        assert match
