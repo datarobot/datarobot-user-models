@@ -20,7 +20,7 @@ from datarobot_drum.resource.utils import (
 
 from requests_toolbelt import MultipartEncoder
 
-from tests.drum.constants import (
+from tests.constants import (
     R_NO_ARTIFACTS,
     SKLEARN_NO_ARTIFACTS,
     PYTHON_UNSTRUCTURED,

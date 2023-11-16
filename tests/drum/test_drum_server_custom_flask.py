@@ -10,7 +10,7 @@ import shutil
 import pytest
 import requests
 
-from .constants import (
+from tests.constants import (
     PYTHON_UNSTRUCTURED,
     UNSTRUCTURED,
     TESTS_FIXTURES_PATH,

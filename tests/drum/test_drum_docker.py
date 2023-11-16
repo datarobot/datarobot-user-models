@@ -11,8 +11,6 @@ import re
 import shutil
 from textwrap import dedent
 
-from tempfile import NamedTemporaryFile
-
 from datarobot_drum.drum.enum import ArgumentsOptions
 
 from datarobot_drum.resource.utils import (
@@ -20,7 +18,7 @@ from datarobot_drum.resource.utils import (
     _exec_shell_cmd,
 )
 
-from tests.drum.constants import (
+from tests.constants import (
     BINARY,
     CODEGEN,
     UNSTRUCTURED,

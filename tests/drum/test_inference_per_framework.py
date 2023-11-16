@@ -34,7 +34,7 @@ from datarobot_drum.resource.transform_helpers import (
     read_csv_payload,
     parse_multi_part_response,
 )
-from .constants import (
+from tests.constants import (
     BINARY,
     CODEGEN,
     KERAS,

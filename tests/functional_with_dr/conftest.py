@@ -14,7 +14,7 @@ import pytest
 from dr_usertool.datarobot_user_database import DataRobotUserDatabase
 from dr_usertool.utils import get_permissions
 
-from tests.drum.constants import PUBLIC_DROPIN_ENVS_PATH, TESTS_DATA_PATH
+from tests.constants import PUBLIC_DROPIN_ENVS_PATH, TESTS_DATA_PATH
 
 WEBSERVER_URL = "http://localhost"
 ENDPOINT_URL = WEBSERVER_URL + "/api/v2"

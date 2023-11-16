@@ -25,7 +25,7 @@ from datarobot_drum.drum.enum import ArgumentsOptions
 from datarobot_drum.drum.enum import RunMode
 from datarobot_drum.drum.runtime import DrumRuntime
 
-from .constants import (
+from tests.constants import (
     SKLEARN,
     REGRESSION_INFERENCE,
     NO_CUSTOM,

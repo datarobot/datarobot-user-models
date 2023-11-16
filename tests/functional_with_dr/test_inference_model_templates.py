@@ -10,7 +10,7 @@ import os
 import pytest
 import datarobot as dr
 
-from tests.drum.constants import MODEL_TEMPLATES_PATH
+from tests.constants import MODEL_TEMPLATES_PATH
 
 
 class TestInferenceModelTemplates(object):

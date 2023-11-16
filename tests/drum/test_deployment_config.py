@@ -18,15 +18,14 @@ from datarobot_drum.resource.deployment_config_helpers import (
     get_class_names_from_class_mapping,
     build_pps_response_json_str,
 )
-from tests.drum.constants import TESTS_DEPLOYMENT_CONFIG_PATH
+from tests.constants import TESTS_DEPLOYMENT_CONFIG_PATH
 
-from tests.drum.constants import (
+from tests.constants import (
     BINARY,
     MULTICLASS,
     PYTHON,
     REGRESSION,
     SKLEARN,
-    TEXT_GENERATION,
 )
 
 from datarobot_drum.resource.utils import _create_custom_model_dir

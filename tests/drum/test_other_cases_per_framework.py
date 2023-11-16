@@ -15,7 +15,7 @@ from datarobot_drum.resource.utils import (
     _cmd_add_class_labels,
 )
 
-from .constants import (
+from tests.constants import (
     CODEGEN_AND_SKLEARN,
     SKLEARN,
     SKLEARN_NO_ARTIFACTS,

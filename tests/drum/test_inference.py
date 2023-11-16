@@ -13,7 +13,6 @@ import requests
 
 from datarobot_drum.drum.enum import (
     X_TRANSFORM_KEY,
-    PredictionServerMimetypes,
     ModelInfoKeys,
     ArgumentsOptions,
     TargetType,
@@ -23,7 +22,7 @@ from datarobot_drum.resource.transform_helpers import (
     read_mtx_payload,
     parse_multi_part_response,
 )
-from .constants import (
+from tests.constants import (
     BINARY,
     DOCKER_PYTHON_SKLEARN,
     MULTICLASS,

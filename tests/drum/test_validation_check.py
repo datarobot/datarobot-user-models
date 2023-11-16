@@ -18,7 +18,7 @@ from datarobot_drum.resource.utils import (
 )
 
 
-from .constants import (
+from tests.constants import (
     SKLEARN,
     REGRESSION,
     REGRESSION_INFERENCE,

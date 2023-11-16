@@ -20,7 +20,7 @@ from datarobot_drum.resource.utils import (
     _create_custom_model_dir,
 )
 
-from .constants import (
+from tests.constants import (
     SKLEARN,
     RDS,
     CODEGEN,

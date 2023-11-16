@@ -14,8 +14,8 @@ from datarobot_drum.drum.enum import ModelMetadataKeys
 
 from datarobot_drum.resource.utils import _create_custom_model_dir
 from datarobot_drum.resource.utils import _exec_shell_cmd
-from tests.drum.constants import PYTHON_UNSTRUCTURED_RUNTIME_PARAMS
-from tests.drum.constants import UNSTRUCTURED
+from tests.constants import PYTHON_UNSTRUCTURED_RUNTIME_PARAMS
+from tests.constants import UNSTRUCTURED
 from tests.fixtures.unstructured_custom_runtime_parameters import EXPECTED_RUNTIME_PARAMS_FILE_NAME
 
 

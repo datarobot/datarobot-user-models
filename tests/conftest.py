@@ -13,7 +13,7 @@ import pytest
 import yaml
 from scipy.io import mmread
 
-from tests.drum.constants import (
+from tests.constants import (
     PYTHON_SKLEARN,
     PYTHON_XGBOOST,
     PYTHON_KERAS,
@@ -23,7 +23,6 @@ from tests.drum.constants import (
     PYTHON_PYPMML,
     R_LANG,
     JAVA,
-    JULIA,
     ANOMALY,
     BINARY,
     BINARY_BOOL,
@@ -151,8 +150,8 @@ from tests.drum.constants import (
     PYTHON_TEXT_GENERATION,
 )
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
-from tests.drum.constants import PYTHON_UNSTRUCTURED_DR_API_ACCESS
-from tests.drum.constants import PYTHON_UNSTRUCTURED_RUNTIME_PARAMS
+from tests.constants import PYTHON_UNSTRUCTURED_DR_API_ACCESS
+from tests.constants import PYTHON_UNSTRUCTURED_RUNTIME_PARAMS
 
 
 framework_envs = {

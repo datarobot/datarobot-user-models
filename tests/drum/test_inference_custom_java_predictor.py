@@ -5,14 +5,13 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import json
-from tempfile import NamedTemporaryFile
 import os
 import pandas as pd
 import pytest
 import requests
 
 from datarobot_drum.drum.enum import EnvVarNames
-from .constants import (
+from tests.constants import (
     BINARY,
     REGRESSION,
     RESPONSE_PREDICTIONS_KEY,
