@@ -12,7 +12,7 @@ GIT_ROOT=$(git rev-parse --show-toplevel)
 
 
 source "${GIT_ROOT}/tools/image-build-utils.sh"
-source "${GIT_ROOT}/tests/drum/integration-helpers.sh"
+source "${GIT_ROOT}/tests/functional/integration-helpers.sh"
 
 ENVS_DIR="public_dropin_environments"
 
@@ -92,7 +92,7 @@ docker run -i \
       -i $TERMINAM_OPTION\
       --entrypoint "" \
       $DOCKER_IMAGE \
-      ./tests/drum/run_integration_tests_in_framework_container.sh $1
+      ./tests/functional/run_integration_tests_in_framework_container.sh $1
 
 TEST_RESULT=$?
 

@@ -13,7 +13,7 @@ set -exuo pipefail
 
 GIT_ROOT=$(git rev-parse --show-toplevel)
 echo "GIT_ROOT: ${GIT_ROOT}"
-source ${GIT_ROOT}/tests/drum/integration-helpers.sh
+source ${GIT_ROOT}/tests/functional/integration-helpers.sh
 
 # Installing and configuring java/javac 11 in the jenkins worker
 sudo apt update
@@ -61,7 +61,7 @@ pip install "${DRUM_WHEEL_REAL_PATH}"
 
 echo
 title "Compiling jar for TestCustomPredictor "
-pushd $GIT_ROOT/tests/drum/custom_java_predictor
+pushd $GIT_ROOT/tests/functional/custom_java_predictor
 mvn package
 popd
 
@@ -87,13 +87,13 @@ echo
 title "Running tests: sequential test cases Java Custom Predictor and MLOps Monitoring"
 
 # only run here tests which were sequential historically
-pytest tests/drum/test_inference_custom_java_predictor.py tests/drum/test_mlops_monitoring.py \
+pytest tests/functional/test_inference_custom_java_predictor.py tests/functional/test_mlops_monitoring.py \
        --junit-xml="${GIT_ROOT}/results_integration_serial.xml" \
        -n 1
 TEST_RESULT_1=$?
 
 title "Running tests: all other cases in parallel"
-pytest tests/drum/ tests/integration tests/drapps/ \
+pytest tests/functional/ tests/integration tests/drapps/ \
        -k "not test_inference_custom_java_predictor.py and not test_mlops_monitoring.py" \
        -m "not sequential" \
        --junit-xml="${GIT_ROOT}/results_integration_parallel.xml" \

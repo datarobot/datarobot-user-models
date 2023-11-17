@@ -19,10 +19,10 @@ echo "Installing pytest"
 pip install pytest pytest-xdist
 
 
-TESTS_TO_RUN="tests/drum/test_inference_per_framework.py \
-              tests/drum/test_fit_per_framework.py \
-              tests/drum/test_other_cases_per_framework.py \
-              tests/drum/test_unstructured_mode_per_framework.py
+TESTS_TO_RUN="tests/functional/test_inference_per_framework.py \
+              tests/functional/test_fit_per_framework.py \
+              tests/functional/test_other_cases_per_framework.py \
+              tests/functional/test_unstructured_mode_per_framework.py
              "
 
 # install 'pack' package in R env for tests

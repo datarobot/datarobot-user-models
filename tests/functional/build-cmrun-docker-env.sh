@@ -9,7 +9,7 @@
 # This is a shortcut script to only build the integration test docker env
 
 GIT_ROOT=$(git rev-parse --show-toplevel)
-source $GIT_ROOT/tests/drum/integration-helpers.sh
+source $GIT_ROOT/tests/functional/integration-helpers.sh
 
 cd $GIT_ROOT || exit 1
 

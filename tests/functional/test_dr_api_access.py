@@ -21,7 +21,7 @@ from datarobot_drum.resource.utils import _create_custom_model_dir
 from datarobot_drum.resource.utils import _exec_shell_cmd
 from tests.constants import PYTHON_UNSTRUCTURED_DR_API_ACCESS
 from tests.constants import UNSTRUCTURED
-from tests.drum.utils import SimpleCache
+from tests.functional.utils import SimpleCache
 
 
 def _extract_token_from_header():

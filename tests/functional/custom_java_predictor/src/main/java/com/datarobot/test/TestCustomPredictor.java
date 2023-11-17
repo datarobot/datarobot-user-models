@@ -36,7 +36,7 @@ compile TestCustomPredictor
 
 run the command:
 
-DRUM_JAVA_CUSTOM_CLASS_PATH=tests/drum/custom_java_predictor/* DRUM_JAVA_CUSTOM_PREDICTOR_CLASS=com.datarobot.test.TestCustomPredictor drum score --code-dir tests/drum/custom_java_predictor/ --target-type regression --input tests/testdata/juniors_3_year_stats_regression.csv
+DRUM_JAVA_CUSTOM_CLASS_PATH=tests/functional/custom_java_predictor/* DRUM_JAVA_CUSTOM_PREDICTOR_CLASS=com.datarobot.test.TestCustomPredictor drum score --code-dir tests/drum/custom_java_predictor/ --target-type regression --input tests/testdata/juniors_3_year_stats_regression.csv
 ***/
 
 
