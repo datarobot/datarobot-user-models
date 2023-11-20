@@ -105,6 +105,7 @@ POJO = "java"
 JLSO = "jlso"
 ##
 MULTI_ARTIFACT = "multiartifact"
+R_MULTI_ARTIFACT_NEGATIVE = "r_multiartifact_negative"
 CODEGEN_AND_SKLEARN = "codegen_and_sklearn"
 # Problem keywords, used to mark datasets
 REGRESSION = "regression"
