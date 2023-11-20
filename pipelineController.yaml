@@ -18,19 +18,19 @@ test_integration_general: &test_integration_general
   definition: jenkins/test_integration_general.groovy
   phase: 3
 
-test_inference_model_templates: &test_inference_model_templates
-  taskName: test_inference_model_templates
-  definition: jenkins/test_inference_model_templates.groovy
+test_e2e_inference_model_templates: &test_e2e_inference_model_templates
+  taskName: test_e2e_inference_model_templates
+  definition: jenkins/test_e2e_inference_model_templates.groovy
   phase: 3
 
-test_training_model_templates: &test_training_model_templates
-  taskName: test_training_model_templates
-  definition: jenkins/test_training_model_templates.groovy
+test_e2e_training_model_templates: &test_e2e_training_model_templates
+  taskName: test_e2e_training_model_templates
+  definition: jenkins/test_e2e_training_model_templates.groovy
   phase: 3
 
-test_drop_in_envs: &test_drop_in_envs
-  taskName: test_drop_in_envs
-  definition: jenkins/test_drop_in_envs.groovy
+test_e2e_drop_in_envs: &test_e2e_drop_in_envs
+  taskName: test_e2e_drop_in_envs
+  definition: jenkins/test_e2e_drop_in_envs.groovy
   phase: 3
 
 test_integration_python_keras: &test_integration_python_keras
@@ -119,18 +119,18 @@ repositoryTasks:
         script:
           - *build_drum
           - *test_integration_general
-      - regex: ".*test_inference_model_templates.*"
+      - regex: ".*test_e2e_inference_model_templates.*"
         script:
           - *build_drum
-          - *test_inference_model_templates
-      - regex: ".*test_training_model_templates.*"
+          - *test_e2e_inference_model_templates
+      - regex: ".*test_e2e_training_model_templates.*"
         script:
           - *build_drum
-          - *test_training_model_templates
-      - regex: ".*test_drop_in_envs.*"
+          - *test_e2e_training_model_templates
+      - regex: ".*test_e2e_drop_in_envs.*"
         script:
           - *build_drum
-          - *test_drop_in_envs
+          - *test_e2e_drop_in_envs
       - regex: ".*test_integration_python_keras.*"
         script:
           - *build_drum
@@ -178,9 +178,9 @@ repositoryTasks:
           - *test_unit
           - *build_drum
           - *test_integration_general
-          - *test_inference_model_templates
-          - *test_training_model_templates
-          - *test_drop_in_envs
+          - *test_e2e_inference_model_templates
+          - *test_e2e_training_model_templates
+          - *test_e2e_drop_in_envs
           - *test_integration_python_keras
           - *test_integration_python_onnx
           - *test_integration_python_pmml
