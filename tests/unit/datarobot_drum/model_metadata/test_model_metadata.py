@@ -42,7 +42,7 @@ from datarobot_drum.drum.typeschema_validation import (
     ContainsMissing,
 )
 
-from tests.drum.utils import get_test_data
+from tests.functional.utils import get_test_data
 
 logger = logging.getLogger(__name__)
 try:
@@ -201,7 +201,8 @@ class TestSchemaValidator:
     def yaml_str_to_schema_dict(yaml_str: str) -> dict:
         """this emulates how we cast a yaml to a dict for validation in
         `datarobot_drum.drum.common.read_model_metadata_yaml` and these assumptions
-        are tested in: `tests.drum.test_units.test_read_model_metadata_properly_casts_typeschema`"""
+        are tested in: `tests.unit.datarobot_drum.model_metadata.test_model_metadata.test_read_model_metadata_properly_casts_typeschema`
+        """
         schema = load(yaml_str, get_type_schema_yaml_validator())
         revalidate_typeschema(schema)
         return schema.data

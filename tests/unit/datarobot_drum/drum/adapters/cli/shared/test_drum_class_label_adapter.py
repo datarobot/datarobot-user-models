@@ -17,7 +17,7 @@ from datarobot_drum.drum.adapters.cli.shared.drum_class_label_adapter import Dru
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 
-from tests.drum.constants import TESTS_DATA_PATH
+from tests.constants import TESTS_DATA_PATH
 
 
 class TestDrumCLIAdapterLabels(object):

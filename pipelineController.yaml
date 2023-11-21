@@ -13,92 +13,92 @@ build_drum: &build_drum
   definition: jenkins/build_drum.groovy
   phase: 1
 
-test_integration_general: &test_integration_general
-  taskName: test_integration_general
-  definition: jenkins/test_integration_general.groovy
+test_functional_general: &test_functional_general
+  taskName: test_functional_general
+  definition: jenkins/test_functional_general.groovy
   phase: 3
 
-test_inference_model_templates: &test_inference_model_templates
-  taskName: test_inference_model_templates
-  definition: jenkins/test_inference_model_templates.groovy
+test_e2e_inference_model_templates: &test_e2e_inference_model_templates
+  taskName: test_e2e_inference_model_templates
+  definition: jenkins/test_e2e_inference_model_templates.groovy
   phase: 3
 
-test_training_model_templates: &test_training_model_templates
-  taskName: test_training_model_templates
-  definition: jenkins/test_training_model_templates.groovy
+test_e2e_training_model_templates: &test_e2e_training_model_templates
+  taskName: test_e2e_training_model_templates
+  definition: jenkins/test_e2e_training_model_templates.groovy
   phase: 3
 
-test_drop_in_envs: &test_drop_in_envs
-  taskName: test_drop_in_envs
-  definition: jenkins/test_drop_in_envs.groovy
+test_e2e_drop_in_envs: &test_e2e_drop_in_envs
+  taskName: test_e2e_drop_in_envs
+  definition: jenkins/test_e2e_drop_in_envs.groovy
   phase: 3
 
-test_integration_python_keras: &test_integration_python_keras
-  taskName: test_integration_python_keras
-  definition: jenkins/test_integration_per_framework.groovy
+test_functional_python_keras: &test_functional_python_keras
+  taskName: test_functional_python_keras
+  definition: jenkins/test_functional_per_framework.groovy
   environment:
     FRAMEWORK: python3_keras
   phase: 3
 
-test_integration_python_onnx: &test_integration_python_onnx
-  taskName: test_integration_python_onnx
-  definition: jenkins/test_integration_per_framework.groovy
+test_functional_python_onnx: &test_functional_python_onnx
+  taskName: test_functional_python_onnx
+  definition: jenkins/test_functional_per_framework.groovy
   environment:
     FRAMEWORK: python3_onnx
   phase: 3
 
-test_integration_python_pmml: &test_integration_python_pmml
-  taskName: test_integration_python_pmml
-  definition: jenkins/test_integration_per_framework.groovy
+test_functional_python_pmml: &test_functional_python_pmml
+  taskName: test_functional_python_pmml
+  definition: jenkins/test_functional_per_framework.groovy
   environment:
     FRAMEWORK: python3_pmml
   phase: 3
 
-test_integration_python_pytorch: &test_integration_python_pytorch
-  taskName: test_integration_python_pytorch
-  definition: jenkins/test_integration_per_framework.groovy
+test_functional_python_pytorch: &test_functional_python_pytorch
+  taskName: test_functional_python_pytorch
+  definition: jenkins/test_functional_per_framework.groovy
   environment:
     FRAMEWORK: python3_pytorch
   phase: 3
 
-test_integration_python311_genai: &test_integration_python311_genai
-  taskName: test_integration_python311_genai
-  definition: jenkins/test_integration_per_framework.groovy
+test_functional_python311_genai: &test_functional_python311_genai
+  taskName: test_functional_python311_genai
+  definition: jenkins/test_functional_per_framework.groovy
   environment:
     FRAMEWORK: python311_genai
   phase: 3
 
-test_integration_python_sklearn: &test_integration_python_sklearn
-  taskName: test_integration_python_sklearn
-  definition: jenkins/test_integration_per_framework.groovy
+test_functional_python_sklearn: &test_functional_python_sklearn
+  taskName: test_functional_python_sklearn
+  definition: jenkins/test_functional_per_framework.groovy
   environment:
     FRAMEWORK: python3_sklearn
   phase: 3
 
-test_integration_python_xgboost: &test_integration_python_xgboost
-  taskName: test_integration_python_xgboost
-  definition: jenkins/test_integration_per_framework.groovy
+test_functional_python_xgboost: &test_functional_python_xgboost
+  taskName: test_functional_python_xgboost
+  definition: jenkins/test_functional_per_framework.groovy
   environment:
     FRAMEWORK: python3_xgboost
   phase: 3
 
-test_integration_r_environment: &test_integration_r_environment
-  taskName: test_integration_r_environment
-  definition: jenkins/test_integration_per_framework.groovy
+test_functional_r_environment: &test_functional_r_environment
+  taskName: test_functional_r_environment
+  definition: jenkins/test_functional_per_framework.groovy
   environment:
     FRAMEWORK: r_lang
   phase: 3
 
-test_integration_java_environment: &test_integration_java_environment
-  taskName: test_integration_java_environment
-  definition: jenkins/test_integration_per_framework.groovy
+test_functional_java_environment: &test_functional_java_environment
+  taskName: test_functional_java_environment
+  definition: jenkins/test_functional_per_framework.groovy
   environment:
     FRAMEWORK: java
   phase: 2
 
-test_integration_julia_environment: &test_integration_julia_environment
-  taskName: test_integration_julia_environment
-  definition: jenkins/test_integration_per_framework.groovy
+test_functional_julia_environment: &test_functional_julia_environment
+  taskName: test_functional_julia_environment
+  definition: jenkins/test_functional_per_framework.groovy
   environment:
     FRAMEWORK: julia
   phase: 3
@@ -115,79 +115,79 @@ repositoryTasks:
           - *black_check
           - *test_unit
           - *build_drum
-      - regex: ".*test_integration_general.*"
+      - regex: ".*test_functional_general.*"
         script:
           - *build_drum
-          - *test_integration_general
-      - regex: ".*test_inference_model_templates.*"
+          - *test_functional_general
+      - regex: ".*test_e2e_inference_model_templates.*"
         script:
           - *build_drum
-          - *test_inference_model_templates
-      - regex: ".*test_training_model_templates.*"
+          - *test_e2e_inference_model_templates
+      - regex: ".*test_e2e_training_model_templates.*"
         script:
           - *build_drum
-          - *test_training_model_templates
-      - regex: ".*test_drop_in_envs.*"
+          - *test_e2e_training_model_templates
+      - regex: ".*test_e2e_drop_in_envs.*"
         script:
           - *build_drum
-          - *test_drop_in_envs
-      - regex: ".*test_integration_python_keras.*"
+          - *test_e2e_drop_in_envs
+      - regex: ".*test_functional_python_keras.*"
         script:
           - *build_drum
-          - *test_integration_python_keras
-      - regex: ".*test_integration_python_onnx.*"
+          - *test_functional_python_keras
+      - regex: ".*test_functional_python_onnx.*"
         script:
           - *build_drum
-          - *test_integration_python_onnx
-      - regex: ".*test_integration_python_pmml.*"
+          - *test_functional_python_onnx
+      - regex: ".*test_functional_python_pmml.*"
         script:
           - *build_drum
-          - *test_integration_python_pmml
-      - regex: ".*test_integration_python_pytorch.*"
+          - *test_functional_python_pmml
+      - regex: ".*test_functional_python_pytorch.*"
         script:
           - *build_drum
-          - *test_integration_python_pytorch
-      - regex: ".*test_integration_python311_genai.*"
+          - *test_functional_python_pytorch
+      - regex: ".*test_functional_python311_genai.*"
         script:
           - *build_drum
-          - *test_integration_python311_genai
-      - regex: ".*test_integration_python_sklearn.*"
+          - *test_functional_python311_genai
+      - regex: ".*test_functional_python_sklearn.*"
         script:
           - *build_drum
-          - *test_integration_python_sklearn
-      - regex: ".*test_integration_python_xgboost.*"
+          - *test_functional_python_sklearn
+      - regex: ".*test_functional_python_xgboost.*"
         script:
           - *build_drum
-          - *test_integration_python_xgboost
-      - regex: ".*test_integration_r_environment.*"
+          - *test_functional_python_xgboost
+      - regex: ".*test_functional_r_environment.*"
         script:
           - *build_drum
-          - *test_integration_r_environment
-      - regex: ".*test_integration_java_environment.*"
+          - *test_functional_r_environment
+      - regex: ".*test_functional_java_environment.*"
         script:
           - *build_drum
-          - *test_integration_java_environment
-      - regex: ".*test_integration_julia_environment.*"
+          - *test_functional_java_environment
+      - regex: ".*test_functional_julia_environment.*"
         script:
           - *build_drum
-          - *test_integration_julia_environment
+          - *test_functional_julia_environment
     change:
       - changedFilesRegex: '.*'
         script:
           - *black_check
           - *test_unit
           - *build_drum
-          - *test_integration_general
-          - *test_inference_model_templates
-          - *test_training_model_templates
-          - *test_drop_in_envs
-          - *test_integration_python_keras
-          - *test_integration_python_onnx
-          - *test_integration_python_pmml
-          - *test_integration_python_pytorch
-          - *test_integration_python311_genai
-          - *test_integration_python_sklearn
-          - *test_integration_python_xgboost
-          - *test_integration_r_environment
-          - *test_integration_java_environment
-          # - *test_integration_julia_environment
+          - *test_functional_general
+          - *test_e2e_inference_model_templates
+          - *test_e2e_training_model_templates
+          - *test_e2e_drop_in_envs
+          - *test_functional_python_keras
+          - *test_functional_python_onnx
+          - *test_functional_python_pmml
+          - *test_functional_python_pytorch
+          - *test_functional_python311_genai
+          - *test_functional_python_sklearn
+          - *test_functional_python_xgboost
+          - *test_functional_r_environment
+          - *test_functional_java_environment
+          # - *test_functional_julia_environment
