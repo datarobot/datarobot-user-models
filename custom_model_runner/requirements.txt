@@ -19,7 +19,7 @@ PyYAML
 texttable
 py4j~=0.10.9.0
 # only constrained by other packages, not DRUM
-pyarrow>=0.14.1,<=10.0.1
+pyarrow>=0.14.1,<=14.0.1
 Pillow<=10.1.0
 julia<=0.5.7
 termcolor
