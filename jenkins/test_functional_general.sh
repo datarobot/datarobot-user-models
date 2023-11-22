@@ -93,7 +93,7 @@ pytest tests/functional/test_inference_custom_java_predictor.py tests/functional
 TEST_RESULT_1=$?
 
 title "Running tests: all other cases in parallel"
-pytest tests/functional/ tests/integration tests/drapps/ \
+pytest tests/functional/ tests/integration \
        -k "not test_inference_custom_java_predictor.py and not test_mlops_monitoring.py" \
        -m "not sequential" \
        --junit-xml="${GIT_ROOT}/results_integration_parallel.xml" \

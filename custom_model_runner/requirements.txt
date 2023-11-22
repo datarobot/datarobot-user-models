@@ -25,7 +25,3 @@ julia<=0.5.7
 termcolor
 packaging
 markupsafe<=2.1.3
-
-# for drapps
-bson==0.5.10
-click==8.1.7
