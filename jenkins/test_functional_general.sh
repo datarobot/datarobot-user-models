@@ -28,7 +28,8 @@ javac -version
 
 
 title "Create python3 virtual environment"
-sudo apt install --no-install-recommends -y python3-venv
+python3 --version
+sudo apt install --no-install-recommends -y python3.9-venv
 python3 -m venv /tmp/venv
 . /tmp/venv/bin/activate
 pip install -U pip
