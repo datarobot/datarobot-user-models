@@ -33,7 +33,7 @@ ARG GID=10101
 # microdnf repoquery python3*
 # ```
 ARG PYTHON_VERSION=39
-ARG PYTHON_EXACT_VERSION=3.9.16
+ARG PYTHON_EXACT_VERSION=3.9.18
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:8.7 AS base
 # some globally required dependencies

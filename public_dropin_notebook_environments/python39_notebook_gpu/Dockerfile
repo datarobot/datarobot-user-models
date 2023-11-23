@@ -26,7 +26,7 @@ ARG UID=10101
 ARG GID=10101
 
 ARG PYTHON_VERSION=3.11
-ARG PYTHON_EXACT_VERSION=3.11.2
+ARG PYTHON_EXACT_VERSION=3.11.5
 
 FROM nvidia/cuda:12.2.0-base-ubi9 AS base
 # some globally required dependencies
