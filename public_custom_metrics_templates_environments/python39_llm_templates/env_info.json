@@ -1,0 +1,8 @@
+{
+  "id": "655efc2df94a4aee0494b55d",
+  "name": "[DataRobot] Python 3.9 Custom Metrics Templates Drop-In",
+  "description": "This environment is used as the default environment in custom metrics templates.",
+  "programmingLanguage": "python",
+  "environmentVersionId": "6553ca89c69a2fde5f488dd5",
+  "isPublic": true
+}
