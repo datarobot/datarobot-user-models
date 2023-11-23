@@ -9,6 +9,7 @@ RUN pip3 install -r requirements.txt --no-cache-dir && \
 
 # Download the nltk packages required to run nltk models
 RUN [ "python3", "-c", "import nltk; nltk.download('popular', download_dir='/opt/nltk_data')"]
+RUN [ "python3", "-c", "import nltk; nltk.download('vader_lexicon', download_dir='/opt/nltk_data')"]
 
 # Copy the drop-in environment code into the correct directory
 ENV HOME=/opt CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
