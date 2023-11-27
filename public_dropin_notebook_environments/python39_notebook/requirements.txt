@@ -3,7 +3,7 @@ cloudpickle==2.2.1
 dask==2022.9.2
 datarobot-bp-workshop==0.2.6
 datarobot-drum==1.10.6
-datarobot-model-metrics==0.2.7
+datarobot-model-metrics==0.3.0
 datarobot-predict==1.0.0
 datarobot==3.2.1
 dummyPy==0.3
