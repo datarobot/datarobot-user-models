@@ -52,7 +52,10 @@ class CGroupFileReader:
 
     def memory_usage_in_bytes(self) -> int:
         memory_stat_str = self._memory_usage_file.read_text()
-        total_rss_str = next(iter([stat for stat in memory_stat_str.split("\n") if stat.startswith("total_rss")]), "0")
+        total_rss_str = next(
+            iter([stat for stat in memory_stat_str.split("\n") if stat.startswith("total_rss")]),
+            "0",
+        )
         total_rss = int(total_rss_str.split(" ")[-1])
         return total_rss
 
