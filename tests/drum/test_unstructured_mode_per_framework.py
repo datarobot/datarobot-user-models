@@ -218,7 +218,7 @@ class TestUnstructuredMode:
             resources.class_labels(framework, problem),
             custom_model_dir,
         ) as run:
-            for endpoint in ["/predict/", "/predictions/"]:
+            for endpoint in ["/predict/", "/predictions/", "/invocations"]:
                 response = requests.post(url=run.url_server_address + endpoint)
                 assert response.status_code == HTTP_422_UNPROCESSABLE_ENTITY
                 expected_msg = "ERROR: This model has target type 'unstructured', use the /predictUnstructured/ or /predictionsUnstructured/ endpoint."
