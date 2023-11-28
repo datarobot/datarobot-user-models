@@ -1,7 +1,7 @@
 node('multi-executor && ubuntu:focal'){
     checkout scm
 
-    docker.image('python:3.8').inside() {
+    docker.image('python:3.9').inside() {
         stage('black_check') {
             sh"""#!/bin/bash
             set -exuo pipefail

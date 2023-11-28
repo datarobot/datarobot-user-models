@@ -38,6 +38,17 @@ which label will be chosen as the predicted label.
 ## Options specific to tasks
 * trainOnProject (optional): A hash with the pid of a project you would like to train your new model or version 
 on. If this is supplied, the code you supplied will start to run against this pid automagically. 
+* userCredentialSpecifications (optional): This is a list of credentials that will be injected from 
+DataRobot on both fit and predict. You can get your credential IDs by looking at the URL when you click on
+a credential in datarobot.com/account/credentials-management. They have the following template
+
+```
+userCredentialSpecifications:
+  - key: REQUIRED - a POSIX compatable environment name (^[_a-zA-Z][_a-zA-Z0-9]*$)
+    valueFrom: REQUIRED - a valid object id pointing to your credential
+    reminder: OPTIONAL - any string to help you remember what this is.
+```
+
 
 ### Validation Schema
 The documentation for the validation schema can be found [here](https://docs.datarobot.com/en/docs/modeling/special-workflows/cml/cml-ref/cml-validation.html)

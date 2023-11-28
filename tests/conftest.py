@@ -13,7 +13,7 @@ import pytest
 import yaml
 from scipy.io import mmread
 
-from tests.drum.constants import (
+from tests.constants import (
     PYTHON_SKLEARN,
     PYTHON_XGBOOST,
     PYTHON_KERAS,
@@ -23,7 +23,6 @@ from tests.drum.constants import (
     PYTHON_PYPMML,
     R_LANG,
     JAVA,
-    JULIA,
     ANOMALY,
     BINARY,
     BINARY_BOOL,
@@ -40,6 +39,7 @@ from tests.drum.constants import (
     KERAS,
     MOJO,
     MULTI_ARTIFACT,
+    R_MULTI_ARTIFACT_NEGATIVE,
     MULTICLASS,
     MULTICLASS_NUM_LABELS,
     MULTICLASS_FLOAT_LABELS,
@@ -150,8 +150,8 @@ from tests.drum.constants import (
     PYTHON_TEXT_GENERATION,
 )
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
-from tests.drum.constants import PYTHON_UNSTRUCTURED_DR_API_ACCESS
-from tests.drum.constants import PYTHON_UNSTRUCTURED_RUNTIME_PARAMS
+from tests.constants import PYTHON_UNSTRUCTURED_DR_API_ACCESS
+from tests.constants import PYTHON_UNSTRUCTURED_RUNTIME_PARAMS
 
 
 framework_envs = {
@@ -210,6 +210,7 @@ framework_envs = {
         R_XFORM_ESTIMATOR,
         RDS_HYPERPARAMETERS,
         R_NO_ARTIFACTS,
+        R_MULTI_ARTIFACT_NEGATIVE,
     ],
     JAVA: [CODEGEN, MOJO, POJO],
     JULIA: [MLJ],
@@ -725,6 +726,10 @@ _artifacts = {
     (R_TRANSFORM_NON_NUMERIC, ANOMALY): None,
     (R_ESTIMATOR_SPARSE, REGRESSION): None,
     (R_VALIDATE_SPARSE_ESTIMATOR, REGRESSION): None,
+    (R_MULTI_ARTIFACT_NEGATIVE, None): [
+        os.path.join(TESTS_ARTIFACTS_PATH, "r_reg.rds"),
+        os.path.join(TESTS_ARTIFACTS_PATH, "r_multi.rds"),
+    ],
     (CUSTOM_TASK_INTERFACE_BINARY, BINARY): None,
     (CUSTOM_TASK_INTERFACE_REGRESSION, REGRESSION): None,
     (CUSTOM_TASK_INTERFACE_ANOMALY, ANOMALY): None,

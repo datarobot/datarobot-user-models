@@ -29,4 +29,7 @@ source /etc/system/kernel/.venv/bin/activate
 # setup the working directory for the kernel
 cd "$WORKING_DIR" || exit
 
+# no trailing slash in the working dir path
+git config --global --add safe.directory "${WORKING_DIR%/}"
+
 exec jupyter kernelgateway --config=/etc/system/kernel/jupyter_kernel_gateway_config.py --debug
