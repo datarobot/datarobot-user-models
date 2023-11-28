@@ -104,6 +104,7 @@ def run_error_server(host, port, exc_value):
     @model_api.route("/predictions/", methods=["POST"])
     @model_api.route("/predictUnstructured/", methods=["POST"])
     @model_api.route("/predictionsUnstructured/", methods=["POST"])
+    @model_api.route("/invocations", methods=["POST"])
     def predict():
         return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR
 
