@@ -43,6 +43,7 @@ class TestInference:
         language,
         docker,
         tmp_path,
+        endpoint_prediction_methods,
     ):
         custom_model_dir = _create_custom_model_dir(
             resources,
