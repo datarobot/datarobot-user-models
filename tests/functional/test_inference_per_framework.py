@@ -313,6 +313,7 @@ class TestInference:
         pass_args_as_env_vars,
         tmp_path,
         framework_env,
+        endpoint_prediction_methods,
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
@@ -333,7 +334,7 @@ class TestInference:
         ) as run:
             input_dataset = resources.datasets(framework, problem)
             # do predictions
-            for endpoint in ["/predict/", "/predictions/", "/invocations"]:
+            for endpoint in endpoint_prediction_methods:
                 for post_args in [
                     {"files": {"X": open(input_dataset)}},
                     {"data": open(input_dataset, "rb")},
@@ -865,7 +866,7 @@ class TestInference:
     # Don't run this test case with nginx as it is still running from the prev test case.
     @pytest.mark.parametrize("nginx", [False])
     def test_predictions_python_arrow_mtx(
-        self, resources, framework, problem, language, nginx, tmp_path, framework_env
+        self, resources, framework, problem, language, nginx, tmp_path, framework_env, endpoint_prediction_methods
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
@@ -891,7 +892,7 @@ class TestInference:
             mtx_dataset_buf = sink.getvalue()
 
             # do predictions
-            for endpoint in ["/predict/", "/predictions/", "/invocations"]:
+            for endpoint in endpoint_prediction_methods:
                 for post_args in [
                     {"files": {"X": ("X.arrow", arrow_dataset_buf)}},
                     {"files": {"X": ("X.mtx", mtx_dataset_buf)}},
@@ -927,7 +928,7 @@ class TestInference:
     )
     @pytest.mark.parametrize("nginx", [False, True])
     def test_predictions_r_mtx(
-        self, resources, framework, problem, language, nginx, tmp_path, framework_env
+        self, resources, framework, problem, language, nginx, tmp_path, framework_env, endpoint_prediction_methods
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
@@ -947,7 +948,7 @@ class TestInference:
             input_dataset = resources.datasets(framework, SPARSE)
 
             # do predictions
-            for endpoint in ["/predict/", "/predictions/", "/invocations"]:
+            for endpoint in endpoint_prediction_methods:
                 for post_args in [
                     {"files": {"X": ("X.mtx", open(input_dataset))}},
                     {
