@@ -333,7 +333,7 @@ class TestInference:
         ) as run:
             input_dataset = resources.datasets(framework, problem)
             # do predictions
-            for endpoint in ["/predict/", "/predictions/"]:
+            for endpoint in ["/predict/", "/predictions/", "/invocations"]:
                 for post_args in [
                     {"files": {"X": open(input_dataset)}},
                     {"data": open(input_dataset, "rb")},
@@ -891,7 +891,7 @@ class TestInference:
             mtx_dataset_buf = sink.getvalue()
 
             # do predictions
-            for endpoint in ["/predict/", "/predictions/"]:
+            for endpoint in ["/predict/", "/predictions/", "/invocations"]:
                 for post_args in [
                     {"files": {"X": ("X.arrow", arrow_dataset_buf)}},
                     {"files": {"X": ("X.mtx", mtx_dataset_buf)}},
@@ -947,7 +947,7 @@ class TestInference:
             input_dataset = resources.datasets(framework, SPARSE)
 
             # do predictions
-            for endpoint in ["/predict/", "/predictions/"]:
+            for endpoint in ["/predict/", "/predictions/", "/invocations"]:
                 for post_args in [
                     {"files": {"X": ("X.mtx", open(input_dataset))}},
                     {

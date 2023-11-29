@@ -291,7 +291,7 @@ class TestDeploymentConfig:
             input_dataset = resources.datasets(framework, problem)
 
             # do predictions
-            for endpoint in ["/predict/", "/predictions/"]:
+            for endpoint in ["/predict/", "/predictions/", "/invocations"]:
                 for post_args in [
                     {"files": {"X": open(input_dataset)}},
                     {"data": open(input_dataset, "rb")},
