@@ -176,7 +176,7 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
     @FlaskRoute(
         "{}/invocations".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["POST"]
     )
-    def predictions(self, url_params, form_params):
+    def invocations(self, url_params, form_params):
         return self.predict(url_params, form_params)
 
     @FlaskRoute("{}/predict/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["POST"])
