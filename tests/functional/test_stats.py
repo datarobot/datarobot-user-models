@@ -61,7 +61,7 @@ class TestInference:
         ) as run:
             input_dataset = resources.datasets(framework, problem)
             # do predictions
-            for endpoint in endpoint_p:
+            for endpoint in endpoint_prediction_methods:
                 for post_args in [
                     {"files": {"X": open(input_dataset)}},
                     {"data": open(input_dataset, "rb")},
