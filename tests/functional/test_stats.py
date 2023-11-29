@@ -43,6 +43,7 @@ class TestInference:
         language,
         docker,
         tmp_path,
+        endpoint_prediction_methods,
     ):
         custom_model_dir = _create_custom_model_dir(
             resources,
@@ -61,7 +62,7 @@ class TestInference:
         ) as run:
             input_dataset = resources.datasets(framework, problem)
             # do predictions
-            for endpoint in ["/predict/", "/predictions/"]:
+            for endpoint in endpoint_prediction_methods:
                 for post_args in [
                     {"files": {"X": open(input_dataset)}},
                     {"data": open(input_dataset, "rb")},

@@ -22,6 +22,7 @@ from datarobot_drum.resource.transform_helpers import (
     read_mtx_payload,
     parse_multi_part_response,
 )
+
 from tests.constants import (
     BINARY,
     DOCKER_PYTHON_SKLEARN,
@@ -126,6 +127,7 @@ class TestInference:
         docker,
         pass_args_as_env_vars,
         tmp_path,
+        endpoint_prediction_methods,
     ):
         custom_model_dir = _create_custom_model_dir(
             resources,
@@ -145,7 +147,7 @@ class TestInference:
         ) as run:
             input_dataset = resources.datasets(framework, problem)
             # do predictions
-            for endpoint in ["/predict/", "/predictions/"]:
+            for endpoint in endpoint_prediction_methods:
                 for post_args in [
                     {"files": {"X": open(input_dataset)}},
                     {"data": open(input_dataset, "rb")},
@@ -206,9 +208,17 @@ class TestInference:
         docker,
         pass_args_as_env_vars,
         tmp_path,
+        endpoint_prediction_methods,
     ):
         self.test_custom_models_with_drum_prediction_server(
-            resources, framework, problem, language, docker, pass_args_as_env_vars, tmp_path
+            resources,
+            framework,
+            problem,
+            language,
+            docker,
+            pass_args_as_env_vars,
+            tmp_path,
+            endpoint_prediction_methods,
         )
 
     @pytest.mark.parametrize(
@@ -225,6 +235,7 @@ class TestInference:
         language,
         docker,
         tmp_path,
+        endpoint_prediction_methods,
     ):
         custom_model_dir = _create_custom_model_dir(
             resources,
@@ -244,7 +255,7 @@ class TestInference:
             input_dataset = resources.datasets(framework, problem)
 
             # do predictions
-            for endpoint in ["/predict/", "/predictions/"]:
+            for endpoint in endpoint_prediction_methods:
                 for post_args in [
                     {"files": {"X": open(input_dataset)}},
                     {"data": open(input_dataset, "rb")},
@@ -333,6 +344,7 @@ class TestInference:
         language,
         docker,
         tmp_path,
+        endpoint_prediction_methods,
     ):
         custom_model_dir = _create_custom_model_dir(
             resources,
@@ -351,7 +363,7 @@ class TestInference:
             input_dataset = resources.datasets(framework, problem)
 
             # do predictions
-            for endpoint in ["/predict/", "/predictions/"]:
+            for endpoint in endpoint_prediction_methods:
                 for post_args in [
                     {"files": {"X": open(input_dataset)}},
                     {"data": open(input_dataset, "rb")},

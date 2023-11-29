@@ -153,7 +153,6 @@ from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import Pyt
 from tests.constants import PYTHON_UNSTRUCTURED_DR_API_ACCESS
 from tests.constants import PYTHON_UNSTRUCTURED_RUNTIME_PARAMS
 
-
 framework_envs = {
     PYTHON_SKLEARN: [
         SKLEARN,
@@ -1116,3 +1115,8 @@ def mock_python_model_adapter_load_model_from_artifact():
     ) as mock_load_model_from_artifact:
         mock_load_model_from_artifact.return_value = Mock()
         yield mock_load_model_from_artifact
+
+
+@pytest.fixture
+def endpoint_prediction_methods():
+    return ["/predict/", "/predictions/", "/invocations"]
