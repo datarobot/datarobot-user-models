@@ -208,9 +208,17 @@ class TestInference:
         docker,
         pass_args_as_env_vars,
         tmp_path,
+        endpoint_prediction_methods,
     ):
         self.test_custom_models_with_drum_prediction_server(
-            resources, framework, problem, language, docker, pass_args_as_env_vars, tmp_path
+            resources,
+            framework,
+            problem,
+            language,
+            docker,
+            pass_args_as_env_vars,
+            tmp_path,
+            endpoint_prediction_methods,
         )
 
     @pytest.mark.parametrize(
