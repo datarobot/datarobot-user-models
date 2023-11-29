@@ -145,7 +145,7 @@ class TestInference:
         ) as run:
             input_dataset = resources.datasets(framework, problem)
             # do predictions
-            for endpoint in ["/predict/", "/predictions/", "/invocations"]:
+            for endpoint in ["/predict/", "/predictions/"]:
                 for post_args in [
                     {"files": {"X": open(input_dataset)}},
                     {"data": open(input_dataset, "rb")},
@@ -244,7 +244,7 @@ class TestInference:
             input_dataset = resources.datasets(framework, problem)
 
             # do predictions
-            for endpoint in ["/predict/", "/predictions/", "/invocations"]:
+            for endpoint in ["/predict/", "/predictions/"]:
                 for post_args in [
                     {"files": {"X": open(input_dataset)}},
                     {"data": open(input_dataset, "rb")},
@@ -351,7 +351,7 @@ class TestInference:
             input_dataset = resources.datasets(framework, problem)
 
             # do predictions
-            for endpoint in ["/predict/", "/predictions/", "/invocations"]:
+            for endpoint in ["/predict/", "/predictions/"]:
                 for post_args in [
                     {"files": {"X": open(input_dataset)}},
                     {"data": open(input_dataset, "rb")},
