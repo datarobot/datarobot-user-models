@@ -127,7 +127,7 @@ class TestInference:
         docker,
         pass_args_as_env_vars,
         tmp_path,
-        endpoint_prediction_methods
+        endpoint_prediction_methods,
     ):
         custom_model_dir = _create_custom_model_dir(
             resources,

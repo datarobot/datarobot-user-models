@@ -866,7 +866,15 @@ class TestInference:
     # Don't run this test case with nginx as it is still running from the prev test case.
     @pytest.mark.parametrize("nginx", [False])
     def test_predictions_python_arrow_mtx(
-        self, resources, framework, problem, language, nginx, tmp_path, framework_env, endpoint_prediction_methods
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        nginx,
+        tmp_path,
+        framework_env,
+        endpoint_prediction_methods,
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
@@ -928,7 +936,15 @@ class TestInference:
     )
     @pytest.mark.parametrize("nginx", [False, True])
     def test_predictions_r_mtx(
-        self, resources, framework, problem, language, nginx, tmp_path, framework_env, endpoint_prediction_methods
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        nginx,
+        tmp_path,
+        framework_env,
+        endpoint_prediction_methods,
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(

@@ -1008,14 +1008,14 @@ def get_input_data_factory(get_dataset_filename_factory):
 
 @pytest.fixture(scope="session")
 def resources(
-        get_dataset_filename_factory,
-        get_paths_to_training_models_factory,
-        get_target_factory,
-        get_target_type_factory,
-        get_class_labels_factory,
-        get_artifacts_factory,
-        get_custom_factory,
-        get_input_data_factory,
+    get_dataset_filename_factory,
+    get_paths_to_training_models_factory,
+    get_target_factory,
+    get_target_type_factory,
+    get_class_labels_factory,
+    get_artifacts_factory,
+    get_custom_factory,
+    get_input_data_factory,
 ):
     resource = Resource()
     resource.datasets = get_dataset_filename_factory
@@ -1083,7 +1083,7 @@ def get_variety_classes_labels():
 
 @pytest.fixture(scope="session")
 def variety_resources(
-        get_variety_dataset, get_variety_target, get_variety_problem, get_variety_classes_labels
+    get_variety_dataset, get_variety_target, get_variety_problem, get_variety_classes_labels
 ):
     resource = VarietyDataResource()
     resource.dataset = get_variety_dataset
@@ -1111,7 +1111,7 @@ def mock_python_model_adapter_predict():
 @pytest.fixture
 def mock_python_model_adapter_load_model_from_artifact():
     with patch.object(
-            PythonModelAdapter, "load_model_from_artifact"
+        PythonModelAdapter, "load_model_from_artifact"
     ) as mock_load_model_from_artifact:
         mock_load_model_from_artifact.return_value = Mock()
         yield mock_load_model_from_artifact
