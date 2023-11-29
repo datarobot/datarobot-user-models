@@ -1008,7 +1008,9 @@ class CMRunner:
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
-        container_drum_version = result.stdout.decode("utf8").strip()
+        container_drum_version = result.stdout.decode("utf8")
+        # remove double spaces and \n\r
+        container_drum_version = " ".join(container_drum_version.split())
 
         host_drum_version = "{} {}".format(ArgumentsOptions.MAIN_COMMAND, drum_version)
         if container_drum_version != host_drum_version:
