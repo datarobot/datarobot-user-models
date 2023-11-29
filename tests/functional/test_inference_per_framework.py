@@ -398,6 +398,7 @@ class TestInference:
         pass_args_as_env_vars,
         tmp_path,
         framework_env,
+        endpoint_prediction_methods,
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         self.test_custom_models_with_drum_prediction_server(
@@ -409,6 +410,7 @@ class TestInference:
             pass_args_as_env_vars,
             tmp_path,
             framework_env,
+            endpoint_prediction_methods,
         )
 
     # The fitting code for the sklearn transform is in task_templates/1_transforms/3_python3_sklearn_transform
