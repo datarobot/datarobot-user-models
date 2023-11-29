@@ -42,7 +42,7 @@ class CGroupFileReader:
         cgroup_cpu_dir = self._cgroup_mount_dir(subsystem="cpu")
         cgroup_cpuacct_dir = self._cgroup_mount_dir(subsystem="cpuacct")
 
-        self._memory_usage_file = cgroup_memory_dir / "memory.usage_in_bytes"
+        self._memory_usage_file = cgroup_memory_dir / "memory.stat"
         self._memory_limit_file = cgroup_memory_dir / "memory.limit_in_bytes"
 
         self._cpu_period_file = cgroup_cpu_dir / "cpu.cfs_period_us"
@@ -51,7 +51,13 @@ class CGroupFileReader:
         self._cpuacct_usage_file = cgroup_cpuacct_dir / "cpuacct.usage"
 
     def memory_usage_in_bytes(self) -> int:
-        return self._read_metric(self._memory_usage_file)
+        memory_stat_str = self._memory_usage_file.read_text()
+        total_rss_str = next(
+            iter([stat for stat in memory_stat_str.split("\n") if stat.startswith("total_rss")]),
+            "0",
+        )
+        total_rss = int(total_rss_str.split(" ")[-1])
+        return total_rss
 
     def memory_limit_in_bytes(self) -> int:
         return self._read_metric(self._memory_limit_file)
@@ -156,8 +162,11 @@ class CGroupWatcher(BaseWatcher):
 
 
 class DummyWatcher(BaseWatcher):
+    def __init__(self):
+        self._system_watcher = SystemWatcher()
+
     def cpu_usage_percentage(self) -> float:
-        return 0.1
+        return self._system_watcher.cpu_percent()
 
     def memory_usage_percentage(self) -> float:
-        return 0.1
+        return self._system_watcher.virtual_memory().percent
