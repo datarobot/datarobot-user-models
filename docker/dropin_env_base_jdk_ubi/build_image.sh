@@ -8,13 +8,13 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-IMAGE_NAME=datarobot/dropin-env-base-jdk
-IMAGE_TAG=ubi8.8-py3.11-jdk11.0.20-drum1.10.9-mlops9.1.3
+IMAGE_NAME=datarobotdev/dropin-env-base-jdk
+IMAGE_TAG=ubi8.8-py3.11-jdk11.0.20-drum1.10.14-mlops9.2.8
 
 pwd
 
 echo "Building docker image: ${IMAGE_NAME}:${IMAGE_TAG}"
-DATAROBOT_MLOPS_VERSION=9.1.3 ${SCRIPT_DIR}/pull_artifacts.sh
+DATAROBOT_MLOPS_VERSION=9.2.8 ${SCRIPT_DIR}/pull_artifacts.sh
 
 # this is just a regular command to build an image for the host platform
 docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .

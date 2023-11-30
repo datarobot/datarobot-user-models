@@ -1,2 +1,2 @@
-datarobot-drum==1.10.7
-datarobot-mlops==9.1.3
+datarobot-drum==1.10.14
+datarobot-mlops==9.2.8
