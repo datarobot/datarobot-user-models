@@ -49,6 +49,7 @@ class TestDrApiAccess:
             app = Flask(__name__)
 
             @app.route("/ping/")
+            @app.route("/ping")
             def ping():
                 cache.inc_value("actual_ping_queries")
                 return json.dumps({"response": "pong", "token": _extract_token_from_header()}), 200

@@ -27,6 +27,7 @@ def base_api_blueprint(termination_hook=None):
 
     @model_api.route("/", methods=["GET"])
     @model_api.route("/ping/", methods=["GET"])
+    @model_api.route("/ping", methods=["GET"])
     def ping():
         """This route is used to ensure that server has started"""
         return {"message": "OK"}, HTTP_200_OK
