@@ -95,8 +95,7 @@ def run_error_server(host, port, exc_value):
     model_api = empty_api_blueprint()
 
     @model_api.route("/", methods=["GET"])
-    @model_api.route("/ping/", methods=["GET"])
-    @model_api.route("/ping", methods=["GET"])
+    @model_api.route("/ping/", methods=["GET"], strict_slashes=False)
     @model_api.route("/health/", methods=["GET"])
     def health():
         return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR

@@ -48,8 +48,7 @@ class TestDrApiAccess:
         with SimpleCache(init_cache_data) as cache:
             app = Flask(__name__)
 
-            @app.route("/ping/")
-            @app.route("/ping")
+            @app.route("/ping/", strict_slashes=False)
             def ping():
                 cache.inc_value("actual_ping_queries")
                 return json.dumps({"response": "pong", "token": _extract_token_from_header()}), 200
