@@ -3,7 +3,7 @@
   "name": "[DataRobot] Python 3.9 Notebook Drop-In",
   "description": "This template environment can be used to create Python 3.9 notebook environments.",
   "programmingLanguage": "python",
-  "environmentVersionId": "656652a7fccc7d1fd5101915",
+  "environmentVersionId": "656dd4a43884416e281467f4",
   "isPublic": true,
   "useCases": [
     "notebook"
