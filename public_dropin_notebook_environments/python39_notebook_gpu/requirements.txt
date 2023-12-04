@@ -4,7 +4,7 @@ dask==2022.9.2
 datarobot-bp-workshop==0.2.6
 datarobot-drum==1.10.14
 datarobot-mlops-connected-client<10.0.0
-datarobot-model-metrics==0.3.0
+datarobot-model-metrics==0.3.1
 datarobot-predict==1.5.1
 datarobot==3.3.0
 dummyPy==0.3
