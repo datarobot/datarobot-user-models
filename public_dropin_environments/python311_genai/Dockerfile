@@ -14,7 +14,7 @@ RUN pip3 install -U pip && \
 
 # Install the list of custom Python requirements, e.g. keras, xgboost, etc.
 COPY requirements.txt requirements.txt
-RUN pip3 install -r requirements.txt --no-cache-dir && \
+RUN pip3 install -r requirements.txt --no-cache-dir --extra-index-url https://download.pytorch.org/whl/cpu && \
     rm -rf requirements.txt
 
 # Copy the drop-in environment code into the correct directory
