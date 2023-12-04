@@ -74,6 +74,11 @@ class TestDrumServerFailures:
                 assert response.status_code == HTTP_513_DRUM_PIPELINE_ERROR
                 assert error_message in response.json()["message"]
 
+                # check /ping route
+                response = requests.get(run.url_server_address + "/ping")
+                assert response.status_code == HTTP_513_DRUM_PIPELINE_ERROR
+                assert error_message in response.json()["message"]
+
                 # check /health/ route
                 response = requests.get(run.url_server_address + "/health/")
                 assert response.status_code == HTTP_513_DRUM_PIPELINE_ERROR
