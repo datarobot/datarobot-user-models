@@ -8,10 +8,10 @@
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-IMAGE_NAME=datarobot/dropin-env-base-r
-IMAGE_TAG=ubuntu20.04-r4.2.1-py3.8-jre11-drum1.10.7-mlops9.1.3
+IMAGE_NAME=datarobotdev/dropin-env-base-r
+IMAGE_TAG=ubuntu20.04-r4.2.1-py3.8-jre11-drum1.10.14-mlops9.2.8
 
 pwd
 
 echo "Building docker image: ${IMAGE_NAME}:${IMAGE_TAG}"
-docker build -t ${IMAGE_NAME}:${IMAGE_TAG} . --push
+docker build -t ${IMAGE_NAME}:${IMAGE_TAG} . --no-cache --push

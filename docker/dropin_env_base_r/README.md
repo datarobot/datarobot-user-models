@@ -1,6 +1,6 @@
 # R drop-in environment base image
 Repository name: **datarobot/dropin-env-base-r**  
-Latest date: 06-30-2023
+Latest date: 12-01-2023
 Dockerfile: https://github.com/datarobot/datarobot-user-models/blob/master/docker/dropin-env-base-r/Dockerfile
 
 ## Description
@@ -11,8 +11,8 @@ Contains
 * Debian 11
 * JDK 11
 * Python 3.9
-* DRUM 1.10.7
-* datarobot-mlops 9.1.3
+* DRUM 1.10.14
+* datarobot-mlops 9.2.8
 
 ## Guidelines
 DataRobot guidelines for publishing images to Docker Hub

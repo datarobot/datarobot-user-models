@@ -1,6 +1,6 @@
 # This is the default base image for use with user models and workflows.
 # It contains a variety of common useful data-science packages and tools.
-FROM datarobot/dropin-env-base:debian11-py3.9-jre11.0.16-drum1.10.7-mlops9.1.3
+FROM datarobot/dropin-env-base:debian11-py3.9-jre11.0.16-drum1.10.14-mlops9.2.8
 # Install the list of core requirements, e.g. sklearn, numpy, pandas, flask.
 # **Don't modify this file!**
 COPY dr_requirements.txt dr_requirements.txt

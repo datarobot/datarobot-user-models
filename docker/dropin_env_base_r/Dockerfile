@@ -23,6 +23,7 @@ RUN Rscript -e "install.packages('caret', Ncpus=4)" && \
     Rscript -e "install.packages('rjson', Ncpus=4)" && \
     Rscript -e "install.packages('e1071', Ncpus=4)"
 
+
 # # Install caret models
 RUN Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$forReg, c(1)]), Ncpus=4)'
 RUN Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$forClass, c(1)]), Ncpus=4)'
