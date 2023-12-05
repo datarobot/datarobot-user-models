@@ -8,6 +8,11 @@ test_unit: &test_unit
   definition: jenkins/test_unit.groovy
   phase: 0
 
+test_integration: &test_integration
+  taskName: test_integration
+  definition: jenkins/test_integration.groovy
+  phase: 0
+
 build_drum: &build_drum
   taskName: build_drum
   definition: jenkins/build_drum.groovy
@@ -110,10 +115,13 @@ repositoryTasks:
         script: *black_check
       - regex: ".*test_unit.*"
         script: *test_unit
+      - regex: ".*test_integration.*"
+        script: *test_integration
       - regex: ".*build_drum.*"
         script:
           - *black_check
           - *test_unit
+          - *test_integration
           - *build_drum
       - regex: ".*test_functional_general.*"
         script:
@@ -176,6 +184,7 @@ repositoryTasks:
         script:
           - *black_check
           - *test_unit
+          - *test_integration
           - *build_drum
           - *test_functional_general
           - *test_e2e_inference_model_templates

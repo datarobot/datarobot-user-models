@@ -9,7 +9,7 @@
 GIT_ROOT=$(git rev-parse --show-toplevel)
 BUILD_DOCKER_DIR=$GIT_ROOT/docker/drum_builder
 
-IMAGE_NAME=datarobot/drum-builder
+IMAGE_NAME=datarobot/drum-builder:ubuntu-20-04
 
 echo "GIT_ROOT: $GIT_ROOT"
 echo "BUILD_DOCKER_DIR: $BUILD_DOCKER_DIR"
