@@ -19,7 +19,7 @@ from tests.constants import UNSTRUCTURED
 from tests.fixtures.unstructured_custom_runtime_parameters import EXPECTED_RUNTIME_PARAMS_FILE_NAME
 
 
-def _setup_expected_runtime_parameters(custom_model_dir, is_missing_attr):
+def _setup_expected_runtime_parameters(custom_model_dir, is_missing_attr, bool_var_value):
     expected_runtime_params = {
         "SOME_STR_KEY": {"type": "string", "payload": "Hello"},
         "SOME_AWS_CRED_KEY": {
@@ -33,6 +33,7 @@ def _setup_expected_runtime_parameters(custom_model_dir, is_missing_attr):
             },
         },
         "SOME_DEPLOYMENT_KEY": {"type": "deployment", "payload": "65415890b9b0fd93778e6935"},
+        "SOME_BOOLEAN_KEY": {"type": "boolean", "payload": bool_var_value},
     }
     if is_missing_attr:
         expected_runtime_params["SOME_AWS_CRED_KEY"]["payload"].pop("credentialType")
@@ -61,11 +62,11 @@ def _setup_expected_runtime_parameters(custom_model_dir, is_missing_attr):
 
 class TestRuntimeParametersFromEnv:
     def test_runtime_parameters_success(self, resources, tmp_path):
-        stderr = self._test_custom_model_with_runtime_params(resources, tmp_path)
+        stderr = self._test_custom_model_with_runtime_params(resources, tmp_path, bool_var_value=True)
         assert not stderr
 
     def _test_custom_model_with_runtime_params(
-        self, resources, tmp_path, is_invalid_json=False, is_missing_attr=False
+        self, resources, tmp_path, is_invalid_json=False, is_missing_attr=False, bool_var_value=False
     ):
         problem = UNSTRUCTURED
         custom_model_dir = _create_custom_model_dir(
@@ -77,7 +78,7 @@ class TestRuntimeParametersFromEnv:
         )
 
         runtime_params_env_values, runtime_param_filepath = self._setup_runtime_parameters(
-            custom_model_dir, is_invalid_json, is_missing_attr
+            custom_model_dir, is_invalid_json, is_missing_attr, bool_var_value
         )
 
         cmd = (
@@ -93,9 +94,11 @@ class TestRuntimeParametersFromEnv:
         return stderr
 
     @classmethod
-    def _setup_runtime_parameters(cls, custom_model_dir, is_invalid_json, is_missing_attr):
+    def _setup_runtime_parameters(
+            cls, custom_model_dir, is_invalid_json, is_missing_attr, bool_var_value
+    ):
         runtime_params, runtime_params_filepath = _setup_expected_runtime_parameters(
-            custom_model_dir, is_missing_attr
+            custom_model_dir, is_missing_attr, bool_var_value
         )
 
         expected_runtime_params_env_value = {
@@ -123,6 +126,15 @@ class TestRuntimeParametersFromEnv:
             stderr,
         )
 
+    def test_runtime_parameters_boolean_invalid(self, resources, tmp_path):
+        stderr = self._test_custom_model_with_runtime_params(
+            resources, tmp_path, bool_var_value=None
+        )
+        assert re.search(
+            r".*Invalid runtime parameter!.*value should be True or False.*",
+            stderr,
+        )
+
 
 class TestRuntimeParametersFromValuesFile:
     @pytest.fixture
@@ -143,6 +155,7 @@ class TestRuntimeParametersFromValuesFile:
         runtime_param_values_stream,
         is_invalid_yaml=False,
         is_missing_attr=False,
+        bool_var_value=False,
     ):
         problem = UNSTRUCTURED
         custom_model_dir = _create_custom_model_dir(
@@ -158,6 +171,7 @@ class TestRuntimeParametersFromValuesFile:
             runtime_param_values_stream,
             is_invalid_yaml=is_invalid_yaml,
             is_missing_attr=is_missing_attr,
+            bool_var_value=bool_var_value,
         )
 
         cmd = (
@@ -174,10 +188,10 @@ class TestRuntimeParametersFromValuesFile:
 
     @classmethod
     def _setup_runtime_parameters(
-        cls, custom_model_dir, runtime_param_values_stream, is_invalid_yaml, is_missing_attr
+        cls, custom_model_dir, runtime_param_values_stream, is_invalid_yaml, is_missing_attr, bool_var_value
     ):
         runtime_params, runtime_params_filepath = _setup_expected_runtime_parameters(
-            custom_model_dir, is_missing_attr
+            custom_model_dir, is_missing_attr, bool_var_value
         )
 
         yaml_content = yaml.dump({key: value["payload"] for key, value in runtime_params.items()})
@@ -205,4 +219,15 @@ class TestRuntimeParametersFromValuesFile:
         assert re.search(
             r".*Failed to load runtime parameter.*{\\'credentialType\\': DataError\(\\'is required\\'\)}.*",
             stdout,
+        )
+
+    def test_runtime_parameters_boolean_invalid(
+            self, resources, tmp_path, runtime_param_values_stream
+    ):
+        stderr = self._test_custom_model_with_runtime_params(
+            resources, tmp_path, runtime_param_values_stream, bool_var_value=None
+        )
+        assert re.search(
+            r".*Failed to load runtime parameter.*value should be True or False.*",
+            stderr,
         )
