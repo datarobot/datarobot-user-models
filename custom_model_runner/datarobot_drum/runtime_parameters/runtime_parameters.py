@@ -21,7 +21,7 @@ from .exceptions import InvalidRuntimeParam
 from .exceptions import InvalidYamlContent
 from .runtime_parameters_schema import (
     RuntimeParameterCredentialPayloadTrafaret,
-    RuntimeParameterDeploymentPayloadTrafaret,
+    RuntimeParameterDeploymentPayloadTrafaret, RuntimeParameterBooleanPayloadTrafaret,
 )
 from .runtime_parameters_schema import RuntimeParameterPayloadTrafaret
 from .runtime_parameters_schema import RuntimeParameterStringPayloadTrafaret
@@ -159,6 +159,7 @@ class RuntimeParametersLoader:
     def setup_environment_variables(self):
         credential_payload_trafaret = RuntimeParameterCredentialPayloadTrafaret()
         string_payload_trafaret = RuntimeParameterStringPayloadTrafaret()
+        boolean_payload_trafaret = RuntimeParameterBooleanPayloadTrafaret()
         deployment_payload_trafaret = RuntimeParameterDeploymentPayloadTrafaret()
         for param_key, param_definition in self._parameter_definitions.items():
             param_value = self._yaml_content.get(param_key, param_definition.default)
@@ -174,6 +175,10 @@ class RuntimeParametersLoader:
                 elif param_definition.type == RuntimeParameterTypes.STRING:
                     payload = string_payload_trafaret.check(
                         {"type": RuntimeParameterTypes.STRING.value, "payload": param_value}
+                    )
+                elif param_definition.type == RuntimeParameterTypes.BOOLEAN:
+                    payload = boolean_payload_trafaret.check(
+                        {"type": RuntimeParameterTypes.BOOLEAN.value, "payload": param_value}
                     )
                 elif param_definition.type == RuntimeParameterTypes.DEPLOYMENT:
                     payload = deployment_payload_trafaret.check(

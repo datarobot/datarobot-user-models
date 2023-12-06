@@ -11,6 +11,7 @@ import trafaret as t
 
 class RuntimeParameterTypes(Enum):
     STRING = "string"
+    BOOLEAN = "boolean"
     CREDENTIAL = "credential"
     DEPLOYMENT = "deployment"
 
@@ -38,6 +39,11 @@ class RuntimeParameterStringPayloadTrafaret(RuntimeParameterPayloadBaseTrafaret)
         super().__init__(RuntimeParameterTypes.STRING.value, {t.Key("payload"): t.Null | t.String})
 
 
+class RuntimeParameterBooleanPayloadTrafaret(RuntimeParameterPayloadBaseTrafaret):
+    def __init__(self):
+        super().__init__(RuntimeParameterTypes.BOOLEAN.value, {t.Key("payload"): t.Null | t.Bool})
+
+
 class RuntimeParameterCredentialPayloadTrafaret(RuntimeParameterPayloadBaseTrafaret):
     def __init__(self):
         super().__init__(
@@ -58,6 +64,7 @@ class RuntimeParameterDeploymentPayloadTrafaret(RuntimeParameterPayloadBaseTrafa
 
 RuntimeParameterPayloadTrafaret = (
     RuntimeParameterStringPayloadTrafaret
+    | RuntimeParameterBooleanPayloadTrafaret
     | RuntimeParameterCredentialPayloadTrafaret
     | RuntimeParameterDeploymentPayloadTrafaret
 )
