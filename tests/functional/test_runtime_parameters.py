@@ -62,11 +62,18 @@ def _setup_expected_runtime_parameters(custom_model_dir, is_missing_attr, bool_v
 
 class TestRuntimeParametersFromEnv:
     def test_runtime_parameters_success(self, resources, tmp_path):
-        stderr = self._test_custom_model_with_runtime_params(resources, tmp_path, bool_var_value=True)
+        stderr = self._test_custom_model_with_runtime_params(
+            resources, tmp_path, bool_var_value=True
+        )
         assert not stderr
 
     def _test_custom_model_with_runtime_params(
-        self, resources, tmp_path, is_invalid_json=False, is_missing_attr=False, bool_var_value=False
+        self,
+        resources,
+        tmp_path,
+        is_invalid_json=False,
+        is_missing_attr=False,
+        bool_var_value=False,
     ):
         problem = UNSTRUCTURED
         custom_model_dir = _create_custom_model_dir(
@@ -95,7 +102,7 @@ class TestRuntimeParametersFromEnv:
 
     @classmethod
     def _setup_runtime_parameters(
-            cls, custom_model_dir, is_invalid_json, is_missing_attr, bool_var_value
+        cls, custom_model_dir, is_invalid_json, is_missing_attr, bool_var_value
     ):
         runtime_params, runtime_params_filepath = _setup_expected_runtime_parameters(
             custom_model_dir, is_missing_attr, bool_var_value
@@ -188,7 +195,12 @@ class TestRuntimeParametersFromValuesFile:
 
     @classmethod
     def _setup_runtime_parameters(
-        cls, custom_model_dir, runtime_param_values_stream, is_invalid_yaml, is_missing_attr, bool_var_value
+        cls,
+        custom_model_dir,
+        runtime_param_values_stream,
+        is_invalid_yaml,
+        is_missing_attr,
+        bool_var_value,
     ):
         runtime_params, runtime_params_filepath = _setup_expected_runtime_parameters(
             custom_model_dir, is_missing_attr, bool_var_value
@@ -222,7 +234,7 @@ class TestRuntimeParametersFromValuesFile:
         )
 
     def test_runtime_parameters_boolean_invalid(
-            self, resources, tmp_path, runtime_param_values_stream
+        self, resources, tmp_path, runtime_param_values_stream
     ):
         stderr = self._test_custom_model_with_runtime_params(
             resources, tmp_path, runtime_param_values_stream, bool_var_value=None

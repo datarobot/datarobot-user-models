@@ -21,7 +21,8 @@ from .exceptions import InvalidRuntimeParam
 from .exceptions import InvalidYamlContent
 from .runtime_parameters_schema import (
     RuntimeParameterCredentialPayloadTrafaret,
-    RuntimeParameterDeploymentPayloadTrafaret, RuntimeParameterBooleanPayloadTrafaret,
+    RuntimeParameterDeploymentPayloadTrafaret,
+    RuntimeParameterBooleanPayloadTrafaret,
 )
 from .runtime_parameters_schema import RuntimeParameterPayloadTrafaret
 from .runtime_parameters_schema import RuntimeParameterStringPayloadTrafaret
