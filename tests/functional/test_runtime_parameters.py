@@ -135,7 +135,7 @@ class TestRuntimeParametersFromEnv:
 
     def test_runtime_parameters_boolean_invalid(self, resources, tmp_path):
         stderr = self._test_custom_model_with_runtime_params(
-            resources, tmp_path, bool_var_value=None
+            resources, tmp_path, bool_var_value="text"
         )
         assert re.search(
             r".*Invalid runtime parameter!.*value should be True or False.*",
@@ -237,7 +237,7 @@ class TestRuntimeParametersFromValuesFile:
         self, resources, tmp_path, runtime_param_values_stream
     ):
         stderr = self._test_custom_model_with_runtime_params(
-            resources, tmp_path, runtime_param_values_stream, bool_var_value=None
+            resources, tmp_path, runtime_param_values_stream, bool_var_value="text"
         )
         assert re.search(
             r".*Failed to load runtime parameter.*value should be True or False.*",

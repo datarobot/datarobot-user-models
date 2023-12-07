@@ -60,7 +60,7 @@ class TestRuntimeParameters:
     def test_invalid_credential_type(self, runtime_param_type, payload):
         self._read_runtime_param_and_expect_to_fail(runtime_param_type, payload)
 
-    @pytest.mark.parametrize("payload", [None, "string-payload", {"credentialType": "s3"}])
+    @pytest.mark.parametrize("payload", ["string-payload", {"credentialType": "s3"}])
     def test_invalid_boolean_type(self, payload):
         self._read_runtime_param_and_expect_to_fail(type="boolean", payload=payload)
 

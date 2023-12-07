@@ -41,7 +41,7 @@ class RuntimeParameterStringPayloadTrafaret(RuntimeParameterPayloadBaseTrafaret)
 
 class RuntimeParameterBooleanPayloadTrafaret(RuntimeParameterPayloadBaseTrafaret):
     def __init__(self):
-        super().__init__(RuntimeParameterTypes.BOOLEAN.value, {t.Key("payload"): t.Bool})
+        super().__init__(RuntimeParameterTypes.BOOLEAN.value, {t.Key("payload"): t.Null | t.Bool})
 
 
 class RuntimeParameterCredentialPayloadTrafaret(RuntimeParameterPayloadBaseTrafaret):
