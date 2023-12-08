@@ -28,6 +28,7 @@ class TestRuntimeParameters:
         "runtime_param_type, payload",
         [
             (RuntimeParameterTypes.STRING, "Some string value"),
+            (RuntimeParameterTypes.BOOLEAN, True),
             (
                 RuntimeParameterTypes.CREDENTIAL,
                 {
@@ -58,6 +59,10 @@ class TestRuntimeParameters:
     )
     def test_invalid_credential_type(self, runtime_param_type, payload):
         self._read_runtime_param_and_expect_to_fail(runtime_param_type, payload)
+
+    @pytest.mark.parametrize("payload", ["string-payload", {"credentialType": "s3"}])
+    def test_invalid_boolean_type(self, payload):
+        self._read_runtime_param_and_expect_to_fail(type="boolean", payload=payload)
 
     @staticmethod
     def _read_runtime_param_and_expect_to_fail(type, payload):
@@ -109,6 +114,7 @@ class TestRuntimeParametersLoader:
     def runtime_parameter_values(self):
         return {
             "STR_PARAM1": "Some value",
+            "BOOL_PARAM1": True,
             "S3_CRED_PARAM": {
                 "credentialType": "s3",
                 "awsAccessKeyId": "AWOUIEOIUI",
@@ -122,6 +128,7 @@ class TestRuntimeParametersLoader:
         return [
             {"fieldName": "STR_PARAM1", "type": "string", "defaultValue": "Hello world!"},
             {"fieldName": "STR_PARAM2", "type": "string", "defaultValue": "goodbye"},
+            {"fieldName": "BOOL_PARAM", "type": "boolean", "defaultValue": False},
             {"fieldName": "S3_CRED_PARAM", "type": "credential", "description": "a secret"},
             {"fieldName": "OTHER_CRED_PARAM", "type": "credential", "defaultValue": None},
         ]
