@@ -3,7 +3,7 @@
   "name": "[DataRobot] Python 3.9 Notebook Drop-In with GPU support",
   "description": "This template environment can be used to create Python 3.9 notebook environments with GPU.",
   "programmingLanguage": "python",
-  "environmentVersionId": "656dd4a43884416e281467f2",
+  "environmentVersionId": "65786553221dece528ad3c72",
   "isPublic": true,
   "useCases": [
     "notebook",
