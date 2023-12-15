@@ -7,13 +7,14 @@
 #
 import json
 import os
-from dataclasses import dataclass, fields, is_dataclass
+import sys
+from dataclasses import dataclass, fields, is_dataclass, asdict
 from enum import Enum, auto
 from pathlib import Path
-from typing import Optional, TypeVar, Type, Generic, Dict
+from typing import Optional, TypeVar, Type, Generic, Dict, Union, Set, List
 
 
-def reduce_kwargs(input_dict, target_class):
+def reduce_kwargs(input_dict: dict, target_class) -> dict:
     if not is_dataclass(target_class):
         return input_dict
     field_names = {field.name for field in fields(target_class)}
@@ -23,6 +24,7 @@ def reduce_kwargs(input_dict, target_class):
 T = TypeVar("T")
 
 
+@dataclass
 class AbstractSecret(Generic[T]):
     def is_partial_secret(self) -> bool:
         """Some credentials from DataRobot contain admin-owned information.
@@ -33,25 +35,28 @@ class AbstractSecret(Generic[T]):
         return any(getattr(self, key, None) for key in config_keys)
 
     @classmethod
-    def from_dict(cls: Type[T], input_dict) -> T:
+    def from_dict(cls: Type[T], input_dict: dict) -> T:
         reduced = reduce_kwargs(input_dict, cls)
         return cls(**reduced)
 
+    def to_dict(self):
+        return asdict(self)
 
-@dataclass(frozen=True)
+
+@dataclass()
 class BasicSecret(AbstractSecret):
     username: str
     password: str
     snowflake_account_name: Optional[str] = None
 
 
-@dataclass(frozen=True)
+@dataclass()
 class OauthSecret(AbstractSecret):
     token: str
     refresh_token: str
 
 
-@dataclass(frozen=True)
+@dataclass()
 class S3Secret(AbstractSecret):
     aws_access_key_id: Optional[str] = None
     aws_secret_access_key: Optional[str] = None
@@ -59,19 +64,19 @@ class S3Secret(AbstractSecret):
     config_id: Optional[str] = None
 
 
-@dataclass(frozen=True)
+@dataclass()
 class AzureSecret(AbstractSecret):
     azure_connection_string: str
 
 
-@dataclass(frozen=True)
+@dataclass()
 class AzureServicePrincipalSecret(AbstractSecret):
     client_id: str
     client_secret: str
     azure_tenant_id: str
 
 
-@dataclass(frozen=True)
+@dataclass()
 class SnowflakeOauthUserAccountSecret(AbstractSecret):
     client_id: Optional[str]
     client_secret: Optional[str]
@@ -82,7 +87,7 @@ class SnowflakeOauthUserAccountSecret(AbstractSecret):
     oauth_config_id: Optional[str] = None
 
 
-@dataclass(frozen=True)
+@dataclass()
 class SnowflakeKeyPairUserAccountSecret(AbstractSecret):
     username: Optional[str]
     private_key_str: Optional[str]
@@ -90,30 +95,30 @@ class SnowflakeKeyPairUserAccountSecret(AbstractSecret):
     config_id: Optional[str] = None
 
 
-@dataclass(frozen=True)
+@dataclass()
 class AdlsGen2OauthSecret(AbstractSecret):
     client_id: str
     client_secret: str
     oauth_scopes: str
 
 
-@dataclass(frozen=True)
+@dataclass()
 class TableauAccessTokenSecret(AbstractSecret):
     token_name: str
     personal_access_token: str
 
 
-@dataclass(frozen=True)
+@dataclass()
 class DatabricksAccessTokenAccountSecret(AbstractSecret):
     databricks_access_token: str
 
 
-@dataclass(frozen=True)
+@dataclass()
 class ApiTokenSecret(AbstractSecret):
     api_token: str
 
 
-@dataclass(frozen=True)
+@dataclass()
 class GCPKey:
     type: str
     project_id: Optional[str] = None
@@ -131,7 +136,7 @@ class GCPKey:
         return cls(**reduce_kwargs(input_dict, cls))
 
 
-@dataclass(frozen=True)
+@dataclass()
 class GCPSecret(AbstractSecret):
     gcp_key: Optional[GCPKey] = None
     config_id: Optional[str] = None
@@ -208,7 +213,54 @@ def load_secrets(
     mounted_secrets = _get_mounted_secrets(mount_path)
     all_secrets.update(env_secrets)
     all_secrets.update(mounted_secrets)
-    return {k: secrets_factory(v) for k, v in all_secrets.items()}
+    secrets = {k: secrets_factory(v) for k, v in all_secrets.items()}
+    sys.stdout = OutPutWrapper(secrets, sys.stdout)
+    sys.stderr = OutPutWrapper(secrets, sys.stderr)
+    return secrets
+
+
+class OutPutWrapper:
+    def __init__(self, secrets: Optional[Dict[str, AbstractSecret]], file_pointer):
+        self.secret_values = self.get_ordered_sensitive_values(secrets)
+        self.file_pointer = file_pointer
+
+    @staticmethod
+    def get_ordered_sensitive_values(secrets) -> List[str]:
+        """This returns the set of all sensitive values, including recursing through
+        sub-dictionaries so that they can be wiped from logs. Currently the only non-sensitive
+        value is `credential_type`."""
+        if not secrets:
+            return []
+        values_generator = (_get_all_values(secret.to_dict()) for secret in secrets.values())
+        empty_set: Set[str] = set()
+        all_values = empty_set.union(*values_generator)
+        longest_first_to_replace_both_strings_and_sub_strings = sorted(
+            all_values, key=lambda el: -len(el)
+        )
+        return longest_first_to_replace_both_strings_and_sub_strings
+
+    def scrub_sensitive_data_from_string(self, input_str: str) -> str:
+        for value in self.secret_values:
+            input_str = input_str.replace(value, "*****")
+        return input_str
+
+    def write(self, intput_str):
+        self.file_pointer.write(self.scrub_sensitive_data_from_string(intput_str))
+
+    def flush(self):
+        self.file_pointer.flush()
+
+
+def _get_all_values(actual_value: Union[str, dict]) -> Set[str]:
+    if not actual_value:
+        return set()
+    if not isinstance(actual_value, dict):
+        return {actual_value}
+    sets_generator = (_get_all_values(el) for el in actual_value.values())
+    empty_set: Set[str] = set()
+    return empty_set.union(*sets_generator)
+
+
 
 
 def _get_environment_secrets(env_var_prefix):
