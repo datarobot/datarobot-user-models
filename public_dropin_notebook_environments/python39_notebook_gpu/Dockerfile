@@ -63,7 +63,7 @@ RUN python3 -m venv ${VENV_PATH}
 WORKDIR ${WORKDIR}
 
 COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
-COPY ./extensions /home/notebooks/.ipython/extensions
+COPY ./extensions /etc/ipython/extensions
 COPY ./jupyter_kernel_gateway_config.py ./start_server.sh ${WORKDIR}/
 COPY ./ipython_config.py /etc/ipython/
 

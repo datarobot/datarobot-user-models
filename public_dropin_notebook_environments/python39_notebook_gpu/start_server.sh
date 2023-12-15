@@ -29,6 +29,9 @@ source /etc/system/kernel/.venv/bin/activate
 # setup the working directory for the kernel
 cd "$WORKING_DIR" || exit
 
+# setup ipython extensions
+cp -r /etc/ipython/ .ipython/
+
 # no trailing slash in the working dir path
 git config --global --add safe.directory "${WORKING_DIR%/}"
 
