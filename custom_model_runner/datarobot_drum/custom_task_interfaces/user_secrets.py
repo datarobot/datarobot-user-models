@@ -6,6 +6,7 @@
 #  Released under the terms of DataRobot Tool and Utility Agreement.
 #
 import json
+import logging
 import os
 import sys
 from dataclasses import dataclass, fields, is_dataclass, asdict
@@ -217,28 +218,42 @@ def load_secrets(
     if secrets:
         sys.stdout = OutPutWrapper(secrets, sys.stdout)
         sys.stderr = OutPutWrapper(secrets, sys.stderr)
+        ordered_values = get_ordered_sensitive_values(secrets)
+
+        def filter_sensitive_data(log_record: logging.LogRecord):
+            msg = str(log_record.msg)
+            for value in ordered_values:
+                msg = msg.replace(value, "*****")
+            log_record.msg = msg
+            return True
+
+        for logger in logging.root.manager.loggerDict.values():
+            if hasattr(logger, "addFilter"):
+                logger.addFilter(filter_sensitive_data)
+        logging.root.addFilter(filter_sensitive_data)
+
     return secrets
+
+
+def get_ordered_sensitive_values(secrets) -> List[str]:
+    """This returns the set of all sensitive values, including recursing through
+    sub-dictionaries so that they can be wiped from logs. Currently the only non-sensitive
+    value is `credential_type`."""
+    if not secrets:
+        return []
+    values_generator = (_get_all_values(secret.to_dict()) for secret in secrets.values())
+    empty_set: Set[str] = set()
+    all_values = empty_set.union(*values_generator)
+    longest_first_to_replace_both_strings_and_sub_strings = sorted(
+        all_values, key=lambda el: -len(el)
+    )
+    return longest_first_to_replace_both_strings_and_sub_strings
 
 
 class OutPutWrapper:
     def __init__(self, secrets: Optional[Dict[str, AbstractSecret]], file_pointer):
-        self.secret_values = self.get_ordered_sensitive_values(secrets)
+        self.secret_values = get_ordered_sensitive_values(secrets)
         self.file_pointer = file_pointer
-
-    @staticmethod
-    def get_ordered_sensitive_values(secrets) -> List[str]:
-        """This returns the set of all sensitive values, including recursing through
-        sub-dictionaries so that they can be wiped from logs. Currently the only non-sensitive
-        value is `credential_type`."""
-        if not secrets:
-            return []
-        values_generator = (_get_all_values(secret.to_dict()) for secret in secrets.values())
-        empty_set: Set[str] = set()
-        all_values = empty_set.union(*values_generator)
-        longest_first_to_replace_both_strings_and_sub_strings = sorted(
-            all_values, key=lambda el: -len(el)
-        )
-        return longest_first_to_replace_both_strings_and_sub_strings
 
     def scrub_sensitive_data_from_string(self, input_str: str) -> str:
         for value in self.secret_values:
