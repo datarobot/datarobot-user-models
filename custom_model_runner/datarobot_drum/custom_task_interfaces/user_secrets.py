@@ -214,8 +214,9 @@ def load_secrets(
     all_secrets.update(env_secrets)
     all_secrets.update(mounted_secrets)
     secrets = {k: secrets_factory(v) for k, v in all_secrets.items()}
-    sys.stdout = OutPutWrapper(secrets, sys.stdout)
-    sys.stderr = OutPutWrapper(secrets, sys.stderr)
+    if secrets:
+        sys.stdout = OutPutWrapper(secrets, sys.stdout)
+        sys.stderr = OutPutWrapper(secrets, sys.stderr)
     return secrets
 
 
@@ -259,8 +260,6 @@ def _get_all_values(actual_value: Union[str, dict]) -> Set[str]:
     sets_generator = (_get_all_values(el) for el in actual_value.values())
     empty_set: Set[str] = set()
     return empty_set.union(*sets_generator)
-
-
 
 
 def _get_environment_secrets(env_var_prefix):
