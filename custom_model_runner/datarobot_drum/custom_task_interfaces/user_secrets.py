@@ -220,17 +220,12 @@ def load_secrets(
         sys.stderr = OutPutWrapper(secrets, sys.stderr)
         ordered_values = get_ordered_sensitive_values(secrets)
 
-        def filter_sensitive_data(log_record: logging.LogRecord):
-            msg = str(log_record.msg)
-            for value in ordered_values:
-                msg = msg.replace(value, "*****")
-            log_record.msg = msg
-            return True
-
+        scrubbing_filter = ScrubberFilter(ordered_values)
         for logger in logging.root.manager.loggerDict.values():
             if hasattr(logger, "addFilter"):
-                logger.addFilter(filter_sensitive_data)
-        logging.root.addFilter(filter_sensitive_data)
+                logger.addFilter(scrubbing_filter)
+        logging.root.addFilter(scrubbing_filter)
+        # TODO have a context manager that removes filter
 
     return secrets
 
@@ -265,6 +260,47 @@ class OutPutWrapper:
 
     def flush(self):
         self.file_pointer.flush()
+
+
+def scrub_sensitive_data(input_str, ordered_values):
+    for value in ordered_values:
+        input_str = input_str.replace(value, "****")
+    return input_str
+
+
+class ScrubberFilter(logging.Filter):
+    def __init__(self, secrets):
+        self.secrets = secrets
+        super().__init__()
+
+    def filter(self, record: logging.LogRecord):
+        record.msg = self.transform(record.msg)
+        if isinstance(record.args, dict):
+            newargs = {k: self.transform(v) for k, v in record.args.items()}
+        elif isinstance(record.args, tuple):
+            newargs = tuple(self.transform(el) for el in record.args)
+        else:
+            newargs = self.transform(record.args)
+        record.args = newargs
+        return True
+
+    def transform(self, element):
+        if isinstance(element, AbstractSecret):
+            element = str(element)
+        
+        if isinstance(element, str):
+            return scrub_sensitive_data(element, self.secrets)
+        return element
+
+    def __eq__(self, other):
+        if not isinstance(other, ScrubberFilter):
+            return False
+        return self.secrets == other.secrets
+
+    def __hash__(self):
+        return hash(" ".join(self.secrets))
+
+# https://relaxdiego.com/2014/07/logging-in-python.html
 
 
 def _get_all_values(actual_value: Union[str, dict]) -> Set[str]:
