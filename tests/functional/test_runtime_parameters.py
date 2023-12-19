@@ -151,7 +151,7 @@ class TestRuntimeParametersFromEnv:
             resources, tmp_path, numeric_var_value="text"
         )
         assert re.search(
-            r".*Invalid runtime parameter!.*value can\\\\\\\\\\\\\\\'t be converted to float.*",
+            r".*Invalid runtime parameter!.*value can.*'t be converted to float.*",
             stderr,
         )
 
@@ -267,6 +267,6 @@ class TestRuntimeParametersFromValuesFile:
             resources, tmp_path, runtime_param_values_stream, numeric_var_value="text"
         )
         assert re.search(
-            r".*Failed to load runtime parameter.*value can't be converted to float.*",
+            r".*Failed to load runtime parameter.*value can.*t be converted to float.*",
             stderr,
         )
