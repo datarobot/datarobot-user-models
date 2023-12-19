@@ -6,7 +6,9 @@
 #  Released under the terms of DataRobot Tool and Utility Agreement.
 #
 import json
+import logging
 import os
+import sys
 from dataclasses import dataclass, fields, is_dataclass, asdict
 from enum import Enum, auto
 from logging import Filter, LogRecord
@@ -236,8 +238,20 @@ def _get_mounted_secrets(mount_path: Optional[str]):
     return {file_path.name: get_dict(file_path) for file_path in secret_files}
 
 
-def patch_outputs_to_scrub_secrets(secrets: Dict[str, AbstractSecret]):
-    pass
+def patch_outputs_to_scrub_secrets(secrets: Iterable[AbstractSecret]):
+    sys.stdout = TextStreamSecretsScrubber(secrets, sys.stdout)
+    sys.stderr = TextStreamSecretsScrubber(secrets, sys.stderr)
+
+    secrets_filter = SecretsScrubberFilter(secrets)
+    root_logger = logging.root.manager.root
+    _safely_add_filter_to_logger(root_logger, secrets_filter)
+    for logger in logging.root.manager.loggerDict.values():
+        _safely_add_filter_to_logger(logger, secrets_filter)
+
+
+def _safely_add_filter_to_logger(logger, secrets_filter):
+    if hasattr(logger, "addFilter"):
+        logger.addFilter(secrets_filter)
 
 
 class TextStreamSecretsScrubber:
@@ -255,6 +269,11 @@ class TextStreamSecretsScrubber:
 
     def __getattr__(self, item):
         return object.__getattribute__(self.stream, item)
+
+    def __eq__(self, other):
+        if not isinstance(other, TextStreamSecretsScrubber):
+            return False
+        return (self.stream, self.sensitive_data) == (other.stream, other.sensitive_data)
 
 
 class SecretsScrubberFilter(Filter):
@@ -281,6 +300,11 @@ class SecretsScrubberFilter(Filter):
             return scrub_values_from_string(self.sensitive_data, element)
         else:
             return element
+
+    def __eq__(self, other):
+        if not isinstance(other, SecretsScrubberFilter):
+            return False
+        return self.sensitive_data == other.sensitive_data
 
 
 def get_ordered_sensitive_values(secrets: Iterable[AbstractSecret]) -> List[str]:

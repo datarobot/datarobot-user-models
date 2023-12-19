@@ -5,6 +5,7 @@
 #  This is proprietary source code of DataRobot, Inc. and its affiliates.
 #  Released under the terms of DataRobot Tool and Utility Agreement.
 #
+import logging
 import sys
 from contextlib import contextmanager
 from io import StringIO
@@ -883,20 +884,126 @@ def stdout_context():
         sys.stdout = old_stdout
 
 
+@contextmanager
+def stderr_context():
+    new_stderr = StringIO()
+    old_stderr = sys.stderr
+
+    try:
+        sys.stderr = new_stderr
+        yield new_stderr
+
+    finally:
+        sys.stderr = old_stderr
+
+
+@contextmanager
+def contextualized_patch_outputs_to_scrub_secrets(secrets):
+    try:
+        patch_outputs_to_scrub_secrets(secrets)
+        yield
+
+    finally:
+        if isinstance(sys.stdout, TextStreamSecretsScrubber):
+            sys.stdout = sys.stdout.stream
+        if isinstance(sys.stderr, TextStreamSecretsScrubber):
+            sys.stderr = sys.stderr.stream
+
+        for logger in logging.root.manager.loggerDict.values():
+            _remove_scrubber_filters(logger)
+        _remove_scrubber_filters(logging.root)
+
+
+def _remove_scrubber_filters(logger):
+    if not hasattr(logger, "filters"):
+        return
+    for logging_filter in logger.filters:
+        if isinstance(logging_filter, SecretsScrubberFilter):
+            logger.removeFilter(logging_filter)
+
+
 class TestPatchOutputToScrubSecrets:
-    def test_testing_setup(self):
+    @pytest.fixture
+    def secrets(self):
+        yield [ApiTokenSecret(api_token="ab"), BasicSecret(username="cd", password="ef")]
+
+    def test_testing_setup_stdout(self):
         with stdout_context() as mock_out:
             print("hello")
         assert get_content(mock_out) == "hello\n"
 
-    @pytest.mark.skip
-    def test_basic_secret_scrubbing(self):
+    def test_testing_setup_stderr(self):
+        with stderr_context() as mock_err:
+            print("hello", file=sys.stderr)
+        assert get_content(mock_err) == "hello\n"
+
+    def test_basic_secret_scrubbing_stdout(self):
         scrub_one = "delme"
         scrub_two = "and me"
+        secrets = [BasicSecret(username=scrub_one, password=scrub_two)]
         with stdout_context() as mock_out:
-            patch_outputs_to_scrub_secrets(
-                {"x": BasicSecret(username=scrub_one, password=scrub_two)}
-            )
-            print(f"x{scrub_one}y{scrub_two}z")
+            with contextualized_patch_outputs_to_scrub_secrets(secrets):
+                print(f"x{scrub_one}y{scrub_two}z")
         expected = "x*****y*****z\n"
         assert get_content(mock_out) == expected
+
+    def test_basic_secret_scrubbing_stderr(self):
+        scrub_one = "delme"
+        scrub_two = "and me"
+        secrets = [BasicSecret(username=scrub_one, password=scrub_two)]
+        with stderr_context() as mock_err:
+            with contextualized_patch_outputs_to_scrub_secrets(secrets):
+                print(f"x{scrub_one}y{scrub_two}z", file=sys.stderr)
+        expected = "x*****y*****z\n"
+        assert get_content(mock_err) == expected
+
+    def test_patches_stdout(self):
+        original_stream = sys.stdout
+        secrets = [BasicSecret(username="abc", password="def")]
+
+        expected = TextStreamSecretsScrubber(secrets, original_stream)
+
+        with contextualized_patch_outputs_to_scrub_secrets(secrets):
+            assert sys.stdout == expected
+        assert sys.stdout == original_stream
+
+    def test_patches_stderr(self):
+        original_stream = sys.stderr
+        secrets = [BasicSecret(username="zyx", password="ghi")]
+
+        expected = TextStreamSecretsScrubber(secrets, original_stream)
+
+        with contextualized_patch_outputs_to_scrub_secrets(secrets):
+            assert sys.stderr == expected
+        assert sys.stderr == original_stream
+
+    def test_patches_root_logging_methods(self):
+        stream = StringIO()
+        root_logger = logging.root.manager.root
+        root_logger.addHandler(StreamHandler(stream=stream))
+
+        secrets = [ApiTokenSecret(api_token="hello")]
+        with contextualized_patch_outputs_to_scrub_secrets(secrets):
+            logging.error("hello there")
+            filters = root_logger.filters[:]
+
+        assert get_content(stream) == "***** there\n"
+        assert SecretsScrubberFilter(secrets) in filters
+
+    def test_patches_all_loggers(self):
+        loggers = [
+            getLogger("a"),
+            getLogger("b"),
+            getLogger("a.b"),
+            getLogger("a.c"),
+            getLogger("a.b.c"),
+        ]
+
+        secrets = [ApiTokenSecret(api_token="hello")]
+        with contextualized_patch_outputs_to_scrub_secrets(secrets):
+            logging.error("hello there")
+            filters_map = {logger.name: logger.filters[:] for logger in loggers}
+
+        expected = [SecretsScrubberFilter(secrets)]
+        for logger_name, filters in filters_map.items():
+            assert filters == expected, f"Logger: {logger_name!r}"
