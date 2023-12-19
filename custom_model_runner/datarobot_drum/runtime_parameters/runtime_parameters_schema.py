@@ -14,6 +14,7 @@ class RuntimeParameterTypes(Enum):
     BOOLEAN = "boolean"
     CREDENTIAL = "credential"
     DEPLOYMENT = "deployment"
+    NUMERIC = "numeric"
 
 
 class NativeEnumTrafaret(t.Enum):
@@ -44,6 +45,14 @@ class RuntimeParameterBooleanPayloadTrafaret(RuntimeParameterPayloadBaseTrafaret
         super().__init__(RuntimeParameterTypes.BOOLEAN.value, {t.Key("payload"): t.Null | t.Bool})
 
 
+class RuntimeParameterNumericPayloadTrafaret(RuntimeParameterPayloadBaseTrafaret):
+    def __init__(self, min_value=None, max_value=None):
+        super().__init__(
+            RuntimeParameterTypes.NUMERIC.value,
+            {t.Key("payload"): t.Null | t.Float(gte=min_value, lte=max_value)},
+        )
+
+
 class RuntimeParameterCredentialPayloadTrafaret(RuntimeParameterPayloadBaseTrafaret):
     def __init__(self):
         super().__init__(
@@ -65,6 +74,7 @@ class RuntimeParameterDeploymentPayloadTrafaret(RuntimeParameterPayloadBaseTrafa
 RuntimeParameterPayloadTrafaret = (
     RuntimeParameterStringPayloadTrafaret
     | RuntimeParameterBooleanPayloadTrafaret
+    | RuntimeParameterNumericPayloadTrafaret
     | RuntimeParameterCredentialPayloadTrafaret
     | RuntimeParameterDeploymentPayloadTrafaret
 )
@@ -75,5 +85,7 @@ RuntimeParameterDefinitionTrafaret = t.Dict(
         t.Key("fieldName", to_name="name"): t.String,
         t.Key("type"): NativeEnumTrafaret(RuntimeParameterTypes),
         t.Key("defaultValue", optional=True, default=None, to_name="default"): t.Any,
+        t.Key("minValue", optional=True, default=None, to_name="min_value"): t.Any,
+        t.Key("maxValue", optional=True, default=None, to_name="max_value"): t.Any,
     }
 ).ignore_extra("*")

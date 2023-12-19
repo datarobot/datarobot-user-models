@@ -23,6 +23,7 @@ from .runtime_parameters_schema import (
     RuntimeParameterCredentialPayloadTrafaret,
     RuntimeParameterDeploymentPayloadTrafaret,
     RuntimeParameterBooleanPayloadTrafaret,
+    RuntimeParameterNumericPayloadTrafaret,
 )
 from .runtime_parameters_schema import RuntimeParameterPayloadTrafaret
 from .runtime_parameters_schema import RuntimeParameterStringPayloadTrafaret
@@ -108,7 +109,9 @@ class RuntimeParametersLoader:
     ```
     """
 
-    ParameterDefinition = namedtuple("ParameterDefinition", ["name", "type", "default"])
+    ParameterDefinition = namedtuple(
+        "ParameterDefinition", ["name", "type", "default", "min_value", "max_value"]
+    )
 
     def __init__(self, values_filepath, code_dir):
         if not values_filepath:
@@ -184,6 +187,15 @@ class RuntimeParametersLoader:
                 elif param_definition.type == RuntimeParameterTypes.DEPLOYMENT:
                     payload = deployment_payload_trafaret.check(
                         {"type": RuntimeParameterTypes.DEPLOYMENT.value, "payload": param_value}
+                    )
+                elif param_definition.type == RuntimeParameterTypes.NUMERIC:
+                    numeric_payload_trafaret = RuntimeParameterNumericPayloadTrafaret(
+                        min_value=param_definition.min_value,
+                        max_value=param_definition.max_value,
+                    )
+
+                    payload = numeric_payload_trafaret.check(
+                        {"type": RuntimeParameterTypes.NUMERIC.value, "payload": param_value}
                     )
                 else:
                     raise ErrorLoadingRuntimeParameter(
