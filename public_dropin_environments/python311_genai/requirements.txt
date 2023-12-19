@@ -18,3 +18,4 @@ aws-request-signer==1.2.0
 pydantic==2.2.1
 pydantic-settings==2.0.3
 aiofiles==23.1.0
+aioboto3==12.1.0
