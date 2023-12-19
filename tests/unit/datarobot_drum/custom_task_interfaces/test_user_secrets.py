@@ -5,6 +5,11 @@
 #  This is proprietary source code of DataRobot, Inc. and its affiliates.
 #  Released under the terms of DataRobot Tool and Utility Agreement.
 #
+import sys
+from contextlib import contextmanager
+from io import StringIO
+from logging import getLogger, StreamHandler, DEBUG
+
 import pytest
 
 from datarobot_drum.custom_task_interfaces.user_secrets import (
@@ -24,6 +29,11 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     ApiTokenSecret,
     UnsupportedSecretError,
     load_secrets,
+    patch_outputs_to_scrub_secrets,
+    get_ordered_sensitive_values,
+    scrub_values_from_string,
+    TextStreamSecretsScrubber,
+    SecretsScrubberFilter,
 )
 
 
@@ -631,3 +641,168 @@ class TestLoadSecrets:
         expected_dict = {"a": expected}
         with env_patcher("PREFIX", env_dict):
             assert load_secrets(None, "PREFIX") == expected_dict
+
+
+def get_content(stream):
+    stream.seek(0)
+    return stream.read()
+
+
+class TestGetOrderedSensitiveValues:
+    def test_no_secrets(self):
+        assert get_ordered_sensitive_values([]) == []
+
+    @pytest.mark.parametrize(
+        "secret, expected",
+        [
+            (BasicSecret(username="a", password="b"), ["a", "b"]),
+            (BasicSecret(username="c", password="b", snowflake_account_name="a"), ["a", "b", "c"]),
+            (OauthSecret(token="abc", refresh_token="def"), ["abc", "def"]),
+        ],
+    )
+    def test_flat_secret(self, secret, expected):
+        assert get_ordered_sensitive_values([secret]) == expected
+
+    def test_nested_secret(self):
+        secret = GCPSecret(gcp_key=GCPKey(type="a", project_id="d", private_key="c"), config_id="b")
+        assert get_ordered_sensitive_values([secret]) == ["a", "b", "c", "d"]
+
+    def test_sorts_by_largest_size_first(self):
+        secret = BasicSecret(username="de", password="xyz", snowflake_account_name="abs")
+        assert get_ordered_sensitive_values([secret]) == ["abs", "xyz", "de"]
+
+    def test_multiple_secrets(self):
+        secrets = [
+            BasicSecret(username="a", password="bc", snowflake_account_name="def"),
+            BasicSecret(username="x", password="yz", snowflake_account_name="abc"),
+        ]
+        assert get_ordered_sensitive_values(secrets) == ["abc", "def", "bc", "yz", "a", "x"]
+
+    def test_multiple_secrets_with_iterable(self):
+        secrets_dict = {
+            "a": BasicSecret(username="a", password="bc", snowflake_account_name="def"),
+            "b": BasicSecret(username="x", password="yz", snowflake_account_name="abc"),
+        }
+        assert get_ordered_sensitive_values(secrets_dict.values()) == [
+            "abc",
+            "def",
+            "bc",
+            "yz",
+            "a",
+            "x",
+        ]
+
+    def test_repeat_values(self):
+        secrets = [BasicSecret(username="a", password="b"), BasicSecret(username="b", password="c")]
+        assert get_ordered_sensitive_values(secrets) == ["a", "b", "c"]
+
+
+class TestScrubValuesFromString:
+    def test_no_sensitive_values(self):
+        assert scrub_values_from_string([], "abc") == "abc"
+
+    def test_sensitive_values_not_in_string(self):
+        assert scrub_values_from_string(["abc", "def"], "ab de") == "ab de"
+
+    def test_scrubs_values(self):
+        assert scrub_values_from_string(["abc", "def"], "def abcd") == "***** *****d"
+
+    def test_scrubs_values_order_sensitive_positive_case(self):
+        assert scrub_values_from_string(["abc", "ab"], "def ab abc") == "def ***** *****"
+
+    def test_scrubs_values_order_sensitive_failure_on_unsorted_values(self):
+        assert scrub_values_from_string(["ab", "abc"], "def ab abc") == "def ***** *****c"
+
+
+class TestTextStreamSecretsScrubber:
+    def test_scrubs_output(self):
+        stream = StringIO()
+        wrapped = TextStreamSecretsScrubber([BasicSecret(username="abc", password="bc")], stream)
+        wrapped.write("abc def ab bc\n")
+        wrapped.write("bcd\n")
+        assert get_content(wrapped) == "***** def ab *****\n*****d\n"
+
+    def test_scrubs_output_multiple_secrets(self):
+        stream = StringIO()
+        wrapped = TextStreamSecretsScrubber(
+            [ApiTokenSecret(api_token="abc"), ApiTokenSecret(api_token="bc")], stream
+        )
+        wrapped.write("abc def ab bc\n")
+        wrapped.write("bcd\n")
+        assert get_content(wrapped) == "***** def ab *****\n*****d\n"
+
+    def test_scrubs_output_on_writelines(self):
+        stream = StringIO()
+        wrapped = TextStreamSecretsScrubber([BasicSecret(username="abc", password="bc")], stream)
+        wrapped.writelines(["abc def ab bc\n", "bcd\n"])
+        assert get_content(wrapped) == "***** def ab *****\n*****d\n"
+
+
+class TestSecretsScrubberFilter:
+    @pytest.fixture
+    def text_stream(self):
+        return StringIO()
+
+    @pytest.fixture
+    def logger(self, text_stream):
+        logger = getLogger(__name__)
+        logger.setLevel(DEBUG)
+        logger.addHandler(StreamHandler(text_stream))
+        return logger
+
+    def test_setup(self, text_stream, logger):
+        logger.info("hello")
+        logger.error("hi")
+        assert get_content(text_stream) == "hello\nhi\n"
+
+    def test_secrets_scrubber_filter(self, logger, text_stream):
+        secrets_filter = SecretsScrubberFilter([BasicSecret(username="def", password="ef")])
+        logger.addFilter(secrets_filter)
+        logger.info("abc def")
+        logger.info("ef def")
+        assert get_content(text_stream) == "abc *****\n***** *****\n"
+
+    """
+    multiple secrets
+    secret object
+    other object
+    
+    single arg secret
+    single arg string
+    single arg other
+    
+    dual arg * 3
+    dict arg * 3
+    """
+
+
+@contextmanager
+def stdout_context():
+    new_stdout = StringIO()
+    old_stdout = sys.stdout
+
+    try:
+        sys.stdout = new_stdout
+        yield new_stdout
+
+    finally:
+        sys.stdout = old_stdout
+
+
+class TestPatchOutputToScrubSecrets:
+    def test_testing_setup(self):
+        with stdout_context() as mock_out:
+            print("hello")
+        assert get_content(mock_out) == "hello\n"
+
+    @pytest.mark.skip
+    def test_basic_secret_scrubbing(self):
+        scrub_one = "delme"
+        scrub_two = "and me"
+        with stdout_context() as mock_out:
+            patch_outputs_to_scrub_secrets(
+                {"x": BasicSecret(username=scrub_one, password=scrub_two)}
+            )
+            print(f"x{scrub_one}y{scrub_two}z")
+        expected = "x*****y*****z\n"
+        assert get_content(mock_out) == expected

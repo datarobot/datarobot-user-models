@@ -7,10 +7,11 @@
 #
 import json
 import os
-from dataclasses import dataclass, fields, is_dataclass
+from dataclasses import dataclass, fields, is_dataclass, asdict
 from enum import Enum, auto
+from logging import Filter, LogRecord
 from pathlib import Path
-from typing import Optional, TypeVar, Type, Generic, Dict
+from typing import Optional, TypeVar, Type, Generic, Dict, Iterable, List, Set, Union, TextIO
 
 
 def reduce_kwargs(input_dict, target_class):
@@ -23,6 +24,7 @@ def reduce_kwargs(input_dict, target_class):
 T = TypeVar("T")
 
 
+@dataclass
 class AbstractSecret(Generic[T]):
     def is_partial_secret(self) -> bool:
         """Some credentials from DataRobot contain admin-owned information.
@@ -33,25 +35,25 @@ class AbstractSecret(Generic[T]):
         return any(getattr(self, key, None) for key in config_keys)
 
     @classmethod
-    def from_dict(cls: Type[T], input_dict) -> T:
+    def from_dict(cls: Type[T], input_dict: dict) -> T:
         reduced = reduce_kwargs(input_dict, cls)
         return cls(**reduced)
 
 
-@dataclass(frozen=True)
+@dataclass
 class BasicSecret(AbstractSecret):
     username: str
     password: str
     snowflake_account_name: Optional[str] = None
 
 
-@dataclass(frozen=True)
+@dataclass
 class OauthSecret(AbstractSecret):
     token: str
     refresh_token: str
 
 
-@dataclass(frozen=True)
+@dataclass
 class S3Secret(AbstractSecret):
     aws_access_key_id: Optional[str] = None
     aws_secret_access_key: Optional[str] = None
@@ -59,19 +61,19 @@ class S3Secret(AbstractSecret):
     config_id: Optional[str] = None
 
 
-@dataclass(frozen=True)
+@dataclass
 class AzureSecret(AbstractSecret):
     azure_connection_string: str
 
 
-@dataclass(frozen=True)
+@dataclass
 class AzureServicePrincipalSecret(AbstractSecret):
     client_id: str
     client_secret: str
     azure_tenant_id: str
 
 
-@dataclass(frozen=True)
+@dataclass
 class SnowflakeOauthUserAccountSecret(AbstractSecret):
     client_id: Optional[str]
     client_secret: Optional[str]
@@ -82,7 +84,7 @@ class SnowflakeOauthUserAccountSecret(AbstractSecret):
     oauth_config_id: Optional[str] = None
 
 
-@dataclass(frozen=True)
+@dataclass
 class SnowflakeKeyPairUserAccountSecret(AbstractSecret):
     username: Optional[str]
     private_key_str: Optional[str]
@@ -90,30 +92,30 @@ class SnowflakeKeyPairUserAccountSecret(AbstractSecret):
     config_id: Optional[str] = None
 
 
-@dataclass(frozen=True)
+@dataclass
 class AdlsGen2OauthSecret(AbstractSecret):
     client_id: str
     client_secret: str
     oauth_scopes: str
 
 
-@dataclass(frozen=True)
+@dataclass
 class TableauAccessTokenSecret(AbstractSecret):
     token_name: str
     personal_access_token: str
 
 
-@dataclass(frozen=True)
+@dataclass
 class DatabricksAccessTokenAccountSecret(AbstractSecret):
     databricks_access_token: str
 
 
-@dataclass(frozen=True)
+@dataclass
 class ApiTokenSecret(AbstractSecret):
     api_token: str
 
 
-@dataclass(frozen=True)
+@dataclass
 class GCPKey:
     type: str
     project_id: Optional[str] = None
@@ -131,7 +133,7 @@ class GCPKey:
         return cls(**reduce_kwargs(input_dict, cls))
 
 
-@dataclass(frozen=True)
+@dataclass
 class GCPSecret(AbstractSecret):
     gcp_key: Optional[GCPKey] = None
     config_id: Optional[str] = None
@@ -232,3 +234,78 @@ def _get_mounted_secrets(mount_path: Optional[str]):
             return json.load(fp)
 
     return {file_path.name: get_dict(file_path) for file_path in secret_files}
+
+
+def patch_outputs_to_scrub_secrets(secrets: Dict[str, AbstractSecret]):
+    pass
+
+
+class TextStreamSecretsScrubber:
+    def __init__(self, secrets: Iterable[AbstractSecret], stream: TextIO):
+        self.stream = stream
+        self.sensitive_data = get_ordered_sensitive_values(secrets)
+
+    def write(self, text):
+        new_text = scrub_values_from_string(self.sensitive_data, text)
+        self.stream.write(new_text)
+
+    def writelines(self, lines):
+        new_lines = [scrub_values_from_string(self.sensitive_data, text) for text in lines]
+        self.stream.writelines(new_lines)
+
+    def __getattr__(self, item):
+        return object.__getattribute__(self.stream, item)
+
+
+class SecretsScrubberFilter(Filter):
+    def __init__(self, secrets: Iterable[AbstractSecret]):
+        super().__init__()
+        self.sensitive_data = get_ordered_sensitive_values(secrets)
+
+    def filter(self, record: LogRecord):
+        record.msg = self.transform(record.msg)
+        if isinstance(record.args, dict):
+            new_args = {k: self.transform(v) for k, v in record.args.items()}
+        elif isinstance(record.args, tuple):
+            new_args = tuple(self.transform(el) for el in record.args)
+        else:
+            new_args = self.transform(record.args)
+        record.args = new_args
+        return True
+
+    def transform(self, element):
+        if isinstance(element, AbstractSecret):
+            element = str(element)
+
+        if isinstance(element, str):
+            return scrub_values_from_string(self.sensitive_data, element)
+
+
+def get_ordered_sensitive_values(secrets: Iterable[AbstractSecret]) -> List[str]:
+    """This returns the list of all sensitive values, including recursing through
+    sub-dictionaries so that they can be wiped from logs."""
+    if not secrets:
+        return []
+    values_generator = (_get_all_values(asdict(secret)) for secret in secrets)
+    empty_set: Set[str] = set()
+    all_values = empty_set.union(*values_generator)
+    longest_first_to_replace_both_strings_and_sub_strings = sorted(
+        all_values, key=lambda el: (-len(el), el)
+    )
+    return longest_first_to_replace_both_strings_and_sub_strings
+
+
+def _get_all_values(actual_value: Union[str, dict]) -> Set[str]:
+    if not actual_value:
+        return set()
+    if not isinstance(actual_value, dict):
+        return {actual_value}
+    sets_generator = (_get_all_values(el) for el in actual_value.values())
+    empty_set: Set[str] = set()
+    return empty_set.union(*sets_generator)
+
+
+def scrub_values_from_string(sensitive_values: List[str], input_str: str) -> str:
+    for value in sensitive_values:
+        input_str = input_str.replace(value, "*****")
+    return input_str
