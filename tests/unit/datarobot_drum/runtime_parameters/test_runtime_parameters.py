@@ -29,6 +29,7 @@ class TestRuntimeParameters:
         [
             (RuntimeParameterTypes.STRING, "Some string value"),
             (RuntimeParameterTypes.BOOLEAN, True),
+            (RuntimeParameterTypes.NUMERIC, 10),
             (
                 RuntimeParameterTypes.CREDENTIAL,
                 {
@@ -63,6 +64,10 @@ class TestRuntimeParameters:
     @pytest.mark.parametrize("payload", ["string-payload", {"credentialType": "s3"}])
     def test_invalid_boolean_type(self, payload):
         self._read_runtime_param_and_expect_to_fail(type="boolean", payload=payload)
+
+    @pytest.mark.parametrize("payload", ["string-payload", {"credentialType": "s3"}])
+    def test_invalid_numeric_type(self, payload):
+        self._read_runtime_param_and_expect_to_fail(type="numeric", payload=payload)
 
     @staticmethod
     def _read_runtime_param_and_expect_to_fail(type, payload):
@@ -115,6 +120,7 @@ class TestRuntimeParametersLoader:
         return {
             "STR_PARAM1": "Some value",
             "BOOL_PARAM1": True,
+            "NUMERIC_PARAM1": 123,
             "S3_CRED_PARAM": {
                 "credentialType": "s3",
                 "awsAccessKeyId": "AWOUIEOIUI",
@@ -129,6 +135,7 @@ class TestRuntimeParametersLoader:
             {"fieldName": "STR_PARAM1", "type": "string", "defaultValue": "Hello world!"},
             {"fieldName": "STR_PARAM2", "type": "string", "defaultValue": "goodbye"},
             {"fieldName": "BOOL_PARAM", "type": "boolean", "defaultValue": False},
+            {"fieldName": "NUMERIC_PARAM1", "type": "numeric", "defaultValue": 321},
             {"fieldName": "S3_CRED_PARAM", "type": "credential", "description": "a secret"},
             {"fieldName": "OTHER_CRED_PARAM", "type": "credential", "defaultValue": None},
         ]
