@@ -279,6 +279,8 @@ class SecretsScrubberFilter(Filter):
 
         if isinstance(element, str):
             return scrub_values_from_string(self.sensitive_data, element)
+        else:
+            return element
 
 
 def get_ordered_sensitive_values(secrets: Iterable[AbstractSecret]) -> List[str]:
