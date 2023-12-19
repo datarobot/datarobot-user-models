@@ -13,7 +13,10 @@ import yaml
 
 from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME
 from datarobot_drum.drum.enum import ModelMetadataKeys
-from datarobot_drum.runtime_parameters.exceptions import InvalidEmptyYamlContent
+from datarobot_drum.runtime_parameters.exceptions import (
+    InvalidEmptyYamlContent,
+    ErrorLoadingRuntimeParameter,
+)
 from datarobot_drum.runtime_parameters.exceptions import InvalidInputFilePath
 from datarobot_drum.runtime_parameters.exceptions import InvalidJsonException
 from datarobot_drum.runtime_parameters.exceptions import InvalidRuntimeParam
@@ -120,7 +123,7 @@ class TestRuntimeParametersLoader:
         return {
             "STR_PARAM1": "Some value",
             "BOOL_PARAM1": True,
-            "NUMERIC_PARAM1": 123,
+            "NUMERIC_PARAM1": 50,
             "S3_CRED_PARAM": {
                 "credentialType": "s3",
                 "awsAccessKeyId": "AWOUIEOIUI",
@@ -135,7 +138,13 @@ class TestRuntimeParametersLoader:
             {"fieldName": "STR_PARAM1", "type": "string", "defaultValue": "Hello world!"},
             {"fieldName": "STR_PARAM2", "type": "string", "defaultValue": "goodbye"},
             {"fieldName": "BOOL_PARAM", "type": "boolean", "defaultValue": False},
-            {"fieldName": "NUMERIC_PARAM1", "type": "numeric", "defaultValue": 321},
+            {
+                "fieldName": "NUMERIC_PARAM1",
+                "type": "numeric",
+                "defaultValue": 50,
+                "minValue": 0,
+                "maxValue": 100,
+            },
             {"fieldName": "S3_CRED_PARAM", "type": "credential", "description": "a secret"},
             {"fieldName": "OTHER_CRED_PARAM", "type": "credential", "defaultValue": None},
         ]
@@ -213,6 +222,15 @@ class TestRuntimeParametersLoader:
         model_metadata_file.write_text(invalid_yaml_content)
         with pytest.raises(InvalidYamlContent, match="Invalid model-metadata YAML content!"):
             RuntimeParametersLoader(runtime_params_values_file, model_metadata_file.parent)
+
+    def test_invalid_numeric_parameter_values(
+        self, runtime_params_values_file, model_metadata_file
+    ):
+        invalid_numeric_var_yaml_content = {"NUMERIC_PARAM1": 500}
+        runtime_params_values_file.write_text(yaml.dump(invalid_numeric_var_yaml_content))
+        with pytest.raises(ErrorLoadingRuntimeParameter, match="value is greater than 100"):
+            loader = RuntimeParametersLoader(runtime_params_values_file, model_metadata_file.parent)
+            loader.setup_environment_variables()
 
     def test_setup_success(
         self,
