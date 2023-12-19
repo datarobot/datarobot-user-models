@@ -19,3 +19,17 @@ runtimeParameterDefinitions:
     type: credential
     description: Some secret injected by DataRobot and stored in the Credential Manager.
 
+  - fieldName: bool_var
+    type: boolean
+    defaultValue: true
+
+  - fieldName: number1
+    type: numeric
+    defaultValue: 0
+    minValue: -100
+    maxValue: 100
+
+  - fieldName: number2
+    type: numeric
+    defaultValue: 0
+
