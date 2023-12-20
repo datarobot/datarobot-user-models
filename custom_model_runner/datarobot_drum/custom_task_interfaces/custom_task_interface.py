@@ -11,7 +11,11 @@ import sys
 from contextlib import contextmanager
 from typing import Optional, Dict, Any
 
-from datarobot_drum.custom_task_interfaces.user_secrets import load_secrets
+from datarobot_drum.custom_task_interfaces.user_secrets import (
+    load_secrets,
+    patch_outputs_to_scrub_secrets,
+    reset_outputs_to_allow_secrets,
+)
 from datarobot_drum.drum.exceptions import DrumSerializationError
 
 
@@ -201,6 +205,8 @@ def secrets_injection_context(
     secrets = load_secrets(mount_path=mount_path, env_var_prefix=env_var_prefix)
     interface.secrets = secrets
     try:
+        patch_outputs_to_scrub_secrets(secrets.values())
         yield
     finally:
         interface.secrets = None
+        reset_outputs_to_allow_secrets()

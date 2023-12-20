@@ -34,7 +34,8 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     get_ordered_sensitive_values,
     scrub_values_from_string,
     TextStreamSecretsScrubber,
-    SecretsScrubberFilter, reset_outputs_to_allow_secrets,
+    SecretsScrubberFilter,
+    reset_outputs_to_allow_secrets,
 )
 
 
@@ -957,6 +958,15 @@ class TestPatchOutputToScrubSecrets:
         expected = "x*****y*****z\n"
         assert get_content(mock_err) == expected
 
+    def test_no_secrets_does_not_patch_stdout_stderr(self):
+        original_stdout = sys.stdout
+        original_stderr = sys.stderr
+        with contextualized_patch_outputs_to_scrub_secrets([]):
+            assert sys.stderr == original_stderr
+            assert sys.stdout == original_stdout
+        assert sys.stdout == original_stdout
+        assert sys.stderr == original_stderr
+
     def test_patches_stdout(self):
         original_stream = sys.stdout
         secrets = [BasicSecret(username="abc", password="def")]
@@ -976,6 +986,15 @@ class TestPatchOutputToScrubSecrets:
         with contextualized_patch_outputs_to_scrub_secrets(secrets):
             assert sys.stderr == expected
         assert sys.stderr == original_stream
+
+    def test_no_secrets_does_not_patch_loggers(self):
+        root_logger = logging.root.manager.root
+        other_logger = [getLogger("a"), getLogger("a.b")]
+        with contextualized_patch_outputs_to_scrub_secrets([]):
+            other_filters = [el.filters[:] for el in other_logger]
+            root_filters = root_logger.filters[:]
+        assert other_filters == [[], []]
+        assert all(not isinstance(el, SecretsScrubberFilter) for el in root_filters)
 
     def test_patches_root_logging_methods(self):
         stream = StringIO()
@@ -1010,7 +1029,6 @@ class TestPatchOutputToScrubSecrets:
 
 
 class TestResetOutputsToAllowSecrets:
-
     def test_un_patches_stdout(self):
         original_stream = sys.stdout
         secrets = [BasicSecret(username="abc", password="def")]
@@ -1062,5 +1080,3 @@ class TestResetOutputsToAllowSecrets:
             current_filters_map = {logger.name: logger.filters[:] for logger in loggers}
             for logger_name, filters in current_filters_map.items():
                 assert filters == [], f"Logger: {logger_name!r}"
-
-

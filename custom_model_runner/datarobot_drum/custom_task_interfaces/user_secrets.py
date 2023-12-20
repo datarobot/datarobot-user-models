@@ -239,6 +239,9 @@ def _get_mounted_secrets(mount_path: Optional[str]):
 
 
 def patch_outputs_to_scrub_secrets(secrets: Iterable[AbstractSecret]):
+    if not secrets:
+        return
+
     sys.stdout = TextStreamSecretsScrubber(secrets, sys.stdout)
     sys.stderr = TextStreamSecretsScrubber(secrets, sys.stderr)
 

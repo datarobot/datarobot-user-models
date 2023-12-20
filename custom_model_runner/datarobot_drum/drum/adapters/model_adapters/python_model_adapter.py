@@ -56,6 +56,7 @@ from datarobot_drum.custom_task_interfaces.custom_task_interface import (
     CustomTaskInterface,
     secrets_injection_context,
     load_secrets,
+    patch_outputs_to_scrub_secrets,
 )
 
 RUNNING_LANG_MSG = "Running environment language: Python."

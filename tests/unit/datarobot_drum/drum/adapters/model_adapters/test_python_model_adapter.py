@@ -20,6 +20,11 @@ from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import Pyt
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 
+@pytest.fixture
+def module_under_test():
+    return "datarobot_drum.drum.adapters.model_adapters.python_model_adapter"
+
+
 class FakeCustomTask:
     def __init__(self):
         self.secrets = None
