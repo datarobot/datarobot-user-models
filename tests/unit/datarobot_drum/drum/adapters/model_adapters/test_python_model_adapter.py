@@ -7,22 +7,74 @@
 #
 import contextlib
 import json
+import logging
 import os
+import sys
+from dataclasses import dataclass
+from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Dict
+from typing import Dict, Any
 from unittest.mock import Mock, patch
 
 import pytest
 
-from datarobot_drum.custom_task_interfaces.user_secrets import secrets_factory
+from datarobot_drum.custom_task_interfaces.user_secrets import (
+    secrets_factory,
+    SecretsScrubberFilter,
+    TextStreamSecretsScrubber,
+    AbstractSecret,
+)
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 
 @pytest.fixture
-def module_under_test():
-    return "datarobot_drum.drum.adapters.model_adapters.python_model_adapter"
+def mock_stdout():
+    patched_stdout = StringIO()
+    original_stdout = sys.stdout
+
+
+def get_all_logging_filters():
+    root_logger = logging.root.manager.root
+    all_loggers = [logger for logger in logging.root.manager.loggerDict.values()]
+    all_loggers.append(root_logger)
+    return {logger.name: logger.filters[:] for logger in all_loggers if hasattr(logger, "filters")}
+
+
+def assert_no_secrets_filters(filters_dict: Dict[str, list]):
+    for logger_name, logger_filters in filters_dict.items():
+        assert all(not isinstance(el, SecretsScrubberFilter) for el in logger_filters), logger_name
+
+
+def assert_secrets_filters(filters_dict: Dict[str, list], secrets: Dict[str, AbstractSecret]):
+    expected_filter = SecretsScrubberFilter(secrets.values())
+    for logger_name, logger_filters in filters_dict.items():
+        assert expected_filter in logger_filters, logger_name
+
+
+@dataclass
+class Outputs:
+    out: Any
+    err: Any
+
+    @classmethod
+    def from_env(cls):
+        return cls(out=sys.stdout, err=sys.stderr)
+
+
+def assert_unwrapped_outputs(outputs: Outputs):
+    assert not isinstance(outputs.out, TextStreamSecretsScrubber)
+    assert not isinstance(outputs.err, TextStreamSecretsScrubber)
+
+
+def assert_wrapped_outputs(outputs: Outputs, secrets: Dict[str, AbstractSecret]):
+    assert isinstance(outputs.out, TextStreamSecretsScrubber)
+    assert isinstance(outputs.err, TextStreamSecretsScrubber)
+    expected_out = TextStreamSecretsScrubber(secrets=secrets.values(), stream=outputs.out.stream)
+    expected_err = TextStreamSecretsScrubber(secrets=secrets.values(), stream=outputs.err.stream)
+    assert outputs.out == expected_out
+    assert outputs.err == expected_err
 
 
 class FakeCustomTask:
@@ -32,15 +84,23 @@ class FakeCustomTask:
         self.save_secrets = Mock()
         self.fit_calls = []
         self.save_calls = []
+        self.fit_outputs = Outputs(None, None)
+        self.save_outputs = Outputs(None, None)
+        self.fit_logging_filters = Mock()
+        self.save_logging_filters = Mock()
         self.load_args = []
 
     def fit(self, *args, **kwargs):
         self.fit_calls.append((args, kwargs))
         self.fit_secrets = self.secrets
+        self.fit_outputs = Outputs.from_env()
+        self.fit_logging_filters = get_all_logging_filters()
 
     def save(self, *args, **kwargs):
         self.save_calls.append((args, kwargs))
         self.save_secrets = self.secrets
+        self.save_outputs = Outputs.from_env()
+        self.save_logging_filters = get_all_logging_filters()
 
     @classmethod
     def load(cls, *args, **kwargs):
@@ -150,6 +210,10 @@ class TestFit:
         assert instance.save_calls == [((model_dir,), {})]
         assert instance.fit_secrets == {}
         assert instance.save_secrets is None
+        assert_no_secrets_filters(instance.fit_logging_filters)
+        assert_no_secrets_filters(instance.save_logging_filters)
+        assert_unwrapped_outputs(instance.fit_outputs)
+        assert_unwrapped_outputs(instance.save_outputs)
 
     def test_fit_with_mounted_secrets(self, mounted_secret, mounted_secrets_dir):
         adapter = TestingPythonModelAdapter(Mock(), Mock())
@@ -169,6 +233,10 @@ class TestFit:
         expected_secrets = {k: secrets_factory(v) for k, v in mounted_secret.items()}
         assert instance.fit_secrets == expected_secrets
         assert instance.save_secrets is None
+        assert_wrapped_outputs(instance.fit_outputs, expected_secrets)
+        assert_unwrapped_outputs(instance.save_outputs)
+        assert_secrets_filters(instance.fit_logging_filters, expected_secrets)
+        assert_no_secrets_filters(instance.save_logging_filters)
 
     def test_fit_with_secrets_prefix(self, env_secret, secrets_prefix):
         adapter = TestingPythonModelAdapter(Mock(), Mock())
@@ -187,6 +255,10 @@ class TestFit:
         expected_secrets = {k: secrets_factory(v) for k, v in env_secret.items()}
         assert instance.fit_secrets == expected_secrets
         assert instance.save_secrets is None
+        assert_wrapped_outputs(instance.fit_outputs, expected_secrets)
+        assert_unwrapped_outputs(instance.save_outputs)
+        assert_secrets_filters(instance.fit_logging_filters, expected_secrets)
+        assert_no_secrets_filters(instance.save_logging_filters)
 
 
 @pytest.mark.usefixtures("secrets")
