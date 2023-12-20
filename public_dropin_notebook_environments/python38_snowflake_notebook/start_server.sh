@@ -30,7 +30,7 @@ source /etc/system/kernel/.venv/bin/activate
 cd "$WORKING_DIR" || exit
 
 # setup ipython extensions
-cp -r /etc/ipython/ .ipython/
+cp -r /etc/ipython/ /home/notebooks/.ipython/
 
 # no trailing slash in the working dir path
 git config --global --add safe.directory "${WORKING_DIR%/}"
