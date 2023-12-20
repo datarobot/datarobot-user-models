@@ -11,7 +11,6 @@ import logging
 import os
 import sys
 from dataclasses import dataclass
-from io import StringIO
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Dict, Any
@@ -24,15 +23,10 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     SecretsScrubberFilter,
     TextStreamSecretsScrubber,
     AbstractSecret,
+    reset_outputs_to_allow_secrets,
 )
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.exceptions import DrumCommonException
-
-
-@pytest.fixture
-def mock_stdout():
-    patched_stdout = StringIO()
-    original_stdout = sys.stdout
 
 
 def get_all_logging_filters():
@@ -261,9 +255,18 @@ class TestFit:
         assert_no_secrets_filters(instance.save_logging_filters)
 
 
-@pytest.mark.usefixtures("secrets")
+@pytest.mark.usefixtures("secrets", "reset_outputs")
 class TestLoadModelFromArtifact:
+    @pytest.fixture
+    def reset_outputs(self):
+        reset_outputs_to_allow_secrets()
+        yield
+        reset_outputs_to_allow_secrets()
+
     def test_load_with_no_secrets(self):
+        assert_unwrapped_outputs(Outputs.from_env())
+        assert_no_secrets_filters(get_all_logging_filters())
+
         model_dir = Mock()
         adapter = TestingPythonModelAdapter(model_dir, Mock())
         assert adapter.custom_task_instance is None
@@ -273,10 +276,15 @@ class TestLoadModelFromArtifact:
         )
         instance = adapter.custom_task_instance
         assert instance.secrets == {}
+        assert_unwrapped_outputs(Outputs.from_env())
+        assert_no_secrets_filters(get_all_logging_filters())
 
         assert instance.load_args == ((model_dir,), {})
 
     def test_load_with_mount_secrets(self, mounted_secret, mounted_secrets_dir):
+        assert_unwrapped_outputs(Outputs.from_env())
+        assert_no_secrets_filters(get_all_logging_filters())
+
         adapter = TestingPythonModelAdapter(Mock(), Mock())
         assert adapter.custom_task_instance is None
         adapter.load_model_from_artifact(
@@ -286,8 +294,13 @@ class TestLoadModelFromArtifact:
         instance = adapter.custom_task_instance
         expected_secrets = {k: secrets_factory(v) for k, v in mounted_secret.items()}
         assert instance.secrets == expected_secrets
+        assert_wrapped_outputs(Outputs.from_env(), expected_secrets)
+        assert_secrets_filters(get_all_logging_filters(), expected_secrets)
 
     def test_load_with_env_secrets(self, env_secret, secrets_prefix):
+        assert_unwrapped_outputs(Outputs.from_env())
+        assert_no_secrets_filters(get_all_logging_filters())
+
         adapter = TestingPythonModelAdapter(Mock(), Mock())
         assert adapter.custom_task_instance is None
         adapter.load_model_from_artifact(
@@ -297,6 +310,8 @@ class TestLoadModelFromArtifact:
         instance = adapter.custom_task_instance
         expected_secrets = {k: secrets_factory(v) for k, v in env_secret.items()}
         assert instance.secrets == expected_secrets
+        assert_wrapped_outputs(Outputs.from_env(), expected_secrets)
+        assert_secrets_filters(get_all_logging_filters(), expected_secrets)
 
 
 class TestPythonModelAdapterPrivateHelpers:
