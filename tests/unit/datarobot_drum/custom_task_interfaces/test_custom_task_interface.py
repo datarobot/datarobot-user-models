@@ -32,6 +32,22 @@ def mock_load_secrets(secrets, module_under_test):
         yield mock_func
 
 
+@pytest.fixture
+def mock_patch_outputs_to_scrub_secrets(module_under_test):
+    with patch(f"{module_under_test}.patch_outputs_to_scrub_secrets") as mock_func:
+        yield mock_func
+
+
+@pytest.fixture
+def mock_reset_outputs_to_allow_secrets(module_under_test):
+    with patch(f"{module_under_test}.reset_outputs_to_allow_secrets") as mock_func:
+        yield mock_func
+
+
+@pytest.mark.usefixtures(
+    "mock_patch_outputs_to_scrub_secrets",
+    "mock_reset_outputs_to_allow_secrets",
+)
 class TestSecretsInjectionContext:
     def test_default_empty_secrets(self):
         interface = CustomTaskInterface()
@@ -51,3 +67,10 @@ class TestSecretsInjectionContext:
         with secrets_injection_context(interface, Mock(), Mock()):
             assert interface.secrets == secrets
         assert interface.secrets == {}
+
+    def test_calls_the_other_thing(self, mock_patch_outputs_to_scrub_secrets, mock_reset_outputs_to_allow_secrets):
+        with secrets_injection_context(CustomTaskInterface(), Mock(), Mock()):
+            mock_reset_outputs_to_allow_secrets.assert_not_called()
+            mock_patch_outputs_to_scrub_secrets.assert_called_once_with()
+        
+        mock_reset_outputs_to_allow_secrets.assert_called_once_with()

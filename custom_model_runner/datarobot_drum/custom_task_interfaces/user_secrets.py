@@ -243,15 +243,36 @@ def patch_outputs_to_scrub_secrets(secrets: Iterable[AbstractSecret]):
     sys.stderr = TextStreamSecretsScrubber(secrets, sys.stderr)
 
     secrets_filter = SecretsScrubberFilter(secrets)
-    root_logger = logging.root.manager.root
-    _safely_add_filter_to_logger(root_logger, secrets_filter)
-    for logger in logging.root.manager.loggerDict.values():
+    all_loggers = [logging.root.manager.root]
+    all_loggers.extend(logging.root.manager.loggerDict.values())
+    for logger in all_loggers:
         _safely_add_filter_to_logger(logger, secrets_filter)
+
+
+def reset_outputs_to_allow_secrets():
+    if isinstance(sys.stdout, TextStreamSecretsScrubber):
+        sys.stdout = sys.stdout.stream
+    if isinstance(sys.stderr, TextStreamSecretsScrubber):
+        sys.stderr = sys.stderr.stream
+
+    loggers = [logging.root.manager.root]
+    loggers.extend(el for el in logging.root.manager.loggerDict.values())
+    for logger in loggers:
+        _safely_remove_filters_from_logger(logger)
 
 
 def _safely_add_filter_to_logger(logger, secrets_filter):
     if hasattr(logger, "addFilter"):
         logger.addFilter(secrets_filter)
+
+
+def _safely_remove_filters_from_logger(logger):
+    if not hasattr(logger, "filters") and not hasattr(logger, "removeFilter"):
+        return
+
+    for logger_filter in logger.filters:
+        if isinstance(logger_filter, SecretsScrubberFilter):
+            logger.removeFilter(logger_filter)
 
 
 class TextStreamSecretsScrubber:

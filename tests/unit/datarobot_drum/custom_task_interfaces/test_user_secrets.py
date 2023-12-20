@@ -34,7 +34,7 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     get_ordered_sensitive_values,
     scrub_values_from_string,
     TextStreamSecretsScrubber,
-    SecretsScrubberFilter,
+    SecretsScrubberFilter, reset_outputs_to_allow_secrets,
 )
 
 
@@ -1007,3 +1007,60 @@ class TestPatchOutputToScrubSecrets:
         expected = [SecretsScrubberFilter(secrets)]
         for logger_name, filters in filters_map.items():
             assert filters == expected, f"Logger: {logger_name!r}"
+
+
+class TestResetOutputsToAllowSecrets:
+
+    def test_un_patches_stdout(self):
+        original_stream = sys.stdout
+        secrets = [BasicSecret(username="abc", password="def")]
+
+        with contextualized_patch_outputs_to_scrub_secrets(secrets):
+            reset_outputs_to_allow_secrets()
+            assert sys.stdout == original_stream
+        assert sys.stdout == original_stream
+
+    def test_un_patches_stderr(self):
+        original_stream = sys.stderr
+        secrets = [BasicSecret(username="zyx", password="ghi")]
+
+        with contextualized_patch_outputs_to_scrub_secrets(secrets):
+            reset_outputs_to_allow_secrets()
+            assert sys.stderr == original_stream
+        assert sys.stderr == original_stream
+
+    def test_un_filters_root_logger(self):
+        root_logger = logging.root.manager.root
+        original_filters = root_logger.filters[:]
+        secrets = [ApiTokenSecret(api_token="hello")]
+
+        expected_not_present = SecretsScrubberFilter(secrets)
+        assert expected_not_present not in original_filters
+
+        with contextualized_patch_outputs_to_scrub_secrets(secrets):
+            reset_outputs_to_allow_secrets()
+            assert expected_not_present not in root_logger.filters
+            assert root_logger.filters == original_filters
+
+    def test_un_filters_all_loggers(self):
+        loggers = [
+            getLogger("a"),
+            getLogger("b"),
+            getLogger("a.b"),
+            getLogger("a.c"),
+            getLogger("a.b.c"),
+        ]
+
+        original_filters_map = {el.name: el.filters[:] for el in loggers}
+
+        secrets = [ApiTokenSecret(api_token="hello")]
+        for logger_name, filters in original_filters_map.items():
+            assert filters == [], f"Logger: {logger_name!r}"
+
+        with contextualized_patch_outputs_to_scrub_secrets(secrets):
+            reset_outputs_to_allow_secrets()
+            current_filters_map = {logger.name: logger.filters[:] for logger in loggers}
+            for logger_name, filters in current_filters_map.items():
+                assert filters == [], f"Logger: {logger_name!r}"
+
+
