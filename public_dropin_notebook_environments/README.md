@@ -9,7 +9,10 @@ dependencies that you want to include for your own custom environments.
 
 In this repository, we provide several example environments that you can use and modify:
 * [Python 3.9 Notebook Environment](python39_notebook)
+* [Python 3.11 Notebook Environment](python311_notebook)
 * [Python 3.8 + Snowflake Notebook Environment](python38_snowflake_notebook)
+* [Python 3.9 Notebook Environment for GPU](python39_notebook_gpu)
+* [Python 3.9 Notebook Environment for GPU with Terraform](python39_notebook_gpu_tf)
 * [R Notebook Environment](r_notebook)
 
 These sample environments each define the libraries available in the environment 
