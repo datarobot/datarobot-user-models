@@ -33,6 +33,17 @@ def transform(data, model):
         )
     else:
         print("No credential data set")
+
+    # boolean runtime param
+    bool_var = RuntimeParameters.get("bool_var")
+    print(f"\tbool_var: {bool_var}")
+
+    # numeric runtime param
+    number1 = RuntimeParameters.get("number1")
+    print(f"\tnumber1: {number1}")
+    number2 = RuntimeParameters.get("number2")
+    print(f"\tnumber2: {number2}")
+
     print("=" * 40)
 
     # This transform function is just for illustrative purposes so just
