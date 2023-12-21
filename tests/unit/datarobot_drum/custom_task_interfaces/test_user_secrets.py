@@ -109,6 +109,16 @@ class TestGCPSecret:
         expected = GCPSecret(gcp_key=expected_key)
         assert secrets_factory(secret) == expected
 
+    def test_repr_and_str(self):
+        gcp_secret = GCPSecret(gcp_key=GCPKey(type="abc", project_id="xyt"))
+        expected = (
+                "GCPSecret(gcp_key=GCPKey("
+                "type='*****', project_id='*****', private_key_id=None, private_key=None, client_email=None, "
+                "client_id=None, auth_uri=None, token_uri=None, "
+                "auth_provider_x509_cert_url=None, client_x509_cert_url=None), config_id=None)"
+        )
+        assert repr(gcp_secret) == str(gcp_secret) == expected
+
 
 class TestBasicSecret:
     def test_minimal_data(self):
@@ -134,6 +144,12 @@ class TestBasicSecret:
     def test_is_partial_secret(self):
         assert not BasicSecret(username="a", password="b").is_partial_secret()
 
+    def test_repr_and_str(self):
+        secret = BasicSecret(username="x", password="y")
+        expected = "BasicSecret(username='*****', password='*****', snowflake_account_name=None)"
+        actual = repr(secret)
+        assert actual == str(secret) == expected
+
 
 class TestOauthSecret:
     def test_minimal_data(self):
@@ -148,6 +164,11 @@ class TestOauthSecret:
 
     def test_is_partial_secret(self):
         assert not OauthSecret(token="a", refresh_token="b").is_partial_secret()
+
+    def test_str_and_repr(self):
+        secret = OauthSecret(token="a", refresh_token="b")
+        expected = "OauthSecret(token='*****', refresh_token='*****')"
+        assert str(secret) == repr(secret) == expected
 
 
 class TestS3Secret:
@@ -188,6 +209,13 @@ class TestS3Secret:
     def test_is_partial_secret_true(self):
         assert S3Secret(config_id="abc").is_partial_secret()
 
+    def test_repr_and_str(self):
+        secret = S3Secret(aws_secret_access_key="abc")
+        expected = (
+            "S3Secret(aws_access_key_id=None, aws_secret_access_key='*****', aws_session_token=None, config_id=None)"
+        )
+        assert str(secret) == repr(secret) == expected
+
 
 class TestAzureSecret:
     def test_minimal_data(self):
@@ -205,6 +233,11 @@ class TestAzureSecret:
 
     def test_is_partial_secret(self):
         assert not AzureSecret(azure_connection_string="a").is_partial_secret()
+
+    def test_repr_and_str(self):
+        secret = AzureSecret(azure_connection_string="a")
+        expected = "AzureSecret(azure_connection_string='*****')"
+        assert str(secret) == repr(secret) == expected
 
 
 class TestAzureServicePrincipalSecret:
@@ -244,6 +277,17 @@ class TestAzureServicePrincipalSecret:
             azure_tenant_id="abc",
         )
         assert not secret.is_partial_secret()
+
+    def test_repr_and_str(self):
+        secret = AzureServicePrincipalSecret(
+            client_id="asdkfjslkf",
+            client_secret="asdkjhdfj",
+            azure_tenant_id="x",
+
+        )
+        expected = "AzureServicePrincipalSecret(client_id='*****', client_secret='*****', azure_tenant_id='*****')"
+
+        assert str(secret) == repr(secret) == expected
 
 
 class TestSnowflakeOauthUserAccountSecret:

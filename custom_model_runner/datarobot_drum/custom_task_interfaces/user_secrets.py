@@ -27,7 +27,25 @@ T = TypeVar("T")
 
 
 @dataclass
-class AbstractSecret(Generic[T]):
+class ScrubReprMixin:
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self._get_args_string()})"
+
+    def _get_args_string(self):
+        return ", ".join(
+            f"{field.name}={self._get_scrubbed_attribute(field)!r}" for field in fields(self)
+        )
+
+    def _get_scrubbed_attribute(self, field):
+        raw_attribute = getattr(self, field.name)
+        if isinstance(raw_attribute, str):
+            return "*****"
+        return raw_attribute
+
+
+@dataclass(repr=False)
+class AbstractSecret(ScrubReprMixin, Generic[T]):
     def is_partial_secret(self) -> bool:
         """Some credentials from DataRobot contain admin-owned information.
         **That information will _not_ be available to the user in their secret**.
@@ -42,20 +60,20 @@ class AbstractSecret(Generic[T]):
         return cls(**reduced)
 
 
-@dataclass
+@dataclass(repr=False)
 class BasicSecret(AbstractSecret):
     username: str
     password: str
     snowflake_account_name: Optional[str] = None
 
 
-@dataclass
+@dataclass(repr=False)
 class OauthSecret(AbstractSecret):
     token: str
     refresh_token: str
 
 
-@dataclass
+@dataclass(repr=False)
 class S3Secret(AbstractSecret):
     aws_access_key_id: Optional[str] = None
     aws_secret_access_key: Optional[str] = None
@@ -63,12 +81,12 @@ class S3Secret(AbstractSecret):
     config_id: Optional[str] = None
 
 
-@dataclass
+@dataclass(repr=False)
 class AzureSecret(AbstractSecret):
     azure_connection_string: str
 
 
-@dataclass
+@dataclass(repr=False)
 class AzureServicePrincipalSecret(AbstractSecret):
     client_id: str
     client_secret: str
@@ -117,8 +135,8 @@ class ApiTokenSecret(AbstractSecret):
     api_token: str
 
 
-@dataclass
-class GCPKey:
+@dataclass(repr=False)
+class GCPKey(ScrubReprMixin):
     type: str
     project_id: Optional[str] = None
     private_key_id: Optional[str] = None
@@ -135,7 +153,7 @@ class GCPKey:
         return cls(**reduce_kwargs(input_dict, cls))
 
 
-@dataclass
+@dataclass(repr=False)
 class GCPSecret(AbstractSecret):
     gcp_key: Optional[GCPKey] = None
     config_id: Optional[str] = None
