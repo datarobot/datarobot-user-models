@@ -28,7 +28,6 @@ T = TypeVar("T")
 
 @dataclass
 class ScrubReprMixin:
-
     def __repr__(self):
         return f"{self.__class__.__name__}({self._get_args_string()})"
 
@@ -93,7 +92,7 @@ class AzureServicePrincipalSecret(AbstractSecret):
     azure_tenant_id: str
 
 
-@dataclass
+@dataclass(repr=False)
 class SnowflakeOauthUserAccountSecret(AbstractSecret):
     client_id: Optional[str]
     client_secret: Optional[str]
@@ -104,7 +103,7 @@ class SnowflakeOauthUserAccountSecret(AbstractSecret):
     oauth_config_id: Optional[str] = None
 
 
-@dataclass
+@dataclass(repr=False)
 class SnowflakeKeyPairUserAccountSecret(AbstractSecret):
     username: Optional[str]
     private_key_str: Optional[str]
@@ -112,25 +111,25 @@ class SnowflakeKeyPairUserAccountSecret(AbstractSecret):
     config_id: Optional[str] = None
 
 
-@dataclass
+@dataclass(repr=False)
 class AdlsGen2OauthSecret(AbstractSecret):
     client_id: str
     client_secret: str
     oauth_scopes: str
 
 
-@dataclass
+@dataclass(repr=False)
 class TableauAccessTokenSecret(AbstractSecret):
     token_name: str
     personal_access_token: str
 
 
-@dataclass
+@dataclass(repr=False)
 class DatabricksAccessTokenAccountSecret(AbstractSecret):
     databricks_access_token: str
 
 
-@dataclass
+@dataclass(repr=False)
 class ApiTokenSecret(AbstractSecret):
     api_token: str
 

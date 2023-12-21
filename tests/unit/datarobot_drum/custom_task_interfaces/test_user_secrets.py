@@ -112,10 +112,10 @@ class TestGCPSecret:
     def test_repr_and_str(self):
         gcp_secret = GCPSecret(gcp_key=GCPKey(type="abc", project_id="xyt"))
         expected = (
-                "GCPSecret(gcp_key=GCPKey("
-                "type='*****', project_id='*****', private_key_id=None, private_key=None, client_email=None, "
-                "client_id=None, auth_uri=None, token_uri=None, "
-                "auth_provider_x509_cert_url=None, client_x509_cert_url=None), config_id=None)"
+            "GCPSecret(gcp_key=GCPKey("
+            "type='*****', project_id='*****', private_key_id=None, private_key=None, client_email=None, "
+            "client_id=None, auth_uri=None, token_uri=None, "
+            "auth_provider_x509_cert_url=None, client_x509_cert_url=None), config_id=None)"
         )
         assert repr(gcp_secret) == str(gcp_secret) == expected
 
@@ -211,9 +211,7 @@ class TestS3Secret:
 
     def test_repr_and_str(self):
         secret = S3Secret(aws_secret_access_key="abc")
-        expected = (
-            "S3Secret(aws_access_key_id=None, aws_secret_access_key='*****', aws_session_token=None, config_id=None)"
-        )
+        expected = "S3Secret(aws_access_key_id=None, aws_secret_access_key='*****', aws_session_token=None, config_id=None)"
         assert str(secret) == repr(secret) == expected
 
 
@@ -283,7 +281,6 @@ class TestAzureServicePrincipalSecret:
             client_id="asdkfjslkf",
             client_secret="asdkjhdfj",
             azure_tenant_id="x",
-
         )
         expected = "AzureServicePrincipalSecret(client_id='*****', client_secret='*****', azure_tenant_id='*****')"
 
@@ -360,6 +357,20 @@ class TestSnowflakeOauthUserAccountSecret:
         )
         assert secret.is_partial_secret()
 
+    def test_repr_and_str(self):
+        secret = SnowflakeOauthUserAccountSecret(
+            client_id="abc",
+            client_secret="a",
+            snowflake_account_name="xyz",
+        )
+        expected = (
+            "SnowflakeOauthUserAccountSecret(client_id='*****', client_secret='*****', "
+            "snowflake_account_name='*****', oauth_issuer_type=None, oauth_issuer_url=None, oauth_scopes=None, "
+            "oauth_config_id=None)"
+        )
+
+        assert str(secret) == repr(secret) == expected
+
 
 class TestSnowflakeKeyPairUserAccountSecret:
     def test_minimal_data(self):
@@ -419,6 +430,19 @@ class TestSnowflakeKeyPairUserAccountSecret:
         )
         assert secret.is_partial_secret()
 
+    def test_repr_and_str(self):
+        secret = SnowflakeKeyPairUserAccountSecret(
+            username="abc",
+            private_key_str="Key",
+        )
+
+        expected = (
+            "SnowflakeKeyPairUserAccountSecret(username='*****', private_key_str='*****', "
+            "passphrase=None, config_id=None)"
+        )
+
+        assert str(secret) == repr(secret) == expected
+
 
 class TestAdlsGen2OauthSecret:
     def test_data(self):
@@ -458,6 +482,18 @@ class TestAdlsGen2OauthSecret:
         )
         assert not secret.is_partial_secret()
 
+    def test_repr_and_str(self):
+        secret = AdlsGen2OauthSecret(
+            client_id="abc",
+            client_secret="sdsdf",
+            oauth_scopes="svfj",
+        )
+        expected = (
+            "AdlsGen2OauthSecret(client_id='*****', client_secret='*****', oauth_scopes='*****')"
+        )
+
+        assert str(secret) == repr(secret) == expected
+
 
 class TestTableauAccessTokenSecret:
     def test_data(self):
@@ -492,6 +528,15 @@ class TestTableauAccessTokenSecret:
         )
         assert not secret.is_partial_secret()
 
+    def test_repr_and_str(self):
+        secret = TableauAccessTokenSecret(
+            token_name="abc",
+            personal_access_token="abc",
+        )
+        expected = "TableauAccessTokenSecret(token_name='*****', personal_access_token='*****')"
+
+        assert str(secret) == repr(secret) == expected
+
 
 class TestDatabricksAccessTokenAccountSecret:
     def test_data(self):
@@ -521,6 +566,14 @@ class TestDatabricksAccessTokenAccountSecret:
         )
         assert not secret.is_partial_secret()
 
+    def test_repr_and_str(self):
+        secret = DatabricksAccessTokenAccountSecret(
+            databricks_access_token="abc",
+        )
+        expected = "DatabricksAccessTokenAccountSecret(databricks_access_token='*****')"
+
+        assert str(secret) == repr(secret) == expected
+
 
 class TestApiTokenSecret:
     def test_data(self):
@@ -549,6 +602,14 @@ class TestApiTokenSecret:
             api_token="abc",
         )
         assert not secret.is_partial_secret()
+
+    def test_repr_and_str(self):
+        secret = ApiTokenSecret(
+            api_token="abc",
+        )
+        expected = "ApiTokenSecret(api_token='*****')"
+
+        assert str(secret) == repr(secret) == expected
 
 
 class TestUnsupportedSecret:
