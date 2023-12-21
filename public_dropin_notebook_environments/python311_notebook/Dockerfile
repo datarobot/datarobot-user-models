@@ -67,9 +67,9 @@ RUN python3 -m venv ${VENV_PATH}
 WORKDIR ${WORKDIR}
 
 COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
-COPY ./python/jupyter_kernel_gateway_config.py ./start_server.sh ${WORKDIR}/
-COPY ./python/ipython_config.py /etc/ipython/
-COPY ./python/extensions /etc/ipython/extensions
+COPY ./jupyter_kernel_gateway_config.py ./start_server.sh ${WORKDIR}/
+COPY ./ipython_config.py /etc/ipython/
+COPY ./extensions /etc/ipython/extensions
 
 # Adding SSHD requirements
 COPY ./sshd_config /etc/ssh/
@@ -94,7 +94,7 @@ COPY ./setup-prompt.sh /etc/profile.d/setup-prompt.sh
 RUN microdnf remove microdnf
 
 # additional setup scripts
-COPY ./setup-ssh.sh ./common-user-limits.sh ./setup-venv.sh ${WORKDIR}/
+COPY ./setup-ssh.sh ./common-user-limits.sh ${WORKDIR}/
 
 # Adding SSHD requirements
 RUN chown -R $UNAME:$UNAME ${WORKDIR} ${VENV_PATH} /home/notebooks /etc/ssh /etc/authorized_keys \
