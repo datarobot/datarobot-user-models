@@ -1,4 +1,4 @@
-FROM ubuntu:18.04
+FROM ubuntu:20.04
 ENV LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -y && \
@@ -16,6 +16,7 @@ RUN apt-get update -y && \
         libxml2-dev \
         python3-pip \
         python3-dev \
+        python3-venv \
         openjdk-11-jdk \
         openjdk-11-jre \
         libgomp1 \
