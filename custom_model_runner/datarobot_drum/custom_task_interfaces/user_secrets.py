@@ -334,9 +334,6 @@ class SecretsScrubberFilter(Filter):
         return True
 
     def transform(self, element):
-        if isinstance(element, AbstractSecret):
-            element = str(element)
-
         if isinstance(element, str):
             return scrub_values_from_string(self.sensitive_data, element)
         else:

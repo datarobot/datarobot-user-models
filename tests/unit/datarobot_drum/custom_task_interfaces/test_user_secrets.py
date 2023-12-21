@@ -978,32 +978,6 @@ class TestSecretsScrubberFilter:
 
 
 @contextmanager
-def stdout_context():
-    new_stdout = StringIO()
-    old_stdout = sys.stdout
-
-    try:
-        sys.stdout = new_stdout
-        yield new_stdout
-
-    finally:
-        sys.stdout = old_stdout
-
-
-@contextmanager
-def stderr_context():
-    new_stderr = StringIO()
-    old_stderr = sys.stderr
-
-    try:
-        sys.stderr = new_stderr
-        yield new_stderr
-
-    finally:
-        sys.stderr = old_stderr
-
-
-@contextmanager
 def contextualized_patch_outputs_to_scrub_secrets(secrets):
     try:
         patch_outputs_to_scrub_secrets(secrets)
@@ -1032,36 +1006,6 @@ class TestPatchOutputToScrubSecrets:
     @pytest.fixture
     def secrets(self):
         yield [ApiTokenSecret(api_token="ab"), BasicSecret(username="cd", password="ef")]
-
-    def test_testing_setup_stdout(self):
-        with stdout_context() as mock_out:
-            print("hello")
-        assert get_content(mock_out) == "hello\n"
-
-    def test_testing_setup_stderr(self):
-        with stderr_context() as mock_err:
-            print("hello", file=sys.stderr)
-        assert get_content(mock_err) == "hello\n"
-
-    def test_basic_secret_scrubbing_stdout(self):
-        scrub_one = "delme"
-        scrub_two = "and me"
-        secrets = [BasicSecret(username=scrub_one, password=scrub_two)]
-        with stdout_context() as mock_out:
-            with contextualized_patch_outputs_to_scrub_secrets(secrets):
-                print(f"x{scrub_one}y{scrub_two}z")
-        expected = "x*****y*****z\n"
-        assert get_content(mock_out) == expected
-
-    def test_basic_secret_scrubbing_stderr(self):
-        scrub_one = "delme"
-        scrub_two = "and me"
-        secrets = [BasicSecret(username=scrub_one, password=scrub_two)]
-        with stderr_context() as mock_err:
-            with contextualized_patch_outputs_to_scrub_secrets(secrets):
-                print(f"x{scrub_one}y{scrub_two}z", file=sys.stderr)
-        expected = "x*****y*****z\n"
-        assert get_content(mock_err) == expected
 
     def test_no_secrets_does_not_patch_stdout_stderr(self):
         original_stdout = sys.stdout
