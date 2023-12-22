@@ -56,6 +56,7 @@ from datarobot_drum.custom_task_interfaces.custom_task_interface import (
     CustomTaskInterface,
     secrets_injection_context,
     load_secrets,
+    patch_outputs_to_scrub_secrets,
 )
 
 RUNNING_LANG_MSG = "Running environment language: Python."
@@ -228,6 +229,7 @@ class PythonModelAdapter(AbstractModelAdapter):
         if self.is_custom_task_class:
             self._custom_task_class_instance = self._custom_task_class.load(self._model_dir)
             secrets = load_secrets(user_secrets_mount_path, user_secrets_prefix)
+            patch_outputs_to_scrub_secrets(secrets.values())
             self._custom_task_class_instance.secrets = secrets
             return self._custom_task_class_instance
 
