@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Changed
 - scrub sensitive values from outputs during fit and predict
 
-#### [1.10.17] - 2023-12-08
+#### [1.10.16] - 2023-12-08
 ##### Changed
 - Add support for boolean runtime parameters
 
