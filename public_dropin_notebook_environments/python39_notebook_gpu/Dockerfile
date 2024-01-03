@@ -56,7 +56,7 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     VENV_PATH=${VENV_PATH} \
     PIP_NO_CACHE_DIR=1 \
-    NOTEBOOKS_KERNEL="python
+    NOTEBOOKS_KERNEL="python"
 
 ENV PATH="$VENV_PATH/bin:$PATH" \
   PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
