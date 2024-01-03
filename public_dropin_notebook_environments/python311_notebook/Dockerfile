@@ -58,7 +58,9 @@ RUN microdnf update \
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    VENV_PATH=${VENV_PATH}
+    VENV_PATH=${VENV_PATH} \
+    PIP_NO_CACHE_DIR=1 \
+    NOTEBOOKS_KERNEL="python"
 
 ENV PATH="$VENV_PATH/bin:$PATH" \
   PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
@@ -94,7 +96,7 @@ COPY ./setup-prompt.sh /etc/profile.d/setup-prompt.sh
 RUN microdnf remove microdnf
 
 # additional setup scripts
-COPY ./setup-ssh.sh ./common-user-limits.sh ${WORKDIR}/
+COPY ./setup-ssh.sh ./common-user-limits.sh ./setup-venv.sh ${WORKDIR}/
 
 # Adding SSHD requirements
 RUN chown -R $UNAME:$UNAME ${WORKDIR} ${VENV_PATH} /home/notebooks /etc/ssh /etc/authorized_keys \

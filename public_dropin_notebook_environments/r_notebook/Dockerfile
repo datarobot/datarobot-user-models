@@ -35,8 +35,9 @@ ARG GID
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-  PYTHONPATH="/home/notebooks/storage" \
-    R_LIBS_USER=${WORKDIR}/renv
+    PYTHONPATH="/home/notebooks/storage" \
+    R_LIBS_USER=${WORKDIR}/renv \
+    NOTEBOOKS_KERNEL="r"
 
 EXPOSE 8888
 EXPOSE 8889
@@ -53,10 +54,9 @@ COPY ./setup-base.R ${WORKDIR}/
 
 # Prompt customizations
 COPY ./setup-prompt.sh /etc/profile.d/setup-prompt.sh
-# sshd prep
-COPY ./setup-ssh.sh ${WORKDIR}/
-# set user limits
-COPY ./common-user-limits.sh ${WORKDIR}/
+
+# additional setup scripts
+COPY ./setup-ssh.sh ./common-user-limits.sh ./setup-venv.sh ${WORKDIR}/
 
 # Add any package that will be installed on system level here:
 RUN microdnf update \
