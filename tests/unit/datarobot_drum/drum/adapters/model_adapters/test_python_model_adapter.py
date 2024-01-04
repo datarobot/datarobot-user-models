@@ -9,8 +9,10 @@ import contextlib
 import json
 import logging
 import os
+import random
 import sys
 from dataclasses import dataclass
+import pandas as pd
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Dict, Any
@@ -323,3 +325,80 @@ class TestPythonModelAdapterPrivateHelpers:
             Path(f"{dir_name}/file2.pkl").touch()
             with pytest.raises(DrumCommonException, match="Multiple serialized model files found."):
                 adapter._detect_model_artifact_file()
+
+
+class TestPredictResultSplitter:
+    """
+    Test the method that takes the predict output DataFrame and splits it to predictions DataFrame
+    and extra DataFrame.
+    """
+
+    @pytest.fixture
+    def num_rows(self):
+        return 3
+
+    @pytest.fixture
+    def binary_df(self, num_rows):
+        positive_probabilities = [float(random.random()) for _ in range(num_rows)]
+        negative_probabilities = [1 - v for v in positive_probabilities]
+        return pd.DataFrame({"0": negative_probabilities, "1": positive_probabilities})
+
+    @pytest.fixture
+    def multiclass_df(self, num_rows):
+        class1_values = [0.1 * index for index in range(1, num_rows + 1)]
+        class2_values = [0.2 * index for index in range(1, num_rows + 1)]
+        class3_values = [1 - (c1 + c2) for c1, c2 in zip(class1_values, class2_values)]
+        data = {"class1": class1_values, "class2": class2_values, "class3": class3_values}
+        return pd.DataFrame(data)
+
+    @pytest.fixture
+    def regression_df(self, num_rows):
+        return pd.DataFrame({"Predictions": [random.random() for _ in range(num_rows)]})
+
+    def test_split_result_of_binary_classification(self, binary_df):
+        pred_df, extra_df = PythonModelAdapter._split_to_predictions_and_extra_df(
+            binary_df, request_labels=binary_df.columns.tolist()
+        )
+        assert pred_df.equals(binary_df)
+        assert extra_df is None
+
+    def test_split_result_of_binary_classification_with_extra(self, num_rows, binary_df):
+        in_extra_df = pd.DataFrame({"col1": list(range(num_rows)), "col2": list(range(num_rows))})
+        combined_df = binary_df.join(in_extra_df)
+        pred_df, extra_df = PythonModelAdapter._split_to_predictions_and_extra_df(
+            combined_df, request_labels=binary_df.columns.tolist()
+        )
+        assert pred_df.equals(binary_df)
+        assert extra_df.equals(in_extra_df)
+
+    def test_split_result_of_multiclass(self, multiclass_df):
+        pred_df, extra_df = PythonModelAdapter._split_to_predictions_and_extra_df(
+            multiclass_df, request_labels=multiclass_df.columns.tolist()
+        )
+        assert pred_df.equals(multiclass_df)
+        assert extra_df is None
+
+    def test_split_result_of_multiclass_with_extra(self, num_rows, multiclass_df):
+        in_extra_df = pd.DataFrame({"ext1": list(range(num_rows)), "ext2": list(range(num_rows))})
+        combined_df = multiclass_df.join(in_extra_df)
+        pred_df, extra_df = PythonModelAdapter._split_to_predictions_and_extra_df(
+            combined_df, request_labels=multiclass_df.columns.tolist()
+        )
+        assert pred_df.equals(multiclass_df)
+        assert extra_df.equals(in_extra_df)
+
+    def test_split_result_of_regression(self, regression_df):
+        pred_df, extra_df = PythonModelAdapter._split_to_predictions_and_extra_df(
+            regression_df, request_labels=None
+        )
+        assert pred_df.equals(regression_df)
+        assert extra_df is None
+
+    def test_split_result_of_regression_with_extra(self, num_rows, regression_df):
+        in_extra_df = pd.DataFrame({"ext1": list(range(num_rows)), "ext2": list(range(num_rows))})
+        combined_df = regression_df.join(in_extra_df)
+        pred_df, extra_df = PythonModelAdapter._split_to_predictions_and_extra_df(
+            combined_df, request_labels=None
+        )
+        assert pred_df.equals(regression_df)
+        assert extra_df.equals(in_extra_df)

@@ -130,7 +130,7 @@ class PredictMixin:
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             return {"message": "ERROR: " + str(e)}, response_status
 
-        out_data = self._predictor.predict(
+        out_data, extra_df = self._predictor.predict(
             binary_data=binary_data,
             mimetype=mimetype,
             charset=charset,
@@ -139,16 +139,20 @@ class PredictMixin:
 
         if self._target_type == TargetType.UNSTRUCTURED:
             response = out_data
-
         else:
 
-            def _build_drum_response_json_str(out_data):
+            def _build_drum_response_json_str(out_data, extra_df):
                 if len(out_data.columns) == 1:
                     out_data = out_data[PRED_COLUMN]
                 # df.to_json() is much faster.
                 # But as it returns string, we have to assemble final json using strings.
-                df_json_str = out_data.to_json(orient="records")
-                response = '{{"predictions":{df_json}}}'.format(df_json=df_json_str)
+                predictions_json_str = out_data.to_json(orient="records")
+                if extra_df is not None:
+                    # For best performance we use the 'split' orientation.
+                    extra_json_str = extra_df.to_json(orient="split")
+                    response = f'{{"predictions":{predictions_json_str},"extra":{extra_json_str}}}'
+                else:
+                    response = f'{{"predictions":{predictions_json_str}}}'
                 return response
 
             if self._target_type != TargetType.TEXT_GENERATION:
@@ -159,7 +163,7 @@ class PredictMixin:
                     out_data, self._deployment_config, self._target_type
                 )
             else:
-                response = _build_drum_response_json_str(out_data)
+                response = _build_drum_response_json_str(out_data, extra_df)
 
         response = Response(response, mimetype=PredictionServerMimetypes.APPLICATION_JSON)
 

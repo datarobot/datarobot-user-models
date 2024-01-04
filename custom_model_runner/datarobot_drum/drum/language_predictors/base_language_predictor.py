@@ -131,7 +131,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
 
     def predict(self, **kwargs):
         start_predict = time.time()
-        predictions, labels_in_predictions = self._predict(**kwargs)
+        predictions, labels_in_predictions, extra_df = self._predict(**kwargs)
         predictions = marshal_predictions(
             request_labels=self.class_ordering,
             predictions=predictions,
@@ -141,7 +141,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         end_predict = time.time()
         execution_time_ms = (end_predict - start_predict) * 1000
         self.monitor(kwargs, predictions, execution_time_ms)
-        return predictions
+        return predictions, extra_df
 
     @abstractmethod
     def _predict(self, **kwargs):

@@ -29,20 +29,21 @@ from datarobot_drum.drum.common import (
     reroute_stdout_to_stderr,
     SupportedPayloadFormats,
 )
-from datarobot_drum.drum.data_marshalling import get_request_labels
 from datarobot_drum.drum.data_marshalling import marshal_predictions
+from datarobot_drum.drum.data_marshalling import get_request_labels
 from datarobot_drum.drum.enum import (
     CLASS_LABELS_ARG_KEYWORD,
     CUSTOM_FILE_NAME,
+    CUSTOM_PY_CLASS_NAME,
     CustomHooks,
     LOGGER_NAME_PREFIX,
     ModelInfoKeys,
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
-    PayloadFormat,
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
+    PRED_COLUMN,
+    PayloadFormat,
     StructuredDtoKeys,
     TargetType,
-    CUSTOM_PY_CLASS_NAME,
 )
 from datarobot_drum.drum.exceptions import (
     DrumCommonException,
@@ -539,6 +540,7 @@ class PythonModelAdapter(AbstractModelAdapter):
 
         if request_labels is not None:
             assert all(isinstance(label, str) for label in request_labels)
+        extra_df = None
         if self._custom_hooks.get(CustomHooks.SCORE):
             try:
                 # noinspection PyCallingNonCallable
@@ -548,6 +550,9 @@ class PythonModelAdapter(AbstractModelAdapter):
                     exc, "Model 'score' hook failed to make predictions."
                 )
             self._validate_data(predictions_df, CustomHooks.SCORE)
+            predictions_df, extra_df = self._split_to_predictions_and_extra_df(
+                predictions_df, request_labels
+            )
             predictions = predictions_df.values
             model_labels = predictions_df.columns
         else:
@@ -579,7 +584,27 @@ class PythonModelAdapter(AbstractModelAdapter):
             predictions = predictions_df.values
             model_labels = predictions_df.columns
 
-        return predictions, model_labels
+        return predictions, model_labels, extra_df
+
+    @staticmethod
+    def _split_to_predictions_and_extra_df(result_df, request_labels):
+        if request_labels:
+            # It's Binary or Classification model
+            if len(result_df.columns) > len(request_labels):
+                extra_df = result_df.drop(columns=request_labels)
+                prediction_columns = result_df.columns.difference(extra_df.columns)
+                predictions_df = result_df[prediction_columns]
+            else:
+                extra_df = None
+                predictions_df = result_df
+        else:
+            if len(result_df.columns) > 1:
+                extra_df = result_df.drop(columns=[PRED_COLUMN])
+                predictions_df = result_df[[PRED_COLUMN]]
+            else:
+                extra_df = None
+                predictions_df = result_df
+        return predictions_df, extra_df
 
     def predict(self, model=None, **kwargs):
         """
@@ -601,12 +626,13 @@ class PythonModelAdapter(AbstractModelAdapter):
 
         data = self.preprocess(data, model)
 
+        extra_df = None
         if self.is_custom_task_class:
             predictions, model_labels = self._predict_new_drum(data, **kwargs)
         else:
-            predictions, model_labels = self._predict_legacy_drum(data, model, **kwargs)
+            predictions, model_labels, extra_df = self._predict_legacy_drum(data, model, **kwargs)
 
-        return predictions, model_labels
+        return predictions, model_labels, extra_df
 
     @staticmethod
     def _validate_unstructured_predictions(unstructured_response):

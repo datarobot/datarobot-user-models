@@ -180,8 +180,9 @@ class JavaPredictor(BaseLanguagePredictor):
         else:
             out_csv = self._predictor_via_py4j.predict(input_text_bytes)
 
+        extra_df = None
         out_df = pd.read_csv(StringIO(out_csv))
-        return out_df.values, out_df.columns
+        return out_df.values, out_df.columns, extra_df
 
     def predict_unstructured(self, data, **kwargs):
         mimetype = kwargs.get(UnstructuredDtoKeys.MIMETYPE, "")

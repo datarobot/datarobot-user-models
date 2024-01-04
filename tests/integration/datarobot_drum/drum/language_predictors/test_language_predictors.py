@@ -142,7 +142,7 @@ class TestPythonPredictor(object):
             "read_model_metadata_yaml"
         ) as mock_read_model_metadata_yaml:
             mock_read_model_metadata_yaml.return_value = ""
-            mock_python_model_adapter_predict.return_value = predictions, prediction_labels
+            mock_python_model_adapter_predict.return_value = predictions, prediction_labels, None
 
             init_params = copy.deepcopy(essential_language_predictor_init_params)
             init_params.update(predictor_params)

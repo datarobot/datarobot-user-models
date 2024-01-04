@@ -167,9 +167,10 @@ class RPredictor(BaseLanguagePredictor):
             logger.error(error_message)
             raise DrumCommonException(error_message)
 
+        extra_df = None
         if self.target_type.is_classification():
             predictions = self._replace_sanitized_class_names(predictions)
-        return predictions.values, predictions.columns
+        return predictions.values, predictions.columns, extra_df
 
     # TODO: check test coverage for all possible cases: return None/str/bytes, and casting.
     def predict_unstructured(self, data, **kwargs):

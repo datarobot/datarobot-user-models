@@ -11,7 +11,7 @@ from unittest.mock import patch, Mock
 
 import pytest
 
-from datarobot_drum.drum.enum import TargetType
+from datarobot_drum.drum.enum import TargetType, ArgumentsOptions
 from datarobot_drum.resource.drum_server_utils import DrumServerRun, DrumServerProcess
 
 
@@ -28,7 +28,8 @@ class TestDrumServerRunGetCommand:
         runner = DrumServerRun(target_type, labels, custom_model_dir)
 
         expected = (
-            f"drum server --logging-level=warning --code-dir {custom_model_dir} --target-type {target_type} "
+            f"{ArgumentsOptions.MAIN_COMMAND} server --logging-level=warning "
+            f"--code-dir {custom_model_dir} --target-type {target_type} "
             f"--address {runner.server_address} --show-stacktrace --verbose"
         )
 
@@ -43,9 +44,10 @@ class TestDrumServerRunGetCommand:
         runner = DrumServerRun(target_type, labels, custom_model_dir)
 
         expected = (
-            f"drum server --logging-level=warning --code-dir {custom_model_dir} --target-type {target_type} "
-            f"--address {runner.server_address} --positive-class-label '{positive_class_label}' "
-            f"--negative-class-label '{negative_class_label}' --show-stacktrace --verbose"
+            f"{ArgumentsOptions.MAIN_COMMAND} server --logging-level=warning --code-dir "
+            f"{custom_model_dir} --target-type {target_type} --address {runner.server_address} "
+            f"--positive-class-label '{positive_class_label}' --negative-class-label "
+            f"'{negative_class_label}' --show-stacktrace --verbose"
         )
 
         assert runner.get_command() == expected
@@ -58,9 +60,9 @@ class TestDrumServerRunGetCommand:
         runner = DrumServerRun(target_type, labels, custom_model_dir)
 
         expected = (
-            f"drum server --logging-level=warning --code-dir {custom_model_dir} --target-type {target_type} "
-            f"--address {runner.server_address} --class-labels {expected_labels} "
-            f"--show-stacktrace --verbose"
+            f"{ArgumentsOptions.MAIN_COMMAND} server --logging-level=warning --code-dir "
+            f"{custom_model_dir} --target-type {target_type} --address {runner.server_address} "
+            f"--class-labels {expected_labels} --show-stacktrace --verbose"
         )
 
         assert runner.get_command() == expected
@@ -74,8 +76,9 @@ class TestDrumServerRunGetCommand:
         runner = DrumServerRun(target_type, labels, custom_model_dir)
 
         expected = (
-            f"drum server --logging-level=warning --code-dir {custom_model_dir} --target-type {target_type} "
-            f"--address {runner.server_address} --show-stacktrace --verbose"
+            f"{ArgumentsOptions.MAIN_COMMAND} server --logging-level=warning --code-dir "
+            f"{custom_model_dir} --target-type {target_type} --address {runner.server_address} "
+            "--show-stacktrace --verbose"
         )
 
         assert runner.get_command() == expected
@@ -90,9 +93,9 @@ class TestDrumServerRunGetCommand:
         )
 
         expected = (
-            f"drum server --logging-level=warning --code-dir {custom_model_dir} --target-type {target_type} "
-            f"--address {runner.server_address} --show-stacktrace --verbose "
-            f"--user-secrets-mount-path {user_secrets_mount_path}"
+            f"{ArgumentsOptions.MAIN_COMMAND} server --logging-level=warning --code-dir "
+            f"{custom_model_dir} --target-type {target_type} --address {runner.server_address} "
+            f"--show-stacktrace --verbose --user-secrets-mount-path {user_secrets_mount_path}"
         )
 
         assert runner.get_command() == expected

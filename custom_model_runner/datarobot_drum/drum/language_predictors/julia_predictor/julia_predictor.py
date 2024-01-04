@@ -91,6 +91,7 @@ class JlPredictor(BaseLanguagePredictor):
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
 
+        extra_df = None
         predictions = Main.outer_predict(
             self.target_type.value,
             binary_data=input_binary_data,
@@ -101,7 +102,7 @@ class JlPredictor(BaseLanguagePredictor):
             class_labels=self.class_labels,
         )
 
-        return predictions.values, predictions.columns
+        return predictions.values, predictions.columns, extra_df
 
     # # TODO: check test coverage for all possible cases: return None/str/bytes, and casting.
     def predict_unstructured(self, data, **kwargs):
