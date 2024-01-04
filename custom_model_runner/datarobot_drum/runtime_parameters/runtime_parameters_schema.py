@@ -84,6 +84,7 @@ RuntimeParameterDefinitionTrafaret = t.Dict(
     {
         t.Key("fieldName", to_name="name"): t.String,
         t.Key("type"): NativeEnumTrafaret(RuntimeParameterTypes),
+        t.Key("allowEmpty", optional=True, default=True, to_name="allow_empty"): t.Bool,
         t.Key("defaultValue", optional=True, default=None, to_name="default"): t.Any,
         t.Key("minValue", optional=True, default=None, to_name="min_value"): t.Float | t.Null,
         t.Key("maxValue", optional=True, default=None, to_name="max_value"): t.Float | t.Null,

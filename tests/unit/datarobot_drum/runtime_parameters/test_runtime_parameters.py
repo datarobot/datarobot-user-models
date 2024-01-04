@@ -145,6 +145,7 @@ class TestRuntimeParametersLoader:
                 "minValue": 0,
                 "maxValue": 100,
             },
+            {"fieldName": "MANDATORY_STR_PARAM", "type": "string", "allowEmpty": False},
             {"fieldName": "S3_CRED_PARAM", "type": "credential", "description": "a secret"},
             {"fieldName": "OTHER_CRED_PARAM", "type": "credential", "defaultValue": None},
         ]

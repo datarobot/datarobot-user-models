@@ -26,6 +26,7 @@ runtimeParameterDefinitions:
   - fieldName: number1
     type: numeric
     defaultValue: 0
+    allowEmpty: False
     minValue: -100
     maxValue: 100
 

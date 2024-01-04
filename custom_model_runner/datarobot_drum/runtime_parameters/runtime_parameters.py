@@ -110,7 +110,7 @@ class RuntimeParametersLoader:
     """
 
     ParameterDefinition = namedtuple(
-        "ParameterDefinition", ["name", "type", "default", "min_value", "max_value"]
+        "ParameterDefinition", ["name", "type", "default", "allow_empty", "min_value", "max_value"]
     )
 
     def __init__(self, values_filepath, code_dir):
