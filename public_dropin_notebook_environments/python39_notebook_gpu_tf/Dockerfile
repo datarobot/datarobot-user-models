@@ -82,7 +82,7 @@ RUN groupadd -g $GID -o $UNAME && \
 COPY ./setup-prompt.sh /etc/profile.d/setup-prompt.sh
 
 # additional setup scripts
-COPY ./setup-ssh.sh ./common-user-limits.sh ${WORKDIR}/
+COPY ./setup-ssh.sh ./common-user-limits.sh ./setup-venv.sh ${WORKDIR}/
 
 # Adding SSHD requirements
 RUN chown -R $UNAME:$UNAME ${WORKDIR} ${VENV_PATH} /home/notebooks /etc/ssh /etc/authorized_keys \
