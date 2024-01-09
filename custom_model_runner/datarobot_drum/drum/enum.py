@@ -18,6 +18,9 @@ LOGGER_NAME_PREFIX = "drum"
 PRED_COLUMN = "Predictions"
 
 
+EXTRA_MODEL_OUTPUT_COLUMN = "extraModelOutput"
+
+
 CUSTOM_FILE_NAME = "custom"
 
 
@@ -342,6 +345,9 @@ class TargetType(Enum):
 
     def is_classification(self):
         return self in [self.BINARY, self.MULTICLASS]
+
+    def is_text_generation_type(self):
+        return self == self.TEXT_GENERATION
 
     def is_single_column(self):
         return self in [self.REGRESSION, self.ANOMALY, self.TEXT_GENERATION]

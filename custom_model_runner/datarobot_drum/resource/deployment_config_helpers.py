@@ -7,7 +7,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import json
 
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.enum import TargetType
+from datarobot_drum.drum.enum import TargetType, PRED_COLUMN, EXTRA_MODEL_OUTPUT_COLUMN
 
 
 def parse_validate_deployment_config_file(filename):
@@ -107,9 +107,19 @@ def map_binary_prediction(row, index, target_info, class_names):
 
 
 def map_text_generation_prediction(row, index, target_info, class_names):
-    pred_value = row.iloc[0]
-    return {
-        "prediction": pred_value,
-        "predictionValues": [{"label": target_info["name"], "value": pred_value}],
-        "rowId": index,
-    }
+    if len(row) == 2:
+        pred_value = row[PRED_COLUMN]
+        extra_model_output = row[EXTRA_MODEL_OUTPUT_COLUMN]
+        return {
+            "prediction": pred_value,
+            "predictionValues": [{"label": target_info["name"], "value": pred_value}],
+            "rowId": index,
+            "extraModelOutput": extra_model_output,
+        }
+    else:
+        pred_value = row.iloc[0]
+        return {
+            "prediction": pred_value,
+            "predictionValues": [{"label": target_info["name"], "value": pred_value}],
+            "rowId": index,
+        }

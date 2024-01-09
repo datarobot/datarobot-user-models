@@ -115,7 +115,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             # Classification: [[0.5, 0.5], [0.7, 03]]
             # In case of classification, class names are also required
             class_names = None
-            if len(predictions.columns) == 1:
+            if len(predictions.columns) == 1 or self.target_type.TEXT_GENERATION:
                 mlops_predictions = predictions[predictions.columns[0]].tolist()
             else:
                 mlops_predictions = predictions.values.tolist()

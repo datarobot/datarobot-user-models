@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import pandas as pd
 import werkzeug
 from flask import request, Response
 from requests_toolbelt import MultipartEncoder
@@ -11,6 +12,7 @@ from requests_toolbelt import MultipartEncoder
 from datarobot_drum.drum.enum import (
     PredictionServerMimetypes,
     PRED_COLUMN,
+    EXTRA_MODEL_OUTPUT_COLUMN,
     SPARSE_COLNAMES,
     TargetType,
     UnstructuredDtoKeys,
@@ -145,6 +147,13 @@ class PredictMixin:
             def _build_drum_response_json_str(out_data):
                 if len(out_data.columns) == 1:
                     out_data = out_data[PRED_COLUMN]
+                elif len(out_data.columns) == 2 and self._target_type == TargetType.TEXT_GENERATION:
+                    out_data = pd.DataFrame(
+                        {
+                            "predictions": out_data[PRED_COLUMN],
+                            "extraModelOutput": out_data[EXTRA_MODEL_OUTPUT_COLUMN],
+                        }
+                    )
                 # df.to_json() is much faster.
                 # But as it returns string, we have to assemble final json using strings.
                 df_json_str = out_data.to_json(orient="records")

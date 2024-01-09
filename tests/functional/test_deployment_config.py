@@ -249,6 +249,35 @@ class TestDeploymentConfig:
             assert pred_item["predictionValues"][0]["label"] == config["target"]["name"]
             assert pred_item["predictionValues"][0]["value"] == row[0]
 
+    def test_map_text_generation_prediction__extra_model_output(self):
+        predictions = ["Completion1", "Completion2", "Completion3"]
+        extra_model_output = ["Extra1", "Extra2", "Extra3"]
+        d = {"Predictions": predictions, "extraModelOutput": extra_model_output}
+        df = pd.DataFrame(data=d)
+        config = parse_validate_deployment_config_file(self.deployment_config_text_generation)
+        assert config["target"]["name"] == config["target"]["name"]
+        assert config["target"]["type"] == "textgeneration"
+
+        response = build_pps_response_json_str(df, config, TargetType.TEXT_GENERATION)
+        response_json = json.loads(response)
+        assert isinstance(response_json, dict)
+        assert "data" in response_json
+        predictions_list = response_json["data"]
+        assert isinstance(predictions_list, list)
+        assert len(predictions_list) == df.shape[0]
+
+        pred_iter = iter(predictions_list)
+        for index, row in df.iterrows():
+            pred_item = next(pred_iter)
+            assert isinstance(pred_item, dict)
+            assert pred_item["rowId"] == index
+            assert pred_item["prediction"] == row[0]
+            assert pred_item["extraModelOutput"] == row[1]
+            assert isinstance(pred_item["predictionValues"], list)
+            assert len(pred_item["predictionValues"]) == 1
+            assert pred_item["predictionValues"][0]["label"] == config["target"]["name"]
+            assert pred_item["predictionValues"][0]["value"] == row[0]
+
     @pytest.mark.parametrize(
         "framework, problem, language, deployment_config",
         [

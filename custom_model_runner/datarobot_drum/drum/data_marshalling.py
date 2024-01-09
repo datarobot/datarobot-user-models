@@ -13,6 +13,7 @@ import pandas as pd
 
 from datarobot_drum.drum.common import TargetType
 from datarobot_drum.drum.enum import (
+    EXTRA_MODEL_OUTPUT_COLUMN,
     LOGGER_NAME_PREFIX,
     PRED_COLUMN,
 )
@@ -38,6 +39,8 @@ def marshal_predictions(
     predictions = _validate_dimensionality_and_type(predictions)
     if target_type.is_classification():
         return _classification_marshal_preds(predictions, request_labels, model_labels)
+    elif target_type.is_text_generation_type():
+        return _text_generation_marshal_preds(predictions)
     elif target_type.is_single_column():
         return _single_col_marshal_preds(predictions)
     return predictions
@@ -105,6 +108,19 @@ def _single_col_marshal_preds(predictions):
     return pd.DataFrame(predictions, columns=[PRED_COLUMN])
 
 
+def _text_generation_marshal_preds(predictions):
+    if predictions.shape[1] == 1:
+        return pd.DataFrame(predictions, columns=[PRED_COLUMN])
+    elif predictions.shape[1] == 2:
+        return pd.DataFrame(predictions, columns=[PRED_COLUMN, EXTRA_MODEL_OUTPUT_COLUMN])
+    else:
+        raise DrumCommonException(
+            f"Text Generation must contain 1 column with predictions "
+            f"or 2 columns with predictions and extra model output. "
+            f"Your output have {predictions.shape[1]} columns"
+        )
+
+
 def _validate_dimensionality_and_type(predictions):
     if not isinstance(predictions, np.ndarray):
         raise DrumCommonException(
@@ -122,7 +138,7 @@ def _validate_dimensionality_and_type(predictions):
 def _validate_predictions_are_one_dimensional(predictions):
     if predictions.shape[1] != 1:
         raise DrumCommonException(
-            f"Regression, Text Generation and anomaly predictions must contain only 1 column. "
+            f"Regression and anomaly predictions must contain only 1 column. "
             f"Your predictions have {predictions.shape[1]} columns"
         )
 

@@ -15,7 +15,7 @@ from datarobot_drum.drum.data_marshalling import (
     _order_by_float,
     marshal_predictions,
 )
-from datarobot_drum.drum.enum import TargetType, PRED_COLUMN
+from datarobot_drum.drum.enum import EXTRA_MODEL_OUTPUT_COLUMN, TargetType, PRED_COLUMN
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 
@@ -136,6 +136,20 @@ def test_marshal_predictions_reshape_text_generation_happy():
     assert res.equals(pd.DataFrame({PRED_COLUMN: preds}))
 
 
+def test_marshal_predictions_text_generation_externa_model_output():
+    preds = np.array([["pred_1", "extra_1"], ["pred_2", "extra_2"]])
+
+    labels = None
+    res = marshal_predictions(
+        request_labels=labels, predictions=preds, target_type=TargetType.TEXT_GENERATION
+    )
+    assert res.equals(
+        pd.DataFrame(
+            {PRED_COLUMN: ["pred_1", "pred_2"], EXTRA_MODEL_OUTPUT_COLUMN: ["extra_1", "extra_2"]}
+        )
+    )
+
+
 def test_marshal_predictions_text_generation_invalid_dtype():
     # A (2,2,2) predictions are not valid text gen predictions
     preds = np.array([[["a", "b"], ["c", "d"]], [["e", "f"], ["g", "h"]]])
@@ -147,6 +161,15 @@ def test_marshal_predictions_text_generation_invalid_dtype():
             request_labels=labels, predictions="a", target_type=TargetType.TEXT_GENERATION
         )
     with pytest.raises(DrumCommonException, match="predictions must return a 2 dimensional array"):
+        marshal_predictions(
+            request_labels=labels, predictions=preds, target_type=TargetType.TEXT_GENERATION
+        )
+
+    preds = np.array([["pred_1", "metadata_1", "extra_col"], ["pred_2", "metadata_2", "extra_col"]])
+    with pytest.raises(
+        DrumCommonException,
+        match="Text Generation must contain 1 column with predictions or 2 columns with predictions and extra model output",
+    ):
         marshal_predictions(
             request_labels=labels, predictions=preds, target_type=TargetType.TEXT_GENERATION
         )
