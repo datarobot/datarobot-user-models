@@ -194,7 +194,7 @@ def test_sklearn_predictor_wrong_dtype_labels(data_dtype, label_dtype):
     estimator.fit(X, y)
     adapter = PythonModelAdapter(model_dir=None, target_type=TargetType.BINARY)
     adapter._predictor_to_use = SKLearnPredictor()
-    preds, cols = adapter.predict(
+    raw_predict_response = adapter.predict(
         estimator,
         positive_class_label=str(label_dtype(0)),
         negative_class_label=str(label_dtype(1)),
@@ -203,6 +203,6 @@ def test_sklearn_predictor_wrong_dtype_labels(data_dtype, label_dtype):
     )
     marshalled_cols = _marshal_labels(
         request_labels=[str(label_dtype(1)), str(label_dtype(0))],
-        model_labels=cols,
+        model_labels=raw_predict_response.columns,
     )
     assert marshalled_cols == [str(label_dtype(0)), str(label_dtype(1))]

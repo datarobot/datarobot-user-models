@@ -8,9 +8,13 @@ import logging
 import os
 import time
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Optional, List
 
+import pandas as pd
+
 from datarobot_drum.drum.adapters.cli.shared.drum_class_label_adapter import DrumClassLabelAdapter
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
 from datarobot_drum.drum.common import read_model_metadata_yaml, to_bool
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
@@ -32,6 +36,20 @@ try:
     mlops_loaded = True
 except ImportError as e:
     mlops_import_error = "Error importing MLOps python module: {}".format(e)
+
+
+@dataclass
+class PredictResponse:
+    predictions: pd.DataFrame
+    passthrough_df: Optional[pd.DataFrame] = None
+
+    @property
+    def combined_dataframe(self):
+        return (
+            self.predictions
+            if self.passthrough_df is None
+            else self.predictions.join(self.passthrough_df)
+        )
 
 
 class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
@@ -129,22 +147,22 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                 features_df=df, predictions=mlops_predictions, class_names=class_names
             )
 
-    def predict(self, **kwargs):
+    def predict(self, **kwargs) -> PredictResponse:
         start_predict = time.time()
-        predictions, labels_in_predictions = self._predict(**kwargs)
-        predictions = marshal_predictions(
+        raw_predict_response = self._predict(**kwargs)
+        predictions_df = marshal_predictions(
             request_labels=self.class_ordering,
-            predictions=predictions,
+            predictions=raw_predict_response.predictions,
             target_type=self.target_type,
-            model_labels=labels_in_predictions,
+            model_labels=raw_predict_response.columns,
         )
         end_predict = time.time()
         execution_time_ms = (end_predict - start_predict) * 1000
-        self.monitor(kwargs, predictions, execution_time_ms)
-        return predictions
+        self.monitor(kwargs, predictions_df, execution_time_ms)
+        return PredictResponse(predictions_df, raw_predict_response.passthrough_df)
 
     @abstractmethod
-    def _predict(self, **kwargs):
+    def _predict(self, **kwargs) -> RawPredictResponse:
         """Predict on input_filename or binary_data"""
         pass
 

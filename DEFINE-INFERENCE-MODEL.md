@@ -111,8 +111,8 @@ include any necessary hooks in a file called `custom.py` for Python models,`cust
         - `positive_class_label` for the positive class label
         - `negative_class_label` for the negative class label
     - This method should return predictions as a dataframe with the following format:
-        - Binary classification: requires columns for each class label with floating-point class probabilities as values. Each row
-          should sum to 1.0.
+        - Binary/Multiclass classification: requires columns for each class label with
+          floating-point class probabilities as values. All these rows should sum up to 1.0.
         - Regression: requires a single column named `Predictions` with numerical values.
     - This hook is only needed if you would like to use DRUM with a framework not natively supported by the tool.
 - `post_process(predictions: DataFrame, model: Any) -> DataFrame`

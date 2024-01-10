@@ -8,12 +8,15 @@ import logging
 import os
 import sys
 import textwrap
+from dataclasses import dataclass
 from inspect import signature
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 from typing import NoReturn
 
+import numpy as np
 import pandas as pd
+from pandas.core.indexes.base import Index
 from scipy.sparse import issparse
 
 from datarobot_drum.drum.adapters.model_adapters.abstract_model_adapter import AbstractModelAdapter
@@ -29,20 +32,21 @@ from datarobot_drum.drum.common import (
     reroute_stdout_to_stderr,
     SupportedPayloadFormats,
 )
-from datarobot_drum.drum.data_marshalling import get_request_labels
 from datarobot_drum.drum.data_marshalling import marshal_predictions
+from datarobot_drum.drum.data_marshalling import get_request_labels
 from datarobot_drum.drum.enum import (
     CLASS_LABELS_ARG_KEYWORD,
     CUSTOM_FILE_NAME,
+    CUSTOM_PY_CLASS_NAME,
     CustomHooks,
     LOGGER_NAME_PREFIX,
     ModelInfoKeys,
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
-    PayloadFormat,
     POSITIVE_CLASS_LABEL_ARG_KEYWORD,
+    PRED_COLUMN,
+    PayloadFormat,
     StructuredDtoKeys,
     TargetType,
-    CUSTOM_PY_CLASS_NAME,
 )
 from datarobot_drum.drum.exceptions import (
     DrumCommonException,
@@ -64,6 +68,13 @@ RUNNING_LANG_MSG = "Running environment language: Python."
 
 class DrumPythonModelAdapterError(DrumException):
     """Raised in case of error in PythonModelAdapter"""
+
+
+@dataclass
+class RawPredictResponse:
+    predictions: np.ndarray
+    columns: Optional[Union[Index, np.ndarray]] = None
+    passthrough_df: Optional[pd.DataFrame] = None
 
 
 class PythonModelAdapter(AbstractModelAdapter):
@@ -513,18 +524,18 @@ class PythonModelAdapter(AbstractModelAdapter):
     def has_read_input_data_hook(self):
         return self._custom_hooks.get(CustomHooks.READ_INPUT_DATA) is not None
 
-    def _predict_new_drum(self, data, **kwargs):
+    def _predict_new_drum(self, data, **kwargs) -> RawPredictResponse:
         try:
             if self._target_type in {TargetType.BINARY, TargetType.MULTICLASS}:
                 predictions_df = self._custom_task_class_instance.predict_proba(data, **kwargs)
             else:
                 predictions_df = self._custom_task_class_instance.predict(data, **kwargs)
             self._validate_data(predictions_df, CustomHooks.SCORE)
-            return predictions_df.values, predictions_df.columns
+            return RawPredictResponse(predictions_df.values, predictions_df.columns)
         except Exception as exc:
             self._log_and_raise_final_error(exc, "Model 'score' hook failed to make predictions.")
 
-    def _predict_legacy_drum(self, data, model, **kwargs):
+    def _predict_legacy_drum(self, data, model, **kwargs) -> RawPredictResponse:
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
         request_labels = (
@@ -539,6 +550,7 @@ class PythonModelAdapter(AbstractModelAdapter):
 
         if request_labels is not None:
             assert all(isinstance(label, str) for label in request_labels)
+        passthrough_df = None
         if self._custom_hooks.get(CustomHooks.SCORE):
             try:
                 # noinspection PyCallingNonCallable
@@ -548,6 +560,9 @@ class PythonModelAdapter(AbstractModelAdapter):
                     exc, "Model 'score' hook failed to make predictions."
                 )
             self._validate_data(predictions_df, CustomHooks.SCORE)
+            predictions_df, passthrough_df = self._split_to_predictions_and_passthrough_df(
+                predictions_df, request_labels
+            )
             predictions = predictions_df.values
             model_labels = predictions_df.columns
         else:
@@ -579,9 +594,29 @@ class PythonModelAdapter(AbstractModelAdapter):
             predictions = predictions_df.values
             model_labels = predictions_df.columns
 
-        return predictions, model_labels
+        return RawPredictResponse(predictions, model_labels, passthrough_df)
 
-    def predict(self, model=None, **kwargs):
+    @staticmethod
+    def _split_to_predictions_and_passthrough_df(result_df, request_labels):
+        if request_labels:
+            # It's Binary or Classification model
+            if len(result_df.columns) > len(request_labels):
+                passthrough_df = result_df.drop(columns=request_labels)
+                prediction_columns = result_df.columns.difference(passthrough_df.columns)
+                predictions_df = result_df[prediction_columns]
+            else:
+                passthrough_df = None
+                predictions_df = result_df
+        else:
+            if len(result_df.columns) > 1:
+                passthrough_df = result_df.drop(columns=[PRED_COLUMN])
+                predictions_df = result_df[[PRED_COLUMN]]
+            else:
+                passthrough_df = None
+                predictions_df = result_df
+        return predictions_df, passthrough_df
+
+    def predict(self, model=None, **kwargs) -> RawPredictResponse:
         """
         Makes predictions against the model using the custom predict
         Parameters
@@ -591,7 +626,7 @@ class PythonModelAdapter(AbstractModelAdapter):
         kwargs
         Returns
         -------
-        np.array, list(str)
+        RawPredictResponse
         """
         data = self.load_data(
             binary_data=kwargs.get(StructuredDtoKeys.BINARY_DATA),
@@ -602,11 +637,9 @@ class PythonModelAdapter(AbstractModelAdapter):
         data = self.preprocess(data, model)
 
         if self.is_custom_task_class:
-            predictions, model_labels = self._predict_new_drum(data, **kwargs)
+            return self._predict_new_drum(data, **kwargs)
         else:
-            predictions, model_labels = self._predict_legacy_drum(data, model, **kwargs)
-
-        return predictions, model_labels
+            return self._predict_legacy_drum(data, model, **kwargs)
 
     @staticmethod
     def _validate_unstructured_predictions(unstructured_response):

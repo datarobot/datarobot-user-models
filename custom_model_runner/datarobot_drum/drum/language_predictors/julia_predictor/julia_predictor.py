@@ -7,6 +7,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import logging
 import os
 
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
 from datarobot_drum.drum.common import SupportedPayloadFormats
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
@@ -85,7 +86,7 @@ class JlPredictor(BaseLanguagePredictor):
     def has_read_input_data_hook(self):
         return Main.defined_hooks["read_input_data"]
 
-    def _predict(self, **kwargs):
+    def _predict(self, **kwargs) -> RawPredictResponse:
         from julia import Main
 
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
@@ -101,7 +102,7 @@ class JlPredictor(BaseLanguagePredictor):
             class_labels=self.class_labels,
         )
 
-        return predictions.values, predictions.columns
+        return RawPredictResponse(predictions.values, predictions.columns)
 
     # # TODO: check test coverage for all possible cases: return None/str/bytes, and casting.
     def predict_unstructured(self, data, **kwargs):
