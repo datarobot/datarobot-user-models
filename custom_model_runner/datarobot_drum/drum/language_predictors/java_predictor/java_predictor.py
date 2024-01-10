@@ -21,6 +21,7 @@ import tempfile
 from io import StringIO
 from contextlib import closing
 
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
 from datarobot_drum.drum.common import SupportedPayloadFormats
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
@@ -32,7 +33,6 @@ from datarobot_drum.drum.enum import (
 )
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.utils.drum_utils import DrumUtils
 
 from py4j.java_gateway import GatewayParameters, CallbackServerParameters, JavaGateway
 from py4j.java_collections import MapConverter
@@ -166,7 +166,7 @@ class JavaPredictor(BaseLanguagePredictor):
     def has_read_input_data_hook(self):
         return False
 
-    def _predict(self, **kwargs):
+    def _predict(self, **kwargs) -> RawPredictResponse:
         input_text_bytes = kwargs.get(StructuredDtoKeys.BINARY_DATA)
 
         # If data size is more than 33K, pass it as a file to Java,
@@ -180,9 +180,8 @@ class JavaPredictor(BaseLanguagePredictor):
         else:
             out_csv = self._predictor_via_py4j.predict(input_text_bytes)
 
-        extra_df = None
         out_df = pd.read_csv(StringIO(out_csv))
-        return out_df.values, out_df.columns, extra_df
+        return RawPredictResponse(out_df.values, out_df.columns)
 
     def predict_unstructured(self, data, **kwargs):
         mimetype = kwargs.get(UnstructuredDtoKeys.MIMETYPE, "")

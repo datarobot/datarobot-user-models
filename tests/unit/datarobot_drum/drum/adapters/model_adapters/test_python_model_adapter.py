@@ -356,49 +356,55 @@ class TestPredictResultSplitter:
         return pd.DataFrame({"Predictions": [random.random() for _ in range(num_rows)]})
 
     def test_split_result_of_binary_classification(self, binary_df):
-        pred_df, extra_df = PythonModelAdapter._split_to_predictions_and_extra_df(
+        pred_df, passthrough_df = PythonModelAdapter._split_to_predictions_and_passthrough_df(
             binary_df, request_labels=binary_df.columns.tolist()
         )
         assert pred_df.equals(binary_df)
-        assert extra_df is None
+        assert passthrough_df is None
 
     def test_split_result_of_binary_classification_with_extra(self, num_rows, binary_df):
-        in_extra_df = pd.DataFrame({"col1": list(range(num_rows)), "col2": list(range(num_rows))})
-        combined_df = binary_df.join(in_extra_df)
-        pred_df, extra_df = PythonModelAdapter._split_to_predictions_and_extra_df(
+        in_passthrough_df = pd.DataFrame(
+            {"col1": list(range(num_rows)), "col2": list(range(num_rows))}
+        )
+        combined_df = binary_df.join(in_passthrough_df)
+        pred_df, passthrough_df = PythonModelAdapter._split_to_predictions_and_passthrough_df(
             combined_df, request_labels=binary_df.columns.tolist()
         )
         assert pred_df.equals(binary_df)
-        assert extra_df.equals(in_extra_df)
+        assert passthrough_df.equals(in_passthrough_df)
 
     def test_split_result_of_multiclass(self, multiclass_df):
-        pred_df, extra_df = PythonModelAdapter._split_to_predictions_and_extra_df(
+        pred_df, passthrough_df = PythonModelAdapter._split_to_predictions_and_passthrough_df(
             multiclass_df, request_labels=multiclass_df.columns.tolist()
         )
         assert pred_df.equals(multiclass_df)
-        assert extra_df is None
+        assert passthrough_df is None
 
     def test_split_result_of_multiclass_with_extra(self, num_rows, multiclass_df):
-        in_extra_df = pd.DataFrame({"ext1": list(range(num_rows)), "ext2": list(range(num_rows))})
-        combined_df = multiclass_df.join(in_extra_df)
-        pred_df, extra_df = PythonModelAdapter._split_to_predictions_and_extra_df(
+        in_passthrough_df = pd.DataFrame(
+            {"ext1": list(range(num_rows)), "ext2": list(range(num_rows))}
+        )
+        combined_df = multiclass_df.join(in_passthrough_df)
+        pred_df, passthrough_df = PythonModelAdapter._split_to_predictions_and_passthrough_df(
             combined_df, request_labels=multiclass_df.columns.tolist()
         )
         assert pred_df.equals(multiclass_df)
-        assert extra_df.equals(in_extra_df)
+        assert passthrough_df.equals(in_passthrough_df)
 
     def test_split_result_of_regression(self, regression_df):
-        pred_df, extra_df = PythonModelAdapter._split_to_predictions_and_extra_df(
+        pred_df, passthrough_df = PythonModelAdapter._split_to_predictions_and_passthrough_df(
             regression_df, request_labels=None
         )
         assert pred_df.equals(regression_df)
-        assert extra_df is None
+        assert passthrough_df is None
 
     def test_split_result_of_regression_with_extra(self, num_rows, regression_df):
-        in_extra_df = pd.DataFrame({"ext1": list(range(num_rows)), "ext2": list(range(num_rows))})
-        combined_df = regression_df.join(in_extra_df)
-        pred_df, extra_df = PythonModelAdapter._split_to_predictions_and_extra_df(
+        in_passthrough_df = pd.DataFrame(
+            {"ext1": list(range(num_rows)), "ext2": list(range(num_rows))}
+        )
+        combined_df = regression_df.join(in_passthrough_df)
+        pred_df, passthrough_df = PythonModelAdapter._split_to_predictions_and_passthrough_df(
             combined_df, request_labels=None
         )
         assert pred_df.equals(regression_df)
-        assert extra_df.equals(in_extra_df)
+        assert passthrough_df.equals(in_passthrough_df)

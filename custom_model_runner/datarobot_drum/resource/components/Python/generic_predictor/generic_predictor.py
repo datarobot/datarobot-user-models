@@ -131,13 +131,12 @@ class GenericPredictorComponent(ConnectableComponent):
             transformed_df = transformed_output[0]
             transformed_df.to_csv(output_filename, index=False)
         else:
-            predictions, extra_df = self._predictor.predict(
+            predict_response = self._predictor.predict(
                 binary_data=self.cli_adapter.input_binary_data,
                 mimetype=self.cli_adapter.input_binary_mimetype,
                 sparse_colnames=self.cli_adapter.sparse_column_names,
             )
-            combined_df = predictions if extra_df is None else predictions.join(extra_df)
-            combined_df.to_csv(output_filename, index=False)
+            predict_response.combined_dataframe.to_csv(output_filename, index=False)
         return []
 
     def terminate(self):

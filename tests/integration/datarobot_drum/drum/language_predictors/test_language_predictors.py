@@ -23,7 +23,10 @@ from datarobot_drum.drum.language_predictors.python_predictor.python_predictor i
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumSerializationError
 from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import JavaPredictor
-from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
+    PythonModelAdapter,
+    RawPredictResponse,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -142,7 +145,9 @@ class TestPythonPredictor(object):
             "read_model_metadata_yaml"
         ) as mock_read_model_metadata_yaml:
             mock_read_model_metadata_yaml.return_value = ""
-            mock_python_model_adapter_predict.return_value = predictions, prediction_labels, None
+            mock_python_model_adapter_predict.return_value = RawPredictResponse(
+                predictions, prediction_labels
+            )
 
             init_params = copy.deepcopy(essential_language_predictor_init_params)
             init_params.update(predictor_params)

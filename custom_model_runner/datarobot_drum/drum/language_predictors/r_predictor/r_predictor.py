@@ -10,6 +10,7 @@ import os
 import pandas as pd
 from scipy.sparse import coo_matrix
 
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
 from datarobot_drum.drum.common import SupportedPayloadFormats
 from datarobot_drum.drum.enum import (
     CustomHooks,
@@ -139,7 +140,7 @@ class RPredictor(BaseLanguagePredictor):
 
         return predictions
 
-    def _predict(self, **kwargs):
+    def _predict(self, **kwargs) -> RawPredictResponse:
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         mimetype = kwargs.get(StructuredDtoKeys.MIMETYPE)
         with capture_R_traceback_if_errors(r_handler, logger):
@@ -167,10 +168,9 @@ class RPredictor(BaseLanguagePredictor):
             logger.error(error_message)
             raise DrumCommonException(error_message)
 
-        extra_df = None
         if self.target_type.is_classification():
             predictions = self._replace_sanitized_class_names(predictions)
-        return predictions.values, predictions.columns, extra_df
+        return RawPredictResponse(predictions.values, predictions.columns)
 
     # TODO: check test coverage for all possible cases: return None/str/bytes, and casting.
     def predict_unstructured(self, data, **kwargs):

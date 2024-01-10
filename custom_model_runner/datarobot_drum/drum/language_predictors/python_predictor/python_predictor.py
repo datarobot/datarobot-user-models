@@ -10,6 +10,7 @@ import shutil
 import sys
 
 import datarobot as dr
+
 from datarobot_drum.drum.common import to_bool
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
@@ -18,7 +19,10 @@ from datarobot_drum.drum.enum import (
     CLASS_LABELS_ARG_KEYWORD,
     TARGET_TYPE_ARG_KEYWORD,
 )
-from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
+    PythonModelAdapter,
+    RawPredictResponse,
+)
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.language_predictors.base_language_predictor import mlops_loaded
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumSerializationError
@@ -103,7 +107,7 @@ class PythonPredictor(BaseLanguagePredictor):
     def has_read_input_data_hook(self):
         return self._model_adapter.has_read_input_data_hook()
 
-    def _predict(self, **kwargs):
+    def _predict(self, **kwargs) -> RawPredictResponse:
         kwargs[TARGET_TYPE_ARG_KEYWORD] = self.target_type
         if self.positive_class_label is not None and self.negative_class_label is not None:
             kwargs[POSITIVE_CLASS_LABEL_ARG_KEYWORD] = self.positive_class_label
