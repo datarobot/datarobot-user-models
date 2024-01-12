@@ -6,7 +6,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import json
 import os
-from collections import namedtuple
+from collections import namedtuple, Counter
 
 import trafaret as t
 import yaml
@@ -158,7 +158,14 @@ class RuntimeParametersLoader:
                 data = RuntimeParameterDefinitionTrafaret.check(parameter)
             except t.DataError as exc:
                 raise ErrorLoadingRuntimeParameter(f"Failed to load runtime parameter: {str(exc)}")
-            self._parameter_definitions[data["name"]] = self.ParameterDefinition(**data)
+
+            # Check duplicate definitions
+            param_name = data["name"]
+            if param_name in self._parameter_definitions:
+                raise ErrorLoadingRuntimeParameter(
+                    f"Failed to load runtime parameter [{param_name}], duplicated definition"
+                )
+            self._parameter_definitions[param_name] = self.ParameterDefinition(**data)
 
     def setup_environment_variables(self):
         credential_payload_trafaret = RuntimeParameterCredentialPayloadTrafaret()

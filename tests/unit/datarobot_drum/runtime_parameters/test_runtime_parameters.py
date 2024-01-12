@@ -163,6 +163,21 @@ class TestRuntimeParametersLoader:
         return p
 
     @pytest.fixture
+    def model_metadata_duplicate_definitions_file(self, empty_code_dir):
+        f = empty_code_dir / MODEL_CONFIG_FILENAME
+        content = {
+            ModelMetadataKeys.NAME: "model name",
+            ModelMetadataKeys.TYPE: "inference",
+            ModelMetadataKeys.TARGET_TYPE: "regression",
+            ModelMetadataKeys.RUNTIME_PARAMETERS: [
+                {"fieldName": "STR_PARAM1", "type": "string", "defaultValue": "Hello world!"},
+                {"fieldName": "STR_PARAM1", "type": "string", "defaultValue": "goodbye"},
+            ],
+        }
+        f.write_text(yaml.dump(content))
+        return f
+
+    @pytest.fixture
     def model_metadata_file(self, empty_code_dir, runtime_parameter_definitions):
         f = empty_code_dir / MODEL_CONFIG_FILENAME
         content = {
@@ -232,6 +247,14 @@ class TestRuntimeParametersLoader:
         with pytest.raises(ErrorLoadingRuntimeParameter, match="value is greater than 100"):
             loader = RuntimeParametersLoader(runtime_params_values_file, model_metadata_file.parent)
             loader.setup_environment_variables()
+
+    def test_duplicate_definitions(
+        self, runtime_params_values_file, model_metadata_duplicate_definitions_file
+    ):
+        with pytest.raises(ErrorLoadingRuntimeParameter, match="duplicated definition"):
+            RuntimeParametersLoader(
+                runtime_params_values_file, model_metadata_duplicate_definitions_file.parent
+            )
 
     def test_setup_success(
         self,
