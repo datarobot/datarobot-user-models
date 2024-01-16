@@ -143,17 +143,20 @@ class PredictMixin:
 
             def _build_drum_response_json_str(_predict_response):
                 out_data = _predict_response.predictions
-                passthrough_df = _predict_response.passthrough_df
+                extra_model_output = _predict_response.extra_model_output
                 if len(out_data.columns) == 1:
                     out_data = out_data[PRED_COLUMN]
                 # df.to_json() is much faster.
                 # But as it returns string, we have to assemble final json using strings.
                 predictions_json_str = out_data.to_json(orient="records")
-                if passthrough_df is not None:
+                if extra_model_output is not None:
                     # For best performance we use the 'split' orientation.
-                    extra_json_str = passthrough_df.to_json(orient="split")
+                    extra_output_json_str = extra_model_output.to_json(orient="split")
                     response = (
-                        f'{{"predictions":{predictions_json_str},"passthrough":{extra_json_str}}}'
+                        "{{"
+                        f'"predictions":{predictions_json_str},'
+                        f'"extraModelOutput":{extra_output_json_str}'
+                        "}}"
                     )
                 else:
                     response = f'{{"predictions":{predictions_json_str}}}'
