@@ -1,10 +1,11 @@
 # This is the default base image for use with user models and workflows.
 FROM registry.access.redhat.com/ubi8-minimal:8.8-1037
 
+ARG DATAROBOT_MLOPS_VERSION
+
 ENV JARS_PATH=/opt/jars
 
 COPY requirements.txt requirements.txt
-
 
 RUN microdnf update && \
     microdnf install -y python3.11 python3.11-pip python3.11-devel \
@@ -19,10 +20,8 @@ RUN microdnf update && \
     pip3 install --no-cache-dir -r requirements.txt && \
     microdnf clean all
 
-
 COPY datarobot-mlops-*.jar $JARS_PATH
 COPY mlops-agent-*.jar $JARS_PATH
 
 ENV DRUM_JAVA_SHARED_JARS=$JARS_PATH/*
 ENV MLOPS_MONITORING_AGENT_JAR_PATH=$JARS_PATH/mlops-agent-${DATAROBOT_MLOPS_VERSION}.jar
-
