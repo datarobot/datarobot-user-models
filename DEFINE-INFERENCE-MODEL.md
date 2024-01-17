@@ -74,6 +74,8 @@ This tool makes the following assumptions about your serialized model:
 When working with structured models DRUM supports data as files of `csv`, `sparse`, or `arrow` format.   
 DRUM doesn't perform sanitation of missing or strange(containing parenthesis, slash, etc symbols) column names.
 
+Note the DataRobot application will remove the target column from any dataset used in model testing. If any part of your model artifact or pipeline depends on the presence of the target or on a certain number of inbound columns this may cause errors once the model is loaded into DataRobot. 
+
 ### Custom hooks for Python and R models
 If the assumptions mentioned above are incorrect for your model, DRUM supports several hooks for custom code. If needed,
 include any necessary hooks in a file called `custom.py` for Python models,`custom.R` for R models, or `custom.jl  for Julia models alongside your model artifacts in your model folder:
