@@ -41,14 +41,14 @@ except ImportError as e:
 @dataclass
 class PredictResponse:
     predictions: pd.DataFrame
-    passthrough_df: Optional[pd.DataFrame] = None
+    extra_model_output: Optional[pd.DataFrame] = None
 
     @property
     def combined_dataframe(self):
         return (
             self.predictions
-            if self.passthrough_df is None
-            else self.predictions.join(self.passthrough_df)
+            if self.extra_model_output is None
+            else self.predictions.join(self.extra_model_output)
         )
 
 
@@ -159,7 +159,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         end_predict = time.time()
         execution_time_ms = (end_predict - start_predict) * 1000
         self.monitor(kwargs, predictions_df, execution_time_ms)
-        return PredictResponse(predictions_df, raw_predict_response.passthrough_df)
+        return PredictResponse(predictions_df, raw_predict_response.extra_model_output)
 
     @abstractmethod
     def _predict(self, **kwargs) -> RawPredictResponse:

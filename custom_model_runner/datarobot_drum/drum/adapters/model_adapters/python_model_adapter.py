@@ -74,7 +74,7 @@ class DrumPythonModelAdapterError(DrumException):
 class RawPredictResponse:
     predictions: np.ndarray
     columns: Optional[Union[Index, np.ndarray]] = None
-    passthrough_df: Optional[pd.DataFrame] = None
+    extra_model_output: Optional[pd.DataFrame] = None
 
 
 class PythonModelAdapter(AbstractModelAdapter):
@@ -550,7 +550,7 @@ class PythonModelAdapter(AbstractModelAdapter):
 
         if request_labels is not None:
             assert all(isinstance(label, str) for label in request_labels)
-        passthrough_df = None
+        extra_model_output = None
         if self._custom_hooks.get(CustomHooks.SCORE):
             try:
                 # noinspection PyCallingNonCallable
@@ -560,7 +560,7 @@ class PythonModelAdapter(AbstractModelAdapter):
                     exc, "Model 'score' hook failed to make predictions."
                 )
             self._validate_data(predictions_df, CustomHooks.SCORE)
-            predictions_df, passthrough_df = self._split_to_predictions_and_passthrough_df(
+            predictions_df, extra_model_output = self._split_to_predictions_and_extra_model_output(
                 predictions_df, request_labels
             )
             predictions = predictions_df.values
@@ -594,27 +594,27 @@ class PythonModelAdapter(AbstractModelAdapter):
             predictions = predictions_df.values
             model_labels = predictions_df.columns
 
-        return RawPredictResponse(predictions, model_labels, passthrough_df)
+        return RawPredictResponse(predictions, model_labels, extra_model_output)
 
     @staticmethod
-    def _split_to_predictions_and_passthrough_df(result_df, request_labels):
+    def _split_to_predictions_and_extra_model_output(result_df, request_labels):
         if request_labels:
             # It's Binary or Classification model
             if len(result_df.columns) > len(request_labels):
-                passthrough_df = result_df.drop(columns=request_labels)
-                prediction_columns = result_df.columns.difference(passthrough_df.columns)
+                extra_model_output = result_df.drop(columns=request_labels)
+                prediction_columns = result_df.columns.difference(extra_model_output.columns)
                 predictions_df = result_df[prediction_columns]
             else:
-                passthrough_df = None
+                extra_model_output = None
                 predictions_df = result_df
         else:
             if len(result_df.columns) > 1:
-                passthrough_df = result_df.drop(columns=[PRED_COLUMN])
+                extra_model_output = result_df.drop(columns=[PRED_COLUMN])
                 predictions_df = result_df[[PRED_COLUMN]]
             else:
-                passthrough_df = None
+                extra_model_output = None
                 predictions_df = result_df
-        return predictions_df, passthrough_df
+        return predictions_df, extra_model_output
 
     def predict(self, model=None, **kwargs) -> RawPredictResponse:
         """

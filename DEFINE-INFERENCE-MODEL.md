@@ -114,6 +114,7 @@ include any necessary hooks in a file called `custom.py` for Python models,`cust
         - Binary/Multiclass classification: requires columns for each class label with
           floating-point class probabilities as values. All these rows should sum up to 1.0.
         - Regression: requires a single column named `Predictions` with numerical values.
+        - Additional columns may be added, which will be considered as an extra model output.
     - This hook is only needed if you would like to use DRUM with a framework not natively supported by the tool.
 - `post_process(predictions: DataFrame, model: Any) -> DataFrame`
     - `predictions` is the dataframe of predictions produced by DRUM or by the `score` hook, if supplied.
