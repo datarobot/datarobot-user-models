@@ -140,28 +140,6 @@ class PredictMixin:
         if self._target_type == TargetType.UNSTRUCTURED:
             response = predict_response.predictions
         else:
-
-            def _build_drum_response_json_str(_predict_response):
-                out_data = _predict_response.predictions
-                extra_model_output = _predict_response.extra_model_output
-                if len(out_data.columns) == 1:
-                    out_data = out_data[PRED_COLUMN]
-                # df.to_json() is much faster.
-                # But as it returns string, we have to assemble final json using strings.
-                predictions_json_str = out_data.to_json(orient="records")
-                if extra_model_output is not None:
-                    # For best performance we use the 'split' orientation.
-                    extra_output_json_str = extra_model_output.to_json(orient="split")
-                    response = (
-                        "{{"
-                        f'"predictions":{predictions_json_str},'
-                        f'"extraModelOutput":{extra_output_json_str}'
-                        "}}"
-                    )
-                else:
-                    response = f'{{"predictions":{predictions_json_str}}}'
-                return response
-
             if self._target_type != TargetType.TEXT_GENERATION:
                 # float32 is not JSON serializable, so cast to float, which is float64
                 predict_response.predictions = predict_response.predictions.astype("float")
@@ -170,11 +148,33 @@ class PredictMixin:
                     predict_response.predictions, self._deployment_config, self._target_type
                 )
             else:
-                response = _build_drum_response_json_str(predict_response)
+                response = self._build_drum_response_json_str(predict_response)
 
         response = Response(response, mimetype=PredictionServerMimetypes.APPLICATION_JSON)
 
         return response, response_status
+
+    @staticmethod
+    def _build_drum_response_json_str(predict_response):
+        out_data = predict_response.predictions
+        extra_model_output = predict_response.extra_model_output
+        if len(out_data.columns) == 1:
+            out_data = out_data[PRED_COLUMN]
+        # df.to_json() is much faster.
+        # But as it returns string, we have to assemble final json using strings.
+        predictions_json_str = out_data.to_json(orient="records")
+        if extra_model_output is not None:
+            # For best performance we use the 'split' orientation.
+            extra_output_json_str = extra_model_output.to_json(orient="split")
+            response = (
+                "{"
+                f'"predictions":{predictions_json_str},'
+                f'"extraModelOutput":{extra_output_json_str}'
+                "}"
+            )
+        else:
+            response = f'{{"predictions":{predictions_json_str}}}'
+        return response
 
     def _transform(self, logger=None):
         response_status = HTTP_200_OK
