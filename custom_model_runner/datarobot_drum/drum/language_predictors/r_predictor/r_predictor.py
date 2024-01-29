@@ -19,9 +19,11 @@ from datarobot_drum.drum.enum import (
     StructuredDtoKeys,
     TargetType,
     UnstructuredDtoKeys,
+    PRED_COLUMN,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
+from datarobot_drum.drum.utils.dataframe import extract_additional_columns
 from datarobot_drum.drum.utils.stacktraces import capture_R_traceback_if_errors
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
@@ -104,22 +106,28 @@ class RPredictor(BaseLanguagePredictor):
         if not self.class_ordering:
             raise DrumCommonException("Class labels not available for classification.")
 
+        extra_model_output = None
         prediction_labels = predictions.columns
 
         # if the labels match then do nothing
         if set(prediction_labels) == set(self.class_ordering):
-            return predictions
+            return predictions, extra_model_output
 
         # check for match after make.names is applied to class labels
         sanitized_request_labels = ro.r["make.names"](self.class_ordering)
-        if set(prediction_labels) == set(sanitized_request_labels):
+        if set(sanitized_request_labels) <= set(prediction_labels):
             if len(set(sanitized_request_labels)) != len(sanitized_request_labels):
                 raise DrumCommonException("Class label names are ambiguous.")
+            if len(sanitized_request_labels) < len(prediction_labels):
+                # Extract the additional columns and consider them as the extra model output
+                predictions, extra_model_output = extract_additional_columns(
+                    predictions, sanitized_request_labels
+                )
             label_map = dict(zip(sanitized_request_labels, self.class_ordering))
             # return class labels in the same order as prediction labels
-            ordered_labels = [label_map[l] for l in prediction_labels]
+            ordered_labels = [label_map[l] for l in prediction_labels if l in label_map]
             predictions.columns = ordered_labels
-            return predictions
+            return predictions, extra_model_output
 
         def floatify(f):
             try:
@@ -128,17 +136,25 @@ class RPredictor(BaseLanguagePredictor):
                 return f
 
         # check for match after sanitized float strings (e.g. X7.1) are converted to plain floats
-        if all(isinstance(l, str) and l.startswith("X") for l in prediction_labels):
-            float_pred_labels = [floatify(f[1:]) for f in prediction_labels]
+        if any(isinstance(l, str) and l.startswith("X") for l in prediction_labels):
+            relevant_prediction_labels = [
+                l for l in prediction_labels if isinstance(l, str) and l.startswith("X")
+            ]
+            float_pred_labels = [floatify(f[1:]) for f in relevant_prediction_labels]
             float_request_labels = [floatify(f) for f in self.class_ordering]
-            if set(float_pred_labels) == set(float_request_labels):
+            if set(float_request_labels) <= set(float_pred_labels):
+                if len(float_request_labels) < len(prediction_labels):
+                    # Extract the additional columns and consider them as the extra model output
+                    predictions, extra_model_output = extract_additional_columns(
+                        predictions, relevant_prediction_labels
+                    )
                 label_map = dict(zip(float_request_labels, self.class_ordering))
                 # return class labels in the same order as prediction labels
                 ordered_labels = [label_map[l] for l in float_pred_labels]
                 predictions.columns = ordered_labels
-                return predictions
+                return predictions, extra_model_output
 
-        return predictions
+        return predictions, extra_model_output
 
     def _predict(self, **kwargs) -> RawPredictResponse:
         input_binary_data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
@@ -168,9 +184,12 @@ class RPredictor(BaseLanguagePredictor):
             logger.error(error_message)
             raise DrumCommonException(error_message)
 
+        extra_model_output = None
         if self.target_type.is_classification():
-            predictions = self._replace_sanitized_class_names(predictions)
-        return RawPredictResponse(predictions.values, predictions.columns)
+            predictions, extra_model_output = self._replace_sanitized_class_names(predictions)
+        elif self.target_type == TargetType.REGRESSION:
+            predictions, extra_model_output = extract_additional_columns(predictions, [PRED_COLUMN])
+        return RawPredictResponse(predictions.values, predictions.columns, extra_model_output)
 
     # TODO: check test coverage for all possible cases: return None/str/bytes, and casting.
     def predict_unstructured(self, data, **kwargs):
