@@ -54,6 +54,7 @@ from datarobot_drum.drum.exceptions import (
     DrumTransformException,
     DrumSerializationError,
 )
+from datarobot_drum.drum.utils.dataframe import extract_additional_columns
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from datarobot_drum.drum.utils.drum_utils import DrumUtils
 from datarobot_drum.custom_task_interfaces.custom_task_interface import (
@@ -601,9 +602,9 @@ class PythonModelAdapter(AbstractModelAdapter):
         if request_labels:
             # It's Binary or Classification model
             if len(result_df.columns) > len(request_labels):
-                extra_model_output = result_df.drop(columns=request_labels)
-                prediction_columns = result_df.columns.difference(extra_model_output.columns)
-                predictions_df = result_df[prediction_columns]
+                predictions_df, extra_model_output = extract_additional_columns(
+                    result_df, request_labels
+                )
             else:
                 extra_model_output = None
                 predictions_df = result_df

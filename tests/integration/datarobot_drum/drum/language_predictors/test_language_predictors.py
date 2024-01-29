@@ -14,7 +14,7 @@ from contextlib import closing
 import numpy as np
 import pandas as pd
 import pytest
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
@@ -201,38 +201,83 @@ class TestRPredictor(object):
     def test_r_predictor_replace_sanitized_class_names_same_binary(self, class_ordering):
         r_pred = RPredictor(positive_class_label="a", negative_class_label="b")
         predictions = pd.DataFrame(np.ones((3, 2)), columns=class_ordering(["a", "b"]))
-        result = r_pred._replace_sanitized_class_names(predictions)
+        result, extra_model_output = r_pred._replace_sanitized_class_names(predictions)
         assert list(result.columns) == class_ordering(["a", "b"])
+        assert extra_model_output is None
 
     def test_r_predictor_replace_sanitized_class_names_unsanitary_binary(self, class_ordering):
         r_pred = RPredictor(positive_class_label="a+1", negative_class_label="b+1")
         predictions = pd.DataFrame(np.ones((3, 2)), columns=class_ordering(["a.1", "b.1"]))
-        result = r_pred._replace_sanitized_class_names(predictions)
+        result, extra_model_output = r_pred._replace_sanitized_class_names(predictions)
         assert list(result.columns) == class_ordering(["a+1", "b+1"])
+        assert extra_model_output is None
+
+    def test_r_predictor_replace_sanitized_class_names_unsanitary_binary_with_extra_model_output(
+        self, class_ordering
+    ):
+        r_pred = RPredictor(positive_class_label="a+1", negative_class_label="b+1")
+        predictions = pd.DataFrame(
+            np.ones((3, 5)), columns=class_ordering(["a.1", "b.1", "extra1", "extra2", "extra3"])
+        )
+        result, extra_model_output = r_pred._replace_sanitized_class_names(predictions)
+        assert list(result.columns) == class_ordering(["a+1", "b+1"])
+        assert extra_model_output.equals(
+            pd.DataFrame(np.ones((3, 3)), columns=class_ordering(["extra1", "extra2", "extra3"]))
+        )
 
     def test_r_predictor_replace_sanitized_class_names_float_binary(self, class_ordering):
         r_pred = RPredictor(positive_class_label="7.0", negative_class_label="7.1")
         predictions = pd.DataFrame(np.ones((3, 2)), columns=class_ordering(["X7", "X7.1"]))
-        result = r_pred._replace_sanitized_class_names(predictions)
+        result, extra_model_output = r_pred._replace_sanitized_class_names(predictions)
         assert list(result.columns) == class_ordering(["7.0", "7.1"])
+        assert extra_model_output is None
 
     def test_r_predictor_replace_sanitized_class_names_same_multiclass(self, class_ordering):
         r_pred = RPredictor(class_labels=["a", "b", "c"])
         predictions = pd.DataFrame(np.ones((3, 3)), columns=class_ordering(["a", "b", "c"]))
-        result = r_pred._replace_sanitized_class_names(predictions)
+        result, extra_model_output = r_pred._replace_sanitized_class_names(predictions)
         assert list(result.columns) == class_ordering(["a", "b", "c"])
+        assert extra_model_output is None
 
     def test_r_predictor_replace_sanitized_class_names_unsanitary_multiclass(self, class_ordering):
         r_pred = RPredictor(class_labels=["a+1", "b-1", "c$1"])
         predictions = pd.DataFrame(np.ones((3, 3)), columns=class_ordering(["a.1", "b.1", "c.1"]))
-        result = r_pred._replace_sanitized_class_names(predictions)
+        result, extra_model_output = r_pred._replace_sanitized_class_names(predictions)
         assert list(result.columns) == class_ordering(["a+1", "b-1", "c$1"])
+        assert extra_model_output is None
+
+    def test_r_predictor_replace_sanitized_class_names_unsanitary_multiclass_with_extra_model_output(
+        self, class_ordering
+    ):
+        r_pred = RPredictor(class_labels=["a+1", "b-1", "c$1"])
+        predictions = pd.DataFrame(
+            np.ones((3, 5)), columns=class_ordering(["a.1", "b.1", "c.1", "extra1", "extra2"])
+        )
+        result, extra_model_output = r_pred._replace_sanitized_class_names(predictions)
+        assert list(result.columns) == class_ordering(["a+1", "b-1", "c$1"])
+        assert extra_model_output.equals(
+            pd.DataFrame(np.ones((3, 2)), columns=class_ordering(["extra1", "extra2"]))
+        )
 
     def test_r_predictor_replace_sanitized_class_names_float_multiclass(self, class_ordering):
         r_pred = RPredictor(class_labels=["7.0", "7.1", "7.2"])
         predictions = pd.DataFrame(np.ones((3, 3)), columns=class_ordering(["X7", "X7.1", "X7.2"]))
-        result = r_pred._replace_sanitized_class_names(predictions)
+        result, extra_model_output = r_pred._replace_sanitized_class_names(predictions)
         assert list(result.columns) == class_ordering(["7.0", "7.1", "7.2"])
+        assert extra_model_output is None
+
+    def test_r_predictor_replace_sanitized_class_names_float_multiclass_with_extra_model_output(
+        self, class_ordering
+    ):
+        r_pred = RPredictor(class_labels=["7.0", "7.1", "7.2"])
+        predictions = pd.DataFrame(
+            np.ones((3, 5)), columns=class_ordering(["X7", "X7.1", "X7.2", "extra1", "extra2"])
+        )
+        result, extra_model_output = r_pred._replace_sanitized_class_names(predictions)
+        assert list(result.columns) == class_ordering(["7.0", "7.1", "7.2"])
+        assert extra_model_output.equals(
+            pd.DataFrame(np.ones((3, 2)), columns=class_ordering(["extra1", "extra2"]))
+        )
 
     def test_r_predictor_replace_sanitized_class_names_ambiguous_multiclass(self, class_ordering):
         r_pred = RPredictor(class_labels=["a+1", "a-1", "a$1"])
