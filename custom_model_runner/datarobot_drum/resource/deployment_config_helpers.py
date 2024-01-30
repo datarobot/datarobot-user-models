@@ -8,6 +8,7 @@ import json
 
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.enum import TargetType
+from datarobot_drum.drum.language_predictors.base_language_predictor import PredictResponse
 
 
 def parse_validate_deployment_config_file(filename):
@@ -44,7 +45,9 @@ def get_class_names_from_class_mapping(class_mapping):
     return [kv[0] for kv in sorted(class_mapping, key=lambda v: v[1])]
 
 
-def build_pps_response_json_str(out_data, deployment_config, target_type):
+def build_pps_response_json_str(
+    out_data: PredictResponse, deployment_config: dict, target_type: TargetType
+):
     target_info = deployment_config["target"]
     class_names_list = get_class_names_from_class_mapping(target_info["class_mapping"])
     data_lst = []
@@ -62,8 +65,11 @@ def build_pps_response_json_str(out_data, deployment_config, target_type):
     else:
         raise DrumCommonException("target type '{}' is not supported".format(target_type))
 
-    for index, row in out_data.iterrows():
-        data_lst.append(f(row, index, target_info, class_names_list))
+    for index, row in out_data.predictions.iterrows():
+        row_record = f(row, index, target_info, class_names_list)
+        if out_data.extra_model_output is not None:
+            row_record["extraModelOutput"] = out_data.extra_model_output.iloc[index].to_dict()
+        data_lst.append(row_record)
 
     return json.dumps(dict(data=data_lst))
 

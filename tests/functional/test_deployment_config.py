@@ -13,6 +13,7 @@ import requests
 
 from datarobot_drum.drum.enum import ArgumentOptionsEnvVars, TargetType
 from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.language_predictors.base_language_predictor import PredictResponse
 from datarobot_drum.resource.deployment_config_helpers import (
     parse_validate_deployment_config_file,
     get_class_names_from_class_mapping,
@@ -42,6 +43,26 @@ class TestDeploymentConfig:
     deployment_config_text_generation = os.path.join(
         TESTS_DEPLOYMENT_CONFIG_PATH, "text_generation.json"
     )
+
+    @pytest.fixture(params=[False, True], ids=["with_extra_output", "without_extra_output"])
+    def with_extra_model_output(self, request):
+        yield request.param
+
+    @pytest.fixture
+    def predictions_df(self):
+        return pd.DataFrame(data={"Predictions": [1.2, 2.3, 3.4]})
+
+    @pytest.fixture
+    def extra_model_output_df(self, with_extra_model_output):
+        return (
+            pd.DataFrame({"Extra1": [1, 2, 3], "Extra2": ["a", "b", "c"]})
+            if with_extra_model_output
+            else None
+        )
+
+    @pytest.fixture
+    def predict_response(self, predictions_df, extra_model_output_df):
+        return PredictResponse(predictions_df, extra_model_output_df)
 
     def test_parse_deployment_config_file(self):
         not_json = '{"target: {"class_mapping": null, "missing_maps_to": null, "name": "Grade 2014", "prediction_threshold": 0.5, "type": "Regression" }}'
@@ -75,12 +96,10 @@ class TestDeploymentConfig:
         for config_path in all_configs:
             parse_validate_deployment_config_file(config_path)
 
-    def test_build_pps_response_json_str_bad_target(self):
-        d = {"Predictions": [1.2, 2.3, 3.4]}
-        df = pd.DataFrame(data=d)
+    def test_build_pps_response_json_str_bad_target(self, predictions_df):
         config = parse_validate_deployment_config_file(self.deployment_config_regression)
         with pytest.raises(DrumCommonException, match="target type 'None' is not supported"):
-            build_pps_response_json_str(df, config, None)
+            build_pps_response_json_str(PredictResponse(predictions_df), config, None)
 
     def test_get_class_names_from_class_mappings(self):
         config = parse_validate_deployment_config_file(self.deployment_config_multiclass)
@@ -91,23 +110,23 @@ class TestDeploymentConfig:
         class_names = get_class_names_from_class_mapping(config["target"]["class_mapping"])
         assert class_names == ["Iris-versicolor", "Iris-setosa"]
 
-    def test_map_regression_prediction(self):
-        d = {"Predictions": [1.2, 2.3, 3.4]}
-        df = pd.DataFrame(data=d)
+    def test_map_regression_prediction(
+        self, predictions_df, extra_model_output_df, predict_response
+    ):
         config = parse_validate_deployment_config_file(self.deployment_config_regression)
         assert config["target"]["name"] == "Grade 2014"
         assert config["target"]["type"] == "Regression"
 
-        response = build_pps_response_json_str(df, config, TargetType.REGRESSION)
+        response = build_pps_response_json_str(predict_response, config, TargetType.REGRESSION)
         response_json = json.loads(response)
         assert isinstance(response_json, dict)
         assert "data" in response_json
         predictions_list = response_json["data"]
         assert isinstance(predictions_list, list)
-        assert len(predictions_list) == df.shape[0]
+        assert len(predictions_list) == predictions_df.shape[0]
 
         pred_iter = iter(predictions_list)
-        for index, row in df.iterrows():
+        for index, row in predictions_df.iterrows():
             pred_item = next(pred_iter)
             assert isinstance(pred_item, dict)
             assert pred_item["rowId"] == index
@@ -116,24 +135,24 @@ class TestDeploymentConfig:
             assert len(pred_item["predictionValues"]) == 1
             assert pred_item["predictionValues"][0]["label"] == config["target"]["name"]
             assert pred_item["predictionValues"][0]["value"] == row[0]
+            if extra_model_output_df is not None:
+                assert pred_item["extraModelOutput"] == extra_model_output_df.iloc[index].to_dict()
 
-    def test_map_anomaly_prediction(self):
-        d = {"Predictions": [1.2, 2.3, 3.4]}
-        df = pd.DataFrame(data=d)
+    def test_map_anomaly_prediction(self, predictions_df, extra_model_output_df, predict_response):
         config = parse_validate_deployment_config_file(self.deployment_config_anomaly)
         assert config["target"]["name"] == None
         assert config["target"]["type"] == "Anomaly"
 
-        response = build_pps_response_json_str(df, config, TargetType.ANOMALY)
+        response = build_pps_response_json_str(predict_response, config, TargetType.ANOMALY)
         response_json = json.loads(response)
         assert isinstance(response_json, dict)
         assert "data" in response_json
         predictions_list = response_json["data"]
         assert isinstance(predictions_list, list)
-        assert len(predictions_list) == df.shape[0]
+        assert len(predictions_list) == predictions_df.shape[0]
 
         pred_iter = iter(predictions_list)
-        for index, row in df.iterrows():
+        for index, row in predictions_df.iterrows():
             pred_item = next(pred_iter)
             print(pred_item)
             assert isinstance(pred_item, dict)
@@ -143,17 +162,21 @@ class TestDeploymentConfig:
             assert len(pred_item["predictionValues"]) == 1
             assert pred_item["predictionValues"][0]["label"] == config["target"]["name"]
             assert pred_item["predictionValues"][0]["value"] == row[0]
+            if extra_model_output_df is not None:
+                assert pred_item["extraModelOutput"] == extra_model_output_df.iloc[index].to_dict()
 
-    def test_map_binary_prediction(self):
-        positive_class = "Iris-setosa"
-        negative_class = "Iris-versicolor"
-        d = {positive_class: [0.6, 0.5, 0.2], negative_class: [0.4, 0.5, 0.8]}
-        df = pd.DataFrame(data=d)
+    def test_map_binary_prediction(self, extra_model_output_df):
         config = parse_validate_deployment_config_file(self.deployment_config_binary)
         assert config["target"]["name"] == "Species"
         assert config["target"]["type"] == "Binary"
 
-        response = build_pps_response_json_str(df, config, TargetType.BINARY)
+        positive_class = "Iris-setosa"
+        negative_class = "Iris-versicolor"
+        d = {positive_class: [0.6, 0.5, 0.2], negative_class: [0.4, 0.5, 0.8]}
+        df = pd.DataFrame(data=d)
+
+        predict_response = PredictResponse(df, extra_model_output_df)
+        response = build_pps_response_json_str(predict_response, config, TargetType.BINARY)
         response_json = json.loads(response)
         assert isinstance(response_json, dict)
         assert "data" in response_json
@@ -182,7 +205,14 @@ class TestDeploymentConfig:
                 {"label": negative_class, "value": 1 - row[positive_class]},
             ]
 
-    def test_map_multiclass_prediction(self):
+            if extra_model_output_df is not None:
+                assert pred_item["extraModelOutput"] == extra_model_output_df.iloc[index].to_dict()
+
+    def test_map_multiclass_prediction(self, extra_model_output_df):
+        config = parse_validate_deployment_config_file(self.deployment_config_multiclass)
+        assert config["target"]["name"] == "class"
+        assert config["target"]["type"] == "Multiclass"
+
         class_labels = ["QSO", "STAR", "GALAXY"]
         d = {
             class_labels[0]: [0.6, 0.2, 0.3],
@@ -190,11 +220,8 @@ class TestDeploymentConfig:
             class_labels[2]: [0.1, 0.4, 0.2],
         }
         df = pd.DataFrame(data=d)
-        config = parse_validate_deployment_config_file(self.deployment_config_multiclass)
-        assert config["target"]["name"] == "class"
-        assert config["target"]["type"] == "Multiclass"
-
-        response = build_pps_response_json_str(df, config, TargetType.MULTICLASS)
+        predict_response = PredictResponse(df, extra_model_output_df)
+        response = build_pps_response_json_str(predict_response, config, TargetType.MULTICLASS)
         response_json = json.loads(response)
         assert isinstance(response_json, dict)
         assert "data" in response_json
@@ -221,15 +248,18 @@ class TestDeploymentConfig:
                 {"label": class_labels[0], "value": row[class_labels[0]]},
                 {"label": class_labels[1], "value": row[class_labels[1]]},
             ]
+            if extra_model_output_df is not None:
+                assert pred_item["extraModelOutput"] == extra_model_output_df.iloc[index].to_dict()
 
-    def test_map_text_generation_prediction(self):
-        d = {"Predictions": ["Completion1", "Completion2", "Completion3"]}
-        df = pd.DataFrame(data=d)
+    def test_map_text_generation_prediction(self, extra_model_output_df):
         config = parse_validate_deployment_config_file(self.deployment_config_text_generation)
         assert config["target"]["name"] == config["target"]["name"]
         assert config["target"]["type"] == "textgeneration"
 
-        response = build_pps_response_json_str(df, config, TargetType.TEXT_GENERATION)
+        d = {"Predictions": ["Completion1", "Completion2", "Completion3"]}
+        df = pd.DataFrame(data=d)
+        predict_response = PredictResponse(df, extra_model_output_df)
+        response = build_pps_response_json_str(predict_response, config, TargetType.TEXT_GENERATION)
         response_json = json.loads(response)
         assert isinstance(response_json, dict)
         assert "data" in response_json
@@ -248,6 +278,8 @@ class TestDeploymentConfig:
             assert len(pred_item["predictionValues"]) == 1
             assert pred_item["predictionValues"][0]["label"] == config["target"]["name"]
             assert pred_item["predictionValues"][0]["value"] == row[0]
+            if extra_model_output_df is not None:
+                assert pred_item["extraModelOutput"] == extra_model_output_df.iloc[index].to_dict()
 
     @pytest.mark.parametrize(
         "framework, problem, language, deployment_config",
