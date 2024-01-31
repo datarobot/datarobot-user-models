@@ -17,6 +17,8 @@ import requests
 import scipy
 from scipy.sparse import csr_matrix
 
+from unittest.mock import patch
+
 
 from datarobot_drum.drum.enum import (
     X_TRANSFORM_KEY,
@@ -199,9 +201,11 @@ class TestInference:
         if docker:
             cmd += " --docker {} --verbose ".format(docker)
 
-        _exec_shell_cmd(
-            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
-        )
+        env_vars = {"TARGET_NAME": "Response"} if problem == TEXT_GENERATION else {}
+        with patch.dict(os.environ, env_vars):
+            _exec_shell_cmd(
+                cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+            )
         in_data = resources.input_data(framework, problem)
         out_data = pd.read_csv(output)
         assert in_data.shape[0] == out_data.shape[0]
@@ -325,7 +329,8 @@ class TestInference:
         )
 
         unset_drum_supported_env_vars()
-        with DrumServerRun(
+        env_vars = {"TARGET_NAME": "Response"} if problem == TEXT_GENERATION else {}
+        with patch.dict(os.environ, env_vars), DrumServerRun(
             resources.target_types(problem),
             resources.class_labels(framework, problem),
             custom_model_dir,
