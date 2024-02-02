@@ -2,7 +2,7 @@ altair==4.2.0
 cloudpickle==2.2.1
 dask==2022.9.2
 datarobot-bp-workshop==0.2.6
-datarobot-drum==1.10.14
+datarobot-drum==1.10.19
 datarobot-mlops-connected-client<10.0.0
 datarobot-model-metrics==0.3.4
 datarobot-predict==1.5.1
