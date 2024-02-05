@@ -104,6 +104,13 @@ class PythonModelAdapter(AbstractModelAdapter):
         self._custom_task_class = None
         self._custom_task_class_instance = None
 
+        if target_type == TargetType.TEXT_GENERATION:
+            self._target_name = os.environ.get("TARGET_NAME")
+            if not self._target_name:
+                raise ValueError("Unexpected empty target name for text generation!")
+        else:
+            self._target_name = None
+
     def _log_and_raise_final_error(self, exc: Exception, message: str) -> NoReturn:
         self._logger.exception(f"{message} Exception: {exc!r}")
         raise DrumPythonModelAdapterError(f"{message} Exception: {exc!r}")
@@ -597,8 +604,7 @@ class PythonModelAdapter(AbstractModelAdapter):
 
         return RawPredictResponse(predictions, model_labels, extra_model_output)
 
-    @staticmethod
-    def _split_to_predictions_and_extra_model_output(result_df, request_labels):
+    def _split_to_predictions_and_extra_model_output(self, result_df, request_labels):
         if request_labels:
             # It's Binary or Classification model
             if len(result_df.columns) > len(request_labels):
@@ -610,8 +616,9 @@ class PythonModelAdapter(AbstractModelAdapter):
                 predictions_df = result_df
         else:
             if len(result_df.columns) > 1:
-                extra_model_output = result_df.drop(columns=[PRED_COLUMN])
-                predictions_df = result_df[[PRED_COLUMN]]
+                target_column = self._target_name if self._target_name else PRED_COLUMN
+                extra_model_output = result_df.drop(columns=[target_column])
+                predictions_df = result_df[[target_column]]
             else:
                 extra_model_output = None
                 predictions_df = result_df

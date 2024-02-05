@@ -145,7 +145,7 @@ class PredictMixin:
                 predict_response.predictions = predict_response.predictions.astype("float")
             if self._deployment_config is not None:
                 response = build_pps_response_json_str(
-                    predict_response.predictions, self._deployment_config, self._target_type
+                    predict_response, self._deployment_config, self._target_type
                 )
             else:
                 response = self._build_drum_response_json_str(predict_response)
