@@ -8,6 +8,7 @@
 
 import copy
 import logging
+import os
 import socket
 from contextlib import closing
 
@@ -152,7 +153,11 @@ class TestPythonPredictor(object):
             init_params = copy.deepcopy(essential_language_predictor_init_params)
             init_params.update(predictor_params)
             py_predictor = PythonPredictor()
-            py_predictor.mlpiper_configure(init_params)
+            if predictor_params["target_type"] == TargetType.TEXT_GENERATION:
+                with patch.dict(os.environ, {"TARGET_NAME": "Response"}):
+                    py_predictor.mlpiper_configure(init_params)
+            else:
+                py_predictor.mlpiper_configure(init_params)
             pred_params = {"target_type": predictor_params["target_type"]}
             py_predictor.predict(**pred_params)
 

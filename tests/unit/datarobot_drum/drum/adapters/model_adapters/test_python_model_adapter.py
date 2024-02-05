@@ -28,6 +28,7 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     reset_outputs_to_allow_secrets,
 )
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
+from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 
@@ -338,6 +339,10 @@ class TestPredictResultSplitter:
         return 3
 
     @pytest.fixture
+    def extra_model_output_df(self, num_rows):
+        return pd.DataFrame({"col1": list(range(num_rows)), "col2": list(range(num_rows))})
+
+    @pytest.fixture
     def binary_df(self, num_rows):
         positive_probabilities = [float(random.random()) for _ in range(num_rows)]
         negative_probabilities = [1 - v for v in positive_probabilities]
@@ -355,74 +360,128 @@ class TestPredictResultSplitter:
     def regression_df(self, num_rows):
         return pd.DataFrame({"Predictions": [random.random() for _ in range(num_rows)]})
 
+    @pytest.fixture
+    def text_generation_target_name(self):
+        return "Query Response"
+
+    @pytest.fixture
+    def text_generation_df(self, num_rows, text_generation_target_name):
+        with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
+            yield pd.DataFrame(
+                {
+                    text_generation_target_name: [
+                        f"Some LLM response - {random.random()}" for _ in range(num_rows)
+                    ]
+                }
+            )
+
     def test_split_result_of_binary_classification(self, binary_df):
         (
             pred_df,
             extra_model_output,
-        ) = PythonModelAdapter._split_to_predictions_and_extra_model_output(
+        ) = PythonModelAdapter(
+            Mock(), TargetType.BINARY
+        )._split_to_predictions_and_extra_model_output(
             binary_df, request_labels=binary_df.columns.tolist()
         )
         assert pred_df.equals(binary_df)
         assert extra_model_output is None
 
-    def test_split_result_of_binary_classification_with_extra(self, num_rows, binary_df):
-        in_extra_model_output = pd.DataFrame(
-            {"col1": list(range(num_rows)), "col2": list(range(num_rows))}
-        )
-        combined_df = binary_df.join(in_extra_model_output)
+    def test_split_result_of_binary_classification_with_extra(
+        self, binary_df, extra_model_output_df
+    ):
+        combined_df = binary_df.join(extra_model_output_df)
         (
             pred_df,
-            extra_model_output,
-        ) = PythonModelAdapter._split_to_predictions_and_extra_model_output(
+            extra_model_output_response,
+        ) = PythonModelAdapter(
+            Mock(), TargetType.BINARY
+        )._split_to_predictions_and_extra_model_output(
             combined_df, request_labels=binary_df.columns.tolist()
         )
         assert pred_df.equals(binary_df)
-        assert extra_model_output.equals(in_extra_model_output)
+        assert extra_model_output_response.equals(extra_model_output_df)
 
     def test_split_result_of_multiclass(self, multiclass_df):
         (
             pred_df,
             extra_model_output,
-        ) = PythonModelAdapter._split_to_predictions_and_extra_model_output(
+        ) = PythonModelAdapter(
+            Mock(), TargetType.MULTICLASS
+        )._split_to_predictions_and_extra_model_output(
             multiclass_df, request_labels=multiclass_df.columns.tolist()
         )
         assert pred_df.equals(multiclass_df)
         assert extra_model_output is None
 
-    def test_split_result_of_multiclass_with_extra(self, num_rows, multiclass_df):
-        in_extra_model_output = pd.DataFrame(
-            {"ext1": list(range(num_rows)), "ext2": list(range(num_rows))}
-        )
-        combined_df = multiclass_df.join(in_extra_model_output)
+    def test_split_result_of_multiclass_with_extra(self, multiclass_df, extra_model_output_df):
+        combined_df = multiclass_df.join(extra_model_output_df)
         (
             pred_df,
-            extra_model_output,
-        ) = PythonModelAdapter._split_to_predictions_and_extra_model_output(
+            extra_model_output_response,
+        ) = PythonModelAdapter(
+            Mock(), TargetType.MULTICLASS
+        )._split_to_predictions_and_extra_model_output(
             combined_df, request_labels=multiclass_df.columns.tolist()
         )
         assert pred_df.equals(multiclass_df)
-        assert extra_model_output.equals(in_extra_model_output)
+        assert extra_model_output_response.equals(extra_model_output_df)
 
     def test_split_result_of_regression(self, regression_df):
         (
             pred_df,
             extra_model_output,
-        ) = PythonModelAdapter._split_to_predictions_and_extra_model_output(
-            regression_df, request_labels=None
-        )
+        ) = PythonModelAdapter(
+            Mock(), TargetType.REGRESSION
+        )._split_to_predictions_and_extra_model_output(regression_df, request_labels=None)
         assert pred_df.equals(regression_df)
         assert extra_model_output is None
 
-    def test_split_result_of_regression_with_extra(self, num_rows, regression_df):
-        in_extra_model_output = pd.DataFrame(
-            {"ext1": list(range(num_rows)), "ext2": list(range(num_rows))}
-        )
-        combined_df = regression_df.join(in_extra_model_output)
+    def test_split_result_of_regression_with_extra(self, regression_df, extra_model_output_df):
+        combined_df = regression_df.join(extra_model_output_df)
+        (
+            pred_df,
+            extra_model_output_response,
+        ) = PythonModelAdapter(
+            Mock(), TargetType.REGRESSION
+        )._split_to_predictions_and_extra_model_output(combined_df, request_labels=None)
+        assert pred_df.equals(regression_df)
+        assert extra_model_output_response.equals(extra_model_output_df)
+
+    def test_split_result_of_text_generation(self, text_generation_df):
         (
             pred_df,
             extra_model_output,
-        ) = PythonModelAdapter._split_to_predictions_and_extra_model_output(
-            combined_df, request_labels=None
-        )
-        assert pred_df.equals(regression_df)
-        assert extra_model_output.equals(in_extra_model_output)
+        ) = PythonModelAdapter(
+            Mock(), TargetType.TEXT_GENERATION
+        )._split_to_predictions_and_extra_model_output(text_generation_df, request_labels=None)
+        assert pred_df.equals(text_generation_df)
+        assert extra_model_output is None
+
+    def test_split_result_of_text_generation_with_exta_model_output(
+        self, text_generation_df, extra_model_output_df
+    ):
+        combined_df = text_generation_df.join(extra_model_output_df)
+        (
+            pred_df,
+            extra_model_output_response,
+        ) = PythonModelAdapter(
+            Mock(), TargetType.TEXT_GENERATION
+        )._split_to_predictions_and_extra_model_output(combined_df, request_labels=None)
+        assert pred_df.equals(text_generation_df)
+        assert extra_model_output_response.equals(extra_model_output_df)
+
+
+class TestPythonModelAdapterInitialization:
+    """Use cases to test the Python adapter initialization"""
+
+    def test_valid_initialization_for_text_generation(self):
+        text_generation_target_name = "Response"
+        with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
+            adapter = PythonModelAdapter(Mock(), TargetType.TEXT_GENERATION)
+            assert adapter._target_name == text_generation_target_name
+
+    def test_invalid_initialization_for_text_generation(self):
+        os.environ.pop("TARGET_NAME", None)
+        with pytest.raises(ValueError, match="Unexpected empty target name for text generation!"):
+            PythonModelAdapter(Mock(), TargetType.TEXT_GENERATION)
