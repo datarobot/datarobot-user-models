@@ -471,6 +471,40 @@ class TestPredictResultSplitter:
         assert pred_df.equals(text_generation_df)
         assert extra_model_output_response.equals(extra_model_output_df)
 
+    def test_text_generation_with_exta_model_output_and_redundant_quotation_marks_in_target(
+        self, text_generation_df, extra_model_output_df, text_generation_target_name
+    ):
+        target_name_with_quotation_marks = f'"{text_generation_target_name}"'
+        self._test_and_verify_extra_model_output_with_redundant_quotation_marks(
+            target_name_with_quotation_marks, text_generation_df, extra_model_output_df
+        )
+
+    @staticmethod
+    def _test_and_verify_extra_model_output_with_redundant_quotation_marks(
+        target_name_with_quotation_marks, text_generation_df, extra_model_output_df
+    ):
+        with patch.dict(os.environ, {"TARGET_NAME": target_name_with_quotation_marks}):
+            combined_df = text_generation_df.join(extra_model_output_df)
+            (
+                pred_df,
+                extra_model_output_response,
+            ) = PythonModelAdapter(
+                Mock(), TargetType.TEXT_GENERATION
+            )._split_to_predictions_and_extra_model_output(combined_df, request_labels=None)
+            assert pred_df.equals(text_generation_df)
+            assert extra_model_output_response.equals(extra_model_output_df)
+
+    def test_text_generation_with_exta_model_output_and_redundant_quotation_marks_in_both_target_and_df(
+        self, text_generation_df, extra_model_output_df, text_generation_target_name
+    ):
+        target_name_with_quotation_marks = f'"{text_generation_target_name}"'
+        text_generation_df.rename(
+            columns={text_generation_target_name: target_name_with_quotation_marks}
+        )
+        self._test_and_verify_extra_model_output_with_redundant_quotation_marks(
+            target_name_with_quotation_marks, text_generation_df, extra_model_output_df
+        )
+
 
 class TestPythonModelAdapterInitialization:
     """Use cases to test the Python adapter initialization"""

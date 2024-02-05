@@ -616,7 +616,18 @@ class PythonModelAdapter(AbstractModelAdapter):
                 predictions_df = result_df
         else:
             if len(result_df.columns) > 1:
-                target_column = self._target_name if self._target_name else PRED_COLUMN
+                if self._target_name:
+                    target_column = self._target_name
+                    if target_column not in result_df:
+                        # Try removing quotation marks if exist
+                        if (
+                            len(target_column) >= 2
+                            and target_column[0] == '"'
+                            and target_column[-1] == '"'
+                        ):
+                            target_column = target_column[1:-1]
+                else:
+                    target_column = PRED_COLUMN
                 extra_model_output = result_df.drop(columns=[target_column])
                 predictions_df = result_df[[target_column]]
             else:
