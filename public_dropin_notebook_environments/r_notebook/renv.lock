@@ -2009,13 +2009,13 @@
     },
     "pbdZMQ": {
       "Package": "pbdZMQ",
-      "Version": "0.3-10",
+      "Version": "0.3-11",
       "Source": "Repository",
-      "Repository": "CRAN",
+      "Repository": "http://cran.r-project.org",
       "Requirements": [
         "R"
       ],
-      "Hash": "d827bc6fd1ec550114f19b48d149a35b"
+      "Hash": "96432d2e7560d5242824427ecdf0fa98"
     },
     "pbkrtest": {
       "Package": "pbkrtest",
