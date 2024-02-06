@@ -60,12 +60,12 @@ COPY ./setup-ssh.sh ./common-user-limits.sh ./setup-venv.sh ${WORKDIR}/
 
 # Add any package that will be installed on system level here:
 RUN microdnf update \
-  && microdnf install -y tar-2:1.30 gzip-1.9 python39-3.9.18 bzip2-devel-1.0.6 cmake-3.20.2 gcc-8.5.0 gcc-c++-8.5.0  \
+  && microdnf install -y tar-2:1.30 gzip-1.9 python39-3.9.18 bzip2-devel-1.0.6 cmake-3.26.5 gcc-8.5.0 gcc-c++-8.5.0  \
     gcc-gfortran-8.5.0 libSM-1.2.3 libXmu-1.1.3 libXt-1.1.5 libcurl-devel-7.61.1 libicu-devel-60.3 libtiff-4.0.9  \
     make-1:4.2.1 openblas-threads-0.3.15 pango-1.42.4 pcre2-devel-10.32 tcl-1:8.6.8 tk-1:8.6.8 unzip-6.0 which-2.21 \
     xz-devel-5.2.4 zip-3.0 zlib-devel-1.2.11 libxml2-devel-2.9.7 openssl-devel-1:1.1.1k libpng-devel-2:1.6.34 \
   libjpeg-turbo-devel-1.5.3 shadow-utils-2:4.6 git-2.39.3 wget-1.19.5 fontconfig-devel-2.13.1 glib2-devel-2.56.4  \
-  libtiff-devel-4.0.9 vim-minimal-2:8.0.1763 nano-2.9.8 tzdata-java mesa-libGLU-9.0.0-15.el8.x86_64 \
+  libtiff-devel-4.0.9 vim-minimal-2:8.0.1763 nano-2.9.8 tzdata-java mesa-libGLU-9.0.0 \
   && microdnf install -y openssh-server \
     && microdnf clean all
 
