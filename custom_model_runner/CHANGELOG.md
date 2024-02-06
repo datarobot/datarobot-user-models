@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+#### [1.10.20] - 2024-02-06
+##### Changed
+- Add support for extra model output in PPS
+- Fix extra model output extraction when target name is provided (text-generation)
+- Bump datarobot-model-metrics library to 0.3.6
+- Other bug fixes
+
 #### [1.10.19] - 2024-01-29
 ##### Changed
 - Bump pillow<=10.2.0
