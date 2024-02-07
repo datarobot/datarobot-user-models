@@ -1,6 +1,5 @@
-from .dr_custom_metrics import DRCustomMetricInfo, DRCustomMetric
+from .dr_custom_metrics import DRCustomMetrics
 
 __all__ = [
-    "DRCustomMetricInfo",
-    "DRCustomMetric",
+    "DRCustomMetrics",
 ]

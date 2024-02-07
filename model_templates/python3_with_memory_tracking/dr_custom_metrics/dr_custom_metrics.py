@@ -4,7 +4,7 @@ A class to manage custom metrics object on the DR side
 """
 from __future__ import absolute_import
 
-from schema import Schema, SchemaError, Or
+from schema import Schema, SchemaError, Or, Optional
 import yaml
 import json
 from datetime import datetime
@@ -16,6 +16,8 @@ import requests
 from requests.exceptions import ConnectionError
 from requests.exceptions import HTTPError
 from urllib3.exceptions import MaxRetryError
+
+from datarobot.utils.waiters import wait_for_async_resolution
 
 
 """
@@ -32,20 +34,7 @@ customMetrics:
 """
 
 
-class CustomMetricAggregation:
-    pass
-
-
-class DRCustomMetricInfo:
-    def __init__(self):
-        self.name = None
-        self.nick_name = None
-        self.description = None
-        self.is_model_metric = False
-        self.aggregator = "bla"
-
-
-class DRCustomMetric:
+class DRCustomMetrics:
 
     allowed_type_values = ["sum", "average", "gauge"]
     allowed_directionality = ["higherIsBetter", "lowerIsBetter"]
@@ -60,7 +49,7 @@ class DRCustomMetric:
                 "type": Or(*allowed_type_values),
                 "units": str,
                 "timeStep": str,
-                "baselineValue": Or(int, float)
+                Optional("baselineValue"): Or(int, float)
             }
         ]
     })
@@ -103,6 +92,17 @@ class DRCustomMetric:
 
         #TODO Read file and call set_config
         return self
+
+    def create_custom_segments(self, names, max_wait=600):
+        url = f"deployments/{self._deployment_id}/settings/"
+        payload = {
+            "segment_analysis": {
+                "enabled": True,
+                "custom_attributes": names,
+            }
+        }
+        response = self._dr_client.patch(url, data=payload)
+        wait_for_async_resolution(self._dr_client, response.headers["Location"], max_wait)
 
     @staticmethod
     def _has_unique_values(input_list, key):
@@ -234,7 +234,7 @@ class DRCustomMetric:
                                     aggregation_type=metric["type"],
                                     time_step=metric["timeStep"],
                                     units=metric["units"],
-                                    baseline_value=metric["baselineValue"],
+                                    baseline_value=metric.get("baselineValue"),
                                     is_model_specific=metric["isModelSpecific"])
                 metric["id"] = metric_id
                 metrics_created +=1
@@ -258,7 +258,7 @@ class DRCustomMetric:
         self._build_unified_list_of_cm(dr_cm_list)
         self._create_missing_dr_cm()
 
-    def report_value(self, nick_name, value):
+    def report_value(self, nick_name, value, segments=None):
         """
         Report a value for a custom metric given the nick name. Avoid using the id
         :param nick_name:
@@ -273,6 +273,7 @@ class DRCustomMetric:
 
         api_url = 'deployments/{}/customMetrics/{}/fromJSON/'
         ts = datetime.utcnow()
+        segments = segments or []
 
         rows = [{'timestamp': ts.isoformat(), 'value': value}]
 
@@ -280,15 +281,19 @@ class DRCustomMetric:
         if self._model_package_id:
             json_payload["modelPackageId"] = self._model_package_id
 
+        if segments:
+            json_payload["segments"] = [{"name": n, "value": v} for (n, v) in segments]
+
         self._logger.debug(json_payload)
         response = self._dr_client.post(
             api_url.format(self._deployment_id, metric_id),
             json=json_payload,
         )
+        print(response.content)
         response.raise_for_status()
 
-    def create_cm(self, name, directionality, units, aggregation_type, baseline_value,
-                  is_model_specific, time_step="hour"):
+    def create_cm(self, name, directionality, units, aggregation_type,
+                  is_model_specific, time_step="hour", baseline_value=None):
 
         # optional parameters, used in ingestion from dataset
         timestamp = {"columnName": None, "timeFormat": None}
@@ -303,17 +308,20 @@ class DRCustomMetric:
             "units": units,
             "type": aggregation_type,
             "timeStep": time_step,
-            "baselineValues": [{"value": baseline_value}],
             "isModelSpecific": is_model_specific,
             "timestamp": timestamp,
             "value": value,
             "sampleCount": sample_count,
             "batch": batch,
         }
+        baselines = []
+        if baseline_value is not None:
+            baselines.append({"value": baseline_value})
+
+        payload['baselineValues'] = baselines
         response = self._dr_client.post(url, json=payload)
         if response.status_code != 201:
             raise Exception("Error creating custom metric {}")
-        assert response.status_code == 201
         custom_metric_id = response.json()["id"]
         self._logger.debug(f"created metric {name} with id: {custom_metric_id}")
         return custom_metric_id

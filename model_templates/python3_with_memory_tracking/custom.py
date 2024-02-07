@@ -10,7 +10,7 @@ import os
 import pandas as pd
 
 import datarobot as dr
-from dr_custom_metrics import DRCustomMetricInfo, DRCustomMetric
+from dr_custom_metrics import DRCustomMetrics
 
 
 def get_container_memory_usage():
@@ -35,8 +35,8 @@ def get_datarobot_endpoint():
     return value + "/api/v2"
 
 
-def create_if_not_exists_used_mem_metric(dr_client, deployment_id, baseline, name="used_mem"):
-    used_mem_metric = DRCustomMetric(dr_client=dr_client, deployment_id=deployment_id)
+def sync_metrics(dr_client, deployment_id, name="used_mem"):
+    metrics = DRCustomMetrics(dr_client=dr_client, deployment_id=deployment_id)
     metric_config_yaml = f"""
        customMetrics:
          - name: {name}
@@ -47,19 +47,20 @@ def create_if_not_exists_used_mem_metric(dr_client, deployment_id, baseline, nam
            units: MB
            directionality: lowerIsBetter
            isModelSpecific: no
-           baselineValue: {baseline}
        """
-    used_mem_metric.set_config(config_yaml=metric_config_yaml)
-    used_mem_metric.sync()
-    return used_mem_metric
+    metrics.set_config(config_yaml=metric_config_yaml)
+    metrics.sync()
+    return metrics
+
+
+def report_memory_usage(metrics):
+    used_mem = get_container_memory_usage()
+    metrics.report_value("used_mem", used_mem, segments=[('Replica', os.environ.get('HOSTNAME'))])
+    return used_mem
 
 
 def load_model(code_dir: str) -> Any:
     model = {}
-
-    used_mem = get_container_memory_usage()
-    print("\n\nInitial memory usage (MBs):")
-    print(used_mem)
 
     deployment_id = os.environ.get('MLOPS_DEPLOYMENT_ID')
 
@@ -71,13 +72,20 @@ def load_model(code_dir: str) -> Any:
         # create a metric to track memory usage
         # name: "used_mem".
         # In order to see it, you can check "Custom Metrics" section of your deployment
-        used_mem_metric = create_if_not_exists_used_mem_metric(dr_client, deployment_id, used_mem)
-        model["used_mem_metric"] = used_mem_metric
+        metrics = sync_metrics(dr_client, deployment_id)
+        model["metrics"] = metrics
+
+        metrics.create_custom_segments(['Replica'])
 
         # print metric details in logs
-        cm_list = used_mem_metric.get_list_of_dr_custom_metrics()
+        cm_list = metrics.get_list_of_dr_custom_metrics()
         print('Custom metrics created:')
         print(cm_list)
+
+        used_mem = report_memory_usage(metrics)
+
+        print("\n\nInitial memory usage (MBs):")
+        print(used_mem)
 
     return model
 
@@ -109,8 +117,7 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     preds = pd.DataFrame([42 for _ in range(data.shape[0])], columns=["Predictions"])
 
     # report memory usage
-    if "used_mem_metric" in model:
-        used_mem = get_container_memory_usage()
-        model["used_mem_metric"].report_value("used_mem", used_mem)
+    if "metrics" in model:
+        report_memory_usage(model["metrics"])
 
     return preds
