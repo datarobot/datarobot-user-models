@@ -7,36 +7,30 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import logging
 import sys
 from pathlib import Path
-from mlpiper.components.connectable_component import ConnectableComponent
 
-from datarobot_drum.drum.common import (
-    make_predictor_capabilities,
-    read_model_metadata_yaml,
-)
+from datarobot_drum.drum.common import make_predictor_capabilities, read_model_metadata_yaml
+from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.enum import (
+    FLASK_EXT_FILE_NAME,
     LOGGER_NAME_PREFIX,
     TARGET_TYPE_ARG_KEYWORD,
     ModelInfoKeys,
     RunLanguage,
     TargetType,
-    FLASK_EXT_FILE_NAME,
 )
-from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.resource_monitor import ResourceMonitor
-
-from datarobot_drum.resource.components.Python.prediction_server.stdout_flusher import StdoutFlusher
-from datarobot_drum.resource.deployment_config_helpers import parse_validate_deployment_config_file
-from datarobot_drum.resource.predict_mixin import PredictMixin
-
-
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
     HTTP_500_INTERNAL_SERVER_ERROR,
-    get_flask_app,
     base_api_blueprint,
+    get_flask_app,
 )
+from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
+from datarobot_drum.resource.components.Python.prediction_server.stdout_flusher import StdoutFlusher
+from datarobot_drum.resource.deployment_config_helpers import parse_validate_deployment_config_file
+from datarobot_drum.resource.predict_mixin import PredictMixin
+from mlpiper.components.connectable_component import ConnectableComponent
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -95,6 +89,12 @@ class PredictionServer(ConnectableComponent, PredictMixin):
             from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
 
             self._predictor = RPredictor()
+        elif self._run_language == RunLanguage.TRITON_ONNX:
+            from datarobot_drum.drum.language_predictors.triton_predictor.triton_predictor import (
+                TritonPredictor,
+            )
+
+            self._predictor = TritonPredictor()
         else:
             raise DrumCommonException(
                 "Prediction server doesn't support language: {} ".format(self._run_language)

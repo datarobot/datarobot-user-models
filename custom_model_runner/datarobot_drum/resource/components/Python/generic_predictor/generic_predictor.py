@@ -10,14 +10,18 @@ from typing import Optional
 
 import werkzeug
 from datarobot_drum.drum.adapters.cli.drum_score_adapter import DrumScoreAdapter
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
-from datarobot_drum.drum.enum import TARGET_TYPE_ARG_KEYWORD
-from datarobot_drum.drum.enum import RunLanguage
-from datarobot_drum.drum.enum import TargetType
-from datarobot_drum.drum.enum import UnstructuredDtoKeys
+from datarobot_drum.drum.enum import (
+    LOGGER_NAME_PREFIX,
+    TARGET_TYPE_ARG_KEYWORD,
+    RunLanguage,
+    TargetType,
+    UnstructuredDtoKeys,
+)
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.resource.unstructured_helpers import _resolve_incoming_unstructured_data
-from datarobot_drum.resource.unstructured_helpers import _resolve_outgoing_unstructured_data
+from datarobot_drum.resource.unstructured_helpers import (
+    _resolve_incoming_unstructured_data,
+    _resolve_outgoing_unstructured_data,
+)
 from mlpiper.components.connectable_component import ConnectableComponent
 
 
@@ -68,6 +72,12 @@ class GenericPredictorComponent(ConnectableComponent):
             from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
 
             self._predictor = RPredictor()
+        elif self._run_language == RunLanguage.TRITON_ONNX:
+            from datarobot_drum.drum.language_predictors.triton_predictor.triton_predictor import (
+                TritonPredictor,
+            )
+
+            self._predictor = TritonPredictor()
         else:
             raise DrumCommonException(
                 "Prediction server doesn't support language: {} ".format(self._run_language)
