@@ -179,6 +179,16 @@ class PythonArtifacts:
     ]
 
 
+class TritonInferenceServerArtifacts:
+    PROTOCOL_BUFFER_TEXT_FILE_EXTENSION = ".pbtxt"
+    ALL = [PROTOCOL_BUFFER_TEXT_FILE_EXTENSION]
+
+
+class TritonInferenceServerBackends:
+    ONNX = "onnxruntime_onnx"
+    ALL = {ONNX}
+
+
 class RArtifacts:
     RDS_EXTENSION = ".rds"
     ALL = [RDS_EXTENSION]
@@ -332,7 +342,8 @@ class RunLanguage(Enum):
     R = "r"
     JAVA = "java"
     JULIA = "julia"
-
+    # TODO delete this, and disable the runtime_language check when using the --with-triton-server
+    TRITON_ONNX = "triton_onnx"
 
 class TargetType(Enum):
     # Update documentation in model-metadata.md if a new type is added here.
