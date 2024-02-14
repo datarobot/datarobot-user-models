@@ -25,7 +25,6 @@
 /custom_model_runner                                              @datarobot/custom-models @datarobot/core-modeling
 /custom_model_runner/datarobot_drum/drum/typeschema_validation.py @datarobot/core-modeling
 /custom_model_runner/datarobot_drum/resource/default_typeschema   @datarobot/core-modeling
-/drapps                                                           @datarobot/applications
 /public_custom_application_environments                           @datarobot/custom-models @datarobot/applications
 /public_dropin_environments/java_codegen                          @datarobot/custom-models
 /public_dropin_environments/python311_genai                       @datarobot/custom-models @datarobot/buzok
