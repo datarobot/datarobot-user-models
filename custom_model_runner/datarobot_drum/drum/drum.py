@@ -116,12 +116,13 @@ class CMRunner:
                     "ensure there are no conflicts with other tasks downstream. Disable strict validation if you do "
                     "not want to use the default type schema."
                 )
-                use_default_type_schema = True
+                type_schema = read_model_metadata_yaml(
+                    SchemaValidator.DEFAULT_TYPE_SCHEMA_CODEDIR_PATH
+                )["typeSchema"]
 
             self.schema_validator = SchemaValidator(
                 type_schema=type_schema,
                 strict=strict_validation,
-                use_default_type_schema=use_default_type_schema,
                 verbose=self.verbose,
             )
         self._input_df = None

@@ -523,14 +523,12 @@ class SchemaValidator:
     actual validation on the respective dataframes.
     """
 
-    _DEFAULT_TYPE_SCHEMA_CODEDIR_PATH = os.path.abspath(
+    DEFAULT_TYPE_SCHEMA_CODEDIR_PATH = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "..", "resource", "default_typeschema")
     )
-    assert os.path.exists(_DEFAULT_TYPE_SCHEMA_CODEDIR_PATH)
+    assert os.path.exists(DEFAULT_TYPE_SCHEMA_CODEDIR_PATH)
 
-    def __init__(
-        self, type_schema: dict, strict=True, use_default_type_schema=False, verbose=False
-    ):
+    def __init__(self, type_schema: dict, strict=True, verbose=False):
         """
         Parameters
         ----------
@@ -538,21 +536,9 @@ class SchemaValidator:
             YAML type schema converted to dict
         strict: bool
             Whether to error if data does not match type schema
-        use_default_type_schema: bool
-            Whether to use the default type schema which matches DataRobot's defaults when no type schema is present.
-            type_schema must not be provided for the default to be used.
         verbose: bool
             Whether to print messages to the user
         """
-        self._using_default_type_schema = False
-        if not type_schema and use_default_type_schema:
-            from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
-
-            type_schema = read_model_metadata_yaml(
-                SchemaValidator._DEFAULT_TYPE_SCHEMA_CODEDIR_PATH
-            )["typeSchema"]
-            self._using_default_type_schema = True
-
         self._input_validators = [
             self._get_validator(schema) for schema in type_schema.get("input_requirements", [])
         ]
