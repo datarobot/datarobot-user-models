@@ -7,13 +7,13 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import json
 import os
 import re
-from pathlib import Path
-from typing import Optional as PythonTypingOptional, List, Dict
-
 import six
 import trafaret as t
+
+from pathlib import Path
 from ruamel.yaml import YAMLError
 from strictyaml import load, Map, Str, Optional, Bool, Seq, Int, Any
+from typing import Optional as PythonTypingOptional, List, Dict
 
 from datarobot_drum.drum.enum import (
     ModelMetadataHyperParamTypes,
@@ -208,6 +208,13 @@ def read_model_metadata_yaml(code_dir) -> PythonTypingOptional[dict]:
 
         return model_config
     return None
+
+
+def read_default_model_metadata_yaml() -> PythonTypingOptional[dict]:
+    default_type_schema_path = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "resource", "default_typeschema")
+    )
+    return read_model_metadata_yaml(default_type_schema_path)["typeSchema"]
 
 
 def validate_config_fields(model_config, *fields):

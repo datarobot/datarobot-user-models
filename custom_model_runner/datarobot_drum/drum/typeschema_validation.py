@@ -5,7 +5,6 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import numbers
-import os
 import sys
 from abc import ABC, abstractmethod
 import base64
@@ -522,11 +521,6 @@ class SchemaValidator:
     meets the schema requirements.  Two methods, validate_inputs and validate_outputs are provided to perform the
     actual validation on the respective dataframes.
     """
-
-    DEFAULT_TYPE_SCHEMA_CODEDIR_PATH = os.path.abspath(
-        os.path.join(os.path.dirname(__file__), "..", "resource", "default_typeschema")
-    )
-    assert os.path.exists(DEFAULT_TYPE_SCHEMA_CODEDIR_PATH)
 
     def __init__(self, type_schema: dict, strict=True, verbose=False):
         """

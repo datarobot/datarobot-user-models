@@ -20,7 +20,11 @@ from scipy import sparse
 import yaml
 from strictyaml import load, YAMLValidationError
 
-from datarobot_drum.drum.model_metadata import read_model_metadata_yaml, validate_config_fields
+from datarobot_drum.drum.model_metadata import (
+    read_model_metadata_yaml,
+    validate_config_fields,
+    read_default_model_metadata_yaml,
+)
 from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, ModelMetadataKeys, TargetType
 
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException, DrumCommonException
@@ -208,9 +212,7 @@ class TestSchemaValidator:
         return schema.data
 
     def test_default_typeschema(self):
-        type_schema = read_model_metadata_yaml(SchemaValidator.DEFAULT_TYPE_SCHEMA_CODEDIR_PATH)[
-            "typeSchema"
-        ]
+        type_schema = read_default_model_metadata_yaml()
         validator = SchemaValidator(type_schema=type_schema)
 
         # Ensure input validators are correctly set
@@ -631,9 +633,7 @@ class TestSchemaValidator:
     )
     def test_schema_with_outputs_check_target_type(self, target, capsys):
         print(target)
-        type_schema = read_model_metadata_yaml(SchemaValidator.DEFAULT_TYPE_SCHEMA_CODEDIR_PATH)[
-            "typeSchema"
-        ]
+        type_schema = read_default_model_metadata_yaml()
         validator = SchemaValidator(type_schema=type_schema)
         if target == TargetType.TRANSFORM:
             validator.validate_type_schema(target)

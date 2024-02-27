@@ -30,7 +30,10 @@ from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
 from datarobot_drum.drum.adapters.model_adapters.abstract_model_adapter import AbstractModelAdapter
 from datarobot_drum.drum.adapters.model_adapters.r_model_adapter import RModelAdapter
 from datarobot_drum.drum.common import get_metadata, FIT_METADATA_FILENAME
-from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
+from datarobot_drum.drum.model_metadata import (
+    read_model_metadata_yaml,
+    read_default_model_metadata_yaml,
+)
 
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.enum import CUSTOM_FILE_NAME
@@ -116,9 +119,7 @@ class CMRunner:
                     "ensure there are no conflicts with other tasks downstream. Disable strict validation if you do "
                     "not want to use the default type schema."
                 )
-                type_schema = read_model_metadata_yaml(
-                    SchemaValidator.DEFAULT_TYPE_SCHEMA_CODEDIR_PATH
-                )["typeSchema"]
+                type_schema = read_default_model_metadata_yaml()
 
             self.schema_validator = SchemaValidator(
                 type_schema=type_schema,
