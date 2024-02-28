@@ -27,7 +27,7 @@ scikit-learn==1.3.2
 scipy==1.10.1
 seaborn==0.12.0
 shap==0.41.0
-snowflake-connector-python[secure-local-storage,pandas]==3.6.0
+snowflake-connector-python[secure-local-storage,pandas]==3.7.1
 snowflake-snowpark-python==1.11.1
 spacy==3.7.2
 statsmodels==0.14.1
