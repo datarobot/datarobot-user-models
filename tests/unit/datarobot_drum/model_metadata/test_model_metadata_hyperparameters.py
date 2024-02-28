@@ -4,7 +4,6 @@ import os
 import pytest
 import yaml
 
-from datarobot_drum.drum.common import read_model_metadata_yaml
 from datarobot_drum.drum.drum import get_default_parameter_values
 from datarobot_drum.drum.enum import (
     ModelMetadataKeys,
@@ -20,6 +19,7 @@ from datarobot_drum.drum.model_metadata import (
     IntHyperParameterTrafaret,
     FloatHyperParameterTrafaret,
     MultiHyperParameterTrafaret,
+    read_model_metadata_yaml,
 )
 
 

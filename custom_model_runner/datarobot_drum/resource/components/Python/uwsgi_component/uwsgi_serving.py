@@ -15,8 +15,8 @@ from mlpiper.components.restful.metric import Metric, MetricType, MetricRelation
 
 from datarobot_drum.drum.common import (
     make_predictor_capabilities,
-    read_model_metadata_yaml,
 )
+from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
 from datarobot_drum.drum.enum import (
     TARGET_TYPE_ARG_KEYWORD,
     URL_PREFIX_ENV_VAR_NAME,
