@@ -211,7 +211,7 @@ class TestRuntimeParametersFromValuesFile:
             f"--target-type {resources.target_types(problem)} "
         )
 
-        env = os.environ
+        env = os.environ.copy()
         if use_runtime_params_env_var:
             cmd += f"--runtime-params-file {runtime_param_values_stream.name}"
         else:
