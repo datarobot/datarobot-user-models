@@ -8,6 +8,13 @@ IS_PYTHON_KERNEL=$([[ "${NOTEBOOKS_KERNEL}" == "python" ]] && echo true || echo 
 
 if [[ $IS_CODESPACE == true && $IS_PYTHON_KERNEL == true && -z "${NOTEBOOKS_NO_PERSISTENT_DEPENDENCIES}" ]]; then
   export POETRY_VIRTUALENVS_CREATE=false
+  export XDG_CACHE_HOME="${WORKING_DIR%/}/.cache"
+  # Persistent HF artifact installation
+  export HF_HOME="${WORKING_DIR%/}/.cache"
+  export HF_HUB_CACHE="${WORKING_DIR%/}/.cache"
+  export HF_DATASETS_CACHE="${WORKING_DIR%/}/.datasets"
+  export TRANSFORMERS_CACHE="${WORKING_DIR%/}/.models"
+  export SENTENCE_TRANSFORMERS_HOME="${WORKING_DIR%/}/.models"
 
   USR_VENV="${WORKING_DIR%/}/.venv"
   [[ $VERBOSE_MODE == true ]] && echo "Setting up a user venv ($USR_VENV)..."
