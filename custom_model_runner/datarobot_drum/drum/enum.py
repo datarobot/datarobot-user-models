@@ -61,6 +61,10 @@ PERF_TEST_SERVER_LABEL = "__DRUM_PERF_TEST_SERVER__"
 
 CUSTOM_PY_CLASS_NAME = "CustomTask"
 
+GUARD_INIT_HOOK_NAME = "init"
+GUARD_SCORE_WRAPPER_NAME = "guard_score_wrapper"
+
+
 LOG_LEVELS = {
     "all": logging.NOTSET,
     "debug": logging.DEBUG,

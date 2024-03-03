@@ -47,6 +47,8 @@ from datarobot_drum.drum.enum import (
     PayloadFormat,
     StructuredDtoKeys,
     TargetType,
+    GUARD_INIT_HOOK_NAME,
+    GUARD_SCORE_WRAPPER_NAME
 )
 from datarobot_drum.drum.exceptions import (
     DrumCommonException,
@@ -103,13 +105,54 @@ class PythonModelAdapter(AbstractModelAdapter):
         # New custom task class and instance loaded from custom.py
         self._custom_task_class = None
         self._custom_task_class_instance = None
+        self._guard_moderation_hooks = None
+        self._guard_pipeline = None
 
         if target_type == TargetType.TEXT_GENERATION:
             self._target_name = os.environ.get("TARGET_NAME")
             if not self._target_name:
                 raise ValueError("Unexpected empty target name for text generation!")
+            self._load_guard_hooks_for_drum()
         else:
             self._target_name = None
+
+    def _load_guard_hooks_for_drum(self):
+        if os.environ.get('MLOPS_GUARD_HOOK_FILE', None) is None:
+            return
+
+        guard_file_prefix = os.environ.get('MLOPS_GUARD_HOOK_FILE')
+        guards_file_paths = list(Path(self._model_dir).rglob("{}.py".format(guard_file_prefix)))
+        if len(guards_file_paths) > 1:
+            self._logger.error("Found too many guard hook files: {}".format(guards_file_paths))
+            return
+
+        if len(guards_file_paths) == 0:
+            self._logger.info(
+                "No {}.py file detected in {}".format(guard_file_prefix, self._model_dir)
+            )
+            return
+
+        guard_file_path = guards_file_paths[0]
+        self._logger.info("Detected {} .. trying to load hooks".format(guard_file_path))
+        sys.path.insert(0, os.path.dirname(guard_file_path))
+
+        try:
+            guard_module = __import__(guard_file_prefix)
+            self._guard_moderation_hooks = {
+                GUARD_INIT_HOOK_NAME: getattr(guard_module, GUARD_INIT_HOOK_NAME, None),
+                GUARD_SCORE_WRAPPER_NAME: getattr(guard_module, GUARD_SCORE_WRAPPER_NAME, None),
+            }
+            if (
+                self._guard_moderation_hooks[GUARD_INIT_HOOK_NAME] and
+                self._guard_moderation_hooks[GUARD_SCORE_WRAPPER_NAME]
+            ):
+                self._guard_pipeline = self._guard_moderation_hooks[GUARD_INIT_HOOK_NAME]()
+            else:
+                self._logger.info("No guards defined")
+
+        except ImportError as e:
+            self._logger.error("Could not load guard hooks: {}".format(e))
+            # Just log that no guard info present
 
     def _log_and_raise_final_error(self, exc: Exception, message: str) -> NoReturn:
         self._logger.exception(f"{message} Exception: {exc!r}")
@@ -560,13 +603,25 @@ class PythonModelAdapter(AbstractModelAdapter):
             assert all(isinstance(label, str) for label in request_labels)
         extra_model_output = None
         if self._custom_hooks.get(CustomHooks.SCORE):
-            try:
-                # noinspection PyCallingNonCallable
-                predictions_df = self._custom_hooks.get(CustomHooks.SCORE)(data, model, **kwargs)
-            except Exception as exc:
-                self._log_and_raise_final_error(
-                    exc, "Model 'score' hook failed to make predictions."
-                )
+            if self._target_type == TargetType.TEXT_GENERATION and self._guard_pipeline:
+                try:
+                    predictions_df = self._guard_moderation_hooks[GUARD_SCORE_WRAPPER_NAME](
+                        data, model, self._guard_pipeline,  self._custom_hooks.get(CustomHooks.SCORE), **kwargs
+                    )
+                    if self._target_name not in predictions_df:
+                        predictions_df.rename(columns={'completion': self._target_name}, inplace=True)
+                except Exception as exc:
+                    self._log_and_raise_final_error(
+                        exc, "Model 'score' hook failed to make predictions."
+                    )
+            else:
+                try:
+                    # noinspection PyCallingNonCallable
+                    predictions_df = self._custom_hooks.get(CustomHooks.SCORE)(data, model, **kwargs)
+                except Exception as exc:
+                    self._log_and_raise_final_error(
+                        exc, "Model 'score' hook failed to make predictions."
+                    )
             self._validate_data(predictions_df, CustomHooks.SCORE)
             predictions_df, extra_model_output = self._split_to_predictions_and_extra_model_output(
                 predictions_df, request_labels
