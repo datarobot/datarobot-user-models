@@ -162,9 +162,15 @@ class TestRuntimeParametersFromValuesFile:
         with NamedTemporaryFile() as file_stream:
             yield file_stream
 
-    def test_runtime_parameters_success(self, resources, tmp_path, runtime_param_values_stream):
+    @pytest.mark.parametrize("use_runtime_params_env_var", [True, False])
+    def test_runtime_parameters_success(
+        self, resources, tmp_path, runtime_param_values_stream, use_runtime_params_env_var
+    ):
         stderr = self._test_custom_model_with_runtime_params(
-            resources, tmp_path, runtime_param_values_stream
+            resources,
+            tmp_path,
+            runtime_param_values_stream,
+            use_runtime_params_env_var=use_runtime_params_env_var,
         )
         assert not stderr
 
@@ -177,6 +183,7 @@ class TestRuntimeParametersFromValuesFile:
         is_missing_attr=False,
         bool_var_value=False,
         numeric_var_value=123,
+        use_runtime_params_env_var=False,
     ):
         problem = UNSTRUCTURED
         custom_model_dir = _create_custom_model_dir(
@@ -202,10 +209,14 @@ class TestRuntimeParametersFromValuesFile:
             f"--input {runtime_params_filepath} "
             f"--output {Path(tmp_path) / 'output'} "
             f"--target-type {resources.target_types(problem)} "
-            f"--runtime-params-file {runtime_param_values_stream.name}"
         )
 
-        _, stdout, _ = _exec_shell_cmd(cmd, err_msg=None, assert_if_fail=False)
+        env = os.environ.copy()
+        if use_runtime_params_env_var:
+            cmd += f"--runtime-params-file {runtime_param_values_stream.name}"
+        else:
+            env["RUNTIME_PARAMS_FILE"] = runtime_param_values_stream.name
+        _, stdout, _ = _exec_shell_cmd(cmd, err_msg=None, assert_if_fail=False, env=env)
         return stdout
 
     @classmethod
@@ -230,19 +241,29 @@ class TestRuntimeParametersFromValuesFile:
 
         return runtime_params_filepath
 
+    @pytest.mark.parametrize("use_runtime_params_env_var", [True, False])
     def test_runtime_parameters_invalid_yaml(
-        self, resources, tmp_path, runtime_param_values_stream
+        self, resources, tmp_path, runtime_param_values_stream, use_runtime_params_env_var
     ):
         stdout = self._test_custom_model_with_runtime_params(
-            resources, tmp_path, runtime_param_values_stream, is_invalid_yaml=True
+            resources,
+            tmp_path,
+            runtime_param_values_stream,
+            is_invalid_yaml=True,
+            use_runtime_params_env_var=use_runtime_params_env_var,
         )
         assert "Invalid runtime parameter values YAML content!" in stdout
 
+    @pytest.mark.parametrize("use_runtime_params_env_var", [True, False])
     def test_runtime_parameters_missing_attr(
-        self, resources, tmp_path, runtime_param_values_stream
+        self, resources, tmp_path, runtime_param_values_stream, use_runtime_params_env_var
     ):
         stdout = self._test_custom_model_with_runtime_params(
-            resources, tmp_path, runtime_param_values_stream, is_missing_attr=True
+            resources,
+            tmp_path,
+            runtime_param_values_stream,
+            is_missing_attr=True,
+            use_runtime_params_env_var=use_runtime_params_env_var,
         )
         assert re.search(
             r".*Failed to load runtime parameter.*{\\'credentialType\\': DataError\(\\'is required\\'\)}.*",

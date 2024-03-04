@@ -105,10 +105,10 @@ class CMRunnerArgsRegistry(object):
         for parser in parsers:
             parser.add_argument(
                 ArgumentsOptions.RUNTIME_PARAMS_FILE,
-                default=None,
+                default=os.environ.get("RUNTIME_PARAMS_FILE", None),
                 required=False,
                 type=CMRunnerArgsRegistry._is_valid_file,
-                help="Path to a runtime parameter values file.",
+                help="Path to a runtime parameter values file. (env: RUNTIME_PARAMS_FILE)",
             )
 
     @staticmethod
