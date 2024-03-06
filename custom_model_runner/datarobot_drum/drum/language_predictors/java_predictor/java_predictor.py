@@ -223,7 +223,16 @@ class JavaPredictor(BaseLanguagePredictor):
         """
         self._cleanup()
 
-    def _run_java_server_entry_point(self):
+    def _run_java_server_entry_point(self, poll_timeout: int = 2) -> None:
+        """
+        Run the py4j gateway implemented in the Java predictor
+
+        Parameters:
+        -----------
+
+        poll_timeout:
+            timeout before checking whether gateway has been successfully started.
+        """
         custom_class_path = os.environ.get(EnvVarNames.DRUM_JAVA_CUSTOM_CLASS_PATH)
         if custom_class_path:
             self.logger.debug("Custom class path: {}".format(custom_class_path))
@@ -282,7 +291,7 @@ class JavaPredictor(BaseLanguagePredictor):
         )  # , stdout=self._stdout_pipe_w, stderr=self._stderr_pipe_w)
 
         # TODO: provide a more robust way to check proper process startup
-        time.sleep(2)
+        time.sleep(poll_timeout)
 
         poll_val = self._proc.poll()
         if poll_val is not None:

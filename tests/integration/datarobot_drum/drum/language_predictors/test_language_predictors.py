@@ -318,7 +318,7 @@ class TestJavaPredictor(object):
 
             # check that PredictorEntryPoint can not bind to port as it is taken
             with pytest.raises(DrumCommonException, match="java gateway failed to start"):
-                pred._run_java_server_entry_point()
+                pred._run_java_server_entry_point(poll_timeout=4)
 
             # check that JavaGateway() fails to connect
             with pytest.raises(DrumCommonException, match="Failed to connect to java gateway"):
