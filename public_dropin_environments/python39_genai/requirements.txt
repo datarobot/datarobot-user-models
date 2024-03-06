@@ -2,7 +2,7 @@ cloudpickle==2.2.1
 torch==2.0.1
 transformers==4.36.0
 openai==0.27.8
-langchain==0.0.335
+langchain==0.1.11
 sentence-transformers==2.2.2
 faiss-cpu==1.7.4
 numpy==1.23.5
