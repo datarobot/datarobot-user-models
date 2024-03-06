@@ -610,11 +610,11 @@ class PythonModelAdapter(AbstractModelAdapter):
                         model,
                         self._guard_pipeline,
                         self._custom_hooks.get(CustomHooks.SCORE),
-                        **kwargs
+                        **kwargs,
                     )
                     if self._target_name not in predictions_df:
                         predictions_df.rename(
-                            columns={'completion': self._target_name}, inplace=True
+                            columns={"completion": self._target_name}, inplace=True
                         )
                 except Exception as exc:
                     self._log_and_raise_final_error(
