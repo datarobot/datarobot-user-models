@@ -48,7 +48,7 @@ from datarobot_drum.drum.enum import (
     StructuredDtoKeys,
     TargetType,
     GUARD_INIT_HOOK_NAME,
-    GUARD_SCORE_WRAPPER_NAME
+    GUARD_SCORE_WRAPPER_NAME,
 )
 from datarobot_drum.drum.exceptions import (
     DrumCommonException,
@@ -117,10 +117,10 @@ class PythonModelAdapter(AbstractModelAdapter):
             self._target_name = None
 
     def _load_guard_hooks_for_drum(self):
-        if os.environ.get('MLOPS_GUARD_HOOK_FILE', None) is None:
+        if os.environ.get("MLOPS_GUARD_HOOK_FILE", None) is None:
             return
 
-        guard_file_prefix = os.environ.get('MLOPS_GUARD_HOOK_FILE')
+        guard_file_prefix = os.environ.get("MLOPS_GUARD_HOOK_FILE")
         guards_file_paths = list(Path(self._model_dir).rglob("{}.py".format(guard_file_prefix)))
         if len(guards_file_paths) > 1:
             self._logger.error("Found too many guard hook files: {}".format(guards_file_paths))
@@ -143,8 +143,8 @@ class PythonModelAdapter(AbstractModelAdapter):
                 GUARD_SCORE_WRAPPER_NAME: getattr(guard_module, GUARD_SCORE_WRAPPER_NAME, None),
             }
             if (
-                self._guard_moderation_hooks[GUARD_INIT_HOOK_NAME] and
-                self._guard_moderation_hooks[GUARD_SCORE_WRAPPER_NAME]
+                self._guard_moderation_hooks[GUARD_INIT_HOOK_NAME]
+                and self._guard_moderation_hooks[GUARD_SCORE_WRAPPER_NAME]
             ):
                 self._guard_pipeline = self._guard_moderation_hooks[GUARD_INIT_HOOK_NAME]()
             else:
@@ -606,10 +606,16 @@ class PythonModelAdapter(AbstractModelAdapter):
             if self._target_type == TargetType.TEXT_GENERATION and self._guard_pipeline:
                 try:
                     predictions_df = self._guard_moderation_hooks[GUARD_SCORE_WRAPPER_NAME](
-                        data, model, self._guard_pipeline,  self._custom_hooks.get(CustomHooks.SCORE), **kwargs
+                        data,
+                        model,
+                        self._guard_pipeline,
+                        self._custom_hooks.get(CustomHooks.SCORE),
+                        **kwargs
                     )
                     if self._target_name not in predictions_df:
-                        predictions_df.rename(columns={'completion': self._target_name}, inplace=True)
+                        predictions_df.rename(
+                            columns={'completion': self._target_name}, inplace=True
+                        )
                 except Exception as exc:
                     self._log_and_raise_final_error(
                         exc, "Model 'score' hook failed to make predictions."
@@ -617,7 +623,9 @@ class PythonModelAdapter(AbstractModelAdapter):
             else:
                 try:
                     # noinspection PyCallingNonCallable
-                    predictions_df = self._custom_hooks.get(CustomHooks.SCORE)(data, model, **kwargs)
+                    predictions_df = self._custom_hooks.get(CustomHooks.SCORE)(
+                        data, model, **kwargs
+                    )
                 except Exception as exc:
                     self._log_and_raise_final_error(
                         exc, "Model 'score' hook failed to make predictions."
