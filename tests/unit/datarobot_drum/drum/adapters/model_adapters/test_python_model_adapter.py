@@ -559,7 +559,9 @@ class TestPythonModelAdapterWithGuards:
             (True, np.array([["ABC"], ["DEF"]])), (False, np.array([["abc"], ["def"]]))
         ]
     )
-    def test_invoking_guard_hook_score_wrapper(self, tmp_path, guard_hook_present, expected_predictions):
+    def test_invoking_guard_hook_score_wrapper(
+        self, tmp_path, guard_hook_present, expected_predictions
+    ):
         def guard_score_wrapper(data, model, pipeline, drum_score_fn, **kwargs):
             data['completion'] = data['text'].str.upper()
             return data
@@ -577,6 +579,6 @@ class TestPythonModelAdapterWithGuards:
                 adapter._guard_moderation_hooks = {GUARD_SCORE_WRAPPER_NAME: guard_score_wrapper}
             adapter._custom_hooks["score"] = custom_score
             response = adapter.predict(binary_data=data)
-            # If the guard score wrapper is invoked, completion will be upper case letters (as defined),
-            # else they will be lower case letters.
+            # If the guard score wrapper is invoked, completion will be upper case letters
+            # (as defined), else they will be lower case letters.
             assert np.alltrue(response.predictions == expected_predictions)
