@@ -1,5 +1,5 @@
 # This is the default base image for use with user models and workflows.
-FROM nvcr.io/nvidia/tritonserver:22.04-py3
+FROM nvcr.io/nvidia/tritonserver:24.02-py3
 
 # Install the list of core requirements, e.g. sklearn, numpy, pandas, flask.
 # **Don't modify this file!**
