@@ -603,8 +603,8 @@ class PythonModelAdapter(AbstractModelAdapter):
             assert all(isinstance(label, str) for label in request_labels)
         extra_model_output = None
         if self._custom_hooks.get(CustomHooks.SCORE):
-            if self._target_type == TargetType.TEXT_GENERATION and self._guard_pipeline:
-                try:
+            try:
+                if self._target_type == TargetType.TEXT_GENERATION and self._guard_pipeline:
                     predictions_df = self._guard_moderation_hooks[GUARD_SCORE_WRAPPER_NAME](
                         data,
                         model,
@@ -616,20 +616,15 @@ class PythonModelAdapter(AbstractModelAdapter):
                         predictions_df.rename(
                             columns={"completion": self._target_name}, inplace=True
                         )
-                except Exception as exc:
-                    self._log_and_raise_final_error(
-                        exc, "Model 'score' hook failed to make predictions."
-                    )
-            else:
-                try:
+                else:
                     # noinspection PyCallingNonCallable
                     predictions_df = self._custom_hooks.get(CustomHooks.SCORE)(
                         data, model, **kwargs
                     )
-                except Exception as exc:
-                    self._log_and_raise_final_error(
-                        exc, "Model 'score' hook failed to make predictions."
-                    )
+            except Exception as exc:
+                self._log_and_raise_final_error(
+                    exc, "Model 'score' hook failed to make predictions."
+                )
             self._validate_data(predictions_df, CustomHooks.SCORE)
             predictions_df, extra_model_output = self._split_to_predictions_and_extra_model_output(
                 predictions_df, request_labels
