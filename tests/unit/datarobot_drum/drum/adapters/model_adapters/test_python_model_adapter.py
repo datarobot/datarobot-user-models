@@ -526,6 +526,7 @@ class TestPythonModelAdapterInitialization:
 
 class TestPythonModelAdapterWithGuards:
     """Use cases to test the moderation integration with DRUM"""
+
     GUARD_HOOK_MODULE_NAME = "guard_hook"
 
     def test_loading_guard_hook_module(self, tmp_path):
@@ -546,8 +547,8 @@ class TestPythonModelAdapterWithGuards:
             os.environ,
             {
                 "TARGET_NAME": text_generation_target_name,
-                "MLOPS_GUARD_HOOK_FILE": self.GUARD_HOOK_MODULE_NAME
-            }
+                "MLOPS_GUARD_HOOK_FILE": self.GUARD_HOOK_MODULE_NAME,
+            },
         ):
             adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
             assert adapter._guard_pipeline is not None
@@ -555,15 +556,14 @@ class TestPythonModelAdapterWithGuards:
         sys.path.remove(os.path.dirname(guard_hook_filename))
 
     @pytest.mark.parametrize(
-        'guard_hook_present, expected_predictions', [
-            (True, np.array([["ABC"], ["DEF"]])), (False, np.array([["abc"], ["def"]]))
-        ]
+        "guard_hook_present, expected_predictions",
+        [(True, np.array([["ABC"], ["DEF"]])), (False, np.array([["abc"], ["def"]]))],
     )
     def test_invoking_guard_hook_score_wrapper(
         self, tmp_path, guard_hook_present, expected_predictions
     ):
         def guard_score_wrapper(data, model, pipeline, drum_score_fn, **kwargs):
-            data['completion'] = data['text'].str.upper()
+            data["completion"] = data["text"].str.upper()
             return data
 
         def custom_score(data, model, **kwargs):
