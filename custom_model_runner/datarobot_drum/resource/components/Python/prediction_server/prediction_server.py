@@ -95,6 +95,12 @@ class PredictionServer(ConnectableComponent, PredictMixin):
             from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
 
             self._predictor = RPredictor()
+        elif self._run_language == RunLanguage.TRITON_ONNX:
+            from datarobot_drum.drum.language_predictors.triton_predictor.triton_predictor import (
+                TritonPredictor,
+            )
+
+            self._predictor = TritonPredictor()
         else:
             raise DrumCommonException(
                 "Prediction server doesn't support language: {} ".format(self._run_language)

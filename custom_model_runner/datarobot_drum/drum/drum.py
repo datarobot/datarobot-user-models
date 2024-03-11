@@ -36,6 +36,7 @@ from datarobot_drum.drum.model_metadata import (
 )
 
 from datarobot_drum.drum.description import version as drum_version
+from datarobot_drum.drum.enum import TritonInferenceServerBackends
 from datarobot_drum.drum.enum import CUSTOM_FILE_NAME
 from datarobot_drum.drum.enum import LOG_LEVELS
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
@@ -43,6 +44,7 @@ from datarobot_drum.drum.enum import ArgumentOptionsEnvVars
 from datarobot_drum.drum.enum import ArgumentsOptions
 from datarobot_drum.drum.enum import JavaArtifacts
 from datarobot_drum.drum.enum import JuliaArtifacts
+from datarobot_drum.drum.enum import TritonInferenceServerArtifacts
 from datarobot_drum.drum.enum import ModelMetadataHyperParamTypes
 from datarobot_drum.drum.enum import ModelMetadataKeys
 from datarobot_drum.drum.enum import PythonArtifacts
@@ -313,6 +315,12 @@ class CMRunner:
         java_artifacts = DrumUtils.find_files_by_extensions(code_dir_abspath, JavaArtifacts.ALL)
 
         julia_artifacts = DrumUtils.find_files_by_extensions(code_dir_abspath, JuliaArtifacts.ALL)
+        triton_inference_server_artifacts = DrumUtils.find_files_by_extensions(
+            code_dir_abspath, TritonInferenceServerArtifacts.ALL
+        )
+        if triton_inference_server_artifacts:
+            if not self._is_supported_triton_server_backend(triton_inference_server_artifacts):
+                raise DrumCommonException("Unsupported Triton Inference Server backend")
 
         # check which custom code files present in the code dir
         is_custom_py = DrumUtils.filename_exists_and_is_file(code_dir_abspath, "custom.py")
@@ -327,6 +335,7 @@ class CMRunner:
             + bool(len(r_artifacts))
             + bool(len(java_artifacts))
             + bool(len(julia_artifacts))
+            + bool(len(triton_inference_server_artifacts))
             == 1
         ):
             if len(python_artifacts) > 0:
@@ -337,6 +346,8 @@ class CMRunner:
                 artifact_language = RunLanguage.JAVA
             elif len(julia_artifacts) > 0:
                 artifact_language = RunLanguage.JULIA
+            elif len(triton_inference_server_artifacts) > 0:
+                artifact_language = RunLanguage.TRITON_ONNX
 
         # if only one custom file found, set it:
         if is_custom_py + is_custom_r + is_custom_jl == 1:
@@ -382,6 +393,19 @@ class CMRunner:
         run_language = custom_language if custom_language is not None else artifact_language
         self.options.language = run_language.value
         return run_language
+
+    def _is_supported_triton_server_backend(self, config_pbtxt):
+        assert len(config_pbtxt) == 1
+        config_pbtxt = config_pbtxt[0]
+
+        with open(config_pbtxt, "r") as c:
+            for line in c.readlines():
+                if line.startswith("platform"):
+                    backend_config = line.split(":")
+                    assert len(backend_config) == 2
+                    platform = backend_config[1].strip()
+                    platform = re.sub(r"\"|\'", "", platform)
+                    return platform.lower() in TritonInferenceServerBackends.ALL
 
     def _get_fit_run_language(self):
         def raise_no_language(custom_language):
@@ -731,6 +755,9 @@ class CMRunner:
             "deployment_id": options.deployment_id,
             "monitor_settings": options.monitor_settings,
             "external_webserver_url": options.webserver,
+            "triton_host": options.triton_host,
+            "triton_http_port": options.triton_http_port,
+            "triton_grpc_port": options.triton_grpc_port,
             "api_token": options.api_token,
             "allow_dr_api_access": options.allow_dr_api_access,
             "query_params": '"{}"'.format(options.query)

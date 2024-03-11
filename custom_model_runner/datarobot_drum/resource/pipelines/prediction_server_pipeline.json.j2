@@ -29,7 +29,10 @@
                 "deployment_config": {{ deployment_config }},
                 "allow_dr_api_access": "{{ allow_dr_api_access }}",
                 "user_secrets_mount_path": {{ user_secrets_mount_path | jsonify }},
-                "user_secrets_prefix": {{ user_secrets_prefix | jsonify}}
+                "user_secrets_prefix": {{ user_secrets_prefix | jsonify}},
+                "triton_host": {{ triton_host | jsonify }},
+                "triton_http_port": {{ triton_http_port }},
+                "triton_grpc_port": {{ triton_grpc_port }}
               }
           }
       ]

@@ -681,6 +681,31 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
+    def _reg_arg_triton_server_access(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.WITH_TRITON_SERVER,
+                action="store_true",
+                default=False,
+                help="Serve models with the NVIDIA Triton Inference Server",
+            )
+            parser.add_argument(
+                ArgumentsOptions.TRITON_HOST,
+                default=os.environ.get("TRITON_HOST", "http://localhost"),
+                help="NVIDIA Triton Inference Server URL",
+            )
+            parser.add_argument(
+                ArgumentsOptions.TRITON_HTTP_PORT,
+                default=os.environ.get("TRITON_HTTP_PORT", "8000"),
+                help="NVIDIA Triton Inference Server HTTP port",
+            )
+            parser.add_argument(
+                ArgumentsOptions.TRITON_GRPC_PORT,
+                default=os.environ.get("TRITON_GRPC_PORT", "8001"),
+                help="NVIDIA Triton Inference Server GRPC port",
+            )
+
+    @staticmethod
     def _register_subcommand_perf_test(subparsers):
         desc = """
         Test the performance of an inference model. This is done by internally using the server
@@ -946,6 +971,8 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_args_monitoring(score_parser, server_parser)
 
         CMRunnerArgsRegistry._reg_arg_dr_api_access(score_parser, server_parser)
+
+        CMRunnerArgsRegistry._reg_arg_triton_server_access(score_parser, server_parser)
 
         CMRunnerArgsRegistry._reg_arg_target_type(
             score_parser, perf_test_parser, server_parser, fit_parser, validation_parser

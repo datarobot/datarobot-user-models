@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import glob
 import json
 import logging
 import os
@@ -75,11 +76,12 @@ class DrumUtils:
         :return: list of found files
         """
         lst = []
-        for filename in os.listdir(dirpath):
-            path = os.path.join(dirpath, filename)
-            if os.path.isdir(path):
+
+        for path_str in glob.iglob(dirpath + '**/**', recursive=True):
+            path = Path(path_str)
+            if path.is_dir():
                 continue
-            if DrumUtils.endswith_extension_ignore_case(filename, extensions):
+            if DrumUtils.endswith_extension_ignore_case(path.name, extensions):
                 lst.append(path)
         return lst
 
