@@ -17,12 +17,10 @@ if [ "${ENABLE_CUSTOM_MODEL_RUNTIME_ENV_DUMP}" = 1 ]; then
     /opt/nvidia/nvidia_entrypoint.sh /bin/true
 fi
 
-export MODEL_DIR="${CODE_DIR}/model_repository/"
-
 echo
-echo "Executing command: tritonserver --model-repository=${MODEL_DIR}"
+echo "Executing command: tritonserver --model-repository=${CODE_DIR}"
 echo
-nohup tritonserver --model-repository=${MODEL_DIR} > log.txt 2>&1 &
+nohup tritonserver --model-repository=${MODEL_DIR} &
 
 echo
 echo "Executing command: drum server $*"
