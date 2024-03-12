@@ -11,7 +11,7 @@ RUN pip3 install -U pip && \
 
 # Copy the drop-in environment code into the correct directory
 # Code from the custom model tarball can overwrite the code here
-ENV HOME=/opt CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
+ENV CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
 WORKDIR ${CODE_DIR}
 COPY ./*.sh ${CODE_DIR}/
 
