@@ -1,10 +1,7 @@
 # NVIDIA Triton Inference Server Drop-In Template Environment
 
-This template environment can be used to create artifact-only custom models with 
-the following Triton Inference Server backends: ONNX, vLLM, TensorRT-LLM.
-Your custom model directory needs only contain your model artifact if you use the
-environment correctly.
-
+This drop-in environment contains the Triton inference server with support for Tensorflow, PyTorch, TensorRT, ONNX
+and OpenVINO models.
 
 ## Instructions
 
@@ -41,4 +38,4 @@ This environment makes the following assumption about your serialized model:
 - The data sent to custom model can be used to make predictions without
 additional pre-processing
 - There is a single model and model version present
-- Model is expected to have one of the target types: `Unstructured` or `TextGeneration` 
+- Model is expected to have the `Unstructured` target type. 
