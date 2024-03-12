@@ -10,6 +10,11 @@ echo "Starting Custom Model environment with Triton inference server"
 if [ "${ENABLE_CUSTOM_MODEL_RUNTIME_ENV_DUMP}" = 1 ]; then
     echo "Environment variables:"
     env
+
+    echo
+    echo "Initializing NVIDIA..."
+    echo
+    /opt/nvidia/nvidia_entrypoint.sh /bin/true
 fi
 
 export MODEL_DIR="${CODE_DIR}/model_repository/"
