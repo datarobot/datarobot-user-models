@@ -17,7 +17,7 @@ export MODEL_DIR="${CODE_DIR}/model_repository/"
 echo
 echo "Executing command: tritonserver --model-repository=${MODEL_DIR}"
 echo
-exec nohup tritonserver --model-repository=${MODEL_DIR} > log.txt 2>&1 &
+nohup tritonserver --model-repository=${MODEL_DIR} > log.txt 2>&1 &
 
 echo
 echo "Executing command: drum server $*"
