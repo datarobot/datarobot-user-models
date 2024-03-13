@@ -684,12 +684,6 @@ class CMRunnerArgsRegistry(object):
     def _reg_arg_triton_server_access(*parsers):
         for parser in parsers:
             parser.add_argument(
-                ArgumentsOptions.WITH_TRITON_SERVER,
-                action="store_true",
-                default=False,
-                help="Serve models with the NVIDIA Triton Inference Server",
-            )
-            parser.add_argument(
                 ArgumentsOptions.TRITON_HOST,
                 default=os.environ.get("TRITON_HOST", "http://localhost"),
                 help="NVIDIA Triton Inference Server URL",
