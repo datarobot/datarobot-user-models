@@ -12,11 +12,14 @@ import os
 import random
 import sys
 from dataclasses import dataclass
+
+import numpy as np
 import pandas as pd
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Dict, Any
 from unittest.mock import Mock, patch
+import textwrap
 
 import pytest
 
@@ -28,7 +31,7 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     reset_outputs_to_allow_secrets,
 )
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
-from datarobot_drum.drum.enum import TargetType
+from datarobot_drum.drum.enum import TargetType, GUARD_SCORE_WRAPPER_NAME
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 
@@ -519,3 +522,63 @@ class TestPythonModelAdapterInitialization:
         os.environ.pop("TARGET_NAME", None)
         with pytest.raises(ValueError, match="Unexpected empty target name for text generation!"):
             PythonModelAdapter(Mock(), TargetType.TEXT_GENERATION)
+
+
+class TestPythonModelAdapterWithGuards:
+    """Use cases to test the moderation integration with DRUM"""
+
+    GUARD_HOOK_MODULE_NAME = "guard_hook"
+
+    def test_loading_guard_hook_module(self, tmp_path):
+        guard_hook_contents = """
+        from unittest.mock import Mock
+
+        def guard_score_wrapper(data, model, pipeline, drum_score_fn, **kwargs):
+            return data
+
+        def init():
+            return Mock()
+        """
+        guard_hook_filename = tmp_path / f"{self.GUARD_HOOK_MODULE_NAME}.py"
+        guard_hook_filename.write_text(textwrap.dedent(guard_hook_contents))
+
+        text_generation_target_name = "completion"
+        with patch.dict(
+            os.environ,
+            {
+                "TARGET_NAME": text_generation_target_name,
+                "MLOPS_GUARD_HOOK_FILE": self.GUARD_HOOK_MODULE_NAME,
+            },
+        ):
+            adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
+            assert adapter._guard_pipeline is not None
+
+        sys.path.remove(os.path.dirname(guard_hook_filename))
+
+    @pytest.mark.parametrize(
+        "guard_hook_present, expected_predictions",
+        [(True, np.array([["ABC"], ["DEF"]])), (False, np.array([["abc"], ["def"]]))],
+    )
+    def test_invoking_guard_hook_score_wrapper(
+        self, tmp_path, guard_hook_present, expected_predictions
+    ):
+        def guard_score_wrapper(data, model, pipeline, drum_score_fn, **kwargs):
+            data["completion"] = data["text"].str.upper()
+            return data
+
+        def custom_score(data, model, **kwargs):
+            """Dummy score method just for the purpose of unit test"""
+            return data
+
+        data = bytes(pd.DataFrame({"text": ["abc", "def"]}).to_csv(index=False), encoding="utf-8")
+        text_generation_target_name = "completion"
+        with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
+            adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
+            if guard_hook_present:
+                adapter._guard_pipeline = Mock()
+                adapter._guard_moderation_hooks = {GUARD_SCORE_WRAPPER_NAME: guard_score_wrapper}
+            adapter._custom_hooks["score"] = custom_score
+            response = adapter.predict(binary_data=data)
+            # If the guard score wrapper is invoked, completion will be upper case letters
+            # (as defined), else they will be lower case letters.
+            assert np.alltrue(response.predictions == expected_predictions)
