@@ -27,7 +27,11 @@ from datarobot_drum.drum.model_metadata import (
 )
 from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, ModelMetadataKeys, TargetType
 
-from datarobot_drum.drum.exceptions import DrumSchemaValidationException, DrumCommonException
+from datarobot_drum.drum.exceptions import (
+    DrumSchemaValidationException,
+    DrumCommonException,
+    DrumFormatSchemaException,
+)
 from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import JavaPredictor
 from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
     PythonPredictor,
@@ -1074,6 +1078,15 @@ class TestReadModelMetadata:
             captured = capsys.readouterr()
             assert "The model_metadata.yaml file appears to be empty." in captured.out
             assert sysexit.value.code == 1
+
+    def test_disallowed_format(self, minimal_training_metadata, model_metadata_file_factory):
+        with pytest.raises(
+            DrumFormatSchemaException,
+            match="The current format does not comply with strict yaml rules.",
+        ):
+            minimal_training_metadata["runtimeParameterDefinitions"] = list()
+            code_dir = model_metadata_file_factory(minimal_training_metadata)
+            _ = read_model_metadata_yaml(code_dir)
 
 
 @pytest.mark.parametrize(
