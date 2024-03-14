@@ -7,7 +7,6 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import logging
 
 import requests
-
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
 from datarobot_drum.drum.common import SupportedPayloadFormats
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, PayloadFormat, UnstructuredDtoKeys
@@ -49,7 +48,8 @@ class TritonPredictor(BaseLanguagePredictor):
         model_name = "densenet_onnx"
         resp = requests.post(
             f"{self.triton_host}:{self.triton_http_port}/v2/models/{model_name}/infer",
-            data=data, headers=headers
+            data=data,
+            headers=headers,
         )
         return resp.text, None
 

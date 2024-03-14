@@ -77,7 +77,7 @@ class DrumUtils:
         """
         lst = []
 
-        for path_str in glob.iglob(dirpath + '**/**', recursive=True):
+        for path_str in glob.iglob(dirpath + "**/**", recursive=True):
             path = Path(path_str)
             if path.is_dir():
                 continue
