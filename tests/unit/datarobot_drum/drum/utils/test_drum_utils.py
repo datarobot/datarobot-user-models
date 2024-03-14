@@ -8,23 +8,19 @@
 import glob
 import logging
 import os
-import tempfile
 from pathlib import Path
-
 from unittest.mock import Mock
 
 import pytest
-
-from datarobot_drum.drum.drum import create_custom_inference_model_folder, output_in_code_dir
-from datarobot_drum.drum.utils.stacktraces import capture_R_traceback_if_errors
 from datarobot_drum.drum.utils.drum_utils import DrumUtils
+from datarobot_drum.drum.utils.stacktraces import capture_R_traceback_if_errors
 
 logger = logging.getLogger(__name__)
 
 try:
     import rpy2.robjects as ro
-    from rpy2.robjects import pandas2ri
     from rpy2.rinterface_lib.embedded import RRuntimeError
+    from rpy2.robjects import pandas2ri
 
     r_supported = True
 except ImportError:
@@ -56,12 +52,19 @@ def test_endswith_extension_ignore_case():
 
 
 def test_find_files_by_extension(tmp_path):
-    exts = [".ext", ".Rds", ".py"]
+    exts = [".ext", ".Rds", ".py", ".pbtxt"]
     Path(f"{tmp_path}/file.ext").touch()
     Path(f"{tmp_path}/file.RDS").touch()
     Path(f"{tmp_path}/file.PY").touch()
     Path(f"{tmp_path}/file.pY").touch()
-    assert 4 == len(DrumUtils.find_files_by_extensions(tmp_path, exts))
+
+    # Triton model artifacts are expected to be located in the subdirectories
+    Path(f"{tmp_path}/vllm/").mkdir()
+    Path(f"{tmp_path}/vllm/config.PBTXT").touch()
+    Path(f"{tmp_path}/model_repository/vllm/").mkdir(parents=True)
+    Path(f"{tmp_path}/model_repository/vllm/config.pbtxt").touch()
+    Path(f"{tmp_path}/config.PbTxT").touch()
+    assert 7 == len(DrumUtils.find_files_by_extensions(tmp_path, exts))
 
 
 def test_filename_exists_and_is_file(tmp_path, caplog):

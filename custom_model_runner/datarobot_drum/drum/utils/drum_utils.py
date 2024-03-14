@@ -13,9 +13,8 @@ from contextlib import closing
 from functools import partial
 from pathlib import Path
 
-from jinja2 import Environment, BaseLoader, DebugUndefined
-
-from datarobot_drum.drum.enum import ArgumentOptionsEnvVars, LOGGER_NAME_PREFIX
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, ArgumentOptionsEnvVars
+from jinja2 import BaseLoader, DebugUndefined, Environment
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -77,7 +76,7 @@ class DrumUtils:
         """
         lst = []
 
-        for path_str in glob.iglob(dirpath + "**/**", recursive=True):
+        for path_str in glob.iglob(f"{dirpath}**/**", recursive=True):
             path = Path(path_str)
             if path.is_dir():
                 continue
