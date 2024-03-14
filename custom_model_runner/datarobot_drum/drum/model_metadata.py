@@ -12,7 +12,18 @@ import trafaret as t
 
 from pathlib import Path
 from ruamel.yaml import YAMLError
-from strictyaml import load, Map, Str, Optional, Bool, Seq, Int, Any
+from strictyaml import (
+    load,
+    Map,
+    Str,
+    Optional,
+    Bool,
+    Seq,
+    Int,
+    Any,
+    StrictYAMLError,
+    YAMLValidationError,
+)
 from typing import Optional as PythonTypingOptional, List, Dict
 
 from datarobot_drum.drum.enum import (
@@ -21,11 +32,12 @@ from datarobot_drum.drum.enum import (
     ModelMetadataKeys,
     TargetType,
 )
-from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.exceptions import DrumCommonException, DrumFormatSchemaException
 from datarobot_drum.drum.typeschema_validation import (
     revalidate_typeschema,
     get_type_schema_yaml_validator,
 )
+
 
 # Max length of a user-defined parameter
 PARAM_NAME_MAX_LENGTH = 64
@@ -151,11 +163,19 @@ def read_model_metadata_yaml(code_dir) -> PythonTypingOptional[dict]:
                 if "typeSchema" in model_config:
                     revalidate_typeschema(model_config["typeSchema"])
                 model_config = model_config.data
-            except YAMLError as e:
+            except YAMLValidationError as e:
                 if "found a blank string" in e.problem:
                     print("The model_metadata.yaml file appears to be empty.")
                 else:
                     print(e)
+                raise SystemExit(1)
+            except StrictYAMLError as e:
+                raise DrumFormatSchemaException(
+                    "\nStrictYAMLError: The current format does not comply with strict yaml rules."
+                    " (Empty list on fields are not allowed)\n{}".format(e)
+                )
+            except YAMLError as e:
+                print(e)
                 raise SystemExit(1)
 
         if model_config[ModelMetadataKeys.TARGET_TYPE] == TargetType.BINARY.value:

@@ -26,6 +26,10 @@ class DrumPredException(DrumException):
     """Raised when prediction consistency check fails"""
 
 
+class DrumFormatSchemaException(DrumException):
+    """Raised when supplied model_metadata cannot be parsed using strict yaml"""
+
+
 class DrumSchemaValidationException(DrumException):
     """Raised when the supplied schema in model_metadata does not match actual input or output data."""
 
