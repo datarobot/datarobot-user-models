@@ -576,6 +576,33 @@ class TestTritonServerArgs:
         os.environ.pop("TRITON_HTTP_PORT", None)
         os.environ.pop("TRITON_GRPC_PORT", None)
 
+    @staticmethod
+    def parse_triton_server_args(
+        triton_host,
+        triton_http_port,
+        triton_grpc_port,
+        minimal_score_cmd_args,
+        is_env_variable=False,
+    ):
+        if is_env_variable:
+            if triton_host:
+                os.environ["TRITON_HOST"] = triton_host
+            if triton_http_port:
+                os.environ["TRITON_HTTP_PORT"] = triton_http_port
+            if triton_grpc_port:
+                os.environ["TRITON_GRPC_PORT"] = triton_grpc_port
+
+        else:
+            if triton_host:
+                minimal_score_cmd_args.extend(["--triton-host", triton_host])
+            if triton_http_port:
+                minimal_score_cmd_args.extend(["--triton-http-port", triton_http_port])
+            if triton_grpc_port:
+                minimal_score_cmd_args.extend(["--triton-grpc-port", triton_grpc_port])
+
+        actual = get_args_parser_options(minimal_score_cmd_args)
+        return actual
+
     @pytest.mark.parametrize(
         "triton_host,expected_host",
         [(None, "http://localhost"), ("http://127.0.0.1", "http://127.0.0.1")],
@@ -588,7 +615,7 @@ class TestTritonServerArgs:
     )
     @pytest.mark.parametrize("is_env_variable", [True, False])
     @pytest.mark.usefixtures("cleanup_env_vars")
-    def test_read_triton_configs_from_cmd_line_args_success(
+    def test_read_triton_server_configs_success(
         self,
         triton_grpc_port,
         expected_grpc_port,
@@ -599,27 +626,31 @@ class TestTritonServerArgs:
         is_env_variable,
         minimal_score_cmd_args,
     ):
-        if is_env_variable:
-            if triton_host:
-                os.environ["TRITON_HOST"] = triton_host
-
-            if triton_http_port:
-                os.environ["TRITON_HTTP_PORT"] = triton_http_port
-
-            if triton_grpc_port:
-                os.environ["TRITON_GRPC_PORT"] = triton_grpc_port
-
-        else:
-            if triton_host:
-                minimal_score_cmd_args.extend(["--triton-host", triton_host])
-
-            if triton_http_port:
-                minimal_score_cmd_args.extend(["--triton-http-port", triton_http_port])
-
-            if triton_grpc_port:
-                minimal_score_cmd_args.extend(["--triton-grpc-port", triton_grpc_port])
-
-        actual = get_args_parser_options(minimal_score_cmd_args)
+        actual = self.parse_triton_server_args(
+            triton_host, triton_http_port, triton_grpc_port, minimal_score_cmd_args, is_env_variable
+        )
         assert actual.triton_host == expected_host
         assert actual.triton_http_port == expected_http_port
         assert actual.triton_grpc_port == expected_grpc_port
+
+    @pytest.mark.parametrize("triton_host", ["localhost", "127.0.0.1"])
+    @pytest.mark.parametrize("triton_http_port", ["qwerty", "-1000", "1.001", "0"])
+    @pytest.mark.parametrize("triton_grpc_port", ["qwerty", "-1000", "1.001", "0"])
+    @pytest.mark.parametrize("is_env_variable", [True, False])
+    @pytest.mark.usefixtures("cleanup_env_vars")
+    def test_read_triton_server_configs_success(
+        self,
+        triton_grpc_port,
+        triton_http_port,
+        triton_host,
+        is_env_variable,
+        minimal_score_cmd_args,
+    ):
+        with pytest.raises(SystemExit):
+            self.parse_triton_server_args(
+                triton_host,
+                triton_http_port,
+                triton_grpc_port,
+                minimal_score_cmd_args,
+                is_env_variable,
+            )

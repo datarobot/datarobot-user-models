@@ -1069,9 +1069,8 @@ class CMRunnerArgsRegistry(object):
     @staticmethod
     def verify_triton_server_options(options, parser_name):
         if parser_name in [
-            ArgumentsOptions.TRITON_HOST,
-            ArgumentsOptions.TRITON_HTTP_PORT,
-            ArgumentsOptions.TRITON_GRPC_PORT,
+            ArgumentsOptions.SERVER,
+            ArgumentsOptions.SCORE,
         ]:
             result = urlparse(options.triton_host)
             if not all([result.scheme, result.netloc]):
@@ -1088,7 +1087,17 @@ class CMRunnerArgsRegistry(object):
                 valid_ports_set = False
 
             if not valid_ports_set:
-                print("Error: Triton HTTP port or GRPc port configuration is incorrect.")
+                print(
+                    "Error: Triton HTTP port or GRPc port configuration is incorrect. Value should be a positive integer."
+                )
+                print("\n")
+                CMRunnerArgsRegistry._parsers[parser_name].print_help()
+                exit(1)
+
+            if options.triton_http_port == options.triton_grpc_port:
+                print(
+                    "Error: Triton HTTP port or GRPc port configuration is incorrect. Ports can't be the same."
+                )
                 print("\n")
                 CMRunnerArgsRegistry._parsers[parser_name].print_help()
                 exit(1)
