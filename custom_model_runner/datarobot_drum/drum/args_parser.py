@@ -5,21 +5,21 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import argparse
-
 import os
-from datarobot_drum.drum.push import PUSH_HELP_TEXT
-import sys
 import subprocess
-import trafaret as t
+import sys
+from urllib.parse import urlparse
 
+import trafaret as t
 from datarobot_drum.drum.description import version
 from datarobot_drum.drum.enum import (
     LOG_LEVELS,
-    ArgumentsOptions,
     ArgumentOptionsEnvVars,
+    ArgumentsOptions,
     RunLanguage,
     TargetType,
 )
+from datarobot_drum.drum.push import PUSH_HELP_TEXT
 
 
 class CMRunnerArgsRegistry(object):
@@ -703,16 +703,16 @@ class CMRunnerArgsRegistry(object):
     def _register_subcommand_perf_test(subparsers):
         desc = """
         Test the performance of an inference model. This is done by internally using the server
-        sub command to serve the model. Then sending multiple requests to the server and 
-        measuring the time it takes to complete each request. 
-        
+        sub command to serve the model. Then sending multiple requests to the server and
+        measuring the time it takes to complete each request.
+
         The test is mixing several requests sizes. The idea is to get a coverage of several
-        sizes, from the smallest request containing only 1 row of data, up to the largest 
+        sizes, from the smallest request containing only 1 row of data, up to the largest
         request containing up to 50MB of data.
-        
+
         At the end of the test, a summary of the test will be displayed. For each request size,
         the following fields will be shown:
-        
+
          size: size of the requests in bytes or Megabytes.
          samples: number of samples this request size contained.
          iters: number of times this request size was sent
@@ -735,7 +735,7 @@ class CMRunnerArgsRegistry(object):
     @staticmethod
     def _register_subcommand_score(subparsers):
         desc = """
-        Score an input file using the given model. 
+        Score an input file using the given model.
         """
 
         parser = subparsers.add_parser(
@@ -753,18 +753,18 @@ class CMRunnerArgsRegistry(object):
     @staticmethod
     def _register_subcommand_validation(subparsers):
         desc = """
-        You can validate the model on a set of various checks. 
-        It is highly recommended to run these checks, as they are performed in DataRobot 
+        You can validate the model on a set of various checks.
+        It is highly recommended to run these checks, as they are performed in DataRobot
         before the model can be deployed.
 
         List of checks:
 
-        * null values imputation: each feature of the provided dataset is set to missing 
-          and fed to the model. 
-          
+        * null values imputation: each feature of the provided dataset is set to missing
+          and fed to the model.
+
 
         Example:
-        > drum validation --code-dir ~/user_code_dir/ --input 10k.csv 
+        > drum validation --code-dir ~/user_code_dir/ --input 10k.csv
               --positive-class-label yes --negative-class-label no
         """
 
@@ -780,11 +780,11 @@ class CMRunnerArgsRegistry(object):
     @staticmethod
     def _register_subcommand_server(subparsers):
         desc = """
-        Serve the given model using REST API. A web server will be started and will use 
+        Serve the given model using REST API. A web server will be started and will use
         the {address} argument for the host and port to use.
-        
-        The drum prediction server provides the following routes. 
-        You may provide the environment variable URL_PREFIX. 
+
+        The drum prediction server provides the following routes.
+        You may provide the environment variable URL_PREFIX.
         Note that URLs must end with /.
 
         A GET URL_PREFIX/ route, which checks if the server is alive.
@@ -792,13 +792,13 @@ class CMRunnerArgsRegistry(object):
 
         A POST URL_PREFIX/predict/ route, which returns predictions on data.
         Example: POST http://localhost:6789/predict/
-        For this /predict/ route, provide inference data 
-        (for the model to make predictions) as form data with a key:value pair, 
+        For this /predict/ route, provide inference data
+        (for the model to make predictions) as form data with a key:value pair,
         where: key = X and value = filename of the CSV that contains the inference data
-        
+
         Example using curl:
         curl -X POST --form "X=@data_file.csv" localhost:6789/predict/
-     
+
         """
         parser = subparsers.add_parser(
             ArgumentsOptions.SERVER,
@@ -1067,6 +1067,33 @@ class CMRunnerArgsRegistry(object):
                 exit(1)
 
     @staticmethod
+    def verify_triton_server_options(options, parser_name):
+        if parser_name in [
+            ArgumentsOptions.TRITON_HOST,
+            ArgumentsOptions.TRITON_HTTP_PORT,
+            ArgumentsOptions.TRITON_GRPC_PORT,
+        ]:
+            result = urlparse(options.triton_host)
+            if not all([result.scheme, result.netloc]):
+                print("Error: Triton Host URL must contain scheme and netloc")
+                CMRunnerArgsRegistry._parsers[parser_name].print_help()
+                print("\n")
+                exit(1)
+
+            try:
+                valid_ports_set = all(
+                    [int(options.triton_http_port) > 0, int(options.triton_grpc_port) > 0]
+                )
+            except (ValueError, TypeError):
+                valid_ports_set = False
+
+            if not valid_ports_set:
+                print("Error: Triton HTTP port or GRPc port configuration is incorrect.")
+                print("\n")
+                CMRunnerArgsRegistry._parsers[parser_name].print_help()
+                exit(1)
+
+    @staticmethod
     def verify_options(options):
         if not options.subparser_name:
             CMRunnerArgsRegistry._parsers[ArgumentsOptions.MAIN_COMMAND].print_help()
@@ -1136,6 +1163,7 @@ class CMRunnerArgsRegistry(object):
 
         CMRunnerArgsRegistry.verify_monitoring_options(options, options.subparser_name)
         CMRunnerArgsRegistry.verify_dr_api_access_options(options, options.subparser_name)
+        CMRunnerArgsRegistry.verify_triton_server_options(options, options.subparser_name)
 
     @staticmethod
     def extend_sys_argv_with_env_vars():
