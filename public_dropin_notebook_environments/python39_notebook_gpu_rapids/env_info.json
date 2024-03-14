@@ -1,0 +1,12 @@
+{
+  "id": "65f1a034a8318baff3029191",
+  "name": "[DataRobot] Python 3.9 Notebook Drop-In with GPU support and RAPIDS",
+  "description": "This template environment can be used to create Python 3.9 notebook environments with GPU and RAPIDS.",
+  "programmingLanguage": "python",
+  "environmentVersionId": "65f1a03da8318baff3029192",
+  "isPublic": true,
+  "useCases": [
+    "notebook",
+    "gpu"
+  ]
+}
