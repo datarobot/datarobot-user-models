@@ -6,3 +6,4 @@ openai==0.27.8
 tiktoken==0.4.0
 tensorflow==2.15.0
 transformers==4.36.0
+rouge==0.1.2
