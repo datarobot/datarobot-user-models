@@ -22,6 +22,7 @@ from strictyaml import (
     Int,
     Any,
     StrictYAMLError,
+    YAMLValidationError,
 )
 from typing import Optional as PythonTypingOptional, List, Dict
 
@@ -162,16 +163,19 @@ def read_model_metadata_yaml(code_dir) -> PythonTypingOptional[dict]:
                 if "typeSchema" in model_config:
                     revalidate_typeschema(model_config["typeSchema"])
                 model_config = model_config.data
+            except YAMLValidationError as e:
+                if "found a blank string" in e.problem:
+                    print("The model_metadata.yaml file appears to be empty.")
+                else:
+                    print(e)
+                raise SystemExit(1)
             except StrictYAMLError as e:
                 raise DrumFormatSchemaException(
                     "\nStrictYAMLError: The current format does not comply with strict yaml rules."
                     " (Empty list on fields are not allowed)\n{}".format(e)
                 )
             except YAMLError as e:
-                if "found a blank string" in e.problem:
-                    print("The model_metadata.yaml file appears to be empty.")
-                else:
-                    print(e)
+                print(e)
                 raise SystemExit(1)
 
         if model_config[ModelMetadataKeys.TARGET_TYPE] == TargetType.BINARY.value:
