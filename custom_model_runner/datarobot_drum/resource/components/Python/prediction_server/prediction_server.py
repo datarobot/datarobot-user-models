@@ -98,7 +98,6 @@ class PredictionServer(ConnectableComponent, PredictMixin):
 
             self._predictor = RPredictor()
         elif self._run_language == RunLanguage.OTHER and self._with_triton_server:
-
             from datarobot_drum.drum.language_predictors.triton_predictor.triton_predictor import (
                 TritonPredictor,
             )

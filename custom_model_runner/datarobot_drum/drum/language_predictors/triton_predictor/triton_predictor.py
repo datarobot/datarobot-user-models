@@ -38,11 +38,11 @@ class TritonPredictor(BaseLanguagePredictor):
         super(TritonPredictor, self).mlpiper_configure(params)
         self.triton_host = params.get("triton_host")
         self.triton_http_port = params.get("triton_http_port")
-        self.triton_http_port = params.get("triton_grpc_port")
+        self.triton_grpc_port = params.get("triton_grpc_port")
 
         # read model configuration
         model_config_pbtxt = DrumUtils.find_files_by_extensions(
-            self._code_dir, TritonInferenceServerArtifacts.PROTOCOL_BUFFER_TEXT_FILE_EXTENSION
+            self._code_dir, TritonInferenceServerArtifacts.ALL
         )
         if len(model_config_pbtxt) == 0:
             raise DrumCommonException("No model configuration found, add a config.pbtxt")
