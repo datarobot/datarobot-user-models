@@ -1,2 +1,2 @@
 requests==2.31.0
-datarobot-drum==1.10.20
+datarobot-drum==1.10.21
