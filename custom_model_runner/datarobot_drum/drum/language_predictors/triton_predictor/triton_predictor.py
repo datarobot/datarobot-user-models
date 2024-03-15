@@ -44,17 +44,33 @@ class TritonPredictor(BaseLanguagePredictor):
         model_config_pbtxt = DrumUtils.find_files_by_extensions(
             self._code_dir, TritonInferenceServerArtifacts.PROTOCOL_BUFFER_TEXT_FILE_EXTENSION
         )
-        assert len(model_config_pbtxt) == 1
+        if len(model_config_pbtxt) == 0:
+            raise DrumCommonException("No model configuration found, add a config.pbtxt")
+        elif len(model_config_pbtxt) > 1:
+            raise DrumCommonException(
+                "Found multiple model configurations. Multi-deployments are not supported yet."
+            )
+
         self.model_config = self.read_model_config(model_config_pbtxt[0])
+        # check if model is supported by Triton backend
+        if not self.is_supported_triton_server_backend():
+            raise DrumCommonException(
+                f"Unsupported model platform type: {self.model_config.platform or self.model_config.backend}"
+            )
 
     @staticmethod
     def read_model_config(model_config_pbtxt) -> ModelConfig:
-        model_config = ModelConfig()
-        with open(model_config_pbtxt, "r") as f:
-            config_text = f.read()
-            text_format.Merge(config_text, model_config)
+        try:
+            model_config = ModelConfig()
+            with open(model_config_pbtxt, "r") as f:
+                config_text = f.read()
+                text_format.Merge(config_text, model_config)
 
-        return model_config
+            return model_config
+        except Exception as e:
+            raise DrumCommonException(
+                f"Can't read model configuration: {model_config_pbtxt}"
+            ) from e
 
     def is_supported_triton_server_backend(self) -> bool:
         if not self.model_config:
