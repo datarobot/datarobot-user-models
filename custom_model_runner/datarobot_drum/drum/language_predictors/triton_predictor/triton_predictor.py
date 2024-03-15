@@ -81,8 +81,7 @@ class TritonPredictor(BaseLanguagePredictor):
 
     def predict_unstructured(self, data, **kwargs):
         headers = kwargs.get(UnstructuredDtoKeys.HEADERS)
-        # TODO get model_name from configuration
-        model_name = "densenet_onnx"
+        model_name = self.model_config.name
         resp = requests.post(
             f"{self.triton_host}:{self.triton_http_port}/v2/models/{model_name}/infer",
             data=data,
