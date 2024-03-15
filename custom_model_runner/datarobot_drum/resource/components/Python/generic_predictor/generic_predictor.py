@@ -26,12 +26,14 @@ class GenericPredictorComponent(ConnectableComponent):
         super(GenericPredictorComponent, self).__init__(engine)
         self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
         self._run_language = None
+        self._with_triton_server = False
         self._predictor = None
         self.cli_adapter: Optional[DrumScoreAdapter] = None
 
     def configure(self, params):
         super(GenericPredictorComponent, self).configure(params)
         self._run_language = RunLanguage(params.get("run_language"))
+        self._with_triton_server = params.get("with_triton_server")
 
         # Input filename is available at configuration time, so include it in the CLI adapter here.
         self.cli_adapter = DrumScoreAdapter(
@@ -68,7 +70,7 @@ class GenericPredictorComponent(ConnectableComponent):
             from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
 
             self._predictor = RPredictor()
-        elif self._run_language == RunLanguage.TRITON_ONNX:
+        elif self._run_language == RunLanguage.OTHER and self._with_triton_server:
             from datarobot_drum.drum.language_predictors.triton_predictor.triton_predictor import (
                 TritonPredictor,
             )

@@ -238,6 +238,7 @@ class ArgumentsOptions:
     MONITOR_SETTINGS = "--monitor-settings"
     DR_WEBSERVER = "--webserver"
     DR_API_TOKEN = "--api-token"
+    WITH_TRITON_SERVER = "--with-triton-server"
     TRITON_HOST = "--triton-host"
     TRITON_HTTP_PORT = "--triton-http-port"
     TRITON_GRPC_PORT = "--triton-grpc-port"
@@ -345,7 +346,10 @@ class RunLanguage(Enum):
     R = "r"
     JAVA = "java"
     JULIA = "julia"
-    TRITON_ONNX = "triton_onnx"
+
+    # useful in cases when model is expected to have multiple artifacts with mixed languages,
+    # in this case a specific DRUM option is needed to invoke an appropriate language predictor
+    OTHER = "other"
 
 
 class TargetType(Enum):

@@ -43,7 +43,6 @@ from datarobot_drum.drum.enum import ArgumentOptionsEnvVars
 from datarobot_drum.drum.enum import ArgumentsOptions
 from datarobot_drum.drum.enum import JavaArtifacts
 from datarobot_drum.drum.enum import JuliaArtifacts
-from datarobot_drum.drum.enum import TritonInferenceServerArtifacts
 from datarobot_drum.drum.enum import ModelMetadataHyperParamTypes
 from datarobot_drum.drum.enum import ModelMetadataKeys
 from datarobot_drum.drum.enum import PythonArtifacts
@@ -303,6 +302,10 @@ class CMRunner:
         if lang:
             return RunLanguage(self.options.language)
 
+        with_triton_server = getattr(self.options, "with_triton_server", None)
+        if with_triton_server:
+            return RunLanguage.OTHER
+
         code_dir_abspath = os.path.abspath(self.options.code_dir)
 
         artifact_language = None
@@ -314,9 +317,6 @@ class CMRunner:
         java_artifacts = DrumUtils.find_files_by_extensions(code_dir_abspath, JavaArtifacts.ALL)
 
         julia_artifacts = DrumUtils.find_files_by_extensions(code_dir_abspath, JuliaArtifacts.ALL)
-        triton_inference_server_artifacts = DrumUtils.find_files_by_extensions(
-            code_dir_abspath, TritonInferenceServerArtifacts.ALL
-        )
         # check which custom code files present in the code dir
         is_custom_py = DrumUtils.filename_exists_and_is_file(code_dir_abspath, "custom.py")
         is_custom_r = DrumUtils.filename_exists_and_is_file(
@@ -330,7 +330,6 @@ class CMRunner:
             + bool(len(r_artifacts))
             + bool(len(java_artifacts))
             + bool(len(julia_artifacts))
-            + bool(len(triton_inference_server_artifacts))
             == 1
         ):
             if len(python_artifacts) > 0:
@@ -341,8 +340,6 @@ class CMRunner:
                 artifact_language = RunLanguage.JAVA
             elif len(julia_artifacts) > 0:
                 artifact_language = RunLanguage.JULIA
-            elif len(triton_inference_server_artifacts) > 0:
-                artifact_language = RunLanguage.TRITON_ONNX
 
         # if only one custom file found, set it:
         if is_custom_py + is_custom_r + is_custom_jl == 1:
@@ -737,6 +734,7 @@ class CMRunner:
             "deployment_id": options.deployment_id,
             "monitor_settings": options.monitor_settings,
             "external_webserver_url": options.webserver,
+            "with_triton_server": options.with_triton_server,
             "triton_host": options.triton_host,
             "triton_http_port": options.triton_http_port,
             "triton_grpc_port": options.triton_grpc_port,
