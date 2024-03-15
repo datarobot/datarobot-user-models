@@ -36,7 +36,6 @@ from datarobot_drum.drum.model_metadata import (
 )
 
 from datarobot_drum.drum.description import version as drum_version
-from datarobot_drum.drum.enum import TritonInferenceServerBackends
 from datarobot_drum.drum.enum import CUSTOM_FILE_NAME
 from datarobot_drum.drum.enum import LOG_LEVELS
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
@@ -318,10 +317,6 @@ class CMRunner:
         triton_inference_server_artifacts = DrumUtils.find_files_by_extensions(
             code_dir_abspath, TritonInferenceServerArtifacts.ALL
         )
-        if triton_inference_server_artifacts:
-            if not self._is_supported_triton_server_backend(triton_inference_server_artifacts):
-                raise DrumCommonException("Unsupported Triton Inference Server backend")
-
         # check which custom code files present in the code dir
         is_custom_py = DrumUtils.filename_exists_and_is_file(code_dir_abspath, "custom.py")
         is_custom_r = DrumUtils.filename_exists_and_is_file(
@@ -393,19 +388,6 @@ class CMRunner:
         run_language = custom_language if custom_language is not None else artifact_language
         self.options.language = run_language.value
         return run_language
-
-    def _is_supported_triton_server_backend(self, config_pbtxt):
-        assert len(config_pbtxt) == 1
-        config_pbtxt = config_pbtxt[0]
-
-        with open(config_pbtxt, "r") as c:
-            for line in c.readlines():
-                if line.startswith("platform"):
-                    backend_config = line.split(":")
-                    assert len(backend_config) == 2
-                    platform = backend_config[1].strip()
-                    platform = re.sub(r"\"|\'", "", platform)
-                    return platform.lower() in TritonInferenceServerBackends.ALL
 
     def _get_fit_run_language(self):
         def raise_no_language(custom_language):
