@@ -189,8 +189,16 @@ class TritonInferenceServerArtifacts:
 
 
 class TritonInferenceServerBackends:
+    # supported backends are listed here
+    # https://docs.nvidia.com/deeplearning/triton-inference-server/archives/triton_inference_server_1120/triton-inference-server-guide/docs/model_configuration.html
     ONNX = "onnxruntime_onnx"
-    ALL = {ONNX}
+    TORCH = "pytorch_libtorch"
+    TENSORRT_PLAN = "tensorrt_plan"
+    TENSORFLOW_SAVED = "tensorflow_savedmodel"
+    TENSORFLOW_GRAPHDEF = "tensorflow_graphdef"
+    PYTHON = "python"
+
+    ALL = {ONNX, TORCH, TENSORRT_PLAN, TENSORFLOW_SAVED, TENSORFLOW_GRAPHDEF, PYTHON}
 
 
 class RArtifacts:
