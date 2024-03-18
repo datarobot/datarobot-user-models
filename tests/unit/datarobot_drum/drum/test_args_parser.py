@@ -15,11 +15,10 @@ from typing import List
 from unittest.mock import patch
 
 import pytest
-
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
-from datarobot_drum.drum.enum import ArgumentsOptions, ArgumentOptionsEnvVars
-from datarobot_drum.resource.utils import _exec_shell_cmd
+from datarobot_drum.drum.enum import ArgumentOptionsEnvVars, ArgumentsOptions
 from datarobot_drum.drum.utils.drum_utils import unset_drum_supported_env_vars
+from datarobot_drum.resource.utils import _exec_shell_cmd
 
 
 def set_sys_argv(cmd_line_args):
@@ -550,3 +549,108 @@ class TestUserSecretsArgs:
 
         actual = get_args_parser_options(parametrized_args)
         assert actual.user_secrets_mount_path == fake_directory
+
+
+class TestTritonServerArgs:
+    @pytest.fixture(scope="session")
+    def tmp_dir_with_dataset(self):
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            input_filepath = Path(tmpdirname) / "input.csv"
+            open(input_filepath, "wb").write(b"a,b,c\n1,2,3")
+            yield str(input_filepath)
+
+    @pytest.fixture
+    def minimal_score_cmd_args(self, tmp_dir_with_dataset):
+        return [
+            "score",
+            "--code-dir",
+            "/tmp",
+            "--input",
+            tmp_dir_with_dataset,
+        ]
+
+    @pytest.fixture
+    def cleanup_env_vars(self):
+        yield
+        os.environ.pop("TRITON_HOST", None)
+        os.environ.pop("TRITON_HTTP_PORT", None)
+        os.environ.pop("TRITON_GRPC_PORT", None)
+
+    @staticmethod
+    def parse_triton_server_args(
+        triton_host,
+        triton_http_port,
+        triton_grpc_port,
+        minimal_score_cmd_args,
+        is_env_variable=False,
+    ):
+        if is_env_variable:
+            if triton_host:
+                os.environ["TRITON_HOST"] = triton_host
+            if triton_http_port:
+                os.environ["TRITON_HTTP_PORT"] = triton_http_port
+            if triton_grpc_port:
+                os.environ["TRITON_GRPC_PORT"] = triton_grpc_port
+
+        else:
+            if triton_host:
+                minimal_score_cmd_args.extend(["--triton-host", triton_host])
+            if triton_http_port:
+                minimal_score_cmd_args.extend(["--triton-http-port", triton_http_port])
+            if triton_grpc_port:
+                minimal_score_cmd_args.extend(["--triton-grpc-port", triton_grpc_port])
+
+        actual = get_args_parser_options(minimal_score_cmd_args)
+        return actual
+
+    @pytest.mark.parametrize(
+        "triton_host,expected_host",
+        [(None, "http://localhost"), ("http://127.0.0.1", "http://127.0.0.1")],
+    )
+    @pytest.mark.parametrize(
+        "triton_http_port,expected_http_port", [(None, "8000"), ("8888", "8888")]
+    )
+    @pytest.mark.parametrize(
+        "triton_grpc_port,expected_grpc_port", [(None, "8001"), ("9999", "9999")]
+    )
+    @pytest.mark.parametrize("is_env_variable", [True, False])
+    @pytest.mark.usefixtures("cleanup_env_vars")
+    def test_read_triton_server_configs_success(
+        self,
+        triton_grpc_port,
+        expected_grpc_port,
+        triton_http_port,
+        expected_http_port,
+        triton_host,
+        expected_host,
+        is_env_variable,
+        minimal_score_cmd_args,
+    ):
+        actual = self.parse_triton_server_args(
+            triton_host, triton_http_port, triton_grpc_port, minimal_score_cmd_args, is_env_variable
+        )
+        assert actual.triton_host == expected_host
+        assert actual.triton_http_port == expected_http_port
+        assert actual.triton_grpc_port == expected_grpc_port
+
+    @pytest.mark.parametrize("triton_host", ["localhost", "127.0.0.1"])
+    @pytest.mark.parametrize("triton_http_port", ["qwerty", "-1000", "1.001", "0"])
+    @pytest.mark.parametrize("triton_grpc_port", ["qwerty", "-1000", "1.001", "0"])
+    @pytest.mark.parametrize("is_env_variable", [True, False])
+    @pytest.mark.usefixtures("cleanup_env_vars")
+    def test_read_triton_server_configs_success(
+        self,
+        triton_grpc_port,
+        triton_http_port,
+        triton_host,
+        is_env_variable,
+        minimal_score_cmd_args,
+    ):
+        with pytest.raises(SystemExit):
+            self.parse_triton_server_args(
+                triton_host,
+                triton_http_port,
+                triton_grpc_port,
+                minimal_score_cmd_args,
+                is_env_variable,
+            )

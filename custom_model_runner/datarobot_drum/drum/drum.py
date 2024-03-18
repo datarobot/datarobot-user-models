@@ -302,6 +302,10 @@ class CMRunner:
         if lang:
             return RunLanguage(self.options.language)
 
+        with_triton_server = getattr(self.options, "with_triton_server", None)
+        if with_triton_server:
+            return RunLanguage.OTHER
+
         code_dir_abspath = os.path.abspath(self.options.code_dir)
 
         artifact_language = None
@@ -313,7 +317,6 @@ class CMRunner:
         java_artifacts = DrumUtils.find_files_by_extensions(code_dir_abspath, JavaArtifacts.ALL)
 
         julia_artifacts = DrumUtils.find_files_by_extensions(code_dir_abspath, JuliaArtifacts.ALL)
-
         # check which custom code files present in the code dir
         is_custom_py = DrumUtils.filename_exists_and_is_file(code_dir_abspath, "custom.py")
         is_custom_r = DrumUtils.filename_exists_and_is_file(
@@ -731,6 +734,10 @@ class CMRunner:
             "deployment_id": options.deployment_id,
             "monitor_settings": options.monitor_settings,
             "external_webserver_url": options.webserver,
+            "with_triton_server": options.with_triton_server,
+            "triton_host": options.triton_host,
+            "triton_http_port": options.triton_http_port,
+            "triton_grpc_port": options.triton_grpc_port,
             "api_token": options.api_token,
             "allow_dr_api_access": options.allow_dr_api_access,
             "query_params": '"{}"'.format(options.query)

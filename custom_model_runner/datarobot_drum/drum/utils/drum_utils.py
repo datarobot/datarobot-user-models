@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import glob
 import json
 import logging
 import os
@@ -12,9 +13,8 @@ from contextlib import closing
 from functools import partial
 from pathlib import Path
 
-from jinja2 import Environment, BaseLoader, DebugUndefined
-
-from datarobot_drum.drum.enum import ArgumentOptionsEnvVars, LOGGER_NAME_PREFIX
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, ArgumentOptionsEnvVars
+from jinja2 import BaseLoader, DebugUndefined, Environment
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -75,11 +75,12 @@ class DrumUtils:
         :return: list of found files
         """
         lst = []
-        for filename in os.listdir(dirpath):
-            path = os.path.join(dirpath, filename)
-            if os.path.isdir(path):
+
+        for path_str in glob.iglob(f"{dirpath}/**", recursive=True):
+            path = Path(path_str)
+            if path.is_dir():
                 continue
-            if DrumUtils.endswith_extension_ignore_case(filename, extensions):
+            if DrumUtils.endswith_extension_ignore_case(path.name, extensions):
                 lst.append(path)
         return lst
 

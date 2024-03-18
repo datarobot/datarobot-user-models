@@ -12,28 +12,26 @@ from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import List
-from unittest.mock import patch, PropertyMock, ANY
+from unittest.mock import ANY, PropertyMock, patch
 
 import pandas as pd
-
 import pytest
 import yaml
-from mlpiper.pipeline.executor import Executor
-
 from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.drum import (
     CMRunner,
-    output_in_code_dir,
     create_custom_inference_model_folder,
+    output_in_code_dir,
 )
 from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, RunLanguage
 from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
     PythonPredictor,
 )
-from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.runtime import DrumRuntime
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
+from mlpiper.pipeline.executor import Executor
 
 
 def set_sys_argv(cmd_line_args):
@@ -361,6 +359,10 @@ class TestCMRunnerServer:
             "allow_dr_api_access": "False",
             "user_secrets_mount_path": None,
             "user_secrets_prefix": None,
+            "with_triton_server": False,
+            "triton_host": "http://localhost",
+            "triton_http_port": 8000,
+            "triton_grpc_port": 8001,
         }
 
         mock_mlpiper_configure.assert_called_once_with(expected)

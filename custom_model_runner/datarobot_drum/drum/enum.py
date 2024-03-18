@@ -183,6 +183,24 @@ class PythonArtifacts:
     ]
 
 
+class TritonInferenceServerArtifacts:
+    PROTOCOL_BUFFER_TEXT_FILE_EXTENSION = ".pbtxt"
+    ALL = [PROTOCOL_BUFFER_TEXT_FILE_EXTENSION]
+
+
+class TritonInferenceServerBackends:
+    # supported backends are listed here
+    # https://docs.nvidia.com/deeplearning/triton-inference-server/archives/triton_inference_server_1120/triton-inference-server-guide/docs/model_configuration.html
+    ONNX = "onnxruntime_onnx"
+    TORCH = "pytorch_libtorch"
+    TENSORRT_PLAN = "tensorrt_plan"
+    TENSORFLOW_SAVED = "tensorflow_savedmodel"
+    TENSORFLOW_GRAPHDEF = "tensorflow_graphdef"
+    PYTHON = "python"
+
+    ALL = {ONNX, TORCH, TENSORRT_PLAN, TENSORFLOW_SAVED, TENSORFLOW_GRAPHDEF, PYTHON}
+
+
 class RArtifacts:
     RDS_EXTENSION = ".rds"
     ALL = [RDS_EXTENSION]
@@ -228,6 +246,10 @@ class ArgumentsOptions:
     MONITOR_SETTINGS = "--monitor-settings"
     DR_WEBSERVER = "--webserver"
     DR_API_TOKEN = "--api-token"
+    WITH_TRITON_SERVER = "--with-triton-server"
+    TRITON_HOST = "--triton-host"
+    TRITON_HTTP_PORT = "--triton-http-port"
+    TRITON_GRPC_PORT = "--triton-grpc-port"
     DEPLOYMENT_CONFIG = "--deployment-config"
     QUERY = "--query"
     CONTENT_TYPE = "--content-type"
@@ -332,6 +354,10 @@ class RunLanguage(Enum):
     R = "r"
     JAVA = "java"
     JULIA = "julia"
+
+    # useful in cases when model is expected to have multiple artifacts with mixed languages,
+    # in this case a specific DRUM option is needed to invoke an appropriate language predictor
+    OTHER = "other"
 
 
 class TargetType(Enum):

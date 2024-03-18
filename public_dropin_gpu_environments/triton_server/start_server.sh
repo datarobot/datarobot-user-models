@@ -25,4 +25,4 @@ nohup tritonserver --model-repository=${MODEL_DIR} &
 echo
 echo "Executing command: drum server $*"
 echo
-exec drum server "$@"
+exec drum server --with-triton-server "$@"
