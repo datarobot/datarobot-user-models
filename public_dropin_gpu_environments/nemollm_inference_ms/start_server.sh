@@ -8,6 +8,11 @@
 echo "Starting Custom Model environment with NIM"
 set -e
 
+if [ -z "${$MODEL_NAME}" ]; then
+    echo "The MODEL_NAME must be set in runtime parameters"
+fi
+
+
 if [ "${ENABLE_CUSTOM_MODEL_RUNTIME_ENV_DUMP}" = 1 ]; then
     echo "Environment variables:"
     env
@@ -36,7 +41,6 @@ echo
 echo "Starting NeMo Inference Microservice..."
 echo
 export MODEL_DIR="${CODE_DIR}/model-store/"
-export MODEL_NAME=generic-llm
 
 export NEMO_PORT=9998
 export OPENAI_PORT=9999
