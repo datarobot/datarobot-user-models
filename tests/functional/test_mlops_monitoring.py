@@ -48,7 +48,7 @@ class TestMLOpsMonitoring:
     @pytest.fixture
     def mask_mlops_installation(self):
         try:
-            import datarobot.mlops.mlops as mlops
+            import datarobot_mlops.mlops as mlops
 
             mlops_filepath = os.path.abspath(mlops.__file__)
             tmp_mlops_filepath = mlops_filepath + ".tmp"
