@@ -8,6 +8,15 @@
 echo "Starting Custom Model environment with NIM"
 set -e
 
+GPU_COUNT=$(nvidia-smi -L | wc -l)
+echo "GPU count: $GPU_COUNT"
+
+if [ "$GPU_COUNT" -eq 0 ]; then
+    echo "No GPUs found in the system."
+    exit 1
+fi
+
+
 if [ -z "${$MODEL_NAME}" ]; then
     echo "The MODEL_NAME must be set in runtime parameters"
 fi
