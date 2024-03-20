@@ -555,9 +555,7 @@ class TestPythonModelAdapterWithGuards:
         guard_hook_filename.write_text(textwrap.dedent(guard_hook_contents))
 
         text_generation_target_name = "completion"
-        with patch.dict(
-            os.environ,{"TARGET_NAME": text_generation_target_name},
-        ):
+        with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
             adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
             assert adapter._guard_pipeline is not None
             # Ensure that it is Mock as set by guard_hook_contents
