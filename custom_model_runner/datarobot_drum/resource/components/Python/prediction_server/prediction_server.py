@@ -49,6 +49,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         self._resource_monitor = None
         self._run_language = None
         self._with_triton_server = False
+        self._with_nemo_server = False
         self._predictor = None
         self._target_type = None
         self._code_dir = None
@@ -61,6 +62,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         self._show_perf = self._params.get("show_perf")
         self._run_language = RunLanguage(params.get("run_language"))
         self._with_triton_server = self._params.get("with_triton_server")
+        self._with_nemo_server = self._params.get("with_triton_server")
         self._target_type = TargetType(params[TARGET_TYPE_ARG_KEYWORD])
 
         self._stats_collector = StatsCollector(disable_instance=not self._show_perf)
@@ -103,6 +105,12 @@ class PredictionServer(ConnectableComponent, PredictMixin):
             )
 
             self._predictor = TritonPredictor()
+        elif self._run_language == RunLanguage.OTHER and self._with_nemo_server:
+            from datarobot_drum.drum.gpu_predictors.nemo_predictor import (
+                NemoPredictor,
+            )
+
+            self._predictor = NemoPredictor()
         else:
             raise DrumCommonException(
                 "Prediction server doesn't support language: {} ".format(self._run_language)

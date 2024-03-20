@@ -684,6 +684,11 @@ class CMRunnerArgsRegistry(object):
     def _reg_arg_triton_server_access(*parsers):
         for parser in parsers:
             parser.add_argument(
+                ArgumentsOptions.WITH_NEMO_SERVER,
+                default=False,
+                help="Use NVIDIA Nemo Inference Microservices to serve models"
+            )
+            parser.add_argument(
                 ArgumentsOptions.WITH_TRITON_SERVER,
                 default=False,
                 help="Use NVIDIA Triton Inference Server to serve models",

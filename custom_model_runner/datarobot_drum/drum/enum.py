@@ -253,6 +253,7 @@ class ArgumentsOptions:
     MONITOR_SETTINGS = "--monitor-settings"
     DR_WEBSERVER = "--webserver"
     DR_API_TOKEN = "--api-token"
+    WITH_NEMO_SERVER = "--with-nemo-server"
     WITH_TRITON_SERVER = "--with-triton-server"
     TRITON_HOST = "--triton-host"
     TRITON_HTTP_PORT = "--triton-http-port"
