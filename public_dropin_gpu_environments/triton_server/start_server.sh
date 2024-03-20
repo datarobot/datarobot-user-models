@@ -6,13 +6,14 @@
 #
 # Released under the terms of DataRobot Tool and Utility Agreement.
 echo "Starting Custom Model environment with Triton inference server"
+set -e
 
 if [ "${ENABLE_CUSTOM_MODEL_RUNTIME_ENV_DUMP}" = 1 ]; then
     echo "Environment variables:"
     env
 
     echo
-    echo "Initializing NVIDIA..."
+    echo "Running NVIDIA init scripts..."
     echo
     /opt/nvidia/nvidia_entrypoint.sh /bin/true
 fi
