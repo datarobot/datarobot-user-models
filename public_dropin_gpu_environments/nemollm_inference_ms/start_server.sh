@@ -28,13 +28,6 @@ echo
 echo "Starting DRUM server in background..."
 echo
 nohup drum server --with-triton-server "$@" &
-
-if [[ -e $CODE_DIR/custom.py ]]; then
-    echo
-    echo "Running custom.py..."
-    echo
-    python ${CODE_DIR}/custom.py
-fi
 deactivate
 
 echo
