@@ -319,9 +319,9 @@ class DataFrameFormatter(BaseFormatter):  # type: ignore[misc]
 # Load our extension into ipython kernel
 def load_ipython_extension(ipython: Magics) -> None:
     if is_pandas_loaded:
-        ipython.display_formatter.formatters[
-            "application/vnd.dataframe+json"
-        ] = DataFrameFormatter()
+        ipython.display_formatter.formatters["application/vnd.dataframe+json"] = (
+            DataFrameFormatter()
+        )
         dataframe_json_formatter = ipython.display_formatter.formatters[
             "application/vnd.dataframe+json"
         ]

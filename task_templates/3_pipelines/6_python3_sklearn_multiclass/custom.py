@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 """
     In this example we show a complex pipeline with a multiclass linear model.
     Note in the score hook how we grab the class labels. Contrast this with the regression and binary examples

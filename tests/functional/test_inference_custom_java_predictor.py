@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import json
 import os
 import pandas as pd
@@ -45,9 +46,9 @@ class TestInferenceCustomJavaPredictor:
         cur_file_dir = os.path.dirname(os.path.abspath(__file__))
         # have to point model dir to a folder with jar, so drum could detect the language
         model_dir = os.path.join(cur_file_dir, "custom_java_predictor")
-        os.environ[
-            EnvVarNames.DRUM_JAVA_CUSTOM_PREDICTOR_CLASS
-        ] = "com.datarobot.test.TestCustomPredictor"
+        os.environ[EnvVarNames.DRUM_JAVA_CUSTOM_PREDICTOR_CLASS] = (
+            "com.datarobot.test.TestCustomPredictor"
+        )
         os.environ[EnvVarNames.DRUM_JAVA_CUSTOM_CLASS_PATH] = os.path.join(model_dir, "*")
         with DrumServerRun(
             resources.target_types(problem),

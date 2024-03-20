@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 """
 In this example we show how to implement a simple Ridge Regression that handles sparse input.
 Intended for binary classification
