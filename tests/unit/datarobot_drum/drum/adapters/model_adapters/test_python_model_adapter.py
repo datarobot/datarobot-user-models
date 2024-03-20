@@ -31,7 +31,12 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
     reset_outputs_to_allow_secrets,
 )
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
-from datarobot_drum.drum.enum import TargetType, GUARD_SCORE_WRAPPER_NAME
+from datarobot_drum.drum.enum import (
+    TargetType,
+    GUARD_SCORE_WRAPPER_NAME,
+    GUARD_HOOK,
+    MODERATIONS_LIBRARY_PACKAGE,
+)
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 
@@ -527,8 +532,6 @@ class TestPythonModelAdapterInitialization:
 class TestPythonModelAdapterWithGuards:
     """Use cases to test the moderation integration with DRUM"""
 
-    GUARD_HOOK_MODULE_NAME = "guard_hook"
-
     def test_loading_guard_hook_module(self, tmp_path):
         guard_hook_contents = """
         from unittest.mock import Mock
@@ -539,21 +542,28 @@ class TestPythonModelAdapterWithGuards:
         def init():
             return Mock()
         """
-        guard_hook_filename = tmp_path / f"{self.GUARD_HOOK_MODULE_NAME}.py"
+        sys.path.insert(0, str(tmp_path))
+        # Create dummy datarobot dome package
+        guard_package_path = tmp_path / MODERATIONS_LIBRARY_PACKAGE
+        guard_package_init_py = guard_package_path / "__init__.py"
+
+        # And the guard hook file to it
+        guard_hook_filename = guard_package_path / f"{GUARD_HOOK}.py"
+        if not os.path.exists(guard_package_path):
+            guard_package_path.mkdir(parents=True)
+            guard_package_init_py.touch(exist_ok=True)
         guard_hook_filename.write_text(textwrap.dedent(guard_hook_contents))
 
         text_generation_target_name = "completion"
         with patch.dict(
-            os.environ,
-            {
-                "TARGET_NAME": text_generation_target_name,
-                "MLOPS_GUARD_HOOK_FILE": self.GUARD_HOOK_MODULE_NAME,
-            },
+            os.environ,{"TARGET_NAME": text_generation_target_name},
         ):
             adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
             assert adapter._guard_pipeline is not None
+            # Ensure that it is Mock as set by guard_hook_contents
+            assert isinstance(adapter._guard_pipeline, Mock)
 
-        sys.path.remove(os.path.dirname(guard_hook_filename))
+        sys.path.remove(str(tmp_path))
 
     @pytest.mark.parametrize(
         "guard_hook_present, expected_predictions",
