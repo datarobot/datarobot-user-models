@@ -201,11 +201,7 @@ class TritonInferenceServerBackends:
     TENSORFLOW_GRAPHDEF = "tensorflow_graphdef"
     PYTHON = "python"
 
-    # TODO should it be a separate Enum? case when DRUM supports backend, but Triton Dropin environment is a wrong one
-    # Supported by NIM
-    TENSORRT_LLM = "tensorrtllm"
-
-    ALL = {ONNX, TORCH, TENSORRT_PLAN, TENSORFLOW_SAVED, TENSORFLOW_GRAPHDEF, PYTHON, TENSORRT_LLM}
+    ALL = {ONNX, TORCH, TENSORRT_PLAN, TENSORFLOW_SAVED, TENSORFLOW_GRAPHDEF, PYTHON}
 
 
 class RArtifacts:
