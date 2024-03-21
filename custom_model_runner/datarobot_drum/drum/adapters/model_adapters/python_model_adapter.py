@@ -49,6 +49,8 @@ from datarobot_drum.drum.enum import (
     TargetType,
     GUARD_INIT_HOOK_NAME,
     GUARD_SCORE_WRAPPER_NAME,
+    GUARD_HOOK_MODULE,
+    MODERATIONS_LIBRARY_PACKAGE,
 )
 from datarobot_drum.drum.exceptions import (
     DrumCommonException,
@@ -117,27 +119,12 @@ class PythonModelAdapter(AbstractModelAdapter):
             self._target_name = None
 
     def _load_guard_hooks_for_drum(self):
-        if os.environ.get("MLOPS_GUARD_HOOK_FILE", None) is None:
-            return
-
-        guard_file_prefix = os.environ.get("MLOPS_GUARD_HOOK_FILE")
-        guards_file_paths = list(Path(self._model_dir).rglob("{}.py".format(guard_file_prefix)))
-        if len(guards_file_paths) > 1:
-            self._logger.error("Found too many guard hook files: {}".format(guards_file_paths))
-            return
-
-        if len(guards_file_paths) == 0:
-            self._logger.info(
-                "No {}.py file detected in {}".format(guard_file_prefix, self._model_dir)
-            )
-            return
-
-        guard_file_path = guards_file_paths[0]
-        self._logger.info("Detected {} .. trying to load hooks".format(guard_file_path))
-        sys.path.insert(0, os.path.dirname(guard_file_path))
-
         try:
-            guard_module = __import__(guard_file_prefix)
+            guard_module = __import__(GUARD_HOOK_MODULE, fromlist=[MODERATIONS_LIBRARY_PACKAGE])
+            self._logger.info(
+                f"Detected {guard_module.__name__} in {guard_module.__file__}.. "
+                f"trying to load hooks"
+            )
             self._guard_moderation_hooks = {
                 GUARD_INIT_HOOK_NAME: getattr(guard_module, GUARD_INIT_HOOK_NAME, None),
                 GUARD_SCORE_WRAPPER_NAME: getattr(guard_module, GUARD_SCORE_WRAPPER_NAME, None),
