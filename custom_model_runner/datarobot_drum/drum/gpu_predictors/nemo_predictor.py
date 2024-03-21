@@ -8,6 +8,8 @@ import csv
 import io
 import logging
 import os
+import signal
+import subprocess
 
 import numpy as np
 from openai import OpenAI
@@ -18,10 +20,11 @@ from datarobot_drum.drum.common import SupportedPayloadFormats
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     PayloadFormat,
-    StructuredDtoKeys, TargetType,
+    StructuredDtoKeys,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
+from datarobot_drum.resource.drum_server_utils import wait_for_server
 
 RUNNING_LANG_MSG = "Running environment: Nemo Inference Microservices."
 DEFAULT_MODEL_NAME = "generic-llm"
@@ -31,11 +34,16 @@ class NemoPredictor(BaseLanguagePredictor):
     def __init__(self):
         super(NemoPredictor, self).__init__()
         self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
-        self.prompt_field = None
-        self.triton_host = None
-        self.triton_http_port = None
+        self.gpu_count = None
         self.nim_client = None
+        self.health_port = None
+        self.openai_port = None
+        self.nemo_host = None
+        self.nemo_port = None
+        self.nemo_process = None
+        self.server_start_timeout = None
 
+        self.prompt_field = None
         self.system_prompt = None
         self.use_chat_context = None
         self.max_tokens = None
@@ -49,10 +57,23 @@ class NemoPredictor(BaseLanguagePredictor):
         if not self.prompt_field:
             raise ValueError("Unexpected empty target name for text generation!")
 
-        self.triton_host = params.get("triton_host")
-        self.triton_http_port = params.get("triton_http_port")
-        self.nim_client = OpenAI(base_url=f"{self.triton_host}:{self.triton_http_port}/v1", api_key="fake")
+        self.gpu_count = os.environ.get("GPU_COUNT")
+        if not self.gpu_count:
+            raise ValueError("Unexpected empty GPU count.")
 
+        # Nemo configuration
+        self.health_port = os.environ.get("HEALTH_PORT", "8081")
+        self.openai_port = os.environ.get("OPENAI_PORT", "9999")
+        self.nemo_host = os.environ.get("NEMO_HOST", "http://localhost")
+        self.nemo_port = os.environ.get("NEMO_PORT", "9998")
+        self.server_start_timeout = os.environ.get("server_timeout_sec", 30)
+
+        # start Nemo server
+        self._run_nemo_server()
+        self._check_nemo_health()
+        self.nim_client = OpenAI(base_url=f"{self.nemo_host}:{self.nemo_port}/v1", api_key="fake")
+
+        # completion request configuration
         self.system_prompt = self.get_optional_parameter("system_prompt")
         self.max_tokens = self.get_optional_parameter("max_tokens", 512)
         self.use_chat_context = self.get_optional_parameter("chat_context", False)
@@ -124,3 +145,43 @@ class NemoPredictor(BaseLanguagePredictor):
 
     def _transform(self, **kwargs):
         raise DrumCommonException("Transform feature is not supported")
+
+    def _run_nemo_server(self):
+        cmd = [
+            "nemollm_inference_ms",
+            "--model",
+            DEFAULT_MODEL_NAME,
+            "--log_level",
+            "info",
+            "--health_port",
+            self.health_port,
+            "--openai_port",
+            self.openai_port,
+            "--nemo_port",
+            self.nemo_port,
+            "--num_gpus",
+            self.gpu_count,
+        ]
+        self.logger.debug(f"Nemo cmd: {' '.join(cmd)}")
+        self.nemo_process = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        )
+
+    def _check_nemo_health(self):
+        nemo_health_url = f"{self.nemo_host}:{self.health_port}/v1/health/ready"
+        try:
+            wait_for_server(nemo_health_url, timeout=30)
+        except TimeoutError:
+            self.logger.error(
+                "Nemo inference server is not ready. Please check the logs for more information.")
+            try:
+                self._shutdown()
+            except TimeoutError as e:
+                self.logger.error("Nemo server shutdown failure: %s", e)
+            raise
+
+    def _shutdown(self):
+        self.logger.debug("Shutdown Nemo Inference server")
+        if self.nemo_process:
+            os.kill(self.nemo_process.pid, signal.SIGTERM)
+            os.kill(self.nemo_process.pid, signal.SIGKILL)
