@@ -82,30 +82,29 @@ class NemoPredictor(BaseLanguagePredictor):
         if isinstance(data, bytes):
             data = data.decode("utf8")
 
+        user_prompt = lambda row_prompt: {"role": "user", "content": row_prompt}
         reader = csv.DictReader(io.StringIO(data))
         results = []
-        messages = []
-        if self.system_prompt:
-            messages.append({"role": "system", "content": self.system_prompt})
 
-        for i, row in enumerate(reader):
-            self.logger.debug("Row %d: %s", i, row)
-            user_prompt = {"role": "user", "content": row[self.prompt_field]}
-
-            if self.use_chat_context:  # read history
-                messages.append(user_prompt)
-            else:  # each row represents a separate prompt
-                completions = self._create_completions([user_prompt], i)
-                results.extend(completions)
-
-        # include all the chat history in a single completion request
+        # all rows are sent in a single completion request, to preserve a chat context
         if self.use_chat_context:
+            messages = [user_prompt(row) for row in reader]
             completions = self._create_completions(messages)
             results.extend(completions)
+
+        else:  # each prompt row sent as a separate completion request
+            for i, row in enumerate(reader):
+                self.logger.debug("Row %d: %s", i, row)
+                messages = [user_prompt(row[self.prompt_field])]
+                completions = self._create_completions(messages, i)
+                results.extend(completions)
 
         return RawPredictResponse(np.array(results), np.array(["row_id", "choice_id", "completions"]))
 
     def _create_completions(self, messages, row_id=0):
+        if self.system_prompt:
+            messages.append({"role": "system", "content": self.system_prompt})
+
         completions = self.nim_client.chat.completions.create(
             model=DEFAULT_MODEL_NAME,
             messages=messages,
