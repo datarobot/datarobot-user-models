@@ -72,13 +72,13 @@ class GenericPredictorComponent(ConnectableComponent):
             from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
 
             self._predictor = RPredictor()
-        elif self._run_language == RunLanguage.OTHER and self._with_triton_server:
+        elif self._with_triton_server and self.cli_adapter.target_type == TargetType.UNSTRUCTURED:
             from datarobot_drum.drum.gpu_predictors.triton_predictor import (
                 TritonPredictor,
             )
 
             self._predictor = TritonPredictor()
-        elif self._run_language == RunLanguage.OTHER and self._with_nemo_server:
+        elif self._with_nemo_server and self.cli_adapter.target_type == TargetType.TEXT_GENERATION:
             from datarobot_drum.drum.gpu_predictors.nemo_predictor import (
                 NemoPredictor,
             )

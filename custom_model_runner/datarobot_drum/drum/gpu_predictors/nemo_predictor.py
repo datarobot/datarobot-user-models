@@ -39,17 +39,15 @@ class NemoPredictor(BaseLanguagePredictor):
         self.system_prompt = None
         self.use_chat_context = None
         self.max_tokens = None
-        self.count_of_completions_to_generate = None
+        self.num_choices_per_completion = None
         self.temperature = None
 
     def mlpiper_configure(self, params):
         super(NemoPredictor, self).mlpiper_configure(params)
 
-        # TODO move up to the BaseLanguagePredictor
-        if self.target_type == TargetType.TEXT_GENERATION:
-            self.prompt_field = os.environ.get("TARGET_NAME")
-            if not self.prompt_field:
-                raise ValueError("Unexpected empty target name for text generation!")
+        self.prompt_field = os.environ.get("TARGET_NAME")
+        if not self.prompt_field:
+            raise ValueError("Unexpected empty target name for text generation!")
 
         self.triton_host = params.get("triton_host")
         self.triton_http_port = params.get("triton_http_port")
@@ -58,7 +56,7 @@ class NemoPredictor(BaseLanguagePredictor):
         self.system_prompt = self.get_optional_parameter("system_prompt")
         self.max_tokens = self.get_optional_parameter("max_tokens", 512)
         self.use_chat_context = self.get_optional_parameter("chat_context", False)
-        self.count_of_completions_to_generate = self.get_optional_parameter("n", 1)
+        self.num_choices_per_completion = self.get_optional_parameter("n", 1)
         self.temperature = self.get_optional_parameter("temperature", 0.01)
 
     @staticmethod
@@ -108,7 +106,7 @@ class NemoPredictor(BaseLanguagePredictor):
         completions = self.nim_client.chat.completions.create(
             model=DEFAULT_MODEL_NAME,
             messages=messages,
-            n=self.count_of_completions_to_generate,
+            n=self.num_choices_per_completion,
             temperature=self.temperature,
             max_tokens=self.max_tokens,
         )
