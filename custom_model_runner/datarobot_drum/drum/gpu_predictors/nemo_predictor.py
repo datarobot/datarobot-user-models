@@ -7,42 +7,66 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import csv
 import io
 import logging
+import os
 
 import numpy as np
 from openai import OpenAI
 
+from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
 from datarobot_drum.drum.common import SupportedPayloadFormats
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     PayloadFormat,
-    StructuredDtoKeys,
+    StructuredDtoKeys, TargetType,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 
-
 RUNNING_LANG_MSG = "Running environment: Nemo Inference Microservices."
-default_system_prompt = (
-    "You are a helpful AI assistant. Keep short answers of no more than 2 sentences."
-)
+DEFAULT_MODEL_NAME = "generic-llm"
 
 
-class TritonPredictor(BaseLanguagePredictor):
+class NemoPredictor(BaseLanguagePredictor):
     def __init__(self):
-        super(TritonPredictor, self).__init__()
+        super(NemoPredictor, self).__init__()
         self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
+        self.prompt_field = None
         self.triton_host = None
         self.triton_http_port = None
-        self.triton_grpc_port = None
-        self.model_config = None
         self.nim_client = None
 
+        self.system_prompt = None
+        self.use_chat_context = None
+        self.max_tokens = None
+        self.count_of_completions_to_generate = None
+        self.temperature = None
+
     def mlpiper_configure(self, params):
-        super(TritonPredictor, self).mlpiper_configure(params)
+        super(NemoPredictor, self).mlpiper_configure(params)
+
+        # TODO move up to the BaseLanguagePredictor
+        if self.target_type == TargetType.TEXT_GENERATION:
+            self.prompt_field = os.environ.get("TARGET_NAME")
+            if not self.prompt_field:
+                raise ValueError("Unexpected empty target name for text generation!")
+
         self.triton_host = params.get("triton_host")
         self.triton_http_port = params.get("triton_http_port")
         self.nim_client = OpenAI(base_url=f"{self.triton_host}:{self.triton_http_port}/v1", api_key="fake")
+
+        self.system_prompt = self.get_optional_parameter("system_prompt")
+        self.max_tokens = self.get_optional_parameter("max_tokens", 512)
+        self.use_chat_context = self.get_optional_parameter("chat_context", False)
+        self.count_of_completions_to_generate = self.get_optional_parameter("n", 1)
+        self.temperature = self.get_optional_parameter("temperature", 0.01)
+
+    @staticmethod
+    def get_optional_parameter(key, default_value=None):
+        try:
+            return RuntimeParameters.get(key)
+        except ValueError:
+            return default_value
 
     @property
     def supported_payload_formats(self):
@@ -60,29 +84,43 @@ class TritonPredictor(BaseLanguagePredictor):
 
         reader = csv.DictReader(io.StringIO(data))
         results = []
-        # TODO: I'm not sure if we are meant to treat each row as a separate request or
-        # if it is supposed to represent a whole chat history. How we handle this loop
-        # will depend on that; for now I'm assuming separate requests.
+        messages = []
+        if self.system_prompt:
+            messages.append({"role": "system", "content": self.system_prompt})
+
         for i, row in enumerate(reader):
             self.logger.debug("Row %d: %s", i, row)
-            # TODO: use runtime param to get prompt field name like Buzok does
-            user_prompt = row["promptText"]
-            system_prompt = row.get("system") or default_system_prompt  # don't send empty system prompt
+            user_prompt = {"role": "user", "content": row[self.prompt_field]}
 
-            model_name = self.model_config.name
-            completions = self.nim_client.chat.completions.create(
-                model=model_name,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                n=1,
-                temperature=0.01,
-                max_tokens=512,
-            )
-            self.logger.debug("results: %s", completions)
-            results.append(completions.choices[0].message.content)
-        return RawPredictResponse(np.array(results), np.array(["completions"]))
+            if self.use_chat_context:  # read history
+                messages.append(user_prompt)
+            else:  # each row represents a separate prompt
+                completions = self._create_completions([user_prompt], i)
+                results.extend(completions)
+
+        # include all the chat history in a single completion request
+        if self.use_chat_context:
+            completions = self._create_completions(messages)
+            results.extend(completions)
+
+        return RawPredictResponse(np.array(results), np.array(["row_id", "choice_id", "completions"]))
+
+    def _create_completions(self, messages, row_id=0):
+        completions = self.nim_client.chat.completions.create(
+            model=DEFAULT_MODEL_NAME,
+            messages=messages,
+            n=self.count_of_completions_to_generate,
+            temperature=self.temperature,
+            max_tokens=self.max_tokens,
+        )
+
+        completion_choices = [
+            [row_id, choice_id, choice.message.content]
+            for choice_id, choice in enumerate(completions.choices)
+        ]
+
+        self.logger.debug("results: %s", completion_choices)
+        return completion_choices
 
     def predict_unstructured(self, data, **kwargs):
         raise DrumCommonException("The unstructured target type is not supported")
