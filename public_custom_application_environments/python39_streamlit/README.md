@@ -12,3 +12,4 @@ in custom application environment.
 * streamlit==1.17.0
 * streamlit-wordcloud==0.1.0
 * tabulate==0.9.0
+* dr_components-0.1.3-py3-none-any.whl
