@@ -66,12 +66,13 @@ class NemoPredictor(BaseLanguagePredictor):
         self.openai_port = os.environ.get("OPENAI_PORT", "9999")
         self.nemo_host = os.environ.get("NEMO_HOST", "http://localhost")
         self.nemo_port = os.environ.get("NEMO_PORT", "9998")
+        self.model_name = os.environ.get("MODEL_NAME", DEFAULT_MODEL_NAME)
         self.server_start_timeout = os.environ.get("server_timeout_sec", 30)
 
         # start Nemo server
-        self._run_nemo_server()
+        # self._run_nemo_server()
         self._check_nemo_health()
-        self.nim_client = OpenAI(base_url=f"{self.nemo_host}:{self.nemo_port}/v1", api_key="fake")
+        self.nim_client = OpenAI(base_url=f"{self.nemo_host}:{self.openai_port}/v1", api_key="fake")
 
         # completion request configuration
         self.system_prompt = self.get_optional_parameter("system_prompt")
@@ -97,6 +98,8 @@ class NemoPredictor(BaseLanguagePredictor):
         return False
 
     def _predict(self, **kwargs) -> RawPredictResponse:
+        # import pydevd_pycharm
+        # pydevd_pycharm.settrace('localhost', port=8888, stdoutToServer=True, stderrToServer=True)
         data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         if isinstance(data, bytes):
             data = data.decode("utf8")
@@ -118,7 +121,11 @@ class NemoPredictor(BaseLanguagePredictor):
                 completions = self._create_completions(messages, i)
                 results.extend(completions)
 
-        return RawPredictResponse(np.array(results), np.array(["row_id", "choice_id", "completions"]))
+        # TODO DRUM has a restriction for text generation targets to return only a single column
+        # column_names = ["row_id", "choice_id", "completions"]
+        column_names = ["completions"]
+
+        return RawPredictResponse(np.array(results), np.array(column_names))
 
     def _create_completions(self, messages, row_id=0):
         if self.system_prompt:
@@ -133,7 +140,8 @@ class NemoPredictor(BaseLanguagePredictor):
         )
 
         completion_choices = [
-            [row_id, choice_id, choice.message.content]
+            # [row_id, choice_id, choice.message.content]
+            choice.message.content
             for choice_id, choice in enumerate(completions.choices)
         ]
 
@@ -170,6 +178,7 @@ class NemoPredictor(BaseLanguagePredictor):
     def _check_nemo_health(self):
         nemo_health_url = f"{self.nemo_host}:{self.health_port}/v1/health/ready"
         try:
+            self.logger.info("Checking Nemo readiness...")
             wait_for_server(nemo_health_url, timeout=30)
         except TimeoutError:
             self.logger.error(

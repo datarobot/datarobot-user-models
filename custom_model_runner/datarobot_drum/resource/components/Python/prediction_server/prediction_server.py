@@ -62,9 +62,8 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         self._show_perf = self._params.get("show_perf")
         self._run_language = RunLanguage(params.get("run_language"))
         self._with_triton_server = self._params.get("with_triton_server")
-        self._with_nemo_server = self._params.get("with_triton_server")
+        self._with_nemo_server = self._params.get("with_nemo_server")
         self._target_type = TargetType(params[TARGET_TYPE_ARG_KEYWORD])
-
         self._stats_collector = StatsCollector(disable_instance=not self._show_perf)
 
         self._stats_collector.register_report(

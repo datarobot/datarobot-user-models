@@ -34,8 +34,8 @@ class GenericPredictorComponent(ConnectableComponent):
     def configure(self, params):
         super(GenericPredictorComponent, self).configure(params)
         self._run_language = RunLanguage(params.get("run_language"))
-        self._with_nemo_server = params.get("with_nemo_server")
         self._with_triton_server = params.get("with_triton_server")
+        self._with_nemo_server = params.get("with_nemo_server")
 
         # Input filename is available at configuration time, so include it in the CLI adapter here.
         self.cli_adapter = DrumScoreAdapter(
