@@ -8,8 +8,10 @@ import contextlib
 import json
 import multiprocessing
 import os
+from pathlib import Path
 import re
 from subprocess import TimeoutExpired
+import sys
 import time
 
 
@@ -24,6 +26,7 @@ from datarobot_drum.drum.drum import CMRunner
 from datarobot_drum.drum.enum import ArgumentsOptions
 from datarobot_drum.drum.enum import RunMode
 from datarobot_drum.drum.runtime import DrumRuntime
+from datarobot_drum.drum.language_predictors.base_language_predictor import MLOps
 
 from tests.constants import (
     SKLEARN,
@@ -47,16 +50,14 @@ from .utils import SimpleCache
 class TestMLOpsMonitoring:
     @pytest.fixture
     def mask_mlops_installation(self):
-        try:
-            import datarobot_mlops.mlops as mlops
+        if MLOps is None:
+            yield
 
-            mlops_filepath = os.path.abspath(mlops.__file__)
-            tmp_mlops_filepath = mlops_filepath + ".tmp"
-            os.rename(mlops_filepath, tmp_mlops_filepath)
-            yield
-            os.rename(tmp_mlops_filepath, mlops_filepath)
-        except ImportError:
-            yield
+        mlops_path = Path(sys.modules[MLOps.__module__].__file__).parent.absolute()
+        tmp_mlops_filepath = str(mlops_path) + ".tmp"
+        tmp_mlops_filepath = mlops_path.rename(tmp_mlops_filepath)
+        yield
+        tmp_mlops_filepath.rename(mlops_filepath)
 
     @contextlib.contextmanager
     def local_webserver_stub(self, expected_pred_requests_queries=0):
