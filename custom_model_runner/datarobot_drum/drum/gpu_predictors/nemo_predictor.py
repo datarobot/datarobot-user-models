@@ -30,6 +30,12 @@ RUNNING_LANG_MSG = "Running environment: Nemo Inference Microservices."
 DEFAULT_MODEL_NAME = "generic-llm"
 
 
+class ChatRoles:
+    SYSTEM = "system"
+    ASSISTANT = "assistant"
+    USER = "user"
+
+
 class NemoPredictor(BaseLanguagePredictor):
     def __init__(self):
         super(NemoPredictor, self).__init__()
@@ -43,6 +49,7 @@ class NemoPredictor(BaseLanguagePredictor):
         self.nemo_process = None
         self.server_start_timeout = None
 
+        self.model_name = None
         self.prompt_field = None
         self.system_prompt = None
         self.use_chat_context = None
@@ -70,12 +77,13 @@ class NemoPredictor(BaseLanguagePredictor):
         self.server_start_timeout = os.environ.get("server_timeout_sec", 30)
 
         # start Nemo server
-        # self._run_nemo_server()
+        self._run_nemo_server()
         self._check_nemo_health()
         self.nim_client = OpenAI(base_url=f"{self.nemo_host}:{self.openai_port}/v1", api_key="fake")
 
         # completion request configuration
         self.system_prompt = self.get_optional_parameter("system_prompt")
+        self.assistant_field = self.get_optional_parameter("assistant_field", "assistant")
         self.max_tokens = self.get_optional_parameter("max_tokens", 512)
         self.use_chat_context = self.get_optional_parameter("chat_context", False)
         self.num_choices_per_completion = self.get_optional_parameter("n", 1)
@@ -98,26 +106,34 @@ class NemoPredictor(BaseLanguagePredictor):
         return False
 
     def _predict(self, **kwargs) -> RawPredictResponse:
-        # import pydevd_pycharm
-        # pydevd_pycharm.settrace('localhost', port=8888, stdoutToServer=True, stderrToServer=True)
         data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         if isinstance(data, bytes):
             data = data.decode("utf8")
 
-        user_prompt = lambda row_prompt: {"role": "user", "content": row_prompt}
         reader = csv.DictReader(io.StringIO(data))
         results = []
 
+        user_prompt = lambda row: {"role": ChatRoles.USER, "content": row[self.prompt_field]}
+        assistant_prompt = lambda row: {"role": ChatRoles.ASSISTANT, "content": row[self.assistant_field]}
+
         # all rows are sent in a single completion request, to preserve a chat context
         if self.use_chat_context:
-            messages = [user_prompt(row) for row in reader]
+            messages = [
+                prompt(row)
+                for row in reader
+                #  in chat mode user prompts must alternate with assistant prompts
+                for prompt in {user_prompt, assistant_prompt}
+                # skip empty values
+                if prompt(row)["content"]
+            ]
+
             completions = self._create_completions(messages)
             results.extend(completions)
 
         else:  # each prompt row sent as a separate completion request
             for i, row in enumerate(reader):
                 self.logger.debug("Row %d: %s", i, row)
-                messages = [user_prompt(row[self.prompt_field])]
+                messages = [user_prompt(row)]
                 completions = self._create_completions(messages, i)
                 results.extend(completions)
 
@@ -129,10 +145,11 @@ class NemoPredictor(BaseLanguagePredictor):
 
     def _create_completions(self, messages, row_id=0):
         if self.system_prompt:
-            messages.append({"role": "system", "content": self.system_prompt})
+            # only the first chat message can have the system role
+            messages.insert(0, {"role": ChatRoles.SYSTEM, "content": self.system_prompt})
 
         completions = self.nim_client.chat.completions.create(
-            model=DEFAULT_MODEL_NAME,
+            model=self.model_name,
             messages=messages,
             n=self.num_choices_per_completion,
             temperature=self.temperature,
