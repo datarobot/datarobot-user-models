@@ -27,7 +27,7 @@ from datarobot_drum.drum.language_predictors.base_language_predictor import Base
 from datarobot_drum.resource.drum_server_utils import wait_for_server
 
 RUNNING_LANG_MSG = "Running environment: Nemo Inference Microservices."
-DEFAULT_MODEL_NAME = "generic-llm"
+DEFAULT_MODEL_NAME = "generic_llm"
 
 
 class ChatRoles:
@@ -69,7 +69,7 @@ class NemoPredictor(BaseLanguagePredictor):
             raise ValueError("Unexpected empty GPU count.")
 
         # Nemo configuration
-        self.health_port = os.environ.get("HEALTH_PORT", "8081")
+        self.health_port = os.environ.get("HEALTH_PORT", "9997")
         self.openai_port = os.environ.get("OPENAI_PORT", "9999")
         self.nemo_host = os.environ.get("NEMO_HOST", "http://localhost")
         self.nemo_port = os.environ.get("NEMO_PORT", "9998")
