@@ -103,8 +103,8 @@ class NemoPredictor(BaseLanguagePredictor):
         reader = csv.DictReader(io.StringIO(data))
         results = []
 
-        user_prompt = lambda row: {"role": ChatRoles.USER, "content": row[self.prompt_field]}
-        assistant_prompt = lambda row: {"role": ChatRoles.ASSISTANT, "content": row[self.assistant_field]}
+        user_prompt = lambda row: {"role": ChatRoles.USER, "content": self._get(row, self.prompt_field)}
+        assistant_prompt = lambda row: {"role": ChatRoles.ASSISTANT, "content": self._get(row, self.assistant_field)}
 
         # all rows are sent in a single completion request, to preserve a chat context
         if self.use_chat_context:
@@ -132,6 +132,15 @@ class NemoPredictor(BaseLanguagePredictor):
         column_names = ["completions"]
 
         return RawPredictResponse(np.array(results), np.array(column_names))
+
+    def _get(self, row, column_name):
+        try:
+            return row[column_name]
+        except KeyError:
+            expected_column_names = [self.prompt_field]
+            if self.use_chat_context:
+                expected_column_names.append(self.assistant_field)
+            raise DrumCommonException(f"Model expects column names '{expected_column_names}'")
 
     def _create_completions(self, messages, row_id=0):
         if self.system_prompt:
