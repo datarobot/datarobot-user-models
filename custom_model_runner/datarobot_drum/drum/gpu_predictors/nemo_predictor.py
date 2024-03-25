@@ -27,7 +27,7 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.resource.drum_server_utils import wait_for_server, DrumServerProcess
 
-RUNNING_LANG_MSG = "Running environment: Nemo Inference Microservices."
+RUNNING_LANG_MSG = "Running environment: NeMo Inferencing Microservice."
 DEFAULT_MODEL_NAME = "generic_llm"
 
 
