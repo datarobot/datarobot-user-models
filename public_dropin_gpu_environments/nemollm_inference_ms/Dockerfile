@@ -12,8 +12,9 @@ RUN groupmod -g 1000 nemo && \
 # try and unpack any layers with out-of-bound UIDs
 FROM scratch
 COPY --from=0 / /
+ARG BASE_PATH=/opt/tritonserver/bin:/usr/local/cmake/bin:/usr/local/cmake/bin:/usr/local/mpi/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ucx/bin:/opt/tritonserver/bin
 
-ENV PATH=/opt/tritonserver/bin:/usr/local/cmake/bin:/usr/local/cmake/bin:/usr/local/mpi/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ucx/bin:/opt/tritonserver/bin \
+ENV PATH=${BASE_PATH} \
     CUDA_VERSION=12.3.2.001 \
     CUDA_DRIVER_VERSION=545.23.08 \
     CUDA_CACHE_DISABLE=1 \
@@ -72,6 +73,7 @@ RUN apt-get update && apt-get install -y \
 
 USER 1000
 ENV PIP_NO_CACHE_DIR=1
+ENV PATH=${BASE_PATH}
 RUN python -m venv /home/nemo/dr && /home/nemo/dr/bin/pip install -U pip
 COPY dr_requirements.txt dr_requirements.txt
 RUN /home/nemo/dr/bin/pip install -r dr_requirements.txt
