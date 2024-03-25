@@ -41,7 +41,7 @@ class NemoPredictor(BaseLanguagePredictor):
     def __init__(self):
         super(NemoPredictor, self).__init__()
         self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
-
+        self.datarobot_venv_path = os.environ.get("DATAROBOT_VENV_PATH", "/home/nemo/dr")
         # expected to be set for text generation type
         self.prompt_field = os.environ.get("TARGET_NAME")
         if not self.prompt_field:
@@ -177,7 +177,17 @@ class NemoPredictor(BaseLanguagePredictor):
             "--log_level",
             "info",
         ]
-        with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, preexec_fn=os.setsid) as p:
+
+        # update the path so nemollm process can find its libraries
+        env = os.environ.copy()
+        env["PATH"] = env["PATH"].replace(f"{self.datarobot_venv_path}/bin:", "")
+        with subprocess.Popen(
+                cmd,
+                env=env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                preexec_fn=os.setsid,
+        ) as p:
             nemo_process.process = p
             for line in p.stdout:
                 self.logger.info(line[:-1])
