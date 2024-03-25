@@ -10,10 +10,11 @@ import logging
 import os
 import signal
 import subprocess
+import atexit
 
 import numpy as np
 from openai import OpenAI
-
+from threading import Thread
 from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
 from datarobot_drum.drum.common import SupportedPayloadFormats
@@ -24,7 +25,7 @@ from datarobot_drum.drum.enum import (
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
-from datarobot_drum.resource.drum_server_utils import wait_for_server
+from datarobot_drum.resource.drum_server_utils import wait_for_server, DrumServerProcess
 
 RUNNING_LANG_MSG = "Running environment: Nemo Inference Microservices."
 DEFAULT_MODEL_NAME = "generic_llm"
@@ -47,6 +48,7 @@ class NemoPredictor(BaseLanguagePredictor):
             raise ValueError("Unexpected empty target name for text generation!")
 
         # completions configuration can be changed with Runtime parameters
+        self.startup_timeout_sec = self.get_optional_parameter("startup_timeout_sec", 30)
         self.system_prompt = self.get_optional_parameter("system_prompt")
         self.assistant_field = self.get_optional_parameter("assistant_field", "assistant")
         self.max_tokens = self.get_optional_parameter("max_tokens", 512)
@@ -70,7 +72,10 @@ class NemoPredictor(BaseLanguagePredictor):
         super(NemoPredictor, self).mlpiper_configure(params)
 
         # start Nemo server and check health it's health
-        self._run_nemo_server()
+        self.nemo_process = DrumServerProcess()
+        self.nemo_thread = Thread(target=self._run_nemo_server, args=(self.nemo_process,))
+        atexit.register(self._shutdown_nemo)
+        self.nemo_thread.start()
         self._check_nemo_health()
         self.nim_client = OpenAI(base_url=f"{self.nemo_host}:{self.openai_port}/v1", api_key="fake")
 
@@ -156,13 +161,11 @@ class NemoPredictor(BaseLanguagePredictor):
     def _transform(self, **kwargs):
         raise DrumCommonException("Transform feature is not supported")
 
-    def _run_nemo_server(self):
+    def _run_nemo_server(self, nemo_process: DrumServerProcess):
         cmd = [
             "nemollm_inference_ms",
             "--model",
             DEFAULT_MODEL_NAME,
-            "--log_level",
-            "info",
             "--health_port",
             self.health_port,
             "--openai_port",
@@ -171,28 +174,47 @@ class NemoPredictor(BaseLanguagePredictor):
             self.nemo_port,
             "--num_gpus",
             self.gpu_count,
+            "--log_level",
+            "info",
         ]
-        self.logger.debug(f"Nemo cmd: {' '.join(cmd)}")
-        self.nemo_process = subprocess.Popen(
-            cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
-        )
+        with subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, preexec_fn=os.setsid) as p:
+            nemo_process.process = p
+            for line in p.stdout:
+                self.logger.info(line[:-1])
 
     def _check_nemo_health(self):
         nemo_health_url = f"{self.nemo_host}:{self.health_port}/v1/health/ready"
         try:
             self.logger.info("Checking Nemo readiness...")
-            wait_for_server(nemo_health_url, timeout=30)
+            wait_for_server(nemo_health_url, timeout=self.startup_timeout_sec)
         except TimeoutError:
             self.logger.error(
                 "Nemo inference server is not ready. Please check the logs for more information.")
             try:
-                self._shutdown()
+                self._shutdown_nemo()
             except TimeoutError as e:
                 self.logger.error("Nemo server shutdown failure: %s", e)
             raise
 
-    def _shutdown(self):
-        self.logger.debug("Shutdown Nemo Inference server")
-        if self.nemo_process:
-            os.kill(self.nemo_process.pid, signal.SIGTERM)
-            os.kill(self.nemo_process.pid, signal.SIGKILL)
+    def _shutdown_nemo(self):
+        if not self.nemo_process:
+            self.logger.info("Nemo is not running, skipping shutdown...")
+            return
+
+        pgid = None
+        pid = self.nemo_process.process.pid
+        try:
+            pgid = os.getpgid(pid)
+            self.logger.info("Sending signal to ProcessGroup: %s", pgid)
+            os.killpg(pgid, signal.SIGTERM)
+        except ProcessLookupError:
+            self.logger.warning("server at pid=%s is already gone", pid)
+
+        self.nemo_thread.join(timeout=10)
+        if self.nemo_thread.is_alive():
+            if pgid is not None:
+                self.logger.warning("Forcefully killing process group: %s", pgid)
+                os.killpg(pgid, signal.SIGKILL)
+                self.nemo_thread.join(timeout=5)
+            if self.nemo_thread.is_alive():
+                raise TimeoutError("Server failed to shutdown gracefully in allotted time")
