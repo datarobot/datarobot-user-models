@@ -40,54 +40,39 @@ class NemoPredictor(BaseLanguagePredictor):
     def __init__(self):
         super(NemoPredictor, self).__init__()
         self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
-        self.gpu_count = None
-        self.nim_client = None
-        self.health_port = None
-        self.openai_port = None
-        self.nemo_host = None
-        self.nemo_port = None
-        self.nemo_process = None
-        self.server_start_timeout = None
 
-        self.model_name = None
-        self.prompt_field = None
-        self.system_prompt = None
-        self.use_chat_context = None
-        self.max_tokens = None
-        self.num_choices_per_completion = None
-        self.temperature = None
-
-    def mlpiper_configure(self, params):
-        super(NemoPredictor, self).mlpiper_configure(params)
-
+        # expected to be set for text generation type
         self.prompt_field = os.environ.get("TARGET_NAME")
         if not self.prompt_field:
             raise ValueError("Unexpected empty target name for text generation!")
 
-        self.gpu_count = os.environ.get("GPU_COUNT")
-        if not self.gpu_count:
-            raise ValueError("Unexpected empty GPU count.")
-
-        # Nemo configuration
-        self.health_port = os.environ.get("HEALTH_PORT", "9997")
-        self.openai_port = os.environ.get("OPENAI_PORT", "9999")
-        self.nemo_host = os.environ.get("NEMO_HOST", "http://localhost")
-        self.nemo_port = os.environ.get("NEMO_PORT", "9998")
-        self.model_name = os.environ.get("MODEL_NAME", DEFAULT_MODEL_NAME)
-        self.server_start_timeout = os.environ.get("server_timeout_sec", 30)
-
-        # start Nemo server
-        self._run_nemo_server()
-        self._check_nemo_health()
-        self.nim_client = OpenAI(base_url=f"{self.nemo_host}:{self.openai_port}/v1", api_key="fake")
-
-        # completion request configuration
+        # completions configuration can be changed with Runtime parameters
         self.system_prompt = self.get_optional_parameter("system_prompt")
         self.assistant_field = self.get_optional_parameter("assistant_field", "assistant")
         self.max_tokens = self.get_optional_parameter("max_tokens", 512)
         self.use_chat_context = self.get_optional_parameter("chat_context", False)
         self.num_choices_per_completion = self.get_optional_parameter("n", 1)
         self.temperature = self.get_optional_parameter("temperature", 0.01)
+
+        # Nemo server configuration is set in the Drop-in environment
+        self.gpu_count = os.environ.get("GPU_COUNT")
+        if not self.gpu_count:
+            raise ValueError("Unexpected empty GPU count.")
+        self.health_port = os.environ.get("HEALTH_PORT", "9997")
+        self.openai_port = os.environ.get("OPENAI_PORT", "9999")
+        self.nemo_host = os.environ.get("NEMO_HOST", "http://localhost")
+        self.nemo_port = os.environ.get("NEMO_PORT", "9998")
+        self.model_name = os.environ.get("MODEL_NAME", DEFAULT_MODEL_NAME)
+        self.nemo_process = None
+        self.nim_client = None
+
+    def mlpiper_configure(self, params):
+        super(NemoPredictor, self).mlpiper_configure(params)
+
+        # start Nemo server and check health it's health
+        self._run_nemo_server()
+        self._check_nemo_health()
+        self.nim_client = OpenAI(base_url=f"{self.nemo_host}:{self.openai_port}/v1", api_key="fake")
 
     @staticmethod
     def get_optional_parameter(key, default_value=None):
