@@ -102,8 +102,14 @@ class NemoPredictor(BaseLanguagePredictor):
         reader = csv.DictReader(io.StringIO(data))
         results = []
 
-        user_prompt = lambda row: {"role": ChatRoles.USER, "content": self._get(row, self.prompt_field)}
-        assistant_prompt = lambda row: {"role": ChatRoles.ASSISTANT, "content": self._get(row, self.assistant_field)}
+        user_prompt = lambda row: {
+            "role": ChatRoles.USER,
+            "content": self._get(row, self.prompt_field),
+        }
+        assistant_prompt = lambda row: {
+            "role": ChatRoles.ASSISTANT,
+            "content": self._get(row, self.assistant_field),
+        }
 
         # all rows are sent in a single completion request, to preserve a chat context
         if self.use_chat_context:
@@ -191,11 +197,11 @@ class NemoPredictor(BaseLanguagePredictor):
         datarobot_venv_path = os.environ.get("VIRTUAL_ENV")
         env["PATH"] = env["PATH"].replace(f"{datarobot_venv_path}/bin:", "")
         with subprocess.Popen(
-                cmd,
-                env=env,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                preexec_fn=os.setsid,
+            cmd,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            preexec_fn=os.setsid,
         ) as p:
             nemo_process.process = p
             for line in p.stdout:
@@ -208,7 +214,8 @@ class NemoPredictor(BaseLanguagePredictor):
             wait_for_server(nemo_health_url, timeout=self.startup_timeout_sec)
         except TimeoutError:
             self.logger.error(
-                "Nemo inference server is not ready. Please check the logs for more information.")
+                "Nemo inference server is not ready. Please check the logs for more information."
+            )
             try:
                 self._shutdown_nemo()
             except TimeoutError as e:

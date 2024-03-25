@@ -690,7 +690,9 @@ class CMRunnerArgsRegistry(object):
                 required=False,
                 default=False,
                 help="Use NVIDIA Nemo Inference Microservices to serve models. "
-                "Argument is mutually exclusive with {}".format(ArgumentsOptions.WITH_TRITON_SERVER),
+                "Argument is mutually exclusive with {}".format(
+                    ArgumentsOptions.WITH_TRITON_SERVER
+                ),
             )
             server_group.add_argument(
                 ArgumentsOptions.WITH_TRITON_SERVER,
