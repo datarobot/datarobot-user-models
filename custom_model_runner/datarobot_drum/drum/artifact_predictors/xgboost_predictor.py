@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import pickle
 
 from datarobot_drum.drum.artifact_predictors.artifact_predictor import ArtifactPredictor

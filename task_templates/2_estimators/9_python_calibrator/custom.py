@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 # In some cases, avg(predictions) might not match avg(actuals)
 # This task, added as a calibrator in the end of a regression blueprint, can help to fix that
 # During fit(), it computes and stores the calibration coefficient that is equal to avg(actuals) / avg(predicted) on

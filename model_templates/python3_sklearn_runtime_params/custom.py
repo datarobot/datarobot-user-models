@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 # Use this helper class to access the runtime parameter values in your model
 from datarobot_drum import RuntimeParameters
 

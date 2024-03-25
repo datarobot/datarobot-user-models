@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import logging
 import os
 import sys
@@ -427,9 +428,9 @@ class PythonModelAdapter(AbstractModelAdapter):
 
     def model_info(self):
         return {
-            ModelInfoKeys.PREDICTOR: None
-            if self._predictor_to_use is None
-            else self._predictor_to_use.name,
+            ModelInfoKeys.PREDICTOR: (
+                None if self._predictor_to_use is None else self._predictor_to_use.name
+            ),
         }
 
     def load_data(self, binary_data, mimetype, try_hook=True, sparse_colnames=None):
