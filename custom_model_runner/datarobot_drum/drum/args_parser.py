@@ -686,7 +686,7 @@ class CMRunnerArgsRegistry(object):
             server_group = parser.add_mutually_exclusive_group(required=False)
             server_group.add_argument(
                 ArgumentsOptions.WITH_NEMO_SERVER,
-                type=str,
+                action="store_true",
                 required=False,
                 default=False,
                 help="Use NVIDIA Nemo Inference Microservices to serve models. "
@@ -694,7 +694,7 @@ class CMRunnerArgsRegistry(object):
             )
             server_group.add_argument(
                 ArgumentsOptions.WITH_TRITON_SERVER,
-                type=str,
+                action="store_true",
                 required=False,
                 default=False,
                 help="Use NVIDIA Triton Inference Server to serve models. "
