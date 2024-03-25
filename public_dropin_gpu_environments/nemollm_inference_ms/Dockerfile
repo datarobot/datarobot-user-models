@@ -72,6 +72,7 @@ RUN apt-get update && apt-get install -y \
   && rm -rf /var/lib/apt/lists/*
 
 USER 1000
+ENV MODEL_STORE_PATH=/model-store
 ENV DATAROBOT_VENV_PATH=/home/nemo/dr
 ENV PIP_NO_CACHE_DIR=1
 ENV PATH=${BASE_PATH}
