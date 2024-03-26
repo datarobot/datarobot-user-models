@@ -41,15 +41,14 @@ class NemoPredictor(BaseLanguagePredictor):
     def __init__(self):
         super(NemoPredictor, self).__init__()
         self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
-        # expected to be set for text generation type
-        self.prompt_field = os.environ.get("TARGET_NAME")
-        if not self.prompt_field:
-            raise ValueError("Unexpected empty target name for text generation!")
+
+        # chat input fields
+        self.system_prompt_value = self.get_optional_parameter("system_prompt")
+        self.user_prompt_column = self.get_optional_parameter("prompt_column_name", "promptText")
+        self.assistant_response_column = self.get_optional_parameter("assistant_column_name", "assistant")
 
         # completions configuration can be changed with Runtime parameters
         self.startup_timeout_sec = self.get_optional_parameter("startup_timeout_sec", 60)
-        self.system_prompt = self.get_optional_parameter("system_prompt")
-        self.assistant_field = self.get_optional_parameter("assistant_field", "assistant")
         self.max_tokens = self.get_optional_parameter("max_tokens", 512)
         self.use_chat_context = self.get_optional_parameter("chat_context", False)
         self.num_choices_per_completion = self.get_optional_parameter("n", 1)
@@ -104,11 +103,11 @@ class NemoPredictor(BaseLanguagePredictor):
 
         user_prompt = lambda row: {
             "role": ChatRoles.USER,
-            "content": self._get(row, self.prompt_field),
+            "content": self._get(row, self.user_prompt_column),
         }
         assistant_prompt = lambda row: {
             "role": ChatRoles.ASSISTANT,
-            "content": self._get(row, self.assistant_field),
+            "content": self._get(row, self.assistant_response_column),
         }
 
         # all rows are sent in a single completion request, to preserve a chat context
@@ -142,15 +141,15 @@ class NemoPredictor(BaseLanguagePredictor):
         try:
             return row[column_name]
         except KeyError:
-            expected_column_names = [self.prompt_field]
+            expected_column_names = [self.user_prompt_column]
             if self.use_chat_context:
-                expected_column_names.append(self.assistant_field)
+                expected_column_names.append(self.assistant_response_column)
             raise DrumCommonException(f"Model expects column names '{expected_column_names}'")
 
     def _create_completions(self, messages, row_id=0):
-        if self.system_prompt:
+        if self.system_prompt_value:
             # only the first chat message can have the system role
-            messages.insert(0, {"role": ChatRoles.SYSTEM, "content": self.system_prompt})
+            messages.insert(0, {"role": ChatRoles.SYSTEM, "content": self.system_prompt_value})
 
         try:
             completions = self.nim_client.chat.completions.create(
