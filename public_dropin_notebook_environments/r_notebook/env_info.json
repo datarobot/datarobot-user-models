@@ -3,7 +3,7 @@
   "name": "[DataRobot] R Notebook Drop-In",
   "description": "This template environment can be used to create R notebook environments.",
   "programmingLanguage": "r",
-  "environmentVersionId": "660318c4f44edd362be44e00",
+  "environmentVersionId": "65df264ab22e5e37c184f486",
   "isPublic": true,
   "useCases": [
     "notebook"
