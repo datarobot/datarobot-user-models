@@ -4,28 +4,27 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import atexit
 import csv
 import io
+import json
 import logging
 import os
 import signal
 import subprocess
-import atexit
+from threading import Thread
 
 import numpy as np
+import openai
 from openai import OpenAI
-from threading import Thread
+
 from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
 from datarobot_drum.drum.common import SupportedPayloadFormats
-from datarobot_drum.drum.enum import (
-    LOGGER_NAME_PREFIX,
-    PayloadFormat,
-    StructuredDtoKeys,
-)
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, PayloadFormat, StructuredDtoKeys
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
-from datarobot_drum.resource.drum_server_utils import wait_for_server, DrumServerProcess
+from datarobot_drum.resource.drum_server_utils import DrumServerProcess, wait_for_server
 
 RUNNING_LANG_MSG = "Running environment: NeMo Inferencing Microservice."
 DEFAULT_MODEL_NAME = "generic_llm"
@@ -45,7 +44,9 @@ class NemoPredictor(BaseLanguagePredictor):
         # chat input fields
         self.system_prompt_value = self.get_optional_parameter("system_prompt")
         self.user_prompt_column = self.get_optional_parameter("prompt_column_name", "promptText")
-        self.assistant_response_column = self.get_optional_parameter("assistant_column_name", "assistant")
+        self.assistant_response_column = self.get_optional_parameter(
+            "assistant_column_name", "assistant"
+        )
 
         # completions configuration can be changed with Runtime parameters
         self.startup_timeout_sec = self.get_optional_parameter("startup_timeout_sec", 60)
