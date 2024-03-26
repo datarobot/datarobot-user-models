@@ -10,7 +10,7 @@ For specific version information, see [requirements](requirements.txt).
 ## Instructions
 
 1. Update [requirements](requirements.txt) to add your custom libraries supported by Python 3.9.
-2. From the terminal, run `tar -czvf py39_notebook_dropin.tar.gz -C /path/to/public_dropin_notebook_environments/python39_notebook/ .`
+2. From the terminal, run `tar -czvf py39_notebook_dropin.tar.gz -C /path/to/public_dropin_notebook_environments/python39_notebook_gpu_rapids/ .`
 3. Using either the API or from the UI create a new Custom Environment with the tarball created in step 2.
 
 ### Using this environment in notebooks
