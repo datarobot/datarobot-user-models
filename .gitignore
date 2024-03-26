@@ -131,3 +131,6 @@ tests/functional/custom_java_predictor/**/*.jar
 # misc
 .metals
 .vscode
+
+# used to download large LLM models, library is not published yet
+!datarobot_custom_code-0.0.1-py3-none-any.whl
