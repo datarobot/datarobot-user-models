@@ -47,7 +47,7 @@ class NemoPredictor(BaseLanguagePredictor):
             raise ValueError("Unexpected empty target name for text generation!")
 
         # completions configuration can be changed with Runtime parameters
-        self.startup_timeout_sec = self.get_optional_parameter("startup_timeout_sec", 30)
+        self.startup_timeout_sec = self.get_optional_parameter("startup_timeout_sec", 60)
         self.system_prompt = self.get_optional_parameter("system_prompt")
         self.assistant_field = self.get_optional_parameter("assistant_field", "assistant")
         self.max_tokens = self.get_optional_parameter("max_tokens", 512)
@@ -117,7 +117,7 @@ class NemoPredictor(BaseLanguagePredictor):
                 prompt(row)
                 for row in reader
                 #  in chat mode user prompts must alternate with assistant prompts
-                for prompt in {user_prompt, assistant_prompt}
+                for prompt in [user_prompt, assistant_prompt]
                 # skip empty values
                 if prompt(row)["content"]
             ]
@@ -152,13 +152,17 @@ class NemoPredictor(BaseLanguagePredictor):
             # only the first chat message can have the system role
             messages.insert(0, {"role": ChatRoles.SYSTEM, "content": self.system_prompt})
 
-        completions = self.nim_client.chat.completions.create(
-            model=self.model_name,
-            messages=messages,
-            n=self.num_choices_per_completion,
-            temperature=self.temperature,
-            max_tokens=self.max_tokens,
-        )
+        try:
+            completions = self.nim_client.chat.completions.create(
+                model=self.model_name,
+                messages=messages,
+                n=self.num_choices_per_completion,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+            )
+        except openai.BadRequestError:
+            self.logger.error("Payload: %s", json.dumps(messages), exc_info=True)
+            raise DrumCommonException("Bad payload")
 
         completion_choices = [
             # [row_id, choice_id, choice.message.content]
@@ -179,7 +183,7 @@ class NemoPredictor(BaseLanguagePredictor):
         cmd = [
             "nemollm_inference_ms",
             "--model",
-            DEFAULT_MODEL_NAME,
+            self.model_name,
             "--health_port",
             self.health_port,
             "--openai_port",
