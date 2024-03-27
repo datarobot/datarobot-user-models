@@ -31,12 +31,19 @@ logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 mlops_loaded = False
 mlops_import_error = None
+MLOps = None
 try:
-    from datarobot.mlops.mlops import MLOps
+    from datarobot_mlops.mlops import MLOps
 
     mlops_loaded = True
 except ImportError as e:
-    mlops_import_error = "Error importing MLOps python module: {}".format(e)
+    mlops_import_error = "Error importing MLOps python module(new path): {}".format(e)
+    try:
+        from datarobot.mlops.mlops import MLOps
+
+        mlops_loaded = True
+    except ImportError as e:
+        mlops_import_error += "\n\tError importing MLOps python module(old path): {}".format(e)
 
 
 @dataclass

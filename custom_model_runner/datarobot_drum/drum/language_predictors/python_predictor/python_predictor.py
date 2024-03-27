@@ -24,12 +24,8 @@ from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
     RawPredictResponse,
 )
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
-from datarobot_drum.drum.language_predictors.base_language_predictor import mlops_loaded
+from datarobot_drum.drum.language_predictors.base_language_predictor import MLOps
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumSerializationError
-
-if mlops_loaded:
-    # Try only if it was already loaded.
-    from datarobot.mlops.mlops import MLOps
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
