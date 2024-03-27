@@ -54,10 +54,9 @@ class TestMLOpsMonitoring:
             yield
 
         mlops_path = Path(sys.modules[MLOps.__module__].__file__).parent.absolute()
-        tmp_mlops_filepath = str(mlops_path) + ".tmp"
-        tmp_mlops_filepath = mlops_path.rename(tmp_mlops_filepath)
+        tmp_mlops_filepath = mlops_path.rename(str(mlops_path) + ".tmp")
         yield
-        tmp_mlops_filepath.rename(mlops_filepath)
+        tmp_mlops_filepath.rename(mlops_path)
 
     @contextlib.contextmanager
     def local_webserver_stub(self, expected_pred_requests_queries=0):
