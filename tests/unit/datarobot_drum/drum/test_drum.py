@@ -359,6 +359,7 @@ class TestCMRunnerServer:
             "allow_dr_api_access": "False",
             "user_secrets_mount_path": None,
             "user_secrets_prefix": None,
+            "with_nemo_server": False,
             "with_triton_server": False,
             "triton_host": "http://localhost",
             "triton_http_port": 8000,

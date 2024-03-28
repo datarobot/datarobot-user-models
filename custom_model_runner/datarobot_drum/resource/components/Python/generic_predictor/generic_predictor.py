@@ -26,6 +26,7 @@ class GenericPredictorComponent(ConnectableComponent):
         super(GenericPredictorComponent, self).__init__(engine)
         self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
         self._run_language = None
+        self._with_nemo_server = False
         self._with_triton_server = False
         self._predictor = None
         self.cli_adapter: Optional[DrumScoreAdapter] = None
@@ -34,6 +35,7 @@ class GenericPredictorComponent(ConnectableComponent):
         super(GenericPredictorComponent, self).configure(params)
         self._run_language = RunLanguage(params.get("run_language"))
         self._with_triton_server = params.get("with_triton_server")
+        self._with_nemo_server = params.get("with_nemo_server")
 
         # Input filename is available at configuration time, so include it in the CLI adapter here.
         self.cli_adapter = DrumScoreAdapter(
@@ -70,12 +72,18 @@ class GenericPredictorComponent(ConnectableComponent):
             from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
 
             self._predictor = RPredictor()
-        elif self._run_language == RunLanguage.OTHER and self._with_triton_server:
-            from datarobot_drum.drum.language_predictors.triton_predictor.triton_predictor import (
+        elif self._with_triton_server and self.cli_adapter.target_type == TargetType.UNSTRUCTURED:
+            from datarobot_drum.drum.gpu_predictors.triton_predictor import (
                 TritonPredictor,
             )
 
             self._predictor = TritonPredictor()
+        elif self._with_nemo_server and self.cli_adapter.target_type == TargetType.TEXT_GENERATION:
+            from datarobot_drum.drum.gpu_predictors.nemo_predictor import (
+                NemoPredictor,
+            )
+
+            self._predictor = NemoPredictor()
         else:
             raise DrumCommonException(
                 "Prediction server doesn't support language: {} ".format(self._run_language)

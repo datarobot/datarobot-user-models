@@ -302,8 +302,9 @@ class CMRunner:
         if lang:
             return RunLanguage(self.options.language)
 
+        with_nemo_server = getattr(self.options, "with_nemo_server", None)
         with_triton_server = getattr(self.options, "with_triton_server", None)
-        if with_triton_server:
+        if with_nemo_server or with_triton_server:
             return RunLanguage.OTHER
 
         code_dir_abspath = os.path.abspath(self.options.code_dir)
@@ -734,6 +735,7 @@ class CMRunner:
             "deployment_id": options.deployment_id,
             "monitor_settings": options.monitor_settings,
             "external_webserver_url": options.webserver,
+            "with_nemo_server": options.with_nemo_server,
             "with_triton_server": options.with_triton_server,
             "triton_host": options.triton_host,
             "triton_http_port": options.triton_http_port,
