@@ -8,7 +8,7 @@
 echo "Starting Custom Model environment with NIM"
 set -e
 
-GPU_COUNT=$(nvidia-smi -L | wc -l)
+export GPU_COUNT=$(nvidia-smi -L | wc -l)
 echo "GPU count: $GPU_COUNT"
 
 if [ "$GPU_COUNT" -eq 0 ]; then
@@ -32,4 +32,4 @@ echo
 echo "Starting DRUM server..."
 echo
 source /home/nemo/dr/bin/activate
-exec drum server --with-nemo-server "$@"
+exec drum server --with-nemo-server --logging-level=info "$@"
