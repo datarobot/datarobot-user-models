@@ -135,10 +135,10 @@ class PythonModelAdapter(AbstractModelAdapter):
             ):
                 self._guard_pipeline = self._guard_moderation_hooks[GUARD_INIT_HOOK_NAME]()
             else:
-                self._logger.info("No guards defined")
+                self._logger.debug("No guards defined")
 
         except ImportError as e:
-            self._logger.error("Could not load guard hooks: {}".format(e))
+            self._logger.debug("Could not load guard hooks: {}".format(e))
             # Just log that no guard info present
 
     def _log_and_raise_final_error(self, exc: Exception, message: str) -> NoReturn:
