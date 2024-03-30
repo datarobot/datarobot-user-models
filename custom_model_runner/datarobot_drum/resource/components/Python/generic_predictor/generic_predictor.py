@@ -10,7 +10,7 @@ from typing import Optional
 
 import werkzeug
 from datarobot_drum.drum.adapters.cli.drum_score_adapter import DrumScoreAdapter
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, GPU_PREDICTORS
 from datarobot_drum.drum.enum import TARGET_TYPE_ARG_KEYWORD
 from datarobot_drum.drum.enum import RunLanguage
 from datarobot_drum.drum.enum import TargetType
@@ -26,16 +26,14 @@ class GenericPredictorComponent(ConnectableComponent):
         super(GenericPredictorComponent, self).__init__(engine)
         self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
         self._run_language = None
-        self._with_nemo_server = False
-        self._with_triton_server = False
+        self._gpu_predictor_type = None
         self._predictor = None
         self.cli_adapter: Optional[DrumScoreAdapter] = None
 
     def configure(self, params):
         super(GenericPredictorComponent, self).configure(params)
         self._run_language = RunLanguage(params.get("run_language"))
-        self._with_triton_server = params.get("with_triton_server")
-        self._with_nemo_server = params.get("with_nemo_server")
+        self._gpu_predictor_type = params.get("gpu_predictor")
 
         # Input filename is available at configuration time, so include it in the CLI adapter here.
         self.cli_adapter = DrumScoreAdapter(
@@ -72,13 +70,13 @@ class GenericPredictorComponent(ConnectableComponent):
             from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
 
             self._predictor = RPredictor()
-        elif self._with_triton_server and self.cli_adapter.target_type == TargetType.UNSTRUCTURED:
+        elif self._gpu_predictor_type and self._gpu_predictor_type == GPU_PREDICTORS.TRITON:
             from datarobot_drum.drum.gpu_predictors.triton_predictor import (
                 TritonPredictor,
             )
 
             self._predictor = TritonPredictor()
-        elif self._with_nemo_server and self.cli_adapter.target_type == TargetType.TEXT_GENERATION:
+        elif self._gpu_predictor_type and self._gpu_predictor_type == GPU_PREDICTORS.NEMO:
             from datarobot_drum.drum.gpu_predictors.nemo_predictor import (
                 NemoPredictor,
             )

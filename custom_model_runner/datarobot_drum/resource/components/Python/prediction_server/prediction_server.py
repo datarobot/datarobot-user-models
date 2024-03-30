@@ -19,7 +19,7 @@ from datarobot_drum.drum.enum import (
     ModelInfoKeys,
     RunLanguage,
     TargetType,
-    FLASK_EXT_FILE_NAME,
+    FLASK_EXT_FILE_NAME, GPU_PREDICTORS,
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -48,8 +48,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         self._stats_collector = None
         self._resource_monitor = None
         self._run_language = None
-        self._with_triton_server = False
-        self._with_nemo_server = False
+        self._gpu_predictor_type = None
         self._predictor = None
         self._target_type = None
         self._code_dir = None
@@ -61,8 +60,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         self._code_dir = self._params.get("__custom_model_path__")
         self._show_perf = self._params.get("show_perf")
         self._run_language = RunLanguage(params.get("run_language"))
-        self._with_triton_server = self._params.get("with_triton_server")
-        self._with_nemo_server = self._params.get("with_nemo_server")
+        self._gpu_predictor_type = self._params.get("gpu_predictor")
         self._target_type = TargetType(params[TARGET_TYPE_ARG_KEYWORD])
         self._stats_collector = StatsCollector(disable_instance=not self._show_perf)
 
@@ -98,13 +96,13 @@ class PredictionServer(ConnectableComponent, PredictMixin):
             from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
 
             self._predictor = RPredictor()
-        elif self._with_triton_server and self._target_type == TargetType.UNSTRUCTURED:
+        elif self._gpu_predictor_type and self._gpu_predictor_type == GPU_PREDICTORS.TRITON:
             from datarobot_drum.drum.gpu_predictors.triton_predictor import (
                 TritonPredictor,
             )
 
             self._predictor = TritonPredictor()
-        elif self._with_nemo_server and self._target_type == TargetType.TEXT_GENERATION:
+        elif self._gpu_predictor_type and self._gpu_predictor_type == GPU_PREDICTORS.NEMO:
             from datarobot_drum.drum.gpu_predictors.nemo_predictor import (
                 NemoPredictor,
             )

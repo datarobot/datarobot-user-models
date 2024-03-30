@@ -18,6 +18,7 @@ from datarobot_drum.drum.enum import (
     ArgumentsOptions,
     RunLanguage,
     TargetType,
+    GPU_PREDICTORS,
 )
 from datarobot_drum.drum.push import PUSH_HELP_TEXT
 
@@ -683,24 +684,13 @@ class CMRunnerArgsRegistry(object):
     @staticmethod
     def _reg_arg_triton_server_access(*parsers):
         for parser in parsers:
-            server_group = parser.add_mutually_exclusive_group(required=False)
-            server_group.add_argument(
-                ArgumentsOptions.WITH_NEMO_SERVER,
-                action="store_true",
+            parser.add_argument(
+                ArgumentsOptions.GPU_PREDICTOR,
+                choices=GPU_PREDICTORS.ALL,
                 required=False,
-                default=False,
-                help="Use NVIDIA Nemo Inference Microservices to serve models. "
-                "Argument is mutually exclusive with {}".format(
-                    ArgumentsOptions.WITH_TRITON_SERVER
-                ),
-            )
-            server_group.add_argument(
-                ArgumentsOptions.WITH_TRITON_SERVER,
-                action="store_true",
-                required=False,
-                default=False,
-                help="Use NVIDIA Triton Inference Server to serve models. "
-                "Argument is mutually exclusive with {}".format(ArgumentsOptions.WITH_NEMO_SERVER),
+                help="Choose the GPU predictor to serve models. Options: {}".format(
+                    GPU_PREDICTORS.ALL
+                )
             )
             parser.add_argument(
                 ArgumentsOptions.TRITON_HOST,
