@@ -15,6 +15,10 @@ ENV CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
 WORKDIR ${CODE_DIR}
 COPY ./*.sh ${CODE_DIR}/
 
+# Triton model configuration parser generated from the protocol buffer scheme
+COPY model_config/ ./model_config/
+ENV PYTHONPATH=$PYTHONPATH:${CODE_DIR}/model_config/
+
 ENV WITH_ERROR_SERVER=1
 
 ENTRYPOINT ["/opt/code/start_server.sh"]
