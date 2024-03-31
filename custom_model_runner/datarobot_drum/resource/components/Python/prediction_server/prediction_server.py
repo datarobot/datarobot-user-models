@@ -19,7 +19,8 @@ from datarobot_drum.drum.enum import (
     ModelInfoKeys,
     RunLanguage,
     TargetType,
-    FLASK_EXT_FILE_NAME, GPU_PREDICTORS,
+    FLASK_EXT_FILE_NAME,
+    GPU_PREDICTORS,
 )
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException

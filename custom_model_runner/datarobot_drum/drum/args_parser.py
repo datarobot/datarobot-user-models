@@ -690,7 +690,7 @@ class CMRunnerArgsRegistry(object):
                 required=False,
                 help="Choose the GPU predictor to serve models. Options: {}".format(
                     GPU_PREDICTORS.ALL
-                )
+                ),
             )
             parser.add_argument(
                 ArgumentsOptions.TRITON_HOST,
