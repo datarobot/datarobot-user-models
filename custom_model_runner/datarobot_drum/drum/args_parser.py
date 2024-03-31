@@ -18,6 +18,7 @@ from datarobot_drum.drum.enum import (
     ArgumentsOptions,
     RunLanguage,
     TargetType,
+    GPU_PREDICTORS,
 )
 from datarobot_drum.drum.push import PUSH_HELP_TEXT
 
@@ -684,9 +685,12 @@ class CMRunnerArgsRegistry(object):
     def _reg_arg_triton_server_access(*parsers):
         for parser in parsers:
             parser.add_argument(
-                ArgumentsOptions.WITH_TRITON_SERVER,
-                default=False,
-                help="Use NVIDIA Triton Inference Server to serve models",
+                ArgumentsOptions.GPU_PREDICTOR,
+                choices=GPU_PREDICTORS.ALL,
+                required=False,
+                help="Choose the GPU predictor to serve models. Options: {}".format(
+                    GPU_PREDICTORS.ALL
+                ),
             )
             parser.add_argument(
                 ArgumentsOptions.TRITON_HOST,

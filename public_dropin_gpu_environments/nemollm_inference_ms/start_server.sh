@@ -8,7 +8,7 @@
 echo "Starting Custom Model environment with NIM"
 set -e
 
-GPU_COUNT=$(nvidia-smi -L | wc -l)
+export GPU_COUNT=$(nvidia-smi -L | wc -l)
 echo "GPU count: $GPU_COUNT"
 
 if [ "$GPU_COUNT" -eq 0 ]; then
@@ -29,24 +29,7 @@ fi
 
 
 echo
-echo "Starting NeMo Inference Microservice..."
-echo
-export NEMO_PORT=9998
-export OPENAI_PORT=9999
-export HEALTH_PORT=8081
-export MODEL_NAME=generic-llm
-export MODEL_DIR="${CODE_DIR}/model-store/"
-
-nohup nemollm_inference_ms --model $MODEL_NAME \
-    --log_level=info \
-    --health_port=$HEALTH_PORT \
-    --openai_port=$OPENAI_PORT \
-    --nemo_port=$NEMO_PORT \
-    --num_gpus=$GPU_COUNT &
-
-
-echo
 echo "Starting DRUM server..."
 echo
 source /home/nemo/dr/bin/activate
-exec drum server --with-nemo-server "$@"
+exec drum server --gpu-predictor=nemo --logging-level=info "$@"

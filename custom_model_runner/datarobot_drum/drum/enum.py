@@ -80,6 +80,13 @@ LOG_LEVELS = {
 }
 
 
+class GPU_PREDICTORS:
+    TRITON = "triton"
+    NEMO = "nemo"
+    VLLM = "vllm"
+    ALL = [TRITON, NEMO, VLLM]
+
+
 class SupportedFrameworks:
     SKLEARN = "scikit-learn"
     TORCH = "torch"
@@ -249,7 +256,7 @@ class ArgumentsOptions:
     MONITOR_SETTINGS = "--monitor-settings"
     DR_WEBSERVER = "--webserver"
     DR_API_TOKEN = "--api-token"
-    WITH_TRITON_SERVER = "--with-triton-server"
+    GPU_PREDICTOR = "--gpu-predictor"
     TRITON_HOST = "--triton-host"
     TRITON_HTTP_PORT = "--triton-http-port"
     TRITON_GRPC_PORT = "--triton-grpc-port"
