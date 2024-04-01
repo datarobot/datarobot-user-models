@@ -13,6 +13,7 @@ In this repository, we provide several example environments that you can use and
 * [Python 3.8 + Snowflake Notebook Environment](python38_snowflake_notebook)
 * [Python 3.9 Notebook Environment for GPU](python39_notebook_gpu)
 * [Python 3.9 Notebook Environment for GPU with Tensorflow](python39_notebook_gpu_tf)
+* [Python 3.9 Notebook Environment for GPU with Rapids](python39_notebook_gpu_rapids)
 * [R Notebook Environment](r_notebook)
 
 These sample environments each define the libraries available in the environment 
