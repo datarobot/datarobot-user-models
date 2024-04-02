@@ -27,8 +27,6 @@
 /custom_model_runner/datarobot_drum/resource/default_typeschema   @datarobot/core-modeling
 /public_custom_application_environments                           @datarobot/custom-models @datarobot/applications
 /public_dropin_environments/java_codegen                          @datarobot/custom-models
-/public_dropin_environments/python311_genai                       @datarobot/custom-models @datarobot/buzok
-/public_dropin_environments/python39_genai                        @datarobot/custom-models @datarobot/buzok
 /public_dropin_environments/python3_keras                         @datarobot/custom-models @datarobot/core-modeling
 /public_dropin_environments/python3_onnx                          @datarobot/custom-models
 /public_dropin_environments/python3_pmml                          @datarobot/custom-models @datarobot/core-modeling
