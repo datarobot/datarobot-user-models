@@ -120,7 +120,7 @@ class TritonPredictor(BaseLanguagePredictor):
             if inference_header_size:
                 headers.update({INFERENCE_HEADER: str(inference_header_size)})
 
-        self.logger.info(headers)
+        self.logger.debug(headers)
         model_name = self.model_config.name
         resp = requests.post(
             f"{self.triton_host}:{self.triton_http_port}/v2/models/{model_name}/infer",
