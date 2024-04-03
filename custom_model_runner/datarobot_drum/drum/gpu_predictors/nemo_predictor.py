@@ -28,7 +28,7 @@ from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
 from datarobot_drum.drum.common import SupportedPayloadFormats
 from datarobot_drum.drum.enum import (
     CUSTOM_FILE_NAME,
-    DOT_REMOTE,
+    REMOTE_ARTIFACT_FILE_EXT,
     LOGGER_NAME_PREFIX,
     CustomHooks,
     PayloadFormat,
@@ -87,7 +87,9 @@ class NemoPredictor(BaseLanguagePredictor):
         if custom_py_paths:
             self._load_model_with_custom_hooks(params)
         elif dot_remote_paths:
-            self._load_model_remote_artifact()
+            raise DrumCommonException(
+                "The '.remote' artifacts are not supported by the current version of DataRobot User models"
+            )
 
         # start Nemo server and check health it's health
         self.nemo_process = DrumServerProcess()
@@ -117,33 +119,18 @@ class NemoPredictor(BaseLanguagePredictor):
         code_dir_abspath = os.path.abspath(self._code_dir)
 
         custom_py_paths = list(Path(code_dir_abspath).rglob("{}.py".format(CUSTOM_FILE_NAME)))
-        dot_remote_paths = list(Path(code_dir_abspath).rglob(DOT_REMOTE))
+        remote_artifact_paths = list(Path(code_dir_abspath).rglob(REMOTE_ARTIFACT_FILE_EXT))
 
-        if len(custom_py_paths) + len(dot_remote_paths) > 1:
+        if len(custom_py_paths) + len(remote_artifact_paths) > 1:
             error_mes = (
                 "Multiple custom.py/.remote files were identified in the code directories sub directories.\n"
                 "The following custom model files were found:\n"
             )
-            error_mes += "\n".join([str(path) for path in (custom_py_paths + dot_remote_paths)])
+            error_mes += "\n".join([str(path) for path in (custom_py_paths + remote_artifact_paths)])
             self.logger.error(error_mes)
             raise DrumCommonException(error_mes)
 
-        return custom_py_paths, dot_remote_paths
-
-    def _load_model_remote_artifact(self):
-        from datarobot_custom_code.model_artifact_downloader import ModelDownloader
-
-        deployment_id = os.environ["MLOPS_DEPLOYMENT_ID"]
-        md = ModelDownloader(
-            deployment_id=deployment_id,
-            code_dir=self._code_dir,
-            chunk_size=1024 * 1024 * 10,
-            nr_processes=1,
-        )
-
-        self.logger.info("Downloading remote files")
-        download_info = md.download_remote_files()
-        self.logger.info(md.prepare_download_summary(download_info))
+        return custom_py_paths, remote_artifact_paths
 
     def _load_model_with_custom_hooks(self, params):
         try:

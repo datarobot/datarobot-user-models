@@ -17,7 +17,7 @@ LOGGER_NAME_PREFIX = "drum"
 
 PRED_COLUMN = "Predictions"
 
-DOT_REMOTE = ".remote"
+REMOTE_ARTIFACT_FILE_EXT = ".remote"
 
 CUSTOM_FILE_NAME = "custom"
 
