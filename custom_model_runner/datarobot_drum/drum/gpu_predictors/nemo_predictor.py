@@ -126,7 +126,9 @@ class NemoPredictor(BaseLanguagePredictor):
                 "Multiple custom.py/.remote files were identified in the code directories sub directories.\n"
                 "The following custom model files were found:\n"
             )
-            error_mes += "\n".join([str(path) for path in (custom_py_paths + remote_artifact_paths)])
+            error_mes += "\n".join(
+                [str(path) for path in (custom_py_paths + remote_artifact_paths)]
+            )
             self.logger.error(error_mes)
             raise DrumCommonException(error_mes)
 
