@@ -4,6 +4,8 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import io
+import json
 import logging
 
 import requests
@@ -23,7 +25,7 @@ from google.protobuf import text_format
 from triton.model_config_pb2 import ModelConfig
 
 RUNNING_LANG_MSG = "Running environment: Triton Inference Server."
-
+INFERENCE_HEADER = "Inference-Header-Content-Length"
 
 class TritonPredictor(BaseLanguagePredictor):
     def __init__(self):
@@ -95,8 +97,29 @@ class TritonPredictor(BaseLanguagePredictor):
     def _predict(self, **kwargs) -> RawPredictResponse:
         raise DrumCommonException("Predict structured is not supported")
 
+    def _get_inference_header_size(self, data):
+        try:
+            first_line = io.BytesIO(data).readline()
+            json.loads(first_line)  # read first line to check it's a valid json string
+            return len(first_line)
+        except Exception:
+            self.logger.warning("Can't calculate the inference header size", exc_info=True)
+            # perhaps inference header is not set into payload and request
+            # to Triton still may succeed
+            return  # do nothing
+
     def predict_unstructured(self, data, **kwargs):
-        headers = kwargs.get(UnstructuredDtoKeys.HEADERS)
+        headers = kwargs.get(UnstructuredDtoKeys.HEADERS, {})
+
+        # Predictions API does not forward the headers,
+        # while Triton expects to get inference header for the Binary Tensor request. See
+        # https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/protocol/extension_binary_data.html
+        if INFERENCE_HEADER.lower() not in set(k.lower() for k in headers):
+            inference_header_size = self._get_inference_header_size(data)
+            if inference_header_size:
+                headers.update({INFERENCE_HEADER: str(inference_header_size)})
+
+        self.logger.info(headers)
         model_name = self.model_config.name
         resp = requests.post(
             f"{self.triton_host}:{self.triton_http_port}/v2/models/{model_name}/infer",

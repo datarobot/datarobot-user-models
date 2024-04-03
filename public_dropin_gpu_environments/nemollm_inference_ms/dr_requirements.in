@@ -1,4 +1,8 @@
+psutil
+boto3
 openai
 awscli
+datarobot
 datarobot-mlops
+datarobot-mlops-connected-client
 datarobot-drum
