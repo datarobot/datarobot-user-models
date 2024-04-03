@@ -27,6 +27,7 @@ from triton.model_config_pb2 import ModelConfig
 RUNNING_LANG_MSG = "Running environment: Triton Inference Server."
 INFERENCE_HEADER = "Inference-Header-Content-Length"
 
+
 class TritonPredictor(BaseLanguagePredictor):
     def __init__(self):
         super(TritonPredictor, self).__init__()
