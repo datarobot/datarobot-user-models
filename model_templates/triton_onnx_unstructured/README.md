@@ -31,10 +31,17 @@
 This document describes how to deploy a simple ResNet model with DataRobot custom models into
 Triton Inference Server environment.
 
-## Step 1: Set up a new Custom Model version 
+## Step 1: Feature flags (Public Preview feature)
 
-Create a new Custom Model and select the `[NVIDIA] Triton Inference Server` Drop-In Environment.
-Upload the `model_repository` directory into a new custom model version. The expected model structure is:
+To use the Triton Inference Server drop-in environment, turn on the feature flags:
+- `ENABLE_CUSTOM_MODEL_GPU_INFERENCE`
+- `ENABLE_MLOPS_RESOURCE_REQUEST_BUNDLES`
+
+## Step 2: Set up a new Custom Model version 
+
+- Create a new Custom Model with the Target Type `unstructured`. 
+- Select the `[NVIDIA] Triton Inference Server` Environment.
+- Upload the whole `model_repository` directory into the custom model. The expected model structure is:
 ```
 model_repository
 |
@@ -46,4 +53,21 @@ model_repository
         +-- model.onnx
 ```
 
-## Step 2: Create a new Deployment
+## Step 3: Set up the Resource Bundle for a Custom Model version
+ 
+The `densenet_onnx` model runs on GPU and CPU-only instances. The minimal Resource Bundle configuration is:
+- for CPU instance is M (1CPU, 1GB RAM)
+- for GPU instance is GPU-S
+
+Now, model is ready for deployment. Press `Register model` and then `Deploy`
+
+
+## Step 4: Run predictions
+
+Prepare client's code
+```
+cd model_templates/triton_onnx_unstructured/client
+pip install -r requirements.txt
+
+wget  -O img1.jpg "https://www.hakaimagazine.com/wp-content/uploads/header-gulf-birds.jpg"
+```

@@ -1,0 +1,2 @@
+# A placeholder to prevent Custom Model version to delete the top-level `model_repository` directory.
+# It's important to preserve the directory structure expected by Triton Inference Server.
