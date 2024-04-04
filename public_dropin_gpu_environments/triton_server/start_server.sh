@@ -21,7 +21,7 @@ fi
 echo
 echo "Executing command: tritonserver --model-repository=${CODE_DIR}"
 echo
-nohup tritonserver --model-repository=${MODEL_DIR} &
+nohup tritonserver --model-repository=${CODE_DIR}/model_repository &
 
 echo
 echo "Executing command: drum server $*"

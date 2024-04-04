@@ -12,6 +12,8 @@ import logging
 import os
 import signal
 import subprocess
+import sys
+from pathlib import Path
 from threading import Thread
 
 import numpy as np
@@ -19,9 +21,19 @@ import openai
 from openai import OpenAI
 
 from datarobot_drum import RuntimeParameters
-from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
+    PythonModelAdapter,
+    RawPredictResponse,
+)
 from datarobot_drum.drum.common import SupportedPayloadFormats
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, PayloadFormat, StructuredDtoKeys
+from datarobot_drum.drum.enum import (
+    CUSTOM_FILE_NAME,
+    REMOTE_ARTIFACT_FILE_EXT,
+    LOGGER_NAME_PREFIX,
+    CustomHooks,
+    PayloadFormat,
+    StructuredDtoKeys,
+)
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.resource.drum_server_utils import DrumServerProcess, wait_for_server
@@ -70,6 +82,15 @@ class NemoPredictor(BaseLanguagePredictor):
     def mlpiper_configure(self, params):
         super(NemoPredictor, self).mlpiper_configure(params)
 
+        # download model artifacts with a "load_model" hook or ".remote" artifact
+        custom_py_paths, dot_remote_paths = self._get_custom_artifacts()
+        if custom_py_paths:
+            self._load_model_with_custom_hooks(params)
+        elif dot_remote_paths:
+            raise DrumCommonException(
+                "The '.remote' artifacts are not supported by the current version of DataRobot User models"
+            )
+
         # start Nemo server and check health it's health
         self.nemo_process = DrumServerProcess()
         self.nemo_thread = Thread(target=self._run_nemo_server, args=(self.nemo_process,))
@@ -93,6 +114,41 @@ class NemoPredictor(BaseLanguagePredictor):
 
     def has_read_input_data_hook(self):
         return False
+
+    def _get_custom_artifacts(self):
+        code_dir_abspath = os.path.abspath(self._code_dir)
+
+        custom_py_paths = list(Path(code_dir_abspath).rglob("{}.py".format(CUSTOM_FILE_NAME)))
+        remote_artifact_paths = list(Path(code_dir_abspath).rglob(REMOTE_ARTIFACT_FILE_EXT))
+
+        if len(custom_py_paths) + len(remote_artifact_paths) > 1:
+            error_mes = (
+                "Multiple custom.py/.remote files were identified in the code directories sub directories.\n"
+                "The following custom model files were found:\n"
+            )
+            error_mes += "\n".join(
+                [str(path) for path in (custom_py_paths + remote_artifact_paths)]
+            )
+            self.logger.error(error_mes)
+            raise DrumCommonException(error_mes)
+
+        return custom_py_paths, remote_artifact_paths
+
+    def _load_model_with_custom_hooks(self, params):
+        try:
+            model_adapter = PythonModelAdapter(
+                model_dir=self._code_dir, target_type=self.target_type
+            )
+            sys.path.append(self._code_dir)
+            model_adapter.load_custom_hooks()
+            # disable the check of scoring hook existence
+            model_adapter._custom_hooks[CustomHooks.SCORE] = True
+            model_adapter.load_model_from_artifact(
+                user_secrets_mount_path=params.get("user_secrets_mount_path"),
+                user_secrets_prefix=params.get("user_secrets_prefix"),
+            )
+        except Exception as e:
+            raise DrumCommonException(f"An error occurred when loading your artifact: {str(e)}")
 
     def _predict(self, **kwargs) -> RawPredictResponse:
         data = kwargs.get(StructuredDtoKeys.BINARY_DATA)

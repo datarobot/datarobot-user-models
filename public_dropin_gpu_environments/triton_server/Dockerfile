@@ -1,5 +1,5 @@
 # This is the default base image for use with user models and workflows.
-FROM nvcr.io/nvidia/tritonserver:24.02-py3
+FROM nvcr.io/nvidia/tritonserver:24.01-py3
 
 # Install the list of core requirements, e.g. sklearn, numpy, pandas, flask.
 # **Don't modify this file!**
@@ -14,6 +14,10 @@ RUN pip3 install -U pip && \
 ENV CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
 WORKDIR ${CODE_DIR}
 COPY ./*.sh ${CODE_DIR}/
+
+# Triton model configuration parser generated from the protocol buffer scheme
+COPY model_config/ ./model_config/
+ENV PYTHONPATH=$PYTHONPATH:${CODE_DIR}/model_config/
 
 ENV WITH_ERROR_SERVER=1
 

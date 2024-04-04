@@ -78,6 +78,7 @@ ENV PIP_NO_CACHE_DIR=1
 ENV PATH=${BASE_PATH}
 RUN python -m venv $DATAROBOT_VENV_PATH && $DATAROBOT_VENV_PATH/bin/pip install -U pip
 COPY dr_requirements.txt dr_requirements.txt
+
 RUN $DATAROBOT_VENV_PATH/bin/pip install -r dr_requirements.txt
 
 ENV CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
