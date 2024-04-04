@@ -1,0 +1,25 @@
+{
+  "inputs": [
+    {
+      "datatype": "FP32",
+      "name": "data_0",
+      "parameters": {
+        "binary_data_size": 602112
+      },
+      "shape": [
+        3,
+        224,
+        224
+      ]
+    }
+  ],
+  "outputs": [
+    {
+      "name": "fc6_1",
+      "parameters": {
+        "binary_data": true,
+        "classification": 1000
+      }
+    }
+  ]
+}

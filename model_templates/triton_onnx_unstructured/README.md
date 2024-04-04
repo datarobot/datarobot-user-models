@@ -62,12 +62,30 @@ The `densenet_onnx` model runs on GPU and CPU-only instances. The minimal Resour
 Now, model is ready for deployment. Press `Register model` and then `Deploy`
 
 
-## Step 4: Run predictions
+## Step 4: Using a DataRobot Client to run predictions
 
-Prepare client's code
+Install dependencies & download an example image to test inference.
 ```
 cd model_templates/triton_onnx_unstructured/client
 pip install -r requirements.txt
 
 wget  -O img1.jpg "https://www.hakaimagazine.com/wp-content/uploads/header-gulf-birds.jpg"
+```
+
+Now we need to modify the client's code and set the following keys:
+```
+$ vim model_templates/triton_onnx_unstructured/client/datarobot-predict.py
+
+API_URL
+API_KEY
+DATAROBOT_KEY
+DEPLOYMENT_ID
+```
+
+To find correct values, go to the DataRobot Console and choose your deployment. Then switch to the 
+Predictions / Predictions API / Prediction Type Real-time / Show secrets.   
+
+Run the predictions:
+```
+python model_templates/triton_onnx_unstructured/client/datarobot-predict.py
 ```
