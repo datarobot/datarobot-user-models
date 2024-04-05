@@ -8,10 +8,12 @@ We highly recommend that you update SSL certificates with:
     pip install -U "urllib3[secure]" certifi
 """
 import sys
+from json import JSONDecoder
+
 import numpy as np
 from PIL import Image
 from torchvision import transforms
-
+import tritonclient.http as httpclient
 import requests
 import json
 
@@ -111,6 +113,12 @@ def read_model_inference_header():
     return json_header_str.encode('utf-8')
 
 
+def binary_response_as_numpy(response):
+    _, header_length = JSONDecoder().raw_decode(response.decode('utf-8'))
+    results = httpclient.InferenceServerClient.parse_response_body(response, header_length=header_length)
+    return results.as_numpy("fc6_1").astype(str)
+
+
 def main(filename, deployment_id, mimetype, charset):
     """
     Return an exit code on script completion or error. Codes > 0 are errors to the shell.
@@ -132,11 +140,13 @@ def main(filename, deployment_id, mimetype, charset):
               ).format(data_size, MAX_PREDICTION_FILE_SIZE_BYTES))
         return 1
     try:
-        predictions = make_datarobot_deployment_unstructured_predictions(data, deployment_id, mimetype, charset)
+        response = make_datarobot_deployment_unstructured_predictions(data, deployment_id, mimetype, charset)
     except DataRobotPredictionError as exc:
         print(exc)
         return 1
-    print(predictions)
+
+    predictions = binary_response_as_numpy(response)
+    print(np.squeeze(predictions)[:5])
     return 0
 
 
