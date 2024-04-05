@@ -5,6 +5,8 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
+import traceback
+
 from datarobot_drum.drum.server import (
     empty_api_blueprint,
     get_flask_app,
@@ -47,6 +49,8 @@ class DrumRuntime:
 
         if exc_value:
             logger_drum.error(exc_value)
+        logger_drum.error(exc_type)
+        logger_drum.error("".join(traceback.format_list(traceback.extract_tb(exc_traceback))))
 
         run_mode = RunMode(self.options.subparser_name)
 
