@@ -2,3 +2,4 @@ pillow
 torchvision
 numpy
 requests
+tritonclient
