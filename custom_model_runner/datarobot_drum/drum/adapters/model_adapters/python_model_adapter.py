@@ -145,6 +145,9 @@ class PythonModelAdapter(AbstractModelAdapter):
         self._logger.exception(f"{message} Exception: {exc!r}")
         raise DrumPythonModelAdapterError(f"{message} Exception: {exc!r}")
 
+    def has_custom_hook(self, hook_type: CustomHooks):
+        return self._custom_hooks.get(hook_type, None) is not None
+
     @property
     def is_custom_task_class(self):
         """
@@ -233,7 +236,7 @@ class PythonModelAdapter(AbstractModelAdapter):
                 "Failed loading hooks from [{}] : {}".format(RUNNING_LANG_MSG, custom_file_path, e)
             )
 
-    def _load_model_from_artifact_for_legacy_drum(self):
+    def _load_model_from_artifact_for_legacy_drum(self, skip_predictor_lookup=False):
         if self._custom_hooks[CustomHooks.LOAD_MODEL]:
             self._model = self._load_model_via_hook()
         else:
@@ -242,8 +245,9 @@ class PythonModelAdapter(AbstractModelAdapter):
 
         # If a score hook is not given we need to find a predictor that can handle this model
         if (
-            self._target_type not in [TargetType.UNSTRUCTURED, TargetType.TRANSFORM]
-            and not self._custom_hooks[CustomHooks.SCORE]
+                self._target_type not in [TargetType.UNSTRUCTURED, TargetType.TRANSFORM]
+                and not self._custom_hooks[CustomHooks.SCORE]
+                and not skip_predictor_lookup
         ):
             self._find_predictor_to_use()
 
@@ -261,9 +265,10 @@ class PythonModelAdapter(AbstractModelAdapter):
         return self._model
 
     def load_model_from_artifact(
-        self,
-        user_secrets_mount_path: Optional[str],
-        user_secrets_prefix: Optional[str],
+            self,
+            user_secrets_mount_path: Optional[str] = None,
+            user_secrets_prefix: Optional[str] = None,
+            skip_predictor_lookup=False,
     ):
         """
         Load the serialized model from its artifact.
@@ -283,7 +288,7 @@ class PythonModelAdapter(AbstractModelAdapter):
             return self._custom_task_class_instance
 
         else:
-            return self._load_model_from_artifact_for_legacy_drum()
+            return self._load_model_from_artifact_for_legacy_drum(skip_predictor_lookup)
 
     def _load_model_via_hook(self):
         self._logger.debug("Load model hook will be used to load the model")

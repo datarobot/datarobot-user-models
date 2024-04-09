@@ -152,6 +152,9 @@ class PredictionServer(ConnectableComponent, PredictMixin):
 
         @model_api.route("/health/", methods=["GET"])
         def health():
+            if hasattr(self._predictor, "health_check"):
+                return self._predictor.health_check()
+
             return {"message": "OK"}, HTTP_200_OK
 
         @model_api.route("/predictions/", methods=["POST"])
