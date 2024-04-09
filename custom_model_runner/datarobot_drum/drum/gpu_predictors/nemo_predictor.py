@@ -4,7 +4,6 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-import atexit
 import csv
 import io
 import json
@@ -13,12 +12,15 @@ import os
 import signal
 import subprocess
 import sys
+import typing
 from pathlib import Path
 from threading import Thread
 
 import numpy as np
 import openai
+import requests
 from openai import OpenAI
+from requests import Timeout
 
 from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
@@ -36,7 +38,7 @@ from datarobot_drum.drum.enum import (
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
-from datarobot_drum.resource.drum_server_utils import DrumServerProcess, wait_for_server
+from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 
 RUNNING_LANG_MSG = "Running environment: NeMo Inferencing Microservice."
 DEFAULT_MODEL_NAME = "generic_llm"
@@ -94,9 +96,7 @@ class NemoPredictor(BaseLanguagePredictor):
         # start Nemo server and check health it's health
         self.nemo_process = DrumServerProcess()
         self.nemo_thread = Thread(target=self._run_nemo_server, args=(self.nemo_process,))
-        atexit.register(self._shutdown_nemo)
         self.nemo_thread.start()
-        self._check_nemo_health()
         self.nim_client = OpenAI(base_url=f"{self.nemo_host}:{self.openai_port}/v1", api_key="fake")
 
     @staticmethod
@@ -267,22 +267,19 @@ class NemoPredictor(BaseLanguagePredictor):
             for line in p.stdout:
                 self.logger.info(line[:-1])
 
-    def _check_nemo_health(self):
-        nemo_health_url = f"{self.nemo_host}:{self.health_port}/v1/health/ready"
+    def health_check(self) -> typing.Tuple[dict, int]:
+        """
+        Proxy health checks to NeMo Inference Server
+        """
         try:
-            self.logger.info("Checking Nemo readiness...")
-            wait_for_server(nemo_health_url, timeout=self.startup_timeout_sec)
-        except TimeoutError:
-            self.logger.error(
-                "Nemo inference server is not ready. Please check the logs for more information."
-            )
-            try:
-                self._shutdown_nemo()
-            except TimeoutError as e:
-                self.logger.error("Nemo server shutdown failure: %s", e)
-            raise
+            nemo_health_url = f"{self.nemo_host}:{self.health_port}/v1/health/ready"
+            response = requests.get(nemo_health_url, timeout=5)
+            return {"message": response.text}, response.status_code
+        except Timeout:
+            return {"message": "Timeout waiting for Nemo health route to respond."}, 503
 
-    def _shutdown_nemo(self):
+
+    def terminate(self):
         if not self.nemo_process:
             self.logger.info("Nemo is not running, skipping shutdown...")
             return
