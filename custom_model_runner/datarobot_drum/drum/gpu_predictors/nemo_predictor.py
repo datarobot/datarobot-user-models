@@ -61,7 +61,7 @@ class NemoPredictor(BaseLanguagePredictor):
         )
 
         # completions configuration can be changed with Runtime parameters
-        self.startup_timeout_sec = self.get_optional_parameter("startup_timeout_sec", 60)
+        self.startup_timeout_sec = self.get_optional_parameter("startup_timeout_sec", 600)
         self.max_tokens = self.get_optional_parameter("max_tokens", 512)
         self.use_chat_context = self.get_optional_parameter("chat_context", False)
         self.num_choices_per_completion = self.get_optional_parameter("n", 1)
