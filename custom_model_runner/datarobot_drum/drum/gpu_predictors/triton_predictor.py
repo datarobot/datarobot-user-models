@@ -22,7 +22,7 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.utils.drum_utils import DrumUtils
 from google.protobuf import text_format
-from triton.model_config_pb2 import ModelConfig
+from tritonclient.grpc.model_config_pb2 import ModelConfig
 
 RUNNING_LANG_MSG = "Running environment: Triton Inference Server."
 INFERENCE_HEADER = "Inference-Header-Content-Length"
