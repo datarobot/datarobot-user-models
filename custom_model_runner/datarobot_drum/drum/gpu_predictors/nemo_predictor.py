@@ -37,11 +37,11 @@ from datarobot_drum.drum.enum import (
     StructuredDtoKeys,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.gpu_predictors.utils import read_model_config
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 
-RUNNING_LANG_MSG = "Running environment: NeMo Inferencing Microservice."
-DEFAULT_MODEL_NAME = "generic_llm"
+RUNNING_LANG_MSG = "Running environment: NeMo Inference Microservice."
 
 
 class ChatRoles:
@@ -72,13 +72,15 @@ class NemoPredictor(BaseLanguagePredictor):
         self.gpu_count = os.environ.get("GPU_COUNT")
         if not self.gpu_count:
             raise ValueError("Unexpected empty GPU count.")
+
+        self.model_store_path = os.environ.get("MODEL_STORE_PATH", "/model-store")
         self.health_port = os.environ.get("HEALTH_PORT", "9997")
         self.openai_port = os.environ.get("OPENAI_PORT", "9999")
         self.nemo_host = os.environ.get("NEMO_HOST", "http://localhost")
         self.nemo_port = os.environ.get("NEMO_PORT", "9998")
-        self.model_name = os.environ.get("MODEL_NAME", DEFAULT_MODEL_NAME)
         self.nemo_process = None
         self.nim_client = None
+        self.model_config = None
 
         # used to load custom model hooks
         self.python_model_adapter = None
@@ -117,6 +119,13 @@ class NemoPredictor(BaseLanguagePredictor):
         formats = SupportedPayloadFormats()
         formats.add(PayloadFormat.CSV)
         return formats
+
+    @property
+    def model_name(self):
+        if not self.model_config:
+            self.model_config = read_model_config(self.model_store_path)
+
+        return self.model_config.name
 
     def has_read_input_data_hook(self):
         return False

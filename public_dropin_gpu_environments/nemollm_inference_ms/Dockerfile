@@ -12,7 +12,6 @@ USER 1000
 ENV MODEL_STORE_PATH=/model-store
 ENV DATAROBOT_VENV_PATH=/home/nemo/dr
 ENV PIP_NO_CACHE_DIR=1
-ENV PATH=${BASE_PATH}
 RUN /usr/bin/python3 -m venv $DATAROBOT_VENV_PATH && $DATAROBOT_VENV_PATH/bin/pip3 install -U pip
 COPY dr_requirements.txt dr_requirements.txt
 
