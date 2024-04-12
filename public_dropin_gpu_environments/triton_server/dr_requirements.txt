@@ -26,6 +26,8 @@ flask-cors==4.0.0
     # via mlpiper
 future==1.0.0
     # via mlpiper
+grpcio==1.62.1
+    # via tritonclient
 idna==3.6
     # via requests
 importlib-metadata==7.1.0
@@ -60,7 +62,9 @@ numpy==1.26.4
 orjson==3.10.0
     # via datarobot-mlops
 packaging==24.0
-    # via datarobot-drum
+    # via
+    #   datarobot-drum
+    #   tritonclient
 pandas==2.0.3
     # via
     #   datarobot
@@ -70,8 +74,8 @@ pillow==10.2.0
     # via datarobot-drum
 progress==1.6
     # via datarobot-drum
-protobuf==5.26.1
-    # via -r dr_requirements.in
+protobuf==4.25.3
+    # via tritonclient
 psutil==5.9.8
     # via
     #   memory-profiler
@@ -130,7 +134,7 @@ trafaret==2.1.1
     # via
     #   datarobot
     #   datarobot-drum
-tritonclient==2.41.1
+tritonclient[grpc]==2.41.1
     # via -r dr_requirements.in
 typing-extensions==4.10.0
     # via datarobot

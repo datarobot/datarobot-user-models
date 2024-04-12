@@ -1,5 +1,4 @@
-protobuf
 requests
 datarobot-drum
 datarobot-mlops
-tritonclient
+tritonclient[grpc]
