@@ -243,7 +243,7 @@ class NemoPredictor(BaseLanguagePredictor):
 
         cmd = [
             "nemollm_inference_ms",
-            "--model",
+            "--model_name",
             self.model_name,
             "--health_port",
             self.health_port,
