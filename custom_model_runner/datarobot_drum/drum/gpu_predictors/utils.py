@@ -13,21 +13,27 @@ def read_model_config(model_repository_dir) -> ModelConfig:
     )
     if len(artifacts_found) == 0:
         raise DrumCommonException("No model configuration found, add a config.pbtxt")
-    elif len(artifacts_found) > 1:
+
+    model_configs = []
+    for artifact_file in artifacts_found:
+        try:
+            model_config = ModelConfig()
+            with open(artifact_file, "r") as f:
+                config_text = f.read()
+                text_format.Merge(config_text, model_config)
+
+            # skip ensemble model config
+            if "ensemble" not in model_config.name:
+                model_configs.append(model_config)
+
+        except Exception as e:
+            raise DrumCommonException(
+                f"Can't read model configuration: {artifact_file}"
+            ) from e
+
+    if len(model_configs) > 1:
         raise DrumCommonException(
             "Found multiple model configurations. Multi-deployments are not supported yet."
         )
 
-    model_config_pbtxt = artifacts_found[0]
-
-    try:
-        model_config = ModelConfig()
-        with open(model_config_pbtxt, "r") as f:
-            config_text = f.read()
-            text_format.Merge(config_text, model_config)
-
-        return model_config
-    except Exception as e:
-        raise DrumCommonException(
-            f"Can't read model configuration: {model_config_pbtxt}"
-        ) from e
+    return model_configs[0]
