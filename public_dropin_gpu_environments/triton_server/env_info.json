@@ -1,6 +1,6 @@
 {
   "id": "661516a0d53a8a537360dbd9",
-  "name": "[Experimental][NVIDIA] Triton Inference Server",
+  "name": "[NVIDIA] Triton Inference Server (24.01)",
   "description": "This template environment can be used to create artifact-only ONNX custom models. This environment contains ONNX runtime and only requires your model artifact as an .onnx file and optionally a custom.py file.",
   "programmingLanguage": "python",
   "environmentVersionId": "66151613d53a8a4e05e903be",
