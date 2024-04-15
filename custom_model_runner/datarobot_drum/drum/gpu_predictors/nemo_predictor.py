@@ -226,7 +226,6 @@ class NemoPredictor(BaseLanguagePredictor):
         raise DrumCommonException("Transform feature is not supported")
 
     def download_and_serve_model(self, nemo_process: DrumServerProcess):
-
         if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL):
             try:
                 self.python_model_adapter.load_model_from_artifact(skip_predictor_lookup=True)

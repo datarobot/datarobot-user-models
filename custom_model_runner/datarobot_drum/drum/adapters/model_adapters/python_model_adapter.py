@@ -245,9 +245,9 @@ class PythonModelAdapter(AbstractModelAdapter):
 
         # If a score hook is not given we need to find a predictor that can handle this model
         if (
-                self._target_type not in [TargetType.UNSTRUCTURED, TargetType.TRANSFORM]
-                and not self._custom_hooks[CustomHooks.SCORE]
-                and not skip_predictor_lookup
+            self._target_type not in [TargetType.UNSTRUCTURED, TargetType.TRANSFORM]
+            and not self._custom_hooks[CustomHooks.SCORE]
+            and not skip_predictor_lookup
         ):
             self._find_predictor_to_use()
 
@@ -265,10 +265,10 @@ class PythonModelAdapter(AbstractModelAdapter):
         return self._model
 
     def load_model_from_artifact(
-            self,
-            user_secrets_mount_path: Optional[str] = None,
-            user_secrets_prefix: Optional[str] = None,
-            skip_predictor_lookup=False,
+        self,
+        user_secrets_mount_path: Optional[str] = None,
+        user_secrets_prefix: Optional[str] = None,
+        skip_predictor_lookup=False,
     ):
         """
         Load the serialized model from its artifact.
