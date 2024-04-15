@@ -45,7 +45,7 @@ function build_dropin_env_dockerfile() {
   # replace 'datarobot-drum' requirement with a wheel
   sed -i "s/^datarobot-drum.*/${DRUM_WHEEL_FILENAME}${WITH_R}/" dr_requirements.txt
   # In general we want DRUM not to depend on uwsgi, so install it explicitly for the tests
-  echo "uwsgi" >> dr_requirements.txt
+  echo "uwsgi==2.0.24" >> dr_requirements.txt
 
   popd || exit 1
 }
