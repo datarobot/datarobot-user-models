@@ -263,6 +263,12 @@ class NemoPredictor(BaseLanguagePredictor):
             for line in p.stdout:
                 self.logger.info(line[:-1])
 
+    def liveness_probe(self):
+        return self.health_check()
+
+    def readiness_probe(self):
+        return self.health_check()
+
     def health_check(self) -> typing.Tuple[dict, int]:
         """
         Proxy health checks to NeMo Inference Server
