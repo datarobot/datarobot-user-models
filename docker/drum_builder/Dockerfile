@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 ENV LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -y && \
@@ -35,6 +35,6 @@ RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && \
     /usr/sbin/update-locale LANG=en_US.UTF-8
 
 RUN pip3 install -U pip
-RUN pip3 install -U setuptools wheel
+RUN pip3 install -U setuptools wheel pytest
 COPY requirements_drum.txt /tmp/requirements_drum.txt
 RUN pip3 install -r /tmp/requirements_drum.txt && rm -rf /root/.cache/pip
