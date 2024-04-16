@@ -10,7 +10,7 @@ GIT_ROOT=$(git rev-parse --show-toplevel)
 
 function build_drum() {
   CDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
-  DRUM_BUILDER_IMAGE="datarobot/drum-builder"
+  DRUM_BUILDER_IMAGE="datarobot/drum-builder:ubuntu-22-04"
 
   # pull DRUM builder container and build DRUM wheel
   docker pull ${DRUM_BUILDER_IMAGE}
