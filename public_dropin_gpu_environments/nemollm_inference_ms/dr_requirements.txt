@@ -70,6 +70,8 @@ frozenlist==1.4.1
     #   aiosignal
 future==1.0.0
     # via mlpiper
+grpcio==1.62.1
+    # via tritonclient
 h11==0.14.0
     # via httpcore
 httpcore==1.0.4
@@ -118,12 +120,15 @@ numpy==1.26.4
     #   pandas
     #   pyarrow
     #   scipy
+    #   tritonclient
 openai==1.14.1
     # via -r dr_requirements.in
 orjson==3.9.15
     # via datarobot-mlops
 packaging==24.0
-    # via datarobot-drum
+    # via
+    #   datarobot-drum
+    #   tritonclient
 pandas==2.0.3
     # via
     #   datarobot
@@ -134,6 +139,8 @@ pillow==10.2.0
     # via datarobot-drum
 progress==1.6
     # via datarobot-drum
+protobuf==4.25.3
+    # via tritonclient
 psutil==5.9.8
     # via
     #   -r dr_requirements.in
@@ -158,6 +165,8 @@ python-dateutil==2.9.0.post0
     #   datarobot-mlops
     #   pandas
     #   strictyaml
+python-rapidjson==1.16
+    # via tritonclient
 pytz==2024.1
     # via pandas
 pyyaml==6.0.1
@@ -214,6 +223,8 @@ trafaret==2.1.1
     # via
     #   datarobot
     #   datarobot-drum
+tritonclient[grpc]==2.41.1
+    # via -r dr_requirements.in
 typing-extensions==4.10.0
     # via
     #   anyio
