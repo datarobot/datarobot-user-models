@@ -8,8 +8,7 @@ from datarobot_drum.drum.utils.drum_utils import DrumUtils
 
 def read_model_config(model_repository_dir) -> ModelConfig:
     artifacts_found = DrumUtils.find_files_by_extensions(
-        model_repository_dir,
-        TritonInferenceServerArtifacts.ALL
+        model_repository_dir, TritonInferenceServerArtifacts.ALL
     )
     if len(artifacts_found) == 0:
         raise DrumCommonException("No model configuration found, add a config.pbtxt")
@@ -27,9 +26,7 @@ def read_model_config(model_repository_dir) -> ModelConfig:
                 model_configs.append(model_config)
 
         except Exception as e:
-            raise DrumCommonException(
-                f"Can't read model configuration: {artifact_file}"
-            ) from e
+            raise DrumCommonException(f"Can't read model configuration: {artifact_file}") from e
 
     if len(model_configs) > 1:
         raise DrumCommonException(
