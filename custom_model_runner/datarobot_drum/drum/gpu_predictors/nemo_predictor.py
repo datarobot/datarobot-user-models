@@ -4,7 +4,6 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-import atexit
 import csv
 import io
 import json
@@ -13,12 +12,15 @@ import os
 import signal
 import subprocess
 import sys
+import typing
 from pathlib import Path
 from threading import Thread
 
 import numpy as np
 import openai
+import requests
 from openai import OpenAI
+from requests import Timeout
 
 from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
@@ -36,7 +38,7 @@ from datarobot_drum.drum.enum import (
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
-from datarobot_drum.resource.drum_server_utils import DrumServerProcess, wait_for_server
+from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 
 RUNNING_LANG_MSG = "Running environment: NeMo Inferencing Microservice."
 DEFAULT_MODEL_NAME = "generic_llm"
@@ -61,7 +63,6 @@ class NemoPredictor(BaseLanguagePredictor):
         )
 
         # completions configuration can be changed with Runtime parameters
-        self.startup_timeout_sec = self.get_optional_parameter("startup_timeout_sec", 60)
         self.max_tokens = self.get_optional_parameter("max_tokens", 512)
         self.use_chat_context = self.get_optional_parameter("chat_context", False)
         self.num_choices_per_completion = self.get_optional_parameter("n", 1)
@@ -79,25 +80,30 @@ class NemoPredictor(BaseLanguagePredictor):
         self.nemo_process = None
         self.nim_client = None
 
+        # used to load custom model hooks
+        self.python_model_adapter = None
+
     def mlpiper_configure(self, params):
         super(NemoPredictor, self).mlpiper_configure(params)
+        self.python_model_adapter = PythonModelAdapter(
+            model_dir=self._code_dir, target_type=self.target_type
+        )
 
         # download model artifacts with a "load_model" hook or ".remote" artifact
         custom_py_paths, dot_remote_paths = self._get_custom_artifacts()
         if custom_py_paths:
-            self._load_model_with_custom_hooks(params)
+            sys.path.append(self._code_dir)
+            self.python_model_adapter.load_custom_hooks()
+
         elif dot_remote_paths:
             raise DrumCommonException(
                 "The '.remote' artifacts are not supported by the current version of DataRobot User models"
             )
 
-        # start Nemo server and check health it's health
         self.nemo_process = DrumServerProcess()
-        self.nemo_thread = Thread(target=self._run_nemo_server, args=(self.nemo_process,))
-        atexit.register(self._shutdown_nemo)
-        self.nemo_thread.start()
-        self._check_nemo_health()
         self.nim_client = OpenAI(base_url=f"{self.nemo_host}:{self.openai_port}/v1", api_key="fake")
+        self.nemo_thread = Thread(target=self.download_and_serve_model, args=(self.nemo_process,))
+        self.nemo_thread.start()
 
     @staticmethod
     def get_optional_parameter(key, default_value=None):
@@ -133,22 +139,6 @@ class NemoPredictor(BaseLanguagePredictor):
             raise DrumCommonException(error_mes)
 
         return custom_py_paths, remote_artifact_paths
-
-    def _load_model_with_custom_hooks(self, params):
-        try:
-            model_adapter = PythonModelAdapter(
-                model_dir=self._code_dir, target_type=self.target_type
-            )
-            sys.path.append(self._code_dir)
-            model_adapter.load_custom_hooks()
-            # disable the check of scoring hook existence
-            model_adapter._custom_hooks[CustomHooks.SCORE] = True
-            model_adapter.load_model_from_artifact(
-                user_secrets_mount_path=params.get("user_secrets_mount_path"),
-                user_secrets_prefix=params.get("user_secrets_prefix"),
-            )
-        except Exception as e:
-            raise DrumCommonException(f"An error occurred when loading your artifact: {str(e)}")
 
     def _predict(self, **kwargs) -> RawPredictResponse:
         data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
@@ -235,7 +225,13 @@ class NemoPredictor(BaseLanguagePredictor):
     def _transform(self, **kwargs):
         raise DrumCommonException("Transform feature is not supported")
 
-    def _run_nemo_server(self, nemo_process: DrumServerProcess):
+    def download_and_serve_model(self, nemo_process: DrumServerProcess):
+        if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL):
+            try:
+                self.python_model_adapter.load_model_from_artifact(skip_predictor_lookup=True)
+            except Exception as e:
+                raise DrumCommonException(f"An error occurred when loading your artifact: {str(e)}")
+
         cmd = [
             "nemollm_inference_ms",
             "--model",
@@ -267,23 +263,25 @@ class NemoPredictor(BaseLanguagePredictor):
             for line in p.stdout:
                 self.logger.info(line[:-1])
 
-    def _check_nemo_health(self):
-        nemo_health_url = f"{self.nemo_host}:{self.health_port}/v1/health/ready"
-        try:
-            self.logger.info("Checking Nemo readiness...")
-            wait_for_server(nemo_health_url, timeout=self.startup_timeout_sec)
-        except TimeoutError:
-            self.logger.error(
-                "Nemo inference server is not ready. Please check the logs for more information."
-            )
-            try:
-                self._shutdown_nemo()
-            except TimeoutError as e:
-                self.logger.error("Nemo server shutdown failure: %s", e)
-            raise
+    def liveness_probe(self):
+        return self.health_check()
 
-    def _shutdown_nemo(self):
-        if not self.nemo_process:
+    def readiness_probe(self):
+        return self.health_check()
+
+    def health_check(self) -> typing.Tuple[dict, int]:
+        """
+        Proxy health checks to NeMo Inference Server
+        """
+        try:
+            nemo_health_url = f"{self.nemo_host}:{self.health_port}/v1/health/ready"
+            response = requests.get(nemo_health_url, timeout=5)
+            return {"message": response.text}, response.status_code
+        except Timeout:
+            return {"message": "Timeout waiting for Nemo health route to respond."}, 503
+
+    def terminate(self):
+        if not self.nemo_process or not self.nemo_process.process:
             self.logger.info("Nemo is not running, skipping shutdown...")
             return
 

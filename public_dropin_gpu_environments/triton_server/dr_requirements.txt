@@ -13,6 +13,8 @@ datarobot==3.3.1
     # via datarobot-drum
 datarobot-drum==1.10.20
     # via -r dr_requirements.in
+datarobot-mlops==9.2.11
+    # via -r dr_requirements.in
 docker==4.4.4
     # via datarobot-drum
 flask==2.2.5
@@ -54,12 +56,15 @@ numpy==1.26.4
     #   pandas
     #   pyarrow
     #   scipy
+orjson==3.10.0
+    # via datarobot-mlops
 packaging==24.0
     # via datarobot-drum
 pandas==2.0.3
     # via
     #   datarobot
     #   datarobot-drum
+    #   datarobot-mlops
 pillow==10.2.0
     # via datarobot-drum
 progress==1.6
@@ -73,11 +78,13 @@ psutil==5.9.8
 py4j==0.10.9.7
     # via
     #   datarobot-drum
+    #   datarobot-mlops
     #   mlpiper
 pyarrow==14.0.1
     # via datarobot-drum
 python-dateutil==2.9.0.post0
     # via
+    #   datarobot-mlops
     #   pandas
     #   strictyaml
 pytz==2024.1
@@ -86,6 +93,7 @@ pyyaml==6.0.1
     # via
     #   datarobot
     #   datarobot-drum
+    #   datarobot-mlops
 requests==2.31.0
     # via
     #   -r dr_requirements.in

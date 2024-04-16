@@ -22,13 +22,16 @@ def get_flask_app(api_blueprint):
     return app
 
 
-def base_api_blueprint(termination_hook=None):
+def base_api_blueprint(termination_hook=None, predictor=None):
     model_api = Blueprint("model_api", __name__)
 
     @model_api.route("/", methods=["GET"])
     @model_api.route("/ping/", methods=["GET"], strict_slashes=False)
     def ping():
         """This route is used to ensure that server has started"""
+        if hasattr(predictor, "liveness_probe"):
+            return predictor.liveness_probe()
+
         return {"message": "OK"}, HTTP_200_OK
 
     return model_api

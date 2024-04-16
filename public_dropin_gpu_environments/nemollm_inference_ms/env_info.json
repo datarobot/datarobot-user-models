@@ -1,0 +1,8 @@
+{
+  "id": "66151694d53a8a537360dbd8",
+  "name": "[NVIDIA] NeMo Microservice Inference (24.02)",
+  "description": "NVIDIA Inference Microservice GPU accelerated LLM capabilities through OpenAI compatible API's.",
+  "programmingLanguage": "python",
+  "environmentVersionId": "66151613d53a8a4e05e903bf",
+  "isPublic": false
+}
