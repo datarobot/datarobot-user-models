@@ -220,6 +220,18 @@ class TestInferenceModelTemplates(object):
                 None,
                 marks=pytest.mark.skip("Fails to build environment during the test"),
             ),
+            pytest.param(
+                "gpu_triton_onnx_unstructured",
+                "other",
+                "public_dropin_gpu_environments/triton_server",
+                # datafile here is only a stub, because unstructured model testing performs start up check only
+                "regression_testing_data",
+                dr.TARGET_TYPE.UNSTRUCTURED,
+                None,
+                None,
+                None,
+                None,
+            ),
         ],
     )
     def test_inference_model_templates(

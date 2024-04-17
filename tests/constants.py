@@ -19,6 +19,7 @@ TRAINING_TEMPLATES_PATH = os.path.join(REPO_ROOT_PATH, "task_templates", "3_pipe
 
 MODEL_TEMPLATES_PATH = os.path.join(REPO_ROOT_PATH, "model_templates")
 PUBLIC_DROPIN_ENVS_PATH = os.path.join(REPO_ROOT_PATH, "public_dropin_environments")
+PUBLIC_DROPIN_GPU_ENVS_PATH = os.path.join(REPO_ROOT_PATH, "public_dropin_gpu_environments")
 
 
 TRAINING = "training"
@@ -167,6 +168,9 @@ R_PREDICT_SPARSE = "R_predict_sparse"
 R_NO_ARTIFACTS = "r_no_artifacts"
 JAVA = "java"
 JULIA = "julia"
+GPU_TRITON = "triton"
+GPU_NEMO = "nemo"
+GPU_VLLM = "vllm"
 PYTHON_TEXT_GENERATION = "python_text_generation"
 PYTHON_UNSTRUCTURED = "python_unstructured"
 PYTHON_UNSTRUCTURED_MLOPS = "python_unstructured_mlops"

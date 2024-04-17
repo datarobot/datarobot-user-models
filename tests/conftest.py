@@ -148,6 +148,9 @@ from tests.constants import (
     MULTICLASS_LABEL_SPACES,
     TEXT_GENERATION,
     PYTHON_TEXT_GENERATION,
+    GPU_TRITON,
+    GPU_NEMO,
+    GPU_VLLM,
 )
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from tests.constants import PYTHON_UNSTRUCTURED_DR_API_ACCESS
@@ -213,6 +216,9 @@ framework_envs = {
     ],
     JAVA: [CODEGEN, MOJO, POJO],
     JULIA: [MLJ],
+    GPU_TRITON: [GPU_TRITON],
+    GPU_NEMO: [GPU_NEMO],
+    GPU_VLLM: [GPU_VLLM],
 }
 
 
@@ -244,6 +250,9 @@ def pytest_addoption(parser):
             R_LANG,
             JAVA,
             JULIA,
+            GPU_TRITON,
+            GPU_NEMO,
+            GPU_VLLM,
         ],
         default=None,
     )
