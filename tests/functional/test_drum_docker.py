@@ -30,6 +30,7 @@ from tests.constants import (
 )
 
 
+@pytest.mark.usefixtures("skip_if_running_inside_container")
 class TestDrumDocker:
     @pytest.mark.parametrize(
         "docker_build_fails",

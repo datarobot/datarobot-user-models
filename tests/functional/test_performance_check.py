@@ -37,12 +37,66 @@ class TestPerformanceCheck:
     @pytest.mark.parametrize(
         "framework, problem, language, docker, timeout",
         [
-            (SKLEARN, BINARY, PYTHON, None, None),
-            (SKLEARN, BINARY, PYTHON, None, 5),
-            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN, None),
-            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN, 5),
-            (SKLEARN, MULTICLASS, PYTHON, None, None),
-            (SKLEARN, MULTICLASS_BINARY, PYTHON, None, None),
+            pytest.param(
+                SKLEARN,
+                BINARY,
+                PYTHON,
+                None,
+                None,
+                marks=pytest.mark.skip(
+                    reason="for harness: fetching memory stats inside container seems broken, because of /sys/fs/cgroup/memory.xx layout, and cgroups v2"
+                ),
+            ),
+            pytest.param(
+                SKLEARN,
+                BINARY,
+                PYTHON,
+                None,
+                5,
+                marks=pytest.mark.skip(
+                    reason="for harness: fetching memory stats inside container seems broken, because of /sys/fs/cgroup/memory.xx layout, and cgroups v2"
+                ),
+            ),
+            pytest.param(
+                SKLEARN,
+                REGRESSION,
+                PYTHON,
+                DOCKER_PYTHON_SKLEARN,
+                None,
+                marks=pytest.mark.skip(
+                    reason="for harness: fetching memory stats inside container seems broken, because of /sys/fs/cgroup/memory.xx layout, and cgroups v2"
+                ),
+            ),
+            pytest.param(
+                SKLEARN,
+                REGRESSION,
+                PYTHON,
+                DOCKER_PYTHON_SKLEARN,
+                5,
+                marks=pytest.mark.skip(
+                    reason="for harness: fetching memory stats inside container seems broken, because of /sys/fs/cgroup/memory.xx layout, and cgroups v2"
+                ),
+            ),
+            pytest.param(
+                SKLEARN,
+                MULTICLASS,
+                PYTHON,
+                None,
+                None,
+                marks=pytest.mark.skip(
+                    reason="for harness: fetching memory stats inside container seems broken, because of /sys/fs/cgroup/memory.xx layout, and cgroups v2"
+                ),
+            ),
+            pytest.param(
+                SKLEARN,
+                MULTICLASS_BINARY,
+                PYTHON,
+                None,
+                None,
+                marks=pytest.mark.skip(
+                    reason="for harness: fetching memory stats inside container seems broken, because of /sys/fs/cgroup/memory.xx layout, and cgroups v2"
+                ),
+            ),
         ],
     )
     def test_custom_models_perf_test(

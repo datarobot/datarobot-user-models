@@ -55,9 +55,36 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker, use_labels_file",
         [
-            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN, False),
-            (SKLEARN, MULTICLASS, PYTHON, DOCKER_PYTHON_SKLEARN, False),
-            (SKLEARN, MULTICLASS, PYTHON, DOCKER_PYTHON_SKLEARN, True),
+            pytest.param(
+                SKLEARN,
+                REGRESSION,
+                PYTHON,
+                DOCKER_PYTHON_SKLEARN,
+                False,
+                marks=pytest.mark.skip(
+                    reason="for harness: need to implement running docker inside docker"
+                ),
+            ),
+            pytest.param(
+                SKLEARN,
+                MULTICLASS,
+                PYTHON,
+                DOCKER_PYTHON_SKLEARN,
+                False,
+                marks=pytest.mark.skip(
+                    reason="for harness: need to implement running docker inside docker"
+                ),
+            ),
+            pytest.param(
+                SKLEARN,
+                MULTICLASS,
+                PYTHON,
+                DOCKER_PYTHON_SKLEARN,
+                True,
+                marks=pytest.mark.skip(
+                    reason="for harness: need to implement running docker inside docker"
+                ),
+            ),
         ],
     )
     def test_custom_models_with_drum(
@@ -114,7 +141,15 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
-            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
+            pytest.param(
+                SKLEARN,
+                REGRESSION,
+                PYTHON,
+                DOCKER_PYTHON_SKLEARN,
+                marks=pytest.mark.skip(
+                    reason="for harness: need to implement running docker inside docker"
+                ),
+            ),
         ],
     )
     @pytest.mark.parametrize("pass_args_as_env_vars", [False])
@@ -195,7 +230,15 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
-            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
+            pytest.param(
+                SKLEARN,
+                REGRESSION,
+                PYTHON,
+                DOCKER_PYTHON_SKLEARN,
+                marks=pytest.mark.skip(
+                    reason="for harness: need to implement running docker inside docker"
+                ),
+            ),
         ],
     )
     @pytest.mark.parametrize("pass_args_as_env_vars", [True])
@@ -224,7 +267,15 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
-            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
+            pytest.param(
+                SKLEARN,
+                REGRESSION,
+                PYTHON,
+                DOCKER_PYTHON_SKLEARN,
+                marks=pytest.mark.skip(
+                    reason="for harness: need to implement running docker inside docker"
+                ),
+            ),
         ],
     )
     def test_custom_models_with_drum_nginx_prediction_server(
@@ -285,7 +336,15 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
-            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, DOCKER_PYTHON_SKLEARN),
+            pytest.param(
+                SKLEARN_TRANSFORM,
+                TRANSFORM,
+                PYTHON_TRANSFORM,
+                DOCKER_PYTHON_SKLEARN,
+                marks=pytest.mark.skip(
+                    reason="for harness: need to implement running docker inside docker"
+                ),
+            ),
         ],
     )
     def test_custom_transforms_with_drum_nginx_prediction_server(
@@ -331,7 +390,15 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
-            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
+            pytest.param(
+                SKLEARN,
+                REGRESSION,
+                PYTHON,
+                DOCKER_PYTHON_SKLEARN,
+                marks=pytest.mark.skip(
+                    reason="for harness: need to implement running docker inside docker"
+                ),
+            ),
             (SKLEARN, BINARY, PYTHON, None),
             (SKLEARN, MULTICLASS, PYTHON, None),
         ],

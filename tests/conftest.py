@@ -1135,3 +1135,14 @@ def mock_python_model_adapter_load_model_from_artifact():
 @pytest.fixture
 def endpoint_prediction_methods():
     return ["/predict/", "/predictions/", "/invocations"]
+
+
+@pytest.fixture
+def skip_if_running_inside_container():
+    skip = False
+    if os.path.exists("/.dockerenv"):
+        skip = True
+    if os.environ.get("KUBERNETES_SERVICE_HOST", None):
+        skip = True
+    if skip:
+        pytest.skip("Tests are running inside container")

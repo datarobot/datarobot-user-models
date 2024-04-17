@@ -83,10 +83,38 @@ class TestFit:
     @pytest.mark.parametrize(
         "framework, problem, docker",
         [
-            (SKLEARN_BINARY, BINARY_TEXT, DOCKER_PYTHON_SKLEARN),
-            (CUSTOM_TASK_INTERFACE_REGRESSION, REGRESSION, DOCKER_PYTHON_SKLEARN),
-            (CUSTOM_TASK_INTERFACE_ANOMALY, ANOMALY, DOCKER_PYTHON_SKLEARN),
-            (CUSTOM_TASK_INTERFACE_MULTICLASS, MULTICLASS, DOCKER_PYTHON_SKLEARN),
+            pytest.param(
+                SKLEARN_BINARY,
+                BINARY_TEXT,
+                DOCKER_PYTHON_SKLEARN,
+                marks=pytest.mark.skip(
+                    reason="for harness: need to implement running docker inside docker"
+                ),
+            ),
+            pytest.param(
+                CUSTOM_TASK_INTERFACE_REGRESSION,
+                REGRESSION,
+                DOCKER_PYTHON_SKLEARN,
+                marks=pytest.mark.skip(
+                    reason="for harness: need to implement running docker inside docker"
+                ),
+            ),
+            pytest.param(
+                CUSTOM_TASK_INTERFACE_ANOMALY,
+                ANOMALY,
+                DOCKER_PYTHON_SKLEARN,
+                marks=pytest.mark.skip(
+                    reason="for harness: need to implement running docker inside docker"
+                ),
+            ),
+            pytest.param(
+                CUSTOM_TASK_INTERFACE_MULTICLASS,
+                MULTICLASS,
+                DOCKER_PYTHON_SKLEARN,
+                marks=pytest.mark.skip(
+                    reason="for harness: need to implement running docker inside docker"
+                ),
+            ),
         ],
     )
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, WEIGHTS_ARGS, None])

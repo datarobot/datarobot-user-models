@@ -90,7 +90,15 @@ class TestValidationCheck:
         "framework, problem, language, docker",
         [
             (SKLEARN, BINARY, PYTHON, None),
-            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
+            pytest.param(
+                SKLEARN,
+                REGRESSION,
+                PYTHON,
+                DOCKER_PYTHON_SKLEARN,
+                marks=pytest.mark.skip(
+                    reason="for harness: need to implement running docker inside docker"
+                ),
+            ),
             (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None),
             (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, DOCKER_PYTHON_SKLEARN),
             (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, DOCKER_PYTHON_SKLEARN),
