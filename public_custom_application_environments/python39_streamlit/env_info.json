@@ -1,6 +1,6 @@
 {
   "id": "6542cd582a9d3d51bf4ac71e",
-  "name": "[Experimental] Python 3.9 Streamlit",
+  "name": "[DataRobot] Python 3.9 Streamlit",
   "description": "Base image for Streamlit custom application with DR components package.",
   "programmingLanguage": "python",
   "environmentVersionId": "6602eb900513a1f3bfc9e805",
