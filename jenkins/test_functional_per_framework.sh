@@ -37,6 +37,12 @@ elif [ "$1" = "java" ]; then
 elif [ "$1" = "julia" ]; then
     ENVS_DIR="example_dropin_environments"
     DOCKER_IMAGE="julia_mlj"
+elif [ "$1" = "nemo" ]; then
+    ENVS_DIR="public_dropin_gpu_environments/nemollm_inference_ms"
+    DOCKER_IMAGE="nemo"
+elif [ "$1" = "triton" ]; then
+    ENVS_DIR="public_dropin_gpu_environments/triton_server"
+    DOCKER_IMAGE="triton"
 fi;
 
 # The "jenkins_artifacts" folder is created in the groovy script
