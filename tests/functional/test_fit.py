@@ -88,7 +88,7 @@ class TestFit:
                 BINARY_TEXT,
                 DOCKER_PYTHON_SKLEARN,
                 marks=pytest.mark.skip(
-                    reason="for harness: need to implement running docker inside docker"
+                    reason="RAPTOR-10673: need to implement running docker inside docker"
                 ),
             ),
             pytest.param(
@@ -96,7 +96,7 @@ class TestFit:
                 REGRESSION,
                 DOCKER_PYTHON_SKLEARN,
                 marks=pytest.mark.skip(
-                    reason="for harness: need to implement running docker inside docker"
+                    reason="RAPTOR-10673: need to implement running docker inside docker"
                 ),
             ),
             pytest.param(
@@ -104,7 +104,7 @@ class TestFit:
                 ANOMALY,
                 DOCKER_PYTHON_SKLEARN,
                 marks=pytest.mark.skip(
-                    reason="for harness: need to implement running docker inside docker"
+                    reason="RAPTOR-10673: need to implement running docker inside docker"
                 ),
             ),
             pytest.param(
@@ -112,7 +112,7 @@ class TestFit:
                 MULTICLASS,
                 DOCKER_PYTHON_SKLEARN,
                 marks=pytest.mark.skip(
-                    reason="for harness: need to implement running docker inside docker"
+                    reason="RAPTOR-10673: need to implement running docker inside docker"
                 ),
             ),
         ],

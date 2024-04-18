@@ -113,7 +113,7 @@ class TestDrumServerFailures:
                 True,
                 DOCKER_PYTHON_SKLEARN,
                 marks=pytest.mark.skip(
-                    reason="for harness: need to implement running docker inside docker"
+                    reason="RAPTOR-10673: need to implement running docker inside docker"
                 ),
             ),
         ],
@@ -147,7 +147,7 @@ class TestDrumServerFailures:
                 True,
                 DOCKER_PYTHON_SKLEARN,
                 marks=pytest.mark.skip(
-                    reason="for harness: need to implement running docker inside docker"
+                    reason="RAPTOR-10673: need to implement running docker inside docker"
                 ),
             ),
         ],
@@ -186,7 +186,7 @@ class TestDrumServerFailures:
                 True,
                 DOCKER_PYTHON_SKLEARN,
                 marks=pytest.mark.skip(
-                    reason="for harness: need to implement running docker inside docker"
+                    reason="RAPTOR-10673: need to implement running docker inside docker"
                 ),
             ),
         ],
@@ -224,7 +224,7 @@ class TestDrumServerFailures:
                 True,
                 DOCKER_PYTHON_SKLEARN,
                 marks=pytest.mark.skip(
-                    reason="for harness: need to implement running docker inside docker"
+                    reason="RAPTOR-10673: need to implement running docker inside docker"
                 ),
             ),
         ],

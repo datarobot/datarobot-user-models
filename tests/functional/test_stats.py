@@ -38,7 +38,7 @@ class TestInference:
                 PYTHON,
                 None,
                 marks=pytest.mark.skip(
-                    reason="for harness: fetching memory stats inside container seems broken, because of /sys/fs/cgroup/memory.xx layout, and cgroups v2"
+                    reason="RAPTOR-10675: fetching memory stats inside container seems broken, because of /sys/fs/cgroup/memory.xx layout, and cgroups v2"
                 ),
             ),
         ],

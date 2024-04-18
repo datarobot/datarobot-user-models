@@ -62,7 +62,7 @@ class TestInference:
                 DOCKER_PYTHON_SKLEARN,
                 False,
                 marks=pytest.mark.skip(
-                    reason="for harness: need to implement running docker inside docker"
+                    reason="RAPTOR-10673: need to implement running docker inside docker"
                 ),
             ),
             pytest.param(
@@ -72,7 +72,7 @@ class TestInference:
                 DOCKER_PYTHON_SKLEARN,
                 False,
                 marks=pytest.mark.skip(
-                    reason="for harness: need to implement running docker inside docker"
+                    reason="RAPTOR-10673: need to implement running docker inside docker"
                 ),
             ),
             pytest.param(
@@ -82,7 +82,7 @@ class TestInference:
                 DOCKER_PYTHON_SKLEARN,
                 True,
                 marks=pytest.mark.skip(
-                    reason="for harness: need to implement running docker inside docker"
+                    reason="RAPTOR-10673: need to implement running docker inside docker"
                 ),
             ),
         ],
@@ -147,7 +147,7 @@ class TestInference:
                 PYTHON,
                 DOCKER_PYTHON_SKLEARN,
                 marks=pytest.mark.skip(
-                    reason="for harness: need to implement running docker inside docker"
+                    reason="RAPTOR-10673: need to implement running docker inside docker"
                 ),
             ),
         ],
@@ -236,7 +236,7 @@ class TestInference:
                 PYTHON,
                 DOCKER_PYTHON_SKLEARN,
                 marks=pytest.mark.skip(
-                    reason="for harness: need to implement running docker inside docker"
+                    reason="RAPTOR-10673: need to implement running docker inside docker"
                 ),
             ),
         ],
@@ -273,7 +273,7 @@ class TestInference:
                 PYTHON,
                 DOCKER_PYTHON_SKLEARN,
                 marks=pytest.mark.skip(
-                    reason="for harness: need to implement running docker inside docker"
+                    reason="RAPTOR-10673: need to implement running docker inside docker"
                 ),
             ),
         ],
@@ -342,7 +342,7 @@ class TestInference:
                 PYTHON_TRANSFORM,
                 DOCKER_PYTHON_SKLEARN,
                 marks=pytest.mark.skip(
-                    reason="for harness: need to implement running docker inside docker"
+                    reason="RAPTOR-10673: need to implement running docker inside docker"
                 ),
             ),
         ],
@@ -396,7 +396,7 @@ class TestInference:
                 PYTHON,
                 DOCKER_PYTHON_SKLEARN,
                 marks=pytest.mark.skip(
-                    reason="for harness: need to implement running docker inside docker"
+                    reason="RAPTOR-10673: need to implement running docker inside docker"
                 ),
             ),
             (SKLEARN, BINARY, PYTHON, None),

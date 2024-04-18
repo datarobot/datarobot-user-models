@@ -200,7 +200,7 @@ class TestOtherCases:
         custom_file = os.path.join(directory, CUSTOM_FILE_NAME + language_suffix)
         assert os.path.isfile(custom_file)
 
-    @pytest.mark.skip(reason="for harness: need to implement running docker inside docker")
+    @pytest.mark.skip(reason="RAPTOR-10673: need to implement running docker inside docker")
     def test_r2d2_drum_prediction_server(
         self,
         resources,

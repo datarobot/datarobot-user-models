@@ -125,7 +125,7 @@ class ResourceMonitor:
         total_physical_mem_mb = ByteConv.from_bytes(virtual_mem.total).mbytes
 
         if self._run_inside_docker():
-            # this doesn't work for containers that use cgroups v2, as memory files layout have changed
+            # RAPTOR-10675: this doesn't work for containers that use cgroups v2, as memory files layout have changed
             container_mem_info = self._collect_memory_info_in_docker()
             container_limit_mb = container_mem_info["total_mb"]
             container_max_usage_mb = container_mem_info["max_usage_mb"]
