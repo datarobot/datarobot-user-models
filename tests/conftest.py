@@ -1139,10 +1139,6 @@ def endpoint_prediction_methods():
 
 @pytest.fixture
 def skip_if_running_inside_container():
-    skip = False
-    if os.path.exists("/.dockerenv"):
-        skip = True
-    if os.environ.get("KUBERNETES_SERVICE_HOST", None):
-        skip = True
+    skip = os.path.exists("/.dockerenv") or os.environ.get("KUBERNETES_SERVICE_HOST", None)
     if skip:
         pytest.skip("Tests are running inside container")
