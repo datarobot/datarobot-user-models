@@ -64,6 +64,11 @@ def _create_custom_model_dir(
         artifact_filenames = resources.artifacts(framework, problem)
         if artifact_filenames is not None:
             if not isinstance(artifact_filenames, list):
+                # copy directory tree to a custom model
+                if os.path.isdir(artifact_filenames):
+                    shutil.copytree(artifact_filenames, custom_model_dir)
+                    return custom_model_dir
+
                 artifact_filenames = [artifact_filenames]
             for filename in artifact_filenames:
                 if capitalize_artifact_extension:
