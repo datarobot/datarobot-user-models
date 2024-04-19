@@ -1041,23 +1041,24 @@ class TestInference:
         assert "Your prediction probabilities do not add up to 1." in str(stdo)
 
     @pytest.mark.parametrize(
-        "framework, target_type, code_dir",
+        "framework, target_type, model_template_dir",
         [
             (
                 GPU_TRITON,
                 TargetType.UNSTRUCTURED,
-                os.path.join(MODEL_TEMPLATES_PATH, "triton_onnx_unstructured"),
+                "triton_onnx_unstructured",
             ),
         ],
     )
     def test_triton_predictor(
-        self, framework, target_type, code_dir, resources, tmp_path, framework_env
+        self, framework, target_type, model_template_dir, resources, tmp_path, framework_env
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         input_dataset = os.path.join(TESTS_DATA_PATH, "triton_densenet_onnx.bin")
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, model_template_dir)
 
         run_triton_server_in_background = (
-            f"tritonserver --model-repository={code_dir}/model_repository"
+            f"tritonserver --model-repository={custom_model_dir}/model_repository"
         )
         _exec_shell_cmd(
             run_triton_server_in_background,
@@ -1069,7 +1070,7 @@ class TestInference:
 
         with DrumServerRun(
             target_type=target_type.value,
-            custom_model_dir=code_dir,
+            custom_model_dir=custom_model_dir,
             gpu_predictor=framework,
             labels=None,
             nginx=False,
@@ -1082,7 +1083,39 @@ class TestInference:
                 data=open(input_dataset, "rb"),
                 headers=headers,
             )
+
+            assert response.ok, response.content
+
             response_text = response.content.decode("utf-8")
             json, header_length = JSONDecoder().raw_decode(response_text)
             assert json["model_name"] == "densenet_onnx"
             assert "INDIGO FINCH" in response_text[header_length:]
+
+    @pytest.mark.parametrize(
+        "framework, target_type, model_template_dir",
+        [
+            (GPU_NEMO, TargetType.TEXT_GENERATION, "gpu_nemo_textgen/custom_model"),
+        ],
+    )
+    def test_nemo_predictor(
+        self, framework, target_type, model_template_dir, resources, tmp_path, framework_env
+    ):
+        skip_if_framework_not_in_env(framework, framework_env)
+
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, model_template_dir)
+        data = io.StringIO("user_prompt\ntell me a joke")
+
+        with DrumServerRun(
+            target_type=target_type.value,
+            custom_model_dir=custom_model_dir,
+            gpu_predictor=framework,
+            labels=None,
+            nginx=False,
+        ) as run:
+            headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
+            response = requests.post(
+                f"{run.url_server_address}/predict/",
+                data=data,
+                headers=headers,
+            )
+            assert response.ok
