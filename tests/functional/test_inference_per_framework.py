@@ -1043,19 +1043,21 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, target_type, code_dir",
         [
-            (GPU_TRITON, TargetType.UNSTRUCTURED, "triton_onnx_unstructured"),
+            (
+                GPU_TRITON,
+                TargetType.UNSTRUCTURED,
+                os.path.join(MODEL_TEMPLATES_PATH, "triton_onnx_unstructured"),
+            ),
         ],
     )
     def test_triton_predictor(
         self, framework, target_type, code_dir, resources, tmp_path, framework_env
     ):
         skip_if_framework_not_in_env(framework, framework_env)
-
-        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, code_dir)
         input_dataset = os.path.join(TESTS_DATA_PATH, "triton_densenet_onnx.bin")
 
         run_triton_server_in_background = (
-            f"tritonserver --model-repository={custom_model_dir}/model_repository"
+            f"tritonserver --model-repository={code_dir}/model_repository"
         )
         _exec_shell_cmd(
             run_triton_server_in_background,
@@ -1067,7 +1069,7 @@ class TestInference:
 
         with DrumServerRun(
             target_type=target_type.value,
-            custom_model_dir=custom_model_dir,
+            custom_model_dir=code_dir,
             gpu_predictor=framework,
             labels=None,
             nginx=False,
