@@ -5,6 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import json
+from json import JSONDecoder
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
 
@@ -79,8 +80,12 @@ from tests.constants import (
     R_PREDICT_SPARSE,
     PYTHON_TEXT_GENERATION,
     TEXT_GENERATION,
+    GPU_TRITON,
+    MODEL_TEMPLATES_PATH,
+    TESTS_DATA_PATH,
+    GPU_NEMO,
 )
-from datarobot_drum.resource.drum_server_utils import DrumServerRun
+from datarobot_drum.resource.drum_server_utils import DrumServerRun, wait_for_server
 from datarobot_drum.resource.utils import (
     _cmd_add_class_labels,
     _create_custom_model_dir,
@@ -1034,3 +1039,48 @@ class TestInference:
         )
 
         assert "Your prediction probabilities do not add up to 1." in str(stdo)
+
+    @pytest.mark.parametrize(
+        "framework, target_type, code_dir",
+        [
+            (GPU_TRITON, TargetType.UNSTRUCTURED, "triton_onnx_unstructured"),
+        ],
+    )
+    def test_triton_predictor(
+        self, framework, target_type, code_dir, resources, tmp_path, framework_env
+    ):
+        skip_if_framework_not_in_env(framework, framework_env)
+
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, code_dir)
+        input_dataset = os.path.join(TESTS_DATA_PATH, "triton_densenet_onnx.bin")
+
+        run_triton_server_in_background = (
+            f"tritonserver --model-repository={custom_model_dir}/model_repository"
+        )
+        _exec_shell_cmd(
+            run_triton_server_in_background,
+            "failed to start triton server",
+            assert_if_fail=False,
+            capture_output=False,
+        )
+        wait_for_server("http://localhost:8000/v2/health/ready", 60)
+
+        with DrumServerRun(
+            target_type=target_type.value,
+            custom_model_dir=custom_model_dir,
+            gpu_predictor=framework,
+            labels=None,
+            nginx=False,
+        ) as run:
+            headers = {
+                "Content-Type": f"{PredictionServerMimetypes.APPLICATION_OCTET_STREAM};charset=UTF-8"
+            }
+            response = requests.post(
+                f"{run.url_server_address}/predictUnstructured/",
+                data=open(input_dataset, "rb"),
+                headers=headers,
+            )
+            response_text = response.content.decode("utf-8")
+            json, header_length = JSONDecoder().raw_decode(response_text)
+            assert json["model_name"] == "densenet_onnx"
+            assert "INDIGO FINCH" in response_text[header_length:]
