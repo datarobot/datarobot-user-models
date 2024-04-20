@@ -105,18 +105,7 @@ class TestDrumServerFailures:
 
     @pytest.mark.parametrize(
         "with_error_server, with_nginx, docker",
-        [
-            (False, False, None),
-            (True, False, None),
-            pytest.param(
-                False,
-                True,
-                DOCKER_PYTHON_SKLEARN,
-                marks=pytest.mark.skip(
-                    reason="RAPTOR-10673: need to implement running docker inside docker"
-                ),
-            ),
-        ],
+        [(False, False, None), (True, False, None), (False, True, DOCKER_PYTHON_SKLEARN)],
     )
     def test_ping_endpoints(self, params, with_error_server, with_nginx, docker):
         _, _, custom_model_dir, server_run_args = params
@@ -139,18 +128,7 @@ class TestDrumServerFailures:
 
     @pytest.mark.parametrize(
         "with_error_server, with_nginx, docker",
-        [
-            (False, False, None),
-            (True, False, None),
-            pytest.param(
-                False,
-                True,
-                DOCKER_PYTHON_SKLEARN,
-                marks=pytest.mark.skip(
-                    reason="RAPTOR-10673: need to implement running docker inside docker"
-                ),
-            ),
-        ],
+        [(False, False, None), (True, False, None), (False, True, DOCKER_PYTHON_SKLEARN)],
     )
     def test_e2e_no_model_artifact(self, params, with_error_server, with_nginx, docker):
         """
@@ -178,18 +156,7 @@ class TestDrumServerFailures:
 
     @pytest.mark.parametrize(
         "with_error_server, with_nginx, docker",
-        [
-            (False, False, None),
-            (True, False, None),
-            pytest.param(
-                False,
-                True,
-                DOCKER_PYTHON_SKLEARN,
-                marks=pytest.mark.skip(
-                    reason="RAPTOR-10673: need to implement running docker inside docker"
-                ),
-            ),
-        ],
+        [(False, False, None), (True, False, None), (False, True, DOCKER_PYTHON_SKLEARN)],
     )
     def test_e2e_model_loading_fails(self, params, with_error_server, with_nginx, docker):
         """
@@ -216,18 +183,7 @@ class TestDrumServerFailures:
 
     @pytest.mark.parametrize(
         "with_error_server, with_nginx, docker",
-        [
-            (False, False, None),
-            (True, False, None),
-            pytest.param(
-                False,
-                True,
-                DOCKER_PYTHON_SKLEARN,
-                marks=pytest.mark.skip(
-                    reason="RAPTOR-10673: need to implement running docker inside docker"
-                ),
-            ),
-        ],
+        [(False, False, None), (True, False, None), (False, True, DOCKER_PYTHON_SKLEARN)],
     )
     def test_e2e_predict_fails(self, resources, params, with_error_server, with_nginx, docker):
         """

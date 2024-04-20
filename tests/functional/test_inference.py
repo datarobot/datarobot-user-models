@@ -55,36 +55,9 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker, use_labels_file",
         [
-            pytest.param(
-                SKLEARN,
-                REGRESSION,
-                PYTHON,
-                DOCKER_PYTHON_SKLEARN,
-                False,
-                marks=pytest.mark.skip(
-                    reason="RAPTOR-10673: need to implement running docker inside docker"
-                ),
-            ),
-            pytest.param(
-                SKLEARN,
-                MULTICLASS,
-                PYTHON,
-                DOCKER_PYTHON_SKLEARN,
-                False,
-                marks=pytest.mark.skip(
-                    reason="RAPTOR-10673: need to implement running docker inside docker"
-                ),
-            ),
-            pytest.param(
-                SKLEARN,
-                MULTICLASS,
-                PYTHON,
-                DOCKER_PYTHON_SKLEARN,
-                True,
-                marks=pytest.mark.skip(
-                    reason="RAPTOR-10673: need to implement running docker inside docker"
-                ),
-            ),
+            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN, False),
+            (SKLEARN, MULTICLASS, PYTHON, DOCKER_PYTHON_SKLEARN, False),
+            (SKLEARN, MULTICLASS, PYTHON, DOCKER_PYTHON_SKLEARN, True),
         ],
     )
     def test_custom_models_with_drum(
@@ -140,17 +113,7 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [
-            pytest.param(
-                SKLEARN,
-                REGRESSION,
-                PYTHON,
-                DOCKER_PYTHON_SKLEARN,
-                marks=pytest.mark.skip(
-                    reason="RAPTOR-10673: need to implement running docker inside docker"
-                ),
-            ),
-        ],
+        [(SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN)],
     )
     @pytest.mark.parametrize("pass_args_as_env_vars", [False])
     def test_custom_models_with_drum_prediction_server(
@@ -230,15 +193,7 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
-            pytest.param(
-                SKLEARN,
-                REGRESSION,
-                PYTHON,
-                DOCKER_PYTHON_SKLEARN,
-                marks=pytest.mark.skip(
-                    reason="RAPTOR-10673: need to implement running docker inside docker"
-                ),
-            ),
+            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
         ],
     )
     @pytest.mark.parametrize("pass_args_as_env_vars", [True])
@@ -266,17 +221,7 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [
-            pytest.param(
-                SKLEARN,
-                REGRESSION,
-                PYTHON,
-                DOCKER_PYTHON_SKLEARN,
-                marks=pytest.mark.skip(
-                    reason="RAPTOR-10673: need to implement running docker inside docker"
-                ),
-            ),
-        ],
+        [(SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN)],
     )
     def test_custom_models_with_drum_nginx_prediction_server(
         self,
@@ -335,17 +280,7 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [
-            pytest.param(
-                SKLEARN_TRANSFORM,
-                TRANSFORM,
-                PYTHON_TRANSFORM,
-                DOCKER_PYTHON_SKLEARN,
-                marks=pytest.mark.skip(
-                    reason="RAPTOR-10673: need to implement running docker inside docker"
-                ),
-            ),
-        ],
+        [(SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, DOCKER_PYTHON_SKLEARN)],
     )
     def test_custom_transforms_with_drum_nginx_prediction_server(
         self,
@@ -390,15 +325,7 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
         [
-            pytest.param(
-                SKLEARN,
-                REGRESSION,
-                PYTHON,
-                DOCKER_PYTHON_SKLEARN,
-                marks=pytest.mark.skip(
-                    reason="RAPTOR-10673: need to implement running docker inside docker"
-                ),
-            ),
+            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
             (SKLEARN, BINARY, PYTHON, None),
             (SKLEARN, MULTICLASS, PYTHON, None),
         ],
