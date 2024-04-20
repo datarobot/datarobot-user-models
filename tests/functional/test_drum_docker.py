@@ -5,7 +5,6 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import os
-import pandas as pd
 import pytest
 import re
 import shutil
@@ -19,15 +18,46 @@ from datarobot_drum.resource.utils import (
 )
 
 from tests.constants import (
-    BINARY,
     CODEGEN,
     UNSTRUCTURED,
     PYTORCH,
     REGRESSION,
     MULTICLASS,
     MODEL_TEMPLATES_PATH,
-    PUBLIC_DROPIN_ENVS_PATH,
 )
+
+
+@pytest.fixture
+def dockerfile_content():
+    # py-slim image is used in another test container, so it is already expected to be in the registry
+    content = dedent(
+        """
+    FROM python:3.11-slim
+    VOLUME /data
+    """
+    )
+    return content
+
+
+@pytest.fixture
+def docker_context_factory(tmp_path):
+    # py-slim image is used in another test container, so it is already expected to be in the registry
+
+    def _inner(dockerfile_content):
+        docker_context_dir_name_to_be_used_as_a_tag = "docker_image_built_by_drum"
+        docker_context_path = tmp_path / docker_context_dir_name_to_be_used_as_a_tag
+        tag = "{}/{}".format(
+            os.path.basename(tmp_path), docker_context_dir_name_to_be_used_as_a_tag
+        ).lower()
+        docker_context_path.mkdir(parents=True, exist_ok=True)
+
+        dockerfile_path = docker_context_path / "Dockerfile"
+        with open(dockerfile_path, mode="w") as f:
+            f.write(dockerfile_content)
+
+        return docker_context_path, tag
+
+    return _inner
 
 
 @pytest.mark.usefixtures("skip_if_running_inside_container")
@@ -38,38 +68,25 @@ class TestDrumDocker:
     )
     def test_docker_image_creation(
         self,
+        dockerfile_content,
+        docker_context_factory,
         docker_build_fails,
         tmp_path,
     ):
-        # py-slim image is used in another test container, so it is already expected to be in the registry
-        dockerfile = dedent(
-            """
-        FROM python:3.7-slim
-        VOLUME /data
-        """
-        )
+        dockerfile = dockerfile_content
 
         if docker_build_fails:
             dockerfile += "\nRUN pip install datarobot-drum==1.1.111"
 
+        docker_context_path, expected_tag = docker_context_factory(dockerfile)
+
         custom_model_dir = tmp_path / "custom_model"
         custom_model_dir.mkdir(parents=True, exist_ok=True)
 
+        output = tmp_path / "output"
+
         input_dataset = tmp_path / "fake_but_existing_input_file"
         input_dataset.touch()
-
-        docker_context_dir_name_to_be_used_as_a_tag = "docker_image_built_by_drum"
-        docker_context_path = tmp_path / docker_context_dir_name_to_be_used_as_a_tag
-        expected_tag = "{}/{}".format(
-            os.path.basename(tmp_path), docker_context_dir_name_to_be_used_as_a_tag
-        ).lower()
-        docker_context_path.mkdir(parents=True, exist_ok=True)
-
-        dockerfile_path = docker_context_path / "Dockerfile"
-        with open(dockerfile_path, mode="w") as f:
-            f.write(dockerfile)
-
-        output = tmp_path / "output"
 
         cmd = "{} score --code-dir {} --input {} --output {} --target-type regression --docker {}".format(
             ArgumentsOptions.MAIN_COMMAND,
@@ -91,6 +108,11 @@ class TestDrumDocker:
 
         if docker_build_fails:
             assert re.search(
+                r"ERROR drum:  Failed to build a docker image",
+                stderr,
+            )
+
+            assert re.search(
                 r"Could not find a version that satisfies the requirement datarobot-drum==1.1.111",
                 stderr,
             )
@@ -98,26 +120,22 @@ class TestDrumDocker:
             assert re.search(r"Image successfully built; tag: {};".format(expected_tag), stdout)
 
     @pytest.mark.parametrize(
-        "framework, problem, code_dir, env_dir, skip_deps_install",
+        "framework, problem, code_dir, skip_deps_install",
         [
-            (PYTORCH, MULTICLASS, "python3_pytorch_multiclass", "python3_sklearn", False),
-            (PYTORCH, MULTICLASS, "python3_pytorch_multiclass", "python3_sklearn", True),
-            # there is requirements file in the R unstructured model template
-            (None, UNSTRUCTURED, "r_unstructured", "r_lang", False),
-            (None, UNSTRUCTURED, "r_unstructured", "r_lang", True),
-            (CODEGEN, REGRESSION, "java_codegen", "java_codegen", False),
-            (CODEGEN, REGRESSION, "java_codegen", "java_codegen", True),
+            (CODEGEN, REGRESSION, "java_codegen", False),
+            (CODEGEN, REGRESSION, "java_codegen", True),
         ],
     )
-    def test_docker_image_with_deps_install(
+    def test_java_docker_image_with_deps_install(
         self,
         resources,
         framework,
         problem,
         code_dir,
-        env_dir,
         skip_deps_install,
         tmp_path,
+        dockerfile_content,
+        docker_context_factory,
     ):
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, code_dir)
         if framework == CODEGEN and not skip_deps_install:
@@ -125,12 +143,6 @@ class TestDrumDocker:
             custom_model_dir = shutil.copytree(custom_model_dir, tmp_dir)
             with open(os.path.join(custom_model_dir, "requirements.txt"), mode="w") as f:
                 f.write("deps_are_not_supported_in_java")
-        elif framework == PYTORCH:
-            tmp_dir = tmp_path / "tmp_code_dir"
-            custom_model_dir = shutil.copytree(custom_model_dir, tmp_dir)
-            with open(os.path.join(custom_model_dir, "requirements.txt"), mode="a") as f:
-                f.write("scipy>=1.1,<2")  # test that adding a min,max version also works correctly
-        docker_env = os.path.join(PUBLIC_DROPIN_ENVS_PATH, env_dir)
         input_dataset = resources.datasets(framework, problem)
 
         output = tmp_path / "output"
@@ -142,14 +154,9 @@ class TestDrumDocker:
             output,
             resources.target_types(problem),
         )
-        if resources.target_types(problem) in [BINARY, MULTICLASS]:
-            cmd = _cmd_add_class_labels(
-                cmd,
-                resources.class_labels(framework, problem),
-                target_type=resources.target_types(problem),
-                multiclass_label_file=None,
-            )
-        cmd += " --docker {} --verbose ".format(docker_env)
+
+        docker_context_path, expected_tag = docker_context_factory(dockerfile_content)
+        cmd += " --docker {} --verbose ".format(docker_context_path)
 
         if skip_deps_install:
             cmd += " --skip-deps-install"
@@ -161,38 +168,128 @@ class TestDrumDocker:
         )
 
         if skip_deps_install:
-            # requirements.txt is not supported for java models, so test should pass
-            if framework == CODEGEN:
-                in_data = pd.read_csv(input_dataset)
-                out_data = pd.read_csv(output)
-                assert in_data.shape[0] == out_data.shape[0]
-            else:
-                assert re.search(
-                    r"ERROR drum:  Error from docker process:",
-                    stde,
-                )
+            # DRUM score fails, as docker is not java, but we are only interested that image is built
+            assert re.search(r"Image successfully built; tag: {};".format(expected_tag), stdo)
         else:
-            if framework is None and problem == UNSTRUCTURED:
-                with open(output) as f:
-                    out_data = f.read()
-                    assert "10" in out_data
-            elif framework == PYTORCH and problem == MULTICLASS:
-                in_data = pd.read_csv(input_dataset)
-                out_data = pd.read_csv(output)
-                assert in_data.shape[0] == out_data.shape[0]
-            elif framework == CODEGEN and problem == REGRESSION:
-                assert re.search(
-                    r"WARNING drum:  Dependencies management is not supported for the 'java' language and will not be installed into an image",
-                    stde,
-                )
-            else:
-                assert False
+            assert re.search(
+                r"WARNING drum:  Dependencies management is not supported for the 'java' language and will not be installed into an image",
+                stde,
+            )
 
     @pytest.mark.parametrize(
-        "framework, problem, code_dir, env_dir",
+        "framework, problem, code_dir, skip_deps_install",
         [
-            (PYTORCH, MULTICLASS, "python3_pytorch_multiclass", "python3_pytorch"),
+            (PYTORCH, MULTICLASS, "python3_pytorch_multiclass", False),
+            (PYTORCH, MULTICLASS, "python3_pytorch_multiclass", True),
         ],
+    )
+    def test_python_docker_image_with_deps_install(
+        self,
+        resources,
+        framework,
+        problem,
+        code_dir,
+        skip_deps_install,
+        tmp_path,
+        dockerfile_content,
+        docker_context_factory,
+    ):
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, code_dir)
+
+        tmp_dir = tmp_path / "tmp_code_dir"
+        custom_model_dir = shutil.copytree(custom_model_dir, tmp_dir)
+        with open(os.path.join(custom_model_dir, "requirements.txt"), mode="w") as f:
+            if skip_deps_install:
+                f.write("build_will_fail_if_deps_install_not_skipped")
+            else:
+                f.write("scipy>=1.1,<2")  # test that adding a min,max version also works correctly
+        input_dataset = resources.datasets(framework, problem)
+
+        output = tmp_path / "output"
+
+        cmd = '{} score --code-dir {} --input "{}" --output {} --target-type {}'.format(
+            ArgumentsOptions.MAIN_COMMAND,
+            custom_model_dir,
+            input_dataset,
+            output,
+            resources.target_types(problem),
+        )
+
+        cmd = _cmd_add_class_labels(
+            cmd,
+            resources.class_labels(framework, problem),
+            target_type=resources.target_types(problem),
+            multiclass_label_file=None,
+        )
+
+        docker_context_path, expected_tag = docker_context_factory(dockerfile_content)
+        cmd += " --docker {} --verbose ".format(docker_context_path)
+
+        if skip_deps_install:
+            cmd += " --skip-deps-install"
+
+        _, stdo, stde = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+
+        assert re.search(r"Image successfully built; tag: {};".format(expected_tag), stdo)
+
+    @pytest.mark.parametrize(
+        "framework, problem, code_dir, skip_deps_install",
+        [
+            (None, UNSTRUCTURED, "r_unstructured", False),
+            (None, UNSTRUCTURED, "r_unstructured", True),
+        ],
+    )
+    def test_r_lang_docker_image_with_deps_install(
+        self,
+        resources,
+        framework,
+        problem,
+        code_dir,
+        skip_deps_install,
+        tmp_path,
+        dockerfile_content,
+        docker_context_factory,
+    ):
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, code_dir)
+
+        input_dataset = resources.datasets(framework, problem)
+
+        output = tmp_path / "output"
+
+        cmd = '{} score --code-dir {} --input "{}" --output {} --target-type {}'.format(
+            ArgumentsOptions.MAIN_COMMAND,
+            custom_model_dir,
+            input_dataset,
+            output,
+            resources.target_types(problem),
+        )
+
+        docker_context_path, _ = docker_context_factory(dockerfile_content)
+        cmd += " --docker {} --verbose ".format(docker_context_path)
+
+        if skip_deps_install:
+            cmd += " --skip-deps-install"
+
+        _, stdo, stde = _exec_shell_cmd(
+            cmd,
+            "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
+            assert_if_fail=False,
+        )
+
+        if skip_deps_install:
+            assert not re.search(r"withCallingHandlers", stde + stdo)
+            assert not re.search(r"http://cran.rstudio.com/", stde + stdo)
+        else:
+            assert re.search(r"withCallingHandlers", stde)
+            assert re.search(r"http://cran.rstudio.com/", stde)
+
+    @pytest.mark.parametrize(
+        "framework, problem, code_dir",
+        [(PYTORCH, MULTICLASS, "python3_pytorch_multiclass")],
     )
     def test_docker_image_with_wrong_dep_install(
         self,
@@ -200,8 +297,9 @@ class TestDrumDocker:
         framework,
         problem,
         code_dir,
-        env_dir,
         tmp_path,
+        dockerfile_content,
+        docker_context_factory,
     ):
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, code_dir)
 
@@ -210,7 +308,6 @@ class TestDrumDocker:
         with open(os.path.join(custom_model_dir, "requirements.txt"), mode="w") as f:
             f.write("\nnon_existing_dep")
 
-        docker_env = os.path.join(PUBLIC_DROPIN_ENVS_PATH, env_dir)
         input_dataset = resources.datasets(framework, problem)
 
         output = tmp_path / "output"
@@ -228,7 +325,10 @@ class TestDrumDocker:
             target_type=resources.target_types(problem),
             multiclass_label_file=None,
         )
-        cmd += " --docker {} --verbose ".format(docker_env)
+
+        # environment may be not real as it is expected to fail.
+        docker_path, _ = docker_context_factory(dockerfile_content)
+        cmd += " --docker {} --verbose ".format(docker_path)
 
         _, _, stde = _exec_shell_cmd(
             cmd,

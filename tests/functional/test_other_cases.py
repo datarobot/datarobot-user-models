@@ -219,7 +219,7 @@ class TestOtherCases:
             fail_on_shutdown_error=False,
         ) as run:
             print("r2d2 is running")
-            cmd = "python tools/r2d2/custom.py memory 200 --server {}".format(run.server_address)
+            cmd = "python3 tools/r2d2/custom.py memory 200 --server {}".format(run.server_address)
             print(cmd)
 
             p, stdout, stderr = _exec_shell_cmd(cmd, "Error running r2d2 main")
