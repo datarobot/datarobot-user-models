@@ -82,6 +82,7 @@ class DrumServerRun:
         user_secrets_mount_path: Optional[str] = None,
         thread_class=Thread,
         gpu_predictor=None,
+        target_name=None,
     ):
         self.port = DrumUtils.find_free_port()
         self.server_address = "localhost:{}".format(self.port)
@@ -101,6 +102,7 @@ class DrumServerRun:
         self._pass_args_as_env_vars = pass_args_as_env_vars
         self._custom_model_dir = custom_model_dir
         self._target_type = target_type
+        self._target_name = target_name
         self._labels = labels
         self._docker = docker
         self._memory = memory
@@ -211,6 +213,8 @@ class DrumServerRun:
             cmd += " --verbose"
         if self._gpu_predictor:
             cmd += "  --gpu-predictor {}".format(self._gpu_predictor)
+        if self._target_name:
+            os.environ["TARGET_NAME"] = self._target_name
 
         if self._user_secrets_mount_path:
             cmd += f" {ArgumentsOptions.USER_SECRETS_MOUNT_PATH} {self._user_secrets_mount_path}"

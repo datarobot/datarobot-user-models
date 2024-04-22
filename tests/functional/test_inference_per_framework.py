@@ -1107,6 +1107,7 @@ class TestInference:
 
         with DrumServerRun(
             target_type=target_type.value,
+            target_name="promptText",
             custom_model_dir=custom_model_dir,
             gpu_predictor=framework,
             labels=None,

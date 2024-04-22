@@ -86,10 +86,14 @@ echo "detected machine=$machine url_host: $url_host"
 # Note: The --network=host will allow a code running inside the docker to access the host network
 #       In mac we dont have host network so we use the host.docker.internal ip
 
+export GPU_COUNT=$(nvidia-smi -L | wc -l)
+echo "GPU count: $GPU_COUNT"
 
 docker run -i \
+     `if [ $GPU_COUNT -ge 1 ]; then echo "--gpus all"; fi` \
       --network $network \
       -v $HOME:$HOME \
+      -e GPU_COUNT=$GPU_COUNT \
       -e TEST_URL_HOST=$url_host \
       -v /tmp:/tmp \
       -v /var/run/docker.sock:/var/run/docker.sock \
