@@ -1116,6 +1116,7 @@ class TestInference:
             gpu_predictor=framework,
             labels=None,
             nginx=False,
+            environment_variables=env,
         ) as run:
             headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
             response = requests.post(
