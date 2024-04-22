@@ -1105,6 +1105,11 @@ class TestInference:
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, model_template_dir)
         data = io.StringIO("user_prompt\ntell me a joke")
 
+        # update the path so nemollm process can find its libraries
+        env = os.environ.copy()
+        datarobot_venv_path = os.environ.get("DATAROBOT_VENV_PATH", "/home/nemo/dr")
+        env["PATH"] = env["PATH"].replace(f"{datarobot_venv_path}/bin:", "")
+
         with DrumServerRun(
             target_type=target_type.value,
             custom_model_dir=custom_model_dir,
