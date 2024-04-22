@@ -8,17 +8,7 @@
 echo "Starting Custom Model environment with vLLM"
 set -e
 
-export VLLM_CONFIGURE_LOGGING=0
 export VLLM_NO_USAGE_STATS=1
-
-# TODO: this is nvidia specific but vLLM supports other GPUs/TPUs/CPUs
-export GPU_COUNT=$(nvidia-smi -L | wc -l)
-echo "GPU count: $GPU_COUNT"
-
-if [ "$GPU_COUNT" -eq 0 ]; then
-    echo "No GPUs found in the system."
-    exit 1
-fi
 
 echo
 echo "Starting DRUM server..."
