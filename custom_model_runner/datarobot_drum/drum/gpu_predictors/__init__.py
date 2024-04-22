@@ -99,8 +99,12 @@ class BaseGpuPredictor(BaseLanguagePredictor):
             )
 
         self.openai_process = DrumServerProcess()
-        self.ai_client = OpenAI(base_url=f"{self.openai_host}:{self.openai_port}/v1", api_key="fake")
-        self.openai_server_thread = Thread(target=self.download_and_serve_model, args=(self.openai_process,))
+        self.ai_client = OpenAI(
+            base_url=f"{self.openai_host}:{self.openai_port}/v1", api_key="fake"
+        )
+        self.openai_server_thread = Thread(
+            target=self.download_and_serve_model, args=(self.openai_process,)
+        )
         self.openai_server_thread.start()
 
     def _get_custom_artifacts(self):
