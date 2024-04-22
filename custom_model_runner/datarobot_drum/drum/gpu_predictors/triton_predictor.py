@@ -9,7 +9,10 @@ import json
 import logging
 
 import requests
-from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
+
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
+    RawPredictResponse,
+)
 from datarobot_drum.drum.common import SupportedPayloadFormats
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
@@ -19,8 +22,9 @@ from datarobot_drum.drum.enum import (
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.gpu_predictors.utils import read_model_config
-from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
-
+from datarobot_drum.drum.language_predictors.base_language_predictor import (
+    BaseLanguagePredictor,
+)
 
 RUNNING_LANG_MSG = "Running environment: Triton Inference Server."
 INFERENCE_HEADER = "Inference-Header-Content-Length"

@@ -5,17 +5,17 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import os
+import signal
 import subprocess
 import typing
-import signal
 
 import requests
 from requests import Timeout
 
-from datarobot_drum.drum.gpu_predictors import BaseGpuPredictor
-from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 from datarobot_drum.drum.enum import CustomHooks
 from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.gpu_predictors import BaseGpuPredictor
+from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 
 
 class VllmPredictor(BaseGpuPredictor):

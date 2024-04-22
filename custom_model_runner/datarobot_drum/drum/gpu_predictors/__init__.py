@@ -10,29 +10,31 @@ import json
 import logging
 import os
 import sys
+import typing
 from pathlib import Path
 from threading import Thread
-import typing
 
 import numpy as np
 import openai
 from openai import OpenAI
 
-from datarobot_drum.drum.common import SupportedPayloadFormats
-from datarobot_drum.drum.enum import (
-    CUSTOM_FILE_NAME,
-    REMOTE_ARTIFACT_FILE_EXT,
-    LOGGER_NAME_PREFIX,
-    PayloadFormat,
-    StructuredDtoKeys,
-)
+from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
     PythonModelAdapter,
     RawPredictResponse,
 )
-from datarobot_drum import RuntimeParameters
-from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
+from datarobot_drum.drum.common import SupportedPayloadFormats
+from datarobot_drum.drum.enum import (
+    CUSTOM_FILE_NAME,
+    LOGGER_NAME_PREFIX,
+    REMOTE_ARTIFACT_FILE_EXT,
+    PayloadFormat,
+    StructuredDtoKeys,
+)
 from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.language_predictors.base_language_predictor import (
+    BaseLanguagePredictor,
+)
 from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 
 

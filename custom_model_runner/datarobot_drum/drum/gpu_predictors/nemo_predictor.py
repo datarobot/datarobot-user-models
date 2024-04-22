@@ -14,8 +14,8 @@ from requests import Timeout
 
 from datarobot_drum.drum.enum import CustomHooks
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.gpu_predictors.utils import read_model_config
 from datarobot_drum.drum.gpu_predictors import BaseGpuPredictor
+from datarobot_drum.drum.gpu_predictors.utils import read_model_config
 from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 
 
