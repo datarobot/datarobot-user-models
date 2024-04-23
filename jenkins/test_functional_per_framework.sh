@@ -91,9 +91,7 @@ echo "detected machine=$machine url_host: $url_host"
 #        system with the first docker.
 # Note: The --network=host will allow a code running inside the docker to access the host network
 #       In mac we dont have host network so we use the host.docker.internal ip
-
-export GPU_COUNT=$(nvidia-smi -L | wc -l)
-echo "GPU count: $GPU_COUNT"
+# Note: The `--gpus all` is required for GPU predictors tests
 
 docker run -i \
      `if [ $GPU_COUNT -ge 1 ]; then echo "--gpus all"; fi` \
@@ -101,6 +99,8 @@ docker run -i \
       -v $HOME:$HOME \
       -e GPU_COUNT=$GPU_COUNT \
       -e DOCKER_IMAGE=$DOCKER_IMAGE \
+      -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+      -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
       -e TEST_URL_HOST=$url_host \
       -v /tmp:/tmp \
       -v /var/run/docker.sock:/var/run/docker.sock \
