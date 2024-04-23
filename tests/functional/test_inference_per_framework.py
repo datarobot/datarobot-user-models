@@ -1102,7 +1102,9 @@ class TestInference:
         self, framework, target_type, model_template_dir, resources, tmp_path, framework_env
     ):
         skip_if_framework_not_in_env(framework, framework_env)
-        skip_if_keys_not_in_env(["NGC_API_TOKEN", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"])
+        skip_if_keys_not_in_env(["GPU_COUNT", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"])
+        if not os.environ['GPU_COUNT']:
+            pytest.skip(f"The test case requires GPU node to run on, no GPUs found. Check output of the `nvidia-smi`.")
 
         # the Runtime parameters used by the custom.py load_model hook to download the model
         os.environ["MLOPS_RUNTIME_PARAM_s3Url"] = str(

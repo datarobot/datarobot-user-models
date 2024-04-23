@@ -98,7 +98,6 @@ docker run -i \
       --network $network \
       -v $HOME:$HOME \
       -e GPU_COUNT=$GPU_COUNT \
-      -e DOCKER_IMAGE=$DOCKER_IMAGE \
       -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
       -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
       -e TEST_URL_HOST=$url_host \

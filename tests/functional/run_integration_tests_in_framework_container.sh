@@ -17,8 +17,8 @@ echo "-- Assuming running integration tests in framework container (inside Docke
 echo "Installing pytest"
 
 # NeMo container uses a separate virtual env for DRUM dependencies
-if [ "$DOCKER_IMAGE" = "nemollm_inference_ms" ]; then
-  source /home/nemo/dr/bin/activate
+if [ -n "${DATAROBOT_VENV_PATH}" ]; then
+  source ${DATAROBOT_VENV_PATH}/bin/activate
 fi
 
 pip install pytest pytest-xdist
