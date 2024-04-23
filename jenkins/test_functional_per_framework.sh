@@ -93,6 +93,9 @@ echo "detected machine=$machine url_host: $url_host"
 #       In mac we dont have host network so we use the host.docker.internal ip
 # Note: The `--gpus all` is required for GPU predictors tests
 
+export GPU_COUNT=$(nvidia-smi -L | wc -l)
+echo "GPU count: $GPU_COUNT"
+
 docker run -i \
      `if [ $GPU_COUNT -ge 1 ]; then echo "--gpus all"; fi` \
       --network $network \

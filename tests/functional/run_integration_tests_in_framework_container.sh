@@ -6,8 +6,10 @@
 #
 # Released under the terms of DataRobot Tool and Utility Agreement.
 
+SKIP_SECRETS="AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|NGC_API_TOKEN"
+
 echo "--- env ----"
-export
+export | grep -Ev $SKIP_SECRETS
 echo
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
