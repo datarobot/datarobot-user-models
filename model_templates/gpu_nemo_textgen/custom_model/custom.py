@@ -1,5 +1,5 @@
+import os
 import boto3
-from pathlib import Path
 from mlpiper.extra.aws_helper import AwsHelper
 from datarobot_drum import RuntimeParameters
 
@@ -15,8 +15,8 @@ def load_model(code_dir: str):
     s3_credential = RuntimeParameters.get("s3Credential")
     s3_client = S3Client(s3_url, s3_credential)
 
-    keys, prefixes = s3_client.list_objects()
-    s3_client.download_files(NEMO_MODEL_STORE_DIR, keys, prefixes)
+    keys, dirs = s3_client.list_objects()
+    s3_client.download_files(NEMO_MODEL_STORE_DIR, keys, dirs)
 
     print("Download complete")
     return "DONE"  # a non empty response is required
@@ -39,35 +39,35 @@ class S3Client:
 
     def list_objects(self):
         keys = []
-        prefixes = []
+        dirs = []
         next_token = ""
+        base_kwargs = {
+            "Bucket": self.bucket_name,
+            "Prefix": self.prefix,
+        }
         while next_token is not None:
-            list_object_params = {"Bucket": self.bucket_name, "Prefix": self.prefix}
+            kwargs = base_kwargs.copy()
             if next_token != "":
-                list_object_params["ContinuationToken"] = next_token
-
-            response = self.s3_client.list_objects_v2(**list_object_params)
-            contents = response.get("Contents")
-
-            for result in contents:
-                key = result.get("Key")
-                if key[-1] == "/":
-                    prefixes.append(key)
+                kwargs.update({"ContinuationToken": next_token})
+            results = self.s3_client.list_objects_v2(**kwargs)
+            contents = results.get("Contents")
+            for i in contents:
+                k = i.get("Key")
+                if k[-1] != "/":
+                    keys.append(k)
                 else:
-                    keys.append(key)
+                    dirs.append(k)
+            next_token = results.get("NextContinuationToken")
 
-            next_token = response.get("NextContinuationToken")
+        return keys, dirs
 
-        return keys, prefixes
-
-    def download_files(self, destination_dir, keys, prefixes):
-        destination_dir = Path(destination_dir)
-
-        for prefix in prefixes:
-            dir_path = Path.joinpath(destination_dir, prefix)
-            dir_path.mkdir(parents=True, exist_ok=True)
-
-        for key in keys:
-            file_path = Path.joinpath(destination_dir, key)
-            file_path.parent.mkdir(parents=True, exist_ok=True)
-            self.s3_client.download_file(self.bucket_name, key, str(file_path))
+    def download_files(self, destination_dir, keys, dirs):
+        for d in dirs:
+            dest_pathname = os.path.join(destination_dir, str(d).replace(self.prefix, ""))
+            if not os.path.exists(os.path.dirname(dest_pathname)):
+                os.makedirs(os.path.dirname(dest_pathname))
+        for k in keys:
+            dest_pathname = os.path.join(destination_dir, str(k).replace(self.prefix, ""))
+            if not os.path.exists(os.path.dirname(dest_pathname)):
+                os.makedirs(os.path.dirname(dest_pathname))
+            self.s3_client.download_file(self.bucket_name, k, dest_pathname)

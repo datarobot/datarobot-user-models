@@ -5,7 +5,7 @@ targetType: textgeneration
 runtimeParameterDefinitions:
   - fieldName: s3Url
     type: string
-    defaultValue: s3://nvidia-nim-model-repo/Llama-2-7b-chat-hf/24.01/A10-1x/
+    defaultValue: s3://nvidia-nim-model-repo/Llama-2-7b-chat-hf/24.02/A10-1x/
     description: Choose location of NIM compiled engine artifacts
 
   - fieldName: s3Credential
