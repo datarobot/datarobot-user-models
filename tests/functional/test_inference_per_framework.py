@@ -95,7 +95,7 @@ from datarobot_drum.resource.utils import (
 from datarobot_drum.drum.utils.drum_utils import unset_drum_supported_env_vars
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 
-from tests.conftest import skip_if_framework_not_in_env
+from tests.conftest import skip_if_framework_not_in_env, skip_if_keys_not_in_env
 
 
 class TestInference:
@@ -1101,6 +1101,32 @@ class TestInference:
         self, framework, target_type, model_template_dir, resources, tmp_path, framework_env
     ):
         skip_if_framework_not_in_env(framework, framework_env)
+        skip_if_keys_not_in_env(["NGC_API_TOKEN", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"])
+
+        # the Runtime parameters used by the custom.py load_model hook to download the model
+        os.environ["MLOPS_RUNTIME_PARAM_s3Url"] = str(
+            {
+                "type": "string",
+                "payload": "s3://nvidia-nim-model-repo/Llama-2-7b-chat-hf/24.02/A10-1x/",
+            }
+        )
+        os.environ["MLOPS_RUNTIME_PARAM_s3Credential"] = str(
+            {
+                "type": "credential",
+                "payload": {
+                    "credentialType": "s3",
+                    "awsAccessKeyId": os.environ["AWS_ACCESS_KEY_ID"],
+                    "awsSecretAccessKey": os.environ["AWS_SECRET_ACCESS_KEY"],
+                },
+            }
+        )
+
+        # the Runtime Parameters used for prediction requests
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_prompt_column_name"
+        ] = '{"type":"string","payload":"user_prompt"}'
+        os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 256}'
+        os.environ["MLOPS_RUNTIME_PARAM_chat_context"] = '{"type": "boolean", "payload": false}'
 
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, model_template_dir)
         data = io.StringIO("user_prompt\ntell me a joke")
@@ -1120,3 +1146,9 @@ class TestInference:
                 headers=headers,
             )
             assert response.ok
+            response_data = response.json()
+            assert response_data
+            assert "predictions" in response_data, response_data
+            assert (
+                "Why don't scientists trust atoms?" in response_data["predictions"]
+            ), response_data

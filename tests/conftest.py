@@ -235,6 +235,12 @@ def skip_if_framework_not_in_env(framework, framework_env):
         )
 
 
+def skip_if_keys_not_in_env(expected_keys):
+    missing_keys = [key for key in expected_keys if key not in os.environ]
+    if missing_keys:
+        pytest.skip(f"Skipping test, missing environment variables: {missing_keys}")
+
+
 def pytest_addoption(parser):
     parser.addoption(
         "--framework-env",
