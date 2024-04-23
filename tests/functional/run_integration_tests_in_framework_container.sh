@@ -16,6 +16,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 echo "-- Assuming running integration tests in framework container (inside Docker), for env: $1"
 echo "Installing pytest"
 
+# NeMo container uses a separate virtual env for DRUM dependencies
+if [ "$DOCKER_IMAGE" = "nemollm_inference_ms" ]; then
+  source /home/nemo/dr/bin/activate
+fi
+
 pip install pytest pytest-xdist
 
 

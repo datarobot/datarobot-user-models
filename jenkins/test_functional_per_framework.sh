@@ -100,6 +100,7 @@ docker run -i \
       --network $network \
       -v $HOME:$HOME \
       -e GPU_COUNT=$GPU_COUNT \
+      -e DOCKER_IMAGE=$DOCKER_IMAGE \
       -e TEST_URL_HOST=$url_host \
       -v /tmp:/tmp \
       -v /var/run/docker.sock:/var/run/docker.sock \
