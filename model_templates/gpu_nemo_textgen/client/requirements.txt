@@ -1,2 +1,0 @@
-requests
-datarobot==3.3.1

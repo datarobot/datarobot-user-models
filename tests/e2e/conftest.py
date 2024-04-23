@@ -14,7 +14,7 @@ import pytest
 from dr_usertool.datarobot_user_database import DataRobotUserDatabase
 from dr_usertool.utils import get_permissions
 
-from tests.constants import PUBLIC_DROPIN_ENVS_PATH, TESTS_DATA_PATH, PUBLIC_DROPIN_GPU_ENVS_PATH
+from tests.constants import PUBLIC_DROPIN_ENVS_PATH, TESTS_DATA_PATH
 
 WEBSERVER_URL = "http://localhost"
 ENDPOINT_URL = WEBSERVER_URL + "/api/v2"
@@ -143,16 +143,6 @@ def python311_genai_drop_in_env():
     environment = dr.ExecutionEnvironment.create(
         name="python311_genai", programming_language="python"
     )
-    environment_version = dr.ExecutionEnvironmentVersion.create(
-        environment.id, env_dir, max_wait=1200
-    )
-    return environment.id, environment_version.id
-
-
-@pytest.fixture(scope="session")
-def triton_server_drop_in_env():
-    env_dir = os.path.join(PUBLIC_DROPIN_GPU_ENVS_PATH, "triton_server")
-    environment = dr.ExecutionEnvironment.create(name="Triton", programming_language="python")
     environment_version = dr.ExecutionEnvironmentVersion.create(
         environment.id, env_dir, max_wait=1200
     )
