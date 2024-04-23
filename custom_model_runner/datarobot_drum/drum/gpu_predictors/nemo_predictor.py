@@ -83,7 +83,7 @@ class NemoPredictor(BaseGpuPredictor):
         Proxy health checks to NeMo Inference Server
         """
         try:
-            nemo_health_url = f"{self.openai_host}:{self.health_port}/v1/health/ready"
+            nemo_health_url = f"http://{self.openai_host}:{self.health_port}/v1/health/ready"
             response = requests.get(nemo_health_url, timeout=5)
             return {"message": response.text}, response.status_code
         except Timeout:

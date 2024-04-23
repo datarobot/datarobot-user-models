@@ -53,7 +53,7 @@ class BaseGpuPredictor(BaseLanguagePredictor):
 
         # Nemo server configuration is set in the Drop-in environment
         self.openai_port = os.environ.get("OPENAI_PORT", "9999")
-        self.openai_host = os.environ.get("OPENAI_HOST", "http://localhost")
+        self.openai_host = os.environ.get("OPENAI_HOST", "localhost")
         self.openai_process = None
         self.openai_server_thread = None
         self.ai_client = None
@@ -102,7 +102,7 @@ class BaseGpuPredictor(BaseLanguagePredictor):
 
         self.openai_process = DrumServerProcess()
         self.ai_client = OpenAI(
-            base_url=f"{self.openai_host}:{self.openai_port}/v1", api_key="fake"
+            base_url=f"http://{self.openai_host}:{self.openai_port}/v1", api_key="fake"
         )
         self.openai_server_thread = Thread(
             target=self.download_and_serve_model, args=(self.openai_process,)
