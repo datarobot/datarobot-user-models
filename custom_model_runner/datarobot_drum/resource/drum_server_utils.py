@@ -83,6 +83,7 @@ class DrumServerRun:
         thread_class=Thread,
         gpu_predictor=None,
         target_name=None,
+        wait_for_server_timeout=30,
     ):
         self.port = DrumUtils.find_free_port()
         self.server_address = "localhost:{}".format(self.port)
@@ -113,6 +114,7 @@ class DrumServerRun:
         self._user_secrets_mount_path = user_secrets_mount_path
         self._thread_class = thread_class
         self._gpu_predictor = gpu_predictor
+        self._wait_for_server_timeout = wait_for_server_timeout
 
     def __enter__(self):
         self._server_thread = self._thread_class(
@@ -123,7 +125,7 @@ class DrumServerRun:
         self._server_thread.start()
         time.sleep(0.5)
         try:
-            wait_for_server(self.url_server_address, timeout=30)
+            wait_for_server(self.url_server_address, timeout=self._wait_for_server_timeout)
         except TimeoutError:
             try:
                 self._shutdown_server()
