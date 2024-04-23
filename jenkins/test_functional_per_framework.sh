@@ -50,6 +50,12 @@ DRUM_WHEEL_REAL_PATH="$(realpath "$(find jenkins_artifacts/datarobot_drum*.whl)"
 
 build_dropin_env_dockerfile "${GIT_ROOT}/${ENVS_DIR}/${DOCKER_IMAGE}" ${DRUM_WHEEL_REAL_PATH} || exit 1
 
+# Authenticate to NVIDIA registry
+# https://docs.nvidia.com/launchpad/ai/base-command-coe/latest/bc-coe-docker-basics-step-02.html
+if [ -n "${NGC_API_KEY}" ]; then
+  docker login --username="$oauthtoken" --password="${NGC_API_KEY}" nvcr.io
+fi
+
 # shellcheck disable=SC2218
 build_docker_image_with_drum "${GIT_ROOT}/${ENVS_DIR}/${DOCKER_IMAGE}" \
                               ${DOCKER_IMAGE} \
