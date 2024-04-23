@@ -1103,8 +1103,10 @@ class TestInference:
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         skip_if_keys_not_in_env(["GPU_COUNT", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"])
-        if not os.environ['GPU_COUNT']:
-            pytest.skip(f"The test case requires GPU node to run on, no GPUs found. Check output of the `nvidia-smi`.")
+        if not os.environ["GPU_COUNT"]:
+            pytest.skip(
+                f"The test case requires GPU node to run on, no GPUs found. Check output of the `nvidia-smi`."
+            )
 
         # the Runtime parameters used by the custom.py load_model hook to download the model
         os.environ["MLOPS_RUNTIME_PARAM_s3Url"] = json.dumps(
@@ -1153,6 +1155,7 @@ class TestInference:
             response_data = response.json()
             assert response_data
             assert "predictions" in response_data, response_data
+            assert len(response_data["predictions"]) == 1
             assert (
-                "Why don't scientists trust atoms?" in response_data["predictions"]
+                "Why don't scientists trust atoms?" in response_data["predictions"][0]
             ), response_data

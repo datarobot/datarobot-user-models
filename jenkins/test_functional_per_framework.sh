@@ -53,7 +53,7 @@ build_dropin_env_dockerfile "${GIT_ROOT}/${ENVS_DIR}/${DOCKER_IMAGE}" ${DRUM_WHE
 # Authenticate to NVIDIA registry
 # https://docs.nvidia.com/launchpad/ai/base-command-coe/latest/bc-coe-docker-basics-step-02.html
 if [ -n "${NGC_API_KEY}" ]; then
-  docker login --username="$oauthtoken" --password="${NGC_API_KEY}" nvcr.io
+  docker login --username="\$oauthtoken" --password="${NGC_API_KEY}" nvcr.io
 fi
 
 # shellcheck disable=SC2218
