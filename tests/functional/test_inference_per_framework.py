@@ -1107,13 +1107,13 @@ class TestInference:
             pytest.skip(f"The test case requires GPU node to run on, no GPUs found. Check output of the `nvidia-smi`.")
 
         # the Runtime parameters used by the custom.py load_model hook to download the model
-        os.environ["MLOPS_RUNTIME_PARAM_s3Url"] = str(
+        os.environ["MLOPS_RUNTIME_PARAM_s3Url"] = json.dumps(
             {
                 "type": "string",
                 "payload": "s3://nvidia-nim-model-repo/Llama-2-7b-chat-hf/24.02/A10-1x/",
             }
         )
-        os.environ["MLOPS_RUNTIME_PARAM_s3Credential"] = str(
+        os.environ["MLOPS_RUNTIME_PARAM_s3Credential"] = json.dumps(
             {
                 "type": "credential",
                 "payload": {
