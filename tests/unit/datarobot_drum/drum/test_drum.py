@@ -437,7 +437,7 @@ class TestCMRunnerScore:
             "user_secrets_prefix": None,
             "gpu_predictor": None,
             "triton_host": "http://localhost",
-            "triton_http_port": 8000
+            "triton_http_port": 8000,
         }
         mock_mlpiper_configure.assert_called_once_with(expected)
 
