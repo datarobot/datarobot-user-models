@@ -7,3 +7,7 @@ markers = ["sequential: marks tests to be executed sequentially"]
 junit_family = "xunit2"
 junit_logging = "all"
 junit_log_passing_tests = false
+
+[tool.isort]
+profile = "black"
+known_first_party = ["datarobot_drum"]

@@ -15,30 +15,23 @@ from requests import Timeout
 from datarobot_drum.drum.enum import CustomHooks
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.gpu_predictors import BaseGpuPredictor
-from datarobot_drum.drum.gpu_predictors.utils import read_model_config
 from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 
 
-class NemoPredictor(BaseGpuPredictor):
+class VllmPredictor(BaseGpuPredictor):
     def __init__(self):
         super().__init__()
 
-        # Nemo server configuration is set in the Drop-in environment
-        self.gpu_count = os.environ.get("GPU_COUNT")
-        if not self.gpu_count:
-            raise ValueError("Unexpected empty GPU count.")
-
-        self.model_store_path = os.environ.get("MODEL_STORE_PATH", "/model-store")
-        self.health_port = os.environ.get("HEALTH_PORT", "9997")
-        self.nemo_port = os.environ.get("NEMO_PORT", "9998")
-        self.model_config = None
-
-    @property
-    def model_name(self):
-        if not self.model_config:
-            self.model_config = read_model_config(self.model_store_path)
-
-        return self.model_config.name
+    def health_check(self) -> typing.Tuple[dict, int]:
+        """
+        Proxy health checks to NeMo Inference Server
+        """
+        try:
+            health_url = f"{self.openai_host}:{self.health_port}/v1/health/ready"
+            response = requests.get(health_url, timeout=5)
+            return {"message": response.text}, response.status_code
+        except Timeout:
+            return {"message": "Timeout waiting for Nemo health route to respond."}, 503
 
     def download_and_serve_model(self, openai_process: DrumServerProcess):
         if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL):
@@ -77,17 +70,6 @@ class NemoPredictor(BaseGpuPredictor):
             openai_process.process = p
             for line in p.stdout:
                 self.logger.info(line[:-1])
-
-    def health_check(self) -> typing.Tuple[dict, int]:
-        """
-        Proxy health checks to NeMo Inference Server
-        """
-        try:
-            nemo_health_url = f"http://{self.openai_host}:{self.health_port}/v1/health/ready"
-            response = requests.get(nemo_health_url, timeout=5)
-            return {"message": response.text}, response.status_code
-        except Timeout:
-            return {"message": "Timeout waiting for Nemo health route to respond."}, 503
 
     def terminate(self):
         if not self.openai_process or not self.openai_process.process:
