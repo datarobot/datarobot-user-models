@@ -81,6 +81,9 @@ class DrumServerRun:
         append_cmd: Optional[str] = None,
         user_secrets_mount_path: Optional[str] = None,
         thread_class=Thread,
+        gpu_predictor=None,
+        target_name=None,
+        wait_for_server_timeout=30,
     ):
         self.port = DrumUtils.find_free_port()
         self.server_address = "localhost:{}".format(self.port)
@@ -100,6 +103,7 @@ class DrumServerRun:
         self._pass_args_as_env_vars = pass_args_as_env_vars
         self._custom_model_dir = custom_model_dir
         self._target_type = target_type
+        self._target_name = target_name
         self._labels = labels
         self._docker = docker
         self._memory = memory
@@ -109,6 +113,8 @@ class DrumServerRun:
         self._append_cmd = append_cmd
         self._user_secrets_mount_path = user_secrets_mount_path
         self._thread_class = thread_class
+        self._gpu_predictor = gpu_predictor
+        self._wait_for_server_timeout = wait_for_server_timeout
 
     def __enter__(self):
         self._server_thread = self._thread_class(
@@ -119,7 +125,7 @@ class DrumServerRun:
         self._server_thread.start()
         time.sleep(0.5)
         try:
-            wait_for_server(self.url_server_address, timeout=30)
+            wait_for_server(self.url_server_address, timeout=self._wait_for_server_timeout)
         except TimeoutError:
             try:
                 self._shutdown_server()
@@ -207,6 +213,10 @@ class DrumServerRun:
                 cmd += " --production"
         if self._verbose:
             cmd += " --verbose"
+        if self._gpu_predictor:
+            cmd += "  --gpu-predictor {}".format(self._gpu_predictor)
+        if self._target_name:
+            os.environ["TARGET_NAME"] = self._target_name
 
         if self._user_secrets_mount_path:
             cmd += f" {ArgumentsOptions.USER_SECRETS_MOUNT_PATH} {self._user_secrets_mount_path}"

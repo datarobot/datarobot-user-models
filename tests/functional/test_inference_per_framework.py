@@ -5,6 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import json
+from json import JSONDecoder
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
 
@@ -79,8 +80,12 @@ from tests.constants import (
     R_PREDICT_SPARSE,
     PYTHON_TEXT_GENERATION,
     TEXT_GENERATION,
+    GPU_TRITON,
+    MODEL_TEMPLATES_PATH,
+    TESTS_DATA_PATH,
+    GPU_NEMO,
 )
-from datarobot_drum.resource.drum_server_utils import DrumServerRun
+from datarobot_drum.resource.drum_server_utils import DrumServerRun, wait_for_server
 from datarobot_drum.resource.utils import (
     _cmd_add_class_labels,
     _create_custom_model_dir,
@@ -90,7 +95,7 @@ from datarobot_drum.resource.utils import (
 from datarobot_drum.drum.utils.drum_utils import unset_drum_supported_env_vars
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 
-from tests.conftest import skip_if_framework_not_in_env
+from tests.conftest import skip_if_framework_not_in_env, skip_if_keys_not_in_env
 
 
 class TestInference:
@@ -1034,3 +1039,123 @@ class TestInference:
         )
 
         assert "Your prediction probabilities do not add up to 1." in str(stdo)
+
+    @pytest.mark.parametrize(
+        "framework, target_type, model_template_dir",
+        [
+            (
+                GPU_TRITON,
+                TargetType.UNSTRUCTURED,
+                "triton_onnx_unstructured",
+            ),
+        ],
+    )
+    def test_triton_predictor(
+        self, framework, target_type, model_template_dir, resources, tmp_path, framework_env
+    ):
+        skip_if_framework_not_in_env(framework, framework_env)
+        input_dataset = os.path.join(TESTS_DATA_PATH, "triton_densenet_onnx.bin")
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, model_template_dir)
+
+        run_triton_server_in_background = (
+            f"tritonserver --model-repository={custom_model_dir}/model_repository"
+        )
+        _exec_shell_cmd(
+            run_triton_server_in_background,
+            "failed to start triton server",
+            assert_if_fail=False,
+            capture_output=False,
+        )
+        wait_for_server("http://localhost:8000/v2/health/ready", 60)
+
+        with DrumServerRun(
+            target_type=target_type.value,
+            custom_model_dir=custom_model_dir,
+            gpu_predictor=framework,
+            labels=None,
+            nginx=False,
+            wait_for_server_timeout=600,
+        ) as run:
+            headers = {
+                "Content-Type": f"{PredictionServerMimetypes.APPLICATION_OCTET_STREAM};charset=UTF-8"
+            }
+            response = requests.post(
+                f"{run.url_server_address}/predictUnstructured/",
+                data=open(input_dataset, "rb"),
+                headers=headers,
+            )
+
+            assert response.ok, response.content
+
+            response_text = response.content.decode("utf-8")
+            json, header_length = JSONDecoder().raw_decode(response_text)
+            assert json["model_name"] == "densenet_onnx"
+            assert "INDIGO FINCH" in response_text[header_length:]
+
+    @pytest.mark.parametrize(
+        "framework, target_type, model_template_dir",
+        [
+            (GPU_NEMO, TargetType.TEXT_GENERATION, "gpu_nemo_textgen/custom_model"),
+        ],
+    )
+    def test_nemo_predictor(
+        self, framework, target_type, model_template_dir, resources, tmp_path, framework_env
+    ):
+        skip_if_framework_not_in_env(framework, framework_env)
+        skip_if_keys_not_in_env(["GPU_COUNT", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"])
+        if not os.environ["GPU_COUNT"]:
+            pytest.skip(
+                f"The test case requires GPU node to run on, no GPUs found. Check output of the `nvidia-smi`."
+            )
+
+        # the Runtime parameters used by the custom.py load_model hook to download the model
+        os.environ["MLOPS_RUNTIME_PARAM_s3Url"] = json.dumps(
+            {
+                "type": "string",
+                "payload": "s3://nvidia-nim-model-repo/Llama-2-7b-chat-hf/24.02/A10-1x/",
+            }
+        )
+        os.environ["MLOPS_RUNTIME_PARAM_s3Credential"] = json.dumps(
+            {
+                "type": "credential",
+                "payload": {
+                    "credentialType": "s3",
+                    "awsAccessKeyId": os.environ["AWS_ACCESS_KEY_ID"],
+                    "awsSecretAccessKey": os.environ["AWS_SECRET_ACCESS_KEY"],
+                },
+            }
+        )
+
+        # the Runtime Parameters used for prediction requests
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_prompt_column_name"
+        ] = '{"type":"string","payload":"user_prompt"}'
+        os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 256}'
+        os.environ["MLOPS_RUNTIME_PARAM_chat_context"] = '{"type": "boolean", "payload": false}'
+
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, model_template_dir)
+        data = io.StringIO("user_prompt\ntell me a joke")
+
+        with DrumServerRun(
+            target_type=target_type.value,
+            target_name="promptText",
+            custom_model_dir=custom_model_dir,
+            gpu_predictor=framework,
+            labels=None,
+            nginx=False,
+            wait_for_server_timeout=600,
+        ) as run:
+            headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
+            response = requests.post(
+                f"{run.url_server_address}/predict/",
+                data=data,
+                headers=headers,
+            )
+            assert response.ok
+            response_data = response.json()
+            assert response_data
+            assert "predictions" in response_data, response_data
+            assert len(response_data["predictions"]) == 1
+            assert (
+                "Why don't scientists trust atoms?" in response_data["predictions"][0]
+            ), response_data

@@ -6,8 +6,10 @@
 #
 # Released under the terms of DataRobot Tool and Utility Agreement.
 
+SKIP_SECRETS="AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|NGC_API_KEY"
+
 echo "--- env ----"
-export
+export | grep -Ev $SKIP_SECRETS
 echo
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -15,6 +17,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 echo "-- Assuming running integration tests in framework container (inside Docker), for env: $1"
 echo "Installing pytest"
+
+# NeMo container uses a separate virtual env for DRUM dependencies
+if [ -n "${DATAROBOT_VENV_PATH}" ]; then
+  source ${DATAROBOT_VENV_PATH}/bin/activate
+fi
 
 pip install pytest pytest-xdist
 

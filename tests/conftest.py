@@ -148,6 +148,9 @@ from tests.constants import (
     MULTICLASS_LABEL_SPACES,
     TEXT_GENERATION,
     PYTHON_TEXT_GENERATION,
+    GPU_TRITON,
+    GPU_NEMO,
+    GPU_VLLM,
 )
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from tests.constants import PYTHON_UNSTRUCTURED_DR_API_ACCESS
@@ -213,6 +216,9 @@ framework_envs = {
     ],
     JAVA: [CODEGEN, MOJO, POJO],
     JULIA: [MLJ],
+    GPU_TRITON: [GPU_TRITON],
+    GPU_NEMO: [GPU_NEMO],
+    GPU_VLLM: [GPU_VLLM],
 }
 
 
@@ -227,6 +233,12 @@ def skip_if_framework_not_in_env(framework, framework_env):
         pytest.skip(
             "Provided framework: {} != test case framework: {}".format(framework_env, framework)
         )
+
+
+def skip_if_keys_not_in_env(expected_keys):
+    missing_keys = [key for key in expected_keys if key not in os.environ]
+    if missing_keys:
+        pytest.skip(f"Skipping test, missing environment variables: {missing_keys}")
 
 
 def pytest_addoption(parser):
@@ -244,6 +256,9 @@ def pytest_addoption(parser):
             R_LANG,
             JAVA,
             JULIA,
+            GPU_TRITON,
+            GPU_NEMO,
+            GPU_VLLM,
         ],
         default=None,
     )

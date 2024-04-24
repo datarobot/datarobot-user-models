@@ -37,12 +37,24 @@ elif [ "$1" = "java" ]; then
 elif [ "$1" = "julia" ]; then
     ENVS_DIR="example_dropin_environments"
     DOCKER_IMAGE="julia_mlj"
+elif [ "$1" = "nemo" ]; then
+    ENVS_DIR="public_dropin_gpu_environments"
+    DOCKER_IMAGE="nemollm_inference_ms"
+elif [ "$1" = "triton" ]; then
+    ENVS_DIR="public_dropin_gpu_environments"
+    DOCKER_IMAGE="triton_server"
 fi;
 
 # The "jenkins_artifacts" folder is created in the groovy script
 DRUM_WHEEL_REAL_PATH="$(realpath "$(find jenkins_artifacts/datarobot_drum*.whl)")"
 
 build_dropin_env_dockerfile "${GIT_ROOT}/${ENVS_DIR}/${DOCKER_IMAGE}" ${DRUM_WHEEL_REAL_PATH} || exit 1
+
+# Authenticate to NVIDIA registry
+# https://docs.nvidia.com/launchpad/ai/base-command-coe/latest/bc-coe-docker-basics-step-02.html
+if [ -n "${NGC_API_KEY}" ]; then
+  docker login --username="\$oauthtoken" --password="${NGC_API_KEY}" nvcr.io
+fi
 
 # shellcheck disable=SC2218
 build_docker_image_with_drum "${GIT_ROOT}/${ENVS_DIR}/${DOCKER_IMAGE}" \
@@ -79,11 +91,18 @@ echo "detected machine=$machine url_host: $url_host"
 #        system with the first docker.
 # Note: The --network=host will allow a code running inside the docker to access the host network
 #       In mac we dont have host network so we use the host.docker.internal ip
+# Note: The `--gpus all` is required for GPU predictors tests
 
+export GPU_COUNT=$(nvidia-smi -L | wc -l)
+echo "GPU count: $GPU_COUNT"
 
 docker run -i \
+     `if [ $GPU_COUNT -ge 1 ]; then echo "--gpus all"; fi` \
       --network $network \
       -v $HOME:$HOME \
+      -e GPU_COUNT=$GPU_COUNT \
+      -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
+      -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
       -e TEST_URL_HOST=$url_host \
       -v /tmp:/tmp \
       -v /var/run/docker.sock:/var/run/docker.sock \
