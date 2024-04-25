@@ -8,7 +8,13 @@
 echo "Starting Custom Model environment with vLLM"
 set -e
 
+# Don't send data back to vLLM
 export VLLM_NO_USAGE_STATS=1
+
+# TODO: enable uwsgi with multiple workers after we are sure we only spin up
+#   one instance of vLLM and the load_model hook is only executed once.
+#export PRODUCTION=1
+#export MAX_WORKERS=3
 
 echo
 echo "Starting DRUM server..."

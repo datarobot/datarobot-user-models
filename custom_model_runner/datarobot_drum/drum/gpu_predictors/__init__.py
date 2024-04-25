@@ -51,7 +51,7 @@ class BaseGpuPredictor(BaseLanguagePredictor):
         super().__init__()
         self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
-        # Nemo server configuration is set in the Drop-in environment
+        # server configuration is set in the Drop-in environment
         self.openai_port = os.environ.get("OPENAI_PORT", "9999")
         self.openai_host = os.environ.get("OPENAI_HOST", "localhost")
         self.openai_process = None
