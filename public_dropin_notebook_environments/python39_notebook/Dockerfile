@@ -47,6 +47,10 @@ ARG VENV_PATH
 ARG PYTHON_VERSION
 ARG PYTHON_EXACT_VERSION
 
+# Set the SHELL option -o pipefail before RUN with a pipe in it.
+# Rationale: https://github.com/hadolint/hadolint/wiki/DL4006
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 # Add any package that will be installed on system level here:
 RUN microdnf update \
     && microdnf install -y python$PYTHON_VERSION-$PYTHON_EXACT_VERSION python$PYTHON_VERSION-devel-$PYTHON_EXACT_VERSION \
@@ -54,6 +58,7 @@ RUN microdnf update \
   openblas-0.3.15 python$PYTHON_VERSION-scipy shadow-utils-2:4.6 passwd-0.80 git-2.39.3 openssh-server tar-2:1.30 gzip-1.9 unzip-6.0 zip-3.0 wget-1.19.5 \
   java-11-openjdk-headless-11.0.22.0.7-2.el8 vim-minimal-2:8.0.1763 nano-2.9.8 \
   && pip3 install -U --no-cache-dir pip==23.1.2 \
+  && curl -sS https://webi.sh/gh | sh && cp ~/.local/bin/gh /usr/bin/ \
     && microdnf clean all
 
 RUN pip3 install --no-cache-dir pip==23.1.2 setuptools==66.0.0
