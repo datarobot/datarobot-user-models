@@ -21,6 +21,7 @@ import requests
 from openai import OpenAI
 from requests import HTTPError
 
+from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
     PythonModelAdapter,
     RawPredictResponse,
@@ -34,7 +35,6 @@ from datarobot_drum.drum.enum import (
     StructuredDtoKeys,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.gpu_predictors.utils import get_optional_parameter
 from datarobot_drum.drum.language_predictors.base_language_predictor import (
     BaseLanguagePredictor,
 )
@@ -62,22 +62,22 @@ class BaseGpuPredictor(BaseLanguagePredictor):
         self.ai_client = None
 
         # chat input fields
-        self.system_prompt_value = get_optional_parameter("system_prompt")
-        self.user_prompt_column = get_optional_parameter("prompt_column_name", "promptText")
-        self.assistant_response_column = get_optional_parameter(
+        self.system_prompt_value = self.get_optional_parameter("system_prompt")
+        self.user_prompt_column = self.get_optional_parameter("prompt_column_name", "promptText")
+        self.assistant_response_column = self.get_optional_parameter(
             "assistant_column_name", "assistant"
         )
 
         # completions configuration can be changed with Runtime parameters
-        self.max_tokens = get_optional_parameter("max_tokens", 512)
-        self.use_chat_context = get_optional_parameter("chat_context", False)
-        self.num_choices_per_completion = get_optional_parameter("n", 1)
-        self.temperature = get_optional_parameter("temperature", 0.01)
+        self.max_tokens = self.get_optional_parameter("max_tokens", 512)
+        self.use_chat_context = self.get_optional_parameter("chat_context", False)
+        self.num_choices_per_completion = self.get_optional_parameter("n", 1)
+        self.temperature = self.get_optional_parameter("temperature", 0.01)
 
         # used to load custom model hooks
         self.python_model_adapter = None
         # report deployment status events to DataRobot
-        self.verify_ssl = get_optional_parameter("verifySSL", True)
+        self.verify_ssl = self.get_optional_parameter("verifySSL", True)
         self.status_reporter: MLOpsStatusReporter = None
 
     def has_read_input_data_hook(self):
