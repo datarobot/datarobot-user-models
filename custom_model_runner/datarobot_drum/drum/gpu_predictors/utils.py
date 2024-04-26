@@ -1,6 +1,7 @@
 from google.protobuf import text_format
 from tritonclient.grpc.model_config_pb2 import ModelConfig
 
+from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.enum import TritonInferenceServerArtifacts
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -35,3 +36,10 @@ def read_model_config(model_repository_dir) -> ModelConfig:
         )
 
     return model_configs[0]
+
+
+def get_optional_parameter(key, default_value=None):
+    try:
+        return RuntimeParameters.get(key)
+    except ValueError:
+        return default_value

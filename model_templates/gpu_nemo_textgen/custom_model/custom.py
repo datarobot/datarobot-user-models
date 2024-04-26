@@ -11,6 +11,7 @@ from datarobot_drum import RuntimeParameters
 from datarobot_drum.custom_task_interfaces.user_secrets import SecretType
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.gpu_predictors import get_optional_parameter
 
 # this path is required by NeMo Inference Server
 NEMO_MODEL_STORE_DIR = "/model-store"
@@ -21,7 +22,7 @@ def load_model(code_dir: str):
         "succeeded"  # a non-empty response is required to signal that load_model succeeded
     )
 
-    s3_url = RuntimeParameters.get("s3Url", "")
+    s3_url = get_optional_parameter("s3Url")
     if s3_url:
         s3_credential = RuntimeParameters.get("s3Credential")
         s3_client = S3Client(s3_url, s3_credential)
@@ -30,7 +31,7 @@ def load_model(code_dir: str):
         s3_client.download_files(NEMO_MODEL_STORE_DIR, keys, dirs)
         return load_model_response
 
-    ngc_registry_url = RuntimeParameters.get("ngcRegistryUrl", "")
+    ngc_registry_url = get_optional_parameter("ngcRegistryUrl")
     if ngc_registry_url:
         ngc_credential = RuntimeParameters.get("ngcCredential")
         ngc_client = NGCRegistryClient(ngc_credential)
@@ -94,7 +95,7 @@ class NGCRegistryClient:
         # the NGC configuration is expected to be at ~/.ngc/config
         user_home_path = os.environ["HOME"]
         self.ngc_config_dir = f"{user_home_path}/.ngc"
-        self.ngc_config_file = f"{ngc_config_dir}/config"
+        self.ngc_config_file = f"{self.ngc_config_dir}/config"
         ngc_config = f"[CURRENT]\napikey = {self.api_token}"
 
         Path(self.ngc_config_dir).mkdir(exist_ok=True)
