@@ -2,6 +2,7 @@ from google.protobuf import text_format
 from tritonclient.grpc.model_config_pb2 import ModelConfig
 
 from datarobot_drum.drum.enum import TritonInferenceServerArtifacts
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.utils.drum_utils import DrumUtils
 

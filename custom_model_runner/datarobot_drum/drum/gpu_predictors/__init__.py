@@ -51,6 +51,7 @@ class BaseGpuPredictor(BaseLanguagePredictor):
         super().__init__()
         self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
+
         # Nemo server configuration is set in the Drop-in environment
         self.openai_port = os.environ.get("OPENAI_PORT", "9999")
         self.openai_host = os.environ.get("OPENAI_HOST", "localhost")
@@ -73,6 +74,9 @@ class BaseGpuPredictor(BaseLanguagePredictor):
 
         # used to load custom model hooks
         self.python_model_adapter = None
+        # report deployment status events to DataRobot
+        self.verify_ssl = self.get_optional_parameter("verifySSL", True)
+        self.status_reporter = None
 
     def has_read_input_data_hook(self):
         return False
@@ -85,6 +89,16 @@ class BaseGpuPredictor(BaseLanguagePredictor):
 
     def mlpiper_configure(self, params):
         super().mlpiper_configure(params)
+
+        self.status_reporter = MLOpsStatusReporter(
+            mlops_service_url=params["external_webserver_url"],
+            mlops_api_token=params["api_token"],
+            deployment_id=params["deployment_id"],
+            verify_ssl=self.verify_ssl,
+            # download starts|completed, server starts|completed
+            total_deployment_stages=4,
+        )
+
         self.python_model_adapter = PythonModelAdapter(
             model_dir=self._code_dir, target_type=self.target_type
         )
@@ -240,3 +254,51 @@ class BaseGpuPredictor(BaseLanguagePredictor):
 
     def terminate(self):
         raise NotImplementedError
+
+
+class MLOpsStatusReporter:
+    def __init__(
+        self,
+        mlops_service_url,
+        mlops_api_token,
+        deployment_id,
+        verify_ssl=True,
+        total_deployment_stages=None,
+    ):
+        self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
+        self.mlops_service_url = mlops_service_url
+        self.mlops_api_token = mlops_api_token
+        self.verify_ssl = verify_ssl
+        self.deployment_id = deployment_id
+        self.total_deployment_stages = total_deployment_stages
+        self.current_stage = 0
+
+    def report_deployment(self, message: str):
+        self.logger.info(message)
+        remote_events_url = f"{self.mlops_service_url}/api/v2/remoteEvents/"
+
+        title = f"Deployment status"
+        if self.total_deployment_stages:
+            self.current_stage += 1
+            title = f"Deployment stage {self.current_stage} out of {self.total_deployment_stages}"
+
+        auth_header = {"Authorization": f"Bearer {self.mlops_api_token}"}
+        event_payload = {
+            "eventType": "deploymentInfo",
+            "title": title,
+            "message": message,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "deploymentId": self.deployment.id,
+        }
+
+        try:
+            response = requests.post(
+                url=remote_events_url,
+                json=event_payload,
+                headers=auth_header,
+                verify=self.verify_ssl,
+                timeout=5,
+            )
+            response.raise_for_status()
+        except (ConnectionError, HTTPError, MaxRetryError):
+            logger.warning("Deployment event can not be reported to MLOPS", exc_info=True)
