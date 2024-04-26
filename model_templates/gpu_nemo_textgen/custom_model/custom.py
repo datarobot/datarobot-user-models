@@ -1,6 +1,10 @@
 import io
 import os
 import boto3
+import subprocess
+
+from datarobot_drum.drum.exceptions import DrumCommonException
+from subprocess import CalledProcessError
 from mlpiper.extra.aws_helper import AwsHelper
 from pathlib import Path
 
@@ -12,7 +16,9 @@ NEMO_MODEL_STORE_DIR = "/model-store"
 
 
 def load_model(code_dir: str):
-    load_model_response = "succeeded"  # a non-empty response is required to signal that load_model succeeded
+    load_model_response = (
+        "succeeded"  # a non-empty response is required to signal that load_model succeeded
+    )
 
     s3_url = RuntimeParameters.get("s3Url", "")
     if s3_url:
@@ -60,20 +66,15 @@ class NGCRegistryClient:
             ngc_registry_url,
         ]
 
-        p = subprocess.Popen(
-            cmd,
-            env=os.environ,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
-        stdout, stderr = p.communicate()
-
-        if len(stdout):
-            self.logger.info(stdout)
-        if len(stderr):
-            self.logger.error(stderr)
-
-        assert p.returncode == 0, "Failed to download model version from NGC registry"
+        try:
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                check=True,
+            )
+        except CalledProcessError as e:
+            self.logger.error(e.stderr)
+            raise DrumCommonException(f"Failed to download a model version from the NGC registry:\n {ngc_registry_url}")
 
     @staticmethod
     def _parse_ngc_registry_url(ngc_registry_url):
