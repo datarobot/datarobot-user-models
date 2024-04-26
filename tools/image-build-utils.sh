@@ -48,7 +48,9 @@ function build_dropin_env_dockerfile() {
     local sed=sed
   fi
   # insert 'COPY wheel wheel' after 'COPY dr_requirements.txt dr_requirements.txt'
-  $sed -i "/COPY \+dr_requirements.txt \+dr_requirements.txt/a COPY ${DRUM_WHEEL_FILENAME} ${DRUM_WHEEL_FILENAME}" Dockerfile
+  if ! grep -q "COPY \+${DRUM_WHEEL_FILENAME}" Dockerfile; then
+    $sed -i "/COPY \+dr_requirements.txt \+dr_requirements.txt/a COPY ${DRUM_WHEEL_FILENAME} ${DRUM_WHEEL_FILENAME}" Dockerfile
+  fi
   # replace 'datarobot-drum' requirement with a wheel
   $sed -i "s/^datarobot-drum.*/${DRUM_WHEEL_FILENAME}${WITH_R}/" dr_requirements.txt
   # In general we want DRUM not to depend on uwsgi, so install it explicitly for the tests

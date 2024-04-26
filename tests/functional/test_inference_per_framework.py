@@ -1163,9 +1163,7 @@ class TestInference:
             (GPU_VLLM, TargetType.TEXT_GENERATION, "gpu_vllm_textgen/custom_model"),
         ],
     )
-    def test_vllm_predictor(
-        self, framework, target_type, model_template_dir, framework_env
-    ):
+    def test_vllm_predictor(self, framework, target_type, model_template_dir, framework_env):
         skip_if_framework_not_in_env(framework, framework_env)
         skip_if_keys_not_in_env(["HF_TOKEN"])
 

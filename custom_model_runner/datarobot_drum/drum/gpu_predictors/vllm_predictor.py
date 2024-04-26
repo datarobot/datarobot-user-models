@@ -26,16 +26,20 @@ class VllmPredictor(BaseGpuPredictor):
 
     def health_check(self) -> typing.Tuple[dict, int]:
         """
-        Proxy health checks to NeMo Inference Server
+        Proxy health checks to vLLM Inference Server
         """
         try:
-            health_url = f"{self.openai_host}:{self.health_port}/health"
+            health_url = f"http://{self.openai_host}:{self.openai_port}/health"
             response = requests.get(health_url, timeout=5)
             return {"message": response.text}, response.status_code
         except Timeout:
             return {"message": "Timeout waiting for vLLM health route to respond."}, 503
 
     def download_and_serve_model(self, openai_process: DrumServerProcess):
+        """
+        Download OSS LLM model via custom hook or make sure runtime params are set correclty
+        to allow vLLM to download from HuggingFace Hub.
+        """
         if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL):
             try:
                 self.python_model_adapter.load_model_from_artifact(skip_predictor_lookup=True)
@@ -98,6 +102,9 @@ class VllmPredictor(BaseGpuPredictor):
                 self.logger.info(line[:-1])
 
     def terminate(self):
+        """
+        Shutdown vLLM Inference Server
+        """
         if not self.openai_process or not self.openai_process.process:
             self.logger.info("vLLM is not running, skipping shutdown...")
             return
