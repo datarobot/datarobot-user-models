@@ -6,6 +6,10 @@ from pathlib import Path
 
 from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
+from custom_model_runner.datarobot_drum.custom_task_interfaces.user_secrets import (
+    ApiTokenSecret,
+    SecretType,
+)
 
 
 # this path is required by NeMo Inference Server
@@ -33,10 +37,16 @@ class NGCRegistryClient:
 
     def set_configuration(self):
         template = self.env.get_template(self.NGC_CONFIG_TEMPLATE)
+        cred_dict = RuntimeParameters.get("ngcCredential")
+        assert (
+            cred_dict["credential_type"] == SecretType.API_TOKEN.value
+        ), "NGC credential should be of type API_TOKEN"
+        ngc_credential = ApiTokenSecret.from_dict(cred_dict)
+
         ngc_config = template.render(
-            ngc_api_key=RuntimeParameters.get("ngc_api_key"),
-            ngc_org=RuntimeParameters.get("ngc_org"),
-            ngc_team=RuntimeParameters.get("ngc_team"),
+            ngc_api_key=ngc_credential.api_token,
+            ngc_org=RuntimeParameters.get("ngcOrg"),
+            ngc_team=RuntimeParameters.get("ngcTeam"),
         )
 
         # create ~/.ngc/config
