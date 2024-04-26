@@ -59,22 +59,20 @@ class BaseGpuPredictor(BaseLanguagePredictor):
         self.ai_client = None
 
         # chat input fields
-        self.system_prompt_value = self.get_optional_parameter("system_prompt")
-        self.user_prompt_column = self.get_optional_parameter("prompt_column_name", "promptText")
-        self.assistant_response_column = self.get_optional_parameter(
-            "assistant_column_name", "assistant"
-        )
+        self.system_prompt_value = RuntimeParameters.get("system_prompt", "")
+        self.user_prompt_column = RuntimeParameters.get("prompt_column_name", "promptText")
+        self.assistant_response_column = RuntimeParameters.get("assistant_column_name", "assistant")
 
         # completions configuration can be changed with Runtime parameters
-        self.max_tokens = self.get_optional_parameter("max_tokens", 512)
-        self.use_chat_context = self.get_optional_parameter("chat_context", False)
-        self.num_choices_per_completion = self.get_optional_parameter("n", 1)
-        self.temperature = self.get_optional_parameter("temperature", 0.01)
+        self.max_tokens = RuntimeParameters.get("max_tokens", 512)
+        self.use_chat_context = RuntimeParameters.get("chat_context", False)
+        self.num_choices_per_completion = RuntimeParameters.get("n", 1)
+        self.temperature = RuntimeParameters.get("temperature", 0.01)
 
         # used to load custom model hooks
         self.python_model_adapter = None
         # report deployment status events to DataRobot
-        self.verify_ssl = self.get_optional_parameter("verifySSL", True)
+        self.verify_ssl = RuntimeParameters.get("verifySSL", True)
         self.status_reporter: MLOpsStatusReporter = None
 
     def has_read_input_data_hook(self):
@@ -146,13 +144,6 @@ class BaseGpuPredictor(BaseLanguagePredictor):
 
     def readiness_probe(self):
         return self.health_check()
-
-    @staticmethod
-    def get_optional_parameter(key, default_value=None):
-        try:
-            return RuntimeParameters.get(key)
-        except ValueError:
-            return default_value
 
     def _predict(self, **kwargs) -> RawPredictResponse:
         data = kwargs.get(StructuredDtoKeys.BINARY_DATA)

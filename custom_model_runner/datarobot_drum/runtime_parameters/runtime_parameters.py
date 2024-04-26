@@ -48,7 +48,7 @@ class RuntimeParameters:
     PARAM_PREFIX = "MLOPS_RUNTIME_PARAM"
 
     @classmethod
-    def get(cls, key):
+    def get(cls, key, default=None):
         """
         Fetches the value of a runtime parameter as set by the platform. A ValueError is
         raised if the parameter is not set.
@@ -57,6 +57,8 @@ class RuntimeParameters:
         ----------
         key: str
             The name of the runtime parameter
+        default:
+            a default value to return if the parameter is not set
 
 
         Returns
@@ -67,7 +69,7 @@ class RuntimeParameters:
         Raises
         ------
         ValueError
-            Raised when the parameter key was not set by the platform
+            Raised when the parameter key was not set by the platform and no default value set
         InvalidJsonException
             Raised if there were issues decoding the value of the parameter
         InvalidRuntimeParam
@@ -75,7 +77,9 @@ class RuntimeParameters:
         """
         runtime_param_key = cls.namespaced_param_name(key)
         if runtime_param_key not in os.environ:
-            raise ValueError(f"Runtime parameter '{key}' does not exist!")
+            if default is None:
+                raise ValueError(f"Runtime parameter '{key}' does not exist!")
+            return default
 
         try:
             env_value = json.loads(os.environ[runtime_param_key])
