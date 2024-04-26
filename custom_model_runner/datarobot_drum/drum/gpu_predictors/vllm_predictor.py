@@ -27,7 +27,7 @@ class VllmPredictor(BaseGpuPredictor):
         Proxy health checks to NeMo Inference Server
         """
         try:
-            health_url = f"{self.openai_host}:{self.health_port}/v1/health/ready"
+            health_url = f"{self.openai_host}:{self.health_port}/health"
             response = requests.get(health_url, timeout=5)
             return {"message": response.text}, response.status_code
         except Timeout:
@@ -40,24 +40,40 @@ class VllmPredictor(BaseGpuPredictor):
             except Exception as e:
                 raise DrumCommonException(f"An error occurred when loading your artifact: {str(e)}")
 
+        model = self.get_optional_parameter("model")
+        if model:
+            huggingface_token = self.get_optional_parameter("HuggingFaceToken")
+            if not huggingface_token:
+                raise DrumCommonException(
+                    "`HuggingFaceToken` is a required runtime parameter when `model` runtime"
+                    " parameter is provided."
+                )
+        else:
+            model = "/opt/code/vllm/"
+            if not os.path.isdir(model):
+                raise DrumCommonException(
+                    "Either the `model` runtime parameter is required or model files must be"
+                    f" placed in the `{model}` directory."
+                )
+
         cmd = [
-            "nemollm_inference_ms",
-            "--model_name",
-            self.model_name,
-            "--health_port",
-            self.health_port,
-            "--openai_port",
+            "python3",
+            "-m",
+            "vllm.entrypoints.openai.api_server",
+            "--host",
+            self.openai_host,
+            "--port",
             self.openai_port,
-            "--nemo_port",
-            self.nemo_port,
-            "--num_gpus",
-            self.gpu_count,
-            "--log_level",
-            "info",
+            "--served-model-name",
+            self.DEFAULT_MODEL_NAME,
+            "--model",
+            model,
         ]
 
-        # update the path so nemollm process can find its libraries
+        # update the path so vllm process can find its libraries
         env = os.environ.copy()
+        if huggingface_token:
+            env["HF_TOKEN"] = huggingface_token["apiToken"]
         datarobot_venv_path = os.environ.get("VIRTUAL_ENV")
         env["PATH"] = env["PATH"].replace(f"{datarobot_venv_path}/bin:", "")
         with subprocess.Popen(
@@ -73,7 +89,7 @@ class VllmPredictor(BaseGpuPredictor):
 
     def terminate(self):
         if not self.openai_process or not self.openai_process.process:
-            self.logger.info("Nemo is not running, skipping shutdown...")
+            self.logger.info("vLLM is not running, skipping shutdown...")
             return
 
         pgid = None
