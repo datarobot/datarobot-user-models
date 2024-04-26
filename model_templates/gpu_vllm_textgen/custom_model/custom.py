@@ -1,5 +1,5 @@
-#
-MODEL_DIR = "/opt/code/vllm/
+# Save your OSS LLM to this directory to be loaded by vLLM.
+MODEL_DIR = "/opt/code/vllm/"
 
 
 def load_model(code_dir: str):
