@@ -78,6 +78,10 @@ class BaseGpuPredictor(BaseLanguagePredictor):
         return False
 
     @property
+    def model_name(self):
+        return self.DEFAULT_MODEL_NAME
+
+    @property
     def supported_payload_formats(self):
         formats = SupportedPayloadFormats()
         formats.add(PayloadFormat.CSV)

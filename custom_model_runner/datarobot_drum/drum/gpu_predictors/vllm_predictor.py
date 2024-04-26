@@ -8,6 +8,7 @@ import os
 import signal
 import subprocess
 import typing
+from pathlib import Path
 
 import requests
 from requests import Timeout
@@ -17,10 +18,11 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.gpu_predictors import BaseGpuPredictor
 from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 
+CODE_DIR = Path(os.environ.get("CODE_DIR", "/opt/code"))
+
 
 class VllmPredictor(BaseGpuPredictor):
-    def __init__(self):
-        super().__init__()
+    DEFAULT_MODEL_DIR = CODE_DIR / "vllm"
 
     def health_check(self) -> typing.Tuple[dict, int]:
         """
@@ -31,7 +33,7 @@ class VllmPredictor(BaseGpuPredictor):
             response = requests.get(health_url, timeout=5)
             return {"message": response.text}, response.status_code
         except Timeout:
-            return {"message": "Timeout waiting for Nemo health route to respond."}, 503
+            return {"message": "Timeout waiting for vLLM health route to respond."}, 503
 
     def download_and_serve_model(self, openai_process: DrumServerProcess):
         if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL):
@@ -40,21 +42,29 @@ class VllmPredictor(BaseGpuPredictor):
             except Exception as e:
                 raise DrumCommonException(f"An error occurred when loading your artifact: {str(e)}")
 
-        model = self.get_optional_parameter("model")
-        if model:
-            huggingface_token = self.get_optional_parameter("HuggingFaceToken")
-            if not huggingface_token:
-                raise DrumCommonException(
-                    "`HuggingFaceToken` is a required runtime parameter when `model` runtime"
-                    " parameter is provided."
-                )
+        huggingface_token = self.get_optional_parameter("HuggingFaceToken")
+        # If custom hook loaded the model into the expected place we are done
+        if self.DEFAULT_MODEL_DIR.is_dir() and list(self.DEFAULT_MODEL_DIR.iterdir()):
+            self.logger.info(f"Default model path ({self.DEFAULT_MODEL_DIR}) appears to be ready")
+            model_or_path = str(self.DEFAULT_MODEL_DIR)
+
+        # Otherwise, we expect a runtime param to have been specified
+        elif model := self.get_optional_parameter("model"):
+            if os.path.isdir(model) and os.listdir(model):
+                self.logger.info(f"`model` runtime parameter points to a valid directory: {model}")
+            else:
+                if not huggingface_token:
+                    raise DrumCommonException(
+                        "`HuggingFaceToken` is a required runtime parameter when `model` runtime"
+                        " parameter is provided."
+                    )
+                self.logger.info(f"Will download `{model}` from HuggingFace Hub")
+            model_or_path = model
         else:
-            model = "/opt/code/vllm/"
-            if not os.path.isdir(model):
-                raise DrumCommonException(
-                    "Either the `model` runtime parameter is required or model files must be"
-                    f" placed in the `{model}` directory."
-                )
+            raise DrumCommonException(
+                "Either the `model` runtime parameter is required or model files must be"
+                f" placed in the `{self.DEFAULT_MODEL_DIR}` directory."
+            )
 
         cmd = [
             "python3",
@@ -65,9 +75,9 @@ class VllmPredictor(BaseGpuPredictor):
             "--port",
             self.openai_port,
             "--served-model-name",
-            self.DEFAULT_MODEL_NAME,
+            self.model_name,
             "--model",
-            model,
+            model_or_path,
         ]
 
         # update the path so vllm process can find its libraries
