@@ -75,7 +75,7 @@ class BaseGpuPredictor(BaseLanguagePredictor):
         self.python_model_adapter = None
         # report deployment status events to DataRobot
         self.verify_ssl = self.get_optional_parameter("verifySSL", True)
-        self.status_reporter = None
+        self.status_reporter: MLOpsStatusReporter = None
 
     def has_read_input_data_hook(self):
         return False
@@ -94,7 +94,7 @@ class BaseGpuPredictor(BaseLanguagePredictor):
             mlops_api_token=params["api_token"],
             deployment_id=params["deployment_id"],
             verify_ssl=self.verify_ssl,
-            # download starts|completed, server starts|completed
+            # Events: download started|completed, server launching|ready
             total_deployment_stages=4,
         )
 

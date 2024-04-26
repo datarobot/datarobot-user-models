@@ -31,6 +31,7 @@ class NemoPredictor(BaseGpuPredictor):
         self.model_store_path = os.environ.get("MODEL_STORE_PATH", "/model-store")
         self.health_port = os.environ.get("HEALTH_PORT", "9997")
         self.nemo_port = os.environ.get("NEMO_PORT", "9998")
+        self.server_started_event_reported = False
         self.model_config = None
 
     @property
@@ -43,7 +44,9 @@ class NemoPredictor(BaseGpuPredictor):
     def download_and_serve_model(self, openai_process: DrumServerProcess):
         if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL):
             try:
+                self.status_reporter.report_deployment("Model artifacts download started...")
                 self.python_model_adapter.load_model_from_artifact(skip_predictor_lookup=True)
+                self.status_reporter.report_deployment("Model artifacts download completed.")
             except Exception as e:
                 raise DrumCommonException(f"An error occurred when loading your artifact: {str(e)}")
 
@@ -67,6 +70,8 @@ class NemoPredictor(BaseGpuPredictor):
         env = os.environ.copy()
         datarobot_venv_path = os.environ.get("VIRTUAL_ENV")
         env["PATH"] = env["PATH"].replace(f"{datarobot_venv_path}/bin:", "")
+
+        self.status_reporter.report_deployment("NeMo Inference Server is launching...")
         with subprocess.Popen(
             cmd,
             env=env,
@@ -85,6 +90,10 @@ class NemoPredictor(BaseGpuPredictor):
         try:
             nemo_health_url = f"http://{self.openai_host}:{self.health_port}/v1/health/ready"
             response = requests.get(nemo_health_url, timeout=5)
+            if response.status_code == 200 and not self.server_started_event_reported:
+                self.status_reporter.report_deployment("NeMo Inference Server is ready.")
+                self.server_started_event_reported = True
+
             return {"message": response.text}, response.status_code
         except Timeout:
             return {"message": "Timeout waiting for Nemo health route to respond."}, 503
