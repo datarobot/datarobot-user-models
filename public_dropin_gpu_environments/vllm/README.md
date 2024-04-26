@@ -9,8 +9,15 @@ This drop-in environment contains the vLLM OpenAI compatible inference server wi
 
 ### Creating models for this environment
 
-To use this environment, your custom model archive must contain a model repository directory structure
-which is expected by vLLM server. Refer to
+To use this environment, your custom model archive must contain at least one of the following:
+
+1. Download an OSS LLM directly from [HuggingFace](https://huggingface.co) via setting the following Runtime Parameters:
+  - `model`: name of the HuggingFace model (i.e. `meta-llama/Llama-2-7b-chat-hf`)
+  - `HuggingFaceToken`: a credential of type API Token that
+
+2. Download an OSS LLM via a user defined means via providing a `load_model` hook in a `custom.py` file that downloads the model artifacts to `/opt/code/vllm/`.
+
+3. Provide a `vllm/` directory in the custom models assembly process that contains a supported model.
 
 
 This environment makes the following assumption about your serialized model:
