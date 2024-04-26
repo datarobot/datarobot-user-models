@@ -95,7 +95,7 @@ class NGCRegistryClient:
         # the NGC configuration is expected to be at ~/.ngc/config
         user_home_path = os.environ["HOME"]
         self.ngc_config_dir = f"{user_home_path}/.ngc"
-        self.ngc_config_file = f"{ngc_config_dir}/config"
+        self.ngc_config_file = f"{self.ngc_config_dir}/config"
         ngc_config = f"[CURRENT]\napikey = {self.api_token}"
 
         Path(self.ngc_config_dir).mkdir(exist_ok=True)
