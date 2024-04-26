@@ -11,12 +11,15 @@ import logging
 import os
 import sys
 import typing
+from datetime import datetime, timezone
 from pathlib import Path
 from threading import Thread
 
 import numpy as np
 import openai
+import requests
 from openai import OpenAI
+from requests import HTTPError
 
 from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
@@ -146,13 +149,6 @@ class BaseGpuPredictor(BaseLanguagePredictor):
 
     def readiness_probe(self):
         return self.health_check()
-
-    @staticmethod
-    def get_optional_parameter(key, default_value=None):
-        try:
-            return RuntimeParameters.get(key)
-        except ValueError:
-            return default_value
 
     def _predict(self, **kwargs) -> RawPredictResponse:
         data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
@@ -287,7 +283,7 @@ class MLOpsStatusReporter:
             "title": title,
             "message": message,
             "timestamp": datetime.now(timezone.utc).isoformat(),
-            "deploymentId": self.deployment.id,
+            "deploymentId": self.deployment_id,
         }
 
         try:
@@ -299,5 +295,5 @@ class MLOpsStatusReporter:
                 timeout=5,
             )
             response.raise_for_status()
-        except (ConnectionError, HTTPError, MaxRetryError):
-            logger.warning("Deployment event can not be reported to MLOPS", exc_info=True)
+        except (ConnectionError, HTTPError):
+            self.logger.warning("Deployment event can not be reported to MLOPS", exc_info=True)

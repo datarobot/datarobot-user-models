@@ -1,15 +1,16 @@
-import io
+import logging
 import os
-import boto3
 import subprocess
-
-from datarobot_drum.drum.exceptions import DrumCommonException
-from subprocess import CalledProcessError
-from mlpiper.extra.aws_helper import AwsHelper
 from pathlib import Path
+from subprocess import CalledProcessError
+
+import boto3
+from mlpiper.extra.aws_helper import AwsHelper
 
 from datarobot_drum import RuntimeParameters
+from datarobot_drum.custom_task_interfaces.user_secrets import SecretType
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.exceptions import DrumCommonException
 
 # this path is required by NeMo Inference Server
 NEMO_MODEL_STORE_DIR = "/model-store"
@@ -74,7 +75,9 @@ class NGCRegistryClient:
             )
         except CalledProcessError as e:
             self.logger.error(e.stderr)
-            raise DrumCommonException(f"Failed to download a model version from the NGC registry:\n {ngc_registry_url}")
+            raise DrumCommonException(
+                f"Failed to download a model version from the NGC registry:\n {ngc_registry_url}"
+            )
 
     @staticmethod
     def _parse_ngc_registry_url(ngc_registry_url):
