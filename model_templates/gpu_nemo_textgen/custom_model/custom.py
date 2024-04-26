@@ -1,69 +1,65 @@
+import io
 import os
 import boto3
-from jinja2 import Environment, FileSystemLoader
 from mlpiper.extra.aws_helper import AwsHelper
 from pathlib import Path
 
 from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
-from custom_model_runner.datarobot_drum.custom_task_interfaces.user_secrets import (
-    ApiTokenSecret,
-    SecretType,
-)
-
 
 # this path is required by NeMo Inference Server
 NEMO_MODEL_STORE_DIR = "/model-store"
 
 
 def load_model(code_dir: str):
-    s3_url = RuntimeParameters.get("s3Url")
-    s3_credential = RuntimeParameters.get("s3Credential")
-    s3_client = S3Client(s3_url, s3_credential)
+    load_model_response = "succeeded"  # a non-empty response is required to signal that load_model succeeded
 
-    keys, dirs = s3_client.list_objects()
-    s3_client.download_files(NEMO_MODEL_STORE_DIR, keys, dirs)
-    return "success"  # a non empty response is required to signal that model is loaded successfully
+    s3_url = RuntimeParameters.get("s3Url", "")
+    if s3_url:
+        s3_credential = RuntimeParameters.get("s3Credential")
+        s3_client = S3Client(s3_url, s3_credential)
+
+        keys, dirs = s3_client.list_objects()
+        s3_client.download_files(NEMO_MODEL_STORE_DIR, keys, dirs)
+        return load_model_response
+
+    ngc_registry_url = RuntimeParameters.get("ngcRegistryUrl", "")
+    if ngc_registry_url:
+        ngc_credential = RuntimeParameters.get("ngcCredential")
+        ngc_client = NGCRegistryClient(ngc_credential)
+        ngc_client.download_model_version(ngc_registry_url)
+        return load_model_response
+
+    raise Exception(
+        "Can't download model artifacts. The 'ngcRegistryUrl' or 's3Url'"
+        " are expected to be set in the Runtime Parameters."
+    )
 
 
 class NGCRegistryClient:
-    NGC_CONFIG_TEMPLATE = "ngc_config_template.j2"
     logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
-    def __init__(self):
-        templates_dir = os.path.dirname(__file__)
-        file_loader = FileSystemLoader(templates_dir)
-        self.env = Environment(file_loader)
+    def __init__(self, ngc_credential):
+        if ngc_credential["credentialType"] != SecretType.API_TOKEN.value:
+            raise ValueError("NGC credential is expected to be of type 'API_TOKEN'.")
+        self.api_token = ngc_credential["apiToken"]
+        self._configure_ngc_client()
 
-    def set_configuration(self):
-        template = self.env.get_template(self.NGC_CONFIG_TEMPLATE)
-        cred_dict = RuntimeParameters.get("ngcCredential")
-        assert (
-            cred_dict["credential_type"] == SecretType.API_TOKEN.value
-        ), "NGC credential should be of type API_TOKEN"
-        ngc_credential = ApiTokenSecret.from_dict(cred_dict)
+    def download_model_version(self, ngc_registry_url):
+        ngc_org, ngc_team = self._parse_ngc_registry_url(ngc_registry_url)
 
-        ngc_config = template.render(
-            ngc_api_key=ngc_credential.api_token,
-            ngc_org=RuntimeParameters.get("ngcOrg"),
-            ngc_team=RuntimeParameters.get("ngcTeam"),
-        )
+        cmd = [
+            "ngc",
+            "registry",
+            "model",
+            "download-version",
+            "--org",
+            ngc_org,
+            "--team",
+            ngc_team,
+            ngc_registry_url,
+        ]
 
-        # create ~/.ngc/config
-        user_home_path = os.environ["HOME"]
-        ngc_config_dir = f"{user_home_path}/.ngc"
-        ngc_config_file = f"{ngc_config_dir}/config"
-
-        if not Path(ngc_config_file).exists():
-            self.logger.info("Creating a new NGC configuration")
-            Path().mkdir(exist_ok=True)
-            with open(ngc_config_file, "w") as f:
-                f.write(ngc_config)
-        else:
-            self.logger.info("Found existing NGC configuration. Reusing existing one.")
-
-    def pull_model(self, model_name_and_tag):
-        cmd = ["ngc", "registry", "model", "download-version", model_name_and_tag]
         p = subprocess.Popen(
             cmd,
             env=os.environ,
@@ -78,6 +74,28 @@ class NGCRegistryClient:
             self.logger.error(stderr)
 
         assert p.returncode == 0, "Failed to download model version from NGC registry"
+
+    @staticmethod
+    def _parse_ngc_registry_url(ngc_registry_url):
+        url_parts = ngc_registry_url.split("/")
+        if len(url_parts) != 3:
+            raise ValueError(
+                "Invalid NGC registry URL format. Expected format: {org}/{team}/{model_name}:{tag}"
+            )
+
+        # org, team
+        return url_parts[0], url_parts[1]
+
+    def _configure_ngc_client(self):
+        # the NGC configuration is expected to be at ~/.ngc/config
+        user_home_path = os.environ["HOME"]
+        self.ngc_config_dir = f"{user_home_path}/.ngc"
+        self.ngc_config_file = f"{ngc_config_dir}/config"
+        ngc_config = f"[CURRENT]\napikey = {self.api_token}"
+
+        Path(self.ngc_config_dir).mkdir(exist_ok=True)
+        with open(self.ngc_config_file, "w") as f:
+            f.write(ngc_config)
 
 
 class S3Client:
