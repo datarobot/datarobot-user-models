@@ -1,7 +1,11 @@
 import os
 import boto3
+from jinja2 import Environment, FileSystemLoader
 from mlpiper.extra.aws_helper import AwsHelper
+from pathlib import Path
+
 from datarobot_drum import RuntimeParameters
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 
 
 # this path is required by NeMo Inference Server
@@ -9,17 +13,61 @@ NEMO_MODEL_STORE_DIR = "/model-store"
 
 
 def load_model(code_dir: str):
-    print("Downloading model from S3...")
-
     s3_url = RuntimeParameters.get("s3Url")
     s3_credential = RuntimeParameters.get("s3Credential")
     s3_client = S3Client(s3_url, s3_credential)
 
     keys, dirs = s3_client.list_objects()
     s3_client.download_files(NEMO_MODEL_STORE_DIR, keys, dirs)
+    return "success"  # a non empty response is required to signal that model is loaded successfully
 
-    print("Download complete")
-    return "DONE"  # a non empty response is required
+
+class NGCRegistryClient:
+    NGC_CONFIG_TEMPLATE = "ngc_config_template.j2"
+    logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
+
+    def __init__(self):
+        templates_dir = os.path.dirname(__file__)
+        file_loader = FileSystemLoader(templates_dir)
+        self.env = Environment(file_loader)
+
+    def set_configuration(self):
+        template = self.env.get_template(self.NGC_CONFIG_TEMPLATE)
+        ngc_config = template.render(
+            ngc_api_key=RuntimeParameters.get("ngc_api_key"),
+            ngc_org=RuntimeParameters.get("ngc_org"),
+            ngc_team=RuntimeParameters.get("ngc_team"),
+        )
+
+        # create ~/.ngc/config
+        user_home_path = os.environ["HOME"]
+        ngc_config_dir = f"{user_home_path}/.ngc"
+        ngc_config_file = f"{ngc_config_dir}/config"
+
+        if not Path(ngc_config_file).exists():
+            self.logger.info("Creating a new NGC configuration")
+            Path().mkdir(exist_ok=True)
+            with open(ngc_config_file, "w") as f:
+                f.write(ngc_config)
+        else:
+            self.logger.info("Found existing NGC configuration. Reusing existing one.")
+
+    def pull_model(self, model_name_and_tag):
+        cmd = ["ngc", "registry", "model", "download-version", model_name_and_tag]
+        p = subprocess.Popen(
+            cmd,
+            env=os.environ,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        stdout, stderr = p.communicate()
+
+        if len(stdout):
+            self.logger.info(stdout)
+        if len(stderr):
+            self.logger.error(stderr)
+
+        assert p.returncode == 0, "Failed to download model version from NGC registry"
 
 
 class S3Client:
