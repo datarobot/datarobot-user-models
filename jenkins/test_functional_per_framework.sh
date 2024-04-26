@@ -43,6 +43,9 @@ elif [ "$1" = "nemo" ]; then
 elif [ "$1" = "triton" ]; then
     ENVS_DIR="public_dropin_gpu_environments"
     DOCKER_IMAGE="triton_server"
+elif [ "$1" = "vllm" ]; then
+    ENVS_DIR="public_dropin_gpu_environments"
+    DOCKER_IMAGE="vllm"
 fi;
 
 # The "jenkins_artifacts" folder is created in the groovy script
@@ -96,8 +99,12 @@ echo "detected machine=$machine url_host: $url_host"
 export GPU_COUNT=$(nvidia-smi -L | wc -l)
 echo "GPU count: $GPU_COUNT"
 
-docker run -i \
-     `if [ $GPU_COUNT -ge 1 ]; then echo "--gpus all"; fi` \
+GPU_OPTION=""
+if [ $GPU_COUNT -ge 1 ] ; then
+  GPU_OPTION="--gpus all"
+fi
+
+docker run -i $TERMINAM_OPTION $GPU_OPTION \
       --network $network \
       -v $HOME:$HOME \
       -e GPU_COUNT=$GPU_COUNT \
@@ -108,7 +115,6 @@ docker run -i \
       -v /var/run/docker.sock:/var/run/docker.sock \
       -v "${GIT_ROOT}:${GIT_ROOT}" \
       --workdir ${GIT_ROOT} \
-      -i $TERMINAM_OPTION\
       --entrypoint "" \
       $DOCKER_IMAGE \
       ./tests/functional/run_integration_tests_in_framework_container.sh $1

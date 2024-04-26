@@ -84,6 +84,7 @@ from tests.constants import (
     MODEL_TEMPLATES_PATH,
     TESTS_DATA_PATH,
     GPU_NEMO,
+    GPU_VLLM,
 )
 from datarobot_drum.resource.drum_server_utils import DrumServerRun, wait_for_server
 from datarobot_drum.resource.utils import (
@@ -1103,10 +1104,6 @@ class TestInference:
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         skip_if_keys_not_in_env(["GPU_COUNT", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"])
-        if not os.environ["GPU_COUNT"]:
-            pytest.skip(
-                f"The test case requires GPU node to run on, no GPUs found. Check output of the `nvidia-smi`."
-            )
 
         # the Runtime parameters used by the custom.py load_model hook to download the model
         os.environ["MLOPS_RUNTIME_PARAM_s3Url"] = json.dumps(
@@ -1135,6 +1132,61 @@ class TestInference:
 
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, model_template_dir)
         data = io.StringIO("user_prompt\ntell me a joke")
+
+        with DrumServerRun(
+            target_type=target_type.value,
+            target_name="promptText",
+            custom_model_dir=custom_model_dir,
+            gpu_predictor=framework,
+            labels=None,
+            nginx=False,
+            wait_for_server_timeout=600,
+        ) as run:
+            headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
+            response = requests.post(
+                f"{run.url_server_address}/predict/",
+                data=data,
+                headers=headers,
+            )
+            assert response.ok
+            response_data = response.json()
+            assert response_data
+            assert "predictions" in response_data, response_data
+            assert len(response_data["predictions"]) == 1
+            assert (
+                "Why don't scientists trust atoms?" in response_data["predictions"][0]
+            ), response_data
+
+    @pytest.mark.parametrize(
+        "framework, target_type, model_template_dir",
+        [
+            (GPU_VLLM, TargetType.TEXT_GENERATION, "gpu_vllm_textgen/custom_model"),
+        ],
+    )
+    def test_vllm_predictor(
+        self, framework, target_type, model_template_dir, framework_env
+    ):
+        skip_if_framework_not_in_env(framework, framework_env)
+        skip_if_keys_not_in_env(["HF_TOKEN"])
+
+        os.environ["MLOPS_RUNTIME_PARAM_model"] = json.dumps(
+            {
+                "type": "string",
+                "payload": "facebook/opt-125m",
+            }
+        )
+        os.environ["MLOPS_RUNTIME_PARAM_HuggingFaceToken"] = json.dumps(
+            {
+                "type": "credential",
+                "payload": {
+                    "credentialType": "apiToken",
+                    "apiToken": os.environ["HF_TOKEN"],
+                },
+            }
+        )
+
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, model_template_dir)
+        data = io.StringIO("user_prompt\nSan Francisco is a")
 
         with DrumServerRun(
             target_type=target_type.value,
