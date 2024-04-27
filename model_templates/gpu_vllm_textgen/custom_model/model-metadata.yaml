@@ -1,4 +1,4 @@
-name: NVIDIA NeMo Inference Server Example
+name: vLLM Inference Server Example
 type: inference
 targetType: textgeneration
 
