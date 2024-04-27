@@ -1162,7 +1162,9 @@ class TestInference:
             (GPU_VLLM, TargetType.TEXT_GENERATION, "gpu_vllm_textgen/custom_model"),
         ],
     )
-    def test_vllm_predictor(self, framework, target_type, model_template_dir, framework_env):
+    def test_vllm_predictor(
+        self, framework, target_type, model_template_dir, framework_env, caplog
+    ):
         skip_if_framework_not_in_env(framework, framework_env)
         skip_if_keys_not_in_env(["HF_TOKEN"])
 
@@ -1185,6 +1187,7 @@ class TestInference:
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, model_template_dir)
         data = io.StringIO("user_prompt\nSan Francisco is a")
 
+        caplog.set_level(logging.INFO)
         with DrumServerRun(
             target_type=target_type.value,
             target_name="promptText",
@@ -1192,7 +1195,7 @@ class TestInference:
             gpu_predictor=framework,
             labels=None,
             nginx=False,
-            wait_for_server_timeout=600,
+            wait_for_server_timeout=360,
         ) as run:
             headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
             response = requests.post(
