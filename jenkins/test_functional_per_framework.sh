@@ -102,15 +102,18 @@ echo "GPU count: $GPU_COUNT"
 GPU_OPTION=""
 if [ $GPU_COUNT -ge 1 ] ; then
   GPU_OPTION="--gpus all"
+else
+  # Don't set env var if no GPUs are available to tests can be skipped
+  unset GPU_COUNT
 fi
 
 docker run -i $TERMINAM_OPTION $GPU_OPTION \
       --network $network \
       -v $HOME:$HOME \
-      -e GPU_COUNT="$GPU_COUNT" \
-      -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
-      -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-      -e HF_TOKEN=$HF_TOKEN \
+      -e GPU_COUNT \
+      -e AWS_ACCESS_KEY_ID \
+      -e AWS_SECRET_ACCESS_KEY \
+      -e HF_TOKEN \
       -e TEST_URL_HOST=$url_host \
       -v /tmp:/tmp \
       -v /var/run/docker.sock:/var/run/docker.sock \
