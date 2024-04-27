@@ -11,7 +11,7 @@ import typing
 from pathlib import Path
 
 import requests
-from requests import Timeout
+from requests import ConnectionError, Timeout
 
 from datarobot_drum.drum.enum import CustomHooks
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -34,6 +34,8 @@ class VllmPredictor(BaseGpuPredictor):
             return {"message": response.text}, response.status_code
         except Timeout:
             return {"message": "Timeout waiting for vLLM health route to respond."}, 503
+        except ConnectionError as err:
+            return {"message": f"vLLM server is not ready: {str(err)}"}, 503
 
     def download_and_serve_model(self, openai_process: DrumServerProcess):
         """
