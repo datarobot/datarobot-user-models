@@ -10,7 +10,7 @@ import subprocess
 import typing
 
 import requests
-from requests import Timeout
+from requests import ConnectionError, Timeout
 
 from datarobot_drum.drum.enum import CustomHooks
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -87,7 +87,9 @@ class NemoPredictor(BaseGpuPredictor):
             response = requests.get(nemo_health_url, timeout=5)
             return {"message": response.text}, response.status_code
         except Timeout:
-            return {"message": "Timeout waiting for Nemo health route to respond."}, 503
+            return {"message": "Timeout waiting for NeMo health route to respond."}, 503
+        except ConnectionError as err:
+            return {"message": f"NeMo server is not ready: {str(err)}"}, 503
 
     def terminate(self):
         if not self.openai_process or not self.openai_process.process:
