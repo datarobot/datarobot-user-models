@@ -1,7 +1,7 @@
 {
   "id": "661516a0d53a8a537360dbd9",
   "name": "[NVIDIA] Triton Inference Server (24.01)",
-  "description": "This template environment can be used to create artifact-only ONNX custom models. This environment contains ONNX runtime and only requires your model artifact as an .onnx file and optionally a custom.py file.",
+  "description": "Triton Inference Server is open source software that lets teams deploy trained AI models from any framework, from local or cloud storage and on any GPU- or CPU-based infrastructure in the cloud, data center, or embedded devices.\n\nThis is the standard py3 image with support for Tensorflow, PyTorch, TensorRT, ONNX and OpenVINO models.",
   "programmingLanguage": "python",
   "environmentVersionId": "661925d7c1df095c96381218",
   "isPublic": true
