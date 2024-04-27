@@ -8,8 +8,8 @@
 echo "Starting Custom Model environment with vLLM"
 set -e
 
-# Don't send data back to vLLM
-export VLLM_NO_USAGE_STATS=1
+# Don't send any telemetry data (vLLM or HuggingFace libraries)
+export DO_NOT_TRACK=1
 
 # TODO: enable uwsgi with multiple workers after we are sure we only spin up
 #   one instance of vLLM and the load_model hook is only executed once.
