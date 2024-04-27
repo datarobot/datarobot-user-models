@@ -88,6 +88,7 @@ class VllmPredictor(BaseGpuPredictor):
 
         # update the path so vllm process can find its libraries
         env = os.environ.copy()
+        env["HF_HOME"] = str(CODE_DIR / ".cache" / "huggingface")
         if huggingface_token:
             env["HF_TOKEN"] = huggingface_token["apiToken"]
         datarobot_venv_path = os.environ.get("VIRTUAL_ENV")
@@ -97,6 +98,7 @@ class VllmPredictor(BaseGpuPredictor):
             env=env,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
+            text=True,
             preexec_fn=os.setsid,
         ) as p:
             openai_process.process = p
