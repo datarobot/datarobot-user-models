@@ -1166,7 +1166,8 @@ class TestInference:
         self, framework, target_type, model_template_dir, framework_env, caplog
     ):
         skip_if_framework_not_in_env(framework, framework_env)
-        skip_if_keys_not_in_env(["HF_TOKEN"])
+        # vLLM supports a CPU-only mode but currently it requires a dedicated Docker image
+        skip_if_keys_not_in_env(["GPU_COUNT", "HF_TOKEN"])
 
         os.environ["MLOPS_RUNTIME_PARAM_model"] = json.dumps(
             {
