@@ -1169,6 +1169,7 @@ class TestInference:
         # vLLM supports a CPU-only mode but currently it requires a dedicated Docker image
         skip_if_keys_not_in_env(["GPU_COUNT", "HF_TOKEN"])
 
+        # Override default params from example model to use a smaller model
         os.environ["MLOPS_RUNTIME_PARAM_model"] = json.dumps(
             {
                 "type": "string",
@@ -1184,6 +1185,10 @@ class TestInference:
                 },
             }
         )
+        # TODO: remove this when we can inject runtime params correctly.
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_prompt_column_name"
+        ] = '{"type":"string","payload":"user_prompt"}'
 
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, model_template_dir)
         data = io.StringIO("user_prompt\nSan Francisco is a")
