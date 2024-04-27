@@ -89,6 +89,7 @@ class VllmPredictor(BaseGpuPredictor):
         # update the path so vllm process can find its libraries
         env = os.environ.copy()
         env["HF_HOME"] = str(CODE_DIR / ".cache" / "huggingface")
+        env["NUMBA_CACHE_DIR"] = str(CODE_DIR / ".cache" / "numba")
         if huggingface_token:
             env["HF_TOKEN"] = huggingface_token["apiToken"]
         datarobot_venv_path = os.environ.get("VIRTUAL_ENV")
