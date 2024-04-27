@@ -6,6 +6,9 @@ RUN apt-get update && apt-get install -y \
     zstd \
   && rm -rf /var/lib/apt/lists/*
 
+# Don't send any telemetry data (vLLM or HuggingFace libraries)
+ENV DO_NOT_TRACK=1
+
 ENV DATAROBOT_VENV_PATH=/workspace/datarobot
 RUN mkdir -p ${DATAROBOT_VENV_PATH} && chown -R 1000:1000 ${DATAROBOT_VENV_PATH}
 
