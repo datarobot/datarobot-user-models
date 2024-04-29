@@ -1166,14 +1166,14 @@ class TestInference:
         self, framework, target_type, model_template_dir, framework_env, caplog
     ):
         skip_if_framework_not_in_env(framework, framework_env)
-        # vLLM supports a CPU-only mode but currently it requires a dedicated Docker image
         skip_if_keys_not_in_env(["GPU_COUNT", "HF_TOKEN"])
 
         # Override default params from example model to use a smaller model
+        # TODO: remove this when we can inject runtime params correctly.
         os.environ["MLOPS_RUNTIME_PARAM_model"] = json.dumps(
             {
                 "type": "string",
-                "payload": "facebook/opt-125m",
+                "payload": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
             }
         )
         os.environ["MLOPS_RUNTIME_PARAM_HuggingFaceToken"] = json.dumps(
@@ -1185,13 +1185,13 @@ class TestInference:
                 },
             }
         )
-        # TODO: remove this when we can inject runtime params correctly.
         os.environ[
             "MLOPS_RUNTIME_PARAM_prompt_column_name"
         ] = '{"type":"string","payload":"user_prompt"}'
+        os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 30}'
 
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, model_template_dir)
-        data = io.StringIO("user_prompt\nSan Francisco is a")
+        data = io.StringIO("user_prompt\nDescribe the city of Boston.")
 
         caplog.set_level(logging.INFO)
         with DrumServerRun(
@@ -1215,5 +1215,5 @@ class TestInference:
             assert "predictions" in response_data, response_data
             assert len(response_data["predictions"]) == 1
             assert (
-                "Why don't scientists trust atoms?" in response_data["predictions"][0]
+                "Boston is a vibrant and historic city" in response_data["predictions"][0]
             ), response_data
