@@ -40,12 +40,23 @@ function build_dropin_env_dockerfile() {
   then
     WITH_R="[R]"
   fi
+
+  # support Darwin
+  if command -v gsed &> /dev/null; then
+    local sed=gsed
+  else
+    local sed=sed
+  fi
   # insert 'COPY wheel wheel' after 'COPY dr_requirements.txt dr_requirements.txt'
-  sed -i "/COPY \+dr_requirements.txt \+dr_requirements.txt/a COPY ${DRUM_WHEEL_FILENAME} ${DRUM_WHEEL_FILENAME}" Dockerfile
+  if ! grep -q "COPY \+${DRUM_WHEEL_FILENAME}" Dockerfile; then
+    $sed -i "/COPY \+dr_requirements.txt \+dr_requirements.txt/a COPY ${DRUM_WHEEL_FILENAME} ${DRUM_WHEEL_FILENAME}" Dockerfile
+  fi
   # replace 'datarobot-drum' requirement with a wheel
-  sed -i "s/^datarobot-drum.*/${DRUM_WHEEL_FILENAME}${WITH_R}/" dr_requirements.txt
+  $sed -i "s/^datarobot-drum.*/${DRUM_WHEEL_FILENAME}${WITH_R}/" dr_requirements.txt
   # In general we want DRUM not to depend on uwsgi, so install it explicitly for the tests
-  echo "uwsgi==2.0.24" >> dr_requirements.txt
+  if ! grep -q "uwsgi" dr_requirements.txt; then
+    echo "uwsgi==2.0.24" >> dr_requirements.txt
+  fi
 
   popd || exit 1
 }

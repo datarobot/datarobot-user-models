@@ -1,5 +1,6 @@
-openai
 datarobot
 datarobot-mlops
 datarobot-mlops-connected-client
 datarobot-drum
+openai
+uwsgi

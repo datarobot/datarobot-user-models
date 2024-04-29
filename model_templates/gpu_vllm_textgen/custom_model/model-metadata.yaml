@@ -1,0 +1,40 @@
+name: vLLM Inference Server Example
+type: inference
+targetType: textgeneration
+
+runtimeParameterDefinitions:
+  - fieldName: model
+    type: string
+    defaultValue: meta-llama/Meta-Llama-3-8B-Instruct
+    description: Name of the model to download from HuggingFace **or** path to pre-downloaded model.
+
+  - fieldName: HuggingFaceToken
+    type: credential
+    credentialType: apiToken
+    description: Access Token from HuggingFace (https://huggingface.co/settings/tokens). Only
+      required if the model was not downloaded in the `custom.py:load_model` function.
+
+  - fieldName: max_tokens
+    type: numeric
+    defaultValue: 256
+    description: max number of symbols in response
+
+  - fieldName: chat_context
+    type: boolean
+    defaultValue: False
+    description: False means that each row represents a single completion request. True means that all the previous rows contain the chat history. If True, 'assitance' column must be set with the history of previous model completions.
+
+  - fieldName: system_prompt
+    type: string
+    defaultValue: You are a helpful AI assistant. Keep short answers of no more than 2 sentences.
+    description: instructions to the model, to set the tone of model completions
+
+  - fieldName: prompt_column_name
+    type: string
+    defaultValue: user_prompt
+    description: column with user's prompt, where all rows either represent a single chat history; or each row is a separate completion request.
+
+  - fieldName: assistance_column_name
+    type: string
+    defaultValue: assistant
+    description: column with models responses (used for chat history)
