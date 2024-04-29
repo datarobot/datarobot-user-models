@@ -4,7 +4,6 @@ import subprocess
 from pathlib import Path
 from subprocess import CalledProcessError
 
-import boto3
 from mlpiper.extra.aws_helper import AwsHelper
 
 from datarobot_drum.custom_task_interfaces.user_secrets import SecretType
@@ -117,6 +116,7 @@ class S3Client:
         self.bucket_name = parsed_url[0]
         self.prefix = parsed_url[1]
 
+        import boto3
         self.s3_client = boto3.client(
             "s3",
             aws_access_key_id=credential["awsAccessKeyId"],
