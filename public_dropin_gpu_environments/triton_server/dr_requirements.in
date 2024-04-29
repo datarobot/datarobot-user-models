@@ -1,5 +1,4 @@
 requests
-boto3
 openai
 datarobot-drum
 datarobot-mlops
