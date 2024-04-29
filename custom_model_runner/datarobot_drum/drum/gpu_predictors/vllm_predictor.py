@@ -15,13 +15,13 @@ from requests import ConnectionError, Timeout
 
 from datarobot_drum.drum.enum import CustomHooks
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.gpu_predictors import BaseGpuPredictor
+from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
 from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 
 CODE_DIR = Path(os.environ.get("CODE_DIR", "/opt/code"))
 
 
-class VllmPredictor(BaseGpuPredictor):
+class VllmPredictor(BaseOpenAiGpuPredictor):
     DEFAULT_MODEL_DIR = CODE_DIR / "vllm"
 
     def health_check(self) -> typing.Tuple[dict, int]:
@@ -39,7 +39,7 @@ class VllmPredictor(BaseGpuPredictor):
 
     def download_and_serve_model(self, openai_process: DrumServerProcess):
         """
-        Download OSS LLM model via custom hook or make sure runtime params are set correclty
+        Download OSS LLM model via custom hook or make sure runtime params are set correctly
         to allow vLLM to download from HuggingFace Hub.
         """
         if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL):
