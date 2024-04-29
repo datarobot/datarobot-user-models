@@ -15,8 +15,6 @@ from pathlib import Path
 from threading import Thread
 
 import numpy as np
-import openai
-from openai import OpenAI
 
 from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
@@ -74,6 +72,12 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         # used to load custom model hooks
         self.python_model_adapter = None
 
+        # Have a check in the ctor to we fail early if optional deps are not installed.
+        try:
+            import openai  # noqa: F401
+        except ImportError:
+            raise DrumCommonException("OpenAI Python SDK is not installed")
+
     def has_read_input_data_hook(self):
         return False
 
@@ -88,6 +92,8 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         return formats
 
     def mlpiper_configure(self, params):
+        from openai import OpenAI
+
         super().mlpiper_configure(params)
         self.python_model_adapter = PythonModelAdapter(
             model_dir=self._code_dir, target_type=self.target_type
@@ -202,6 +208,8 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
             raise DrumCommonException(f"Model expects column names '{expected_column_names}'")
 
     def _create_completions(self, messages, row_id=0):
+        from openai import BadRequestError
+
         if self.system_prompt_value:
             # only the first chat message can have the system role
             messages.insert(0, {"role": ChatRoles.SYSTEM, "content": self.system_prompt_value})
@@ -214,7 +222,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
             )
-        except openai.BadRequestError:
+        except BadRequestError:
             self.logger.error("Payload: %s", json.dumps(messages), exc_info=True)
             raise DrumCommonException("Bad payload")
 
