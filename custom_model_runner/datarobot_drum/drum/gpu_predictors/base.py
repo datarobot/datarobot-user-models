@@ -105,7 +105,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self.status_reporter = MLOpsStatusReporter(
             mlops_service_url=params["external_webserver_url"],
             mlops_api_token=params["api_token"],
-            deployment_id=params["deployment_id"],
+            deployment_id=params.get("deployment_id"),
             verify_ssl=self.verify_ssl,
             total_deployment_stages=self.num_deployment_stages,
         )

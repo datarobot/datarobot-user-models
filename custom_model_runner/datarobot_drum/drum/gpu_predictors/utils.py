@@ -6,19 +6,20 @@ from subprocess import CalledProcessError
 
 from mlpiper.extra.aws_helper import AwsHelper
 
-from datarobot_drum.custom_task_interfaces.user_secrets import SecretType
-from google.protobuf import text_format
-from tritonclient.grpc.model_config_pb2 import ModelConfig
 from datarobot_drum.drum.enum import TritonInferenceServerArtifacts
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.utils.drum_utils import DrumUtils
 
 
+logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 MODEL_STORE_DIR = "/model-store"
 
 
-def read_model_config(model_repository_dir) -> ModelConfig:
+def read_model_config(model_repository_dir):
+    from google.protobuf import text_format
+    from tritonclient.grpc.model_config_pb2 import ModelConfig
+
     artifacts_found = DrumUtils.find_files_by_extensions(
         model_repository_dir, TritonInferenceServerArtifacts.ALL
     )
@@ -49,11 +50,7 @@ def read_model_config(model_repository_dir) -> ModelConfig:
 
 
 class NGCRegistryClient:
-    logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
-
     def __init__(self, ngc_credential):
-        if ngc_credential["credentialType"] != SecretType.API_TOKEN.value:
-            raise ValueError("NGC credential is expected to be of type 'API_TOKEN'.")
         self.api_token = ngc_credential["apiToken"]
         self._configure_ngc_client()
 
@@ -80,9 +77,9 @@ class NGCRegistryClient:
                 capture_output=True,
                 check=True,
             )
-            self.logger.info(result.stdout)
+            logger.info(result.stdout)
         except CalledProcessError as e:
-            self.logger.error(e.stderr)
+            logger.error(e.stderr)
             raise DrumCommonException(
                 f"Failed to download a model version from the NGC registry:\n {ngc_registry_url}"
             )
@@ -117,6 +114,7 @@ class S3Client:
         self.prefix = parsed_url[1]
 
         import boto3
+
         self.s3_client = boto3.client(
             "s3",
             aws_access_key_id=credential["awsAccessKeyId"],
