@@ -6,11 +6,9 @@ from subprocess import CalledProcessError
 
 from mlpiper.extra.aws_helper import AwsHelper
 
-from datarobot_drum.drum.enum import TritonInferenceServerArtifacts
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, TritonInferenceServerArtifacts
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.utils.drum_utils import DrumUtils
-
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 MODEL_STORE_DIR = "/model-store"
