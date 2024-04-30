@@ -113,9 +113,7 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [
-            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
-        ],
+        [(SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN)],
     )
     @pytest.mark.parametrize("pass_args_as_env_vars", [False])
     def test_custom_models_with_drum_prediction_server(
@@ -223,9 +221,7 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [
-            (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
-        ],
+        [(SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN)],
     )
     def test_custom_models_with_drum_nginx_prediction_server(
         self,
@@ -284,9 +280,7 @@ class TestInference:
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
-        [
-            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, DOCKER_PYTHON_SKLEARN),
-        ],
+        [(SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, DOCKER_PYTHON_SKLEARN)],
     )
     def test_custom_transforms_with_drum_nginx_prediction_server(
         self,

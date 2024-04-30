@@ -32,7 +32,15 @@ class TestInference:
         "framework, problem, language, docker",
         [
             # (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
-            (SKLEARN, REGRESSION, PYTHON, None),
+            pytest.param(
+                SKLEARN,
+                REGRESSION,
+                PYTHON,
+                None,
+                marks=pytest.mark.skip(
+                    reason="RAPTOR-10675: fetching memory stats inside container seems broken, because of /sys/fs/cgroup/memory.xx layout, and cgroups v2"
+                ),
+            ),
         ],
     )
     def test_custom_models_with_drum_prediction_server(
