@@ -30,7 +30,7 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
 
     @property
     def num_deployment_stages(self):
-        return 2
+        return 4 if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL) else 2
 
     def health_check(self) -> typing.Tuple[dict, int]:
         """
@@ -55,7 +55,9 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
         """
         if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL):
             try:
+                self.status_reporter.report_deployment("Running user provided load-model hook...")
                 self.python_model_adapter.load_model_from_artifact(skip_predictor_lookup=True)
+                self.status_reporter.report_deployment("Load-model hook completed.")
             except Exception as e:
                 raise DrumCommonException(f"An error occurred when loading your artifact: {str(e)}")
 
