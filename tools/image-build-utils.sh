@@ -31,6 +31,11 @@ function build_dropin_env_dockerfile() {
   DRUM_WHEEL_REAL_PATH=$2
   DRUM_WHEEL_FILENAME=$(basename "$DRUM_WHEEL_REAL_PATH")
   WITH_R=""
+
+  if [ "$DROPIN_ENV_DIRNAME" = "python39_streamlit" ]; then
+    return 0
+  fi
+
   pwd
   pushd "$DROPIN_ENV_DIRNAME" || exit 1
   cp "$DRUM_WHEEL_REAL_PATH" .
