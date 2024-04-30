@@ -10,7 +10,7 @@ runtimeParameterDefinitions:
 
   - fieldName: HuggingFaceToken
     type: credential
-    credentialType: apiToken
+    credentialType: api_token
     description: Access Token from HuggingFace (https://huggingface.co/settings/tokens). Only
       required if the model was not downloaded in the `custom.py:load_model` function.
 
