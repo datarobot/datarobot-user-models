@@ -70,10 +70,6 @@ class TritonPredictor(BaseLanguagePredictor):
         formats.add(PayloadFormat.CSV)
         return formats
 
-    @property
-    def num_deployment_stages(self):
-        return 0
-
     def has_read_input_data_hook(self):
         return False
 
