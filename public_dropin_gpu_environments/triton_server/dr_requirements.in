@@ -1,5 +1,4 @@
 requests
-openai
 datarobot-drum
 datarobot-mlops
 tritonclient[grpc]
