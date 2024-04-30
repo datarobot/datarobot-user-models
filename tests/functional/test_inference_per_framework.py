@@ -4,13 +4,15 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import io
 import json
+import logging
+import os
 from json import JSONDecoder
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
+from unittest.mock import patch
 
-import io
-import os
 import pandas as pd
 import pyarrow
 import pytest
@@ -18,29 +20,43 @@ import requests
 import scipy
 from scipy.sparse import csr_matrix
 
-from unittest.mock import patch
-
-
+from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.enum import (
+    MODEL_CONFIG_FILENAME,
     X_TRANSFORM_KEY,
     Y_TRANSFORM_KEY,
-    MODEL_CONFIG_FILENAME,
-    PredictionServerMimetypes,
-    ModelInfoKeys,
     ArgumentsOptions,
+    ModelInfoKeys,
+    PredictionServerMimetypes,
     TargetType,
 )
-from datarobot_drum.drum.description import version as drum_version
-from datarobot_drum.resource.transform_helpers import (
-    read_arrow_payload,
-    read_mtx_payload,
-    read_csv_payload,
-    parse_multi_part_response,
+from datarobot_drum.drum.utils.drum_utils import unset_drum_supported_env_vars
+from datarobot_drum.drum.utils.structured_input_read_utils import (
+    StructuredInputReadUtils,
 )
+from datarobot_drum.resource.drum_server_utils import DrumServerRun, wait_for_server
+from datarobot_drum.resource.transform_helpers import (
+    parse_multi_part_response,
+    read_arrow_payload,
+    read_csv_payload,
+    read_mtx_payload,
+)
+from datarobot_drum.resource.utils import (
+    _cmd_add_class_labels,
+    _create_custom_model_dir,
+    _exec_shell_cmd,
+)
+from tests.conftest import skip_if_framework_not_in_env, skip_if_keys_not_in_env
 from tests.constants import (
     BINARY,
     CODEGEN,
+    GPU_NEMO,
+    GPU_TRITON,
+    GPU_VLLM,
+    JULIA,
     KERAS,
+    MLJ,
+    MODEL_TEMPLATES_PATH,
     MOJO,
     MULTI_ARTIFACT,
     MULTICLASS,
@@ -52,12 +68,18 @@ from tests.constants import (
     PYTHON,
     PYTHON_LOAD_MODEL,
     PYTHON_PREDICT_SPARSE,
+    PYTHON_TEXT_GENERATION,
     PYTHON_TRANSFORM,
     PYTHON_TRANSFORM_DENSE,
     PYTHON_TRANSFORM_SPARSE,
     PYTHON_XGBOOST_CLASS_LABELS_VALIDATION,
     PYTORCH,
-    R,
+    R_FAIL_CLASSIFICATION_VALIDATION_HOOKS,
+    R_PREDICT_SPARSE,
+    R_TRANSFORM_SPARSE_INPUT,
+    R_TRANSFORM_SPARSE_OUTPUT,
+    R_TRANSFORM_WITH_Y,
+    R_VALIDATE_SPARSE_ESTIMATOR,
     RDS,
     RDS_SPARSE,
     REGRESSION,
@@ -68,34 +90,12 @@ from tests.constants import (
     SKLEARN_TRANSFORM_DENSE,
     SPARSE,
     SPARSE_TRANSFORM,
+    TESTS_DATA_PATH,
+    TEXT_GENERATION,
     TRANSFORM,
     XGB,
-    JULIA,
-    MLJ,
-    R_TRANSFORM_WITH_Y,
-    R_TRANSFORM_SPARSE_INPUT,
-    R_TRANSFORM_SPARSE_OUTPUT,
-    R_VALIDATE_SPARSE_ESTIMATOR,
-    R_FAIL_CLASSIFICATION_VALIDATION_HOOKS,
-    R_PREDICT_SPARSE,
-    PYTHON_TEXT_GENERATION,
-    TEXT_GENERATION,
-    GPU_TRITON,
-    MODEL_TEMPLATES_PATH,
-    TESTS_DATA_PATH,
-    GPU_NEMO,
+    R,
 )
-from datarobot_drum.resource.drum_server_utils import DrumServerRun, wait_for_server
-from datarobot_drum.resource.utils import (
-    _cmd_add_class_labels,
-    _create_custom_model_dir,
-    _exec_shell_cmd,
-)
-
-from datarobot_drum.drum.utils.drum_utils import unset_drum_supported_env_vars
-from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
-
-from tests.conftest import skip_if_framework_not_in_env, skip_if_keys_not_in_env
 
 
 class TestInference:
@@ -1103,10 +1103,6 @@ class TestInference:
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         skip_if_keys_not_in_env(["GPU_COUNT", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"])
-        if not os.environ["GPU_COUNT"]:
-            pytest.skip(
-                f"The test case requires GPU node to run on, no GPUs found. Check output of the `nvidia-smi`."
-            )
 
         # the Runtime parameters used by the custom.py load_model hook to download the model
         os.environ["MLOPS_RUNTIME_PARAM_s3Url"] = json.dumps(
@@ -1158,4 +1154,66 @@ class TestInference:
             assert len(response_data["predictions"]) == 1
             assert (
                 "Why don't scientists trust atoms?" in response_data["predictions"][0]
+            ), response_data
+
+    @pytest.mark.parametrize(
+        "framework, target_type, model_template_dir",
+        [
+            (GPU_VLLM, TargetType.TEXT_GENERATION, "gpu_vllm_textgen/custom_model"),
+        ],
+    )
+    def test_vllm_predictor(
+        self, framework, target_type, model_template_dir, framework_env, caplog
+    ):
+        skip_if_framework_not_in_env(framework, framework_env)
+        skip_if_keys_not_in_env(["GPU_COUNT", "HF_TOKEN"])
+
+        # Override default params from example model to use a smaller model
+        # TODO: remove this when we can inject runtime params correctly.
+        os.environ["MLOPS_RUNTIME_PARAM_model"] = json.dumps(
+            {
+                "type": "string",
+                "payload": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
+            }
+        )
+        os.environ["MLOPS_RUNTIME_PARAM_HuggingFaceToken"] = json.dumps(
+            {
+                "type": "credential",
+                "payload": {
+                    "credentialType": "apiToken",
+                    "apiToken": os.environ["HF_TOKEN"],
+                },
+            }
+        )
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_prompt_column_name"
+        ] = '{"type":"string","payload":"user_prompt"}'
+        os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 30}'
+
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, model_template_dir)
+        data = io.StringIO("user_prompt\nDescribe the city of Boston.")
+
+        caplog.set_level(logging.INFO)
+        with DrumServerRun(
+            target_type=target_type.value,
+            target_name="promptText",
+            custom_model_dir=custom_model_dir,
+            gpu_predictor=framework,
+            labels=None,
+            nginx=False,
+            wait_for_server_timeout=360,
+        ) as run:
+            headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
+            response = requests.post(
+                f"{run.url_server_address}/predict/",
+                data=data,
+                headers=headers,
+            )
+            assert response.ok
+            response_data = response.json()
+            assert response_data
+            assert "predictions" in response_data, response_data
+            assert len(response_data["predictions"]) == 1
+            assert (
+                "Boston is a vibrant and historic city" in response_data["predictions"][0]
             ), response_data

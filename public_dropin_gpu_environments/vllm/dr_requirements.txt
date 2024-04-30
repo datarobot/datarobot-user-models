@@ -202,6 +202,8 @@ urllib3==1.26.18
     # via
     #   datarobot
     #   requests
+uwsgi==2.0.25.1
+    # via -r dr_requirements.in
 websocket-client==1.7.0
     # via docker
 werkzeug==3.0.1
