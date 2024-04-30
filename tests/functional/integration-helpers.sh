@@ -94,9 +94,11 @@ function build_docker_image_with_drum() {
 
   pushd $docker_dir || exit 1
   docker build -t $image_name ./
+  local status=$?
   popd
   rm -rf $docker_dir
   echo
   echo
   docker images
+  return $status
 }

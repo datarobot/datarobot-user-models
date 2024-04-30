@@ -1,0 +1,8 @@
+{
+  "id": "662d6a54ef58f64c5a07d122",
+  "name": "vLLM Inference Server (0.4.1)",
+  "description": "A high-throughput and memory-efficient inference and serving engine for LLMs.",
+  "programmingLanguage": "python",
+  "environmentVersionId": "662d6a5fef58f64c5a07d123",
+  "isPublic": true
+}

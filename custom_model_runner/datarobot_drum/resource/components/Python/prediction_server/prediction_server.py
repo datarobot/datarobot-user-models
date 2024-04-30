@@ -109,6 +109,12 @@ class PredictionServer(ConnectableComponent, PredictMixin):
             )
 
             self._predictor = NemoPredictor()
+        elif self._gpu_predictor_type and self._gpu_predictor_type == GPU_PREDICTORS.VLLM:
+            from datarobot_drum.drum.gpu_predictors.vllm_predictor import (
+                VllmPredictor,
+            )
+
+            self._predictor = VllmPredictor()
         else:
             raise DrumCommonException(
                 "Prediction server doesn't support language: {} ".format(self._run_language)
