@@ -6,7 +6,7 @@ datarobot-drum==1.10.19
 datarobot-mlops-connected-client<10.0.0
 datarobot-model-metrics==0.5.4
 datarobot-predict==1.5.1
-datarobot==3.3.0
+datarobot==3.4.0
 dummyPy==0.3
 eli5==0.13.0
 gensim==4.3.2
@@ -36,3 +36,5 @@ umap-learn==0.5.3
 wordcloud==1.9.3
 xgboost==1.6.2
 yellowbrick==1.5
+boto3==1.34.90
+sagemaker==2.216.1

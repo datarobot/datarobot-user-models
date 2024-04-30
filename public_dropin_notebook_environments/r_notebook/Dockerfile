@@ -58,6 +58,10 @@ COPY ./setup-prompt.sh /etc/profile.d/setup-prompt.sh
 # additional setup scripts
 COPY ./setup-ssh.sh ./common-user-limits.sh ./setup-venv.sh ${WORKDIR}/
 
+# Set the SHELL option -o pipefail before RUN with a pipe in it.
+# Rationale: https://github.com/hadolint/hadolint/wiki/DL4006
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 # Add any package that will be installed on system level here:
 RUN microdnf update \
   && microdnf install -y tar-2:1.30 gzip-1.9 python39-3.9.18 bzip2-devel-1.0.6 cmake-3.26.5 gcc-8.5.0 gcc-c++-8.5.0  \
@@ -67,6 +71,7 @@ RUN microdnf update \
   libjpeg-turbo-devel-1.5.3 shadow-utils-2:4.6 git-2.39.3 wget-1.19.5 fontconfig-devel-2.13.1 glib2-devel-2.56.4  \
   libtiff-devel-4.0.9 vim-minimal-2:8.0.1763 nano-2.9.8 tzdata-java mesa-libGLU-9.0.0 \
   && microdnf install -y openssh-server \
+  && curl -sS https://webi.sh/gh | sh && cp ~/.local/bin/gh /usr/bin/ \
     && microdnf clean all
 
 # Requirements to install 'devtools'

@@ -40,6 +40,10 @@ ARG VENV_PATH
 ARG PYTHON_VERSION
 ARG PYTHON_EXACT_VERSION
 
+# Set the SHELL option -o pipefail before RUN with a pipe in it.
+# Rationale: https://github.com/hadolint/hadolint/wiki/DL4006
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
 # Add any package that will be installed on system level here:
 RUN yum update -y \
   && yum install -y python$PYTHON_VERSION-$PYTHON_EXACT_VERSION python$PYTHON_VERSION-devel-$PYTHON_EXACT_VERSION \
@@ -47,6 +51,7 @@ RUN yum update -y \
   openblas-0.3.21 python$PYTHON_VERSION-scipy shadow-utils-2:4.9 passwd-0.80 git-2.39.3 openssh-server tar-2:1.34 gzip-1.12 unzip-6.0 zip-3.0 wget-1.21.1 \
   java-11-openjdk-headless-11.0.22.0.7-2.el9 vim-minimal-2:8.2.2637 nano-5.6.1 procps-ng-3.3.17 tzdata-java \
   && pip3 install -U --no-cache-dir pip==23.1.2 \
+  && curl -sS https://webi.sh/gh | sh && cp ~/.local/bin/gh /usr/bin/ \
   && yum clean all
 
 RUN pip3 install --no-cache-dir pip==23.1.2 setuptools==68.2.2
