@@ -12,10 +12,12 @@ from pathlib import Path
 
 import requests
 from requests import ConnectionError, Timeout
+from requests import codes as http_codes
 
 from datarobot_drum.drum.enum import CustomHooks
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
+from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
 from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 
 CODE_DIR = Path(os.environ.get("CODE_DIR", "/opt/code"))
@@ -24,18 +26,29 @@ CODE_DIR = Path(os.environ.get("CODE_DIR", "/opt/code"))
 class VllmPredictor(BaseOpenAiGpuPredictor):
     DEFAULT_MODEL_DIR = CODE_DIR / "vllm"
 
+    @property
+    def num_deployment_stages(self):
+        return 3 if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL) else 1
+
     def health_check(self) -> typing.Tuple[dict, int]:
         """
         Proxy health checks to vLLM Inference Server
         """
+        if self.openai_server_thread and not self.openai_server_thread.is_alive():
+            return {"message": "vLLM watchdog has crashed."}, HTTP_513_DRUM_PIPELINE_ERROR
+
         try:
             health_url = f"http://{self.openai_host}:{self.openai_port}/health"
             response = requests.get(health_url, timeout=5)
             return {"message": response.text}, response.status_code
         except Timeout:
-            return {"message": "Timeout waiting for vLLM health route to respond."}, 503
+            return {
+                "message": "Timeout waiting for vLLM health route to respond."
+            }, http_codes.SERVICE_UNAVAILABLE
         except ConnectionError as err:
-            return {"message": f"vLLM server is not ready: {str(err)}"}, 503
+            return {
+                "message": f"vLLM server is not ready: {str(err)}"
+            }, http_codes.SERVICE_UNAVAILABLE
 
     def download_and_serve_model(self, openai_process: DrumServerProcess):
         """
@@ -44,7 +57,9 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
         """
         if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL):
             try:
+                self.status_reporter.report_deployment("Running user provided load-model hook...")
                 self.python_model_adapter.load_model_from_artifact(skip_predictor_lookup=True)
+                self.status_reporter.report_deployment("Load-model hook completed.")
             except Exception as e:
                 raise DrumCommonException(f"An error occurred when loading your artifact: {str(e)}")
 
@@ -94,6 +109,8 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
             env["HF_TOKEN"] = huggingface_token["apiToken"]
         datarobot_venv_path = os.environ.get("VIRTUAL_ENV")
         env["PATH"] = env["PATH"].replace(f"{datarobot_venv_path}/bin:", "")
+
+        self.status_reporter.report_deployment("vLLM Inference Server is launching...")
         with subprocess.Popen(
             cmd,
             env=env,
