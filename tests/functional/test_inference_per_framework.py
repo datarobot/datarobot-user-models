@@ -1166,7 +1166,7 @@ class TestInference:
         self, framework, target_type, model_template_dir, framework_env, caplog
     ):
         skip_if_framework_not_in_env(framework, framework_env)
-        skip_if_keys_not_in_env(["GPU_COUNT", "HF_TOKEN"])
+        skip_if_keys_not_in_env(["GPU_COUNT"])
 
         # Override default params from example model to use a smaller model
         # TODO: remove this when we can inject runtime params correctly.
