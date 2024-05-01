@@ -11,7 +11,7 @@ click==8.1.7
     # via flask
 datarobot==3.3.1
     # via datarobot-drum
-datarobot-drum==1.10.20
+datarobot-drum==1.11.0
     # via -r dr_requirements.in
 datarobot-mlops==9.2.11
     # via -r dr_requirements.in
