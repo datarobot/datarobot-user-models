@@ -9,6 +9,7 @@ import json
 import logging
 
 import requests
+from requests import Timeout
 
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
     RawPredictResponse,
@@ -105,6 +106,20 @@ class TritonPredictor(BaseLanguagePredictor):
             headers=headers,
         )
         return resp.text, None
+
+    def liveness_probe(self):
+        return self.health_check()
+
+    def readiness_probe(self):
+        return self.health_check()
+
+    def health_check(self):
+        try:
+            triton_health_url = f"{self.triton_host}:{self.triton_http_port}/v2/health/ready"
+            response = requests.get(triton_health_url, timeout=5)
+            return {"message": response.text}, response.status_code
+        except Timeout:
+            return {"message": "Timeout waiting for Nemo health route to respond."}, 503
 
     def _transform(self, **kwargs):
         raise DrumCommonException("Transform feature is not supported")

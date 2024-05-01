@@ -3,14 +3,14 @@ type: inference
 targetType: textgeneration
 
 runtimeParameterDefinitions:
-  - fieldName: s3Url
+  - fieldName: ngcRegistryUrl
     type: string
-    defaultValue: s3://nvidia-nim-model-repo/Llama-2-7b-chat-hf/24.02/A10-1x/
-    description: Choose location of NIM compiled engine artifacts
+    description: "Model version. Format: org/team/model_name:version."
 
-  - fieldName: s3Credential
+  - fieldName: ngcCredential
     type: credential
-    description: AWS Access tokens to fetch model artifacts with
+    credentialType: api_token
+    description: NGC Registry API Token
 
   - fieldName: max_tokens
     type: numeric

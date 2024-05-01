@@ -30,6 +30,7 @@ from datarobot_drum.drum.enum import (
     StructuredDtoKeys,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.gpu_predictors import MLOpsStatusReporter
 from datarobot_drum.drum.language_predictors.base_language_predictor import (
     BaseLanguagePredictor,
 )
@@ -71,6 +72,9 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
 
         # used to load custom model hooks
         self.python_model_adapter = None
+        # report deployment status events to DataRobot
+        self.verify_ssl = self.get_optional_parameter("verifySSL", True)
+        self.status_reporter: MLOpsStatusReporter = None
 
         # Have a check in the ctor to we fail early if optional deps are not installed.
         try:
@@ -97,6 +101,13 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         super().mlpiper_configure(params)
         self.python_model_adapter = PythonModelAdapter(
             model_dir=self._code_dir, target_type=self.target_type
+        )
+        self.status_reporter = MLOpsStatusReporter(
+            mlops_service_url=params["external_webserver_url"],
+            mlops_api_token=params["api_token"],
+            deployment_id=params.get("deployment_id"),
+            verify_ssl=self.verify_ssl,
+            total_deployment_stages=self.num_deployment_stages,
         )
 
         # download model artifacts with a "load_model" hook or ".remote" artifact
@@ -240,6 +251,10 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
 
     def _transform(self, **kwargs):
         raise DrumCommonException("Transform feature is not supported")
+
+    @property
+    def num_deployment_stages(self):
+        raise NotImplementedError
 
     def health_check(self) -> typing.Tuple[dict, int]:
         """
