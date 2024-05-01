@@ -26,10 +26,10 @@
 /custom_model_runner/datarobot_drum/drum/gpu_predictors           @datarobot/tracking-agent @datarobot/custom-models
 /custom_model_runner/datarobot_drum/drum/typeschema_validation.py @datarobot/core-modeling
 /custom_model_runner/datarobot_drum/resource/default_typeschema   @datarobot/core-modeling
-/model_templates/proxy_model_azureml                              @datarobot/tracking-agent @datarobot/custom-models
-/model_templates/proxy_model_datarobot                            @datarobot/tracking-agent @datarobot/custom-models
 /model_templates/gpu_nemo_textgen                                 @datarobot/tracking-agent @datarobot/custom-models
 /model_templates/gpu_vllm_textgen                                 @datarobot/tracking-agent @datarobot/custom-models
+/model_templates/proxy_model_azureml                              @datarobot/tracking-agent @datarobot/custom-models
+/model_templates/proxy_model_datarobot                            @datarobot/tracking-agent @datarobot/custom-models
 /model_templates/triton_onnx_unstructured                         @datarobot/tracking-agent @datarobot/custom-models
 /public_dropin_environments/java_codegen                          @datarobot/custom-models
 /public_dropin_environments/python39_streamlit                    @datarobot/custom-models @datarobot/applications
