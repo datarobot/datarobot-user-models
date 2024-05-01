@@ -1095,7 +1095,7 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, target_type, model_template_dir",
         [
-            (GPU_NEMO, TargetType.TEXT_GENERATION, "gpu_nemo_textgen/custom_model"),
+            (GPU_NEMO, TargetType.TEXT_GENERATION, "gpu_nemo_textgen"),
         ],
     )
     def test_nemo_predictor(
@@ -1159,7 +1159,7 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, target_type, model_template_dir",
         [
-            (GPU_VLLM, TargetType.TEXT_GENERATION, "gpu_vllm_textgen/custom_model"),
+            (GPU_VLLM, TargetType.TEXT_GENERATION, "gpu_vllm_textgen"),
         ],
     )
     def test_vllm_predictor(
