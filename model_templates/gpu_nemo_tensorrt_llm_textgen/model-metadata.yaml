@@ -5,6 +5,7 @@ targetType: textgeneration
 runtimeParameterDefinitions:
   - fieldName: ngcRegistryUrl
     type: string
+    defaultValue: "ohlfw0olaadg/ea-participants/llama-2-7b:LLAMA-2-7B-4K-FP16-1-A100.24.01"
     description: "Model version. Format: org/team/model_name:version."
 
   - fieldName: ngcCredential

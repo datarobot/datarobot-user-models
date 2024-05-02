@@ -6,7 +6,7 @@
 #
 # Released under the terms of DataRobot Tool and Utility Agreement.
 
-SKIP_SECRETS="AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|NGC_API_KEY|HF_TOKEN"
+SKIP_SECRETS="AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|NGC_CLI_API_KEY|HF_TOKEN"
 
 echo "--- env ----"
 export | grep -Ev $SKIP_SECRETS
