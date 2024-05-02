@@ -4,7 +4,7 @@ This drop-in environment contains the NVIDIA NIM server with support for large l
 
 ## Instructions
 
-1. From the terminal, run `tar -czvf nim_dropin.tar.gz -C /path/to/public_dropin_environments/nemollm_inference_ms/ .`
+1. From the terminal, run `tar -czvf nim_dropin.tar.gz -C /path/to/public_dropin_environments/nim_llm/ .`
 2. Using either the API or from the UI create a new Custom Environment with the tarball created in step 1.
 
 ### Creating models for this environment
