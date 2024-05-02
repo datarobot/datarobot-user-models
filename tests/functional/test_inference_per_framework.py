@@ -95,6 +95,7 @@ from tests.constants import (
     TRANSFORM,
     XGB,
     R,
+    TESTS_FIXTURES_PATH,
 )
 
 
@@ -1129,7 +1130,7 @@ class TestInference:
         os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 256}'
         os.environ["MLOPS_RUNTIME_PARAM_chat_context"] = '{"type": "boolean", "payload": false}'
 
-        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, model_template_dir)
+        custom_model_dir = os.path.join(TESTS_FIXTURES_PATH, model_template_dir)
         data = io.StringIO("user_prompt\ntell me a joke")
 
         with DrumServerRun(
