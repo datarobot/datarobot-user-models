@@ -1,4 +1,4 @@
- # Custom Environment Templates
+### Custom Environment Templates
 The [public_dropin_environments](https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments)
 contains templates for the base environments used in DataRobot.
 Dependency requirements can be applied to the base environment to create a
