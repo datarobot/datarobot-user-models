@@ -55,7 +55,7 @@ class NemoPredictor(BaseOpenAiGpuPredictor):
                 raise DrumCommonException(f"An error occurred when loading your artifact: {str(e)}")
 
         cmd = [
-            "nemollm_inference_ms",
+            "nim_llm",
             "--model_name",
             self.model_name,
             "--health_port",

@@ -39,7 +39,7 @@ elif [ "$1" = "julia" ]; then
     DOCKER_IMAGE="julia_mlj"
 elif [ "$1" = "nemo" ]; then
     ENVS_DIR="public_dropin_gpu_environments"
-    DOCKER_IMAGE="nemollm_inference_ms"
+    DOCKER_IMAGE="nim_llm"
 elif [ "$1" = "triton" ]; then
     ENVS_DIR="public_dropin_gpu_environments"
     DOCKER_IMAGE="triton_server"
@@ -55,8 +55,8 @@ build_dropin_env_dockerfile "${GIT_ROOT}/${ENVS_DIR}/${DOCKER_IMAGE}" ${DRUM_WHE
 
 # Authenticate to NVIDIA registry
 # https://docs.nvidia.com/launchpad/ai/base-command-coe/latest/bc-coe-docker-basics-step-02.html
-if [ -n "${NGC_API_KEY}" ]; then
-  docker login --username="\$oauthtoken" --password="${NGC_API_KEY}" nvcr.io
+if [ -n "${NGC_CLI_API_KEY}" ]; then
+  docker login --username="\$oauthtoken" --password="${NGC_CLI_API_KEY}" nvcr.io
 fi
 
 # shellcheck disable=SC2218

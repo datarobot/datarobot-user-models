@@ -1,4 +1,4 @@
-FROM nvcr.io/ohlfw0olaadg/ea-participants/nemollm-inference-ms:dev-24.02
+FROM nvcr.io/ohlfw0olaadg/ea-participants/nim_llm:24.02.1
 
 
 USER root
