@@ -9,7 +9,7 @@ https://developer.nvidia.com/nemo-llm-service-early-access/join
 https://docs.nvidia.com/launchpad/ai/base-command-coe/latest/bc-coe-docker-basics-step-02.html#optionally-generate-an-ngc-key
 API Key is used to build a docker image and pull LLM models from NGC Registry.
 - Install NGC CLI tool https://org.ngc.nvidia.com/setup/installers/cli
-- Most of NVIDIA models are pre-compiled for TensorRT-LLM support on A100 / V100 GPUs. See the official documentation:
+- Most of NVIDIA models are pre-compiled for TensorRT-LLM support on A100 / H100 GPUs. See the official documentation:
 https://docs.nvidia.com/nemo-framework/user-guide/latest/deployingthenemoframeworkmodel.html#supported-model-and-gpus
 - NOTE: it's possible to re-compile some models for lower tier GPUs, e.g. the Llama-2-7b model can run on A10:
 https://developer.nvidia.com/docs/nemo-microservices/inference/playbooks/nmi_nonprebuilt_playbook.html
