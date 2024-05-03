@@ -217,7 +217,7 @@ termcolor==2.4.0
     #   mlpiper
 texttable==1.7.0
     # via datarobot-drum
-tqdm==4.66.2
+tqdm==4.66.3
     # via openai
 trafaret==2.1.1
     # via
