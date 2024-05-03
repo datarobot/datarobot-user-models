@@ -31,7 +31,7 @@ snowflake-connector-python[secure-local-storage,pandas]==3.7.1
 snowflake-snowpark-python==1.11.1
 spacy==3.7.2
 statsmodels==0.14.1
-tqdm==4.64.1
+tqdm==4.66.3
 umap-learn==0.5.3
 wordcloud==1.9.3
 xgboost==1.6.2
