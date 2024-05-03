@@ -328,7 +328,7 @@ _datasets = {
         TESTS_DATA_PATH, "10k_diabetes_sample.csv"
     ),
     (None, MULTICLASS_LABEL_SPACES): os.path.join(TESTS_DATA_PATH, "iris_with_spaces_full.csv"),
-    (SKLEARN, TEXT_GENERATION): os.path.join(TESTS_DATA_PATH, "prompts.csv"),
+    (PYTHON_TEXT_GENERATION, TEXT_GENERATION): os.path.join(TESTS_DATA_PATH, "prompts.csv"),
 }
 
 _training_models_paths = {
@@ -591,7 +591,7 @@ _class_labels = {
     (SKLEARN_PRED_CONSISTENCY, BINARY_BOOL): ["False", "True"],
     (MLJ, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (MLJ, MULTICLASS): ["GALAXY", "QSO", "STAR"],
-    (SKLEARN, TEXT_GENERATION): None,
+    (PYTHON_TEXT_GENERATION, TEXT_GENERATION): None,
 }
 
 _artifacts = {
@@ -756,7 +756,7 @@ _artifacts = {
     (CUSTOM_TASK_INTERFACE_PYTORCH_MULTICLASS, MULTICLASS): None,
     (CUSTOM_TASK_INTERFACE_KERAS_REGRESSION, REGRESSION): None,
     (CUSTOM_TASK_INTERFACE_XGB_REGRESSION, REGRESSION): None,
-    (SKLEARN, TEXT_GENERATION): None,
+    (PYTHON_TEXT_GENERATION, TEXT_GENERATION): None,
 }
 
 _custom_filepaths = {
