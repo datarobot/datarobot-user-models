@@ -98,7 +98,7 @@ test_functional_java_environment: &test_functional_java_environment
   taskName: test_functional_java_environment
   definition: jenkins/test_functional_per_framework.groovy
   environment:
-    FRAMEWORK: java
+    FRAMEWORK: java_codegen
   phase: 2
 
 test_functional_julia_environment: &test_functional_julia_environment

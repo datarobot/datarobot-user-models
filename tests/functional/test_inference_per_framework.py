@@ -157,7 +157,7 @@ class TestInference:
             (MLJ, REGRESSION, JULIA, None, False),
             (MLJ, BINARY, JULIA, None, False),
             (MLJ, MULTICLASS, JULIA, None, False),
-            (SKLEARN, TEXT_GENERATION, PYTHON_TEXT_GENERATION, None, False),
+            (PYTHON_TEXT_GENERATION, TEXT_GENERATION, PYTHON_TEXT_GENERATION, None, False),
         ],
     )
     def test_custom_models_with_drum(
@@ -309,7 +309,7 @@ class TestInference:
             (MLJ, BINARY, JULIA, None),
             (MLJ, REGRESSION, JULIA, None),
             (MLJ, MULTICLASS, JULIA, None),
-            (SKLEARN, TEXT_GENERATION, PYTHON_TEXT_GENERATION, None),
+            (PYTHON_TEXT_GENERATION, TEXT_GENERATION, PYTHON_TEXT_GENERATION, None),
         ],
     )
     @pytest.mark.parametrize("pass_args_as_env_vars", [False])

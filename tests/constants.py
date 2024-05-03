@@ -34,7 +34,7 @@ PYTHON311_GENAI = "python311_genai"
 PYTHON_ONNX = "python3_onnx"
 PYTHON_PYPMML = "python3_pmml"
 R_LANG = "r_lang"
-JAVA = "java"
+JAVA_CODEGEN = "java_codegen"
 JULIA = "julia"
 
 
