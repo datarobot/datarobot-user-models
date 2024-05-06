@@ -888,6 +888,7 @@ class CMRunner:
         in_docker_fit_output_dir = "/opt/fit_output_dir"
         in_docker_fit_target_filename = "/opt/fit_target.csv"
         in_docker_fit_row_weights_filename = "/opt/fit_row_weights.csv"
+        in_docker_runtime_parameters_file = "/opt/runtime_parameters.yaml"
 
         docker_cmd = "docker run --rm --init --entrypoint '' --interactive --user {}:{}".format(
             os.getuid(), os.getgid()
@@ -941,6 +942,21 @@ class CMRunner:
                 in_docker_cmd_list, ArgumentsOptions.ADDRESS, host_port_inside_docker
             )
             docker_cmd_args += " -p {port}:{port}".format(port=port)
+
+        if options.runtime_params_file:
+            docker_cmd_args += ' -v "{}":{}'.format(
+                options.runtime_params_file, in_docker_runtime_parameters_file
+            )
+            DrumUtils.replace_cmd_argument_value(
+                in_docker_cmd_list,
+                ArgumentsOptions.RUNTIME_PARAMS_FILE,
+                in_docker_runtime_parameters_file,
+            )
+            # check if runtime params is provided thorough env vars
+            if "RUNTIME_PARAMS_FILE" in os.environ:
+                docker_cmd_args += " -e RUNTIME_PARAMS_FILE={}".format(
+                    in_docker_runtime_parameters_file
+                )
 
         if run_mode in [RunMode.SCORE, RunMode.PERF_TEST, RunMode.VALIDATION, RunMode.FIT]:
             docker_cmd_args += ' -v "{}":{}'.format(options.input, in_docker_input_file)
