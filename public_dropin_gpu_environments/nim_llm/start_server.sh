@@ -31,5 +31,5 @@ fi
 echo
 echo "Starting DRUM server..."
 echo
-source /home/nemo/dr/bin/activate
+. /home/nemo/dr/bin/activate
 exec drum server --gpu-predictor=nemo --logging-level=info "$@"
