@@ -943,7 +943,7 @@ class CMRunner:
             )
             docker_cmd_args += " -p {port}:{port}".format(port=port)
 
-        if options.runtime_params_file:
+        if "runtime_params_file" in options and options.runtime_params_file:
             docker_cmd_args += ' -v "{}":{}'.format(
                 options.runtime_params_file, in_docker_runtime_parameters_file
             )
@@ -952,7 +952,7 @@ class CMRunner:
                 ArgumentsOptions.RUNTIME_PARAMS_FILE,
                 in_docker_runtime_parameters_file,
             )
-            # check if runtime params is provided thorough env vars
+            # check if runtime params is provided through env vars
             if "RUNTIME_PARAMS_FILE" in os.environ:
                 docker_cmd_args += " -e RUNTIME_PARAMS_FILE={}".format(
                     in_docker_runtime_parameters_file
