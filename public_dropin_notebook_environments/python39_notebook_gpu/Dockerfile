@@ -25,10 +25,10 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 
-ARG PYTHON_VERSION=3.11
-ARG PYTHON_EXACT_VERSION=3.11.5
+ARG PYTHON_VERSION=3
+ARG PYTHON_EXACT_VERSION=3.9.18
 
-FROM nvidia/cuda:12.2.0-base-ubi9 AS base
+FROM nvidia/cuda:12.3.1-base-ubi9 AS base
 # some globally required dependencies
 
 ARG UNAME
@@ -48,7 +48,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN yum update -y \
   && yum install -y python$PYTHON_VERSION-$PYTHON_EXACT_VERSION python$PYTHON_VERSION-devel-$PYTHON_EXACT_VERSION \
   gcc-11.4.1 gcc-c++-11.4.1 glibc-devel-2.34 libffi-devel-3.4.2 python3-pip-21.2.3 \
-  openblas-0.3.21 python$PYTHON_VERSION-scipy shadow-utils-2:4.9 passwd-0.80 git-2.39.3 openssh-server tar-2:1.34 gzip-1.12 unzip-6.0 zip-3.0 wget-1.21.1 \
+  openblas-0.3.21 python$PYTHON_VERSION-scipy shadow-utils-2:4.9 passwd-0.80 git-2.43.0 openssh-server tar-2:1.34 gzip-1.12 unzip-6.0 zip-3.0 wget-1.21.1 \
   java-11-openjdk-headless-11.0.23.0.9-3.el9 vim-minimal-2:8.2.2637 nano-5.6.1 procps-ng-3.3.17 tzdata-java \
   python3-devel \
   && pip3 install -U --no-cache-dir pip==23.1.2 \
