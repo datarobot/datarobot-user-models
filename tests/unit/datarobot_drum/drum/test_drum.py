@@ -14,6 +14,7 @@ from unittest.mock import ANY, PropertyMock, patch
 
 import pandas as pd
 import pytest
+import yaml
 from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.drum import (
@@ -21,7 +22,7 @@ from datarobot_drum.drum.drum import (
     create_custom_inference_model_folder,
     output_in_code_dir,
 )
-from datarobot_drum.drum.enum import RunLanguage
+from datarobot_drum.drum.enum import RunLanguage, MODEL_CONFIG_FILENAME
 from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
     PythonPredictor,
 )
@@ -32,6 +33,94 @@ from mlpiper.pipeline.executor import Executor
 @pytest.fixture
 def module_under_test():
     return "datarobot_drum.drum.drum"
+
+
+@pytest.fixture
+def this_dir():
+    return str(Path(__file__).absolute().parent)
+
+
+@pytest.fixture
+def target():
+    return "some-target"
+
+
+@pytest.fixture
+def model_metadata_file_factory():
+    with TemporaryDirectory(suffix="code-dir") as temp_dirname:
+
+        def _inner(input_dict):
+            file_path = Path(temp_dirname) / MODEL_CONFIG_FILENAME
+            with file_path.open("w") as fp:
+                yaml.dump(input_dict, fp)
+            return temp_dirname
+
+        yield _inner
+
+
+@pytest.fixture
+def temp_metadata(environment_id, model_metadata_file_factory):
+    metadata = {
+        "name": "joe",
+        "type": "training",
+        "targetType": "regression",
+        "environmentID": environment_id,
+        "validation": {"input": "hello"},
+    }
+    yield model_metadata_file_factory(metadata)
+
+
+@pytest.fixture
+def output_dir():
+    with TemporaryDirectory(suffix="output-dir") as dir_name:
+        yield dir_name
+
+
+@pytest.fixture
+def fit_args(temp_metadata, target, output_dir):
+    return [
+        "fit",
+        "--code-dir",
+        temp_metadata,
+        "--input",
+        __file__,
+        "--target",
+        target,
+        "--target-type",
+        "regression",
+        "--output",
+        output_dir,
+    ]
+
+
+@pytest.fixture
+def score_args(this_dir):
+    return [
+        "score",
+        "--code-dir",
+        this_dir,
+        "--input",
+        __file__,
+        "--target-type",
+        "regression",
+        "--language",
+        "python",
+    ]
+
+
+@pytest.fixture
+def server_args(this_dir):
+    return [
+        "server",
+        "--code-dir",
+        this_dir,
+        "--address",
+        "allthedice.com:1234",
+        "--target-type",
+        "regression",
+        "--language",
+        "python",
+    ]
 
 
 @pytest.fixture

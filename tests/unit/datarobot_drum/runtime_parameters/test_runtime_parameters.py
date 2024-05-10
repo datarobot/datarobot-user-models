@@ -6,7 +6,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import json
 import os
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 from unittest.mock import patch
 
 import pytest
@@ -280,6 +280,63 @@ class TestRuntimeParametersLoader:
 
 
 class TestRuntimeParametersDockerCommand:
+    @pytest.fixture
+    def tmp_dir(self):
+        with TemporaryDirectory(suffix="output-dir") as dir_name:
+            yield dir_name
+
+    @pytest.fixture
+    def set_runtime_param_file_env_var(self):
+        def _f(file_path):
+            os.environ[ArgumentOptionsEnvVars.RUNTIME_PARAMS_FILE] = file_path
+
+        yield _f
+        os.environ.pop(ArgumentOptionsEnvVars.RUNTIME_PARAMS_FILE, None)
+
+    @pytest.fixture
+    def fit_args(self, tmp_dir):
+        return [
+            "fit",
+            "--code-dir",
+            tmp_dir,
+            "--input",
+            __file__,
+            "--target",
+            "some_target",
+            "--target-type",
+            "regression",
+            "--output",
+            tmp_dir,
+        ]
+
+    @pytest.fixture
+    def score_args(self, tmp_dir):
+        return [
+            "score",
+            "--code-dir",
+            tmp_dir,
+            "--input",
+            __file__,
+            "--target-type",
+            "regression",
+            "--language",
+            "python",
+        ]
+
+    @pytest.fixture
+    def server_args(self, tmp_dir):
+        return [
+            "server",
+            "--code-dir",
+            tmp_dir,
+            "--address",
+            "allthedice.com:1234",
+            "--target-type",
+            "regression",
+            "--language",
+            "python",
+        ]
+
     def test_runtime_params_invalid(self, fit_args, runtime_factory):
         with pytest.raises(SystemExit), NamedTemporaryFile() as f:
             fit_args.extend([ArgumentsOptions.RUNTIME_PARAMS_FILE, f.name])
@@ -320,7 +377,12 @@ class TestRuntimeParametersDockerCommand:
     @pytest.mark.parametrize("args", ["server_args", "score_args"])
     @pytest.mark.parametrize("add_var_runtime_param_file", [True, False])
     def test_runtime_params_as_env_var(
-        self, request, args, runtime_factory, add_var_runtime_param_file
+        self,
+        request,
+        args,
+        runtime_factory,
+        add_var_runtime_param_file,
+        set_runtime_param_file_env_var,
     ):
         args_list = request.getfixturevalue(args)
 
@@ -332,7 +394,7 @@ class TestRuntimeParametersDockerCommand:
             params_file_docker_location = "/opt/runtime_parameters.yaml"
 
             if add_var_runtime_param_file:
-                os.environ[ArgumentOptionsEnvVars.RUNTIME_PARAMS_FILE] = params_file_host_location
+                set_runtime_param_file_env_var(params_file_host_location)
 
             cm_runner = runtime_factory(args_list)
             docker_cmd = cm_runner._prepare_docker_command(
