@@ -4,14 +4,21 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-import tempfile
+import sys
 from contextlib import contextmanager
+from pathlib import Path
 from textwrap import dedent
+from typing import List
 
 import pytest
-from tempfile import NamedTemporaryFile
+from tempfile import NamedTemporaryFile, TemporaryDirectory
 
 import pandas as pd
+import yaml
+from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
+from datarobot_drum.drum.drum import CMRunner
+from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME
+from datarobot_drum.drum.runtime import DrumRuntime
 from scipy.io import mmwrite
 
 from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
@@ -221,7 +228,7 @@ def df_to_temporary_file() -> callable:
         is_sparse = is_sparse_dataframe(df)
         suffix = ".mtx" if is_sparse else ".csv"
 
-        target_file = tempfile.NamedTemporaryFile(suffix=suffix)
+        target_file = NamedTemporaryFile(suffix=suffix)
         if is_sparse_dataframe(df):
             mmwrite(target_file.name, df.sparse.to_coo())
         else:
@@ -232,3 +239,125 @@ def df_to_temporary_file() -> callable:
         target_file.close()
 
     return _to_temporary_file
+
+
+##
+###############################################################################
+# DRUM HELPERS FUNCS
+
+
+@pytest.fixture
+def this_dir():
+    return str(Path(__file__).absolute().parent)
+
+
+@pytest.fixture
+def target():
+    return "some-target"
+
+
+@pytest.fixture
+def model_metadata_file_factory():
+    with TemporaryDirectory(suffix="code-dir") as temp_dirname:
+
+        def _inner(input_dict):
+            file_path = Path(temp_dirname) / MODEL_CONFIG_FILENAME
+            with file_path.open("w") as fp:
+                yaml.dump(input_dict, fp)
+            return temp_dirname
+
+        yield _inner
+
+
+@pytest.fixture
+def temp_metadata(environment_id, model_metadata_file_factory):
+    metadata = {
+        "name": "joe",
+        "type": "training",
+        "targetType": "regression",
+        "environmentID": environment_id,
+        "validation": {"input": "hello"},
+    }
+    yield model_metadata_file_factory(metadata)
+
+
+@pytest.fixture
+def output_dir():
+    with TemporaryDirectory(suffix="output-dir") as dir_name:
+        yield dir_name
+
+
+@pytest.fixture
+def fit_args(temp_metadata, target, output_dir):
+    return [
+        "fit",
+        "--code-dir",
+        temp_metadata,
+        "--input",
+        __file__,
+        "--target",
+        target,
+        "--target-type",
+        "regression",
+        "--output",
+        output_dir,
+    ]
+
+
+@pytest.fixture
+def score_args(this_dir):
+    return [
+        "score",
+        "--code-dir",
+        this_dir,
+        "--input",
+        __file__,
+        "--target-type",
+        "regression",
+        "--language",
+        "python",
+    ]
+
+
+@pytest.fixture
+def server_args(this_dir):
+    return [
+        "server",
+        "--code-dir",
+        this_dir,
+        "--address",
+        "allthedice.com:1234",
+        "--target-type",
+        "regression",
+        "--language",
+        "python",
+    ]
+
+
+def set_sys_argv(cmd_line_args):
+    # This is required because the sys.argv is manipulated by the 'CMRunnerArgsRegistry'
+    cmd_line_args = cmd_line_args.copy()
+    cmd_line_args.insert(0, sys.argv[0])
+    sys.argv = cmd_line_args
+
+
+def get_args_parser_options(cli_command: List[str]):
+    set_sys_argv(cli_command)
+    arg_parser = CMRunnerArgsRegistry.get_arg_parser()
+    CMRunnerArgsRegistry.extend_sys_argv_with_env_vars()
+    options = arg_parser.parse_args()
+    CMRunnerArgsRegistry.verify_options(options)
+    return options
+
+
+@pytest.fixture
+def runtime_factory():
+    with DrumRuntime() as cm_runner_runtime:
+
+        def inner(cli_args):
+            options = get_args_parser_options(cli_args)
+            cm_runner_runtime.options = options
+            cm_runner = CMRunner(cm_runner_runtime)
+            return cm_runner
+
+        yield inner

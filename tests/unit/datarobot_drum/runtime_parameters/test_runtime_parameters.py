@@ -6,12 +6,14 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import json
 import os
+from tempfile import NamedTemporaryFile
 from unittest.mock import patch
 
 import pytest
 import yaml
+from datarobot_drum.drum.drum import CMRunner
 
-from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME
+from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME, ArgumentsOptions, ArgumentOptionsEnvVars
 from datarobot_drum.drum.enum import ModelMetadataKeys
 from datarobot_drum.runtime_parameters.exceptions import (
     InvalidEmptyYamlContent,
@@ -275,3 +277,78 @@ class TestRuntimeParametersLoader:
 
                 actual_value = RuntimeParameters.get(param_name)
                 assert actual_value == expected_value
+
+
+class TestRuntimeParametersDockerCommand:
+    def test_runtime_params_invalid(self, fit_args, runtime_factory):
+        with pytest.raises(SystemExit), NamedTemporaryFile() as f:
+            fit_args.extend([ArgumentsOptions.RUNTIME_PARAMS_FILE, f.name])
+            runtime_factory(fit_args)
+
+    @pytest.mark.parametrize("args", ["server_args", "score_args"])
+    @pytest.mark.parametrize("add_runtime_param_file", [True, False])
+    def test_runtime_params_as_parameter(
+        self, request, args, runtime_factory, add_runtime_param_file
+    ):
+        args_list = request.getfixturevalue(args)
+
+        with (
+            patch.object(CMRunner, "_maybe_build_image"),
+            NamedTemporaryFile(suffix="_runtime.yaml") as runtime_param_file,
+        ):
+            # We add the runtime parameter file as parameter
+            params_file_host_location = os.path.realpath(runtime_param_file.name)
+            if add_runtime_param_file:
+                args_list.extend([ArgumentsOptions.RUNTIME_PARAMS_FILE, params_file_host_location])
+
+            cm_runner = runtime_factory(args_list)
+            docker_cmd = cm_runner._prepare_docker_command(
+                cm_runner.options, cm_runner.run_mode, cm_runner.raw_arguments
+            )
+            assert docker_cmd
+            assert params_file_host_location not in docker_cmd
+
+            params_file_docker_location = "/opt/runtime_parameters.yaml"
+            file_mapping_param = f"{params_file_host_location}:{params_file_docker_location}"
+            if add_runtime_param_file:
+                assert file_mapping_param in docker_cmd
+                assert params_file_docker_location in docker_cmd
+            else:
+                assert file_mapping_param not in docker_cmd
+                assert params_file_docker_location not in docker_cmd
+
+    @pytest.mark.parametrize("args", ["server_args", "score_args"])
+    @pytest.mark.parametrize("add_var_runtime_param_file", [True, False])
+    def test_runtime_params_as_env_var(
+        self, request, args, runtime_factory, add_var_runtime_param_file
+    ):
+        args_list = request.getfixturevalue(args)
+
+        with patch.object(CMRunner, "_maybe_build_image"), NamedTemporaryFile(
+            suffix="_runtime.yaml"
+        ) as runtime_param_file:
+            # We add the runtime parameter file as parameter
+            params_file_host_location = os.path.realpath(runtime_param_file.name)
+            params_file_docker_location = "/opt/runtime_parameters.yaml"
+
+            if add_var_runtime_param_file:
+                os.environ[ArgumentOptionsEnvVars.RUNTIME_PARAMS_FILE] = params_file_host_location
+
+            cm_runner = runtime_factory(args_list)
+            docker_cmd = cm_runner._prepare_docker_command(
+                cm_runner.options, cm_runner.run_mode, cm_runner.raw_arguments
+            )
+            assert docker_cmd
+            assert params_file_host_location not in docker_cmd
+            assert params_file_docker_location not in docker_cmd
+
+            file_mapping_param = f"{params_file_host_location}:{params_file_docker_location}"
+            var_mapping_param = (
+                f"{ArgumentOptionsEnvVars.RUNTIME_PARAMS_FILE}={params_file_docker_location}"
+            )
+            if add_var_runtime_param_file:
+                assert file_mapping_param in docker_cmd
+                assert var_mapping_param in docker_cmd
+            else:
+                assert file_mapping_param not in docker_cmd
+                assert var_mapping_param not in docker_cmd
