@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import json
 import os
 import signal
 import subprocess
@@ -25,6 +26,7 @@ CODE_DIR = Path(os.environ.get("CODE_DIR", "/opt/code"))
 
 class VllmPredictor(BaseOpenAiGpuPredictor):
     DEFAULT_MODEL_DIR = CODE_DIR / "vllm"
+    ENGINE_CONFIG_FILE = CODE_DIR / "engine_config.json"
 
     def __init__(self):
         super().__init__()
@@ -116,6 +118,13 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
             cmd.extend(["--max-model-len", str(int(self.max_model_len))])
         if self.gpu_memory_utilization:
             cmd.extend(["--gpu-memory-utilization", str(self.gpu_memory_utilization)])
+
+        # For advanced users, allow them to specify arbitrary CLI options that we haven't exposed
+        # via runtime parameters.
+        if self.ENGINE_CONFIG_FILE.is_file():
+            config = json.loads(self.ENGINE_CONFIG_FILE.read_text())
+            if "args" in config:
+                cmd.extend(config["args"])
 
         # update the path so vllm process can find its libraries
         env = os.environ.copy()
