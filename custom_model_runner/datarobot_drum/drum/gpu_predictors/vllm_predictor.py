@@ -80,7 +80,9 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
         # Otherwise, we expect a runtime param to have been specified
         elif self.model:
             if os.path.isdir(self.model) and os.listdir(self.model):
-                self.logger.info(f"`model` runtime parameter points to a valid directory: {self.model}")
+                self.logger.info(
+                    f"`model` runtime parameter points to a valid directory: {self.model}"
+                )
             else:
                 if not self.huggingface_token:
                     raise DrumCommonException(
