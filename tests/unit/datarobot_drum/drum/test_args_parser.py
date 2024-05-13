@@ -84,6 +84,16 @@ def server_args(this_dir):
 
 
 @pytest.fixture
+def perf_args(this_dir):
+    return ["perf-test", "-i", "200", "-s", "1000", "--code-dir", this_dir, "--input", __file__]
+
+
+@pytest.fixture
+def validation_args(this_dir):
+    return ["validation", "--code-dir", this_dir, "--input", __file__]
+
+
+@pytest.fixture
 def push_args(this_dir):
     return ["push", "--code-dir", this_dir]
 
@@ -661,14 +671,39 @@ class TestTritonServerArgs:
             )
 
 
+class TestGetArgOptions:
+    @pytest.mark.parametrize(
+        "args",
+        ["score_args", "server_args", "fit_args", "perf_args", "validation_args", "push_args"],
+    )
+    def test_get_options(self, request, args):
+        args = request.getfixturevalue(args)
+        options = get_args_parser_options(args)
+        arg_option = CMRunnerArgsRegistry.get_arg_option(options, ArgumentsOptions.CODE_DIR)
+        assert options.code_dir
+        assert arg_option == options.code_dir
+
+    @pytest.mark.parametrize("args", ["fit_args", "push_args"])
+    def test_get_options_invalid(self, request, args):
+        args = request.getfixturevalue(args)
+        options = get_args_parser_options(args)
+        arg_option = CMRunnerArgsRegistry.get_arg_option(
+            options, ArgumentsOptions.RUNTIME_PARAMS_FILE
+        )
+        assert arg_option is None
+        assert arg_option not in options
+
+
 class TestRuntimeParametersArgs:
-    @pytest.mark.parametrize("args", ["score_args", "server_args"])
+    @pytest.mark.parametrize("args", ["score_args", "server_args", "perf_args", "validation_args"])
     def test_runtime_params_valid(self, request, args):
         args = request.getfixturevalue(args)
         args.extend([ArgumentsOptions.RUNTIME_PARAMS_FILE, __file__])
         get_args_parser_options(args)
 
-    def test_runtime_params_invalid(self, fit_args):
+    @pytest.mark.parametrize("args", ["fit_args", "push_args"])
+    def test_runtime_params_invalid(self, request, args):
+        args = request.getfixturevalue(args)
         with pytest.raises(SystemExit), NamedTemporaryFile() as f:
-            fit_args.extend([ArgumentsOptions.RUNTIME_PARAMS_FILE, f.name])
-            get_args_parser_options(fit_args)
+            args.extend([ArgumentsOptions.RUNTIME_PARAMS_FILE, f.name])
+            get_args_parser_options(args)

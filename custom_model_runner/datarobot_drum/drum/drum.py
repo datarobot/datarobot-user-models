@@ -29,6 +29,7 @@ import pandas as pd
 from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
 from datarobot_drum.drum.adapters.model_adapters.abstract_model_adapter import AbstractModelAdapter
 from datarobot_drum.drum.adapters.model_adapters.r_model_adapter import RModelAdapter
+from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.common import get_metadata, FIT_METADATA_FILENAME
 from datarobot_drum.drum.model_metadata import (
     read_model_metadata_yaml,
@@ -943,7 +944,7 @@ class CMRunner:
             )
             docker_cmd_args += " -p {port}:{port}".format(port=port)
 
-        if getattr(options, ArgumentOptionsEnvVars.RUNTIME_PARAMS_FILE.lower(), None):
+        if CMRunnerArgsRegistry.get_arg_option(options, ArgumentsOptions.RUNTIME_PARAMS_FILE):
             docker_cmd_args += (
                 f' -v "{options.runtime_params_file}":{in_docker_runtime_parameters_file}'
             )

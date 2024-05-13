@@ -848,6 +848,11 @@ class CMRunnerArgsRegistry(object):
         return parser
 
     @staticmethod
+    def get_arg_option(options: argparse.Namespace, arg_option: str):
+        value_in_namespace = arg_option.lstrip("-").replace("-", "_")
+        return getattr(options, value_in_namespace, None)
+
+    @staticmethod
     def get_arg_parser():
         parser = argparse.ArgumentParser(description="Run user model")
         CMRunnerArgsRegistry._parsers[ArgumentsOptions.MAIN_COMMAND] = parser
