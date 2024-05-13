@@ -4,21 +4,13 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-import sys
 from contextlib import contextmanager
-from pathlib import Path
 from textwrap import dedent
-from typing import List
 
 import pytest
-from tempfile import NamedTemporaryFile, TemporaryDirectory
+from tempfile import NamedTemporaryFile
 
 import pandas as pd
-import yaml
-from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
-from datarobot_drum.drum.drum import CMRunner
-from datarobot_drum.drum.enum import MODEL_CONFIG_FILENAME
-from datarobot_drum.drum.runtime import DrumRuntime
 from scipy.io import mmwrite
 
 from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
@@ -239,37 +231,3 @@ def df_to_temporary_file() -> callable:
         target_file.close()
 
     return _to_temporary_file
-
-
-##
-###############################################################################
-# DRUM HELPERS FUNCS
-
-
-def set_sys_argv(cmd_line_args):
-    # This is required because the sys.argv is manipulated by the 'CMRunnerArgsRegistry'
-    cmd_line_args = cmd_line_args.copy()
-    cmd_line_args.insert(0, sys.argv[0])
-    sys.argv = cmd_line_args
-
-
-def get_args_parser_options(cli_command: List[str]):
-    set_sys_argv(cli_command)
-    arg_parser = CMRunnerArgsRegistry.get_arg_parser()
-    CMRunnerArgsRegistry.extend_sys_argv_with_env_vars()
-    options = arg_parser.parse_args()
-    CMRunnerArgsRegistry.verify_options(options)
-    return options
-
-
-@pytest.fixture
-def runtime_factory():
-    with DrumRuntime() as cm_runner_runtime:
-
-        def inner(cli_args):
-            options = get_args_parser_options(cli_args)
-            cm_runner_runtime.options = options
-            cm_runner = CMRunner(cm_runner_runtime)
-            return cm_runner
-
-        yield inner

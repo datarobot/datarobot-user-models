@@ -943,23 +943,14 @@ class CMRunner:
             )
             docker_cmd_args += " -p {port}:{port}".format(port=port)
 
-        if (
-            run_mode in [RunMode.SCORE, RunMode.PERF_TEST, RunMode.VALIDATION, RunMode.SERVER]
-            and options.runtime_params_file
-        ):
-            docker_cmd_args += ' -v "{}":{}'.format(
-                options.runtime_params_file, in_docker_runtime_parameters_file
+        if getattr(options, ArgumentOptionsEnvVars.RUNTIME_PARAMS_FILE.lower(), None):
+            docker_cmd_args += (
+                f' -v "{options.runtime_params_file}":{in_docker_runtime_parameters_file}'
             )
-            if ArgumentsOptions.RUNTIME_PARAMS_FILE in in_docker_cmd_list:
-                DrumUtils.replace_cmd_argument_value(
-                    in_docker_cmd_list,
-                    ArgumentsOptions.RUNTIME_PARAMS_FILE,
-                    in_docker_runtime_parameters_file,
-                )
-            else:
-                docker_cmd_args += " -e {}={}".format(
-                    ArgumentOptionsEnvVars.RUNTIME_PARAMS_FILE, in_docker_runtime_parameters_file
-                )
+            DrumUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.RUNTIME_PARAMS_FILE)
+            in_docker_cmd_list.extend(
+                [ArgumentsOptions.RUNTIME_PARAMS_FILE, in_docker_runtime_parameters_file]
+            )
 
         if run_mode in [RunMode.SCORE, RunMode.PERF_TEST, RunMode.VALIDATION, RunMode.FIT]:
             docker_cmd_args += ' -v "{}":{}'.format(options.input, in_docker_input_file)

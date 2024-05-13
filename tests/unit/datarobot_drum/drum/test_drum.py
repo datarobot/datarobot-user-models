@@ -7,9 +7,11 @@
 #
 
 import os
+import sys
 from copy import deepcopy
 from pathlib import Path
-from tempfile import TemporaryDirectory
+from tempfile import TemporaryDirectory, NamedTemporaryFile
+from typing import List
 from unittest.mock import ANY, PropertyMock, patch
 
 import pandas as pd
@@ -17,17 +19,40 @@ import pytest
 import yaml
 from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
+from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.drum import (
     CMRunner,
     create_custom_inference_model_folder,
     output_in_code_dir,
 )
-from datarobot_drum.drum.enum import RunLanguage, MODEL_CONFIG_FILENAME
+from datarobot_drum.drum.enum import (
+    RunLanguage,
+    MODEL_CONFIG_FILENAME,
+    ArgumentOptionsEnvVars,
+    ArgumentsOptions,
+)
 from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
     PythonPredictor,
 )
+from datarobot_drum.drum.runtime import DrumRuntime
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from mlpiper.pipeline.executor import Executor
+
+
+def set_sys_argv(cmd_line_args):
+    # This is required because the sys.argv is manipulated by the 'CMRunnerArgsRegistry'
+    cmd_line_args = cmd_line_args.copy()
+    cmd_line_args.insert(0, sys.argv[0])
+    sys.argv = cmd_line_args
+
+
+def get_args_parser_options(cli_command: List[str]):
+    set_sys_argv(cli_command)
+    arg_parser = CMRunnerArgsRegistry.get_arg_parser()
+    CMRunnerArgsRegistry.extend_sys_argv_with_env_vars()
+    options = arg_parser.parse_args()
+    CMRunnerArgsRegistry.verify_options(options)
+    return options
 
 
 @pytest.fixture
@@ -121,6 +146,19 @@ def server_args(this_dir):
         "--language",
         "python",
     ]
+
+
+@pytest.fixture
+def runtime_factory():
+    with DrumRuntime() as cm_runner_runtime:
+
+        def inner(cli_args):
+            options = get_args_parser_options(cli_args)
+            cm_runner_runtime.options = options
+            cm_runner = CMRunner(cm_runner_runtime)
+            return cm_runner
+
+        yield inner
 
 
 @pytest.fixture
@@ -462,3 +500,119 @@ class TestUtilityFunctions:
         output_code_dir = "/test/code/is/here/output"
         assert not output_in_code_dir(code_dir, output_other)
         assert output_in_code_dir(code_dir, output_code_dir)
+
+
+class TestRuntimeParametersDockerCommand:
+    @pytest.fixture
+    def set_runtime_param_file_env_var(self):
+        def _f(file_path):
+            os.environ[ArgumentOptionsEnvVars.RUNTIME_PARAMS_FILE] = file_path
+
+        yield _f
+        os.environ.pop(ArgumentOptionsEnvVars.RUNTIME_PARAMS_FILE, None)
+
+    @pytest.mark.parametrize("args", ["server_args", "score_args"])
+    def test_runtime_params_present_as_parameter(self, request, args, runtime_factory):
+        args_list = request.getfixturevalue(args)
+
+        with (
+            patch.object(CMRunner, "_maybe_build_image"),
+            NamedTemporaryFile(suffix="_runtime.yaml") as runtime_param_file,
+        ):
+            # We add the runtime parameter file as parameter
+            params_file_host_location = os.path.realpath(runtime_param_file.name)
+            args_list.extend([ArgumentsOptions.RUNTIME_PARAMS_FILE, params_file_host_location])
+
+            cm_runner = runtime_factory(args_list)
+            docker_cmd = cm_runner._prepare_docker_command(
+                cm_runner.options, cm_runner.run_mode, cm_runner.raw_arguments
+            )
+            assert docker_cmd
+            assert params_file_host_location not in docker_cmd
+
+            params_file_docker_location = "/opt/runtime_parameters.yaml"
+            file_mapping_param = f"{params_file_host_location}:{params_file_docker_location}"
+            assert file_mapping_param in docker_cmd
+            assert params_file_docker_location in docker_cmd
+
+    @pytest.mark.parametrize("args", ["server_args", "score_args"])
+    def test_runtime_params_not_present_as_parameter(self, request, args, runtime_factory):
+        args_list = request.getfixturevalue(args)
+
+        with (
+            patch.object(CMRunner, "_maybe_build_image"),
+            NamedTemporaryFile(suffix="_runtime.yaml") as runtime_param_file,
+        ):
+            # We add the runtime parameter file as parameter
+            params_file_host_location = os.path.realpath(runtime_param_file.name)
+
+            cm_runner = runtime_factory(args_list)
+            docker_cmd = cm_runner._prepare_docker_command(
+                cm_runner.options, cm_runner.run_mode, cm_runner.raw_arguments
+            )
+            assert docker_cmd
+            assert params_file_host_location not in docker_cmd
+
+            params_file_docker_location = "/opt/runtime_parameters.yaml"
+            file_mapping_param = f"{params_file_host_location}:{params_file_docker_location}"
+            assert file_mapping_param not in docker_cmd
+            assert params_file_docker_location not in docker_cmd
+
+    @pytest.mark.parametrize("args", ["server_args", "score_args"])
+    def test_runtime_params_present_as_env_var(
+        self,
+        request,
+        args,
+        runtime_factory,
+        set_runtime_param_file_env_var,
+    ):
+        args_list = request.getfixturevalue(args)
+
+        with patch.object(CMRunner, "_maybe_build_image"), NamedTemporaryFile(
+            suffix="_runtime.yaml"
+        ) as runtime_param_file:
+            # We add the runtime parameter file as parameter
+            params_file_host_location = os.path.realpath(runtime_param_file.name)
+            params_file_docker_location = "/opt/runtime_parameters.yaml"
+            set_runtime_param_file_env_var(params_file_host_location)
+
+            cm_runner = runtime_factory(args_list)
+            docker_cmd = cm_runner._prepare_docker_command(
+                cm_runner.options, cm_runner.run_mode, cm_runner.raw_arguments
+            )
+            assert docker_cmd
+
+            file_mapping_param = f"{params_file_host_location}:{params_file_docker_location}"
+            assert file_mapping_param in docker_cmd
+            assert params_file_host_location not in docker_cmd
+            assert params_file_docker_location in docker_cmd
+
+    @pytest.mark.parametrize("args", ["server_args", "score_args"])
+    def test_runtime_params_not_present_as_env_var(
+        self,
+        request,
+        args,
+        runtime_factory,
+        set_runtime_param_file_env_var,
+    ):
+        args_list = request.getfixturevalue(args)
+
+        with patch.object(CMRunner, "_maybe_build_image"), NamedTemporaryFile(
+            suffix="_runtime.yaml"
+        ) as runtime_param_file:
+            # We add the runtime parameter file as parameter
+            params_file_host_location = os.path.realpath(runtime_param_file.name)
+            params_file_docker_location = "/opt/runtime_parameters.yaml"
+
+            cm_runner = runtime_factory(args_list)
+            docker_cmd = cm_runner._prepare_docker_command(
+                cm_runner.options, cm_runner.run_mode, cm_runner.raw_arguments
+            )
+            assert docker_cmd
+            assert params_file_host_location not in docker_cmd
+            assert params_file_docker_location not in docker_cmd
+
+            file_mapping_param = f"{params_file_host_location}:{params_file_docker_location}"
+            assert file_mapping_param not in docker_cmd
+            assert params_file_host_location not in docker_cmd
+            assert params_file_docker_location not in docker_cmd
