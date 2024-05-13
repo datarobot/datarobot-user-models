@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import tempfile
 from contextlib import contextmanager
 from textwrap import dedent
 
@@ -220,7 +221,7 @@ def df_to_temporary_file() -> callable:
         is_sparse = is_sparse_dataframe(df)
         suffix = ".mtx" if is_sparse else ".csv"
 
-        target_file = NamedTemporaryFile(suffix=suffix)
+        target_file = tempfile.NamedTemporaryFile(suffix=suffix)
         if is_sparse_dataframe(df):
             mmwrite(target_file.name, df.sparse.to_coo())
         else:
