@@ -113,7 +113,7 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
         if self.trust_remote_code:
             cmd.append("--trust-remote-code")
         if self.max_model_len:
-            cmd.extend(["--max-model-len", str(self.max_model_len)])
+            cmd.extend(["--max-model-len", str(int(self.max_model_len))])
         if self.gpu_memory_utilization:
             cmd.extend(["--gpu-memory-utilization", str(self.gpu_memory_utilization)])
 
