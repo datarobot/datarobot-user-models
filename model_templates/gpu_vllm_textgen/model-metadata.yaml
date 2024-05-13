@@ -18,6 +18,7 @@ runtimeParameterDefinitions:
   - fieldName: max_tokens
     type: numeric
     defaultValue: 256
+    minValue: 1
     description: max number of symbols in response
 
   - fieldName: system_prompt
@@ -29,3 +30,22 @@ runtimeParameterDefinitions:
     type: string
     defaultValue: user_prompt
     description: column with user's prompt (each row is a separate completion request)
+
+  - fieldName: max_model_len
+    type: numeric
+    description: |-
+      Model context length. If unspecified, will be automatically derived from the model config
+
+  - fieldName: gpu_memory_utilization
+    type: numeric
+    defaultValue: 0.9
+    minValue: 0
+    maxValue: 1
+    description: |-
+      The fraction of GPU memory to be used for the model executor, which can range from 0 to 1.
+      For example, a value of 0.5 would imply 50% GPU memory utilization
+
+  - fieldName: trust_remote_code
+    type: boolean
+    defaultValue: False
+    description: Trust remote code from HuggingFace.
