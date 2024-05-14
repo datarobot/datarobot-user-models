@@ -8,7 +8,7 @@ You can extend these templates to include or modify the additional
 dependencies that you want to include for your own custom environments.
 
 In this repository, we provide several example environments that you can use and modify:
-* [Python 3.11 Notebook Environment](python311_notebook_base)
+* [Python 3.11 Base Notebook Environment](python311_notebook_base)
 * [Python 3.9 Notebook Environment](python39_notebook)
 * [Python 3.11 Notebook Environment](python311_notebook)
 * [Python 3.8 + Snowflake Notebook Environment](python38_snowflake_notebook)
