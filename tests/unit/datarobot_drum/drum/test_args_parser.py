@@ -691,7 +691,7 @@ class TestGetArgOptions:
             options, ArgumentsOptions.RUNTIME_PARAMS_FILE
         )
         assert arg_option is None
-        assert arg_option not in options
+        assert "runtime_params_file" not in options
 
 
 class TestRuntimeParametersArgs:
