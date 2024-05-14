@@ -6,31 +6,45 @@ runtimeParameterDefinitions:
   - fieldName: option1
     type: string
     defaultValue: ABCD 123
-    description: Input any text that helps inform others what this param does.
+    description: |-
+      Input any text that helps inform others what this param does and provide a default if one
+      is applicable.
 
   - fieldName: option2
     type: string
-    description: However, a description is optional...
+    description: However, an implicit `None` will be set as the defaultValue if not provided.
 
+  # And even descriptions are optional
   - fieldName: option3
     type: string
 
   - fieldName: encryption_key
     type: credential
-    description: Some secret injected by DataRobot and stored in the Credential Manager.
+    description: |-
+      Some secret (of any type) injected by DataRobot and stored in the Credential Manager.
+
+  - fieldName: aws_key
+    type: credential
+    credentialType: s3
+    description: |-
+      Only secrets of a specific type will be allowed as values for this param.
 
   - fieldName: bool_var
     type: boolean
     defaultValue: true
+    description: Boolean types are also supported.
 
   - fieldName: number1
     type: numeric
     defaultValue: 0
-    allowEmpty: False
     minValue: -100
     maxValue: 100
+    description: A numeric value that can be any number between -100 and 100 (inclusive).
 
   - fieldName: number2
     type: numeric
-    defaultValue: 0
+    allowEmpty: False
+    description: |-
+      All param types also can be marked as _required_ by setting `allowEmpty: False` and not
+      providing a `defaultValue`.
 
