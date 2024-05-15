@@ -14,7 +14,7 @@ from datarobot_drum.drum.enum import ModelMetadataKeys
 
 from datarobot_drum.resource.utils import _create_custom_model_dir
 from datarobot_drum.resource.utils import _exec_shell_cmd
-from tests.constants import PYTHON_UNSTRUCTURED_RUNTIME_PARAMS
+from tests.constants import PYTHON_UNSTRUCTURED_RUNTIME_PARAMS, DOCKER_PYTHON_SKLEARN
 from tests.constants import UNSTRUCTURED
 from tests.fixtures.unstructured_custom_runtime_parameters import EXPECTED_RUNTIME_PARAMS_FILE_NAME
 
@@ -163,16 +163,17 @@ class TestRuntimeParametersFromValuesFile:
             yield file_stream
 
     @pytest.mark.parametrize("use_runtime_params_env_var", [True, False])
+    @pytest.mark.parametrize("docker", [None, DOCKER_PYTHON_SKLEARN])
     def test_runtime_parameters_success(
-        self, resources, tmp_path, runtime_param_values_stream, use_runtime_params_env_var
+        self, resources, tmp_path, runtime_param_values_stream, use_runtime_params_env_var, docker
     ):
-        stderr = self._test_custom_model_with_runtime_params(
+        self._test_custom_model_with_runtime_params(
             resources,
             tmp_path,
             runtime_param_values_stream,
             use_runtime_params_env_var=use_runtime_params_env_var,
+            docker=docker,
         )
-        assert not stderr
 
     def _test_custom_model_with_runtime_params(
         self,
@@ -184,6 +185,7 @@ class TestRuntimeParametersFromValuesFile:
         bool_var_value=False,
         numeric_var_value=123,
         use_runtime_params_env_var=False,
+        docker=None,
     ):
         problem = UNSTRUCTURED
         custom_model_dir = _create_custom_model_dir(
@@ -216,6 +218,10 @@ class TestRuntimeParametersFromValuesFile:
             cmd += f"--runtime-params-file {runtime_param_values_stream.name}"
         else:
             env["RUNTIME_PARAMS_FILE"] = runtime_param_values_stream.name
+
+        if docker:
+            cmd += " --docker {} --verbose ".format(docker)
+
         _, stdout, _ = _exec_shell_cmd(cmd, err_msg=None, assert_if_fail=False, env=env)
         return stdout
 

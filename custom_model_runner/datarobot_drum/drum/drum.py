@@ -29,6 +29,7 @@ import pandas as pd
 from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
 from datarobot_drum.drum.adapters.model_adapters.abstract_model_adapter import AbstractModelAdapter
 from datarobot_drum.drum.adapters.model_adapters.r_model_adapter import RModelAdapter
+from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.common import get_metadata, FIT_METADATA_FILENAME
 from datarobot_drum.drum.model_metadata import (
     read_model_metadata_yaml,
@@ -888,6 +889,7 @@ class CMRunner:
         in_docker_fit_output_dir = "/opt/fit_output_dir"
         in_docker_fit_target_filename = "/opt/fit_target.csv"
         in_docker_fit_row_weights_filename = "/opt/fit_row_weights.csv"
+        in_docker_runtime_parameters_file = "/opt/runtime_parameters.yaml"
 
         docker_cmd = "docker run --rm --init --entrypoint '' --interactive --user {}:{}".format(
             os.getuid(), os.getgid()
@@ -941,6 +943,15 @@ class CMRunner:
                 in_docker_cmd_list, ArgumentsOptions.ADDRESS, host_port_inside_docker
             )
             docker_cmd_args += " -p {port}:{port}".format(port=port)
+
+        if CMRunnerArgsRegistry.get_arg_option(options, ArgumentsOptions.RUNTIME_PARAMS_FILE):
+            docker_cmd_args += (
+                f' -v "{options.runtime_params_file}":{in_docker_runtime_parameters_file}'
+            )
+            DrumUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.RUNTIME_PARAMS_FILE)
+            in_docker_cmd_list.extend(
+                [ArgumentsOptions.RUNTIME_PARAMS_FILE, in_docker_runtime_parameters_file]
+            )
 
         if run_mode in [RunMode.SCORE, RunMode.PERF_TEST, RunMode.VALIDATION, RunMode.FIT]:
             docker_cmd_args += ' -v "{}":{}'.format(options.input, in_docker_input_file)
