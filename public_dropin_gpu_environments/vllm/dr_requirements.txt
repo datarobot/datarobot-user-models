@@ -147,7 +147,7 @@ pyyaml==6.0.1
     #   datarobot
     #   datarobot-drum
     #   datarobot-mlops
-requests==2.31.0
+requests==2.32.2
     # via
     #   datarobot
     #   datarobot-drum
