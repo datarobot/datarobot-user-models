@@ -9,8 +9,8 @@ COPY requirements.txt requirements.txt
 
 RUN microdnf update && \
     microdnf install -y python3.11 python3.11-pip python3.11-devel \
-    gcc-8.5.0 gcc-c++-8.5.0 \
-    java-11-openjdk-headless-1:11.0.22.0.7 java-11-openjdk-devel-1:11.0.22.0.7 \
+    gcc-8.5.0 gcc-c++-8.5.0 which \
+    java-11-openjdk-headless-1:11.0.23.0.9 java-11-openjdk-devel-1:11.0.23.0.9 \
     nginx \
     tar-2:1.30 gzip-1.9 unzip-6.0 zip-3.0 wget-1.19.5 vim-minimal-2:8.0.1763 nano-2.9.8 && \
     chmod 707 /var/lib/nginx && \
