@@ -5,7 +5,7 @@ pytest
 pytest-runner
 pytest-xdist
 PyYAML>=3.11
-requests >= 2.24.0
+requests>=2.24.0,<=2.32.0
 responses
 retry
 scikit-learn==1.0.2
