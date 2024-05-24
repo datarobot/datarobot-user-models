@@ -15,7 +15,7 @@ scipy>=1.1,<1.11
 tiktoken==0.7.0
 google-cloud-aiplatform==1.32.0
 aws-request-signer==1.2.0
-pydantic==2.2.1
+pydantic==2.4.0
 pydantic-settings==2.0.3
 aiofiles==23.1.0
 aioboto3==12.1.0
