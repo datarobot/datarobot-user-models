@@ -32,8 +32,8 @@
                 "user_secrets_prefix": {{ user_secrets_prefix | jsonify}},
                 "gpu_predictor": {{ gpu_predictor | jsonify }},
                 "triton_host": {{ triton_host | jsonify }},
-                "triton_http_port": {{ triton_http_port }},
-                "triton_grpc_port": {{ triton_grpc_port }}
+                "triton_http_port": {{ triton_http_port | jsonify }},
+                "triton_grpc_port": {{ triton_grpc_port | jsonify }}
               }
           }
       ]

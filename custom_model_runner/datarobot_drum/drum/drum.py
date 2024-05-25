@@ -737,8 +737,8 @@ class CMRunner:
             "external_webserver_url": options.webserver,
             "gpu_predictor": options.gpu_predictor,
             "triton_host": options.triton_host,
-            "triton_http_port": options.triton_http_port,
-            "triton_grpc_port": options.triton_grpc_port,
+            "triton_http_port": int(options.triton_http_port),
+            "triton_grpc_port": int(options.triton_grpc_port),
             "api_token": options.api_token,
             "allow_dr_api_access": options.allow_dr_api_access,
             "query_params": '"{}"'.format(options.query)
