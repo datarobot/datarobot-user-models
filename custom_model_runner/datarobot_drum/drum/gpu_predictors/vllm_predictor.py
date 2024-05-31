@@ -36,6 +36,7 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
         self.max_model_len = self.get_optional_parameter("max_model_len")
         self.gpu_memory_utilization = self.get_optional_parameter("gpu_memory_utilization")
         self.trust_remote_code = self.get_optional_parameter("trust_remote_code")
+        self.gpu_count = int(os.environ.get("GPU_COUNT", 0))
 
     @property
     def num_deployment_stages(self):
@@ -118,6 +119,10 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
             cmd.extend(["--max-model-len", str(int(self.max_model_len))])
         if self.gpu_memory_utilization:
             cmd.extend(["--gpu-memory-utilization", str(self.gpu_memory_utilization)])
+
+        # If the user hasn't already specified the number of GPUs, we will default to using all
+        if self.gpu_count > 1 and "--tensor-parallel-size" not in cmd:
+            cmd.extend(["--tensor-parallel-size", str(self.gpu_count)])
 
         # For advanced users, allow them to specify arbitrary CLI options that we haven't exposed
         # via runtime parameters.
