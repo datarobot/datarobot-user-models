@@ -6,6 +6,9 @@ RUN apt-get update && apt-get install -y \
     zstd \
   && rm -rf /var/lib/apt/lists/*
 
+# Add support for Quantization: https://docs.vllm.ai/en/latest/quantization/auto_awq.html
+RUN pip install --no-cache-dir autoawq
+
 # Don't send any telemetry data (vLLM or HuggingFace libraries)
 ENV DO_NOT_TRACK=1
 

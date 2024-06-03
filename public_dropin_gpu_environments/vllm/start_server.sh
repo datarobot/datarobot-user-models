@@ -8,6 +8,9 @@
 echo "Starting Custom Model environment with vLLM"
 set -e
 
+export GPU_COUNT=$(nvidia-smi -L | wc -l)
+echo "GPU count: $GPU_COUNT"
+
 # TODO: enable uwsgi with multiple workers after we are sure we only spin up
 #   one instance of vLLM and the load_model hook is only executed once.
 #export PRODUCTION=1
