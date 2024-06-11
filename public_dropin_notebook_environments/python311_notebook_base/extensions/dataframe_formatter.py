@@ -62,7 +62,8 @@ class DataframesProcessSteps(str, Enum):
 
 Columns = List[Dict[str, Any]]
 
-index_key = "_dr_df_index"
+default_index_key = "_dr_df_index"
+index_key = default_index_key
 
 
 def _register_exception(
@@ -80,6 +81,15 @@ def _register_exception(
 
 
 def _set_index(df: DataFrame) -> DataFrame:
+    global index_key  # noqa: PLW0603
+
+    # use defined index name, or set default
+    if df.index.name is None:
+        index_key = default_index_key  # noqa: PLW0603
+    elif df.index.name != default_index_key:
+        index_key = df.index.name
+        return df
+
     if isinstance(df.index, DatetimeIndex):
         df.index = df.index.strftime("%Y-%m-%dT%H:%M:%S.%f")
 
