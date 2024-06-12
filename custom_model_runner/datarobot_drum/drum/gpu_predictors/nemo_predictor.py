@@ -16,6 +16,7 @@ from datarobot_drum.drum.enum import CustomHooks
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
 from datarobot_drum.drum.gpu_predictors.utils import read_model_config
+from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
 from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 
 
@@ -91,6 +92,9 @@ class NemoPredictor(BaseOpenAiGpuPredictor):
         """
         Proxy health checks to NeMo Inference Server
         """
+        if self.openai_server_thread and not self.openai_server_thread.is_alive():
+            return {"message": "NIM watchdog has crashed."}, HTTP_513_DRUM_PIPELINE_ERROR
+
         try:
             nemo_health_url = f"http://{self.openai_host}:{self.health_port}/v1/health/ready"
             response = requests.get(nemo_health_url, timeout=5)
