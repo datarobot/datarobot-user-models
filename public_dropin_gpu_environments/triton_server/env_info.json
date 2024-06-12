@@ -3,6 +3,6 @@
   "name": "[NVIDIA] Triton Inference Server (24.01)",
   "description": "Triton Inference Server is open source software that lets teams deploy trained AI models from any framework, from local or cloud storage and on any GPU- or CPU-based infrastructure in the cloud, data center, or embedded devices.\n\nThis is the standard py3 image with support for Tensorflow, PyTorch, TensorRT, ONNX and OpenVINO models.",
   "programmingLanguage": "python",
-  "environmentVersionId": "66328cedcbce0271a35ef298",
+  "environmentVersionId": "666a018fcbce0245904e173c",
   "isPublic": true
 }
