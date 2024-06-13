@@ -50,6 +50,11 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         super().__init__()
         self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
+        # used by status reporter
+        self.datarobot_endpoint = os.environ.get("DATAROBOT_ENDPOINT", None)
+        self.datarobot_api_token = os.environ.get("DATAROBOT_API_TOKEN", None)
+        self.deployment_id = os.environ.get("MLOPS_DEPLOYMENT_ID", None)
+
         # server configuration is set in the Drop-in environment
         self.openai_port = os.environ.get("OPENAI_PORT", "9999")
         self.openai_host = os.environ.get("OPENAI_HOST", "localhost")
@@ -103,9 +108,9 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
             model_dir=self._code_dir, target_type=self.target_type
         )
         self.status_reporter = MLOpsStatusReporter(
-            mlops_service_url=params["external_webserver_url"],
-            mlops_api_token=params["api_token"],
-            deployment_id=params.get("deployment_id"),
+            mlops_service_url=self.datarobot_endpoint,
+            mlops_api_token=self.datarobot_api_token,
+            deployment_id=self.deployment_id,
             verify_ssl=self.verify_ssl,
             total_deployment_stages=self.num_deployment_stages,
         )

@@ -31,12 +31,12 @@ class MLOpsStatusReporter:
         self.current_stage = 0
 
     def report_deployment(self, message: str):
-        if not self.deployment_id:
+        if not all([self.deployment_id, self.mlops_service_url, self.mlops_api_token]):
             # custom model testing has no deployment_id, skip reporting
             return
 
         self.logger.info(message)
-        remote_events_url = f"{self.mlops_service_url}/api/v2/remoteEvents/"
+        remote_events_url = f"{self.mlops_service_url}/remoteEvents/"
 
         title = "Deployment status"
         if self.total_deployment_stages:
