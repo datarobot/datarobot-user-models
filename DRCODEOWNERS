@@ -42,7 +42,7 @@
 /public_dropin_environments/python3_xgboost                       @datarobot/custom-models @datarobot/core-modeling
 /public_dropin_environments/r_lang                                @datarobot/custom-models @datarobot/core-modeling
 /public_dropin_gpu_environments                                   @datarobot/tracking-agent @datarobot/custom-models
-/public_dropin_gpu_environments/python311_genai                   @datarobot/custom-models
+/public_dropin_gpu_environments/python311_genai                   @datarobot/buzok
 /public_dropin_notebook_environments                              @datarobot/custom-models @datarobot/nbx
 /task_templates                                                   @datarobot/core-modeling
 /tests/e2e/test_custom_task_templates.py                          @datarobot/core-modeling
