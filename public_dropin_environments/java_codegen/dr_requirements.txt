@@ -1,3 +1,4 @@
-pandas<=2.0.3
+pandas<=2.2.2
+numpy<2.0.0
 pyarrow>=0.14.1,<=14.0.1
 datarobot-drum==1.10.21
