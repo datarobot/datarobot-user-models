@@ -13,7 +13,7 @@ RUN microdnf update && \
     java-11-openjdk-headless-1:11.0.23.0.9 java-11-openjdk-devel-1:11.0.23.0.9 \
     nginx \
     tar-2:1.30 gzip-1.9 unzip-6.0 zip-3.0 wget-1.19.5 vim-minimal-2:8.0.1763 nano-2.9.8 && \
-    chmod 707 /var/lib/nginx && \
+    chmod -R 707 /var/lib/nginx /var/log/nginx && \
     # try to squeeze everything into one layer
     pip3 install -U pip --no-cache-dir && \
     pip3 install --no-cache-dir wheel setuptools && \
