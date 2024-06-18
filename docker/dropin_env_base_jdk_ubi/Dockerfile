@@ -1,5 +1,5 @@
 # This is the default base image for use with user models and workflows.
-FROM registry.access.redhat.com/ubi8-minimal:8.8-1037
+FROM redhat/ubi8-minimal:8.8-1037
 
 ARG DATAROBOT_MLOPS_VERSION
 
