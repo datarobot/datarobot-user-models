@@ -1,0 +1,3 @@
+# There's not direct depdenency on numpy. It is temporarily required until 'datarobot-drum>1.11.4'
+# will be release.
+numpy<2.0.0
