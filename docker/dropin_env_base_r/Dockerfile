@@ -13,7 +13,7 @@ RUN apt-get update && \
           && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
-    chmod 707 /var/lib/nginx
+    chmod -R 707 /var/lib/nginx /var/log/nginx
 
 RUN Rscript -e "install.packages('caret', Ncpus=4)" && \
     Rscript -e "install.packages('recipes', Ncpus=4)" && \
