@@ -1,6 +1,6 @@
 # This is the default base image for use with user models and workflows.
 # It contains a variety of common useful data-science packages and tools.
-FROM datarobot/dropin-env-base-jdk:ubi8.8-py3.11-jdk11.0.22-drum1.11.1-mlops9.2.8
+FROM datarobot/dropin-env-base-jdk:ubi8.8-py3.11-jdk11.0.22-drum1.11.5-mlops9.2.8
 
 # Install the list of core requirements, e.g. sklearn, numpy, pandas, flask.
 # **Don't modify this file!**

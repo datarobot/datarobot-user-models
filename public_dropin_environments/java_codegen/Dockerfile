@@ -1,5 +1,5 @@
 # This is the default base image for use with user models and workflows.
-FROM datarobot/dropin-env-base-jdk:debian11-py3.9-jdk11.0.16-drum1.10.14-mlops9.2.8
+FROM datarobot/dropin-env-base-jdk:debian11-py3.9-jdk11.0.16-drum1.11.5-mlops9.2.8
 
 # Install the list of core requirements, e.g. sklearn, numpy, pandas, flask.
 # **Don't modify this file!**
@@ -10,10 +10,6 @@ COPY dr_requirements.txt dr_requirements.txt
 RUN pip3 install -U pip && \
     pip3 install -U --upgrade-strategy eager --no-cache-dir -r dr_requirements.txt  && \
     rm -rf dr_requirements.txt
-
-COPY requirements.txt requirements.txt
-RUN pip3 install -r requirements.txt --no-cache-dir && \
-    rm -rf requirements.txt
 
 # Copy the drop-in environment code into the correct directory
 # Code from the custom model tarball can overwrite the code here
