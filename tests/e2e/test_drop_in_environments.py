@@ -11,7 +11,7 @@ import pytest
 import datarobot as dr
 from datarobot.enums import DEFAULT_MAX_WAIT
 
-BASE_FIXTURE_DIR = "tests/fixtures"
+BASE_FIXTURE_DIR = "mlpiper/fixtures"
 ARTIFACT_DIR = "drop_in_model_artifacts"
 CUSTOM_PREDICT_PY_PATH = os.path.join(BASE_FIXTURE_DIR, "custom.py")
 CUSTOM_PREDICT_R_PATH = os.path.join(BASE_FIXTURE_DIR, "custom.R")

@@ -1,0 +1,99 @@
+{
+    "name": "1P KMeans High-Level Prediction",
+    "engineType": "SageMaker",
+    "pipe": [
+        {
+            "name": "AWS S3 file uploader (IT)",
+            "id": 1,
+            "type": "aws_s3_file_uploader_it",
+            "parents": [],
+            "arguments": {
+                "local_filepath": "/tmp/sagemaker-mnist-test-dataset.csv",
+                "skip_uploading": false
+            }
+        },
+        {
+            "name": "SageMaker KMeans Batch Predictor (IT)",
+            "id": 2,
+            "type": "sagemaker_kmeans_batch_predictor_it",
+            "parents": [
+                {
+                    "parent": 1,
+                    "output": 0
+                }
+            ],
+            "arguments": {
+                "skip_s3_model_uploading": false,
+                "instance_count": 2
+            }
+        },
+        {
+            "name": "AWS S3 file downloader (IT)",
+            "id": 3,
+            "type": "aws_s3_file_downloader_it",
+            "parents": [
+                {
+                    "parent": 2,
+                    "output": 0
+                }
+            ],
+            "arguments": {
+                "local_filepath": "/tmp/sagemaker-mnist-predictions.csv"
+            }
+
+        }
+    ],
+    "systemConfig": {
+        "modelFileSourcePath": "__PLACEHOLDER__"
+    },
+    "executionEnvironment": {
+        "configs": {
+            "engConfig": {
+                "type": "sagemaker",
+                "arguments": {
+                    "region": {
+                        "value": "__REGION_PLACEHOLDER__",
+                        "type": "string",
+                        "optional": false,
+                        "label": "Region",
+                        "description": "The AWS Region to send the request to",
+                        "editable": true
+                    },
+                    "aws_access_key_id": {
+                        "value": "__AWS_ACCESS_KEY_ID_PLACEHOLDER__",
+                        "type": "string",
+                        "optional": false,
+                        "label": "Access Key ID",
+                        "description": "A long term credential access key ID",
+                        "editable": true
+                    },
+                    "aws_secret_access_key": {
+                        "value": "__AWS_SECRET_ACCESS_KEY_PLACEHOLDER__",
+                        "type": "string",
+                        "optional": false,
+                        "label": "Secret Access Key",
+                        "description": "A long term credential secret access key",
+                        "editable": true
+                    },
+                    "iam_role": {
+                        "value": "",
+                        "default_value": "",
+                        "type": "string",
+                        "optional": false,
+                        "label": "IAM Role",
+                        "description": "An IAM identity that has specific permissions",
+                        "editable": true
+                    },
+                    "boto3_logging_level": {
+                        "value": {},
+                        "type": "map<string,string>",
+                        "optional": false,
+                        "label": "boto3 logging level",
+                        "description": "Enables to set logging level of any boto3 sub-module",
+                        "editable": true
+                    }
+                }
+            }
+        }
+    }
+}

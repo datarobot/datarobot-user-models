@@ -427,11 +427,11 @@ class TestInference:
     # The fitting code for the sklearn transform is in task_templates/1_transforms/3_python3_sklearn_transform
     # To retrain sklearn_transform.pkl / sklearn_transform_dense.pkl artifacts adjust code to use sparse / dense
     # Run DRUM using command:
-    # drum fit --code-dir task_templates/1_transforms/3_python3_sklearn_transform --input tests/testdata/10k_diabetes_sample.csv --target-type transform --target readmitted --output <some dir>
+    # drum fit --code-dir task_templates/1_transforms/3_python3_sklearn_transform --input mlpiper/testdata/10k_diabetes_sample.csv --target-type transform --target readmitted --output <some dir>
     @pytest.mark.parametrize(
         "framework, problem, language, docker, use_arrow",
         [
-            # The following 3 tests produce Y transform values and are being temporarily removed until y transform
+            # The following 3 mlpiper produce Y transform values and are being temporarily removed until y transform
             # validation is added
             # (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, True),
             # (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None, False),

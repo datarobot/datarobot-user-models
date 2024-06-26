@@ -1,0 +1,18 @@
+{
+    "name": "Rest Model Serving Pipeline",
+    "engineType": "RestModelServing",
+    "systemConfig": {
+        "modelFileSourcePath": "__PLACEHOLDER__"
+    },
+    "pipe": [
+        {
+            "name": "REST Model Serving (Test)",
+            "id": 1,
+            "type": "restful_sklearn_serving_test",
+            "parents": [],
+            "arguments": {
+                "port": 8888
+            }
+        }
+    ]
+}

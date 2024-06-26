@@ -1,0 +1,92 @@
+{
+    "name": "1P KMeans High-Level Training",
+    "engineType": "SageMaker",
+    "pipe": [
+        {
+            "name": "Dataset downloader (IT)",
+            "id": 1,
+            "type": "dataset_downloader_it",
+            "parents": [],
+            "arguments": {
+                "dataset_url": "http://deeplearning.net/data/mnist/mnist.pkl.gz",
+                "test_set_local_csv_filepath": "/tmp/sagemaker-mnist-test-dataset.csv"
+            }
+        },
+        {
+            "name": "SageMaker KMeans Trainer (IT)",
+            "id": 2,
+            "type": "sagemaker_kmeans_trainer_it",
+            "parents": [
+                {
+                    "parent": 1,
+                    "output": 0
+                },
+                {
+                    "parent": 1,
+                    "output": 1
+                },
+                {
+                    "parent": 1,
+                    "output": 2
+                }
+            ],
+            "arguments": {
+                "skip_s3_dataset_uploading": false,
+                "instance_count": 2
+            }
+        }
+    ],
+    "systemConfig": {
+        "modelFileSinkPath": "__PLACEHOLDER__"
+    },
+    "executionEnvironment": {
+        "configs": {
+            "engConfig": {
+                "type": "sagemaker",
+                "arguments": {
+                    "region": {
+                        "value": "__REGION_PLACEHOLDER__",
+                        "type": "string",
+                        "optional": false,
+                        "label": "Region",
+                        "description": "The AWS Region to send the request to",
+                        "editable": true
+                    },
+                    "aws_access_key_id": {
+                        "value": "__AWS_ACCESS_KEY_ID_PLACEHOLDER__",
+                        "type": "string",
+                        "optional": false,
+                        "label": "Access Key ID",
+                        "description": "A long term credential access key ID",
+                        "editable": true
+                    },
+                    "aws_secret_access_key": {
+                        "value": "__AWS_SECRET_ACCESS_KEY_PLACEHOLDER__",
+                        "type": "string",
+                        "optional": false,
+                        "label": "Secret Access Key",
+                        "description": "A long term credential secret access key",
+                        "editable": true
+                    },
+                    "iam_role": {
+                        "value": "",
+                        "default_value": "",
+                        "type": "string",
+                        "optional": false,
+                        "label": "IAM Role",
+                        "description": "An IAM identity that has specific permissions",
+                        "editable": true
+                    },
+                    "boto3_logging_level": {
+                        "value": {},
+                        "type": "map<string,string>",
+                        "optional": false,
+                        "label": "boto3 logging level",
+                        "description": "Enables to set logging level of any boto3 sub-module",
+                        "editable": true
+                    }
+                }
+            }
+        }
+    }
+}

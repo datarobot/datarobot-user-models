@@ -48,5 +48,5 @@ encryption_key:
 Paths are relative to `./datarobot-user-models`:
 
 ```sh
-drum score --code-dir model_templates/python3_sklearn_runtime_params --target-type regression --input tests/testdata/juniors_3_year_stats_regression.csv --runtime-params-file <path_to_values_file>
+drum score --code-dir model_templates/python3_sklearn_runtime_params --target-type regression --input mlpiper/testdata/juniors_3_year_stats_regression.csv --runtime-params-file <path_to_values_file>
 ```

@@ -44,15 +44,15 @@ def pytest_configure(config):
         admin_api_key = get_admin_api_key()
 
         # User credentials
-        user_username = "local-custom-model-tests-{}@datarobot.com".format(suffix)
+        user_username = "local-custom-model-mlpiper-{}@datarobot.com".format(suffix)
         user_password = "Lkjkljnm988989jkr5645tv_{}".format(suffix)
-        user_api_key_name = "drum-functional-tests"
+        user_api_key_name = "drum-functional-mlpiper"
         user_permissions = get_permissions(
-            "tests/fixtures/user_permissions.json", user_api_key_name
+            "mlpiper/fixtures/user_permissions.json", user_api_key_name
         )
 
         # Add organization
-        org_name = "local-custom-model-tests-org"
+        org_name = "local-custom-model-mlpiper-org"
         try:
             # ensure it exists
             DataRobotUserDatabase.add_organization(environment=env, organization_name=org_name)

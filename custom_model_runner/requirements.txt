@@ -8,7 +8,6 @@ flask<=2.2.5
 werkzeug==3.0.3
 jinja2>=3.0.0
 memory_profiler<1.0.0
-mlpiper~=2.6.0
 numpy<2.0.0
 pandas>=1.5.0,<=2.0.3
 progress

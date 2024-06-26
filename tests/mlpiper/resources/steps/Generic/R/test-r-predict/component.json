@@ -1,0 +1,30 @@
+{
+  "engineType": "Generic",
+  "language": "R",
+  "name": "test-r-predict",
+  "label": "Python R connector",
+  "program": "main.R",
+  "modelBehavior": "ModelConsumer",
+  "group": "Algorithms",
+  "useMLOps": true,
+  "inputInfo": [],
+  "outputInfo": [],
+  "arguments": [
+    {
+      "key": "data-file",
+      "label": "Data File",
+      "type": "str",
+      "description": "Datafile to use for predictions",
+      "optional": true
+    },
+    {
+      "key": "input-model",
+      "label": "Model input file",
+      "type": "str",
+      "description": "File to use for loading model",
+      "optional": true,
+      "tag": "input_model_path"
+    }
+  ],
+  "version": 1
+}

@@ -1,0 +1,54 @@
+{
+  "engineType": "Generic",
+  "language": "Python",
+  "userStandalone": false,
+  "name": "test-predict-sink",
+  "label": "Test Predict Sink",
+  "program": "main.py",
+  "componentClass": "MCenterComponentAdapter",
+  "modelBehavior": "ModelConsumer",
+  "useMLOps": true,
+  "inputInfo": [
+    {
+      "description": "Input string",
+      "label": "just-string",
+      "defaultComponent": "",
+      "type": "str",
+      "group": "data"
+    }
+  ],
+  "outputInfo": [],
+  "group": "Algorithms",
+  "arguments": [
+    {
+      "key": "exit-value",
+      "label": "exit-value",
+      "type": "int",
+      "description": "Exit value to use",
+      "optional": true
+    },
+    {
+      "key": "iter",
+      "label": "number of iterations",
+      "type": "int",
+      "description": "Number of 1 sec iterations to perform",
+      "optional": true
+    },
+    {
+      "key": "model-content",
+      "label": "arg1",
+      "type": "str",
+      "description": "Model content to use when creating model",
+      "optional": true
+    },
+    {
+      "key": "input-model",
+      "label": "Model input file",
+      "type": "str",
+      "description": "File to use for loading the model",
+      "optional": true,
+      "tag": "input_model_path"
+    }
+  ],
+  "version": 1
+}

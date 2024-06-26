@@ -1,0 +1,56 @@
+{
+  "engineType": "Generic",
+  "language": "Python",
+  "userStandalone": false,
+  "name": "test-train-sink",
+  "label": "Test Train Sink",
+  "program": "main.py",
+  "componentClass": "MCenterComponentAdapter",
+  "modelBehavior": "ModelProducer",
+  "useMLOps": true,
+  "inputInfo": [
+    {
+      "description": "Input string",
+      "label": "just-string",
+      "defaultComponent": "",
+      "type": "str",
+      "group": "data"
+    }
+  ],
+  "outputInfo": [
+
+  ],
+  "group": "Algorithms",
+  "arguments": [
+    {
+      "key": "exit_value",
+      "label": "exit-value",
+      "type": "int",
+      "description": "Exit value to use",
+      "optional": true
+    },
+    {
+      "key": "iter",
+      "label": "number of iterations",
+      "type": "int",
+      "description": "Number of 1 sec iterations to perform",
+      "optional": true
+    },
+    {
+      "key": "model_content",
+      "label": "arg1",
+      "type": "str",
+      "description": "Model content to use when creating model",
+      "optional": true
+    },
+    {
+      "key": "output_model",
+      "label": "Model output file",
+      "type": "str",
+      "description": "File to use for saving the trained model",
+      "optional": true,
+      "tag": "model_dir"
+    }
+  ],
+  "version": 1
+}

@@ -32,7 +32,7 @@ TESTS_TO_RUN="tests/functional/test_inference_per_framework.py \
               tests/functional/test_unstructured_mode_per_framework.py
              "
 
-# install 'pack' package in R env for tests
+# install 'pack' package in R env for mlpiper
 if [ "$1" = "r_lang" ]; then
     Rscript -e "install.packages('pack', Ncpus=4)"
     TESTS_TO_RUN+="tests/integration/datarobot_drum/drum/language_predictors/test_language_predictors.py::TestRPredictor \

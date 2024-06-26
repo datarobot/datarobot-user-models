@@ -1,0 +1,48 @@
+{
+  "engineType": "Generic",
+  "userStandalone": false,
+  "language": "Python",
+  "name": "Categoricals Converter",
+  "label": "SCategoricals Converter",
+  "program": "categoricals_converter.py",
+  "componentClass": "CategoricalsConverter",
+  "group": "FeatureEngineering",
+  "includeGlobPatterns" : "__init__.py | categoricals_converter*",
+  "deps": ["numpy==1.14.6;python_version<\"3.4\"", "scikit-learn"],
+  "useMLOps": true,
+  "inputInfo": [
+    {
+      "description": "X train DataFrame",
+      "label": "DataFrame[Pandas]",
+      "defaultComponent": "",
+      "type": "pd.dataframe",
+      "group": "data"
+    },
+    {
+      "description": "y train DataFrame",
+      "label": "DataFrame[Pandas]",
+      "defaultComponent": "",
+      "type": "pd.dataframe",
+      "group": "data"
+    }
+  ],
+  "outputInfo": [
+    {
+      "description": "Pandas DataFrame",
+      "label": "DataFrame[Pandas]",
+      "defaultComponent": "",
+      "type": "pd.dataframe",
+      "group": "data"
+    }
+  ],
+  "arguments": [
+    {
+      "key": "expected-value",
+      "label": "Expected value to compare to",
+      "type": "str",
+      "description": "This is the value expected as input",
+      "optional": false
+    }
+  ],
+  "version": 1
+}

@@ -1,0 +1,16 @@
+{
+  "engineType": "Generic",
+  "userStandalone": false,
+  "language": "Python",
+  "name": "test-component-deps",
+  "label": "Dependencies Test",
+  "deps": ["dep1", "dep2"],
+  "program": "",
+  "componentClass": "No Class",
+  "group": "Sinks",
+  "useMLOps": true,
+  "inputInfo": [],
+  "outputInfo": [],
+  "arguments": [],
+  "version": 1
+}

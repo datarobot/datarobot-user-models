@@ -1,0 +1,54 @@
+{
+  "engineType": "Generic",
+  "language": "R",
+  "userStandalone": false,
+  "name": "r-train-connected",
+  "label": "R Trainer (connected)",
+  "program": "r_train.R",
+  "modelBehavior": "ModelProducer",
+  "group": "Algorithms",
+  "useMLOps": true,
+  "inputInfo": [
+    {
+      "description": "Pandas Dataframe",
+      "label": "dataframe",
+      "defaultComponent": "",
+      "type": "dataframe",
+      "group": "data"
+    },
+    {
+      "description": "S3 file name",
+      "label": "s3-filename",
+      "defaultComponent": "",
+      "type": "str",
+      "group": "data"
+    }
+  ],
+  "outputInfo": [
+    {
+      "description": "S3 file name",
+      "label": "s3-filename",
+      "defaultComponent": "",
+      "type": "str",
+      "group": "data"
+    }
+  ],
+  "arguments": [
+    {
+      "key": "num_iter",
+      "label": "Training iterations number",
+      "type": "int",
+      "description": "Training iteration number",
+      "optional": true
+    },
+    {
+      "key": "output_model",
+      "label": "Model output file",
+      "type": "str",
+      "description": "File to use for saving model",
+      "optional": true,
+      "tag": "model_dir"
+    }
+  ],
+  "version": 1
+}

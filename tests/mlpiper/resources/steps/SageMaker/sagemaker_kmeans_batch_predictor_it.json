@@ -1,0 +1,87 @@
+{
+    "engineType": "SageMaker",
+    "userStandalone": false,
+    "language": "Python",
+    "modelBehavior": "ModelConsumer",
+    "name": "sagemaker_kmeans_batch_predictor_it",
+    "label": "SageMaker K-Means Batch Predictor (IT)",
+    "program": "sagemaker_kmeans_batch_predictor_it.py",
+    "componentClass": "SageMakerKMeansBatchPredictorIT",
+    "group": "Algorithms",
+    "includeGlobPatterns" : "__init__.py | common/** | monitor/** | sagemaker_kmeans_batch_predictor*",
+    "useMLOps": true,
+    "inputInfo": [
+        {
+            "description": "The dataset url on S3, to perform prediction on",
+            "label": "Dataset url on S3",
+            "defaultComponent": "",
+            "type": "str",
+            "group": "data"
+        }
+    ],
+    "outputInfo": [
+        {
+            "description": "S3 url of the predictions file",
+            "label": "Predictions S3 url",
+            "defaultComponent": "",
+            "type": "str",
+            "group": "data"
+        }
+    ],
+    "arguments": [
+        {
+            "key": "local_model_filepath",
+            "label": "Model input file",
+            "type": "str",
+            "description": "Model file path in local file system",
+            "optional": true,
+            "tag": "input_model_path"
+        },
+        {
+            "key": "bucket_name",
+            "label": "S3 bucket name",
+            "type": "str",
+            "description": "The bucket name on S3",
+            "optional": true
+        },
+        {
+            "key": "model_s3_filepath",
+            "label": "Model filepath on S3",
+            "type": "str",
+            "description": "The model filepath on S3. Its root is the bucket. If it ends with '/' the uploaded basename will be concatenated",
+            "optional": true
+        },
+        {
+            "key": "results_s3_location",
+            "label": "Results S3 location",
+            "type": "str",
+            "description": "The Amazon S3 path where you want Amazon SageMaker to store the results of the transform job (refer to: https://docs.aws.amazon.com/sagemaker/latest/dg/API_TransformOutput.html#SageMaker-Type-TransformOutput-S3OutputPath)",
+            "optional": true
+        },
+        {
+            "key": "skip_s3_model_uploading",
+            "label": "Skip model upload (Test)",
+            "type": "bool",
+            "description": "If true, then assume the model was already uploaded and exists under 'model_s3_url'",
+            "defaultValue": false,
+            "optional": true
+        },
+        {
+            "key": "instance_count",
+            "type": "int",
+            "label": "Number of compute instances",
+            "description": "The number of ML compute instances to use in the transform job. For distributed transform, provide a value greater than 1",
+            "defaultValue": 1,
+            "optional": true
+        },
+        {
+            "key": "instance_type",
+            "type": "str",
+            "label": "Compute instance type",
+            "description": "The ML compute instance type. For using built-in algorithms to transform moderately sized datasets, ml.m4.xlarge or ml.m5.large should suffice",
+            "defaultValue": "ml.m4.xlarge",
+            "optional": true
+        }
+    ],
+    "version": 1
+}

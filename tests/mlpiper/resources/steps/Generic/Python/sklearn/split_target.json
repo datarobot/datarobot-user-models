@@ -1,0 +1,83 @@
+{
+  "engineType": "Generic",
+  "userStandalone": false,
+  "language": "Python",
+  "name": "SplitTarget",
+  "label": "SplitTarget",
+  "program": "split_target.py",
+  "componentClass": "SplitTarget",
+  "group": "FeatureEngineering",
+  "useMLOps": false,
+  "includeGlobPatterns" : "__init__.py | split_target*",
+  "deps": ["numpy==1.14.6;python_version<\"3.4\"", "scikit-learn"],
+  "inputInfo": [
+    {
+      "description": "Pandas DataFrame",
+      "label": "DataFrame[Pandas]",
+      "defaultComponent": "",
+      "type": "pd.dataframe",
+      "group": "data"
+    }
+  ],
+  "outputInfo": [
+    {
+      "description": "X train DataFrame",
+      "label": "DataFrame[Pandas]",
+      "defaultComponent": "",
+      "type": "pd.dataframe",
+      "group": "data"
+    },
+    {
+      "description": "X test DataFrame",
+      "label": "DataFrame[Pandas]",
+      "defaultComponent": "",
+      "type": "pd.dataframe",
+      "group": "data"
+    },
+    {
+      "description": "y train DataFrame",
+      "label": "DataFrame[Pandas]",
+      "defaultComponent": "",
+      "type": "pd.dataframe",
+      "group": "data"
+    },
+    {
+      "description": "y test DataFrame",
+      "label": "DataFrame[Pandas]",
+      "defaultComponent": "",
+      "type": "pd.dataframe",
+      "group": "data"
+    }
+  ],
+  "arguments": [
+    {
+      "key": "target",
+      "label": "Target feature",
+      "type": "str",
+      "description": "Target feature",
+      "optional": true
+    },
+    {
+      "key": "train_size",
+      "label": "Train size",
+      "type": "float",
+      "description": "Train size",
+      "optional": true
+    },
+    {
+      "key": "test_size",
+      "label": "Test size",
+      "type": "float",
+      "description": "Test size",
+      "optional": true
+    },
+    {
+      "key": "random_state",
+      "label": "Random state",
+      "type": "int",
+      "description": "Random state",
+      "optional": true
+    }
+  ],
+  "version": 1
+}

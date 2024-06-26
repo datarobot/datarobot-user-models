@@ -7,7 +7,7 @@ environmentID: 5e8c889607389fe0f466c72d
 #  trainOnProject: optional project on which to train
 validation:
   # Path is relative to this file
-  input: ../../../tests/testdata/iris_binary_training.csv
+  input: ../../../mlpiper/testdata/iris_binary_training.csv
   targetName: Species
 # There are four parameter types available to define for a model.
 # This example implements one parameter of each type.

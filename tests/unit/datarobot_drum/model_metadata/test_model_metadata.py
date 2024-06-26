@@ -209,7 +209,7 @@ class TestSchemaValidator:
     def yaml_str_to_schema_dict(yaml_str: str) -> dict:
         """this emulates how we cast a yaml to a dict for validation in
         `datarobot_drum.drum.common.read_model_metadata_yaml` and these assumptions
-        are tested in: `tests.unit.datarobot_drum.model_metadata.test_model_metadata.test_read_model_metadata_properly_casts_typeschema`
+        are tested in: `mlpiper.unit.datarobot_drum.model_metadata.test_model_metadata.test_read_model_metadata_properly_casts_typeschema`
         """
         schema = load(yaml_str, get_type_schema_yaml_validator())
         revalidate_typeschema(schema)
@@ -347,7 +347,7 @@ class TestSchemaValidator:
 
     def test_integer_categorical_type_equivelancy(self):
         """
-        This tests the special case where integer numerics can be considered categoricals.
+        This mlpiper the special case where integer numerics can be considered categoricals.
         """
         yaml_str = input_requirements_yaml(Fields.DATA_TYPES, Conditions.EQUALS, [Values.CAT])
         schema_dict = self.yaml_str_to_schema_dict(yaml_str)
@@ -611,7 +611,7 @@ class TestSchemaValidator:
                 validator_method(data_frame)
 
     def test_data_types_error_message(self, ten_k_diabetes):
-        """This tests the error formatting for the list of Values"""
+        """This mlpiper the error formatting for the list of Values"""
         condition = Conditions.IN
         values = [Values.DATE, Values.IMG]
         target = "readmitted"

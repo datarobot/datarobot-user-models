@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "engineType": "RestModelServing",
+  "userStandalone": false,
+  "language": "Python",
+  "name": "restful_sklearn_serving_test",
+  "label": "sklearn RESTful model serving [Test]",
+  "program": "sklearn_restful_serving_test.py",
+  "modelBehavior": "ModelConsumer",
+  "componentClass": "SklearnRESTfulServingTest",
+  "group": "Connectors",
+  "useMLOps": true,
+  "inputInfo": [],
+  "outputInfo": [],
+  "arguments": [
+    { "key": "ignore-incompatible-model",
+      "label": "Ignore incompatible model",
+      "description": "If True, Ignore an incompatible model provided to component and continue. If False, faile component ",
+      "type": "boolean",
+      "default": false,
+      "optional": true
+    },
+    { "key": "required-python-version",
+      "label": "Required python version",
+      "description": "If provided, fail if python version used is not the same as required (e.g. 2)",
+      "type": "boolean",
+      "optional": true
+    },
+    { "key": "input-model-path",
+      "label": "Model input file",
+      "type": "str",
+      "description": "The model file path",
+      "optional": true,
+      "tag": "input_model_path"
+    },
+    {
+      "key": "port",
+      "label": "Public IP port",
+      "type": "int",
+      "description": "The IP port that is used for RESTful endpoint",
+      "optional": false,
+      "tag": "public_port"
+    },
+    {
+      "key": "stats_reporting_interval_sec",
+      "label": "Statistics reporting interval [Default: 10s]",
+      "type": "int",
+      "description": "Specifies the time span interval at which statistics are collected and reported",
+      "optional": true
+    },
+    { "key": "log_level",
+      "label": "Logging level [Default: 'info']",
+      "type": "str",
+      "description": "One of: 'noset', 'debug', 'info', 'warning', 'error', 'critical'",
+      "optional": true
+    },
+    { "key": "log_format",
+      "label": "Logging format",
+      "type": "str",
+      "description": "Refer to: https://docs.python.org/2/library/logging.html#formatter-objects",
+      "optional": true
+    },
+    {
+      "key": "uwsgi_disable_logging",
+      "label": "Disable uWSGI request logging [Default: True]",
+      "type": "bool",
+      "description": "Disable uWSGI request logging",
+      "optional": true
+    },
+    { "key": "__dry_run__",
+      "label": "Dry run [Default: False]",
+      "type": "bool",
+      "description": "Whether to actually run 'uwsgi' and 'nginx' or just prepare the setup",
+      "optional": true
+    }
+  ]
+}

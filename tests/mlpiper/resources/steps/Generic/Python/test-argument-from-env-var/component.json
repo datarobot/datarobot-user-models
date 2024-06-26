@@ -1,0 +1,38 @@
+{
+  "engineType": "Generic",
+  "language": "Python",
+  "name": "test-argument-from-env-var",
+  "label": "Test Argument From Env Var",
+  "program": "main.py",
+  "modelBehavior": "Auxiliary",
+  "useMLOps": true,
+  "inputInfo": [],
+  "outputInfo": [],
+  "group": "Algorithms",
+  "arguments": [
+    {
+      "key": "arg1",
+      "label": "arg1",
+      "type": "str",
+      "description": "Test argument",
+      "optional": false
+    },
+    {
+      "key": "fromEnvVar",
+      "label": "fromEnvVar",
+      "type": "str",
+      "description": "If not provided, this argument's value will be taken from TEST_VAR env var",
+      "optional": false,
+      "envVar": "TEST_VAR"
+    },
+    {
+      "key": "fromEnvVar2",
+      "label": "fromEnvVar2",
+      "type": "str",
+      "description": "Test argument",
+      "optional": false,
+      "envVar": "TEST_VAR2"
+    }
+  ],
+  "version": 1
+}

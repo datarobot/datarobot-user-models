@@ -1,0 +1,102 @@
+{
+  "engineType": "Generic",
+  "language": "Python",
+  "name": "MnistInference",
+  "label": "MNist Inference",
+  "program": "mnist_inference.py",
+  "modelBehavior": "ModelConsumer",
+  "inputInfo": [],
+  "outputInfo": [],
+  "group": "Algorithms",
+  "arguments": [
+    {
+      "key": "total_records",
+      "label": "Num records",
+      "type": "int",
+      "description": "Number of samples to process (-1 for inf)",
+      "optional": true
+    },
+    {
+      "key": "randomize_input",
+      "label": "randomize input",
+      "type": "bool",
+      "description": "Whether to randomize the input records",
+      "optional": true
+    },
+    {
+      "key": "input_dir",
+      "label": "input dir",
+      "type": "str",
+      "description": "Where to cache the input data set",
+      "optional": true
+    },
+    {
+      "key": "output_file",
+      "label": "output file",
+      "type": "str",
+      "description": "Where to output predictions",
+      "optional": true
+    },
+    {
+      "key": "model_type",
+      "label": "model type",
+      "type": "str",
+      "description": "type of model (savedModel, tf_serving)",
+      "optional": false
+    },
+    {
+      "key": "model_dir",
+      "label": "model dir",
+      "type": "str",
+      "description": "SavedModel input directory",
+      "optional": false,
+      "tag": "input_model_path"
+    },
+    {
+      "key": "sig_name",
+      "label": "signature",
+      "type": "str",
+      "description": "Signature to use within the SavedModel",
+      "optional": false
+    },
+    {
+      "key": "host_port",
+      "label": "host:port",
+      "type": "str",
+      "description": "host:port of TF server",
+      "optional": true
+    },
+    {
+      "key": "concurrency",
+      "label": "concurrency",
+      "type": "int",
+      "description": "Number of outstanding requests",
+      "optional": true,
+      "defaultValue": 1
+    },
+    {
+      "key": "stats_interval",
+      "label": "Statistics Interval",
+      "type": "int",
+      "description": "Print stats after this number of iterations",
+      "optional": true,
+      "defaultValue": 10
+    },
+    {
+      "key": "stats_type",
+      "label": "Statistics Type [python|none]",
+      "type": "str",
+      "description": "How stats should be reported",
+      "optional": true
+    },
+    {
+      "key": "conf_thresh",
+      "label": "Confidence Threshold",
+      "type": "int",
+      "description": "Threshold for confidence alerts",
+      "optional": true,
+      "defaultValue": 90
+    }
+  ],
+  "version": 1
+}

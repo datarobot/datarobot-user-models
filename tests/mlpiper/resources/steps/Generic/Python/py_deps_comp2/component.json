@@ -1,0 +1,23 @@
+{
+  "engineType": "Generic",
+  "language": "Python",
+  "name": "py_deps_comp2",
+  "label": "Comp-2",
+  "program": "main.py",
+  "modelBehavior": "Auxiliary",
+  "useMLOps": true,
+  "inputInfo": [],
+  "outputInfo": [],
+  "group": "Algorithms",
+  "deps": ["numpy", "scikit-learn==0.20.3"],
+  "arguments": [
+    {
+      "key": "arg1",
+      "label": "arg1",
+      "type": "str",
+      "description": "Test argument",
+      "optional": false
+    }
+  ],
+  "version": 1
+}

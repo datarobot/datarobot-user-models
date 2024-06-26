@@ -6,7 +6,7 @@
 #
 # Released under the terms of DataRobot Tool and Utility Agreement.
 
-# This script creates a python environment and runs drum integration tests locally.
+# This script creates a python environment and runs drum integration mlpiper locally.
 # It installs only python dependencies. Also R and JDK 11 are required.
 #
 # Here are the steps that are executed:
@@ -14,7 +14,7 @@
 #   2. If virtual environment doesn't exist it is created.
 #   3. drum wheel is compiled and installed.
 #   4. As part of test cases a docker image `cmrunner_test_env_python_sklearn` for sklearn environment is created.
-#   5. Run the integration tests.
+#   5. Run the integration mlpiper.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd ${SCRIPT_DIR}
@@ -92,7 +92,7 @@ CMRUNNER_REQUIREMENT_PATH=$GIT_ROOT/custom_model_runner/requirements.txt
 popd
 
 # build container for sklearn environment
-build_docker_image_with_cmrun $GIT_ROOT/tests/fixtures/cmrun_docker_env \
+build_docker_image_with_cmrun $GIT_ROOT/mlpiper/fixtures/cmrun_docker_env \
                               cmrunner_test_env_python_sklearn \
                               $CMRUNNER_WHEEL_REAL_PATH \
                               $CMRUNNER_REQUIREMENT_PATH || exit 1

@@ -729,13 +729,13 @@ class CMRunnerArgsRegistry(object):
          avg: average time of the this request size (in seconds)
          max: maximum time measured for this request size (in seconds)
          used: amount of memory used by drum at the end of this request size (MB)
-         container limit: if tests run in docker container, memory limit for it (MB)
+         container limit: if mlpiper run in docker container, memory limit for it (MB)
          total physical: total amount of physical memory avail on the current machine (MB)
         """
         parser = subparsers.add_parser(
             ArgumentsOptions.PERF_TEST,
             description=desc,
-            help="Run performance tests",
+            help="Run performance mlpiper",
             formatter_class=argparse.RawDescriptionHelpFormatter,
         )
         CMRunnerArgsRegistry._parsers[ArgumentsOptions.PERF_TEST] = parser

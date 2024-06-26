@@ -1,0 +1,79 @@
+{
+  "engineType": "Generic",
+  "language": "Python",
+  "name": "MnistCnnLayers",
+  "label": "MNist CNN Layers",
+  "program": "cnn_mnist.py",
+  "modelBehavior": "ModelProducer",
+  "inputInfo": [],
+  "outputInfo": [],
+  "group": "Algorithms",
+  "arguments": [
+    {
+      "key": "step_size",
+      "label": "Step Size",
+      "type": "float",
+      "description": "Learning rate",
+      "optional": true,
+      "defaultValue": 0.01
+    },
+    {
+      "key": "iterations",
+      "label": "Number of iterations",
+      "type": "int",
+      "description": "Number of training iterations",
+      "optional": true,
+      "defaultValue": 100
+    },
+    {
+      "key": "batch_size",
+      "label": "Batch size",
+      "type": "int",
+      "description": "Training batch input size",
+      "optional": true,
+      "defaultValue": 50
+    },
+    {
+      "key": "model_version",
+      "label": "Model version",
+      "type": "str",
+      "description": "Model version",
+      "optional": true,
+      "tag": "model_version"
+    },
+    {
+      "key": "stats_interval",
+      "label": "Statistics Interval",
+      "type": "int",
+      "description": "Print stats after this number of iterations",
+      "optional": true,
+      "defaultValue": 10
+    },
+    {
+      "key": "save_dir",
+      "label": "Model output dir",
+      "type": "str",
+      "description": "Directory for saving the trained model",
+      "optional": true,
+      "tag": "model_dir"
+    },
+    {
+      "key": "input_dir",
+      "label": "Input data directory",
+      "type": "str",
+      "description": "Directory for storing input data",
+      "optional": true,
+      "defaultValue": "/tmp/mnist_data"
+    },
+    {
+      "key": "tf_log",
+      "label": "Log directory",
+      "type": "str",
+      "description": "TensorBoard log directory",
+      "optional": true,
+      "defaultValue": "/tmp/tb_log",
+      "tag": "tflog_dir"
+    }
+  ],
+  "version": 1
+}

@@ -1,0 +1,51 @@
+{
+  "engineType": "Generic",
+  "language": "Python",
+  "name": "test-python-predict",
+  "label": "Test Python Predict",
+  "program": "main.py",
+  "modelBehavior": "ModelConsumer",
+  "useMLOps": true,
+  "inputInfo": [],
+  "outputInfo": [],
+  "group": "Algorithms",
+  "arguments": [
+    {
+      "key": "exit-value",
+      "label": "exit-value",
+      "type": "int",
+      "description": "Exit value to use",
+      "optional": true
+    },
+    {
+      "key": "iter",
+      "label": "number of iterations",
+      "type": "int",
+      "description": "Number of 1 sec iterations to perform",
+      "optional": true
+    },
+    {
+      "key": "arg1",
+      "label": "arg1",
+      "type": "str",
+      "description": "Test argument",
+      "optional": false
+    },
+    {
+      "key": "input-model",
+      "label": "Model input file",
+      "type": "str",
+      "description": "File to use for loading model",
+      "optional": true,
+      "tag": "input_model_path"
+    },
+    {
+      "key": "model-is-directory",
+      "label": "Whether model is saved as a directory",
+      "type": "int",
+      "description": "File to use for saving the trained model",
+      "optional": true
+    }
+  ],
+  "version": 1
+}

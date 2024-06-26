@@ -7,4 +7,4 @@ inferenceModel:
   targetName: Grade 2014
 validation:
   # Path is relative to this file
-  input: ../../../tests/testdata/juniors_3_year_stats_regression.csv
+  input: ../../../mlpiper/testdata/juniors_3_year_stats_regression.csv

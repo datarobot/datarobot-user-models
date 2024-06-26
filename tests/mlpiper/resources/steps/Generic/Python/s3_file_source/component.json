@@ -1,0 +1,68 @@
+{
+  "engineType": "Generic",
+  "userStandalone": false,
+  "language": "Python",
+  "name": "s3_file_source",
+  "label": "S3 File Source",
+  "description": "Import a bucket/key from S3 to a file",
+  "program": "s3_file_source.py",
+  "componentClass": "S3FileSource",
+  "group": "Connectors",
+  "useMLOps": true,
+  "inputInfo": [],
+  "outputInfo": [
+    {
+        "description": "File name",
+        "label": "File-Name",
+        "defaultComponent": "",
+        "type": "str",
+        "group": "data"
+    }
+  ],
+  "arguments": [
+    {
+      "key": "aws_access_key_id",
+      "label": "AWS Access Key",
+      "description": "AWS Access Key",
+      "type": "str",
+      "optional": false
+    },
+    {
+      "key": "aws_secret_access_key",
+      "label": "AWS secret access key",
+      "description": "AWS secret access key",
+      "type": "str",
+      "optional": false
+    },
+    {
+      "key": "region",
+      "label": "AWS Region",
+      "description": "AWS Region",
+      "type": "str",
+      "optional": false
+    },
+    {
+      "key": "bucket",
+      "label": "S3 bucket name",
+      "description": "S3 bucket name",
+      "type": "str",
+      "optional": false
+    },
+    {
+      "key": "key",
+      "label": "S3 Key",
+      "description": "S3 Key",
+      "type": "str",
+      "optional": false
+    },
+    {
+      "key": "parent_directory",
+      "label": "Parent Directory",
+      "description": "Parent directory to use for storing the file",
+      "type": "str",
+      "defaultValue": "/tmp",
+      "optional": false
+    }
+  ],
+  "version": 1
+}

@@ -1,0 +1,22 @@
+{
+  "engineType": "Generic",
+  "language": "Python",
+  "name": "hello-world",
+  "label": "Hello World",
+  "program": "main.py",
+  "modelBehavior": "Auxiliary",
+  "useMLOps": true,
+  "inputInfo": [],
+  "outputInfo": [],
+  "group": "Algorithms",
+  "arguments": [
+    {
+      "key": "arg1",
+      "label": "arg1",
+      "type": "str",
+      "description": "Test argument",
+      "optional": false
+    }
+  ],
+  "version": 1
+}

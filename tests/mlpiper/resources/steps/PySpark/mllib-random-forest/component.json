@@ -1,0 +1,43 @@
+{
+  "engineType": "PySpark",
+  "language": "Python",
+  "name": "mllib-random-forest",
+  "label": "PySpark Random Forest",
+  "program": "random_forest_classification_example.py",
+  "modelBehavior": "ModelProducer",
+  "inputInfo": [],
+  "outputInfo": [],
+  "group": "Algorithms",
+  "arguments": [
+    {
+      "key": "num-trees",
+      "label": "Number of trees",
+      "type": "int",
+      "description": "Number of trees",
+      "optional": false
+    },
+    {
+      "key": "num-classes",
+      "label": "Number of classes",
+      "type": "int",
+      "description": "Number of classes",
+      "optional": false
+    },
+    {
+      "key": "output-model",
+      "label": "Model output file",
+      "type": "str",
+      "description": "File to use for saving the trained model",
+      "optional": false,
+      "tag": "model_dir"
+    },
+    {
+      "key": "data-file",
+      "label": "Data file",
+      "type": "str",
+      "description": "Data file to use for input",
+      "optional": false
+    }
+  ],
+  "version": 1
+}

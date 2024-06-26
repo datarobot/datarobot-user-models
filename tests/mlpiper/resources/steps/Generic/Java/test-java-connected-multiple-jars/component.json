@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "engineType": "Generic",
+  "language": "Java",
+  "userStandalone": false,
+  "name": "test-java-connected-multiple-jars",
+  "label": "test-java-connected-multiple-jars",
+  "program": "THIS FIELD IS NOT USED FOR INCLUDING JAR INTO CLASSPATH",
+  "componentClass": "com.mlpiper.components.test_java_connected_multiple_jars.JavaConnectedComponent",
+  "modelBehavior": "Auxiliary",
+  "useMLOps": true,
+  "inputInfo": [],
+  "outputInfo": [],
+  "group": "Algorithms",
+  "arguments": []
+}

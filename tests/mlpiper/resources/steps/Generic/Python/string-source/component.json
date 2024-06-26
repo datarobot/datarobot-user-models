@@ -1,0 +1,38 @@
+{
+  "engineType": ["Generic", "PySpark", "SageMaker"],
+  "userStandalone": false,
+  "language": "Python",
+  "name": "string-source",
+  "label": "Simple String Source",
+  "program": "string_source.py",
+  "componentClass": "StringSource",
+  "group": "Connectors",
+  "useMLOps": true,
+  "inputInfo": [],
+  "outputInfo": [
+    {
+        "description": "String",
+        "label": "string",
+        "defaultComponent": "",
+        "type": "str",
+        "group": "data"
+    }
+  ],
+  "arguments": [
+    {
+      "key": "value",
+      "type": "str",
+      "label": "String value",
+      "description": "String value to provide as output",
+      "optional": false
+    },
+    {
+      "key": "check-test-mode",
+      "label": "Enable check for test mode",
+      "type": "bool",
+      "description": "Test if pipeline is run in test mode",
+      "optional": true
+    }
+  ],
+  "version": 1
+}

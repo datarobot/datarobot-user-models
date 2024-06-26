@@ -104,7 +104,7 @@ def train_epoch(model, opt, criterion, X, y, batch_size=50):
 if __name__ == "__main__":
     from PyTorch import BinModel, RegModel, MultiModel
 
-    TEST_DATA_ROOT = "~/workspace/datarobot-user-models/tests/testdata"
+    TEST_DATA_ROOT = "~/workspace/datarobot-user-models/mlpiper/testdata"
     BINARY_DATA = os.path.join(TEST_DATA_ROOT, "iris_binary_training.csv")
     REGRESSION_DATA = os.path.join(TEST_DATA_ROOT, "juniors_3_year_stats_regression.csv")
     MULTICLASS_DATA = os.path.join(TEST_DATA_ROOT, "skyserver_sql2_27_2018_6_51_39_pm.csv")
@@ -160,7 +160,7 @@ if __name__ == "__main__":
             predictions = model(data).cpu().data.numpy()
         print(predictions)
 
-    FIXTURE_ROOT = "~/workspace/datarobot-user-models/tests/fixtures/drop_in_model_artifacts"
+    FIXTURE_ROOT = "~/workspace/datarobot-user-models/mlpiper/fixtures/drop_in_model_artifacts"
     torch.save(bin_model, os.path.expanduser(os.path.join(FIXTURE_ROOT, "torch_bin.pth")))
     torch.save(reg_model, os.path.expanduser(os.path.join(FIXTURE_ROOT, "torch_reg.pth")))
     torch.save(multi_model, os.path.expanduser(os.path.join(FIXTURE_ROOT, "torch_multi.pth")))

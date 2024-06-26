@@ -1,0 +1,24 @@
+{
+  "engineType": "Generic",
+  "language": "Python",
+  "userStandalone": false,
+  "name": "dummy-component-to-test-termination",
+  "label": "Dummy component to test termination",
+  "program": "main.py",
+  "componentClass": "DummyComponentToTestTermination",
+  "modelBehavior": "ModelConsumer",
+  "useMLOps": true,
+  "inputInfo": [],
+  "outputInfo": [],
+  "group": "Algorithms",
+  "arguments": [
+    {
+      "key": "filepath-for-termination-output",
+      "label": "Filepath For Termination Output",
+      "type": "str",
+      "description": "A file path to output some dummy string upon termination",
+      "optional": false
+    }
+  ],
+  "version": 1
+}
