@@ -21,9 +21,9 @@ from datarobot_bp_workshop import Workshop
 BASE_PIPELINE_TASK_TEMPLATES_DIR = "task_templates/3_pipelines"
 BASE_ESTIMATOR_TASK_TEMPLATES_DIR = "task_templates/2_estimators"
 BASE_TRANSFORM_TASK_TEMPLATES_DIR = "task_templates/1_transforms"
-BASE_FIXTURE_TASK_TEMPLATES_DIR = "mlpiper/fixtures"
+BASE_FIXTURE_TASK_TEMPLATES_DIR = "tests/fixtures"
 
-BASE_DATASET_DIR = "mlpiper/testdata"
+BASE_DATASET_DIR = "tests/testdata"
 
 ModelLike = Union[dr.models.Model, dr.models.Blueprint]
 

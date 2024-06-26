@@ -108,7 +108,7 @@ paths:
                   targetType: regression
                   type: inference
                   validation:
-                    input: ../../../mlpiper/testdata/juniors_3_year_stats_regression.csv
+                    input: ../../../tests/testdata/juniors_3_year_stats_regression.csv
                 predictor: scikit-learn
                 targetType: regression
   /URL_PREFIX/stats/:

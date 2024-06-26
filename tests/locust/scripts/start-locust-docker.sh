@@ -16,7 +16,7 @@
 # E.g.
 # start-locust-docker.sh -l "-u 5 -r 5 -H http://localhost:6788 -t 5 --headless --csv drum" -d ../testdata/juniors_3_year_stats_regression.csv
 #
-# locustfile, suit, to use is currently hardcoded to be datarobot-user-models/mlpiper/locust/suits/predict.py
+# locustfile, suit, to use is currently hardcoded to be datarobot-user-models/tests/locust/suits/predict.py
 
 while getopts d:s:l: flag
 do

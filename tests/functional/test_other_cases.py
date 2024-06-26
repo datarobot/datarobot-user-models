@@ -183,7 +183,7 @@ class TestOtherCases:
 
     @pytest.mark.parametrize("language, language_suffix", [("python", ".py"), ("r", ".R")])
     def test_template_creation(self, language, language_suffix, tmp_path):
-        print("Running template creation mlpiper: {}".format(language))
+        print("Running template creation tests: {}".format(language))
         directory = tmp_path / "template_test_{}".format(uuid4())
 
         cmd = "{drum_prog} new model --language {language} --code-dir {directory}".format(

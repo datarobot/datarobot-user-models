@@ -59,7 +59,7 @@ See: `task_templates/2_estimators/13_python_credentials_and_internet_access/secr
 
 ```shell
 drum fit -cd task_templates/2_estimators/13_python_credentials_and_internet_access/ \
---input mlpiper/testdata/10k_diabetes.csv --target-type binary --target readmitted \
+--input tests/testdata/10k_diabetes.csv --target-type binary --target readmitted \
 --user-secrets-mount-path task_templates/2_estimators/13_python_credentials_and_internet_access/ \
 --verbose --logging-level info --show-stacktrace
 ```

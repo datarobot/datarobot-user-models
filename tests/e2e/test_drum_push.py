@@ -23,7 +23,7 @@ from tests.conftest import (
 from datarobot_drum.resource.utils import _create_custom_model_dir, _exec_shell_cmd
 
 BASE_MODEL_TEMPLATES_DIR = "model_templates"
-BASE_DATASET_DIR = "mlpiper/testdata"
+BASE_DATASET_DIR = "tests/testdata"
 
 
 def get_push_yaml(env_id, data_path, problem, target_name):

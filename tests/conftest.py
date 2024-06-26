@@ -1044,7 +1044,7 @@ def resources(
     return resource
 
 
-# fixtures for variety data mlpiper
+# fixtures for variety data tests
 with open(os.path.join(TESTS_DATA_PATH, "variety_samples/variety_data_key.yaml")) as yamlfile:
     variety_data_dict = yaml.safe_load(yamlfile)
 

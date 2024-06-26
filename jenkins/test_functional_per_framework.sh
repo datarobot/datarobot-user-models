@@ -89,12 +89,12 @@ if [ -t 1 ] ; then
 fi
 
 echo "detected machine=$machine url_host: $url_host"
-# Note : The mapping of /tmp is critical so the code inside the docker can run the mlpiper.
-#        Since one of the mlpiper is using a docker the second docker can only share a host file
+# Note : The mapping of /tmp is critical so the code inside the docker can run the tests.
+#        Since one of the tests is using a docker the second docker can only share a host file
 #        system with the first docker.
 # Note: The --network=host will allow a code running inside the docker to access the host network
 #       In mac we dont have host network so we use the host.docker.internal ip
-# Note: The `--gpus all` is required for GPU predictors mlpiper
+# Note: The `--gpus all` is required for GPU predictors tests
 
 export GPU_COUNT=$(nvidia-smi -L | wc -l)
 echo "GPU count: $GPU_COUNT"
@@ -103,7 +103,7 @@ GPU_OPTION=""
 if [ $GPU_COUNT -ge 1 ] ; then
   GPU_OPTION="--gpus all"
 else
-  # Don't set env var if no GPUs are available to mlpiper can be skipped
+  # Don't set env var if no GPUs are available to tests can be skipped
   unset GPU_COUNT
 fi
 
@@ -121,7 +121,7 @@ docker run -i $TERMINAM_OPTION $GPU_OPTION \
       --workdir ${GIT_ROOT} \
       --entrypoint "" \
       $DOCKER_IMAGE \
-      ./mlpiper/functional/run_integration_tests_in_framework_container.sh $1
+      ./tests/functional/run_integration_tests_in_framework_container.sh $1
 
 TEST_RESULT=$?
 

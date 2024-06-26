@@ -39,7 +39,7 @@ def _create_custom_model_dir(
     capitalize_artifact_extension=False,
 ):
     """
-    Helper function for mlpiper and validation to create temp custom model directory
+    Helper function for tests and validation to create temp custom model directory
     with relevant files and/or artifacts
     """
     custom_model_dir = tmp_dir / "custom_model"
@@ -97,8 +97,8 @@ def _exec_shell_cmd(
     capture_output=True,
 ):
     """
-    Wrapper used by mlpiper and validation to run shell command.
-    Can assert that the command does not fail (usually used for mlpiper)
+    Wrapper used by tests and validation to run shell command.
+    Can assert that the command does not fail (usually used for tests)
     or return process, stdout and stderr
     """
     if isinstance(cmd, str):
@@ -141,7 +141,7 @@ def _cmd_add_class_labels(
     cmd, labels, target_type, multiclass_label_file=None, pass_args_as_env_vars=False
 ):
     """
-    utility used by mlpiper and validation to add class label information to a drum command
+    utility used by tests and validation to add class label information to a drum command
     for binary or multiclass cases
     """
     if not labels or target_type == BINARY:

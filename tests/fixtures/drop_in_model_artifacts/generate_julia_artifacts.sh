@@ -10,4 +10,4 @@ julia -J/opt/julia/sys.so --project=/opt/julia /opt/drum/tests/fixtures/drop_in_
 
 
 
-# /opt/drum/mlpiper/fixtures/drop_in_model_artifacts/generate_julia_artifacts.sh
+# /opt/drum/tests/fixtures/drop_in_model_artifacts/generate_julia_artifacts.sh

@@ -27,7 +27,7 @@ popd || exit 1
 
 # Image is ready at this moment, but:
 # * run make on drum to pull in all the java deps;
-# * build custom_java_predictor for mlpiper
+# * build custom_java_predictor for tests
 # * commit the image
 docker run -t -v "$GIT_ROOT:/tmp/drum" ${IMAGE_NAME} bash -c "cd /tmp/drum/custom_model_runner && make && cd /tmp/drum/tests/functional/custom_java_predictor && mvn package"
 docker commit "$(docker ps -lq)" $IMAGE_NAME

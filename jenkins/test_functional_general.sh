@@ -13,7 +13,7 @@ set -exuo pipefail
 
 GIT_ROOT=$(git rev-parse --show-toplevel)
 echo "GIT_ROOT: ${GIT_ROOT}"
-source ${GIT_ROOT}/mlpiper/functional/integration-helpers.sh
+source ${GIT_ROOT}/tests/functional/integration-helpers.sh
 
 # Installing and configuring java/javac 11 in the jenkins worker
 sudo apt update
@@ -62,7 +62,7 @@ pip install -r ${GIT_ROOT}/requirements_test.txt
 
 echo
 title "Compiling jar for TestCustomPredictor "
-pushd $GIT_ROOT/mlpiper/functional/custom_java_predictor
+pushd $GIT_ROOT/tests/functional/custom_java_predictor
 mvn package
 popd
 
@@ -87,14 +87,14 @@ docker build -t python3_sklearn_test_env ${TMP_DOCKER_CONTEXT}/
 echo
 title "Running tests: sequential test cases Java Custom Predictor and MLOps Monitoring"
 
-# only run here mlpiper which were sequential historically
-pytest mlpiper/functional/test_inference_custom_java_predictor.py mlpiper/functional/test_mlops_monitoring.py \
+# only run here tests which were sequential historically
+pytest tests/functional/test_inference_custom_java_predictor.py tests/functional/test_mlops_monitoring.py \
        --junit-xml="${GIT_ROOT}/results_integration_serial.xml" \
        -n 1
 TEST_RESULT_1=$?
 
 title "Running tests: all other cases in parallel"
-pytest mlpiper/functional/ \
+pytest tests/functional/ \
        -k "not test_inference_custom_java_predictor.py and not test_mlops_monitoring.py" \
        -m "not sequential" \
        --junit-xml="${GIT_ROOT}/results_integration_parallel.xml" \

@@ -7,5 +7,5 @@ environmentID: 5e8c889607389fe0f466c72d
 #  trainOnProject: optional project on which to train
 validation:
   # Path is relative to this file
-  input: ../../../mlpiper/testdata/juniors_3_year_stats_regression.csv
+  input: ../../../tests/testdata/juniors_3_year_stats_regression.csv
   targetName: Grade 2014
