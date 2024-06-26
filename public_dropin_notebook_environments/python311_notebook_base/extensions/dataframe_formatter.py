@@ -21,7 +21,7 @@ from traitlets import ObjectName, Unicode
 is_pandas_loaded = True
 
 try:
-    from pandas import DataFrame, DatetimeIndex, io
+    from pandas import DataFrame, DatetimeIndex, MultiIndex, io
 except ImportError:
     is_pandas_loaded = False
 
@@ -83,6 +83,9 @@ def _register_exception(
 def _set_index(df: DataFrame) -> DataFrame:
     global index_key  # noqa: PLW0603
 
+    if isinstance(df.index, MultiIndex):
+        return df
+
     # use defined index name, or set default
     if df.index.name is None:
         index_key = default_index_key  # noqa: PLW0603
@@ -110,8 +113,10 @@ def _validate_columns(data: DataFrame) -> None:
     convertable_types = [
         "int64",
         "float64",
+        "float32",
         "bool",
         "category",
+        "geometry",
         "object",
         "datetime64[ns]",
         "timedelta[ns]",
@@ -164,6 +169,8 @@ def _transform_to_json(data: DataFrame) -> Any:
     if isinstance(data, list):
         return data
 
+    if data.__class__.__name__ == "GeoDataFrame":
+        return json.loads(data.to_json())["features"]
     return json.loads(data.to_json(orient="table", index=True, default_handler=str))["data"]
 
 
@@ -183,7 +190,7 @@ def _prepare_df_for_chart_cell(val: DataFrame, columns: List[str]) -> Union[Data
     return data
 
 
-# This formatter can operate with a data that we are received as a DataFrame
+# This formatter can operate with data that we have received as a DataFrame
 def formatter(  # noqa: C901,PLR0912
     val: "DataFrame",
     formatter: Optional[Callable[..., List[str]]] = None,
@@ -258,7 +265,7 @@ def formatter(  # noqa: C901,PLR0912
             "indexKey": index_key,
         }
 
-    # Sorting step, gets attrs that has been setup in DataframeProcessor
+    # Sorting step, gets attrs that have been set up in DataframeProcessor
     if hasattr(val, "attrs") and "sort_by" in val.attrs:
         try:
             data = _sort_dataframe(df=data, sort_by=val.attrs["sort_by"])
@@ -266,7 +273,7 @@ def formatter(  # noqa: C901,PLR0912
         except Exception as e:
             error.append(_register_exception(e, DataframesProcessSteps.SORTING.value))
 
-    # Pagination step, gets attrs that has been setup in DataframeProcessor
+    # Pagination step, gets attrs that have been set up in DataframeProcessor
     if hasattr(val, "attrs") and "pagination" in val.attrs:
         pagination = DataframePaginationAttributes(
             limit=val.attrs["pagination"]["limit"], offset=val.attrs["pagination"]["offset"]
@@ -298,7 +305,7 @@ def formatter(  # noqa: C901,PLR0912
 #
 # Ignoring mypy error: Class cannot subclass "BaseFormatter" (has type "Any")
 class DataFrameFormatter(BaseFormatter):  # type: ignore[misc]
-    """A DataFrame formatter. This is basically a copy of the JSONFormatter
+    """A DataFrame formatter. This is basically a copy of the JSONFormatter,
     so it will return as a new mime type: application/vnd.dataframe+json in output.
     """
 
@@ -329,14 +336,12 @@ class DataFrameFormatter(BaseFormatter):  # type: ignore[misc]
 # Load our extension into ipython kernel
 def load_ipython_extension(ipython: Magics) -> None:
     if is_pandas_loaded:
+        dataframe_json_formatter = DataFrameFormatter()
         ipython.display_formatter.formatters[
             "application/vnd.dataframe+json"
-        ] = DataFrameFormatter()
-        dataframe_json_formatter = ipython.display_formatter.formatters[
-            "application/vnd.dataframe+json"
-        ]
+        ] = dataframe_json_formatter
         dataframe_json_formatter.for_type(DataFrame, formatter)
 
         print("Pandas DataFrame MimeType Extension loaded")
     else:
-        print("Please make `pip install pandas` to use DataFrame extension")
+        print("Please execute `pip install pandas` to use DataFrame extension")
