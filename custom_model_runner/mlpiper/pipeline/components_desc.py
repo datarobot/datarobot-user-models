@@ -57,9 +57,7 @@ class ComponentsDesc(Base):
                 # step, even if only a single engine is defined then turn it to a list
                 engine_type = comp_desc[json_fields.COMPONENT_DESC_ENGINE_TYPE_FIELD]
                 if not isinstance(engine_type, list):
-                    comp_desc[json_fields.COMPONENT_DESC_ENGINE_TYPE_FIELD] = [
-                        engine_type
-                    ]
+                    comp_desc[json_fields.COMPONENT_DESC_ENGINE_TYPE_FIELD] = [engine_type]
 
                 return comp_desc
 
@@ -106,19 +104,13 @@ class ComponentsDesc(Base):
                 self._comp_root_path = pkg_resources.resource_filename(
                     ComponentsDesc.CODE_COMPONETS_MODULE_NAME, ""
                 )
-                self._logger.info(
-                    "Cached components are at: {}".format(self._comp_root_path)
-                )
+                self._logger.info("Cached components are at: {}".format(self._comp_root_path))
             except ImportError:
-                msg = (
-                    "Either component's root path or component's egg file are missing!"
-                )
+                msg = "Either component's root path or component's egg file are missing!"
                 self._logger.error(msg)
                 raise MLPiperException(msg)
 
-        comp_repo_info = ComponentScanner(
-            self._comp_root_path, self._ml_engine
-        ).comp_repo_info
+        comp_repo_info = ComponentScanner(self._comp_root_path, self._ml_engine).comp_repo_info
 
         engine_type = self._pipeline[json_fields.PIPELINE_ENGINE_TYPE_FIELD]
         for comp_type in self._get_next_comp_type_in_pipeline():
@@ -126,14 +118,10 @@ class ComponentsDesc(Base):
                 raise MLPiperException(
                     "Component '{}' is not registered under engine '{}'!"
                     " Please make sure the component is located under the configured"
-                    " root path: {}".format(
-                        comp_type, engine_type, self._comp_root_path
-                    )
+                    " root path: {}".format(comp_type, engine_type, self._comp_root_path)
                 )
             self._logger.info(
-                "Handling step ... engine: {}, comp-type: {}".format(
-                    engine_type, comp_type
-                )
+                "Handling step ... engine: {}, comp-type: {}".format(engine_type, comp_type)
             )
             comp_path = comp_repo_info[engine_type][comp_type]["root"]
             if comp_path not in sys.path:
@@ -164,9 +152,7 @@ class ComponentsDesc(Base):
 
     def read_desc_file(self, comp_path):
         self._logger.debug("Reading component's metadata: {}".format(comp_path))
-        comp_ref_json = os.path.join(
-            comp_path, ComponentsDesc.COMPONENT_METADATA_REF_FILE
-        )
+        comp_ref_json = os.path.join(comp_path, ComponentsDesc.COMPONENT_METADATA_REF_FILE)
         if os.path.isfile(comp_ref_json):
             with open(comp_ref_json, "r") as f:
                 try:
@@ -177,9 +163,7 @@ class ComponentsDesc(Base):
                     self._logger.error(msg)
                     raise MLPiperException(msg)
 
-            metadata_filename = comp_ref[
-                json_fields.COMPONENT_METADATA_REF_FILE_NAME_FIELD
-            ]
+            metadata_filename = comp_ref[json_fields.COMPONENT_METADATA_REF_FILE_NAME_FIELD]
             comp_desc = ComponentsDesc._load_comp_desc(comp_path, metadata_filename)
         else:
             # Try to find any valid component's description file
@@ -191,9 +175,7 @@ class ComponentsDesc(Base):
                 comp_desc = None
 
         if not comp_desc:
-            msg = "Failed to find any valid component's json desc! comp_path: {}".format(
-                comp_path
-            )
+            msg = "Failed to find any valid component's json desc! comp_path: {}".format(comp_path)
             self._logger.error(msg)
             raise MLPiperException(msg)
 
@@ -226,25 +208,19 @@ class ComponentScanner(Base):
         """
         comps = {}
         self._logger.debug("Scanning {}".format(self._root_dir))
-        for root, comp_desc, comp_filename in ComponentsDesc.next_comp_desc(
-            self._root_dir
-        ):
+        for root, comp_desc, comp_filename in ComponentsDesc.next_comp_desc(self._root_dir):
             for engine_type in comp_desc[json_fields.COMPONENT_DESC_ENGINE_TYPE_FIELD]:
                 comps.setdefault(engine_type, {})
 
                 comp_name = comp_desc[json_fields.COMPONENT_DESC_NAME_FIELD]
 
-                if self._filter_component(
-                    comp_name, engine_type, root, comp_filename, comps
-                ):
+                if self._filter_component(comp_name, engine_type, root, comp_filename, comps):
                     continue
 
                 comps[engine_type][comp_name] = {}
                 comps[engine_type][comp_name]["comp_desc"] = comp_desc
                 comps[engine_type][comp_name]["root"] = root
-                comps[engine_type][comp_name]["files"] = self._include_files(
-                    root, comp_desc
-                )
+                comps[engine_type][comp_name]["files"] = self._include_files(root, comp_desc)
                 # Always include current component json file regardless of its name.
                 comps[engine_type][comp_name]["files"].append(comp_filename)
                 comps[engine_type][comp_name]["comp_filename"] = comp_filename
@@ -305,9 +281,7 @@ class ComponentScanner(Base):
         # Add "requirements.txt" if includeGlobPattern is defined,
         # so requirements file will be always copied.
         if len(include_patterns):
-            if os.path.exists(
-                os.path.join(comp_root, MLPiperConstants.REQUIREMENTS_FILENAME)
-            ):
+            if os.path.exists(os.path.join(comp_root, MLPiperConstants.REQUIREMENTS_FILENAME)):
                 include_patterns.append(MLPiperConstants.REQUIREMENTS_FILENAME)
 
         included_files = []

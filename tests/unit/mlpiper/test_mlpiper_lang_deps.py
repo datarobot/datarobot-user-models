@@ -63,9 +63,7 @@ class TestPythonDeps:
 
     @classmethod
     def setup_class(cls):
-        fd, TestPythonDeps.pipeline_tmp_file = mkstemp(
-            prefix="test_py_deps_", dir="/tmp"
-        )
+        fd, TestPythonDeps.pipeline_tmp_file = mkstemp(prefix="test_py_deps_", dir="/tmp")
         print("pipeline_tmp_file:", TestPythonDeps.pipeline_tmp_file)
         with open(TestPythonDeps.pipeline_tmp_file, "w") as f:
             json.dump(pipeline, f)
@@ -79,9 +77,7 @@ class TestPythonDeps:
     def test_accumulated_python_deps(self):
         with open(TestPythonDeps.pipeline_tmp_file, "r") as f:
             pipeline_runner = (
-                Executor(args=None)
-                .comp_root_path(GENERIC_COMPONENTS_ROOT)
-                .pipeline_file(f)
+                Executor(args=None).comp_root_path(GENERIC_COMPONENTS_ROOT).pipeline_file(f)
             )
             deps = pipeline_runner.all_py_component_dependencies()
             assert deps == expected_py_deps
@@ -89,9 +85,7 @@ class TestPythonDeps:
     def test_accumulated_r_deps(self):
         with open(TestPythonDeps.pipeline_tmp_file, "r") as f:
             pipeline_runner = (
-                Executor(args=None)
-                .comp_root_path(GENERIC_COMPONENTS_ROOT)
-                .pipeline_file(f)
+                Executor(args=None).comp_root_path(GENERIC_COMPONENTS_ROOT).pipeline_file(f)
             )
             deps = pipeline_runner.all_r_component_dependencies()
             assert deps == expected_r_deps
@@ -105,9 +99,7 @@ class TestPythonDeps:
         )
 
         pipeline_runner = (
-            Executor(args=None)
-            .comp_root_path(GENERIC_COMPONENTS_ROOT)
-            .pipeline_dict(pipeline)
+            Executor(args=None).comp_root_path(GENERIC_COMPONENTS_ROOT).pipeline_dict(pipeline)
         )
         try:
             deps = pipeline_runner.all_py_component_dependencies(tmp_requirements_txt)

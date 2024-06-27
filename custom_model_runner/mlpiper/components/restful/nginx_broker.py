@@ -13,7 +13,7 @@ from mlpiper.common.base import Base
 from mlpiper.components.restful import util
 from mlpiper.components.restful.nginx_conf_template import (
     NGINX_SERVER_CONF_TEMPLATE,
-    NGINX_CONF_TEMPLATE_NON_ROOT
+    NGINX_CONF_TEMPLATE_NON_ROOT,
 )
 from mlpiper.components.restful.constants import (
     SharedConstants,
@@ -71,8 +71,10 @@ class NginxBroker(Base):
         )
 
         if not self._root_user and not self._debian_platform():
-            self._logger.warning("Running as non root was tested only for Ubuntu platform."
-                                 "You may need to change permissions to some of nginx folders.")
+            self._logger.warning(
+                "Running as non root was tested only for Ubuntu platform."
+                "You may need to change permissions to some of nginx folders."
+            )
 
         conf_content = NGINX_SERVER_CONF_TEMPLATE.format(
             port=nginx_conf[ComponentConstants.PORT_KEY],
@@ -81,7 +83,7 @@ class NginxBroker(Base):
                 shared_conf[SharedConstants.SOCK_FILENAME_KEY],
             ),
             access_log_off=access_log_off,
-            uwsgi_params_prefix=NginxConstants.NGINX_ROOT + "/"
+            uwsgi_params_prefix=NginxConstants.NGINX_ROOT + "/",
         )
 
         # if user is root configuration will be written to nginx system path
@@ -92,14 +94,11 @@ class NginxBroker(Base):
             conf_content = NGINX_CONF_TEMPLATE_NON_ROOT.format(
                 nginx_server_conf_placeholder=conf_content
             )
-            self._conf_file = os.path.join(shared_conf[SharedConstants.TARGET_PATH_KEY],
-                                           NginxConstants.SERVER_CONF_FILENAME)
-
-        self._logger.info(
-            "Writing nginx server configuration to ... {}".format(
-                self._conf_file
+            self._conf_file = os.path.join(
+                shared_conf[SharedConstants.TARGET_PATH_KEY], NginxConstants.SERVER_CONF_FILENAME
             )
-        )
+
+        self._logger.info("Writing nginx server configuration to ... {}".format(self._conf_file))
         with open(self._conf_file, "w") as f:
             f.write(conf_content)
 
@@ -117,9 +116,7 @@ class NginxBroker(Base):
                     NginxConstants.SERVER_ENABLED_DIR, NginxConstants.SERVER_CONF_FILENAME
                 )
                 if not os.path.isfile(sym_link):
-                    self._logger.info(
-                        "Creating nginx server sym link ... {}".format(sym_link)
-                    )
+                    self._logger.info("Creating nginx server sym link ... {}".format(sym_link))
                     os.symlink(self._conf_file, sym_link)
 
         self._logger.info("Done with _generate_configuration ...")
@@ -129,14 +126,10 @@ class NginxBroker(Base):
         origin_nginx_conf_filepath = NginxBroker.origin_nginx_conf_filepath_pattern.format(
             nginx_root
         )
-        new_nginx_conf_filepath = NginxBroker.new_nginx_conf_filepath_pattern.format(
-            nginx_root
-        )
+        new_nginx_conf_filepath = NginxBroker.new_nginx_conf_filepath_pattern.format(nginx_root)
 
         fix_configuration = True
-        pattern_conf_d = re.compile(
-            r"^\s*include\s+{}/conf\.d/\*\.conf;\s*$".format(nginx_root)
-        )
+        pattern_conf_d = re.compile(r"^\s*include\s+{}/conf\.d/\*\.conf;\s*$".format(nginx_root))
         pattern_sites_enabled = re.compile(
             r"^\s*include\s+{}/sites-enabled/.*;\s*$".format(nginx_root)
         )
@@ -179,9 +172,7 @@ class NginxBroker(Base):
             d = NginxConstants.SERVER_CONF_DIR_MACOS
         else:
             raise MLPiperException(
-                "Nginx cannot be configured! Platform is not supported: {}".format(
-                    platform.uname()
-                )
+                "Nginx cannot be configured! Platform is not supported: {}".format(platform.uname())
             )
 
         return os.path.join(d, NginxConstants.SERVER_CONF_FILENAME)
@@ -220,12 +211,10 @@ class NginxBroker(Base):
     def _macos_platform(self):
         # MacOS doesn't support containers so we can just look at the kernel to determine
         # the platform.
-        return "Darwin" in platform.system() # platform.system() caches its output
+        return "Darwin" in platform.system()  # platform.system() caches its output
 
     def _run(self, shared_conf):
-        self._logger.info(
-            "Starting 'nginx' service ... cmd: '{}'".format(NginxConstants.START_CMD)
-        )
+        self._logger.info("Starting 'nginx' service ... cmd: '{}'".format(NginxConstants.START_CMD))
         if self._dry_run:
             return
 
@@ -252,9 +241,7 @@ if __name__ == "__main__":
         os.makedirs(root_dir)
 
     shared_conf = {
-        SharedConstants.TARGET_PATH_KEY: tempfile.mkdtemp(
-            prefix="restful-", dir=root_dir
-        ),
+        SharedConstants.TARGET_PATH_KEY: tempfile.mkdtemp(prefix="restful-", dir=root_dir),
         SharedConstants.SOCK_FILENAME_KEY: "restful_mlapp.sock",
     }
 

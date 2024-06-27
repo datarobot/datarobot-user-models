@@ -18,9 +18,7 @@ class ExternalConnectedComponentRunner(ComponentRunner):
             main_program=self._dag_node.comp_program(),
         )
 
-        ret_val, output_objs = external_runner.run_connected(
-            parent_data_objs, self._params
-        )
+        ret_val, output_objs = external_runner.run_connected(parent_data_objs, self._params)
         self._logger.info("external runner ret val: {}".format(ret_val))
         if ret_val != 0:
             msg = "External program failed: {}".format(ret_val)

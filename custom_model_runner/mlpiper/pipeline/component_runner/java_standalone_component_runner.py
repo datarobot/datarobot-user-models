@@ -27,16 +27,12 @@ class JavaStandaloneComponentRunner(StandaloneComponentRunner):
         p = subprocess.Popen(cmd)
         p.wait()
         self._logger.info(
-            "================= External code done: ret: {} =================".format(
-                p.returncode
-            )
+            "================= External code done: ret: {} =================".format(p.returncode)
         )
 
         sys.stdout.flush()
         if p.returncode != 0:
-            self._logger.info(
-                "Connector: got external program exit code: {}".format(p.returncode)
-            )
+            self._logger.info("Connector: got external program exit code: {}".format(p.returncode))
         return p.returncode
 
     def run(self, parent_data_objs):
@@ -51,9 +47,7 @@ class JavaStandaloneComponentRunner(StandaloneComponentRunner):
         class_path = ":".join(jar_files)
         class_name = self._dag_node.comp_class()
         cmd = []
-        cmd.extend(
-            [JavaStandaloneComponentRunner.JAVA_PROGRAM, "-cp", class_path, class_name]
-        )
+        cmd.extend([JavaStandaloneComponentRunner.JAVA_PROGRAM, "-cp", class_path, class_name])
 
         component_cmdline = assemble_cmdline_from_args(self._params)
         self._logger.debug("cmdline: {}".format(component_cmdline))
@@ -62,6 +56,4 @@ class JavaStandaloneComponentRunner(StandaloneComponentRunner):
         ret_code = self._run_external_process(cmd, comp_dir)
 
         if ret_code != 0:
-            raise Exception(
-                "Java component exited with exit status {}".format(ret_code)
-            )
+            raise Exception("Java component exited with exit status {}".format(ret_code))

@@ -15,9 +15,7 @@ class ProcessMonitor(BgActor):
     MLAPP_RSS_LABEL = "Pipeline RSS"
 
     def __init__(self, mlops, ml_engine, pid=None, include_childs=True):
-        super(ProcessMonitor, self).__init__(
-            mlops, ml_engine, ProcessMonitor.POLLING_INTERVAL_SEC
-        )
+        super(ProcessMonitor, self).__init__(mlops, ml_engine, ProcessMonitor.POLLING_INTERVAL_SEC)
 
         self._pid = pid if pid is not None else os.getpid()
         self._include_childs = include_childs

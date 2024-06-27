@@ -13,4 +13,4 @@ class DummyComponentToTestTermination(ConnectableComponent):
     def terminate(self):
         print("{}: Handle termination".format(self.__class__.__name__))
         with open(self._params["filepath-for-termination-output"], "w") as f:
-            f.write('Termination was handled successfully')
+            f.write("Termination was handled successfully")

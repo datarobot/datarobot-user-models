@@ -41,7 +41,6 @@ class SparkSessionComponent(Component):
 
     @abc.abstractmethod
     def _materialize(self, spark, parent_data_objs, user_data):
-
         """
         This abstract method is supposed to return a list of spark data-frame object(s)
         """

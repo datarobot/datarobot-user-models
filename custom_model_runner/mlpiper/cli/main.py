@@ -72,17 +72,13 @@ class CompRootDirCheck(argparse.Action):
         comp_root_dir = values
         if not os.path.isdir(comp_root_dir):
             raise argparse.ArgumentTypeError(
-                "--comp-root argument value '{}' has to be existing dir".format(
-                    comp_root_dir
-                )
+                "--comp-root argument value '{}' has to be existing dir".format(comp_root_dir)
             )
         if os.access(comp_root_dir, os.R_OK):
             setattr(namespace, self.dest, comp_root_dir)
         else:
             raise argparse.ArgumentTypeError(
-                "--comp-root argument value '{}' is not a readable dir".format(
-                    comp_root_dir
-                )
+                "--comp-root argument value '{}' is not a readable dir".format(comp_root_dir)
             )
 
 
@@ -93,9 +89,7 @@ def parse_args():
     _add_deploy_sub_parser(
         subparsers, "deploy", deployment_dir_required=True, help="Deploy a pipeline"
     )
-    _add_deploy_sub_parser(
-        subparsers, "run", deployment_dir_required=False, help="Run a pipeline"
-    )
+    _add_deploy_sub_parser(subparsers, "run", deployment_dir_required=False, help="Run a pipeline")
     _add_run_deployment_sub_parser(subparsers)
     _add_deps_sub_parser(subparsers)
 
@@ -162,9 +156,7 @@ def parse_args():
 def _add_deploy_sub_parser(subparsers, sub_parser_name, deployment_dir_required, help):
     parser_prepare = subparsers.add_parser(sub_parser_name, help=help)
     action = parser_prepare.add_mutually_exclusive_group(required=True)
-    action.add_argument(
-        "-p", "--pipeline", help="A json string, which represents a pipeline."
-    )
+    action.add_argument("-p", "--pipeline", help="A json string, which represents a pipeline.")
     action.add_argument(
         "-f",
         "--file",
@@ -199,9 +191,7 @@ def _add_deploy_sub_parser(subparsers, sub_parser_name, deployment_dir_required,
         help="Overwrite any previous generated files/directories (.e.g deployed dir)",
     )
 
-    parser_prepare.add_argument(
-        "--mlpiper-jar", default=None, help="Path to mlpiper jar"
-    )
+    parser_prepare.add_argument("--mlpiper-jar", default=None, help="Path to mlpiper jar")
 
     parser_prepare.add_argument(
         "--test-mode",
@@ -257,9 +247,7 @@ def _add_deps_sub_parser(subparsers):
         help="The programming language",
     )
     group = deps.add_mutually_exclusive_group(required=True)
-    group.add_argument(
-        "-p", "--pipeline", help="A json string, which represents a pipeline."
-    )
+    group.add_argument("-p", "--pipeline", help="A json string, which represents a pipeline.")
     group.add_argument(
         "-f",
         "--file",
@@ -286,12 +274,8 @@ def _add_deps_sub_parser(subparsers):
 
 def _add_wizard_sub_parser(subparsers):
     # Get Python/R modules dependencies for the given pipeline or component
-    wizard_parser = subparsers.add_parser(
-        "wizard", help="Start component creation wizard"
-    )
-    wizard_parser.add_argument(
-        "--editor", action="store_true", help="Start wizard in editor mode"
-    )
+    wizard_parser = subparsers.add_parser("wizard", help="Start component creation wizard")
+    wizard_parser.add_argument("--editor", action="store_true", help="Start wizard in editor mode")
 
 
 def _find_mlpiper_jar(options):
@@ -380,9 +364,7 @@ def main(bin_dir=os.path.dirname(__file__)):
         ml_piper.deps(options.lang, options.output_path)
 
     elif WIZARD_INCLUDED and options.subparser_name in ("wizard"):
-        shell = ComponentWizardShell(
-            shell_name="mlpiper", wizard_edit_mode=options.editor
-        )
+        shell = ComponentWizardShell(shell_name="mlpiper", wizard_edit_mode=options.editor)
         if options.editor:
             rc = shell.cmdloop()
             sys.exit(rc)
@@ -392,9 +374,7 @@ def main(bin_dir=os.path.dirname(__file__)):
             sm.run()
 
     else:
-        raise Exception(
-            "subcommand: {} is not supported".format(options.subparser_name)
-        )
+        raise Exception("subcommand: {} is not supported".format(options.subparser_name))
 
 
 if __name__ == "__main__":

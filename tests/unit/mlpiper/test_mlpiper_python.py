@@ -28,7 +28,6 @@ from .constants import R_COMPONENTS_PATH
 
 
 class TestPythonEngine:
-
     system_config = {
         "statsDBHost": "localhost",
         "statsDBPort": 8086,
@@ -73,7 +72,6 @@ class TestPythonEngine:
 
     # Note, skip lines are commented so can be easily uncommented when debugging
     def test_dag_detect_is_stand_alone(self):
-
         pipeline = {
             "name": "stand_alone_test",
             "engineType": "Generic",
@@ -356,12 +354,9 @@ class TestPythonEngine:
         dag = Dag(pipeline, comps_desc_list, python_engine)
 
         dag_node = dag.get_dag_node(0)
-        input_args = dag_node.input_arguments(
-            systemConfig, ee_config, comp_only_args=True
-        )
+        input_args = dag_node.input_arguments(systemConfig, ee_config, comp_only_args=True)
         assert input_args["arg1"] == "arg1-value"
         assert input_args["output-model"] == "output-model-1234"
-
 
     def test_pipeline_component_termination(self):
         with tempfile.NamedTemporaryFile() as f:
@@ -374,13 +369,11 @@ class TestPythonEngine:
                         "id": 1,
                         "type": "dummy-component-to-test-termination",
                         "parents": [],
-                        "arguments": {
-                            "filepath-for-termination-output": f.name
-                        },
+                        "arguments": {"filepath-for-termination-output": f.name},
                     }
                 ],
             }
             config = self._get_executor_config(pipeline)
             Executor(config).go()
 
-            assert f.read().decode('utf-8') == 'Termination was handled successfully'
+            assert f.read().decode("utf-8") == "Termination was handled successfully"

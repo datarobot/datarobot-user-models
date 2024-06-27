@@ -14,7 +14,6 @@ class S3FileSource(ConnectableComponent):
         super(self.__class__, self).__init__(engine)
 
     def _materialize(self, parent_data_objs, user_data):
-
         file_path = self._fetch_file()
         return [file_path]
 
@@ -27,16 +26,13 @@ class S3FileSource(ConnectableComponent):
             aws_secret_access_key=self._params["aws_secret_access_key"],
         )
 
-        file_path = os.path.join(
-            self._params["parent_directory"], "s3_file_" + str(uuid.uuid4())
-        )
+        file_path = os.path.join(self._params["parent_directory"], "s3_file_" + str(uuid.uuid4()))
         client.download_file(self._params["bucket"], self._params["key"], file_path)
 
         return file_path
 
 
 def parse_args():
-
     parser = argparse.ArgumentParser()
     parser.add_argument("--aws-access-key-id", default=None, help="Access key ID")
     parser.add_argument("--aws-secret-access-key", default=None, help="Secret key")

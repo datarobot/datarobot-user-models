@@ -30,9 +30,7 @@ class CommandLineParser:
         :return: dict with all options
         """
 
-        real_file_name = pkg_resources.resource_filename(
-            self._pkg, self._component_json
-        )
+        real_file_name = pkg_resources.resource_filename(self._pkg, self._component_json)
 
         parser = argparse.ArgumentParser()
         comp_json = json.load(open(real_file_name))
@@ -60,15 +58,11 @@ class CommandLineParser:
         for arg_desc in args_desc:
             arg_obj = Argument(arg_desc)
             if arg_obj.optional:
-                options[arg_obj.key] = params_dict.get(
-                    arg_obj.key, arg_obj.default_value
-                )
+                options[arg_obj.key] = params_dict.get(arg_obj.key, arg_obj.default_value)
             else:
                 if arg_obj.key not in params_dict:
                     raise Exception(
-                        "Argument: {} is not optional, and no value was given".format(
-                            arg_obj.key
-                        )
+                        "Argument: {} is not optional, and no value was given".format(arg_obj.key)
                     )
                 options[arg_obj.key] = params_dict[arg_obj.key]
         return namedtuple("Options", options.keys())(*options.values())

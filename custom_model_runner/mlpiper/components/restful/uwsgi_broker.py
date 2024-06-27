@@ -57,9 +57,7 @@ class UwsgiBroker(Base):
 
     def setup_and_run(self, shared_conf, entry_point_conf, monitor_info):
         self._target_path = shared_conf[SharedConstants.TARGET_PATH_KEY]
-        self._logger.info(
-            "Setup 'uwsgi' server, target path: {}".format(self._target_path)
-        )
+        self._logger.info("Setup 'uwsgi' server, target path: {}".format(self._target_path))
         self._monitor_info = monitor_info
         self._verify_dependencies()
         self._generate_entry_point_script(shared_conf, entry_point_conf)
@@ -96,9 +94,7 @@ class UwsgiBroker(Base):
         wsgi_entry_script_code = WSGI_ENTRY_SCRIPT.format(
             module=self.__class__.__module__,
             cls=self.__class__.__name__,
-            restful_comp_module=entry_point_conf[
-                UwsgiConstants.RESTFUL_COMP_MODULE_KEY
-            ],
+            restful_comp_module=entry_point_conf[UwsgiConstants.RESTFUL_COMP_MODULE_KEY],
             restful_comp_cls=entry_point_conf[UwsgiConstants.RESTFUL_COMP_CLS_KEY],
             root_logger_name=constants.LOGGER_NAME_PREFIX,
             log_format=entry_point_conf[ComponentConstants.LOG_FORMAT_KEY],
@@ -115,9 +111,7 @@ class UwsgiBroker(Base):
         uwsgi_script_filepath = os.path.join(
             self._target_path, UwsgiConstants.ENTRY_POINT_SCRIPT_NAME
         )
-        self._logger.info(
-            "Writing uWSGI entry point to: {}".format(uwsgi_script_filepath)
-        )
+        self._logger.info("Writing uWSGI entry point to: {}".format(uwsgi_script_filepath))
 
         with open(uwsgi_script_filepath, "w") as f:
             f.write(wsgi_entry_script_code)
@@ -138,22 +132,25 @@ class UwsgiBroker(Base):
 
         # define cheaper system memory limits
         cheaper_memory_limits = ""
-        cheaper_rss_limit_soft = entry_point_conf[UwsgiConstants.PARAMS_KEY] \
-            .get(ComponentConstants.UWSGI_CHEAPER_RSS_LIMIT_SOFT_KEY, None)
-        cheaper_rss_limit_hard = entry_point_conf[UwsgiConstants.PARAMS_KEY] \
-            .get(ComponentConstants.UWSGI_CHEAPER_RSS_LIMIT_HARD_KEY, None)
-        memory_report = entry_point_conf[UwsgiConstants.PARAMS_KEY] \
-            .get(ComponentConstants.UWSGI_MEMORY_REPORT_KEY, False)
+        cheaper_rss_limit_soft = entry_point_conf[UwsgiConstants.PARAMS_KEY].get(
+            ComponentConstants.UWSGI_CHEAPER_RSS_LIMIT_SOFT_KEY, None
+        )
+        cheaper_rss_limit_hard = entry_point_conf[UwsgiConstants.PARAMS_KEY].get(
+            ComponentConstants.UWSGI_CHEAPER_RSS_LIMIT_HARD_KEY, None
+        )
+        memory_report = entry_point_conf[UwsgiConstants.PARAMS_KEY].get(
+            ComponentConstants.UWSGI_MEMORY_REPORT_KEY, False
+        )
 
         if cheaper_rss_limit_soft:
             cheaper_memory_limits += "cheaper-rss-limit-soft = {}\n".format(cheaper_rss_limit_soft)
         if cheaper_rss_limit_hard:
             cheaper_memory_limits += "cheaper-rss-limit-hard = {}\n".format(cheaper_rss_limit_hard)
         if memory_report or len(cheaper_memory_limits):
-            cheaper_memory_limits += "memory-report = true\n" \
-
-        max_workers_from_config = entry_point_conf[UwsgiConstants.PARAMS_KEY] \
-            .get(ComponentConstants.UWSGI_MAX_WORKERS_KEY, None)
+            cheaper_memory_limits += "memory-report = true\n"
+        max_workers_from_config = entry_point_conf[UwsgiConstants.PARAMS_KEY].get(
+            ComponentConstants.UWSGI_MAX_WORKERS_KEY, None
+        )
 
         workers = 1 if single_uwsgi_worker else cheaper_conf[UwsgiCheaperSubSystem.WORKERS]
         cheaper = cheaper_conf[UwsgiCheaperSubSystem.CHEAPER]
@@ -179,9 +176,7 @@ class UwsgiBroker(Base):
             restful_app_file=UwsgiConstants.ENTRY_POINT_SCRIPT_NAME,
             callable_app="application",
             python_paths=python_paths,
-            disable_logging=entry_point_conf[
-                ComponentConstants.UWSGI_DISABLE_LOGGING_KEY
-            ],
+            disable_logging=entry_point_conf[ComponentConstants.UWSGI_DISABLE_LOGGING_KEY],
             cheaper_memory_limits=cheaper_memory_limits,
             workers=workers,
             cheaper=cheaper,
@@ -224,8 +219,7 @@ class UwsgiBroker(Base):
         if metrics:
             for index, metric_name in enumerate(metrics):
                 metrics_conf += (
-                    ComponentConstants.METRIC_TEMPLATE.format(metric_name, index + 1)
-                    + "\n"
+                    ComponentConstants.METRIC_TEMPLATE.format(metric_name, index + 1) + "\n"
                 )
         return metrics_conf
 
@@ -329,9 +323,7 @@ class UwsgiBroker(Base):
         logger.info("Model file path: {}".format(model_path))
 
         if within_uwsgi_context:
-            cls._model_selector = ModelSelector(
-                model_path, cls._restful_comp._ml_engine.standalone
-            )
+            cls._model_selector = ModelSelector(model_path, cls._restful_comp._ml_engine.standalone)
 
             logger.info(
                 "Register signal (model reloading): {} (worker, wid: {}, {})".format(
@@ -359,9 +351,7 @@ class UwsgiBroker(Base):
             )
         else:
             if os.path.isfile(model_path):
-                UwsgiBroker._restful_comp.load_model_callback(
-                    model_path, stream=None, version=None
-                )
+                UwsgiBroker._restful_comp.load_model_callback(model_path, stream=None, version=None)
 
     @staticmethod
     def _model_reload_signal(num):
@@ -394,10 +384,6 @@ class UwsgiBroker(Base):
         # The following condition is here to handle an initial state, where a model was not set
         # for the given pipeline
         if model_filepath is not None and os.path.isfile(model_filepath):
-            UwsgiBroker._restful_comp.load_model_callback(
-                model_filepath, stream=None, version=None
-            )
+            UwsgiBroker._restful_comp.load_model_callback(model_filepath, stream=None, version=None)
         else:
-            UwsgiBroker.w_logger.info(
-                "Model file does not exist: {}".format(model_filepath)
-            )
+            UwsgiBroker.w_logger.info("Model file does not exist: {}".format(model_filepath))

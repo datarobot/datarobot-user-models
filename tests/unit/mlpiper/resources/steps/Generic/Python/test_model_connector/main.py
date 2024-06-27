@@ -43,7 +43,6 @@ def list_params(options):
 
 
 def parse_args():
-
     parser = argparse.ArgumentParser()
 
     # The cmd is used to determine how to run the connector (import/list_params)

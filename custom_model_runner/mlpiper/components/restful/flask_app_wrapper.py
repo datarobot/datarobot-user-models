@@ -43,9 +43,7 @@ class EndpointAction(object):
                 )
         except ValueError:
             raise MLPiperException(
-                "Invalid returned type from endpoint handler: '{}', ".format(
-                    self._handler
-                )
+                "Invalid returned type from endpoint handler: '{}', ".format(self._handler)
                 + "Expecting for tuple of two elements: (status, response)"
             )
 

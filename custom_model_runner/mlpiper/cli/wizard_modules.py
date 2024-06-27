@@ -13,9 +13,7 @@ import six
 
 
 # getting __dict__ attributes and filtering only what is needed
-language_options = [
-    v for k, v in vars(ComponentLanguage).items() if not k.startswith("__")
-]
+language_options = [v for k, v in vars(ComponentLanguage).items() if not k.startswith("__")]
 engine_options = [v for k, v in vars(EngineType).items() if not k.startswith("__")]
 group_options = [v for k, v in vars(ComponentGroup).items() if not k.startswith("__")]
 model_behavior_options = [
@@ -50,11 +48,8 @@ def choice_validator(choices):
     """
 
     def validator(ns, value):
-
         if value is None:
-            raise ValueError(
-                "Invalid input. Please input: {}".format(options_to_str(choices))
-            )
+            raise ValueError("Invalid input. Please input: {}".format(options_to_str(choices)))
 
         # value is always of a string type here
         try:
@@ -110,15 +105,11 @@ class MainSectionWizard(object):
             "Choose engine type:\n" + options_to_str(engine_options) + "\nEngine type"
         )
         language_header = (
-            "Choose component language:\n"
-            + options_to_str(language_options)
-            + "\nLanguage"
+            "Choose component language:\n" + options_to_str(language_options) + "\nLanguage"
         )
         group_header = "Choose group:\n" + options_to_str(group_options) + "\nGroup"
         model_behavior_header = (
-            "Choose model behavior:\n"
-            + options_to_str(model_behavior_options)
-            + "\nModel behavior"
+            "Choose model behavior:\n" + options_to_str(model_behavior_options) + "\nModel behavior"
         )
         user_standalone_header = (
             "Choose value:\n" + options_to_str(boolean_options) + "\nUser standalone"
@@ -180,9 +171,7 @@ class MainSectionWizard(object):
                     id=json_fields.COMPONENT_DESC_VERSION_FIELD,
                     name="Component version",
                     help="Component version number",
-                    default=component_info.version
-                    if component_info.version
-                    else "1.0.0",
+                    default=component_info.version if component_info.version else "1.0.0",
                 ),
                 wiz.WizardStep(
                     id=json_fields.COMPONENT_DESC_USER_STAND_ALONE,
@@ -222,9 +211,7 @@ class MainSectionWizard(object):
                     name="Use MLOps",
                     help="Whenever MLOps package is used in the component or not: "
                     + options_to_str(boolean_options),
-                    default=component_info.use_mlops
-                    if component_info.use_mlops
-                    else "True",
+                    default=component_info.use_mlops if component_info.use_mlops else "True",
                     validators=(choice_validator(boolean_options)),
                 ),
                 wiz.WizardStep(
@@ -337,9 +324,7 @@ class ArgumentWizard(object):
                     validators=(
                         wiz.required_validator,
                         no_spaces_validator,
-                        self._key_existance_validator(
-                            component_info, current_key=arg.key
-                        ),
+                        self._key_existance_validator(component_info, current_key=arg.key),
                     ),
                 ),
                 wiz.WizardStep(
@@ -404,9 +389,7 @@ class ArgumentWizard(object):
             # already exists. In edit mode current_key is not None and new key can be
             # equal to current key.
             if comp_arg is not None and current_key and current_key != comp_arg.key:
-                raise ValueError(
-                    "Argument with the key '{}' is already defined".format(value)
-                )
+                raise ValueError("Argument with the key '{}' is already defined".format(value))
 
             return value
 
@@ -456,7 +439,6 @@ class SaveLoadWizard(object):
     """
 
     def __init__(self, name, default_path):
-
         if name.lower().startswith("save"):
             step = wiz.WizardStep(
                 id="path",
@@ -502,9 +484,7 @@ class SaveLoadWizard(object):
             raw = ""
             while raw not in ["y", "n"]:
                 try:
-                    raw = input(
-                        "File {} already exists, overwrite? (y/n): ".format(filepath)
-                    )
+                    raw = input("File {} already exists, overwrite? (y/n): ".format(filepath))
                 except (KeyboardInterrupt, EOFError):
                     print()
                     print(AnsiCodes.red, "Wizard canceled", AnsiCodes.reset)

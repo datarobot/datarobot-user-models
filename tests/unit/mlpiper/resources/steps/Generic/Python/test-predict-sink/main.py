@@ -29,7 +29,6 @@ class MCenterComponentAdapter(ConnectableComponent):
 
 
 def do_predict(model_content, input_model, iter_num, exit_value):
-
     for idx in range(iter_num):
         print("stdout - Idx {}".format(idx))
         print("stderr- Idx  {}".format(idx), file=sys.stderr)
@@ -59,7 +58,6 @@ def do_predict(model_content, input_model, iter_num, exit_value):
 
 
 def parse_args():
-
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
@@ -69,9 +67,7 @@ def parse_args():
     )
     parser.add_argument("--input-model", help="Path to load model from")
     parser.add_argument("--exit-value", type=int, default=0, help="Exit value")
-    parser.add_argument(
-        "--iter", type=int, default=20, help="How many 1sec iterations to perform"
-    )
+    parser.add_argument("--iter", type=int, default=20, help="How many 1sec iterations to perform")
 
     options = parser.parse_args()
     return options

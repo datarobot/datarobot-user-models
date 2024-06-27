@@ -11,9 +11,7 @@ class ModelFetcher(BgActor):
     POLLING_INTERVAL_SEC = 10.0
 
     def __init__(self, mlops, model_filepath, ml_engine):
-        super(ModelFetcher, self).__init__(
-            mlops, ml_engine, ModelFetcher.POLLING_INTERVAL_SEC
-        )
+        super(ModelFetcher, self).__init__(mlops, ml_engine, ModelFetcher.POLLING_INTERVAL_SEC)
 
         self._uuid = uuid.uuid4()
         self._current_model = self._mlops.current_model()
@@ -25,9 +23,7 @@ class ModelFetcher(BgActor):
         self._logger.info("Setup model env with: {}".format(model_filepath))
         self._model_env = ModelEnv(model_filepath)
         if os.path.isfile(model_filepath):
-            self._logger.info(
-                "Rename model file path to {}".format(self._model_env.model_filepath)
-            )
+            self._logger.info("Rename model file path to {}".format(self._model_env.model_filepath))
             os.rename(model_filepath, self._model_env.model_filepath)
         Metadata(self._model_env.model_filepath).save(self._model_env.metadata_filepath)
 
@@ -54,9 +50,7 @@ class ModelFetcher(BgActor):
             )
 
     def _download_and_signal(self):
-        self._logger.info(
-            "New model is about to be downloaded: {}".format(self._current_model)
-        )
+        self._logger.info("New model is about to be downloaded: {}".format(self._current_model))
         self._current_model.download(self._model_env.model_filepath)
         Metadata(self._model_env.model_filepath).save(self._model_env.metadata_filepath)
         self._signal()

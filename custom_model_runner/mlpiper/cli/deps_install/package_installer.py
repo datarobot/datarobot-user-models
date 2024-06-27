@@ -9,17 +9,13 @@ class PackageInstaller(object):
         self._logger = logging.getLogger(self.__class__.__name__)
         self._prefix = script_prefix
         self._extension = (
-            script_extension
-            if script_extension.startswith(".")
-            else ".{}".format(script_extension)
+            script_extension if script_extension.startswith(".") else ".{}".format(script_extension)
         )
         self._packages = packages
 
     def install(self):
         if self._packages:
-            _, requirements_path = tempfile.mkstemp(
-                suffix=self._extension, prefix=self._prefix
-            )
+            _, requirements_path = tempfile.mkstemp(suffix=self._extension, prefix=self._prefix)
             self._logger.info("Requirements path: {}".format(requirements_path))
             try:
                 self._generate_requirements_script(requirements_path)

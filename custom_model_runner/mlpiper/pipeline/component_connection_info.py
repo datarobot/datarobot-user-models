@@ -16,16 +16,12 @@ class ComponentConnectionInfo(object):
             self.description = connection_desc_json.get(
                 json_fields.CONNECTION_DESC_DESCRIPTION_FIELD
             )
-            self.label = connection_desc_json.get(
-                json_fields.CONNECTION_DESC_LABEL_FIELD
-            )
+            self.label = connection_desc_json.get(json_fields.CONNECTION_DESC_LABEL_FIELD)
             self.default_component = connection_desc_json.get(
                 json_fields.CONNECTION_DESC_DEFAULT_COMPONENT_FIELD
             )
             self.type = connection_desc_json.get(json_fields.CONNECTION_DESC_TYPE_FIELD)
-            self.group = connection_desc_json.get(
-                json_fields.CONNECTION_DESC_GROUP_FIELD
-            )
+            self.group = connection_desc_json.get(json_fields.CONNECTION_DESC_GROUP_FIELD)
 
     @property
     def description(self):

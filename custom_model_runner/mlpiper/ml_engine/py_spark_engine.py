@@ -54,11 +54,7 @@ class PySparkEngine(MLEngine):
     def finalize(self):
         if self._output_model_path:
             pipeline = Pipeline(stages=self._stages)
-            df = (
-                self._dataframe
-                if type(self._dataframe) is not list
-                else self._dataframe[0]
-            )
+            df = self._dataframe if type(self._dataframe) is not list else self._dataframe[0]
             model = pipeline.fit(df)
 
             # save model to file
@@ -97,14 +93,11 @@ class PySparkEngine(MLEngine):
         if self._output_model_path:
             raise MLPiperException(
                 "Output model path was already set for the given pipeline! pipeline: {}, "
-                "existing-path: {}, new-path: {}".format(
-                    self.name(), self._output_model_path, path
-                )
+                "existing-path: {}, new-path: {}".format(self.name(), self._output_model_path, path)
             )
         self._output_model_path = path
 
     def get_input_model(self, model_path):
-
         if self.context is not None:
             # load model from file
             model_helper = SparkPipelineModelHelper(self.context)

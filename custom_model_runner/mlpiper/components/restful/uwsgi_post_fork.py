@@ -30,6 +30,7 @@ class UwsgiPostFork:
         # Note: it is necessary to enable the uWSGI master process to use
         # 'uwsgidecorators' module
         import uwsgidecorators
+
         uwsgidecorators.postfork(UwsgiPostFork.do_post_fork)
 
     @staticmethod

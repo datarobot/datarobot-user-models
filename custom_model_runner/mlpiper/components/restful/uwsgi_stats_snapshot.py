@@ -34,9 +34,7 @@ class UwsiStatsSnapshot(object):
             for w in self._raw_stats["workers"]
             if w["id"] != 0
         }
-        self._worker_ids = sorted(
-            [w["id"] for w in self._raw_stats["workers"] if w["id"] != 0]
-        )
+        self._worker_ids = sorted([w["id"] for w in self._raw_stats["workers"] if w["id"] != 0])
 
         self._sorted_worker_stats = sorted(
             [(k, v[0], v[1].decode()) for k, v in worker_requests.items()]
@@ -75,9 +73,7 @@ class UwsiStatsSnapshot(object):
 
             if metric_meta.metric_type == MetricType.COUNTER_PER_TIME_WINDOW:
                 if prev_stats_snapshot:
-                    metric_value -= prev_stats_snapshot.uwsgi_pm_metric_by_name(
-                        metric_name
-                    )
+                    metric_value -= prev_stats_snapshot.uwsgi_pm_metric_by_name(metric_name)
 
                 self._calculate_metric_value(
                     metric_value,
@@ -92,9 +88,9 @@ class UwsiStatsSnapshot(object):
                     self.total_requests,
                     self._uwsgi_pm_metrics,
                 )
-                self._uwsgi_pm_metrics_accumulation[
+                self._uwsgi_pm_metrics_accumulation[metric_name] = self._uwsgi_pm_metrics[
                     metric_name
-                ] = self._uwsgi_pm_metrics[metric_name]
+                ]
 
     def _extract_relevant_raw_metrics(self, raw_metrics):
         uwsgi_pm_metrics = {}
@@ -108,9 +104,7 @@ class UwsiStatsSnapshot(object):
 
         return uwsgi_pm_metrics
 
-    def _calculate_metric_value(
-        self, metric_value, metric_meta, total_requests, related_metrics
-    ):
+    def _calculate_metric_value(self, metric_value, metric_meta, total_requests, related_metrics):
         metric_name = metric_meta.metric_name
 
         if metric_meta.metric_relation == MetricRelation.BAR_GRAPH:
@@ -198,8 +192,7 @@ class UwsiStatsSnapshot(object):
 
     def should_report_metrics_accumulation(self, stats_snapshot):
         return stats_snapshot is None or (
-            self.uwsgi_pm_metrics_accumulation
-            != stats_snapshot.uwsgi_pm_metrics_accumulation
+            self.uwsgi_pm_metrics_accumulation != stats_snapshot.uwsgi_pm_metrics_accumulation
         )
 
     def should_report_metrics_per_time_window(self, stats_snapshot):
@@ -207,6 +200,5 @@ class UwsiStatsSnapshot(object):
             return False
 
         return stats_snapshot is None or (
-            self.uwsgi_pm_metrics_per_window
-            != stats_snapshot.uwsgi_pm_metrics_per_window
+            self.uwsgi_pm_metrics_per_window != stats_snapshot.uwsgi_pm_metrics_per_window
         )

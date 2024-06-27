@@ -9,9 +9,7 @@ class SparkDataComponent(SparkSessionComponent):
     def _materialize(self, spark, parent_data_objs, user_data):
         df = self._dataframe(spark, user_data)
         df_list = df if type(df) is list else [df]
-        self._logger.debug(
-            "Data component '{}' returns: {}".format(self.name(), df_list)
-        )
+        self._logger.debug("Data component '{}' returns: {}".format(self.name(), df_list))
         return df_list  # Used by child connectable component
 
     def _post_validation(self, df):

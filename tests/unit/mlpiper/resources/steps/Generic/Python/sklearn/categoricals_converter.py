@@ -8,7 +8,6 @@ class CategoricalsConverter(ConnectableComponent):
         super(self.__class__, self).__init__(engine)
 
     def _materialize(self, parent_data_objs, user_data):
-
         X = parent_data_objs[0]
         y = parent_data_objs[1]
 

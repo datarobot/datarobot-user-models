@@ -7,7 +7,6 @@ import time
 
 
 def parse_args():
-
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--arg1", help="Test argument 1")
@@ -16,16 +15,13 @@ def parse_args():
         "--model-is-directory", type=int, default=0, help="Whether model is a directory"
     )
     parser.add_argument("--exit-value", type=int, default=0, help="Exit value")
-    parser.add_argument(
-        "--iter", type=int, default=20, help="How many 1sec iterations to perform"
-    )
+    parser.add_argument("--iter", type=int, default=20, help="How many 1sec iterations to perform")
 
     options = parser.parse_args()
     return options
 
 
 def main():
-
     print("args: {}".format(sys.argv))
     options = parse_args()
     print("- inside test-python-predict Running main.py")

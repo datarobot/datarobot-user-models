@@ -45,7 +45,6 @@ class SparkPipelineModelHelper(Base):
         return self
 
     def load_model(self, model_path):
-
         self._logger.info("model helper model_path= {}".format(model_path))
 
         # going into model directory to find right directory containing metadata.
@@ -61,9 +60,7 @@ class SparkPipelineModelHelper(Base):
 
         if self._hdfs_tmp_dir is not None:
             local_model_path = "file://" + model_path
-            self._logger.info(
-                "model file will be located at: {}".format(local_model_path)
-            )
+            self._logger.info("model file will be located at: {}".format(local_model_path))
 
             try:
                 self._logger.info(
@@ -91,9 +88,7 @@ class SparkPipelineModelHelper(Base):
                 # loading from hdfs!
                 model_obj = PipelineModel.load(hdfs_tmp_dir)
 
-                self._logger.info(
-                    "Accessing HDFS - loading model from: {}".format(hdfs_tmp_dir)
-                )
+                self._logger.info("Accessing HDFS - loading model from: {}".format(hdfs_tmp_dir))
                 hadoop_fs.delete(dst_path, True)
 
             except Exception as e:
@@ -115,27 +110,18 @@ class SparkPipelineModelHelper(Base):
         self._logger.info("model helper: output_path = {}".format(output_path))
 
         if self._hdfs_tmp_dir is not None:
-
             file_model_dir_path = "file://" + output_path
-            self._logger.info(
-                "model file is located at: {}".format(file_model_dir_path)
-            )
+            self._logger.info("model file is located at: {}".format(file_model_dir_path))
 
             try:
                 self._logger.info("Accessing HDFS to copy model dir to local dir.")
                 hadoop = self._spark_context._gateway.jvm.org.apache.hadoop
 
-                model_dir_name = "{}{}".format(
-                    self._model_dir_name_prefix, uuid.uuid4()
-                )
+                model_dir_name = "{}{}".format(self._model_dir_name_prefix, uuid.uuid4())
                 # temporary model location in hdfs
-                hdfs_model_dir_path = "hdfs://" + os.path.join(
-                    self._hdfs_tmp_dir, model_dir_name
-                )
+                hdfs_model_dir_path = "hdfs://" + os.path.join(self._hdfs_tmp_dir, model_dir_name)
 
-                self._logger.info(
-                    "model will be saved to {}".format(hdfs_model_dir_path)
-                )
+                self._logger.info("model will be saved to {}".format(hdfs_model_dir_path))
 
                 model.write().overwrite().save(hdfs_model_dir_path)
 

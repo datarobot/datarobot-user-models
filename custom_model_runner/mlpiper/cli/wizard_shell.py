@@ -48,11 +48,7 @@ class CompCommand(Command):
         self.parser = PypsiArgParser(prog=name, description=brief)
 
         super(CompCommand, self).__init__(
-            name=name,
-            usage=self.parser.format_help(),
-            topic=topic,
-            brief=brief,
-            **kwargs
+            name=name, usage=self.parser.format_help(), topic=topic, brief=brief, **kwargs
         )
 
     def run(self, shell, args):
@@ -95,11 +91,7 @@ class InputOutputCommand(Command):
         )
 
         super(InputOutputCommand, self).__init__(
-            name=name,
-            usage=self.parser.format_help(),
-            topic=topic,
-            brief=brief,
-            **kwargs
+            name=name, usage=self.parser.format_help(), topic=topic, brief=brief, **kwargs
         )
 
         self._handlers = {
@@ -160,9 +152,7 @@ class InputOutputCommand(Command):
         if 0 <= index < len(self._inputs_or_outputs_array):
             comp_conn = self._inputs_or_outputs_array[index]
             wizard_header = "{} Connection Configuration".format(self.name.capitalize())
-            ns = ConnectionWizard(wizard_header, comp_conn).run(
-                shell, self._print_header
-            )
+            ns = ConnectionWizard(wizard_header, comp_conn).run(shell, self._print_header)
             if ns:
                 out_dict = Helper.filter_non_zero_string_items(ns.__dict__)
                 comp_conn.load_from_json(out_dict)
@@ -197,7 +187,6 @@ class ArgumentCommand(Command):
     SUBCOMMAND_ADD = "add"
 
     def __init__(self, name, topic, brief, **kwargs):
-
         # TODO: start using args from ArgParser, now they only added to show pretty help
         self.parser = PypsiArgParser(prog=name, description=brief)
         subparsers = self.parser.add_subparsers(dest="subparser_name", help="Commands")
@@ -212,11 +201,7 @@ class ArgumentCommand(Command):
         )
 
         super(ArgumentCommand, self).__init__(
-            name=name,
-            usage=self.parser.format_help(),
-            topic=topic,
-            brief=brief,
-            **kwargs
+            name=name, usage=self.parser.format_help(), topic=topic, brief=brief, **kwargs
         )
 
         self._handlers = {
@@ -291,14 +276,9 @@ class ArgumentCommand(Command):
 
 class ShowCommand(Command):
     def __init__(self, name, topic, brief, **kwargs):
-
         self.parser = PypsiArgParser(prog=name, description=brief)
         super(ShowCommand, self).__init__(
-            name=name,
-            usage=self.parser.format_help(),
-            topic=topic,
-            brief=brief,
-            **kwargs
+            name=name, usage=self.parser.format_help(), topic=topic, brief=brief, **kwargs
         )
 
     def run(self, shell, args):
@@ -317,11 +297,7 @@ class SaveLoadCommand(Command):
     def __init__(self, name, topic, brief, **kwargs):
         self.parser = PypsiArgParser(prog=name, description=brief)
         super(SaveLoadCommand, self).__init__(
-            name=name,
-            usage=self.parser.format_help(),
-            topic=topic,
-            brief=brief,
-            **kwargs
+            name=name, usage=self.parser.format_help(), topic=topic, brief=brief, **kwargs
         )
 
     def run(self, shell, args):
@@ -366,12 +342,9 @@ class SaveLoadCommand(Command):
 
 
 class ComponentWizardShell(Shell):
-
     # add commands to the shell
     topic = "Component Builder Commands"
-    print_cmd = ShowCommand(
-        name=CommandName.SHOW, brief="show current component json", topic=topic
-    )
+    print_cmd = ShowCommand(name=CommandName.SHOW, brief="show current component json", topic=topic)
     save_cmd = SaveLoadCommand(
         name=CommandName.SAVE, brief="save current component json to file", topic=topic
     )

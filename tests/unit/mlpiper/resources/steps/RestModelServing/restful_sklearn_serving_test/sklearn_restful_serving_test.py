@@ -93,9 +93,7 @@ class SklearnRESTfulServingTest(RESTfulComponent):
     def load_model_callback(self, model_path, stream, version):
         self._logger.info(sys.version_info)
 
-        self._logger.info(
-            "Model is loading, wid: {}, path: {}".format(self.get_wid(), model_path)
-        )
+        self._logger.info("Model is loading, wid: {}, path: {}".format(self.get_wid(), model_path))
         self._logger.info("params: {}".format(pprint.pformat(self._params)))
         model = None
 
@@ -118,16 +116,12 @@ class SklearnRESTfulServingTest(RESTfulComponent):
                 if len(warns) > 0:
                     warn_str = "{}".format(warns[-1].message)
                 self._logger.error(
-                    "Model loading warning: {}; Model loading error: {}".format(
-                        warn_str, e
-                    )
+                    "Model loading warning: {}; Model loading error: {}".format(warn_str, e)
                 )
 
                 # Not sure we want to throw exception only to move to a non model mode
                 if self._params.get("ignore-incompatible-model", True):
-                    self._logger.info(
-                        "New model could not be loaded, due to error: {}".format(e)
-                    )
+                    self._logger.info("New model could not be loaded, due to error: {}".format(e))
                     if self._model is None:
                         self._loading_error = (
                             "Model loading warning: {}; "
@@ -135,9 +129,7 @@ class SklearnRESTfulServingTest(RESTfulComponent):
                         )
                     else:
                         raise Exception(
-                            "Model loading warning: {}; Model loading error: {}".format(
-                                warn_str, e
-                            )
+                            "Model loading warning: {}; Model loading error: {}".format(warn_str, e)
                         )
 
         # This line should be reached only if
@@ -164,9 +156,7 @@ class SklearnRESTfulServingTest(RESTfulComponent):
                 result_json["n_features"] = self._model.n_features_
                 result_json[
                     "expected_input_format"
-                ] += ", where vector has {} comma separated values".format(
-                    self._model.n_features_
-                )
+                ] += ", where vector has {} comma separated values".format(self._model.n_features_)
 
         result_json.update(self.info_json)
 
@@ -174,15 +164,12 @@ class SklearnRESTfulServingTest(RESTfulComponent):
 
     @FlaskRoute("/predict")
     def predict(self, url_params, form_params):
-
         if len(form_params) == 0:
             return 200, self._empty_predict()
 
         elif not self._model:
             if self._loading_error:
-                return_json = {
-                    "error": "Failed loading model: {}".format(self._loading_error)
-                }
+                return_json = {"error": "Failed loading model: {}".format(self._loading_error)}
             else:
                 return_json = {"error": "Model not loaded yet - please set a model"}
             return_json.update(self.info_json)
@@ -198,30 +185,20 @@ class SklearnRESTfulServingTest(RESTfulComponent):
             return 404, error_json
         else:
             try:
-                two_dim_array = np.array(
-                    [form_params[SklearnRESTfulServingTest.JSON_KEY_NAME]]
-                )
+                two_dim_array = np.array([form_params[SklearnRESTfulServingTest.JSON_KEY_NAME]])
                 prediction = self._model.predict(two_dim_array)
                 if self._verbose:
                     self._logger.debug(
-                        "predict, url_params: {}, form_params: {}".format(
-                            url_params, form_params
-                        )
+                        "predict, url_params: {}, form_params: {}".format(url_params, form_params)
                     )
                     self._logger.debug(
-                        "type<form_params>: {}\n{}".format(
-                            type(form_params), form_params
-                        )
+                        "type<form_params>: {}\n{}".format(type(form_params), form_params)
                     )
                     self._logger.debug(
-                        "type(two_dim_array): {}\n{}".format(
-                            type(two_dim_array), two_dim_array
-                        )
+                        "type(two_dim_array): {}\n{}".format(type(two_dim_array), two_dim_array)
                     )
                     self._logger.debug(
-                        "prediction: {}, type: {}".format(
-                            prediction[0], type(prediction[0])
-                        )
+                        "prediction: {}, type: {}".format(prediction[0], type(prediction[0]))
                     )
                 return 200, {"prediction": prediction[0]}
             except Exception as e:
@@ -265,9 +242,7 @@ if __name__ == "__main__":
     if not os.path.exists(args.input_model):
         raise Exception("Model file {} does not exists".format(args.input_model))
 
-    logging.basicConfig(
-        format="%(asctime)-15s %(levelname)s [%(module)s:%(lineno)d]:  %(message)s"
-    )
+    logging.basicConfig(format="%(asctime)-15s %(levelname)s [%(module)s:%(lineno)d]:  %(message)s")
     logging.getLogger("mlpiper").setLevel(log_levels[args.log_level])
 
     SklearnRESTfulServingTest.run(port=args.port, model_path=args.input_model)

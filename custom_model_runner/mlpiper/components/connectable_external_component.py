@@ -7,14 +7,11 @@ from mlpiper.common.base import Base
 
 
 class ConnectableExternalComponent(Base):
-
     MLPIPER_COMPONENT_INFO_FILE_PATH_ENV = "MLPIPER_COMP_INFO_FILE"
     MLPIPER_PYTHON = "MLPIPER_PYTHON"
 
     def __init__(self):
-        super(ConnectableExternalComponent, self).__init__(
-            logging.getLogger(self.logger_name())
-        )
+        super(ConnectableExternalComponent, self).__init__(logging.getLogger(self.logger_name()))
         self._comp_info = None
 
     def _set_info_file(self, info_file_path):
@@ -30,10 +27,7 @@ class ConnectableExternalComponent(Base):
 
     def save_component_info(self, comp_info, info_file_path=None):
         if not info_file_path:
-            if (
-                ConnectableExternalComponent.MLPIPER_COMPONENT_INFO_FILE_PATH_ENV
-                not in os.environ
-            ):
+            if ConnectableExternalComponent.MLPIPER_COMPONENT_INFO_FILE_PATH_ENV not in os.environ:
                 raise Exception(
                     "Environment does not contain {}".format(
                         ConnectableExternalComponent.MLPIPER_COMPONENT_INFO_FILE_PATH_ENV
@@ -54,10 +48,7 @@ class ConnectableExternalComponent(Base):
 
     def load_component_info(self, info_file_path=None):
         if not info_file_path:
-            if (
-                ConnectableExternalComponent.MLPIPER_COMPONENT_INFO_FILE_PATH_ENV
-                not in os.environ
-            ):
+            if ConnectableExternalComponent.MLPIPER_COMPONENT_INFO_FILE_PATH_ENV not in os.environ:
                 raise Exception(
                     "Environment does not contain {}".format(
                         ConnectableExternalComponent.MLPIPER_COMPONENT_INFO_FILE_PATH_ENV
@@ -68,9 +59,7 @@ class ConnectableExternalComponent(Base):
                 ConnectableExternalComponent.MLPIPER_COMPONENT_INFO_FILE_PATH_ENV
             ]
         if not os.path.exists(info_file_path):
-            raise Exception(
-                "Component info file {} does not exists".format(info_file_path)
-            )
+            raise Exception("Component info file {} does not exists".format(info_file_path))
         with open(info_file_path, "rb") as pickle_file:
             self._comp_info = pickle.load(pickle_file)
         return self._comp_info

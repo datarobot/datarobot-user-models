@@ -18,18 +18,12 @@ class ComponentArgumentInfo(object):
         if argument_desc_json:
             self.key = argument_desc_json.get(json_fields.COMPONENT_DESC_ARGUMENT_KEY)
             self.type = argument_desc_json.get(json_fields.COMPONENT_DESC_ARGUMENT_TYPE)
-            self.label = argument_desc_json.get(
-                json_fields.COMPONENT_DESC_ARGUMENT_LABEL
-            )
+            self.label = argument_desc_json.get(json_fields.COMPONENT_DESC_ARGUMENT_LABEL)
             self.description = argument_desc_json.get(
                 json_fields.COMPONENT_DESC_ARGUMENT_DESCRIPTION
             )
-            self.env_var = argument_desc_json.get(
-                json_fields.COMPONENT_DESC_ARGUMENT_ENV_VAR
-            )
-            self.optional = argument_desc_json.get(
-                json_fields.COMPONENT_DESC_ARGUMENT_OPTIONAL
-            )
+            self.env_var = argument_desc_json.get(json_fields.COMPONENT_DESC_ARGUMENT_ENV_VAR)
+            self.optional = argument_desc_json.get(json_fields.COMPONENT_DESC_ARGUMENT_OPTIONAL)
             self.tag = argument_desc_json.get(json_fields.COMPONENT_DESC_ARGUMENT_TAG)
             self.default_value = argument_desc_json.get(
                 json_fields.COMPONENT_DESC_ARGUMENT_DEFAULT_VAL

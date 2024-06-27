@@ -62,9 +62,7 @@ class WsgiMonitor(Base):
         try:
             self._monitor_uwsgi_proc()
         except:  # noqa: E722
-            self._monitor_info[
-                UwsgiConstants.MONITOR_ERROR_KEY
-            ] = traceback.format_exc()
+            self._monitor_info[UwsgiConstants.MONITOR_ERROR_KEY] = traceback.format_exc()
         finally:
             if self._logging_udp_socket:
                 self._logging_udp_socket.close()
@@ -95,10 +93,7 @@ class WsgiMonitor(Base):
 
                 if monitor_stats:
                     wakeup_time = time.time()
-                    if (
-                        wakeup_time - last_stats_read
-                        > self._stats_reporting_interval_sec
-                    ):
+                    if wakeup_time - last_stats_read > self._stats_reporting_interval_sec:
                         last_stats_read = wakeup_time
                         if self._stats:
                             self._stats.report()

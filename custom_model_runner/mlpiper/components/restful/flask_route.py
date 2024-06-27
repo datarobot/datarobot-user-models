@@ -25,9 +25,7 @@ class FlaskRoute(object):
 
         endpoint = self._options.pop("endpoint", None)
         if not any(self._rule == e[0] for e in FlaskRoute._routes):
-            FlaskRoute._routes.append(
-                (self._rule, endpoint, f.__name__, self._options, self._raw)
-            )
+            FlaskRoute._routes.append((self._rule, endpoint, f.__name__, self._options, self._raw))
 
         return wrapper
 

@@ -34,21 +34,15 @@ class ComponentInfoEncoder(json.JSONEncoder):
             if obj.component_class:
                 ret[json_fields.COMPONENT_DESC_CLASS_FIELD] = obj.component_class
             if obj.model_behavior:
-                ret[
-                    json_fields.COMPONENT_DESC_MODEL_BEHAVIOR_FIELD
-                ] = obj.model_behavior
+                ret[json_fields.COMPONENT_DESC_MODEL_BEHAVIOR_FIELD] = obj.model_behavior
             if obj.use_mlops:
                 ret[json_fields.COMPONENT_DESC_USE_MLOPS_FIELD] = obj.use_mlops
             if obj.deps:
                 ret[json_fields.COMPONENT_DESC_PYTHON_DEPS] = obj.deps
             if obj.include_glob_patterns:
-                ret[
-                    json_fields.COMPONENT_DESC_INCLUDE_GLOB_PATTERNS
-                ] = obj.include_glob_patterns
+                ret[json_fields.COMPONENT_DESC_INCLUDE_GLOB_PATTERNS] = obj.include_glob_patterns
             if obj.exclude_glob_patterns:
-                ret[
-                    json_fields.COMPONENT_DESC_EXCLUDE_GLOB_PATTERNS
-                ] = obj.exclude_glob_patterns
+                ret[json_fields.COMPONENT_DESC_EXCLUDE_GLOB_PATTERNS] = obj.exclude_glob_patterns
             if obj.inputs:
                 ret[json_fields.COMPONENT_DESC_INPUT_INFO_FIELD] = obj.inputs
             if obj.outputs:
@@ -63,9 +57,7 @@ class ComponentInfoEncoder(json.JSONEncoder):
             if obj.label:
                 ret[json_fields.CONNECTION_DESC_LABEL_FIELD] = obj.label
             if obj.default_component:
-                ret[
-                    json_fields.CONNECTION_DESC_DEFAULT_COMPONENT_FIELD
-                ] = obj.default_component
+                ret[json_fields.CONNECTION_DESC_DEFAULT_COMPONENT_FIELD] = obj.default_component
             if obj.type:
                 ret[json_fields.CONNECTION_DESC_TYPE_FIELD] = obj.type
             if obj.group:
@@ -121,30 +113,18 @@ class ComponentInfo(object):
     def load_from_json(self, comp_desc_json):
         if comp_desc_json:
             self.version = comp_desc_json.get(json_fields.COMPONENT_DESC_VERSION_FIELD)
-            self.engine_type = comp_desc_json.get(
-                json_fields.COMPONENT_DESC_ENGINE_TYPE_FIELD
-            )
-            self.language = comp_desc_json.get(
-                json_fields.COMPONENT_DESC_LANGUAGE_FIELD
-            )
-            self.user_standalone = comp_desc_json.get(
-                json_fields.COMPONENT_DESC_USER_STAND_ALONE
-            )
+            self.engine_type = comp_desc_json.get(json_fields.COMPONENT_DESC_ENGINE_TYPE_FIELD)
+            self.language = comp_desc_json.get(json_fields.COMPONENT_DESC_LANGUAGE_FIELD)
+            self.user_standalone = comp_desc_json.get(json_fields.COMPONENT_DESC_USER_STAND_ALONE)
             self.name = comp_desc_json.get(json_fields.COMPONENT_DESC_NAME_FIELD)
             self.label = comp_desc_json.get(json_fields.COMPONENT_DESC_LABEL_FIELD)
-            self.description = comp_desc_json.get(
-                json_fields.COMPONENT_DESC_DESCRIPTION_FIELD
-            )
+            self.description = comp_desc_json.get(json_fields.COMPONENT_DESC_DESCRIPTION_FIELD)
             self.program = comp_desc_json.get(json_fields.COMPONENT_DESC_PROGRAM_FIELD)
-            self.component_class = comp_desc_json.get(
-                json_fields.COMPONENT_DESC_CLASS_FIELD
-            )
+            self.component_class = comp_desc_json.get(json_fields.COMPONENT_DESC_CLASS_FIELD)
             self.model_behavior = comp_desc_json.get(
                 json_fields.COMPONENT_DESC_MODEL_BEHAVIOR_FIELD
             )
-            self.use_mlops = comp_desc_json.get(
-                json_fields.COMPONENT_DESC_USE_MLOPS_FIELD
-            )
+            self.use_mlops = comp_desc_json.get(json_fields.COMPONENT_DESC_USE_MLOPS_FIELD)
             self.group = comp_desc_json.get(json_fields.COMPONENT_DESC_GROUP_FIELD)
             self._deps = comp_desc_json.get(json_fields.COMPONENT_DESC_PYTHON_DEPS)
             self._include_glob_patterns = comp_desc_json.get(
@@ -156,18 +136,14 @@ class ComponentInfo(object):
 
             self.version = str(self.version) if self.version is not None else None
 
-            input_connections = comp_desc_json.get(
-                json_fields.COMPONENT_DESC_INPUT_INFO_FIELD
-            )
+            input_connections = comp_desc_json.get(json_fields.COMPONENT_DESC_INPUT_INFO_FIELD)
             if input_connections:
                 self._inputs = []
                 for input_conn_json in input_connections:
                     ic = ComponentConnectionInfo(input_conn_json)
                     self._inputs.append(ic)
 
-            output_connections = comp_desc_json.get(
-                json_fields.COMPONENT_DESC_OUTPUT_INFO_FIELD
-            )
+            output_connections = comp_desc_json.get(json_fields.COMPONENT_DESC_OUTPUT_INFO_FIELD)
             if output_connections:
                 self._outputs = []
                 for output_conn_json in output_connections:

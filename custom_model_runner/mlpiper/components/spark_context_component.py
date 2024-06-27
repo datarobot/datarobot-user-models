@@ -26,9 +26,7 @@ class SparkContextComponent(SparkSessionComponent):
     def _validate_output(self, rdds):
         if rdds:
             if type(rdds) is not list:
-                raise MLPiperException(
-                    "Invalid non-list output! Expecting for a list of RDDs!"
-                )
+                raise MLPiperException("Invalid non-list output! Expecting for a list of RDDs!")
 
             for rdd in rdds:
                 if not issubclass(rdd.__class__, RDD):

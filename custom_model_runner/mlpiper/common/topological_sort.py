@@ -75,9 +75,7 @@ class TopologicalSort(Base):
 
         if key_value not in self._graph_aux:
             ptr_value = TopologicalSort._call_class_attr(node, ptr_attr_name)
-            self._logger.debug(
-                "ptr_value: {}, type: {}".format(ptr_value, type(ptr_value))
-            )
+            self._logger.debug("ptr_value: {}, type: {}".format(ptr_value, type(ptr_value)))
 
             child_keys = []
             try:
@@ -129,9 +127,7 @@ class TopologicalSort(Base):
 
         if t_node.temp_visit:
             raise MLPiperException(
-                "The pipeline has invalid cyclic loop (Not a DAG)! node: {}".format(
-                    t_node
-                )
+                "The pipeline has invalid cyclic loop (Not a DAG)! node: {}".format(t_node)
             )
 
         t_node.temp_visit = True
@@ -167,9 +163,7 @@ if __name__ == "__main__":
             child_keys = [c.key for c in self.childs] if self.childs else None
             return "key: {}, childs: {}".format(self.key, child_keys)
 
-    logging.basicConfig(
-        level=logging.INFO, format="%(name)s %(levelname)s: %(message)s"
-    )
+    logging.basicConfig(level=logging.INFO, format="%(name)s %(levelname)s: %(message)s")
 
     n1 = Node("a", None)
     n2 = Node("b", [n1])

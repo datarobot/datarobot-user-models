@@ -24,9 +24,7 @@ class ExternalProgramRunner(Base):
         :param run_command: An optional run command. This command will be used to run
                             the main program. For example: /usr/bin/Rscript
         """
-        super(ExternalProgramRunner, self).__init__(
-            logging.getLogger(self.logger_name())
-        )
+        super(ExternalProgramRunner, self).__init__(logging.getLogger(self.logger_name()))
 
         self._root_path = root_path
         self._main_program = main_program
@@ -34,9 +32,7 @@ class ExternalProgramRunner(Base):
 
         if run_command and not os.path.isfile(self._run_command):
             raise Exception(
-                "Run command {} does not exists or is not a file".format(
-                    self._run_command
-                )
+                "Run command {} does not exists or is not a file".format(self._run_command)
             )
 
         self._logger.info("Creating artifact dir: {}".format(os.getcwd()))
@@ -62,16 +58,12 @@ class ExternalProgramRunner(Base):
         p = subprocess.Popen(cmd)
         p.wait()
         self._logger.info(
-            "================= External code done: ret: {} =================".format(
-                p.returncode
-            )
+            "================= External code done: ret: {} =================".format(p.returncode)
         )
 
         sys.stdout.flush()
         if p.returncode != 0:
-            self._logger.info(
-                "Connector: got external program exit code: {}".format(p.returncode)
-            )
+            self._logger.info("Connector: got external program exit code: {}".format(p.returncode))
         return p.returncode
 
     def run_connected(self, parents_objects, input_args):

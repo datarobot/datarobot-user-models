@@ -5,7 +5,6 @@ import os
 
 
 def parse_args():
-
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--arg1", help="Test argument 1")
@@ -16,7 +15,6 @@ def parse_args():
 
 
 def main():
-
     print("Test - argument from env var")
     options = parse_args()
     expected_str_value = format(options.arg1)
@@ -31,17 +29,13 @@ def main():
     print("fromEnvVar: {}".format(options.fromEnvVar))
 
     if expected_str_value != actual_value:
-        raise Exception(
-            "Actual [{}] != Expected [{}]".format(actual_value, expected_str_value)
-        )
+        raise Exception("Actual [{}] != Expected [{}]".format(actual_value, expected_str_value))
 
     actual_value2 = format(options.fromEnvVar2)
     value_from_env = os.environ.get("TEST_VAR2")
 
     if value_from_env is not None and actual_value2 == value_from_env:
-        raise Exception(
-            "Actual [{}] == Value from env [{}]".format(actual_value2, value_from_env)
-        )
+        raise Exception("Actual [{}] == Value from env [{}]".format(actual_value2, value_from_env))
 
 
 if __name__ == "__main__":

@@ -14,9 +14,7 @@ LOG_LEVELS = {
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(
-        description="Executes PySpak pipelines of Python components"
-    )
+    parser = argparse.ArgumentParser(description="Executes PySpak pipelines of Python components")
 
     parser.add_argument(
         "--run-locally",
@@ -31,9 +29,7 @@ def parse_args():
     # PySpark pipeline execution
     parser_exec = subparsers.add_parser("exec", help="Execute a given PySpark pipeline")
     action = parser_exec.add_mutually_exclusive_group(required=True)
-    action.add_argument(
-        "-p", "--pipeline", help="A json string, which represents a pipeline."
-    )
+    action.add_argument("-p", "--pipeline", help="A json string, which represents a pipeline.")
     action.add_argument(
         "-f",
         "--pipeline-file",
@@ -66,9 +62,7 @@ def parse_args():
         help="The programming language",
     )
     group = deps.add_mutually_exclusive_group(required=True)
-    group.add_argument(
-        "-p", "--pipeline", help="A json string, which represents a pipeline."
-    )
+    group.add_argument("-p", "--pipeline", help="A json string, which represents a pipeline.")
     group.add_argument(
         "-f",
         "--pipeline-file",

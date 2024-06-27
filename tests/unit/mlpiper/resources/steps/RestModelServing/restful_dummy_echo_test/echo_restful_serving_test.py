@@ -82,9 +82,7 @@ if __name__ == "__main__":
     if not os.path.exists(args.input_model):
         raise Exception("Model file {} does not exists".format(args.input_model))
 
-    logging.basicConfig(
-        format="%(asctime)-15s %(levelname)s [%(module)s:%(lineno)d]:  %(message)s"
-    )
+    logging.basicConfig(format="%(asctime)-15s %(levelname)s [%(module)s:%(lineno)d]:  %(message)s")
     logging.getLogger("mlpiper").setLevel(log_levels[args.log_level])
 
     EchoRESTfulServingTest.run(port=args.port, model_path=args.input_model)

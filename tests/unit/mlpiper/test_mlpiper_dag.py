@@ -145,35 +145,18 @@ class TestPythonIO:
 
         comp_info = ComponentInfo(comp_desc)
         assert comp_info.version == comp_desc[json_fields.COMPONENT_DESC_VERSION_FIELD]
-        assert (
-            comp_info.engine_type
-            == comp_desc[json_fields.COMPONENT_DESC_ENGINE_TYPE_FIELD]
-        )
-        assert (
-            comp_info.language == comp_desc[json_fields.COMPONENT_DESC_LANGUAGE_FIELD]
-        )
-        assert (
-            comp_info.user_standalone
-            == comp_desc[json_fields.COMPONENT_DESC_USER_STAND_ALONE]
-        )
+        assert comp_info.engine_type == comp_desc[json_fields.COMPONENT_DESC_ENGINE_TYPE_FIELD]
+        assert comp_info.language == comp_desc[json_fields.COMPONENT_DESC_LANGUAGE_FIELD]
+        assert comp_info.user_standalone == comp_desc[json_fields.COMPONENT_DESC_USER_STAND_ALONE]
         assert comp_info.name == comp_desc[json_fields.COMPONENT_DESC_NAME_FIELD]
         assert comp_info.label == comp_desc[json_fields.COMPONENT_DESC_LABEL_FIELD]
-        assert (
-            comp_info.description
-            == comp_desc[json_fields.COMPONENT_DESC_DESCRIPTION_FIELD]
-        )
+        assert comp_info.description == comp_desc[json_fields.COMPONENT_DESC_DESCRIPTION_FIELD]
         assert comp_info.program == comp_desc[json_fields.COMPONENT_DESC_PROGRAM_FIELD]
+        assert comp_info.component_class == comp_desc[json_fields.COMPONENT_DESC_CLASS_FIELD]
         assert (
-            comp_info.component_class
-            == comp_desc[json_fields.COMPONENT_DESC_CLASS_FIELD]
+            comp_info.model_behavior == comp_desc[json_fields.COMPONENT_DESC_MODEL_BEHAVIOR_FIELD]
         )
-        assert (
-            comp_info.model_behavior
-            == comp_desc[json_fields.COMPONENT_DESC_MODEL_BEHAVIOR_FIELD]
-        )
-        assert (
-            comp_info.use_mlops == comp_desc[json_fields.COMPONENT_DESC_USE_MLOPS_FIELD]
-        )
+        assert comp_info.use_mlops == comp_desc[json_fields.COMPONENT_DESC_USE_MLOPS_FIELD]
         assert comp_info.group == comp_desc[json_fields.COMPONENT_DESC_GROUP_FIELD]
         assert comp_info.deps == comp_desc[json_fields.COMPONENT_DESC_PYTHON_DEPS]
         assert (

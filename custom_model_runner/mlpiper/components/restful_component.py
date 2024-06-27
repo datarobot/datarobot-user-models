@@ -47,17 +47,22 @@ class RESTfulComponent(ConnectableComponent):
         # So check for uwsgi installation only once from pipeline/component creation,
         # when engine is not None.
         if engine is not None:
-            if subprocess.run(
-                [sys.executable, "-m", "pip", "show", "uwsgi"],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
-            ).returncode != 0:
-                err_msg = "'uwsgi' package is required. " \
-                          "If you are running on a Windows system, " \
-                          "you may not be able to use RESTful component. " \
-                          "Check how to install uwsgi on Windows. " \
-                          "To install uwsgi on a Mac/Linux system, call " \
-                          "`pip install uwsgi` or `pip install mlpiper[uwsgi]`"
+            if (
+                subprocess.run(
+                    [sys.executable, "-m", "pip", "show", "uwsgi"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                ).returncode
+                != 0
+            ):
+                err_msg = (
+                    "'uwsgi' package is required. "
+                    "If you are running on a Windows system, "
+                    "you may not be able to use RESTful component. "
+                    "Check how to install uwsgi on Windows. "
+                    "To install uwsgi on a Mac/Linux system, call "
+                    "`pip install uwsgi` or `pip install mlpiper[uwsgi]`"
+                )
                 raise MLPiperException(err_msg)
 
         super(RESTfulComponent, self).__init__(
@@ -145,9 +150,7 @@ class RESTfulComponent(ConnectableComponent):
             ComponentConstants.DEFAULT_STATS_REPORTING_INTERVAL_SEC,
         )
 
-        model_filepath_key = java_mapping.RESERVED_KEYS[
-            ComponentConstants.INPUT_MODEL_TAG_NAME
-        ]
+        model_filepath_key = java_mapping.RESERVED_KEYS[ComponentConstants.INPUT_MODEL_TAG_NAME]
         self._params[model_filepath_key] = ModelEnv(
             self._params[model_filepath_key], self._ml_engine.standalone
         ).model_filepath
@@ -191,24 +194,15 @@ class RESTfulComponent(ConnectableComponent):
         self._logger.debug("nginx_conf: {}".format(nginx_conf))
 
         self._dry_run = parameter.str2bool(
-            self._params.get(
-                ComponentConstants.DRY_RUN_KEY, ComponentConstants.DEFAULT_DRY_RUN
-            )
+            self._params.get(ComponentConstants.DRY_RUN_KEY, ComponentConstants.DEFAULT_DRY_RUN)
         )
         if self._dry_run:
             self._logger.warning(
-                "\n\n"
-                + 80 * "#"
-                + "\n"
-                + 25 * " "
-                + "Running in DRY RUN mode\n"
-                + 80 * "#"
+                "\n\n" + 80 * "#" + "\n" + 25 * " " + "Running in DRY RUN mode\n" + 80 * "#"
             )
 
         self._dry_run = parameter.str2bool(
-            self._params.get(
-                ComponentConstants.DRY_RUN_KEY, ComponentConstants.DEFAULT_DRY_RUN
-            )
+            self._params.get(ComponentConstants.DRY_RUN_KEY, ComponentConstants.DEFAULT_DRY_RUN)
         )
 
         self._wsgi_broker = UwsgiBroker(self._ml_engine, self._dry_run).setup_and_run(
@@ -230,9 +224,7 @@ class RESTfulComponent(ConnectableComponent):
 
                 if monitor_info[UwsgiConstants.MONITOR_ERROR_KEY]:
                     self._logger.error(monitor_info[UwsgiConstants.MONITOR_ERROR_KEY])
-                    raise MLPiperException(
-                        monitor_info[UwsgiConstants.MONITOR_ERROR_KEY]
-                    )
+                    raise MLPiperException(monitor_info[UwsgiConstants.MONITOR_ERROR_KEY])
             except KeyboardInterrupt:
                 # When running from mlpiper tool (standalone)
                 pass
@@ -266,9 +258,7 @@ class RESTfulComponent(ConnectableComponent):
 
     @classmethod
     def run(cls, port, model_path):
-        raise MLPiperException(
-            "Running restful components from CLI is not allowed without mlpiper"
-        )
+        raise MLPiperException("Running restful components from CLI is not allowed without mlpiper")
 
     def _get_stats_dict(self):
         return None
@@ -285,10 +275,7 @@ class RESTfulComponent(ConnectableComponent):
         self._stats_count += 1
         self._total_stat_requests.increase()
 
-        if (
-            self._stats_path_filename is None
-            or os.stat(self._stats_path_filename).st_size == 0
-        ):
+        if self._stats_path_filename is None or os.stat(self._stats_path_filename).st_size == 0:
             pass
         else:
             with open(self._stats_path_filename, "r") as input:
@@ -303,15 +290,11 @@ class RESTfulComponent(ConnectableComponent):
                     print("Unexpected error: {}", str(e))
 
         stats_dict[RestfulConstants.STATS_SYSTEM_INFO] = {}
-        stats_dict[RestfulConstants.STATS_SYSTEM_INFO][
-            RestfulConstants.STATS_WID
-        ] = self._wid
+        stats_dict[RestfulConstants.STATS_SYSTEM_INFO][RestfulConstants.STATS_WID] = self._wid
         stats_dict[RestfulConstants.STATS_SYSTEM_INFO][
             RestfulConstants.STATS_UUID
         ] = self._uuid_engine
-        stats_dict[RestfulConstants.STATS_SYSTEM_INFO][
-            RestfulConstants.STATS_WUUID
-        ] = self._wuuid
+        stats_dict[RestfulConstants.STATS_SYSTEM_INFO][RestfulConstants.STATS_WUUID] = self._wuuid
 
         custom_stats = self._get_stats_dict()
         if custom_stats:

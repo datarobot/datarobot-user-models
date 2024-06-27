@@ -1,5 +1,4 @@
 class SMApiConstants:
-
     # Constants from sagemaker_client.describe_training_job, sagemaker.describe_transform_job
     CREATE_TIME = "CreationTime"
 

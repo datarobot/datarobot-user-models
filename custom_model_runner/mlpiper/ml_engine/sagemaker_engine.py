@@ -89,9 +89,7 @@ class SageMakerEngine(PythonEngine):
             unique=uuid.uuid4().hex[:10],
         )
 
-        tags = (
-            [{"Key": self._tag_key, "Value": self._tag_value}] if self._tag_key else []
-        )
+        tags = [{"Key": self._tag_key, "Value": self._tag_value}] if self._tag_key else []
 
         trust_policy = {
             "Version": "2012-10-17",
@@ -147,15 +145,11 @@ class SageMakerEngine(PythonEngine):
     def _read_execution_env_params(self):
         ee_config = self._pipeline.get("executionEnvironment", dict()).get("configs")
         if not ee_config:
-            raise MLPiperException(
-                "Missing execution environment section in pipeline json!"
-            )
+            raise MLPiperException("Missing execution environment section in pipeline json!")
 
         eng_config = ee_config.get("engConfig")
         if not eng_config:
-            raise MLPiperException(
-                "Missing execution environment engine section in pipeline json!"
-            )
+            raise MLPiperException("Missing execution environment engine section in pipeline json!")
 
         if eng_config["type"] != SageMakerEngine.TYPE:
             raise MLPiperException(
@@ -171,13 +165,9 @@ class SageMakerEngine(PythonEngine):
 
         aws_access_key_id = EeArg(eng_args_config.get("aws_access_key_id")).value
         if not aws_access_key_id:
-            raise MLPiperException(
-                "Empty 'aws_access_key_id' parameter in execution environment!"
-            )
+            raise MLPiperException("Empty 'aws_access_key_id' parameter in execution environment!")
 
-        aws_secret_access_key = EeArg(
-            eng_args_config.get("aws_secret_access_key")
-        ).value
+        aws_secret_access_key = EeArg(eng_args_config.get("aws_secret_access_key")).value
         if not aws_secret_access_key:
             raise MLPiperException(
                 "Missing 'aws_secret_access_key' parameter in execution environment!"
@@ -209,9 +199,7 @@ class SageMakerEngine(PythonEngine):
         if self._iam_role_name:
             client = boto3.client("iam")
             try:
-                self._logger.info(
-                    "Cleaning up sagemaker iam role: {}".format(self._iam_role_name)
-                )
+                self._logger.info("Cleaning up sagemaker iam role: {}".format(self._iam_role_name))
                 client.detach_role_policy(
                     RoleName=self._iam_role_name,
                     PolicyArn=SageMakerEngine.FULL_ACCESS_POLICY,

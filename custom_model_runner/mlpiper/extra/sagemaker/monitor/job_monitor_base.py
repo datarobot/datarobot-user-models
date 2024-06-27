@@ -40,9 +40,7 @@ class JobMonitorBase(with_metaclass(abc.ABCMeta, object)):
             status = self._job_status(response)
             running_time_sec = self._total_running_time_sec(response)
             billing_time_sec = self._billing_time_sec(response)
-            Report.job_status(
-                self._job_name, running_time_sec, billing_time_sec, status
-            )
+            Report.job_status(self._job_name, running_time_sec, billing_time_sec, status)
 
             self._report_online_metrics(response)
 
@@ -60,15 +58,11 @@ class JobMonitorBase(with_metaclass(abc.ABCMeta, object)):
                 raise MLPiperException(msg)
             elif status != SMApiConstants.JOB_IN_PROGRESS:
                 self._logger.warning(
-                    "Unexpected job status! job-name: {}, status: {}".format(
-                        self._job_name, status
-                    )
+                    "Unexpected job status! job-name: {}, status: {}".format(self._job_name, status)
                 )
 
             self._logger.info(
-                "Job '{}' is still running ... {} sec".format(
-                    self._job_name, running_time_sec
-                )
+                "Job '{}' is still running ... {} sec".format(self._job_name, running_time_sec)
             )
             time.sleep(JobMonitorBase.MONITOR_INTERVAL_SEC)
 
@@ -82,9 +76,7 @@ class JobMonitorBase(with_metaclass(abc.ABCMeta, object)):
         if create_time is None:
             return None
 
-        return (
-            self._last_running_ref_time(describe_response) - create_time
-        ).total_seconds()
+        return (self._last_running_ref_time(describe_response) - create_time).total_seconds()
 
     def _billing_time_sec(self, response):
         start_time = self._job_start_time(response)
@@ -101,9 +93,7 @@ class JobMonitorBase(with_metaclass(abc.ABCMeta, object)):
     def _job_create_time(self, describe_response):
         create_time = describe_response.get(SMApiConstants.CREATE_TIME)
         if create_time:
-            if (
-                utcnow() - create_time
-            ).total_seconds() > JobMonitorBase.MONITOR_INTERVAL_SEC * 2:
+            if (utcnow() - create_time).total_seconds() > JobMonitorBase.MONITOR_INTERVAL_SEC * 2:
                 self._logger.warning(
                     "The local machine clock and AWS CloudWatch clock are not synchronized!!!"
                 )
@@ -143,9 +133,7 @@ class JobMonitorBase(with_metaclass(abc.ABCMeta, object)):
             job_instance_ids = self._get_job_instance_ids(num_retries)
             if job_instance_ids:
                 self._logger.info("Job instance ids: {}".format(job_instance_ids))
-                metrics_data = self._fetch_job_host_metrics(
-                    job_instance_ids, describe_response
-                )
+                metrics_data = self._fetch_job_host_metrics(job_instance_ids, describe_response)
                 Report.job_host_metrics(self._job_name, metrics_data)
                 self._host_metrics_fetched_successfully = True
             else:
@@ -181,9 +169,7 @@ class JobMonitorBase(with_metaclass(abc.ABCMeta, object)):
             )
 
         if not instance_ids:
-            self._logger.info(
-                "Couldn't find job instance id! job name: {}".format(self._job_name)
-            )
+            self._logger.info("Couldn't find job instance id! job name: {}".format(self._job_name))
 
         return instance_ids
 
@@ -201,9 +187,7 @@ class JobMonitorBase(with_metaclass(abc.ABCMeta, object)):
         d, r = divmod((end_time - start_time).total_seconds(), 60)
         period = int(d) * 60 + 60  # must be a multiplier of 60
         self._logger.debug(
-            "Start time: {}, end time: {}, period: {} sec".format(
-                start_time, end_time, period
-            )
+            "Start time: {}, end time: {}, period: {} sec".format(start_time, end_time, period)
         )
 
         metric_data_queries = self._metric_data_queries(job_instance_ids, period)

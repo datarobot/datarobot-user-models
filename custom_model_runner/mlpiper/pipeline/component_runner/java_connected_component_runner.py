@@ -30,7 +30,6 @@ class JavaConnectedComponentRunner(ComponentRunner):
         self._mlpiper_jar = mlpiper_jar
 
     def run(self, parent_data_objs):
-
         # Run the java py4j entry point
         comp_dir = self._dag_node.comp_root_path()
         self._logger.info("comp_dir: {}".format(comp_dir))
@@ -45,12 +44,8 @@ class JavaConnectedComponentRunner(ComponentRunner):
         all_ok = False
 
         try:
-            total_phys_mem_size_mb = ByteConv.from_bytes(
-                psutil.virtual_memory().total
-            ).mbytes
-            jvm_heap_size_option = "-Xmx{}m".format(
-                int(math.ceil(total_phys_mem_size_mb))
-            )
+            total_phys_mem_size_mb = ByteConv.from_bytes(psutil.virtual_memory().total).mbytes
+            jvm_heap_size_option = "-Xmx{}m".format(int(math.ceil(total_phys_mem_size_mb)))
 
             java_opts = [jvm_heap_size_option]
             self._logger.info("JVM options: {}".format(java_opts))
@@ -81,9 +76,7 @@ class JavaConnectedComponentRunner(ComponentRunner):
                 python_port,
             )
 
-            entry_point = java_gateway.jvm.com.mlpiper.ComponentEntryPoint(
-                component_class
-            )
+            entry_point = java_gateway.jvm.com.mlpiper.ComponentEntryPoint(component_class)
             component_via_py4j = entry_point.getComponent()
 
             # Configure

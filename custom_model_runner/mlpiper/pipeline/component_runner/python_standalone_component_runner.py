@@ -29,9 +29,7 @@ class PythonStandaloneComponentRunner(StandaloneComponentRunner):
         try:
             if self._dag_node.comp_language() == ComponentLanguage.PYTHON:
                 # Running the module as a script, using the __main__ as the run_name
-                runpy.run_module(
-                    str(module_main_prog), run_name="__main__", alter_sys=True
-                )
+                runpy.run_module(str(module_main_prog), run_name="__main__", alter_sys=True)
 
         finally:
             sys.argv[1:] = orig_cmdline

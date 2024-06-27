@@ -18,8 +18,6 @@ class ModelSelector(object):
             model_filepath = self._model_env.model_filepath
         else:
             if os.path.isfile(self._model_env.metadata_filepath):
-                model_filepath = (
-                    Metadata().load(self._model_env.metadata_filepath).model_filepath
-                )
+                model_filepath = Metadata().load(self._model_env.metadata_filepath).model_filepath
 
         return model_filepath

@@ -174,9 +174,7 @@ class Dag(Base):
             parent_id = parent[json_fields.PIPELINE_COMP_PARENTS_FIRST_FIELD]
             output_index = parent[json_fields.PIPELINE_COMP_PARENTS_SECOND_FIELD]
 
-            input_index = parent.get(
-                json_fields.PIPELINE_COMP_PARENTS_THIRD_FIELD, max_index
-            )
+            input_index = parent.get(json_fields.PIPELINE_COMP_PARENTS_THIRD_FIELD, max_index)
 
             if parent_id in self._parent_data_objs_placeholder:
                 if output_index in self._parent_data_objs_placeholder[parent_id]:
@@ -185,9 +183,9 @@ class Dag(Base):
                             parent_id, output_index
                         )
                     )
-                    data_object_dict[input_index] = self._parent_data_objs_placeholder[
-                        parent_id
-                    ][output_index]
+                    data_object_dict[input_index] = self._parent_data_objs_placeholder[parent_id][
+                        output_index
+                    ]
                 else:
                     data_object_dict[input_index] = None
                     self._logger.debug(
@@ -214,9 +212,7 @@ class Dag(Base):
         if parent_id in self._parent_data_objs_placeholder:
             for output_index in self._parent_data_objs_placeholder[parent_id]:
                 self._parent_data_objs_placeholder[parent_id][output_index] = (
-                    data_objs[output_index]
-                    if data_objs and output_index < len(data_objs)
-                    else None
+                    data_objs[output_index] if data_objs and output_index < len(data_objs) else None
                 )
                 self._logger.debug(
                     "Parent entry was updated, parent_id={}, output_index={}".format(
@@ -224,16 +220,12 @@ class Dag(Base):
                     )
                 )
         else:
-            self._logger.debug(
-                "Parent id not in data objs placeholder! id={}".format(parent_id)
-            )
+            self._logger.debug("Parent id not in data objs placeholder! id={}".format(parent_id))
 
     def _sorted_execution_graph(self):
         execution_graph = self._execution_graph()
         sorted_list = TopologicalSort(execution_graph, self._ml_engine).sort()
-        self._logger.debug(
-            "Sorted execution graph: {}".format([n.pipe_id() for n in sorted_list])
-        )
+        self._logger.debug("Sorted execution graph: {}".format([n.pipe_id() for n in sorted_list]))
         return sorted_list
 
     def _execution_graph(self):
@@ -248,17 +240,11 @@ class Dag(Base):
 
             if comp_desc[json_fields.COMPONENT_DESC_USER_STAND_ALONE]:
                 if dag_node.comp_language() == ComponentLanguage.PYTHON:
-                    comp_runner = PythonStandaloneComponentRunner(
-                        self._ml_engine, dag_node
-                    )
+                    comp_runner = PythonStandaloneComponentRunner(self._ml_engine, dag_node)
                 elif dag_node.comp_language() == ComponentLanguage.JAVA:
-                    comp_runner = JavaStandaloneComponentRunner(
-                        self._ml_engine, dag_node
-                    )
+                    comp_runner = JavaStandaloneComponentRunner(self._ml_engine, dag_node)
                 elif dag_node.comp_language() == ComponentLanguage.R:
-                    comp_runner = ExternalStandaloneComponentRunner(
-                        self._ml_engine, dag_node
-                    )
+                    comp_runner = ExternalStandaloneComponentRunner(self._ml_engine, dag_node)
                 else:
                     raise Exception(
                         "Language {} is not supported yet for standalone components".format(
@@ -271,17 +257,13 @@ class Dag(Base):
                 if dag_node.comp_language() == ComponentLanguage.PYTHON:
                     main_cls = self._find_main_comp_cls(comp_desc)(self._ml_engine)
                     dag_node.main_cls(main_cls)
-                    comp_runner = PythonConnectedComponentRunner(
-                        self._ml_engine, dag_node
-                    )
+                    comp_runner = PythonConnectedComponentRunner(self._ml_engine, dag_node)
                 elif dag_node.comp_language() == ComponentLanguage.JAVA:
                     comp_runner = JavaConnectedComponentRunner(
                         self._ml_engine, dag_node, self._ml_engine.config["mlpiper_jar"]
                     )
                 elif dag_node.comp_language() == ComponentLanguage.R:
-                    comp_runner = ExternalConnectedComponentRunner(
-                        self._ml_engine, dag_node
-                    )
+                    comp_runner = ExternalConnectedComponentRunner(self._ml_engine, dag_node)
                 else:
                     raise Exception(
                         "Language {} is not supported yet for connected components".format(
@@ -293,13 +275,9 @@ class Dag(Base):
             dag_node_dict[pipe_comp_id] = dag_node
 
         self._logger.debug(
-            "Execution graph: {}".format(
-                [dag_node_dict[k].pipe_id() for k in dag_node_dict]
-            )
+            "Execution graph: {}".format([dag_node_dict[k].pipe_id() for k in dag_node_dict])
         )
-        self._logger.debug(
-            "parent_placeholder: {}".format(self._parent_data_objs_placeholder)
-        )
+        self._logger.debug("parent_placeholder: {}".format(self._parent_data_objs_placeholder))
         return dag_node_dict
 
     def _add_entry_in_parent_data_objs_placeholder(self, pipe_comp):

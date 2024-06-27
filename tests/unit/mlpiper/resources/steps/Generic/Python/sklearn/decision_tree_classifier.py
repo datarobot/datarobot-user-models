@@ -9,7 +9,6 @@ class DecisionTreeClassifierComp(ConnectableComponent):
         super(self.__class__, self).__init__(engine)
 
     def _materialize(self, parent_data_objs, user_data):
-
         X_train = parent_data_objs[0]
         X_test = parent_data_objs[1]
         y_train = parent_data_objs[2]

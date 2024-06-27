@@ -17,9 +17,7 @@ class JobMonitorEstimator(JobMonitorBase):
         self._analytics = None
 
     def _describe_job(self):
-        return self._sagemaker_client.describe_training_job(
-            TrainingJobName=self._job_name
-        )
+        return self._sagemaker_client.describe_training_job(TrainingJobName=self._job_name)
 
     def _job_status(self, describe_response):
         return describe_response[SMApiConstants.Estimator.JOB_STATUS]
@@ -105,9 +103,7 @@ class JobMonitorEstimator(JobMonitorBase):
                     )
 
     def _report_secondary_transitions(self, describe_response):
-        secondary_transitions = describe_response[
-            SMApiConstants.Estimator.SECONDARY_TRANSITIONS
-        ]
+        secondary_transitions = describe_response[SMApiConstants.Estimator.SECONDARY_TRANSITIONS]
 
         rows = []
         for transition in secondary_transitions:
@@ -137,9 +133,9 @@ class JobMonitorEstimator(JobMonitorBase):
                 TrainingJobName=self._job_name
             )
 
-            metric_definitions = training_description[
-                SMApiConstants.Estimator.ALGO_SPEC
-            ][SMApiConstants.Estimator.METRIC_DEFS]
+            metric_definitions = training_description[SMApiConstants.Estimator.ALGO_SPEC][
+                SMApiConstants.Estimator.METRIC_DEFS
+            ]
             self._metric_names = [
                 md[SMApiConstants.Estimator.METRIC_DEF_NAME]
                 for md in metric_definitions
@@ -151,9 +147,7 @@ class JobMonitorEstimator(JobMonitorBase):
         return self._metric_names
 
     def _report_extended_final_metrics(self, describe_response):
-        final_metrics = describe_response.get(
-            SMApiConstants.Estimator.FINAL_METRIC_DATA_LIST
-        )
+        final_metrics = describe_response.get(SMApiConstants.Estimator.FINAL_METRIC_DATA_LIST)
         if final_metrics:
             for metric in final_metrics:
                 Report.job_metric(

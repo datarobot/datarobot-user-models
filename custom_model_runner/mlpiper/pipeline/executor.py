@@ -117,14 +117,10 @@ class Executor(Base):
             print("No dependencies were found for '{}'!".format(self._args.lang))
 
     def all_py_component_dependencies(self, requirements_filepath=None):
-        return self.all_component_dependencies(
-            ComponentLanguage.PYTHON, requirements_filepath
-        )
+        return self.all_component_dependencies(ComponentLanguage.PYTHON, requirements_filepath)
 
     def all_r_component_dependencies(self, requirements_filepath=None):
-        return self.all_component_dependencies(
-            ComponentLanguage.R, requirements_filepath
-        )
+        return self.all_component_dependencies(ComponentLanguage.R, requirements_filepath)
 
     def all_component_dependencies(self, lang, requirements_filepath=None):
         accumulated_py_deps = []
@@ -182,9 +178,7 @@ class Executor(Base):
                 self._logger.error("{}\n{}".format(error_message, traceback_message))
                 # For Py2 put traceback into the exception message
                 if sys.version_info[0] == 2:
-                    error_message = "{}\n{}".format(
-                        error_message, traceback.format_exc()
-                    )
+                    error_message = "{}\n{}".format(error_message, traceback.format_exc())
                 raise ExecutorException(error_message)
             else:
                 self._logger.warning(error_message)
@@ -207,9 +201,7 @@ class Executor(Base):
             self._ml_engine, self.pipeline, self._comp_root_path
         ).load()
         self._logger.debug("comp_desc: {}".format(comps_desc_list))
-        self._dag = Dag(self.pipeline, comps_desc_list, self._ml_engine).use_color(
-            self._use_color
-        )
+        self._dag = Dag(self.pipeline, comps_desc_list, self._ml_engine).use_color(self._use_color)
 
         # Flush stdout so the logs looks a bit in order
         sys.stdout.flush()
@@ -222,13 +214,9 @@ class Executor(Base):
         ee_conf = self.pipeline.get(json_fields.PIPELINE_EE_CONF_FIELD, dict())
 
         if self._dag.is_stand_alone:
-            self._dag.configure_single_component_pipeline(
-                system_conf, ee_conf, self._ml_engine
-            )
+            self._dag.configure_single_component_pipeline(system_conf, ee_conf, self._ml_engine)
         else:
-            self._dag.configure_connected_pipeline(
-                system_conf, ee_conf, self._ml_engine
-            )
+            self._dag.configure_connected_pipeline(system_conf, ee_conf, self._ml_engine)
 
         self._initialized = True
         self._logger.info("Finish initializing pipeline")
@@ -238,9 +226,7 @@ class Executor(Base):
         Actual execution phase
         """
         if not self._initialized:
-            self._logger.debug(
-                "Pipeline is not initialized. Forgot to Executor.init_pipeline()?"
-            )
+            self._logger.debug("Pipeline is not initialized. Forgot to Executor.init_pipeline()?")
             print("Pipeline is not initialized. Forgot to Executor.init_pipeline()?")
             return
 
@@ -256,9 +242,7 @@ class Executor(Base):
         """Teardown pipeline components"""
 
         if not self._initialized:
-            self._logger.debug(
-                "Pipeline is not initialized. Forgot to Executor.init_pipeline()?"
-            )
+            self._logger.debug("Pipeline is not initialized. Forgot to Executor.init_pipeline()?")
             print("Pipeline is not initialized. Forgot to Executor.init_pipeline()?")
             return
 
@@ -295,9 +279,7 @@ class Executor(Base):
         if engine_type == EngineType.PY_SPARK:
             from mlpiper.ml_engine.py_spark_engine import PySparkEngine
 
-            self._ml_engine = PySparkEngine(
-                pipeline, self._run_locally, self._spark_jars
-            )
+            self._ml_engine = PySparkEngine(pipeline, self._run_locally, self._spark_jars)
 
         elif engine_type in [
             EngineType.GENERIC,
@@ -313,9 +295,7 @@ class Executor(Base):
                 self._ml_engine = PythonEngine(pipeline, self._mlpiper_jar)
 
                 if not self.is_logger_set():
-                    self.set_logger(
-                        self._ml_engine.get_engine_logger(self.logger_name())
-                    )
+                    self.set_logger(self._ml_engine.get_engine_logger(self.logger_name()))
 
             elif engine_type == EngineType.REST_MODEL_SERVING:
                 from mlpiper.ml_engine.rest_model_serving_engine import (
@@ -376,8 +356,7 @@ class Executor(Base):
         # Validations
         if json_fields.PIPELINE_PIPE_FIELD not in self._pipeline:
             raise MLPiperException(
-                "Pipeline does not contain any component! pipeline="
-                + str(self._pipeline)
+                "Pipeline does not contain any component! pipeline=" + str(self._pipeline)
             )
 
         pipeline_str = str(self._pipeline)

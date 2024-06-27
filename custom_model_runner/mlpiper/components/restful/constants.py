@@ -29,9 +29,7 @@ class ComponentConstants:
     DEFAULT_HOST = "localhost"
 
     LOG_FORMAT_KEY = "log_format"
-    DEFAULT_LOG_FORMAT = (
-        "%(asctime)-15s %(levelname)s [%(module)s:%(lineno)d]:  %(message)s"
-    )
+    DEFAULT_LOG_FORMAT = "%(asctime)-15s %(levelname)s [%(module)s:%(lineno)d]:  %(message)s"
 
     LOG_LEVEL_KEY = "log_level"
     DEFAULT_LOG_LEVEL = "info"
@@ -43,7 +41,7 @@ class ComponentConstants:
     UWSGI_CHEAPER_RSS_LIMIT_SOFT_KEY = "uwsgi_cheaper_rss_limit_soft"
     UWSGI_CHEAPER_RSS_LIMIT_HARD_KEY = "uwsgi_cheaper_rss_limit_hard"
     UWSGI_MEMORY_REPORT_KEY = "uwsgi_memory_report"
-    SINGLE_UWSGI_WORKER_KEY = 'single_uwsgi_worker'
+    SINGLE_UWSGI_WORKER_KEY = "single_uwsgi_worker"
 
     METRICS_KEY = "metrics"
     METRIC_TEMPLATE = "metric = name={},type=counter,initial_value=0,oid=100.{}"

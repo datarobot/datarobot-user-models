@@ -131,9 +131,7 @@ class MLPiperRunner(Base):
             if self._force:
                 shutil.rmtree(self._deploy_dir)
             else:
-                raise Exception(
-                    "Deployment dir already exists: {}".format(self._deploy_dir)
-                )
+                raise Exception("Deployment dir already exists: {}".format(self._deploy_dir))
 
         if not self._pipeline_dict:
             raise Exception("Pipeline was not provided")
@@ -162,9 +160,7 @@ class MLPiperRunner(Base):
             try:
                 self._get_comp_repo_folder_structure(comp_name)
             except Exception:
-                raise Exception(
-                    "Component {} is not found in loaded components".format(comp_name)
-                )
+                raise Exception("Component {} is not found in loaded components".format(comp_name))
 
     def _fix_pipeline(self):
         if json_fields.PIPELINE_SYSTEM_CONFIG_FIELD not in self._pipeline_dict:
@@ -172,9 +168,7 @@ class MLPiperRunner(Base):
                 "Adding {} to pipeline".format(json_fields.PIPELINE_SYSTEM_CONFIG_FIELD)
             )
             system_config = {}
-            self._pipeline_dict[
-                json_fields.PIPELINE_SYSTEM_CONFIG_FIELD
-            ] = system_config
+            self._pipeline_dict[json_fields.PIPELINE_SYSTEM_CONFIG_FIELD] = system_config
 
         if self._input_model_filepath:
             self._pipeline_dict[json_fields.PIPELINE_SYSTEM_CONFIG_FIELD][
@@ -193,9 +187,7 @@ class MLPiperRunner(Base):
             # Copying each component only once (some pipelines can contain the same
             # component multiple times)
             if comp_name not in comp_copied:
-                comp_repo_folder_struct = self._get_comp_repo_folder_structure(
-                    comp_name
-                )
+                comp_repo_folder_struct = self._get_comp_repo_folder_structure(comp_name)
                 src_comp_root = comp_repo_folder_struct["root"]
                 src_comp_files = comp_repo_folder_struct["files"]
                 comp_dst_root = os.path.join(self._comp_root_path, comp_name)
@@ -209,14 +201,10 @@ class MLPiperRunner(Base):
                         os.makedirs(os.path.dirname(dst_path))
                         shutil.copy(src_path, dst_path)
                     self._logger.debug(
-                        "Copied src comp file to dst: {} ==> {}".format(
-                            src_path, dst_path
-                        )
+                        "Copied src comp file to dst: {} ==> {}".format(src_path, dst_path)
                     )
 
-                self._logger.debug(
-                    "Created tmp dst component dir: {}".format(comp_dst_root)
-                )
+                self._logger.debug("Created tmp dst component dir: {}".format(comp_dst_root))
 
                 comp_copied[comp_name] = True
 
@@ -227,7 +215,6 @@ class MLPiperRunner(Base):
         self._copy_components()
 
     def _copy_pkg(self, comp_pkg_dir):
-
         for pkg_filepath in glob.glob(comp_pkg_dir + "/" + "dist/*.egg"):
             self._logger.debug("Copying pkg {}".format(pkg_filepath))
             shutil.copy(pkg_filepath, self._deploy_dir)
@@ -237,9 +224,7 @@ class MLPiperRunner(Base):
             shutil.copy(pkg_filepath, self._deploy_dir)
 
     def _create_deployment(self):
-        pipeline_file = os.path.join(
-            self._deploy_dir, MLPiperRunner.DEPLOYMENT_PIPELINE
-        )
+        pipeline_file = os.path.join(self._deploy_dir, MLPiperRunner.DEPLOYMENT_PIPELINE)
         with open(pipeline_file, "w") as f:
             json.dump(self._pipeline_dict, f, indent=4)
 
@@ -265,16 +250,12 @@ class MLPiperRunner(Base):
     def run_deployment(self):
         if self._in_place:
             self._logger.info(
-                "Running deployment in-place ... steps root path: {}".format(
-                    self._comp_repo_path
-                )
+                "Running deployment in-place ... steps root path: {}".format(self._comp_repo_path)
             )
             comp_root_path = self._comp_repo_path
             self._fix_pipeline()
         else:
-            self._logger.info(
-                "Running prepared deployment, {}".format(self._deploy_dir)
-            )
+            self._logger.info("Running prepared deployment, {}".format(self._deploy_dir))
             comp_root_path = self._comp_root_path
             self._add_deployment_eggs_to_path()
             self._load_deployment_pipeline()
@@ -320,18 +301,14 @@ class MLPiperRunner(Base):
         eggs = glob.glob("{}/*py{}*.egg".format(self._deploy_dir, py_version_major))
         if len(eggs) == 0:
             self._logger.warning(
-                "No eggs found for py{}. Trying to find all possible eggs.".format(
-                    py_version_major
-                )
+                "No eggs found for py{}. Trying to find all possible eggs.".format(py_version_major)
             )
             eggs = glob.glob("{}/*.egg".format(self._deploy_dir))
         for egg in eggs:
             sys.path.insert(0, egg)
 
     def _load_deployment_pipeline(self):
-        pipeline_file = os.path.join(
-            self._deploy_dir, MLPiperRunner.DEPLOYMENT_PIPELINE
-        )
+        pipeline_file = os.path.join(self._deploy_dir, MLPiperRunner.DEPLOYMENT_PIPELINE)
         if not os.path.exists(pipeline_file):
             raise Exception("Pipeline file not exists! path: {}".format(pipeline_file))
 

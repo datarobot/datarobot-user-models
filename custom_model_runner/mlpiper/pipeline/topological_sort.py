@@ -5,9 +5,7 @@ from mlpiper.pipeline import json_fields
 
 class TopologicalSort(Base):
     def __init__(self, execution_graph, ml_engine):
-        super(TopologicalSort, self).__init__(
-            ml_engine.get_engine_logger(self.logger_name())
-        )
+        super(TopologicalSort, self).__init__(ml_engine.get_engine_logger(self.logger_name()))
         self._execution_graph = execution_graph
         self._sorted_execution_graph_list = []
 

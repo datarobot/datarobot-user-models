@@ -91,9 +91,7 @@ class TestCommon:
             "expected: 5, existing: {}".format(len(sorted_graph))
         )
 
-        assert (
-            sorted_graph[0] == n1
-        ), "The first node should be node n1['a']! sorted: {}".format(
+        assert sorted_graph[0] == n1, "The first node should be node n1['a']! sorted: {}".format(
             self._graph_str(sorted_graph)
         )
 

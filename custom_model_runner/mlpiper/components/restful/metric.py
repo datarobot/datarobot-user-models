@@ -54,9 +54,7 @@ class Metric(Base):
 
         if not self._hidden and not self._title:
             raise MLPiperException(
-                "A metric can be seen in the UI only if 'title' is provided! name: {}".format(
-                    name
-                )
+                "A metric can be seen in the UI only if 'title' is provided! name: {}".format(name)
             )
 
         if self.metric_relation == MetricRelation.BAR_GRAPH:
@@ -64,9 +62,7 @@ class Metric(Base):
                 raise MLPiperException(
                     "Bar graph metric should be provided with a list of metrics tuples. "
                     "Each tuple should contain the related metric and its bar name! "
-                    "name: {}, related_metrics: {}".format(
-                        self.name, self.related_metric
-                    )
+                    "name: {}, related_metrics: {}".format(self.name, self.related_metric)
                 )
 
             self._related_metric = []
@@ -77,10 +73,7 @@ class Metric(Base):
                 related_metric if isinstance(related_metric, list) else [related_metric]
             )
 
-            if (
-                self._related_metric[0]
-                and self._related_metric[0].metric_type != metric_type
-            ):
+            if self._related_metric[0] and self._related_metric[0].metric_type != metric_type:
                 raise MLPiperException(
                     "Error in metrics relation! Given metric cannot relate to other metric of "
                     "different type!"

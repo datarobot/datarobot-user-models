@@ -25,15 +25,12 @@ class S3FileSink(ConnectableComponent):
             aws_secret_access_key=self._params["aws_secret_access_key"],
         )
         data = open(file_path, "rb")
-        client.put_object(
-            Bucket=self._params["bucket"], Key=self._params["key"], Body=data
-        )
+        client.put_object(Bucket=self._params["bucket"], Key=self._params["key"], Body=data)
 
         return file_path
 
 
 def parse_args():
-
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--input-file", default=None, help="File to save in S3")

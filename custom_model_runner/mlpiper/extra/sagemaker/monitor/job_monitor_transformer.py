@@ -8,9 +8,7 @@ class JobMonitorTransformer(JobMonitorBase):
         super(self.__class__, self).__init__(sagemaker_client, job_name, logger)
 
     def _describe_job(self):
-        return self._sagemaker_client.describe_transform_job(
-            TransformJobName=self._job_name
-        )
+        return self._sagemaker_client.describe_transform_job(TransformJobName=self._job_name)
 
     def _job_status(self, describe_response):
         return describe_response[SMApiConstants.Transformer.JOB_STATUS]

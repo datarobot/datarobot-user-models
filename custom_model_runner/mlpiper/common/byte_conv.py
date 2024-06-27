@@ -34,9 +34,4 @@ class ByteConv(object):
 
     @property
     def gbytes(self):
-        return (
-            self._mem_size_bytes
-            / ByteConv.KB_UNIT
-            / ByteConv.KB_UNIT
-            / ByteConv.KB_UNIT
-        )
+        return self._mem_size_bytes / ByteConv.KB_UNIT / ByteConv.KB_UNIT / ByteConv.KB_UNIT

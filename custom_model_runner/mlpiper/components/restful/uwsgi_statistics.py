@@ -30,9 +30,7 @@ class UwsgiStatistics(object):
         if not raw_stats:
             return
 
-        self._curr_stats_snapshot = UwsiStatsSnapshot(
-            raw_stats, self._prev_stats_snapshot
-        )
+        self._curr_stats_snapshot = UwsiStatsSnapshot(raw_stats, self._prev_stats_snapshot)
 
         self._logger.info(self._curr_stats_snapshot)
         self._prev_stats_snapshot = self._curr_stats_snapshot
@@ -45,9 +43,7 @@ class UwsgiStatistics(object):
                 return json.loads(data.decode("utf-8"))
             except ValueError as e:
                 self._logger.error(
-                    "Invalid statistics json format! {}, data:\n{}\n".format(
-                        e.message, data
-                    )
+                    "Invalid statistics json format! {}, data:\n{}\n".format(e.message, data)
                 )
             finally:
                 if sock:

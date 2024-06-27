@@ -25,7 +25,6 @@ class MCenterComponentAdapter(ConnectableComponent):
 
 
 def do_predict(input_model, iter_num, exit_value):
-
     for idx in range(iter_num):
         print("stdout - Idx {}".format(idx))
         print("stderr- Idx  {}".format(idx), file=sys.stderr)

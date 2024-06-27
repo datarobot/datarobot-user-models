@@ -22,13 +22,9 @@ def get_options_from_env_json_info(orig_options):
     :return: The final options named tuple to use
     """
     if model_connector_constants.JSON_INFO_ENV in os.environ:
-        options_from_json = json.loads(
-            os.environ[model_connector_constants.JSON_INFO_ENV]
-        )
+        options_from_json = json.loads(os.environ[model_connector_constants.JSON_INFO_ENV])
         if model_connector_constants.MODEL_CONNECTOR_CMD_OPTION in orig_options:
-            options_from_json[
-                model_connector_constants.MODEL_CONNECTOR_CMD_OPTION
-            ] = getattr(
+            options_from_json[model_connector_constants.MODEL_CONNECTOR_CMD_OPTION] = getattr(
                 orig_options, model_connector_constants.MODEL_CONNECTOR_CMD_OPTION
             )
         new_options = {}

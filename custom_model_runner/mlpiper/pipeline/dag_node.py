@@ -110,16 +110,12 @@ class DagNode(Base):
                 arg_key not in input_args
                 and json_fields.COMPONENT_DESC_ARGUMENT_DEFAULT_VAL in comp_arg
             ):
-                input_args[arg_key] = comp_arg[
-                    json_fields.COMPONENT_DESC_ARGUMENT_DEFAULT_VAL
-                ]
+                input_args[arg_key] = comp_arg[json_fields.COMPONENT_DESC_ARGUMENT_DEFAULT_VAL]
 
     def _apply_java_tags_mapping(self, system_conf):
         system_conf = system_conf.copy()
         comp_args = self._comp_desc[json_fields.COMPONENT_DESC_ARGUMENTS]
-        tagged_args = [
-            arg for arg in comp_args if json_fields.COMPONENT_DESC_ARGUMENT_TAG in arg
-        ]
+        tagged_args = [arg for arg in comp_args if json_fields.COMPONENT_DESC_ARGUMENT_TAG in arg]
         for tagged_arg in tagged_args:
             py_tag = tagged_arg[json_fields.COMPONENT_DESC_ARGUMENT_TAG]
             if py_tag in java_mapping.TAGS:

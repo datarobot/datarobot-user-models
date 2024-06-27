@@ -27,8 +27,6 @@ class PyPackageInstaller(PackageInstaller):
             requirements_path,
         ]
 
-        self._logger.info(
-            "Python dependencies installation, pip args: {}".format(pip_cmd)
-        )
+        self._logger.info("Python dependencies installation, pip args: {}".format(pip_cmd))
         cmd = "yes w | " + " ".join(pip_cmd)
         subprocess.call(cmd, shell=True)

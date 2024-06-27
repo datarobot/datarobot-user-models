@@ -17,14 +17,8 @@ class StringSinkSharedDir(ConnectableComponent):
                 parent_data_objs[0], actual_value
             )
         )
-        print(
-            "String Sink, Got:[{}] Expected: [{}] ".format(
-                actual_value, expected_str_value
-            )
-        )
+        print("String Sink, Got:[{}] Expected: [{}] ".format(actual_value, expected_str_value))
         self._logger.info("Word: {}".format(Word("Hello World").words))
         if expected_str_value != actual_value:
-            raise Exception(
-                "Actual [{}] != Expected [{}]".format(actual_value, expected_str_value)
-            )
+            raise Exception("Actual [{}] != Expected [{}]".format(actual_value, expected_str_value))
         return []
