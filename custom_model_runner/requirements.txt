@@ -5,6 +5,8 @@ trafaret>=2.0.0,<2.2.0
 docker>=4.2.2,<5.0.0
 # flask can no be bumped to 2.3.X because JSONEncoder is removed. It is used by mlpiper.
 flask<=2.2.5
+flask_cors
+future
 werkzeug==3.0.3
 jinja2>=3.0.0
 memory_profiler<1.0.0
