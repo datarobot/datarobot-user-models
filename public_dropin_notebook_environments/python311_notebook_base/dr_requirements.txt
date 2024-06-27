@@ -5,4 +5,5 @@ jupyter_kernel_gateway==2.5.2
 jupyter_core==5.2.0
 ipykernel==6.28.0
 pandas==1.5.1
+numpy<2.0.0
 mistune==2.0.4

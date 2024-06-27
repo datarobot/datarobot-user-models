@@ -9,12 +9,6 @@ dependencies that you want to include for your own custom environments.
 
 In this repository, we provide several example environments that you can use and modify:
 * [Python 3.11 Base Notebook Environment](python311_notebook_base)
-* [(Deprecated) Python 3.9 Notebook Environment](python39_notebook)
-* [(Deprecated) Python 3.11 Notebook Environment](python311_notebook)
-* [(Deprecated) Python 3.8 + Snowflake Notebook Environment](python38_snowflake_notebook)
-* [(Deprecated) Python 3.9 Notebook Environment for GPU](python39_notebook_gpu)
-* [(Deprecated) Python 3.9 Notebook Environment for GPU with Tensorflow](python39_notebook_gpu_tf)
-* [(Deprecated) Python 3.9 Notebook Environment for GPU with Rapids](python39_notebook_gpu_rapids)
 
 These sample environments each define the libraries available in the environment 
 and are designed to allow for simple custom notebook environments to be made that 
