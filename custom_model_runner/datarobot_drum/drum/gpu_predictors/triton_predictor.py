@@ -114,12 +114,14 @@ class TritonPredictor(BaseLanguagePredictor):
         return self.health_check()
 
     def health_check(self):
+        # TODO: would be good to respond with 513 status code if Triton server has crashed or
+        #   if we can detect some other terminal error relating to loading the model provided.
         try:
             triton_health_url = f"{self.triton_host}:{self.triton_http_port}/v2/health/ready"
             response = requests.get(triton_health_url, timeout=5)
             return {"message": response.text}, response.status_code
         except Timeout:
-            return {"message": "Timeout waiting for Nemo health route to respond."}, 503
+            return {"message": "Timeout waiting for Triton health route to respond."}, 503
 
     def _transform(self, **kwargs):
         raise DrumCommonException("Transform feature is not supported")
