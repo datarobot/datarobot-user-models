@@ -164,6 +164,10 @@ class TestPerformanceCheck:
         docker,
         tmp_path,
     ):
+        """
+        When running "drum perf-test" drum starts another "drum server" process,
+        so p.kill() in this test kills the first proccess, leaving the second running.
+        """
         custom_model_dir = _create_custom_model_dir(
             resources,
             tmp_path,
@@ -178,7 +182,7 @@ class TestPerformanceCheck:
             ArgumentsOptions.MAIN_COMMAND,
             "perf-test",
             "-i",
-            "10",
+            "100",
             "-s",
             "10",
             "--code-dir",
