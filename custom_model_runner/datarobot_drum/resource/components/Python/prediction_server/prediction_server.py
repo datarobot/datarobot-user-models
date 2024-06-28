@@ -202,6 +202,19 @@ class PredictionServer(ConnectableComponent, PredictMixin):
             finally:
                 self._post_predict_and_transform()
 
+            return (response, response_status)
+
+        @model_api.route("/chat/completions", methods=["POST"])
+        def chat():
+            logger.debug("Entering chat endpoint")
+
+            self._pre_predict_and_transform()
+
+            try:
+                response, response_status = self.do_chat(logger=logger)
+            finally:
+                self._post_predict_and_transform()
+
             return response, response_status
 
         @model_api.route("/stats/", methods=["GET"])
