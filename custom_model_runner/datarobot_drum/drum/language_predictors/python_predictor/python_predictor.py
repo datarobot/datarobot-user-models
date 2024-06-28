@@ -132,6 +132,9 @@ class PythonPredictor(BaseLanguagePredictor):
             )
         return ret
 
+    def chat(self, completion_create_params):
+        return self._model_adapter.chat(self._model, completion_create_params)
+
     def terminate(self):
         if self._mlops:
             self._mlops.shutdown()

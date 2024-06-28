@@ -380,6 +380,12 @@ class PredictMixin:
 
         return response, response_status
 
+    def do_chat(self, logger=None):
+        completion_create_params = request.json
+
+        completion = self._predictor.chat(completion_create_params)
+        return completion.to_dict(), HTTP_200_OK
+
     def do_transform(self, logger=None):
         if self._target_type != TargetType.TRANSFORM:
             endpoint = (

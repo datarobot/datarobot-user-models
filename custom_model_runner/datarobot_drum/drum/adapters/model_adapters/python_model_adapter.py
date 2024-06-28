@@ -746,6 +746,10 @@ class PythonModelAdapter(AbstractModelAdapter):
         PythonModelAdapter._validate_unstructured_predictions(predictions)
         return predictions
 
+    def chat(self, model, completion_create_params):
+        return self._custom_hooks.get(CustomHooks.CHAT)(model, completion_create_params)
+
+
     def fit(
         self,
         X: pd.DataFrame,
