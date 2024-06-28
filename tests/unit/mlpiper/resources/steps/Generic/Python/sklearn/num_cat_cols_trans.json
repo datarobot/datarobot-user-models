@@ -1,0 +1,48 @@
+{
+  "engineType": "Generic",
+  "userStandalone": false,
+  "language": "Python",
+  "name": "NumCatColsTrans",
+  "label": "NumCatColsTrans",
+  "program": "num_cat_cols_trans.py",
+  "componentClass": "NumCatColsTrans",
+  "group": "FeatureEngineering",
+  "includeGlobPatterns" : "__init__.py | num_cat_cols_trans*",
+  "deps": ["numpy==1.14.6;python_version<\"3.4\"", "scikit-learn"],
+  "useMLOps": false,
+  "inputInfo": [
+    {
+      "description": "X train DataFrame",
+      "label": "DataFrame[Pandas]",
+      "defaultComponent": "",
+      "type": "pd.dataframe",
+      "group": "data"
+    },
+    {
+      "description": "y train DataFrame",
+      "label": "DataFrame[Pandas]",
+      "defaultComponent": "",
+      "type": "pd.dataframe",
+      "group": "data"
+    }
+  ],
+  "outputInfo": [
+    {
+      "description": "Pandas DataFrame",
+      "label": "DataFrame[Pandas]",
+      "defaultComponent": "",
+      "type": "pd.dataframe",
+      "group": "data"
+    }
+  ],
+  "arguments": [
+    {
+      "key": "target",
+      "label": "Target feature",
+      "type": "str",
+      "description": "Target feature",
+      "optional": true
+    }
+  ],
+  "version": 1
+}

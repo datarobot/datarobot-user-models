@@ -1,0 +1,62 @@
+{
+  "engineType": "Generic",
+  "language": "R",
+  "userStandalone": false,
+  "name": "r-predict-connected",
+  "label": "R Predictor (connected)",
+  "program": "r_predict.R",
+  "modelBehavior": "ModelConsumer",
+  "group": "Algorithms",
+  "useMLOps": true,
+  "inputInfo": [
+    {
+      "description": "Pandas Dataframe",
+      "label": "dataframe",
+      "defaultComponent": "",
+      "type": "dataframe",
+      "group": "data"
+    },
+    {
+      "description": "S3 file name",
+      "label": "s3-filename",
+      "defaultComponent": "",
+      "type": "str",
+      "group": "data"
+    }
+  ],
+  "outputInfo": [
+    {
+      "description": "S1 file name",
+      "label": "s1-filename",
+      "defaultComponent": "",
+      "type": "str",
+      "group": "data"
+    },
+    {
+      "description": "S2 file name",
+      "label": "s2-filename",
+      "defaultComponent": "",
+      "type": "str",
+      "group": "data"
+    }
+  ],
+  "arguments": [
+    {
+      "key": "num_iter",
+      "label": "Training iterations number",
+      "type": "int",
+      "description": "Training iteration number",
+      "optional": true,
+      "defaultValue": 5
+    },
+    {
+      "key": "input_model",
+      "label": "Input model file",
+      "type": "str",
+      "description": "Path of model to load",
+      "optional": true,
+      "tag": "input_model_path"
+    }
+  ],
+  "version": 1
+}

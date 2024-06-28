@@ -1,0 +1,105 @@
+{
+    "name": "Example",
+    "engineType": "Generic",
+    "pipe": [
+        {
+            "name": "Csv Loader",
+            "id": 1,
+            "type": "CsvLoader",
+            "parents": [],
+            "arguments": {
+            }
+        },
+        {
+            "name": "Split Target",
+            "id": 2,
+            "type": "SplitTarget",
+            "parents": [
+                {"parent": 1, "output": 0}
+            ],
+            "arguments": {
+            }
+        },
+        {
+            "name": "Categoricals Converter[X train]",
+            "id": 3,
+            "type": "Categoricals Converter",
+            "parents": [
+                {"parent": 2, "output": 0},
+                {"parent": 2, "output": 2}
+            ],
+            "arguments": {
+            }
+        },
+        {
+            "name": "NumCatColsTrans[X train]",
+            "id": 4,
+            "type": "NumCatColsTrans",
+            "parents": [
+                {"parent": 3, "output": 0},
+                {"parent": 2, "output": 2}
+            ],
+            "arguments": {
+            }
+        },
+        {
+            "name": "ArrayConverter[X train]",
+            "id": 5,
+            "type": "ArrayConverter",
+            "parents": [
+                {"parent": 4, "output": 0},
+                {"parent": 2, "output": 2}
+            ],
+            "arguments": {
+            }
+        },
+        {
+            "name": "Categoricals Converter[X test]",
+            "id": 6,
+            "type": "Categoricals Converter",
+            "parents": [
+                {"parent": 2, "output": 1},
+                {"parent": 2, "output": 2}
+            ],
+            "arguments": {
+            }
+        },
+        {
+            "name": "NumCatColsTrans[X test]",
+            "id": 7,
+            "type": "NumCatColsTrans",
+            "parents": [
+                {"parent": 6, "output": 0},
+                {"parent": 2, "output": 2}
+            ],
+            "arguments": {
+            }
+        },
+        {
+            "name": "ArrayConverter[X test]",
+            "id": 8,
+            "type": "ArrayConverter",
+            "parents": [
+                {"parent": 7, "output": 0},
+                {"parent": 2, "output": 2}
+            ],
+            "arguments": {
+            }
+        },
+        {
+            "name": "Decision Tree Classifier",
+            "id": 9,
+            "type": "Decision Tree Classifier",
+            "parents": [
+                {"parent": 5, "output": 0},
+                {"parent": 8, "output": 0},
+                {"parent": 2, "output": 2},
+                {"parent": 2, "output": 3}
+            ],
+            "arguments": {
+                "random_state": 42,
+                "min_samples_split": 700
+            }
+        }
+    ]
+}

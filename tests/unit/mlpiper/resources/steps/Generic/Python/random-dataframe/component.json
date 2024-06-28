@@ -1,0 +1,41 @@
+{
+  "engineType": "Generic",
+  "userStandalone": false,
+  "language": "Python",
+  "name": "random-dataframe",
+  "label": "Random pandas dataframe",
+  "program": "random_dataframe.py",
+  "componentClass": "RandomDataframe",
+  "group": "Connectors",
+  "useMLOps": true,
+  "includeGlobPatterns": "random_dataframe* | __init__.py",
+  "inputInfo": [],
+  "outputInfo": [
+    {
+        "description": "Pandas Dataframe",
+        "label": "dataframe",
+        "defaultComponent": "",
+        "type": "dataframe",
+        "group": "data"
+    }
+  ],
+  "arguments": [
+    {
+      "key": "num_cols",
+      "type": "int",
+      "label": "Number of columns",
+      "description": "Number of columns in the dataframe to generate",
+      "optional": true,
+      "defaultValue": 5
+    },
+    {
+        "key": "num_lines",
+        "type": "int",
+        "label": "Number of lines",
+        "description": "Number of lines in the dataframe to generate",
+        "optional": true,
+        "defaultValue": 10
+    }
+  ],
+  "version": 1
+}

@@ -1,0 +1,13 @@
+{
+  "name": "connected_with_multiple_jars_test",
+  "engineType": "Generic",
+  "pipe": [
+    {
+      "name": "Java",
+      "id": 1,
+      "type": "test-java-connected-multiple-jars",
+      "parents": [],
+      "arguments": {}
+    }
+  ]
+}

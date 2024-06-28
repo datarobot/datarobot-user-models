@@ -1,0 +1,56 @@
+{
+  "version": 1,
+  "engineType": "Generic",
+  "language": "Python",
+  "group": "ModelConnectors",
+  "name": "test_model_connector",
+  "label": "Test Model Connector",
+  "description": "Testing connector, do not use",
+  "userStandalone": false,
+  "program": "main.py",
+  "componentClass": "MCenterComponentAdapter",
+  "modelBehavior": "Auxiliary",
+  "useMLOps": true,
+  "inputInfo": [],
+  "outputInfo": [
+    {
+      "description": "Model",
+      "label": "model",
+      "defaultComponent": "",
+      "type": "object",
+      "group": "model"
+    }
+  ],
+  "arguments": [
+    {
+      "key": "server",
+      "label": "Server URL",
+      "description": "URL of server",
+      "type": "str"
+    },
+    {
+      "key": "user_name",
+      "label": "User Name",
+      "description": "User name in Cloudera system",
+      "type": "str"
+    },
+    {
+      "key": "password",
+      "label": "Password",
+      "description": "Password",
+      "type": "str"
+    },
+    {
+      "key": "project_name",
+      "label": "Project Name",
+      "description": "Project name in Cloudera CDSW",
+      "type": "str"
+    },
+    {
+      "key": "model_name",
+      "label": "Model Name",
+      "description": "Model name to fetch",
+      "type": "str"
+    }
+  ]
+}

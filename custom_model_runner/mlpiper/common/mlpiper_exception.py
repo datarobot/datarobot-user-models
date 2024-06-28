@@ -1,0 +1,2 @@
+class MLPiperException(Exception):
+    pass

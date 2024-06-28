@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "engineType": "Generic",
+  "language": "Java",
+  "userStandalone": true,
+  "name": "test-java-standalone-multiple-jars",
+  "label": "test-java-standalone-multiple-jars",
+  "program": "THIS FIELD IS NOT USED FOR INCLUDING JAR INTO CLASSPATH",
+  "componentClass": "com.mlpiper.components.test_java_standalone_multiple_jars.JavaStandaloneComponent",
+  "modelBehavior": "Auxiliary",
+  "useMLOps": true,
+  "inputInfo": [],
+  "outputInfo": [],
+  "group": "Algorithms",
+  "arguments": []
+}

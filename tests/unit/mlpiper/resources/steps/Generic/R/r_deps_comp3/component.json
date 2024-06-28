@@ -1,0 +1,23 @@
+{
+  "engineType": "Generic",
+  "language": "R",
+  "name": "r_deps_comp3",
+  "label": "Comp-3 (R)",
+  "program": "main.R",
+  "modelBehavior": "Auxiliary",
+  "useMLOps": true,
+  "inputInfo": [],
+  "outputInfo": [],
+  "group": "Algorithms",
+  "deps": ["optparse", "reticulate"],
+  "arguments": [
+    {
+      "key": "arg1",
+      "label": "arg1",
+      "type": "str",
+      "description": "Test argument",
+      "optional": false
+    }
+  ],
+  "version": 1
+}

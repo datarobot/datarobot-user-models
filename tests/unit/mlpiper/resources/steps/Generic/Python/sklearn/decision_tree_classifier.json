@@ -1,0 +1,61 @@
+{
+  "engineType": "Generic",
+  "userStandalone": false,
+  "language": "Python",
+  "name": "Decision Tree Classifier",
+  "label": "Decision Tree Classifier",
+  "program": "decision_tree_classifier.py",
+  "componentClass": "DecisionTreeClassifierComp",
+  "group": "Algorithms",
+  "includeGlobPatterns" : "__init__.py | decision_*",
+  "deps": ["numpy==1.14.6;python_version<\"3.4\"", "scikit-learn"],
+  "useMLOps": false,
+  "inputInfo": [
+    {
+      "description": "X training DataFrame",
+      "label": "DataFrame[Pandas]",
+      "defaultComponent": "",
+      "type": "pd.dataframe",
+      "group": "data"
+    },
+    {
+      "description": "X test DataFrame",
+      "label": "DataFrame[Pandas]",
+      "defaultComponent": "",
+      "type": "pd.dataframe",
+      "group": "data"
+    },
+    {
+      "description": "y training DataFrame",
+      "label": "DataFrame[Pandas]",
+      "defaultComponent": "",
+      "type": "pd.dataframe",
+      "group": "data"
+    },
+    {
+      "description": "y test DataFrame",
+      "label": "DataFrame[Pandas]",
+      "defaultComponent": "",
+      "type": "pd.dataframe",
+      "group": "data"
+    }
+  ],
+  "outputInfo": [],
+  "arguments": [
+    {
+      "key": "random_state",
+      "label": "Random state",
+      "type": "int",
+      "description": "A seed used by the random number generator",
+      "optional": true
+    },
+    {
+      "key": "min_samples_split",
+      "label": "Min samples split",
+      "type": "int",
+      "description": "The minimum number of samples required to split an internal node",
+      "optional": true
+    }
+  ],
+  "version": 1
+}

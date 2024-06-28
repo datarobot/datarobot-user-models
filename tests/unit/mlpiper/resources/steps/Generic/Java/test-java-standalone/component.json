@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "engineType": "Generic",
+  "language": "Java",
+  "userStandalone": true,
+  "name": "test-java-standalone",
+  "label": "test-java-stanalone",
+  "program": "test-java-standalone.jar",
+  "componentClass": "com.mlpiper.components.test_java_standalone.JavaStandaloneComponent",
+  "modelBehavior": "ModelConsumer",
+  "useMLOps": true,
+  "inputInfo": [],
+  "outputInfo": [],
+  "group": "Algorithms",
+  "arguments": [
+    {
+      "key": "exit-value",
+      "label": "exit-value",
+      "type": "int",
+      "description": "Exit value to use",
+      "optional": true
+    },
+    {
+      "key": "iter",
+      "label": "number of iterations",
+      "type": "int",
+      "description": "Number of 1 sec iterations to perform",
+      "optional": true
+    },
+    {
+      "key": "input-model",
+      "label": "Model input file",
+      "type": "str",
+      "description": "File to use for loading the model",
+      "optional": true,
+      "tag": "input_model_path"
+    }
+  ]
+}
