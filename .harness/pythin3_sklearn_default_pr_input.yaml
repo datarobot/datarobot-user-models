@@ -1,5 +1,6 @@
 inputSet:
   name: pythin3_sklearn_default_pr_input
+  tags: {}
   identifier: pythin3_sklearn_default_pr_input
   orgIdentifier: Custom_Models
   projectIdentifier: datarobotusermodels
@@ -8,7 +9,10 @@ inputSet:
     properties:
       ci:
         codebase:
-          build: <+input>
+          build:
+            type: PR
+            spec:
+              number: <+trigger.prNumber>
     stages:
       - stage:
           identifier: Build_image_because_of_change
