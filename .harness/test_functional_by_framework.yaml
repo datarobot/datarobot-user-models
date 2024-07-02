@@ -1,0 +1,217 @@
+pipeline:
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
+  stages:
+    - stage:
+        name: Check if framework env has changed
+        identifier: check_env_changed
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Report status to github PR
+                  identifier: report_status_to_github_pr_0
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: curlimages/curl:latest
+                    shell: Sh
+                    command: |
+                      name="<+pipeline.name> - <+pipeline.variables.framework>"
+
+                      echo "Update PR status"
+                      curl -i -X POST \
+                      -H "Authorization: Bearer <+secrets.getValue("account.Github_Access_Token")>" \
+                      -H "Accept: application/vnd.github.v3+json" \
+                      https://api.github.com/repos/<+account.name>/datarobot-user-models/statuses/<+trigger.commitSha> \
+                      -d "{\"state\":\"pending\",\"target_url\":\"<+pipeline.execution.url>\",\"description\":\"Test is running\",\"context\":\"$name\"}"
+              - step:
+                  type: Run
+                  name: check_diff
+                  identifier: check_diff
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: alpine/git
+                    shell: Sh
+                    command: |-
+                      # echo "configuring git"
+                      # cat <<EOF > ${HOME}/.netrc
+                      # machine ${DRONE_NETRC_MACHINE}
+                      # login ${DRONE_NETRC_USERNAME}
+                      # password ${DRONE_NETRC_PASSWORD}
+                      # EOF
+                      # echo "git configured"
+                      echo <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.spec.image>
+                      git status
+                      git branch
+                      git branch -r
+                      git fetch origin master:refs/remotes/origin/master
+
+                      git diff --name-only "$(git merge-base origin/master HEAD)" HEAD
+
+                      # check if there are changes in the env folder, env folder name is <+pipeline.variables.framework>
+                      if [ $(git diff --name-only "$(git merge-base origin/master HEAD)" HEAD | grep <+pipeline.variables.framework> | head -1) ]; then
+                        changed_deps=true;
+                        test_image_tag=<+pipeline.variables.framework>_<+trigger.prNumber>
+                      else
+                        changed_deps=false;
+                        test_image_tag=<+pipeline.variables.framework>_latest;
+                      fi
+                      export changed_deps
+                      export test_image_tag
+                      echo ${changed_deps}
+                      echo ${test_image_tag}
+                    outputVariables:
+                      - name: changed_deps
+                      - name: test_image_tag
+          caching:
+            enabled: false
+            paths: []
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+    - stage:
+        name: Build TMP image if framework env has changed
+        identifier: Build_image_because_of_change
+        description: ""
+        type: Pipeline
+        spec:
+          org: Custom_Models
+          pipeline: env_image_publish
+          project: datarobotusermodels
+          inputs:
+            identifier: env_image_publish
+            properties:
+              ci:
+                codebase:
+                  build: <+input>
+            variables:
+              - name: env_folder
+                type: String
+                value: public_dropin_environments
+              - name: env_name
+                type: String
+                value: <+pipeline.variables.framework>
+              - name: image_tag
+                type: String
+                value: <+input>.default(<+pipeline.variables.env_name>_latest)
+        when:
+          pipelineStatus: Success
+          condition: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.changed_deps> == true
+        tags: {}
+    - stage:
+        name: Test functional by framework
+        identifier: check_by_framework
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Run functional test in provided framework
+                  identifier: Run_1
+                  spec:
+                    connectorRef: datarobot_user_models_read_write
+                    image: datarobotdev/datarobot-user-models:<+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>
+                    shell: Bash
+                    command: |-
+                      echo "== Assuming running integration tests in framework container (inside Docker), for env: <+pipeline.variables.framework>"
+
+                      echo "== Installing pytest =="
+                      pip install pytest pytest-xdist
+                      echo "== Uninstalling datarobot-drum =="
+                      pip uninstall datarobot-drum -y
+                      cd custom_model_runner
+                      echo "== Install datarobot-drum from source =="
+                      if [ "<+pipeline.variables.framework>" = "java_codegen" ]; then
+                          make java_components
+                      fi
+                      pip install .
+                      cd -
+                      TESTS_TO_RUN="tests/functional/test_inference_per_framework.py \
+                                    tests/functional/test_fit_per_framework.py \
+                                    tests/functional/test_other_cases_per_framework.py \
+                                    tests/functional/test_unstructured_mode_per_framework.py
+                                   "
+
+                      if [ "<+pipeline.variables.framework>" = "r_lang" ]; then
+                          pip install uwsgi
+                          Rscript -e "install.packages('pack', Ncpus=4)"
+                          TESTS_TO_RUN+="tests/integration/datarobot_drum/drum/language_predictors/test_language_predictors.py::TestRPredictor \
+                                         tests/unit/datarobot_drum/drum/utils/test_drum_utils.py \
+                                         tests/unit/datarobot_drum/model_metadata/test_model_metadata.py
+                                        "
+                      fi
+
+                      pytest ${TESTS_TO_RUN} --framework-env <+pipeline.variables.framework>
+                    resources:
+                      limits:
+                        memory: 3G
+                  when:
+                    stageStatus: Success
+              - step:
+                  type: Run
+                  name: Report status to github PR
+                  identifier: report_status_to_github_pr_1
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: curlimages/curl:latest
+                    shell: Sh
+                    command: |
+                      status="<+execution.steps.Run_1.status>"
+                      name="<+pipeline.name> - <+pipeline.variables.framework>"
+
+                      echo "Update PR status"
+                      echo "$status"
+                      if [[ "$status" == "SUCCEEDED" ]]; then
+                        state="success"
+                        description="Passed"
+                      elif [[ "$status" == "PENDING" ]]; then
+                        state="pending"
+                        description="Pending"
+                      else
+                        state="failure"
+                        description="Failed"
+                      fi
+
+                      curl -i -u <+account.name>:<+secrets.getValue("account.Github_Access_Token")> \
+                      -X POST \
+                      -H "Accept: application/vnd.github.v3+json" \
+                      https://api.github.com/repos/<+account.name>/datarobot-user-models/statuses/<+trigger.commitSha> \
+                      -d "{\"state\":\"$state\",\"target_url\":\"<+pipeline.execution.url>\",\"description\":\"$description\",\"context\":\"$name\"}"
+                  when:
+                    stageStatus: All
+          caching:
+            enabled: false
+            paths: []
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+        when:
+          pipelineStatus: Success
+  variables:
+    - name: framework
+      type: String
+      description: ""
+      required: false
+      value: <+input>
+  identifier: test_functional_by_framework
+  name: test functional by framework
