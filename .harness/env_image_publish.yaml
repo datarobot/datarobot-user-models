@@ -1,0 +1,78 @@
+pipeline:
+  name: env_image_build_and_publish
+  identifier: env_image_publish
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
+  stages:
+    - stage:
+        name: env_image_build_and_publish
+        identifier: env_image_publish
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Preinstall maven into java env
+                  identifier: Run_1
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: alpine/git
+                    shell: Sh
+                    command: |-
+                      if [ "<+pipeline.variables.env_name>" = "java_codegen" ]; then
+                        # For java env we install maven and build java components to make mave download most of the depndencies
+                        cp -r custom_model_runner/ public_dropin_environments/java_codegen/
+                        cd public_dropin_environments/java_codegen
+                        echo -e "RUN apt-get update && apt-get install -y maven" >> Dockerfile 
+                        echo -e "COPY ./custom_model_runner /tmp/custom_model_runner" >> Dockerfile 
+                        echo -e "RUN cd /tmp/custom_model_runner && make java_components" >> Dockerfile 
+                      fi
+              - step:
+                  type: BuildAndPushDockerRegistry
+                  name: BuildAndPushDockerRegistry_1
+                  identifier: BuildAndPushDockerRegistry_1
+                  spec:
+                    connectorRef: datarobot_user_models_read_write
+                    repo: datarobotdev/datarobot-user-models
+                    tags:
+                      - <+pipeline.variables.image_tag>
+                    dockerfile: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>/Dockerfile
+                    context: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
+                    resources:
+                      limits:
+                        memory: 3G
+          caching:
+            enabled: false
+            paths: []
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+  variables:
+    - name: env_folder
+      type: String
+      description: ""
+      required: true
+      value: <+input>.allowedValues(public_dropin_environments)
+    - name: env_name
+      type: String
+      description: ""
+      required: true
+      value: <+input>.allowedValues(python3_sklearn,python3_xgboost,python3_onnx,python3_pytorch,python3_keras,python3_pmml,python311_genai,python39_genai,java_codegen,r_lang)
+    - name: image_tag
+      type: String
+      description: ""
+      required: true
+      value: <+input>.default(<+pipeline.variables.env_name>_latest)

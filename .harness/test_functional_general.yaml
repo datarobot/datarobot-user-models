@@ -1,0 +1,170 @@
+pipeline:
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
+  stages:
+    - parallel:
+        - stage:
+            name: test mlops reporting
+            identifier: mlops_reporting
+            description: This was historically separated from all the oter functional tests as MLOps package should be installed
+            type: CI
+            spec:
+              cloneCodebase: true
+              execution:
+                steps:
+                  - step:
+                      type: Run
+                      name: test mlops reporting
+                      identifier: Run_1
+                      spec:
+                        shell: Bash
+                        command: |-
+                          echo "== Preparing to test =="
+                          apt-get update && apt-get install -y curl
+
+                          MLOPS_VERSION="9.2.8"
+                          MLOPS_AGENT_VERSION=${MLOPS_VERSION}
+                          MLOPS_AGENT_JAR_DIR="/tmp/jars"
+                          REMOTE_FILE="https://repo1.maven.org/maven2/com/datarobot/mlops-agent/${MLOPS_AGENT_VERSION}/mlops-agent-${MLOPS_AGENT_VERSION}.jar"
+
+                          pip install datarobot-mlops==${MLOPS_VERSION}
+
+                          mkdir -p "${MLOPS_AGENT_JAR_DIR}"
+                          curl --output "${MLOPS_AGENT_JAR_DIR}"/mlops-agent-${MLOPS_AGENT_VERSION}.jar ${REMOTE_FILE}
+                          export MLOPS_MONITORING_AGENT_JAR_PATH=${MLOPS_AGENT_JAR_DIR}/mlops-agent-${MLOPS_AGENT_VERSION}.jar
+
+                          echo "Installing requirements for all the tests: requirements_test.txt"
+                          pip install -r requirements_test.txt
+
+                          echo "== Uninstall drum =="
+                          pip uninstall -y datarobot-drum
+
+                          cd custom_model_runner
+                          echo "== Install drum from source =="
+                          pip install .
+                          cd -
+
+                          # pytest tests/functional/test_mlops_monitoring.py -k "not test_drum_unstructured_model_embedded_monitoring_in_sklearn_env" -n 1
+                          pytest tests/functional/test_mlops_monitoring.py
+                        resources:
+                          limits:
+                            memory: 3G
+                      description: |-
+                        This test checks mlops reporting.
+
+                        It is implemented as a separate stage because we need to install mlops and tracking agent jar.
+
+                        I think this could be merged with "test functional general"
+              caching:
+                enabled: false
+                paths: []
+              platform:
+                os: Linux
+                arch: Amd64
+              runtime:
+                type: Cloud
+                spec: {}
+            timeout: 15m
+        - stage:
+            name: test inference custom java predictor
+            identifier: custom_java_predictor
+            description: ""
+            type: CI
+            spec:
+              cloneCodebase: true
+              execution:
+                steps:
+                  - step:
+                      type: Run
+                      name: test inference custom java predictor
+                      identifier: test_inference_custom_java_predictor
+                      spec:
+                        connectorRef: account.dockerhub_datarobot_read
+                        image: datarobot/drum-builder:ubuntu-22-04
+                        shell: Bash
+                        command: |-
+                          cd ./tests/functional/custom_java_predictor
+                          mvn package
+                          cd -
+                          cd custom_model_runner
+                          echo "== Build java entrypoint, base predictor and install DRUM from source =="
+                          make java_components
+                          pip install .
+                          cd -
+                          pytest tests/functional/test_inference_custom_java_predictor.py
+                        resources:
+                          limits:
+                            memory: 3G
+              platform:
+                os: Linux
+                arch: Amd64
+              runtime:
+                type: Cloud
+                spec: {}
+            timeout: 15m
+        - stage:
+            name: test functional general
+            identifier: general_tests
+            description: ""
+            type: CI
+            spec:
+              cloneCodebase: true
+              execution:
+                steps:
+                  - step:
+                      type: Run
+                      name: test functional general
+                      identifier: test_functional_general
+                      spec:
+                        shell: Bash
+                        command: |-
+                          docker login -u datarobotread2 -p <+secrets.getValue("account.dockerhubdatarobotread2orgread1")>
+
+                          echo "== Build image for tests =="
+                          cp -r custom_model_runner/ public_dropin_environments/python3_sklearn/
+                          cd public_dropin_environments/python3_sklearn/
+                          echo "uwsgi" >> requirements.txt
+                          echo -e "RUN pip uninstall -y datarobot-drum\nCOPY ./custom_model_runner /tmp/custom_model_runner\nRUN pip install /tmp/custom_model_runner" >> Dockerfile 
+
+                          docker build -t python3_sklearn_test_env .
+                          cd -
+
+                          docker images
+
+                          echo "== Preparing to test =="
+                          echo "Installing requirements for all the tests: requirements_test.txt"
+                          pip install -r requirements_test.txt
+
+                          echo "== Uninstall drum =="
+                          pip uninstall -y datarobot-drum
+
+                          cd custom_model_runner
+                          echo "== Install drum from source =="
+                          pip install .
+                          cd -
+
+                          pytest tests/functional/test_mlops_monitoring.py::TestMLOpsMonitoring::test_drum_unstructured_model_embedded_monitoring_in_sklearn_env
+                          pytest tests/functional/ -k "not test_inference_custom_java_predictor.py and not test_mlops_monitoring.py" -m "not sequential"
+                        resources:
+                          limits:
+                            memory: 8G
+              caching:
+                enabled: false
+                paths: []
+              platform:
+                os: Linux
+                arch: Amd64
+              runtime:
+                type: Cloud
+                spec: {}
+            timeout: 60m
+  identifier: test_functional_general
+  name: test functional general
+  allowStageExecutions: true

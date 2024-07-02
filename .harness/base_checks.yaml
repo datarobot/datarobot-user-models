@@ -1,0 +1,83 @@
+pipeline:
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
+  stages:
+    - parallel:
+        - stage:
+            name: test_unit
+            identifier: test_unit
+            description: ""
+            type: CI
+            spec:
+              cloneCodebase: true
+              execution:
+                steps:
+                  - step:
+                      type: Run
+                      name: run unit tests
+                      identifier: run_unit_tests
+                      spec:
+                        connectorRef: account.dockerhub_datarobot_read
+                        image: python:3.9
+                        shell: Bash
+                        command: |-
+                          set -exuo pipefail
+                          pip install -U pip
+                          pip install -r requirements_test_unit.txt
+                          pip install -e custom_model_runner/
+                          pytest -v tests/unit --junit-xml=results.tests.xml
+                        reports:
+                          type: JUnit
+                          spec:
+                            paths:
+                              - results.tests.xml
+              platform:
+                os: Linux
+                arch: Amd64
+              runtime:
+                type: Cloud
+                spec: {}
+        - stage:
+            name: test_integration
+            identifier: test_integration
+            description: ""
+            type: CI
+            spec:
+              cloneCodebase: true
+              execution:
+                steps:
+                  - step:
+                      type: Run
+                      name: test_integration
+                      identifier: test_integration
+                      spec:
+                        connectorRef: account.dockerhub_datarobot_read
+                        image: datarobot/drum-builder
+                        shell: Bash
+                        command: |2-
+                                          set -exuo pipefail
+                                          cd custom_model_runner
+                                          make
+                                          cd -
+                                          python3 -m venv /tmp/venv
+                                          . /tmp/venv/bin/activate
+                                          pip3 install -U pip
+                                          pip3 install -r requirements_test_unit.txt
+                                          pip3 install -e custom_model_runner/
+                                          pytest -v tests/integration --junit-xml=results.tests.xml
+                      description: This test requires java and maven to be installed
+              platform:
+                os: Linux
+                arch: Amd64
+              runtime:
+                type: Cloud
+                spec: {}
+  identifier: base_checks
+  name: base_checks

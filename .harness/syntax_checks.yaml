@@ -1,0 +1,69 @@
+---
+pipeline:
+  projectIdentifier: "datarobotusermodels"
+  orgIdentifier: "Custom_Models"
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: "account.svc_harness_git1"
+        repoName: "datarobot-user-models"
+        build: "<+input>"
+  stages:
+  - parallel:
+    - stage:
+        name: "black"
+        identifier: "black"
+        description: ""
+        type: "CI"
+        spec:
+          cloneCodebase: true
+          execution:
+            steps:
+            - step:
+                type: "Run"
+                name: "black check step"
+                identifier: "Run_1"
+                spec:
+                  connectorRef: "account.dockerhub_datarobot_read"
+                  image: "python:3.9"
+                  shell: "Bash"
+                  command: "set -exuo pipefail\npip install -U pip\npip install -r\
+                    \ requirements_lint.txt\nblack --check --diff ."
+          platform:
+            os: "Linux"
+            arch: "Amd64"
+          runtime:
+            type: "Cloud"
+            spec: {}
+    - stage:
+        name: "pylint ALWAYS PASSES EVEN IF ERROR"
+        identifier: "pylint"
+        description: "pylint ALWAYS PASSES EVEN IF ERROR description"
+        type: "CI"
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: false
+            paths: []
+          execution:
+            steps:
+            - step:
+                type: "Run"
+                name: "pylint step"
+                identifier: "pylint_step"
+                spec:
+                  connectorRef: "account.dockerhub_datarobot_read"
+                  image: "python:3.9"
+                  shell: "Bash"
+                  command: "set -exuo pipefail\npip install -U pip\npip install -r\
+                    \ requirements_lint.txt\npylint ./custom_model_runner --exit-zero"
+          platform:
+            os: "Linux"
+            arch: "Amd64"
+          runtime:
+            type: "Cloud"
+            spec: {}
+        timeout: "15m"
+  identifier: "syntax_checks"
+  name: "syntax checks"
