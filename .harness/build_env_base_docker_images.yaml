@@ -1,0 +1,159 @@
+pipeline:
+  name: Build env base docker images
+  identifier: build_env_base_docker_images
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
+  stages:
+    - stage:
+        name: Build image - trivy check - push
+        identifier: build_docker_context
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Build image and push to datarobotdev
+                  identifier: build_image
+                  spec:
+                    shell: Bash
+                    command: |-
+                      apt-get update && apt-get install -y docker maven 
+
+                      docker --version
+                      docker buildx ls
+                      docker buildx create --name mybuilder --bootstrap --use
+                      docker buildx ls
+
+                      echo "Logging into dockerhub"
+                      docker login -u yakovg -p <+secrets.getValue("dockerhub-token-yakov-goldberg")>
+
+                      pwd
+                      cd <+pipeline.variables.path_to_docker_context>
+                      ls
+
+                      # this script call builds an image only for AMD64 and saves it in the local registry for trivy to check
+                      source ./build_image.sh
+                      docker images
+
+                      echo ${IMAGE_NAME_DATAROBOT}
+                      echo ${IMAGE_NAME_DATAROBOTDEV}
+
+                      image_name_datarobot=${IMAGE_NAME_DATAROBOT}
+                      image_name_datarobotdev=${IMAGE_NAME_DATAROBOTDEV}
+                    outputVariables:
+                      - name: image_name_datarobot
+                        type: String
+                        value: image_name_datarobot
+                      - name: image_name_datarobotdev
+                        type: String
+                        value: image_name_datarobotdev
+              - step:
+                  type: Run
+                  name: Run trivy check
+                  identifier: run_trivy_check
+                  spec:
+                    shell: Bash
+                    command: |-
+                      IMAGE_NAME=<+pipeline.stages.build_docker_context.spec.execution.steps.build_image.output.outputVariables.image_name_datarobotdev>
+                      docker run -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image ${IMAGE_NAME} --severity 'HIGH,CRITICAL' --scanners vuln --exit-code 13
+    - stage:
+        name: Harness Approval
+        identifier: ha
+        description: Approval runs only when prev pipeline failed on trivy check. Because if build failed, pipeline should stop.
+        type: Approval
+        spec:
+          execution:
+            steps:
+              - step:
+                  name: Approval
+                  identifier: harness_approval_step
+                  type: HarnessApproval
+                  timeout: 1d
+                  spec:
+                    approvalMessage: |-
+                      Please review the following information
+                      and approve the pipeline progression
+                    includePipelineExecutionHistory: true
+                    approvers:
+                      minimumCount: 1
+                      disallowPipelineExecutor: false
+                      userGroups:
+                        - _project_all_users
+                    isAutoRejectEnabled: false
+                    approverInputs: []
+        tags: {}
+        when:
+          pipelineStatus: Failure
+          condition: <+pipeline.stages.build_docker_context.spec.execution.steps.run_trivy_check.status> == "FAILED"
+    - stage:
+        name: Push
+        identifier: Push
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Push to datarobot
+                  identifier: Run_1
+                  spec:
+                    shell: Bash
+                    command: |-
+                      echo "Logging into dockerhub"
+
+                      apt-get update && apt-get install -y docker maven 
+
+                      docker --version
+                      docker buildx ls
+                      docker buildx create --name mybuilder --bootstrap --use
+                      docker buildx ls
+
+                      docker login -u yakovg -p <+secrets.getValue("dockerhub-token-yakov-goldberg")>                   
+
+                      pwd
+                      cd <+pipeline.variables.path_to_docker_context>
+                      ls
+
+                      source_image=<+pipeline.stages.build_docker_context.spec.execution.steps.build_image.output.outputVariables.image_name_datarobotdev>
+                      dest_image=<+pipeline.stages.build_docker_context.spec.execution.steps.build_image.output.outputVariables.image_name_datarobot>
+                      echo "Source image: ${source_image}"
+                      echo "Dest image: ${dest_image}"
+
+                      # this script call builds an image for AMD64/ARM64 and pushes to datarobot/datarobotdev
+                      source ./build_image.sh --push
+          caching:
+            enabled: false
+            paths: []
+        when:
+          pipelineStatus: All
+          condition: <+<+pipeline.stages.ha.spec.execution.steps.harness_approval_step.output.approvalActivities[0].action> == "APPROVE"> || <+<+pipeline.stages.build_docker_context.spec.execution.steps.run_trivy_check.status> == "SUCCEEDED">
+  variables:
+    - name: path_to_docker_context
+      type: String
+      description: ""
+      required: true
+      value: <+input>
