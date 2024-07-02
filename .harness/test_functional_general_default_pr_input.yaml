@@ -1,0 +1,14 @@
+inputSet:
+  name: test_functional_general_default_pr_input
+  identifier: test_functional_general_default_pr_input
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: test_functional_general
+    properties:
+      ci:
+        codebase:
+          build:
+            type: PR
+            spec:
+              number: <+trigger.prNumber>
