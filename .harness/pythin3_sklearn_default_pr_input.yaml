@@ -1,0 +1,33 @@
+inputSet:
+  name: pythin3_sklearn_default_pr_input
+  identifier: pythin3_sklearn_default_pr_input
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: test_functional_by_framework
+    properties:
+      ci:
+        codebase:
+          build: <+input>
+    stages:
+      - stage:
+          identifier: Build_image_because_of_change
+          type: Pipeline
+          spec:
+            inputs:
+              identifier: env_image_publish
+              properties:
+                ci:
+                  codebase:
+                    build:
+                      type: PR
+                      spec:
+                        number: <+trigger.prNumber>
+              variables:
+                - name: image_tag
+                  type: String
+                  value: <+pipeline.variables.env_name>_latest
+    variables:
+      - name: framework
+        type: String
+        value: python3_sklearn
