@@ -1,0 +1,47 @@
+pipeline:
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
+  stages:
+    - stage:
+        name: Build DRUM and publish to Pypi
+        identifier: Build_DRUM
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Build DRUM and publish to Pypi
+                  identifier: build_drum_and_publish_to_pypi
+                  spec:
+                    connectorRef: datarobot_user_models_read_write
+                    image: datarobot/drum-builder:ubuntu-22-04
+                    shell: Bash
+                    command: |-
+                      cd custom_model_runner
+                      make
+                      cd -
+                      DRUM_WHEEL="$(realpath "$(find custom_model_runner/dist/datarobot_drum*.whl)")"
+                      echo ""
+                      echo "Built DRUM wheel"
+                      echo ${DRUM_WHEEL}
+
+                      pip3 install --only-binary=:all: twine
+                      twine upload ${DRUM_WHEEL} -u <+secrets.getValue("datarobot_drum_pypi_username")> -p <+secrets.getValue("datarobot_drum_pypi_password")>
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+  identifier: release_drum_to_pypi
+  name: Release DRUM to Pypi
