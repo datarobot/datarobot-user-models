@@ -82,4 +82,4 @@ pipeline:
                 type: Cloud
                 spec: {}
   identifier: base_checks
-  name: base_checks1
+  name: base_checks
