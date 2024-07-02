@@ -1,0 +1,20 @@
+inputSet:
+  name: dropin_env_base_r
+  tags: {}
+  identifier: dropin_env_base_r
+  description: "Used for envs: r_lang"
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: build_env_base_docker_images
+    properties:
+      ci:
+        codebase:
+          build:
+            type: branch
+            spec:
+              branch: <+input>
+    variables:
+      - name: path_to_docker_context
+        type: String
+        value: docker/dropin_env_base_r

@@ -3,11 +3,11 @@ FROM openjdk:11.0.16-jre-slim-bullseye
 
 ARG DATAROBOT_MLOPS_VERSION
 
-RUN apt update && apt upgrade -y && apt install -y python3 python3-pip python3-dev python3-distutils fontconfig nginx && \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y python3 python3-pip python3-dev python3-distutils fontconfig nginx && \
     pip3 install --upgrade pip && \
     pip3 install --no-cache-dir wheel setuptools && \
     # required for mlpiper
-    apt install -y python3-setuptools && \
+    apt-get install -y python3-setuptools && \
     chmod -R 707 /var/lib/nginx /var/log/nginx
 
 COPY requirements.txt requirements.txt

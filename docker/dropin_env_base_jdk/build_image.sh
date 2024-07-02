@@ -6,19 +6,44 @@
 #
 # Released under the terms of DataRobot Tool and Utility Agreement.
 
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --push)
+      PUSH=1
+      shift # past argument
+      ;;
+    -*|--*)
+      echo "Unknown option $1"
+      exit 1
+      ;;
+  esac
+done
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-IMAGE_NAME_DATAROBOTDEV=datarobotdev/dropin-env-base-jdk
-IMAGE_NAME_DATAROBOT=datarobot/dropin-env-base-jdk
-IMAGE_TAG=debian11-py3.9-jdk11.0.16-drum1.11.5-mlops9.2.8
+IMAGE_ORG_DATAROBOT=datarobot
+IMAGE_ORG_DATAROBOTDEV=datarobotdev
+
+IMAGE_REPO=dropin-env-base-jdk
+
+IMAGE_TAG=debian11-py3.9-jdk11.0.16-drum1.11.5-mlops9.2.8-test
+
+IMAGE_NAME_DATAROBOT=${IMAGE_ORG_DATAROBOT}/${IMAGE_REPO}:${IMAGE_TAG}
+IMAGE_NAME_DATAROBOTDEV=${IMAGE_ORG_DATAROBOTDEV}/${IMAGE_REPO}:${IMAGE_TAG}
 
 pwd
 
 echo "Building docker image: ${IMAGE_NAME_DATAROBOTDEV}:${IMAGE_TAG}"
-DATAROBOT_MLOPS_VERSION=9.2.8 ${SCRIPT_DIR}/pull_artifacts.sh
+export DATAROBOT_MLOPS_VERSION=9.2.8
+${SCRIPT_DIR}/pull_artifacts.sh
 
-# this is just a regular command to build an image for the host platform
-#docker build -t ${IMAGE_NAME_DATAROBOTDEV}:${IMAGE_TAG} .
+# Build and save in the local registry. (In the harness pipeline we run trivy on it)
+docker build --no-cache --build-arg DATAROBOT_MLOPS_VERSION=${DATAROBOT_MLOPS_VERSION} -t ${IMAGE_NAME_DATAROBOTDEV} -t ${IMAGE_NAME_DATAROBOT} .
 
-# this is command to build images for specified platforms. For more info: https://docs.docker.com/build/building/multi-platform/
-docker buildx build --build-arg DATAROBOT_MLOPS_VERSION=${DATAROBOT_MLOPS_VERSION} --platform linux/amd64,linux/arm64 --push -t ${IMAGE_NAME_DATAROBOTDEV}:${IMAGE_TAG} -t ${IMAGE_NAME_DATAROBOT}:${IMAGE_TAG} .
+# This is command to build images for specified platforms.
+# For more info: https://docs.docker.com/build/building/multi-platform/
+if [ -n "${PUSH}" ] ; then
+  # When building for multiplatform, multiplatform manifest can not be saved locally
+  # So need to build and push at the same time.
+  docker buildx build --push --build-arg DATAROBOT_MLOPS_VERSION=${DATAROBOT_MLOPS_VERSION} --platform linux/amd64,linux/arm64 -t ${IMAGE_NAME_DATAROBOT} -t ${IMAGE_NAME_DATAROBOTDEV} .
+fi

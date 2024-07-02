@@ -18,10 +18,9 @@ RUN microdnf update && \
     pip3 install -U pip --no-cache-dir && \
     pip3 install --no-cache-dir wheel setuptools && \
     pip3 install --no-cache-dir -r requirements.txt && \
+    microdnf upgrade && \
     microdnf clean all
-
 COPY datarobot-mlops-*.jar $JARS_PATH
 COPY mlops-agent-*.jar $JARS_PATH
-
 ENV DRUM_JAVA_SHARED_JARS=$JARS_PATH/*
 ENV MLOPS_MONITORING_AGENT_JAR_PATH=$JARS_PATH/mlops-agent-${DATAROBOT_MLOPS_VERSION}.jar
