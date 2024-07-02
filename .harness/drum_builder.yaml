@@ -1,0 +1,20 @@
+inputSet:
+  name: drum_builder
+  tags: {}
+  identifier: drum_builder
+  description: Used to build DRUM and for some tests.
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: build_env_base_docker_images
+    properties:
+      ci:
+        codebase:
+          build:
+            type: branch
+            spec:
+              branch: <+input>
+    variables:
+      - name: path_to_docker_context
+        type: String
+        value: docker/drum_builder
