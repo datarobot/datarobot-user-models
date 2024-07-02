@@ -28,8 +28,6 @@ pipeline:
                         image: python:3.9
                         shell: Bash
                         command: |-
-                          echo <+trigger.payload.pull_request>
-                          echo <+trigger.payload.repository>
                           set -exuo pipefail
                           pip install -U pip
                           pip install -r requirements_test_unit.txt
