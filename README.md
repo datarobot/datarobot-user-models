@@ -1,4 +1,4 @@
-## DataRobot User Models
+# DataRobot User Models
 
 ## What is this repository? <a name="what_is_it"></a>
 This repository contains tools, templates, and information for assembling, debugging, testing, 
