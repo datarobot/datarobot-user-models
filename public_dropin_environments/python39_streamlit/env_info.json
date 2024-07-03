@@ -3,7 +3,7 @@
   "name": "[Experimental] Python 3.9 Streamlit",
   "description": "Base image for Streamlit custom application with DR components package.",
   "programmingLanguage": "python",
-  "environmentVersionId": "6602eb900513a1f3bfc9e805",
+  "environmentVersionId": "668548c1b8e086572a96fbf5",
   "environmentVersionDescription": "Python 3.9 with installed packages:\naltair==4.2.2\ndatarobot==3.0.2\nkaleido==0.2.1\nplotly==5.13.0\nstreamlit==1.31.0\nstreamlit-wordcloud==0.1.0\ntabulate==0.9.0\ndr_components-0.1.4-py3-none-any.whl",
   "isPublic": true,
   "useCases": [
