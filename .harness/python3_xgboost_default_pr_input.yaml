@@ -1,5 +1,6 @@
 inputSet:
   name: python3_xgboost_default_pr_input
+  tags: {}
   identifier: python3_xgboost_default_pr_input
   orgIdentifier: Custom_Models
   projectIdentifier: datarobotusermodels
@@ -29,7 +30,7 @@ inputSet:
               variables:
                 - name: image_tag
                   type: String
-                  value: <+pipeline.variables.env_name>_latest
+                  value: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>
     variables:
       - name: framework
         type: String
