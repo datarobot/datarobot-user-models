@@ -1,0 +1,24 @@
+inputSet:
+  name: java_codegen_image_build_default_pr_input
+  identifier: java_codegen_image_build_default_pr_input
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: env_image_publish
+    properties:
+      ci:
+        codebase:
+          build:
+            type: branch
+            spec:
+              branch: <+trigger.branch>
+    variables:
+      - name: env_folder
+        type: String
+        value: public_dropin_environments
+      - name: env_name
+        type: String
+        value: java_codegen
+      - name: image_tag
+        type: String
+        value: <+pipeline.variables.env_name>_latest

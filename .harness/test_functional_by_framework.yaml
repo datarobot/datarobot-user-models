@@ -60,7 +60,7 @@ pipeline:
                       git diff --name-only "$(git merge-base origin/master HEAD)" HEAD
 
                       # check if there are changes in the env folder, env folder name is <+pipeline.variables.framework>
-                      if [ $(git diff --name-only "$(git merge-base origin/master HEAD)" HEAD | grep <+pipeline.variables.framework> | head -1) ]; then
+                      if [ $(git diff --name-only "$(git merge-base origin/master HEAD)" HEAD | grep public_dropin_environments/<+pipeline.variables.framework> | head -1) ]; then
                         changed_deps=true;
                         test_image_tag=<+pipeline.variables.framework>_<+trigger.prNumber>
                       else
