@@ -5,7 +5,8 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import werkzeug
-from flask import request, Response
+from flask import request, Response, stream_with_context
+from openai import Stream
 from requests_toolbelt import MultipartEncoder
 
 from datarobot_drum.drum.enum import (
@@ -35,6 +36,15 @@ from datarobot_drum.resource.unstructured_helpers import (
     _resolve_outgoing_unstructured_data,
 )
 
+
+def stream_openai_chunks(stream):
+    for chunk in stream:
+        chunk_json = chunk.to_json(indent=None)
+        for line in chunk_json.splitlines():
+            yield f"data: {line}\n"
+        yield "\n"  # TODO: Include linebreak in last data yield
+
+    yield "data: [DONE]\n\n"
 
 class PredictMixin:
     """
@@ -383,8 +393,15 @@ class PredictMixin:
     def do_chat(self, logger=None):
         completion_create_params = request.json
 
-        completion = self._predictor.chat(completion_create_params)
-        return completion.to_dict(), HTTP_200_OK
+        result = self._predictor.chat(completion_create_params)
+
+        if isinstance(result, Stream):
+            response = Response(stream_with_context(stream_openai_chunks(result)), mimetype="text/event-stream")
+        else:
+            response = result.to_dict()
+
+        return response, HTTP_200_OK
+
 
     def do_transform(self, logger=None):
         if self._target_type != TargetType.TRANSFORM:
