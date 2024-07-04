@@ -257,6 +257,25 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
             self._stats_collector.disable()
         return response_status, response
 
+    @FlaskRoute(
+        "{}/chat/completions/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["POST"]
+    )
+    def chat(self, url_params, form_params):
+        if self._error_response:
+            return HTTP_513_DRUM_PIPELINE_ERROR, self._error_response
+
+        self._stats_collector.enable()
+        self._stats_collector.mark("start")
+
+        try:
+            response, response_status = self.do_chat()
+        except Exception as ex:
+            response_status, response = self._handle_exception(ex)
+        finally:
+            self._stats_collector.mark("finish")
+            self._stats_collector.disable()
+        return response_status, response
+
     def _handle_exception(self, ex):
         self._logger.error(ex)
         response_status = HTTP_500_INTERNAL_SERVER_ERROR
