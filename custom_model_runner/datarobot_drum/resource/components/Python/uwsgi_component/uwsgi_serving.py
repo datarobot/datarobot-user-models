@@ -8,10 +8,11 @@ import logging
 import os
 import sys
 
+from flask import jsonify
 from mlpiper.components.restful.flask_route import FlaskRoute
 from mlpiper.components.restful_component import RESTfulComponent
 from mlpiper.components.restful.metric import Metric, MetricType, MetricRelation
-
+from werkzeug.exceptions import HTTPException
 
 from datarobot_drum.drum.common import (
     make_predictor_capabilities,
@@ -278,6 +279,11 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
 
     def _handle_exception(self, ex):
         self._logger.error(ex)
+
+        # pass through HTTP errors
+        if isinstance(ex, HTTPException):
+            return jsonify(error=ex.description), ex.code
+
         response_status = HTTP_500_INTERNAL_SERVER_ERROR
         response = {"message": "ERROR: {}".format(ex)}
         return response_status, response

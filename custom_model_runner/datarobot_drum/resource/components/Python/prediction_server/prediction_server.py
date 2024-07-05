@@ -7,7 +7,10 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import logging
 import sys
 from pathlib import Path
+
+from flask import jsonify
 from mlpiper.components.connectable_component import ConnectableComponent
+from werkzeug.exceptions import HTTPException
 
 from datarobot_drum.drum.common import (
     make_predictor_capabilities,
@@ -228,6 +231,11 @@ class PredictionServer(ConnectableComponent, PredictMixin):
                 ret_dict["time_info"][name] = d
             self._stats_collector.stats_reset()
             return ret_dict, HTTP_200_OK
+
+        @model_api.errorhandler(HTTPException)
+        def handle_http_exception(e):
+            logger.exception(e)
+            return jsonify(error=e.description), e.code
 
         @model_api.errorhandler(Exception)
         def handle_exception(e):
