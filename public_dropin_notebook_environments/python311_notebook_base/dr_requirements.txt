@@ -7,3 +7,4 @@ ipykernel==6.28.0
 pandas==1.5.1
 numpy<2.0.0
 mistune==2.0.4
+datarobot-model-metrics==0.6.1
