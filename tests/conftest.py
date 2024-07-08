@@ -603,6 +603,11 @@ _artifacts = {
     (None, UNSTRUCTURED): None,
     (SKLEARN_NO_ARTIFACTS, UNSTRUCTURED): None,
     (R_NO_ARTIFACTS, UNSTRUCTURED): None,
+    # To generate sklearn_dtr_sparse.pkl, go to tests/functional/test_fit_per_framework::TestFit::test_fit.
+    # Run test for (SKLEARN_SPARSE, SPARSE, None), check pytest's tmp dir with output.
+    # From the 'output_dir' (see test^), replace sklearn_dtr_sparse.pkl with new artifact.pkl.
+    # Test with: pytest tests/functional/test_inference_per_framework.py::TestInference::test_custom_models_with_drum[sklearn-sparse-python_predict_sparse-None-False] --framework-env python3_sklearn
+    # Or any other related test case.
     (SKLEARN, SPARSE): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_dtr_sparse.pkl"),
     (SKLEARN, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_reg.pkl"),
     (SKLEARN, REGRESSION_INFERENCE): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_reg.pkl"),

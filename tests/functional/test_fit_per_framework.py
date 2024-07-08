@@ -263,6 +263,10 @@ class TestFit:
             cmd += " --sparse-column-file {} --target-csv {}".format(
                 sparse_column_file, target_file
             )
+            output_dir = tmp_path / "output_dir"
+            output_dir.mkdir(parents=True, exist_ok=True)
+            cmd += " --output {}".format(output_dir)
+
         if problem == BINARY_INT:
             # target-csv will result in target dtype int instead of str
             target_dataset = resources.datasets(None, BINARY_INT_TARGET)
@@ -712,6 +716,8 @@ class TestFit:
                 env["CLASS_LABELS_FILE"] = f.name
 
         if parameters:
+            # I don't understand why hypersearch params are taken from a separate json
+            # instead of the model-metadata in python3_sklearn_binary_hyperparameters
             parameter_file = resources.datasets(framework, parameters)
             parameter_input_file = os.path.join(input_dir, "parameters.json")
             shutil.copyfile(parameter_file, parameter_input_file)

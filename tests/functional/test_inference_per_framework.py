@@ -428,6 +428,12 @@ class TestInference:
     # To retrain sklearn_transform.pkl / sklearn_transform_dense.pkl artifacts adjust code to use sparse / dense
     # Run DRUM using command:
     # drum fit --code-dir task_templates/1_transforms/3_python3_sklearn_transform --input tests/testdata/10k_diabetes_sample.csv --target-type transform --target readmitted --output <some dir>
+
+    # To fit code for (SKLEARN_TRANSFORM, SPARSE_TRANSFORM, PYTHON_TRANSFORM_SPARSE, None, False):
+    # Use the same pipeline ^, do:
+    # * in the file:  task_templates/1_transforms/3_python3_sklearn_transform/create_transform_pipeline.py make StandardScaler(with_mean=False):
+    # * drum fit --code-dir task_templates/1_transforms/3_python3_sklearn_transform --input tests/testdata/sparse.mtx --target-type transform --target-csv tests/testdata/sparse_target.csv --output output_dir --disable-strict-validation --sparse-column-file tests/testdata/sparse.columns
+    # * replace transform_sparse.pkl with the new generated artifact.
     @pytest.mark.parametrize(
         "framework, problem, language, docker, use_arrow",
         [
@@ -440,6 +446,7 @@ class TestInference:
             (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None, False),
             (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, False),
             (R_TRANSFORM_WITH_Y, TRANSFORM, R_TRANSFORM_WITH_Y, None, False),
+            # transform_sparse_input.py, "transform_sparse.pkl"
             (SKLEARN_TRANSFORM, SPARSE_TRANSFORM, PYTHON_TRANSFORM_SPARSE, None, False),
             (R_TRANSFORM_SPARSE_INPUT, SPARSE_TRANSFORM, R_TRANSFORM_SPARSE_INPUT, None, False),
             (R_TRANSFORM_SPARSE_OUTPUT, TRANSFORM, R_TRANSFORM_SPARSE_OUTPUT, None, False),
