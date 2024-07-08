@@ -26,7 +26,7 @@ botocore==1.34.65
     #   awscli
     #   boto3
     #   s3transfer
-certifi==2024.2.2
+certifi==2024.7.4
     # via
     #   httpcore
     #   httpx
