@@ -15,29 +15,6 @@ from datarobot_drum.custom_task_interfaces import TransformerInterface
 from datarobot_drum.drum.exceptions import DrumSerializationError
 
 
-def transform(X, transformer, y=None):
-    """
-    Parameters
-    ----------
-    X: pd.DataFrame - training data to perform transform on
-    transformer: object - trained transformer object
-    y: pd.Series (optional) - target data to perform transform on
-    Returns
-    -------
-    transformed DataFrame resulting from applying transform to incoming data
-    """
-    for target_col in ["readmitted"]:
-        if target_col in X:
-            X.pop(target_col)
-    transformed = transformer.transform(X)
-    if issparse(transformed):
-        return pd.DataFrame.sparse.from_spmatrix(
-            transformed, columns=[f"feature_{i}" for i in range(transformed.shape[1])]
-        )
-    else:
-        return pd.DataFrame(transformed)
-
-
 class CustomTask(TransformerInterface):
     @classmethod
     def load_task(cls, artifact_directory):
