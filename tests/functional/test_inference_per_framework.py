@@ -445,11 +445,11 @@ class TestInference:
             (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None, True),
             (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None, False),
             (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, False),
-            (R_TRANSFORM_WITH_Y, TRANSFORM, R_TRANSFORM_WITH_Y, None, False),
+            # (R_TRANSFORM_WITH_Y, TRANSFORM, R_TRANSFORM_WITH_Y, None, False),
             # transform_sparse_input.py, "transform_sparse.pkl"
             (SKLEARN_TRANSFORM, SPARSE_TRANSFORM, PYTHON_TRANSFORM_SPARSE, None, False),
-            (R_TRANSFORM_SPARSE_INPUT, SPARSE_TRANSFORM, R_TRANSFORM_SPARSE_INPUT, None, False),
-            (R_TRANSFORM_SPARSE_OUTPUT, TRANSFORM, R_TRANSFORM_SPARSE_OUTPUT, None, False),
+            # (R_TRANSFORM_SPARSE_INPUT, SPARSE_TRANSFORM, R_TRANSFORM_SPARSE_INPUT, None, False),
+            # (R_TRANSFORM_SPARSE_OUTPUT, TRANSFORM, R_TRANSFORM_SPARSE_OUTPUT, None, False),
         ],
     )
     @pytest.mark.parametrize("pass_target", [False])

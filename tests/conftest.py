@@ -672,12 +672,16 @@ _artifacts = {
         os.path.join(TESTS_ARTIFACTS_PATH, "PyTorch.py"),
     ],
     (CODEGEN, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "java_multi.jar"),
-    (SKLEARN_TRANSFORM, TRANSFORM): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_transform.pkl"),
+    (SKLEARN_TRANSFORM, TRANSFORM): (
+        os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_transform.pkl"),
+        "drum_artifact.pkl",
+    ),
     (SKLEARN_TRANSFORM, SPARSE_TRANSFORM): os.path.join(
         TESTS_ARTIFACTS_PATH, "transform_sparse.pkl"
     ),
-    (SKLEARN_TRANSFORM_DENSE, TRANSFORM): os.path.join(
-        TESTS_ARTIFACTS_PATH, "sklearn_transform_dense.pkl"
+    (SKLEARN_TRANSFORM_DENSE, TRANSFORM): (
+        os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_transform_dense.pkl"),
+        "drum_artifact.pkl",
     ),
     (SKLEARN, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_bin.pkl"),
     (KERAS, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "keras_bin.h5"),
