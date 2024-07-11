@@ -594,6 +594,7 @@ _class_labels = {
     (PYTHON_TEXT_GENERATION, TEXT_GENERATION): None,
 }
 
+# key: list of tuples; tuple: (artifact path, Optional(rename to a new name))
 _artifacts = {
     (None, None): None,
     (R_NO_ARTIFACTS, None): None,
@@ -603,6 +604,11 @@ _artifacts = {
     (None, UNSTRUCTURED): None,
     (SKLEARN_NO_ARTIFACTS, UNSTRUCTURED): None,
     (R_NO_ARTIFACTS, UNSTRUCTURED): None,
+    # To generate sklearn_dtr_sparse.pkl, go to tests/functional/test_fit_per_framework::TestFit::test_fit.
+    # Run test for (SKLEARN_SPARSE, SPARSE, None), check pytest's tmp dir with output.
+    # From the 'output_dir' (see test^), replace sklearn_dtr_sparse.pkl with new artifact.pkl.
+    # Test with: pytest tests/functional/test_inference_per_framework.py::TestInference::test_custom_models_with_drum[sklearn-sparse-python_predict_sparse-None-False] --framework-env python3_sklearn
+    # Or any other related test case.
     (SKLEARN, SPARSE): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_dtr_sparse.pkl"),
     (SKLEARN, REGRESSION): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_reg.pkl"),
     (SKLEARN, REGRESSION_INFERENCE): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_reg.pkl"),
@@ -667,12 +673,20 @@ _artifacts = {
         os.path.join(TESTS_ARTIFACTS_PATH, "PyTorch.py"),
     ],
     (CODEGEN, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "java_multi.jar"),
-    (SKLEARN_TRANSFORM, TRANSFORM): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_transform.pkl"),
-    (SKLEARN_TRANSFORM, SPARSE_TRANSFORM): os.path.join(
-        TESTS_ARTIFACTS_PATH, "transform_sparse.pkl"
+    # This artifact is trained using CustomTask interface, that expects artifact name to be drum_artifact.pkl
+    (SKLEARN_TRANSFORM, TRANSFORM): (
+        os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_transform.pkl"),
+        "drum_artifact.pkl",
     ),
-    (SKLEARN_TRANSFORM_DENSE, TRANSFORM): os.path.join(
-        TESTS_ARTIFACTS_PATH, "sklearn_transform_dense.pkl"
+    # This artifact is trained using CustomTask interface, that expects artifact name to be drum_artifact.pkl
+    (SKLEARN_TRANSFORM, SPARSE_TRANSFORM): (
+        os.path.join(TESTS_ARTIFACTS_PATH, "transform_sparse.pkl"),
+        "drum_artifact.pkl",
+    ),
+    # This artifact is trained using CustomTask interface, that expects artifact name to be drum_artifact.pkl
+    (SKLEARN_TRANSFORM_DENSE, TRANSFORM): (
+        os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_transform_dense.pkl"),
+        "drum_artifact.pkl",
     ),
     (SKLEARN, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_bin.pkl"),
     (KERAS, MULTICLASS_BINARY): os.path.join(TESTS_ARTIFACTS_PATH, "keras_bin.h5"),

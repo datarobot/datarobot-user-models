@@ -263,6 +263,10 @@ class TestFit:
             cmd += " --sparse-column-file {} --target-csv {}".format(
                 sparse_column_file, target_file
             )
+            output_dir = tmp_path / "output_dir"
+            output_dir.mkdir(parents=True, exist_ok=True)
+            cmd += " --output {}".format(output_dir)
+
         if problem == BINARY_INT:
             # target-csv will result in target dtype int instead of str
             target_dataset = resources.datasets(None, BINARY_INT_TARGET)

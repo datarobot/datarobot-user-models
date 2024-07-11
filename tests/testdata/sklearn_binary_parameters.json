@@ -1,6 +1,6 @@
 {
   "penalty": "l2",
-  "dual": 0.0,
+  "dual": 0,
   "tol": 1e-5,
   "solver": "lbfgs"
 }

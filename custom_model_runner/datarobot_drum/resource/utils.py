@@ -61,13 +61,26 @@ def _create_custom_model_dir(
         for filename in files:
             shutil.copy2(filename, custom_model_dir)
     else:
-        artifact_filenames = resources.artifacts(framework, problem)
-        if artifact_filenames is not None:
-            if not isinstance(artifact_filenames, list):
-                artifact_filenames = [artifact_filenames]
-            for filename in artifact_filenames:
+        # An artifact can be:
+        # * a single artifact path
+        # * a tuple(path, Optional (target file name)),
+        # * list of artifact paths/tuples
+        artifact_filenames_or_tuples = resources.artifacts(framework, problem)
+        if artifact_filenames_or_tuples is not None:
+            if not isinstance(artifact_filenames_or_tuples, list):
+                artifact_filenames_or_tuples = [artifact_filenames_or_tuples]
+            for filename_or_tuple in artifact_filenames_or_tuples:
+                source_filepath, target_name = (
+                    (filename_or_tuple[0], filename_or_tuple[1])
+                    if isinstance(filename_or_tuple, tuple)
+                    else (filename_or_tuple, None)
+                )
+                source_filename = os.path.basename(source_filepath)
+                target_name = target_name or source_filename
+                dst = os.path.join(custom_model_dir, f"{target_name}")
+
                 if capitalize_artifact_extension:
-                    name, ext = os.path.splitext(os.path.basename(filename))
+                    name, ext = os.path.splitext(source_filename)
                     if (
                         ext
                         in PythonArtifacts.ALL
@@ -77,9 +90,7 @@ def _create_custom_model_dir(
                     ):
                         ext = ext.upper()
                     dst = os.path.join(custom_model_dir, f"{name}{ext}")
-                else:
-                    dst = custom_model_dir
-                shutil.copy2(filename, dst)
+                shutil.copy2(source_filepath, dst)
 
         fixture_filename, rename = resources.custom(language)
         if fixture_filename:
