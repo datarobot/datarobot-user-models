@@ -61,6 +61,10 @@ def _create_custom_model_dir(
         for filename in files:
             shutil.copy2(filename, custom_model_dir)
     else:
+        # An artifact can be:
+        # * a single artifact path
+        # * a tuple(path, Optional (target file name)),
+        # * list of artifact paths/tuples
         artifact_filenames_or_tuples = resources.artifacts(framework, problem)
         if artifact_filenames_or_tuples is not None:
             if not isinstance(artifact_filenames_or_tuples, list):

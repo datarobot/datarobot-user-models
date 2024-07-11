@@ -594,6 +594,7 @@ _class_labels = {
     (PYTHON_TEXT_GENERATION, TEXT_GENERATION): None,
 }
 
+# key: list of tuples; tuple: (artifact path, Optional(rename to a new name))
 _artifacts = {
     (None, None): None,
     (R_NO_ARTIFACTS, None): None,
@@ -672,13 +673,17 @@ _artifacts = {
         os.path.join(TESTS_ARTIFACTS_PATH, "PyTorch.py"),
     ],
     (CODEGEN, MULTICLASS): os.path.join(TESTS_ARTIFACTS_PATH, "java_multi.jar"),
+    # This artifact is trained using CustomTask interface, that expects artifact name to be drum_artifact.pkl
     (SKLEARN_TRANSFORM, TRANSFORM): (
         os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_transform.pkl"),
         "drum_artifact.pkl",
     ),
-    (SKLEARN_TRANSFORM, SPARSE_TRANSFORM): os.path.join(
-        TESTS_ARTIFACTS_PATH, "transform_sparse.pkl"
+    # This artifact is trained using CustomTask interface, that expects artifact name to be drum_artifact.pkl
+    (SKLEARN_TRANSFORM, SPARSE_TRANSFORM): (
+        os.path.join(TESTS_ARTIFACTS_PATH, "transform_sparse.pkl"),
+        "drum_artifact.pkl",
     ),
+    # This artifact is trained using CustomTask interface, that expects artifact name to be drum_artifact.pkl
     (SKLEARN_TRANSFORM_DENSE, TRANSFORM): (
         os.path.join(TESTS_ARTIFACTS_PATH, "sklearn_transform_dense.pkl"),
         "drum_artifact.pkl",
