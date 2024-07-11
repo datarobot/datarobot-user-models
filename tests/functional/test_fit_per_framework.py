@@ -716,8 +716,6 @@ class TestFit:
                 env["CLASS_LABELS_FILE"] = f.name
 
         if parameters:
-            # model-metadata configs which values are allowed for hyperparameters.
-            # Actual values are provided in a separate json parameters file.
             parameter_file = resources.datasets(framework, parameters)
             parameter_input_file = os.path.join(input_dir, "parameters.json")
             shutil.copyfile(parameter_file, parameter_input_file)
