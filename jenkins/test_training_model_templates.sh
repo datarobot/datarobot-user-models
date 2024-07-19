@@ -20,7 +20,7 @@ pip install -U pip
 # installing DRUM into the test env is required for push test
 pip install -U $DRUM_WHEEL_REAL_PATH
 # requirements_test may install newer packages for testing, e.g. `datarobot`
-pip install -r requirements_test_functional.txt
+pip install -r requirements_test_e2e_training.txt
 
 # put tests in this exact order as they build images and as a result jenkins instance may run out of space
 py.test tests/e2e/test_custom_task_templates.py \

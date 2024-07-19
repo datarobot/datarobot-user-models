@@ -20,7 +20,7 @@ pip install -U pip
 # installing DRUM into the test env is required for push test
 pip install -U "$DRUM_WHEEL_REAL_PATH"
 # requirements_test may install newer packages for testing, e.g. `datarobot`
-pip install -r requirements_test_functional.txt
+pip install -r requirements_test_e2e_inference.txt
 
 py.test tests/e2e/test_drop_in_environments.py \
         -v \
