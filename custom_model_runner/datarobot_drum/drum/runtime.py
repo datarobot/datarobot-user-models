@@ -42,15 +42,7 @@ class DrumRuntime:
             # exception occurred before args were parsed
             return False  # propagate exception further
 
-        msg = "Looks like there is a problem."
-        if not self.options.verbose:
-            msg += f" To get more output information try to run locally(not in DataRobot) with: '{ArgumentsOptions.VERBOSE}'."
-        logger_drum.warning(colored(msg, "yellow"))
-
-        if exc_value:
-            logger_drum.error(exc_value)
-        logger_drum.error(exc_type)
-        logger_drum.error("".join(traceback.format_list(traceback.extract_tb(exc_traceback))))
+        logger_drum.exception("")
 
         run_mode = RunMode(self.options.subparser_name)
 
