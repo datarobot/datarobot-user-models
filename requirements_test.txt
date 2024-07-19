@@ -1,5 +1,4 @@
 datarobot==3.1.0
-datarobot-bp-workshop==0.2.6
 docker>=4.2.2,<5.0.0
 pytest
 pytest-runner
