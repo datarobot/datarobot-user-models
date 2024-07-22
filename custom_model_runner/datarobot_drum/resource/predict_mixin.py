@@ -4,6 +4,8 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+from typing import Iterable
+
 import werkzeug
 from flask import request, Response, stream_with_context
 from openai import Stream
@@ -395,10 +397,12 @@ class PredictMixin:
 
         result = self._predictor.chat(completion_create_params)
 
-        if isinstance(result, Stream):
+        if getattr(result, "object", None) == "chat.completion":
+            response = result.to_dict()
+        elif isinstance(result, Iterable):
             response = Response(stream_with_context(stream_openai_chunks(result)), mimetype="text/event-stream")
         else:
-            response = result.to_dict()
+            raise Exception("Expected response to be ChatCompletion or Iterable[ChatCompletionChunk]")
 
         return response, HTTP_200_OK
 

@@ -248,7 +248,14 @@ class PredictionServer(ConnectableComponent, PredictMixin):
 
         app = get_flask_app(model_api)
         self.load_flask_extensions(app)
+        self._run_flask_app(app)
 
+        if self._stats_collector:
+            self._stats_collector.print_reports()
+
+        return []
+
+    def _run_flask_app(self, app):
         host = self._params.get("host", None)
         port = self._params.get("port", None)
         try:
@@ -256,10 +263,6 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         except OSError as e:
             raise DrumCommonException("{}: host: {}; port: {}".format(e, host, port))
 
-        if self._stats_collector:
-            self._stats_collector.print_reports()
-
-        return []
 
     def terminate(self):
         terminate_op = getattr(self._predictor, "terminate", None)

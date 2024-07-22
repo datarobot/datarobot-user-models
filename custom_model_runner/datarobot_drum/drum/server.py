@@ -16,7 +16,7 @@ HTTP_513_DRUM_PIPELINE_ERROR = 513
 
 
 def get_flask_app(api_blueprint):
-    app = Flask(__name__)
+    app = _create_flask_app()
     url_prefix = os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")
     app.register_blueprint(api_blueprint, url_prefix=url_prefix)
     return app
@@ -39,3 +39,6 @@ def base_api_blueprint(termination_hook=None, predictor=None):
 
 def empty_api_blueprint(termination_hook=None):
     return Blueprint("model_api", __name__)
+
+def _create_flask_app():
+    return Flask(__name__)
