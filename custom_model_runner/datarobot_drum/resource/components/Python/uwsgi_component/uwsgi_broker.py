@@ -21,12 +21,13 @@ from mlpiper.components.restful.constants import (
     UwsgiConstants,
 )
 from mlpiper.components.restful.uwsgi_monitor import WsgiMonitor
-from mlpiper.components.restful.uwsgi_ini_template import WSGI_INI_CONTENT
 from mlpiper.components.restful.uwsgi_entry_point_script_template import (
     WSGI_ENTRY_SCRIPT,
 )
 from mlpiper.components.restful.uwsgi_cheaper_subsystem import UwsgiCheaperSubSystem
 from mlpiper.model.model_selector import ModelSelector
+
+from datarobot_drum.resource.components.Python.uwsgi_component.uwsgi_ini_template import WSGI_INI_CONTENT
 
 try:
     from mlpiper.components.restful.uwsgi_post_fork import UwsgiPostFork
