@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 
 import httpx
 import pytest
+from httpx import WSGITransport
 from openai import OpenAI, Stream
 from openai.types.chat import ChatCompletion, ChatCompletionMessage, ChatCompletionChunk, chat_completion_chunk
 from openai.types.chat.chat_completion import Choice
@@ -44,7 +45,8 @@ def create_completion_chunks(messages):
     return chunks
 
 
-class TestingPythonModelAdapter(PythonModelAdapter):
+class ChatPythonModelAdapter(PythonModelAdapter):
+
     chat_hook = None
 
     def __init__(self, model_dir, target_type):
@@ -57,7 +59,7 @@ class TestingPythonModelAdapter(PythonModelAdapter):
         return ""
 
     def _call_chat_hook(self, model, completion_create_params):
-        return TestingPythonModelAdapter.chat_hook(model, completion_create_params)
+        return ChatPythonModelAdapter.chat_hook(model, completion_create_params)
 
 
 @pytest.fixture
@@ -76,14 +78,14 @@ def test_flask_app():
 
 
 @pytest.fixture
-def testing_python_model_adapter():
+def chat_python_model_adapter():
     with patch("datarobot_drum.drum.language_predictors.python_predictor.python_predictor.PythonModelAdapter",
-               new=TestingPythonModelAdapter) as adapter:
+               new=ChatPythonModelAdapter) as adapter:
         yield adapter
 
 
 @pytest.fixture
-def prediction_server(test_flask_app, testing_python_model_adapter):
+def prediction_server(test_flask_app, chat_python_model_adapter):
     with patch.dict(os.environ, {"TARGET_NAME": "target"}):
         server = PredictionServer(Mock())
 
@@ -91,7 +93,7 @@ def prediction_server(test_flask_app, testing_python_model_adapter):
             "run_language": RunLanguage.PYTHON,
             "target_type": TargetType.TEXT_GENERATION,
             "deployment_config": None,
-            "__custom_model_path__": ""
+            "__custom_model_path__": "/non-existing-path-to-avoid-loading-unwanted-artifacts"
         }
         server.configure(params)
         server.materialize(Mock())
@@ -101,15 +103,15 @@ def prediction_server(test_flask_app, testing_python_model_adapter):
 def openai_client(test_flask_app):
     return OpenAI(base_url="http://localhost:8080",
                   api_key="<KEY>",
-                  http_client=httpx.Client(app=test_flask_app))
+                  http_client=httpx.Client(transport=WSGITransport(app=test_flask_app)))
 
 
 @pytest.mark.usefixtures("prediction_server")
-def test_prediction_server(openai_client, testing_python_model_adapter):
+def test_prediction_server(openai_client, chat_python_model_adapter):
     def chat_hook(model, completion_request):
         return create_completion("Response")
 
-    testing_python_model_adapter.chat_hook = chat_hook
+    chat_python_model_adapter.chat_hook = chat_hook
 
     completion = openai_client.chat.completions.create(
         model="any",
@@ -125,13 +127,13 @@ def test_prediction_server(openai_client, testing_python_model_adapter):
 
 @pytest.mark.usefixtures("prediction_server")
 @pytest.mark.parametrize("use_generator", [True, False])
-def test_streaming(openai_client, testing_python_model_adapter, use_generator):
+def test_streaming(openai_client, chat_python_model_adapter, use_generator):
     chunks = create_completion_chunks(["How", "are", "you", "doing"])
 
     def chat_hook(model, completion_request):
         return (chunk for chunk in chunks) if use_generator else chunks
 
-    testing_python_model_adapter.chat_hook = chat_hook
+    chat_python_model_adapter.chat_hook = chat_hook
 
     completion = openai_client.chat.completions.create(
         model="any",
