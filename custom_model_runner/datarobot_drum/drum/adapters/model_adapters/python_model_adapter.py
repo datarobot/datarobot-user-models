@@ -99,7 +99,7 @@ class PythonModelAdapter(AbstractModelAdapter):
             ONNXPredictor(),
         ]
         self._predictor_to_use = None
-        self._custom_hooks = {hook: None for hook in CustomHooks.ALL_PREDICT_FIT_STRUCTURED}
+        self._custom_hooks = {hook: None for hook in CustomHooks.ALL_PREDICT_FIT_CHAT_STRUCTURED}
         self._model = None
         self._model_dir = model_dir
         self._target_type = target_type
@@ -198,7 +198,7 @@ class PythonModelAdapter(AbstractModelAdapter):
                     )
                 )
         else:
-            for hook in CustomHooks.ALL_PREDICT_FIT_STRUCTURED:
+            for hook in CustomHooks.ALL_PREDICT_FIT_CHAT_STRUCTURED:
                 self._custom_hooks[hook] = getattr(custom_module, hook, None)
 
         if self._custom_hooks.get(CustomHooks.INIT):
