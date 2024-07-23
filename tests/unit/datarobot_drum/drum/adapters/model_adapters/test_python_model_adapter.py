@@ -36,6 +36,7 @@ from datarobot_drum.drum.enum import (
     GUARD_SCORE_WRAPPER_NAME,
     GUARD_HOOK,
     MODERATIONS_LIBRARY_PACKAGE,
+    CustomHooks,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 
@@ -323,6 +324,21 @@ class TestLoadModelFromArtifact:
         assert instance.secrets == expected_secrets
         assert_wrapped_outputs(Outputs.from_env(), expected_secrets)
         assert_secrets_filters(get_all_logging_filters(), expected_secrets)
+
+    def test_load_chat_hook_without_score(self):
+        adapter = PythonModelAdapter(Mock(), Mock())
+        adapter._custom_hooks[CustomHooks.LOAD_MODEL] = lambda _: True
+        adapter._custom_hooks[CustomHooks.CHAT] = lambda model, completion_request: None
+
+        assert adapter.load_model_from_artifact()
+
+    def test_load_chat_hook_with_score(self):
+        adapter = PythonModelAdapter(Mock(), Mock())
+        adapter._custom_hooks[CustomHooks.LOAD_MODEL] = lambda _: True
+        adapter._custom_hooks[CustomHooks.CHAT] = lambda _: None
+        adapter._custom_hooks[CustomHooks.SCORE] = lambda _: None
+
+        assert adapter.load_model_from_artifact()
 
 
 class TestPythonModelAdapterPrivateHelpers:

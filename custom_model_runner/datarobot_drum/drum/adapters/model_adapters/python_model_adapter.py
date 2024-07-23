@@ -243,10 +243,11 @@ class PythonModelAdapter(AbstractModelAdapter):
             model_artifact_file = self._detect_model_artifact_file()
             self._model = self._load_via_predictors(model_artifact_file)
 
-        # If a score hook is not given we need to find a predictor that can handle this model
+        # If a score or chat hook is not given we need to find a predictor that can handle this model
         if (
             self._target_type not in [TargetType.UNSTRUCTURED, TargetType.TRANSFORM]
             and not self._custom_hooks[CustomHooks.SCORE]
+            and not self._custom_hooks[CustomHooks.CHAT]
             and not skip_predictor_lookup
         ):
             self._find_predictor_to_use()
