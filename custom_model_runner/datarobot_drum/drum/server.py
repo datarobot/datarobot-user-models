@@ -40,5 +40,6 @@ def base_api_blueprint(termination_hook=None, predictor=None):
 def empty_api_blueprint(termination_hook=None):
     return Blueprint("model_api", __name__)
 
+
 def _create_flask_app():
     return Flask(__name__)

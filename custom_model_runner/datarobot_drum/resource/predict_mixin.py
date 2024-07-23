@@ -400,12 +400,16 @@ class PredictMixin:
         if getattr(result, "object", None) == "chat.completion":
             response = result.to_dict()
         elif isinstance(result, Iterable):
-            response = Response(stream_with_context(PredictMixin._stream_openai_chunks(result)), mimetype="text/event-stream")
+            response = Response(
+                stream_with_context(PredictMixin._stream_openai_chunks(result)),
+                mimetype="text/event-stream",
+            )
         else:
-            raise Exception("Expected response to be ChatCompletion or Iterable[ChatCompletionChunk]")
+            raise Exception(
+                "Expected response to be ChatCompletion or Iterable[ChatCompletionChunk]"
+            )
 
         return response, HTTP_200_OK
-
 
     def do_transform(self, logger=None):
         if self._target_type != TargetType.TRANSFORM:

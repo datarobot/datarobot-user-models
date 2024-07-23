@@ -263,7 +263,6 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         except OSError as e:
             raise DrumCommonException("{}: host: {}; port: {}".format(e, host, port))
 
-
     def terminate(self):
         terminate_op = getattr(self._predictor, "terminate", None)
         if callable(terminate_op):

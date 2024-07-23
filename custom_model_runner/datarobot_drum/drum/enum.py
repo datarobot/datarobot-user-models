@@ -119,7 +119,15 @@ class CustomHooks:
     FIT = "fit"
     CHAT = "chat"
 
-    ALL_PREDICT_STRUCTURED = [INIT, READ_INPUT_DATA, LOAD_MODEL, TRANSFORM, SCORE, POST_PROCESS, CHAT] # TODO: Where does chat go?
+    ALL_PREDICT_STRUCTURED = [
+        INIT,
+        READ_INPUT_DATA,
+        LOAD_MODEL,
+        TRANSFORM,
+        SCORE,
+        POST_PROCESS,
+        CHAT,
+    ]  # TODO: Where does chat go?
     ALL_PREDICT_UNSTRUCTURED = [INIT, LOAD_MODEL, SCORE_UNSTRUCTURED]
     ALL_PREDICT_FIT_STRUCTURED = ALL_PREDICT_STRUCTURED + [FIT]
 
