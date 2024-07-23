@@ -3,12 +3,14 @@ from typing import Optional
 from unittest.mock import Mock, patch
 
 import httpx
+import openai
 import pytest
 from httpx import WSGITransport
 from openai import OpenAI, Stream
 from openai.types.chat import ChatCompletion, ChatCompletionMessage, ChatCompletionChunk, chat_completion_chunk
 from openai.types.chat.chat_completion import Choice
 from openai.types.chat.chat_completion_chunk import ChoiceDelta
+from werkzeug.exceptions import BadRequest
 
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.enum import RunLanguage, TargetType, CustomHooks
@@ -147,3 +149,24 @@ def test_streaming(openai_client, chat_python_model_adapter, use_generator):
     assert isinstance(completion, Stream)
     chunk_messages = [chunk.choices[0].delta.content for chunk in completion if chunk.choices[0].delta.content]
     assert chunk_messages == ["How", "are", "you", "doing"]
+
+
+@pytest.mark.usefixtures("prediction_server")
+def test_http_exception(openai_client, chat_python_model_adapter):
+
+    def chat_hook(model, completion_request):
+        raise BadRequest("Error")
+
+    chat_python_model_adapter.chat_hook = chat_hook
+
+    with pytest.raises(openai.BadRequestError) as exc_info:
+        openai_client.chat.completions.create(
+            model="any",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": "Hello"}
+            ]
+        )
+
+    # Response body should be json with error property
+    assert exc_info.value.response.json()["error"] == "Error"
