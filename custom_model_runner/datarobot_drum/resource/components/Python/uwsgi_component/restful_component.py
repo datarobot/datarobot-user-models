@@ -31,10 +31,11 @@ from mlpiper.components.restful.constants import (
     NginxConstants,
 )
 from mlpiper.components.restful.constants import RestfulConstants
-from mlpiper.components.restful.uwsgi_broker import UwsgiBroker
 from mlpiper.components.restful.nginx_broker import NginxBroker
 from mlpiper.components.restful.flask_route import FlaskRoute
 from mlpiper.components.restful.metric import Metric, MetricType, MetricRelation
+
+from datarobot_drum.resource.components.Python.uwsgi_component.uwsgi_broker import UwsgiBroker
 
 
 class RESTfulComponent(ConnectableComponent):
