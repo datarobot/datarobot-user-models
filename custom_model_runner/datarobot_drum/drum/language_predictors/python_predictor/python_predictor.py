@@ -8,8 +8,11 @@ import logging
 import tempfile
 import shutil
 import sys
+import time
+import uuid
 
 import datarobot as dr
+import pandas as pd
 
 from datarobot_drum.drum.common import to_bool
 from datarobot_drum.drum.enum import (
@@ -84,10 +87,10 @@ class PythonPredictor(BaseLanguagePredictor):
             .set_model_id(params["model_id"])
             .set_deployment_id(params["deployment_id"])
             .set_channel_config(monitor_settings)
-            .agent(
-                mlops_service_url=params["external_webserver_url"],
-                mlops_api_token=params["api_token"],
-            )
+            # .agent(
+            #     mlops_service_url=params["external_webserver_url"],
+            #     mlops_api_token=params["api_token"],
+            # )
             .init()
         )
 
@@ -133,7 +136,20 @@ class PythonPredictor(BaseLanguagePredictor):
         return ret
 
     def chat(self, completion_create_params):
-        return self._model_adapter.chat(self._model, completion_create_params)
+        start_time = time.time()
+        response = self._model_adapter.chat(self._model, completion_create_params)
+        #  TODO: Use reporting function in base
+        execution_time_ms = (time.time() - start_time) * 1000
+        self._mlops.report_deployment_stats(num_predictions=1, execution_time_ms=execution_time_ms)
+
+        latest_message = completion_create_params["messages"][-1]["content"]
+        features_df = pd.DataFrame([{"prompt": latest_message}])
+
+        predictions = [response.choices[0].message.content]
+        self._mlops.report_predictions_data(features_df, predictions, association_ids=[str(uuid.uuid4())], skip_drift_tracking=True,
+                                            skip_accuracy_tracking=True)
+
+        return response
 
     def terminate(self):
         if self._mlops:
