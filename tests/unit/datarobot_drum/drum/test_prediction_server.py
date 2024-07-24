@@ -15,10 +15,10 @@ from openai.types.chat import (
 )
 from openai.types.chat.chat_completion import Choice
 from openai.types.chat.chat_completion_chunk import ChoiceDelta
-from werkzeug.exceptions import BadRequest
 
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.enum import RunLanguage, TargetType, CustomHooks
+from datarobot_drum.drum.exceptions import DrumBadRequestError
 from datarobot_drum.drum.server import _create_flask_app
 from datarobot_drum.resource.components.Python.prediction_server.prediction_server import (
     PredictionServer,
@@ -187,7 +187,7 @@ def test_streaming(openai_client, chat_python_model_adapter, use_generator):
 @pytest.mark.usefixtures("prediction_server")
 def test_http_exception(openai_client, chat_python_model_adapter):
     def chat_hook(model, completion_request):
-        raise BadRequest("Error")
+        raise DrumBadRequestError("Error")
 
     chat_python_model_adapter.chat_hook = chat_hook
 

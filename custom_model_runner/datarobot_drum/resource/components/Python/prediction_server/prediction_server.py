@@ -10,7 +10,6 @@ from pathlib import Path
 
 from flask import jsonify
 from mlpiper.components.connectable_component import ConnectableComponent
-from werkzeug.exceptions import HTTPException
 
 from datarobot_drum.drum.common import (
     make_predictor_capabilities,
@@ -26,7 +25,7 @@ from datarobot_drum.drum.enum import (
     GPU_PREDICTORS,
 )
 from datarobot_drum.drum.description import version as drum_version
-from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.exceptions import DrumCommonException, DrumBadRequestError
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.resource_monitor import ResourceMonitor
 
@@ -40,6 +39,7 @@ from datarobot_drum.drum.server import (
     HTTP_500_INTERNAL_SERVER_ERROR,
     get_flask_app,
     base_api_blueprint,
+    HTTP_400_BAD_REQUEST,
 )
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
@@ -215,6 +215,8 @@ class PredictionServer(ConnectableComponent, PredictMixin):
 
             try:
                 response, response_status = self.do_chat(logger=logger)
+            except DrumBadRequestError as e:
+                return jsonify(error=str(e)), HTTP_400_BAD_REQUEST
             finally:
                 self._post_predict_and_transform()
 
@@ -231,11 +233,6 @@ class PredictionServer(ConnectableComponent, PredictMixin):
                 ret_dict["time_info"][name] = d
             self._stats_collector.stats_reset()
             return ret_dict, HTTP_200_OK
-
-        @model_api.errorhandler(HTTPException)
-        def handle_http_exception(e):
-            logger.exception(e)
-            return jsonify(error=e.description), e.code
 
         @model_api.errorhandler(Exception)
         def handle_exception(e):
