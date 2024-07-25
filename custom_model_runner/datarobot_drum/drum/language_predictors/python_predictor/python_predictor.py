@@ -82,9 +82,13 @@ class PythonPredictor(BaseLanguagePredictor):
             logger.warning("MLOps already initialized. Probably because --monitor was enabled.")
             return
 
-        self._mlops = (
-            MLOps().set_model_id(params["model_id"]).set_deployment_id(params["deployment_id"])
-        )
+        self._mlops = MLOps()
+
+        if params["deployment_id"]:
+            self._mlops.set_deployment_id(params["deployment_id"])
+
+        if params["model_id"]:
+            self._mlops.set_model_id(params["model_id"])
 
         monitor_settings = self._params.get("monitor_settings")
         has_chat_hook = self._model_adapter.has_custom_hook(CustomHooks.CHAT)
