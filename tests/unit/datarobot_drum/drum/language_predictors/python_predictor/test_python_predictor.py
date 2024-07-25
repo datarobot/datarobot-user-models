@@ -68,3 +68,8 @@ class TestMLPiperConfigure:
             user_secrets_mount_path=mount_path,
             user_secrets_prefix=prefix,
         )
+
+
+class TestChat:
+    def test_chat_with_mlops(self):
+        predictor = PythonPredictor()

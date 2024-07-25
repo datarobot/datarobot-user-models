@@ -23,6 +23,7 @@ from datarobot_drum.drum.server import _create_flask_app
 from datarobot_drum.resource.components.Python.prediction_server.prediction_server import (
     PredictionServer,
 )
+from tests.unit.datarobot_drum.drum.conftest import ChatPythonModelAdapter
 
 
 def create_completion(message_content):
@@ -69,26 +70,6 @@ def create_completion_chunks(messages):
     return chunks
 
 
-class ChatPythonModelAdapter(PythonModelAdapter):
-    chat_hook = None
-
-    def __init__(self, model_dir, target_type):
-        super().__init__(model_dir, target_type)
-
-        self._custom_hooks[CustomHooks.CHAT] = self._call_chat_hook
-
-    def load_model_from_artifact(
-        self,
-        user_secrets_mount_path: Optional[str] = None,
-        user_secrets_prefix: Optional[str] = None,
-        skip_predictor_lookup=False,
-    ):
-        return ""
-
-    def _call_chat_hook(self, completion_create_params, model):
-        return ChatPythonModelAdapter.chat_hook(completion_create_params, model)
-
-
 @pytest.fixture
 def test_flask_app():
     with patch("datarobot_drum.drum.server._create_flask_app") as mock_create_flask_app, patch(
@@ -117,7 +98,9 @@ def chat_python_model_adapter():
 
 @pytest.fixture
 def prediction_server(test_flask_app, chat_python_model_adapter):
-    with patch.dict(os.environ, {"TARGET_NAME": "target"}):
+    with patch.dict(os.environ, {"TARGET_NAME": "target"}), patch(
+        "datarobot_drum.drum.language_predictors.python_predictor.python_predictor.PythonPredictor._init_mlops"
+    ):
         server = PredictionServer(Mock())
 
         params = {
@@ -126,7 +109,9 @@ def prediction_server(test_flask_app, chat_python_model_adapter):
             "deployment_config": None,
             "__custom_model_path__": "/non-existing-path-to-avoid-loading-unwanted-artifacts",
         }
+
         server.configure(params)
+        server._predictor._mlops = Mock()
         server.materialize(Mock())
 
 

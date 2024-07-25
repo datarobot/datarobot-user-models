@@ -82,9 +82,13 @@ class PythonPredictor(BaseLanguagePredictor):
             logger.warning("MLOps already initialized. Probably because --monitor was enabled.")
             return
 
-        self._mlops = (
-            MLOps().set_model_id(params["model_id"]).set_deployment_id(params["deployment_id"])
-        )
+        self._mlops = MLOps()
+
+        if params.get("deployment_id", None):
+            self._mlops.set_deployment_id(params["deployment_id"])
+
+        if params.get("model_id", None):
+            self._mlops.set_model_id(params["model_id"])
 
         monitor_settings = self._params.get("monitor_settings")
         has_chat_hook = self._model_adapter.has_custom_hook(CustomHooks.CHAT)
@@ -147,17 +151,15 @@ class PythonPredictor(BaseLanguagePredictor):
             )
         return ret
 
-    def chat(self, completion_create_params):
-        start_time = time.time()
-        response = self._model_adapter.chat(completion_create_params, self._model)
-        #  TODO: Use reporting function in base
+    def _report_chat(self, completion_create_params, start_time, message_content):
         execution_time_ms = (time.time() - start_time) * 1000
+
         self._mlops.report_deployment_stats(num_predictions=1, execution_time_ms=execution_time_ms)
 
         latest_message = completion_create_params["messages"][-1]["content"]
         features_df = pd.DataFrame([{"prompt": latest_message}])
 
-        predictions = [response.choices[0].message.content]
+        predictions = [message_content]
         try:
             self._mlops.report_predictions_data(
                 features_df,
@@ -169,7 +171,30 @@ class PythonPredictor(BaseLanguagePredictor):
         except DRCommonException:
             logger.exception("Failed to report predictions data")
 
-        return response
+    def chat(self, completion_create_params):
+        start_time = time.time()
+        response = self._model_adapter.chat(completion_create_params, self._model)
+
+        if getattr(response, "object", None) == "chat.completion":
+            self._report_chat(
+                completion_create_params, start_time, response.choices[0].message.content
+            )
+            return response
+        else:
+
+            def generator():
+                message_content = ""
+                for chunk in response:
+                    message_content += (
+                        chunk.choices[0].delta.content
+                        if chunk.choices and chunk.choices[0].delta.content
+                        else ""
+                    )
+                    yield chunk
+
+                self._report_chat(completion_create_params, start_time, message_content)
+
+            return generator()
 
     def terminate(self):
         if self._mlops:
