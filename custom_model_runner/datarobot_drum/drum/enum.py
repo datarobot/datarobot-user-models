@@ -67,6 +67,7 @@ GUARD_HOOK = "drum_integration"
 GUARD_HOOK_MODULE = MODERATIONS_LIBRARY_PACKAGE + "." + GUARD_HOOK
 GUARD_INIT_HOOK_NAME = "init"
 GUARD_SCORE_WRAPPER_NAME = "guard_score_wrapper"
+GUARD_CHAT_WRAPPER_NAME = "guard_chat_wrapper"
 
 
 LOG_LEVELS = {

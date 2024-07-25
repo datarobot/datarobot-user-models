@@ -50,7 +50,7 @@ from datarobot_drum.drum.enum import (
     GUARD_INIT_HOOK_NAME,
     GUARD_SCORE_WRAPPER_NAME,
     GUARD_HOOK_MODULE,
-    MODERATIONS_LIBRARY_PACKAGE,
+    MODERATIONS_LIBRARY_PACKAGE, GUARD_CHAT_WRAPPER_NAME,
 )
 from datarobot_drum.drum.exceptions import (
     DrumCommonException,
@@ -128,6 +128,7 @@ class PythonModelAdapter(AbstractModelAdapter):
             self._guard_moderation_hooks = {
                 GUARD_INIT_HOOK_NAME: getattr(guard_module, GUARD_INIT_HOOK_NAME, None),
                 GUARD_SCORE_WRAPPER_NAME: getattr(guard_module, GUARD_SCORE_WRAPPER_NAME, None),
+                GUARD_CHAT_WRAPPER_NAME: getattr(guard_module, GUARD_CHAT_WRAPPER_NAME, None),
             }
             if (
                 self._guard_moderation_hooks[GUARD_INIT_HOOK_NAME]
@@ -748,7 +749,18 @@ class PythonModelAdapter(AbstractModelAdapter):
         return predictions
 
     def chat(self, model, completion_create_params):
-        return self._custom_hooks.get(CustomHooks.CHAT)(model, completion_create_params)
+        if self._guard_pipeline:
+            response = self._guard_moderation_hooks[GUARD_CHAT_WRAPPER_NAME](
+                completion_create_params,
+                model,
+                self._guard_pipeline,
+                self._custom_hooks.get(CustomHooks.CHAT),
+            )
+
+        else:
+            response = self._custom_hooks.get(CustomHooks.CHAT)(model, completion_create_params)
+
+        return response
 
     def fit(
         self,
