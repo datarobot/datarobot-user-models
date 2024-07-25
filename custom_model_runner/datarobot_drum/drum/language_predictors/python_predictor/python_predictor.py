@@ -13,6 +13,7 @@ import uuid
 
 import datarobot as dr
 import pandas as pd
+from datarobot_mlops.common.exception import DRCommonException
 
 from datarobot_drum.drum.common import to_bool
 from datarobot_drum.drum.enum import (
@@ -21,6 +22,7 @@ from datarobot_drum.drum.enum import (
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
     CLASS_LABELS_ARG_KEYWORD,
     TARGET_TYPE_ARG_KEYWORD,
+    CustomHooks,
 )
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
     PythonModelAdapter,
@@ -47,15 +49,18 @@ class PythonPredictor(BaseLanguagePredictor):
             dr_api_endpoint = self._dr_api_url(endpoint=params["external_webserver_url"])
             dr.Client(token=params["api_token"], endpoint=dr_api_endpoint)
 
-        if to_bool(params.get("monitor_embedded")):
-            self._init_mlops(params)
-
         self._model_adapter = PythonModelAdapter(
             model_dir=self._code_dir, target_type=self.target_type
         )
 
         sys.path.append(self._code_dir)
         self._model_adapter.load_custom_hooks()
+
+        if to_bool(params.get("monitor_embedded")) or self._model_adapter.has_custom_hook(
+            CustomHooks.CHAT
+        ):
+            self._init_mlops(params)
+
         try:
             self._model = self._model_adapter.load_model_from_artifact(
                 user_secrets_mount_path=params.get("user_secrets_mount_path"),
@@ -73,26 +78,33 @@ class PythonPredictor(BaseLanguagePredictor):
         return endpoint
 
     def _init_mlops(self, params):
-        monitor_settings = self._params.get("monitor_settings")
-        if not monitor_settings:
-            self._mlops_spool_dir = tempfile.mkdtemp()
-            monitor_settings = (
-                "spooler_type=FILESYSTEM;directory={};max_files=5;file_max_size=10485760".format(
-                    self._mlops_spool_dir
-                )
-            )
+        if self._mlops:
+            logger.warning("MLOps already initialized. Probably because --monitor was enabled.")
+            return
 
         self._mlops = (
-            MLOps()
-            .set_model_id(params["model_id"])
-            .set_deployment_id(params["deployment_id"])
-            .set_channel_config(monitor_settings)
-            # .agent(
-            #     mlops_service_url=params["external_webserver_url"],
-            #     mlops_api_token=params["api_token"],
-            # )
-            .init()
+            MLOps().set_model_id(params["model_id"]).set_deployment_id(params["deployment_id"])
         )
+
+        monitor_settings = self._params.get("monitor_settings")
+        has_chat_hook = self._model_adapter.has_custom_hook(CustomHooks.CHAT)
+        if not monitor_settings:
+            if has_chat_hook:
+                monitor_settings = "spooler_type=API"
+            else:
+                self._mlops_spool_dir = tempfile.mkdtemp()
+                monitor_settings = "spooler_type=FILESYSTEM;directory={};max_files=5;file_max_size=10485760".format(
+                    self._mlops_spool_dir
+                )
+
+        if not has_chat_hook:
+            self._mlops.agent(
+                mlops_service_url=params["external_webserver_url"],
+                mlops_api_token=params["api_token"],
+            )
+
+        self._mlops.set_channel_config(monitor_settings)
+        self._mlops.init()
 
     @property
     def supported_payload_formats(self):
@@ -146,8 +158,16 @@ class PythonPredictor(BaseLanguagePredictor):
         features_df = pd.DataFrame([{"prompt": latest_message}])
 
         predictions = [response.choices[0].message.content]
-        self._mlops.report_predictions_data(features_df, predictions, association_ids=[str(uuid.uuid4())], skip_drift_tracking=True,
-                                            skip_accuracy_tracking=True)
+        try:
+            self._mlops.report_predictions_data(
+                features_df,
+                predictions,
+                association_ids=[str(uuid.uuid4())],
+                skip_drift_tracking=True,
+                skip_accuracy_tracking=True,
+            )
+        except DRCommonException:
+            logger.exception("Failed to report predictions data")
 
         return response
 
