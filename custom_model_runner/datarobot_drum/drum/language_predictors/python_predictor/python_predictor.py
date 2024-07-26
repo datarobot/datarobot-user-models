@@ -155,14 +155,32 @@ class PythonPredictor(BaseLanguagePredictor):
         start_time = time.time()
         association_id = str(uuid.uuid4())
         response = self._model_adapter.chat(self._model, completion_create_params, association_id)
-        #  TODO: Use reporting function in base
+
+        if getattr(response, "object", None) == "chat.completion":
+            self._chat_monitor(start_time, completion_create_params, response.choices[0].message.content, association_id)
+            return response
+        else:
+            return self._monitor_stream(response, start_time, association_id, completion_create_params)
+
+    def _monitor_stream(self, response, start_time, association_id, completion_create_params):
+        total_content = ""
+
+        for chunk in response:
+            if chunk.choices and chunk.choices[0].delta.content is not None:
+                total_content += chunk.choices[0].delta.content
+            yield chunk
+
+        self._chat_monitor(start_time, completion_create_params, total_content, association_id)
+
+
+    def _chat_monitor(self, start_time, completion_create_params, total_content, association_id):
         execution_time_ms = (time.time() - start_time) * 1000
         self._mlops.report_deployment_stats(num_predictions=1, execution_time_ms=execution_time_ms)
 
         latest_message = completion_create_params["messages"][-1]["content"]
         features_df = pd.DataFrame([{"promptText": latest_message}])
 
-        predictions = [response.choices[0].message.content]
+        predictions = [total_content]
         try:
             self._mlops.report_predictions_data(
                 features_df,
@@ -174,7 +192,6 @@ class PythonPredictor(BaseLanguagePredictor):
         except DRCommonException:
             logger.exception("Failed to report predictions data")
 
-        return response
 
     def terminate(self):
         if self._mlops:
