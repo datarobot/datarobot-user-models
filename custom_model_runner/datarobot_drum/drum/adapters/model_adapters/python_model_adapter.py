@@ -748,13 +748,14 @@ class PythonModelAdapter(AbstractModelAdapter):
         PythonModelAdapter._validate_unstructured_predictions(predictions)
         return predictions
 
-    def chat(self, model, completion_create_params):
-        if self._guard_pipeline:
+    def chat(self, model, completion_create_params, association_id):
+        if self._guard_pipeline and not completion_create_params["stream"]:
             response = self._guard_moderation_hooks[GUARD_CHAT_WRAPPER_NAME](
                 completion_create_params,
                 model,
                 self._guard_pipeline,
                 self._custom_hooks.get(CustomHooks.CHAT),
+                association_id
             )
             if isinstance(response, pd.DataFrame):
                 raise DrumBadRequestError(response["response"][0])

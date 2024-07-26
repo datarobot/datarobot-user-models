@@ -153,22 +153,23 @@ class PythonPredictor(BaseLanguagePredictor):
 
     def chat(self, completion_create_params):
         start_time = time.time()
-        response = self._model_adapter.chat(self._model, completion_create_params)
+        association_id = str(uuid.uuid4())
+        response = self._model_adapter.chat(self._model, completion_create_params, association_id)
         #  TODO: Use reporting function in base
         execution_time_ms = (time.time() - start_time) * 1000
         self._mlops.report_deployment_stats(num_predictions=1, execution_time_ms=execution_time_ms)
 
         latest_message = completion_create_params["messages"][-1]["content"]
-        features_df = pd.DataFrame([{"prompt": latest_message}])
+        features_df = pd.DataFrame([{"promptText": latest_message}])
 
         predictions = [response.choices[0].message.content]
         try:
             self._mlops.report_predictions_data(
                 features_df,
                 predictions,
-                association_ids=[str(uuid.uuid4())],
-                skip_drift_tracking=True,
-                skip_accuracy_tracking=True,
+                association_ids=[association_id],
+                skip_drift_tracking=False,
+                skip_accuracy_tracking=False,
             )
         except DRCommonException:
             logger.exception("Failed to report predictions data")
