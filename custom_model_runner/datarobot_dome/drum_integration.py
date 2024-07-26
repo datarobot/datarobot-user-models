@@ -392,7 +392,7 @@ def guard_score_wrapper(data, model, pipeline, drum_score_fn, **kwargs):
 
     return result_df
 
-def guard_chat_wrapper(completion_create_params, model, pipeline, drum_chat_fn, **kwargs):
+def guard_chat_wrapper(completion_create_params, model, pipeline, drum_chat_fn, association_id, **kwargs):
     """
     Score wrapper function provided by the moderation library.  DRUM will invoke this
     function with the user's score function.  The wrapper will execute following steps:
@@ -418,7 +418,7 @@ def guard_chat_wrapper(completion_create_params, model, pipeline, drum_chat_fn, 
 
     latest_message = completion_create_params["messages"][-1]["content"]
     data = pd.DataFrame([{prompt_column_name: latest_message,
-                          pipeline.get_association_id_column_name(): str(uuid.uuid4())}])
+                          pipeline.get_association_id_column_name(): association_id}])
 
     _logger.debug(data)
 
