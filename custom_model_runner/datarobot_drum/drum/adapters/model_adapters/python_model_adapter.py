@@ -56,7 +56,7 @@ from datarobot_drum.drum.exceptions import (
     DrumCommonException,
     DrumException,
     DrumTransformException,
-    DrumSerializationError,
+    DrumSerializationError, DrumBadRequestError,
 )
 from datarobot_drum.drum.utils.dataframe import extract_additional_columns
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
@@ -756,7 +756,8 @@ class PythonModelAdapter(AbstractModelAdapter):
                 self._guard_pipeline,
                 self._custom_hooks.get(CustomHooks.CHAT),
             )
-
+            if isinstance(response, pd.DataFrame):
+                raise DrumBadRequestError(response["response"][0])
         else:
             response = self._custom_hooks.get(CustomHooks.CHAT)(model, completion_create_params)
 

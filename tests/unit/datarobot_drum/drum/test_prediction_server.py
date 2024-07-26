@@ -38,6 +38,7 @@ def create_completion(message_content):
         created=123,
         model="model",
         object="chat.completion",
+        blahblah="yes"
     )
 
 
@@ -156,6 +157,7 @@ def test_prediction_server(openai_client, chat_python_model_adapter):
 
     assert isinstance(completion, ChatCompletion)
     assert completion.choices[0].message.content == "Response"
+    print(completion.to_json(indent=2))
 
 
 @pytest.mark.usefixtures("prediction_server")
