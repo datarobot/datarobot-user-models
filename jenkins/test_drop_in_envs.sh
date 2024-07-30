@@ -22,6 +22,14 @@ pip install -U "$DRUM_WHEEL_REAL_PATH"
 # requirements_test may install newer packages for testing, e.g. `datarobot`
 pip install -r requirements_test_e2e_inference.txt
 
+
+echo "DEBUGGING: disk usage before tests"
+df -h
+
 py.test tests/e2e/test_drop_in_environments.py \
-        -v \
+        -vv \
         --junit-xml="${GIT_ROOT}/results_drop_in.xml"
+
+
+echo "DEBUGGING: disk usage after tests"
+df -h
