@@ -8,10 +8,15 @@ import logging
 import os
 import sys
 
-from mlpiper.components.restful.flask_route import FlaskRoute
-from mlpiper.components.restful_component import RESTfulComponent
-from mlpiper.components.restful.metric import Metric, MetricType, MetricRelation
-
+from datarobot_drum.resource.components.Python.uwsgi_component.restful.flask_route import FlaskRoute
+from datarobot_drum.resource.components.Python.uwsgi_component.restful_component import (
+    RESTfulComponent,
+)
+from datarobot_drum.resource.components.Python.uwsgi_component.restful.metric import (
+    Metric,
+    MetricType,
+    MetricRelation,
+)
 
 from datarobot_drum.drum.common import (
     make_predictor_capabilities,
