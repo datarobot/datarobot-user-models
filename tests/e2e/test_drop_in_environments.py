@@ -8,6 +8,7 @@ from __future__ import absolute_import
 
 import os
 import pytest
+import shutil
 import datarobot as dr
 from datarobot.enums import DEFAULT_MAX_WAIT
 
@@ -188,6 +189,11 @@ class TestDropInEnvironments(object):
         ],
     )
     def test_drop_in_environments(self, request, model, test_data_id):
+        total, used, free = shutil.disk_usage("/")
+        print("Total: %d GiB" % (total // (2**30)))
+        print("Used: %d GiB" % (used // (2**30)))
+        print("Free: %d GiB" % (free // (2**30)))
+
         model_id, model_version_id = request.getfixturevalue(model)
         test_data_id = request.getfixturevalue(test_data_id)
 
