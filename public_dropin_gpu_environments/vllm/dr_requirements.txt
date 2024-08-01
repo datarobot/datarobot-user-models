@@ -33,7 +33,7 @@ datarobot==3.3.2
     # via
     #   -r dr_requirements.in
     #   datarobot-drum
-datarobot-drum==1.11.1
+datarobot-drum==1.11.5
     # via -r dr_requirements.in
 datarobot-mlops==9.2.11
     # via
