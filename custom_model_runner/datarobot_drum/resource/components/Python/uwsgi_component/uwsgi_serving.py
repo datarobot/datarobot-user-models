@@ -8,14 +8,15 @@ import logging
 import os
 import sys
 
+from flask import jsonify
 from mlpiper.components.restful.flask_route import FlaskRoute
 from mlpiper.components.restful_component import RESTfulComponent
 from mlpiper.components.restful.metric import Metric, MetricType, MetricRelation
 
-
 from datarobot_drum.drum.common import (
     make_predictor_capabilities,
 )
+from datarobot_drum.drum.exceptions import DrumBadRequestError
 from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
 from datarobot_drum.drum.enum import (
     TARGET_TYPE_ARG_KEYWORD,
@@ -31,6 +32,7 @@ from datarobot_drum.drum.server import (
     HTTP_200_OK,
     HTTP_500_INTERNAL_SERVER_ERROR,
     HTTP_513_DRUM_PIPELINE_ERROR,
+    HTTP_400_BAD_REQUEST,
 )
 from datarobot_drum.drum.resource_monitor import ResourceMonitor
 from datarobot_drum.resource.predict_mixin import PredictMixin
@@ -250,6 +252,27 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
                 # this counter is managed by uwsgi
                 self._total_predict_requests.increase()
                 self._predict_calls_count += 1
+        except Exception as ex:
+            response_status, response = self._handle_exception(ex)
+        finally:
+            self._stats_collector.mark("finish")
+            self._stats_collector.disable()
+        return response_status, response
+
+    @FlaskRoute(
+        "{}/chat/completions/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["POST"]
+    )
+    def chat(self, url_params, form_params):
+        if self._error_response:
+            return HTTP_513_DRUM_PIPELINE_ERROR, self._error_response
+
+        self._stats_collector.enable()
+        self._stats_collector.mark("start")
+
+        try:
+            response, response_status = self.do_chat()
+        except DrumBadRequestError as ex:
+            return HTTP_400_BAD_REQUEST, jsonify(error=str(ex))
         except Exception as ex:
             response_status, response = self._handle_exception(ex)
         finally:

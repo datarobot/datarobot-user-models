@@ -40,3 +40,7 @@ class DrumTransformException(DrumException):
 
 class DrumSerializationError(DrumException):
     """Raised when there is an issue serializing or deserializing a custom task/model"""
+
+
+class DrumBadRequestError(DrumException):
+    """Raised when a hook is unable to process a because the input is malformed."""
