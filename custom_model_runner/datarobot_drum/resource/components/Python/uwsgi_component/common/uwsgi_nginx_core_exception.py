@@ -1,0 +1,2 @@
+class UwsgiNginxCoreException(Exception):
+    pass
