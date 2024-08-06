@@ -777,6 +777,9 @@ class CMRunner:
                     if getattr(options, "max_workers")
                     else "null",
                     "single_uwsgi_worker": (options.max_workers == 1),
+                    "uwsgi_threads": options.threads
+                    if getattr(options, "threads")
+                    else "null",
                     "deployment_config": '"{}"'.format(options.deployment_config)
                     if getattr(options, "deployment_config", None) is not None
                     else "null",

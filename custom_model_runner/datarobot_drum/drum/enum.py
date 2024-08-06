@@ -267,6 +267,7 @@ class ArgumentsOptions:
     WITH_ERROR_SERVER = "--with-error-server"
     SHOW_STACKTRACE = "--show-stacktrace"
     MAX_WORKERS = "--max-workers"
+    THREADS = "--threads"
     VERBOSE = "--verbose"
     VERSION = "--version"
     TARGET_TYPE = "--target-type"
@@ -304,6 +305,7 @@ class ArgumentOptionsEnvVars:
     CLASS_LABELS = "CLASS_LABELS"
     ADDRESS = "ADDRESS"
     MAX_WORKERS = "MAX_WORKERS"
+    THREADS = "THREADS"
     DEPLOYMENT_CONFIG = "DEPLOYMENT_CONFIG"
 
     MONITOR = "MONITOR"

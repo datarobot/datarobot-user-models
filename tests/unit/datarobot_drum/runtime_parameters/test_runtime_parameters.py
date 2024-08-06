@@ -50,7 +50,11 @@ class TestRuntimeParameters:
         namespaced_runtime_param_name = RuntimeParameters.namespaced_param_name(runtime_param_name)
         runtime_param_env_value = json.dumps({"type": runtime_param_type.value, "payload": payload})
         with patch.dict(os.environ, {namespaced_runtime_param_name: runtime_param_env_value}):
+            assert RuntimeParameters.has(runtime_param_name)
             assert RuntimeParameters.get(runtime_param_name) == payload
+
+    def test_has_not(self):
+        assert not RuntimeParameters.has("ZZZZ")
 
     @pytest.mark.parametrize(
         "runtime_param_type, payload",
