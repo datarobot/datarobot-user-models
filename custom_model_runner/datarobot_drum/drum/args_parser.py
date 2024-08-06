@@ -397,6 +397,28 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
+    def _reg_arg_threads(*parsers):
+        def type_callback(arg):
+            ret_val = int(arg)
+            if ArgumentsOptions.PRODUCTION not in sys.argv:
+                raise argparse.ArgumentTypeError(
+                    "can only be used in pair with {}".format(ArgumentsOptions.PRODUCTION)
+                )
+            if ret_val < 1:
+                raise argparse.ArgumentTypeError("must be > 0")
+            return ret_val
+
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.THREADS,
+                type=type_callback,
+                default=1,
+                help="Number of uwsgi threads in server production mode. The argument can also be provided by setting {} env var.".format(
+                    ArgumentOptionsEnvVars.THREADS
+                ),
+            )
+
+    @staticmethod
     def _reg_arg_max_workers(*parsers):
         def type_callback(arg):
             ret_val = int(arg)
@@ -404,16 +426,16 @@ class CMRunnerArgsRegistry(object):
                 raise argparse.ArgumentTypeError(
                     "can only be used in pair with {}".format(ArgumentsOptions.PRODUCTION)
                 )
-            if ret_val <= 0:
-                raise argparse.ArgumentTypeError("must be > 0")
+            if ret_val != 1:
+                raise argparse.ArgumentTypeError("Only one worker is supported")
             return ret_val
 
         for parser in parsers:
             parser.add_argument(
                 ArgumentsOptions.MAX_WORKERS,
                 type=type_callback,
-                # default 0 is mapped into null in pipeline json
-                default=0,
+                # only one worker is supported
+                default=1,
                 help="Max number of uwsgi workers in server production mode. The argument can also be provided by setting {} env var.".format(
                     ArgumentOptionsEnvVars.MAX_WORKERS
                 ),
@@ -961,6 +983,7 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_arg_address(server_parser)
         CMRunnerArgsRegistry._reg_arg_production_server(server_parser, perf_test_parser)
         CMRunnerArgsRegistry._reg_arg_max_workers(server_parser, perf_test_parser)
+        CMRunnerArgsRegistry._reg_arg_threads(server_parser, perf_test_parser)
         CMRunnerArgsRegistry._reg_arg_with_error_server(server_parser)
 
         CMRunnerArgsRegistry._reg_arg_language(

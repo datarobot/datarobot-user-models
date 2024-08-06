@@ -707,3 +707,41 @@ class TestRuntimeParametersArgs:
         with pytest.raises(SystemExit), NamedTemporaryFile() as f:
             args.extend([ArgumentsOptions.RUNTIME_PARAMS_FILE, f.name])
             get_args_parser_options(args)
+
+
+class TestProductionArgs:
+    @pytest.mark.parametrize(
+        "expected_treads, production_args",
+        [(1, ["--production"]),
+         (7, ["--production", "--threads", "7"]),
+         (7, ["--production", "--threads", "7", "--max-workers", "1"]),
+         ]
+    )
+    def test_production_args_success(self, expected_treads, production_args, server_args):
+        server_args.extend(
+            production_args
+        )
+        actual = get_args_parser_options(server_args)
+
+        assert actual.production is True
+        assert actual.max_workers == 1
+        assert actual.threads == expected_treads
+
+    @pytest.mark.parametrize(
+        "expected_err_msg, production_args",
+        [("--threads: can only be used in pair with --production\n",  ["--threads", "7"]),
+         ("--threads: must be > 0\n", ["--production", "--threads", "0"]),
+         ("--threads: invalid type_callback value: 'all'\n",  ["--production", "--threads", "all"]),
+         ("--max-workers: Only one worker is supported\n", ["--production", "--threads", "7", "--max-workers", "2"]),
+         ]
+    )
+    def test_production_args_fail(self, expected_err_msg, production_args, server_args, capsys):
+        server_args.extend(production_args)
+        with pytest.raises(SystemExit):
+            get_args_parser_options(server_args)
+        captured = capsys.readouterr()
+
+        assert captured.err.endswith(expected_err_msg)
+
+
+
