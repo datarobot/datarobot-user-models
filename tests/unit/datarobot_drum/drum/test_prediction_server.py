@@ -141,7 +141,7 @@ def openai_client(test_flask_app):
 
 @pytest.mark.usefixtures("prediction_server")
 def test_prediction_server(openai_client, chat_python_model_adapter):
-    def chat_hook(model, completion_request):
+    def chat_hook(completion_request, model):
         return create_completion("Response")
 
     chat_python_model_adapter.chat_hook = chat_hook
@@ -163,7 +163,7 @@ def test_prediction_server(openai_client, chat_python_model_adapter):
 def test_streaming(openai_client, chat_python_model_adapter, use_generator):
     chunks = create_completion_chunks(["How", "are", "you", "doing"])
 
-    def chat_hook(model, completion_request):
+    def chat_hook(completion_request, model):
         return (chunk for chunk in chunks) if use_generator else chunks
 
     chat_python_model_adapter.chat_hook = chat_hook
@@ -186,7 +186,7 @@ def test_streaming(openai_client, chat_python_model_adapter, use_generator):
 
 @pytest.mark.usefixtures("prediction_server")
 def test_http_exception(openai_client, chat_python_model_adapter):
-    def chat_hook(model, completion_request):
+    def chat_hook(completion_request, model):
         raise DrumBadRequestError("Error")
 
     chat_python_model_adapter.chat_hook = chat_hook
