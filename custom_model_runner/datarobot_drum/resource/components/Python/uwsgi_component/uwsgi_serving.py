@@ -260,6 +260,13 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
         return response_status, response
 
     @FlaskRoute(
+        "{}/v1/chat/completions/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")),
+        methods=["POST"],
+    )
+    def v1_chat(self, url_params, form_params):
+        self.chat(url_params, form_params)
+
+    @FlaskRoute(
         "{}/chat/completions/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["POST"]
     )
     def chat(self, url_params, form_params):
