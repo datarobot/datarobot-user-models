@@ -5,7 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import werkzeug
-from flask import request, Response
+from quart import request, Response
 from requests_toolbelt import MultipartEncoder
 
 from datarobot_drum.drum.enum import (
@@ -50,8 +50,9 @@ class PredictMixin:
         return ret_mimetype, ret_charset
 
     @staticmethod
-    def _fetch_data_from_request(file_key, logger=None):
-        filestorage = request.files.get(file_key)
+    async def _fetch_data_from_request(file_key, logger=None):
+        files = await request.files
+        filestorage = files.get(file_key)
 
         charset = None
         if filestorage is not None:
@@ -64,8 +65,8 @@ class PredictMixin:
                 )
 
         # TODO: probably need to return empty response in case of empty request
-        elif len(request.data) and file_key == "X":
-            binary_data = request.data
+        elif len(await request.data) and file_key == "X":
+            binary_data = await request.data
             mimetype, charset = PredictMixin._validate_content_type_header(request.content_type)
         else:
             wrong_key_error_message = (
@@ -79,8 +80,8 @@ class PredictMixin:
         return binary_data, mimetype, charset
 
     @staticmethod
-    def _fetch_additional_files_from_request(file_key, logger=None):
-        filestorage = request.files.get(file_key)
+    async def _fetch_additional_files_from_request(file_key, logger=None):
+        filestorage = (await request.files).get(file_key)
 
         if filestorage is not None:
             binary_data = filestorage.stream.read()
@@ -92,8 +93,8 @@ class PredictMixin:
             return binary_data
         return None
 
-    def _get_sparse_column_names(self, logger):
-        sparse_column_data = self._fetch_additional_files_from_request(
+    async def _get_sparse_column_names(self, logger):
+        sparse_column_data = await self._fetch_additional_files_from_request(
             SPARSE_COLNAMES, logger=logger
         )
         if sparse_column_data:
@@ -117,11 +118,11 @@ class PredictMixin:
             return {"message": error_message}, HTTP_422_UNPROCESSABLE_ENTITY
         return None
 
-    def _do_predict_structured(self, logger=None):
+    async def _do_predict_structured(self, logger=None):
         response_status = HTTP_200_OK
         try:
-            binary_data, mimetype, charset = self._fetch_data_from_request("X", logger=logger)
-            sparse_column_names = self._get_sparse_column_names(logger=logger)
+            binary_data, mimetype, charset = await self._fetch_data_from_request("X", logger=logger)
+            sparse_column_names = await self._get_sparse_column_names(logger=logger)
 
             mimetype_support_error_response = self._check_mimetype_support(mimetype)
             if mimetype_support_error_response is not None:
@@ -130,7 +131,7 @@ class PredictMixin:
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             return {"message": "ERROR: " + str(e)}, response_status
 
-        predict_response = self._predictor.predict(
+        predict_response = await self._predictor.predict(
             binary_data=binary_data,
             mimetype=mimetype,
             charset=charset,
@@ -307,7 +308,7 @@ class PredictMixin:
 
         return response, response_status
 
-    def do_predict_structured(self, logger=None):
+    async def do_predict_structured(self, logger=None):
         wrong_target_type_error_message = (
             "This model has target type '{}', use the {{}} endpoint.".format(
                 self._target_type.value
@@ -332,7 +333,7 @@ class PredictMixin:
                 HTTP_422_UNPROCESSABLE_ENTITY,
             )
 
-        return self._do_predict_structured(logger=logger)
+        return await self._do_predict_structured(logger=logger)
 
     def do_predict_unstructured(self, logger=None):
         if self._target_type != TargetType.UNSTRUCTURED:

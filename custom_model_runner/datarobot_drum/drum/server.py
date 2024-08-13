@@ -4,7 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-from flask import Flask, Blueprint
+from quart import Quart, Blueprint
 import os
 
 from datarobot_drum.drum.enum import URL_PREFIX_ENV_VAR_NAME
@@ -16,7 +16,7 @@ HTTP_513_DRUM_PIPELINE_ERROR = 513
 
 
 def get_flask_app(api_blueprint):
-    app = Flask(__name__)
+    app = Quart(__name__)
     url_prefix = os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")
     app.register_blueprint(api_blueprint, url_prefix=url_prefix)
     return app

@@ -166,12 +166,12 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         @model_api.route("/predictions/", methods=["POST"])
         @model_api.route("/predict/", methods=["POST"])
         @model_api.route("/invocations", methods=["POST"])
-        def predict():
+        async def predict():
             logger.debug("Entering predict() endpoint")
 
             self._pre_predict_and_transform()
             try:
-                response, response_status = self.do_predict_structured(logger=logger)
+                response, response_status = await self.do_predict_structured(logger=logger)
             finally:
                 self._post_predict_and_transform()
 

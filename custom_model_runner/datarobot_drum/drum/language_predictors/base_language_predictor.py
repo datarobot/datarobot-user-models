@@ -155,9 +155,9 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                 features_df=df, predictions=mlops_predictions, class_names=class_names
             )
 
-    def predict(self, **kwargs) -> PredictResponse:
+    async def predict(self, **kwargs) -> PredictResponse:
         start_predict = time.time()
-        raw_predict_response = self._predict(**kwargs)
+        raw_predict_response = await self._predict(**kwargs)
         predictions_df = marshal_predictions(
             request_labels=self.class_ordering,
             predictions=raw_predict_response.predictions,
@@ -170,7 +170,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         return PredictResponse(predictions_df, raw_predict_response.extra_model_output)
 
     @abstractmethod
-    def _predict(self, **kwargs) -> RawPredictResponse:
+    async def _predict(self, **kwargs) -> RawPredictResponse:
         """Predict on input_filename or binary_data"""
         pass
 

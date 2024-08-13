@@ -578,7 +578,7 @@ class PythonModelAdapter(AbstractModelAdapter):
         except Exception as exc:
             self._log_and_raise_final_error(exc, "Model 'score' hook failed to make predictions.")
 
-    def _predict_legacy_drum(self, data, model, **kwargs) -> RawPredictResponse:
+    async def _predict_legacy_drum(self, data, model, **kwargs) -> RawPredictResponse:
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
         request_labels = (
@@ -610,7 +610,7 @@ class PythonModelAdapter(AbstractModelAdapter):
                         )
                 else:
                     # noinspection PyCallingNonCallable
-                    predictions_df = self._custom_hooks.get(CustomHooks.SCORE)(
+                    predictions_df = await self._custom_hooks.get(CustomHooks.SCORE)(
                         data, model, **kwargs
                     )
             except Exception as exc:
@@ -685,7 +685,7 @@ class PythonModelAdapter(AbstractModelAdapter):
                 predictions_df = result_df
         return predictions_df, extra_model_output
 
-    def predict(self, model=None, **kwargs) -> RawPredictResponse:
+    async def predict(self, model=None, **kwargs) -> RawPredictResponse:
         """
         Makes predictions against the model using the custom predict
         Parameters
@@ -708,7 +708,7 @@ class PythonModelAdapter(AbstractModelAdapter):
         if self.is_custom_task_class:
             return self._predict_new_drum(data, **kwargs)
         else:
-            return self._predict_legacy_drum(data, model, **kwargs)
+            return await self._predict_legacy_drum(data, model, **kwargs)
 
     @staticmethod
     def _validate_unstructured_predictions(unstructured_response):
