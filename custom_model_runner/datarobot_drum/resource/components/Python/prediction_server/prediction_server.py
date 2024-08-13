@@ -10,6 +10,7 @@ from pathlib import Path
 
 from flask import jsonify
 from mlpiper.components.connectable_component import ConnectableComponent
+from werkzeug.exceptions import HTTPException
 
 from datarobot_drum.drum.common import (
     make_predictor_capabilities,
@@ -25,7 +26,7 @@ from datarobot_drum.drum.enum import (
     GPU_PREDICTORS,
 )
 from datarobot_drum.drum.description import version as drum_version
-from datarobot_drum.drum.exceptions import DrumCommonException, DrumBadRequestError
+from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.resource_monitor import ResourceMonitor
 
@@ -215,8 +216,6 @@ class PredictionServer(ConnectableComponent, PredictMixin):
 
             try:
                 response, response_status = self.do_chat(logger=logger)
-            except DrumBadRequestError as e:
-                return jsonify(error=str(e)), HTTP_400_BAD_REQUEST
             finally:
                 self._post_predict_and_transform()
 
@@ -237,6 +236,10 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         @model_api.errorhandler(Exception)
         def handle_exception(e):
             logger.exception(e)
+
+            if isinstance(e, HTTPException) and e.code == HTTP_400_BAD_REQUEST:
+                return jsonify(error=e.description), e.code
+
             return {"message": "ERROR: {}".format(e)}, HTTP_500_INTERNAL_SERVER_ERROR
 
         # Disables warning for development server

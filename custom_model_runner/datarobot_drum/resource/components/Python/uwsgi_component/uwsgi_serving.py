@@ -12,11 +12,11 @@ from flask import jsonify
 from mlpiper.components.restful.flask_route import FlaskRoute
 from mlpiper.components.restful_component import RESTfulComponent
 from mlpiper.components.restful.metric import Metric, MetricType, MetricRelation
+from werkzeug.exceptions import HTTPException
 
 from datarobot_drum.drum.common import (
     make_predictor_capabilities,
 )
-from datarobot_drum.drum.exceptions import DrumBadRequestError
 from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
 from datarobot_drum.drum.enum import (
     TARGET_TYPE_ARG_KEYWORD,
@@ -271,8 +271,6 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
 
         try:
             response, response_status = self.do_chat()
-        except DrumBadRequestError as ex:
-            return HTTP_400_BAD_REQUEST, jsonify(error=str(ex))
         except Exception as ex:
             response_status, response = self._handle_exception(ex)
         finally:
@@ -282,6 +280,10 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
 
     def _handle_exception(self, ex):
         self._logger.error(ex)
+
+        if isinstance(ex, HTTPException) and ex.code == HTTP_400_BAD_REQUEST:
+            return jsonify(error=ex.description), ex.code
+
         response_status = HTTP_500_INTERNAL_SERVER_ERROR
         response = {"message": "ERROR: {}".format(ex)}
         return response_status, response
