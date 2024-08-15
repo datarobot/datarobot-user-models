@@ -202,3 +202,15 @@ def test_http_exception(openai_client, chat_python_model_adapter):
 
     # Response body should be json with error property
     assert exc_info.value.response.json()["error"] == "Error"
+
+
+@pytest.mark.parametrize("processes_param, expected_processes", [(None, 1), (10, 10)])
+def test_run_flask_app(processes_param, expected_processes):
+    server = PredictionServer(Mock())
+    server._params = {"host": "localhost", "port": "6789"}
+    if processes_param:
+        server._params["processes"] = processes_param
+
+    app = Mock()
+    server._run_flask_app(app)
+    app.run.assert_called_with("localhost", "6789", threaded=False, processes=expected_processes)

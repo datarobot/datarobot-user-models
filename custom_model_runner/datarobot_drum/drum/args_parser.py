@@ -400,10 +400,6 @@ class CMRunnerArgsRegistry(object):
     def _reg_arg_max_workers(*parsers):
         def type_callback(arg):
             ret_val = int(arg)
-            if ArgumentsOptions.PRODUCTION not in sys.argv:
-                raise argparse.ArgumentTypeError(
-                    "can only be used in pair with {}".format(ArgumentsOptions.PRODUCTION)
-                )
             if ret_val <= 0:
                 raise argparse.ArgumentTypeError("must be > 0")
             return ret_val
@@ -414,7 +410,7 @@ class CMRunnerArgsRegistry(object):
                 type=type_callback,
                 # default 0 is mapped into null in pipeline json
                 default=0,
-                help="Max number of uwsgi workers in server production mode. The argument can also be provided by setting {} env var.".format(
+                help="Max number of workers in server. The argument can also be provided by setting {} env var.".format(
                     ArgumentOptionsEnvVars.MAX_WORKERS
                 ),
             )

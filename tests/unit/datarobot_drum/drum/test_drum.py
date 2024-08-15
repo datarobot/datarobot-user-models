@@ -352,6 +352,7 @@ class TestCMRunnerServer:
             "classLabels": None,
             "__custom_model_path__": this_dir,
             "uwsgi_max_workers": None,
+            "processes": None,
             "monitor": "False",
             "monitor_embedded": "False",
             "model_id": "None",

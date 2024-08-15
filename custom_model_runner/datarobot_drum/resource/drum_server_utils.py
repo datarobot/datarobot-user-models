@@ -84,6 +84,7 @@ class DrumServerRun:
         gpu_predictor=None,
         target_name=None,
         wait_for_server_timeout=30,
+        max_workers=None,
     ):
         self.port = DrumUtils.find_free_port()
         self.server_address = "localhost:{}".format(self.port)
@@ -115,6 +116,7 @@ class DrumServerRun:
         self._thread_class = thread_class
         self._gpu_predictor = gpu_predictor
         self._wait_for_server_timeout = wait_for_server_timeout
+        self._max_workers = max_workers
 
     def __enter__(self):
         self._server_thread = self._thread_class(
@@ -211,6 +213,11 @@ class DrumServerRun:
                 os.environ[ArgumentOptionsEnvVars.PRODUCTION] = "1"
             else:
                 cmd += " --production"
+        if self._max_workers:
+            if self._pass_args_as_env_vars:
+                os.environ[ArgumentOptionsEnvVars.MAX_WORKERS] = str(self._max_workers)
+            else:
+                cmd += " --max-workers {}".format(self._max_workers)
         if self._verbose:
             cmd += " --verbose"
         if self._gpu_predictor:
