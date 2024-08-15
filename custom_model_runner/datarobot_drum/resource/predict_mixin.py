@@ -4,8 +4,10 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+from typing import Iterable
+
 import werkzeug
-from flask import request, Response
+from flask import request, Response, stream_with_context
 from requests_toolbelt import MultipartEncoder
 
 from datarobot_drum.drum.enum import (
@@ -99,6 +101,16 @@ class PredictMixin:
         if sparse_column_data:
             return StructuredInputReadUtils.read_sparse_column_data_as_list(sparse_column_data)
         return None
+
+    @staticmethod
+    def _stream_openai_chunks(stream):
+        for chunk in stream:
+            chunk_json = chunk.to_json(indent=None)
+            for line in chunk_json.splitlines():
+                yield f"data: {line}\n"
+            yield "\n"
+
+        yield "data: [DONE]\n\n"
 
     def _check_mimetype_support(self, mimetype):
         # TODO: self._predictor.supported_payload_formats is property so gets initialized on every call, make it a method?
@@ -379,6 +391,25 @@ class PredictMixin:
             response.headers["Content-Type"] = content_type
 
         return response, response_status
+
+    def do_chat(self, logger=None):
+        completion_create_params = request.json
+
+        result = self._predictor.chat(completion_create_params)
+
+        if getattr(result, "object", None) == "chat.completion":
+            response = result.to_dict()
+        elif isinstance(result, Iterable):
+            response = Response(
+                stream_with_context(PredictMixin._stream_openai_chunks(result)),
+                mimetype="text/event-stream",
+            )
+        else:
+            raise Exception(
+                "Expected response to be ChatCompletion or Iterable[ChatCompletionChunk]"
+            )
+
+        return response, HTTP_200_OK
 
     def do_transform(self, logger=None):
         if self._target_type != TargetType.TRANSFORM:

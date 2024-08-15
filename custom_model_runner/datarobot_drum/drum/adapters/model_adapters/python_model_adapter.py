@@ -99,7 +99,7 @@ class PythonModelAdapter(AbstractModelAdapter):
             ONNXPredictor(),
         ]
         self._predictor_to_use = None
-        self._custom_hooks = {hook: None for hook in CustomHooks.ALL_PREDICT_FIT_STRUCTURED}
+        self._custom_hooks = {hook: None for hook in CustomHooks.ALL_PREDICT_FIT_CHAT_STRUCTURED}
         self._model = None
         self._model_dir = model_dir
         self._target_type = target_type
@@ -198,7 +198,7 @@ class PythonModelAdapter(AbstractModelAdapter):
                     )
                 )
         else:
-            for hook in CustomHooks.ALL_PREDICT_FIT_STRUCTURED:
+            for hook in CustomHooks.ALL_PREDICT_FIT_CHAT_STRUCTURED:
                 self._custom_hooks[hook] = getattr(custom_module, hook, None)
 
         if self._custom_hooks.get(CustomHooks.INIT):
@@ -243,10 +243,11 @@ class PythonModelAdapter(AbstractModelAdapter):
             model_artifact_file = self._detect_model_artifact_file()
             self._model = self._load_via_predictors(model_artifact_file)
 
-        # If a score hook is not given we need to find a predictor that can handle this model
+        # If a score or chat hook is not given we need to find a predictor that can handle this model
         if (
             self._target_type not in [TargetType.UNSTRUCTURED, TargetType.TRANSFORM]
             and not self._custom_hooks[CustomHooks.SCORE]
+            and not self._custom_hooks[CustomHooks.CHAT]
             and not skip_predictor_lookup
         ):
             self._find_predictor_to_use()
@@ -745,6 +746,9 @@ class PythonModelAdapter(AbstractModelAdapter):
         predictions = self._custom_hooks.get(CustomHooks.SCORE_UNSTRUCTURED)(model, data, **kwargs)
         PythonModelAdapter._validate_unstructured_predictions(predictions)
         return predictions
+
+    def chat(self, model, completion_create_params):
+        return self._custom_hooks.get(CustomHooks.CHAT)(model, completion_create_params)
 
     def fit(
         self,

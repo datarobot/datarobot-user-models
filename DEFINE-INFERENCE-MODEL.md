@@ -307,7 +307,29 @@ def load_model(code_dir):
     s3_creds = RuntimeParameters.get("AWS_CREDENIAL")
     ...
 ```
-  
+
+## Define a Chat API model <a name="chat_api_model"></a>
+A Chat API model implements support for [OpenAIs Chat completion API](https://platform.openai.com/docs/api-reference/chat/create).
+The following hooks are supported:
+
+- `init(**kwargs) -> None`
+    - Executed once in the beginning of the run
+    - `kwargs` - additional keyword arguments to the method;
+        - code_dir - code folder passed in the `--code_dir` parameter
+- `load_model(code_dir: str) -> Any`
+    - `code_dir` is the directory where the model artifact and additional code are provided, which is passed in the `--code_dir` parameter
+    - If used, this hook must return a non-None value
+    - This hook can be used to load supported models if your model has multiple artifacts, or for loading models that
+      DRUM does not natively support
+- `chat(completion_create_params: CompletionCreateParams, model: Any) -> ChatCompletion | Iterator[ChatCompletionChunk]`
+    - `completion_create_params` is an object that holds all the parameters needed to create the chat completion.
+    - `model` is the deserialized model loaded by DRUM or by `load_model`, if supplied
+    - This method should return a `ChatCompletion` object if streaming is disabled and `Iterator[ChatCompletionChunk]` 
+if streaming is enabled.
+
+Furthermore, it is possible to define a `score` hook as well as the other structured model hooks. This allows a 
+model to implement the `chat` hook but still be backwards compatible with users of the `score` hook.
+
 
 ## Test an inference model with DRUM locally <a name="test_inference_model_drum"></a>
 

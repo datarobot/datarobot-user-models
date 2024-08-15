@@ -8,10 +8,11 @@ import logging
 import os
 import sys
 
+from flask import jsonify
 from mlpiper.components.restful.flask_route import FlaskRoute
 from mlpiper.components.restful_component import RESTfulComponent
 from mlpiper.components.restful.metric import Metric, MetricType, MetricRelation
-
+from werkzeug.exceptions import HTTPException
 
 from datarobot_drum.drum.common import (
     make_predictor_capabilities,
@@ -31,6 +32,7 @@ from datarobot_drum.drum.server import (
     HTTP_200_OK,
     HTTP_500_INTERNAL_SERVER_ERROR,
     HTTP_513_DRUM_PIPELINE_ERROR,
+    HTTP_400_BAD_REQUEST,
 )
 from datarobot_drum.drum.resource_monitor import ResourceMonitor
 from datarobot_drum.resource.predict_mixin import PredictMixin
@@ -257,8 +259,38 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
             self._stats_collector.disable()
         return response_status, response
 
+    @FlaskRoute(
+        "{}/v1/chat/completions/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")),
+        methods=["POST"],
+    )
+    def v1_chat(self, url_params, form_params):
+        self.chat(url_params, form_params)
+
+    @FlaskRoute(
+        "{}/chat/completions/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["POST"]
+    )
+    def chat(self, url_params, form_params):
+        if self._error_response:
+            return HTTP_513_DRUM_PIPELINE_ERROR, self._error_response
+
+        self._stats_collector.enable()
+        self._stats_collector.mark("start")
+
+        try:
+            response, response_status = self.do_chat()
+        except Exception as ex:
+            response_status, response = self._handle_exception(ex)
+        finally:
+            self._stats_collector.mark("finish")
+            self._stats_collector.disable()
+        return response_status, response
+
     def _handle_exception(self, ex):
         self._logger.error(ex)
+
+        if isinstance(ex, HTTPException) and ex.code == HTTP_400_BAD_REQUEST:
+            return jsonify(error=ex.description), ex.code
+
         response_status = HTTP_500_INTERNAL_SERVER_ERROR
         response = {"message": "ERROR: {}".format(ex)}
         return response_status, response

@@ -7,7 +7,10 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import logging
 import sys
 from pathlib import Path
+
+from flask import jsonify
 from mlpiper.components.connectable_component import ConnectableComponent
+from werkzeug.exceptions import HTTPException
 
 from datarobot_drum.drum.common import (
     make_predictor_capabilities,
@@ -37,6 +40,7 @@ from datarobot_drum.drum.server import (
     HTTP_500_INTERNAL_SERVER_ERROR,
     get_flask_app,
     base_api_blueprint,
+    HTTP_400_BAD_REQUEST,
 )
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
@@ -202,6 +206,20 @@ class PredictionServer(ConnectableComponent, PredictMixin):
             finally:
                 self._post_predict_and_transform()
 
+            return (response, response_status)
+
+        @model_api.route("/chat/completions", methods=["POST"])
+        @model_api.route("/v1/chat/completions", methods=["POST"])
+        def chat():
+            logger.debug("Entering chat endpoint")
+
+            self._pre_predict_and_transform()
+
+            try:
+                response, response_status = self.do_chat(logger=logger)
+            finally:
+                self._post_predict_and_transform()
+
             return response, response_status
 
         @model_api.route("/stats/", methods=["GET"])
@@ -219,6 +237,10 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         @model_api.errorhandler(Exception)
         def handle_exception(e):
             logger.exception(e)
+
+            if isinstance(e, HTTPException) and e.code == HTTP_400_BAD_REQUEST:
+                return jsonify(error=e.description), e.code
+
             return {"message": "ERROR: {}".format(e)}, HTTP_500_INTERNAL_SERVER_ERROR
 
         # Disables warning for development server
@@ -227,18 +249,20 @@ class PredictionServer(ConnectableComponent, PredictMixin):
 
         app = get_flask_app(model_api)
         self.load_flask_extensions(app)
+        self._run_flask_app(app)
 
+        if self._stats_collector:
+            self._stats_collector.print_reports()
+
+        return []
+
+    def _run_flask_app(self, app):
         host = self._params.get("host", None)
         port = self._params.get("port", None)
         try:
             app.run(host, port, threaded=False)
         except OSError as e:
             raise DrumCommonException("{}: host: {}; port: {}".format(e, host, port))
-
-        if self._stats_collector:
-            self._stats_collector.print_reports()
-
-        return []
 
     def terminate(self):
         terminate_op = getattr(self._predictor, "terminate", None)
