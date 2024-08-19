@@ -25,7 +25,7 @@ flask==2.2.5
     #   datarobot-drum
     #   flask-cors
     #   mlpiper
-flask-cors==4.0.0
+flask-cors==4.0.1
     # via mlpiper
 future==1.0.0
     # via mlpiper
@@ -149,7 +149,7 @@ urllib3==1.26.19
     #   requests
 websocket-client==1.7.0
     # via docker
-werkzeug==3.0.1
+werkzeug==3.0.3
     # via
     #   datarobot-drum
     #   flask
