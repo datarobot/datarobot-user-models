@@ -709,11 +709,11 @@ class TestRuntimeParametersArgs:
             get_args_parser_options(args)
 
 
-class TestProductionArgs:
+class TestMaxWorkersArgs:
     @pytest.mark.parametrize(
         "expected_max_workers, max_workers_args",
         [
-            (5, ["--production", "--max-workers", "5"]),
+            (0, []),
             (7, ["--max-workers", "7"]),
         ],
     )
