@@ -97,6 +97,10 @@ class RuntimeParameters:
     def namespaced_param_name(cls, param_name):
         return f"{cls.PARAM_PREFIX}_{param_name}"
 
+    @classmethod
+    def has(cls, param_name):
+        runtime_param_key = cls.namespaced_param_name(param_name)
+        return runtime_param_key in os.environ
 
 class RuntimeParametersLoader:
     """
