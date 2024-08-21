@@ -8,6 +8,7 @@ import argparse
 import os
 import subprocess
 import sys
+from email.policy import default
 from urllib.parse import urlparse
 
 import trafaret as t
@@ -580,6 +581,14 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.MONITOR_SETTINGS,
                 default=os.environ.get("MONITOR_SETTINGS", None),
                 help="MLOps setting to use for connecting with the MLOps Agent (env: MONITOR_SETTINGS)",
+            )
+
+            parser.add_argument(
+                ArgumentsOptions.MODEL_FEATURE_TYPES_FILE,
+                default=os.environ.get("MODEL_FEATURE_TYPES_FILE", None),
+                required=False,
+                type=CMRunnerArgsRegistry._is_valid_file,
+                help=f"MLOps model feature types for used for aggregation. (env: {ArgumentOptionsEnvVars.MODEL_FEATURE_TYPES_FILE}",
             )
 
     @staticmethod

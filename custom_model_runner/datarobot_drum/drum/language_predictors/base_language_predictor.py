@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import json
 import logging
 import os
 import time
@@ -26,6 +27,7 @@ from datarobot_drum.drum.enum import (
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from datarobot_drum.drum.data_marshalling import marshal_predictions
+from datarobot_mlops.metric import AggregationHelper
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -104,8 +106,15 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                 .set_model_id(self._params["model_id"])
                 .set_deployment_id(self._params["deployment_id"])
                 .set_channel_config(self._params["monitor_settings"])
-                .init()
             )
+
+            feature_types_path = self._params.get("model_feature_types_file")
+            if feature_types_path and os.path.exists(feature_types_path):
+                with open(feature_types_path, "r") as f:
+                    feature_types = json.load(f)
+                self._mlops.set_feature_types(feature_types)
+
+            self._mlops.init()
 
         model_metadata = read_model_metadata_yaml(self._code_dir)
         if model_metadata:
@@ -151,9 +160,16 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                 kwargs.get(StructuredDtoKeys.BINARY_DATA),
                 kwargs.get(StructuredDtoKeys.MIMETYPE),
             )
-            self._mlops.report_predictions_data(
-                features_df=df, predictions=mlops_predictions, class_names=class_names
-            )
+            if self._params.get("model_feature_types_file"):
+                self._mlops.report_aggregated_predictions_data(
+                    features_df=df,
+                    predictions=mlops_predictions,
+                    class_names=class_names,
+                )
+            else:
+                self._mlops.report_predictions_data(
+                    features_df=df, predictions=mlops_predictions, class_names=class_names
+                )
 
     def predict(self, **kwargs) -> PredictResponse:
         start_predict = time.time()

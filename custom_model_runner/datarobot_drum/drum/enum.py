@@ -251,6 +251,7 @@ class ArgumentsOptions:
     LANGUAGE = "--language"
     NUM_ROWS = "--num-rows"
     MONITOR = "--monitor"
+    MODEL_FEATURE_TYPES_FILE = "--model-feature-types-file"
     MONITOR_EMBEDDED = "--monitor-embedded"
     DEPLOYMENT_ID = "--deployment-id"
     MODEL_ID = "--model-id"
@@ -308,6 +309,7 @@ class ArgumentOptionsEnvVars:
 
     MONITOR = "MONITOR"
     MONITOR_EMBEDDED = "MLOPS_REPORTING_FROM_UNSTRUCTURED_MODELS"
+    MODEL_FEATURE_TYPES_FILE = "MODEL_FEATURE_TYPES_FILE"
     WITH_ERROR_SERVER = "WITH_ERROR_SERVER"
     SHOW_STACKTRACE = "SHOW_STACKTRACE"
     PRODUCTION = "PRODUCTION"
