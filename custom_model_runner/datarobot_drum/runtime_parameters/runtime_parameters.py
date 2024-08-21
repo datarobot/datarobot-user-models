@@ -102,6 +102,7 @@ class RuntimeParameters:
         runtime_param_key = cls.namespaced_param_name(param_name)
         return runtime_param_key in os.environ
 
+
 class RuntimeParametersLoader:
     """
     This class is used by DRUM to load runtime parameter values from a provided YAML file. It is
