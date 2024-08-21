@@ -48,7 +48,10 @@ from datarobot_drum.drum.enum import ExitCodes
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from datarobot_drum.drum.runtime import DrumRuntime
 from datarobot_drum.runtime_parameters.exceptions import RuntimeParameterException
-from datarobot_drum.runtime_parameters.runtime_parameters import RuntimeParametersLoader, RuntimeParameters
+from datarobot_drum.runtime_parameters.runtime_parameters import (
+    RuntimeParametersLoader,
+    RuntimeParameters,
+)
 
 
 def main():
@@ -89,8 +92,8 @@ def main():
             try:
                 loader = RuntimeParametersLoader(options.runtime_params_file, options.code_dir)
                 loader.setup_environment_variables()
-                if RuntimeParameters.has('CUSTOM_MODEL_WORKERS'):
-                    options.max_workers = RuntimeParameters.get('CUSTOM_MODEL_WORKERS')
+                if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
+                    options.max_workers = RuntimeParameters.get("CUSTOM_MODEL_WORKERS")
             except RuntimeParameterException as exc:
                 print(str(exc))
                 exit(255)
