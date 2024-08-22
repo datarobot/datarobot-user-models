@@ -134,8 +134,8 @@ class PythonModelAdapter(AbstractModelAdapter):
             if (
                 self._guard_moderation_hooks[GUARD_INIT_HOOK_NAME]
                 and (
-                    self._guard_moderation_hooks[GUARD_SCORE_WRAPPER_NAME] or
-                    self._guard_moderation_hooks[GUARD_CHAT_WRAPPER_NAME]
+                    self._guard_moderation_hooks[GUARD_SCORE_WRAPPER_NAME]
+                    or self._guard_moderation_hooks[GUARD_CHAT_WRAPPER_NAME]
                 )
             ):
                 self._guard_pipeline = self._guard_moderation_hooks[GUARD_INIT_HOOK_NAME]()
@@ -754,9 +754,9 @@ class PythonModelAdapter(AbstractModelAdapter):
 
     def chat(self, model, completion_create_params):
         if (
-            self._target_type == TargetType.TEXT_GENERATION and
-            self._guard_pipeline and
-            self._guard_moderation_hooks[GUARD_CHAT_WRAPPER_NAME]
+            self._target_type == TargetType.TEXT_GENERATION
+            and self._guard_pipeline
+            and self._guard_moderation_hooks[GUARD_CHAT_WRAPPER_NAME]
         ):
             return self._guard_moderation_hooks[GUARD_CHAT_WRAPPER_NAME](
                 model,

@@ -665,9 +665,7 @@ class TestPythonModelAdapterWithGuards:
             # (as defined), else they will be lower case letters.
             assert response.choices[0].message.content == expected_completion
 
-    def test_guard_chat_wrapper_not_invoked_if_not_defined(
-        self, tmp_path
-    ):
+    def test_guard_chat_wrapper_not_invoked_if_not_defined(self, tmp_path):
         # Backward compatibility if new drum using old moderation library
         messages = [
             {"role": "system", "content": "You are a helpful assistant."},
