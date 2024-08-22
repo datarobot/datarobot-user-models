@@ -23,6 +23,13 @@ import textwrap
 
 import pytest
 
+from openai.types.chat import (
+    ChatCompletion,
+    ChatCompletionMessage,
+)
+
+from openai.types.chat.chat_completion import Choice
+
 from datarobot_drum.custom_task_interfaces.user_secrets import (
     secrets_factory,
     SecretsScrubberFilter,
@@ -34,6 +41,7 @@ from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import Pyt
 from datarobot_drum.drum.enum import (
     TargetType,
     GUARD_SCORE_WRAPPER_NAME,
+    GUARD_CHAT_WRAPPER_NAME,
     GUARD_HOOK,
     MODERATIONS_LIBRARY_PACKAGE,
     CustomHooks,
@@ -606,3 +614,73 @@ class TestPythonModelAdapterWithGuards:
             # If the guard score wrapper is invoked, completion will be upper case letters
             # (as defined), else they will be lower case letters.
             assert np.alltrue(response.predictions == expected_predictions)
+
+    @staticmethod
+    def _build_chat_completion(message):
+        return ChatCompletion(
+            id="id",
+            choices=[
+                Choice(
+                    finish_reason="stop",
+                    index=0,
+                    message=ChatCompletionMessage(role="assistant", content=message),
+                )
+            ],
+            created=123,
+            model="model",
+            object="chat.completion",
+        )
+
+    @staticmethod
+    def custom_chat(model, completion_create_params):
+        """Dummy chat method just for the purpose of unit test"""
+        return TestPythonModelAdapterWithGuards._build_chat_completion(
+            completion_create_params["messages"][-1]["content"]
+        )
+
+    @pytest.mark.parametrize(
+        "guard_hook_present, expected_completion",
+        [(True, "HELLO THERE"), (False, "Hello there")],
+    )
+    def test_invoking_guard_hook_chat_wrapper(
+        self, tmp_path, guard_hook_present, expected_completion
+    ):
+        def guard_chat_wrapper(model, completion_create_params, pipeline, drum_chat_fn):
+            prompt = completion_create_params["messages"][-1]["content"]
+            return self._build_chat_completion(prompt.upper())
+
+        messages = [
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "Hello there"},
+        ]
+        text_generation_target_name = "completion"
+        with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
+            adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
+            if guard_hook_present:
+                adapter._guard_pipeline = Mock()
+                adapter._guard_moderation_hooks = {GUARD_CHAT_WRAPPER_NAME: guard_chat_wrapper}
+            adapter._custom_hooks["chat"] = self.custom_chat
+            response = adapter.chat(None, {"messages": messages})
+            # If the guard score wrapper is invoked, completion will be upper case letters
+            # (as defined), else they will be lower case letters.
+            assert response.choices[0].message.content == expected_completion
+
+    def test_guard_chat_wrapper_not_invoked_if_not_defined(
+        self, tmp_path
+    ):
+        # Backward compatibility if new drum using old moderation library
+        messages = [
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "Hello there"},
+        ]
+        text_generation_target_name = "completion"
+        with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
+            adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
+            # Moderation library is present, but with guard chat hook
+            adapter._guard_pipeline = Mock()
+            adapter._guard_moderation_hooks = {GUARD_CHAT_WRAPPER_NAME: None}
+            adapter._custom_hooks["chat"] = self.custom_chat
+            response = adapter.chat(None, {"messages": messages})
+            # Even if guard pipeline exists - moderation chat wrapper does not exist, so invoke
+            # only user chat method
+            assert response.choices[0].message.content == "Hello there"

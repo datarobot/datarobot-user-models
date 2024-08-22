@@ -49,6 +49,7 @@ from datarobot_drum.drum.enum import (
     TargetType,
     GUARD_INIT_HOOK_NAME,
     GUARD_SCORE_WRAPPER_NAME,
+    GUARD_CHAT_WRAPPER_NAME,
     GUARD_HOOK_MODULE,
     MODERATIONS_LIBRARY_PACKAGE,
 )
@@ -128,10 +129,14 @@ class PythonModelAdapter(AbstractModelAdapter):
             self._guard_moderation_hooks = {
                 GUARD_INIT_HOOK_NAME: getattr(guard_module, GUARD_INIT_HOOK_NAME, None),
                 GUARD_SCORE_WRAPPER_NAME: getattr(guard_module, GUARD_SCORE_WRAPPER_NAME, None),
+                GUARD_CHAT_WRAPPER_NAME: getattr(guard_module, GUARD_CHAT_WRAPPER_NAME, None),
             }
             if (
                 self._guard_moderation_hooks[GUARD_INIT_HOOK_NAME]
-                and self._guard_moderation_hooks[GUARD_SCORE_WRAPPER_NAME]
+                and (
+                    self._guard_moderation_hooks[GUARD_SCORE_WRAPPER_NAME] or
+                    self._guard_moderation_hooks[GUARD_CHAT_WRAPPER_NAME]
+                )
             ):
                 self._guard_pipeline = self._guard_moderation_hooks[GUARD_INIT_HOOK_NAME]()
             else:
@@ -748,7 +753,19 @@ class PythonModelAdapter(AbstractModelAdapter):
         return predictions
 
     def chat(self, model, completion_create_params):
-        return self._custom_hooks.get(CustomHooks.CHAT)(model, completion_create_params)
+        if (
+            self._target_type == TargetType.TEXT_GENERATION and
+            self._guard_pipeline and
+            self._guard_moderation_hooks[GUARD_CHAT_WRAPPER_NAME]
+        ):
+            return self._guard_moderation_hooks[GUARD_CHAT_WRAPPER_NAME](
+                model,
+                completion_create_params,
+                self._guard_pipeline,
+                self._custom_hooks.get(CustomHooks.CHAT),
+            )
+        else:
+            return self._custom_hooks.get(CustomHooks.CHAT)(model, completion_create_params)
 
     def fit(
         self,
