@@ -132,8 +132,7 @@ class PythonModelAdapter(AbstractModelAdapter):
                 GUARD_CHAT_WRAPPER_NAME: getattr(guard_module, GUARD_CHAT_WRAPPER_NAME, None),
             }
             if (
-                self._guard_moderation_hooks[GUARD_INIT_HOOK_NAME]
-                and (
+                self._guard_moderation_hooks[GUARD_INIT_HOOK_NAME] and (
                     self._guard_moderation_hooks[GUARD_SCORE_WRAPPER_NAME]
                     or self._guard_moderation_hooks[GUARD_CHAT_WRAPPER_NAME]
                 )
