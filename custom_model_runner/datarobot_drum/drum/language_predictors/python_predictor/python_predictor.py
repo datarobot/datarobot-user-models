@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import itertools
 import logging
 import tempfile
 import shutil
@@ -31,6 +32,7 @@ from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.language_predictors.base_language_predictor import MLOps
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumSerializationError
+from datarobot_drum.resource.chat_helpers import is_streaming_response
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -171,11 +173,34 @@ class PythonPredictor(BaseLanguagePredictor):
         except DRCommonException:
             logger.exception("Failed to report predictions data")
 
+    @staticmethod
+    def _validate_chat_response(response):
+        if getattr(response, "object", None) == "chat.completion":
+            return response
+
+        try:
+            response_iter = iter(response)
+            first_chunk = next(response_iter)
+
+            if getattr(first_chunk, "object", None) == "chat.completion.chunk":
+                return itertools.chain([first_chunk], response_iter)
+        except StopIteration:
+            return iter(())
+        except Exception:
+            pass
+
+        raise Exception(
+            f"Expected response to be ChatCompletion or Iterable[ChatCompletionChunk]. response type: {type(response)}."
+            f"response(str): {str(response)}"
+        )
+
     def chat(self, completion_create_params):
         start_time = time.time()
         response = self._model_adapter.chat(completion_create_params, self._model)
 
-        if getattr(response, "object", None) == "chat.completion":
+        response = self._validate_chat_response(response)
+
+        if not is_streaming_response(response):
             self._report_chat(
                 completion_create_params, start_time, response.choices[0].message.content
             )

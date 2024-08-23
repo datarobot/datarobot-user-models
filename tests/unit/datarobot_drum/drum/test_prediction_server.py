@@ -23,51 +23,11 @@ from datarobot_drum.drum.server import _create_flask_app
 from datarobot_drum.resource.components.Python.prediction_server.prediction_server import (
     PredictionServer,
 )
-from tests.unit.datarobot_drum.drum.conftest import ChatPythonModelAdapter
-
-
-def create_completion(message_content):
-    return ChatCompletion(
-        id="id",
-        choices=[
-            Choice(
-                finish_reason="stop",
-                index=0,
-                message=ChatCompletionMessage(role="assistant", content=message_content),
-            )
-        ],
-        created=123,
-        model="model",
-        object="chat.completion",
-    )
-
-
-def create_completion_chunks(messages):
-    def create_chunk(content, finish_reason=None, role=None):
-        return ChatCompletionChunk(
-            id="id",
-            choices=[
-                chat_completion_chunk.Choice(
-                    delta=ChoiceDelta(content=content, role=role),
-                    finish_reason=finish_reason,
-                    index=0,
-                )
-            ],
-            created=0,
-            model="model",
-            object="chat.completion.chunk",
-        )
-
-    chunks = []
-    #  OpenAI returns a chunk with empty string in beginning of stream
-    chunks.append(create_chunk("", role="assistant"))
-
-    for message in messages:
-        chunks.append(create_chunk(message))
-
-    #  And a None chunk in the end
-    chunks.append(create_chunk(None, finish_reason="stop"))
-    return chunks
+from tests.unit.datarobot_drum.drum.conftest import (
+    ChatPythonModelAdapter,
+    create_completion,
+    create_completion_chunks,
+)
 
 
 @pytest.fixture
@@ -85,15 +45,6 @@ def test_flask_app():
         mock_create_flask_app.return_value = app
 
         yield app
-
-
-@pytest.fixture
-def chat_python_model_adapter():
-    with patch(
-        "datarobot_drum.drum.language_predictors.python_predictor.python_predictor.PythonModelAdapter",
-        new=ChatPythonModelAdapter,
-    ) as adapter:
-        yield adapter
 
 
 @pytest.fixture
@@ -127,6 +78,13 @@ def openai_client(test_flask_app):
 @pytest.mark.usefixtures("prediction_server")
 def test_prediction_server(openai_client, chat_python_model_adapter):
     def chat_hook(completion_request, model):
+        assert model == "model"
+
+        assert completion_request["messages"] == [
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "Hello!"},
+        ]
+
         return create_completion("Response")
 
     chat_python_model_adapter.chat_hook = chat_hook
