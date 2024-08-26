@@ -15,6 +15,7 @@ import uuid
 import datarobot as dr
 import pandas as pd
 from datarobot_mlops.common.exception import DRCommonException
+from datarobot_mlops.event import EventType
 
 from datarobot_drum.drum.common import to_bool
 from datarobot_drum.drum.enum import (
@@ -173,6 +174,9 @@ class PythonPredictor(BaseLanguagePredictor):
         except DRCommonException:
             logger.exception("Failed to report predictions data")
 
+    def _mlops_report_error(self):
+        self._mlops.report_event(EventType.PRED_REQUEST_FAILED)
+
     @staticmethod
     def _validate_chat_response(response):
         if getattr(response, "object", None) == "chat.completion":
@@ -196,9 +200,12 @@ class PythonPredictor(BaseLanguagePredictor):
 
     def chat(self, completion_create_params):
         start_time = time.time()
-        response = self._model_adapter.chat(completion_create_params, self._model)
-
-        response = self._validate_chat_response(response)
+        try:
+            response = self._model_adapter.chat(completion_create_params, self._model)
+            response = self._validate_chat_response(response)
+        except Exception as e:
+            self._mlops_report_error()
+            raise e
 
         if not is_streaming_response(response):
             self._report_chat(
@@ -209,13 +216,17 @@ class PythonPredictor(BaseLanguagePredictor):
 
             def generator():
                 message_content = ""
-                for chunk in response:
-                    message_content += (
-                        chunk.choices[0].delta.content
-                        if chunk.choices and chunk.choices[0].delta.content
-                        else ""
-                    )
-                    yield chunk
+                try:
+                    for chunk in response:
+                        message_content += (
+                            chunk.choices[0].delta.content
+                            if chunk.choices and chunk.choices[0].delta.content
+                            else ""
+                        )
+                        yield chunk
+                except Exception:
+                    self._mlops_report_error()
+                    raise
 
                 self._report_chat(completion_create_params, start_time, message_content)
 

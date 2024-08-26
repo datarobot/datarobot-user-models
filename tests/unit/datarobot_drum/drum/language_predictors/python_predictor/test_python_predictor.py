@@ -9,6 +9,7 @@ import os
 from unittest.mock import patch, Mock, ANY
 
 import pytest
+from datarobot_mlops.event import EventType
 
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.enum import TargetType
@@ -120,9 +121,8 @@ class TestChat:
                     "stream": stream,
                 }
             )
-            [
-                chunk for chunk in response
-            ]  # Streaming response needs to be consumed for anything to happen
+            # Streaming response needs to be consumed for anything to happen
+            [chunk for chunk in response]
 
     def test_mlops_init(self, python_predictor, mock_mlops):
         mock_mlops.set_channel_config.called_once_with("spooler_type=API")
@@ -151,9 +151,8 @@ class TestChat:
             }
         )
         if stream:
-            [
-                chunk for chunk in response
-            ]  # Streaming response needs to be consumed for anything to happen
+            # Streaming response needs to be consumed for anything to happen
+            [chunk for chunk in response]
 
         mock_mlops.report_deployment_stats.assert_called_once()
 
@@ -190,3 +189,37 @@ class TestChat:
 
         mock_mlops.report_deployment_stats.assert_not_called()
         mock_mlops.report_predictions_data.assert_not_called()
+        mock_mlops.report_event.assert_called_once_with(EventType.PRED_REQUEST_FAILED)
+
+    def test_failing_in_middle_of_stream(
+        self, python_predictor, chat_python_model_adapter, mock_mlops
+    ):
+        def chat_hook(completion_request, model):
+            def generator():
+                for chunk in create_completion_chunks(["Chunk1", "Chunk2"]):
+                    yield chunk
+
+                raise BadRequest("Error")
+
+            return generator()
+
+        chat_python_model_adapter.chat_hook = chat_hook
+
+        with pytest.raises(BadRequest):
+            response = python_predictor.chat(
+                {
+                    "model": "any",
+                    "messages": [
+                        {"role": "system", "content": "You are a helpful assistant."},
+                        {"role": "user", "content": "Hello!"},
+                    ],
+                    "stream": True,
+                }
+            )
+
+            # Streaming response needs to be consumed for anything to happen
+            [chunk for chunk in response]
+
+        mock_mlops.report_deployment_stats.assert_not_called()
+        mock_mlops.report_predictions_data.assert_not_called()
+        mock_mlops.report_event.assert_called_once_with(EventType.PRED_REQUEST_FAILED)
