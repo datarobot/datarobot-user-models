@@ -749,20 +749,20 @@ class PythonModelAdapter(AbstractModelAdapter):
         PythonModelAdapter._validate_unstructured_predictions(predictions)
         return predictions
 
-    def chat(self, model, completion_create_params):
+    def chat(self, completion_create_params, model):
         if (
             self._target_type == TargetType.TEXT_GENERATION
             and self._guard_pipeline
             and self._guard_moderation_hooks[GUARD_CHAT_WRAPPER_NAME]
         ):
             return self._guard_moderation_hooks[GUARD_CHAT_WRAPPER_NAME](
-                model,
                 completion_create_params,
+                model,
                 self._guard_pipeline,
                 self._custom_hooks.get(CustomHooks.CHAT),
             )
         else:
-            return self._custom_hooks.get(CustomHooks.CHAT)(model, completion_create_params)
+            return self._custom_hooks.get(CustomHooks.CHAT)(completion_create_params, model)
 
     def fit(
         self,
