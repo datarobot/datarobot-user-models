@@ -313,6 +313,7 @@ class TestInference:
         ],
     )
     @pytest.mark.parametrize("pass_args_as_env_vars", [False])
+    @pytest.mark.parametrize("max_workers", [None, 2])
     def test_custom_models_with_drum_prediction_server(
         self,
         resources,
@@ -324,8 +325,13 @@ class TestInference:
         tmp_path,
         framework_env,
         endpoint_prediction_methods,
+        max_workers,
     ):
         skip_if_framework_not_in_env(framework, framework_env)
+        if framework == KERAS and max_workers and max_workers > 1:
+            pytest.skip(
+                "Current Keras integration is not multi-processing safe so we skip test when max_workers > 1"
+            )
         custom_model_dir = _create_custom_model_dir(
             resources,
             tmp_path,
@@ -342,6 +348,7 @@ class TestInference:
             custom_model_dir,
             docker,
             pass_args_as_env_vars=pass_args_as_env_vars,
+            max_workers=max_workers,
         ) as run:
             input_dataset = resources.datasets(framework, problem)
             # do predictions
@@ -399,6 +406,7 @@ class TestInference:
         ],
     )
     @pytest.mark.parametrize("pass_args_as_env_vars", [True])
+    @pytest.mark.parametrize("max_workers", [1])
     def test_custom_models_with_drum_prediction_server_with_args_passed_as_env_vars(
         self,
         resources,
@@ -410,6 +418,7 @@ class TestInference:
         tmp_path,
         framework_env,
         endpoint_prediction_methods,
+        max_workers,
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         self.test_custom_models_with_drum_prediction_server(
@@ -422,6 +431,7 @@ class TestInference:
             tmp_path,
             framework_env,
             endpoint_prediction_methods,
+            max_workers,
         )
 
     # The fitting code for the sklearn transform is in task_templates/1_transforms/3_python3_sklearn_transform

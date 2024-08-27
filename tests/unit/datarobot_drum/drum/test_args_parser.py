@@ -707,3 +707,37 @@ class TestRuntimeParametersArgs:
         with pytest.raises(SystemExit), NamedTemporaryFile() as f:
             args.extend([ArgumentsOptions.RUNTIME_PARAMS_FILE, f.name])
             get_args_parser_options(args)
+
+
+class TestMaxWorkersArgs:
+    @pytest.mark.parametrize(
+        "expected_max_workers, max_workers_args",
+        [
+            (0, []),
+            (7, ["--max-workers", "7"]),
+        ],
+    )
+    def test_max_workers_args_success(self, expected_max_workers, max_workers_args, server_args):
+        server_args.extend(max_workers_args)
+        actual = get_args_parser_options(server_args)
+        assert actual.max_workers == expected_max_workers
+
+    @pytest.mark.parametrize(
+        "expected_err_msg, max_workers_args",
+        [
+            ("--max-workers: must be > 0\n", ["--production", "--max-workers", "0"]),
+            ("--max-workers: must be > 0\n", ["--max-workers", "0"]),
+            (
+                "--max-workers: invalid type_callback value: 'all'\n",
+                ["--production", "--max-workers", "all"],
+            ),
+            ("--max-workers: invalid type_callback value: 'all'\n", ["--max-workers", "all"]),
+        ],
+    )
+    def test_production_args_fail(self, expected_err_msg, max_workers_args, server_args, capsys):
+        server_args.extend(max_workers_args)
+        with pytest.raises(SystemExit):
+            get_args_parser_options(server_args)
+        captured = capsys.readouterr()
+
+        assert captured.err.endswith(expected_err_msg)

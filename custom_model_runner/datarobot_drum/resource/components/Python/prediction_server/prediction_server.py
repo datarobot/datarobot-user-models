@@ -259,8 +259,12 @@ class PredictionServer(ConnectableComponent, PredictMixin):
     def _run_flask_app(self, app):
         host = self._params.get("host", None)
         port = self._params.get("port", None)
+
+        processes = 1
+        if self._params.get("processes"):
+            processes = self._params.get("processes")
         try:
-            app.run(host, port, threaded=False)
+            app.run(host, port, threaded=False, processes=processes)
         except OSError as e:
             raise DrumCommonException("{}: host: {}; port: {}".format(e, host, port))
 

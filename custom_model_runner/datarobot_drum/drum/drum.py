@@ -773,10 +773,11 @@ class CMRunner:
                     "component_type": "uwsgi_serving"
                     if options.production
                     else "prediction_server",
+                    "processes": options.max_workers if getattr(options, "max_workers") else "null",
                     "uwsgi_max_workers": options.max_workers
-                    if getattr(options, "max_workers")
+                    if getattr(options, "max_workers") and options.production
                     else "null",
-                    "single_uwsgi_worker": (options.max_workers == 1),
+                    "single_uwsgi_worker": (options.max_workers == 1) and options.production,
                     "deployment_config": '"{}"'.format(options.deployment_config)
                     if getattr(options, "deployment_config", None) is not None
                     else "null",
