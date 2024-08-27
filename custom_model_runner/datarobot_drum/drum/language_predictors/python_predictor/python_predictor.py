@@ -6,17 +6,23 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import itertools
 import logging
-import tempfile
 import shutil
 import sys
+import tempfile
 import time
 import uuid
 
 import datarobot as dr
 import pandas as pd
+from datarobot_mlops.common.config import ConfigConstants
 from datarobot_mlops.common.exception import DRCommonException
-from datarobot_mlops.event import EventType
+from datarobot_mlops.event import EventType, Event
+from datarobot_mlops.metric import EventContainer
 
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
+    PythonModelAdapter,
+    RawPredictResponse,
+)
 from datarobot_drum.drum.common import to_bool
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
@@ -26,13 +32,9 @@ from datarobot_drum.drum.enum import (
     TARGET_TYPE_ARG_KEYWORD,
     CustomHooks,
 )
-from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
-    PythonModelAdapter,
-    RawPredictResponse,
-)
+from datarobot_drum.drum.exceptions import DrumCommonException, DrumSerializationError
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.language_predictors.base_language_predictor import MLOps
-from datarobot_drum.drum.exceptions import DrumCommonException, DrumSerializationError
 from datarobot_drum.resource.chat_helpers import is_streaming_response
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
@@ -60,7 +62,7 @@ class PythonPredictor(BaseLanguagePredictor):
         self._model_adapter.load_custom_hooks()
 
         if to_bool(params.get("monitor_embedded")) or self._model_adapter.has_custom_hook(
-            CustomHooks.CHAT
+                CustomHooks.CHAT
         ):
             self._init_mlops(params)
 
@@ -175,7 +177,24 @@ class PythonPredictor(BaseLanguagePredictor):
             logger.exception("Failed to report predictions data")
 
     def _mlops_report_error(self):
-        self._mlops.report_event(EventType.PRED_REQUEST_FAILED)
+
+        class CustomContainer(EventContainer):
+            def to_iterable(self):
+                ret = super().to_iterable()
+                ret["predictionRequestData"] = {
+                    "status_code": 500,
+                    "response_body": "bodybody"
+                }
+                return ret
+
+        _deployment_id = self._mlops._get_id(None, ConfigConstants.DEPLOYMENT_ID)
+
+        event = Event(EventType.PRED_REQUEST_FAILED, "Prediction request failed", data={}, entity_id=_deployment_id)
+        # self._mlops.report_event()
+
+        container = CustomContainer(event)
+
+        self._mlops._model._report_stats(_deployment_id, None, container)
 
     @staticmethod
     def _validate_chat_response(response):
