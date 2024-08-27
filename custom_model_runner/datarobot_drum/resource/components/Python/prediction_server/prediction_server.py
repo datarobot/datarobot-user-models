@@ -208,6 +208,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
 
             return (response, response_status)
 
+        # Chat routes are defined without trailing slash because this is required by the OpenAI python client.
         @model_api.route("/chat/completions", methods=["POST"])
         @model_api.route("/v1/chat/completions", methods=["POST"])
         def chat():
