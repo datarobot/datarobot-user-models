@@ -752,6 +752,11 @@ class CMRunner:
             "user_secrets_prefix": getattr(options, "user_secrets_prefix", None),
         }
 
+        if options.model_feature_types_file:
+            replace_data["model_feature_types_file"] = os.path.abspath(
+                options.model_feature_types_file
+            )
+
         if self.run_mode == RunMode.SCORE:
             replace_data.update(
                 {
