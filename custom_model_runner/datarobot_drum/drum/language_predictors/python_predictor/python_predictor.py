@@ -14,10 +14,7 @@ import uuid
 
 import datarobot as dr
 import pandas as pd
-from datarobot_mlops.common.config import ConfigConstants
 from datarobot_mlops.common.exception import DRCommonException
-from datarobot_mlops.event import EventType, Event
-from datarobot_mlops.metric import EventContainer
 
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
     PythonModelAdapter,
@@ -83,8 +80,14 @@ class PythonPredictor(BaseLanguagePredictor):
         return endpoint
 
     def _init_mlops(self, params):
+        has_chat_hook = self._model_adapter.has_custom_hook(CustomHooks.CHAT)
+
         if self._mlops:
-            logger.warning("MLOps already initialized. Probably because --monitor was enabled.")
+            if has_chat_hook:
+                logger.warning(
+                    "MLOps already initialized. Probably because --monitor was enabled. Can't configure "
+                    "mlops with default settings for chat."
+                )
             return
 
         self._mlops = MLOps()
@@ -96,7 +99,7 @@ class PythonPredictor(BaseLanguagePredictor):
             self._mlops.set_model_id(params["model_id"])
 
         monitor_settings = self._params.get("monitor_settings")
-        has_chat_hook = self._model_adapter.has_custom_hook(CustomHooks.CHAT)
+
         if not monitor_settings:
             if has_chat_hook:
                 monitor_settings = "spooler_type=API"
@@ -156,7 +159,43 @@ class PythonPredictor(BaseLanguagePredictor):
             )
         return ret
 
-    def _report_chat(self, completion_create_params, start_time, message_content):
+    def chat(self, completion_create_params):
+        start_time = time.time()
+        try:
+            response = self._model_adapter.chat(completion_create_params, self._model)
+            response = self._validate_chat_response(response)
+        except Exception as e:
+            self._mlops_report_error(start_time)
+            raise e
+
+        if not is_streaming_response(response):
+            self._mlops_report_chat_prediction(
+                completion_create_params, start_time, response.choices[0].message.content
+            )
+            return response
+        else:
+
+            def generator():
+                message_content = ""
+                try:
+                    for chunk in response:
+                        message_content += (
+                            chunk.choices[0].delta.content
+                            if chunk.choices and chunk.choices[0].delta.content
+                            else ""
+                        )
+                        yield chunk
+                except Exception:
+                    self._mlops_report_error(start_time)
+                    raise
+
+                self._mlops_report_chat_prediction(
+                    completion_create_params, start_time, message_content
+                )
+
+            return generator()
+
+    def _mlops_report_chat_prediction(self, completion_create_params, start_time, message_content):
         execution_time_ms = (time.time() - start_time) * 1000
 
         self._mlops.report_deployment_stats(num_predictions=1, execution_time_ms=execution_time_ms)
@@ -187,10 +226,13 @@ class PythonPredictor(BaseLanguagePredictor):
             return response
 
         try:
+            # Take a peek at the first object in the iterable to make sure that this is indeed a chat completion chunk.
+            # This should catch cases where hook returns an iterable of a different type early on.
             response_iter = iter(response)
             first_chunk = next(response_iter)
 
             if getattr(first_chunk, "object", None) == "chat.completion.chunk":
+                # Return a new iterable where the peeked object is included in the beginning
                 return itertools.chain([first_chunk], response_iter)
         except StopIteration:
             return iter(())
@@ -201,40 +243,6 @@ class PythonPredictor(BaseLanguagePredictor):
             f"Expected response to be ChatCompletion or Iterable[ChatCompletionChunk]. response type: {type(response)}."
             f"response(str): {str(response)}"
         )
-
-    def chat(self, completion_create_params):
-        start_time = time.time()
-        try:
-            response = self._model_adapter.chat(completion_create_params, self._model)
-            response = self._validate_chat_response(response)
-        except Exception as e:
-            self._mlops_report_error(start_time)
-            raise e
-
-        if not is_streaming_response(response):
-            self._report_chat(
-                completion_create_params, start_time, response.choices[0].message.content
-            )
-            return response
-        else:
-
-            def generator():
-                message_content = ""
-                try:
-                    for chunk in response:
-                        message_content += (
-                            chunk.choices[0].delta.content
-                            if chunk.choices and chunk.choices[0].delta.content
-                            else ""
-                        )
-                        yield chunk
-                except Exception:
-                    self._mlops_report_error(start_time)
-                    raise
-
-                self._report_chat(completion_create_params, start_time, message_content)
-
-            return generator()
 
     def terminate(self):
         if self._mlops:

@@ -9,7 +9,7 @@ import os
 from unittest.mock import patch, Mock, ANY
 
 import pytest
-from datarobot_mlops.event import EventType
+from werkzeug.exceptions import BadRequest
 
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.enum import TargetType
@@ -17,7 +17,6 @@ from datarobot_drum.drum.language_predictors.python_predictor.python_predictor i
     PythonPredictor,
 )
 from tests.unit.datarobot_drum.drum.conftest import create_completion, create_completion_chunks
-from werkzeug.exceptions import BadRequest
 
 
 @pytest.fixture
@@ -121,8 +120,10 @@ class TestChat:
                     "stream": stream,
                 }
             )
+
             # Streaming response needs to be consumed for anything to happen
-            [chunk for chunk in response]
+            if stream:
+                [chunk for chunk in response]
 
     def test_mlops_init(self, python_predictor, mock_mlops):
         mock_mlops.set_channel_config.called_once_with("spooler_type=API")

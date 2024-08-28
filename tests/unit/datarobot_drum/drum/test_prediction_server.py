@@ -1,5 +1,4 @@
 import os
-from typing import Optional
 from unittest.mock import Mock, patch
 
 import httpx
@@ -9,22 +8,15 @@ from httpx import WSGITransport
 from openai import OpenAI, Stream
 from openai.types.chat import (
     ChatCompletion,
-    ChatCompletionMessage,
-    ChatCompletionChunk,
-    chat_completion_chunk,
 )
-from openai.types.chat.chat_completion import Choice
-from openai.types.chat.chat_completion_chunk import ChoiceDelta
 from werkzeug.exceptions import BadRequest
 
-from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
-from datarobot_drum.drum.enum import RunLanguage, TargetType, CustomHooks
+from datarobot_drum.drum.enum import RunLanguage, TargetType
 from datarobot_drum.drum.server import _create_flask_app
 from datarobot_drum.resource.components.Python.prediction_server.prediction_server import (
     PredictionServer,
 )
 from tests.unit.datarobot_drum.drum.conftest import (
-    ChatPythonModelAdapter,
     create_completion,
     create_completion_chunks,
 )
