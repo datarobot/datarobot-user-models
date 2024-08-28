@@ -154,7 +154,9 @@ class TestChat:
             # Streaming response needs to be consumed for anything to happen
             [chunk for chunk in response]
 
-        mock_mlops.report_deployment_stats.assert_called_once()
+        mock_mlops.report_deployment_stats.assert_called_once_with(
+            num_predictions=1, execution_time_ms=ANY
+        )
 
         mock_mlops.report_predictions_data.assert_called_once_with(
             ANY,
@@ -187,9 +189,10 @@ class TestChat:
                 }
             )
 
-        mock_mlops.report_deployment_stats.assert_not_called()
+        mock_mlops.report_deployment_stats.assert_called_once_with(
+            num_predictions=0, execution_time_ms=ANY
+        )
         mock_mlops.report_predictions_data.assert_not_called()
-        mock_mlops.report_event.assert_called_once_with(EventType.PRED_REQUEST_FAILED)
 
     def test_failing_in_middle_of_stream(
         self, python_predictor, chat_python_model_adapter, mock_mlops
@@ -220,6 +223,7 @@ class TestChat:
             # Streaming response needs to be consumed for anything to happen
             [chunk for chunk in response]
 
-        mock_mlops.report_deployment_stats.assert_not_called()
+        mock_mlops.report_deployment_stats.assert_called_once_with(
+            num_predictions=0, execution_time_ms=ANY
+        )
         mock_mlops.report_predictions_data.assert_not_called()
-        mock_mlops.report_event.assert_called_once_with(EventType.PRED_REQUEST_FAILED)

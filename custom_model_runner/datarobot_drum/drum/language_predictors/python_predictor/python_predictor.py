@@ -62,7 +62,7 @@ class PythonPredictor(BaseLanguagePredictor):
         self._model_adapter.load_custom_hooks()
 
         if to_bool(params.get("monitor_embedded")) or self._model_adapter.has_custom_hook(
-                CustomHooks.CHAT
+            CustomHooks.CHAT
         ):
             self._init_mlops(params)
 
@@ -176,25 +176,10 @@ class PythonPredictor(BaseLanguagePredictor):
         except DRCommonException:
             logger.exception("Failed to report predictions data")
 
-    def _mlops_report_error(self):
+    def _mlops_report_error(self, start_time):
+        execution_time_ms = (time.time() - start_time) * 1000
 
-        class CustomContainer(EventContainer):
-            def to_iterable(self):
-                ret = super().to_iterable()
-                ret["predictionRequestData"] = {
-                    "status_code": 500,
-                    "response_body": "bodybody"
-                }
-                return ret
-
-        _deployment_id = self._mlops._get_id(None, ConfigConstants.DEPLOYMENT_ID)
-
-        event = Event(EventType.PRED_REQUEST_FAILED, "Prediction request failed", data={}, entity_id=_deployment_id)
-        # self._mlops.report_event()
-
-        container = CustomContainer(event)
-
-        self._mlops._model._report_stats(_deployment_id, None, container)
+        self._mlops.report_deployment_stats(num_predictions=0, execution_time_ms=execution_time_ms)
 
     @staticmethod
     def _validate_chat_response(response):
@@ -223,7 +208,7 @@ class PythonPredictor(BaseLanguagePredictor):
             response = self._model_adapter.chat(completion_create_params, self._model)
             response = self._validate_chat_response(response)
         except Exception as e:
-            self._mlops_report_error()
+            self._mlops_report_error(start_time)
             raise e
 
         if not is_streaming_response(response):
@@ -244,7 +229,7 @@ class PythonPredictor(BaseLanguagePredictor):
                         )
                         yield chunk
                 except Exception:
-                    self._mlops_report_error()
+                    self._mlops_report_error(start_time)
                     raise
 
                 self._report_chat(completion_create_params, start_time, message_content)
