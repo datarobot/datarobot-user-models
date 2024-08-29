@@ -632,7 +632,7 @@ class TestPythonModelAdapterWithGuards:
         )
 
     @staticmethod
-    def custom_chat(model, completion_create_params):
+    def custom_chat(completion_create_params, model):
         """Dummy chat method just for the purpose of unit test"""
         return TestPythonModelAdapterWithGuards._build_chat_completion(
             completion_create_params["messages"][-1]["content"]
@@ -645,7 +645,7 @@ class TestPythonModelAdapterWithGuards:
     def test_invoking_guard_hook_chat_wrapper(
         self, tmp_path, guard_hook_present, expected_completion
     ):
-        def guard_chat_wrapper(model, completion_create_params, pipeline, drum_chat_fn):
+        def guard_chat_wrapper(completion_create_params, model, pipeline, drum_chat_fn):
             prompt = completion_create_params["messages"][-1]["content"]
             return self._build_chat_completion(prompt.upper())
 
@@ -660,7 +660,7 @@ class TestPythonModelAdapterWithGuards:
                 adapter._guard_pipeline = Mock()
                 adapter._guard_moderation_hooks = {GUARD_CHAT_WRAPPER_NAME: guard_chat_wrapper}
             adapter._custom_hooks["chat"] = self.custom_chat
-            response = adapter.chat(None, {"messages": messages})
+            response = adapter.chat({"messages": messages}, None)
             # If the guard score wrapper is invoked, completion will be upper case letters
             # (as defined), else they will be lower case letters.
             assert response.choices[0].message.content == expected_completion
@@ -678,7 +678,7 @@ class TestPythonModelAdapterWithGuards:
             adapter._guard_pipeline = Mock()
             adapter._guard_moderation_hooks = {GUARD_CHAT_WRAPPER_NAME: None}
             adapter._custom_hooks["chat"] = self.custom_chat
-            response = adapter.chat(None, {"messages": messages})
+            response = adapter.chat({"messages": messages}, None)
             # Even if guard pipeline exists - moderation chat wrapper does not exist, so invoke
             # only user chat method
             assert response.choices[0].message.content == "Hello there"

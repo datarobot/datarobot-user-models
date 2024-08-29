@@ -85,8 +85,8 @@ class ChatPythonModelAdapter(PythonModelAdapter):
     ):
         return ""
 
-    def _call_chat_hook(self, model, completion_create_params):
-        return ChatPythonModelAdapter.chat_hook(model, completion_create_params)
+    def _call_chat_hook(self, completion_create_params, model):
+        return ChatPythonModelAdapter.chat_hook(completion_create_params, model)
 
 
 @pytest.fixture
