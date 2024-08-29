@@ -32,7 +32,7 @@ function build_dropin_env_dockerfile() {
   DRUM_WHEEL_FILENAME=$(basename "$DRUM_WHEEL_REAL_PATH")
   WITH_R=""
 
-  if [ "$DROPIN_ENV_DIRNAME" = "python39_streamlit" ]; then
+  if [ "$DROPIN_ENV_DIRNAME" = "python39_streamlit" ] || [ "$DROPIN_ENV_DIRNAME" = "python312_streamlit" ]; then
     return 0
   fi
 
