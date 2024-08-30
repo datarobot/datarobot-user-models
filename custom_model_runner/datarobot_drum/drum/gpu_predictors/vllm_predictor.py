@@ -135,9 +135,6 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
             cmd.extend(["--tensor-parallel-size", str(self.gpu_count)])
 
         env = os.environ.copy()
-        # Make sure these cache dirs are writable by the vLLM process
-        env["HF_HOME"] = str(CODE_DIR / ".cache" / "huggingface")
-        env["NUMBA_CACHE_DIR"] = str(CODE_DIR / ".cache" / "numba")
         if self.huggingface_token:
             env["HF_TOKEN"] = self.huggingface_token["apiToken"]
 
