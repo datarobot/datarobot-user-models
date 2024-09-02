@@ -14,7 +14,6 @@ from dataclasses import dataclass
 from typing import Optional, List
 
 import pandas as pd
-from datarobot_mlops.common.exception import DRCommonException
 
 from datarobot_drum.drum.adapters.cli.shared.drum_class_label_adapter import DrumClassLabelAdapter
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
@@ -38,12 +37,14 @@ mlops_import_error = None
 MLOps = None
 try:
     from datarobot_mlops.mlops import MLOps
+    from datarobot_mlops.common.exception import DRCommonException
 
     mlops_loaded = True
 except ImportError as e:
     mlops_import_error = "Error importing MLOps python module(new path): {}".format(e)
     try:
         from datarobot.mlops.mlops import MLOps
+        from datarobot.mlops.mlops.common.exception import DRCommonException
 
         mlops_loaded = True
     except ImportError as e:
