@@ -16,10 +16,7 @@ from datarobot_drum.drum.server import _create_flask_app
 from datarobot_drum.resource.components.Python.prediction_server.prediction_server import (
     PredictionServer,
 )
-from tests.unit.datarobot_drum.drum.conftest import (
-    create_completion,
-    create_completion_chunks,
-)
+from tests.unit.datarobot_drum.drum.chat_utils import create_completion, create_completion_chunks
 
 
 @pytest.fixture

@@ -11,7 +11,7 @@ from datarobot_drum.drum.language_predictors.base_language_predictor import Base
 from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
     PythonPredictor,
 )
-from tests.unit.datarobot_drum.drum.conftest import create_completion, create_completion_chunks
+from tests.unit.datarobot_drum.drum.chat_utils import create_completion, create_completion_chunks
 
 
 class TestLanguagePredictor(BaseLanguagePredictor):
