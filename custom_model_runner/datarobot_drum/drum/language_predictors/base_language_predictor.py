@@ -44,7 +44,7 @@ except ImportError as e:
     mlops_import_error = "Error importing MLOps python module(new path): {}".format(e)
     try:
         from datarobot.mlops.mlops import MLOps
-        from datarobot.mlops.mlops.common.exception import DRCommonException
+        from datarobot.mlops.common.exception import DRCommonException
 
         mlops_loaded = True
     except ImportError as e:
@@ -233,9 +233,8 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
 
             return generator()
 
-    @abstractmethod
     def _chat(self, completion_create_params):
-        pass
+        raise NotImplementedError("Chat is not implemented ")
 
     def _mlops_report_chat_prediction(self, completion_create_params, start_time, message_content):
         execution_time_ms = (time.time() - start_time) * 1000
