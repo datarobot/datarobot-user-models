@@ -47,6 +47,7 @@ setup(
     license="Apache License, Version 2.0",
     classifiers=[
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
@@ -66,5 +67,5 @@ setup(
     scripts=["bin/drum"],
     install_requires=requirements,
     extras_require=extras_require,
-    python_requires=">=3.9,<3.12",
+    python_requires=">=3.8,<3.12",
 )
