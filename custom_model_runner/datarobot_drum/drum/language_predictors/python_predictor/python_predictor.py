@@ -88,10 +88,11 @@ class PythonPredictor(BaseLanguagePredictor):
 
         self._mlops.set_channel_config(monitor_settings)
 
-        self._mlops.agent(
-            mlops_service_url=self._params["external_webserver_url"],
-            mlops_api_token=self._params["api_token"],
-        )
+        if to_bool(self._params["monitor_embedded"]):
+            self._mlops.agent(
+                mlops_service_url=self._params["external_webserver_url"],
+                mlops_api_token=self._params["api_token"],
+            )
 
     @property
     def supported_payload_formats(self):
