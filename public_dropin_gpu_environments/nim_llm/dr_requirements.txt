@@ -64,7 +64,7 @@ flask==2.2.5
     #   datarobot-drum
     #   flask-cors
     #   mlpiper
-flask-cors==4.0.0
+flask-cors==5.0.0
     # via mlpiper
 frozenlist==1.4.1
     # via
