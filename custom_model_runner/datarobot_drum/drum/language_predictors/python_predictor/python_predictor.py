@@ -43,7 +43,7 @@ class PythonPredictor(BaseLanguagePredictor):
 
         self._model_adapter = PythonModelAdapter(model_dir=code_dir, target_type=target_type)
 
-        sys.path.append(self._code_dir)
+        sys.path.append(code_dir)
         self._model_adapter.load_custom_hooks()
 
         super(PythonPredictor, self).mlpiper_configure(params)
