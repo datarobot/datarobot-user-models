@@ -1,5 +1,3 @@
-import os
-from typing import Optional, List
 from unittest.mock import patch, Mock, ANY
 
 import pytest
@@ -8,9 +6,6 @@ from werkzeug.exceptions import BadRequest
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
-from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
-    PythonPredictor,
-)
 from tests.unit.datarobot_drum.drum.chat_utils import create_completion, create_completion_chunks
 
 

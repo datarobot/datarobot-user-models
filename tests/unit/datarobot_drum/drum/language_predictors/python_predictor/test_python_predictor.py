@@ -5,18 +5,15 @@
 #  This is proprietary source code of DataRobot, Inc. and its affiliates.
 #  Released under the terms of DataRobot Tool and Utility Agreement.
 #
-import os
-from unittest.mock import patch, Mock, ANY
+from unittest.mock import patch
 
 import pytest
-from werkzeug.exceptions import BadRequest
 
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
     PythonPredictor,
 )
-from tests.unit.datarobot_drum.drum.chat_utils import create_completion, create_completion_chunks
 
 
 @pytest.fixture
