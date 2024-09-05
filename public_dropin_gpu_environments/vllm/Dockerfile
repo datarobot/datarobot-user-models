@@ -1,4 +1,4 @@
-FROM vllm/vllm-openai:v0.5.5
+FROM vllm/vllm-openai:v0.6.0
 USER root
 RUN apt-get update && apt-get install -y \
     python3-pip \
