@@ -75,7 +75,7 @@ class PythonPredictor(BaseLanguagePredictor):
     def _supports_chat(self):
         return self._model_adapter.has_custom_hook(CustomHooks.CHAT)
 
-    def _configure_mlops(self):
+    def _configure_mlops_for_non_chat(self):
         monitor_settings = self._params.get("monitor_settings")
 
         if not monitor_settings:

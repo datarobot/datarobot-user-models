@@ -127,11 +127,11 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         if self._supports_chat():
             self._mlops.set_channel_config("spooler_type=API")
         else:
-            self._configure_mlops()
+            self._configure_mlops_for_non_chat()
 
         self._mlops.init()
 
-    def _configure_mlops(self):
+    def _configure_mlops_for_non_chat(self):
         self._mlops.set_channel_config(self._params["monitor_settings"])
 
     @staticmethod
