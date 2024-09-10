@@ -5,12 +5,16 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
-import tempfile
 import shutil
 import sys
+import tempfile
 
 import datarobot as dr
 
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
+    PythonModelAdapter,
+    RawPredictResponse,
+)
 from datarobot_drum.drum.common import to_bool
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
@@ -18,14 +22,11 @@ from datarobot_drum.drum.enum import (
     NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
     CLASS_LABELS_ARG_KEYWORD,
     TARGET_TYPE_ARG_KEYWORD,
+    CustomHooks,
+    TargetType,
 )
-from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
-    PythonModelAdapter,
-    RawPredictResponse,
-)
-from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
-from datarobot_drum.drum.language_predictors.base_language_predictor import MLOps
 from datarobot_drum.drum.exceptions import DrumCommonException, DrumSerializationError
+from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -37,6 +38,14 @@ class PythonPredictor(BaseLanguagePredictor):
         self._mlops_spool_dir = None
 
     def mlpiper_configure(self, params):
+        target_type = TargetType(params.get("target_type"))
+        code_dir = params["__custom_model_path__"]
+
+        self._model_adapter = PythonModelAdapter(model_dir=code_dir, target_type=target_type)
+
+        sys.path.append(code_dir)
+        self._model_adapter.load_custom_hooks()
+
         super(PythonPredictor, self).mlpiper_configure(params)
 
         if to_bool(params.get("allow_dr_api_access")):
@@ -44,15 +53,6 @@ class PythonPredictor(BaseLanguagePredictor):
             dr_api_endpoint = self._dr_api_url(endpoint=params["external_webserver_url"])
             dr.Client(token=params["api_token"], endpoint=dr_api_endpoint)
 
-        if to_bool(params.get("monitor_embedded")):
-            self._init_mlops(params)
-
-        self._model_adapter = PythonModelAdapter(
-            model_dir=self._code_dir, target_type=self.target_type
-        )
-
-        sys.path.append(self._code_dir)
-        self._model_adapter.load_custom_hooks()
         try:
             self._model = self._model_adapter.load_model_from_artifact(
                 user_secrets_mount_path=params.get("user_secrets_mount_path"),
@@ -63,14 +63,21 @@ class PythonPredictor(BaseLanguagePredictor):
         if self._model is None:
             raise Exception("Failed to load model")
 
+    def _should_enable_mlops(self):
+        return super()._should_enable_mlops() or to_bool(self._params.get("monitor_embedded"))
+
     @staticmethod
     def _dr_api_url(endpoint):
         if not endpoint.endswith("api/v2"):
             endpoint = f"{endpoint}/api/v2"
         return endpoint
 
-    def _init_mlops(self, params):
+    def _supports_chat(self):
+        return self._model_adapter.has_custom_hook(CustomHooks.CHAT)
+
+    def _configure_mlops_for_non_chat(self):
         monitor_settings = self._params.get("monitor_settings")
+
         if not monitor_settings:
             self._mlops_spool_dir = tempfile.mkdtemp()
             monitor_settings = (
@@ -79,17 +86,13 @@ class PythonPredictor(BaseLanguagePredictor):
                 )
             )
 
-        self._mlops = (
-            MLOps()
-            .set_model_id(params["model_id"])
-            .set_deployment_id(params["deployment_id"])
-            .set_channel_config(monitor_settings)
-            .agent(
-                mlops_service_url=params["external_webserver_url"],
-                mlops_api_token=params["api_token"],
+        self._mlops.set_channel_config(monitor_settings)
+
+        if to_bool(self._params["monitor_embedded"]):
+            self._mlops.agent(
+                mlops_service_url=self._params["external_webserver_url"],
+                mlops_api_token=self._params["api_token"],
             )
-            .init()
-        )
 
     @property
     def supported_payload_formats(self):
@@ -132,7 +135,7 @@ class PythonPredictor(BaseLanguagePredictor):
             )
         return ret
 
-    def chat(self, completion_create_params):
+    def _chat(self, completion_create_params):
         return self._model_adapter.chat(completion_create_params, self._model)
 
     def terminate(self):

@@ -4,9 +4,11 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import itertools
 import logging
 import os
 import time
+import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Optional, List
@@ -26,6 +28,7 @@ from datarobot_drum.drum.enum import (
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from datarobot_drum.drum.data_marshalling import marshal_predictions
+from datarobot_drum.resource.chat_helpers import is_streaming_response
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -34,12 +37,14 @@ mlops_import_error = None
 MLOps = None
 try:
     from datarobot_mlops.mlops import MLOps
+    from datarobot_mlops.common.exception import DRCommonException
 
     mlops_loaded = True
 except ImportError as e:
     mlops_import_error = "Error importing MLOps python module(new path): {}".format(e)
     try:
         from datarobot.mlops.mlops import MLOps
+        from datarobot.mlops.common.exception import DRCommonException
 
         mlops_loaded = True
     except ImportError as e:
@@ -97,19 +102,37 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         self._params = params
         self._validate_mlops_monitoring_requirements(self._params)
 
-        if to_bool(params.get("monitor")):
-            # TODO: if server use async, if batch, use sync etc.. some way of passing params
-            self._mlops = (
-                MLOps()
-                .set_model_id(self._params["model_id"])
-                .set_deployment_id(self._params["deployment_id"])
-                .set_channel_config(self._params["monitor_settings"])
-                .init()
-            )
+        if self._should_enable_mlops():
+            self._init_mlops()
 
         model_metadata = read_model_metadata_yaml(self._code_dir)
         if model_metadata:
             self._schema_validator = SchemaValidator(model_metadata.get("typeSchema", {}))
+
+    def _should_enable_mlops(self):
+        return to_bool(self._params.get("monitor")) or self._supports_chat()
+
+    def _supports_chat(self):
+        return False
+
+    def _init_mlops(self):
+        self._mlops = MLOps()
+
+        if self._params.get("deployment_id", None):
+            self._mlops.set_deployment_id(self._params["deployment_id"])
+
+        if self._params.get("model_id", None):
+            self._mlops.set_model_id(self._params["model_id"])
+
+        if self._supports_chat():
+            self._mlops.set_channel_config("spooler_type=API")
+        else:
+            self._configure_mlops_for_non_chat()
+
+        self._mlops.init()
+
+    def _configure_mlops_for_non_chat(self):
+        self._mlops.set_channel_config(self._params["monitor_settings"])
 
     @staticmethod
     def _validate_mlops_monitoring_requirements(params):
@@ -173,6 +196,97 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
     def _predict(self, **kwargs) -> RawPredictResponse:
         """Predict on input_filename or binary_data"""
         pass
+
+    def chat(self, completion_create_params):
+        start_time = time.time()
+        try:
+            response = self._chat(completion_create_params)
+            response = self._validate_chat_response(response)
+        except Exception as e:
+            self._mlops_report_error(start_time)
+            raise e
+
+        if not is_streaming_response(response):
+            self._mlops_report_chat_prediction(
+                completion_create_params, start_time, response.choices[0].message.content
+            )
+            return response
+        else:
+
+            def generator():
+                message_content = ""
+                try:
+                    for chunk in response:
+                        message_content += (
+                            chunk.choices[0].delta.content
+                            if chunk.choices and chunk.choices[0].delta.content
+                            else ""
+                        )
+                        yield chunk
+                except Exception:
+                    self._mlops_report_error(start_time)
+                    raise
+
+                self._mlops_report_chat_prediction(
+                    completion_create_params, start_time, message_content
+                )
+
+            return generator()
+
+    def _chat(self, completion_create_params):
+        raise NotImplementedError("Chat is not implemented ")
+
+    def _mlops_report_chat_prediction(self, completion_create_params, start_time, message_content):
+        execution_time_ms = (time.time() - start_time) * 1000
+
+        self._mlops.report_deployment_stats(num_predictions=1, execution_time_ms=execution_time_ms)
+
+        latest_message = completion_create_params["messages"][-1]["content"]
+        features_df = pd.DataFrame([{"prompt": latest_message}])
+
+        predictions = [message_content]
+        try:
+            self._mlops.report_predictions_data(
+                features_df,
+                predictions,
+                association_ids=[str(uuid.uuid4())],
+                skip_drift_tracking=True,
+                skip_accuracy_tracking=True,
+            )
+        except DRCommonException:
+            logger.exception("Failed to report predictions data")
+
+    def _mlops_report_error(self, start_time):
+        execution_time_ms = (time.time() - start_time) * 1000
+
+        self._mlops.report_deployment_stats(num_predictions=0, execution_time_ms=execution_time_ms)
+
+    @staticmethod
+    def _validate_chat_response(response):
+        if getattr(response, "object", None) == "chat.completion":
+            return response
+
+        try:
+            # Take a peek at the first object in the iterable to make sure that this is indeed a chat completion chunk.
+            # This should catch cases where hook returns an iterable of a different type early on.
+            response_iter = iter(response)
+            first_chunk = next(response_iter)
+
+            if getattr(first_chunk, "object", None) == "chat.completion.chunk":
+                # Return a new iterable where the peeked object is included in the beginning
+                return itertools.chain([first_chunk], response_iter)
+            else:
+                raise Exception(
+                    f"Expected response to be ChatCompletion or Iterable[ChatCompletionChunk]. response type: {type(response)}."
+                    f"response(str): {str(response)}"
+                )
+        except StopIteration:
+            return iter(())
+        except Exception as e:
+            raise Exception(
+                f"Expected response to be ChatCompletion or Iterable[ChatCompletionChunk]. response type: {type(response)}."
+                f"response(str): {str(response)}"
+            ) from e
 
     def transform(self, **kwargs):
         output = self._transform(**kwargs)

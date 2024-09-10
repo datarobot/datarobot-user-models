@@ -25,6 +25,7 @@ from datarobot_drum.drum.server import (
     HTTP_422_UNPROCESSABLE_ENTITY,
 )
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
+from datarobot_drum.resource.chat_helpers import is_streaming_response
 from datarobot_drum.resource.deployment_config_helpers import build_pps_response_json_str
 from datarobot_drum.resource.transform_helpers import (
     is_sparse,
@@ -396,17 +397,12 @@ class PredictMixin:
         completion_create_params = request.json
 
         result = self._predictor.chat(completion_create_params)
-
-        if getattr(result, "object", None) == "chat.completion":
+        if not is_streaming_response(result):
             response = result.to_dict()
-        elif isinstance(result, Iterable):
+        else:
             response = Response(
                 stream_with_context(PredictMixin._stream_openai_chunks(result)),
                 mimetype="text/event-stream",
-            )
-        else:
-            raise Exception(
-                "Expected response to be ChatCompletion or Iterable[ChatCompletionChunk]"
             )
 
         return response, HTTP_200_OK
