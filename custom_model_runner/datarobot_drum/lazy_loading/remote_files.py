@@ -85,31 +85,15 @@ class RemoteFiles:
     def get_remote_files(self):
         return self._remote_files
 
-    # def from_list(self, remote_files):
-    #     for remote_file in remote_files:
-    #         self._remote_files.append(
-    #             RemoteFile(
-    #                 remote_path=remote_file["remote_path"],
-    #                 local_path=remote_file["local_path"],
-    #                 repo_name=remote_file["repo"],
-    #             )
-    #         )
-    #     return self
-
-    # def from_list_v2(self, remote_files):
-    #     for remote_file in remote_files:
-    #         self._remote_files.append(
-    #             RemoteFile(
-    #                 remote_path=remote_file["remote_path"],
-    #                 local_path=remote_file["local_path"],
-    #                 repository_id=remote_file["repository_id"],
-    #             )
-    #         )
-    #     return self
-
     def from_env_config(self):
 
+        if MLOPS_LAZY_LOADING_DATA_ENV_VARIABLE not in os.environ:
+            raise Exception("Cant find lazy loading environment variable")
+
         remote_files_config = json.loads(os.environ[MLOPS_LAZY_LOADING_DATA_ENV_VARIABLE])
+
+        if remote_files_config is None:
+            raise Exception("Cant load lazy loading config from environment variable")
 
         repo_dict = remote_files_config["repositories"]
 

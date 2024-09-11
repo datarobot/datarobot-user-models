@@ -65,37 +65,39 @@ class S3FileRepo(FileRepo):
         self._credentials_id = credentials_id
         storage_credentials = handle_credentials_param(credentials_id)
         # TODO: Add credentials type check
-        self._s3 = boto3.client(
-            's3',
-            endpoint_url=storage_credentials['endpointUrl'] if 'endpointUrl' in storage_credentials else None,
-            aws_access_key_id=storage_credentials['awsAccessKeyId'],
-            aws_secret_access_key=storage_credentials['awsSecretAccessKey'],
-            aws_session_token=(
-                storage_credentials['sessionToken']
-                if 'sessionToken' in storage_credentials
-                else None
-            ),
-            region_name=(
-                storage_credentials['region'] if 'region' in storage_credentials else AWS_DEFAULT_REGION
-            ),
-            config=client.Config(signature_version='s3v4'),
-        )
+        # TODO: Implement dr-storage client initialization
+        # self._s3 = boto3.client(
+        #     's3',
+        #     endpoint_url=storage_credentials['endpointUrl'] if 'endpointUrl' in storage_credentials else None,
+        #     aws_access_key_id=storage_credentials['awsAccessKeyId'],
+        #     aws_secret_access_key=storage_credentials['awsSecretAccessKey'],
+        #     aws_session_token=(
+        #         storage_credentials['sessionToken']
+        #         if 'sessionToken' in storage_credentials
+        #         else None
+        #     ),
+        #     region_name=(
+        #         storage_credentials['region'] if 'region' in storage_credentials else AWS_DEFAULT_REGION
+        #     ),
+        #     config=client.Config(signature_version='s3v4'),
+        # )
 
     def __str__(self):
         return f"{self._name} [s3]:  bucket: {self._bucket_name}, credentials_env: {self._credentials_id}"
 
     def is_file_exist(self, file_path) -> bool:
-        # Head the object to get its metadata, including content length
-        try:
-            self._s3.head_object(Bucket=self._bucket_name, Key=file_path)
-            return True
-        except ClientError as e:
-            # Check if the exception is a 404 error
-            if e.response["Error"]["Code"] == "404":
-                return False
-            else:
-                # Re-raise the exception if it's not a 404 error
-                raise
+        # TODO: implement Head the object to get its metadata, including content length
+        # try:
+        #     self._s3.head_object(Bucket=self._bucket_name, Key=file_path)
+        #     return True
+        # except ClientError as e:
+        #     # Check if the exception is a 404 error
+        #     if e.response["Error"]["Code"] == "404":
+        #         return False
+        #     else:
+        #         # Re-raise the exception if it's not a 404 error
+        #         raise
+        return True
 
     def get_file_size(self, file_path):
         """
@@ -103,64 +105,60 @@ class S3FileRepo(FileRepo):
         :param file_path:
         :return: Size in bytes if file exists, None if not exists. Raise Exception otherwise
         """
-        # Head the object to get its metadata, including content length
-        try:
-            response = self._s3.head_object(Bucket=self._bucket_name, Key=file_path)
-            # Extract and return the content length (file size)
-            file_size = response["ContentLength"]
-            return file_size
-        except ClientError as e:
-            # Check if the exception is a 404 error
-            if e.response["Error"]["Code"] == "404":
-                return None
-            else:
-                # Re-raise the exception if it's not a 404 error
-                raise
+        #TODO: implement Head the object to get its metadata, including content length
+        # try:
+        #     response = self._s3.head_object(Bucket=self._bucket_name, Key=file_path)
+        #     # Extract and return the content length (file size)
+        #     file_size = response["ContentLength"]
+        #     return file_size
+        # except ClientError as e:
+        #     # Check if the exception is a 404 error
+        #     if e.response["Error"]["Code"] == "404":
+        #         return None
+        #     else:
+        #         # Re-raise the exception if it's not a 404 error
+        #         raise
+        return 100
 
     def download_file(self, remote_file: RemoteFile, progress: ProgressPercentage):
-        # TODO: handle buffer_size
-        #  def download_file(self, result_list, file_info, output_dir, lock, buffer_size, verify_checksum):
-
-        # print("Bucket: {}, .Object: {}, Output Dir: {}".
-        #       format(file_info["bucket_name"], file_info["object_key"], output_dir))
+        # TODO: implement file download login using dr-storage
+        # try:
+        #     logger.debug("Downloading file: {}".format(remote_file.local_path))
+        #     with open(remote_file.local_path, "wb") as file_handle:
+        #         start_time = time.time()
+        #         self._s3.download_fileobj(
+        #             self._bucket_name,
+        #             remote_file.remote_path,
+        #             file_handle,
+        #             Callback=progress,
+        #             Config=boto3.s3.transfer.TransferConfig(
+        #                 max_io_queue=1, io_chunksize=1024 * 1024
+        #             ),
+        #         )
         #
-        # result_info = {}
-        try:
-            logger.debug("Downloading file: {}".format(remote_file.local_path))
-            with open(remote_file.local_path, "wb") as file_handle:
-                start_time = time.time()
-                self._s3.download_fileobj(
-                    self._bucket_name,
-                    remote_file.remote_path,
-                    file_handle,
-                    Callback=progress,
-                    Config=boto3.s3.transfer.TransferConfig(
-                        max_io_queue=1, io_chunksize=1024 * 1024
-                    ),
-                )
-
-                # # Calculate elapsed time and bandwidth
-                end_time = time.time()
-                elapsed_time = end_time - start_time
-
-                remote_file.download_status = True
-                local_file_size = os.path.getsize(remote_file.local_path)
-
-                remote_file.download_start_time = start_time
-                remote_file.download_time = elapsed_time
-
-                logger.debug(
-                    "Downloaded: {}. Bandwidth: {:.1f}".format(
-                        remote_file.remote_path,
-                        calculate_rate(local_file_size, elapsed_time),
-                    )
-                )
-                return True
-        except Exception as e:
-            err_msg = "Error downloading {}: {}".format(remote_file.remote_path, e)
-            logger.error(err_msg)
-            remote_file.error = err_msg
-            return False
+        #         # # Calculate elapsed time and bandwidth
+        #         end_time = time.time()
+        #         elapsed_time = end_time - start_time
+        #
+        #         remote_file.download_status = True
+        #         local_file_size = os.path.getsize(remote_file.local_path)
+        #
+        #         remote_file.download_start_time = start_time
+        #         remote_file.download_time = elapsed_time
+        #
+        #         logger.debug(
+        #             "Downloaded: {}. Bandwidth: {:.1f}".format(
+        #                 remote_file.remote_path,
+        #                 calculate_rate(local_file_size, elapsed_time),
+        #             )
+        #         )
+        #         return True
+        # except Exception as e:
+        #     err_msg = "Error downloading {}: {}".format(remote_file.remote_path, e)
+        #     logger.error(err_msg)
+        #     remote_file.error = err_msg
+        #     return False
+        return True
 
 
 class RemoteRepos:
@@ -204,15 +202,15 @@ class RemoteRepos:
         """
         return self._repos.keys()
 
-    def get_remote_repo(self, repo_name) -> FileRepo:
+    def get_remote_repo(self, repo_id) -> FileRepo:
         """
-        Get a RemoteRepo instance by name.
-        :param repo_name:
+        Get a RemoteRepo instance by id.
+        :param repo_id:
         :return: RemoteRepo instance
         """
-        if repo_name not in self._repos:
-            raise KeyError(f"Repo {repo_name} not found.")
-        return self._repos[repo_name]
+        if repo_id not in self._repos:
+            raise KeyError(f"Repo {repo_id} not found.")
+        return self._repos[repo_id]
 
     def exists(self, repo_name):
         if repo_name in self._repos:
