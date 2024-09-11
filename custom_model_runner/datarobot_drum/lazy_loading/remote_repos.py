@@ -10,20 +10,12 @@
 #
 # Released under the terms of DataRobot Tool and Utility Agreement.
 import logging
-import os
-import time
 from abc import ABC
 from abc import abstractmethod
 
-import boto3
-from botocore import client
-from botocore.exceptions import ClientError
-
-from custom_model_runner.datarobot_drum.lazy_loading.constants import AWS_DEFAULT_REGION
 from custom_model_runner.datarobot_drum.lazy_loading.progress_percentage import ProgressPercentage
 from custom_model_runner.datarobot_drum.lazy_loading.remote_file import RemoteFile
 from custom_model_runner.datarobot_drum.lazy_loading.runtime_params_helper import handle_credentials_param
-from custom_model_runner.datarobot_drum.lazy_loading.storage_utils import calculate_rate
 from custom_model_runner.datarobot_drum.lazy_loading.storage_utils import has_mandatory_keys
 
 logger = logging.getLogger(__name__)
@@ -66,21 +58,6 @@ class S3FileRepo(FileRepo):
         storage_credentials = handle_credentials_param(credentials_id)
         # TODO: Add credentials type check
         # TODO: Implement dr-storage client initialization
-        # self._s3 = boto3.client(
-        #     's3',
-        #     endpoint_url=storage_credentials['endpointUrl'] if 'endpointUrl' in storage_credentials else None,
-        #     aws_access_key_id=storage_credentials['awsAccessKeyId'],
-        #     aws_secret_access_key=storage_credentials['awsSecretAccessKey'],
-        #     aws_session_token=(
-        #         storage_credentials['sessionToken']
-        #         if 'sessionToken' in storage_credentials
-        #         else None
-        #     ),
-        #     region_name=(
-        #         storage_credentials['region'] if 'region' in storage_credentials else AWS_DEFAULT_REGION
-        #     ),
-        #     config=client.Config(signature_version='s3v4'),
-        # )
 
     def __str__(self):
         return f"{self._name} [s3]:  bucket: {self._bucket_name}, credentials_env: {self._credentials_id}"
@@ -97,7 +74,7 @@ class S3FileRepo(FileRepo):
         #     else:
         #         # Re-raise the exception if it's not a 404 error
         #         raise
-        return True
+        raise NotImplementedError
 
     def get_file_size(self, file_path):
         """
@@ -118,47 +95,11 @@ class S3FileRepo(FileRepo):
         #     else:
         #         # Re-raise the exception if it's not a 404 error
         #         raise
-        return 100
+        raise NotImplementedError
 
     def download_file(self, remote_file: RemoteFile, progress: ProgressPercentage):
         # TODO: implement file download login using dr-storage
-        # try:
-        #     logger.debug("Downloading file: {}".format(remote_file.local_path))
-        #     with open(remote_file.local_path, "wb") as file_handle:
-        #         start_time = time.time()
-        #         self._s3.download_fileobj(
-        #             self._bucket_name,
-        #             remote_file.remote_path,
-        #             file_handle,
-        #             Callback=progress,
-        #             Config=boto3.s3.transfer.TransferConfig(
-        #                 max_io_queue=1, io_chunksize=1024 * 1024
-        #             ),
-        #         )
-        #
-        #         # # Calculate elapsed time and bandwidth
-        #         end_time = time.time()
-        #         elapsed_time = end_time - start_time
-        #
-        #         remote_file.download_status = True
-        #         local_file_size = os.path.getsize(remote_file.local_path)
-        #
-        #         remote_file.download_start_time = start_time
-        #         remote_file.download_time = elapsed_time
-        #
-        #         logger.debug(
-        #             "Downloaded: {}. Bandwidth: {:.1f}".format(
-        #                 remote_file.remote_path,
-        #                 calculate_rate(local_file_size, elapsed_time),
-        #             )
-        #         )
-        #         return True
-        # except Exception as e:
-        #     err_msg = "Error downloading {}: {}".format(remote_file.remote_path, e)
-        #     logger.error(err_msg)
-        #     remote_file.error = err_msg
-        #     return False
-        return True
+        raise NotImplementedError
 
 
 class RemoteRepos:

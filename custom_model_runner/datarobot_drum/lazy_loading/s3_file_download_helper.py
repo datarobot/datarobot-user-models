@@ -89,4 +89,5 @@ class S3FileDownloadHelper(StorageFileDownloadHelper):
     def list_uris_in_directory(self, dir_uri):
         # TODO: implement Parse the S3 directory URI to extract bucket name and prefix (directory path)
         file_uris = []
-        return file_uris
+        #return file_uris
+        raise NotImplementedError
