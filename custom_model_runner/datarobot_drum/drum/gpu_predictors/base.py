@@ -87,6 +87,12 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         except ImportError:
             raise DrumCommonException("OpenAI Python SDK is not installed")
 
+    def _supports_chat(self):
+        return True
+
+    def _chat(self, completion_create_params):
+        return self.ai_client.chat.completions.create(**completion_create_params)
+
     def has_read_input_data_hook(self):
         return False
 
