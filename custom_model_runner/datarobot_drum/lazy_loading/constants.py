@@ -9,7 +9,6 @@
 # affiliates.
 #
 # Released under the terms of DataRobot Tool and Utility Agreement.
-import os
 
 MLOPS_RUNTIME_PARAM_PREFIX = "MLOPS_RUNTIME_PARAM_"
 MLOPS_LAZY_LOADING_DATA_ENV_VARIABLE = "MLOPS_LAZY_LOADING_DATA"
