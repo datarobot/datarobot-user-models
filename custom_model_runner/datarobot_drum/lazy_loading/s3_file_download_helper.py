@@ -20,15 +20,15 @@ logger = logging.getLogger(__name__)
 
 
 class S3FileDownloadHelper(StorageFileDownloadHelper):
-    def __init__(self):
+    def __init__(self, storage_credentials):
 
-        self._s3 = None
+        super().__init__(storage_credentials)
+        self._storage_client = None
         # TODO: implement dr-storage client
 
     def get_file_size(self, file_uri):
         # TODO: implement dr-storage get_file_size
-        file_size = 1000
-        return file_size
+        raise NotImplementedError
 
     def download_file(self, result_list, file_info, output_dir, lock, buffer_size, verify_checksum):
         logger.debug(
@@ -72,19 +72,8 @@ class S3FileDownloadHelper(StorageFileDownloadHelper):
             return 0
 
     def is_uri_directory(self, file_uri):
-        parsed_uri = urllib.parse.urlparse(file_uri)
-        bucket_name = parsed_uri.netloc
-        object_key = parsed_uri.path.lstrip("/")
-        # Use head_object to check if the S3 URI points to an object or a directory
-        try:
-            self._s3.head_object(Bucket=bucket_name, Key=object_key)
-            return False  # File exists, it's not a directory
-        except self._s3.exceptions.ClientError as e:
-            if e.response["Error"]["Code"] == "404":
-                logger.error("Directory does not exist")
-                return True  # Directory does not exist, it's a directory
-            else:
-                raise  # Other errors should be raised
+        # TODO: Use head_object to check if the S3 URI points to an object or a directory
+        raise NotImplementedError
 
     def list_uris_in_directory(self, dir_uri):
         # TODO: implement Parse the S3 directory URI to extract bucket name and prefix (directory path)

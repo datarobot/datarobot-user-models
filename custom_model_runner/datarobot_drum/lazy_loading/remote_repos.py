@@ -64,16 +64,6 @@ class S3FileRepo(FileRepo):
 
     def is_file_exist(self, file_path) -> bool:
         # TODO: implement Head the object to get its metadata, including content length
-        # try:
-        #     self._s3.head_object(Bucket=self._bucket_name, Key=file_path)
-        #     return True
-        # except ClientError as e:
-        #     # Check if the exception is a 404 error
-        #     if e.response["Error"]["Code"] == "404":
-        #         return False
-        #     else:
-        #         # Re-raise the exception if it's not a 404 error
-        #         raise
         raise NotImplementedError
 
     def get_file_size(self, file_path):
@@ -83,18 +73,6 @@ class S3FileRepo(FileRepo):
         :return: Size in bytes if file exists, None if not exists. Raise Exception otherwise
         """
         #TODO: implement Head the object to get its metadata, including content length
-        # try:
-        #     response = self._s3.head_object(Bucket=self._bucket_name, Key=file_path)
-        #     # Extract and return the content length (file size)
-        #     file_size = response["ContentLength"]
-        #     return file_size
-        # except ClientError as e:
-        #     # Check if the exception is a 404 error
-        #     if e.response["Error"]["Code"] == "404":
-        #         return None
-        #     else:
-        #         # Re-raise the exception if it's not a 404 error
-        #         raise
         raise NotImplementedError
 
     def download_file(self, remote_file: RemoteFile, progress: ProgressPercentage):
