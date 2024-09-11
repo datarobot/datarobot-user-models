@@ -167,14 +167,13 @@ class RemoteRepos:
     def __init__(self):
         self._repos = {}
 
-    def from_dict_v2(self, repos_dict: object) -> object:
+    def from_dict(self, repos_dict):
         """
         Build the RemoteRepos instance from a dictionary.
         :param repos_dict:
         :return:
         """
         for repo_dict in repos_dict:
-            #repo_dict = repos_dict[repo_name]
             if "type" not in repo_dict:
                 raise KeyError(f"Missing 'type' key in {repo_dict}")
 
@@ -196,36 +195,6 @@ class RemoteRepos:
                 )
             # From This stage on all repo objects are generic
             self._repos[repository_id] = repo_obj
-        return self
-
-    def from_dict(self, repos_dict):
-        """
-        Build the RemoteRepos instance from a dictionary.
-        :param repo_dict:
-        :return:
-        """
-        for repo_name in repos_dict:
-            repo_dict = repos_dict[repo_name]
-            if "type" not in repo_dict:
-                raise KeyError(f"Missing 'type' key in {repo_dict}")
-
-            if repo_dict["type"] == "s3":
-                is_valid, missing_fields = has_mandatory_keys(repo_dict, S3FileRepo.mandatory_keys)
-                if is_valid:
-                    repo_obj = S3FileRepo(
-                        repo_name, repo_dict["bucket"], repo_dict["credentials_env"]
-                    )
-                else:
-                    raise Exception(
-                        f"Repo {repo_name} has missing fields for S3 Repo: {missing_fields}"
-                    )
-
-            else:
-                raise Exception(
-                    f"Type {repo_dict['type']} is not supported, only S3 repos are currently supported"
-                )
-            # From This stage on all repo objects are generic
-            self._repos[repo_name] = repo_obj
         return self
 
     def get_remote_repos(self):

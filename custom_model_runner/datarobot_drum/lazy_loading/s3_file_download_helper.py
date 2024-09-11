@@ -14,11 +14,7 @@ import os
 import time
 import urllib
 
-from progress_percentage import ProgressPercentage
 from storage_file_download_helper import StorageFileDownloadHelper
-#from utils import calculate_rate
-from storage_utils import urlparse
-#from datarobot_custom_code.utils import verify_file_integrity
 
 logger = logging.getLogger(__name__)
 

@@ -113,7 +113,7 @@ class RemoteFiles:
 
         repo_dict = remote_files_config["repositories"]
 
-        self._remote_repos = RemoteRepos().from_dict_v2(repo_dict)
+        self._remote_repos = RemoteRepos().from_dict(repo_dict)
 
         remote_files = remote_files_config["files"]
 

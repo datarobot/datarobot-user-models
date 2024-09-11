@@ -54,7 +54,7 @@ def lazy_loading_config(get_credential):
                 "repository_id": "669d2623485e94b838e637bf",
                 "bucket_name": "llm-artifacts-dev",
                 "credential_id": get_credential
-            }
+            },
         ],
         "files": [
             {
