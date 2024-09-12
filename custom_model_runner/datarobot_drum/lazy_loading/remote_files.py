@@ -21,7 +21,10 @@ from custom_model_runner.datarobot_drum.lazy_loading.progress_percentage import 
 from custom_model_runner.datarobot_drum.lazy_loading.remote_file import RemoteFile
 from custom_model_runner.datarobot_drum.lazy_loading.remote_repos import RemoteRepos
 
-from custom_model_runner.datarobot_drum.lazy_loading.storage_utils import calculate_rate, get_disk_space
+from custom_model_runner.datarobot_drum.lazy_loading.storage_utils import (
+    calculate_rate,
+    get_disk_space,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -46,9 +49,8 @@ class RemoteFiles:
     ):
         """ """
         self._local_dir = local_dir
-        self._remote_repos: RemoteRepos
         self._remote_files: List[RemoteFile] = []
-        #self._remote_repos: RemoteRepos = None
+        self._remote_repos: RemoteRepos
         self._validated = False
         self._total_size_mb = 0
         self._download_start_time = None
@@ -78,15 +80,14 @@ class RemoteFiles:
             return None
         return self._total_size_mb / self.download_time_seconds
 
-    def set_remote_repos(self, remote_repos):
-        self._remote_repos = remote_repos
-        return self
+    # def set_remote_repos(self, remote_repos):
+    #     self._remote_repos = remote_repos
+    #     return self
 
     def get_remote_files(self):
         return self._remote_files
 
     def from_env_config(self):
-
         if MLOPS_LAZY_LOADING_DATA_ENV_VARIABLE not in os.environ:
             raise Exception("Cant find lazy loading environment variable")
 

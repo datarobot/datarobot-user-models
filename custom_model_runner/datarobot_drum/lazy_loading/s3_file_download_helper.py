@@ -21,7 +21,6 @@ logger = logging.getLogger(__name__)
 
 class S3FileDownloadHelper(StorageFileDownloadHelper):
     def __init__(self, storage_credentials):
-
         super().__init__(storage_credentials)
         self._storage_client = None
         # TODO: implement dr-storage client
@@ -46,8 +45,8 @@ class S3FileDownloadHelper(StorageFileDownloadHelper):
             end_time = time.time()
             elapsed_time = end_time - start_time
 
-            #TODO: implement file file integrity check
-            #result_info["download_ok"] = verify_file_integrity(file_info, verify_checksum)
+            # TODO: implement file file integrity check
+            # result_info["download_ok"] = verify_file_integrity(file_info, verify_checksum)
             local_file_size = os.path.getsize(file_info["local_file"])
             logger.debug(f"Elapsed time: {elapsed_time}")
             logger.debug(f"File size: {local_file_size}")
@@ -55,10 +54,10 @@ class S3FileDownloadHelper(StorageFileDownloadHelper):
             result_info["index"] = file_info["index"]
             result_info["elapsed_time"] = elapsed_time
             result_info["total_time_sec"] = elapsed_time
-            #TODO: Implement Downloading rate calc
+            # TODO: Implement Downloading rate calc
             download_rate = 100.0
-            #download_rate = calculate_rate(local_file_size, elapsed_time)
-            #result_info["rate_mb_sec"] = download_rate
+            # download_rate = calculate_rate(local_file_size, elapsed_time)
+            # result_info["rate_mb_sec"] = download_rate
             logger.debug(
                 "Downloaded: {}. Bandwidth: {:.1f}".format(
                     file_info["object_key"],
@@ -78,5 +77,5 @@ class S3FileDownloadHelper(StorageFileDownloadHelper):
     def list_uris_in_directory(self, dir_uri):
         # TODO: implement Parse the S3 directory URI to extract bucket name and prefix (directory path)
         file_uris = []
-        #return file_uris
+        # return file_uris
         raise NotImplementedError

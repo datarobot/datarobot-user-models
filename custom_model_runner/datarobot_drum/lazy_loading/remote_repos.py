@@ -15,14 +15,15 @@ from abc import abstractmethod
 
 from custom_model_runner.datarobot_drum.lazy_loading.progress_percentage import ProgressPercentage
 from custom_model_runner.datarobot_drum.lazy_loading.remote_file import RemoteFile
-from custom_model_runner.datarobot_drum.lazy_loading.runtime_params_helper import handle_credentials_param
+from custom_model_runner.datarobot_drum.lazy_loading.environment_config_helper import (
+    handle_credentials_param,
+)
 from custom_model_runner.datarobot_drum.lazy_loading.storage_utils import has_mandatory_keys
 
 logger = logging.getLogger(__name__)
 
 
 class FileRepo(ABC):
-
     def __init__(self, name):
         self._name = name
 
@@ -72,7 +73,7 @@ class S3FileRepo(FileRepo):
         :param file_path:
         :return: Size in bytes if file exists, None if not exists. Raise Exception otherwise
         """
-        #TODO: implement Head the object to get its metadata, including content length
+        # TODO: implement Head the object to get its metadata, including content length
         raise NotImplementedError
 
     def download_file(self, remote_file: RemoteFile, progress: ProgressPercentage):
@@ -99,12 +100,12 @@ class RemoteRepos:
                 if is_valid:
                     repository_id = repo_dict["repository_id"]
                     repo_obj = S3FileRepo(
-                        repo_dict["repository_id"], repo_dict["bucket_name"], repo_dict["credential_id"]
+                        repo_dict["repository_id"],
+                        repo_dict["bucket_name"],
+                        repo_dict["credential_id"],
                     )
                 else:
-                    raise Exception(
-                        f"Repo has missing fields for S3 Repo: {missing_fields}"
-                    )
+                    raise Exception(f"Repo has missing fields for S3 Repo: {missing_fields}")
 
             else:
                 raise Exception(

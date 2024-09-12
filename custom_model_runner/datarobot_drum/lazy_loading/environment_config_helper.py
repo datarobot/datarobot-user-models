@@ -17,6 +17,7 @@ from custom_model_runner.datarobot_drum.lazy_loading.constants import MLOPS_REPO
 
 logger = logging.getLogger(__name__)
 
+
 def handle_credentials_param(credential_id):
     """
     Take a credential_id and create corresponding credentials object from env variable
@@ -27,12 +28,16 @@ def handle_credentials_param(credential_id):
     credentials_env_variable = MLOPS_REPOSITORY_SECRET_PREFIX + credential_id.upper()
     param_json = os.environ.get(credentials_env_variable, None)
     if param_json is None:
-        raise EnvironmentError("expected environment variable '{}' to be set".format(credentials_env_variable))
+        raise EnvironmentError(
+            "expected environment variable '{}' to be set".format(credentials_env_variable)
+        )
     # logger.debug(f"param_json: {param_json}") TODO: mask credentials for logging
 
     json_content = json.loads(param_json)
     if param_json is None:
-        raise EnvironmentError("expected environment variable '{}' to be json".format(credentials_env_variable))
+        raise EnvironmentError(
+            "expected environment variable '{}' to be json".format(credentials_env_variable)
+        )
 
     logger.debug("Successfully loaded JSON content")
     return json_content["payload"]
