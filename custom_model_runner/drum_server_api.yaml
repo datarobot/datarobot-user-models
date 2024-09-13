@@ -2,7 +2,7 @@ openapi: 3.0.1
 info:
   title: DRUM prediction server.
   description: DRUM prediction server.
-  version: "1.10.8"
+  version: "1.12.0"
 paths:
   /URL_PREFIX/:
     $ref: "#/paths/~1URL_PREFIX~1ping~1"
@@ -341,6 +341,61 @@ paths:
                     description: Status message
   /URL_PREFIX/predictionsUnstructured/:
     $ref: "#/paths/~1URL_PREFIX~1predictUnstructured~1"
+  /URL_PREFIX/chat/completions/:
+    post:
+      description: Get chat completions using the OpenAI-compatible chat completions API.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              externalDocs:
+                url: "https://platform.openai.com/docs/api-reference/chat/create"
+              example: >
+                {
+                    "model": "gpt-4o",
+                    "messages": [
+                      {
+                        "role": "system",
+                        "content": "You are a helpful assistant."
+                      },
+                      {
+                        "role": "user",
+                        "content": "Hello!"
+                      }
+                    ]
+                }
+      responses:
+        200:
+          description: Chat completion response.
+          content:
+            application/json:
+              example: >
+                {
+                  "id": "chatcmpl-123",
+                  "object": "chat.completion",
+                  "created": 1677652288,
+                  "model": "gpt-4o-mini",
+                  "system_fingerprint": "fp_44709d6fcb",
+                  "choices": [{
+                    "index": 0,
+                    "message": {
+                      "role": "assistant",
+                      "content": "\n\nHello there, how may I assist you today?"
+                    },
+                    "logprobs": null,
+                    "finish_reason": "stop"
+                  }],
+                  "usage": {
+                    "prompt_tokens": 9,
+                    "completion_tokens": 12,
+                    "total_tokens": 21
+                  }
+                }
+              schema:
+                externalDocs:
+                  url: "https://platform.openai.com/docs/api-reference/chat/object"
+  /URL_PREFIX/v1/chat/completions/:
+    $ref: "#/paths/~1URL_PREFIX~1chat~1completions~1"
 components:
   schemas:
     regression:
