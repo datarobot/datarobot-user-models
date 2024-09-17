@@ -270,13 +270,12 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             response_iter = iter(response)
             first_chunk = next(response_iter)
 
-            if getattr(first_chunk, "object", None) == "chat.completion.chunk":
+            if type(first_chunk).__name__ == "ChatCompletionChunk":
                 # Return a new iterable where the peeked object is included in the beginning
                 return itertools.chain([first_chunk], response_iter)
             else:
                 raise Exception(
-                    f"Expected response to be ChatCompletion or Iterable[ChatCompletionChunk]. response type: {type(response)}."
-                    f"response(str): {str(response)}"
+                    f"First chunk does not look like chat completion chunk. str(chunk): '{first_chunk}'"
                 )
         except StopIteration:
             return iter(())
