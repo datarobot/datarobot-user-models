@@ -250,8 +250,6 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                 features_df,
                 predictions,
                 association_ids=[str(uuid.uuid4())],
-                skip_drift_tracking=True,
-                skip_accuracy_tracking=True,
             )
         except DRCommonException:
             logger.exception("Failed to report predictions data")

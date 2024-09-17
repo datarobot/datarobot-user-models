@@ -113,8 +113,6 @@ class TestChat:
             ANY,
             ["How are you"],
             association_ids=ANY,
-            skip_drift_tracking=True,
-            skip_accuracy_tracking=True,
         )
         # Compare features dataframe separately as this doesn't play nice with assert_called
         assert mock_mlops.report_predictions_data.call_args.args[0]["prompt"].values[0] == "Hello!"
