@@ -334,26 +334,26 @@ class TestMonitorArgs:
     @pytest.fixture
     def monitor_env_vars(self):
         os.environ[ArgumentOptionsEnvVars.MONITOR] = "True"
-        os.environ["DEPLOYMENT_ID"] = "e123"
-        os.environ["MODEL_ID"] = "e456"
+        os.environ["MLOPS_DEPLOYMENT_ID"] = "e123"
+        os.environ["MLOPS_MODEL_ID"] = "e456"
         os.environ["MONITOR_SETTINGS"] = "e;aaa;bbb"
         yield
         os.environ.pop(ArgumentOptionsEnvVars.MONITOR)
-        os.environ.pop("DEPLOYMENT_ID")
-        os.environ.pop("MODEL_ID")
+        os.environ.pop("MLOPS_DEPLOYMENT_ID")
+        os.environ.pop("MLOPS_MODEL_ID")
         os.environ.pop("MONITOR_SETTINGS")
 
     @pytest.fixture
     def monitor_embedded_env_vars(self):
         os.environ[ArgumentOptionsEnvVars.MONITOR_EMBEDDED] = "true"
-        os.environ["DEPLOYMENT_ID"] = "e123"
-        os.environ["MODEL_ID"] = "e456"
+        os.environ["MLOPS_DEPLOYMENT_ID"] = "e123"
+        os.environ["MLOPS_MODEL_ID"] = "e456"
         os.environ["EXTERNAL_WEB_SERVER_URL"] = "e-http://aaa.bbb.ccc"
         os.environ["API_TOKEN"] = "e-zzz"
         yield
         os.environ.pop(ArgumentOptionsEnvVars.MONITOR_EMBEDDED)
-        os.environ.pop("DEPLOYMENT_ID")
-        os.environ.pop("MODEL_ID")
+        os.environ.pop("MLOPS_DEPLOYMENT_ID")
+        os.environ.pop("MLOPS_MODEL_ID")
         os.environ.pop("EXTERNAL_WEB_SERVER_URL")
         os.environ.pop("API_TOKEN")
 
