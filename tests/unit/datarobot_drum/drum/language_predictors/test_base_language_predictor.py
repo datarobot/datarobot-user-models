@@ -115,7 +115,33 @@ class TestChat:
             association_ids=ANY,
         )
         # Compare features dataframe separately as this doesn't play nice with assert_called
+        assert mock_mlops.report_predictions_data.call_args.args[0]["promptText"].values[0] == "Hello!"
+
+
+    def test_prompt_column_name(self, language_predictor, mock_mlops):
+        def chat_hook(completion_request):
+            return create_completion("How are you")
+
+        language_predictor.chat_hook = chat_hook
+
+        response = language_predictor.chat(
+            {
+                "model": "any",
+                "messages": [
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": "Hello!"},
+                ]
+            }
+        )
+
+        mock_mlops.report_predictions_data.assert_called_once_with(
+            ANY,
+            ["How are you"],
+            association_ids=ANY,
+        )
+        # Compare features dataframe separately as this doesn't play nice with assert_called
         assert mock_mlops.report_predictions_data.call_args.args[0]["prompt"].values[0] == "Hello!"
+
 
     @pytest.mark.parametrize("stream", [False, True])
     def test_failing_hook_with_mlops(self, language_predictor, mock_mlops, stream):

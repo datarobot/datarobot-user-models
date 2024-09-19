@@ -149,7 +149,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         try:
             deployment = dr.Deployment.get(self._params["deployment_id"])
             return deployment.model["prompt"]
-        except Exception as e:
+        except Exception:
             logger.exception("Failed to get prompt column name from deployment")
 
         return DEFAULT_PROMPT_COLUMN_NAME
