@@ -1,3 +1,5 @@
+[![Open in DevZero](https://assets.devzero.io/open-in-devzero.svg)](https://www.devzero.io/dashboard/recipes/new?repo-url=https://github.com/datarobot/datarobot-user-models)
+
 # DataRobot User Models
 
 ## What is this repository? <a name="what_is_it"></a>
