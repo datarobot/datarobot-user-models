@@ -115,12 +115,13 @@ class TestChat:
             association_ids=ANY,
         )
         # Compare features dataframe separately as this doesn't play nice with assert_called
-        assert mock_mlops.report_predictions_data.call_args.args[0]["promptText"].values[0] == "Hello!"
-
+        assert (
+            mock_mlops.report_predictions_data.call_args.args[0]["promptText"].values[0] == "Hello!"
+        )
 
     def test_prompt_column_name(self, chat_python_model_adapter, mock_mlops):
         language_predictor = TestLanguagePredictor()
-        with patch('datarobot.Deployment') as mock_deployment:
+        with patch("datarobot.Deployment") as mock_deployment:
             deployment_instance = Mock()
             deployment_instance.model = {"prompt": "newPromptName"}
 
@@ -134,7 +135,6 @@ class TestChat:
                 }
             )
 
-
         def chat_hook(completion_request):
             return create_completion("How are you")
 
@@ -145,7 +145,7 @@ class TestChat:
                 "messages": [
                     {"role": "system", "content": "You are a helpful assistant."},
                     {"role": "user", "content": "Hello!"},
-                ]
+                ],
             }
         )
 
@@ -155,8 +155,10 @@ class TestChat:
             association_ids=ANY,
         )
         # Compare features dataframe separately as this doesn't play nice with assert_called
-        assert mock_mlops.report_predictions_data.call_args.args[0]["newPromptName"].values[0] == "Hello!"
-
+        assert (
+            mock_mlops.report_predictions_data.call_args.args[0]["newPromptName"].values[0]
+            == "Hello!"
+        )
 
     @pytest.mark.parametrize("stream", [False, True])
     def test_failing_hook_with_mlops(self, language_predictor, mock_mlops, stream):

@@ -41,7 +41,6 @@ def create_completion_chunks(messages):
     chunk.object = ""
     chunks.append(chunk)
 
-
     for message in messages:
         chunks.append(create_chunk(message))
 

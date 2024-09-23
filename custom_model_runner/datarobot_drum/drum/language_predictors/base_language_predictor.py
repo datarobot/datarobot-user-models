@@ -154,7 +154,6 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
 
         return DEFAULT_PROMPT_COLUMN_NAME
 
-
     def _configure_mlops_for_non_chat(self):
         self._mlops.set_channel_config(self._params["monitor_settings"])
 
