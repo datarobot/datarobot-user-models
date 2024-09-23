@@ -90,6 +90,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         self._params = None
         self._mlops = None
         self._schema_validator = None
+        self._prompt_column_name = DEFAULT_PROMPT_COLUMN_NAME
 
     def mlpiper_configure(self, params):
         """
