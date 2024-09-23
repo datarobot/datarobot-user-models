@@ -1,9 +1,6 @@
 package com.datarobot.drum;
 
-import com.datarobot.prediction.IClassificationPredictor;
-import com.datarobot.prediction.IPredictorInfo;
-import com.datarobot.prediction.IRegressionPredictor;
-import com.datarobot.prediction.Predictors;
+import com.datarobot.prediction.*;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
@@ -11,14 +8,17 @@ import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Paths;
+import java.sql.Time;
 import java.util.*;
 
 public class ScoringCode extends BasePredictor {
     private IPredictorInfo model;
     private boolean isRegression;
+    private boolean isTimeSeries;
     private String negativeClassLabel = null;
     private String positiveClassLabel = null;
     private String[] classLabels = null;
+    private String[] timeSeriesHeaders = null;
     private Map<String, Object> params = null;
 
     public ScoringCode(String name) {
@@ -57,7 +57,22 @@ public class ScoringCode extends BasePredictor {
         CSVPrinter csvPrinter = null;
 
         try {
-            if (this.isRegression) {
+            if (this.isTimeSeries) {
+                CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
+                        .setHeader(this.timeSeriesHeaders)
+                        .build();
+                csvPrinter = new CSVPrinter(new StringWriter(), csvFormat);
+                for (var val : predictions) {
+                    TimeSeriesScore<Double> value = (TimeSeriesScore<Double>) val;
+                    csvPrinter.printRecord(
+                            value.getSeriesId(),
+                            value.getForecastTimestamp(),
+                            value.getForecastPoint(),
+                            value.getForecastDistance(),
+                            value.getScore()
+                    );
+                }
+            } else if (this.isRegression) {
                 csvPrinter = new CSVPrinter(new StringWriter(), CSVFormat.DEFAULT.withHeader("Predictions"));
                 for (var value : predictions) {
                     csvPrinter.printRecord(value);
@@ -91,8 +106,10 @@ public class ScoringCode extends BasePredictor {
             this.classLabels = new String[]{this.positiveClassLabel, this.negativeClassLabel};
         }
 
+        this.timeSeriesHeaders = new String[]{"Id", "Timestamp", "Forecast_Point", "Forecast_Distance", "Prediction"};
         try {
             this.model = loadModel(customModelPath);
+            this.isTimeSeries = this.model instanceof ITimeSeriesRegressionPredictor;
             this.isRegression = this.model instanceof IRegressionPredictor;
         } catch (IOException e) {
             e.printStackTrace();
@@ -104,9 +121,26 @@ public class ScoringCode extends BasePredictor {
         var csvFormat = CSVFormat.DEFAULT.withHeader();
 
         try (var parser = csvFormat.parse(in)) {
-            for (var csvRow : parser) {
-                var mapRow = csvRow.toMap();
-                predictions.add(scoreRow(mapRow));
+
+            if (isTimeSeries) {
+                ArrayList<Map<String, ?>> rows = new ArrayList<>();
+                for (var csvRow : parser) {
+                    var mapRow = csvRow.toMap();
+                    rows.add(mapRow);
+                }
+                TimeSeriesOptions.Builder optionsBuilder = TimeSeriesOptions.newBuilder()
+                        .computeIntervals(false);
+
+                //TimeSeriesOptions options = optionsBuilder.buildForecastDateRangeRequest("2014-02-15","2014-07-16");
+                TimeSeriesOptions options = optionsBuilder.buildSingleForecastPointRequest("2014-07-15");
+                //List<TimeSeriesScore<Double>> result = ((ITimeSeriesRegressionPredictor) model).score(rows, options);
+                List<TimeSeriesScore<Double>> result = ((ITimeSeriesRegressionPredictor) model).score(rows);
+                return this.predictionsToString(result);
+            } else {
+                for (var csvRow : parser) {
+                    var mapRow = csvRow.toMap();
+                    predictions.add(scoreRow(mapRow));
+                }
             }
         }
         return this.predictionsToString(predictions);
