@@ -140,7 +140,7 @@ class PythonModelAdapter(AbstractModelAdapter):
                 self._logger.debug("No guards defined")
 
         except ImportError as e:
-            self._logger.debug("Could not load guard hooks: {}".format(e))
+            self._logger.warning(f"Could not load guard hooks: {e}, moderation will be disabled")
             # Just log that no guard info present
 
     def _log_and_raise_final_error(self, exc: Exception, message: str) -> NoReturn:
