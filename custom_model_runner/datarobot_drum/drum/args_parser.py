@@ -562,14 +562,16 @@ class CMRunnerArgsRegistry(object):
 
             parser.add_argument(
                 ArgumentsOptions.DEPLOYMENT_ID,
-                default=os.environ.get("MLOPS_DEPLOYMENT_ID", None),
-                help="Deployment id to use for monitoring model predictions (env: MLOPS_DEPLOYMENT_ID)",
+                default=os.environ.get(
+                    "DEPLOYMENT_ID", os.environ.get("MLOPS_DEPLOYMENT_ID", None)
+                ),
+                help="Deployment id to use for monitoring model predictions (env: DEPLOYMENT_ID)",
             )
 
             parser.add_argument(
                 ArgumentsOptions.MODEL_ID,
-                default=os.environ.get("MLOPS_MODEL_ID", None),
-                help="MLOps model id to use for monitoring predictions (env: MLOPS_MODEL_ID)",
+                default=os.environ.get("MODEL_ID", os.environ.get("MLOPS_MODEL_ID", None)),
+                help="MLOps model id to use for monitoring predictions (env: MODEL_ID)",
             )
 
             parser.add_argument(

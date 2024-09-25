@@ -275,9 +275,9 @@ Notes:
     * `--api-token` (env: `API_TOKEN`) - DataRobot API token.
     * `--monitor-embedded` (env: `MLOPS_REPORTING_FROM_UNSTRUCTURED_MODELS`) - enables a model
       to use MLOps library in order to report statistics.
-    * `--deployment-id` (env: `MLOPS_DEPLOYMENT_ID`) - deployment ID to use for monitoring model
+    * `--deployment-id` (env: `DEPLOYMENT_ID`) - deployment ID to use for monitoring model
       predictions.
-    * `--model-id` (env: `MLOPS_MODEL_ID`) - the deployed model ID to use for monitoring predictions.
+    * `--model-id` (env: `MODEL_ID`) - the deployed model ID to use for monitoring predictions.
 
 
 ##### In server mode

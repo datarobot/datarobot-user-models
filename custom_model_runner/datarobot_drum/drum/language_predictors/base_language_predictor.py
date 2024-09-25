@@ -144,14 +144,20 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
 
     def _get_prompt_column_name(self):
         if not self._params.get("deployment_id", None):
-            logger.error("No deployment id found while configuring mlops for chat.")
+            logger.error(
+                "No deployment ID found while configuring mlops for chat. "
+                f"Fallback to default prompt column name ('{DEFAULT_PROMPT_COLUMN_NAME}')"
+            )
             return DEFAULT_PROMPT_COLUMN_NAME
 
         try:
             deployment = dr.Deployment.get(self._params["deployment_id"])
             return deployment.model["prompt"]
         except Exception:
-            logger.exception("Failed to get prompt column name from deployment")
+            logger.exception(
+                "Failed to get prompt column name from deployment. "
+                f"Fallback to default prompt column name ('{DEFAULT_PROMPT_COLUMN_NAME}')"
+            )
 
         return DEFAULT_PROMPT_COLUMN_NAME
 
