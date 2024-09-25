@@ -92,11 +92,11 @@ def main():
             try:
                 loader = RuntimeParametersLoader(options.runtime_params_file, options.code_dir)
                 loader.setup_environment_variables()
-                if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
-                    options.max_workers = RuntimeParameters.get("CUSTOM_MODEL_WORKERS")
             except RuntimeParameterException as exc:
                 print(str(exc))
                 exit(255)
+        if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
+            options.max_workers = RuntimeParameters.get("CUSTOM_MODEL_WORKERS")
         runtime.options = options
 
         # mlpiper restful_component relies on SIGINT to shutdown nginx and uwsgi,
