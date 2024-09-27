@@ -30,6 +30,10 @@ from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInpu
 from datarobot_drum.drum.data_marshalling import marshal_predictions
 from datarobot_drum.resource.chat_helpers import is_streaming_response
 
+import datarobot as dr
+
+DEFAULT_PROMPT_COLUMN_NAME = "promptText"
+
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 mlops_loaded = False
@@ -86,6 +90,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         self._params = None
         self._mlops = None
         self._schema_validator = None
+        self._prompt_column_name = DEFAULT_PROMPT_COLUMN_NAME
 
     def mlpiper_configure(self, params):
         """
@@ -125,11 +130,36 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             self._mlops.set_model_id(self._params["model_id"])
 
         if self._supports_chat():
-            self._mlops.set_channel_config("spooler_type=API")
+            self._configure_mlops_for_chat()
         else:
             self._configure_mlops_for_non_chat()
 
         self._mlops.init()
+
+    def _configure_mlops_for_chat(self):
+        self._mlops.set_channel_config("spooler_type=API")
+
+        self._prompt_column_name = self._get_prompt_column_name()
+        logger.debug("Prompt column name: %s", self._prompt_column_name)
+
+    def _get_prompt_column_name(self):
+        if not self._params.get("deployment_id", None):
+            logger.error(
+                "No deployment ID found while configuring mlops for chat. "
+                f"Fallback to default prompt column name ('{DEFAULT_PROMPT_COLUMN_NAME}')"
+            )
+            return DEFAULT_PROMPT_COLUMN_NAME
+
+        try:
+            deployment = dr.Deployment.get(self._params["deployment_id"])
+            return deployment.model["prompt"]
+        except Exception:
+            logger.exception(
+                "Failed to get prompt column name from deployment. "
+                f"Fallback to default prompt column name ('{DEFAULT_PROMPT_COLUMN_NAME}')"
+            )
+
+        return DEFAULT_PROMPT_COLUMN_NAME
 
     def _configure_mlops_for_non_chat(self):
         self._mlops.set_channel_config(self._params["monitor_settings"])
@@ -242,7 +272,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         self._mlops.report_deployment_stats(num_predictions=1, execution_time_ms=execution_time_ms)
 
         latest_message = completion_create_params["messages"][-1]["content"]
-        features_df = pd.DataFrame([{"prompt": latest_message}])
+        features_df = pd.DataFrame([{self._prompt_column_name: latest_message}])
 
         predictions = [message_content]
         try:
@@ -250,8 +280,6 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                 features_df,
                 predictions,
                 association_ids=[str(uuid.uuid4())],
-                skip_drift_tracking=True,
-                skip_accuracy_tracking=True,
             )
         except DRCommonException:
             logger.exception("Failed to report predictions data")
@@ -272,13 +300,12 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             response_iter = iter(response)
             first_chunk = next(response_iter)
 
-            if getattr(first_chunk, "object", None) == "chat.completion.chunk":
+            if type(first_chunk).__name__ == "ChatCompletionChunk":
                 # Return a new iterable where the peeked object is included in the beginning
                 return itertools.chain([first_chunk], response_iter)
             else:
                 raise Exception(
-                    f"Expected response to be ChatCompletion or Iterable[ChatCompletionChunk]. response type: {type(response)}."
-                    f"response(str): {str(response)}"
+                    f"First chunk does not look like chat completion chunk. str(chunk): '{first_chunk}'"
                 )
         except StopIteration:
             return iter(())
