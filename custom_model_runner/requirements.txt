@@ -18,7 +18,6 @@ strictyaml==1.4.2
 PyYAML
 texttable
 py4j~=0.10.9.0
-# only constrained by other packages, not DRUM
 pyarrow>=0.14.1  # TODO make optional
 Pillow
 julia<=0.5.7  # TODO make optional
