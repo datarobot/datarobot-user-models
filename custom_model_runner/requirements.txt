@@ -24,4 +24,3 @@ Pillow<=10.3.0
 julia<=0.5.7
 termcolor
 packaging
-markupsafe<=2.1.3
