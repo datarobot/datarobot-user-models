@@ -1,0 +1,12 @@
+{
+  "id": "66d07fae0513a1edf18595bb",
+  "name": "[DataRobot] Python 3.12",
+  "description": "Base image for Python 3.12 custom applications.",
+  "programmingLanguage": "python",
+  "environmentVersionId": "66fbbe600513a16e8a3c8481",
+  "environmentVersionDescription": "Python 3.12 without any additional packages.",
+  "isPublic": true,
+  "useCases": [
+    "customApplication"
+  ]
+}
