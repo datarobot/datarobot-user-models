@@ -32,4 +32,4 @@ echo
 echo "Starting DRUM server..."
 echo
 . /home/nemo/dr/bin/activate
-exec drum server --gpu-predictor=nemo --logging-level=info "$@"
+exec drum server --gpu-predictor=nim --logging-level=info "$@"

@@ -113,6 +113,12 @@ class PredictionServer(ConnectableComponent, PredictMixin):
             )
 
             self._predictor = NemoPredictor()
+        elif self._gpu_predictor_type and self._gpu_predictor_type == GPU_PREDICTORS.NIM:
+            from datarobot_drum.drum.gpu_predictors.nim_predictor import (
+                NIMPredictor,
+            )
+
+            self._predictor = NIMPredictor()
         elif self._gpu_predictor_type and self._gpu_predictor_type == GPU_PREDICTORS.VLLM:
             from datarobot_drum.drum.gpu_predictors.vllm_predictor import (
                 VllmPredictor,
