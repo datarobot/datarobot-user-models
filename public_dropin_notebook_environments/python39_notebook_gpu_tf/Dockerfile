@@ -47,9 +47,9 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Add any package that will be installed on system level here:
 RUN yum update -y \
   && yum install -y python$PYTHON_VERSION-$PYTHON_EXACT_VERSION python$PYTHON_VERSION-devel-$PYTHON_EXACT_VERSION \
-  gcc-11.4.1 gcc-c++-11.4.1 glibc-devel-2.34 libffi-devel-3.4.2 python3-pip-21.2.3 \
-  openblas-0.3.21 python$PYTHON_VERSION-scipy shadow-utils-2:4.9 passwd-0.80 git-2.43.0 openssh-server tar-2:1.34 gzip-1.12 unzip-6.0 zip-3.0 wget-1.21.1 \
-  java-11-openjdk-headless-11.0.23.0.9-3.el9 vim-minimal-2:8.2.2637 nano-5.6.1 procps-ng-3.3.17 tzdata-java \
+  gcc gcc-c++ glibc-devel libffi-devel python3-pip \
+  openblas python$PYTHON_VERSION-scipy shadow-utils passwd git openssh-server tar gzip unzip zip wget \
+  java-11-openjdk-headless vim-minimal nano procps-ng tzdata-java \
   && pip3 install -U --no-cache-dir pip==23.1.2 \
   && curl -sS https://webi.sh/gh | sh && cp ~/.local/bin/gh /usr/bin/ \
   && yum clean all
