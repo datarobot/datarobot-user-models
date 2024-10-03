@@ -57,7 +57,7 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
         env["NIM_SERVED_MODEL_NAME"] = self.model_name
         env["NIM_SERVER_PORT"] = str(self.openai_port)
         if self.ngc_token:
-            env["NGC_API_KEY"] = self.ngc_token
+            env["NGC_API_KEY"] = self.ngc_token["apiToken"]
         if self.model_profile:
             env["NIM_MODEL_PROFILE"] = self.model_profile
         if self.max_model_len:
