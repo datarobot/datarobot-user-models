@@ -4,7 +4,6 @@ USER root
 RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-venv \
-    zstd \
   && rm -rf /var/lib/apt/lists/*
 
 USER 1000
