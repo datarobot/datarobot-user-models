@@ -26,5 +26,5 @@ fi
 echo
 echo "Starting DRUM server..."
 echo
-. /home/nemo/dr/bin/activate
+. ${DATAROBOT_VENV_PATH}/bin/activate
 exec drum server --gpu-predictor=nim --logging-level=info "$@"
