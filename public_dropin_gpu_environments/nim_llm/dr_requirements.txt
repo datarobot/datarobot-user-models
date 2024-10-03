@@ -46,7 +46,7 @@ datarobot==3.3.1
     # via
     #   -r dr_requirements.in
     #   datarobot-drum
-datarobot-drum @ git+https://github.com/datarobot/datarobot-user-models.git@32d9ea8bbdb34d5c0cfc65bd0c0cc365ea96e27f#subdirectory=custom_model_runner&egg=datarobot-drum
+datarobot-drum @ git+https://github.com/datarobot/datarobot-user-models.git@b475a1b7af1ea9cd8db20b921fb83328dd9e5eff#subdirectory=custom_model_runner&egg=datarobot-drum
     # via -r dr_requirements.in
 datarobot-mlops==9.2.11
     # via
