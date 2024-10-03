@@ -1,5 +1,4 @@
-FROM nvcr.io/ohlfw0olaadg/ea-participants/nim_llm:24.02.1
-
+FROM nvcr.io/nim/meta/llama-3.1-8b-instruct:1.2.2
 
 USER root
 RUN apt-get update && apt-get install -y \
@@ -18,8 +17,8 @@ COPY dr_requirements.txt dr_requirements.txt
 RUN $DATAROBOT_VENV_PATH/bin/pip install -r dr_requirements.txt
 
 ENV CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
+ENV NIM_CACHE_PATH=${CODE_DIR}/nim/cache
 WORKDIR ${CODE_DIR}
 COPY --chown=1000:1000 ./*.sh ./*.py ${CODE_DIR}/
-
 
 ENTRYPOINT ["/opt/code/start_server.sh"]

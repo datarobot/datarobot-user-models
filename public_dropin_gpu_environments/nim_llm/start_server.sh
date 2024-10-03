@@ -20,11 +20,6 @@ fi
 if [ "${ENABLE_CUSTOM_MODEL_RUNTIME_ENV_DUMP}" = 1 ]; then
     echo "Environment variables:"
     env
-
-    echo
-    echo "Running NVIDIA init scripts..."
-    echo
-    /opt/nvidia/nvidia_entrypoint.sh /bin/true
 fi
 
 
