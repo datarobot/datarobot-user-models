@@ -18,6 +18,7 @@ RUN $DATAROBOT_VENV_PATH/bin/pip install -r dr_requirements.txt
 ENV CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
 ENV NIM_CACHE_PATH=${CODE_DIR}/nim/cache
 WORKDIR ${CODE_DIR}
+COPY --chown=1000:1000 .gitkeep ${NIM_CACHE_PATH}/
 COPY --chown=1000:1000 ./*.sh ./*.py ${CODE_DIR}/
 
 ENTRYPOINT ["/opt/code/start_server.sh"]
