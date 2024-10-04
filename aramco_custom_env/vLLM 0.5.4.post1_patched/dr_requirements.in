@@ -1,0 +1,7 @@
+datarobot
+datarobot-mlops
+datarobot-mlops-connected-client
+./datarobot_drum-1.12.1-py3-none-any.whl
+openai
+uwsgi
+boto3
