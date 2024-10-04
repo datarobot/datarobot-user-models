@@ -16,6 +16,9 @@ if [ "$GPU_COUNT" -eq 0 ]; then
     exit 1
 fi
 
+echo ""
+echo "Availble NIM Profiles:"
+list-model-profiles
 
 if [ "${ENABLE_CUSTOM_MODEL_RUNTIME_ENV_DUMP}" = 1 ]; then
     echo "Environment variables:"
