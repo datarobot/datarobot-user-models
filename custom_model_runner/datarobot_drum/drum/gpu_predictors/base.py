@@ -70,9 +70,9 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         )
 
         # completions configuration can be changed with Runtime parameters
-        self.max_tokens = self.get_optional_parameter("max_tokens", 512)
+        self.max_tokens = int(self.get_optional_parameter("max_tokens", 512))
         self.use_chat_context = self.get_optional_parameter("chat_context", False)
-        self.num_choices_per_completion = self.get_optional_parameter("n", 1)
+        self.num_choices_per_completion = int(self.get_optional_parameter("n", 1))
         self.temperature = self.get_optional_parameter("temperature", 0.01)
 
         # used to load custom model hooks
