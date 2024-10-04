@@ -16,6 +16,11 @@ if [ "$GPU_COUNT" -eq 0 ]; then
     exit 1
 fi
 
+if [ "$GPU_COUNT" -gt 1 ]; then
+    echo "Multiple GPUs found; at least 16G of shared memory is recommened for non-NVLink GPUs."
+    df -h /dev/shm
+fi
+
 echo ""
 echo "Availble NIM Profiles:"
 list-model-profiles
