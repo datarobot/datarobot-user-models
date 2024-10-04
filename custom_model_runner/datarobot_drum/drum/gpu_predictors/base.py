@@ -162,10 +162,9 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
 
     @staticmethod
     def get_optional_parameter(key, default_value=None):
-        try:
+        if RuntimeParameters.has(key):
             return RuntimeParameters.get(key)
-        except ValueError:
-            return default_value
+        return default_value
 
     def _predict(self, **kwargs) -> RawPredictResponse:
         data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
