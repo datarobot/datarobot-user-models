@@ -84,10 +84,9 @@ LOG_LEVELS = {
 
 class GPU_PREDICTORS:
     TRITON = "triton"
-    NEMO = "nemo"
     NIM = "nim"
     VLLM = "vllm"
-    ALL = [TRITON, NEMO, NIM, VLLM]
+    ALL = [TRITON, NIM, VLLM]
 
 
 class SupportedFrameworks:

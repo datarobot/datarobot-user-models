@@ -76,12 +76,6 @@ class GenericPredictorComponent(ConnectableComponent):
             )
 
             self._predictor = TritonPredictor()
-        elif self._gpu_predictor_type and self._gpu_predictor_type == GPU_PREDICTORS.NEMO:
-            from datarobot_drum.drum.gpu_predictors.nemo_predictor import (
-                NemoPredictor,
-            )
-
-            self._predictor = NemoPredictor()
         elif self._gpu_predictor_type and self._gpu_predictor_type == GPU_PREDICTORS.NIM:
             from datarobot_drum.drum.gpu_predictors.nim_predictor import (
                 NIMPredictor,
