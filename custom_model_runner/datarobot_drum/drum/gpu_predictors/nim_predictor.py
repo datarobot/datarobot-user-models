@@ -71,6 +71,7 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
             env=env,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
+            text=True,
             preexec_fn=os.setsid,
         ) as p:
             openai_process.process = p
