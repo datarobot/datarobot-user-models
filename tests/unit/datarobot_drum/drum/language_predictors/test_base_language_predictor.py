@@ -41,7 +41,12 @@ class TestChat:
 
     @pytest.fixture
     def mock_mlops(self):
-        with patch("datarobot_drum.drum.language_predictors.base_language_predictor.MLOps") as mock:
+        with (
+            patch(
+                "datarobot_drum.drum.language_predictors.base_language_predictor.mlops_loaded", True
+            ),
+            patch("datarobot_drum.drum.language_predictors.base_language_predictor.MLOps") as mock,
+        ):
             mlops_instance = Mock()
             mock.return_value = mlops_instance
             yield mlops_instance
