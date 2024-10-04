@@ -25,3 +25,4 @@ unidic-lite==1.0.8
 llama-index==0.10.37
 llama-index-llms-azure-openai==0.1.8
 distro==1.9.0
+jinja2==3.1.4

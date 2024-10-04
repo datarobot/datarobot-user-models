@@ -181,6 +181,12 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
                 "content": self._get(row, self.user_prompt_column),
             }
 
+        def pruned_user_prompt(row):
+            return {
+                "role": ChatRoles.USER,
+                "content": prune_prompt(self._get(row, self.user_prompt_column)),
+            }
+
         def assistant_prompt(row):
             return {
                 "role": ChatRoles.ASSISTANT,
@@ -200,13 +206,19 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
 
             completions = self._create_completions(messages)
             results.extend(completions)
-
         else:  # each prompt row sent as a separate completion request
             for i, row in enumerate(reader):
                 self.logger.debug("Row %d: %s", i, row)
-                messages = [user_prompt(row)]
-                completions = self._create_completions(messages, i)
-                results.extend(completions)
+                try:
+                    messages = [user_prompt(row)]
+                    completions = self._create_completions(messages, i)
+                    results.extend(completions)
+                except Exception as e:
+                    self.logger.debug("Trying completion with pruning Row %d", i)
+                    messages = [pruned_user_prompt(row)]
+                    completions = self._create_completions(messages, i)
+                    results.extend(completions)
+
 
         # TODO DRUM has a restriction for text generation targets to return only a single column
         # column_names = ["row_id", "choice_id", "completions"]
@@ -272,3 +284,180 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
 
     def terminate(self):
         raise NotImplementedError
+
+############################################
+# MAKE SURE TO REPLACE THIS WITH YOUR OWN #
+MAX_CONTEXT_LEN = 8192 # in tokens
+############################################
+
+import re, sys
+from jinja2 import Environment, Template
+import os
+
+MAX_PRUNED_HISTORY_MESSAGES = 5
+
+
+############################################
+# DO NOT MODIFY ANYTHING BELOW THIS LINE #
+############################################
+
+PROMPT_TEMPLATE = """{% if system_prompt %}
+{{ system_prompt }}
+
+{% endif %}
+{% if docs %}
+Context:
+{% for doc in docs %}
+ - {{ doc }}
+
+{% endfor %}
+{% endif %}
+{% if history %}
+Previous conversation:
+{% for chat_prompt in history %}
+Prompt: {{ chat_prompt["prompt"] }}
+Response: {{ chat_prompt["response"] }}
+
+{% endfor %}
+{% endif %}
+Prompt: {{ user_prompt }}
+
+"""
+
+SYSTEM_PROMPT_KEY = "system_prompt"
+DOCS_KEY = "docs"
+HISTORY_KEY = "history"
+USER_PROMPT_KEY = "user_prompt"
+
+def parse_template_content(content: str):
+    # Initialize empty result dictionary
+    result = {
+        SYSTEM_PROMPT_KEY: None,
+        DOCS_KEY: [],
+        HISTORY_KEY: [],
+        USER_PROMPT_KEY: None
+    }
+    
+    # Extract the final user prompt without regex (searching from right)
+    content = content.rstrip()  # Remove any trailing whitespace
+    last_prompt_idx = content.rstrip().rfind('Prompt: ')
+    if last_prompt_idx != -1:
+        result[USER_PROMPT_KEY] = content[last_prompt_idx + 8:].strip()
+        content = content[:last_prompt_idx].rstrip()
+    
+    # Extract system prompt if it exists (from the beginning until Context: or Previous conversation:)
+    first_marker = min(
+        (content.find('Context:') if 'Context:' in content else len(content)),
+        (content.find('Previous conversation:') if 'Previous conversation:' in content else len(content))
+    )
+    
+    if first_marker > 0:  # If we found either marker and it's not at the start
+        potential_system_prompt = content[:first_marker].strip()
+        if potential_system_prompt:
+            result[SYSTEM_PROMPT_KEY] = potential_system_prompt
+            content = content[first_marker:]
+    
+    # Extract docs if they exist using regex only for bullet points
+    if 'Context:' in content:
+        docs_start = content.find('Context:') + 8
+        docs_end = content.find('Previous conversation:') if 'Previous conversation:' in content else len(content)
+        docs_section = content[docs_start:docs_end].strip()
+        
+        # Use regex only for extracting bullet points
+        docs = [doc.strip() for doc in re.findall(r'-\s*([^\n]+(?:\n(?!\s*-).*)*)', docs_section)]
+        result[DOCS_KEY] = docs
+        
+        # Remove docs section from content
+        content = content[docs_end:].strip()
+    
+    # Extract history if it exists
+    if 'Previous conversation:' in content:
+        history_start = content.find('Previous conversation:') + 21
+        history_section = content[history_start:].strip()
+        
+        # Use regex only for parsing individual prompt-response pairs
+        pairs = re.finditer(r'Prompt:\s*([^\n]+)\s*\nResponse:\s*([^\n]+(?:\n(?!Prompt:).*)*)', history_section)
+        
+        for pair in pairs:
+            prompt = pair.group(1).strip()
+            response = pair.group(2).strip()
+            result[HISTORY_KEY].append({
+                'prompt': prompt,
+                'response': response
+            })
+    
+    return result
+
+
+def prune_prompt(prompt):
+    """
+    We don't know what the max context length is so our pruning logic will be.
+    At most MAX_PRUNED_HISTORY_MESSAGES chat history messages, if any.
+    If at end still above max context length, we will take half the context.
+    """
+    CHARS_TO_TOKEN_APPROXIMATION = 4
+    original_prompt_len = len(prompt)
+    
+    try:
+        parsed_entities = parse_template_content(prompt)
+        system_prompt = parsed_entities[SYSTEM_PROMPT_KEY]
+        docs = parsed_entities[DOCS_KEY]
+        history = parsed_entities[HISTORY_KEY]
+        user_prompt = parsed_entities[USER_PROMPT_KEY]
+        system_prompt = system_prompt or ""
+        user_prompt = user_prompt or ""
+        docs = docs or []
+        history = history or []
+        
+        pruned_prompt_entities = {
+            SYSTEM_PROMPT_KEY: system_prompt,
+            DOCS_KEY: docs,
+            HISTORY_KEY: [],
+            USER_PROMPT_KEY: user_prompt,
+        }
+        # 1. first we will prune the history
+        # we add newer messages first
+        for chat in reversed(history):
+            pruned_prompt_entities[HISTORY_KEY].insert(0, chat)
+            if len(pruned_prompt_entities[HISTORY_KEY]) >= MAX_PRUNED_HISTORY_MESSAGES:
+                break
+        # Build the prompt body
+        jinja_env = Environment(trim_blocks=True)
+        template = jinja_env.from_string(PROMPT_TEMPLATE)
+        pruned_prompt = template.render(
+            system_prompt=pruned_prompt_entities[SYSTEM_PROMPT_KEY],
+            docs=pruned_prompt_entities[DOCS_KEY],
+            history=pruned_prompt_entities[HISTORY_KEY],
+            user_prompt=pruned_prompt_entities[USER_PROMPT_KEY]
+        )
+        if len(pruned_prompt)//4 > MAX_CONTEXT_LEN:
+            print(f"Approximate token count of {len(pruned_prompt)//4} still above max context size. Pruning docs in half.")
+            pruned_prompt_entities[DOCS_KEY] = pruned_prompt_entities[DOCS_KEY][:(len(pruned_prompt_entities[DOCS_KEY])//2)]
+            pruned_prompt = template.render(
+                system_prompt=pruned_prompt_entities[SYSTEM_PROMPT_KEY],
+                docs=pruned_prompt_entities[DOCS_KEY],
+                history=pruned_prompt_entities[HISTORY_KEY],
+                user_prompt=pruned_prompt_entities[USER_PROMPT_KEY]
+            )
+        if len(pruned_prompt)//4 > MAX_CONTEXT_LEN:
+            print(f"Approximate token count of {len(pruned_prompt)//4} still above max context size. Pruning docs, history additionally in 2 and 4 respectively.")            
+            pruned_prompt_entities[DOCS_KEY] = pruned_prompt_entities[DOCS_KEY][:(len(pruned_prompt_entities[DOCS_KEY])//2)]
+            pruned_prompt_entities[HISTORY_KEY] = pruned_prompt_entities[HISTORY_KEY][(len(pruned_prompt_entities[HISTORY_KEY])//4):]
+            pruned_prompt = template.render(
+                system_prompt=pruned_prompt_entities[SYSTEM_PROMPT_KEY],
+                docs=pruned_prompt_entities[DOCS_KEY],
+                history=pruned_prompt_entities[HISTORY_KEY],
+                user_prompt=pruned_prompt_entities[USER_PROMPT_KEY]
+            )
+        print(
+            f"Pruned from {len(system_prompt)} system prompt chars to {len(pruned_prompt_entities[SYSTEM_PROMPT_KEY])}\n"
+            f"Pruned from {len(docs)} docs to {len(pruned_prompt_entities[DOCS_KEY])}\n"
+            f"Pruned from {len(history)} history messages to {len(pruned_prompt_entities[HISTORY_KEY])}\n"
+            f"Pruned from {len(user_prompt)} user prompt chars to {len(pruned_prompt_entities[USER_PROMPT_KEY])}\n"
+        )
+    except Exception as e:
+        # as a last case resort we take the half of the max context len from the right
+        print(f"Unexpected Failure in pruning. Details: {e}")
+        pruned_prompt = prompt[-(MAX_CONTEXT_LEN//2):]
+    print(f"Pruned prompt from {original_prompt_len} to {len(pruned_prompt)} characters")
+    return pruned_prompt
