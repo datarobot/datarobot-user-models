@@ -121,10 +121,13 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         return False
 
     def _init_mlops(self):
+        deployment_id = self._params.get("deployment_id", None)
+        if not deployment_id:
+            return
+
         self._mlops = MLOps()
 
-        if self._params.get("deployment_id", None):
-            self._mlops.set_deployment_id(self._params["deployment_id"])
+        self._mlops.set_deployment_id(deployment_id)
 
         if self._params.get("model_id", None):
             self._mlops.set_model_id(self._params["model_id"])
@@ -267,6 +270,9 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         raise NotImplementedError("Chat is not implemented ")
 
     def _mlops_report_chat_prediction(self, completion_create_params, start_time, message_content):
+        if not self._mlops:
+            return
+
         execution_time_ms = (time.time() - start_time) * 1000
 
         self._mlops.report_deployment_stats(num_predictions=1, execution_time_ms=execution_time_ms)
@@ -285,6 +291,9 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             logger.exception("Failed to report predictions data")
 
     def _mlops_report_error(self, start_time):
+        if not self._mlops:
+            return
+
         execution_time_ms = (time.time() - start_time) * 1000
 
         self._mlops.report_deployment_stats(num_predictions=0, execution_time_ms=execution_time_ms)
