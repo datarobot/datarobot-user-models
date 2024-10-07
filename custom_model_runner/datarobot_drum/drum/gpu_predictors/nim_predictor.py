@@ -8,6 +8,7 @@ import os
 import signal
 import subprocess
 import typing
+from pathlib import Path
 
 import requests
 from requests import ConnectionError, Timeout
@@ -18,8 +19,12 @@ from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
 from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
 from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 
+CODE_DIR = Path(os.environ.get("CODE_DIR", "/opt/code"))
+
 
 class NIMPredictor(BaseOpenAiGpuPredictor):
+    DEFAULT_MODEL_DIR = CODE_DIR / "model-repo"
+
     def __init__(self):
         super().__init__()
 
@@ -50,10 +55,13 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
 
         cmd = ["/opt/nvidia/nvidia_entrypoint.sh", "/opt/nim/start-server.sh"]
 
-        # update the path so vllm_nvext process can find its libraries
+        # update the path so vllm_nvext (e.g. NIM) process can find its libraries
         env = os.environ.copy()
         datarobot_venv_path = os.environ.get("VIRTUAL_ENV")
         env["PATH"] = env["PATH"].replace(f"{datarobot_venv_path}/bin:", "")
+
+        # vllm_nvext is configured via env vars
+        # See https://docs.nvidia.com/nim/large-language-models/latest/configuration.html
         env["NIM_SERVED_MODEL_NAME"] = self.model_name
         env["NIM_SERVER_PORT"] = str(self.openai_port)
         if self.ngc_token:
@@ -64,6 +72,11 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
             env["NIM_MAX_MODEL_LEN"] = str(int(self.max_model_len))
         if self.log_level:
             env["NIM_LOG_LEVEL"] = self.log_level
+
+        # Support https://docs.nvidia.com/nim/large-language-models/latest/getting-started.html#air-gap-deployment-local-model-directory-route
+        if self.DEFAULT_MODEL_DIR.is_dir() and list(self.DEFAULT_MODEL_DIR.iterdir()):
+            self.logger.info(f"Detected locally stored model; using {self.DEFAULT_MODEL_DIR}...")
+            env["NIM_MODEL_NAME"] = str(self.DEFAULT_MODEL_DIR)
 
         self.status_reporter.report_deployment("NIM Server is launching...")
         with subprocess.Popen(
