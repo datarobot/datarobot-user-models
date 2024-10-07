@@ -65,13 +65,9 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         # chat input fields
         self.system_prompt_value = self.get_optional_parameter("system_prompt")
         self.user_prompt_column = self.get_optional_parameter("prompt_column_name", "promptText")
-        self.assistant_response_column = self.get_optional_parameter(
-            "assistant_column_name", "assistant"
-        )
 
         # completions configuration can be changed with Runtime parameters
         self.max_tokens = int(self.get_optional_parameter("max_tokens", 512))
-        self.use_chat_context = self.get_optional_parameter("chat_context", False)
         self.num_choices_per_completion = int(self.get_optional_parameter("n", 1))
         self.temperature = self.get_optional_parameter("temperature", 0.01)
 
@@ -180,32 +176,12 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
                 "content": self._get(row, self.user_prompt_column),
             }
 
-        def assistant_prompt(row):
-            return {
-                "role": ChatRoles.ASSISTANT,
-                "content": self._get(row, self.assistant_response_column),
-            }
-
-        # all rows are sent in a single completion request, to preserve a chat context
-        if self.use_chat_context:
-            messages = [
-                prompt(row)
-                for row in reader
-                #  in chat mode user prompts must alternate with assistant prompts
-                for prompt in [user_prompt, assistant_prompt]
-                # skip empty values
-                if prompt(row)["content"]
-            ]
-
-            completions = self._create_completions(messages)
+        # each prompt row sent as a separate completion request
+        for i, row in enumerate(reader):
+            self.logger.debug("Row %d: %s", i, row)
+            messages = [user_prompt(row)]
+            completions = self._create_completions(messages, i)
             results.extend(completions)
-
-        else:  # each prompt row sent as a separate completion request
-            for i, row in enumerate(reader):
-                self.logger.debug("Row %d: %s", i, row)
-                messages = [user_prompt(row)]
-                completions = self._create_completions(messages, i)
-                results.extend(completions)
 
         # TODO DRUM has a restriction for text generation targets to return only a single column
         # column_names = ["row_id", "choice_id", "completions"]
@@ -218,8 +194,6 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
             return row[column_name]
         except KeyError:
             expected_column_names = [self.user_prompt_column]
-            if self.use_chat_context:
-                expected_column_names.append(self.assistant_response_column)
             raise DrumCommonException(f"Model expects column names '{expected_column_names}'")
 
     def _create_completions(self, messages, row_id=0):
