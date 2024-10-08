@@ -1,5 +1,10 @@
+# Save your NIM engine files here
+MODEL_DIR = "/opt/code/model-repo/"
+
 
 def load_model(code_dir: str):
+    # print(f"Downloading model to {MODEL_DIR}...")
+
     # Here is where you can put code that downloads the model artifacts
     # from an internal source. See the official documentation for more details:
     #   https://docs.nvidia.com/nim/large-language-models/latest/getting-started.html#air-gap-deployment-local-model-directory-route
