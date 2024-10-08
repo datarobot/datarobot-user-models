@@ -67,9 +67,9 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self.user_prompt_column = self.get_optional_parameter("prompt_column_name", "promptText")
 
         # completions configuration can be changed with Runtime parameters
-        self.max_tokens = int(self.get_optional_parameter("max_tokens", 512))
-        self.num_choices_per_completion = int(self.get_optional_parameter("n", 1))
-        self.temperature = self.get_optional_parameter("temperature", 0.01)
+        self.max_tokens = int(self.get_optional_parameter("max_tokens", 0)) or None
+        self.num_choices_per_completion = int(self.get_optional_parameter("n", 0)) or None
+        self.temperature = self.get_optional_parameter("temperature") or None
 
         # used to load custom model hooks
         self.python_model_adapter = None
