@@ -1142,7 +1142,7 @@ class TestInference:
         caplog.set_level(logging.INFO)
         with DrumServerRun(
             target_type=target_type.value,
-            target_name="promptText",
+            target_name="response",
             custom_model_dir=custom_model_dir,
             gpu_predictor=framework,
             labels=None,
@@ -1196,7 +1196,7 @@ class TestInference:
         caplog.set_level(logging.INFO)
         with DrumServerRun(
             target_type=target_type.value,
-            target_name="promptText",
+            target_name="response",
             custom_model_dir=custom_model_dir,
             gpu_predictor=framework,
             labels=None,
