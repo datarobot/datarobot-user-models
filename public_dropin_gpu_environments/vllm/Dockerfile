@@ -22,6 +22,12 @@ COPY dr_requirements.txt dr_requirements.txt
 RUN $DATAROBOT_VENV_PATH/bin/pip install -r dr_requirements.txt
 
 ENV CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
+
+# Make sure these cache dirs are writable by the vLLM process
+ENV HF_HOME=$CODE_DIR/.cache/huggingface
+ENV NUMBA_CACHE_DIR=$CODE_DIR/.cache/numba
+ENV OUTLINES_CACHE_DIR=$CODE_DIR/.cache/outlines
+
 WORKDIR ${CODE_DIR}
 COPY --chown=1000:1000 ./*.sh ./*.py ${CODE_DIR}/
 
