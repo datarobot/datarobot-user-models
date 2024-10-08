@@ -1163,7 +1163,7 @@ class TestInference:
             assert "predictions" in response_data, response_data
             assert len(response_data["predictions"]) == 1
             assert (
-                "Why don't scientists trust atoms?" in response_data["predictions"][0]
+                "What do you call a fake noodle?" in response_data["predictions"][0]
             ), response_data
 
     @pytest.mark.parametrize(
