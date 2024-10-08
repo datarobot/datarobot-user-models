@@ -1148,6 +1148,7 @@ class TestInference:
             labels=None,
             nginx=False,
             wait_for_server_timeout=600,
+            with_error_server=True,
         ) as run:
             headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
             response = requests.post(
@@ -1201,6 +1202,7 @@ class TestInference:
             labels=None,
             nginx=False,
             wait_for_server_timeout=360,
+            with_error_server=True,
         ) as run:
             headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
             response = requests.post(
