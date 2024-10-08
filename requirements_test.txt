@@ -1,4 +1,4 @@
-datarobot==3.1.0
+datarobot>=3.1.0
 docker>=4.2.2,<5.0.0
 pytest
 pytest-runner

@@ -722,6 +722,12 @@ class TestMaxWorkersArgs:
         actual = get_args_parser_options(server_args)
         assert actual.max_workers == expected_max_workers
 
+    def test_max_workers_args_env_vars(self, server_args):
+        max_workers = "123"
+        with patch.dict(os.environ, {"MAX_WORKERS": max_workers}):
+            actual = get_args_parser_options(server_args)
+        assert actual.max_workers == int(max_workers)
+
     @pytest.mark.parametrize(
         "expected_err_msg, max_workers_args",
         [

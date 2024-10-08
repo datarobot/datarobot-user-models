@@ -30,6 +30,10 @@ from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInpu
 from datarobot_drum.drum.data_marshalling import marshal_predictions
 from datarobot_drum.resource.chat_helpers import is_streaming_response
 
+import datarobot as dr
+
+DEFAULT_PROMPT_COLUMN_NAME = "promptText"
+
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 mlops_loaded = False
@@ -86,6 +90,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         self._params = None
         self._mlops = None
         self._schema_validator = None
+        self._prompt_column_name = DEFAULT_PROMPT_COLUMN_NAME
 
     def mlpiper_configure(self, params):
         """
@@ -100,7 +105,6 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
 
         self._code_dir = params["__custom_model_path__"]
         self._params = params
-        self._validate_mlops_monitoring_requirements(self._params)
 
         if self._should_enable_mlops():
             self._init_mlops()
@@ -116,32 +120,55 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         return False
 
     def _init_mlops(self):
+        deployment_id = self._params.get("deployment_id", None)
+        if not deployment_id:
+            logger.info("Deployment id not set, monitoring will be disabled.")
+            return
+
+        if not mlops_loaded:
+            raise Exception("MLOps module was not imported: {}".format(mlops_import_error))
+
         self._mlops = MLOps()
 
-        if self._params.get("deployment_id", None):
-            self._mlops.set_deployment_id(self._params["deployment_id"])
+        self._mlops.set_deployment_id(deployment_id)
 
         if self._params.get("model_id", None):
             self._mlops.set_model_id(self._params["model_id"])
 
         if self._supports_chat():
-            self._mlops.set_channel_config("spooler_type=API")
+            self._configure_mlops_for_chat()
         else:
             self._configure_mlops_for_non_chat()
 
         self._mlops.init()
 
+    def _configure_mlops_for_chat(self):
+        self._mlops.set_channel_config("spooler_type=API")
+
+        self._prompt_column_name = self._get_prompt_column_name()
+        logger.debug("Prompt column name: %s", self._prompt_column_name)
+
+    def _get_prompt_column_name(self):
+        if not self._params.get("deployment_id", None):
+            logger.error(
+                "No deployment ID found while configuring mlops for chat. "
+                f"Fallback to default prompt column name ('{DEFAULT_PROMPT_COLUMN_NAME}')"
+            )
+            return DEFAULT_PROMPT_COLUMN_NAME
+
+        try:
+            deployment = dr.Deployment.get(self._params["deployment_id"])
+            return deployment.model["prompt"]
+        except Exception:
+            logger.exception(
+                "Failed to get prompt column name from deployment. "
+                f"Fallback to default prompt column name ('{DEFAULT_PROMPT_COLUMN_NAME}')"
+            )
+
+        return DEFAULT_PROMPT_COLUMN_NAME
+
     def _configure_mlops_for_non_chat(self):
         self._mlops.set_channel_config(self._params["monitor_settings"])
-
-    @staticmethod
-    def _validate_mlops_monitoring_requirements(params):
-        if (
-            to_bool(params.get("monitor")) or to_bool(params.get("monitor_embedded"))
-        ) and not mlops_loaded:
-            # Note that for the case of monitoring from environment variable for the java
-            # this package is not really needed, but it'll anyway be available
-            raise Exception("MLOps module was not imported: {}".format(mlops_import_error))
 
     @staticmethod
     def _validate_expected_env_variables(*args):
@@ -237,12 +264,15 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         raise NotImplementedError("Chat is not implemented ")
 
     def _mlops_report_chat_prediction(self, completion_create_params, start_time, message_content):
+        if not self._mlops:
+            return
+
         execution_time_ms = (time.time() - start_time) * 1000
 
         self._mlops.report_deployment_stats(num_predictions=1, execution_time_ms=execution_time_ms)
 
         latest_message = completion_create_params["messages"][-1]["content"]
-        features_df = pd.DataFrame([{"prompt": latest_message}])
+        features_df = pd.DataFrame([{self._prompt_column_name: latest_message}])
 
         predictions = [message_content]
         try:
@@ -250,13 +280,14 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                 features_df,
                 predictions,
                 association_ids=[str(uuid.uuid4())],
-                skip_drift_tracking=True,
-                skip_accuracy_tracking=True,
             )
         except DRCommonException:
             logger.exception("Failed to report predictions data")
 
     def _mlops_report_error(self, start_time):
+        if not self._mlops:
+            return
+
         execution_time_ms = (time.time() - start_time) * 1000
 
         self._mlops.report_deployment_stats(num_predictions=0, execution_time_ms=execution_time_ms)
@@ -272,13 +303,12 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             response_iter = iter(response)
             first_chunk = next(response_iter)
 
-            if getattr(first_chunk, "object", None) == "chat.completion.chunk":
+            if type(first_chunk).__name__ == "ChatCompletionChunk":
                 # Return a new iterable where the peeked object is included in the beginning
                 return itertools.chain([first_chunk], response_iter)
             else:
                 raise Exception(
-                    f"Expected response to be ChatCompletion or Iterable[ChatCompletionChunk]. response type: {type(response)}."
-                    f"response(str): {str(response)}"
+                    f"First chunk does not look like chat completion chunk. str(chunk): '{first_chunk}'"
                 )
         except StopIteration:
             return iter(())

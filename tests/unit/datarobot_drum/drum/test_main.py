@@ -23,7 +23,6 @@ def test_custom_model_workers(
     options = argparse.Namespace()
     options.max_workers = 0
     options.code_dir = "dir"
-    options.runtime_params_file = "runtime_params_file"
 
     arg_parser = Mock()
     arg_parser.parse_args.return_value = options

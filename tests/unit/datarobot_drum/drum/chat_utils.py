@@ -36,8 +36,10 @@ def create_completion_chunks(messages):
         )
 
     chunks = []
-    #  OpenAI returns a chunk with empty string in beginning of stream
-    chunks.append(create_chunk("", role="assistant"))
+    #  OpenAI returns a chunk with empty string and empty object in beginning of stream
+    chunk = create_chunk("", role="assistant")
+    chunk.object = ""
+    chunks.append(chunk)
 
     for message in messages:
         chunks.append(create_chunk(message))
