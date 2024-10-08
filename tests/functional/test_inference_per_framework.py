@@ -1117,7 +1117,7 @@ class TestInference:
         ],
     )
     def test_nim_predictor(
-        self, framework, target_type, model_template_dir, resources, tmp_path, framework_env
+        self, framework, target_type, model_template_dir, framework_env, caplog
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         skip_if_keys_not_in_env(["GPU_COUNT", "NGC_API_KEY"])
@@ -1138,9 +1138,10 @@ class TestInference:
         ] = '{"type":"string","payload":"user_prompt"}'
         os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 256}'
 
-        custom_model_dir = os.path.join(TESTS_FIXTURES_PATH, model_template_dir)
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, model_template_dir)
         data = io.StringIO("user_prompt\ntell me a joke")
 
+        caplog.set_level(logging.INFO)
         with DrumServerRun(
             target_type=target_type.value,
             target_name="promptText",
