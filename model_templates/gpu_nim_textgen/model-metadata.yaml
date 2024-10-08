@@ -1,0 +1,66 @@
+name: NVIDIA NIM Inference Server Example
+type: inference
+targetType: textgeneration
+
+runtimeParameterDefinitions:
+  - fieldName: NGC_API_KEY
+    type: credential
+    credentialType: api_token
+    description: |-
+      Access token to connect to NGC (for downloading optimized model artifacts). You must set this
+      variable to the value of your personal NGC API key.
+
+  - fieldName: max_tokens
+    type: numeric
+    defaultValue: 1024
+    minValue: 1
+    description: max number of symbols in response
+
+  - fieldName: system_prompt
+    type: string
+    defaultValue: You are a helpful AI assistant. Keep short answers of no more than 2 sentences.
+    description: instructions to the model, to set the tone of model completions
+
+  - fieldName: prompt_column_name
+    type: string
+    defaultValue: promptText
+    description: column with user's prompt (each row is a separate completion request)
+
+  - fieldName: NIM_MODEL_PROFILE
+    type: string
+    description: |-
+      Override the NIM optimization profile that is automatically selected by specifying a profile
+      ID from the manifest located at `/etc/nim/config/model_manifest.yaml`. If not specified, NIM
+      will attempt to select an optimal profile compatible with available GPUs. A list of the
+      compatible profiles can be obtained by appending `list-model-profiles` at the end of the
+      docker run command. Using the profile name `default` will select a profile that is maximally
+      compatible and may not be optimal for your hardware.
+
+  - fieldName: NIM_LOG_LEVEL
+    type: string
+    defaultValue: DEFAULT
+    description: |-
+      Log level of NIM for LLMs service. Possible values of the variable are `DEFAULT`, `TRACE`, `DEBUG`,
+      `INFO`, `WARNING`, `ERROR`, `CRITICAL`. Mostly, the effect of `DEBUG`, `INFO`, `WARNING`, `ERROR`, `CRITICAL`
+      is described in Python 3 logging docs. `TRACE` log level enables printing of diagnostic
+      information for debugging purposes in TRT-LLM and in uvicorn. When `NIM_LOG_LEVEL` is `DEFAULT`
+      sets all log levels to `INFO` except for TRT-LLM log level which equals `ERROR`. When
+      `NIM_LOG_LEVEL` is `CRITICAL` TRT-LLM log level is `ERROR`.
+
+  - fieldName: NIM_MAX_MODEL_LEN
+    type: numeric
+    description: |-
+      Model context length. If unspecified, will be automatically derived from the model configuration.
+      Note that this setting has an effect on only models running on the vLLM backend.
+
+  - fieldName: CUSTOM_MODEL_WORKERS
+    type: numeric
+    defaultValue: 1
+    maxValue: 40
+    description: |-
+      Allows each replica to handle a set number of concurrent processes. This option is intended for process
+      safe custom models, primarily in generative AI use cases. To determine the appropriate number of
+      concurrent processes to allow per replica, monitor the number of requests and the median response time
+      for the custom model. The median response time for the custom model should be close to the median
+      response time from LLM. If the response time of the custom model exceeds the LLM's response time, stop
+      increasing the number of concurrent processes and instead increase the number of replicas.

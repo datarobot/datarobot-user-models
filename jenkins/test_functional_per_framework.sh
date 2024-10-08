@@ -37,7 +37,7 @@ elif [ "$1" = "java_codegen" ]; then
 elif [ "$1" = "julia" ]; then
     ENVS_DIR="example_dropin_environments"
     DOCKER_IMAGE="julia_mlj"
-elif [ "$1" = "nemo" ]; then
+elif [ "$1" = "nim" ]; then
     ENVS_DIR="public_dropin_gpu_environments"
     DOCKER_IMAGE="nim_llm"
 elif [ "$1" = "triton" ]; then
@@ -114,6 +114,7 @@ docker run -i $TERMINAM_OPTION $GPU_OPTION \
       -e AWS_ACCESS_KEY_ID \
       -e AWS_SECRET_ACCESS_KEY \
       -e HF_TOKEN \
+      -e NGC_API_KEY \
       -e TEST_URL_HOST=$url_host \
       -v /tmp:/tmp \
       -v /var/run/docker.sock:/var/run/docker.sock \
