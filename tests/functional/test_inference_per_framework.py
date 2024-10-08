@@ -18,7 +18,6 @@ import pyarrow
 import pytest
 import requests
 import scipy
-from openai import OpenAI
 from scipy.sparse import csr_matrix
 
 from datarobot_drum.drum.description import version as drum_version
@@ -1238,6 +1237,8 @@ class TestInference:
             ), response_data
 
             #  Verify that Chat API works
+            from openai import OpenAI
+
             client = OpenAI(base_url=run.url_server_address, api_key="not-required", max_retries=0)
 
             completion = client.chat.completions.create(
