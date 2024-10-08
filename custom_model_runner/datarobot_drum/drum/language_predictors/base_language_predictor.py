@@ -145,10 +145,10 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
     def _configure_mlops_for_chat(self):
         self._mlops.set_channel_config("spooler_type=API")
 
-        self._prompt_column_name = self._get_prompt_column_name()
+        self._prompt_column_name = self.get_prompt_column_name()
         logger.debug("Prompt column name: %s", self._prompt_column_name)
 
-    def _get_prompt_column_name(self):
+    def get_prompt_column_name(self):
         if not self._params.get("deployment_id", None):
             logger.error(
                 "No deployment ID found while configuring mlops for chat. "
