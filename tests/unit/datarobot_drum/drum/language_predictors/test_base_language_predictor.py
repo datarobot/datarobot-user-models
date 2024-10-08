@@ -28,14 +28,7 @@ class TestLanguagePredictor(BaseLanguagePredictor):
 
 class TestChat:
     @pytest.fixture
-    def mock_mlops(self):
-        with patch("datarobot_drum.drum.language_predictors.base_language_predictor.MLOps") as mock:
-            mlops_instance = Mock()
-            mock.return_value = mlops_instance
-            yield mlops_instance
-
-    @pytest.fixture
-    def language_predictor(self, chat_python_model_adapter, mock_mlops):
+    def language_predictor(self, chat_python_model_adapter):
         predictor = TestLanguagePredictor()
         predictor.mlpiper_configure(
             {
@@ -45,6 +38,60 @@ class TestChat:
         )
 
         yield predictor
+
+    @pytest.fixture
+    def mock_mlops(self):
+        with (
+            patch(
+                "datarobot_drum.drum.language_predictors.base_language_predictor.mlops_loaded", True
+            ),
+            patch("datarobot_drum.drum.language_predictors.base_language_predictor.MLOps") as mock,
+        ):
+            mlops_instance = Mock()
+            mock.return_value = mlops_instance
+            yield mlops_instance
+
+    @pytest.fixture
+    def language_predictor_with_mlops(self, chat_python_model_adapter, mock_mlops):
+        predictor = TestLanguagePredictor()
+        predictor.mlpiper_configure(
+            {
+                "target_type": TargetType.TEXT_GENERATION,
+                "__custom_model_path__": "/non-existing-path-to-avoid-loading-unwanted-artifacts",
+                "deployment_id": "deployment_id",
+            }
+        )
+
+        yield predictor
+
+    @pytest.mark.parametrize("stream", [False, True])
+    def test_chat_without_mlops(self, language_predictor, stream):
+        def chat_hook(completion_request):
+            return (
+                create_completion_chunks(["How", " are", " you"])
+                if stream
+                else create_completion("How are you")
+            )
+
+        language_predictor.chat_hook = chat_hook
+
+        response = language_predictor.chat(
+            {
+                "model": "any",
+                "messages": [
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": "Hello!"},
+                ],
+                "stream": stream,
+            }
+        )
+
+        if stream:
+            content = "".join([(chunk.choices[0].delta.content or "") for chunk in response])
+        else:
+            content = response.choices[0].message.content
+
+        assert content == "How are you"
 
     @pytest.mark.parametrize("response", ["Wrong response", None])
     @pytest.mark.parametrize("stream", [False, True])
@@ -75,13 +122,13 @@ class TestChat:
             if stream:
                 [chunk for chunk in response]
 
-    def test_mlops_init(self, language_predictor, mock_mlops):
+    def test_mlops_init(self, language_predictor_with_mlops, mock_mlops):
         mock_mlops.set_channel_config.called_once_with("spooler_type=API")
 
         mock_mlops.init.assert_called_once()
 
     @pytest.mark.parametrize("stream", [False, True])
-    def test_chat_with_mlops(self, language_predictor, mock_mlops, stream):
+    def test_chat_with_mlops(self, language_predictor_with_mlops, mock_mlops, stream):
         def chat_hook(completion_request):
             return (
                 create_completion_chunks(["How", " are", " you"])
@@ -89,9 +136,9 @@ class TestChat:
                 else create_completion("How are you")
             )
 
-        language_predictor.chat_hook = chat_hook
+        language_predictor_with_mlops.chat_hook = chat_hook
 
-        response = language_predictor.chat(
+        response = language_predictor_with_mlops.chat(
             {
                 "model": "any",
                 "messages": [
@@ -161,14 +208,14 @@ class TestChat:
         )
 
     @pytest.mark.parametrize("stream", [False, True])
-    def test_failing_hook_with_mlops(self, language_predictor, mock_mlops, stream):
+    def test_failing_hook_with_mlops(self, language_predictor_with_mlops, mock_mlops, stream):
         def chat_hook(completion_request):
             raise BadRequest("Error")
 
-        language_predictor.chat_hook = chat_hook
+        language_predictor_with_mlops.chat_hook = chat_hook
 
         with pytest.raises(BadRequest):
-            response = language_predictor.chat(
+            response = language_predictor_with_mlops.chat(
                 {
                     "model": "any",
                     "messages": [
@@ -184,7 +231,7 @@ class TestChat:
         )
         mock_mlops.report_predictions_data.assert_not_called()
 
-    def test_failing_in_middle_of_stream(self, language_predictor, mock_mlops):
+    def test_failing_in_middle_of_stream(self, language_predictor_with_mlops, mock_mlops):
         def chat_hook(completion_request):
             def generator():
                 for chunk in create_completion_chunks(["Chunk1", "Chunk2"]):
@@ -194,10 +241,10 @@ class TestChat:
 
             return generator()
 
-        language_predictor.chat_hook = chat_hook
+        language_predictor_with_mlops.chat_hook = chat_hook
 
         with pytest.raises(BadRequest):
-            response = language_predictor.chat(
+            response = language_predictor_with_mlops.chat(
                 {
                     "model": "any",
                     "messages": [
