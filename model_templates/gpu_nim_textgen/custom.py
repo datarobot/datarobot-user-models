@@ -1,10 +1,7 @@
-from datarobot_drum import RuntimeParameters
-from datarobot_drum.drum.gpu_predictors.utils import NGCRegistryClient
-
 
 def load_model(code_dir: str):
-    ngc_registry_url = RuntimeParameters.get("ngcRegistryUrl")
-    ngc_credential = RuntimeParameters.get("ngcCredential")
-    ngc_client = NGCRegistryClient(ngc_credential)
-    ngc_client.download_model_version(ngc_registry_url)
+    # Here is where you can put code that downloads the model artifacts
+    # from an internal source. See the official documentation for more details:
+    #   https://docs.nvidia.com/nim/large-language-models/latest/getting-started.html#air-gap-deployment-local-model-directory-route
+    # The only requirement is that the files must be downloaded to `/opt/code/model-repo`.
     return "succeeded"  # a non-empty response is required to signal that load_model succeeded
