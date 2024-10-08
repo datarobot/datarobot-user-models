@@ -114,6 +114,7 @@ docker run -i $TERMINAM_OPTION $GPU_OPTION \
       -e AWS_ACCESS_KEY_ID \
       -e AWS_SECRET_ACCESS_KEY \
       -e HF_TOKEN \
+      -e NGC_API_KEY \
       -e TEST_URL_HOST=$url_host \
       -v /tmp:/tmp \
       -v /var/run/docker.sock:/var/run/docker.sock \
