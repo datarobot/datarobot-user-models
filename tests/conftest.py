@@ -149,7 +149,7 @@ from tests.constants import (
     TEXT_GENERATION,
     PYTHON_TEXT_GENERATION,
     GPU_TRITON,
-    GPU_NEMO,
+    GPU_NIM,
     GPU_VLLM,
 )
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
@@ -217,7 +217,7 @@ framework_envs = {
     JAVA_CODEGEN: [CODEGEN, MOJO, POJO],
     JULIA: [MLJ],
     GPU_TRITON: [GPU_TRITON],
-    GPU_NEMO: [GPU_NEMO],
+    GPU_NIM: [GPU_NIM],
     GPU_VLLM: [GPU_VLLM],
 }
 
@@ -257,7 +257,7 @@ def pytest_addoption(parser):
             JAVA_CODEGEN,
             JULIA,
             GPU_TRITON,
-            GPU_NEMO,
+            GPU_NIM,
             GPU_VLLM,
         ],
         default=None,
