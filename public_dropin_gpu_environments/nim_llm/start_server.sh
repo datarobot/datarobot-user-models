@@ -16,20 +16,23 @@ if [ "$GPU_COUNT" -eq 0 ]; then
     exit 1
 fi
 
+if [ "$GPU_COUNT" -gt 1 ]; then
+    echo "Multiple GPUs found; at least 16G of shared memory is recommened for non-NVLink GPUs."
+    df -h /dev/shm
+fi
+
+echo ""
+echo "Availble NIM Profiles:"
+list-model-profiles
 
 if [ "${ENABLE_CUSTOM_MODEL_RUNTIME_ENV_DUMP}" = 1 ]; then
     echo "Environment variables:"
     env
-
-    echo
-    echo "Running NVIDIA init scripts..."
-    echo
-    /opt/nvidia/nvidia_entrypoint.sh /bin/true
 fi
 
 
 echo
 echo "Starting DRUM server..."
 echo
-. /home/nemo/dr/bin/activate
-exec drum server --gpu-predictor=nemo --logging-level=info "$@"
+. ${DATAROBOT_VENV_PATH}/bin/activate
+exec drum server --gpu-predictor=nim --logging-level=info "$@"

@@ -50,7 +50,7 @@ from tests.conftest import skip_if_framework_not_in_env, skip_if_keys_not_in_env
 from tests.constants import (
     BINARY,
     CODEGEN,
-    GPU_NEMO,
+    GPU_NIM,
     GPU_TRITON,
     GPU_VLLM,
     JULIA,
@@ -1113,29 +1113,19 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, target_type, model_template_dir",
         [
-            (GPU_NEMO, TargetType.TEXT_GENERATION, "gpu_nemo_tensorrt_llm_textgen"),
+            (GPU_NIM, TargetType.TEXT_GENERATION, "gpu_nim_textgen"),
         ],
     )
-    def test_nemo_predictor(
-        self, framework, target_type, model_template_dir, resources, tmp_path, framework_env
-    ):
+    def test_nim_predictor(self, framework, target_type, model_template_dir, framework_env, caplog):
         skip_if_framework_not_in_env(framework, framework_env)
-        skip_if_keys_not_in_env(["GPU_COUNT", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"])
+        skip_if_keys_not_in_env(["GPU_COUNT", "NGC_API_KEY"])
 
-        # the Runtime parameters used by the custom.py load_model hook to download the model
-        os.environ["MLOPS_RUNTIME_PARAM_s3Url"] = json.dumps(
-            {
-                "type": "string",
-                "payload": "s3://nvidia-nim-model-repo/Llama-2-7b-chat-hf/24.02/A10-1x/",
-            }
-        )
-        os.environ["MLOPS_RUNTIME_PARAM_s3Credential"] = json.dumps(
+        os.environ["MLOPS_RUNTIME_PARAM_NGC_API_KEY"] = json.dumps(
             {
                 "type": "credential",
                 "payload": {
-                    "credentialType": "s3",
-                    "awsAccessKeyId": os.environ["AWS_ACCESS_KEY_ID"],
-                    "awsSecretAccessKey": os.environ["AWS_SECRET_ACCESS_KEY"],
+                    "credentialType": "apiToken",
+                    "apiToken": os.environ["NGC_API_KEY"],
                 },
             }
         )
@@ -1145,11 +1135,11 @@ class TestInference:
             "MLOPS_RUNTIME_PARAM_prompt_column_name"
         ] = '{"type":"string","payload":"user_prompt"}'
         os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 256}'
-        os.environ["MLOPS_RUNTIME_PARAM_chat_context"] = '{"type": "boolean", "payload": false}'
 
-        custom_model_dir = os.path.join(TESTS_FIXTURES_PATH, model_template_dir)
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, model_template_dir)
         data = io.StringIO("user_prompt\ntell me a joke")
 
+        caplog.set_level(logging.INFO)
         with DrumServerRun(
             target_type=target_type.value,
             target_name="promptText",
@@ -1171,7 +1161,7 @@ class TestInference:
             assert "predictions" in response_data, response_data
             assert len(response_data["predictions"]) == 1
             assert (
-                "Why don't scientists trust atoms?" in response_data["predictions"][0]
+                "What do you call a fake noodle?" in response_data["predictions"][0]
             ), response_data
 
     @pytest.mark.parametrize(
@@ -1192,15 +1182,6 @@ class TestInference:
             {
                 "type": "string",
                 "payload": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
-            }
-        )
-        os.environ["MLOPS_RUNTIME_PARAM_HuggingFaceToken"] = json.dumps(
-            {
-                "type": "credential",
-                "payload": {
-                    "credentialType": "apiToken",
-                    "apiToken": os.environ["HF_TOKEN"],
-                },
             }
         )
         os.environ[

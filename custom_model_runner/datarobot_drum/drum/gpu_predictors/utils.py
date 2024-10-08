@@ -10,7 +10,7 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.utils.drum_utils import DrumUtils
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
-MODEL_STORE_DIR = "/model-store"
+MODEL_STORE_DIR = "/model-repo"
 
 
 def read_model_config(model_repository_dir):

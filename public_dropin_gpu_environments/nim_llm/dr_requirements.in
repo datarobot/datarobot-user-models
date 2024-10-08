@@ -6,4 +6,3 @@ datarobot
 datarobot-mlops
 datarobot-mlops-connected-client
 datarobot-drum
-tritonclient[grpc]
