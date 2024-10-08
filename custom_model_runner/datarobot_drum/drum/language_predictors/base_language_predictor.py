@@ -105,7 +105,6 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
 
         self._code_dir = params["__custom_model_path__"]
         self._params = params
-        self._validate_mlops_monitoring_requirements(self._params)
 
         if self._should_enable_mlops():
             self._init_mlops()
@@ -121,10 +120,17 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         return False
 
     def _init_mlops(self):
+        deployment_id = self._params.get("deployment_id", None)
+        if not deployment_id:
+            logger.info("Deployment id not set, monitoring will be disabled.")
+            return
+
+        if not mlops_loaded:
+            raise Exception("MLOps module was not imported: {}".format(mlops_import_error))
+
         self._mlops = MLOps()
 
-        if self._params.get("deployment_id", None):
-            self._mlops.set_deployment_id(self._params["deployment_id"])
+        self._mlops.set_deployment_id(deployment_id)
 
         if self._params.get("model_id", None):
             self._mlops.set_model_id(self._params["model_id"])
@@ -163,15 +169,6 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
 
     def _configure_mlops_for_non_chat(self):
         self._mlops.set_channel_config(self._params["monitor_settings"])
-
-    @staticmethod
-    def _validate_mlops_monitoring_requirements(params):
-        if (
-            to_bool(params.get("monitor")) or to_bool(params.get("monitor_embedded"))
-        ) and not mlops_loaded:
-            # Note that for the case of monitoring from environment variable for the java
-            # this package is not really needed, but it'll anyway be available
-            raise Exception("MLOps module was not imported: {}".format(mlops_import_error))
 
     @staticmethod
     def _validate_expected_env_variables(*args):
@@ -267,6 +264,9 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         raise NotImplementedError("Chat is not implemented ")
 
     def _mlops_report_chat_prediction(self, completion_create_params, start_time, message_content):
+        if not self._mlops:
+            return
+
         execution_time_ms = (time.time() - start_time) * 1000
 
         self._mlops.report_deployment_stats(num_predictions=1, execution_time_ms=execution_time_ms)
@@ -285,6 +285,9 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             logger.exception("Failed to report predictions data")
 
     def _mlops_report_error(self, start_time):
+        if not self._mlops:
+            return
+
         execution_time_ms = (time.time() - start_time) * 1000
 
         self._mlops.report_deployment_stats(num_predictions=0, execution_time_ms=execution_time_ms)
