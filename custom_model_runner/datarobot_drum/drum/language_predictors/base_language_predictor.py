@@ -143,7 +143,16 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         self._mlops.init()
 
     def _configure_mlops_for_chat(self):
-        self._mlops.set_channel_config("spooler_type=API")
+        # If monitor_settings were provided (e.g. for testing) use them, otherwise we will
+        # use the API spooler as the default config.
+        if self._params["monitor_settings"]:
+            self._mlops.set_channel_config(self._params["monitor_settings"])
+        else:
+            self._mlops.set_api_spooler(
+                # TODO: when 10.2.0 has been released...
+                # mlops_service_url=self._params["external_webserver_url"],
+                # mlops_api_token=self._params["api_token"],
+            )
 
         self._prompt_column_name = self.get_prompt_column_name()
         logger.debug("Prompt column name: %s", self._prompt_column_name)
