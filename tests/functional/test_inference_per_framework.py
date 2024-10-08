@@ -18,6 +18,7 @@ import pyarrow
 import pytest
 import requests
 import scipy
+from openai import OpenAI
 from scipy.sparse import csr_matrix
 
 from datarobot_drum.drum.description import version as drum_version
@@ -1235,3 +1236,15 @@ class TestInference:
             assert (
                 "Boston is a vibrant and historic city" in response_data["predictions"][0]
             ), response_data
+
+            #  Verify that Chat API works
+            client = OpenAI(base_url=run.url_server_address, api_key="not-required", max_retries=0)
+
+            completion = client.chat.completions.create(
+                model="generic_llm",
+                messages=[
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": "Describe the city of Boston"},
+                ],
+            )
+            assert "Boston is a vibrant and historic city" in completion.choices[0].message.content
