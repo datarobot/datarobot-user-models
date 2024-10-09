@@ -145,7 +145,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
     def _configure_mlops_for_chat(self):
         # If monitor_settings were provided (e.g. for testing) use them, otherwise we will
         # use the API spooler as the default config.
-        if self._params["monitor_settings"]:
+        if self._params.get("monitor_settings"):
             self._mlops.set_channel_config(self._params["monitor_settings"])
         else:
             self._mlops.set_api_spooler(
