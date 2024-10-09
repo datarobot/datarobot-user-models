@@ -6,7 +6,6 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import io
 import json
-import logging
 import os
 from json import JSONDecoder
 from tempfile import NamedTemporaryFile
@@ -1164,7 +1163,16 @@ class TestNIM:
         assert "What do you call a fake noodle?" in response_data["predictions"][0], response_data
 
     @pytest.mark.parametrize("streaming", [False, True], ids=["sync", "streaming"])
-    def test_chat_api(self, nim_predictor, streaming):
+    @pytest.mark.parametrize(
+        "nchoices",
+        [
+            1,
+            pytest.param(
+                3, marks=pytest.mark.xfail(reason="NIM doesn't support more than one choice")
+            ),
+        ],
+    )
+    def test_chat_api(self, nim_predictor, streaming, nchoices):
         from openai import OpenAI
 
         client = OpenAI(
@@ -1177,14 +1185,24 @@ class TestNIM:
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": "Describe the city of Boston"},
             ],
-            n=3,
+            n=nchoices,
             stream=streaming,
+            temperature=0.1,
         )
-        assert len(completion.choices) == 3
-        assert (
-            "Boston is a bustling city in the northeastern United States"
-            in completion.choices[0].message.content
-        )
+
+        if streaming:
+            collected_messages = []
+            for chunk in completion:
+                assert len(chunk.choices) == nchoices
+                chunk_message = chunk.choices[0].delta.content
+                if chunk_message is not None:
+                    collected_messages.append(chunk_message)
+            llm_response = "".join(collected_messages)
+        else:
+            assert len(completion.choices) == nchoices
+            llm_response = completion.choices[0].message.content
+
+        assert "Boston! One of the oldest and most historic cities" in llm_response
 
 
 class TestVLLM:
@@ -1239,8 +1257,12 @@ class TestVLLM:
         ), response_data
 
     @pytest.mark.parametrize("streaming", [False, True], ids=["sync", "streaming"])
-    def test_chat_api(self, vllm_predictor, streaming):
+    @pytest.mark.parametrize("nchoices", [1, 3])
+    def test_chat_api(self, vllm_predictor, streaming, nchoices):
         from openai import OpenAI
+
+        if streaming and nchoices > 1:
+            pytest.xfail("vLLM doesn't support multiple choices in streaming mode")
 
         client = OpenAI(
             base_url=vllm_predictor.url_server_address, api_key="not-required", max_retries=0
@@ -1252,11 +1274,21 @@ class TestVLLM:
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": "Describe the city of Boston"},
             ],
-            n=3,
+            n=nchoices,
             stream=streaming,
+            temperature=0.1,
         )
-        assert len(completion.choices) == 3
-        assert (
-            "Boston is a bustling city in the northeastern United States"
-            in completion.choices[0].message.content
-        )
+
+        if streaming:
+            collected_messages = []
+            for chunk in completion:
+                assert len(chunk.choices) == nchoices
+                chunk_message = chunk.choices[0].delta.content
+                if chunk_message is not None:
+                    collected_messages.append(chunk_message)
+            llm_response = "".join(collected_messages)
+        else:
+            assert len(completion.choices) == nchoices
+            llm_response = completion.choices[0].message.content
+
+        assert "is a bustling city" in llm_response
