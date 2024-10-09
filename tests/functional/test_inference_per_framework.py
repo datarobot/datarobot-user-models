@@ -1163,7 +1163,8 @@ class TestNIM:
         assert len(response_data["predictions"]) == 1
         assert "What do you call a fake noodle?" in response_data["predictions"][0], response_data
 
-    def test_chat_api(self, nim_predictor):
+    @pytest.mark.parametrize("streaming", [False, True])
+    def test_chat_api(self, nim_predictor, streaming):
         from openai import OpenAI
 
         client = OpenAI(
@@ -1177,6 +1178,7 @@ class TestNIM:
                 {"role": "user", "content": "Describe the city of Boston"},
             ],
             n=3,
+            stream=streaming,
         )
         assert len(completion.choices) == 3
         assert (
@@ -1236,7 +1238,8 @@ class TestVLLM:
             "Boston is a vibrant, historic city" in response_data["predictions"][0]
         ), response_data
 
-    def test_chat_api(self, vllm_predictor):
+    @pytest.mark.parametrize("streaming", [False, True])
+    def test_chat_api(self, vllm_predictor, streaming):
         from openai import OpenAI
 
         client = OpenAI(
@@ -1250,6 +1253,7 @@ class TestVLLM:
                 {"role": "user", "content": "Describe the city of Boston"},
             ],
             n=3,
+            stream=streaming,
         )
         assert len(completion.choices) == 3
         assert (
