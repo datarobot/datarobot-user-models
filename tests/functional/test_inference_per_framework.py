@@ -1110,14 +1110,10 @@ class TestInference:
             assert json["model_name"] == "densenet_onnx"
             assert "INDIGO FINCH" in response_text[header_length:]
 
-    @pytest.mark.parametrize(
-        "framework, target_type, model_template_dir",
-        [
-            (GPU_NIM, TargetType.TEXT_GENERATION, "gpu_nim_textgen"),
-        ],
-    )
-    def test_nim_predictor(self, framework, target_type, model_template_dir, framework_env, caplog):
-        skip_if_framework_not_in_env(framework, framework_env)
+class TestNIM:
+    @pytest.fixture(scope="class")
+    def nim_predictor(self, framework_env):
+        skip_if_framework_not_in_env(GPU_NIM, framework_env)
         skip_if_keys_not_in_env(["GPU_COUNT", "NGC_API_KEY"])
 
         os.environ["MLOPS_RUNTIME_PARAM_NGC_API_KEY"] = json.dumps(
@@ -1136,34 +1132,58 @@ class TestInference:
         ] = '{"type":"string","payload":"user_prompt"}'
         os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 256}'
 
-        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, model_template_dir)
-        data = io.StringIO("user_prompt\ntell me a joke")
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "gpu_nim_textgen")
 
-        caplog.set_level(logging.INFO)
         with DrumServerRun(
-            target_type=target_type.value,
+            target_type=TargetType.TEXT_GENERATION.value,
             target_name="response",
             custom_model_dir=custom_model_dir,
-            gpu_predictor=framework,
+            gpu_predictor=GPU_NIM,
             labels=None,
             nginx=False,
             wait_for_server_timeout=600,
             with_error_server=True,
+            logging_level="info",
         ) as run:
-            headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
-            response = requests.post(
-                f"{run.url_server_address}/predict/",
-                data=data,
-                headers=headers,
-            )
-            assert response.ok
-            response_data = response.json()
-            assert response_data
-            assert "predictions" in response_data, response_data
-            assert len(response_data["predictions"]) == 1
-            assert (
-                "What do you call a fake noodle?" in response_data["predictions"][0]
-            ), response_data
+            yield run
+
+    def test_predict(self, nim_predictor):
+        data = io.StringIO("user_prompt\ntell me a joke")
+        headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
+        response = requests.post(
+            f"{nim_predictor.url_server_address}/predict/",
+            data=data,
+            headers=headers,
+        )
+        assert response.ok
+        response_data = response.json()
+        assert response_data
+        assert "predictions" in response_data, response_data
+        assert len(response_data["predictions"]) == 1
+        assert (
+            "What do you call a fake noodle?" in response_data["predictions"][0]
+        ), response_data
+
+    def test_chat_api(self, nim_predictor):
+        from openai import OpenAI
+
+        client = OpenAI(
+            base_url=nim_predictor.url_server_address, api_key="not-required", max_retries=0
+        )
+
+        completion = client.chat.completions.create(
+            model="generic_llm",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": "Describe the city of Boston"},
+            ],
+            n=3,
+        )
+        assert len(completion.choices) == 3
+        assert (
+            "Boston is a bustling city in the northeastern United States"
+            in completion.choices[0].message.content
+        )
 
 
 class TestVLLM:
@@ -1218,7 +1238,6 @@ class TestVLLM:
         ), response_data
 
     def test_chat_api(self, vllm_predictor):
-        #  Verify that Chat API works
         from openai import OpenAI
 
         client = OpenAI(
