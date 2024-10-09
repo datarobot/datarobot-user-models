@@ -15,7 +15,7 @@ from contextlib import closing
 import numpy as np
 import pandas as pd
 import pytest
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (

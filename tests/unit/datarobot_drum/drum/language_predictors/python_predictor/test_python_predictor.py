@@ -5,6 +5,9 @@
 #  This is proprietary source code of DataRobot, Inc. and its affiliates.
 #  Released under the terms of DataRobot Tool and Utility Agreement.
 #
+import copy
+import json
+import os
 from unittest.mock import patch
 
 import pytest
@@ -14,6 +17,14 @@ from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
     PythonPredictor,
 )
+from datarobot_drum.drum.lazy_loading.constants import BackendType
+from datarobot_drum.drum.lazy_loading.constants import EnumEncoder
+from datarobot_drum.drum.lazy_loading.constants import LazyLoadingEnvVars
+from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
+from datarobot_drum.drum.lazy_loading.schema import LazyLoadingData
+from datarobot_drum.drum.lazy_loading.schema import LazyLoadingFile
+from datarobot_drum.drum.lazy_loading.schema import LazyLoadingRepository
+from datarobot_drum.drum.lazy_loading.schema import S3Credentials
 
 
 @pytest.fixture
@@ -80,3 +91,81 @@ def test_supports_chat(base_configure_params, has_chat_hook):
         predictor.mlpiper_configure(base_configure_params)
 
         assert predictor.supports_chat() == has_chat_hook
+
+
+class TestPythonPredictorLazyLoading:
+    @pytest.fixture
+    def lazy_loading_env_vars(self):
+        env_data = {}
+        credential_ids = ["66fbd2e8eb9fe6a36622d52e", "66fbd2e8eb9fe6a36622d52f"]
+        lazy_loading_data = LazyLoadingData(
+            files=[
+                LazyLoadingFile(
+                    remote_path="remote/path/large_file1.pkl",
+                    local_path="/tmp/large_file1.pkl",
+                    repository_id="repo1",
+                ),
+                LazyLoadingFile(
+                    remote_path="remote/path/large_file2.pkl",
+                    local_path="/tmp/large_file2.pkl",
+                    repository_id="repo2",
+                ),
+            ],
+            repositories=[
+                LazyLoadingRepository(
+                    repository_id="repo1",
+                    bucket_name="bucket1",
+                    credential_id=credential_ids[0],
+                    endpoint_url="http://minio1:9000",
+                    verify_certificate=False,
+                ),
+                LazyLoadingRepository(
+                    repository_id="repo2",
+                    bucket_name="bucket2",
+                    credential_id=credential_ids[1],
+                    endpoint_url="http://minio2:9000",
+                    verify_certificate=False,
+                ),
+            ],
+        )
+        env_data[LazyLoadingEnvVars.get_lazy_loading_data_key()] = json.dumps(
+            lazy_loading_data.dict()
+        )
+        credential_prefix = LazyLoadingEnvVars.get_repository_credential_id_key_prefix()
+        for credential_id in credential_ids:
+            credential_env_key = f"{credential_prefix}_{credential_id.upper()}"
+            credential_data = S3Credentials(
+                credential_type=BackendType.S3,
+                aws_access_key_id="dummy_access_key1",
+                aws_secret_access_key="dummy_secret_key1",
+            )
+            env_data[credential_env_key] = json.dumps(credential_data.dict(), cls=EnumEncoder)
+
+        with patch.dict(os.environ, env_data):
+            yield
+
+    @pytest.fixture
+    def text_generation_model_params(self, essential_language_predictor_init_params):
+        with patch.dict(os.environ, {"TARGET_NAME": "Response"}):
+            init_params = copy.deepcopy(essential_language_predictor_init_params)
+            init_params["target_type"] = TargetType.TEXT_GENERATION.value
+            yield init_params
+
+    @pytest.fixture
+    def mock_unrelated_methods(self):
+        with patch.object(PythonModelAdapter, "load_model_from_artifact"):
+            yield
+
+    @pytest.mark.usefixtures("lazy_loading_env_vars", "mock_unrelated_methods")
+    def test_lazy_loading_download_is_being_called(self, text_generation_model_params):
+        with patch.object(LazyLoadingHandler, "download_lazy_loading_files") as mock_download:
+            py_predictor = PythonPredictor()
+            py_predictor.mlpiper_configure(text_generation_model_params)
+            mock_download.assert_called_once()
+
+    @pytest.mark.usefixtures("mock_unrelated_methods")
+    def test_lazy_loading_download_is_not_called(self, text_generation_model_params):
+        with patch.object(LazyLoadingHandler, "download_lazy_loading_files") as mock_download:
+            py_predictor = PythonPredictor()
+            py_predictor.mlpiper_configure(text_generation_model_params)
+            mock_download.assert_not_called()

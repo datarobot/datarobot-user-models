@@ -54,7 +54,7 @@ class LazyLoadingData(BaseModel):
 
 
 class S3Credentials(BaseModel):
-    credential_type: Literal[BackendType.S3]
+    credential_type: BackendType
     aws_access_key_id: constr(min_length=1)
     aws_secret_access_key: constr(min_length=1)
     aws_session_token: Optional[constr(min_length=1)] = None

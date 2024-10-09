@@ -18,6 +18,7 @@ import pandas as pd
 from datarobot_drum.drum.adapters.cli.shared.drum_class_label_adapter import DrumClassLabelAdapter
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
 from datarobot_drum.drum.common import to_bool
+from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
 from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
@@ -354,3 +355,9 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             model_info.update({ModelInfoKeys.CLASS_LABELS: self.class_labels})
 
         return model_info
+
+    @staticmethod
+    def _handle_lazy_loading_files():
+        lazy_loading_handler = LazyLoadingHandler()
+        if lazy_loading_handler.is_lazy_loading_available:
+            lazy_loading_handler.download_lazy_loading_files()
