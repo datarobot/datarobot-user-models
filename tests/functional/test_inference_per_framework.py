@@ -1165,16 +1165,11 @@ class TestInference:
                 "What do you call a fake noodle?" in response_data["predictions"][0]
             ), response_data
 
-    @pytest.mark.parametrize(
-        "framework, target_type, model_template_dir",
-        [
-            (GPU_VLLM, TargetType.TEXT_GENERATION, "gpu_vllm_textgen"),
-        ],
-    )
-    def test_vllm_predictor(
-        self, framework, target_type, model_template_dir, framework_env, caplog
-    ):
-        skip_if_framework_not_in_env(framework, framework_env)
+
+class TestVLLM:
+    @pytest.fixture(scope="class")
+    def vllm_predictor(self, framework_env):
+        skip_if_framework_not_in_env(GPU_VLLM, framework_env)
         skip_if_keys_not_in_env(["GPU_COUNT"])
 
         # Override default params from example model to use a smaller model
@@ -1190,45 +1185,50 @@ class TestInference:
         ] = '{"type":"string","payload":"user_prompt"}'
         os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 30}'
 
-        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, model_template_dir)
-        data = io.StringIO("user_prompt\nDescribe the city of Boston.")
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "gpu_vllm_textgen")
 
-        caplog.set_level(logging.INFO)
         with DrumServerRun(
-            target_type=target_type.value,
+            target_type=TargetType.TEXT_GENERATION.value,
             target_name="response",
             custom_model_dir=custom_model_dir,
-            gpu_predictor=framework,
+            gpu_predictor=GPU_VLLM,
             labels=None,
             nginx=False,
             wait_for_server_timeout=360,
             with_error_server=True,
         ) as run:
-            headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
-            response = requests.post(
-                f"{run.url_server_address}/predict/",
-                data=data,
-                headers=headers,
-            )
-            assert response.ok
-            response_data = response.json()
-            assert response_data
-            assert "predictions" in response_data, response_data
-            assert len(response_data["predictions"]) == 1
-            assert (
-                "Boston is a vibrant and historic city" in response_data["predictions"][0]
-            ), response_data
+            yield run
 
-            #  Verify that Chat API works
-            from openai import OpenAI
+    def test_predict(self, vllm_predictor):
+       data = io.StringIO("user_prompt\nDescribe the city of Boston.")
+       headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
+       response = requests.post(
+           f"{vllm_predictor.url_server_address}/predict/",
+           data=data,
+           headers=headers,
+       )
+       assert response.ok
+       response_data = response.json()
+       assert response_data
+       assert "predictions" in response_data, response_data
+       assert len(response_data["predictions"]) == 1
+       assert (
+           "Boston is a vibrant, historic city" in response_data["predictions"][0]
+       ), response_data
 
-            client = OpenAI(base_url=run.url_server_address, api_key="not-required", max_retries=0)
+    def test_chat_api(self, vllm_predictor):
+       #  Verify that Chat API works
+       from openai import OpenAI
 
-            completion = client.chat.completions.create(
-                model="generic_llm",
-                messages=[
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": "Describe the city of Boston"},
-                ],
-            )
-            assert "Boston is a vibrant and historic city" in completion.choices[0].message.content
+       client = OpenAI(base_url=vllm_predictor.url_server_address, api_key="not-required", max_retries=0)
+
+       completion = client.chat.completions.create(
+           model="generic_llm",
+           messages=[
+               {"role": "system", "content": "You are a helpful assistant."},
+               {"role": "user", "content": "Describe the city of Boston"},
+           ],
+           n=3,
+       )
+       assert len(completion.choices) == 3
+       assert "Boston is a bustling city in the northeastern United States" in completion.choices[0].message.content
