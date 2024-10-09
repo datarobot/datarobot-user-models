@@ -1196,6 +1196,7 @@ class TestVLLM:
             nginx=False,
             wait_for_server_timeout=360,
             with_error_server=True,
+            logging_level="info",
         ) as run:
             yield run
 
