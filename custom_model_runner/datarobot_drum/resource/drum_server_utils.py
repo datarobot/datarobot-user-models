@@ -78,6 +78,7 @@ class DrumServerRun:
         fail_on_shutdown_error=True,
         pass_args_as_env_vars=False,
         verbose: bool = True,
+        logging_level: Optional[str] = None,
         append_cmd: Optional[str] = None,
         user_secrets_mount_path: Optional[str] = None,
         thread_class=Thread,
@@ -100,6 +101,7 @@ class DrumServerRun:
         self._with_nginx = nginx
         self._fail_on_shutdown_error = fail_on_shutdown_error
         self._verbose = verbose
+        self._log_level = logging_level or logging.getLevelName(logging.root.level).lower()
 
         self._pass_args_as_env_vars = pass_args_as_env_vars
         self._custom_model_dir = custom_model_dir
@@ -175,8 +177,7 @@ class DrumServerRun:
         return self._server_thread
 
     def get_command(self):
-        log_level = logging.getLevelName(logging.root.level).lower()
-        cmd = "{} server --logging-level={}".format(ArgumentsOptions.MAIN_COMMAND, log_level)
+        cmd = f"{ArgumentsOptions.MAIN_COMMAND} server --logging-level={self._log_level}"
 
         if self._pass_args_as_env_vars:
             os.environ[ArgumentOptionsEnvVars.CODE_DIR] = str(self._custom_model_dir)

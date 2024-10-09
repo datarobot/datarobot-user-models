@@ -143,12 +143,21 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         self._mlops.init()
 
     def _configure_mlops_for_chat(self):
-        self._mlops.set_channel_config("spooler_type=API")
+        # If monitor_settings were provided (e.g. for testing) use them, otherwise we will
+        # use the API spooler as the default config.
+        if self._params.get("monitor_settings"):
+            self._mlops.set_channel_config(self._params["monitor_settings"])
+        else:
+            self._mlops.set_api_spooler(
+                # TODO: when 10.2.0 has been released...
+                # mlops_service_url=self._params["external_webserver_url"],
+                # mlops_api_token=self._params["api_token"],
+            )
 
-        self._prompt_column_name = self._get_prompt_column_name()
+        self._prompt_column_name = self.get_prompt_column_name()
         logger.debug("Prompt column name: %s", self._prompt_column_name)
 
-    def _get_prompt_column_name(self):
+    def get_prompt_column_name(self):
         if not self._params.get("deployment_id", None):
             logger.error(
                 "No deployment ID found while configuring mlops for chat. "
@@ -241,21 +250,18 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         else:
 
             def generator():
-                message_content = ""
+                message_content = []
                 try:
                     for chunk in response:
-                        message_content += (
-                            chunk.choices[0].delta.content
-                            if chunk.choices and chunk.choices[0].delta.content
-                            else ""
-                        )
+                        if chunk.choices and chunk.choices[0].delta.content:
+                            message_content.append(chunk.choices[0].delta.content)
                         yield chunk
                 except Exception:
                     self._mlops_report_error(start_time)
                     raise
 
                 self._mlops_report_chat_prediction(
-                    completion_create_params, start_time, message_content
+                    completion_create_params, start_time, "".join(message_content)
                 )
 
             return generator()

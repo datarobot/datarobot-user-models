@@ -1,13 +1,9 @@
-FROM vllm/vllm-openai:v0.5.4
+FROM vllm/vllm-openai:v0.5.5
 USER root
 RUN apt-get update && apt-get install -y \
     python3-pip \
     python3-venv \
-    zstd \
   && rm -rf /var/lib/apt/lists/*
-
-# Add support for Quantization: https://docs.vllm.ai/en/latest/quantization/auto_awq.html
-RUN pip install --no-cache-dir autoawq
 
 # Don't send any telemetry data (vLLM or HuggingFace libraries)
 ENV DO_NOT_TRACK=1
@@ -22,6 +18,12 @@ COPY dr_requirements.txt dr_requirements.txt
 RUN $DATAROBOT_VENV_PATH/bin/pip install -r dr_requirements.txt
 
 ENV CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
+
+# Make sure these cache dirs are writable by the vLLM process
+ENV HF_HOME=$CODE_DIR/.cache/huggingface
+ENV NUMBA_CACHE_DIR=$CODE_DIR/.cache/numba
+ENV OUTLINES_CACHE_DIR=$CODE_DIR/.cache/outlines
+
 WORKDIR ${CODE_DIR}
 COPY --chown=1000:1000 ./*.sh ./*.py ${CODE_DIR}/
 

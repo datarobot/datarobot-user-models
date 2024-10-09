@@ -6,7 +6,6 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import io
 import json
-import logging
 import os
 from json import JSONDecoder
 from tempfile import NamedTemporaryFile
@@ -1110,14 +1109,11 @@ class TestInference:
             assert json["model_name"] == "densenet_onnx"
             assert "INDIGO FINCH" in response_text[header_length:]
 
-    @pytest.mark.parametrize(
-        "framework, target_type, model_template_dir",
-        [
-            (GPU_NIM, TargetType.TEXT_GENERATION, "gpu_nim_textgen"),
-        ],
-    )
-    def test_nim_predictor(self, framework, target_type, model_template_dir, framework_env, caplog):
-        skip_if_framework_not_in_env(framework, framework_env)
+
+class TestNIM:
+    @pytest.fixture(scope="class")
+    def nim_predictor(self, framework_env):
+        skip_if_framework_not_in_env(GPU_NIM, framework_env)
         skip_if_keys_not_in_env(["GPU_COUNT", "NGC_API_KEY"])
 
         os.environ["MLOPS_RUNTIME_PARAM_NGC_API_KEY"] = json.dumps(
@@ -1136,44 +1132,83 @@ class TestInference:
         ] = '{"type":"string","payload":"user_prompt"}'
         os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 256}'
 
-        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, model_template_dir)
-        data = io.StringIO("user_prompt\ntell me a joke")
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "gpu_nim_textgen")
 
-        caplog.set_level(logging.INFO)
         with DrumServerRun(
-            target_type=target_type.value,
-            target_name="promptText",
+            target_type=TargetType.TEXT_GENERATION.value,
+            target_name="response",
             custom_model_dir=custom_model_dir,
-            gpu_predictor=framework,
+            gpu_predictor=GPU_NIM,
             labels=None,
             nginx=False,
             wait_for_server_timeout=600,
+            with_error_server=True,
+            logging_level="info",
         ) as run:
-            headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
-            response = requests.post(
-                f"{run.url_server_address}/predict/",
-                data=data,
-                headers=headers,
-            )
-            assert response.ok
-            response_data = response.json()
-            assert response_data
-            assert "predictions" in response_data, response_data
-            assert len(response_data["predictions"]) == 1
-            assert (
-                "What do you call a fake noodle?" in response_data["predictions"][0]
-            ), response_data
+            yield run
 
+    def test_predict(self, nim_predictor):
+        data = io.StringIO("user_prompt\ntell me a joke")
+        headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
+        response = requests.post(
+            f"{nim_predictor.url_server_address}/predict/",
+            data=data,
+            headers=headers,
+        )
+        assert response.ok
+        response_data = response.json()
+        assert response_data
+        assert "predictions" in response_data, response_data
+        assert len(response_data["predictions"]) == 1
+        assert "What do you call a fake noodle?" in response_data["predictions"][0], response_data
+
+    @pytest.mark.parametrize("streaming", [False, True], ids=["sync", "streaming"])
     @pytest.mark.parametrize(
-        "framework, target_type, model_template_dir",
+        "nchoices",
         [
-            (GPU_VLLM, TargetType.TEXT_GENERATION, "gpu_vllm_textgen"),
+            1,
+            pytest.param(
+                3, marks=pytest.mark.xfail(reason="NIM doesn't support more than one choice")
+            ),
         ],
     )
-    def test_vllm_predictor(
-        self, framework, target_type, model_template_dir, framework_env, caplog
-    ):
-        skip_if_framework_not_in_env(framework, framework_env)
+    def test_chat_api(self, nim_predictor, streaming, nchoices):
+        from openai import OpenAI
+
+        client = OpenAI(
+            base_url=nim_predictor.url_server_address, api_key="not-required", max_retries=0
+        )
+
+        completion = client.chat.completions.create(
+            model="generic_llm",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": "Describe the city of Boston"},
+            ],
+            n=nchoices,
+            stream=streaming,
+            temperature=0.1,
+        )
+
+        if streaming:
+            collected_messages = []
+            for chunk in completion:
+                assert len(chunk.choices) == nchoices
+                chunk_message = chunk.choices[0].delta.content
+                if chunk_message is not None:
+                    collected_messages.append(chunk_message)
+            llm_response = "".join(collected_messages)
+        else:
+            assert len(completion.choices) == nchoices
+            llm_response = completion.choices[0].message.content
+
+        assert "Boston! One of the oldest and most historic cities" in llm_response
+
+
+class TestVLLM:
+    @pytest.fixture(scope="class")
+    def vllm_predictor(self, framework_env):
+        skip_if_framework_not_in_env(GPU_VLLM, framework_env)
         skip_if_keys_not_in_env(["GPU_COUNT"])
 
         # Override default params from example model to use a smaller model
@@ -1189,30 +1224,71 @@ class TestInference:
         ] = '{"type":"string","payload":"user_prompt"}'
         os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 30}'
 
-        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, model_template_dir)
-        data = io.StringIO("user_prompt\nDescribe the city of Boston.")
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "gpu_vllm_textgen")
 
-        caplog.set_level(logging.INFO)
         with DrumServerRun(
-            target_type=target_type.value,
-            target_name="promptText",
+            target_type=TargetType.TEXT_GENERATION.value,
+            target_name="response",
             custom_model_dir=custom_model_dir,
-            gpu_predictor=framework,
+            gpu_predictor=GPU_VLLM,
             labels=None,
             nginx=False,
             wait_for_server_timeout=360,
+            with_error_server=True,
+            logging_level="info",
         ) as run:
-            headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
-            response = requests.post(
-                f"{run.url_server_address}/predict/",
-                data=data,
-                headers=headers,
-            )
-            assert response.ok
-            response_data = response.json()
-            assert response_data
-            assert "predictions" in response_data, response_data
-            assert len(response_data["predictions"]) == 1
-            assert (
-                "Boston is a vibrant and historic city" in response_data["predictions"][0]
-            ), response_data
+            yield run
+
+    def test_predict(self, vllm_predictor):
+        data = io.StringIO("user_prompt\nDescribe the city of Boston.")
+        headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
+        response = requests.post(
+            f"{vllm_predictor.url_server_address}/predict/",
+            data=data,
+            headers=headers,
+        )
+        assert response.ok
+        response_data = response.json()
+        assert response_data
+        assert "predictions" in response_data, response_data
+        assert len(response_data["predictions"]) == 1
+        assert (
+            "Boston is a vibrant, historic city" in response_data["predictions"][0]
+        ), response_data
+
+    @pytest.mark.parametrize("streaming", [False, True], ids=["sync", "streaming"])
+    @pytest.mark.parametrize("nchoices", [1, 3])
+    def test_chat_api(self, vllm_predictor, streaming, nchoices):
+        from openai import OpenAI
+
+        if streaming and nchoices > 1:
+            pytest.xfail("vLLM doesn't support multiple choices in streaming mode")
+
+        client = OpenAI(
+            base_url=vllm_predictor.url_server_address, api_key="not-required", max_retries=0
+        )
+
+        completion = client.chat.completions.create(
+            model="generic_llm",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": "Describe the city of Boston"},
+            ],
+            n=nchoices,
+            stream=streaming,
+            temperature=0.1,
+        )
+
+        if streaming:
+            collected_messages = []
+            for chunk in completion:
+                assert len(chunk.choices) == nchoices
+                chunk_message = chunk.choices[0].delta.content
+                if chunk_message is not None:
+                    collected_messages.append(chunk_message)
+            llm_response = "".join(collected_messages)
+        else:
+            assert len(completion.choices) == nchoices
+            llm_response = completion.choices[0].message.content
+
+        assert "is a bustling city" in llm_response
