@@ -1110,6 +1110,7 @@ class TestInference:
             assert json["model_name"] == "densenet_onnx"
             assert "INDIGO FINCH" in response_text[header_length:]
 
+
 class TestNIM:
     @pytest.fixture(scope="class")
     def nim_predictor(self, framework_env):
@@ -1160,9 +1161,7 @@ class TestNIM:
         assert response_data
         assert "predictions" in response_data, response_data
         assert len(response_data["predictions"]) == 1
-        assert (
-            "What do you call a fake noodle?" in response_data["predictions"][0]
-        ), response_data
+        assert "What do you call a fake noodle?" in response_data["predictions"][0], response_data
 
     def test_chat_api(self, nim_predictor):
         from openai import OpenAI
