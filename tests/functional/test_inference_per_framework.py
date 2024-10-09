@@ -1200,35 +1200,40 @@ class TestVLLM:
             yield run
 
     def test_predict(self, vllm_predictor):
-       data = io.StringIO("user_prompt\nDescribe the city of Boston.")
-       headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
-       response = requests.post(
-           f"{vllm_predictor.url_server_address}/predict/",
-           data=data,
-           headers=headers,
-       )
-       assert response.ok
-       response_data = response.json()
-       assert response_data
-       assert "predictions" in response_data, response_data
-       assert len(response_data["predictions"]) == 1
-       assert (
-           "Boston is a vibrant, historic city" in response_data["predictions"][0]
-       ), response_data
+        data = io.StringIO("user_prompt\nDescribe the city of Boston.")
+        headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
+        response = requests.post(
+            f"{vllm_predictor.url_server_address}/predict/",
+            data=data,
+            headers=headers,
+        )
+        assert response.ok
+        response_data = response.json()
+        assert response_data
+        assert "predictions" in response_data, response_data
+        assert len(response_data["predictions"]) == 1
+        assert (
+            "Boston is a vibrant, historic city" in response_data["predictions"][0]
+        ), response_data
 
     def test_chat_api(self, vllm_predictor):
-       #  Verify that Chat API works
-       from openai import OpenAI
+        #  Verify that Chat API works
+        from openai import OpenAI
 
-       client = OpenAI(base_url=vllm_predictor.url_server_address, api_key="not-required", max_retries=0)
+        client = OpenAI(
+            base_url=vllm_predictor.url_server_address, api_key="not-required", max_retries=0
+        )
 
-       completion = client.chat.completions.create(
-           model="generic_llm",
-           messages=[
-               {"role": "system", "content": "You are a helpful assistant."},
-               {"role": "user", "content": "Describe the city of Boston"},
-           ],
-           n=3,
-       )
-       assert len(completion.choices) == 3
-       assert "Boston is a bustling city in the northeastern United States" in completion.choices[0].message.content
+        completion = client.chat.completions.create(
+            model="generic_llm",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": "Describe the city of Boston"},
+            ],
+            n=3,
+        )
+        assert len(completion.choices) == 3
+        assert (
+            "Boston is a bustling city in the northeastern United States"
+            in completion.choices[0].message.content
+        )
