@@ -250,7 +250,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         else:
 
             def generator():
-                message_content = ""
+                message_content = []
                 try:
                     for chunk in response:
                         message_content += (
@@ -264,7 +264,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                     raise
 
                 self._mlops_report_chat_prediction(
-                    completion_create_params, start_time, message_content
+                    completion_create_params, start_time, "".join(message_content)
                 )
 
             return generator()
