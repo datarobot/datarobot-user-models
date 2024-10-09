@@ -253,11 +253,8 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                 message_content = []
                 try:
                     for chunk in response:
-                        message_content += (
-                            chunk.choices[0].delta.content
-                            if chunk.choices and chunk.choices[0].delta.content
-                            else ""
-                        )
+                        if chunk.choices and chunk.choices[0].delta.content:
+                            message_content.append(chunk.choices[0].delta.content)
                         yield chunk
                 except Exception:
                     self._mlops_report_error(start_time)
