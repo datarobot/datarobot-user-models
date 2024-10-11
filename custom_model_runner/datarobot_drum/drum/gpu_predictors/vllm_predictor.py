@@ -21,15 +21,14 @@ from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
 from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
 from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 
-CODE_DIR = Path(os.environ.get("CODE_DIR", "/opt/code"))
-
 
 class VllmPredictor(BaseOpenAiGpuPredictor):
-    DEFAULT_MODEL_DIR = CODE_DIR / "vllm"
-    ENGINE_CONFIG_FILE = CODE_DIR / "engine_config.json"
+    DEFAULT_MODEL_DIR = "vllm"
+    ENGINE_CONFIG_FILE = "engine_config.json"
 
     def __init__(self):
         super().__init__()
+
         self.huggingface_token = self.get_optional_parameter("HuggingFaceToken")
         self.model = self.get_optional_parameter("model")
         # Add support for some common additional params for vLLM
@@ -87,10 +86,13 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
             self.model_name,
         ]
 
+        code_dir = Path(self._code_dir)
+        engine_config_file = code_dir / self.ENGINE_CONFIG_FILE
+        default_model_dir = code_dir / self.DEFAULT_MODEL_DIR
         # For advanced users, allow them to specify arbitrary CLI options that we haven't exposed
         # via runtime parameters.
-        if self.ENGINE_CONFIG_FILE.is_file():
-            config = json.loads(self.ENGINE_CONFIG_FILE.read_text())
+        if engine_config_file.is_file():
+            config = json.loads(engine_config_file.read_text())
             if "args" in config:
                 cmd.extend(config["args"])
 
@@ -99,9 +101,9 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
             pass
 
         # or, if custom hook loaded the model into the expected place we are done
-        elif self.DEFAULT_MODEL_DIR.is_dir() and list(self.DEFAULT_MODEL_DIR.iterdir()):
-            self.logger.info(f"Default model path ({self.DEFAULT_MODEL_DIR}) appears to be ready")
-            cmd.extend(["--model", str(self.DEFAULT_MODEL_DIR)])
+        elif default_model_dir.is_dir() and list(default_model_dir.iterdir()):
+            self.logger.info(f"Default model path ({default_model_dir}) appears to be ready")
+            cmd.extend(["--model", str(default_model_dir)])
 
         # otherwise, we expect a runtime param to have been specified
         elif self.model:
@@ -120,7 +122,7 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
         else:
             raise DrumCommonException(
                 "Either the `model` runtime parameter is required or model files must be"
-                f" placed in the `{self.DEFAULT_MODEL_DIR}` directory."
+                f" placed in the `{default_model_dir}` directory."
             )
 
         if self.trust_remote_code and "--trust-remote-code" not in cmd:
