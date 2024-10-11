@@ -15,10 +15,8 @@ import requests
 from requests import ConnectionError, Timeout
 
 from datarobot_drum.drum.enum import CustomHooks
-from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
 from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
-from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 
 
 class NIMPredictor(BaseOpenAiGpuPredictor):
@@ -42,14 +40,12 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
     def num_deployment_stages(self):
         return 3 if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL) else 1
 
-    def download_and_serve_model(self, openai_process: DrumServerProcess):
-        if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL):
-            try:
-                self.status_reporter.report_deployment("Model artifacts download started...")
-                self.python_model_adapter.load_model_from_artifact(skip_predictor_lookup=True)
-                self.status_reporter.report_deployment("Model artifacts download completed.")
-            except Exception as e:
-                raise DrumCommonException(f"An error occurred when loading your artifact: {str(e)}")
+    def download_and_serve_model(self):
+        """
+        Download OSS LLM model via custom hook or make sure runtime params are set correctly
+        to allow NIM to download the model from NGC.
+        """
+        self.run_load_model_hook_idempotent()
 
         cmd = ["/opt/nvidia/nvidia_entrypoint.sh", "/opt/nim/start-server.sh"]
 
@@ -62,8 +58,6 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
         # See https://docs.nvidia.com/nim/large-language-models/latest/configuration.html
         env["NIM_SERVED_MODEL_NAME"] = self.model_name
         env["NIM_SERVER_PORT"] = str(self.openai_port)
-        if self.ngc_token:
-            env["NGC_API_KEY"] = self.ngc_token["apiToken"]
         if self.model_profile:
             env["NIM_MODEL_PROFILE"] = self.model_profile
         if self.max_model_len:
@@ -77,6 +71,15 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
         if default_model_dir.is_dir() and list(default_model_dir.iterdir()):
             self.logger.info(f"Detected locally stored model; using {default_model_dir}...")
             env["NIM_MODEL_NAME"] = str(default_model_dir)
+        elif self.ngc_token:
+            env["NGC_API_KEY"] = self.ngc_token["apiToken"]
+        else:
+            # User probably did something wrong here but leave it as just a warning because they
+            # may be doing something custom via the engine_config.json file.
+            self.logger.warning(
+                "You must set an `NGC_API_KEY` runtime parameter or download the model artifacts "
+                f"from a local source to {default_model_dir} in a custom.py:load_model hook."
+            )
 
         engine_config_file = code_dir / self.ENGINE_CONFIG_FILE
         if engine_config_file.is_file():
@@ -94,7 +97,7 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
             text=True,
             preexec_fn=os.setsid,
         ) as p:
-            openai_process.process = p
+            self.openai_process.process = p
             for line in p.stdout:
                 self.logger.info(line[:-1])
 

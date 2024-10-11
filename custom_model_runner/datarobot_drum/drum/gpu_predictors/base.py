@@ -17,18 +17,15 @@ from threading import Thread
 import numpy as np
 
 from datarobot_drum import RuntimeParameters
-from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
-    PythonModelAdapter,
-    RawPredictResponse,
-)
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
 from datarobot_drum.drum.common import SupportedPayloadFormats
-from datarobot_drum.drum.enum import (
-    CUSTOM_FILE_NAME,
-    LOGGER_NAME_PREFIX,
-    REMOTE_ARTIFACT_FILE_EXT,
-    PayloadFormat,
-    StructuredDtoKeys,
-)
+from datarobot_drum.drum.enum import CUSTOM_FILE_NAME
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.enum import REMOTE_ARTIFACT_FILE_EXT
+from datarobot_drum.drum.enum import CustomHooks
+from datarobot_drum.drum.enum import PayloadFormat
+from datarobot_drum.drum.enum import StructuredDtoKeys
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.gpu_predictors import MLOpsStatusReporter
 from datarobot_drum.drum.language_predictors.base_language_predictor import (
@@ -60,6 +57,8 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self.openai_host = os.environ.get("OPENAI_HOST", "localhost")
         self.openai_process = None
         self.openai_server_thread = None
+        self._openai_server_watchdog = None
+        self._load_model_hook_successful = None
         self.ai_client = None
 
         # chat input fields
@@ -132,10 +131,29 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self.ai_client = OpenAI(
             base_url=f"http://{self.openai_host}:{self.openai_port}/v1", api_key="fake"
         )
-        self.openai_server_thread = Thread(
-            target=self.download_and_serve_model, args=(self.openai_process,)
-        )
+        self.openai_server_thread = Thread(target=self.download_and_serve_model)
         self.openai_server_thread.start()
+
+    def run_load_model_hook_idempotent(self):
+        """
+        Runs the load-model hook if it exists and has not been run yet. This is important for
+        cases where the OpenAI server thread crashes and we need to restart it but we can't
+        be sure that user written load-model hooks are idempotent.
+        """
+        if self._load_model_hook_successful:
+            self.logger.info("Load-model hook was already run successfully.")
+            return
+
+        if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL):
+            try:
+                self.status_reporter.report_deployment("Running user provided load-model hook...")
+                self.python_model_adapter.load_model_from_artifact(skip_predictor_lookup=True)
+                self.status_reporter.report_deployment("Load-model hook completed.")
+                self._load_model_hook_successful = True
+            except Exception as e:
+                raise DrumCommonException(
+                    f"An error occurred when loading your artifact(s): {str(e)}"
+                )
 
     def _get_custom_artifacts(self):
         code_dir_abspath = os.path.abspath(self._code_dir)
@@ -246,7 +264,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         """
         raise NotImplementedError
 
-    def download_and_serve_model(self, openai_process: DrumServerProcess):
+    def download_and_serve_model(self):
         raise NotImplementedError
 
     def terminate(self):

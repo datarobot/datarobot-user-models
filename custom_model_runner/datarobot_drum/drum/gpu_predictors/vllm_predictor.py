@@ -19,7 +19,6 @@ from datarobot_drum.drum.enum import CustomHooks
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
 from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
-from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 
 
 class VllmPredictor(BaseOpenAiGpuPredictor):
@@ -60,18 +59,12 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
                 "message": f"vLLM server is not ready: {str(err)}"
             }, http_codes.SERVICE_UNAVAILABLE
 
-    def download_and_serve_model(self, openai_process: DrumServerProcess):
+    def download_and_serve_model(self):
         """
         Download OSS LLM model via custom hook or make sure runtime params are set correctly
         to allow vLLM to download from HuggingFace Hub.
         """
-        if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL):
-            try:
-                self.status_reporter.report_deployment("Running user provided load-model hook...")
-                self.python_model_adapter.load_model_from_artifact(skip_predictor_lookup=True)
-                self.status_reporter.report_deployment("Load-model hook completed.")
-            except Exception as e:
-                raise DrumCommonException(f"An error occurred when loading your artifact: {str(e)}")
+        self.run_load_model_hook_idempotent()
 
         cmd = [
             "python3",
@@ -151,7 +144,7 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
             text=True,
             preexec_fn=os.setsid,
         ) as p:
-            openai_process.process = p
+            self.openai_process.process = p
             for line in p.stdout:
                 self.logger.info(line[:-1])
 
