@@ -45,7 +45,7 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
         Proxy health checks to vLLM Inference Server
         """
         if self.openai_server_thread and not self.openai_server_thread.is_alive():
-            return {"message": "vLLM watchdog has crashed."}, HTTP_513_DRUM_PIPELINE_ERROR
+            return {"message": "vLLM has crashed."}, HTTP_513_DRUM_PIPELINE_ERROR
 
         try:
             health_url = f"http://{self.openai_host}:{self.openai_port}/health"
