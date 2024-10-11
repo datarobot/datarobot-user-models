@@ -3,6 +3,6 @@
   "name": "[GenAI][NVIDIA] NIM Inference Server",
   "description": "NVIDIA Inference Microservice GPU accelerated LLM capabilities through OpenAI compatible API's.",
   "programmingLanguage": "python",
-  "environmentVersionId": "666a019ecbce0245904e173d",
+  "environmentVersionId": "666a019ecbce0245904e173e",
   "isPublic": false
 }

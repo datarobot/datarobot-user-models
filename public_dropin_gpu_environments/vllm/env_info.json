@@ -3,6 +3,6 @@
   "name": "[GenAI] vLLM Inference Server",
   "description": "A high-throughput and memory-efficient inference and serving engine for LLMs.",
   "programmingLanguage": "python",
-  "environmentVersionId": "66c3695fcbce026d5d30af0e",
+  "environmentVersionId": "66c3695fcbce026d5d30af0f",
   "isPublic": true
 }
