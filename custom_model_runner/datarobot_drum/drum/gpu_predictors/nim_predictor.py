@@ -38,11 +38,9 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
         self.max_model_len = self.get_optional_parameter("NIM_MAX_MODEL_LEN")
         self.log_level = self.get_optional_parameter("NIM_LOG_LEVEL")
 
-        self.server_started_event_reported = False
-
     @property
     def num_deployment_stages(self):
-        return 4 if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL) else 2
+        return 3 if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL) else 1
 
     def download_and_serve_model(self, openai_process: DrumServerProcess):
         if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL):
@@ -110,10 +108,6 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
         try:
             health_url = f"http://{self.openai_host}:{self.openai_port}/v1/health/ready"
             response = requests.get(health_url, timeout=5)
-            if response.status_code == 200 and not self.server_started_event_reported:
-                self.status_reporter.report_deployment("NIM Server is ready.")
-                self.server_started_event_reported = True
-
             return {"message": response.text}, response.status_code
         except Timeout:
             return {"message": "Timeout waiting for NIM health route to respond."}, 503
