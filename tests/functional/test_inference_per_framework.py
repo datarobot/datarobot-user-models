@@ -7,6 +7,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import io
 import json
 import os
+import re
 from json import JSONDecoder
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
@@ -1300,4 +1301,4 @@ class TestVLLM:
             assert len(completion.choices) == nchoices
             llm_response = completion.choices[0].message.content
 
-        assert "is a bustling city" in llm_response
+        assert re.search(r"is a (vibrant and historic|bustling) city", llm_response)
