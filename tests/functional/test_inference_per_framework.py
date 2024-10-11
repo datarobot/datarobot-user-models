@@ -1145,6 +1145,9 @@ class TestNIM:
             with_error_server=True,
             logging_level="info",
         ) as run:
+            response = requests.get(run.url_server_address)
+            if not response.ok:
+                raise RuntimeError("Server failed to start")
             yield run
 
     def test_predict(self, nim_predictor):
@@ -1237,6 +1240,9 @@ class TestVLLM:
             with_error_server=True,
             logging_level="info",
         ) as run:
+            response = requests.get(run.url_server_address)
+            if not response.ok:
+                raise RuntimeError("Server failed to start")
             yield run
 
     def test_predict(self, vllm_predictor):
