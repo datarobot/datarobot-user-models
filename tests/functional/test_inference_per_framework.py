@@ -1228,6 +1228,9 @@ class TestVLLM:
         os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 30}'
 
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "gpu_vllm_textgen")
+        with open(os.path.join(custom_model_dir, "engine_config.json"), "w") as f:
+            # Allows this model to run on Tesla T4 GPU
+            json.dump({"args": ["--dtype=half"]}, f, indent=2)
 
         with DrumServerRun(
             target_type=TargetType.TEXT_GENERATION.value,
