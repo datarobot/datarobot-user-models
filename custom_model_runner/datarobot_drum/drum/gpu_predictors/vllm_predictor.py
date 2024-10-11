@@ -6,7 +6,6 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import json
 import os
-import signal
 import subprocess
 import typing
 from pathlib import Path
@@ -19,7 +18,6 @@ from datarobot_drum.drum.enum import CustomHooks
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
 from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
-from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 
 
 class VllmPredictor(BaseOpenAiGpuPredictor):
@@ -34,7 +32,6 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
         # Add support for some common additional params for vLLM
         self.max_model_len = self.get_optional_parameter("max_model_len")
         self.gpu_memory_utilization = self.get_optional_parameter("gpu_memory_utilization")
-        self.trust_remote_code = self.get_optional_parameter("trust_remote_code")
         self.gpu_count = int(os.environ.get("GPU_COUNT", 0))
 
     @property
@@ -46,7 +43,7 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
         Proxy health checks to vLLM Inference Server
         """
         if self.openai_server_thread and not self.openai_server_thread.is_alive():
-            return {"message": "vLLM watchdog has crashed."}, HTTP_513_DRUM_PIPELINE_ERROR
+            return {"message": "vLLM has crashed."}, HTTP_513_DRUM_PIPELINE_ERROR
 
         try:
             health_url = f"http://{self.openai_host}:{self.openai_port}/health"
@@ -61,18 +58,12 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
                 "message": f"vLLM server is not ready: {str(err)}"
             }, http_codes.SERVICE_UNAVAILABLE
 
-    def download_and_serve_model(self, openai_process: DrumServerProcess):
+    def download_and_serve_model(self):
         """
         Download OSS LLM model via custom hook or make sure runtime params are set correctly
         to allow vLLM to download from HuggingFace Hub.
         """
-        if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL):
-            try:
-                self.status_reporter.report_deployment("Running user provided load-model hook...")
-                self.python_model_adapter.load_model_from_artifact(skip_predictor_lookup=True)
-                self.status_reporter.report_deployment("Load-model hook completed.")
-            except Exception as e:
-                raise DrumCommonException(f"An error occurred when loading your artifact: {str(e)}")
+        self.run_load_model_hook_idempotent()
 
         cmd = [
             "python3",
@@ -94,6 +85,7 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
         if engine_config_file.is_file():
             config = json.loads(engine_config_file.read_text())
             if "args" in config:
+                self.logger.info(f"Loading CLI args from config file: {engine_config_file}...")
                 cmd.extend(config["args"])
 
         # If model was provided via engine config file, use that...
@@ -125,8 +117,6 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
                 f" placed in the `{default_model_dir}` directory."
             )
 
-        if self.trust_remote_code and "--trust-remote-code" not in cmd:
-            cmd.append("--trust-remote-code")
         if self.max_model_len and "--max-model-len" not in cmd:
             cmd.extend(["--max-model-len", str(int(self.max_model_len))])
         if self.gpu_memory_utilization and "--gpu-memory-utilization" not in cmd:
@@ -153,33 +143,6 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
             text=True,
             preexec_fn=os.setsid,
         ) as p:
-            openai_process.process = p
+            self.openai_process.process = p
             for line in p.stdout:
                 self.logger.info(line[:-1])
-
-    def terminate(self):
-        """
-        Shutdown vLLM Inference Server
-        """
-        if not self.openai_process or not self.openai_process.process:
-            self.logger.info("vLLM is not running, skipping shutdown...")
-            return
-
-        pgid = None
-        pid = self.openai_process.process.pid
-        try:
-            pgid = os.getpgid(pid)
-            self.logger.info("Sending signal to ProcessGroup: %s", pgid)
-            os.killpg(pgid, signal.SIGTERM)
-        except ProcessLookupError:
-            self.logger.warning("server at pid=%s is already gone", pid)
-
-        assert self.openai_server_thread is not None
-        self.openai_server_thread.join(timeout=10)
-        if self.openai_server_thread.is_alive():
-            if pgid is not None:
-                self.logger.warning("Forcefully killing process group: %s", pgid)
-                os.killpg(pgid, signal.SIGKILL)
-                self.openai_server_thread.join(timeout=5)
-            if self.openai_server_thread.is_alive():
-                raise TimeoutError("Server failed to shutdown gracefully in allotted time")

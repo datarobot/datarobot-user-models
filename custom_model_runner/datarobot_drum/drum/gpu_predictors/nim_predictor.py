@@ -4,8 +4,8 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import json
 import os
-import signal
 import subprocess
 import typing
 from pathlib import Path
@@ -14,14 +14,13 @@ import requests
 from requests import ConnectionError, Timeout
 
 from datarobot_drum.drum.enum import CustomHooks
-from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
 from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
-from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 
 
 class NIMPredictor(BaseOpenAiGpuPredictor):
     DEFAULT_MODEL_DIR = "model-repo"
+    ENGINE_CONFIG_FILE = "engine_config.json"
 
     def __init__(self):
         super().__init__()
@@ -36,20 +35,16 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
         self.max_model_len = self.get_optional_parameter("NIM_MAX_MODEL_LEN")
         self.log_level = self.get_optional_parameter("NIM_LOG_LEVEL")
 
-        self.server_started_event_reported = False
-
     @property
     def num_deployment_stages(self):
-        return 4 if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL) else 2
+        return 3 if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL) else 1
 
-    def download_and_serve_model(self, openai_process: DrumServerProcess):
-        if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL):
-            try:
-                self.status_reporter.report_deployment("Model artifacts download started...")
-                self.python_model_adapter.load_model_from_artifact(skip_predictor_lookup=True)
-                self.status_reporter.report_deployment("Model artifacts download completed.")
-            except Exception as e:
-                raise DrumCommonException(f"An error occurred when loading your artifact: {str(e)}")
+    def download_and_serve_model(self):
+        """
+        Download OSS LLM model via custom hook or make sure runtime params are set correctly
+        to allow NIM to download the model from NGC.
+        """
+        self.run_load_model_hook_idempotent()
 
         cmd = ["/opt/nvidia/nvidia_entrypoint.sh", "/opt/nim/start-server.sh"]
 
@@ -62,8 +57,6 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
         # See https://docs.nvidia.com/nim/large-language-models/latest/configuration.html
         env["NIM_SERVED_MODEL_NAME"] = self.model_name
         env["NIM_SERVER_PORT"] = str(self.openai_port)
-        if self.ngc_token:
-            env["NGC_API_KEY"] = self.ngc_token["apiToken"]
         if self.model_profile:
             env["NIM_MODEL_PROFILE"] = self.model_profile
         if self.max_model_len:
@@ -72,10 +65,27 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
             env["NIM_LOG_LEVEL"] = self.log_level
 
         # Support https://docs.nvidia.com/nim/large-language-models/latest/getting-started.html#air-gap-deployment-local-model-directory-route
+        code_dir = Path(self._code_dir)
         default_model_dir = Path(self._code_dir) / self.DEFAULT_MODEL_DIR
         if default_model_dir.is_dir() and list(default_model_dir.iterdir()):
             self.logger.info(f"Detected locally stored model; using {default_model_dir}...")
             env["NIM_MODEL_NAME"] = str(default_model_dir)
+        elif self.ngc_token:
+            env["NGC_API_KEY"] = self.ngc_token["apiToken"]
+        else:
+            # User probably did something wrong here but leave it as just a warning because they
+            # may be doing something custom via the engine_config.json file.
+            self.logger.warning(
+                "You must set an `NGC_API_KEY` runtime parameter or download the model artifacts "
+                f"from a local source to {default_model_dir} in a custom.py:load_model hook."
+            )
+
+        engine_config_file = code_dir / self.ENGINE_CONFIG_FILE
+        if engine_config_file.is_file():
+            config = json.loads(engine_config_file.read_text())
+            if "env" in config:
+                self.logger.info(f"Loading env vars from config file: {engine_config_file}...")
+                env.update(config["env"])
 
         self.status_reporter.report_deployment("NIM Server is launching...")
         with subprocess.Popen(
@@ -86,7 +96,7 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
             text=True,
             preexec_fn=os.setsid,
         ) as p:
-            openai_process.process = p
+            self.openai_process.process = p
             for line in p.stdout:
                 self.logger.info(line[:-1])
 
@@ -95,41 +105,13 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
         Proxy health checks to NIM Server
         """
         if self.openai_server_thread and not self.openai_server_thread.is_alive():
-            return {"message": "NIM watchdog has crashed."}, HTTP_513_DRUM_PIPELINE_ERROR
+            return {"message": "NIM has crashed."}, HTTP_513_DRUM_PIPELINE_ERROR
 
         try:
             health_url = f"http://{self.openai_host}:{self.openai_port}/v1/health/ready"
             response = requests.get(health_url, timeout=5)
-            if response.status_code == 200 and not self.server_started_event_reported:
-                self.status_reporter.report_deployment("NIM Server is ready.")
-                self.server_started_event_reported = True
-
             return {"message": response.text}, response.status_code
         except Timeout:
             return {"message": "Timeout waiting for NIM health route to respond."}, 503
         except ConnectionError as err:
             return {"message": f"NIM server is not ready: {str(err)}"}, 503
-
-    def terminate(self):
-        if not self.openai_process or not self.openai_process.process:
-            self.logger.info("NIM is not running, skipping shutdown...")
-            return
-
-        pgid = None
-        pid = self.openai_process.process.pid
-        try:
-            pgid = os.getpgid(pid)
-            self.logger.info("Sending signal to ProcessGroup: %s", pgid)
-            os.killpg(pgid, signal.SIGTERM)
-        except ProcessLookupError:
-            self.logger.warning("server at pid=%s is already gone", pid)
-
-        assert self.openai_server_thread is not None
-        self.openai_server_thread.join(timeout=10)
-        if self.openai_server_thread.is_alive():
-            if pgid is not None:
-                self.logger.warning("Forcefully killing process group: %s", pgid)
-                os.killpg(pgid, signal.SIGKILL)
-                self.openai_server_thread.join(timeout=5)
-            if self.openai_server_thread.is_alive():
-                raise TimeoutError("Server failed to shutdown gracefully in allotted time")

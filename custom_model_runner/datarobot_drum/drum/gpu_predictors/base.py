@@ -9,26 +9,26 @@ import io
 import json
 import logging
 import os
+import signal
 import sys
+import time
 import typing
 from pathlib import Path
+from threading import Event
 from threading import Thread
 
 import numpy as np
 
 from datarobot_drum import RuntimeParameters
-from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
-    PythonModelAdapter,
-    RawPredictResponse,
-)
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
 from datarobot_drum.drum.common import SupportedPayloadFormats
-from datarobot_drum.drum.enum import (
-    CUSTOM_FILE_NAME,
-    LOGGER_NAME_PREFIX,
-    REMOTE_ARTIFACT_FILE_EXT,
-    PayloadFormat,
-    StructuredDtoKeys,
-)
+from datarobot_drum.drum.enum import CUSTOM_FILE_NAME
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.enum import REMOTE_ARTIFACT_FILE_EXT
+from datarobot_drum.drum.enum import CustomHooks
+from datarobot_drum.drum.enum import PayloadFormat
+from datarobot_drum.drum.enum import StructuredDtoKeys
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.gpu_predictors import MLOpsStatusReporter
 from datarobot_drum.drum.language_predictors.base_language_predictor import (
@@ -45,6 +45,7 @@ class ChatRoles:
 
 class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
     DEFAULT_MODEL_NAME = "generic_llm"
+    MAX_RESTARTS = 10
 
     def __init__(self):
         super().__init__()
@@ -60,6 +61,8 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self.openai_host = os.environ.get("OPENAI_HOST", "localhost")
         self.openai_process = None
         self.openai_server_thread = None
+        self._openai_server_watchdog = None
+        self._load_model_hook_successful = None
         self.ai_client = None
 
         # chat input fields
@@ -76,6 +79,11 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         # report deployment status events to DataRobot
         self.verify_ssl = self.get_optional_parameter("verifySSL", True)
         self.status_reporter: MLOpsStatusReporter = None
+
+        self._max_watchdog_restarts = self.get_optional_parameter(
+            "max_watchdog_restarts", self.MAX_RESTARTS
+        )
+        self._max_watchdog_backoff = self.get_optional_parameter("max_watchdog_backoff_sec", 300)
 
         # Have a check in the ctor to we fail early if optional deps are not installed.
         try:
@@ -128,14 +136,61 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
                 "The '.remote' artifacts are not supported by the current version of DataRobot User models"
             )
 
+        self._is_shutting_down = Event()
         self.openai_process = DrumServerProcess()
         self.ai_client = OpenAI(
             base_url=f"http://{self.openai_host}:{self.openai_port}/v1", api_key="fake"
         )
         self.openai_server_thread = Thread(
-            target=self.download_and_serve_model, args=(self.openai_process,)
+            target=self.download_and_serve_model, name="OpenAI Server"
         )
         self.openai_server_thread.start()
+
+    def watchdog(self):
+        """
+        Used as a watchdog thread that will monitor the openai_server_thread and restart it if it
+        crashes.
+        """
+        restarts_left = self._max_watchdog_restarts
+        sleep_time = 2
+        while not self._is_shutting_down.is_set():
+            self.openai_server_thread.join(timeout=5)
+            if not self.openai_server_thread.is_alive():
+                if restarts_left == 0:
+                    self.logger.error("OpenAI server thread has crashed too many times, exiting...")
+                    sys.exit(1)
+
+                # Since these LLM artifacts are large, it is best for us to just restart the
+                # OpenAI server to avoid re-downloading the model. If/when we implement an
+                # emptyDir volume to store model data that can persist K8s Container restarts,
+                # then we can just crash the whole server and let K8s restart us.
+                self.logger.error("OpenAI server thread has crashed, restarting...")
+                self.openai_server_thread = Thread(target=self.download_and_serve_model)
+                self.openai_server_thread.start()
+                time.sleep(sleep_time)
+                restarts_left -= 1
+                sleep_time = min(self._max_watchdog_backoff, sleep_time**2)
+
+    def run_load_model_hook_idempotent(self):
+        """
+        Runs the load-model hook if it exists and has not been run yet. This is important for
+        cases where the OpenAI server thread crashes and we need to restart it but we can't
+        be sure that user written load-model hooks are idempotent.
+        """
+        if self._load_model_hook_successful:
+            self.logger.info("Load-model hook has already run successfully; skipping...")
+            return
+
+        if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL):
+            try:
+                self.status_reporter.report_deployment("Running user provided load-model hook...")
+                self.python_model_adapter.load_model_from_artifact(skip_predictor_lookup=True)
+                self.status_reporter.report_deployment("Load-model hook completed.")
+                self._load_model_hook_successful = True
+            except Exception as e:
+                raise DrumCommonException(
+                    f"An error occurred when loading your artifact(s): {str(e)}"
+                )
 
     def _get_custom_artifacts(self):
         code_dir_abspath = os.path.abspath(self._code_dir)
@@ -157,7 +212,15 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         return custom_py_paths, remote_artifact_paths
 
     def liveness_probe(self):
-        return self.health_check()
+        message, status = self.health_check()
+        # Only startup the watchdog after the server has come up healthy once
+        if self._openai_server_watchdog is None and status == 200:
+            self.logger.info("Starting OpenAI Server watchdog thread...")
+            self._openai_server_watchdog = Thread(
+                target=self.watchdog, daemon=True, name="OpenAI Watchdog"
+            )
+            self._openai_server_watchdog.start()
+        return message, status
 
     def readiness_probe(self):
         return self.health_check()
@@ -242,12 +305,34 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
 
     def health_check(self) -> typing.Tuple[dict, int]:
         """
-        Proxy health checks to NeMo Inference Server
+        Proxy health checks to OpenAI Inference Server
         """
         raise NotImplementedError
 
-    def download_and_serve_model(self, openai_process: DrumServerProcess):
+    def download_and_serve_model(self):
         raise NotImplementedError
 
     def terminate(self):
-        raise NotImplementedError
+        self._is_shutting_down.set()
+        if not self.openai_process or not self.openai_process.process:
+            self.logger.info("OpenAI server is not running, skipping shutdown...")
+            return
+
+        pgid = None
+        pid = self.openai_process.process.pid
+        try:
+            pgid = os.getpgid(pid)
+            self.logger.info("Sending signal to ProcessGroup: %s", pgid)
+            os.killpg(pgid, signal.SIGTERM)
+        except ProcessLookupError:
+            self.logger.warning("server at pid=%s is already gone", pid)
+
+        assert self.openai_server_thread is not None
+        self.openai_server_thread.join(timeout=10)
+        if self.openai_server_thread.is_alive():
+            if pgid is not None:
+                self.logger.warning("Forcefully killing process group: %s", pgid)
+                os.killpg(pgid, signal.SIGKILL)
+                self.openai_server_thread.join(timeout=5)
+            if self.openai_server_thread.is_alive():
+                raise TimeoutError("Server failed to shutdown gracefully in allotted time")
