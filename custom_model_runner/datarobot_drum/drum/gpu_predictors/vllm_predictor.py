@@ -6,7 +6,6 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import json
 import os
-import signal
 import subprocess
 import typing
 from pathlib import Path
@@ -147,30 +146,3 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
             self.openai_process.process = p
             for line in p.stdout:
                 self.logger.info(line[:-1])
-
-    def terminate(self):
-        """
-        Shutdown vLLM Inference Server
-        """
-        if not self.openai_process or not self.openai_process.process:
-            self.logger.info("vLLM is not running, skipping shutdown...")
-            return
-
-        pgid = None
-        pid = self.openai_process.process.pid
-        try:
-            pgid = os.getpgid(pid)
-            self.logger.info("Sending signal to ProcessGroup: %s", pgid)
-            os.killpg(pgid, signal.SIGTERM)
-        except ProcessLookupError:
-            self.logger.warning("server at pid=%s is already gone", pid)
-
-        assert self.openai_server_thread is not None
-        self.openai_server_thread.join(timeout=10)
-        if self.openai_server_thread.is_alive():
-            if pgid is not None:
-                self.logger.warning("Forcefully killing process group: %s", pgid)
-                os.killpg(pgid, signal.SIGKILL)
-                self.openai_server_thread.join(timeout=5)
-            if self.openai_server_thread.is_alive():
-                raise TimeoutError("Server failed to shutdown gracefully in allotted time")
