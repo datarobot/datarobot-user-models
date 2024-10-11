@@ -114,9 +114,9 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             self._schema_validator = SchemaValidator(model_metadata.get("typeSchema", {}))
 
     def _should_enable_mlops(self):
-        return to_bool(self._params.get("monitor")) or self._supports_chat()
+        return to_bool(self._params.get("monitor")) or self.supports_chat()
 
-    def _supports_chat(self):
+    def supports_chat(self):
         return False
 
     def _init_mlops(self):
@@ -135,7 +135,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         if self._params.get("model_id", None):
             self._mlops.set_model_id(self._params["model_id"])
 
-        if self._supports_chat():
+        if self.supports_chat():
             self._configure_mlops_for_chat()
         else:
             self._configure_mlops_for_non_chat()

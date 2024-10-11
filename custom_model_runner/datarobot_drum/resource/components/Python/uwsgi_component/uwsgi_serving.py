@@ -14,9 +14,6 @@ from mlpiper.components.restful_component import RESTfulComponent
 from mlpiper.components.restful.metric import Metric, MetricType, MetricRelation
 from werkzeug.exceptions import HTTPException
 
-from datarobot_drum.drum.common import (
-    make_predictor_capabilities,
-)
 from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
 from datarobot_drum.drum.enum import (
     TARGET_TYPE_ARG_KEYWORD,
@@ -140,7 +137,7 @@ class UwsgiServing(RESTfulComponent, PredictMixin):
         "{}/capabilities/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"]
     )
     def capabilities(self, url_params, form_params):
-        return HTTP_200_OK, make_predictor_capabilities(self._predictor.supported_payload_formats)
+        return HTTP_200_OK, self.make_capabilities()
 
     @FlaskRoute("{}/info/".format(os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")), methods=["GET"])
     def info(self, url_params, form_params):
