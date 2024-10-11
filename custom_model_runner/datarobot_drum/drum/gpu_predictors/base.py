@@ -11,8 +11,10 @@ import logging
 import os
 import signal
 import sys
+import time
 import typing
 from pathlib import Path
+from threading import Event
 from threading import Thread
 
 import numpy as np
@@ -43,6 +45,7 @@ class ChatRoles:
 
 class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
     DEFAULT_MODEL_NAME = "generic_llm"
+    MAX_RESTARTS = 10
 
     def __init__(self):
         super().__init__()
@@ -76,6 +79,11 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         # report deployment status events to DataRobot
         self.verify_ssl = self.get_optional_parameter("verifySSL", True)
         self.status_reporter: MLOpsStatusReporter = None
+
+        self._max_watchdog_restarts = self.get_optional_parameter(
+            "max_watchdog_restarts", self.MAX_RESTARTS
+        )
+        self._max_watchdog_backoff = self.get_optional_parameter("max_watchdog_backoff_sec", 300)
 
         # Have a check in the ctor to we fail early if optional deps are not installed.
         try:
@@ -128,12 +136,40 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
                 "The '.remote' artifacts are not supported by the current version of DataRobot User models"
             )
 
+        self._is_shutting_down = Event()
         self.openai_process = DrumServerProcess()
         self.ai_client = OpenAI(
             base_url=f"http://{self.openai_host}:{self.openai_port}/v1", api_key="fake"
         )
-        self.openai_server_thread = Thread(target=self.download_and_serve_model)
+        self.openai_server_thread = Thread(
+            target=self.download_and_serve_model, name="OpenAI Server"
+        )
         self.openai_server_thread.start()
+
+    def watchdog(self):
+        """
+        Used as a watchdog thread that will monitor the openai_server_thread and restart it if it
+        crashes.
+        """
+        restarts_left = self._max_watchdog_restarts
+        sleep_time = 2
+        while not self._is_shutting_down.is_set():
+            self.openai_server_thread.join(timeout=5)
+            if not self.openai_server_thread.is_alive():
+                if restarts_left == 0:
+                    self.logger.error("OpenAI server thread has crashed too many times, exiting...")
+                    sys.exit(1)
+
+                # Since these LLM artifacts are large, it is best for us to just restart the
+                # OpenAI server to avoid re-downloading the model. If/when we implement an
+                # emptyDir volume to store model data that can persist K8s Container restarts,
+                # then we can just crash the whole server and let K8s restart us.
+                self.logger.error("OpenAI server thread has crashed, restarting...")
+                self.openai_server_thread = Thread(target=self.download_and_serve_model)
+                self.openai_server_thread.start()
+                time.sleep(sleep_time)
+                restarts_left -= 1
+                sleep_time = min(self._max_watchdog_backoff, sleep_time**2)
 
     def run_load_model_hook_idempotent(self):
         """
@@ -142,7 +178,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         be sure that user written load-model hooks are idempotent.
         """
         if self._load_model_hook_successful:
-            self.logger.info("Load-model hook was already run successfully.")
+            self.logger.info("Load-model hook has already run successfully; skipping...")
             return
 
         if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL):
@@ -176,7 +212,15 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         return custom_py_paths, remote_artifact_paths
 
     def liveness_probe(self):
-        return self.health_check()
+        message, status = self.health_check()
+        # Only startup the watchdog after the server has come up healthy once
+        if self._openai_server_watchdog is None and status == 200:
+            self.logger.info("Starting OpenAI Server watchdog thread...")
+            self._openai_server_watchdog = Thread(
+                target=self.watchdog, daemon=True, name="OpenAI Watchdog"
+            )
+            self._openai_server_watchdog.start()
+        return message, status
 
     def readiness_probe(self):
         return self.health_check()
@@ -261,7 +305,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
 
     def health_check(self) -> typing.Tuple[dict, int]:
         """
-        Proxy health checks to NeMo Inference Server
+        Proxy health checks to OpenAI Inference Server
         """
         raise NotImplementedError
 
@@ -269,6 +313,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         raise NotImplementedError
 
     def terminate(self):
+        self._is_shutting_down.set()
         if not self.openai_process or not self.openai_process.process:
             self.logger.info("OpenAI server is not running, skipping shutdown...")
             return
