@@ -34,7 +34,6 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
         # Add support for some common additional params for vLLM
         self.max_model_len = self.get_optional_parameter("max_model_len")
         self.gpu_memory_utilization = self.get_optional_parameter("gpu_memory_utilization")
-        self.trust_remote_code = self.get_optional_parameter("trust_remote_code")
         self.gpu_count = int(os.environ.get("GPU_COUNT", 0))
 
     @property
@@ -125,8 +124,6 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
                 f" placed in the `{default_model_dir}` directory."
             )
 
-        if self.trust_remote_code and "--trust-remote-code" not in cmd:
-            cmd.append("--trust-remote-code")
         if self.max_model_len and "--max-model-len" not in cmd:
             cmd.extend(["--max-model-len", str(int(self.max_model_len))])
         if self.gpu_memory_utilization and "--gpu-memory-utilization" not in cmd:

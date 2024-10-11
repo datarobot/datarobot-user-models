@@ -22,7 +22,6 @@ This environment makes the following assumption about your serialized model:
 | `HuggingFaceToken` | No | Auth used to download model artifacts if downloading from HuggingFace. |
 | `max_model_len` | No | Model context length. If unspecified, will be automatically derived from the model config. |
 | `gpu_memory_utilization` | No | The fraction of GPU memory to be used for the model executor, which can range from 0 to 1. For example, a value of 0.5 would imply 50% GPU memory utilization. If unspecified, will use the default value of 0.9. |
-| `trust_remote_code` | No | Trust remote code from HuggingFace. |
 | `system_prompt` | No | Prompt to assign as the `system` role to the LLM. |
 | `prompt_column_name` | No | Name of the input column we expect to find the LLM prompt. |
 | `max_tokens` | No | The maximum number of tokens that can be generated in the chat completion. This value can be used to control costs for text generated via API. |
