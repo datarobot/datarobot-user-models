@@ -93,6 +93,7 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
         if engine_config_file.is_file():
             config = json.loads(engine_config_file.read_text())
             if "args" in config:
+                self.logger.info(f"Loading CLI args from config file: {engine_config_file}...")
                 cmd.extend(config["args"])
 
         # If model was provided via engine config file, use that...

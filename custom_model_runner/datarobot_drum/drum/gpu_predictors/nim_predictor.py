@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import json
 import os
 import signal
 import subprocess
@@ -22,6 +23,7 @@ from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 
 class NIMPredictor(BaseOpenAiGpuPredictor):
     DEFAULT_MODEL_DIR = "model-repo"
+    ENGINE_CONFIG_FILE = "engine_config.json"
 
     def __init__(self):
         super().__init__()
@@ -72,10 +74,18 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
             env["NIM_LOG_LEVEL"] = self.log_level
 
         # Support https://docs.nvidia.com/nim/large-language-models/latest/getting-started.html#air-gap-deployment-local-model-directory-route
+        code_dir = Path(self._code_dir)
         default_model_dir = Path(self._code_dir) / self.DEFAULT_MODEL_DIR
         if default_model_dir.is_dir() and list(default_model_dir.iterdir()):
             self.logger.info(f"Detected locally stored model; using {default_model_dir}...")
             env["NIM_MODEL_NAME"] = str(default_model_dir)
+
+        engine_config_file = code_dir / self.ENGINE_CONFIG_FILE
+        if engine_config_file.is_file():
+            config = json.loads(engine_config_file.read_text())
+            if "env" in config:
+                self.logger.info(f"Loading env vars from config file: {engine_config_file}...")
+                env.update(config["env"])
 
         self.status_reporter.report_deployment("NIM Server is launching...")
         with subprocess.Popen(

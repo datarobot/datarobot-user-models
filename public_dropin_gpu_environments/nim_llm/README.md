@@ -33,6 +33,26 @@ This environment makes the following assumption about your serialized model:
 | `temperature` | No | The sampling temperature, between 0 and 1. Higher values like 0.8 will make the output more random, while lower values like 0.2 will make it more focused and deterministic. If set to 0, the model will use log probability to automatically increase the temperature until certain thresholds are hit. |
 | `verifySSL` | No | If we need to verify TLS whe communicating status back to DataRobot |
 
+#### Additional configuration
+
+The NIM service supports [additional](https://docs.nvidia.com/nim/large-language-models/latest/configuration.html) configuration params. The most commonly used ones have been exposed as runtime parameters; however, for all other options, you can pass them by including an `engine_config.json` file in the root of your custom model. The contents of the file must conform to the following schema:
+```yaml
+$schema: http://json-schema.org/schema#
+title: DataRobot NIM Engine Config
+description: Schema for NIM config file
+type: object
+additionalProperties: false
+
+properties:
+  env:
+    type: object
+    description: mapping of environment variable names to their value
+    additionalProperties:
+      type: string
+```
+If environment variables are present in this file that have corresponding runtime parameters, the values in this file **take precedence** over the runtime parameters.
+
+
 ### Air Gapped Deployment
 NVIDIA has official [documentation](https://docs.nvidia.com/nim/large-language-models/latest/getting-started.html#serving-models-from-local-assets) regarding the process to pre-download the model artifacts
 that you should read first. From there, you can include a `load_model` hook in a `custom.py` file
@@ -99,4 +119,14 @@ runtimeParameterDefinitions:
     description: |-
       Model context length. If unspecified, will be automatically derived from the model configuration.
       Note that this setting has an effect on only models running on the vLLM backend.
+```
+
+### Example engine_config.json
+```json
+{
+  "env": {
+    "NIM_ENABLE_KV_CACHE_REUSE": "1"
+  }
+
+}
 ```
