@@ -44,6 +44,7 @@ fi
 pytest ${TESTS_TO_RUN} \
        --framework-env $1 \
        --junit-xml="./results_integration.xml" \
+       --dist loadscope \
        -n auto
 
 TEST_RESULT=$?

@@ -4,6 +4,6 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-version = "1.12.2b1"
+version = "1.13.0b2"
 __version__ = version
 project_name = "datarobot-drum"

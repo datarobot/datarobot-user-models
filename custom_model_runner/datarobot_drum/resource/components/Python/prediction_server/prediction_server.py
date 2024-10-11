@@ -264,6 +264,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         processes = 1
         if self._params.get("processes"):
             processes = self._params.get("processes")
+            logger.info("Number of webserver processes: %s", processes)
         try:
             app.run(host, port, threaded=False, processes=processes)
         except OSError as e:

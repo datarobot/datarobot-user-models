@@ -7,6 +7,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import io
 import json
 import os
+import re
 from json import JSONDecoder
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
@@ -1145,6 +1146,9 @@ class TestNIM:
             with_error_server=True,
             logging_level="info",
         ) as run:
+            response = requests.get(run.url_server_address)
+            if not response.ok:
+                raise RuntimeError("Server failed to start")
             yield run
 
     def test_predict(self, nim_predictor):
@@ -1225,6 +1229,9 @@ class TestVLLM:
         os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 30}'
 
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "gpu_vllm_textgen")
+        with open(os.path.join(custom_model_dir, "engine_config.json"), "w") as f:
+            # Allows this model to run on Tesla T4 GPU
+            json.dump({"args": ["--dtype=half"]}, f, indent=2)
 
         with DrumServerRun(
             target_type=TargetType.TEXT_GENERATION.value,
@@ -1237,6 +1244,9 @@ class TestVLLM:
             with_error_server=True,
             logging_level="info",
         ) as run:
+            response = requests.get(run.url_server_address)
+            if not response.ok:
+                raise RuntimeError("Server failed to start")
             yield run
 
     def test_predict(self, vllm_predictor):
@@ -1291,4 +1301,4 @@ class TestVLLM:
             assert len(completion.choices) == nchoices
             llm_response = completion.choices[0].message.content
 
-        assert "is a bustling city" in llm_response
+        assert re.search(r"is a (vibrant and historic|bustling) city", llm_response)

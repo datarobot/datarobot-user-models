@@ -19,11 +19,9 @@ from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
 from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
 from datarobot_drum.resource.drum_server_utils import DrumServerProcess
 
-CODE_DIR = Path(os.environ.get("CODE_DIR", "/opt/code"))
-
 
 class NIMPredictor(BaseOpenAiGpuPredictor):
-    DEFAULT_MODEL_DIR = CODE_DIR / "model-repo"
+    DEFAULT_MODEL_DIR = "model-repo"
 
     def __init__(self):
         super().__init__()
@@ -74,9 +72,10 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
             env["NIM_LOG_LEVEL"] = self.log_level
 
         # Support https://docs.nvidia.com/nim/large-language-models/latest/getting-started.html#air-gap-deployment-local-model-directory-route
-        if self.DEFAULT_MODEL_DIR.is_dir() and list(self.DEFAULT_MODEL_DIR.iterdir()):
-            self.logger.info(f"Detected locally stored model; using {self.DEFAULT_MODEL_DIR}...")
-            env["NIM_MODEL_NAME"] = str(self.DEFAULT_MODEL_DIR)
+        default_model_dir = Path(self._code_dir) / self.DEFAULT_MODEL_DIR
+        if default_model_dir.is_dir() and list(default_model_dir.iterdir()):
+            self.logger.info(f"Detected locally stored model; using {default_model_dir}...")
+            env["NIM_MODEL_NAME"] = str(default_model_dir)
 
         self.status_reporter.report_deployment("NIM Server is launching...")
         with subprocess.Popen(
