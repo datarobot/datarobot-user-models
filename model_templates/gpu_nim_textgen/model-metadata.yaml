@@ -52,15 +52,3 @@ runtimeParameterDefinitions:
     description: |-
       Model context length. If unspecified, will be automatically derived from the model configuration.
       Note that this setting has an effect on only models running on the vLLM backend.
-
-  - fieldName: CUSTOM_MODEL_WORKERS
-    type: numeric
-    defaultValue: 1
-    maxValue: 40
-    description: |-
-      Allows each replica to handle a set number of concurrent processes. This option is intended for process
-      safe custom models, primarily in generative AI use cases. To determine the appropriate number of
-      concurrent processes to allow per replica, monitor the number of requests and the median response time
-      for the custom model. The median response time for the custom model should be close to the median
-      response time from LLM. If the response time of the custom model exceeds the LLM's response time, stop
-      increasing the number of concurrent processes and instead increase the number of replicas.
