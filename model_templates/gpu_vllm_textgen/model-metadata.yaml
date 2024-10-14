@@ -3,11 +3,6 @@ type: inference
 targetType: textgeneration
 
 runtimeParameterDefinitions:
-  - fieldName: model
-    type: string
-    defaultValue: meta-llama/Meta-Llama-3-8B-Instruct
-    description: Name of the model to download from HuggingFace **or** path to pre-downloaded model.
-
   - fieldName: HuggingFaceToken
     type: credential
     credentialType: api_token
