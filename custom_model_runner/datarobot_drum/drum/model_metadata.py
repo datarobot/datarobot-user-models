@@ -353,5 +353,6 @@ MODEL_CONFIG_SCHEMA = Map(
         Optional(ModelMetadataKeys.USER_CREDENTIAL_SPECIFICATIONS): Seq(
             Map({"key": Str(), "valueFrom": Str(), Optional("reminder"): Str()})
         ),
+        Optional(ModelMetadataKeys.LAZY_LOADING): Any(),
     }
 )
