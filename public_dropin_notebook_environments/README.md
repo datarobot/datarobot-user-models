@@ -16,3 +16,7 @@ consist solely of your custom packages if necessary.
 
 For detailed information on how to run notebooks that work in these environments, 
 reference the links above for each environment.
+
+## CI - Pipelines in Harness to build and push to the Docker registry:
+
+- [python311_notebook_base](python311_notebook_base) : [Publish public python notebooks environment image](https://app.harness.io/ng/account/oP3BKzKwSDe_4hCFYw_UWA/module/ci/orgs/CodeExperience/projects/NBX_Custom_Environments/pipelines/publish_public_python_notebooks_environment_image/pipeline-studio/?storeType=REMOTE&connectorRef=account.svc_harness_git1&repoName=notebooks) 
