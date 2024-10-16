@@ -35,7 +35,7 @@ datarobot==3.3.2
     # via
     #   -r dr_requirements.in
     #   datarobot-drum
-datarobot-drum==1.13.0b2
+datarobot_drum-1.13.0b2-py3-none-any.whl
     # via -r dr_requirements.in
 datarobot-mlops==9.2.11
     # via
@@ -214,3 +214,5 @@ yarl==1.9.4
     # via aiohttp
 zipp==3.19.1
     # via importlib-metadata
+# We don't want to install python-devel packages just for uwsgi
+#uwsgi==2.0.24
