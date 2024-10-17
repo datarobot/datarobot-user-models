@@ -31,7 +31,7 @@ This environment makes the following assumption about your serialized model:
 
 #### Additional configuration
 
-The vLLM OpenAI Inference server supports a multitude of command line arguments. The most commonly used ones have been exposed as runtime parameters; however, for all other options, you can pass them by including an `engine_config.json` file in the root of your custom model. The contents of the file must conform to the following schema:
+The vLLM OpenAI Inference server supports a multitude of [command line arguments](https://docs.vllm.ai/en/stable/models/engine_args.html). The most commonly used ones have been exposed as runtime parameters; however, for all other options, you can pass them by including an `engine_config.json` file in the root of your custom model. The contents of the file must conform to the following schema:
 ```yaml
 $schema: http://json-schema.org/schema#
 title: DataRobot vLLM Engine Config
