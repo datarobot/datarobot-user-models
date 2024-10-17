@@ -884,7 +884,8 @@ class TestInference:
             response = requests.get(run.url_server_address + "/capabilities/")
 
             assert response.ok
-            assert response.json() == {"supported_payload_formats": supported_payload_formats}
+            assert response.json() == {"supported_payload_formats": supported_payload_formats,
+                                       "supported_methods": {"chat": False}}
 
     @pytest.mark.parametrize(
         "framework, problem, language",

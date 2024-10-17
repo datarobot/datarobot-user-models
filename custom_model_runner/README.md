@@ -281,7 +281,7 @@ Response:
     ```  
 
 * Capabilities route:  
-A GET **URL_PREFIX/capabilities/** route, shows payload formats supported by the running model.  
+A GET **URL_PREFIX/capabilities/** route, shows payload formats and methods supported by the running model.  
 Example: GET http://localhost:6789/capabilities/
 
 * Structured predictions routes:   
