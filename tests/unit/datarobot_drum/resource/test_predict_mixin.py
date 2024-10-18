@@ -72,6 +72,7 @@ class TestPredictionResponse:
             == '{"predictions":[{"cat":0.1,"dog":0.7,"horse":0.2}],"extraModelOutput":{"columns":["extra1","extra2"],"index":[0,1],"data":[[2,"high"],[3,"low"]]}}'
         )
 
+
 def test_make_capabilities():
     class TestPredictor:
         @property
@@ -84,16 +85,10 @@ def test_make_capabilities():
         def supports_chat(self):
             return True
 
-
     mixin = PredictMixin()
     mixin._predictor = TestPredictor()
 
     assert mixin.make_capabilities() == {
-        "supported_payload_formats": {
-            "csv": None,
-            "arrow": "1.1"
-        },
-        "supported_methods": {
-            "chat": True
-        }
+        "supported_payload_formats": {"csv": None, "arrow": "1.1"},
+        "supported_methods": {"chat": True},
     }
