@@ -68,3 +68,15 @@ class TestMLPiperConfigure:
             user_secrets_mount_path=mount_path,
             user_secrets_prefix=prefix,
         )
+
+
+@pytest.mark.usefixtures("mock_load_model_from_artifact")
+@pytest.mark.parametrize("has_chat_hook", [False, True])
+def test_supports_chat(base_configure_params, has_chat_hook):
+    with patch.object(PythonModelAdapter, "has_custom_hook") as mock_has_custom_hook:
+        mock_has_custom_hook.return_value = has_chat_hook
+
+        predictor = PythonPredictor()
+        predictor.mlpiper_configure(base_configure_params)
+
+        assert predictor.supports_chat() == has_chat_hook

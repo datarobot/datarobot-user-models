@@ -86,15 +86,6 @@ class SupportedPayloadFormats:
             yield payload_format, format_version
 
 
-def make_predictor_capabilities(supported_payload_formats):
-    return {
-        "supported_payload_formats": {
-            payload_format: format_version
-            for payload_format, format_version in supported_payload_formats
-        }
-    }
-
-
 try:
     import pyarrow
 except ImportError:

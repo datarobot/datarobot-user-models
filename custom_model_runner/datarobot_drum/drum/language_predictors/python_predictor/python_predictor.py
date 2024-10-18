@@ -72,7 +72,7 @@ class PythonPredictor(BaseLanguagePredictor):
             endpoint = f"{endpoint}/api/v2"
         return endpoint
 
-    def _supports_chat(self):
+    def supports_chat(self):
         return self._model_adapter.has_custom_hook(CustomHooks.CHAT)
 
     def _configure_mlops_for_non_chat(self):

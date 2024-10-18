@@ -5,11 +5,12 @@
 #  This is proprietary source code of DataRobot, Inc. and its affiliates.
 #  Released under the terms of DataRobot Tool and Utility Agreement.
 #
-from unittest.mock import Mock
+from unittest.mock import Mock, PropertyMock
 
 import pandas as pd
 
-from datarobot_drum.drum.enum import PRED_COLUMN
+from datarobot_drum.drum.common import SupportedPayloadFormats
+from datarobot_drum.drum.enum import PRED_COLUMN, PayloadFormat
 from datarobot_drum.resource.predict_mixin import PredictMixin
 
 
@@ -70,3 +71,24 @@ class TestPredictionResponse:
             response
             == '{"predictions":[{"cat":0.1,"dog":0.7,"horse":0.2}],"extraModelOutput":{"columns":["extra1","extra2"],"index":[0,1],"data":[[2,"high"],[3,"low"]]}}'
         )
+
+
+def test_make_capabilities():
+    class TestPredictor:
+        @property
+        def supported_payload_formats(self):
+            formats = SupportedPayloadFormats()
+            formats.add(PayloadFormat.CSV)
+            formats.add(PayloadFormat.ARROW, "1.1")
+            return formats
+
+        def supports_chat(self):
+            return True
+
+    mixin = PredictMixin()
+    mixin._predictor = TestPredictor()
+
+    assert mixin.make_capabilities() == {
+        "supported_payload_formats": {"csv": None, "arrow": "1.1"},
+        "supported_methods": {"chat": True},
+    }

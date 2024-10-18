@@ -422,3 +422,12 @@ class PredictMixin:
             return {"message": "ERROR: " + wrong_target_type_error_message}, response_status
 
         return self._transform(logger=logger)
+
+    def make_capabilities(self):
+        return {
+            "supported_payload_formats": {
+                payload_format: format_version
+                for payload_format, format_version in self._predictor.supported_payload_formats
+            },
+            "supported_methods": {"chat": self._predictor.supports_chat()},
+        }

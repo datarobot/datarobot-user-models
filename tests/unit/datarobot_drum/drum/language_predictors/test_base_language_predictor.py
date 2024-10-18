@@ -10,7 +10,7 @@ from tests.unit.datarobot_drum.drum.chat_utils import create_completion, create_
 
 
 class TestLanguagePredictor(BaseLanguagePredictor):
-    def _supports_chat(self):
+    def supports_chat(self):
         return True
 
     def _predict(self, **kwargs) -> RawPredictResponse:
