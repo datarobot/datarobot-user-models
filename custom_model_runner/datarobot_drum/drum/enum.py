@@ -439,6 +439,7 @@ class ModelMetadataKeys(object):
     # runtimeParameters section is only used for local DRUM testing
     RUNTIME_PARAMETERS = "runtimeParameterDefinitions"
     USER_CREDENTIAL_SPECIFICATIONS = "userCredentialSpecifications"
+    LAZY_LOADING = "lazyLoading"
 
 
 class ModelMetadataHyperParamTypes(object):
