@@ -12,9 +12,6 @@ from flask import jsonify
 from mlpiper.components.connectable_component import ConnectableComponent
 from werkzeug.exceptions import HTTPException
 
-from datarobot_drum.drum.common import (
-    make_predictor_capabilities,
-)
 from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
@@ -146,7 +143,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
 
         @model_api.route("/capabilities/", methods=["GET"])
         def capabilities():
-            return make_predictor_capabilities(self._predictor.supported_payload_formats)
+            return self.make_capabilities()
 
         @model_api.route("/info/", methods=["GET"])
         def info():

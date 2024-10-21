@@ -228,6 +228,12 @@ paths:
                         type: string
                       mtx:
                         type: string
+                  supported_methods:
+                    type: object
+                    description: Indicates for each method if it is supported or not.
+                    properties:
+                      chat:
+                        type: boolean
               example:
                 supported_payload_formats:
                   arrow: 2.0.0
