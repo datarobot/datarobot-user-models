@@ -26,7 +26,26 @@ class TestLanguagePredictor(BaseLanguagePredictor):
         return self.chat_hook(completion_create_params)
 
 
+class NoChatLanguagePredictor(BaseLanguagePredictor):
+    def _predict(self, **kwargs) -> RawPredictResponse:
+        pass
+
+    def _chat(self, completion_create_params):
+        pass
+
+    def _transform(self, **kwargs):
+        pass
+
+    def has_read_input_data_hook(self):
+        pass
+
+
 class TestChat:
+    def test_base_no_chat(self):
+        predictor = NoChatLanguagePredictor()
+
+        assert predictor.supports_chat() == False
+
     @pytest.fixture
     def language_predictor(self, chat_python_model_adapter):
         predictor = TestLanguagePredictor()
