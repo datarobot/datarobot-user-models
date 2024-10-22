@@ -15,11 +15,11 @@ description: |
   4. Param values:
      * environments_path - ./datarobot-user-models/public_dropin_environments (Default value)
      * environments - keep empty to build all the environments in <environments_path>
-     * installer_env - select release
+     * installer_env - select "release"
      * installer_version - enter release number, e.g. "10.2"
   6. In the Execution section specify:
-     * execution-environment-installer repo branch; e.g. release/10.2
-     * datarobot-user-models repo branch; e.g. release/10.2
+     * execution-environment-installer repo branch; e.g. "release/10.2"
+     * datarobot-user-models repo branch; e.g. "release/10.2"
   7. Click "Run Pipeline"
 
 tags:
@@ -27,11 +27,11 @@ tags:
     value: "Branchpoint tag for {version} - via RELEASE.yaml"
 
 post_branch_cut_pipelines:
-  - note: This pipeline is obsolete. It has to be replaced with Harness automation.
-  - host: ci5.devinfra.drdev.io
-    service: jenkins
-    endpoint: CustomModelsCi5-addons/execution-environment-installer-jenkins_scripts_build_environments_installer_groovy
+  - host: https://app.harness.io
+    service: harness
+    endpoint: Custom_Models/project/public_environments_management/build_environments_installer_on_harness_infra
     variables:
-      CUSTOM_MODEL_INSTALLER_VERSION: {}
-      EXECUTION_ENVIRONMENT_INSTALLER_SHA: release/{version}
-      DATAROBOT_USER_MODELS_SHA: release/{version}
+      environments_path: "./datarobot-user-models/public_dropin_environments"
+      environments: ""
+      installer_env: "release"
+      installer_version: "{version}"
