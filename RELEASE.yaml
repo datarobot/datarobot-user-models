@@ -6,12 +6,28 @@ description: |
   Reference
   https://datarobot.atlassian.net/wiki/spaces/Ignite/pages/5618761738/Distributed+Release+Metadata+-+RELEASE.yaml
   https://dev-docs.drdev.io/release/branches/RELEASE.yaml.html
+  https://datarobot.atlassian.net/wiki/spaces/RAPTOR/pages/1419346165/Build+environments+installer+harness+baked+pipelines
+  
+  Instructions to build RELEASE environments installer:
+  1. Open Harness pipeline: https://app.harness.io/ng/account/oP3BKzKwSDe_4hCFYw_UWA/module/ci/orgs/Custom_Models/projects/public_environments_management/pipelines/build_environments_installer_on_harness_infra/pipeline-studio/?storeType=REMOTE&connectorRef=account.svc_harness_git1&repoName=execution-environment-installer&branch=master
+  2. On the top of the screen select pipeline git branch related to the release number.
+  3. Click "Run" (in the top-right corner)
+  4. Param values:
+     * environments_path - ./datarobot-user-models/public_dropin_environments (Default value)
+     * environments - keep empty to build all the environments in <environments_path>
+     * installer_env - select release
+     * installer_version - enter release number, e.g. "10.2"
+  6. In the Execution section specify:
+     * execution-environment-installer repo branch; e.g. release/10.2
+     * datarobot-user-models repo branch; e.g. release/10.2
+  7. Click "Run Pipeline"
 
 tags:
   - name: "release/{version}-branchpoint"
     value: "Branchpoint tag for {version} - via RELEASE.yaml"
 
 post_branch_cut_pipelines:
+  - note: This pipeline is obsolete. It has to be replaced with Harness automation.
   - host: ci5.devinfra.drdev.io
     service: jenkins
     endpoint: CustomModelsCi5-addons/execution-environment-installer-jenkins_scripts_build_environments_installer_groovy
