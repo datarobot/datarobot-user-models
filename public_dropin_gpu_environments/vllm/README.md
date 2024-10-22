@@ -69,7 +69,7 @@ runtimeParameterDefinitions:
       required if the model was not downloaded in the `custom.py:load_model` function.
 
   - fieldName: max_model_len
-    type: string
+    type: numeric
     description: Model context length. If unspecified, will be automatically derived from the model config.
 
   - fieldName: max_tokens
