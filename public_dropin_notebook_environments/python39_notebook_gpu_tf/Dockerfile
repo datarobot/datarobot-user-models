@@ -1,4 +1,4 @@
-# Copyright 2024 DataRobot, Inc. and its affiliates.
+# Copyright 2023 DataRobot, Inc. and its affiliates.
 # All rights reserved.
 # DataRobot, Inc. Confidential.
 # This is unpublished proprietary source code of DataRobot, Inc.
@@ -48,8 +48,12 @@ RUN microdnf update \
 RUN curl -o install_pulumi.sh https://get.pulumi.com && chmod +x install_pulumi.sh
 RUN ./install_pulumi.sh --version latest --install-root ./pulumi --no-edit-path
 
-FROM nvidia/cuda:12.3.1-devel-ubi9 AS base
-# some globally required dependencies
+# TensorFlow Requires STRICTLY the specific versions of CUDA Toolkit & CuDNN. GPU Drivers come with the K8s node image.
+#  This means that the image should be upgraded only up to what the latest TF version support.
+#  Otherwise, we are in danger of breaking TF, so it would not be able to see GPUs.
+#  Ref: https://www.tensorflow.org/install/pip#software_requirements
+
+FROM nvidia/cuda:12.3.2-base-ubi9 AS base
 
 ARG UNAME
 ARG UID
@@ -69,7 +73,7 @@ RUN yum update -y \
   && yum install -y python$PYTHON_VERSION-$PYTHON_EXACT_VERSION python$PYTHON_VERSION-devel-$PYTHON_EXACT_VERSION \
   gcc-11.4.1 gcc-c++-11.4.1 glibc-devel-2.34 libffi-devel-3.4.2 python3-pip-21.2.3 \
   openblas-0.3.21 python$PYTHON_VERSION-scipy shadow-utils-2:4.9 passwd-0.80 git-2.43.5 openssh-server tar-2:1.34 gzip-1.12 unzip-6.0 zip-3.0 wget-1.21.1 \
-  java-11-openjdk-headless-1:11.0.25.0.9-2.el9 vim-minimal-2:8.2.2637 nano-5.6.1 procps-ng-3.3.17 tzdata-java poppler-utils-21.01.0 \
+  java-11-openjdk-headless-1:11.0.25.0.9-2.el9 vim-minimal-2:8.2.2637 nano-5.6.1 procps-ng-3.3.17 tzdata-java poppler-utils-21.01.0 libcudnn8-8.9.7.29-1.cuda12.2 \
   && yum clean all
 
 ENV PYTHONUNBUFFERED=1 \
@@ -94,10 +98,6 @@ COPY ./sshd_config /etc/ssh/
 RUN cp -a /etc/ssh /etc/ssh.cache && rm -rf /var/cache/apk/*
 RUN mkdir /etc/authorized_keys
 
-# Removing pip leftovers to not have trivy complain
-RUN find /lib/python3.*/site-packages -name "pip-*.dist-info" -type d -exec rm -rf {} + \
-  && find /lib/python3.*/site-packages -name "setuptools-*.dist-info" -type d -exec rm -rf {} +
-
 # Custom user to run the image from
 
 RUN groupadd -g $GID -o $UNAME && \
@@ -118,6 +118,11 @@ RUN chown -R $UNAME:$UNAME ${WORKDIR} ${VENV_PATH} /home/notebooks /etc/ssh /etc
   && touch /etc/profile.d/bash-profile-load.sh \
   && chown -R $UNAME:$UNAME /etc/profile.d/bash-profile-load.sh
 
+# Removing pip leftovers to not have trivy complain
+RUN find /lib/python3.*/site-packages -name "pip-*.dist-info" -type d -exec rm -rf {} + \
+  && find /lib/python3.*/site-packages -name "setuptools-*.dist-info" -type d -exec rm -rf {} +
+
+
 USER $UNAME
 
 # Jupyter Gateway port
@@ -134,10 +139,10 @@ ARG VENV_PATH
 COPY ./dr_requirements.txt ./agent/requirements-agent.txt ./requirements-gpu.txt ${WORKDIR}/
 RUN pip3 install --no-cache-dir -r ${WORKDIR}/dr_requirements.txt \
   && pip3 install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt \
-  && pip3 install --no-cache-dir --extra-index-url https://pypi.nvidia.com -r ${WORKDIR}/requirements-gpu.txt \
+  && pip3 install --no-cache-dir -r ${WORKDIR}/requirements-gpu.txt \
   && rm ${WORKDIR}/dr_requirements.txt \
-  && rm ${WORKDIR}/requirements-gpu.txt \
   && rm ${WORKDIR}/requirements-agent.txt \
+  && rm ${WORKDIR}/requirements-gpu.txt \
   && rm ${VENV_PATH}/share/jupyter/kernels/python3/kernel.json \
   && chmod a+x ${WORKDIR}/start_server.sh
 

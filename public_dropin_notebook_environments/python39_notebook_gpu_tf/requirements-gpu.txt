@@ -1,0 +1,14 @@
+accelerate==0.21.0
+langchain==0.3.1
+onnx==1.16.0
+onnxruntime-gpu==1.15.1
+openai==0.27.8
+tiktoken==0.4.0
+transformers==4.38.0
+langchain==0.3.1
+onnx==1.16.0
+onnxruntime-gpu==1.15.1
+openai==0.27.8
+tiktoken==0.4.0
+tensorflow[and-cuda]==2.17.0  # TF has to be updated along with CUDA/CuDNN versions in the Dockerfile. Ref: https://www.tensorflow.org/install/pip#software_requirements
+# Don't install Pytorch or any dependencies that may pull it as it clashes with TF.
