@@ -35,3 +35,4 @@ post_branch_cut_pipelines:
       environments: ""
       installer_env: "release"
       installer_version: "{version}"
+      datarobot_user_models_ref: "release/{version}"
