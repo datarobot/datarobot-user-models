@@ -94,7 +94,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
     def supports_chat(self):
         return True
 
-    def _chat(self, completion_create_params):
+    def _chat(self, completion_create_params, association_id):
         return self.ai_client.chat.completions.create(**completion_create_params)
 
     def has_read_input_data_hook(self):
