@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from enum import Enum
 
 
 class LazyLoadingEnvVars:
@@ -11,7 +12,9 @@ class LazyLoadingEnvVars:
         return "MLOPS_REPOSITORY_SECRET"
 
 
-class BackendType:
+class BackendType(Enum):
+    # WARNING: do not change the values of the enum members, because they are received from the
+    # environment variables.
     S3 = "s3"
 
     @staticmethod

@@ -1088,6 +1088,39 @@ class TestReadModelMetadata:
             code_dir = model_metadata_file_factory(minimal_training_metadata)
             _ = read_model_metadata_yaml(code_dir)
 
+    def test_lazy_loading_section(self, model_metadata_file_factory):
+        lazy_loading_data = {
+            "files": [
+                {
+                    "remote_path": "some/path/to/large_file",
+                    "local_path": "large_file",
+                    "repository_id": "671ded3e6beeeb989d8d9683",
+                }
+            ],
+            "repositories": [
+                {
+                    "repository_id": "671ded3e6beeeb989d8d9683",
+                    "bucket_name": "bucket",
+                    "credential_id": "671ded3e6beeeb989d8d9684",
+                }
+            ],
+        }
+        metadata_content = {
+            "name": "Dummy Binary Model",
+            "type": "inference",
+            "targetType": "binary",
+            "modelID": "66b9de999edaeb028f9051d7",
+            "inferenceModel": {
+                "targetName": "Dummy Target",
+                "positiveClassLabel": "1",
+                "negativeClassLabel": "0",
+            },
+            "lazyLoading": lazy_loading_data,
+        }
+        code_dir = model_metadata_file_factory(metadata_content)
+        result = read_model_metadata_yaml(code_dir)
+        assert result["lazyLoading"] == lazy_loading_data
+
 
 @pytest.mark.parametrize(
     "target_type, predictor_cls",
