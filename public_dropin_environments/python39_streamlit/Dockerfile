@@ -1,5 +1,8 @@
 FROM python:3.9-slim
 
+# This makes print statements show up in the logs API
+ENV PYTHONUNBUFFERED=1
+
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y \
