@@ -2,6 +2,7 @@ FROM vllm/vllm-openai:v0.6.2
 USER root
 RUN apt-get update && apt-get install -y \
     python3.9 \
+    python3.9-dev \
     python3.9-venv \
   && rm -rf /var/lib/apt/lists/*
 
