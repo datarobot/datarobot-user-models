@@ -6,9 +6,9 @@ The majority of these environments are focused around DataRobot's GenAI features
 dependencies that you want to include for your own custom environments.
 
 In this repository, we provide several example environments that you can use and modify:
-* [vLLM OpenAI’s Compatible Server](vllm)
-* [Example NVIDIA NIM Environment](nim_llm)
 * [NVIDIA Triton Inference Server](triton_server)
+* [NVIDIA NIM Example Environment](nim_llm)
+* [vLLM OpenAI’s Compatible Server](vllm)
 * [Python 3.11 GenAI Environment](python311_genai)
 
 These sample environments each define the libraries available in the environment
