@@ -1,6 +1,7 @@
 from unittest.mock import patch, Mock, ANY
 
 import pytest
+from datarobot_mlops.common.exception import DRCommonException
 from werkzeug.exceptions import BadRequest
 
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
@@ -185,6 +186,26 @@ class TestChat:
             mock_mlops.report_predictions_data.call_args.args[0]["promptText"].values[0] == "Hello!"
         )
 
+    def test_association_id(self, language_predictor_with_mlops, mock_mlops):
+        with patch.object(TestLanguagePredictor, "_chat") as mock_chat:
+            mock_chat.return_value = create_completion("How are you")
+
+            language_predictor_with_mlops.chat(
+                {
+                    "model": "any",
+                    "messages": [
+                        {"role": "system", "content": "You are a helpful assistant."},
+                        {"role": "user", "content": "Hello!"},
+                    ],
+                }
+            )
+
+            association_id = mock_mlops.report_predictions_data.call_args.kwargs["association_ids"][
+                0
+            ]
+
+            mock_chat.assert_called_once_with(ANY, association_id)
+
     def test_prompt_column_name(self, chat_python_model_adapter, mock_mlops):
         language_predictor = TestLanguagePredictor()
         with patch("datarobot.Deployment") as mock_deployment:
@@ -281,3 +302,31 @@ class TestChat:
             num_predictions=0, execution_time_ms=ANY
         )
         mock_mlops.report_predictions_data.assert_not_called()
+
+    @pytest.mark.parametrize(
+        "mlops_function", ["report_predictions_data", "report_deployment_stats"]
+    )
+    def test_continue_on_mlops_failure(
+        self, language_predictor_with_mlops, mock_mlops, mlops_function
+    ):
+        def chat_hook(completion_request):
+            return create_completion("How are you")
+
+        language_predictor_with_mlops.chat_hook = chat_hook
+
+        mock_mlops_function = getattr(mock_mlops, mlops_function)
+        mock_mlops_function.side_effect = DRCommonException("Fail")
+
+        response = language_predictor_with_mlops.chat(
+            {
+                "model": "any",
+                "messages": [
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": "Hello!"},
+                ],
+                "stream": False,
+            }
+        )
+
+        assert response.choices[0].message.content == "How are you"
+        mock_mlops_function.assert_called_once()

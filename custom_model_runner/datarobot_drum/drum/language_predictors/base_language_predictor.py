@@ -282,7 +282,9 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         execution_time_ms = (time.time() - start_time) * 1000
 
         try:
-            self._mlops.report_deployment_stats(num_predictions=1, execution_time_ms=execution_time_ms)
+            self._mlops.report_deployment_stats(
+                num_predictions=1, execution_time_ms=execution_time_ms
+            )
         except DRCommonException:
             logger.exception("Failed to report deployment stats")
 
