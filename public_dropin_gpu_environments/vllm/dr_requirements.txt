@@ -214,3 +214,5 @@ yarl==1.9.4
     # via aiohttp
 zipp==3.19.1
     # via importlib-metadata
+# We don't want to install python-devel packages just for uwsgi
+#uwsgi==2.0.24
