@@ -3,6 +3,7 @@
 This text generation example uses Llama-3.1-8b model pre-compiled for one of the [supported](https://docs.nvidia.com/nim/large-language-models/latest/support-matrix.html#llama-3-1-8b-instruct) GPUs.
 
 ## Requirements
+- NIM LLM [Execution Environment](../../public_dropin_gpu_environments/nim_llm/)
 - NIM Models currently only available via Developer program:
 https://developer.nvidia.com/developer-program
 - Generate a valid NVIDIA NGC Registry API Key:
@@ -17,7 +18,7 @@ API Key is used to build a docker image and pull LLM models from NGC Registry.
   - The `NGC_API_KEY` parameter:
     - [Create a new credential](https://docs.datarobot.com/en/docs/data/connect-data/stored-creds.html#credentials-management) of type `API Token`:
     - Add the NGC Registry API Key ([how to generate API Key](https://docs.nvidia.com/launchpad/ai/base-command-coe/latest/bc-coe-docker-basics-step-02.html#optionally-generate-an-ngc-key))
-- In custom model resources, select an appropriate GPU bundle.
+- In custom model resources, select an appropriate GPU bundle (at least a `gpu.xlarge`).
 - Register a new model version and deploy.
 
 ### To run locally using Docker
@@ -36,11 +37,14 @@ docker build -t nim_llm .
 docker run -p8080:8080 \
   --gpus 'all' \
   --net=host \
+  --shm-size=16GB \
   -e DATAROBOT_ENDPOINT=https://app.datarobot.com/api/v2 \
   -e DATAROBOT_API_TOKEN=${DATAROBOT_API_TOKEN} \
   -e MLOPS_DEPLOYMENT_ID=${DATAROBOT_DEPLOYMENT_ID} \
   -e TARGET_TYPE=textgeneration \
   -e TARGET_NAME=completions \
-  -e MLOPS_RUNTIME_PARAM_NGC_API_KEY='{"type": "credential", "payload": {"credentialType": "api_token", "apiToken": ${NGC_CLI_API_KEY}}}' \
+  -e MLOPS_RUNTIME_PARAM_NGC_API_KEY="{\"type\": \"credential\", \"payload\": {\"credentialType\": \"api_token\", \"apiToken\": \"${NGC_CLI_API_KEY}\"}}" \
   nim_llm
 ```
+
+Note: The `--shm-size` argument is only needed if you are trying to utilize multiple GPUs to run your LLM and your GPUs are not connected with NVLink.
