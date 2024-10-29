@@ -44,7 +44,8 @@ from datarobot_drum.drum.enum import (
     GUARD_CHAT_WRAPPER_NAME,
     GUARD_HOOK,
     MODERATIONS_LIBRARY_PACKAGE,
-    CustomHooks, GUARD_HOOK_MODULE,
+    CustomHooks,
+    GUARD_HOOK_MODULE,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 
@@ -650,7 +651,9 @@ class TestPythonModelAdapterWithGuards:
     def test_invoking_guard_hook_chat_wrapper(
         self, tmp_path, guard_hook_present, expected_completion
     ):
-        def guard_chat_wrapper(completion_create_params, model, pipeline, drum_chat_fn, association_id):
+        def guard_chat_wrapper(
+            completion_create_params, model, pipeline, drum_chat_fn, association_id
+        ):
             prompt = completion_create_params["messages"][-1]["content"]
             return self._build_chat_completion(prompt.upper())
 
