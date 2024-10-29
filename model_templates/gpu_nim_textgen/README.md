@@ -37,6 +37,7 @@ docker build -t nim_llm .
 docker run -p8080:8080 \
   --gpus 'all' \
   --net=host \
+  --shm-size=16GB \
   -e DATAROBOT_ENDPOINT=https://app.datarobot.com/api/v2 \
   -e DATAROBOT_API_TOKEN=${DATAROBOT_API_TOKEN} \
   -e MLOPS_DEPLOYMENT_ID=${DATAROBOT_DEPLOYMENT_ID} \
@@ -45,3 +46,5 @@ docker run -p8080:8080 \
   -e MLOPS_RUNTIME_PARAM_NGC_API_KEY="{\"type\": \"credential\", \"payload\": {\"credentialType\": \"api_token\", \"apiToken\": \"${NGC_CLI_API_KEY}\"}}" \
   nim_llm
 ```
+
+Note: The `--shm-size` argument is only needed if you are trying to utilize multiple GPUs to run your LLM and your GPUs are not connected with NVLink.
