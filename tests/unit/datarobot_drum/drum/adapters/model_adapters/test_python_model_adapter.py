@@ -583,8 +583,8 @@ class TestPythonModelAdapterWithGuards:
         with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
             # Remove any existing cached imports to allow importing the fake guard package.
             # Existing imports will be there if real moderations library is in python path.
-            del sys.modules[GUARD_HOOK_MODULE]
-            del sys.modules[MODERATIONS_LIBRARY_PACKAGE]
+            sys.modules.pop(GUARD_HOOK_MODULE, None)
+            sys.modules.pop(MODERATIONS_LIBRARY_PACKAGE, None)
 
             adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
             assert adapter._guard_pipeline is not None
