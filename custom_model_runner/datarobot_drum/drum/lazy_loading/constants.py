@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from enum import Enum
 
@@ -13,10 +14,17 @@ class LazyLoadingEnvVars:
 
 
 class BackendType(Enum):
-    # WARNING: do not change the values of the enum members, because they are received from the
-    # environment variables.
+    # WARNING: do not change the values of the enum members, because they are received from a
+    # structured data in an environment variable.
     S3 = "s3"
 
     @staticmethod
     def all():
         return [BackendType.S3]
+
+
+class EnumEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Enum):
+            return obj.value
+        return super().default(obj)

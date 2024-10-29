@@ -41,6 +41,7 @@ class PythonPredictor(BaseLanguagePredictor):
         target_type = TargetType(params.get("target_type"))
         code_dir = params["__custom_model_path__"]
 
+        self._handle_lazy_loading_files()
         self._model_adapter = PythonModelAdapter(model_dir=code_dir, target_type=target_type)
 
         sys.path.append(code_dir)
