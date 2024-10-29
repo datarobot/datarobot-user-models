@@ -18,7 +18,6 @@ runtimeParameterDefinitions:
 
   - fieldName: system_prompt
     type: string
-    defaultValue: You are a helpful AI assistant. Keep short answers of no more than 2 sentences.
     description: instructions to the model, to set the tone of model completions
 
   - fieldName: prompt_column_name
