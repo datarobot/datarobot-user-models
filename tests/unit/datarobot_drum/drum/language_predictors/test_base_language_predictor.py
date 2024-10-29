@@ -1,13 +1,16 @@
 from unittest.mock import patch, Mock, ANY
 
 import pytest
-from datarobot_mlops.common.exception import DRCommonException
 from werkzeug.exceptions import BadRequest
 
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from tests.unit.datarobot_drum.drum.chat_utils import create_completion, create_completion_chunks
+
+
+class TestDRCommonException(Exception):
+    pass
 
 
 class TestLanguagePredictor(BaseLanguagePredictor):
@@ -314,19 +317,24 @@ class TestChat:
 
         language_predictor_with_mlops.chat_hook = chat_hook
 
-        mock_mlops_function = getattr(mock_mlops, mlops_function)
-        mock_mlops_function.side_effect = DRCommonException("Fail")
+        with patch(
+            "datarobot_drum.drum.language_predictors.base_language_predictor.DRCommonException",
+            create=True,
+            new=TestDRCommonException,
+        ):
+            mock_mlops_function = getattr(mock_mlops, mlops_function)
+            mock_mlops_function.side_effect = TestDRCommonException("fail")
 
-        response = language_predictor_with_mlops.chat(
-            {
-                "model": "any",
-                "messages": [
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": "Hello!"},
-                ],
-                "stream": False,
-            }
-        )
+            response = language_predictor_with_mlops.chat(
+                {
+                    "model": "any",
+                    "messages": [
+                        {"role": "system", "content": "You are a helpful assistant."},
+                        {"role": "user", "content": "Hello!"},
+                    ],
+                    "stream": False,
+                }
+            )
 
         assert response.choices[0].message.content == "How are you"
         mock_mlops_function.assert_called_once()
