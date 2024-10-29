@@ -44,7 +44,7 @@ from datarobot_drum.drum.enum import (
     GUARD_CHAT_WRAPPER_NAME,
     GUARD_HOOK,
     MODERATIONS_LIBRARY_PACKAGE,
-    CustomHooks,
+    CustomHooks, GUARD_HOOK_MODULE,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 
@@ -580,6 +580,11 @@ class TestPythonModelAdapterWithGuards:
 
         text_generation_target_name = "completion"
         with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
+            # Remove any existing cached imports to allow importing the fake guard package.
+            # Existing imports will be there if real moderations library is in python path.
+            del sys.modules[GUARD_HOOK_MODULE]
+            del sys.modules[MODERATIONS_LIBRARY_PACKAGE]
+
             adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
             assert adapter._guard_pipeline is not None
             # Ensure that it is Mock as set by guard_hook_contents
@@ -645,7 +650,7 @@ class TestPythonModelAdapterWithGuards:
     def test_invoking_guard_hook_chat_wrapper(
         self, tmp_path, guard_hook_present, expected_completion
     ):
-        def guard_chat_wrapper(completion_create_params, model, pipeline, drum_chat_fn):
+        def guard_chat_wrapper(completion_create_params, model, pipeline, drum_chat_fn, association_id):
             prompt = completion_create_params["messages"][-1]["content"]
             return self._build_chat_completion(prompt.upper())
 
@@ -660,7 +665,7 @@ class TestPythonModelAdapterWithGuards:
                 adapter._guard_pipeline = Mock()
                 adapter._guard_moderation_hooks = {GUARD_CHAT_WRAPPER_NAME: guard_chat_wrapper}
             adapter._custom_hooks["chat"] = self.custom_chat
-            response = adapter.chat({"messages": messages}, None)
+            response = adapter.chat({"messages": messages}, None, "association_id")
             # If the guard score wrapper is invoked, completion will be upper case letters
             # (as defined), else they will be lower case letters.
             assert response.choices[0].message.content == expected_completion
@@ -678,7 +683,7 @@ class TestPythonModelAdapterWithGuards:
             adapter._guard_pipeline = Mock()
             adapter._guard_moderation_hooks = {GUARD_CHAT_WRAPPER_NAME: None}
             adapter._custom_hooks["chat"] = self.custom_chat
-            response = adapter.chat({"messages": messages}, None)
+            response = adapter.chat({"messages": messages}, None, "association_id")
             # Even if guard pipeline exists - moderation chat wrapper does not exist, so invoke
             # only user chat method
             assert response.choices[0].message.content == "Hello there"
