@@ -1,6 +1,6 @@
 # NVIDIA NIM for LLMs Drop-In Environment
 
-This drop-in environment contains the NVIDIA NIM server with support for large language models (LLMs).
+This drop-in environment contains the NVIDIA NIM server with support for large language models (LLMs). This NIM is built for **Llama3.1-8b-instruct***. To build for other NIMs, change the `FROM` line accordingly in the [Dockerfile](Dockerfile).
 
 ## Instructions
 
