@@ -31,7 +31,7 @@ class TestDownloadFromMinIO:
     def repository(self, skip_minio_test_if_missing_env_vars):
         return LazyLoadingRepository(
             repository_id="66fbd2e8eb9fe6a36622d52d",
-            bucket_name="local-minio",
+            bucket_name="development",
             credential_id="66fbd2e8eb9fe6a36622d52e",
             endpoint_url=os.environ["MINIO_ENDPOINT_URL"],
             verify_certificate=False,
