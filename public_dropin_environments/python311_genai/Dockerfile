@@ -2,9 +2,6 @@
 # It contains a variety of common useful data-science packages and tools.
 FROM datarobot/dropin-env-base-jdk:ubi8.8-py3.11-jdk11.0.22-drum1.11.5-mlops9.2.8
 
-# This makes print statements show up in the logs API
-ENV PYTHONUNBUFFERED=1
-
 # Install the list of core requirements, e.g. sklearn, numpy, pandas, flask.
 # **Don't modify this file!**
 COPY dr_requirements.txt dr_requirements.txt

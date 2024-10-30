@@ -17,4 +17,7 @@ COPY mlops-agent-*.jar /opt/jars/
 ENV DRUM_JAVA_SHARED_JARS=/opt/jars/*
 ENV MLOPS_MONITORING_AGENT_JAR_PATH=/opt/jars/mlops-agent-${DATAROBOT_MLOPS_VERSION}.jar
 
+# This makes print statements show up in the logs API
+ENV PYTHONUNBUFFERED=1
+
 RUN pip3 install -U pip && pip3 install -r requirements.txt
