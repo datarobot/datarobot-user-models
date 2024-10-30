@@ -13,4 +13,7 @@ COPY datarobot-mlops-*.jar /opt/jars/
 
 ENV DRUM_JAVA_SHARED_JARS=/opt/jars/*
 
+# This makes print statements show up in the logs API
+ENV PYTHONUNBUFFERED=1
+
 RUN pip3 install -U pip && pip3 install -r requirements.txt
