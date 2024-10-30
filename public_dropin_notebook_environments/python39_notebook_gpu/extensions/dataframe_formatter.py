@@ -21,7 +21,7 @@ from traitlets import ObjectName, Unicode
 is_pandas_loaded = True
 
 try:
-    from pandas import DataFrame, DatetimeIndex, io
+    from pandas import DataFrame, io
 except ImportError:
     is_pandas_loaded = False
 
@@ -62,7 +62,7 @@ class DataframesProcessSteps(str, Enum):
 
 Columns = List[Dict[str, Any]]
 
-index_key = "_dr_df_index"
+DEFAULT_INDEX_KEY = "index"
 
 
 def _register_exception(
@@ -79,14 +79,6 @@ def _register_exception(
     }
 
 
-def _set_index(df: DataFrame) -> DataFrame:
-    if isinstance(df.index, DatetimeIndex):
-        df.index = df.index.strftime("%Y-%m-%dT%H:%M:%S.%f")
-
-    df.index = df.index.rename(index_key)
-    return df
-
-
 def _validate_columns(data: DataFrame) -> None:
     """To prevent failing some DataFrame process steps like columns extraction
     and converting to json we need ensure that columns dtypes can be converted
@@ -100,8 +92,10 @@ def _validate_columns(data: DataFrame) -> None:
     convertable_types = [
         "int64",
         "float64",
+        "float32",
         "bool",
         "category",
+        "geometry",
         "object",
         "datetime64[ns]",
         "timedelta[ns]",
@@ -119,7 +113,7 @@ def _validate_columns(data: DataFrame) -> None:
 
 
 def _get_dataframe_columns(df: DataFrame) -> Columns:
-    schema = io.json.build_table_schema(_set_index(df))
+    schema = io.json.build_table_schema(df)
     columns = cast(Columns, schema["fields"])
     return columns
 
@@ -135,9 +129,15 @@ def _sort_dataframe(df: DataFrame, sort_by: str) -> DataFrame:
     sorting_list = sort_by.split(",")
     sort_by_list = []
     ascending_list = []
+    # sorting by default index (None or "index") raise KeyValue error
+    # pandas allow to sort by columns and explicit indices
+    allowed_fields = set(list(df.columns) + list(df.index.names))
     for sort_key in sorting_list:
+        if sort_key not in allowed_fields:
+            continue
         sort_by_list.append(sort_key.lstrip("-"))
         ascending_list.append(not sort_key.startswith("-"))
+
     return df.sort_values(by=sort_by_list, ascending=ascending_list, ignore_index=False)
 
 
@@ -154,6 +154,8 @@ def _transform_to_json(data: DataFrame) -> Any:
     if isinstance(data, list):
         return data
 
+    if data.__class__.__name__ == "GeoDataFrame":
+        return json.loads(data.to_json())["features"]
     return json.loads(data.to_json(orient="table", index=True, default_handler=str))["data"]
 
 
@@ -162,10 +164,7 @@ def _prepare_df_for_chart_cell(val: DataFrame, columns: List[str]) -> Union[Data
         data = []
     elif len(columns) == 1:
         # Return counts if only one column was selected or selected count of records
-        dataframe = (
-            val.groupby(columns)[columns[0]].count().reset_index(name="count").set_index("count")
-        )
-        data = _set_index(dataframe)
+        data = val.groupby(columns)[columns[0]].count().reset_index(name="count").set_index("count")
     else:
         # Return only selected columns
         data = val[columns]
@@ -173,7 +172,7 @@ def _prepare_df_for_chart_cell(val: DataFrame, columns: List[str]) -> Union[Data
     return data
 
 
-# This formatter can operate with a data that we are received as a DataFrame
+# This formatter can operate with data that we have received as a DataFrame
 def formatter(  # noqa: C901,PLR0912
     val: "DataFrame",
     formatter: Optional[Callable[..., List[str]]] = None,
@@ -191,6 +190,8 @@ def formatter(  # noqa: C901,PLR0912
         columns = _get_dataframe_columns(data)
     except Exception as e:
         error.append(_register_exception(e, DataframesProcessSteps.GET_COLUMNS.value))
+
+    index_key = data.index.name if data.index.name is not None else DEFAULT_INDEX_KEY
 
     # check if it's a dataframe for ChartCell then return full dataframe
     if hasattr(val, "attrs") and "returnAll" in val.attrs and val.attrs["returnAll"]:
@@ -248,7 +249,7 @@ def formatter(  # noqa: C901,PLR0912
             "indexKey": index_key,
         }
 
-    # Sorting step, gets attrs that has been setup in DataframeProcessor
+    # Sorting step, gets attrs that have been set up in DataframeProcessor
     if hasattr(val, "attrs") and "sort_by" in val.attrs:
         try:
             data = _sort_dataframe(df=data, sort_by=val.attrs["sort_by"])
@@ -256,7 +257,7 @@ def formatter(  # noqa: C901,PLR0912
         except Exception as e:
             error.append(_register_exception(e, DataframesProcessSteps.SORTING.value))
 
-    # Pagination step, gets attrs that has been setup in DataframeProcessor
+    # Pagination step, gets attrs that have been set up in DataframeProcessor
     if hasattr(val, "attrs") and "pagination" in val.attrs:
         pagination = DataframePaginationAttributes(
             limit=val.attrs["pagination"]["limit"], offset=val.attrs["pagination"]["offset"]
@@ -288,7 +289,7 @@ def formatter(  # noqa: C901,PLR0912
 #
 # Ignoring mypy error: Class cannot subclass "BaseFormatter" (has type "Any")
 class DataFrameFormatter(BaseFormatter):  # type: ignore[misc]
-    """A DataFrame formatter. This is basically a copy of the JSONFormatter
+    """A DataFrame formatter. This is basically a copy of the JSONFormatter,
     so it will return as a new mime type: application/vnd.dataframe+json in output.
     """
 
@@ -319,14 +320,12 @@ class DataFrameFormatter(BaseFormatter):  # type: ignore[misc]
 # Load our extension into ipython kernel
 def load_ipython_extension(ipython: Magics) -> None:
     if is_pandas_loaded:
+        dataframe_json_formatter = DataFrameFormatter()
         ipython.display_formatter.formatters[
             "application/vnd.dataframe+json"
-        ] = DataFrameFormatter()
-        dataframe_json_formatter = ipython.display_formatter.formatters[
-            "application/vnd.dataframe+json"
-        ]
+        ] = dataframe_json_formatter
         dataframe_json_formatter.for_type(DataFrame, formatter)
 
         print("Pandas DataFrame MimeType Extension loaded")
     else:
-        print("Please make `pip install pandas` to use DataFrame extension")
+        print("Please execute `pip install pandas` to use DataFrame extension")

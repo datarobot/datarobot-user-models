@@ -1,4 +1,4 @@
-# Copyright 2024 DataRobot, Inc. and its affiliates.
+# Copyright 2022 DataRobot, Inc. and its affiliates.
 # All rights reserved.
 # DataRobot, Inc. Confidential.
 # This is unpublished proprietary source code of DataRobot, Inc.
@@ -21,7 +21,7 @@ from traitlets import ObjectName, Unicode
 is_pandas_loaded = True
 
 try:
-    from pandas import DataFrame, DatetimeIndex, MultiIndex, io
+    from pandas import DataFrame, io
 except ImportError:
     is_pandas_loaded = False
 
@@ -62,8 +62,7 @@ class DataframesProcessSteps(str, Enum):
 
 Columns = List[Dict[str, Any]]
 
-default_index_key = "_dr_df_index"
-index_key = default_index_key
+DEFAULT_INDEX_KEY = "index"
 
 
 def _register_exception(
@@ -78,26 +77,6 @@ def _register_exception(
         "message": str(e),
         "traceback": traceback_msg,
     }
-
-
-def _set_index(df: DataFrame) -> DataFrame:
-    global index_key  # noqa: PLW0603
-
-    if isinstance(df.index, MultiIndex):
-        return df
-
-    # use defined index name, or set default
-    if df.index.name is None:
-        index_key = default_index_key  # noqa: PLW0603
-    elif df.index.name != default_index_key:
-        index_key = df.index.name
-        return df
-
-    if isinstance(df.index, DatetimeIndex):
-        df.index = df.index.strftime("%Y-%m-%dT%H:%M:%S.%f")
-
-    df.index = df.index.rename(index_key)
-    return df
 
 
 def _validate_columns(data: DataFrame) -> None:
@@ -134,7 +113,7 @@ def _validate_columns(data: DataFrame) -> None:
 
 
 def _get_dataframe_columns(df: DataFrame) -> Columns:
-    schema = io.json.build_table_schema(_set_index(df))
+    schema = io.json.build_table_schema(df)
     columns = cast(Columns, schema["fields"])
     return columns
 
@@ -150,9 +129,15 @@ def _sort_dataframe(df: DataFrame, sort_by: str) -> DataFrame:
     sorting_list = sort_by.split(",")
     sort_by_list = []
     ascending_list = []
+    # sorting by default index (None or "index") raise KeyValue error
+    # pandas allow to sort by columns and explicit indices
+    allowed_fields = set(list(df.columns) + list(df.index.names))
     for sort_key in sorting_list:
+        if sort_key not in allowed_fields:
+            continue
         sort_by_list.append(sort_key.lstrip("-"))
         ascending_list.append(not sort_key.startswith("-"))
+
     return df.sort_values(by=sort_by_list, ascending=ascending_list, ignore_index=False)
 
 
@@ -179,10 +164,7 @@ def _prepare_df_for_chart_cell(val: DataFrame, columns: List[str]) -> Union[Data
         data = []
     elif len(columns) == 1:
         # Return counts if only one column was selected or selected count of records
-        dataframe = (
-            val.groupby(columns)[columns[0]].count().reset_index(name="count").set_index("count")
-        )
-        data = _set_index(dataframe)
+        data = val.groupby(columns)[columns[0]].count().reset_index(name="count").set_index("count")
     else:
         # Return only selected columns
         data = val[columns]
@@ -208,6 +190,8 @@ def formatter(  # noqa: C901,PLR0912
         columns = _get_dataframe_columns(data)
     except Exception as e:
         error.append(_register_exception(e, DataframesProcessSteps.GET_COLUMNS.value))
+
+    index_key = data.index.name if data.index.name is not None else DEFAULT_INDEX_KEY
 
     # check if it's a dataframe for ChartCell then return full dataframe
     if hasattr(val, "attrs") and "returnAll" in val.attrs and val.attrs["returnAll"]:
