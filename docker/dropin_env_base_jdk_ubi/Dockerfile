@@ -24,3 +24,5 @@ COPY datarobot-mlops-*.jar $JARS_PATH
 COPY mlops-agent-*.jar $JARS_PATH
 ENV DRUM_JAVA_SHARED_JARS=$JARS_PATH/*
 ENV MLOPS_MONITORING_AGENT_JAR_PATH=$JARS_PATH/mlops-agent-${DATAROBOT_MLOPS_VERSION}.jar
+# This makes print statements show up in the logs API
+ENV PYTHONUNBUFFERED=1

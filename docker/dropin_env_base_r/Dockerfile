@@ -4,6 +4,9 @@ FROM rocker/tidyverse:4.2.1
 
 ENV LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive
 
+# This makes print statements show up in the logs API
+ENV PYTHONUNBUFFERED=1
+
 RUN apt-get update && \
     apt-get install --no-install-recommends -y \
           python3-pip \
