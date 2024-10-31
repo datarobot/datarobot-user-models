@@ -117,6 +117,12 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self.python_model_adapter = PythonModelAdapter(
             model_dir=self._code_dir, target_type=self.target_type
         )
+        # download model artifacts with a "load_model" hook or ".remote" artifact
+        custom_py_paths = self._get_custom_artifacts()
+        if custom_py_paths:
+            sys.path.append(self._code_dir)
+            self.python_model_adapter.load_custom_hooks()
+
         self.status_reporter = MLOpsStatusReporter(
             mlops_service_url=self.datarobot_endpoint,
             mlops_api_token=self.datarobot_api_token,
@@ -124,17 +130,6 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
             verify_ssl=self.verify_ssl,
             total_deployment_stages=self.num_deployment_stages,
         )
-
-        # download model artifacts with a "load_model" hook or ".remote" artifact
-        custom_py_paths, dot_remote_paths = self._get_custom_artifacts()
-        if custom_py_paths:
-            sys.path.append(self._code_dir)
-            self.python_model_adapter.load_custom_hooks()
-
-        elif dot_remote_paths:
-            raise DrumCommonException(
-                "The '.remote' artifacts are not supported by the current version of DataRobot User models"
-            )
 
         self._is_shutting_down = Event()
         self.openai_process = DrumServerProcess()
@@ -196,20 +191,19 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         code_dir_abspath = os.path.abspath(self._code_dir)
 
         custom_py_paths = list(Path(code_dir_abspath).rglob("{}.py".format(CUSTOM_FILE_NAME)))
-        remote_artifact_paths = list(Path(code_dir_abspath).rglob(REMOTE_ARTIFACT_FILE_EXT))
 
-        if len(custom_py_paths) + len(remote_artifact_paths) > 1:
+        if len(custom_py_paths) > 1:
             error_mes = (
                 "Multiple custom.py/.remote files were identified in the code directories sub directories.\n"
                 "The following custom model files were found:\n"
             )
             error_mes += "\n".join(
-                [str(path) for path in (custom_py_paths + remote_artifact_paths)]
+                [str(path) for path in custom_py_paths]
             )
             self.logger.error(error_mes)
             raise DrumCommonException(error_mes)
 
-        return custom_py_paths, remote_artifact_paths
+        return custom_py_paths
 
     def liveness_probe(self):
         message, status = self.health_check()
