@@ -117,7 +117,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self.python_model_adapter = PythonModelAdapter(
             model_dir=self._code_dir, target_type=self.target_type
         )
-        # download model artifacts with a "load_model" hook or ".remote" artifact
+        # download model artifacts with a "load_model" hook
         custom_py_paths = self._get_custom_artifacts()
         if custom_py_paths:
             sys.path.append(self._code_dir)
@@ -197,9 +197,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
                 "Multiple custom.py/.remote files were identified in the code directories sub directories.\n"
                 "The following custom model files were found:\n"
             )
-            error_mes += "\n".join(
-                [str(path) for path in custom_py_paths]
-            )
+            error_mes += "\n".join([str(path) for path in custom_py_paths])
             self.logger.error(error_mes)
             raise DrumCommonException(error_mes)
 
