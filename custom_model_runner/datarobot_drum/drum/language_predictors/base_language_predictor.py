@@ -237,7 +237,8 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
     def chat(self, completion_create_params):
         start_time = time.time()
         try:
-            response = self._chat(completion_create_params)
+            association_id = str(uuid.uuid4())
+            response = self._chat(completion_create_params, association_id)
             response = self._validate_chat_response(response)
         except Exception as e:
             self._mlops_report_error(start_time)
@@ -245,7 +246,10 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
 
         if not is_streaming_response(response):
             self._mlops_report_chat_prediction(
-                completion_create_params, start_time, response.choices[0].message.content
+                completion_create_params,
+                start_time,
+                response.choices[0].message.content,
+                association_id,
             )
             return response
         else:
@@ -262,21 +266,28 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                     raise
 
                 self._mlops_report_chat_prediction(
-                    completion_create_params, start_time, "".join(message_content)
+                    completion_create_params, start_time, "".join(message_content), association_id
                 )
 
             return generator()
 
-    def _chat(self, completion_create_params):
+    def _chat(self, completion_create_params, association_id):
         raise NotImplementedError("Chat is not implemented ")
 
-    def _mlops_report_chat_prediction(self, completion_create_params, start_time, message_content):
+    def _mlops_report_chat_prediction(
+        self, completion_create_params, start_time, message_content, association_id
+    ):
         if not self._mlops:
             return
 
         execution_time_ms = (time.time() - start_time) * 1000
 
-        self._mlops.report_deployment_stats(num_predictions=1, execution_time_ms=execution_time_ms)
+        try:
+            self._mlops.report_deployment_stats(
+                num_predictions=1, execution_time_ms=execution_time_ms
+            )
+        except DRCommonException:
+            logger.exception("Failed to report deployment stats")
 
         latest_message = completion_create_params["messages"][-1]["content"]
         features_df = pd.DataFrame([{self._prompt_column_name: latest_message}])
@@ -286,7 +297,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             self._mlops.report_predictions_data(
                 features_df,
                 predictions,
-                association_ids=[str(uuid.uuid4())],
+                association_ids=[association_id],
             )
         except DRCommonException:
             logger.exception("Failed to report predictions data")

@@ -136,8 +136,8 @@ class PythonPredictor(BaseLanguagePredictor):
             )
         return ret
 
-    def _chat(self, completion_create_params):
-        return self._model_adapter.chat(completion_create_params, self._model)
+    def _chat(self, completion_create_params, association_id):
+        return self._model_adapter.chat(completion_create_params, self._model, association_id)
 
     def terminate(self):
         if self._mlops:
