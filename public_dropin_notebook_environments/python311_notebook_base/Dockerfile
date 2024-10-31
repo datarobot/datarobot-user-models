@@ -46,17 +46,19 @@ ARG AGENTDIR
 ARG VENV_PATH
 ARG PYTHON_VERSION
 ARG PYTHON_EXACT_VERSION
+ARG GIT_COMMIT
 
 # Set the SHELL option -o pipefail before RUN with a pipe in it.
 # Rationale: https://github.com/hadolint/hadolint/wiki/DL4006
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Add any package that will be installed on system level here:
-RUN microdnf update \
+RUN echo "[Python$PYTHON_VERSION] GIT_COMMIT: $GIT_COMMIT" \
+    && microdnf update \
     && microdnf install -y python$PYTHON_VERSION-$PYTHON_EXACT_VERSION python$PYTHON_VERSION-devel-$PYTHON_EXACT_VERSION \
   gcc-8.5.0 gcc-c++-8.5.0 glibc-devel-2.28 libffi-devel-3.1 graphviz-2.40.1 python$PYTHON_VERSION-pip \
-  openblas-0.3.15 python$PYTHON_VERSION-scipy shadow-utils-2:4.6 passwd-0.80 git-2.43.5 openssh-server tar-2:1.30 gzip-1.9 unzip-6.0 zip-3.0 wget-1.19.5 \
-  java-11-openjdk-headless-1:11.0.25.0.9-2.el8 vim-minimal-2:8.0.1763 nano-2.9.8 \
+  openblas-0.3.15 python$PYTHON_VERSION-scipy shadow-utils passwd git openssh-server tar gzip unzip zip wget \
+  java-11-openjdk-headless vim-minimal nano \
   && microdnf clean all
 
 ENV PYTHONUNBUFFERED=1 \
