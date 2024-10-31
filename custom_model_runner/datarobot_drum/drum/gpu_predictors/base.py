@@ -194,7 +194,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
 
         if len(custom_py_paths) > 1:
             error_mes = (
-                "Multiple custom.py/.remote files were identified in the code directories sub directories.\n"
+                "Multiple custom.py files were identified in the code directories sub directories.\n"
                 "The following custom model files were found:\n"
             )
             error_mes += "\n".join([str(path) for path in custom_py_paths])
