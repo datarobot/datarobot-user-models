@@ -103,6 +103,7 @@ from tests.constants import (
     CUSTOM_TASK_INTERFACE_XGB_REGRESSION,
     BINARY_NUM_TARGET,
     MULTICLASS_LABEL_SPACES,
+    PYTHON_KERAS,
 )
 
 from tests.conftest import skip_if_framework_not_in_env
@@ -256,7 +257,7 @@ class TestFit:
         # It seems that with keras 2.12.0, this prediction doesn't always work.
         # Likely drum prediction server stucks when it is started from within drum fit.
         # So skip predict after fit for keras.
-        if framework_env == "python3_keras":
+        if framework_env == PYTHON_KERAS:
             cmd += " --skip-predict"
         if problem not in {ANOMALY, SPARSE, BINARY_INT}:
             cmd += ' --target "{}"'.format(resources.targets(problem))
@@ -295,7 +296,7 @@ class TestFit:
         )
         assert "Starting Fit" in stdout
         assert "Fit successful" in stdout
-        if framework_env != "python3_keras":
+        if framework_env != PYTHON_KERAS:
             assert "Starting Prediction" in stdout
 
     @pytest.mark.parametrize(
