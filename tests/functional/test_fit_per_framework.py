@@ -253,8 +253,8 @@ class TestFit:
         )
 
         # drum fit, predicts on fitted model for validation.
-        # It seems that with keras 2.12.0, this prediction don't always work.
-        # Likely drum prediction server issue or the way how it is started from within drum fit.
+        # It seems that with keras 2.12.0, this prediction doesn't always work.
+        # Likely drum prediction server stucks when it is started from within drum fit.
         # So skip predict after fit for keras.
         if framework_env == "python3_keras":
             cmd += " --skip-predict"
