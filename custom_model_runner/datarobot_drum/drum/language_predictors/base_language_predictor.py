@@ -170,7 +170,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             deployment = dr.Deployment.get(self._params["deployment_id"])
             return deployment.model["prompt"]
         except Exception:
-            logger.exception(
+            logger.info(
                 "Failed to get prompt column name from deployment. "
                 f"Fallback to default prompt column name ('{DEFAULT_PROMPT_COLUMN_NAME}')"
             )
@@ -308,7 +308,12 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
 
         execution_time_ms = (time.time() - start_time) * 1000
 
-        self._mlops.report_deployment_stats(num_predictions=0, execution_time_ms=execution_time_ms)
+        try:
+            self._mlops.report_deployment_stats(
+                num_predictions=0, execution_time_ms=execution_time_ms
+            )
+        except DRCommonException:
+            logger.exception("Failed to report deployment stats")
 
     @staticmethod
     def _validate_chat_response(response):
