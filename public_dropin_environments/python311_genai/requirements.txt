@@ -1,3 +1,6 @@
+datarobot-drum==1.14.0
+
+pyarrow>=0.14.1,<=14.0.1
 cloudpickle==2.2.1
 torch==2.0.1
 transformers==4.39.3
