@@ -10,7 +10,7 @@ jinja2>=3.0.0
 memory_profiler<1.0.0
 mlpiper~=2.6.0
 numpy<2.0.0
-pandas>=1.5.0,<=2.0.3
+pandas>=1.5.0
 progress
 requests
 scipy>=1.1,<2
@@ -19,8 +19,9 @@ PyYAML
 texttable
 py4j~=0.10.9.0
 # only constrained by other packages, not DRUM
-pyarrow>=0.14.1,<=14.0.1
-Pillow<=10.3.0
+pyarrow>=0.14.1
+Pillow
+# constrained by Julia env
 julia<=0.5.7
 termcolor
 packaging
