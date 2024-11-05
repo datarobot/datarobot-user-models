@@ -148,7 +148,7 @@ pipeline:
                       REQ_FILE_PATH="${PUBLIC_ENVS_DIR}/<+pipeline.variables.framework>/requirements.txt"
 
                       # remove DRUM from requirements file to be able to install it from source
-                      sed -i "s/^datarobot-drum.*/${DRUM_WHEEL_FILENAME}${WITH_R}/" ${DR_REQ_FILE_PATH}
+                      sed -i "s/^datarobot-drum.*//" ${DR_REQ_FILE_PATH}
 
                       # check if requirements.txt exists, then install it
                       CMD_INSTALL_REQ_FILE=""
