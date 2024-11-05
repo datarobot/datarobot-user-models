@@ -131,6 +131,7 @@ pipeline:
                     shell: Bash
                     command: |-
                       echo "== Assuming running integration tests in framework container (inside Docker), for env: <+pipeline.variables.framework>"
+                      ROOT_DIR="$(pwd)"
 
                       echo "== Installing pytest =="
                       pip install pytest pytest-xdist
@@ -141,7 +142,22 @@ pipeline:
                       if [ "<+pipeline.variables.framework>" = "java_codegen" ]; then
                           make java_components
                       fi
-                      pip install .
+
+                      PUBLIC_ENVS_DIR="${ROOT_DIR}/public_dropin_environments"
+                      DR_REQ_FILE_PATH="${PUBLIC_ENVS_DIR}/<+pipeline.variables.framework>/dr_requirements.txt"
+                      REQ_FILE_PATH="${PUBLIC_ENVS_DIR}/<+pipeline.variables.framework>/requirements.txt"
+
+                      # remove DRUM from requirements file to be able to install it from source
+                      sed -i "s/^datarobot-drum.*/${DRUM_WHEEL_FILENAME}${WITH_R}/" ${DR_REQ_FILE_PATH}
+
+                      # check if requirements.txt exists, then install it
+                      CMD_INSTALL_REQ_FILE=""
+                      if [ -f "${REQ_FILE_PATH}" ]; then
+                        CMD_INSTALL_REQ_FILE="-r ${REQ_FILE_PATH}"
+                      fi
+
+                      pip install --force-reinstall -r ${DR_REQ_FILE_PATH} ${CMD_INSTALL_REQ_FILE} .
+
                       cd -
                       TESTS_TO_RUN="tests/functional/test_inference_per_framework.py \
                                     tests/functional/test_fit_per_framework.py \
