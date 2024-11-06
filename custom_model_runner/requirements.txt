@@ -1,4 +1,4 @@
-argcomplete==1.11.1
+argcomplete
 datarobot>=3.1.0,<4
 # trafaret version pinning is defined by `datarobot`
 trafaret>=2.0.0
@@ -26,5 +26,5 @@ julia<=0.5.7
 termcolor
 packaging
 markupsafe
-pydantic>=2.9.2
+pydantic
 datarobot-storage
