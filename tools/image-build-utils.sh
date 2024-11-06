@@ -41,7 +41,7 @@ function build_dropin_env_dockerfile() {
   cp "$DRUM_WHEEL_REAL_PATH" .
 
   # check if DRUM is installed with R option
-  if grep "datarobot-drum\[R\]" dr_requirements.txt
+  if grep "datarobot-drum\[R\]" requirements.txt
   then
     WITH_R="[R]"
   fi
@@ -52,15 +52,15 @@ function build_dropin_env_dockerfile() {
   else
     local sed=sed
   fi
-  # insert 'COPY wheel wheel' after 'COPY dr_requirements.txt dr_requirements.txt'
+  # insert 'COPY wheel wheel' after 'COPY requirements.txt requirements.txt'
   if ! grep -q "COPY \+${DRUM_WHEEL_FILENAME}" Dockerfile; then
-    $sed -i "/COPY \+dr_requirements.txt \+dr_requirements.txt/a COPY ${DRUM_WHEEL_FILENAME} ${DRUM_WHEEL_FILENAME}" Dockerfile
+    $sed -i "/COPY \+requirements.txt \+requirements.txt/a COPY ${DRUM_WHEEL_FILENAME} ${DRUM_WHEEL_FILENAME}" Dockerfile
   fi
   # replace 'datarobot-drum' requirement with a wheel
-  $sed -i "s/^datarobot-drum.*/${DRUM_WHEEL_FILENAME}${WITH_R}/" dr_requirements.txt
+  $sed -i "s/^datarobot-drum.*/${DRUM_WHEEL_FILENAME}${WITH_R}/" requirements.txt
   # In general we want DRUM not to depend on uwsgi, so install it explicitly for the tests
-  if ! grep -q "uwsgi" dr_requirements.txt; then
-    echo "uwsgi==2.0.24" >> dr_requirements.txt
+  if ! grep -q "uwsgi" requirements.txt; then
+    echo "uwsgi==2.0.24" >> requirements.txt
   fi
 
   popd || exit 1
