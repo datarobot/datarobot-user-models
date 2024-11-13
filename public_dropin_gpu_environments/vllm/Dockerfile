@@ -15,8 +15,8 @@ ENV DATAROBOT_VENV_PATH=/workspace/datarobot
 RUN mkdir -p ${DATAROBOT_VENV_PATH} && chown -R 1000:1000 /root ${DATAROBOT_VENV_PATH}
 
 RUN python3.9 -m venv $DATAROBOT_VENV_PATH && $DATAROBOT_VENV_PATH/bin/pip install -U pip
-COPY dr_requirements.txt dr_requirements.txt
-RUN $DATAROBOT_VENV_PATH/bin/pip install -r dr_requirements.txt
+COPY requirements.txt requirements.txt
+RUN $DATAROBOT_VENV_PATH/bin/pip install -r requirements.txt
 
 # Make sure these cache dirs are writable by the vLLM process
 ENV HF_HOME=$CODE_DIR/.cache/huggingface

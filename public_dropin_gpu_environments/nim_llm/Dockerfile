@@ -10,9 +10,9 @@ RUN apt-get update && apt-get install -y \
 ENV DATAROBOT_VENV_PATH=/opt/drum
 ENV PIP_NO_CACHE_DIR=1
 RUN /usr/bin/python3 -m venv $DATAROBOT_VENV_PATH && $DATAROBOT_VENV_PATH/bin/pip3 install -U pip
-COPY dr_requirements.txt dr_requirements.txt
+COPY requirements.txt requirements.txt
 
-RUN $DATAROBOT_VENV_PATH/bin/pip install -r dr_requirements.txt
+RUN $DATAROBOT_VENV_PATH/bin/pip install -r requirements.txt
 
 ENV CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
 ENV NIM_CACHE_PATH=${CODE_DIR}/nim/cache
