@@ -1187,7 +1187,7 @@ class TestNIM:
         )
 
         completion = client.chat.completions.create(
-            model="generic_llm",
+            model="any name works",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": "Describe the city of Boston"},
@@ -1282,7 +1282,7 @@ class TestVLLM:
         )
 
         completion = client.chat.completions.create(
-            model="generic_llm",
+            model="any name works",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": "Describe the city of Boston"},

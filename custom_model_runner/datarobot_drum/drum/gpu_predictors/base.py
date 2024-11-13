@@ -25,7 +25,6 @@ from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import Raw
 from datarobot_drum.drum.common import SupportedPayloadFormats
 from datarobot_drum.drum.enum import CUSTOM_FILE_NAME
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
-from datarobot_drum.drum.enum import REMOTE_ARTIFACT_FILE_EXT
 from datarobot_drum.drum.enum import CustomHooks
 from datarobot_drum.drum.enum import PayloadFormat
 from datarobot_drum.drum.enum import StructuredDtoKeys
@@ -44,7 +43,7 @@ class ChatRoles:
 
 
 class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
-    DEFAULT_MODEL_NAME = "generic_llm"
+    DEFAULT_MODEL_NAME = "datarobot-deployed-llm"
     MAX_RESTARTS = 10
 
     def __init__(self):
@@ -95,6 +94,9 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         return True
 
     def _chat(self, completion_create_params, association_id):
+        # Force the incoming model name to to match the expected model name because the
+        # name isn't very applicable to BYO LLMs.
+        completion_create_params["model"] = self.model_name
         return self.ai_client.chat.completions.create(**completion_create_params)
 
     def has_read_input_data_hook(self):
