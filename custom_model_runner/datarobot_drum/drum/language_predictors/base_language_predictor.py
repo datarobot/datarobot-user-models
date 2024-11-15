@@ -115,6 +115,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             self._schema_validator = SchemaValidator(model_metadata.get("typeSchema", {}))
 
     def _should_enable_mlops(self):
+        return False
         return to_bool(self._params.get("monitor")) or self.supports_chat()
 
     def supports_chat(self):

@@ -44,7 +44,7 @@ def verbose_stdout(verbose):
 
 
 def config_logging():
-    logging.basicConfig(format="%(asctime)-15s %(levelname)s %(name)s:  %(message)s")
+    logging.basicConfig(format="%(asctime)-15s %(process)d %(levelname)s %(name)s:  %(message)s")
 
 
 def get_metadata(options):
