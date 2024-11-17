@@ -1,6 +1,8 @@
 import asyncio
 import logging
 import os
+import subprocess
+import time
 from typing import Dict
 from typing import Optional
 from urllib.parse import urlsplit
@@ -55,9 +57,54 @@ class LazyLoadingHandler:
     def download_lazy_loading_files(self):
         if not self.is_lazy_loading_available:
             return
-        logger.info("Start downloading lazy loading files")
-        asyncio.run(self._download_in_parallel())
+        logger.info("Start downloading lazy loading files using 's5cmd'")
+        self.download_files_batch()
+        # asyncio.run(self._download_in_parallel())
         logger.info("Lazy loading files have been downloaded")
+
+    def download_files_batch(self):
+        command = ["s5cmd", "--stat", "--log", "info"]
+        repository = self._lazy_loading_data.repositories[0]
+        credentials = self._credentials[repository.credential_id]
+        config = {
+            "AWS_ACCESS_KEY_ID": credentials.aws_access_key_id,
+            "AWS_SECRET_ACCESS_KEY": credentials.aws_secret_access_key,
+            "AWS_SESSION_TOKEN": credentials.aws_session_token or '',
+        }
+        if repository.endpoint_url:
+            command.extend(["--endpoint-url", repository.endpoint_url, "run"])
+        else:
+            command.append("run")
+
+        copy_commands = []
+        for file in self._lazy_loading_data.files:
+            copy_command = f"cp s3://{repository.bucket_name}/{file.remote_path} ./{file.local_path}"
+            copy_commands .append(copy_command)
+
+        # Create a batch file with `s5cmd` commands for each file
+        batch_content = "\n".join(copy_commands)
+        tmp_s5cmd_batch_filepath = "/tmp/s5cmd_batch_file.txt"
+        with open(tmp_s5cmd_batch_filepath, "w") as f:
+            f.write(batch_content)
+
+        command.append(tmp_s5cmd_batch_filepath)
+
+        # Define the environment variables specifically for this subprocess
+        env = {**config, **os.environ}
+
+        # Run s5cmd with the batch file
+        logger.info(f"Downloading by running: '{command}' ...")
+        with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, env=env) as process:
+            for line in process.stdout:
+                logger.info(line.strip())  # Print each line from stdout as it's produced
+
+            for err_line in process.stderr:
+                logger.error(err_line.strip())  # Log error lines from stderr, also removing the newline
+
+        return_code = process.wait()
+        if return_code != 0:
+            msg = f"Error downloading with s5cmd.\nCopy text content:\n{batch_content}"
+            logger.error(msg)
 
     async def _download_in_parallel(self):
         repo_backend_storages = {}

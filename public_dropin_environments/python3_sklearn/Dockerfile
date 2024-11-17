@@ -9,7 +9,12 @@ COPY requirements.txt requirements.txt
 # according to package requirements or to the latest
 RUN pip3 install -U pip && \
     pip3 install -U --upgrade-strategy eager --no-cache-dir -r requirements.txt  && \
-    rm -rf requirements.txt
+    rm -rf requirements.txt 
+
+COPY datarobot_drum-1.14.2-py3-none-any.whl datarobot_drum-1.14.2-py3-none-any.whl
+RUN pip3 install datarobot_drum-1.14.2-py3-none-any.whl s5cmd
+# Verify installation
+RUN s5cmd version
 
 # Copy the drop-in environment code into the correct directory
 # Code from the custom model tarball can overwrite the code here
