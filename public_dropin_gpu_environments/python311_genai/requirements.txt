@@ -5,7 +5,7 @@ openai==1.30.2
 langchain==0.1.20
 optimum==1.19.2
 onnxruntime==1.17.3
-onnx==1.16.0
+onnx==1.17.0
 sentence-transformers==3.0.0
 faiss-cpu==1.8.0
 numpy==1.25.1
