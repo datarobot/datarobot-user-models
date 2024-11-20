@@ -692,6 +692,7 @@ class TestGetArgOptions:
         )
         assert arg_option is None
         assert "runtime_params_file" not in options
+        assert "lazy_loading_file" not in options
 
 
 class TestRuntimeParametersArgs:

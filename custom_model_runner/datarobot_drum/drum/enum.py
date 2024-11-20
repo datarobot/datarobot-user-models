@@ -290,6 +290,7 @@ class ArgumentsOptions:
     RUNTIME_PARAMS_FILE = "--runtime-params-file"
     USER_SECRETS_MOUNT_PATH = "--user-secrets-mount-path"
     USER_SECRETS_PREFIX = "--user-secrets-prefix"
+    LAZY_LOADING_FILE = "--lazy-loading-file"
 
     MAIN_COMMAND = "drum" if not DEBUG else "./custom_model_runner/bin/drum"
 
@@ -327,6 +328,7 @@ class ArgumentOptionsEnvVars:
     RUNTIME_PARAMS_FILE = "RUNTIME_PARAMS_FILE"
     USER_SECRETS_MOUNT_PATH = "USER_SECRETS_MOUNT_PATH"
     USER_SECRETS_PREFIX = "USER_SECRETS_PREFIX"
+    LAZY_LOADING_FILE = "LAZY_LOADING_FILE"
 
     VALUE_VARS = [
         TARGET_TYPE,

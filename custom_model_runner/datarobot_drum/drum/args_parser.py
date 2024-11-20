@@ -113,6 +113,17 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
+    def _reg_args_lazy_loading_file(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.LAZY_LOADING_FILE,
+                default=os.environ.get("LAZY_LOADING_FILE", None),
+                required=False,
+                type=CMRunnerArgsRegistry._is_valid_file,
+                help="Path to a lazy loading values file. (env: LAZY_LOADING_FILE)",
+            )
+
+    @staticmethod
     def _reg_arg_output(*parsers):
         for parser in parsers:
             prog_name_lst = CMRunnerArgsRegistry._tokenize_parser_prog(parser)
@@ -1002,6 +1013,10 @@ class CMRunnerArgsRegistry(object):
 
         CMRunnerArgsRegistry._reg_args_runtime_parameters_file(
             score_parser, perf_test_parser, server_parser, validation_parser
+        )
+
+        CMRunnerArgsRegistry._reg_args_lazy_loading_file(
+            score_parser, server_parser, validation_parser
         )
 
         return parser

@@ -12,6 +12,7 @@ from openai.types.chat import (
 from werkzeug.exceptions import BadRequest
 
 from datarobot_drum.drum.enum import RunLanguage, TargetType
+from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
 from datarobot_drum.drum.server import _create_flask_app
 from datarobot_drum.resource.components.Python.prediction_server.prediction_server import (
     PredictionServer,
@@ -40,7 +41,7 @@ def test_flask_app():
 def prediction_server(test_flask_app, chat_python_model_adapter):
     with patch.dict(os.environ, {"TARGET_NAME": "target"}), patch(
         "datarobot_drum.drum.language_predictors.python_predictor.python_predictor.PythonPredictor._init_mlops"
-    ):
+    ), patch.object(LazyLoadingHandler, "download_lazy_loading_files"):
         server = PredictionServer(Mock())
 
         params = {
