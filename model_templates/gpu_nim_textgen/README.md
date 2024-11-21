@@ -18,7 +18,7 @@ API Key is used to build a docker image and pull LLM models from NGC Registry.
   - The `NGC_API_KEY` parameter:
     - [Create a new credential](https://docs.datarobot.com/en/docs/data/connect-data/stored-creds.html#credentials-management) of type `API Token`:
     - Add the NGC Registry API Key ([how to generate API Key](https://docs.nvidia.com/launchpad/ai/base-command-coe/latest/bc-coe-docker-basics-step-02.html#optionally-generate-an-ngc-key))
-- In custom model resources, select an appropriate GPU bundle (at least a `gpu.xlarge`).
+- In custom model resources, select an appropriate GPU bundle (at least a `GPU - XL` or a bundle that matches one of the [supported configurations](https://docs.nvidia.com/nim/large-language-models/latest/support-matrix.html#llama-3-1-8b-instruct)).
 - Register a new model version and deploy.
 
 ### To run locally using Docker
