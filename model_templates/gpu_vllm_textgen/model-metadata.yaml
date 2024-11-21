@@ -1,4 +1,4 @@
-name: vLLM Inference Server Example
+name: vLLM Llama3.1-8B Example
 type: inference
 targetType: textgeneration
 
@@ -7,28 +7,16 @@ runtimeParameterDefinitions:
     type: credential
     credentialType: api_token
     description: |-
-      Access Token from HuggingFace (https://huggingface.co/settings/tokens). Only
-      required if the model was not downloaded in the `custom.py:load_model` function.
-
-  - fieldName: max_tokens
-    type: numeric
-    defaultValue: 256
-    minValue: 1
-    description: max number of symbols in response
-
-  - fieldName: system_prompt
-    type: string
-    description: instructions to the model, to set the tone of model completions
-
-  - fieldName: prompt_column_name
-    type: string
-    defaultValue: promptText
-    description: column with user's prompt (each row is a separate completion request)
+      Access Token from HuggingFace (https://huggingface.co/settings/tokens). Please make sure
+      your account has access to the Llama3.1 family of models.
 
   - fieldName: max_model_len
     type: numeric
+    defaultValue: 10048
+    minValue: 0
     description: |-
-      Model context length. If unspecified, will be automatically derived from the model config
+      Model context length. If unspecified (or set to zero), will be automatically derived from the model config.
+      The default value set in this example has been tuned to support GPU-L resource bundle.
 
   - fieldName: gpu_memory_utilization
     type: numeric
@@ -38,3 +26,22 @@ runtimeParameterDefinitions:
     description: |-
       The fraction of GPU memory to be used for the model executor, which can range from 0 to 1.
       For example, a value of 0.5 would imply 50% GPU memory utilization
+
+  - fieldName: max_tokens
+    type: numeric
+    defaultValue: 4096
+    minValue: 1
+    description: Max number of symbols in response (only applicable when using legacy predAPI).
+
+  - fieldName: system_prompt
+    type: string
+    description: |-
+      Instructions to the model, to set the tone of model completions (only applicable when
+      using legacy predAPI).
+
+  - fieldName: prompt_column_name
+    type: string
+    defaultValue: promptText
+    description: |-
+      Column with user's prompt; each row is a separate completion request (only applicable
+      when using legacy predAPI).
