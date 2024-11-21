@@ -1,4 +1,4 @@
-name: NVIDIA NIM Inference Server Example
+name: NVIDIA NIM Llama3.1-8B Example
 type: inference
 targetType: textgeneration
 
@@ -9,21 +9,6 @@ runtimeParameterDefinitions:
     description: |-
       Access token to connect to NGC (for downloading optimized model artifacts). You must set this
       variable to the value of your personal NGC API key.
-
-  - fieldName: max_tokens
-    type: numeric
-    defaultValue: 1024
-    minValue: 1
-    description: max number of symbols in response
-
-  - fieldName: system_prompt
-    type: string
-    description: instructions to the model, to set the tone of model completions
-
-  - fieldName: prompt_column_name
-    type: string
-    defaultValue: promptText
-    description: column with user's prompt (each row is a separate completion request)
 
   - fieldName: NIM_MODEL_PROFILE
     type: string
@@ -51,3 +36,18 @@ runtimeParameterDefinitions:
     description: |-
       Model context length. If unspecified, will be automatically derived from the model configuration.
       Note that this setting has an effect on only models running on the vLLM backend.
+
+  - fieldName: max_tokens
+    type: numeric
+    defaultValue: 1024
+    minValue: 1
+    description: max number of symbols in response (only applicable when using legacy predAPI).
+
+  - fieldName: system_prompt
+    type: string
+    description: instructions to the model, to set the tone of model completions (only applicable when using legacy predAPI).
+
+  - fieldName: prompt_column_name
+    type: string
+    defaultValue: promptText
+    description: column with user's prompt; each row is a separate completion request (only applicable when using legacy predAPI).
