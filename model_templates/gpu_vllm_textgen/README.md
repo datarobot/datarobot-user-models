@@ -15,7 +15,7 @@ API Key is only needed to access models that are gated (i.e. Llama)
   - The `HuggingFaceToken` parameter:
     - [Create an account](https://huggingface.co/join).
     - [Create a user access token](https://huggingface.co/docs/hub/en/security-tokens) with at least `READ` permission.
-- In custom model resources, select an appropriate GPU bundle (at least `gpu.large`).
+- In custom model resources, select an appropriate GPU bundle (at least `GPU - L` or a GPU bundle with at least 24GB of VRAM).
 - Register a new model version and deploy.
 
 ### To run locally using Docker
