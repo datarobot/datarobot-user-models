@@ -1,4 +1,10 @@
-from typing import Literal
+#
+#  Copyright 2024 DataRobot, Inc. and its affiliates.
+#
+#  All rights reserved.
+#  This is proprietary source code of DataRobot, Inc. and its affiliates.
+#  Released under the terms of DataRobot Tool and Utility Agreement.
+from typing import List
 from typing import Optional
 
 from pydantic import BaseModel
@@ -9,6 +15,11 @@ from pydantic import model_validator
 from datarobot_drum.drum.lazy_loading.constants import BackendType
 
 
+def to_camel(string: str) -> str:
+    parts = string.split("_")
+    return parts[0] + "".join(word.capitalize() for word in parts[1:])
+
+
 class LazyLoadingFile(BaseModel):
     remote_path: constr(min_length=1)
     local_path: constr(min_length=1)
@@ -16,6 +27,8 @@ class LazyLoadingFile(BaseModel):
 
     class Config:
         extra = "ignore"
+        alias_generator = to_camel
+        populate_by_name = True
 
 
 class LazyLoadingRepository(BaseModel):
@@ -27,6 +40,8 @@ class LazyLoadingRepository(BaseModel):
 
     class Config:
         extra = "ignore"
+        alias_generator = to_camel
+        populate_by_name = True
 
     @model_validator(mode="before")
     @classmethod
@@ -47,10 +62,12 @@ class LazyLoadingData(BaseModel):
 
     class Config:
         extra = "ignore"
+        alias_generator = to_camel
+        populate_by_name = True
 
     @classmethod
     def from_json_string(cls, json_string: str):
-        return cls.parse_raw(json_string)
+        return cls.model_validate_json(json_string)
 
 
 class S3Credentials(BaseModel):
@@ -62,3 +79,29 @@ class S3Credentials(BaseModel):
     class Config:
         # Future proofing in case we want to add a profile field
         extra = "ignore"
+        alias_generator = to_camel
+        populate_by_name = True
+
+
+class LazyLoadingCommandLineFileCredentialsContent(S3Credentials):
+    id: constr(min_length=1)
+
+    class Config:
+        # Future proofing in case we want to add a profile field
+        extra = "ignore"
+        alias_generator = to_camel
+        populate_by_name = True
+
+
+class LazyLoadingCommandLineFileContent(LazyLoadingData):
+    credentials: List[LazyLoadingCommandLineFileCredentialsContent]
+
+    class Config:
+        # Future proofing in case we want to add a profile field
+        extra = "ignore"
+        alias_generator = to_camel
+        populate_by_name = True
+
+    @classmethod
+    def from_json_string(cls, json_string: str):
+        return cls.model_validate_json(json_string)

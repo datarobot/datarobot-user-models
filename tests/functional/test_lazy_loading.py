@@ -1,12 +1,16 @@
+#
+#  Copyright 2024 DataRobot, Inc. and its affiliates.
+#
+#  All rights reserved.
+#  This is proprietary source code of DataRobot, Inc. and its affiliates.
+#  Released under the terms of DataRobot Tool and Utility Agreement.
 import json
 import os
-import time
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 from datarobot_storage import get_storage
-from datarobot_storage.amazon import S3Storage
 from datarobot_storage.enums import FileStorageBackend
 
 from datarobot_drum.drum.lazy_loading.constants import BackendType

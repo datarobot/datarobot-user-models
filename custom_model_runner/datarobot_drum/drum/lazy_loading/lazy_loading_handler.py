@@ -1,3 +1,9 @@
+#
+#  Copyright 2024 DataRobot, Inc. and its affiliates.
+#
+#  All rights reserved.
+#  This is proprietary source code of DataRobot, Inc. and its affiliates.
+#  Released under the terms of DataRobot Tool and Utility Agreement.
 import asyncio
 import logging
 import os
@@ -5,11 +11,14 @@ from typing import Dict
 from typing import Optional
 from urllib.parse import urlsplit
 
+import pydantic
+import yaml
 from datarobot_storage import get_async_storage
 from datarobot_storage.enums import FileStorageBackend
 
 from datarobot_drum.drum.lazy_loading.constants import BackendType
 from datarobot_drum.drum.lazy_loading.constants import LazyLoadingEnvVars
+from datarobot_drum.drum.lazy_loading.schema import LazyLoadingCommandLineFileContent
 from datarobot_drum.drum.lazy_loading.schema import LazyLoadingData
 from datarobot_drum.drum.lazy_loading.schema import LazyLoadingRepository
 from datarobot_drum.drum.lazy_loading.schema import S3Credentials
@@ -101,3 +110,24 @@ class LazyLoadingHandler:
             if parsed_url.port is not None:
                 config["S3_PORT"] = parsed_url.port
         return config
+
+    @staticmethod
+    def setup_environment_variables_from_values_file(filepath):
+        try:
+            with open(filepath, "r") as f:
+                data = yaml.safe_load(f)
+        except yaml.parser.ParserError as exc:
+            raise ValueError(f"Invalid lazy loading YAML file content. {str(exc)}")
+
+        try:
+            lazy_loading_cli_file_content = LazyLoadingCommandLineFileContent(**data)
+        except pydantic.ValidationError as exc:
+            raise ValueError(f"Invalid lazy loading content. {str(exc)}")
+
+        lazy_loading_json = lazy_loading_cli_file_content.model_dump_json(exclude={"credentials"})
+        os.environ[LazyLoadingEnvVars.get_lazy_loading_data_key()] = lazy_loading_json
+
+        credentials_prefix = LazyLoadingEnvVars.get_repository_credential_id_key_prefix()
+        for credentials_entry in lazy_loading_cli_file_content.credentials:
+            credentials_key = f"{credentials_prefix}_{credentials_entry.id.upper()}"
+            os.environ[credentials_key] = credentials_entry.model_dump_json(exclude={"id"})

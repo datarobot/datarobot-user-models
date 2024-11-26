@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
 
 #!/usr/bin/env python3
 
@@ -88,13 +89,7 @@ def main():
 
         options = arg_parser.parse_args()
         CMRunnerArgsRegistry.verify_options(options)
-        if "runtime_params_file" in options and options.runtime_params_file:
-            try:
-                loader = RuntimeParametersLoader(options.runtime_params_file, options.code_dir)
-                loader.setup_environment_variables()
-            except RuntimeParameterException as exc:
-                print(str(exc))
-                exit(255)
+        _setup_required_environment_variables(options)
         if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
             options.max_workers = RuntimeParameters.get("CUSTOM_MODEL_WORKERS")
         runtime.options = options
@@ -118,6 +113,25 @@ def main():
             runtime.cm_runner.run()
         except DrumSchemaValidationException:
             sys.exit(ExitCodes.SCHEMA_VALIDATION_ERROR.value)
+
+
+def _setup_required_environment_variables(options):
+    if "runtime_params_file" in options and options.runtime_params_file:
+        try:
+            loader = RuntimeParametersLoader(options.runtime_params_file, options.code_dir)
+            loader.setup_environment_variables()
+        except RuntimeParameterException as exc:
+            print(str(exc))
+            exit(255)
+
+    if "lazy_loading_file" in options and options.lazy_loading_file:
+        try:
+            LazyLoadingHandler.setup_environment_variables_from_values_file(
+                options.lazy_loading_file
+            )
+        except Exception as exc:
+            print(str(exc))
+            exit(255)
 
 
 if __name__ == "__main__":
