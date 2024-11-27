@@ -52,6 +52,7 @@ def mock_tasks_version_response():
                 "created": str(time.time()),
             }
         ],
+        "outbound_network_policy": "PUBLIC",
         "label": "test",
         "created": str(time.time()),
     }
