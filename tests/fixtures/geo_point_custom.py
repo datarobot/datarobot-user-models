@@ -8,8 +8,9 @@ import pandas as pd
 import xgboost
 import os
 
+
 def load_model(input_dir):
-    model = xgboost.XGBRegressor(objective='reg:squarederror')
+    model = xgboost.XGBRegressor(objective="reg:squarederror")
 
     model_path = "xgb_geo_model.json"
     model = model.load(os.path.join(input_dir, model_path))

@@ -111,7 +111,6 @@ def _multi_col_parshal_preds(predictions, labels):
     return pd.DataFrame(predictions, columns=labels)
 
 
-
 def _validate_dimensionality_and_type(predictions):
     if not isinstance(predictions, np.ndarray):
         raise DrumCommonException(

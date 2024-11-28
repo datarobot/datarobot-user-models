@@ -135,7 +135,7 @@ class TestPythonPredictor(object):
                 {
                     "target_type": TargetType.GEO_POINT,
                 },
-                np.array([[ 45.394073, -75.692924], [ 45.407658, -75.771416]]),
+                np.array([[45.394073, -75.692924], [45.407658, -75.771416]]),
                 None,
             ),
         ],

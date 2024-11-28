@@ -398,7 +398,7 @@ class TargetType(Enum):
 
     def is_single_column(self):
         return self in [self.REGRESSION, self.ANOMALY, self.TEXT_GENERATION]
-    
+
     def is_multicolumn(self):
         return self in [self.GEO_POINT]
 

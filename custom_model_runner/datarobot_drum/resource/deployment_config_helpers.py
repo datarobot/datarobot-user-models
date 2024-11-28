@@ -127,7 +127,7 @@ def map_geo_point_prediction(row, index, target_info, class_names):
     latitude = row["latitude"]
     longitude = row["longitude"]
     return {
-        "prediction": {'latitude': latitude, 'longitude': longitude},
-        "predictionValues": [{'latitude': latitude, 'longitude': longitude}],
+        "prediction": {"latitude": latitude, "longitude": longitude},
+        "predictionValues": [{"latitude": latitude, "longitude": longitude}],
         "rowId": index,
     }

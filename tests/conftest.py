@@ -779,7 +779,7 @@ _artifacts = {
     (PYTHON_TEXT_GENERATION, TEXT_GENERATION): None,
     (PYTHON_GEO_POINT, GEO_POINT): os.path.join(
         TESTS_ARTIFACTS_PATH,
-        "geo_point.json",
+        "xgb_geo_model.json",
     ),
 }
 
