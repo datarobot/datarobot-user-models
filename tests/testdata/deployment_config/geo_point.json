@@ -1,0 +1,9 @@
+{
+    "target": {
+        "class_mapping": null,
+        "missing_maps_to": null,
+        "name": "coordinates",
+        "prediction_threshold": null,
+        "type": "geopoint"
+    }
+}

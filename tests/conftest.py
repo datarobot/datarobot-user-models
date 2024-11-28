@@ -148,6 +148,8 @@ from tests.constants import (
     MULTICLASS_LABEL_SPACES,
     TEXT_GENERATION,
     PYTHON_TEXT_GENERATION,
+    GEO_POINT,
+    PYTHON_GEO_POINT,
     GPU_TRITON,
     GPU_NIM,
     GPU_VLLM,
@@ -185,7 +187,7 @@ framework_envs = {
         SKLEARN_PRED_CONSISTENCY,
         PYTHON_TRANSFORM_FAIL_OUTPUT_SCHEMA_VALIDATION,
     ],
-    PYTHON_XGBOOST: [XGB, CUSTOM_TASK_INTERFACE_XGB_REGRESSION],
+    PYTHON_XGBOOST: [XGB, CUSTOM_TASK_INTERFACE_XGB_REGRESSION, PYTHON_GEO_POINT],
     PYTHON_KERAS: [KERAS, CUSTOM_TASK_INTERFACE_KERAS_REGRESSION],
     PYTHON_PYTORCH: [
         PYTORCH,
@@ -329,6 +331,7 @@ _datasets = {
     ),
     (None, MULTICLASS_LABEL_SPACES): os.path.join(TESTS_DATA_PATH, "iris_with_spaces_full.csv"),
     (PYTHON_TEXT_GENERATION, TEXT_GENERATION): os.path.join(TESTS_DATA_PATH, "prompts.csv"),
+    (PYTHON_GEO_POINT, GEO_POINT): os.path.join(TESTS_DATA_PATH, "geo_dataset.csv"),
 }
 
 _training_models_paths = {
@@ -419,6 +422,7 @@ _targets = {
     REGRESSION_MULTLILINE_TEXT: "rating",
     MULTICLASS_LABEL_SPACES: "Species",
     TEXT_GENERATION: "COMPLETION",
+    GEO_POINT: "coordinates",
 }
 
 _target_types = {
@@ -445,6 +449,7 @@ _target_types = {
     TRANSFORM: "transform",
     MULTICLASS_LABEL_SPACES: "multiclass",
     TEXT_GENERATION: "textgeneration",
+    GEO_POINT: "geopoint",
 }
 
 _class_labels = {
@@ -592,6 +597,7 @@ _class_labels = {
     (MLJ, BINARY): ["Iris-setosa", "Iris-versicolor"],
     (MLJ, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (PYTHON_TEXT_GENERATION, TEXT_GENERATION): None,
+    (PYTHON_GEO_POINT, GEO_POINT): None,
 }
 
 # key: list of tuples; tuple: (artifact path, Optional(rename to a new name))
@@ -771,6 +777,10 @@ _artifacts = {
     (CUSTOM_TASK_INTERFACE_KERAS_REGRESSION, REGRESSION): None,
     (CUSTOM_TASK_INTERFACE_XGB_REGRESSION, REGRESSION): None,
     (PYTHON_TEXT_GENERATION, TEXT_GENERATION): None,
+    (PYTHON_GEO_POINT, GEO_POINT): os.path.join(
+        TESTS_ARTIFACTS_PATH,
+        "geo_point.json",
+    ),
 }
 
 _custom_filepaths = {
@@ -830,6 +840,10 @@ _custom_filepaths = {
     R_FIT: (os.path.join(TESTS_FIXTURES_PATH, "fit_custom.R"), "custom.R"),
     PYTHON_TEXT_GENERATION: (
         os.path.join(TESTS_FIXTURES_PATH, "text_generation_custom.py"),
+        "custom.py",
+    ),
+    PYTHON_GEO_POINT: (
+        os.path.join(TESTS_FIXTURES_PATH, "geo_point_custom.py"),
         "custom.py",
     ),
     PYTHON_UNSTRUCTURED: (os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom.py"), "custom.py"),

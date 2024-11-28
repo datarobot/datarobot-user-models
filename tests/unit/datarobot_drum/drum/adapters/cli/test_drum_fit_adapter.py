@@ -19,6 +19,7 @@ class TestDrumFitAdapterFailures(object):
             TargetType.REGRESSION,
             TargetType.MULTICLASS,
             TargetType.TEXT_GENERATION,
+            TargetType.GEO_POINT,
         ],
     )
     def test_target_data_missing(self, dense_csv, target_type):
