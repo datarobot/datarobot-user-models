@@ -13,7 +13,7 @@ def load_model(input_dir):
     model = xgboost.XGBRegressor(objective="reg:squarederror")
 
     model_path = "xgb_geo_model.json"
-    model = model.load_model(os.path.join(input_dir, model_path))
+    model.load_model(os.path.join(input_dir, model_path))
     return model
 
 
