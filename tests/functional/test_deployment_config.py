@@ -283,6 +283,7 @@ class TestDeploymentConfig:
                 assert pred_item["extraModelOutput"] == extra_model_output_df.iloc[index].to_dict()
 
     def test_map_geo_point_prediction(self, extra_model_output_df):
+        """Verify GeoPoint model output"""
         config = parse_validate_deployment_config_file(self.deployment_config_geo_point)
         assert config["target"]["name"] == "coordinates"
         assert config["target"]["type"] == "GeoPoint"
