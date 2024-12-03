@@ -777,10 +777,7 @@ _artifacts = {
     (CUSTOM_TASK_INTERFACE_KERAS_REGRESSION, REGRESSION): None,
     (CUSTOM_TASK_INTERFACE_XGB_REGRESSION, REGRESSION): None,
     (PYTHON_TEXT_GENERATION, TEXT_GENERATION): None,
-    (PYTHON_GEO_POINT, GEO_POINT): os.path.join(
-        TESTS_ARTIFACTS_PATH,
-        "xgb_geo_model.json",
-    ),
+    (PYTHON_GEO_POINT, GEO_POINT): None,
 }
 
 _custom_filepaths = {
