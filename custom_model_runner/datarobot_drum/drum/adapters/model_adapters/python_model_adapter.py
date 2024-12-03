@@ -584,15 +584,18 @@ class PythonModelAdapter(AbstractModelAdapter):
     def _predict_legacy_drum(self, data, model, **kwargs) -> RawPredictResponse:
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
-        request_labels = (
-            get_request_labels(
-                kwargs.get(CLASS_LABELS_ARG_KEYWORD),
-                positive_class_label,
-                negative_class_label,
+        if self._target_type in {TargetType.BINARY, TargetType.MULTICLASS}:
+            request_labels = (
+                get_request_labels(
+                    kwargs.get(CLASS_LABELS_ARG_KEYWORD),
+                    positive_class_label,
+                    negative_class_label,
+                )
             )
-            if self._target_type in {TargetType.BINARY, TargetType.MULTICLASS}
-            else None
-        )
+        elif self._target_type == TargetType.GEO_POINT:
+            request_labels = ["latitude", "longitude"]
+        else:
+            request_labels = None
 
         if request_labels is not None:
             assert all(isinstance(label, str) for label in request_labels)
