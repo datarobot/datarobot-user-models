@@ -585,12 +585,10 @@ class PythonModelAdapter(AbstractModelAdapter):
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
         if self._target_type in {TargetType.BINARY, TargetType.MULTICLASS}:
-            request_labels = (
-                get_request_labels(
-                    kwargs.get(CLASS_LABELS_ARG_KEYWORD),
-                    positive_class_label,
-                    negative_class_label,
-                )
+            request_labels = get_request_labels(
+                kwargs.get(CLASS_LABELS_ARG_KEYWORD),
+                positive_class_label,
+                negative_class_label,
             )
         elif self._target_type == TargetType.GEO_POINT:
             request_labels = ["latitude", "longitude"]
