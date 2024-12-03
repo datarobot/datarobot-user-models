@@ -3,7 +3,7 @@
   "name": "[GenAI] vLLM Inference Server",
   "description": "A high-throughput and memory-efficient inference and serving engine for LLMs.",
   "programmingLanguage": "python",
-  "label": "v0.6.3.post1+dr.2",
+  "label": "v0.6.3.post1+dr.3",
   "environmentVersionId": "673bc082cbce025726eb5974",
   "environmentVersionDescription": "CVE fix for aiohttp.\nFROM vllm/vllm-openai:v0.6.3.post1",
   "isPublic": true

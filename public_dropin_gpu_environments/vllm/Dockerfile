@@ -6,6 +6,10 @@ RUN apt-get update && apt-get install -y \
     python3.9-venv \
   && rm -rf /var/lib/apt/lists/*
 
+RUN curl -fsSL https://github.com/peak/s5cmd/releases/download/v2.2.2/s5cmd_2.2.2_linux_amd64.deb -o s5cmd.deb \
+  && dpkg -i s5cmd.deb \
+  && rm s5cmd.deb
+
 # Don't send any telemetry data (vLLM or HuggingFace libraries)
 ENV DO_NOT_TRACK=1
 ENV PIP_NO_CACHE_DIR=1
