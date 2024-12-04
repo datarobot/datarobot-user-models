@@ -69,6 +69,9 @@ GUARD_INIT_HOOK_NAME = "init"
 GUARD_SCORE_WRAPPER_NAME = "guard_score_wrapper"
 GUARD_CHAT_WRAPPER_NAME = "guard_chat_wrapper"
 
+GEO_POINT_LATITUDE_LABEL = "latitude"
+GEO_POINT_LONGITUDE_LABEL = "longitude"
+
 
 LOG_LEVELS = {
     "all": logging.NOTSET,

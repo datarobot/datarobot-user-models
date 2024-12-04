@@ -41,7 +41,7 @@ def marshal_predictions(
     elif target_type.is_single_column():
         return _single_col_marshal_preds(predictions)
     elif target_type.is_multicolumn():
-        return _multi_col_parshal_preds(predictions, request_labels)
+        return _multi_col_marshal_preds(predictions, request_labels)
     return predictions
 
 
@@ -107,7 +107,7 @@ def _single_col_marshal_preds(predictions):
     return pd.DataFrame(predictions, columns=[PRED_COLUMN])
 
 
-def _multi_col_parshal_preds(predictions, labels):
+def _multi_col_marshal_preds(predictions, labels):
     return pd.DataFrame(predictions, columns=labels)
 
 

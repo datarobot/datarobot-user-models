@@ -52,6 +52,8 @@ from datarobot_drum.drum.enum import (
     GUARD_CHAT_WRAPPER_NAME,
     GUARD_HOOK_MODULE,
     MODERATIONS_LIBRARY_PACKAGE,
+    GEO_POINT_LATITUDE_LABEL,
+    GEO_POINT_LONGITUDE_LABEL,
 )
 from datarobot_drum.drum.exceptions import (
     DrumCommonException,
@@ -591,7 +593,7 @@ class PythonModelAdapter(AbstractModelAdapter):
                 negative_class_label,
             )
         elif self._target_type == TargetType.GEO_POINT:
-            request_labels = ["latitude", "longitude"]
+            request_labels = [GEO_POINT_LATITUDE_LABEL, GEO_POINT_LONGITUDE_LABEL]
         else:
             request_labels = None
 
