@@ -52,6 +52,8 @@ from datarobot_drum.drum.enum import (
     GUARD_CHAT_WRAPPER_NAME,
     GUARD_HOOK_MODULE,
     MODERATIONS_LIBRARY_PACKAGE,
+    GEO_POINT_LATITUDE_LABEL,
+    GEO_POINT_LONGITUDE_LABEL,
 )
 from datarobot_drum.drum.exceptions import (
     DrumCommonException,
@@ -584,15 +586,16 @@ class PythonModelAdapter(AbstractModelAdapter):
     def _predict_legacy_drum(self, data, model, **kwargs) -> RawPredictResponse:
         positive_class_label = kwargs.get(POSITIVE_CLASS_LABEL_ARG_KEYWORD)
         negative_class_label = kwargs.get(NEGATIVE_CLASS_LABEL_ARG_KEYWORD)
-        request_labels = (
-            get_request_labels(
+        if self._target_type in {TargetType.BINARY, TargetType.MULTICLASS}:
+            request_labels = get_request_labels(
                 kwargs.get(CLASS_LABELS_ARG_KEYWORD),
                 positive_class_label,
                 negative_class_label,
             )
-            if self._target_type in {TargetType.BINARY, TargetType.MULTICLASS}
-            else None
-        )
+        elif self._target_type == TargetType.GEO_POINT:
+            request_labels = [GEO_POINT_LATITUDE_LABEL, GEO_POINT_LONGITUDE_LABEL]
+        else:
+            request_labels = None
 
         if request_labels is not None:
             assert all(isinstance(label, str) for label in request_labels)

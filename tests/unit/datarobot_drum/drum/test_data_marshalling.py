@@ -206,3 +206,27 @@ def test_sklearn_predictor_wrong_dtype_labels(data_dtype, label_dtype):
         model_labels=raw_predict_response.columns,
     )
     assert marshalled_cols == [str(label_dtype(0)), str(label_dtype(1))]
+
+
+def test_marshal_predictions_reshape_geo_point_happy():
+    preds = np.array(
+        [
+            [45.394073, -75.692924],
+            [45.407658, -75.771416],
+        ]
+    )
+    labels = ["latitude", "longitude"]
+    res = marshal_predictions(
+        request_labels=labels, predictions=preds, target_type=TargetType.GEO_POINT
+    )
+    assert res.equals(pd.DataFrame(preds, columns=labels))
+
+
+def test_marshal_predictions_geo_point_invalid_dtype():
+    labels = [PRED_COLUMN]
+    with pytest.raises(
+        DrumCommonException, match="predictions must return a np array, but received"
+    ):
+        marshal_predictions(
+            request_labels=labels, predictions="a", target_type=TargetType.GEO_POINT
+        )

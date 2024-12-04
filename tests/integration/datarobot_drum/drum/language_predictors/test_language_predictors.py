@@ -64,6 +64,7 @@ class FakeLanguagePredictor(BaseLanguagePredictor):
         },
         {"target_type": TargetType.REGRESSION},
         {"target_type": TargetType.TEXT_GENERATION},
+        {"target_type": TargetType.GEO_POINT},
     ],
 )
 def test_lang_predictor_configure(predictor_params, essential_language_predictor_init_params):
@@ -128,6 +129,13 @@ class TestPythonPredictor(object):
                     "target_type": TargetType.TEXT_GENERATION,
                 },
                 np.array(["a", "b"]),
+                None,
+            ),
+            (
+                {
+                    "target_type": TargetType.GEO_POINT,
+                },
+                np.array([[45.394073, -75.692924], [45.407658, -75.771416]]),
                 None,
             ),
         ],
