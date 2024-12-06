@@ -58,7 +58,7 @@ class SKLearnPredictor(ArtifactPredictor):
             if hasattr(model, "classes_"):
                 labels_to_use = list(model.classes_)
             predictions = model.predict_proba(data)
-        elif self.target_type in [TargetType.REGRESSION, TargetType.ANOMALY]:
+        elif self.target_type in [TargetType.REGRESSION, TargetType.ANOMALY, TargetType.GEO_POINT]:
             predictions = model.predict(data)
         else:
             raise DrumCommonException(
