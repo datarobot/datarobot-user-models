@@ -288,18 +288,11 @@ class TestDeploymentConfig:
         assert config["target"]["name"] == "coordinates"
         assert config["target"]["type"] == "GeoPoint"
 
-        d = {
-            "latitude": [
-                45.371139,
-                45.371173,
-                45.371213,
-            ],
-            "longitude": [
-                -75.701961,
-                -75.701974,
-                -75.702004,
-            ],
-        }
+        d = {"Predictions": [
+            "POINT(45.371139, -75.701961)",
+            "POINT(45.371173, -75.701974)",
+            "POINT(45.371213, -75.702004)",
+        ]}
         df = pd.DataFrame(data=d)
         predict_response = PredictResponse(df, extra_model_output_df)
         response = build_pps_response_json_str(predict_response, config, TargetType.GEO_POINT)
@@ -316,10 +309,12 @@ class TestDeploymentConfig:
 
             assert isinstance(pred_item, dict)
             assert pred_item["rowId"] == index
-            assert pred_item["prediction"] == row.to_dict()
+            
+            assert pred_item["prediction"] == row[0]
             assert isinstance(pred_item["predictionValues"], list)
 
-            assert pred_item["predictionValues"] == [row.to_dict()]
+            assert pred_item["predictionValues"][0]["label"] == config["target"]["name"]
+            assert pred_item["predictionValues"][0]["value"] == row[0]
             if extra_model_output_df is not None:
                 assert pred_item["extraModelOutput"] == extra_model_output_df.iloc[index].to_dict()
 
