@@ -124,10 +124,10 @@ def map_text_generation_prediction(row, index, target_info, class_names):
 
 
 def map_geo_point_prediction(row, index, target_info, class_names):
-    latitude = row["latitude"]
-    longitude = row["longitude"]
+    label = target_info["name"]
+    pred_value = row.iloc[0]
     return {
-        "prediction": {"latitude": latitude, "longitude": longitude},
-        "predictionValues": [{"latitude": latitude, "longitude": longitude}],
+        "prediction": pred_value,
+        "predictionValues": [{"label": label, "value": pred_value}],
         "rowId": index,
     }
