@@ -211,11 +211,11 @@ def test_sklearn_predictor_wrong_dtype_labels(data_dtype, label_dtype):
 def test_marshal_predictions_reshape_geo_point_happy():
     preds = np.array(
         [
-            [45.394073, -75.692924],
-            [45.407658, -75.771416],
+            "POINT(45.394073, -75.692924)",
+            "POINT(45.407658, -75.771416)"
         ]
     )
-    labels = ["latitude", "longitude"]
+    labels = [PRED_COLUMN]
     res = marshal_predictions(
         request_labels=labels, predictions=preds, target_type=TargetType.GEO_POINT
     )

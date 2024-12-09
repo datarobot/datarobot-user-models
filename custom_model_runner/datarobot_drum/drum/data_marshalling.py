@@ -40,8 +40,6 @@ def marshal_predictions(
         return _classification_marshal_preds(predictions, request_labels, model_labels)
     elif target_type.is_single_column():
         return _single_col_marshal_preds(predictions)
-    elif target_type.is_multicolumn():
-        return _multi_col_marshal_preds(predictions, request_labels)
     return predictions
 
 
@@ -105,10 +103,6 @@ def _classification_marshal_preds(predictions, request_labels, model_labels):
 def _single_col_marshal_preds(predictions):
     _validate_predictions_are_one_dimensional(predictions)
     return pd.DataFrame(predictions, columns=[PRED_COLUMN])
-
-
-def _multi_col_marshal_preds(predictions, labels):
-    return pd.DataFrame(predictions, columns=labels)
 
 
 def _validate_dimensionality_and_type(predictions):

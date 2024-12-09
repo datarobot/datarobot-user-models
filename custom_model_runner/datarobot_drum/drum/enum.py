@@ -69,10 +69,6 @@ GUARD_INIT_HOOK_NAME = "init"
 GUARD_SCORE_WRAPPER_NAME = "guard_score_wrapper"
 GUARD_CHAT_WRAPPER_NAME = "guard_chat_wrapper"
 
-GEO_POINT_LATITUDE_LABEL = "latitude"
-GEO_POINT_LONGITUDE_LABEL = "longitude"
-
-
 LOG_LEVELS = {
     "all": logging.NOTSET,
     "debug": logging.DEBUG,
@@ -400,10 +396,7 @@ class TargetType(Enum):
         return self in [self.BINARY, self.MULTICLASS]
 
     def is_single_column(self):
-        return self in [self.REGRESSION, self.ANOMALY, self.TEXT_GENERATION]
-
-    def is_multicolumn(self):
-        return self in [self.GEO_POINT]
+        return self in [self.REGRESSION, self.ANOMALY, self.TEXT_GENERATION, self.GEO_POINT]
 
 
 class TemplateType:
