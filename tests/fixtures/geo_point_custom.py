@@ -13,6 +13,13 @@ def load_model(input_dir):
     return "dummy"
 
 
+def transform(data, model):
+    data = data.fillna(0)
+    return data
+
+
 def score(data, model, **kwargs):
     _ = model
-    return pd.DataFrame(data[["latitude", "longitude"]], columns=["latitude", "longitude"])
+    return pd.DataFrame(
+        [f"POINT({d.latitude}, {d.longitude})" for _, d in data.iterrows()], columns=["Prediction"]
+    )
