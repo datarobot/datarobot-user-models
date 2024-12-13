@@ -1,4 +1,4 @@
-datarobot-drum==1.14.0
+datarobot-drum==1.15.0
 
 pyarrow>=0.14.1,<=14.0.1
 tensorflow==2.12.0
