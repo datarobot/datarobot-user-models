@@ -173,3 +173,7 @@ RUN rm -rf /lib/python3.9/site-packages/pip-20.2.4.dist-info && \
 RUN chown -R $UNAME:$UNAME ${WORKDIR} /home/notebooks
 
 COPY --from=builder --chown=$UNAME $WORKDIR $WORKDIR
+
+COPY ./start_server_drum.sh /opt/code/start_server.sh
+
+ENV HOME=/opt CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080

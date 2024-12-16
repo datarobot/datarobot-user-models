@@ -1,1 +1,3 @@
+datarobot-drum
 numpy==1.26.2
+uwsgi

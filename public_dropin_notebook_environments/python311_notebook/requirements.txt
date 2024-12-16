@@ -1,4 +1,5 @@
 altair==4.2.0
+boto3==1.34.90
 cloudpickle==2.2.1
 dask==2022.9.2
 datarobot-bp-workshop==0.2.6
@@ -23,6 +24,7 @@ openpyxl==3.0.10
 pandas==1.5.1
 plotly==5.18.0
 pydantic==2.5.2
+sagemaker==2.216.1
 scikit-learn==1.3.2
 scipy==1.10.1
 seaborn==0.12.0
@@ -33,8 +35,7 @@ spacy==3.7.2
 statsmodels==0.14.1
 tqdm==4.64.1
 umap-learn==0.5.3
+uwsgi
 wordcloud==1.9.3
 xgboost==1.6.2
 yellowbrick==1.5
-boto3==1.34.90
-sagemaker==2.216.1

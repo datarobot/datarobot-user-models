@@ -156,3 +156,7 @@ LABEL com.datarobot.repo-sha=$GIT_COMMIT
 RUN chown -R $UNAME:$UNAME ${WORKDIR} /home/notebooks
 
 COPY --from=builder --chown=$UNAME $WORKDIR $WORKDIR
+
+COPY ./start_server_drum.sh /opt/code/start_server.sh
+
+ENV HOME=/opt CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
