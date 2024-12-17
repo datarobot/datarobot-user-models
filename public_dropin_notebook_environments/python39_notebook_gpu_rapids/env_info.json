@@ -7,6 +7,7 @@
   "isPublic": true,
   "useCases": [
     "notebook",
-    "gpu"
+    "gpu",
+    "customModel"
   ]
 }
