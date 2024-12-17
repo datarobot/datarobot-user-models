@@ -1,5 +1,5 @@
 #!/bin/sh
-# Copyright 2021 DataRobot, Inc. and its affiliates.
+# Copyright 2024 DataRobot, Inc. and its affiliates.
 #
 # All rights reserved.
 # This is proprietary source code of DataRobot, Inc. and its affiliates.
