@@ -769,33 +769,16 @@ class CMRunner:
                     "host": host,
                     "port": port,
                     "show_perf": str(options.show_perf).lower(),
-                    "engine_type": "RestModelServing" if options.production else "Generic",
-                    "component_type": "uwsgi_serving"
-                    if options.production
-                    else "prediction_server",
+                    "engine_type": "Generic",
+                    "component_type": "prediction_server",
                     "processes": options.max_workers if getattr(options, "max_workers") else "null",
-                    "uwsgi_max_workers": options.max_workers
-                    if getattr(options, "max_workers") and options.production
-                    else "null",
-                    "single_uwsgi_worker": (options.max_workers == 1) and options.production,
                     "deployment_config": '"{}"'.format(options.deployment_config)
                     if getattr(options, "deployment_config", None) is not None
                     else "null",
                 }
             )
 
-        functional_pipeline_str = DrumUtils.render_file(functional_pipeline_filepath, replace_data)
-
-        if self.run_mode == RunMode.SERVER:
-            if options.production:
-                pipeline_json = json.loads(functional_pipeline_str)
-                # Because of tech debt in MLPiper which requires that the modelFileSourcePath key
-                # be filled with something, we're putting in a dummy file path here
-                if json_fields.PIPELINE_SYSTEM_CONFIG_FIELD not in pipeline_json:
-                    system_config = {"modelFileSourcePath": os.path.abspath(__file__)}
-                pipeline_json[json_fields.PIPELINE_SYSTEM_CONFIG_FIELD] = system_config
-                functional_pipeline_str = json.dumps(pipeline_json)
-        return functional_pipeline_str
+        return DrumUtils.render_file(functional_pipeline_filepath, replace_data)
 
     def _run_predictions_pipelines_in_mlpiper(self):
         run_language = self._check_artifacts_and_get_run_language()
@@ -898,7 +881,8 @@ class CMRunner:
         docker_cmd_args = ' -v "{}":{}'.format(options.code_dir, in_docker_model)
 
         in_docker_cmd_list = raw_arguments
-        in_docker_cmd_list[0] = ArgumentsOptions.MAIN_COMMAND
+        # Inside a docker we always use drum command
+        in_docker_cmd_list[0] = ArgumentsOptions.DRUM_COMMAND
         in_docker_cmd_list[1] = run_mode.value
 
         # [RAPTOR-5607] Using -cd makes fit fail within docker, but not --code-dir.

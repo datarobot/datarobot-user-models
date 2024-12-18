@@ -49,11 +49,7 @@ class TestInferenceCustomJavaPredictor:
             EnvVarNames.DRUM_JAVA_CUSTOM_PREDICTOR_CLASS
         ] = "com.datarobot.test.TestCustomPredictor"
         os.environ[EnvVarNames.DRUM_JAVA_CUSTOM_CLASS_PATH] = os.path.join(model_dir, "*")
-        with DrumServerRun(
-            resources.target_types(problem),
-            class_labels,
-            model_dir,
-        ) as run:
+        with DrumServerRun(resources.target_types(problem), class_labels, model_dir) as run:
             input_dataset = resources.datasets(None, problem)
             # do predictions
             post_args = {"data": open(input_dataset, "rb")}

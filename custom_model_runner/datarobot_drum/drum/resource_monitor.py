@@ -13,7 +13,7 @@ import collections
 
 MemoryInfo = collections.namedtuple(
     "MemoryInfo",
-    "total avail free drum_rss nginx_rss container_limit container_max_used container_used",
+    "total avail free drum_rss container_limit container_max_used container_used",
 )
 
 
@@ -25,8 +25,6 @@ class ResourceMonitor:
     def __init__(self, monitor_current_process=False):
         """"""
         self._is_drum_process = monitor_current_process
-        # _current_proc is drum process in case monitor_current_process is True
-        # or uwsgi worker otherwise
         self._current_proc = psutil.Process()
         self._drum_proc = None
         if self._is_drum_process:
@@ -84,7 +82,6 @@ class ResourceMonitor:
         if self._drum_proc is None:
             if self._is_drum_process:
                 self._drum_proc = self._current_proc
-            # case with uwsgi, current proc is uwsgi worker, so looking for parent drum process
             else:
                 parents = self._current_proc.parents()
                 for p in parents:
@@ -113,14 +110,7 @@ class ResourceMonitor:
         return drum_info
 
     def collect_resources_info(self):
-        nginx_rss_mb = 0
-
         drum_info = self.collect_drum_info()
-
-        for proc in psutil.process_iter():
-            if "nginx" in proc.name().lower():
-                nginx_rss_mb += ByteConv.from_bytes(proc.memory_info().rss).mbytes
-
         virtual_mem = psutil.virtual_memory()
         total_physical_mem_mb = ByteConv.from_bytes(virtual_mem.total).mbytes
 
@@ -144,7 +134,6 @@ class ResourceMonitor:
             avail=available_mem_mb,
             free=free_mem_mb,
             drum_rss=sum(info["mem"] for info in drum_info) if self._drum_proc else None,
-            nginx_rss=nginx_rss_mb,
             container_limit=container_limit_mb,
             container_max_used=container_max_usage_mb,
             container_used=container_usage_mb,

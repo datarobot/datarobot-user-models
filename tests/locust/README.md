@@ -23,12 +23,11 @@ It utilizes official Locust docker container to start Locust with the provided p
 > Note: currently structured predict locustfile is hardcoded to be used.
 
 #### Running DRUM
-This is user's responsiblity to run DRUM and provide proper url address to Locust either in param `-H http://localhost:6788` or UI.
+This is user's responsibility to run DRUM and provide proper url address to Locust either in param `-H http://localhost:6788` or UI.
 It is recommended to run DRUM in a [public dropin environment](../../public_dropin_environments) docker container.
 These environments are enabled to run DRUM with:
 - single threaded Flask server
-- single worker uwsgi + nginx server
-- multi worker uwsgi + nginx server    
+- multi process Flask server
  
 
 ### Empty unstructured model

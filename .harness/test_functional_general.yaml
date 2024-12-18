@@ -130,7 +130,6 @@ pipeline:
                           echo "== Build image for tests =="
                           cp -r custom_model_runner/ public_dropin_environments/python3_sklearn/
                           cd public_dropin_environments/python3_sklearn/
-                          echo "uwsgi" >> requirements.txt
                           echo -e "RUN pip uninstall -y datarobot-drum\nCOPY ./custom_model_runner /tmp/custom_model_runner\nRUN pip install /tmp/custom_model_runner" >> Dockerfile 
 
                           docker build -t python3_sklearn_test_env .

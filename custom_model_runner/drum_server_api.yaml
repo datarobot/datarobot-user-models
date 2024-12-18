@@ -133,7 +133,7 @@ paths:
                             type: string
                         cpu_percent:
                           type: number
-                          description: CPU persent used by DRUM or its child(in case when DRUM is running as nginx + uwsgi server).
+                          description: CPU percentage used by DRUM.
                         mem:
                           type: number
                           description: Memory used by DRUM.
@@ -160,9 +160,6 @@ paths:
                       free:
                         type: number
                         description: Free memory in system.
-                      nginx_rss:
-                        type: number
-                        description: Resident memory occupied by nginx. Meaningfull when running DRUM with --production option, which enables to use nginx as backend server.
                       total:
                         type: number
                         description: DRUM server process PID.
@@ -200,7 +197,6 @@ paths:
                   container_used: null
                   drum_rss: 256.71484375
                   free: 312.33203125
-                  nginx_rss: 0
                   total: 31442.73046875
                 time_info:
                   run_predictor_total:

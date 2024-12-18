@@ -291,7 +291,8 @@ class ArgumentsOptions:
     USER_SECRETS_PREFIX = "--user-secrets-prefix"
     LAZY_LOADING_FILE = "--lazy-loading-file"
 
-    MAIN_COMMAND = "drum" if not DEBUG else "./custom_model_runner/bin/drum"
+    DRUM_COMMAND = "drum"
+    MAIN_COMMAND = DRUM_COMMAND if not DEBUG else f"./custom_model_runner/bin/{DRUM_COMMAND}"
 
     SCORE = "score"
     SERVER = "server"

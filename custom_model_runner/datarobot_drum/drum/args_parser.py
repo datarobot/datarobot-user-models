@@ -402,8 +402,10 @@ class CMRunnerArgsRegistry(object):
                 ArgumentsOptions.PRODUCTION,
                 action="store_true",
                 default=False,
-                help="Run prediction server in production mode uwsgi + nginx. The argument can also be provided by setting {} env var.".format(
-                    ArgumentOptionsEnvVars.PRODUCTION
+                help=(
+                    "[DEPRECATED] Run prediction server in production mode, which means Flask running in multi-process. "
+                    f"The argument can also be provided by setting {ArgumentOptionsEnvVars.PRODUCTION} env var. "
+                    "(It requires --max-workers option)."
                 ),
             )
 
@@ -1145,27 +1147,10 @@ class CMRunnerArgsRegistry(object):
             ):
                 print("Performance testing is not implemented for unstructured models.")
                 exit(1)
-            # Don't check uwsgi on host when running with docker, e.g: 'drum server ...  --docker img'
-            if options.production and not options.docker:
-                if options.verbose:
-                    print("Checking if uwsgi is installed...")
-                result = subprocess.run(
-                    [sys.executable, "-m", "pip", "show", "uwsgi"],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                )
-                if result.returncode != 0:
-                    print(
-                        "Looks like 'uwsgi` package is missing. Don't use '{}' option when running drum server or try to install 'uwsgi'.".format(
-                            ArgumentsOptions.PRODUCTION
-                        )
-                    )
-                    print(result.stdout.decode("utf8"))
-                    print(result.stderr.decode("utf8"))
-                    exit(1)
-                else:
-                    if options.verbose:
-                        print("uwsgi detected")
+
+            if options.production and options.max_workers == 0:
+                print("Production mode requires a non-zero number of workers [--max-workers > 0].")
+                exit(1)
         elif options.subparser_name in [ArgumentsOptions.FIT]:
             if options.target_type == TargetType.ANOMALY.value:
                 if any([options.target, options.target_csv]):

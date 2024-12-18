@@ -223,7 +223,7 @@ class TestInference:
         "framework, problem, language, docker",
         [(SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN)],
     )
-    def test_custom_models_with_drum_nginx_prediction_server(
+    def test_custom_models_with_drum_in_production_mode(
         self,
         resources,
         framework,
@@ -233,6 +233,7 @@ class TestInference:
         tmp_path,
         endpoint_prediction_methods,
     ):
+        """Production mode is considered when Flask server is initialized to be running with multiple processes"""
         custom_model_dir = _create_custom_model_dir(
             resources,
             tmp_path,
@@ -246,7 +247,7 @@ class TestInference:
             resources.class_labels(framework, problem),
             custom_model_dir,
             docker,
-            nginx=True,
+            production=True,
         ) as run:
             input_dataset = resources.datasets(framework, problem)
 
@@ -273,7 +274,7 @@ class TestInference:
             for key in ModelInfoKeys.REQUIRED:
                 assert key in response_dict
             assert response_dict[ModelInfoKeys.TARGET_TYPE] == resources.target_types(problem)
-            assert response_dict[ModelInfoKeys.DRUM_SERVER] == "nginx + uwsgi"
+            assert response_dict[ModelInfoKeys.DRUM_SERVER] == "flask"
             assert response_dict[ModelInfoKeys.DRUM_VERSION] == drum_version
 
             assert ModelInfoKeys.MODEL_METADATA in response_dict
@@ -282,7 +283,7 @@ class TestInference:
         "framework, problem, language, docker",
         [(SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, DOCKER_PYTHON_SKLEARN)],
     )
-    def test_custom_transforms_with_drum_nginx_prediction_server(
+    def test_custom_transforms_in_production(
         self,
         resources,
         framework,
@@ -304,7 +305,7 @@ class TestInference:
             resources.class_labels(framework, problem),
             custom_model_dir,
             docker,
-            nginx=True,
+            production=True,
         ) as run:
             input_dataset = resources.datasets(framework, problem)
             # do predictions

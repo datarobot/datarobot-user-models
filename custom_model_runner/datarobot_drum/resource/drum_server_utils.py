@@ -73,7 +73,7 @@ class DrumServerRun:
         docker=None,
         with_error_server=False,
         show_stacktrace=True,
-        nginx=False,
+        production=False,
         memory=None,
         fail_on_shutdown_error=True,
         pass_args_as_env_vars=False,
@@ -98,7 +98,6 @@ class DrumServerRun:
 
         self._process_object_holder = DrumServerProcess()
         self._server_thread = None
-        self._with_nginx = nginx
         self._fail_on_shutdown_error = fail_on_shutdown_error
         self._verbose = verbose
         self._log_level = logging_level or logging.getLevelName(logging.root.level).lower()
@@ -111,7 +110,7 @@ class DrumServerRun:
         self._docker = docker
         self._memory = memory
         self._with_error_server = with_error_server
-        self._nginx = nginx
+        self._production = production
         self._show_stacktrace = show_stacktrace
         self._append_cmd = append_cmd
         self._user_secrets_mount_path = user_secrets_mount_path
@@ -209,7 +208,7 @@ class DrumServerRun:
                 os.environ[ArgumentOptionsEnvVars.SHOW_STACKTRACE] = "1"
             else:
                 cmd += " --show-stacktrace"
-        if self._nginx:
+        if self._production:
             if self._pass_args_as_env_vars:
                 os.environ[ArgumentOptionsEnvVars.PRODUCTION] = "1"
             else:
@@ -219,6 +218,12 @@ class DrumServerRun:
                 os.environ[ArgumentOptionsEnvVars.MAX_WORKERS] = str(self._max_workers)
             else:
                 cmd += " --max-workers {}".format(self._max_workers)
+        elif self._production:
+            # The production mode is deprecated and will be removed in the future.
+            self._max_workers = min(
+                4, os.cpu_count()
+            )  # NOTE: does not count for cgroup limits (.e.g k8s)
+            cmd += " --max-workers {}".format(self._max_workers)
         if self._verbose:
             cmd += " --verbose"
         if self._gpu_predictor:
