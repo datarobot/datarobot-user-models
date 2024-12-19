@@ -178,6 +178,6 @@ COPY --from=pulumi_builder --chown=$UNAME /pulumi/bin /usr/bin/
 RUN find "${VENV_PATH}"/lib/python3.*/site-packages -name "pip-*.dist-info" -type d -exec rm -rf {} + \
   && find "${VENV_PATH}"/lib/python3.*/site-packages -name "setuptools-*.dist-info" -type d -exec rm -rf {} +
 
+# This is required for custom models to work with this image
 COPY ./start_server_drum.sh /opt/code/start_server.sh
-
 ENV HOME=/opt CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
