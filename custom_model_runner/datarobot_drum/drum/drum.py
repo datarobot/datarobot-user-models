@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import contextlib
 import copy
 import glob
 import json
@@ -58,6 +59,7 @@ from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import Pyt
 from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.push import drum_push
 from datarobot_drum.drum.push import setup_validation_options
+from datarobot_drum.drum.root_predictors.generic_predictor import GenericPredictorComponent
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
@@ -481,7 +483,9 @@ class CMRunner:
 
         self._print_welcome_header()
 
-        if self.run_mode in [RunMode.SERVER, RunMode.SCORE]:
+        if self.run_mode == RunMode.SCORE:
+            self._run_predictions()
+        elif self.run_mode == RunMode.SERVER:
             self._run_predictions_pipelines_in_mlpiper()
         elif self.run_mode == RunMode.FIT:
             self.run_fit()
@@ -780,25 +784,80 @@ class CMRunner:
 
         return DrumUtils.render_file(functional_pipeline_filepath, replace_data)
 
+    def _run_predictions(self):
+        if self.run_mode != RunMode.SCORE:
+            raise NotImplemented("Only score mode is supported here")
+
+        with self._setup_output_if_not_exists():
+            run_language = self._check_artifacts_and_get_run_language()
+            infra_pipeline_str = self._prepare_prediction_server_or_batch_pipeline(run_language)
+
+            pipeline = json.loads(infra_pipeline_str)
+            if "pipe" not in pipeline or not pipeline["pipe"]:
+                raise DrumCommonException("Pipeline is empty")
+            if "arguments" not in pipeline["pipe"][0]:
+                raise DrumCommonException("Arguments are missing in the pipeline")
+
+            self.logger.info(
+                f">>> Start {ArgumentsOptions.MAIN_COMMAND} in the {self.run_mode.value} mode"
+            )
+
+            sc = StatsCollector(
+                disable_instance=(
+                    not hasattr(self.options, "show_perf")
+                    or not self.options.show_perf
+                    or self.run_mode == RunMode.SERVER
+                )
+            )
+            sc.register_report("Full time", "end", StatsOperation.SUB, "start")
+            sc.register_report(
+                "Init time (incl model loading)", "init", StatsOperation.SUB, "start"
+            )
+            sc.register_report("Run time (incl reading CSV)", "run", StatsOperation.SUB, "init")
+            sc.enable()
+
+            try:
+                sc.mark("start")
+                predictor = GenericPredictorComponent()
+                predictor.configure(pipeline["pipe"][0]["arguments"])
+                sc.mark("init")
+
+                predictor.materialize()
+                sc.mark("run")
+            finally:
+                predictor.terminate()
+                sc.mark("end")
+                sc.disable()
+
+        self.logger.info(
+            "<<< Finish {} in the {} mode".format(
+                ArgumentsOptions.MAIN_COMMAND, self.run_mode.value
+            )
+        )
+        sc.print_reports()
+
+    @contextlib.contextmanager
+    def _setup_output_if_not_exists(self):
+        if self.options.output:
+            yield
+        else:
+            tmp_output_filename = tempfile.NamedTemporaryFile(mode="w").name
+            self.options.output = tmp_output_filename
+            yield
+            if self.target_type == TargetType.UNSTRUCTURED:
+                with open(tmp_output_filename) as f:
+                    print(f.read())
+            else:
+                print(pd.read_csv(tmp_output_filename))
+
     def _run_predictions_pipelines_in_mlpiper(self):
+        if self.run_mode != RunMode.SERVER:
+            raise NotImplemented("Only server mode is supported here")
+
         run_language = self._check_artifacts_and_get_run_language()
 
-        if self.run_mode == RunMode.SERVER:
-            # in prediction server mode infra pipeline == prediction server runner pipeline
-            infra_pipeline_str = self._prepare_prediction_server_or_batch_pipeline(run_language)
-        elif self.run_mode == RunMode.SCORE:
-            tmp_output_filename = None
-            # if output is not provided, output into tmp file and print
-            if not self.options.output:
-                # keep object reference so it will be destroyed only in the end of the process
-                __tmp_output_file = tempfile.NamedTemporaryFile(mode="w")
-                self.options.output = tmp_output_filename = __tmp_output_file.name
-            # in batch prediction mode infra pipeline == predictor pipeline
-            infra_pipeline_str = self._prepare_prediction_server_or_batch_pipeline(run_language)
-        else:
-            error_message = "{} mode is not supported here".format(self.run_mode)
-            print(error_message)
-            raise DrumCommonException(error_message)
+        # in prediction server mode infra pipeline == prediction server runner pipeline
+        infra_pipeline_str = self._prepare_prediction_server_or_batch_pipeline(run_language)
 
         config = ExecutorConfig(
             pipeline=infra_pipeline_str,

@@ -4,7 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-import logging
+import abc
 import urllib
 from typing import Optional
 
@@ -15,23 +15,21 @@ from datarobot_drum.drum.enum import TARGET_TYPE_ARG_KEYWORD
 from datarobot_drum.drum.enum import RunLanguage
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.enum import UnstructuredDtoKeys
-from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.exceptions import DrumCommonException, DrumRootComponentException
 from datarobot_drum.resource.unstructured_helpers import _resolve_incoming_unstructured_data
 from datarobot_drum.resource.unstructured_helpers import _resolve_outgoing_unstructured_data
-from mlpiper.components.connectable_component import ConnectableComponent
 
 
-class GenericPredictorComponent(ConnectableComponent):
-    def __init__(self, engine):
-        super(GenericPredictorComponent, self).__init__(engine)
-        self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
+class GenericPredictorComponent:
+    def __init__(self):
+        self._params = None
         self._run_language = None
         self._gpu_predictor_type = None
         self._predictor = None
         self.cli_adapter: Optional[DrumScoreAdapter] = None
 
     def configure(self, params):
-        super(GenericPredictorComponent, self).configure(params)
+        self._params = params
         self._run_language = RunLanguage(params.get("run_language"))
         self._gpu_predictor_type = params.get("gpu_predictor")
 
@@ -95,6 +93,33 @@ class GenericPredictorComponent(ConnectableComponent):
 
         self._predictor.mlpiper_configure(params)
 
+    def materialize(self):
+        output_filename = self._params.get("output_filename")
+
+        if self.cli_adapter.target_type == TargetType.UNSTRUCTURED:
+            # TODO: add support to use cli_adapter for unstructured
+            return self._materialize_unstructured(
+                input_filename=self._params["input_filename"],
+                output_filename=output_filename,
+            )
+
+        if self.cli_adapter.target_type == TargetType.TRANSFORM:
+            transformed_output = self._predictor.transform(
+                binary_data=self.cli_adapter.input_binary_data,
+                mimetype=self.cli_adapter.input_binary_mimetype,
+                # TODO: add sparse colnames
+            )
+            transformed_df = transformed_output[0]
+            transformed_df.to_csv(output_filename, index=False)
+        else:
+            predict_response = self._predictor.predict(
+                binary_data=self.cli_adapter.input_binary_data,
+                mimetype=self.cli_adapter.input_binary_mimetype,
+                sparse_colnames=self.cli_adapter.sparse_column_names,
+            )
+            predict_response.combined_dataframe.to_csv(output_filename, index=False)
+        return []
+
     def _materialize_unstructured(self, input_filename, output_filename):
         kwargs_params = {}
         query_params = dict(urllib.parse.parse_qsl(self._params.get("query_params")))
@@ -130,33 +155,6 @@ class GenericPredictorComponent(ConnectableComponent):
                 ret_data = "Return value from prediction is: None (NULL in R)"
             with open(output_filename, "w", encoding=response_charset) as f:
                 f.write(ret_data)
-        return []
-
-    def _materialize(self, parent_data_objs, user_data):
-        output_filename = self._params.get("output_filename")
-
-        if self.cli_adapter.target_type == TargetType.UNSTRUCTURED:
-            # TODO: add support to use cli_adapter for unstructured
-            return self._materialize_unstructured(
-                input_filename=self._params["input_filename"],
-                output_filename=output_filename,
-            )
-
-        if self.cli_adapter.target_type == TargetType.TRANSFORM:
-            transformed_output = self._predictor.transform(
-                binary_data=self.cli_adapter.input_binary_data,
-                mimetype=self.cli_adapter.input_binary_mimetype,
-                # TODO: add sparse colnames
-            )
-            transformed_df = transformed_output[0]
-            transformed_df.to_csv(output_filename, index=False)
-        else:
-            predict_response = self._predictor.predict(
-                binary_data=self.cli_adapter.input_binary_data,
-                mimetype=self.cli_adapter.input_binary_mimetype,
-                sparse_colnames=self.cli_adapter.sparse_column_names,
-            )
-            predict_response.combined_dataframe.to_csv(output_filename, index=False)
         return []
 
     def terminate(self):
