@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import contextlib
 import copy
 import glob
 import json
@@ -58,6 +59,7 @@ from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import Pyt
 from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.push import drum_push
 from datarobot_drum.drum.push import setup_validation_options
+from datarobot_drum.drum.root_predictors.generic_predictor import GenericPredictorComponent
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
@@ -481,7 +483,9 @@ class CMRunner:
 
         self._print_welcome_header()
 
-        if self.run_mode in [RunMode.SERVER, RunMode.SCORE]:
+        if self.run_mode == RunMode.SCORE:
+            self._run_predictions()
+        elif self.run_mode == RunMode.SERVER:
             self._run_predictions_pipelines_in_mlpiper()
         elif self.run_mode == RunMode.FIT:
             self.run_fit()
@@ -779,6 +783,43 @@ class CMRunner:
             )
 
         return DrumUtils.render_file(functional_pipeline_filepath, replace_data)
+
+    def _run_predictions(self):
+        if self.run_mode != RunMode.SCORE:
+            raise NotImplemented("Only score mode is supported here")
+
+        with self._setup_output_if_not_exists():
+            run_language = self._check_artifacts_and_get_run_language()
+            infra_pipeline_str = self._prepare_prediction_server_or_batch_pipeline(run_language)
+
+            pipeline = json.loads(infra_pipeline_str)
+            if "pipe" not in pipeline or not pipeline["pipe"]:
+                raise DrumCommonException("Pipeline is empty")
+            if "arguments" not in pipeline["pipe"][0]:
+                raise DrumCommonException("Arguments are missing in the pipeline")
+
+            self.logger.info(
+                f">>> Start {ArgumentsOptions.MAIN_COMMAND} in the {self.run_mode.value} mode"
+            )
+
+            predictor = GenericPredictorComponent()
+            predictor.configure(pipeline["pipe"][0]["arguments"])
+            predictor.materialize()
+            predictor.terminate()
+
+    @contextlib.contextmanager
+    def _setup_output_if_not_exists(self):
+        if self.options.output:
+            yield
+        else:
+            tmp_output_filename = tempfile.NamedTemporaryFile(mode="w").name
+            self.options.output = tmp_output_filename
+            yield
+            if self.target_type == TargetType.UNSTRUCTURED:
+                with open(tmp_output_filename) as f:
+                    print(f.read())
+            else:
+                print(pd.read_csv(tmp_output_filename))
 
     def _run_predictions_pipelines_in_mlpiper(self):
         run_language = self._check_artifacts_and_get_run_language()
