@@ -34,6 +34,7 @@ from datarobot_drum.drum.enum import (
 from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
     PythonPredictor,
 )
+from datarobot_drum.drum.root_predictors.generic_predictor import GenericPredictorComponent
 from datarobot_drum.drum.runtime import DrumRuntime
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from mlpiper.pipeline.executor import Executor
@@ -330,7 +331,9 @@ def mock_mlpiper_configure():
 
 @pytest.fixture
 def mock_run_pipeline():
-    with patch.object(Executor, "run_pipeline") as mock_func:
+    with patch.object(Executor, "run_pipeline") as mock_func, patch.object(
+        GenericPredictorComponent, "materialize"
+    ):
         yield mock_func
 
 
