@@ -6,6 +6,7 @@
   "environmentVersionId": "67220f29776ffc34cd646887",
   "isPublic": true,
   "useCases": [
-    "notebook"
+    "notebook",
+    "customModel"
   ]
 }

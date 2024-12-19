@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export HOME="/home/notebooks"
+
 # setup the working directory for the kernel
 if [ -z "$1" ]; then
     # Set default working directory if no argument is provided
