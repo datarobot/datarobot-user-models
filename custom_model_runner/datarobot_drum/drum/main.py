@@ -94,17 +94,8 @@ def main():
             options.max_workers = RuntimeParameters.get("CUSTOM_MODEL_WORKERS")
         runtime.options = options
 
-        # mlpiper restful_component relies on SIGINT to shutdown nginx and uwsgi,
-        # so we don't intercept it.
-        if hasattr(runtime.options, "production") and runtime.options.production:
-
-            def raise_keyboard_interrupt(sig, frame):
-                raise KeyboardInterrupt("Triggered from {}".format(sig))
-
-            signal.signal(signal.SIGTERM, raise_keyboard_interrupt)
-        else:
-            signal.signal(signal.SIGINT, signal_handler)
-            signal.signal(signal.SIGTERM, signal_handler)
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
 
         from datarobot_drum.drum.drum import CMRunner
 

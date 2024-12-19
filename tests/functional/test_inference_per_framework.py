@@ -900,15 +900,12 @@ class TestInference:
             (SKLEARN, REGRESSION_INFERENCE, PYTHON),
         ],
     )
-    # Don't run this test case with nginx as it is still running from the prev test case.
-    @pytest.mark.parametrize("nginx", [False])
     def test_predictions_python_arrow_mtx(
         self,
         resources,
         framework,
         problem,
         language,
-        nginx,
         tmp_path,
         framework_env,
         endpoint_prediction_methods,
@@ -926,7 +923,6 @@ class TestInference:
             resources.target_types(problem),
             resources.class_labels(framework, problem),
             custom_model_dir,
-            nginx=nginx,
         ) as run:
             input_dataset = resources.datasets(framework, problem)
             df = pd.read_csv(input_dataset)
@@ -971,14 +967,14 @@ class TestInference:
             (RDS_SPARSE, REGRESSION, R_VALIDATE_SPARSE_ESTIMATOR),
         ],
     )
-    @pytest.mark.parametrize("nginx", [False, True])
+    @pytest.mark.parametrize("production", [False, True])
     def test_predictions_r_mtx(
         self,
         resources,
         framework,
         problem,
         language,
-        nginx,
+        production,
         tmp_path,
         framework_env,
         endpoint_prediction_methods,
@@ -996,7 +992,7 @@ class TestInference:
             resources.target_types(problem),
             resources.class_labels(framework, problem),
             custom_model_dir,
-            nginx=nginx,
+            production=production,
         ) as run:
             input_dataset = resources.datasets(framework, SPARSE)
 
@@ -1095,10 +1091,10 @@ class TestInference:
 
         with DrumServerRun(
             target_type=target_type.value,
-            custom_model_dir=custom_model_dir,
-            gpu_predictor=framework,
             labels=None,
-            nginx=False,
+            custom_model_dir=custom_model_dir,
+            production=False,
+            gpu_predictor=framework,
             wait_for_server_timeout=600,
         ) as run:
             headers = {
@@ -1144,14 +1140,14 @@ class TestNIM:
 
         with DrumServerRun(
             target_type=TargetType.TEXT_GENERATION.value,
-            target_name="response",
-            custom_model_dir=custom_model_dir,
-            gpu_predictor=GPU_NIM,
             labels=None,
-            nginx=False,
-            wait_for_server_timeout=600,
+            custom_model_dir=custom_model_dir,
             with_error_server=True,
+            production=False,
             logging_level="info",
+            gpu_predictor=GPU_NIM,
+            target_name="response",
+            wait_for_server_timeout=600,
         ) as run:
             response = requests.get(run.url_server_address)
             if not response.ok:
@@ -1242,14 +1238,14 @@ class TestVLLM:
 
         with DrumServerRun(
             target_type=TargetType.TEXT_GENERATION.value,
-            target_name="response",
-            custom_model_dir=custom_model_dir,
-            gpu_predictor=GPU_VLLM,
             labels=None,
-            nginx=False,
-            wait_for_server_timeout=360,
+            custom_model_dir=custom_model_dir,
             with_error_server=True,
+            production=False,
             logging_level="info",
+            gpu_predictor=GPU_VLLM,
+            target_name="response",
+            wait_for_server_timeout=360,
         ) as run:
             response = requests.get(run.url_server_address)
             if not response.ok:

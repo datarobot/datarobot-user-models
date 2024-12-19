@@ -80,7 +80,6 @@ pushd "${GIT_ROOT}/public_dropin_environments/python3_sklearn/"
 cp * ${TMP_DOCKER_CONTEXT}
 popd
 
-echo "uwsgi" >> ${TMP_DOCKER_CONTEXT}/requirements.txt
 echo 'ENTRYPOINT ["this_is_fake_entrypoint_to_make_sure_drum_unsets_it_when_runs_with_--docker_param"]' >> $TMP_DOCKER_CONTEXT/Dockerfile
 docker build -t python3_sklearn_test_env ${TMP_DOCKER_CONTEXT}/
 

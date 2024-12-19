@@ -97,7 +97,7 @@ class TestUnstructuredMode:
                 assert "10" in out_data
 
     @pytest.mark.parametrize(
-        "framework, problem, language, nginx, docker",
+        "framework, problem, language, production, docker",
         [
             (SKLEARN_NO_ARTIFACTS, UNSTRUCTURED, PYTHON_UNSTRUCTURED, False, None),
             (R_NO_ARTIFACTS, UNSTRUCTURED, R_UNSTRUCTURED, False, None),
@@ -109,7 +109,7 @@ class TestUnstructuredMode:
         framework,
         problem,
         language,
-        nginx,
+        production,
         docker,
         tmp_path,
         framework_env,
@@ -128,7 +128,7 @@ class TestUnstructuredMode:
             resources.class_labels(framework, problem),
             custom_model_dir,
             docker,
-            nginx=nginx,
+            production=production,
         ) as run:
             input_dataset = resources.datasets(framework, problem)
 
@@ -172,9 +172,7 @@ class TestUnstructuredMode:
         )
 
         with DrumServerRun(
-            "unstructured",
-            resources.class_labels(framework, problem),
-            custom_model_dir,
+            "unstructured", resources.class_labels(framework, problem), custom_model_dir
         ) as run:
             input_dataset = resources.datasets(framework, problem)
 
@@ -215,9 +213,7 @@ class TestUnstructuredMode:
         )
 
         with DrumServerRun(
-            "unstructured",
-            resources.class_labels(framework, problem),
-            custom_model_dir,
+            "unstructured", resources.class_labels(framework, problem), custom_model_dir
         ) as run:
             for endpoint in endpoint_prediction_methods:
                 response = requests.post(url=run.url_server_address + endpoint)
@@ -252,10 +248,7 @@ class TestUnstructuredMode:
         )
 
         with DrumServerRun(
-            "unstructured",
-            resources.class_labels(framework, problem),
-            custom_model_dir,
-            docker,
+            "unstructured", resources.class_labels(framework, problem), custom_model_dir, docker
         ) as run:
             text_data = "my text, мой текст"
 
@@ -323,10 +316,7 @@ class TestUnstructuredMode:
         )
 
         with DrumServerRun(
-            "unstructured",
-            resources.class_labels(framework, problem),
-            custom_model_dir,
-            docker,
+            "unstructured", resources.class_labels(framework, problem), custom_model_dir, docker
         ) as run:
             url = run.url_server_address + "/predictUnstructured/"
 

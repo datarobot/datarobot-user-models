@@ -23,7 +23,6 @@ RUN apt-get update -y && \
         gcc \
         libc6-dev \
         pandoc \
-        nginx \
         git \
         maven \
         vim \

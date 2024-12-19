@@ -150,25 +150,12 @@ if __name__ == "__main__":
 
     params = {"requests": requests_per_thread, "input": args.input, "url": args.address}
 
-    fetch_and_show_uwsgi_stats = True
     if args.api_key and args.datarobot_key:
         params.update({"api-key": args.api_key})
         params.update({"datarobot-key": args.datarobot_key})
-        fetch_and_show_uwsgi_stats = False
 
     processes = []
     q = Queue()
-
-    if fetch_and_show_uwsgi_stats:
-        main_conn, worker_stats_conn = Pipe()
-        stats_thread = Process(
-            target=stats_func,
-            args=(
-                worker_stats_conn,
-                args.address,
-            ),
-        )
-        stats_thread.start()
 
     for i in range(args.threads):
         p = Process(
@@ -185,11 +172,6 @@ if __name__ == "__main__":
     start_time = time.time()
     for p in processes:
         p.join()
-
-    if fetch_and_show_uwsgi_stats:
-        main_conn.send("shutdown")
-        stats_thread.join()
-        workers_stats = main_conn.recv()
 
     total_requests = 0
     total_responses = 0
@@ -213,25 +195,3 @@ if __name__ == "__main__":
     print("    Total succeeded: {}".format(total_responses))
     print("    Total failed: {}".format(total_failed))
     print("    Total run time: {:0.2f} s".format(time.time() - start_time))
-    if fetch_and_show_uwsgi_stats:
-        print("    Max mem: {:0.2f} MB".format(workers_stats.max_mem))
-        print(
-            "    Max avg pred time: {:0.4f} s".format(
-                workers_stats.max_avg_prediction_time_on_worker
-            )
-        )
-
-    if fetch_and_show_uwsgi_stats:
-        print("\n\nWorkers stats:")
-        total_predicted_on_workers = 0
-        for key, value in workers_stats.workers.items():
-            if key != "total":
-                print("   worker: {}; predicsts: {}".format(key, value))
-                total_predicted_on_workers += value
-        print("\n")
-        print("Total predicted on workers: {}".format(total_predicted_on_workers))
-        print(
-            "Total predicted on workers (metrics by uwsgi): {}".format(
-                workers_stats.total_predictions
-            )
-        )

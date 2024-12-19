@@ -29,7 +29,6 @@ with open(root / "README.md") as f:
 
 extras_require = {framework: extra_deps[framework] for framework in SupportedFrameworks.ALL}
 extras_require["R"] = ["rpy2==3.5.8;python_version>='3.6'"]
-extras_require["uwsgi"] = ["uwsgi"]
 
 setup(
     name=meta["project_name"],

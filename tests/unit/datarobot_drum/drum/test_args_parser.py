@@ -748,3 +748,12 @@ class TestMaxWorkersArgs:
         captured = capsys.readouterr()
 
         assert captured.err.endswith(expected_err_msg)
+
+    def test_production_arg_requires_max_workers(self, server_args, capsys):
+        server_args.append("--production")
+        with pytest.raises(SystemExit):
+            get_args_parser_options(server_args)
+        captured = capsys.readouterr()
+        assert captured.out.endswith(
+            "Production mode requires a non-zero number of workers [--max-workers > 0].\n"
+        )
