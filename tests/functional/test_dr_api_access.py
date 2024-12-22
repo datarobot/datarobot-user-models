@@ -17,8 +17,8 @@ from retry import retry
 
 from datarobot_drum.drum.enum import ArgumentsOptions
 
-from datarobot_drum.resource.utils import _create_custom_model_dir
-from datarobot_drum.resource.utils import _exec_shell_cmd
+from datarobot_drum.drum.root_predictors.utils import _create_custom_model_dir
+from datarobot_drum.drum.root_predictors.utils import _exec_shell_cmd
 from tests.constants import PYTHON_UNSTRUCTURED_DR_API_ACCESS
 from tests.constants import UNSTRUCTURED
 from tests.functional.utils import SimpleCache

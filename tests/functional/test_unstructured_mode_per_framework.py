@@ -11,9 +11,9 @@ import werkzeug
 from datarobot_drum.drum.enum import ArgumentsOptions
 from datarobot_drum.drum.server import HTTP_422_UNPROCESSABLE_ENTITY
 
-from datarobot_drum.resource.drum_server_utils import DrumServerRun
+from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerRun
 
-from datarobot_drum.resource.utils import (
+from datarobot_drum.drum.root_predictors.utils import (
     _exec_shell_cmd,
     _create_custom_model_dir,
 )

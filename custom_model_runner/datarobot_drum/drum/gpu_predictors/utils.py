@@ -107,7 +107,7 @@ class NGCRegistryClient:
 class S3Client:
     def __init__(self, s3_url, credential):
         import boto3
-        from mlpiper.extra.aws_helper import AwsHelper
+        from aws_helper import AwsHelper
 
         parsed_url = AwsHelper.s3_url_parse(s3_url)
         self.bucket_name = parsed_url[0]

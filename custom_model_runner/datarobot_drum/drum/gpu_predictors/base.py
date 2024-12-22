@@ -33,7 +33,7 @@ from datarobot_drum.drum.gpu_predictors import MLOpsStatusReporter
 from datarobot_drum.drum.language_predictors.base_language_predictor import (
     BaseLanguagePredictor,
 )
-from datarobot_drum.resource.drum_server_utils import DrumServerProcess
+from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerProcess
 
 
 class ChatRoles:
@@ -112,10 +112,10 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         formats.add(PayloadFormat.CSV)
         return formats
 
-    def mlpiper_configure(self, params):
+    def configure(self, params):
         from openai import OpenAI
 
-        super().mlpiper_configure(params)
+        super().configure(params)
         self.python_model_adapter = PythonModelAdapter(
             model_dir=self._code_dir, target_type=self.target_type
         )

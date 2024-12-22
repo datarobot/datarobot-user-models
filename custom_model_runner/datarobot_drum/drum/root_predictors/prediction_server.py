@@ -9,7 +9,6 @@ import sys
 from pathlib import Path
 
 from flask import jsonify
-from mlpiper.components.connectable_component import ConnectableComponent
 from werkzeug.exceptions import HTTPException
 
 from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
@@ -27,9 +26,11 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.resource_monitor import ResourceMonitor
 
-from datarobot_drum.resource.components.Python.prediction_server.stdout_flusher import StdoutFlusher
-from datarobot_drum.resource.deployment_config_helpers import parse_validate_deployment_config_file
-from datarobot_drum.resource.predict_mixin import PredictMixin
+from datarobot_drum.drum.root_predictors.stdout_flusher import StdoutFlusher
+from datarobot_drum.drum.root_predictors.deployment_config_helpers import (
+    parse_validate_deployment_config_file,
+)
+from datarobot_drum.drum.root_predictors.predict_mixin import PredictMixin
 
 
 from datarobot_drum.drum.server import (
@@ -43,9 +44,9 @@ from datarobot_drum.drum.server import (
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 
-class PredictionServer(ConnectableComponent, PredictMixin):
-    def __init__(self, engine):
-        super(PredictionServer, self).__init__(engine)
+class PredictionServer(PredictMixin):
+    def __init__(self):
+        self._params = None
         self._show_perf = False
         self._stats_collector = None
         self._resource_monitor = None
@@ -58,7 +59,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         self._stdout_flusher = StdoutFlusher()
 
     def configure(self, params):
-        super(PredictionServer, self).configure(params)
+        self._params = params
         self._code_dir = self._params.get("__custom_model_path__")
         self._show_perf = self._params.get("show_perf")
         self._run_language = RunLanguage(params.get("run_language"))
@@ -122,7 +123,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
             )
 
         self._stdout_flusher.start()
-        self._predictor.mlpiper_configure(params)
+        self._predictor.configure(params)
 
     def _terminate(self):
         if hasattr(self._predictor, "terminate"):
@@ -138,7 +139,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         self._stats_collector.disable()
         self._stdout_flusher.set_last_activity_time()
 
-    def _materialize(self, parent_data_objs, user_data):
+    def materialize(self):
         model_api = base_api_blueprint(self._terminate, self._predictor)
 
         @model_api.route("/capabilities/", methods=["GET"])

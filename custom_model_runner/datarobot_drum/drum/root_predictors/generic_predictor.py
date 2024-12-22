@@ -14,9 +14,13 @@ from datarobot_drum.drum.enum import TARGET_TYPE_ARG_KEYWORD
 from datarobot_drum.drum.enum import RunLanguage
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.enum import UnstructuredDtoKeys
-from datarobot_drum.drum.exceptions import DrumCommonException, DrumRootComponentException
-from datarobot_drum.resource.unstructured_helpers import _resolve_incoming_unstructured_data
-from datarobot_drum.resource.unstructured_helpers import _resolve_outgoing_unstructured_data
+from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.root_predictors.unstructured_helpers import (
+    _resolve_incoming_unstructured_data,
+)
+from datarobot_drum.drum.root_predictors.unstructured_helpers import (
+    _resolve_outgoing_unstructured_data,
+)
 
 
 class GenericPredictorComponent:

@@ -9,7 +9,7 @@ import numpy as np
 import pytest
 from scipy.sparse import coo_matrix
 
-from datarobot_drum.resource.transform_helpers import (
+from datarobot_drum.drum.root_predictors.transform_helpers import (
     validate_and_convert_column_names_for_serialization,
 )
 

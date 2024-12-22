@@ -17,7 +17,7 @@ from datarobot_drum.drum.server import HTTP_200_OK
 from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
 from datarobot_drum.drum.utils.drum_utils import DrumUtils
 from datarobot_drum.drum.enum import ArgumentsOptions, ArgumentOptionsEnvVars
-from datarobot_drum.resource.utils import _exec_shell_cmd, _cmd_add_class_labels
+from datarobot_drum.drum.root_predictors.utils import _exec_shell_cmd, _cmd_add_class_labels
 
 logger = logging.getLogger(__name__)
 

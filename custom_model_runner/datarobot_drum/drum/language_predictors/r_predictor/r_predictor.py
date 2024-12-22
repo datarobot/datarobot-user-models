@@ -59,8 +59,8 @@ r_handler = ro.r
 
 
 class RPredictor(BaseLanguagePredictor):
-    def mlpiper_configure(self, params):
-        super(RPredictor, self).mlpiper_configure(params)
+    def configure(self, params):
+        super(RPredictor, self).configure(params)
 
         r_handler.source(R_COMMON_PATH)
         r_handler.source(R_SCORE_PATH)

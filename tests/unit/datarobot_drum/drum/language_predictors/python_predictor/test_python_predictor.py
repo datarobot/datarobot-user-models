@@ -43,7 +43,7 @@ def mock_load_model_from_artifact():
 
 
 @pytest.mark.usefixtures("mock_load_model_from_artifact")
-class TestMLPiperConfigure:
+class TestPythonPredictorConfigure:
     @pytest.fixture
     def mount_path_key(self):
         return "user_secrets_mount_path"
@@ -58,7 +58,7 @@ class TestMLPiperConfigure:
         assert mount_path_key not in base_configure_params
         assert prefix_key not in base_configure_params
         predictor = PythonPredictor()
-        predictor.mlpiper_configure(base_configure_params)
+        predictor.configure(base_configure_params)
 
         mock_load_model_from_artifact.assert_called_once_with(
             user_secrets_mount_path=None,
@@ -73,7 +73,7 @@ class TestMLPiperConfigure:
         prefix = "SHHHHHHHH"
         base_configure_params[prefix_key] = prefix
         predictor = PythonPredictor()
-        predictor.mlpiper_configure(base_configure_params)
+        predictor.configure(base_configure_params)
 
         mock_load_model_from_artifact.assert_called_once_with(
             user_secrets_mount_path=mount_path,
@@ -88,7 +88,7 @@ def test_supports_chat(base_configure_params, has_chat_hook):
         mock_has_custom_hook.return_value = has_chat_hook
 
         predictor = PythonPredictor()
-        predictor.mlpiper_configure(base_configure_params)
+        predictor.configure(base_configure_params)
 
         assert predictor.supports_chat() == has_chat_hook
 
@@ -160,12 +160,12 @@ class TestPythonPredictorLazyLoading:
     def test_lazy_loading_download_is_being_called(self, text_generation_model_params):
         with patch.object(LazyLoadingHandler, "download_lazy_loading_files") as mock_download:
             py_predictor = PythonPredictor()
-            py_predictor.mlpiper_configure(text_generation_model_params)
+            py_predictor.configure(text_generation_model_params)
             mock_download.assert_called_once()
 
     @pytest.mark.usefixtures("mock_unrelated_methods")
     def test_lazy_loading_download_is_not_called(self, text_generation_model_params):
         with patch.object(LazyLoadingHandler, "download_lazy_loading_files") as mock_download:
             py_predictor = PythonPredictor()
-            py_predictor.mlpiper_configure(text_generation_model_params)
+            py_predictor.configure(text_generation_model_params)
             mock_download.assert_not_called()

@@ -14,7 +14,7 @@ import requests
 from datarobot_drum.drum.enum import ArgumentOptionsEnvVars, TargetType
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.language_predictors.base_language_predictor import PredictResponse
-from datarobot_drum.resource.deployment_config_helpers import (
+from datarobot_drum.drum.root_predictors.deployment_config_helpers import (
     parse_validate_deployment_config_file,
     get_class_names_from_class_mapping,
     build_pps_response_json_str,
@@ -29,9 +29,9 @@ from tests.constants import (
     SKLEARN,
 )
 
-from datarobot_drum.resource.utils import _create_custom_model_dir
+from datarobot_drum.drum.root_predictors.utils import _create_custom_model_dir
 
-from datarobot_drum.resource.drum_server_utils import DrumServerRun
+from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerRun
 from datarobot_drum.drum.utils.drum_utils import unset_drum_supported_env_vars
 
 

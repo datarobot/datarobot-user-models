@@ -15,7 +15,7 @@ logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 class DrumScoreAdapter(DrumInputFileAdapter, DrumClassLabelAdapter):
     """
-    This class acts as a layer between MLPiper and performing `drum score`. It will convert
+    This class acts as a layer between the CLI and performing `drum score`. It will convert
     the arguments (mostly paths) into tangible variables to be passed into fit or predict.
     """
 

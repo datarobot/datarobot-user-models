@@ -34,10 +34,8 @@ from datarobot_drum.drum.enum import (
 from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
     PythonPredictor,
 )
-from datarobot_drum.drum.root_predictors.generic_predictor import GenericPredictorComponent
 from datarobot_drum.drum.runtime import DrumRuntime
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
-from mlpiper.pipeline.executor import Executor
 
 
 def set_sys_argv(cmd_line_args):
@@ -324,23 +322,15 @@ class TestCMRunnerFit:
 
 
 @pytest.fixture
-def mock_mlpiper_configure():
-    with patch.object(PythonPredictor, "mlpiper_configure") as mock_func:
+def mock_predictor_configure():
+    with patch.object(PythonPredictor, "configure") as mock_func:
         yield mock_func
 
 
-@pytest.fixture
-def mock_run_pipeline():
-    with patch.object(Executor, "run_pipeline") as mock_func, patch.object(
-        GenericPredictorComponent, "materialize"
-    ):
-        yield mock_func
-
-
-@pytest.mark.usefixtures("mock_mlpiper_configure", "mock_run_pipeline")
+@pytest.mark.usefixtures("mock_predictor_configure")
 class TestCMRunnerServer:
     def test_minimal_server_args(
-        self, runtime_factory, server_args, mock_mlpiper_configure, this_dir
+        self, runtime_factory, server_args, mock_predictor_configure, this_dir
     ):
         runner = runtime_factory(server_args)
         runner.run()
@@ -372,36 +362,36 @@ class TestCMRunnerServer:
             "triton_grpc_port": 8001,
         }
 
-        mock_mlpiper_configure.assert_called_once_with(expected)
+        mock_predictor_configure.assert_called_once_with(expected)
 
     def test_with_user_secrets_mount_path(
-        self, server_args, runtime_factory, mock_mlpiper_configure
+        self, server_args, runtime_factory, mock_predictor_configure
     ):
         secrets_mount = "/a/b/c"
         server_args.extend(["--user-secrets-mount-path", secrets_mount])
         runtime_factory(server_args).run()
 
-        mock_mlpiper_configure.assert_called_once()
-        params = mock_mlpiper_configure.call_args[0][0]
+        mock_predictor_configure.assert_called_once()
+        params = mock_predictor_configure.call_args[0][0]
         assert params["user_secrets_mount_path"] == secrets_mount
 
-    def test_with_user_secrets_prefix(self, server_args, runtime_factory, mock_mlpiper_configure):
+    def test_with_user_secrets_prefix(self, server_args, runtime_factory, mock_predictor_configure):
         secrets_prefix = "SOME_PREFIX"
         server_args.extend(["--user-secrets-prefix", secrets_prefix])
         runtime_factory(server_args).run()
 
-        mock_mlpiper_configure.assert_called_once()
-        params = mock_mlpiper_configure.call_args[0][0]
+        mock_predictor_configure.assert_called_once()
+        params = mock_predictor_configure.call_args[0][0]
         assert params["user_secrets_prefix"] == secrets_prefix
 
-    def test_handles_missing_options(self, server_args, runtime_factory, mock_mlpiper_configure):
+    def test_handles_missing_options(self, server_args, runtime_factory, mock_predictor_configure):
         runtime = runtime_factory(server_args)
         del runtime.options.user_secrets_mount_path
         del runtime.options.user_secrets_prefix
         runtime.run()
 
-        mock_mlpiper_configure.assert_called_once()
-        params = mock_mlpiper_configure.call_args[0][0]
+        mock_predictor_configure.assert_called_once()
+        params = mock_predictor_configure.call_args[0][0]
         assert params["user_secrets_mount_path"] is None
         assert params["user_secrets_prefix"] is None
 
@@ -412,10 +402,10 @@ def mock_read_csv(module_under_test):
         yield mock_func
 
 
-@pytest.mark.usefixtures("mock_mlpiper_configure", "mock_run_pipeline", "mock_read_csv")
+@pytest.mark.usefixtures("mock_predictor_configure", "mock_read_csv")
 class TestCMRunnerScore:
     def test_minimal_score_args(
-        self, runtime_factory, score_args, mock_mlpiper_configure, this_dir
+        self, runtime_factory, score_args, mock_predictor_configure, this_dir
     ):
         runner = runtime_factory(score_args)
         runner.run()
@@ -446,36 +436,36 @@ class TestCMRunnerScore:
             "triton_host": "http://localhost",
             "triton_http_port": 8000,
         }
-        mock_mlpiper_configure.assert_called_once_with(expected)
+        mock_predictor_configure.assert_called_once_with(expected)
 
     def test_with_user_secrets_mount_path(
-        self, score_args, runtime_factory, mock_mlpiper_configure
+        self, score_args, runtime_factory, mock_predictor_configure
     ):
         secrets_mount = "/a/b/c"
         score_args.extend(["--user-secrets-mount-path", secrets_mount])
         runtime_factory(score_args).run()
 
-        mock_mlpiper_configure.assert_called_once()
-        params = mock_mlpiper_configure.call_args[0][0]
+        mock_predictor_configure.assert_called_once()
+        params = mock_predictor_configure.call_args[0][0]
         assert params["user_secrets_mount_path"] == secrets_mount
 
-    def test_with_user_secrets_prefix(self, score_args, runtime_factory, mock_mlpiper_configure):
+    def test_with_user_secrets_prefix(self, score_args, runtime_factory, mock_predictor_configure):
         secrets_prefix = "SOME_PREFIX"
         score_args.extend(["--user-secrets-prefix", secrets_prefix])
         runtime_factory(score_args).run()
 
-        mock_mlpiper_configure.assert_called_once()
-        params = mock_mlpiper_configure.call_args[0][0]
+        mock_predictor_configure.assert_called_once()
+        params = mock_predictor_configure.call_args[0][0]
         assert params["user_secrets_prefix"] == secrets_prefix
 
-    def test_handles_missing_options(self, score_args, runtime_factory, mock_mlpiper_configure):
+    def test_handles_missing_options(self, score_args, runtime_factory, mock_predictor_configure):
         runtime = runtime_factory(score_args)
         del runtime.options.user_secrets_mount_path
         del runtime.options.user_secrets_prefix
         runtime.run()
 
-        mock_mlpiper_configure.assert_called_once()
-        params = mock_mlpiper_configure.call_args[0][0]
+        mock_predictor_configure.assert_called_once()
+        params = mock_predictor_configure.call_args[0][0]
         assert params["user_secrets_mount_path"] is None
         assert params["user_secrets_prefix"] is None
 

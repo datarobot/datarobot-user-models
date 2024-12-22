@@ -40,8 +40,8 @@ class TritonPredictor(BaseLanguagePredictor):
         self.triton_grpc_port = None
         self.model_config = None
 
-    def mlpiper_configure(self, params):
-        super(TritonPredictor, self).mlpiper_configure(params)
+    def configure(self, params):
+        super(TritonPredictor, self).configure(params)
         self.triton_host = params.get("triton_host")
         self.triton_http_port = params.get("triton_http_port")
         self.triton_grpc_port = params.get("triton_grpc_port")

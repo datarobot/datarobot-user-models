@@ -11,7 +11,7 @@ import pandas as pd
 
 from datarobot_drum.drum.common import SupportedPayloadFormats
 from datarobot_drum.drum.enum import PRED_COLUMN, PayloadFormat
-from datarobot_drum.resource.predict_mixin import PredictMixin
+from datarobot_drum.drum.root_predictors.predict_mixin import PredictMixin
 
 
 class TestPredictionResponse:

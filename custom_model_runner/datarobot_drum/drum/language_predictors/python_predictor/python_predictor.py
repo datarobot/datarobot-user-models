@@ -37,7 +37,7 @@ class PythonPredictor(BaseLanguagePredictor):
         self._model_adapter = None
         self._mlops_spool_dir = None
 
-    def mlpiper_configure(self, params):
+    def configure(self, params):
         target_type = TargetType(params.get("target_type"))
         code_dir = params["__custom_model_path__"]
 
@@ -47,7 +47,7 @@ class PythonPredictor(BaseLanguagePredictor):
         sys.path.append(code_dir)
         self._model_adapter.load_custom_hooks()
 
-        super(PythonPredictor, self).mlpiper_configure(params)
+        super(PythonPredictor, self).configure(params)
 
         if to_bool(params.get("allow_dr_api_access")):
             logger.info("Initializing DataRobot Python client.")

@@ -1,7 +1,7 @@
 import typing
 
 from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
-from datarobot_drum.resource.drum_server_utils import DrumServerProcess
+from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerProcess
 
 
 class TestGPUPredictor(BaseOpenAiGpuPredictor):

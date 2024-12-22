@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from datarobot_drum.resource.components.Python.prediction_server.stdout_flusher import StdoutFlusher
+from datarobot_drum.drum.root_predictors.stdout_flusher import StdoutFlusher
 
 
 class TestStdoutFlusher:

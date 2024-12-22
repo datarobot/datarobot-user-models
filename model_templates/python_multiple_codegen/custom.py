@@ -26,7 +26,7 @@ class ScoringCodePredictor(JavaPredictor):
             "classLabels": class_labels,
         }
 
-        self.mlpiper_configure(params)
+        self.configure(params)
 
     def predict(self, df):
         s = df.to_csv(index=False)

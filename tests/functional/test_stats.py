@@ -16,8 +16,8 @@ from tests.constants import (
     RESPONSE_PREDICTIONS_KEY,
     SKLEARN,
 )
-from datarobot_drum.resource.drum_server_utils import DrumServerRun
-from datarobot_drum.resource.utils import _create_custom_model_dir
+from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerRun
+from datarobot_drum.drum.root_predictors.utils import _create_custom_model_dir
 
 from datarobot_drum.drum.utils.drum_utils import unset_drum_supported_env_vars
 

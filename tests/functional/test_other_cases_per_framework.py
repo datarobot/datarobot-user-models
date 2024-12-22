@@ -9,7 +9,7 @@ import pytest
 
 from datarobot_drum.drum.enum import CustomHooks, ArgumentsOptions
 
-from datarobot_drum.resource.utils import (
+from datarobot_drum.drum.root_predictors.utils import (
     _exec_shell_cmd,
     _create_custom_model_dir,
     _cmd_add_class_labels,

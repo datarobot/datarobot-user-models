@@ -4,7 +4,6 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-from typing import Iterable
 
 import werkzeug
 from flask import request, Response, stream_with_context
@@ -25,15 +24,17 @@ from datarobot_drum.drum.server import (
     HTTP_422_UNPROCESSABLE_ENTITY,
 )
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
-from datarobot_drum.resource.chat_helpers import is_streaming_response
-from datarobot_drum.resource.deployment_config_helpers import build_pps_response_json_str
-from datarobot_drum.resource.transform_helpers import (
+from datarobot_drum.drum.root_predictors.chat_helpers import is_streaming_response
+from datarobot_drum.drum.root_predictors.deployment_config_helpers import (
+    build_pps_response_json_str,
+)
+from datarobot_drum.drum.root_predictors.transform_helpers import (
     is_sparse,
     make_arrow_payload,
     make_csv_payload,
     make_mtx_payload,
 )
-from datarobot_drum.resource.unstructured_helpers import (
+from datarobot_drum.drum.root_predictors.unstructured_helpers import (
     _resolve_incoming_unstructured_data,
     _resolve_outgoing_unstructured_data,
 )
