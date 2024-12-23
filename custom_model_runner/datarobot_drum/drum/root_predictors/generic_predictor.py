@@ -4,13 +4,12 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-import abc
 import urllib
 from typing import Optional
 
 import werkzeug
 from datarobot_drum.drum.adapters.cli.drum_score_adapter import DrumScoreAdapter
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, GPU_PREDICTORS
+from datarobot_drum.drum.enum import GPU_PREDICTORS
 from datarobot_drum.drum.enum import TARGET_TYPE_ARG_KEYWORD
 from datarobot_drum.drum.enum import RunLanguage
 from datarobot_drum.drum.enum import TargetType
