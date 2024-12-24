@@ -1,4 +1,5 @@
 run_black.sh
+results.tests.xml
 
 # Byte-compiled / optimized / DLL files
 *__pycache__/

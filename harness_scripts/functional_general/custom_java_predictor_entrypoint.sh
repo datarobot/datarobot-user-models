@@ -13,7 +13,6 @@ make java_components
 pip install .
 popd
 
-
 echo "Installing requirements for all the tests: requirements_test.txt"
 pip install -r requirements_test.txt
 

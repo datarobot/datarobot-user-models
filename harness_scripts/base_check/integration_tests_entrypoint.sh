@@ -9,7 +9,6 @@ pushd custom_model_runner
 make
 popd  # custom_model_runner
 
-pip3 install -U pip
 pip3 install -r requirements_test_unit.txt
-pip3 install -e custom_model_runner/
+pip3 install -e custom_model_runner/ --verbose
 pytest -v tests/integration --junit-xml=results.tests.xml
