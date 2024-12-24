@@ -1,5 +1,6 @@
 argcomplete
 datarobot>=3.1.0,<4
+datarobot-mlops>=10.2.0  # Required for the 'set_api_spooler' with arugments
 # trafaret version pinning is defined by `datarobot`
 trafaret>=2.0.0
 docker>=4.2.2
