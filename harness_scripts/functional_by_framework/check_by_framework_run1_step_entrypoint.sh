@@ -6,7 +6,6 @@ FRAMEWORK=$1
 echo "== Assuming running integration tests in framework container (inside Docker), for env: <+pipeline.variables.framework>"
 ROOT_DIR="$(pwd)"
 
-
 echo "== Installing pytest =="
 pip install pytest pytest-xdist
 echo "== Uninstalling datarobot-drum =="
