@@ -26,33 +26,7 @@ pipeline:
                       spec:
                         shell: Bash
                         command: |-
-                          echo "== Preparing to test =="
-                          apt-get update && apt-get install -y curl
-
-                          MLOPS_VERSION="9.2.8"
-                          MLOPS_AGENT_VERSION=${MLOPS_VERSION}
-                          MLOPS_AGENT_JAR_DIR="/tmp/jars"
-                          REMOTE_FILE="https://repo1.maven.org/maven2/com/datarobot/mlops-agent/${MLOPS_AGENT_VERSION}/mlops-agent-${MLOPS_AGENT_VERSION}.jar"
-
-                          pip install datarobot-mlops==${MLOPS_VERSION}
-
-                          mkdir -p "${MLOPS_AGENT_JAR_DIR}"
-                          curl --output "${MLOPS_AGENT_JAR_DIR}"/mlops-agent-${MLOPS_AGENT_VERSION}.jar ${REMOTE_FILE}
-                          export MLOPS_MONITORING_AGENT_JAR_PATH=${MLOPS_AGENT_JAR_DIR}/mlops-agent-${MLOPS_AGENT_VERSION}.jar
-
-                          echo "Installing requirements for all the tests: requirements_test.txt"
-                          pip install -r requirements_test.txt
-
-                          echo "== Uninstall drum =="
-                          pip uninstall -y datarobot-drum
-
-                          cd custom_model_runner
-                          echo "== Install drum from source =="
-                          pip install .
-                          cd -
-
-                          # pytest tests/functional/test_mlops_monitoring.py -k "not test_drum_unstructured_model_embedded_monitoring_in_sklearn_env" -n 1
-                          pytest tests/functional/test_mlops_monitoring.py
+                          ./harness_scripts/functional_general/mlops_reporting_entrypoint.sh
                         resources:
                           limits:
                             memory: 3G
@@ -90,15 +64,7 @@ pipeline:
                         image: datarobot/drum-builder:ubuntu-22-04
                         shell: Bash
                         command: |-
-                          cd ./tests/functional/custom_java_predictor
-                          mvn package
-                          cd -
-                          cd custom_model_runner
-                          echo "== Build java entrypoint, base predictor and install DRUM from source =="
-                          make java_components
-                          pip install .
-                          cd -
-                          pytest tests/functional/test_inference_custom_java_predictor.py
+                          ./harness_scripts/functional_general/custom_java_predictor_entrypoint.sh
                         resources:
                           limits:
                             memory: 3G
@@ -124,33 +90,9 @@ pipeline:
                       identifier: test_functional_general
                       spec:
                         shell: Bash
-                        command: |-
-                          docker login -u datarobotread2 -p <+secrets.getValue("account.dockerhubdatarobotread2orgread1")>
-
-                          echo "== Build image for tests =="
-                          cp -r custom_model_runner/ public_dropin_environments/python3_sklearn/
-                          cd public_dropin_environments/python3_sklearn/
-                          echo -e "RUN pip uninstall -y datarobot-drum\nCOPY ./custom_model_runner /tmp/custom_model_runner\nRUN pip install /tmp/custom_model_runner" >> Dockerfile 
-
-                          docker build -t python3_sklearn_test_env .
-                          cd -
-
-                          docker images
-
-                          echo "== Preparing to test =="
-                          echo "Installing requirements for all the tests: requirements_test.txt"
-                          pip install -r requirements_test.txt
-
-                          echo "== Uninstall drum =="
-                          pip uninstall -y datarobot-drum
-
-                          cd custom_model_runner
-                          echo "== Install drum from source =="
-                          pip install .
-                          cd -
-
-                          pytest tests/functional/test_mlops_monitoring.py::TestMLOpsMonitoring::test_drum_unstructured_model_embedded_monitoring_in_sklearn_env
-                          pytest tests/functional/ -k "not test_inference_custom_java_predictor.py and not test_mlops_monitoring.py" -m "not sequential"
+                        command: |
+                          ./harness_scripts/functional_general/general_tests_entrypoint.sh \
+                            <+secrets.getValue("account.dockerhubdatarobotread2orgread1")>
                         resources:
                           limits:
                             memory: 8G
