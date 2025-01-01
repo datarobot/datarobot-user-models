@@ -20,19 +20,10 @@ from datarobot_drum.resource.unstructured_helpers import _resolve_outgoing_unstr
 
 
 class GenericPredictorComponent:
-    def __init__(self):
-        self._params = None
-        self._run_language = None
-        self._gpu_predictor_type = None
-        self._predictor = None
-        self.cli_adapter: Optional[DrumScoreAdapter] = None
-
-    def configure(self, params):
+    def __init__(self, params: dict):
         self._params = params
         self._run_language = RunLanguage(params.get("run_language"))
         self._gpu_predictor_type = params.get("gpu_predictor")
-
-        # Input filename is available at configuration time, so include it in the CLI adapter here.
         self.cli_adapter = DrumScoreAdapter(
             custom_task_folder_path=params["__custom_model_path__"],
             input_filename=params["input_filename"],
@@ -42,55 +33,58 @@ class GenericPredictorComponent:
             negative_class_label=params.get("negativeClassLabel"),
             class_labels=params.get("classLabels"),
         )
+        self._predictor = self._setup_predictor()
 
+    def _setup_predictor(self):
         if self._run_language == RunLanguage.PYTHON:
             from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
                 PythonPredictor,
             )
 
-            self._predictor = PythonPredictor()
+            predictor = PythonPredictor()
         elif self._run_language == RunLanguage.JAVA:
             from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import (
                 JavaPredictor,
             )
 
-            self._predictor = JavaPredictor()
+            predictor = JavaPredictor()
         elif self._run_language == RunLanguage.JULIA:
             from datarobot_drum.drum.language_predictors.julia_predictor.julia_predictor import (
                 JlPredictor,
             )
 
-            self._predictor = JlPredictor()
+            predictor = JlPredictor()
         elif self._run_language == RunLanguage.R:
             # this import is here, because RPredictor imports rpy library,
             # which is not installed for Java and Python cases.
             from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
 
-            self._predictor = RPredictor()
+            predictor = RPredictor()
         elif self._gpu_predictor_type and self._gpu_predictor_type == GPU_PREDICTORS.TRITON:
             from datarobot_drum.drum.gpu_predictors.triton_predictor import (
                 TritonPredictor,
             )
 
-            self._predictor = TritonPredictor()
+            predictor = TritonPredictor()
         elif self._gpu_predictor_type and self._gpu_predictor_type == GPU_PREDICTORS.NIM:
             from datarobot_drum.drum.gpu_predictors.nim_predictor import (
                 NIMPredictor,
             )
 
-            self._predictor = NIMPredictor()
+            predictor = NIMPredictor()
         elif self._gpu_predictor_type and self._gpu_predictor_type == GPU_PREDICTORS.VLLM:
             from datarobot_drum.drum.gpu_predictors.vllm_predictor import (
                 VllmPredictor,
             )
 
-            self._predictor = VllmPredictor()
+            predictor = VllmPredictor()
         else:
             raise DrumCommonException(
                 "Prediction server doesn't support language: {} ".format(self._run_language)
             )
 
-        self._predictor.mlpiper_configure(params)
+        predictor.mlpiper_configure(self._params)
+        return predictor
 
     def materialize(self):
         output_filename = self._params.get("output_filename")

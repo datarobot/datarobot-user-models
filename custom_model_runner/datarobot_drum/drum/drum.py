@@ -818,8 +818,7 @@ class CMRunner:
 
             try:
                 sc.mark("start")
-                predictor = GenericPredictorComponent()
-                predictor.configure(pipeline["pipe"][0]["arguments"])
+                predictor = GenericPredictorComponent(pipeline["pipe"][0]["arguments"])
                 sc.mark("init")
 
                 predictor.materialize()
