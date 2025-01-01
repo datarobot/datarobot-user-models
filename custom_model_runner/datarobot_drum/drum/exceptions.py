@@ -40,3 +40,7 @@ class DrumTransformException(DrumException):
 
 class DrumSerializationError(DrumException):
     """Raised when there is an issue serializing or deserializing a custom task/model"""
+
+
+class DrumRootComponentException(DrumException):
+    """Raised when there is an issue specific to root components."""
