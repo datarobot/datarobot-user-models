@@ -13,4 +13,11 @@ make java_components
 pip install .
 popd
 
+
+echo "Installing requirements for all the tests: requirements_test.txt"
+pip install -r requirements_test.txt
+
+echo "Installing datarobot_drum from source code"
+pip3 install -e custom_model_runner/
+
 pytest tests/functional/test_inference_custom_java_predictor.py
