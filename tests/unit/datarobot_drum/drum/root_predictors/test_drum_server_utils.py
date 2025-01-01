@@ -16,7 +16,7 @@ from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerRun,
 
 @pytest.fixture
 def module_under_test():
-    return "datarobot_drum.resource.drum_server_utils"
+    return "datarobot_drum.drum.root_predictors.drum_server_utils"
 
 
 class TestDrumServerRunGetCommand:

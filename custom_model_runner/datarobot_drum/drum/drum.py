@@ -824,9 +824,10 @@ class CMRunner:
             if stats_collector:
                 stats_collector.mark("start")
             predictor = (
-                PredictionServer(params) if self.run_mode == RunMode.SERVER else GenericPredictorComponent(params)
+                PredictionServer(params)
+                if self.run_mode == RunMode.SERVER
+                else GenericPredictorComponent(params)
             )
-            predictor.configure(pipeline["pipe"][0]["arguments"])
             if stats_collector:
                 stats_collector.mark("init")
             predictor.materialize()

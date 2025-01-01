@@ -87,7 +87,7 @@ class GenericPredictorComponent:
                 "Prediction server doesn't support language: {} ".format(self._run_language)
             )
 
-        predictor.mlpiper_configure(self._params)
+        predictor.configure(self._params)
         return predictor
 
     def materialize(self):

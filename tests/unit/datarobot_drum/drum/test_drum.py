@@ -34,6 +34,8 @@ from datarobot_drum.drum.enum import (
 from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
     PythonPredictor,
 )
+from datarobot_drum.drum.root_predictors.generic_predictor import GenericPredictorComponent
+from datarobot_drum.drum.root_predictors.prediction_server import PredictionServer
 from datarobot_drum.drum.runtime import DrumRuntime
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 
@@ -327,7 +329,15 @@ def mock_predictor_configure():
         yield mock_func
 
 
-@pytest.mark.usefixtures("mock_predictor_configure")
+@pytest.fixture
+def mock_materialize():
+    with patch.object(PredictionServer, "materialize"), patch.object(
+        GenericPredictorComponent, "materialize"
+    ):
+        yield
+
+
+@pytest.mark.usefixtures("mock_predictor_configure", "mock_materialize")
 class TestCMRunnerServer:
     def test_minimal_server_args(
         self, runtime_factory, server_args, mock_predictor_configure, this_dir
@@ -402,7 +412,7 @@ def mock_read_csv(module_under_test):
         yield mock_func
 
 
-@pytest.mark.usefixtures("mock_predictor_configure", "mock_read_csv")
+@pytest.mark.usefixtures("mock_predictor_configure", "mock_materialize", "mock_read_csv")
 class TestCMRunnerScore:
     def test_minimal_score_args(
         self, runtime_factory, score_args, mock_predictor_configure, this_dir

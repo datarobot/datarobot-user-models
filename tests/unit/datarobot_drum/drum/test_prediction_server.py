@@ -13,17 +13,15 @@ from werkzeug.exceptions import BadRequest
 
 from datarobot_drum.drum.enum import RunLanguage, TargetType
 from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
+from datarobot_drum.drum.root_predictors.prediction_server import PredictionServer
 from datarobot_drum.drum.server import _create_flask_app
-from datarobot_drum.resource.components.Python.prediction_server.prediction_server import (
-    PredictionServer,
-)
 from tests.unit.datarobot_drum.drum.chat_utils import create_completion, create_completion_chunks
 
 
 @pytest.fixture
 def test_flask_app():
     with patch("datarobot_drum.drum.server._create_flask_app") as mock_create_flask_app, patch(
-        "datarobot_drum.resource.components.Python.prediction_server.prediction_server.PredictionServer._run_flask_app"
+        "datarobot_drum.drum.root_predictors.prediction_server.PredictionServer._run_flask_app"
     ):
         app = _create_flask_app()
         app.config.update(
@@ -42,18 +40,15 @@ def prediction_server(test_flask_app, chat_python_model_adapter):
     with patch.dict(os.environ, {"TARGET_NAME": "target"}), patch(
         "datarobot_drum.drum.language_predictors.python_predictor.python_predictor.PythonPredictor._init_mlops"
     ), patch.object(LazyLoadingHandler, "download_lazy_loading_files"):
-        server = PredictionServer(Mock())
-
         params = {
             "run_language": RunLanguage.PYTHON,
             "target_type": TargetType.TEXT_GENERATION,
             "deployment_config": None,
             "__custom_model_path__": "/non-existing-path-to-avoid-loading-unwanted-artifacts",
         }
-
-        server.configure(params)
+        server = PredictionServer(params)
         server._predictor._mlops = Mock()
-        server.materialize(Mock())
+        server.materialize()
 
 
 @pytest.fixture
@@ -139,10 +134,18 @@ def test_http_exception(openai_client, chat_python_model_adapter):
 
 @pytest.mark.parametrize("processes_param, expected_processes", [(None, 1), (10, 10)])
 def test_run_flask_app(processes_param, expected_processes):
-    server = PredictionServer(Mock())
-    server._params = {"host": "localhost", "port": "6789"}
+    params = {
+        "host": "localhost",
+        "port": "6789",
+        "run_language": "python",
+        "target_type": "regression",
+        "deployment_config": None,
+    }
     if processes_param:
-        server._params["processes"] = processes_param
+        params["processes"] = processes_param
+
+    with patch.object(PredictionServer, "_setup_predictor"):
+        server = PredictionServer(params)
 
     app = Mock()
     server._run_flask_app(app)
