@@ -63,7 +63,11 @@ setup(
         "datarobot_drum.resource.pipelines": ["*"],
         "datarobot_drum.resource.default_typeschema": ["*.yaml"],
     },
-    scripts=["bin/drum"],
+    entry_points={
+        "console_scripts": [
+            "drum=datarobot_drum.drum.main:main",
+        ],
+    },
     install_requires=requirements,
     extras_require=extras_require,
     python_requires=">=3.8,<3.12",
