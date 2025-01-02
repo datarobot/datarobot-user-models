@@ -5,19 +5,18 @@
 #  This is proprietary source code of DataRobot, Inc. and its affiliates.
 #  Released under the terms of DataRobot Tool and Utility Agreement.
 #
-from subprocess import Popen
 from typing import Tuple, Any
 from unittest.mock import patch, Mock
 
 import pytest
 
 from datarobot_drum.drum.enum import TargetType, ArgumentsOptions
-from datarobot_drum.resource.drum_server_utils import DrumServerRun, DrumServerProcess
+from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerRun, DrumServerProcess
 
 
 @pytest.fixture
 def module_under_test():
-    return "datarobot_drum.resource.drum_server_utils"
+    return "datarobot_drum.drum.root_predictors.drum_server_utils"
 
 
 class TestDrumServerRunGetCommand:

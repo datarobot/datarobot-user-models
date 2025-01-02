@@ -39,7 +39,7 @@ from tests.constants import (
     PYTHON_SKLEARN,
 )
 
-from datarobot_drum.resource.utils import (
+from datarobot_drum.drum.root_predictors.utils import (
     _exec_shell_cmd,
     _cmd_add_class_labels,
     _create_custom_model_dir,

@@ -15,8 +15,8 @@ from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR, HTTP_200_OK
 
 from tests.constants import SKLEARN, REGRESSION, BINARY, DOCKER_PYTHON_SKLEARN, PYTHON
-from datarobot_drum.resource.utils import _create_custom_model_dir
-from datarobot_drum.resource.drum_server_utils import DrumServerRun
+from datarobot_drum.drum.root_predictors.utils import _create_custom_model_dir
+from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerRun
 
 
 class TestDrumServerFailures:

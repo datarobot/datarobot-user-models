@@ -18,9 +18,10 @@ import sys
 import tempfile
 import time
 from distutils.dir_util import copy_tree
+from encodings.punycode import selective_find
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Callable
+from typing import Callable, Optional
 from typing import Dict
 from typing import Union
 
@@ -60,6 +61,7 @@ from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.push import drum_push
 from datarobot_drum.drum.push import setup_validation_options
 from datarobot_drum.drum.root_predictors.generic_predictor import GenericPredictorComponent
+from datarobot_drum.drum.root_predictors.prediction_server import PredictionServer
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
@@ -69,9 +71,6 @@ from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInpu
 from datarobot_drum.profiler.stats_collector import StatsCollector
 from datarobot_drum.profiler.stats_collector import StatsOperation
 from memory_profiler import memory_usage
-from mlpiper.pipeline import json_fields
-from mlpiper.pipeline.executor import Executor
-from mlpiper.pipeline.executor_config import ExecutorConfig
 from progress.spinner import Spinner
 from scipy.io import mmwrite
 
@@ -484,9 +483,27 @@ class CMRunner:
         self._print_welcome_header()
 
         if self.run_mode == RunMode.SCORE:
-            self._run_predictions()
+            stats_collector = None
+            if hasattr(self.options, "show_perf") and self.options.show_perf:
+                stats_collector = StatsCollector()
+                stats_collector.register_report("Full time", "end", StatsOperation.SUB, "start")
+                stats_collector.register_report(
+                    "Init time (incl model loading)", "init", StatsOperation.SUB, "start"
+                )
+                stats_collector.register_report(
+                    "Run time (incl reading CSV)", "run", StatsOperation.SUB, "init"
+                )
+                stats_collector.enable()
+            try:
+                with self._setup_output_if_not_exists():
+                    self._run_predictions(stats_collector)
+            finally:
+                if stats_collector:
+                    stats_collector.disable()
+            if stats_collector:
+                stats_collector.print_reports()
         elif self.run_mode == RunMode.SERVER:
-            self._run_predictions_pipelines_in_mlpiper()
+            self._run_predictions()
         elif self.run_mode == RunMode.FIT:
             self.run_fit()
         elif self.run_mode == RunMode.PERF_TEST:
@@ -784,56 +801,49 @@ class CMRunner:
 
         return DrumUtils.render_file(functional_pipeline_filepath, replace_data)
 
-    def _run_predictions(self):
-        if self.run_mode != RunMode.SCORE:
-            raise NotImplemented("Only score mode is supported here")
+    def _run_predictions(self, stats_collector: Optional[StatsCollector] = None):
+        if self.run_mode not in [RunMode.SCORE, RunMode.SERVER]:
+            raise NotImplemented(f"The given run mode is supported here: {self.run_mode}")
 
-        with self._setup_output_if_not_exists():
-            run_language = self._check_artifacts_and_get_run_language()
-            infra_pipeline_str = self._prepare_prediction_server_or_batch_pipeline(run_language)
+        run_language = self._check_artifacts_and_get_run_language()
+        infra_pipeline_str = self._prepare_prediction_server_or_batch_pipeline(run_language)
 
-            pipeline = json.loads(infra_pipeline_str)
-            if "pipe" not in pipeline or not pipeline["pipe"]:
-                raise DrumCommonException("Pipeline is empty")
-            if "arguments" not in pipeline["pipe"][0]:
-                raise DrumCommonException("Arguments are missing in the pipeline")
+        pipeline = json.loads(infra_pipeline_str)
+        if "pipe" not in pipeline or not pipeline["pipe"]:
+            raise DrumCommonException("Pipeline is empty")
+        if "arguments" not in pipeline["pipe"][0]:
+            raise DrumCommonException("Arguments are missing in the pipeline")
 
-            self.logger.info(
-                f">>> Start {ArgumentsOptions.MAIN_COMMAND} in the {self.run_mode.value} mode"
+        self.logger.info(
+            f">>> Start {ArgumentsOptions.MAIN_COMMAND} in the {self.run_mode.value} mode"
+        )
+
+        params = pipeline["pipe"][0]["arguments"]
+        predictor = None
+        try:
+            if stats_collector:
+                stats_collector.mark("start")
+            predictor = (
+                PredictionServer(params)
+                if self.run_mode == RunMode.SERVER
+                else GenericPredictorComponent(params)
             )
-
-            sc = StatsCollector(
-                disable_instance=(
-                    not hasattr(self.options, "show_perf")
-                    or not self.options.show_perf
-                    or self.run_mode == RunMode.SERVER
-                )
-            )
-            sc.register_report("Full time", "end", StatsOperation.SUB, "start")
-            sc.register_report(
-                "Init time (incl model loading)", "init", StatsOperation.SUB, "start"
-            )
-            sc.register_report("Run time (incl reading CSV)", "run", StatsOperation.SUB, "init")
-            sc.enable()
-
-            try:
-                sc.mark("start")
-                predictor = GenericPredictorComponent(pipeline["pipe"][0]["arguments"])
-                sc.mark("init")
-
-                predictor.materialize()
-                sc.mark("run")
-            finally:
+            if stats_collector:
+                stats_collector.mark("init")
+            predictor.materialize()
+            if stats_collector:
+                stats_collector.mark("run")
+        finally:
+            if predictor is not None:
                 predictor.terminate()
-                sc.mark("end")
-                sc.disable()
+            if stats_collector:
+                stats_collector.mark("end")
 
         self.logger.info(
             "<<< Finish {} in the {} mode".format(
                 ArgumentsOptions.MAIN_COMMAND, self.run_mode.value
             )
         )
-        sc.print_reports()
 
     @contextlib.contextmanager
     def _setup_output_if_not_exists(self):
@@ -848,74 +858,6 @@ class CMRunner:
                     print(f.read())
             else:
                 print(pd.read_csv(tmp_output_filename))
-
-    def _run_predictions_pipelines_in_mlpiper(self):
-        if self.run_mode != RunMode.SERVER:
-            raise NotImplemented("Only server mode is supported here")
-
-        run_language = self._check_artifacts_and_get_run_language()
-
-        # in prediction server mode infra pipeline == prediction server runner pipeline
-        infra_pipeline_str = self._prepare_prediction_server_or_batch_pipeline(run_language)
-
-        config = ExecutorConfig(
-            pipeline=infra_pipeline_str,
-            pipeline_file=None,
-            run_locally=True,
-            comp_root_path=DrumUtils.get_components_repo(),
-            mlpiper_jar=None,
-            spark_jars=None,
-        )
-
-        self._pipeline_executor = (
-            Executor(config).standalone(True).set_verbose(self.options.verbose)
-        )
-        # assign logger with the name drum.mlpiper.Executor to mlpiper Executor
-        self._pipeline_executor.set_logger(
-            logging.getLogger(LOGGER_NAME_PREFIX + "." + self._pipeline_executor.logger_name())
-        )
-
-        self.logger.info(
-            ">>> Start {} in the {} mode".format(ArgumentsOptions.MAIN_COMMAND, self.run_mode.value)
-        )
-        sc = StatsCollector(
-            disable_instance=(
-                not hasattr(self.options, "show_perf")
-                or not self.options.show_perf
-                or self.run_mode == RunMode.SERVER
-            )
-        )
-        sc.register_report("Full time", "end", StatsOperation.SUB, "start")
-        sc.register_report("Init time (incl model loading)", "init", StatsOperation.SUB, "start")
-        sc.register_report("Run time (incl reading CSV)", "run", StatsOperation.SUB, "init")
-        sc.enable()
-        try:
-            sc.mark("start")
-
-            self._pipeline_executor.init_pipeline()
-            self.runtime.initialization_succeeded = True
-            sc.mark("init")
-
-            self._pipeline_executor.run_pipeline(cleanup=False)
-            sc.mark("run")
-        finally:
-            self._pipeline_executor.cleanup_pipeline()
-            sc.mark("end")
-            sc.disable()
-        self.logger.info(
-            "<<< Finish {} in the {} mode".format(
-                ArgumentsOptions.MAIN_COMMAND, self.run_mode.value
-            )
-        )
-        sc.print_reports()
-        if self.run_mode == RunMode.SCORE:
-            # print result if output is not provided
-            if tmp_output_filename:
-                if self.target_type == TargetType.UNSTRUCTURED:
-                    with open(tmp_output_filename) as f:
-                        print(f.read())
-                else:
-                    print(pd.read_csv(tmp_output_filename))
 
     def _prepare_docker_command(self, options, run_mode, raw_arguments):
         """

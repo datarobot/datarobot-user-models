@@ -43,8 +43,8 @@ from datarobot_drum.drum.enum import (
     TargetType,
     InputFormatExtension,
 )
-from datarobot_drum.resource.drum_server_utils import DrumServerRun
-from datarobot_drum.resource.transform_helpers import (
+from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerRun
+from datarobot_drum.drum.root_predictors.transform_helpers import (
     read_csv_payload,
     read_mtx_payload,
     make_csv_payload,

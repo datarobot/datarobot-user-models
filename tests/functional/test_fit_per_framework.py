@@ -21,7 +21,7 @@ from datarobot_drum.drum.utils.drum_utils import (
     handle_missing_colnames,
     unset_drum_supported_env_vars,
 )
-from datarobot_drum.resource.utils import (
+from datarobot_drum.drum.root_predictors.utils import (
     _cmd_add_class_labels,
     _create_custom_model_dir,
     _exec_shell_cmd,

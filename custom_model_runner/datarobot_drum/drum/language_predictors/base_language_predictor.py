@@ -29,7 +29,7 @@ from datarobot_drum.drum.enum import (
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from datarobot_drum.drum.data_marshalling import marshal_predictions
-from datarobot_drum.resource.chat_helpers import is_streaming_response
+from datarobot_drum.drum.root_predictors.chat_helpers import is_streaming_response
 
 import datarobot as dr
 
@@ -78,7 +78,6 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         negative_class_label: Optional[str] = None,
         class_labels: Optional[List[str]] = None,
     ):
-        # TODO: Only use init, and do not initialize using mlpiper configure
         DrumClassLabelAdapter.__init__(
             self,
             target_type=target_type,
@@ -93,10 +92,9 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         self._schema_validator = None
         self._prompt_column_name = DEFAULT_PROMPT_COLUMN_NAME
 
-    def mlpiper_configure(self, params):
+    def configure(self, params):
         """
-        Set class instance variables based in mlpiper input.
-        TODO: Remove this function entirely, and have MLPiper init variables using the actual class init.
+        Set class instance variables based on input pipeline.
         """
         # DrumClassLabelAdapter fields
         self.positive_class_label = params.get("positiveClassLabel")

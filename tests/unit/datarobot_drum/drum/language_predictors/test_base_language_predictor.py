@@ -53,7 +53,7 @@ class TestChat:
     @pytest.fixture
     def language_predictor(self, chat_python_model_adapter):
         predictor = TestLanguagePredictor()
-        predictor.mlpiper_configure(
+        predictor.configure(
             {
                 "target_type": TargetType.TEXT_GENERATION,
                 "__custom_model_path__": "/non-existing-path-to-avoid-loading-unwanted-artifacts",
@@ -77,7 +77,7 @@ class TestChat:
     @pytest.fixture
     def language_predictor_with_mlops(self, chat_python_model_adapter, mock_mlops):
         predictor = TestLanguagePredictor()
-        predictor.mlpiper_configure(
+        predictor.configure(
             {
                 "target_type": TargetType.TEXT_GENERATION,
                 "__custom_model_path__": "/non-existing-path-to-avoid-loading-unwanted-artifacts",
@@ -217,7 +217,7 @@ class TestChat:
 
             mock_deployment.get.return_value = deployment_instance
 
-            language_predictor.mlpiper_configure(
+            language_predictor.configure(
                 {
                     "target_type": TargetType.TEXT_GENERATION,
                     "__custom_model_path__": "/non-existing-path-to-avoid-loading-unwanted-artifacts",

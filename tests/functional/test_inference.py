@@ -18,7 +18,7 @@ from datarobot_drum.drum.enum import (
     TargetType,
 )
 from datarobot_drum.drum.description import version as drum_version
-from datarobot_drum.resource.transform_helpers import (
+from datarobot_drum.drum.root_predictors.transform_helpers import (
     read_mtx_payload,
     parse_multi_part_response,
 )
@@ -36,8 +36,8 @@ from tests.constants import (
     SPARSE,
     TRANSFORM,
 )
-from datarobot_drum.resource.drum_server_utils import DrumServerRun
-from datarobot_drum.resource.utils import (
+from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerRun
+from datarobot_drum.drum.root_predictors.utils import (
     _cmd_add_class_labels,
     _create_custom_model_dir,
     _exec_shell_cmd,

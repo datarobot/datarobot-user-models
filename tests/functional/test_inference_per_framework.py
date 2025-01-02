@@ -34,14 +34,14 @@ from datarobot_drum.drum.utils.drum_utils import unset_drum_supported_env_vars
 from datarobot_drum.drum.utils.structured_input_read_utils import (
     StructuredInputReadUtils,
 )
-from datarobot_drum.resource.drum_server_utils import DrumServerRun, wait_for_server
-from datarobot_drum.resource.transform_helpers import (
+from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerRun, wait_for_server
+from datarobot_drum.drum.root_predictors.transform_helpers import (
     parse_multi_part_response,
     read_arrow_payload,
     read_csv_payload,
     read_mtx_payload,
 )
-from datarobot_drum.resource.utils import (
+from datarobot_drum.drum.root_predictors.utils import (
     _cmd_add_class_labels,
     _create_custom_model_dir,
     _exec_shell_cmd,
@@ -78,7 +78,7 @@ from tests.constants import (
     R_FAIL_CLASSIFICATION_VALIDATION_HOOKS,
     R_PREDICT_SPARSE,
     R_TRANSFORM_SPARSE_INPUT,
-    R_TRANSFORM_SPARSE_OUTPUT,
+    # R_TRANSFORM_SPARSE_OUTPUT,
     R_TRANSFORM_WITH_Y,
     R_VALIDATE_SPARSE_ESTIMATOR,
     RDS,
@@ -97,7 +97,6 @@ from tests.constants import (
     TRANSFORM,
     XGB,
     R,
-    TESTS_FIXTURES_PATH,
 )
 
 

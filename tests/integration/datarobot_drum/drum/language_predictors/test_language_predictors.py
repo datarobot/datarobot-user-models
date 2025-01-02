@@ -76,7 +76,7 @@ def test_lang_predictor_configure(predictor_params, essential_language_predictor
         init_params = copy.deepcopy(essential_language_predictor_init_params)
         init_params.update(predictor_params)
         lang_predictor = FakeLanguagePredictor()
-        lang_predictor.mlpiper_configure(init_params)
+        lang_predictor.configure(init_params)
         if (
             predictor_params.get("positiveClassLabel") is not None
             and predictor_params.get("negativeClassLabel") is not None
@@ -163,9 +163,9 @@ class TestPythonPredictor(object):
             py_predictor = PythonPredictor()
             if predictor_params["target_type"] == TargetType.TEXT_GENERATION:
                 with patch.dict(os.environ, {"TARGET_NAME": "Response"}):
-                    py_predictor.mlpiper_configure(init_params)
+                    py_predictor.configure(init_params)
             else:
-                py_predictor.mlpiper_configure(init_params)
+                py_predictor.configure(init_params)
             pred_params = {"target_type": predictor_params["target_type"]}
             py_predictor.predict(**pred_params)
 
@@ -205,7 +205,7 @@ class TestPythonPredictor(object):
             PythonModelAdapter, "load_model_from_artifact"
         ) as mock_load:
             mock_load.side_effect = Exception("artifact had an oops")
-            py_predictor.mlpiper_configure(init_params)
+            py_predictor.configure(init_params)
 
 
 @pytest.mark.skipif(not r_supported, reason="requires R framework to be installed")

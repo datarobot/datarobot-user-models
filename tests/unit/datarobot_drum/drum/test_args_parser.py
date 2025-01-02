@@ -18,7 +18,7 @@ import pytest
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.enum import ArgumentOptionsEnvVars, ArgumentsOptions
 from datarobot_drum.drum.utils.drum_utils import unset_drum_supported_env_vars
-from datarobot_drum.resource.utils import _exec_shell_cmd
+from datarobot_drum.drum.root_predictors.utils import _exec_shell_cmd
 
 
 def set_sys_argv(cmd_line_args):

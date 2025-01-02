@@ -28,12 +28,6 @@ class DrumUtils:
         pass
 
     @classmethod
-    def get_components_repo(cls):
-        components_repo = os.path.join(cls.resource_path, "components")
-        logger.debug("Components repo: {}".format(components_repo))
-        return components_repo
-
-    @classmethod
     def get_pipeline_filepath(cls, pipeline_name):
         pipeline_filepath = os.path.join(cls.resource_path, "pipelines", pipeline_name)
         logger.debug("Getting pipeline: {}".format(pipeline_filepath))

@@ -15,8 +15,8 @@ from tests.constants import (
     UNSTRUCTURED,
     TESTS_FIXTURES_PATH,
 )
-from datarobot_drum.resource.drum_server_utils import DrumServerRun
-from datarobot_drum.resource.utils import _create_custom_model_dir
+from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerRun
+from datarobot_drum.drum.root_predictors.utils import _create_custom_model_dir
 from datarobot_drum.drum.utils.drum_utils import unset_drum_supported_env_vars
 
 

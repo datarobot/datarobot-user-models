@@ -9,7 +9,6 @@ import sys
 from pathlib import Path
 
 from flask import jsonify
-from mlpiper.components.connectable_component import ConnectableComponent
 from werkzeug.exceptions import HTTPException
 
 from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
@@ -27,9 +26,11 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 from datarobot_drum.drum.resource_monitor import ResourceMonitor
 
-from datarobot_drum.resource.components.Python.prediction_server.stdout_flusher import StdoutFlusher
-from datarobot_drum.resource.deployment_config_helpers import parse_validate_deployment_config_file
-from datarobot_drum.resource.predict_mixin import PredictMixin
+from datarobot_drum.drum.root_predictors.stdout_flusher import StdoutFlusher
+from datarobot_drum.drum.root_predictors.deployment_config_helpers import (
+    parse_validate_deployment_config_file,
+)
+from datarobot_drum.drum.root_predictors.predict_mixin import PredictMixin
 
 
 from datarobot_drum.drum.server import (
@@ -43,86 +44,77 @@ from datarobot_drum.drum.server import (
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 
-class PredictionServer(ConnectableComponent, PredictMixin):
-    def __init__(self, engine):
-        super(PredictionServer, self).__init__(engine)
-        self._show_perf = False
-        self._stats_collector = None
-        self._resource_monitor = None
-        self._run_language = None
-        self._gpu_predictor_type = None
-        self._predictor = None
-        self._target_type = None
-        self._code_dir = None
-        self._deployment_config = None
-        self._stdout_flusher = StdoutFlusher()
-
-    def configure(self, params):
-        super(PredictionServer, self).configure(params)
-        self._code_dir = self._params.get("__custom_model_path__")
+class PredictionServer(PredictMixin):
+    def __init__(self, params: dict):
+        self._params = params
         self._show_perf = self._params.get("show_perf")
+        self._resource_monitor = ResourceMonitor(monitor_current_process=True)
         self._run_language = RunLanguage(params.get("run_language"))
         self._gpu_predictor_type = self._params.get("gpu_predictor")
         self._target_type = TargetType(params[TARGET_TYPE_ARG_KEYWORD])
-        self._stats_collector = StatsCollector(disable_instance=not self._show_perf)
-
-        self._stats_collector.register_report(
-            "run_predictor_total", "finish", StatsOperation.SUB, "start"
-        )
-        self._resource_monitor = ResourceMonitor(monitor_current_process=True)
+        self._code_dir = self._params.get("__custom_model_path__")
         self._deployment_config = parse_validate_deployment_config_file(
             self._params["deployment_config"]
         )
+        self._stdout_flusher = StdoutFlusher()
 
+        self._stats_collector = StatsCollector(disable_instance=not self._show_perf)
+        self._stats_collector.register_report(
+            "run_predictor_total", "finish", StatsOperation.SUB, "start"
+        )
+        self._predictor = self._setup_predictor()
+
+    def _setup_predictor(self):
         if self._run_language == RunLanguage.PYTHON:
             from datarobot_drum.drum.language_predictors.python_predictor.python_predictor import (
                 PythonPredictor,
             )
 
-            self._predictor = PythonPredictor()
+            predictor = PythonPredictor()
         elif self._run_language == RunLanguage.JAVA:
             from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import (
                 JavaPredictor,
             )
 
-            self._predictor = JavaPredictor()
+            predictor = JavaPredictor()
         elif self._run_language == RunLanguage.JULIA:
             from datarobot_drum.drum.language_predictors.julia_predictor.julia_predictor import (
                 JlPredictor,
             )
 
-            self._predictor = JlPredictor()
+            predictor = JlPredictor()
         elif self._run_language == RunLanguage.R:
             # this import is here, because RPredictor imports rpy library,
             # which is not installed for Java and Python cases.
             from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
 
-            self._predictor = RPredictor()
+            predictor = RPredictor()
         elif self._gpu_predictor_type and self._gpu_predictor_type == GPU_PREDICTORS.TRITON:
             from datarobot_drum.drum.gpu_predictors.triton_predictor import (
                 TritonPredictor,
             )
 
-            self._predictor = TritonPredictor()
+            predictor = TritonPredictor()
         elif self._gpu_predictor_type and self._gpu_predictor_type == GPU_PREDICTORS.NIM:
             from datarobot_drum.drum.gpu_predictors.nim_predictor import (
                 NIMPredictor,
             )
 
-            self._predictor = NIMPredictor()
+            predictor = NIMPredictor()
         elif self._gpu_predictor_type and self._gpu_predictor_type == GPU_PREDICTORS.VLLM:
             from datarobot_drum.drum.gpu_predictors.vllm_predictor import (
                 VllmPredictor,
             )
 
-            self._predictor = VllmPredictor()
+            predictor = VllmPredictor()
         else:
             raise DrumCommonException(
                 "Prediction server doesn't support language: {} ".format(self._run_language)
             )
 
         self._stdout_flusher.start()
-        self._predictor.mlpiper_configure(params)
+        predictor.configure(self._params)
+        return predictor
 
     def _terminate(self):
         if hasattr(self._predictor, "terminate"):
@@ -138,7 +130,7 @@ class PredictionServer(ConnectableComponent, PredictMixin):
         self._stats_collector.disable()
         self._stdout_flusher.set_last_activity_time()
 
-    def _materialize(self, parent_data_objs, user_data):
+    def materialize(self):
         model_api = base_api_blueprint(self._terminate, self._predictor)
 
         @model_api.route("/capabilities/", methods=["GET"])

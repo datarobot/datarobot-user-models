@@ -4,8 +4,8 @@ import subprocess
 from pathlib import Path
 from subprocess import CalledProcessError
 
-from datarobot_drum.drum.enum import TritonInferenceServerArtifacts
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.enum import TritonInferenceServerArtifacts
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.utils.drum_utils import DrumUtils
 
@@ -107,7 +107,7 @@ class NGCRegistryClient:
 class S3Client:
     def __init__(self, s3_url, credential):
         import boto3
-        from mlpiper.extra.aws_helper import AwsHelper
+        from .aws_helper import AwsHelper
 
         parsed_url = AwsHelper.s3_url_parse(s3_url)
         self.bucket_name = parsed_url[0]

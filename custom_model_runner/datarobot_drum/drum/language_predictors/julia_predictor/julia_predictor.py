@@ -66,8 +66,8 @@ class JlPredictor(BaseLanguagePredictor):
     ):
         super(JlPredictor, self).__init__()
 
-    def mlpiper_configure(self, params):
-        super(JlPredictor, self).mlpiper_configure(params)
+    def configure(self, params):
+        super(JlPredictor, self).configure(params)
         logger.info(f"loading {JL_SCORE_PATH}")
         jl.eval(f'include("{JL_SCORE_PATH}")')
         logger.info(f"{JL_SCORE_PATH} loaded")
