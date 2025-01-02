@@ -4,11 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-#### [1.16.0] - In Progress
+#### [1.16.0] - 2025-01-02
 ##### Changed
 - Deprecate the '--production' mode and replace its functionality with Flask running in multi-process mode.
   Previously, this mode relied on the Nginx and uWSGI servers, which have now been removed.
 - Remove 'mlpiper' dependency and replace its functionality with comparable built-in implementations.
+- Add GeoPoint target type support for custom models.
+- Adapt Notebook custom environments to be compatible with custom models
+- Internal enhancements
 
 #### [1.15.0] - 2024-11-26
 ##### Changed
