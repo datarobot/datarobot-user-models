@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. ${script_dir}/../common/create_and_source_venv.sh
+
 echo "== Preparing to test =="
 apt-get update && apt-get install -y curl
 
@@ -20,10 +23,10 @@ pip install -r requirements_test.txt
 echo "== Uninstall drum =="
 pip uninstall -y datarobot-drum
 
-cd custom_model_runner
+pushd custom_model_runner
 echo "== Install drum from source =="
 pip install .
-cd -
+popd
 
 # pytest tests/functional/test_mlops_monitoring.py -k "not test_drum_unstructured_model_embedded_monitoring_in_sklearn_env" -n 1
 pytest tests/functional/test_mlops_monitoring.py
