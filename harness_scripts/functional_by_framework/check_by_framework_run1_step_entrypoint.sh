@@ -25,7 +25,6 @@ REQ_FILE_PATH="${PUBLIC_ENVS_DIR}/${FRAMEWORK}/requirements.txt"
 # remove DRUM from requirements file to be able to install it from source
 sed -i "s/^datarobot-drum.*//" ${REQ_FILE_PATH}
 
-
 [ "$FRAMEWORK" = "r_lang" ] && EXTRA="[R]" || EXTRA=""
 pip install --upgrade --force-reinstall -r ${REQ_FILE_PATH} .$EXTRA
 

@@ -150,7 +150,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         else:
             for required_param in ["external_webserver_url", "api_token"]:
                 if required_param not in self._params:
-                    raise ValueError(f"MLOps API spooler requires '{required_param}' parameter")
+                    raise ValueError(f"MLOps monitoring requires '{required_param}' parameter")
             self._mlops.set_api_spooler(
                 mlops_service_url=self._params["external_webserver_url"],
                 mlops_api_token=self._params["api_token"],
@@ -175,9 +175,6 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             )
 
         return DEFAULT_PROMPT_COLUMN_NAME
-
-    def _configure_mlops_for_non_chat(self):
-        self._mlops.set_channel_config(self._params["monitor_settings"])
 
     @staticmethod
     def _validate_expected_env_variables(*args):

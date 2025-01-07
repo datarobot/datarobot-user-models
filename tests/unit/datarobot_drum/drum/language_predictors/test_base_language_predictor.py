@@ -201,7 +201,7 @@ class TestChat:
             params = mlops_params.copy()
             params.pop(missing_param)
             with pytest.raises(
-                ValueError, match=f"MLOps API spooler requires '{missing_param}' parameter"
+                ValueError, match=f"MLOps monitoring requires '{missing_param}' parameter"
             ):
                 predictor.configure(params)
 
