@@ -711,8 +711,6 @@ class CMRunTests:
             self._schema_validator.validate_outputs(transformed_values)
 
     def check_prediction_side_effects(self):
-        rtol = 2e-02
-        atol = 1e-06
         input_extension = os.path.splitext(self.options.input)
         is_sparse = input_extension[1] == InputFormatExtension.MTX
 
@@ -781,23 +779,40 @@ class CMRunTests:
 
             self._schema_validator.validate_outputs(preds_sample)
 
-            matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)
-            if not np.all(matches):
-                if is_sparse:
-                    _, __tempfile_sample = mkstemp(suffix=InputFormatExtension.MTX)
-                    sparse_mat = vstack(x[0] for x in data_subset.values)
-                    mmwrite(__tempfile_sample, sparse_mat.sparse.to_coo())
-                else:
-                    _, __tempfile_sample = mkstemp(suffix=".csv")
-                    data_subset.to_csv(__tempfile_sample, index=False)
+            self.compare_predictions(
+                preds_full_subset, preds_sample, data_subset, is_sparse=is_sparse
+            )
 
-                message = """
-                            Warning: Your predictions were different when we tried to predict twice.
-                            The last 10 predictions from the main predict run were: {}
-                            However when we reran predictions on the same data, we got: {}.
-                            The sample used to calculate prediction reruns can be found in this file: {}""".format(
-                    preds_full_subset[~matches][:10].to_string(index=False),
-                    preds_sample[~matches][:10].to_string(index=False),
-                    __tempfile_sample,
-                )
-                raise DrumPredException(message)
+    @staticmethod
+    def compare_predictions(
+        preds_full_subset: pd.DataFrame,
+        preds_sample: pd.DataFrame,
+        data_subset: pd.DataFrame,
+        is_sparse: bool,
+    ) -> None:
+        """Compare the predictions from the full dataset and the sample dataset.  If they do not match
+        then generate a temporary file for the user to inspect later on.  Also generate an error message.
+        """
+        rtol = 2e-02
+        atol = 1e-06
+        rows_to_display = 10
+
+        matches = np.isclose(preds_full_subset, preds_sample, rtol=rtol, atol=atol)
+        if not np.all(matches):
+            if is_sparse:
+                _, __tempfile_sample = mkstemp(suffix=InputFormatExtension.MTX)
+                mmwrite(__tempfile_sample, data_subset.sparse.to_coo())
+            else:
+                _, __tempfile_sample = mkstemp(suffix=".csv")
+                data_subset.to_csv(__tempfile_sample, index=False)
+
+            message = """
+                        Warning: Your predictions were different when we tried to predict twice.
+                        The last 10 predictions from the main predict run were: {}
+                        However when we reran predictions on the same data, we got: {}.
+                        The sample used to calculate prediction reruns can be found in this file: {}""".format(
+                preds_full_subset[~matches][:rows_to_display].to_string(index=False),
+                preds_sample[~matches][:rows_to_display].to_string(index=False),
+                __tempfile_sample,
+            )
+            raise DrumPredException(message)

@@ -14,8 +14,10 @@ import numpy as np
 import pytest
 import pandas as pd
 import responses
+import scipy
 
 from datarobot_drum.drum.enum import TargetType
+from datarobot_drum.drum.exceptions import DrumPredException
 from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 
@@ -225,3 +227,51 @@ class TestCheckTransformServer:
             verbose=mock_options.verbose,
             user_secrets_mount_path=mount_path,
         )
+
+
+class TestComparePredictions:
+    @pytest.fixture
+    def df_size(self):
+        return 10
+
+    @pytest.fixture
+    def predictions_1(self, df_size):
+        data = np.array([[0.3, 0.7]] * df_size)
+        return pd.DataFrame(data, columns=[1, 0])
+
+    @pytest.fixture
+    def predictions_2(self, df_size):
+        data = np.array([[0.35, 0.65]] * df_size)
+        return pd.DataFrame(data, columns=[1, 0])
+
+    @pytest.fixture
+    def dense_input_df(self, df_size):
+        data = [[1, 0, 0, 2, 0, 0, 4]] * df_size
+        return pd.DataFrame(data, columns=["a", "b", "c", "d", "e", "f", "g"])
+
+    @pytest.fixture
+    def sparse_input_df(self, df_size):
+        mat = scipy.sparse.eye(df_size, dtype=float)
+        return pd.DataFrame.sparse.from_spmatrix(mat)
+
+    @pytest.mark.parametrize(
+        "is_sparse, input_df", [(False, "dense_input_df"), (True, "sparse_input_df")]
+    )
+    def test_matching(self, request, predictions_1, input_df, is_sparse):
+        input_df = request.getfixturevalue(input_df)
+        assert (
+            CMRunTests.compare_predictions(
+                predictions_1, predictions_1, input_df, is_sparse=is_sparse
+            )
+            is None
+        )
+
+    @pytest.mark.parametrize(
+        "is_sparse, input_df", [(False, "dense_input_df"), (True, "sparse_input_df")]
+    )
+    def test_not_matching(self, request, predictions_1, predictions_2, input_df, is_sparse):
+        input_df = request.getfixturevalue(input_df)
+        with pytest.raises(DrumPredException):
+            CMRunTests.compare_predictions(
+                predictions_1, predictions_2, input_df, is_sparse=is_sparse
+            )
