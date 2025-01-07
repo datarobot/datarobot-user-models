@@ -1,5 +1,4 @@
 argcomplete
-datarobot>=3.1.0,<4
 # trafaret version pinning is defined by `datarobot`
 trafaret>=2.0.0
 docker>=4.2.2
@@ -25,3 +24,5 @@ packaging
 markupsafe
 pydantic
 datarobot-storage
+datarobot-mlops>=10.2.0  # Required for the 'set_api_spooler' with arugments
+datarobot>=3.1.0,<4

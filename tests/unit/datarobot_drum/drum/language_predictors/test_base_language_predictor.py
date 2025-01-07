@@ -57,6 +57,8 @@ class TestChat:
             {
                 "target_type": TargetType.TEXT_GENERATION,
                 "__custom_model_path__": "/non-existing-path-to-avoid-loading-unwanted-artifacts",
+                "external_webserver_url": "http://some.domain",
+                "api_token": "1234qwer",
             }
         )
 
@@ -77,15 +79,18 @@ class TestChat:
     @pytest.fixture
     def language_predictor_with_mlops(self, chat_python_model_adapter, mock_mlops):
         predictor = TestLanguagePredictor()
-        predictor.configure(
-            {
-                "target_type": TargetType.TEXT_GENERATION,
-                "__custom_model_path__": "/non-existing-path-to-avoid-loading-unwanted-artifacts",
-                "deployment_id": "deployment_id",
-            }
-        )
-
+        predictor.configure(self._language_predictor_with_mlops_parameters())
         yield predictor
+
+    @staticmethod
+    def _language_predictor_with_mlops_parameters():
+        return {
+            "target_type": TargetType.TEXT_GENERATION,
+            "__custom_model_path__": "/non-existing-path-to-avoid-loading-unwanted-artifacts",
+            "deployment_id": "1234",
+            "external_webserver_url": "http://webserver",
+            "api_token": "1234qwer",
+        }
 
     @pytest.mark.parametrize("stream", [False, True])
     def test_chat_without_mlops(self, language_predictor, stream):
@@ -189,6 +194,17 @@ class TestChat:
             mock_mlops.report_predictions_data.call_args.args[0]["promptText"].values[0] == "Hello!"
         )
 
+    def test_missing_required_mlops_parameters(self, chat_python_model_adapter, mock_mlops):
+        predictor = TestLanguagePredictor()
+        mlops_params = self._language_predictor_with_mlops_parameters()
+        for missing_param in ["external_webserver_url", "api_token"]:
+            params = mlops_params.copy()
+            params.pop(missing_param)
+            with pytest.raises(
+                ValueError, match=f"MLOps monitoring requires '{missing_param}' parameter"
+            ):
+                predictor.configure(params)
+
     def test_association_id(self, language_predictor_with_mlops, mock_mlops):
         with patch.object(TestLanguagePredictor, "_chat") as mock_chat:
             mock_chat.return_value = create_completion("How are you")
@@ -214,16 +230,9 @@ class TestChat:
         with patch("datarobot.Deployment") as mock_deployment:
             deployment_instance = Mock()
             deployment_instance.model = {"prompt": "newPromptName"}
-
             mock_deployment.get.return_value = deployment_instance
 
-            language_predictor.configure(
-                {
-                    "target_type": TargetType.TEXT_GENERATION,
-                    "__custom_model_path__": "/non-existing-path-to-avoid-loading-unwanted-artifacts",
-                    "deployment_id": "123",
-                }
-            )
+            language_predictor.configure(self._language_predictor_with_mlops_parameters())
 
         def chat_hook(completion_request):
             return create_completion("How are you")
@@ -258,7 +267,7 @@ class TestChat:
         language_predictor_with_mlops.chat_hook = chat_hook
 
         with pytest.raises(BadRequest):
-            response = language_predictor_with_mlops.chat(
+            language_predictor_with_mlops.chat(
                 {
                     "model": "any",
                     "messages": [

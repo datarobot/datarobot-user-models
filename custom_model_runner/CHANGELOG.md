@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Deprecate the '--production' mode and replace its functionality with Flask running in multi-process mode.
   Previously, this mode relied on the Nginx and uWSGI servers, which have now been removed.
 - Remove 'mlpiper' dependency and replace its functionality with comparable built-in implementations.
+- Avoid using the mlops tracking agent to report statistics to DataRobot
 
 #### [1.15.0] - 2024-11-26
 ##### Changed

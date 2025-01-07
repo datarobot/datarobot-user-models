@@ -76,25 +76,6 @@ class PythonPredictor(BaseLanguagePredictor):
     def supports_chat(self):
         return self._model_adapter.has_custom_hook(CustomHooks.CHAT)
 
-    def _configure_mlops_for_non_chat(self):
-        monitor_settings = self._params.get("monitor_settings")
-
-        if not monitor_settings:
-            self._mlops_spool_dir = tempfile.mkdtemp()
-            monitor_settings = (
-                "spooler_type=FILESYSTEM;directory={};max_files=5;file_max_size=10485760".format(
-                    self._mlops_spool_dir
-                )
-            )
-
-        self._mlops.set_channel_config(monitor_settings)
-
-        if to_bool(self._params["monitor_embedded"]):
-            self._mlops.agent(
-                mlops_service_url=self._params["external_webserver_url"],
-                mlops_api_token=self._params["api_token"],
-            )
-
     @property
     def supported_payload_formats(self):
         return self._model_adapter.supported_payload_formats

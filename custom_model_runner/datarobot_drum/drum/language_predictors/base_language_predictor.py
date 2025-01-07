@@ -134,27 +134,27 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         if self._params.get("model_id", None):
             self._mlops.set_model_id(self._params["model_id"])
 
+        self._configure_mlops()
+
         if self.supports_chat():
-            self._configure_mlops_for_chat()
-        else:
-            self._configure_mlops_for_non_chat()
+            self._prompt_column_name = self.get_prompt_column_name()
+            logger.debug("Prompt column name: %s", self._prompt_column_name)
 
         self._mlops.init()
 
-    def _configure_mlops_for_chat(self):
+    def _configure_mlops(self):
         # If monitor_settings were provided (e.g. for testing) use them, otherwise we will
         # use the API spooler as the default config.
         if self._params.get("monitor_settings"):
             self._mlops.set_channel_config(self._params["monitor_settings"])
         else:
+            for required_param in ["external_webserver_url", "api_token"]:
+                if required_param not in self._params:
+                    raise ValueError(f"MLOps monitoring requires '{required_param}' parameter")
             self._mlops.set_api_spooler(
-                # TODO: when 10.2.0 has been released...
-                # mlops_service_url=self._params["external_webserver_url"],
-                # mlops_api_token=self._params["api_token"],
+                mlops_service_url=self._params["external_webserver_url"],
+                mlops_api_token=self._params["api_token"],
             )
-
-        self._prompt_column_name = self.get_prompt_column_name()
-        logger.debug("Prompt column name: %s", self._prompt_column_name)
 
     def get_prompt_column_name(self):
         if not self._params.get("deployment_id", None):
@@ -175,9 +175,6 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             )
 
         return DEFAULT_PROMPT_COLUMN_NAME
-
-    def _configure_mlops_for_non_chat(self):
-        self._mlops.set_channel_config(self._params["monitor_settings"])
 
     @staticmethod
     def _validate_expected_env_variables(*args):

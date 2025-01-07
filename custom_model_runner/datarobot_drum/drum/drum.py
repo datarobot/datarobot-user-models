@@ -1001,7 +1001,6 @@ class CMRunner:
             [
                 "docker",
                 "run",
-                "-it",
                 "--entrypoint",
                 # provide empty entrypoint value to unset the one that could be set within the image
                 "",

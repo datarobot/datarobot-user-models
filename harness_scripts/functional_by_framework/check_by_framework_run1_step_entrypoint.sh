@@ -3,13 +3,16 @@
 FRAMEWORK=$1
 [ -z $FRAMEWORK ] && echo "Environment variable 'FRAMEWORK' is missing" && exit 1
 
-echo "== Assuming running integration tests in framework container (inside Docker), for env: <+pipeline.variables.framework>"
+echo "== Assuming running integration tests in framework container (inside Docker), for env: '$FRAMEWORK' =="
 ROOT_DIR="$(pwd)"
+
+script_dir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
+. ${script_dir}/../common/update_python_to_meet_requirements.sh
 
 echo "== Installing pytest =="
 pip install pytest pytest-xdist
 echo "== Uninstalling datarobot-drum =="
-pip uninstall datarobot-drum -y
+pip uninstall datarobot-drum datarobot-mlops -y
 cd custom_model_runner
 echo "== Install datarobot-drum from source =="
 if [ "$FRAMEWORK" = "java_codegen" ]; then
@@ -22,7 +25,8 @@ REQ_FILE_PATH="${PUBLIC_ENVS_DIR}/${FRAMEWORK}/requirements.txt"
 # remove DRUM from requirements file to be able to install it from source
 sed -i "s/^datarobot-drum.*//" ${REQ_FILE_PATH}
 
-pip install --force-reinstall -r ${REQ_FILE_PATH} .
+[ "$FRAMEWORK" = "r_lang" ] && EXTRA="[R]" || EXTRA=""
+pip install --upgrade --force-reinstall -r ${REQ_FILE_PATH} .$EXTRA
 
 cd -
 TESTS_TO_RUN="tests/functional/test_inference_per_framework.py \

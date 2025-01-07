@@ -8,6 +8,10 @@ import contextlib
 import json
 import multiprocessing
 import os
+import shutil
+import subprocess
+import tempfile
+from contextlib import contextmanager
 from pathlib import Path
 import re
 from subprocess import TimeoutExpired
@@ -27,6 +31,7 @@ from datarobot_drum.drum.enum import ArgumentsOptions
 from datarobot_drum.drum.enum import RunMode
 from datarobot_drum.drum.runtime import DrumRuntime
 from datarobot_drum.drum.language_predictors.base_language_predictor import MLOps
+from tests.fixtures.unstructured_custom_mlops import NUM_REPORTED_DEPLOYMENT_STATS
 
 from tests.constants import (
     SKLEARN,
@@ -59,15 +64,10 @@ class TestMLOpsMonitoring:
         tmp_mlops_filepath.rename(mlops_path)
 
     @contextlib.contextmanager
-    def local_webserver_stub(self, expected_pred_requests_queries=0):
-        init_cache_data = {"actual_version_queries": 0, "actual_pred_requests_queries": 0}
+    def local_webserver_stub(self):
+        init_cache_data = {"actual_pred_requests_queries": 0}
         with SimpleCache(init_cache_data) as cache:
             app = Flask(__name__)
-
-            @app.route("/api/v2/version/")
-            def version():
-                cache.inc_value("actual_version_queries")
-                return json.dumps({"major": 2, "minor": 28, "versionString": "2.28.0"}), 200
 
             @app.route(
                 "/api/v2/deployments/<deployment_id>/predictionRequests/fromJSON/", methods=["POST"]
@@ -87,15 +87,14 @@ class TestMLOpsMonitoring:
             @retry((AssertionError,), delay=1, tries=10)
             def _verify_expected_queries():
                 cache_data = cache.read_cache()
-                assert cache_data["actual_version_queries"] == 3
-                if expected_pred_requests_queries:
-                    assert (
-                        cache_data["actual_pred_requests_queries"] == expected_pred_requests_queries
-                    )
+                assert cache_data["actual_pred_requests_queries"] == NUM_REPORTED_DEPLOYMENT_STATS
 
-            _verify_expected_queries()
-
-            proc.terminate()
+            try:
+                _verify_expected_queries()
+            finally:
+                proc.terminate()
+                time.sleep(0.1)  # wait for the server to stop
+                proc.kill()
 
     @staticmethod
     def _drum_with_monitoring(
@@ -135,16 +134,18 @@ class TestMLOpsMonitoring:
         cmd += " --monitor-embedded" if is_embedded else " --monitor"
 
         if with_monitor_settings:
-            mlops_spool_dir = tmp_path / "mlops_spool"
-            os.mkdir(str(mlops_spool_dir))
+            if is_embedded:
+                monitor_settings = "spooler_type=STDOUT"
+            else:
+                mlops_spool_dir = tmp_path / "mlops_spool"
+                os.mkdir(str(mlops_spool_dir))
 
-            # spooler_type is case-insensitive in the datarobot-mlops==8.3.0
-            monitor_settings = (
-                "spooler_type={};directory={};max_files=1;file_max_size=1024000".format(
-                    "FILESYSTEM" if is_embedded else "filesystem", mlops_spool_dir
+                # spooler_type is case-insensitive in the datarobot-mlops==8.3.0jjj
+                monitor_settings = (
+                    "spooler_type=filesystem;directory={};max_files=1;file_max_size=1024000".format(
+                        mlops_spool_dir
+                    )
                 )
-            )
-
             cmd += ' --monitor-settings="{}"'.format(monitor_settings)
 
         if is_embedded:
@@ -159,7 +160,7 @@ class TestMLOpsMonitoring:
         if docker:
             cmd += " --docker {} --verbose ".format(docker)
 
-        return cmd, input_dataset, output, mlops_spool_dir
+        return cmd, input_dataset, output
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
@@ -170,20 +171,15 @@ class TestMLOpsMonitoring:
     def test_drum_regression_model_monitoring_with_mlops_installed(
         self, resources, framework, problem, language, docker, tmp_path
     ):
-        cmd, input_file, output_file, mlops_spool_dir = TestMLOpsMonitoring._drum_with_monitoring(
-            resources, framework, problem, language, docker, tmp_path
+        cmd, input_file, output_file = TestMLOpsMonitoring._drum_with_monitoring(
+            resources, framework, problem, language, docker, tmp_path, with_monitor_settings=True
         )
-
         _exec_shell_cmd(
             cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
         )
         in_data = pd.read_csv(input_file)
         out_data = pd.read_csv(output_file)
         assert in_data.shape[0] == out_data.shape[0]
-
-        print("Spool dir {}".format(mlops_spool_dir))
-        assert os.path.isdir(mlops_spool_dir)
-        assert os.path.isfile(os.path.join(mlops_spool_dir, "fs_spool.1"))
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
@@ -201,7 +197,7 @@ class TestMLOpsMonitoring:
         -------
 
         """
-        cmd, _, _, _ = TestMLOpsMonitoring._drum_with_monitoring(
+        cmd, _, _ = TestMLOpsMonitoring._drum_with_monitoring(
             resources, framework, problem, language, docker, tmp_path
         )
         p, _, _ = _exec_shell_cmd(
@@ -222,7 +218,7 @@ class TestMLOpsMonitoring:
     def test_drum_regression_model_monitoring_fails_in_unstructured_mode(
         self, resources, framework, problem, language, docker, tmp_path
     ):
-        cmd, _, _, _ = TestMLOpsMonitoring._drum_with_monitoring(
+        cmd, _, _ = TestMLOpsMonitoring._drum_with_monitoring(
             resources, framework, problem, language, docker, tmp_path
         )
 
@@ -240,14 +236,10 @@ class TestMLOpsMonitoring:
         "framework, problem, language",
         [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_MLOPS)],
     )
-    @pytest.mark.parametrize(
-        "with_monitor_settings",
-        [False, True],
-    )
-    def test_drum_unstructured_model_embedded_monitoring(
-        self, resources, framework, problem, language, tmp_path, with_monitor_settings
+    def test_drum_unstructured_model_embedded_mlops_reporting(
+        self, resources, framework, problem, language, tmp_path
     ):
-        cmd, _, output_file, mlops_spool_dir = TestMLOpsMonitoring._drum_with_monitoring(
+        cmd, _, output_file = TestMLOpsMonitoring._drum_with_monitoring(
             resources,
             framework,
             problem,
@@ -255,22 +247,44 @@ class TestMLOpsMonitoring:
             docker=None,
             tmp_path=tmp_path,
             is_embedded=True,
-            with_monitor_settings=with_monitor_settings,
+            with_monitor_settings=False,
         )
-
-        if with_monitor_settings:
-            assert os.path.exists(mlops_spool_dir)
-        else:
-            assert mlops_spool_dir is None
 
         with self.local_webserver_stub():
             _exec_shell_cmd(
                 cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
             )
 
-        with open(output_file) as f:
-            out_data = f.read()
-            assert "10" in out_data
+    @pytest.mark.parametrize(
+        "framework, problem, language",
+        [(None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_MLOPS)],
+    )
+    def test_drum_unstructured_model_with_stdout_spooler_type(
+        self,
+        resources,
+        framework,
+        problem,
+        language,
+        tmp_path,
+        capsys,
+    ):
+        cmd, _, output_file = TestMLOpsMonitoring._drum_with_monitoring(
+            resources,
+            framework,
+            problem,
+            language,
+            docker=None,
+            tmp_path=tmp_path,
+            is_embedded=True,
+            with_monitor_settings=True,
+        )
+
+        _exec_shell_cmd(
+            cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
+        )
+        captured = capsys.readouterr()
+        messages = captured.out.split("\n")
+        assert len([m for m in messages if "payload" in m]) == NUM_REPORTED_DEPLOYMENT_STATS
 
     @pytest.mark.parametrize(
         "framework, problem, language",
@@ -279,7 +293,7 @@ class TestMLOpsMonitoring:
     def test_drum_unstructured_model_embedded_monitoring_in_sklearn_env(
         self, resources, framework, problem, language, tmp_path
     ):
-        cmd, _, output_file, mlops_spool_dir = TestMLOpsMonitoring._drum_with_monitoring(
+        cmd, _, output_file = TestMLOpsMonitoring._drum_with_monitoring(
             resources,
             framework,
             problem,
@@ -287,39 +301,92 @@ class TestMLOpsMonitoring:
             docker=None,
             tmp_path=tmp_path,
             is_embedded=True,
-            # Only test without explicitly provided monitor settings. Spooler folder will be created by default by DRUM.
-            # If explicitly provide spooler folder, it should be mapped in `docker run`
             with_monitor_settings=False,
         )
 
-        cmd += " --docker {}/{}".format(PUBLIC_DROPIN_ENVS_PATH, PYTHON_SKLEARN)
+        py_sklearn_env_path = Path(PUBLIC_DROPIN_ENVS_PATH) / PYTHON_SKLEARN
+        with self._drop_in_environment_with_drum_from_source_code(
+            py_sklearn_env_path
+        ) as new_py_sklearn_env_path:
+            cmd += f" --docker {new_py_sklearn_env_path}"
 
-        arg_parser = CMRunnerArgsRegistry.get_arg_parser()
-        args = cmd.split()
+            arg_parser = CMRunnerArgsRegistry.get_arg_parser()
+            args = cmd.split()
 
-        # drop first `drum` token from the args list to be correctly parsed by arg_parser
-        options = arg_parser.parse_args(args[1:])
-        CMRunnerArgsRegistry.verify_options(options)
-        runtime = DrumRuntime()
-        runtime.options = options
-        cm_runner = CMRunner(runtime)
+            # drop first `drum` token from the args list to be correctly parsed by arg_parser
+            options = arg_parser.parse_args(args[1:])
+            CMRunnerArgsRegistry.verify_options(options)
+            runtime = DrumRuntime()
+            runtime.options = options
+            cm_runner = CMRunner(runtime)
 
-        # This command tries to build the image and returns cmd to start DRUM in container
-        docker_cmd_lst = cm_runner._prepare_docker_command(options, RunMode.SCORE, args)
+            # This command tries to build the image and returns cmd to start DRUM in container
+            docker_cmd_lst = cm_runner._prepare_docker_command(options, RunMode.SCORE, args)
 
-        # Configure network for the container and map the stub server port.
-        # I'm not sure, I want to add the following logic into DRUM itself. It should be considered expert usage
-        docker_cmd_lst.insert(3, "--net")
-        docker_cmd_lst.insert(4, "host")
-        docker_cmd_lst.insert(5, "-p")
-        docker_cmd_lst.insert(6, "13909:13909")
+            # Configure network for the container and map the stub server port.
+            # I'm not sure, I want to add the following logic into DRUM itself. It should be considered expert usage
+            docker_cmd_lst.insert(3, "--net")
+            docker_cmd_lst.insert(4, "host")
+            # docker_cmd_lst.insert(5, "-p")
+            # docker_cmd_lst.insert(6, "13909:13909")
 
-        with self.local_webserver_stub():
-            _exec_shell_cmd(docker_cmd_lst, "Failed in command line! {}".format(docker_cmd_lst))
+            with self.local_webserver_stub():
+                _exec_shell_cmd(docker_cmd_lst, "Failed in command line! {}".format(docker_cmd_lst))
 
         with open(output_file) as f:
             out_data = f.read()
             assert "10" in out_data
+
+    @contextlib.contextmanager
+    def _drop_in_environment_with_drum_from_source_code(self, drop_in_env_path: Path):
+        """
+        This context manager creates a temporary environment with the DRUM from the source code.
+        """
+        current_drum_path = Path(__file__).parent.parent.parent / "custom_model_runner"
+        try:
+            subprocess.run(
+                ["make"],
+                cwd=current_drum_path,
+                check=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
+        except subprocess.CalledProcessError as exc:
+            print(f"Failed to build the drum: {exc.stderr.decode()}")
+            raise
+
+        files = [f.name for f in (current_drum_path / "dist").iterdir() if f.is_file()]
+        if len(files) != 1:
+            raise ValueError("Expected only one file in the drum dist directory")
+        drum_wheel_filename = files[0]
+
+        with tempfile.TemporaryDirectory() as temp_env_dir:
+            shutil.copytree(drop_in_env_path, temp_env_dir, dirs_exist_ok=True)
+
+            shutil.copy(current_drum_path / "dist" / drum_wheel_filename, temp_env_dir)
+
+            dockerfile_path = Path(temp_env_dir) / "Dockerfile"
+
+            with open(dockerfile_path, "r") as file:
+                dockerfile_lines = file.readlines()
+
+            for index, line in enumerate(dockerfile_lines):
+                if "RUN pip3 install -U pip" in line:
+                    for lookahead in range(index + 1, len(dockerfile_lines)):
+                        if not dockerfile_lines[lookahead].strip():
+                            dockerfile_lines[lookahead + 1 : lookahead + 1] = [
+                                f"COPY {drum_wheel_filename} {drum_wheel_filename}\n",
+                                f"RUN pip3 uninstall -y datarobot-drum datarobot-mlops && \\\n"
+                                f"    pip3 install --force-reinstall {drum_wheel_filename} && \\\n"
+                                f"    rm -rf {drum_wheel_filename}\n\n",
+                            ]
+                            break
+                    break
+
+            with open(dockerfile_path, "w") as file:
+                file.writelines(dockerfile_lines)
+
+            yield temp_env_dir
 
     @pytest.mark.parametrize(
         "framework, problem, language, docker",
@@ -336,14 +403,6 @@ class TestMLOpsMonitoring:
             language,
         )
 
-        mlops_spool_dir = tmp_path / "mlops_spool"
-        os.mkdir(str(mlops_spool_dir))
-        monitor_settings = (
-            "spooler_type=FILESYSTEM;directory={};max_files=1;file_max_size=1024000".format(
-                mlops_spool_dir
-            )
-        )
-
         pred_server_host = "localhost:13908"
         cmd = (
             f"{ArgumentsOptions.MAIN_COMMAND} server "
@@ -355,10 +414,9 @@ class TestMLOpsMonitoring:
             " --deployment-id 777"
             " --webserver http://localhost:13909"
             " --api-token aaabbb"
-            f' --monitor-settings "{monitor_settings}"'
         )
 
-        with self.local_webserver_stub(expected_pred_requests_queries=10):
+        with self.local_webserver_stub():
             proc, _, _ = _exec_shell_cmd(
                 cmd, err_msg=f"Failed in: {cmd}", assert_if_fail=False, capture_output=False
             )
