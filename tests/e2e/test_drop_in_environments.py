@@ -198,9 +198,12 @@ class TestDropInEnvironments(object):
         test_data_id = request.getfixturevalue(test_data_id)
 
         max_wait = DEFAULT_MAX_WAIT
-        if model.startswith("torch_") or "genai" in model:
-            # The torch, genai drop-ins are very large, and it takes approx. 7 minutes just to pull the
-            # image in k8s.
+        if model in [
+            "python311_genai_custom_model",
+            "torch_regression_custom_model",
+        ]:
+            # The torch, genai, R drop-ins are very large.
+            # It takes approx. 7 minutes just to pull the image in k8s.
             max_wait *= 2
 
         test = dr.CustomModelTest.create(
@@ -210,4 +213,5 @@ class TestDropInEnvironments(object):
             max_wait=max_wait,
         )
 
-        assert test.overall_status == "succeeded"
+        print(test.detailed_status)
+        assert test.overall_status == "succeeded", test.detailed_status

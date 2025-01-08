@@ -1,6 +1,6 @@
 # This is the default base image for use with user models and workflows.
 # It contains a variety of common useful data-science packages and tools.
-FROM rocker/tidyverse:4.2.1
+FROM rocker/tidyverse:4.2.2
 
 ENV LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive
 
@@ -31,5 +31,4 @@ RUN Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLooku
 
 RUN rm -rf /tmp/downloaded_packages/ /tmp/*.rds
 
-COPY requirements.txt requirements.txt
-RUN pip3 install -U pip && pip3 install -r requirements.txt
+RUN pip3 install -U pip
