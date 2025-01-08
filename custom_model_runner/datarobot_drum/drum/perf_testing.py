@@ -808,9 +808,10 @@ class CMRunTests:
 
             message = """
                         Warning: Your predictions were different when we tried to predict twice.
-                        The last 10 predictions from the main predict run were: {}
+                        The last {} predictions from the main predict run were: {}
                         However when we reran predictions on the same data, we got: {}.
                         The sample used to calculate prediction reruns can be found in this file: {}""".format(
+                rows_to_display,
                 preds_full_subset[~matches][:rows_to_display].to_string(index=False),
                 preds_sample[~matches][:rows_to_display].to_string(index=False),
                 __tempfile_sample,
