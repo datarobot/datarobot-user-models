@@ -220,7 +220,7 @@ class TestDrumServerFailures:
 
             error_message = (
                 "ERROR: Samples should be provided as: "
-                "  - a csv, mtx, or arrow file under `X` form-data param key."
+                "  - a csv or mtx under `X` form-data param key."
                 "  - binary data"
             )
             assert response.status_code == 422

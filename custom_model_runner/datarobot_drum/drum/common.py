@@ -68,7 +68,6 @@ class SupportedPayloadFormats:
             PredictionServerMimetypes.TEXT_CSV: PayloadFormat.CSV,
             PredictionServerMimetypes.TEXT_PLAIN: PayloadFormat.CSV,
             PredictionServerMimetypes.TEXT_MTX: PayloadFormat.MTX,
-            PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM: PayloadFormat.ARROW,
         }
 
     def add(self, payload_format, format_version=None):
@@ -84,22 +83,6 @@ class SupportedPayloadFormats:
     def __iter__(self):
         for payload_format, format_version in self._formats.items():
             yield payload_format, format_version
-
-
-try:
-    import pyarrow
-except ImportError:
-    pyarrow = None
-
-
-def get_pyarrow_module():
-    return pyarrow
-
-
-def verify_pyarrow_module():
-    if pyarrow is None:
-        raise ModuleNotFoundError("Please install pyarrow to support Arrow format")
-    return pyarrow
 
 
 def to_bool(value):
