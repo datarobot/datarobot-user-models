@@ -48,6 +48,7 @@ from datarobot_drum.drum.enum import (
     GUARD_HOOK_MODULE,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.utils.dataframe import split_to_predictions_and_extra_model_output
 
 
 def get_all_logging_filters():
@@ -409,39 +410,22 @@ class TestPredictResultSplitter:
             )
 
     def test_split_result_of_binary_classification(self, binary_df):
-        (
-            pred_df,
-            extra_model_output,
-        ) = PythonModelAdapter(
-            Mock(), TargetType.BINARY
-        )._split_to_predictions_and_extra_model_output(
+        pred_df, extra_model_output = split_to_predictions_and_extra_model_output(
             binary_df, request_labels=binary_df.columns.tolist()
         )
         assert pred_df.equals(binary_df)
         assert extra_model_output is None
 
-    def test_split_result_of_binary_classification_with_extra(
-        self, binary_df, extra_model_output_df
-    ):
+    def test_split_result_of_binary_classification_with_extra(self, binary_df, extra_model_output_df):
         combined_df = binary_df.join(extra_model_output_df)
-        (
-            pred_df,
-            extra_model_output_response,
-        ) = PythonModelAdapter(
-            Mock(), TargetType.BINARY
-        )._split_to_predictions_and_extra_model_output(
+        pred_df, extra_model_output_response = split_to_predictions_and_extra_model_output(
             combined_df, request_labels=binary_df.columns.tolist()
         )
         assert pred_df.equals(binary_df)
         assert extra_model_output_response.equals(extra_model_output_df)
 
     def test_split_result_of_multiclass(self, multiclass_df):
-        (
-            pred_df,
-            extra_model_output,
-        ) = PythonModelAdapter(
-            Mock(), TargetType.MULTICLASS
-        )._split_to_predictions_and_extra_model_output(
+        pred_df, extra_model_output = split_to_predictions_and_extra_model_output(
             multiclass_df, request_labels=multiclass_df.columns.tolist()
         )
         assert pred_df.equals(multiclass_df)
@@ -449,58 +433,41 @@ class TestPredictResultSplitter:
 
     def test_split_result_of_multiclass_with_extra(self, multiclass_df, extra_model_output_df):
         combined_df = multiclass_df.join(extra_model_output_df)
-        (
-            pred_df,
-            extra_model_output_response,
-        ) = PythonModelAdapter(
-            Mock(), TargetType.MULTICLASS
-        )._split_to_predictions_and_extra_model_output(
+        pred_df, extra_model_output_response = split_to_predictions_and_extra_model_output(
             combined_df, request_labels=multiclass_df.columns.tolist()
         )
         assert pred_df.equals(multiclass_df)
         assert extra_model_output_response.equals(extra_model_output_df)
 
     def test_split_result_of_regression(self, regression_df):
-        (
-            pred_df,
-            extra_model_output,
-        ) = PythonModelAdapter(
-            Mock(), TargetType.REGRESSION
-        )._split_to_predictions_and_extra_model_output(regression_df, request_labels=None)
+        pred_df, extra_model_output = split_to_predictions_and_extra_model_output(
+            regression_df, request_labels=None
+        )
         assert pred_df.equals(regression_df)
         assert extra_model_output is None
 
     def test_split_result_of_regression_with_extra(self, regression_df, extra_model_output_df):
         combined_df = regression_df.join(extra_model_output_df)
-        (
-            pred_df,
-            extra_model_output_response,
-        ) = PythonModelAdapter(
-            Mock(), TargetType.REGRESSION
-        )._split_to_predictions_and_extra_model_output(combined_df, request_labels=None)
+        pred_df, extra_model_output_response = split_to_predictions_and_extra_model_output(
+            combined_df, request_labels=None
+        )
         assert pred_df.equals(regression_df)
         assert extra_model_output_response.equals(extra_model_output_df)
 
     def test_split_result_of_text_generation(self, text_generation_df):
-        (
-            pred_df,
-            extra_model_output,
-        ) = PythonModelAdapter(
-            Mock(), TargetType.TEXT_GENERATION
-        )._split_to_predictions_and_extra_model_output(text_generation_df, request_labels=None)
+        pred_df, extra_model_output = split_to_predictions_and_extra_model_output(
+            text_generation_df, request_labels=None
+        )
         assert pred_df.equals(text_generation_df)
         assert extra_model_output is None
 
     def test_split_result_of_text_generation_with_exta_model_output(
-        self, text_generation_df, extra_model_output_df
+            self, text_generation_df, extra_model_output_df
     ):
         combined_df = text_generation_df.join(extra_model_output_df)
-        (
-            pred_df,
-            extra_model_output_response,
-        ) = PythonModelAdapter(
-            Mock(), TargetType.TEXT_GENERATION
-        )._split_to_predictions_and_extra_model_output(combined_df, request_labels=None)
+        pred_df, extra_model_output_response = split_to_predictions_and_extra_model_output(
+            combined_df, request_labels=None
+        )
         assert pred_df.equals(text_generation_df)
         assert extra_model_output_response.equals(extra_model_output_df)
 
@@ -518,12 +485,15 @@ class TestPredictResultSplitter:
     ):
         with patch.dict(os.environ, {"TARGET_NAME": target_name_with_quotation_marks}):
             combined_df = text_generation_df.join(extra_model_output_df)
+            python_model_adapter = PythonModelAdapter(Mock(), TargetType.TEXT_GENERATION)
             (
                 pred_df,
                 extra_model_output_response,
-            ) = PythonModelAdapter(
-                Mock(), TargetType.TEXT_GENERATION
-            )._split_to_predictions_and_extra_model_output(combined_df, request_labels=None)
+            ) = split_to_predictions_and_extra_model_output(
+                combined_df,
+                request_labels=None,
+                target_name=python_model_adapter._target_name,
+            )
             assert pred_df.equals(text_generation_df)
             assert extra_model_output_response.equals(extra_model_output_df)
 

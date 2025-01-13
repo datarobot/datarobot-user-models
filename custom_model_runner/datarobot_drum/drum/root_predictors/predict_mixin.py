@@ -16,7 +16,7 @@ from datarobot_drum.drum.enum import (
     TargetType,
     UnstructuredDtoKeys,
     X_TRANSFORM_KEY,
-    Y_TRANSFORM_KEY,
+    Y_TRANSFORM_KEY, StructuredDtoKeys,
 )
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from datarobot_drum.drum.server import (
@@ -143,12 +143,13 @@ class PredictMixin:
         except ValueError as e:
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             return {"message": "ERROR: " + str(e)}, response_status
+        kwargs_params = {StructuredDtoKeys.MIMETYPE: mimetype}
+        if charset is not None:
+            kwargs_params[StructuredDtoKeys.CHARSET] = charset
+        kwargs_params[StructuredDtoKeys.QUERY] = request.args
 
         predict_response = self._predictor.predict(
-            binary_data=binary_data,
-            mimetype=mimetype,
-            charset=charset,
-            sparse_colnames=sparse_column_names,
+            binary_data=binary_data, **kwargs_params
         )
 
         if self._target_type == TargetType.UNSTRUCTURED:

@@ -25,3 +25,5 @@ packaging
 markupsafe
 pydantic
 datarobot-storage
+datarobot-predict==1.10.0
+pydevd_pycharm

@@ -141,7 +141,9 @@ class UnstructuredDtoKeys:
 
 class StructuredDtoKeys:
     BINARY_DATA = "binary_data"
+    QUERY = "query"
     MIMETYPE = "mimetype"
+    CHARSET = "charset"
     TARGET_BINARY_DATA = "target_binary_data"
     TARGET_MIMETYPE = "target_mimetype"
     SPARSE_COLNAMES = "sparse_colnames"
@@ -290,6 +292,7 @@ class ArgumentsOptions:
     USER_SECRETS_MOUNT_PATH = "--user-secrets-mount-path"
     USER_SECRETS_PREFIX = "--user-secrets-prefix"
     LAZY_LOADING_FILE = "--lazy-loading-file"
+    USE_DATAROBOT_PREDICT = "--use-datarobot-predict"
 
     DRUM_COMMAND = "drum"
     MAIN_COMMAND = DRUM_COMMAND if not DEBUG else f"./custom_model_runner/bin/{DRUM_COMMAND}"
@@ -329,6 +332,7 @@ class ArgumentOptionsEnvVars:
     USER_SECRETS_MOUNT_PATH = "USER_SECRETS_MOUNT_PATH"
     USER_SECRETS_PREFIX = "USER_SECRETS_PREFIX"
     LAZY_LOADING_FILE = "LAZY_LOADING_FILE"
+    USE_DATAROBOT_PREDICT = "USE_DATAROBOT_PREDICT"
 
     VALUE_VARS = [
         TARGET_TYPE,
@@ -351,6 +355,7 @@ class ArgumentOptionsEnvVars:
         MONITOR_EMBEDDED,
         SKIP_PREDICT,
         ALLOW_DR_API_ACCESS_FOR_ALL_CUSTOM_MODELS,
+        USE_DATAROBOT_PREDICT,
     ]
 
     @classmethod

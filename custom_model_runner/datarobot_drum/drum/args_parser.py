@@ -410,6 +410,19 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
+    def _reg_arg_use_datarobot_predict(*parsers):
+        for parser in parsers:
+            parser.add_argument(
+                ArgumentsOptions.USE_DATAROBOT_PREDICT,
+                action="store_true",
+                default=False,
+                help="Use datarobot-predict as a default predictor for scoring code models, including time-series. "
+                "The argument can also be provided by setting {} env var.".format(
+                    ArgumentOptionsEnvVars.USE_DATAROBOT_PREDICT
+                ),
+            )
+
+    @staticmethod
     def _reg_arg_max_workers(*parsers):
         def type_callback(arg):
             ret_val = int(arg)
@@ -1020,6 +1033,8 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_args_lazy_loading_file(
             score_parser, server_parser, validation_parser
         )
+
+        CMRunnerArgsRegistry._reg_arg_use_datarobot_predict(server_parser, score_parser)
 
         return parser
 

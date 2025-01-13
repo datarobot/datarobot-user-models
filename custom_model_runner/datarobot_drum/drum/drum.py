@@ -796,6 +796,7 @@ class CMRunner:
                     "deployment_config": '"{}"'.format(options.deployment_config)
                     if getattr(options, "deployment_config", None) is not None
                     else "null",
+                    "use_datarobot_predict": str(options.use_datarobot_predict).lower(),
                 }
             )
 

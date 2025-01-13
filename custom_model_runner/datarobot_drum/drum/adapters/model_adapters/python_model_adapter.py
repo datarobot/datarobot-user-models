@@ -59,7 +59,7 @@ from datarobot_drum.drum.exceptions import (
     DrumTransformException,
     DrumSerializationError,
 )
-from datarobot_drum.drum.utils.dataframe import extract_additional_columns
+from datarobot_drum.drum.utils.dataframe import extract_additional_columns, split_to_predictions_and_extra_model_output
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from datarobot_drum.drum.utils.drum_utils import DrumUtils
 from datarobot_drum.custom_task_interfaces.custom_task_interface import (
@@ -68,6 +68,7 @@ from datarobot_drum.custom_task_interfaces.custom_task_interface import (
     load_secrets,
     patch_outputs_to_scrub_secrets,
 )
+from datarobot_predict.scoring_code import ScoringCodeModel
 
 RUNNING_LANG_MSG = "Running environment language: Python."
 
@@ -620,8 +621,16 @@ class PythonModelAdapter(AbstractModelAdapter):
                     exc, "Model 'score' hook failed to make predictions."
                 )
             self._validate_data(predictions_df, CustomHooks.SCORE)
-            predictions_df, extra_model_output = self._split_to_predictions_and_extra_model_output(
-                predictions_df, request_labels
+            if bool(model.model_info and model.model_info.get('Is-Time-Series', False)):
+                predictions_df.rename(columns={'PREDICTION':  'Predictions'}, inplace=True)
+
+            if self._target_type == TargetType.BINARY and  isinstance(model, ScoringCodeModel):
+                labels_map = {
+                    f"target_{label}_PREDICTION": label for label in request_labels
+                }
+                predictions_df.rename(columns=labels_map, inplace=True)
+            predictions_df, extra_model_output = split_to_predictions_and_extra_model_output(
+                predictions_df, request_labels, target_name=self._target_name
             )
             predictions = predictions_df.values
             model_labels = predictions_df.columns
@@ -655,37 +664,6 @@ class PythonModelAdapter(AbstractModelAdapter):
             model_labels = predictions_df.columns
 
         return RawPredictResponse(predictions, model_labels, extra_model_output)
-
-    def _split_to_predictions_and_extra_model_output(self, result_df, request_labels):
-        if request_labels:
-            # It's Binary or Classification model
-            if len(result_df.columns) > len(request_labels):
-                predictions_df, extra_model_output = extract_additional_columns(
-                    result_df, request_labels
-                )
-            else:
-                extra_model_output = None
-                predictions_df = result_df
-        else:
-            if len(result_df.columns) > 1:
-                if self._target_name:
-                    target_column = self._target_name
-                    if target_column not in result_df:
-                        # Try removing quotation marks if exist
-                        if (
-                            len(target_column) >= 2
-                            and target_column[0] == '"'
-                            and target_column[-1] == '"'
-                        ):
-                            target_column = target_column[1:-1]
-                else:
-                    target_column = PRED_COLUMN
-                extra_model_output = result_df.drop(columns=[target_column])
-                predictions_df = result_df[[target_column]]
-            else:
-                extra_model_output = None
-                predictions_df = result_df
-        return predictions_df, extra_model_output
 
     def predict(self, model=None, **kwargs) -> RawPredictResponse:
         """

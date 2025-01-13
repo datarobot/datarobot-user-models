@@ -91,6 +91,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         self._mlops = None
         self._schema_validator = None
         self._prompt_column_name = DEFAULT_PROMPT_COLUMN_NAME
+        self._is_time_series = False
 
     def configure(self, params):
         """
@@ -185,7 +186,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             if not os.environ.get(env_var):
                 raise Exception(f"A valid environment variable '{env_var}' is missing!")
 
-    def monitor(self, kwargs, predictions, predict_time_ms):
+    def monitor(self, kwargs, predictions, predict_time_ms, raw_predict_response: RawPredictResponse = None):
         if to_bool(self._params.get("monitor")):
             self._mlops.report_deployment_stats(
                 num_predictions=len(predictions), execution_time_ms=predict_time_ms
@@ -210,9 +211,19 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                 kwargs.get(StructuredDtoKeys.BINARY_DATA),
                 kwargs.get(StructuredDtoKeys.MIMETYPE),
             )
-            self._mlops.report_predictions_data(
-                features_df=df, predictions=mlops_predictions, class_names=class_names
-            )
+            if bool(self.model_info() and self.model_info().get('Is-Time-Series', False)):
+                self._mlops.report_raw_time_series_predictions_data(
+                    features_df=df,
+                    predictions=mlops_predictions,
+                    class_names=class_names,
+                    row_index=raw_predict_response.extra_model_output['row_index'].to_list(),
+                    forecast_distance=raw_predict_response.extra_model_output['Forecast Distance'].to_list(),
+                    partition=raw_predict_response.extra_model_output['Timestamp'].to_list(),
+                )
+            else:
+                self._mlops.report_predictions_data(
+                    features_df=df, predictions=mlops_predictions, class_names=class_names
+                )
 
     def predict(self, **kwargs) -> PredictResponse:
         start_predict = time.time()
@@ -225,7 +236,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         )
         end_predict = time.time()
         execution_time_ms = (end_predict - start_predict) * 1000
-        self.monitor(kwargs, predictions_df, execution_time_ms)
+        self.monitor(kwargs, predictions_df, execution_time_ms, raw_predict_response)
         return PredictResponse(predictions_df, raw_predict_response.extra_model_output)
 
     @abstractmethod

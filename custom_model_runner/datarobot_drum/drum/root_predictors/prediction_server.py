@@ -56,6 +56,7 @@ class PredictionServer(PredictMixin):
         self._deployment_config = parse_validate_deployment_config_file(
             self._params["deployment_config"]
         )
+        self._use_datarobot_predict = self._params.get("use_datarobot_predict")
         self._stdout_flusher = StdoutFlusher()
 
         self._stats_collector = StatsCollector(disable_instance=not self._show_perf)
@@ -71,6 +72,13 @@ class PredictionServer(PredictMixin):
             )
 
             predictor = PythonPredictor()
+        elif self._run_language == RunLanguage.JAVA and self._use_datarobot_predict:
+            from datarobot_drum.drum.language_predictors.scoring_code_predictor.scoring_code_predictor import (
+                ScoringCodePredictor,
+            )
+
+            predictor = ScoringCodePredictor()
+
         elif self._run_language == RunLanguage.JAVA:
             from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import (
                 JavaPredictor,
