@@ -152,7 +152,6 @@ class PredictionServerMimetypes:
     APPLICATION_JSON = "application/json"
     APPLICATION_OCTET_STREAM = "application/octet-stream"
     TEXT_PLAIN = "text/plain"
-    APPLICATION_X_APACHE_ARROW_STREAM = "application/x-apache-arrow-stream"
     TEXT_MTX = "text/mtx"
     TEXT_CSV = "text/csv"
     EMPTY = ""
@@ -160,7 +159,6 @@ class PredictionServerMimetypes:
 
 class InputFormatExtension:
     MTX = ".mtx"
-    ARROW = ".arrow"
     CSV = ".csv"
 
 
@@ -181,7 +179,6 @@ class ModelInfoKeys:
 
 InputFormatToMimetype = {
     InputFormatExtension.MTX: PredictionServerMimetypes.TEXT_MTX,
-    InputFormatExtension.ARROW: PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM,
 }
 
 
@@ -413,7 +410,6 @@ class EnvVarNames:
 
 class PayloadFormat:
     CSV = "csv"
-    ARROW = "arrow"
     MTX = "mtx"
 
 

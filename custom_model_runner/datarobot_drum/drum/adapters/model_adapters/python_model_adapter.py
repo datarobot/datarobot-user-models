@@ -28,7 +28,6 @@ from datarobot_drum.drum.artifact_predictors.xgboost_predictor import XGBoostPre
 from datarobot_drum.drum.artifact_predictors.onnx_predictor import ONNXPredictor
 
 from datarobot_drum.drum.common import (
-    get_pyarrow_module,
     reroute_stdout_to_stderr,
     SupportedPayloadFormats,
 )
@@ -428,9 +427,6 @@ class PythonModelAdapter(AbstractModelAdapter):
         formats = SupportedPayloadFormats()
         formats.add(PayloadFormat.CSV)
         formats.add(PayloadFormat.MTX)
-        pa = get_pyarrow_module()
-        if pa is not None:
-            formats.add(PayloadFormat.ARROW, pa.__version__)
         return formats
 
     def model_info(self):

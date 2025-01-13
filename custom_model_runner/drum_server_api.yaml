@@ -218,8 +218,6 @@ paths:
                     type: object
                     description: If format is supported, property present in the object. Property's value is a package version. If version is not pinned, value is null.
                     properties:
-                      arrow:
-                        type: string
                       csv:
                         type: string
                       mtx:
@@ -232,7 +230,6 @@ paths:
                         type: boolean
               example:
                 supported_payload_formats:
-                  arrow: 2.0.0
                   csv: null
                   mtx: null
   /URL_PREFIX/predict/:
@@ -256,11 +253,6 @@ paths:
               description: Scoring data.
               type: string
               format: text
-          application/x-apache-arrow-stream:
-            schema:
-              description: Scoring data.
-              type: string
-              format: binary
           multipart/form-data:
             schema:
               description: Scoring data.
@@ -290,7 +282,7 @@ paths:
                     type: string
                     description: Status message
               example:
-                message: "ERROR: Samples should be provided as:   - a csv, mtx, or arrow file under `X` form-data param key.  - binary data."
+                message: "ERROR: Samples should be provided as:   - a csv or mtx under `X` form-data param key.  - binary data."
   /URL_PREFIX/predictions/:
     $ref: "#/paths/~1URL_PREFIX~1predict~1"
                   

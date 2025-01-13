@@ -30,7 +30,6 @@ from datarobot_drum.drum.root_predictors.deployment_config_helpers import (
 )
 from datarobot_drum.drum.root_predictors.transform_helpers import (
     is_sparse,
-    make_arrow_payload,
     make_csv_payload,
     make_mtx_payload,
 )
@@ -74,7 +73,7 @@ class PredictMixin:
         else:
             wrong_key_error_message = (
                 "Samples should be provided as: "
-                "  - a csv, mtx, or arrow file under `{}` form-data param key."
+                "  - a csv or mtx under `{}` form-data param key."
                 "  - binary data".format(file_key)
             )
             if logger is not None:
@@ -126,8 +125,6 @@ class PredictMixin:
                 )
                 + "Make DRUM support the format or implement `read_input_data` hook to read the data. "
             )
-            if mimetype == PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM:
-                error_message += "pyarrow package may be missing, try to install."
             return {"message": error_message}, HTTP_422_UNPROCESSABLE_ENTITY
         return None
 
@@ -193,16 +190,6 @@ class PredictMixin:
     def _transform(self, logger=None):
         response_status = HTTP_200_OK
 
-        arrow_key = "arrow_version"
-        arrow_version = request.files.get(arrow_key)
-        # TODO: check implementation of how arrow_version is passed
-        # Currently it is passed as a file content,
-        # so arrow_version is of type werkzeug.datastructures.FileStorage,
-        # that's why io.BytesIO getvalue is called on it.
-        if arrow_version is not None:
-            arrow_version = arrow_version.getvalue().decode("utf-8")
-        use_arrow = arrow_version is not None
-
         try:
             feature_binary_data, feature_mimetype, feature_charset = self._fetch_data_from_request(
                 "X", logger=logger
@@ -256,32 +243,13 @@ class PredictMixin:
 
         # make output
         if is_sparse(out_data):
-            if use_arrow:
-                target_payload = (
-                    make_arrow_payload(out_target, arrow_version)
-                    if out_target is not None
-                    else None
-                )
-                target_out_format = "arrow"
-            else:
-                target_payload = make_csv_payload(out_target) if out_target is not None else None
-                target_out_format = "csv"
+            target_payload = make_csv_payload(out_target) if out_target is not None else None
             feature_payload, colnames = make_mtx_payload(out_data)
             out_format = "sparse"
         else:
-            if use_arrow:
-                feature_payload = make_arrow_payload(out_data, arrow_version)
-                target_payload = (
-                    make_arrow_payload(out_target, arrow_version)
-                    if out_target is not None
-                    else None
-                )
-                out_format = "arrow"
-            else:
-                feature_payload = make_csv_payload(out_data)
-                target_payload = make_csv_payload(out_target) if out_target is not None else None
-                out_format = "csv"
-            target_out_format = out_format
+            feature_payload = make_csv_payload(out_data)
+            target_payload = make_csv_payload(out_target) if out_target is not None else None
+            out_format = "csv"
 
         out_fields = {
             "X.format": out_format,
@@ -306,7 +274,7 @@ class PredictMixin:
         if target_payload is not None:
             out_fields.update(
                 {
-                    "y.format": target_out_format,
+                    "y.format": "csv",
                     Y_TRANSFORM_KEY: (
                         Y_TRANSFORM_KEY,
                         target_payload,

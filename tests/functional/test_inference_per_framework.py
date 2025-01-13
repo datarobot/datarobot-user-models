@@ -14,10 +14,8 @@ from textwrap import dedent
 from unittest.mock import patch
 
 import pandas as pd
-import pyarrow
 import pytest
 import requests
-import scipy
 from scipy.sparse import csr_matrix
 
 from datarobot_drum.drum.description import version as drum_version
@@ -37,7 +35,6 @@ from datarobot_drum.drum.utils.structured_input_read_utils import (
 from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerRun, wait_for_server
 from datarobot_drum.drum.root_predictors.transform_helpers import (
     parse_multi_part_response,
-    read_arrow_payload,
     read_csv_payload,
     read_mtx_payload,
 )
@@ -448,21 +445,11 @@ class TestInference:
     # * drum fit --code-dir task_templates/1_transforms/3_python3_sklearn_transform --input tests/testdata/sparse.mtx --target-type transform --target-csv tests/testdata/sparse_target.csv --output output_dir --disable-strict-validation --sparse-column-file tests/testdata/sparse.columns
     # * replace transform_sparse.pkl with the new generated artifact.
     @pytest.mark.parametrize(
-        "framework, problem, language, docker, use_arrow",
+        "framework, problem, language, docker",
         [
-            # The following 3 tests produce Y transform values and are being temporarily removed until y transform
-            # validation is added
-            # (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, True),
-            # (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None, False),
-            # (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, False),
-            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None, True),
-            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None, False),
-            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None, False),
-            # (R_TRANSFORM_WITH_Y, TRANSFORM, R_TRANSFORM_WITH_Y, None, False),
-            # transform_sparse_input.py, "transform_sparse.pkl"
-            (SKLEARN_TRANSFORM, SPARSE_TRANSFORM, PYTHON_TRANSFORM_SPARSE, None, False),
-            # (R_TRANSFORM_SPARSE_INPUT, SPARSE_TRANSFORM, R_TRANSFORM_SPARSE_INPUT, None, False),
-            # (R_TRANSFORM_SPARSE_OUTPUT, TRANSFORM, R_TRANSFORM_SPARSE_OUTPUT, None, False),
+            (SKLEARN_TRANSFORM, TRANSFORM, PYTHON_TRANSFORM, None),
+            (SKLEARN_TRANSFORM_DENSE, TRANSFORM, PYTHON_TRANSFORM_DENSE, None),
+            (SKLEARN_TRANSFORM, SPARSE_TRANSFORM, PYTHON_TRANSFORM_SPARSE, None),
         ],
     )
     @pytest.mark.parametrize("pass_target", [False])
@@ -474,7 +461,6 @@ class TestInference:
         language,
         docker,
         tmp_path,
-        use_arrow,
         pass_target,
         framework_env,
     ):
@@ -503,29 +489,18 @@ class TestInference:
             if input_dataset.endswith(".mtx"):
                 files["X.colnames"] = open(input_dataset.replace(".mtx", ".columns"))
 
-            if use_arrow:
-                files["arrow_version"] = "0.20"
-
             response = requests.post(run.url_server_address + "/transform/", files=files)
             assert response.ok
 
             parsed_response = parse_multi_part_response(response)
 
             if framework in [SKLEARN_TRANSFORM_DENSE, R_TRANSFORM_WITH_Y, R_TRANSFORM_SPARSE_INPUT]:
-                if use_arrow:
-                    transformed_out = read_arrow_payload(parsed_response, X_TRANSFORM_KEY)
-                    if pass_target:
-                        target_out = read_arrow_payload(parsed_response, Y_TRANSFORM_KEY)
-                    assert parsed_response["X.format"] == "arrow"
-                    if pass_target:
-                        assert parsed_response["y.format"] == "arrow"
-                else:
-                    transformed_out = read_csv_payload(parsed_response, X_TRANSFORM_KEY)
-                    if pass_target:
-                        target_out = read_csv_payload(parsed_response, Y_TRANSFORM_KEY)
-                    assert parsed_response["X.format"] == "csv"
-                    if pass_target:
-                        assert parsed_response["y.format"] == "csv"
+                transformed_out = read_csv_payload(parsed_response, X_TRANSFORM_KEY)
+                if pass_target:
+                    target_out = read_csv_payload(parsed_response, Y_TRANSFORM_KEY)
+                assert parsed_response["X.format"] == "csv"
+                if pass_target:
+                    assert parsed_response["y.format"] == "csv"
                 actual_num_predictions = transformed_out.shape[0]
             else:
                 transformed_out = read_mtx_payload(parsed_response, X_TRANSFORM_KEY)
@@ -534,14 +509,9 @@ class TestInference:
                 assert colnames == [f"feature_{i}" for i in range(transformed_out.shape[1])]
                 if pass_target:
                     # this shouldn't be sparse even though features are
-                    if use_arrow:
-                        target_out = read_arrow_payload(parsed_response, Y_TRANSFORM_KEY)
-                        if pass_target:
-                            assert parsed_response["y.format"] == "arrow"
-                    else:
-                        target_out = read_csv_payload(parsed_response, Y_TRANSFORM_KEY)
-                        if pass_target:
-                            assert parsed_response["y.format"] == "csv"
+                    target_out = read_csv_payload(parsed_response, Y_TRANSFORM_KEY)
+                    if pass_target:
+                        assert parsed_response["y.format"] == "csv"
                 actual_num_predictions = transformed_out.shape[0]
                 assert parsed_response["X.format"] == "sparse"
 
@@ -856,7 +826,7 @@ class TestInference:
     @pytest.mark.parametrize(
         "framework, problem, language, supported_payload_formats",
         [
-            (SKLEARN, REGRESSION, PYTHON, {"csv": None, "mtx": None, "arrow": pyarrow.__version__}),
+            (SKLEARN, REGRESSION, PYTHON, {"csv": None, "mtx": None}),
             (RDS, REGRESSION, R, {"csv": None, "mtx": None}),
             (CODEGEN, REGRESSION, NO_CUSTOM, {"csv": None}),
         ],
@@ -892,73 +862,6 @@ class TestInference:
                 "supported_payload_formats": supported_payload_formats,
                 "supported_methods": {"chat": False},
             }
-
-    @pytest.mark.parametrize(
-        "framework, problem, language",
-        [
-            (SKLEARN, REGRESSION_INFERENCE, PYTHON),
-        ],
-    )
-    def test_predictions_python_arrow_mtx(
-        self,
-        resources,
-        framework,
-        problem,
-        language,
-        tmp_path,
-        framework_env,
-        endpoint_prediction_methods,
-    ):
-        skip_if_framework_not_in_env(framework, framework_env)
-        custom_model_dir = _create_custom_model_dir(
-            resources,
-            tmp_path,
-            framework,
-            problem,
-            language,
-        )
-
-        with DrumServerRun(
-            resources.target_types(problem),
-            resources.class_labels(framework, problem),
-            custom_model_dir,
-        ) as run:
-            input_dataset = resources.datasets(framework, problem)
-            df = pd.read_csv(input_dataset)
-            arrow_dataset_buf = pyarrow.ipc.serialize_pandas(df, preserve_index=False).to_pybytes()
-
-            sink = io.BytesIO()
-            scipy.io.mmwrite(sink, scipy.sparse.csr_matrix(df.values))
-            mtx_dataset_buf = sink.getvalue()
-
-            # do predictions
-            for endpoint in endpoint_prediction_methods:
-                for post_args in [
-                    {"files": {"X": ("X.arrow", arrow_dataset_buf)}},
-                    {"files": {"X": ("X.mtx", mtx_dataset_buf)}},
-                    {
-                        "data": arrow_dataset_buf,
-                        "headers": {
-                            "Content-Type": "{};".format(
-                                PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM
-                            )
-                        },
-                    },
-                    {
-                        "data": mtx_dataset_buf,
-                        "headers": {
-                            "Content-Type": "{};".format(PredictionServerMimetypes.TEXT_MTX)
-                        },
-                    },
-                ]:
-                    response = requests.post(run.url_server_address + endpoint, **post_args)
-
-                    assert response.ok
-                    actual_num_predictions = len(
-                        json.loads(response.text)[RESPONSE_PREDICTIONS_KEY]
-                    )
-                    in_data = pd.read_csv(input_dataset)
-                    assert in_data.shape[0] == actual_num_predictions
 
     @pytest.mark.parametrize(
         "framework, problem, language",

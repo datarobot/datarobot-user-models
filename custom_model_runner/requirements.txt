@@ -14,8 +14,6 @@ strictyaml==1.4.2
 PyYAML
 texttable
 py4j~=0.10.9.0
-# only constrained by other packages, not DRUM
-pyarrow
 Pillow
 # constrained by Julia env
 julia<=0.5.7

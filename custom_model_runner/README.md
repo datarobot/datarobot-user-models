@@ -289,8 +289,8 @@ Example: POST http://localhost:6789/predict/; POST http://localhost:6789/predict
 For these routes data can be posted in two ways:
   * as form data parameter with a <key:value> pair, where:  
 key = X  
-value = filename of the `csv/arrow/mtx` format, that contains the inference data.
-  * as binary data; in case of `arrow` or `mtx` formats, mimetype `application/x-apache-arrow-stream` or `text/mtx` must be set.
+value = filename of the `csv/mtx` format, that contains the inference data.
+  * as binary data; in case of `mtx` format, mimetype `text/mtx` must be set.
    
 * Structured transform route (for Python predictor only):   
 A POST **URL_PREFIX/transform/** route, which returns transformed data.  
@@ -298,19 +298,15 @@ Example: POST http://localhost:6789/transform/;
 For this route data can be posted in two ways:
   * as form data parameter with a <key:value> pair, where:  
 key = `X`.  
-value = filename of the `csv/arrow/mtx` format, that contains the inference data.
+value = filename of the `csv/mtx` format, that contains the inference data.
  
     optionally a second key, `y`, can be passed with value = a second filename containing target data. 
     
     if `y` is passed, the route will return both `X.transformed` and `y.transformed` keys, along with `out.format`
-     indicating the format of the transformed X output. This will take a value of `csv`, 
-    `sparse` or `arrow`. `y.transformed` is never sparse.
-    
-    an `arrow_version` key may also be passed if you desire to use `arrow` format for `X.transformed` or `y.transformed`.
-    this is used to ensure that the endpoint returns data that can be opened by the caller's version of arrow. without this
-    key, all dense data returned will default to csv format.
+     indicating the format of the transformed X output. This will take a value of `csv` or `sparse`.
+     `y.transformed` is never sparse.
 
-  * as binary data; in case of `arrow` or `mtx` formats, mimetype `application/x-apache-arrow-stream` or `text/mtx` must be set.
+  * as binary data; in case of `mtx` format, mimetype `text/mtx` must be set.
   
   
 * Unstructured predictions routes:  
