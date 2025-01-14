@@ -8,5 +8,4 @@
   "environmentVersionDescription": "CVE fix for aiohttp.\nFROM nvcr.io/nim/meta/llama-3.1-8b-instruct:1.2.2",
   "isDownloadable": false,
   "isPublic": true
-
 }
