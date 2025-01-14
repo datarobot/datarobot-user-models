@@ -6,6 +6,7 @@
   "label": "v1.2.2+dr.3",
   "environmentVersionId": "6786c2c8cbce02805b713203",
   "environmentVersionDescription": "CVE fix for aiohttp.\nFROM nvcr.io/nim/meta/llama-3.1-8b-instruct:1.2.2",
-  "isPublic": true,
-  "isDownloadable": false
+  "isDownloadable": false,
+  "isPublic": true
+
 }
