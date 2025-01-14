@@ -79,7 +79,6 @@ def test_make_capabilities():
         def supported_payload_formats(self):
             formats = SupportedPayloadFormats()
             formats.add(PayloadFormat.CSV)
-            formats.add(PayloadFormat.ARROW, "1.1")
             return formats
 
         def supports_chat(self):
@@ -89,6 +88,6 @@ def test_make_capabilities():
     mixin._predictor = TestPredictor()
 
     assert mixin.make_capabilities() == {
-        "supported_payload_formats": {"csv": None, "arrow": "1.1"},
+        "supported_payload_formats": {"csv": None},
         "supported_methods": {"chat": True},
     }

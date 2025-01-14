@@ -16,7 +16,6 @@ from scipy.io import mmwrite, mmread
 from scipy.sparse import issparse
 from scipy.sparse.csr import csr_matrix
 
-from datarobot_drum.drum.common import verify_pyarrow_module
 from datarobot_drum.drum.enum import X_FORMAT_KEY, X_TRANSFORM_KEY
 
 
@@ -73,30 +72,6 @@ def validate_and_convert_column_names_for_serialization(df):
     return df
 
 
-def make_arrow_payload(df, arrow_version):
-    pa = verify_pyarrow_module()
-    df = validate_and_convert_column_names_for_serialization(df)
-
-    pyarrow_available_version = version.parse(pa.__version__)
-    pyarrow_requested_version = version.parse(arrow_version)
-    pyarrow_0_20_version = version.parse("0.20")
-
-    if (
-        pyarrow_requested_version != pyarrow_available_version
-        and pyarrow_requested_version < pyarrow_0_20_version
-    ):
-        batch = pa.RecordBatch.from_pandas(df, nthreads=None, preserve_index=False)
-        sink = pa.BufferOutputStream()
-        options = pa.ipc.IpcWriteOptions(
-            metadata_version=pa.MetadataVersion.V4, use_legacy_format=True
-        )
-        with pa.RecordBatchStreamWriter(sink, batch.schema, options=options) as writer:
-            writer.write_batch(batch)
-        return sink.getvalue().to_pybytes()
-    else:
-        return pa.ipc.serialize_pandas(df, preserve_index=False).to_pybytes()
-
-
 def make_csv_payload(df):
     df = validate_and_convert_column_names_for_serialization(df)
 
@@ -105,14 +80,6 @@ def make_csv_payload(df):
     # Remove the last 2 characters (\r\n) from the string.  This is required for R
     # to properly load a single column dataset from a string.
     return s_buf.getvalue()[:-2].encode("utf-8")
-
-
-def read_arrow_payload(response_dict, transform_key):
-    pa = verify_pyarrow_module()
-
-    bytes = response_dict[transform_key]
-    df = pa.ipc.deserialize_pandas(bytes)
-    return df
 
 
 def read_csv_payload(response_dict, transform_key):
@@ -159,7 +126,6 @@ def read_x_data_from_response(response):
         return pd.DataFrame.sparse.from_spmatrix(read_mtx_payload(data, key))
 
     reader = {
-        "arrow": read_arrow_payload,
         "sparse": _sparse,
         "csv": read_csv_payload,
     }

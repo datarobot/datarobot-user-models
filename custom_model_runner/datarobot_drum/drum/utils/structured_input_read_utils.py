@@ -12,7 +12,6 @@ import numpy as np
 import pandas as pd
 from scipy.io import mmread
 
-from datarobot_drum.drum.common import get_pyarrow_module
 from datarobot_drum.drum.enum import (
     InputFormatToMimetype,
     PredictionServerMimetypes,
@@ -67,22 +66,6 @@ class StructuredInputReadUtils:
                 return pd.DataFrame.sparse.from_spmatrix(
                     mmread(io.BytesIO(binary_data)), columns=sparse_colnames
                 )
-            elif mimetype == PredictionServerMimetypes.APPLICATION_X_APACHE_ARROW_STREAM:
-                df = get_pyarrow_module().ipc.deserialize_pandas(binary_data)
-
-                # After CSV serialization+deserialization,
-                # original dataframe's None and np.nan values
-                # become np.nan values.
-                # After Arrow serialization+deserialization,
-                # original dataframe's None and np.nan values
-                # become np.nan for numeric columns and None for 'object' columns.
-                #
-                # Since we are supporting both CSV and Arrow,
-                # to be consistent with CSV serialization/deserialization,
-                # it is required to replace all None with np.nan for Arrow.
-                df.fillna(value=np.nan, inplace=True)
-
-                return df
             else:  # CSV format
                 try:
                     df = pd.read_csv(io.BytesIO(binary_data))
