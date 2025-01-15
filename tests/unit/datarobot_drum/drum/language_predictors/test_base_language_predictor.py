@@ -1,6 +1,9 @@
 from unittest.mock import patch, Mock, ANY
 
 import pytest
+import pandas as pd
+import numpy as np
+import datarobot as dr
 from werkzeug.exceptions import BadRequest
 
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
@@ -18,7 +21,7 @@ class TestLanguagePredictor(BaseLanguagePredictor):
         return True
 
     def _predict(self, **kwargs) -> RawPredictResponse:
-        pass
+        return RawPredictResponse(np.array(["How are you?"]), None)
 
     def _transform(self, **kwargs):
         pass
@@ -44,7 +47,7 @@ class NoChatLanguagePredictor(BaseLanguagePredictor):
         pass
 
 
-class TestChat:
+class TestBaseLanguagePredictor:
     def test_base_no_chat(self):
         predictor = NoChatLanguagePredictor()
 
@@ -77,7 +80,16 @@ class TestChat:
             yield mlops_instance
 
     @pytest.fixture
-    def language_predictor_with_mlops(self, chat_python_model_adapter, mock_mlops):
+    def mock_default_deployment_settings(self):
+        with patch.object(dr.Deployment, "get") as mock_get_deployment:
+            mock_get_deployment.return_value = Mock()
+            mock_get_deployment.return_value.get_drift_tracking_settings.return_value = {"feature_drift": {"enabled": True}, "target_drift": {"enabled": True}}
+            mock_get_deployment.return_value.get_predictions_data_collection_settings.return_value = {"enabled": True}
+            mock_get_deployment.return_value.model = {"prompt": "promptText"}
+            yield
+
+    @pytest.fixture
+    def language_predictor_with_mlops(self, chat_python_model_adapter, mock_mlops, mock_default_deployment_settings):
         predictor = TestLanguagePredictor()
         predictor.configure(self._language_predictor_with_mlops_parameters())
         yield predictor
@@ -91,6 +103,65 @@ class TestChat:
             "external_webserver_url": "http://webserver",
             "api_token": "1234qwer",
         }
+
+    def _language_predictor_with_mlops_params_dr_api_access(self):
+        params = self._language_predictor_with_mlops_parameters()
+        params["allow_dr_api_access"] = True
+        return params
+
+    def test_mlops_init(self, language_predictor_with_mlops, mock_mlops):
+        mock_mlops.set_channel_config.called_once_with("spooler_type=API")
+
+        mock_mlops.init.assert_called_once()
+
+
+class TestPredict(TestBaseLanguagePredictor):
+    @pytest.mark.parametrize("feature_drift", [True, False])
+    @pytest.mark.parametrize("target_drift", [True, False])
+    @pytest.mark.parametrize("predictions_data_collections", [True, False])
+    def test_report_predictions_data_invocation(
+        self, mock_mlops, feature_drift, target_drift, predictions_data_collections
+    ):
+        language_predictor = TestLanguagePredictor()
+        language_predictor_with_mlops_params = self._language_predictor_with_mlops_params_dr_api_access()
+        language_predictor_with_mlops_params["monitor"] = True
+        with patch.object(dr.Deployment, "get") as mock_get_deployment:
+            mock_get_deployment.return_value = Mock()
+            mock_get_deployment.return_value.get_drift_tracking_settings.return_value = {
+                "feature_drift": {"enabled": feature_drift},
+                "target_drift": {"enabled": target_drift}
+            }
+            mock_get_deployment.return_value.get_predictions_data_collection_settings.return_value = {
+                "enabled": predictions_data_collections
+            }
+            mock_get_deployment.return_value.model = {"prompt": "promptText"}
+
+            language_predictor.configure(language_predictor_with_mlops_params)
+
+        data = bytes(pd.DataFrame(
+            {"promptText": ["Hello!"]}).to_csv(index=False), encoding="utf-8"
+        )
+        _ = language_predictor.predict(binary_data=data)
+
+        if feature_drift or target_drift or predictions_data_collections:
+            expected_df = None
+            expected_predictions = None
+            if feature_drift or predictions_data_collections:
+                expected_df = pd.DataFrame({"promptText": ["Hello!"]})
+            if target_drift:
+                expected_predictions = ["How are you?"]
+            actual_df = mock_mlops.report_predictions_data.call_args.kwargs["features_df"]
+            actual_predictions = mock_mlops.report_predictions_data.call_args.kwargs["predictions"]
+            assert expected_predictions == actual_predictions
+            if expected_df is not None:
+                pd.testing.assert_frame_equal(actual_df, expected_df, check_like=True, check_dtype=False)
+            else:
+                assert actual_df is None
+        else:
+            mock_mlops.report_predictions_data.assert_not_called()
+
+
+class TestChat(TestBaseLanguagePredictor):
 
     @pytest.mark.parametrize("stream", [False, True])
     def test_chat_without_mlops(self, language_predictor, stream):
@@ -149,11 +220,6 @@ class TestChat:
             # Streaming response needs to be consumed for anything to happen
             if stream:
                 [chunk for chunk in response]
-
-    def test_mlops_init(self, language_predictor_with_mlops, mock_mlops):
-        mock_mlops.set_channel_config.called_once_with("spooler_type=API")
-
-        mock_mlops.init.assert_called_once()
 
     @pytest.mark.parametrize("stream", [False, True])
     def test_chat_with_mlops(self, language_predictor_with_mlops, mock_mlops, stream):
@@ -227,12 +293,13 @@ class TestChat:
 
     def test_prompt_column_name(self, chat_python_model_adapter, mock_mlops):
         language_predictor = TestLanguagePredictor()
+        language_predictor_with_mlops_params = self._language_predictor_with_mlops_params_dr_api_access()
         with patch("datarobot.Deployment") as mock_deployment:
             deployment_instance = Mock()
             deployment_instance.model = {"prompt": "newPromptName"}
             mock_deployment.get.return_value = deployment_instance
 
-            language_predictor.configure(self._language_predictor_with_mlops_parameters())
+            language_predictor.configure(language_predictor_with_mlops_params)
 
         def chat_hook(completion_request):
             return create_completion("How are you")
@@ -347,3 +414,55 @@ class TestChat:
 
         assert response.choices[0].message.content == "How are you"
         mock_mlops_function.assert_called_once()
+
+    @pytest.mark.parametrize("feature_drift", [True, False])
+    @pytest.mark.parametrize("target_drift", [True, False])
+    @pytest.mark.parametrize("predictions_data_collections", [True, False])
+    def test_report_predictions_data_invocation(
+        self, mock_mlops, feature_drift, target_drift, predictions_data_collections
+    ):
+        language_predictor = TestLanguagePredictor()
+        language_predictor_with_mlops_params = self._language_predictor_with_mlops_params_dr_api_access()
+        with patch.object(dr.Deployment, "get") as mock_get_deployment:
+            mock_get_deployment.return_value = Mock()
+            mock_get_deployment.return_value.get_drift_tracking_settings.return_value = {
+                "feature_drift": {"enabled": feature_drift},
+                "target_drift": {"enabled": target_drift}
+            }
+            mock_get_deployment.return_value.get_predictions_data_collection_settings.return_value = {
+                "enabled": predictions_data_collections
+            }
+            mock_get_deployment.return_value.model = {"prompt": "promptText"}
+
+            language_predictor.configure(language_predictor_with_mlops_params)
+
+        def chat_hook(completion_request):
+            return create_completion("How are you")
+
+        language_predictor.chat_hook = chat_hook
+        _ = language_predictor.chat(
+            {
+                "model": "any",
+                "messages": [
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": "Hello!"},
+                ],
+            }
+        )
+
+        if feature_drift or target_drift or predictions_data_collections:
+            expected_df = None
+            expected_predictions = None
+            if feature_drift or predictions_data_collections:
+                expected_df = pd.DataFrame({"promptText": ["Hello!"]})
+            if target_drift:
+                expected_predictions = ["How are you"]
+            actual_df = mock_mlops.report_predictions_data.call_args.args[0]
+            actual_predictions = mock_mlops.report_predictions_data.call_args.args[1]
+            assert expected_predictions == actual_predictions
+            if expected_df is not None:
+                pd.testing.assert_frame_equal(actual_df, expected_df, check_like=True, check_dtype=False)
+            else:
+                assert actual_df is None
+        else:
+            mock_mlops.report_predictions_data.assert_not_called()

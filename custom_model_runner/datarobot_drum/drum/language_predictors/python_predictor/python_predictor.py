@@ -47,12 +47,12 @@ class PythonPredictor(BaseLanguagePredictor):
         sys.path.append(code_dir)
         self._model_adapter.load_custom_hooks()
 
-        super(PythonPredictor, self).configure(params)
-
         if to_bool(params.get("allow_dr_api_access")):
             logger.info("Initializing DataRobot Python client.")
             dr_api_endpoint = self._dr_api_url(endpoint=params["external_webserver_url"])
             dr.Client(token=params["api_token"], endpoint=dr_api_endpoint)
+
+        super(PythonPredictor, self).configure(params)
 
         try:
             self._model = self._model_adapter.load_model_from_artifact(

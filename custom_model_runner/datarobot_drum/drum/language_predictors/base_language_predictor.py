@@ -8,6 +8,7 @@ import itertools
 import logging
 import os
 import time
+import traceback
 import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
@@ -85,6 +86,10 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             negative_class_label=negative_class_label,
             class_labels=class_labels,
         )
+        self._deployment = None
+        self._feature_drift_enabled = True
+        self._target_drift_enabled = True
+        self._predictions_data_collections_enabled = True
         self._model = None
         self._code_dir = None
         self._params = None
@@ -127,6 +132,24 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         if not mlops_loaded:
             raise Exception("MLOps module was not imported: {}".format(mlops_import_error))
 
+        if to_bool(self._params.get("allow_dr_api_access")):
+            try:
+                self._deployment = dr.Deployment.get(deployment_id)
+                drift_settings = self._deployment.get_drift_tracking_settings()
+                self._feature_drift_enabled = drift_settings.get("feature_drift", True).get(
+                    "enabled", True
+                )
+                self._target_drift_enabled = drift_settings.get("target_drift", True).get(
+                    "enabled", True
+                )
+                self._predictions_data_collections_enabled = (
+                    self._deployment.get_predictions_data_collection_settings().get('enabled', True)
+                )
+            except Exception as e:
+                logger.warning(f"Failed to get deployment / settings: {e}")
+                traceback.format_exc()
+                return
+
         self._mlops = MLOps()
 
         self._mlops.set_deployment_id(deployment_id)
@@ -164,16 +187,8 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             )
             return DEFAULT_PROMPT_COLUMN_NAME
 
-        try:
-            deployment = dr.Deployment.get(self._params["deployment_id"])
-            return deployment.model["prompt"]
-        except Exception:
-            logger.warning(
-                "Failed to get prompt column name from deployment. "
-                f"Fallback to default prompt column name ('{DEFAULT_PROMPT_COLUMN_NAME}')",
-                exc_info=True,
-            )
-
+        if self._deployment:
+            return self._deployment.model.get("prompt", DEFAULT_PROMPT_COLUMN_NAME)
         return DEFAULT_PROMPT_COLUMN_NAME
 
     @staticmethod
@@ -188,25 +203,39 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                 num_predictions=len(predictions), execution_time_ms=predict_time_ms
             )
 
+            if self._feature_drift_enabled or self._predictions_data_collections_enabled:
+                df = StructuredInputReadUtils.read_structured_input_data_as_df(
+                    kwargs.get(StructuredDtoKeys.BINARY_DATA),
+                    kwargs.get(StructuredDtoKeys.MIMETYPE),
+                )
+            else:
+                # Feature drift and predictions data collections is disabled, no point
+                # reporting it.
+                df = None
             # TODO: Need to convert predictions to a proper format
             # TODO: or add report_predictions_data that can handle a df directly..
             # TODO: need to handle associds correctly
 
-            # mlops.report_predictions_data expect the prediction data in the following format:
-            # Regression: [10, 12, 13]
-            # Classification: [[0.5, 0.5], [0.7, 03]]
-            # In case of classification, class names are also required
-            class_names = None
-            if len(predictions.columns) == 1:
-                mlops_predictions = predictions[predictions.columns[0]].tolist()
+            if self._target_drift_enabled:
+                # mlops.report_predictions_data expect the prediction data in the following format:
+                # Regression: [10, 12, 13]
+                # Classification: [[0.5, 0.5], [0.7, 03]]
+                # In case of classification, class names are also required
+                class_names = None
+                if len(predictions.columns) == 1:
+                    mlops_predictions = predictions[predictions.columns[0]].tolist()
+                else:
+                    mlops_predictions = predictions.values.tolist()
+                    class_names = list(predictions.columns)
             else:
-                mlops_predictions = predictions.values.tolist()
-                class_names = list(predictions.columns)
+                # Target drift is disabled, no point reporting predictions for monitoring
+                mlops_predictions = None
+                class_names = None
 
-            df = StructuredInputReadUtils.read_structured_input_data_as_df(
-                kwargs.get(StructuredDtoKeys.BINARY_DATA),
-                kwargs.get(StructuredDtoKeys.MIMETYPE),
-            )
+            if mlops_predictions is None and df is None:
+                # If neither features nor predictions can be reported for monitoring, return
+                return
+
             self._mlops.report_predictions_data(
                 features_df=df, predictions=mlops_predictions, class_names=class_names
             )
@@ -286,9 +315,23 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             logger.exception("Failed to report deployment stats")
 
         latest_message = completion_create_params["messages"][-1]["content"]
-        features_df = pd.DataFrame([{self._prompt_column_name: latest_message}])
+        if self._feature_drift_enabled or self._predictions_data_collections_enabled:
+            features_df = pd.DataFrame([{self._prompt_column_name: latest_message}])
+        else:
+            # Feature drift and predictions data collections is disabled, no point
+            # reporting it.
+            features_df = None
 
-        predictions = [message_content]
+        if self._target_drift_enabled:
+            predictions = [message_content]
+        else:
+            # Target drift is disabled, no point reporting predictions for monitoring
+            predictions = None
+
+        if features_df is None and predictions is None:
+            # If neither features nor predictions can be reported for monitoring, return
+            return
+
         try:
             self._mlops.report_predictions_data(
                 features_df,
