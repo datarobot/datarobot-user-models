@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### [1.16.1] - 2025-01-22
 ##### Changed
 - Remove support for Apache Arrow.
+- Don't report monitoring data if training data is not available
 
 #### [1.16.0] - 2025-01-08
 ##### Changed
