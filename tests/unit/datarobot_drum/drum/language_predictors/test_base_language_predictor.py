@@ -83,13 +83,20 @@ class TestBaseLanguagePredictor:
     def mock_default_deployment_settings(self):
         with patch.object(dr.Deployment, "get") as mock_get_deployment:
             mock_get_deployment.return_value = Mock()
-            mock_get_deployment.return_value.get_drift_tracking_settings.return_value = {"feature_drift": {"enabled": True}, "target_drift": {"enabled": True}}
-            mock_get_deployment.return_value.get_predictions_data_collection_settings.return_value = {"enabled": True}
+            mock_get_deployment.return_value.get_drift_tracking_settings.return_value = {
+                "feature_drift": {"enabled": True},
+                "target_drift": {"enabled": True}
+            }
+            mock_get_deployment.return_value.get_predictions_data_collection_settings.return_value = {
+                "enabled": True
+            }
             mock_get_deployment.return_value.model = {"prompt": "promptText"}
             yield
 
     @pytest.fixture
-    def language_predictor_with_mlops(self, chat_python_model_adapter, mock_mlops, mock_default_deployment_settings):
+    def language_predictor_with_mlops(
+        self, chat_python_model_adapter, mock_mlops, mock_default_deployment_settings
+    ):
         predictor = TestLanguagePredictor()
         predictor.configure(self._language_predictor_with_mlops_parameters())
         yield predictor
@@ -123,13 +130,15 @@ class TestPredict(TestBaseLanguagePredictor):
         self, mock_mlops, feature_drift, target_drift, predictions_data_collections
     ):
         language_predictor = TestLanguagePredictor()
-        language_predictor_with_mlops_params = self._language_predictor_with_mlops_params_dr_api_access()
+        language_predictor_with_mlops_params = (
+            self._language_predictor_with_mlops_params_dr_api_access()
+        )
         language_predictor_with_mlops_params["monitor"] = True
         with patch.object(dr.Deployment, "get") as mock_get_deployment:
             mock_get_deployment.return_value = Mock()
             mock_get_deployment.return_value.get_drift_tracking_settings.return_value = {
                 "feature_drift": {"enabled": feature_drift},
-                "target_drift": {"enabled": target_drift}
+                "target_drift": {"enabled": target_drift},
             }
             mock_get_deployment.return_value.get_predictions_data_collection_settings.return_value = {
                 "enabled": predictions_data_collections
@@ -138,9 +147,7 @@ class TestPredict(TestBaseLanguagePredictor):
 
             language_predictor.configure(language_predictor_with_mlops_params)
 
-        data = bytes(pd.DataFrame(
-            {"promptText": ["Hello!"]}).to_csv(index=False), encoding="utf-8"
-        )
+        data = bytes(pd.DataFrame({"promptText": ["Hello!"]}).to_csv(index=False), encoding="utf-8")
         _ = language_predictor.predict(binary_data=data)
 
         if feature_drift or target_drift or predictions_data_collections:
@@ -154,7 +161,9 @@ class TestPredict(TestBaseLanguagePredictor):
             actual_predictions = mock_mlops.report_predictions_data.call_args.kwargs["predictions"]
             assert expected_predictions == actual_predictions
             if expected_df is not None:
-                pd.testing.assert_frame_equal(actual_df, expected_df, check_like=True, check_dtype=False)
+                pd.testing.assert_frame_equal(
+                    actual_df, expected_df, check_like=True, check_dtype=False
+                )
             else:
                 assert actual_df is None
         else:
@@ -293,7 +302,9 @@ class TestChat(TestBaseLanguagePredictor):
 
     def test_prompt_column_name(self, chat_python_model_adapter, mock_mlops):
         language_predictor = TestLanguagePredictor()
-        language_predictor_with_mlops_params = self._language_predictor_with_mlops_params_dr_api_access()
+        language_predictor_with_mlops_params = (
+            self._language_predictor_with_mlops_params_dr_api_access()
+        )
         with patch("datarobot.Deployment") as mock_deployment:
             deployment_instance = Mock()
             deployment_instance.model = {"prompt": "newPromptName"}
@@ -422,12 +433,14 @@ class TestChat(TestBaseLanguagePredictor):
         self, mock_mlops, feature_drift, target_drift, predictions_data_collections
     ):
         language_predictor = TestLanguagePredictor()
-        language_predictor_with_mlops_params = self._language_predictor_with_mlops_params_dr_api_access()
+        language_predictor_with_mlops_params = (
+            self._language_predictor_with_mlops_params_dr_api_access()
+        )
         with patch.object(dr.Deployment, "get") as mock_get_deployment:
             mock_get_deployment.return_value = Mock()
             mock_get_deployment.return_value.get_drift_tracking_settings.return_value = {
                 "feature_drift": {"enabled": feature_drift},
-                "target_drift": {"enabled": target_drift}
+                "target_drift": {"enabled": target_drift},
             }
             mock_get_deployment.return_value.get_predictions_data_collection_settings.return_value = {
                 "enabled": predictions_data_collections
@@ -461,7 +474,9 @@ class TestChat(TestBaseLanguagePredictor):
             actual_predictions = mock_mlops.report_predictions_data.call_args.args[1]
             assert expected_predictions == actual_predictions
             if expected_df is not None:
-                pd.testing.assert_frame_equal(actual_df, expected_df, check_like=True, check_dtype=False)
+                pd.testing.assert_frame_equal(
+                    actual_df, expected_df, check_like=True, check_dtype=False
+                )
             else:
                 assert actual_df is None
         else:

@@ -143,7 +143,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                     "enabled", True
                 )
                 self._predictions_data_collections_enabled = (
-                    self._deployment.get_predictions_data_collection_settings().get('enabled', True)
+                    self._deployment.get_predictions_data_collection_settings().get("enabled", True)
                 )
             except Exception as e:
                 logger.warning(f"Failed to get deployment / settings: {e}")
