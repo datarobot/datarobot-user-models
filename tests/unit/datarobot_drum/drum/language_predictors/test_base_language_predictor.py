@@ -85,7 +85,7 @@ class TestBaseLanguagePredictor:
             mock_get_deployment.return_value = Mock()
             mock_get_deployment.return_value.get_drift_tracking_settings.return_value = {
                 "feature_drift": {"enabled": True},
-                "target_drift": {"enabled": True}
+                "target_drift": {"enabled": True},
             }
             mock_get_deployment.return_value.get_predictions_data_collection_settings.return_value = {
                 "enabled": True
@@ -171,7 +171,6 @@ class TestPredict(TestBaseLanguagePredictor):
 
 
 class TestChat(TestBaseLanguagePredictor):
-
     @pytest.mark.parametrize("stream", [False, True])
     def test_chat_without_mlops(self, language_predictor, stream):
         def chat_hook(completion_request):
