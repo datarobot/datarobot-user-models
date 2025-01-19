@@ -178,6 +178,7 @@ class TestDropInEnvironments(object):
     @pytest.mark.parametrize(
         "model, test_data_id",
         [
+            ("java_regression_custom_model", "regression_testing_data"),
             ("python311_genai_custom_model", "regression_testing_data"),
             ("r_regression_custom_model", "regression_testing_data"),
             ("torch_regression_custom_model", "regression_testing_data"),
@@ -185,7 +186,6 @@ class TestDropInEnvironments(object):
             ("xgb_regression_custom_model", "regression_testing_data"),
             ("onnx_regression_custom_model", "regression_testing_data"),
             ("sklearn_regression_custom_model", "regression_testing_data"),
-            ("java_regression_custom_model", "regression_testing_data"),
         ],
     )
     def test_drop_in_environments(self, request, model, test_data_id):
