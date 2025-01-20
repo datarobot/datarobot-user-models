@@ -1055,18 +1055,7 @@ class CMRunner:
         ret_docker_image = None
         if os.path.isdir(docker_image_or_directory):
             docker_image_or_directory = os.path.abspath(docker_image_or_directory)
-            # Set image tag to the dirname/dirname of the docker context.
-            # E.g. for two folders:
-            # /home/path1/my_env
-            # /home/path2/my_env
-            # tags will be 'path1/my_env', 'path2/my_env'
-            #
-            # If tag already exists, older image will be untagged.
-            context_path = os.path.abspath(docker_image_or_directory)
-            tag = "{}/{}".format(
-                os.path.basename(os.path.dirname(context_path)), os.path.basename(context_path)
-            ).lower()
-
+            tag = self._create_docker_tag_name(docker_image_or_directory)
             lines = _get_requirements_lines(os.path.join(self.options.code_dir, "requirements.txt"))
             temp_context_dir = None
             if lines is not None and not self.options.skip_deps_install:
@@ -1172,6 +1161,24 @@ class CMRunner:
             )
 
         return ret_docker_image
+
+    @staticmethod
+    def _create_docker_tag_name(docker_context_dir_path: str) -> str:
+        """Create a valid docker tag name from the docker context folder path."""
+
+        def _remove_invalid_prefixes_and_suffixes(tag_part: str) -> str:
+            while tag_part.startswith("_"):
+                tag_part = tag_part[1:]
+            while tag_part.endswith("_"):
+                tag_part = tag_part[:-1]
+            return tag_part
+
+        context_path = os.path.abspath(docker_context_dir_path)
+        primary_tag_part = _remove_invalid_prefixes_and_suffixes(
+            os.path.basename(os.path.dirname(context_path))
+        )
+        secondary_tag_part = _remove_invalid_prefixes_and_suffixes(os.path.basename(context_path))
+        return f"{primary_tag_part}/{secondary_tag_part}".lower()
 
     def _generate_runtime_report_file(self, fit_mem_usage: float, pred_mem_usage: float) -> None:
         """
