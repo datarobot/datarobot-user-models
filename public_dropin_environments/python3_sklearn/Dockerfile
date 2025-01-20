@@ -11,6 +11,8 @@ RUN pip3 install -U pip && \
     pip3 install -U --upgrade-strategy eager --no-cache-dir -r requirements.txt  && \
     rm -rf requirements.txt
 
+# MARK: ADD-HERE. DO NOT DELETE OR MOVE THIS LINE. This line is used by the functional tests.
+
 # Copy the drop-in environment code into the correct directory
 # Code from the custom model tarball can overwrite the code here
 ENV HOME=/opt CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080

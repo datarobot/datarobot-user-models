@@ -370,18 +370,24 @@ class TestMLOpsMonitoring:
             with open(dockerfile_path, "r") as file:
                 dockerfile_lines = file.readlines()
 
-            for index, line in enumerate(dockerfile_lines):
-                if "RUN pip3 install -U pip" in line:
-                    for lookahead in range(index + 1, len(dockerfile_lines)):
-                        if not dockerfile_lines[lookahead].strip():
-                            dockerfile_lines[lookahead + 1 : lookahead + 1] = [
-                                f"COPY {drum_wheel_filename} {drum_wheel_filename}\n",
-                                f"RUN pip3 uninstall -y datarobot-drum datarobot-mlops && \\\n"
-                                f"    pip3 install --force-reinstall {drum_wheel_filename} && \\\n"
-                                f"    rm -rf {drum_wheel_filename}\n\n",
-                            ]
-                            break
-                    break
+            marker_substring = "# MARK: ADD-HERE."
+            line_index_to_insert = next(
+                (
+                    index
+                    for index, line in enumerate(dockerfile_lines)
+                    if line.startswith(marker_substring)
+                ),
+                None,
+            )
+            if line_index_to_insert is None:
+                raise ValueError(f"The Dockerfile does not contain the '{marker_substring}' line")
+
+            dockerfile_lines[line_index_to_insert + 1 : line_index_to_insert + 1] = [
+                f"COPY {drum_wheel_filename} {drum_wheel_filename}\n",
+                "RUN pip3 uninstall -y datarobot-drum datarobot-mlops && \\\n"
+                f"    pip3 install --force-reinstall {drum_wheel_filename} && \\\n"
+                f"    rm -rf {drum_wheel_filename}\n",
+            ]
 
             with open(dockerfile_path, "w") as file:
                 file.writelines(dockerfile_lines)
