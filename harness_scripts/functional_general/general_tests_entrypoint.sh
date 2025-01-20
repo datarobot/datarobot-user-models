@@ -4,7 +4,7 @@ DOCKER_HUB_SECRET=$1
 if [ -n "$HARNESS_BUILD_ID" ]; then
   echo "Running within a Harness pipeline."
   [ -z $DOCKER_HUB_SECRET ] && echo "Docker HUB secret is expected as an input argument" && exit 1
-  docker login -u datarobotread2 -p $DOCKER_HUB_SECRET
+  docker login -u datarobotread2 -p $DOCKER_HUB_SECRET || { echo "Docker login failed"; exit 1; }
 fi
 
 echo "== Build image for tests =="
