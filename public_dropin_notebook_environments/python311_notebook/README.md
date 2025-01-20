@@ -1,6 +1,6 @@
-# Python 3.11 Notebook Drop-In Template Environment
+# (Deprecated) Python 3.11 Notebook Drop-In Template Environment
 
-This template environment can be used to create custom Python 3.11 notebook environments.
+This template environment is deprecated. Please use [Python 3.11 Base Notebook Drop-In Template Environment](../python311_notebook_base/README.md) instead
 
 ## Supported Libraries
 
