@@ -620,8 +620,7 @@ class TestRuntimeParametersDockerCommand:
             assert params_file_docker_location not in docker_cmd
 
 
-class TestGetDockerTagNameFromDockerContextDir:
-    """Container for tests related to the method `_create_docker_tag_name`"""
+class TestCreateDockerTagName:
 
     @pytest.mark.parametrize(
         "docker_context_dir, expected_tag",
