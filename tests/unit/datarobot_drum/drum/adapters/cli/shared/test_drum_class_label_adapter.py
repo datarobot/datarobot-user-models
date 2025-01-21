@@ -44,6 +44,7 @@ class TestDrumCLIAdapterLabels(object):
             (TargetType.UNSTRUCTURED, None, None, None, None),
             (TargetType.TEXT_GENERATION, None, None, None, None),
             (TargetType.GEO_POINT, None, None, None, None),
+            (TargetType.VECTOR_DATABASE, None, None, None, None),
         ],
     )
     def test_infer_class_labels_if_not_provided(

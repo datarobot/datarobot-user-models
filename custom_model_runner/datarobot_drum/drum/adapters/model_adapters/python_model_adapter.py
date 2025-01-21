@@ -111,11 +111,12 @@ class PythonModelAdapter(AbstractModelAdapter):
         self._guard_moderation_hooks = None
         self._guard_pipeline = None
 
-        if target_type == TargetType.TEXT_GENERATION:
+        if target_type == TargetType.TEXT_GENERATION or target_type == TargetType.VECTOR_DATABASE:
             self._target_name = os.environ.get("TARGET_NAME")
             if not self._target_name:
-                raise ValueError("Unexpected empty target name for text generation!")
-            self._load_guard_hooks_for_drum()
+                raise ValueError("Unexpected empty target name!")
+            if target_type == TargetType.TEXT_GENERATION:
+                self._load_guard_hooks_for_drum()
         else:
             self._target_name = None
 

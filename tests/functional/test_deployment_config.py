@@ -44,6 +44,7 @@ class TestDeploymentConfig:
         TESTS_DEPLOYMENT_CONFIG_PATH, "text_generation.json"
     )
     deployment_config_geo_point = os.path.join(TESTS_DEPLOYMENT_CONFIG_PATH, "geo_point.json")
+    deployment_config_vector_database = os.path.join(TESTS_DEPLOYMENT_CONFIG_PATH, "vector_database.json")
 
     @pytest.fixture(params=[False, True], ids=["with_extra_output", "without_extra_output"])
     def with_extra_model_output(self, request):
@@ -316,6 +317,47 @@ class TestDeploymentConfig:
             assert isinstance(pred_item["predictionValues"], list)
 
             assert pred_item["predictionValues"][0]["label"] == config["target"]["name"]
+            assert pred_item["predictionValues"][0]["value"] == row[0]
+            if extra_model_output_df is not None:
+                assert pred_item["extraModelOutput"] == extra_model_output_df.iloc[index].to_dict()
+
+    def test_map_vector_database_prediction(self, extra_model_output_df):
+        """Verify Vector Database model output"""
+        config = parse_validate_deployment_config_file(self.deployment_config_vector_database)
+        assert config["target"]["name"] == "relevant"
+        assert config["target"]["type"] == "vectordatabase"
+
+        d = {
+            "relevant": [
+                ["relevant text 1"],
+                ["relevant text 2", "relevant text 3"],
+                ["relevant text 1", "relevant text 4", "relevant text 5"],
+            ]
+        }
+        df = pd.DataFrame(data=d)
+        predict_response = PredictResponse(df, extra_model_output_df)
+        response = build_pps_response_json_str(predict_response, config, TargetType.GEO_POINT)
+        response_json = json.loads(response)
+        assert isinstance(response_json, dict)
+        assert "data" in response_json
+        predictions_list = response_json["data"]
+        assert isinstance(predictions_list, list)
+        assert len(predictions_list) == df.shape[0]
+
+        pred_iter = iter(predictions_list)
+        for index, row in df.iterrows():
+            pred_item = next(pred_iter)
+
+            assert isinstance(pred_item, dict)
+            assert pred_item["rowId"] == index
+
+            assert isinstance(pred_item["prediction"], list)
+            assert pred_item["prediction"] == row[0]
+
+            assert isinstance(pred_item["predictionValues"], list)
+
+            assert pred_item["predictionValues"][0]["label"] == config["target"]["name"]
+            assert isinstance(pred_item["predictionValues"][0]["value"], list)
             assert pred_item["predictionValues"][0]["value"] == row[0]
             if extra_model_output_df is not None:
                 assert pred_item["extraModelOutput"] == extra_model_output_df.iloc[index].to_dict()

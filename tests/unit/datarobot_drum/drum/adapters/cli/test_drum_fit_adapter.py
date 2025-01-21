@@ -20,6 +20,7 @@ class TestDrumFitAdapterFailures(object):
             TargetType.MULTICLASS,
             TargetType.TEXT_GENERATION,
             TargetType.GEO_POINT,
+            TargetType.VECTOR_DATABASE,
         ],
     )
     def test_target_data_missing(self, dense_csv, target_type):

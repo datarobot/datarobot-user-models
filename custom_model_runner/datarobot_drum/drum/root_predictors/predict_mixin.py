@@ -154,7 +154,7 @@ class PredictMixin:
         if self._target_type == TargetType.UNSTRUCTURED:
             response = predict_response.predictions
         else:
-            if self._target_type not in (TargetType.TEXT_GENERATION, TargetType.GEO_POINT):
+            if self._target_type not in (TargetType.TEXT_GENERATION, TargetType.GEO_POINT, TargetType.VECTOR_DATABASE):
                 # float32 is not JSON serializable, so cast to float, which is float64
                 predict_response.predictions = predict_response.predictions.astype("float")
             if self._deployment_config is not None:

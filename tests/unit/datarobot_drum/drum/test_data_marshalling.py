@@ -225,3 +225,22 @@ def test_marshal_predictions_geo_point_invalid_dtype():
         marshal_predictions(
             request_labels=labels, predictions="a", target_type=TargetType.GEO_POINT
         )
+
+def test_marshal_predictions_reshape_vector_database():
+    preds = np.array([["Relevant Text 1"], ["Relevant Text 2", "Relevant Text 3"]], dtype="object")
+    labels = [PRED_COLUMN]
+    res = marshal_predictions(
+        request_labels=labels, predictions=preds, target_type=TargetType.VECTOR_DATABASE
+    )
+    assert res.equals(pd.DataFrame(preds, columns=labels))
+
+
+def test_marshal_predictions_vector_database_invalid_dtype():
+    labels = [PRED_COLUMN]
+    with pytest.raises(
+        DrumCommonException, match="predictions must return a np array, but received"
+    ):
+        marshal_predictions(
+            request_labels=labels, predictions="a", target_type=TargetType.VECTOR_DATABASE
+        )
+

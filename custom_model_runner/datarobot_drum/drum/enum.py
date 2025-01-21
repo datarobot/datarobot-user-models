@@ -392,12 +392,13 @@ class TargetType(Enum):
     TRANSFORM = "transform"
     TEXT_GENERATION = "textgeneration"
     GEO_POINT = "geopoint"
+    VECTOR_DATABASE = "vectordatabase"
 
     def is_classification(self):
         return self in [self.BINARY, self.MULTICLASS]
 
     def is_single_column(self):
-        return self in [self.REGRESSION, self.ANOMALY, self.TEXT_GENERATION, self.GEO_POINT]
+        return self in [self.REGRESSION, self.ANOMALY, self.TEXT_GENERATION, self.GEO_POINT, self.VECTOR_DATABASE]
 
 
 class TemplateType:

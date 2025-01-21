@@ -96,7 +96,7 @@ from tests.constants import (
     GEO_POINT,
     TRANSFORM,
     XGB,
-    R,
+    R, PYTHON_VECTOR_DATABASE, VECTOR_DATABASE,
 )
 
 
@@ -160,6 +160,7 @@ class TestInference:
             (MLJ, MULTICLASS, JULIA, None, False),
             (PYTHON_TEXT_GENERATION, TEXT_GENERATION, PYTHON_TEXT_GENERATION, None, False),
             (PYTHON_GEO_POINT, GEO_POINT, PYTHON_GEO_POINT, None, False),
+            (PYTHON_VECTOR_DATABASE, VECTOR_DATABASE, PYTHON_VECTOR_DATABASE, None, False),
         ],
     )
     def test_custom_models_with_drum(

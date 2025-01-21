@@ -141,6 +141,7 @@ RDS_PARAMETERS = "r_parameters"
 MULTICLASS_LABEL_SPACES = "iris_with_spaces_full"
 TEXT_GENERATION = "textgeneration"
 GEO_POINT = "geopoint"
+VECTOR_DATABASE = "vector_database"
 
 # Language keywords
 PYTHON = "python3"
@@ -179,6 +180,7 @@ PYTHON_UNSTRUCTURED_MLOPS = "python_unstructured_mlops"
 PYTHON_UNSTRUCTURED_DR_API_ACCESS = "python_unstructured_dr_api_access"
 PYTHON_UNSTRUCTURED_RUNTIME_PARAMS = "python_unstructured_runtime_params"
 PYTHON_UNSTRUCTURED_PARAMS = "python_unstructured_params"
+PYTHON_VECTOR_DATABASE = 'python_vector_database'
 R_UNSTRUCTURED = "r_unstructured"
 R_UNSTRUCTURED_PARAMS = "r_unstructured_params"
 PYTHON_XGBOOST_CLASS_LABELS_VALIDATION = "predictions_and_class_labels_validation"

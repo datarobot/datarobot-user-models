@@ -64,6 +64,8 @@ def build_pps_response_json_str(
         f = map_text_generation_prediction
     elif target_type == TargetType.GEO_POINT:
         f = map_geo_point_prediction
+    elif target_type == TargetType.VECTOR_DATABASE:
+        f = map_vector_database_prediction
     else:
         raise DrumCommonException("target type '{}' is not supported".format(target_type))
 
@@ -129,5 +131,13 @@ def map_geo_point_prediction(row, index, target_info, class_names):
     return {
         "prediction": pred_value,
         "predictionValues": [{"label": label, "value": pred_value}],
+        "rowId": index,
+    }
+
+def map_vector_database_prediction(row, index, target_info, class_names):
+    pred_value = row.iloc[0]
+    return {
+        "prediction": pred_value,
+        "predictionValues": [{"label": target_info["name"], "value": pred_value}],
         "rowId": index,
     }

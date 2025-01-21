@@ -65,6 +65,7 @@ class FakeLanguagePredictor(BaseLanguagePredictor):
         {"target_type": TargetType.REGRESSION},
         {"target_type": TargetType.TEXT_GENERATION},
         {"target_type": TargetType.GEO_POINT},
+        {"target_type": TargetType.VECTOR_DATABASE},
     ],
 )
 def test_lang_predictor_configure(predictor_params, essential_language_predictor_init_params):
@@ -138,6 +139,13 @@ class TestPythonPredictor(object):
                 np.array(["POINT(45.394073, -75.692924)", "POINT(45.407658, -75.771416)"]),
                 None,
             ),
+            (
+                {
+                    "target_type": TargetType.VECTOR_DATABASE,
+                },
+                np.array([["relevant_1"], ["relevant_2, relevant_3"]]),
+                None,
+            ),
         ],
     )
     def test_python_predictor_predict(
@@ -163,6 +171,9 @@ class TestPythonPredictor(object):
             py_predictor = PythonPredictor()
             if predictor_params["target_type"] == TargetType.TEXT_GENERATION:
                 with patch.dict(os.environ, {"TARGET_NAME": "Response"}):
+                    py_predictor.configure(init_params)
+            elif predictor_params["target_type"] == TargetType.VECTOR_DATABASE:
+                with patch.dict(os.environ, {"TARGET_NAME": "Relevant"}):
                     py_predictor.configure(init_params)
             else:
                 py_predictor.configure(init_params)
