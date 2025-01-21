@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 
 DOCKER_HUB_SECRET=$1
-[ -z $DOCKER_HUB_SECRET ] && echo "Docker HUB secret is expected as an input argument" && exit 1
-docker login -u datarobotread2 -p $DOCKER_HUB_SECRET
+if [ -n "$HARNESS_BUILD_ID" ]; then
+  echo "Running within a Harness pipeline."
+  [ -z $DOCKER_HUB_SECRET ] && echo "Docker HUB secret is expected as an input argument" && exit 1
+  docker login -u datarobotread2 -p $DOCKER_HUB_SECRET || { echo "Docker login failed"; exit 1; }
+fi
 
 echo "== Build image for tests =="
 tmp_py3_sklearn_env_dir=$(mktemp -d)
