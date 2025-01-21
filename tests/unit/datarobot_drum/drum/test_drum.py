@@ -618,3 +618,33 @@ class TestRuntimeParametersDockerCommand:
             assert file_mapping_param not in docker_cmd
             assert params_file_host_location not in docker_cmd
             assert params_file_docker_location not in docker_cmd
+
+
+class TestCreateDockerTagName:
+    @pytest.mark.parametrize(
+        "docker_context_dir, expected_tag",
+        [("/tmp/aaa", "tmp/aaa"), ("/tmp/aaa/bbb", "aaa/bbb"), ("/tmp/aa_a", "tmp/aa_a")],
+    )
+    def test_valid_prefixes_and_suffixes(self, docker_context_dir, expected_tag):
+        assert CMRunner._create_docker_tag_name(docker_context_dir) == expected_tag
+
+    @pytest.mark.parametrize(
+        "docker_context_dir, expected_tag",
+        [("/tmp/_aa_a", "tmp/aa_a"), ("/tmp/__aa_a", "tmp/aa_a")],
+    )
+    def test_tag_from_invalid_prefixes(self, docker_context_dir, expected_tag):
+        assert CMRunner._create_docker_tag_name(docker_context_dir) == expected_tag
+
+    @pytest.mark.parametrize(
+        "docker_context_dir, expected_tag",
+        [("/tmp/aa_a_", "tmp/aa_a"), ("/tmp/aa_a__", "tmp/aa_a")],
+    )
+    def test_tag_from_invalid_suffixes(self, docker_context_dir, expected_tag):
+        assert CMRunner._create_docker_tag_name(docker_context_dir) == expected_tag
+
+    @pytest.mark.parametrize(
+        "docker_context_dir, expected_tag",
+        [("/tmp/_aa_a_", "tmp/aa_a"), ("/tmp/__aa_a_", "tmp/aa_a"), ("/tmp/__aa_a__", "tmp/aa_a")],
+    )
+    def test_tag_from_both_invalid_prefixes_and_suffixes(self, docker_context_dir, expected_tag):
+        assert CMRunner._create_docker_tag_name(docker_context_dir) == expected_tag
