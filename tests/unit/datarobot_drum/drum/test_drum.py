@@ -621,7 +621,6 @@ class TestRuntimeParametersDockerCommand:
 
 
 class TestCreateDockerTagName:
-
     @pytest.mark.parametrize(
         "docker_context_dir, expected_tag",
         [("/tmp/aaa", "tmp/aaa"), ("/tmp/aaa/bbb", "aaa/bbb"), ("/tmp/aa_a", "tmp/aa_a")],
