@@ -626,7 +626,7 @@ class TestCreateDockerTagName:
         "docker_context_dir, expected_tag",
         [("/tmp/aaa", "tmp/aaa"), ("/tmp/aaa/bbb", "aaa/bbb"), ("/tmp/aa_a", "tmp/aa_a")],
     )
-    def test_tag_from_valid_prefixes_and_suffixes(self, docker_context_dir, expected_tag):
+    def test_valid_prefixes_and_suffixes(self, docker_context_dir, expected_tag):
         assert CMRunner._create_docker_tag_name(docker_context_dir) == expected_tag
 
     @pytest.mark.parametrize(
