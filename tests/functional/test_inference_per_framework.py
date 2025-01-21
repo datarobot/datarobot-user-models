@@ -96,7 +96,9 @@ from tests.constants import (
     GEO_POINT,
     TRANSFORM,
     XGB,
-    R, PYTHON_VECTOR_DATABASE, VECTOR_DATABASE,
+    R,
+    PYTHON_VECTOR_DATABASE,
+    VECTOR_DATABASE,
 )
 
 
@@ -210,7 +212,12 @@ class TestInference:
         if docker:
             cmd += " --docker {} --verbose ".format(docker)
 
-        env_vars = {"TARGET_NAME": "Response"} if problem == TEXT_GENERATION else {}
+        env_vars = {}
+        if problem == TEXT_GENERATION:
+            env_vars = {"TARGET_NAME": "Response"}
+        elif problem == VECTOR_DATABASE:
+            env_vars = {"TARGET_NAME": "relevant"}
+
         with patch.dict(os.environ, env_vars):
             _exec_shell_cmd(
                 cmd, "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd)
@@ -314,6 +321,7 @@ class TestInference:
             (MLJ, MULTICLASS, JULIA, None),
             (PYTHON_TEXT_GENERATION, TEXT_GENERATION, PYTHON_TEXT_GENERATION, None),
             (PYTHON_GEO_POINT, GEO_POINT, PYTHON_GEO_POINT, None),
+            (PYTHON_VECTOR_DATABASE, VECTOR_DATABASE, PYTHON_VECTOR_DATABASE, None),
         ],
     )
     @pytest.mark.parametrize("pass_args_as_env_vars", [False])
@@ -345,7 +353,13 @@ class TestInference:
         )
 
         unset_drum_supported_env_vars()
-        env_vars = {"TARGET_NAME": "Response"} if problem == TEXT_GENERATION else {}
+
+        env_vars = {}
+        if problem == TEXT_GENERATION:
+            env_vars = {"TARGET_NAME": "Response"}
+        elif problem == VECTOR_DATABASE:
+            env_vars = {"TARGET_NAME": "relevant"}
+
         with patch.dict(os.environ, env_vars), DrumServerRun(
             resources.target_types(problem),
             resources.class_labels(framework, problem),

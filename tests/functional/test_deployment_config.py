@@ -44,7 +44,9 @@ class TestDeploymentConfig:
         TESTS_DEPLOYMENT_CONFIG_PATH, "text_generation.json"
     )
     deployment_config_geo_point = os.path.join(TESTS_DEPLOYMENT_CONFIG_PATH, "geo_point.json")
-    deployment_config_vector_database = os.path.join(TESTS_DEPLOYMENT_CONFIG_PATH, "vector_database.json")
+    deployment_config_vector_database = os.path.join(
+        TESTS_DEPLOYMENT_CONFIG_PATH, "vector_database.json"
+    )
 
     @pytest.fixture(params=[False, True], ids=["with_extra_output", "without_extra_output"])
     def with_extra_model_output(self, request):

@@ -134,6 +134,7 @@ def map_geo_point_prediction(row, index, target_info, class_names):
         "rowId": index,
     }
 
+
 def map_vector_database_prediction(row, index, target_info, class_names):
     pred_value = row.iloc[0]
     return {
