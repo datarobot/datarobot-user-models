@@ -11,7 +11,7 @@ RUN pip3 install -U pip && \
     pip3 install -U --upgrade-strategy eager --no-cache-dir -r requirements.txt  && \
     rm -rf requirements.txt
 
-# MARK: ADD-HERE. DO NOT DELETE OR MOVE THIS LINE. This line is used by the functional tests.
+# MARK: FUNCTIONAL-TEST-ADD-HERE. (This line is used by DRUM functional test automation and can be safely ignored.)
 
 # Copy the drop-in environment code into the correct directory
 # Code from the custom model tarball can overwrite the code here

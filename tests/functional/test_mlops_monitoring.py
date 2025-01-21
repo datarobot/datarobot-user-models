@@ -370,7 +370,7 @@ class TestMLOpsMonitoring:
             with open(dockerfile_path, "r") as file:
                 dockerfile_lines = file.readlines()
 
-            marker_substring = "# MARK: ADD-HERE."
+            marker_substring = "# MARK: FUNCTIONAL-TEST-ADD-HERE."
             line_index_to_insert = next(
                 (
                     index
