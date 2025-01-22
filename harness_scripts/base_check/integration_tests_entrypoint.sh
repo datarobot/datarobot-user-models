@@ -3,7 +3,7 @@
 set -exuo pipefail
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-. ${script_dir}/../common/create_and_source_venv.sh
+. ${script_dir}/../../tools/create-and-source-venv.sh
 
 pushd custom_model_runner
 make
