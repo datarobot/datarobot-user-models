@@ -7,7 +7,7 @@ echo "== Assuming running integration tests in framework container (inside Docke
 ROOT_DIR="$(pwd)"
 
 script_dir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
-. ${script_dir}/../common/update_python_to_meet_requirements.sh
+. ${script_dir}/../../tools/update-python-to-meet-requirements.sh
 
 echo "== Installing pytest =="
 pip install pytest pytest-xdist

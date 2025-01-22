@@ -29,7 +29,7 @@ echo "== Image build succeeded: '$image_name' =="
 
 echo "== Preparing to test =="
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-. ${script_dir}/../common/create_and_source_venv.sh
+. ${script_dir}/../../tools/create-and-source-venv.sh
 
 echo "== Installing requirements for all the tests: requirements_test.txt =="
 pip install -r requirements_test.txt

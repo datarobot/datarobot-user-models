@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-. ${script_dir}/../common/create_and_source_venv.sh
+. ${script_dir}/../../tools/create-and-source-venv.sh
 
 pushd ./tests/functional/custom_java_predictor
 mvn package

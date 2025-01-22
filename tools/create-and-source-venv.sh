@@ -1,7 +1,7 @@
 #/usr/bin/env bash
 
 script_dir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
-. ${script_dir}/update_python_to_meet_requirements.sh
+. ${script_dir}/update-python-to-meet-requirements.sh
 
 VIRTUAL_ENV="${VIRTUAL_ENV:-}"
 if [ -n "$VIRTUAL_ENV" ]; then
