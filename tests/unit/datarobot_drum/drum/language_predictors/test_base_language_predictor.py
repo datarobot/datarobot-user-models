@@ -4,7 +4,6 @@ import pytest
 import pandas as pd
 import numpy as np
 import datarobot as dr
-from bson import ObjectId
 from werkzeug.exceptions import BadRequest
 
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
@@ -136,11 +135,13 @@ class TestPredict(TestBaseLanguagePredictor):
         setattr(champion_model_package, "datasets", {})
         if training_data_available:
             champion_model_package.datasets.update(
-                {"training_data_catalog_id": str(ObjectId())}
+                {"training_data_catalog_id": "6781c879d5494fd56c36760a"}
             )
         with patch.object(dr.Deployment, "get") as mock_get_deployment:
             mock_get_deployment.return_value = Mock()
-            mock_get_deployment.return_value.get_champion_model_package.return_value = champion_model_package
+            mock_get_deployment.return_value.get_champion_model_package.return_value = (
+                champion_model_package
+            )
             mock_get_deployment.return_value.model = {"prompt": "promptText"}
 
             language_predictor.configure(language_predictor_with_mlops_params)
@@ -429,11 +430,13 @@ class TestChat(TestBaseLanguagePredictor):
         setattr(champion_model_package, "datasets", {})
         if training_data_available:
             champion_model_package.datasets.update(
-                {"training_data_catalog_id": str(ObjectId())}
+                {"training_data_catalog_id": "6781c879d5494fd56c36760a"}
             )
         with patch.object(dr.Deployment, "get") as mock_get_deployment:
             mock_get_deployment.return_value = Mock()
-            mock_get_deployment.return_value.get_champion_model_package.return_value = champion_model_package
+            mock_get_deployment.return_value.get_champion_model_package.return_value = (
+                champion_model_package
+            )
             mock_get_deployment.return_value.model = {"prompt": "promptText"}
 
             language_predictor.configure(language_predictor_with_mlops_params)
