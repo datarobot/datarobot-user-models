@@ -1,4 +1,4 @@
-datarobot-drum==1.15.0
+datarobot-drum==1.16.1
 
 tensorflow==2.12.0
 numpy==1.23.5

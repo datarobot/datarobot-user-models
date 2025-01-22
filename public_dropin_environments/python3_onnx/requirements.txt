@@ -1,4 +1,4 @@
-datarobot-drum==1.15.0
+datarobot-drum==1.16.1
 
 numpy==1.23.5
 onnxruntime==1.11.0
