@@ -1,21 +1,10 @@
 # This is the default base image for use with user models and workflows.
-FROM openjdk:11.0.16-jre-slim-bullseye
+ARG BASE_ROOT_IMAGE=python:3.11.11-slim-bookworm
 
-ARG DATAROBOT_MLOPS_VERSION
+FROM ${BASE_ROOT_IMAGE}
 
-RUN apt-get update && apt-get upgrade -y && apt-get install -y python3 python3-pip python3-dev python3-distutils fontconfig && \
-    pip3 install --upgrade pip && \
-    pip3 install --no-cache-dir wheel setuptools && \
-    apt-get install -y python3-setuptools
-
-COPY requirements.txt requirements.txt
-COPY datarobot-mlops-*.jar /opt/jars/
-COPY mlops-agent-*.jar /opt/jars/
-
-ENV DRUM_JAVA_SHARED_JARS=/opt/jars/*
-ENV MLOPS_MONITORING_AGENT_JAR_PATH=/opt/jars/mlops-agent-${DATAROBOT_MLOPS_VERSION}.jar
+# Upgrade setuptools to a secure version (CVE-2024-6345)
+RUN pip install --no-cache-dir --upgrade pip setuptools>=70.0.0
 
 # This makes print statements show up in the logs API
 ENV PYTHONUNBUFFERED=1
-
-RUN pip3 install -U pip && pip3 install -r requirements.txt
