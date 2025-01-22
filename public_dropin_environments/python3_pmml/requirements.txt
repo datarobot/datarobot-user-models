@@ -1,4 +1,4 @@
-datarobot-drum==1.15.0
+datarobot-drum==1.16.1
 
 pypmml==0.9.16
 numpy==1.23.5
