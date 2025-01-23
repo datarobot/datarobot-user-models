@@ -21,6 +21,8 @@ from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
 class NIMPredictor(BaseOpenAiGpuPredictor):
     DEFAULT_MODEL_DIR = "model-repo"
     ENGINE_CONFIG_FILE = "engine_config.json"
+    LEGACY_START_SERVER_SCRIPT = Path("/opt/nim/start-server.sh")
+    START_SERVER_SCRIPT = Path("/opt/nim/start_server.sh")
 
     def __init__(self):
         super().__init__()
@@ -46,7 +48,16 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
         """
         self.run_load_model_hook_idempotent()
 
-        cmd = ["/opt/nvidia/nvidia_entrypoint.sh", "/opt/nim/start-server.sh"]
+        cmd = ["/opt/nvidia/nvidia_entrypoint.sh"]
+        if self.START_SERVER_SCRIPT.is_file():
+            cmd.append(str(self.START_SERVER_SCRIPT))
+        elif self.LEGACY_START_SERVER_SCRIPT.is_file():
+            cmd.append(str(self.LEGACY_START_SERVER_SCRIPT))
+        else:
+            raise FileNotFoundError(
+                f"Unexpected: neither {self.START_SERVER_SCRIPT} nor "
+                f"{self.LEGACY_START_SERVER_SCRIPT} exist in the container."
+            )
 
         # update the path so vllm_nvext (e.g. NIM) process can find its libraries
         env = os.environ.copy()
