@@ -49,11 +49,6 @@ class PythonPredictor(BaseLanguagePredictor):
 
         super(PythonPredictor, self).configure(params)
 
-        if to_bool(params.get("allow_dr_api_access")):
-            logger.info("Initializing DataRobot Python client.")
-            dr_api_endpoint = self._dr_api_url(endpoint=params["external_webserver_url"])
-            dr.Client(token=params["api_token"], endpoint=dr_api_endpoint)
-
         try:
             self._model = self._model_adapter.load_model_from_artifact(
                 user_secrets_mount_path=params.get("user_secrets_mount_path"),
@@ -66,12 +61,6 @@ class PythonPredictor(BaseLanguagePredictor):
 
     def _should_enable_mlops(self):
         return super()._should_enable_mlops() or to_bool(self._params.get("monitor_embedded"))
-
-    @staticmethod
-    def _dr_api_url(endpoint):
-        if not endpoint.endswith("api/v2"):
-            endpoint = f"{endpoint}/api/v2"
-        return endpoint
 
     def supports_chat(self):
         return self._model_adapter.has_custom_hook(CustomHooks.CHAT)
