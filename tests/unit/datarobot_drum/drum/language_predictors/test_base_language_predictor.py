@@ -110,15 +110,15 @@ class TestBaseLanguagePredictor:
         params["allow_dr_api_access"] = True
         return params
 
-    def test_mlops_init(self, language_predictor_with_mlops, mock_mlops):
-        mock_mlops.set_channel_config.called_once_with("spooler_type=API")
-
-        mock_mlops.init.assert_called_once()
-
     @pytest.fixture
     def mock_dr_client(self):
         with patch.object(dr, "Client") as _:
             yield
+
+    def test_mlops_init(self, language_predictor_with_mlops, mock_mlops):
+        mock_mlops.set_channel_config.called_once_with("spooler_type=API")
+
+        mock_mlops.init.assert_called_once()
 
 
 class TestPredict(TestBaseLanguagePredictor):
