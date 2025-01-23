@@ -141,7 +141,7 @@ RDS_PARAMETERS = "r_parameters"
 MULTICLASS_LABEL_SPACES = "iris_with_spaces_full"
 TEXT_GENERATION = "textgeneration"
 GEO_POINT = "geopoint"
-VECTOR_DATABASE = "vector_database"
+VECTOR_DATABASE = "vectordatabase"
 
 # Language keywords
 PYTHON = "python3"

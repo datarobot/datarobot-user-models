@@ -338,7 +338,7 @@ class TestDeploymentConfig:
         }
         df = pd.DataFrame(data=d)
         predict_response = PredictResponse(df, extra_model_output_df)
-        response = build_pps_response_json_str(predict_response, config, TargetType.GEO_POINT)
+        response = build_pps_response_json_str(predict_response, config, TargetType.VECTOR_DATABASE)
         response_json = json.loads(response)
         assert isinstance(response_json, dict)
         assert "data" in response_json
