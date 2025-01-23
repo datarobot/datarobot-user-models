@@ -550,8 +550,19 @@ class TestPythonModelAdapterInitialization:
 
     def test_invalid_initialization_for_text_generation(self):
         os.environ.pop("TARGET_NAME", None)
-        with pytest.raises(ValueError, match="Unexpected empty target name for text generation!"):
+        with pytest.raises(ValueError, match="Unexpected empty target name"):
             PythonModelAdapter(Mock(), TargetType.TEXT_GENERATION)
+
+    def test_valid_initialization_for_vector_database(self):
+        vdb_target_name = "relevant"
+        with patch.dict(os.environ, {"TARGET_NAME": vdb_target_name}):
+            adapter = PythonModelAdapter(Mock(), TargetType.VECTOR_DATABASE)
+            assert adapter._target_name == vdb_target_name
+
+    def test_invalid_initialization_for_vector_database(self):
+        os.environ.pop("TARGET_NAME", None)
+        with pytest.raises(ValueError, match="Unexpected empty target name"):
+            PythonModelAdapter(Mock(), TargetType.VECTOR_DATABASE)
 
 
 class TestPythonModelAdapterWithGuards:

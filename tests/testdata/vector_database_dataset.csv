@@ -1,0 +1,6 @@
+relevant
+['Relevant text 1']
+"['Relevant text 2', 'Relevant text 3']"
+"['Relevant text 4', 'Relevant text 5', 'Relevant text 6']"
+"['Relevant text 1', 'Relevant text 7']"
+"['Relevant text ""\'with,, special.. [characters] \'"" ', 'Relevant text ""\'with,, -some- (more) {special..} [characters]!!! \'"" ']"

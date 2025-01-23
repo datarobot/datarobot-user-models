@@ -16,6 +16,9 @@ solely deployment, while tasks will be able to be trained on the leaderboard.
     - `unstructured`
     - `multiclass`
     - `transform`
+    - `textgeneration`
+    - `geopoint`
+    - `vectordatabase`
 * modelID (optional): Once you have created a model for the first time, it is best practice to use 
 custom model versions when adding code while iterating on your model. To only create a new version
 instead of a whole new top level model, please include a hash here for the custom model you created.

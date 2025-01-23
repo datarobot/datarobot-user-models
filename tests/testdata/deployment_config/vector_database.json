@@ -1,0 +1,9 @@
+{
+    "target": {
+        "class_mapping": null,
+        "missing_maps_to": null,
+        "name": "relevant",
+        "prediction_threshold": null,
+        "type": "vectordatabase"
+    }
+}
