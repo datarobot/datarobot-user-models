@@ -4,10 +4,10 @@ This drop-in environment contains the NVIDIA NIM server with support for large l
 
 ## Instructions
 
-1. Build the image, run `docker build -t nim:latest /path/to/public_dropin_environments/nim_llm/`
+1. Build the image, run `docker build -t nim:latest /path/to/public_dropin_environments/nim_llama_8b/`
    - You will need to authenticate to fetch the base image. See the [official instructions](https://docs.nvidia.com/nim/large-language-models/latest/getting-started.html#generate-an-api-key) for help.
 2. Export the image, run `docker save nim:latest | gzip -9 > pre-built-nim_latest.tar.gz`
-3. Create the docker context archive, run `tar -czvf nim_dropin.tar.gz -C /path/to/public_dropin_environments/nim_llm/ .`
+3. Create the docker context archive, run `tar -czvf nim_dropin.tar.gz -C /path/to/public_dropin_environments/nim_llama_8b/ .`
 4. Using either the API or from the UI create a new Custom Environment with the tarballs created in step 1 and 3.
    - Be sure to upload **both** the context and pre-built image when creating a new version.
 

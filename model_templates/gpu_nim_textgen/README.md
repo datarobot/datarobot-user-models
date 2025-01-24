@@ -3,7 +3,7 @@
 This text generation example uses Llama-3.1-8b model pre-compiled for one of the [supported](https://docs.nvidia.com/nim/large-language-models/latest/support-matrix.html#llama-3-1-8b-instruct) GPUs.
 
 ## Requirements
-- NIM LLM [Execution Environment](../../public_dropin_gpu_environments/nim_llm/)
+- NIM LLM [Execution Environment](../../public_dropin_gpu_environments/nim_llama_8b/)
 - NIM Models currently only available via Developer program:
 https://developer.nvidia.com/developer-program
 - Generate a valid NVIDIA NGC Registry API Key:
@@ -27,7 +27,7 @@ API Key is used to build a docker image and pull LLM models from NGC Registry.
 ```shell
 export NGC_CLI_API_KEY=<INSERT NGC API KEY HERE>
 docker login --username="\$oauthtoken" --password="${NGC_CLI_API_KEY}" nvcr.io
-cd ~/datarobot-user-models/public_dropin_gpu_environments/nim_llm
+cd ~/datarobot-user-models/public_dropin_gpu_environments/nim_llama_8b
 cp ~/datarobot-user-models/model_templates/gpu_nim_textgen/* .
 docker build -t nim_llm .
 ```
