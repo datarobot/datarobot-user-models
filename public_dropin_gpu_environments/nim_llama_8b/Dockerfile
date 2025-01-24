@@ -1,4 +1,4 @@
-FROM nvcr.io/nim/meta/llama-3.1-8b-instruct:1.2.2
+FROM nvcr.io/nim/meta/llama-3.1-8b-instruct:1.3.3
 
 USER root
 RUN apt-get update && apt-get install -y \
