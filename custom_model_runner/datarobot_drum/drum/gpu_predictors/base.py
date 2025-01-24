@@ -307,7 +307,11 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         """
         Proxy health checks to OpenAI Inference Server
         """
-        if self.openai_server_thread and not self.openai_server_thread.is_alive():
+        if (
+            self.openai_process
+            and (pid := self.openai_process.process)
+            and not self._check_pid(pid)
+        ):
             return {"message": f"{self.NAME} has crashed."}, HTTP_513_DRUM_PIPELINE_ERROR
 
         try:
@@ -322,6 +326,15 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
             return {
                 "message": f"{self.NAME} server is not ready: {str(err)}"
             }, http_codes.SERVICE_UNAVAILABLE
+
+    @staticmethod
+    def _check_pid(pid):
+        try:
+            os.kill(pid, 0)
+        except OSError:
+            return False
+        else:
+            return True
 
     def download_and_serve_model(self):
         raise NotImplementedError
