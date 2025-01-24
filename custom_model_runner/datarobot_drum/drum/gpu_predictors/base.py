@@ -18,6 +18,9 @@ from threading import Event
 from threading import Thread
 
 import numpy as np
+import requests
+from requests import ConnectionError, Timeout
+from requests import codes as http_codes
 
 from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
@@ -33,6 +36,7 @@ from datarobot_drum.drum.gpu_predictors import MLOpsStatusReporter
 from datarobot_drum.drum.language_predictors.base_language_predictor import (
     BaseLanguagePredictor,
 )
+from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
 from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerProcess
 
 
@@ -43,8 +47,10 @@ class ChatRoles:
 
 
 class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
+    NAME = "Generic OpenAI API"
     DEFAULT_MODEL_NAME = "datarobot-deployed-llm"
     MAX_RESTARTS = 10
+    HEALTH_ROUTE = "/"
 
     def __init__(self):
         super().__init__()
@@ -301,7 +307,21 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         """
         Proxy health checks to OpenAI Inference Server
         """
-        raise NotImplementedError
+        if self.openai_server_thread and not self.openai_server_thread.is_alive():
+            return {"message": f"{self.NAME} has crashed."}, HTTP_513_DRUM_PIPELINE_ERROR
+
+        try:
+            health_url = f"http://{self.openai_host}:{self.openai_port}{self.HEALTH_ROUTE}"
+            response = requests.get(health_url, timeout=5)
+            return {"message": response.text}, response.status_code
+        except Timeout:
+            return {
+                "message": f"Timeout waiting for {self.NAME} health route to respond."
+            }, http_codes.SERVICE_UNAVAILABLE
+        except ConnectionError as err:
+            return {
+                "message": f"{self.NAME} server is not ready: {str(err)}"
+            }, http_codes.SERVICE_UNAVAILABLE
 
     def download_and_serve_model(self):
         raise NotImplementedError

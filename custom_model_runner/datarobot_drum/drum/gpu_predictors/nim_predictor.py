@@ -7,22 +7,19 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import json
 import os
 import subprocess
-import typing
 from pathlib import Path
-
-import requests
-from requests import ConnectionError, Timeout
 
 from datarobot_drum.drum.enum import CustomHooks
 from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
-from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
 
 
 class NIMPredictor(BaseOpenAiGpuPredictor):
+    NAME = "NIM"
     DEFAULT_MODEL_DIR = "model-repo"
     ENGINE_CONFIG_FILE = "engine_config.json"
     LEGACY_START_SERVER_SCRIPT = Path("/opt/nim/start-server.sh")
     START_SERVER_SCRIPT = Path("/opt/nim/start_server.sh")
+    HEALTH_ROUTE = "/v1/health/ready"
 
     def __init__(self):
         super().__init__()
@@ -110,19 +107,3 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
             self.openai_process.process = p
             for line in p.stdout:
                 self.logger.info(line[:-1])
-
-    def health_check(self) -> typing.Tuple[dict, int]:
-        """
-        Proxy health checks to NIM Server
-        """
-        if self.openai_server_thread and not self.openai_server_thread.is_alive():
-            return {"message": "NIM has crashed."}, HTTP_513_DRUM_PIPELINE_ERROR
-
-        try:
-            health_url = f"http://{self.openai_host}:{self.openai_port}/v1/health/ready"
-            response = requests.get(health_url, timeout=5)
-            return {"message": response.text}, response.status_code
-        except Timeout:
-            return {"message": "Timeout waiting for NIM health route to respond."}, 503
-        except ConnectionError as err:
-            return {"message": f"NIM server is not ready: {str(err)}"}, 503
