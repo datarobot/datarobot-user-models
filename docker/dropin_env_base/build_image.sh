@@ -6,8 +6,15 @@
 #
 # Released under the terms of DataRobot Tool and Utility Agreement.
 
+DATAROBOT_BASE_IMAGE_VERSION=1.0.0
+
 while [[ $# -gt 0 ]]; do
   case $1 in
+    --version)
+      shift
+      DATAROBOT_BASE_IMAGE_VERSION=$1
+      shift # past argument
+      ;;
     --push)
       PUSH=1
       shift # past argument
@@ -27,21 +34,19 @@ IMAGE_ORG_DATAROBOTDEV=datarobotdev
 
 IMAGE_REPO=dropin-env-base
 
-IMAGE_TAG=debian11-py3.9-jre11.0.16-drum1.13.0-mlops9.2.8
+BASE_ROOT_IMAGE_TAG=$(grep -E '^ARG[[:space:]]+BASE_ROOT_IMAGE=' Dockerfile | sed -E 's/^ARG[[:space:]]+BASE_ROOT_IMAGE=//')
+BASE_ROOT_IMAGE_TAG="${BASE_ROOT_IMAGE_TAG//:/-}"
+IMAGE_TAG=${DATAROBOT_BASE_IMAGE_VERSION}-${BASE_ROOT_IMAG_TAG}
 
 IMAGE_NAME_DATAROBOT=${IMAGE_ORG_DATAROBOT}/${IMAGE_REPO}:${IMAGE_TAG}
 IMAGE_NAME_DATAROBOTDEV=${IMAGE_ORG_DATAROBOTDEV}/${IMAGE_REPO}:${IMAGE_TAG}
 
 pwd
 
-echo "Building docker image: ${IMAGE_NAME_DATAROBOTDEV}:${IMAGE_TAG}"
-export DATAROBOT_MLOPS_VERSION=9.2.8
-${SCRIPT_DIR}/pull_artifacts.sh
-
-
+echo "Building docker image: ${IMAGE_NAME_DATAROBOTDEV}"
 
 # Build and save in the local registry. (In the harness pipeline we run trivy on it)
-docker build --no-cache --build-arg DATAROBOT_MLOPS_VERSION=${DATAROBOT_MLOPS_VERSION} -t ${IMAGE_NAME_DATAROBOTDEV} -t ${IMAGE_NAME_DATAROBOT} .
+docker build --no-cache -t ${IMAGE_NAME_DATAROBOTDEV} -t ${IMAGE_NAME_DATAROBOT} .
 
 # this is command to build images for specified platforms.
 # For more info: https://docs.docker.com/build/building/multi-platform/

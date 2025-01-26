@@ -1,13 +1,16 @@
 #!/usr/bin/env bash
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+. ${script_dir}/../common/common.sh
+
 DOCKER_HUB_SECRET=$1
 if [ -n "$HARNESS_BUILD_ID" ]; then
-  echo "Running within a Harness pipeline."
+  title "Running within a Harness pipeline."
   [ -z $DOCKER_HUB_SECRET ] && echo "Docker HUB secret is expected as an input argument" && exit 1
   docker login -u datarobotread2 -p $DOCKER_HUB_SECRET || { echo "Docker login failed"; exit 1; }
 fi
 
-echo "== Build image for tests =="
+title "Build image for tests"
 tmp_py3_sklearn_env_dir=$(mktemp -d)
 cp -r public_dropin_environments/python3_sklearn/* $tmp_py3_sklearn_env_dir
 cp -r custom_model_runner/ $tmp_py3_sklearn_env_dir
@@ -25,17 +28,17 @@ docker build -t $image_name .
 popd
 
 docker images
-echo "== Image build succeeded: '$image_name' =="
+echo "Image build succeeded: '$image_name'"
 
-echo "== Preparing to test =="
+title "Preparing to test"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . ${script_dir}/../../tools/create-and-source-venv.sh
 
-echo "== Installing requirements for all the tests: requirements_test.txt =="
+title "Installing requirements for all the tests: requirements_test.txt"
 pip install -r requirements_test.txt
 
 pushd custom_model_runner
-echo "== Install drum from source =="
+title "Install drum from source"
 pip install .
 popd
 

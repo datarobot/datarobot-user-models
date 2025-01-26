@@ -1,17 +1,15 @@
-# Python/Java(JRE) drop-in environments base image
+# Python drop-in environments base image
 Repository name: **datarobot/dropin-env-base**
-Latest date: 12-01-2023
+Latest date: January 22, 2025
 Dockerfile: https://github.com/datarobot/datarobot-user-models/blob/master/docker/dropin_env_base/Dockerfile
 
 ## Description
-This image is used as a base for Python and Java drop in environments.
-Based on openjdk:11.0.16-jre-slim-bullseye
+This image is used as a base for Python drop in environments.
+It is based on python:3.11-slim-bookworm, with some vulnerability fixes.
+
 Contains
-* Debian 11
-* JRE 11
-* Python 3.9
-* DRUM 1.10.14
-* datarobot-mlops 9.2.8
+* Debian 12.9
+* Python 3.11
 
 ## Guidelines
 DataRobot guidelines for publishing images to Docker Hub
