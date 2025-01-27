@@ -1052,7 +1052,9 @@ class TestNIM:
             "MLOPS_RUNTIME_PARAM_prompt_column_name"
         ] = '{"type":"string","payload":"user_prompt"}'
         os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 256}'
-        os.environ["MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"] = '{"type": "numeric", "payload": 10}'
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
+        ] = '{"type": "numeric", "payload": 10}'
 
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "gpu_nim_textgen")
 
@@ -1148,7 +1150,9 @@ class TestVLLM:
             "MLOPS_RUNTIME_PARAM_prompt_column_name"
         ] = '{"type":"string","payload":"user_prompt"}'
         os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 30}'
-        os.environ["MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"] = '{"type": "numeric", "payload": 10}'
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
+        ] = '{"type": "numeric", "payload": 10}'
 
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "gpu_vllm_textgen")
         with open(os.path.join(custom_model_dir, "engine_config.json"), "w") as f:
