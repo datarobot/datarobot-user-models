@@ -7,7 +7,8 @@ dependencies that you want to include for your own custom environments.
 
 In this repository, we provide several example environments that you can use and modify:
 * [NVIDIA Triton Inference Server](triton_server)
-* [NVIDIA NIM Example Environment](nim_llm)
+* [NVIDIA NIM Llama 8B Example Environment](nim_llama_8b)
+* [NVIDIA NIM Llama 70B Example Environment](nim_llama_70b)
 * [vLLM OpenAI’s Compatible Server](vllm)
 * [Python 3.11 GenAI Environment](python311_genai)
 

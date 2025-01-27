@@ -1,0 +1,11 @@
+{
+  "id": "67931445cbce020e21794adf",
+  "name": "[GenAI][NVIDIA] NIM Llama-3.1-70b-instruct",
+  "description": "NVIDIA Inference Microservice GPU accelerated LLM capabilities through OpenAI compatible API's.\nThis NIM was built for Llama3.1-70b-instruct.",
+  "programmingLanguage": "python",
+  "label": "v1.3.3+dr.1",
+  "environmentVersionId": "67931445cbce020e21794ae0",
+  "environmentVersionDescription": "Initial release.\nFROM nvcr.io/nim/meta/llama-3.1-70b-instruct:1.3.3",
+  "isDownloadable": false,
+  "isPublic": true
+}
