@@ -14,10 +14,14 @@ import sys
 import time
 import typing
 from pathlib import Path
+from subprocess import Popen
 from threading import Event
 from threading import Thread
 
 import numpy as np
+import requests
+from requests import ConnectionError, Timeout
+from requests import codes as http_codes
 
 from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
@@ -33,6 +37,7 @@ from datarobot_drum.drum.gpu_predictors import MLOpsStatusReporter
 from datarobot_drum.drum.language_predictors.base_language_predictor import (
     BaseLanguagePredictor,
 )
+from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
 from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerProcess
 
 
@@ -43,8 +48,10 @@ class ChatRoles:
 
 
 class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
+    NAME = "Generic OpenAI API"
     DEFAULT_MODEL_NAME = "datarobot-deployed-llm"
     MAX_RESTARTS = 10
+    HEALTH_ROUTE = "/"
 
     def __init__(self):
         super().__init__()
@@ -133,6 +140,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
             total_deployment_stages=self.num_deployment_stages,
         )
 
+        self._openai_server_ready_sentinel = Path(self._code_dir) / ".server_ready"
         self._is_shutting_down = Event()
         self.openai_process = DrumServerProcess()
         self.ai_client = OpenAI(
@@ -143,11 +151,26 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         )
         self.openai_server_thread.start()
 
+        self._openai_server_watchdog = Thread(
+            target=self.watchdog, daemon=True, name="OpenAI Watchdog"
+        )
+        self._openai_server_watchdog.start()
+
     def watchdog(self):
         """
         Used as a watchdog thread that will monitor the openai_server_thread and restart it if it
         crashes.
         """
+        # OpenAI server can crash due to user misconfiguration and in this case we don't want the
+        # watchdog to keep trying to restart it (as it will just fail again). The current logic
+        # waits for the server to successfully start once before enabling the watchdog.
+        self.logger.info("Starting OpenAI Server watchdog thread in standby mode...")
+        while not self._openai_server_ready_sentinel.exists():
+            if self._is_shutting_down.is_set():
+                return
+            time.sleep(7)
+        self.logger.info("OpenAI Server is ready; switching watchdog to active mode...")
+
         restarts_left = self._max_watchdog_restarts
         sleep_time = 2
         while not self._is_shutting_down.is_set():
@@ -207,20 +230,16 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
 
     def liveness_probe(self):
         message, status = self.health_check()
-        # Only startup the watchdog after the server has come up healthy once
-        if self._openai_server_watchdog is None and status == 200:
-            self.logger.info("Starting OpenAI Server watchdog thread...")
-            self._openai_server_watchdog = Thread(
-                target=self.watchdog, daemon=True, name="OpenAI Watchdog"
-            )
-            self._openai_server_watchdog.start()
+        if status == 200 and not self._openai_server_ready_sentinel.exists():
+            # Notify watchdog thread that server has successfully started (multiprocess safe)
+            self._openai_server_ready_sentinel.touch(exist_ok=True)
         return message, status
 
     def readiness_probe(self):
         return self.health_check()
 
     @staticmethod
-    def get_optional_parameter(key, default_value=None):
+    def get_optional_parameter(key: str, default_value=None):
         if RuntimeParameters.has(key):
             return RuntimeParameters.get(key)
         return default_value
@@ -301,13 +320,41 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         """
         Proxy health checks to OpenAI Inference Server
         """
-        raise NotImplementedError
+        if (
+            self.openai_process
+            and (p := self.openai_process.process)
+            and not self._check_process(p)
+        ):
+            return {"message": f"{self.NAME} has crashed."}, HTTP_513_DRUM_PIPELINE_ERROR
+
+        try:
+            health_url = f"http://{self.openai_host}:{self.openai_port}{self.HEALTH_ROUTE}"
+            response = requests.get(health_url, timeout=5)
+            return {"message": response.text}, response.status_code
+        except Timeout:
+            return {
+                "message": f"Timeout waiting for {self.NAME} health route to respond."
+            }, http_codes.SERVICE_UNAVAILABLE
+        except ConnectionError as err:
+            return {
+                "message": f"{self.NAME} server is not ready: {str(err)}"
+            }, http_codes.SERVICE_UNAVAILABLE
+
+    @staticmethod
+    def _check_process(process: Popen):
+        try:
+            os.kill(process.pid, 0)
+        except OSError:
+            return False
+        else:
+            return True
 
     def download_and_serve_model(self):
         raise NotImplementedError
 
     def terminate(self):
         self._is_shutting_down.set()
+        self._openai_server_ready_sentinel.unlink(missing_ok=True)
         if not self.openai_process or not self.openai_process.process:
             self.logger.info("OpenAI server is not running, skipping shutdown...")
             return

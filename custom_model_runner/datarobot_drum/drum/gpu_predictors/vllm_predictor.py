@@ -7,22 +7,18 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import json
 import os
 import subprocess
-import typing
 from pathlib import Path
-
-import requests
-from requests import ConnectionError, Timeout
-from requests import codes as http_codes
 
 from datarobot_drum.drum.enum import CustomHooks
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
-from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
 
 
 class VllmPredictor(BaseOpenAiGpuPredictor):
+    NAME = "vLLM"
     DEFAULT_MODEL_DIR = "vllm"
     ENGINE_CONFIG_FILE = "engine_config.json"
+    HEALTH_ROUTE = "/health"
 
     def __init__(self):
         super().__init__()
@@ -37,26 +33,6 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
     @property
     def num_deployment_stages(self):
         return 3 if self.python_model_adapter.has_custom_hook(CustomHooks.LOAD_MODEL) else 1
-
-    def health_check(self) -> typing.Tuple[dict, int]:
-        """
-        Proxy health checks to vLLM Inference Server
-        """
-        if self.openai_server_thread and not self.openai_server_thread.is_alive():
-            return {"message": "vLLM has crashed."}, HTTP_513_DRUM_PIPELINE_ERROR
-
-        try:
-            health_url = f"http://{self.openai_host}:{self.openai_port}/health"
-            response = requests.get(health_url, timeout=5)
-            return {"message": response.text}, response.status_code
-        except Timeout:
-            return {
-                "message": "Timeout waiting for vLLM health route to respond."
-            }, http_codes.SERVICE_UNAVAILABLE
-        except ConnectionError as err:
-            return {
-                "message": f"vLLM server is not ready: {str(err)}"
-            }, http_codes.SERVICE_UNAVAILABLE
 
     def download_and_serve_model(self):
         """
