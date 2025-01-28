@@ -25,3 +25,6 @@ unidic-lite==1.0.8
 llama-index==0.10.37
 llama-index-llms-azure-openai==0.1.8
 distro==1.9.0
+# next version of httpx, 0.28.0, has a bug that breaks opanai library, which is pinned
+# https://github.com/openai/openai-python/issues/1902
+httpx==0.27.2
