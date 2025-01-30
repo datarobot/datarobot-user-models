@@ -3,7 +3,7 @@
   "name": "[DataRobot] Python 3.11 Notebook Base Image",
   "description": "This template environment can be used to create Python 3.11 notebook environments.",
   "programmingLanguage": "python",
-  "environmentVersionId": "678909b6776ffccaa3401ae9",
+  "environmentVersionId": "679bc5cb714043fa6fd04a8d",
   "isPublic": true,
   "useCases": [
     "notebook",
