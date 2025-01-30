@@ -93,7 +93,6 @@ class TestValidationCheck:
             (SKLEARN, REGRESSION, PYTHON, DOCKER_PYTHON_SKLEARN),
             (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None),
             (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, DOCKER_PYTHON_SKLEARN),
-            (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, DOCKER_PYTHON_SKLEARN),
         ],
     )
     def test_validation_check(
@@ -136,10 +135,7 @@ class TestValidationCheck:
             assert_if_fail=False,
         )
 
-        if language == NO_CUSTOM:
-            assert re.search(r"Null value imputation\s+FAILED", stdo)
-        else:
-            assert re.search(r"Null value imputation\s+PASSED", stdo)
+        assert re.search(r"Null value imputation\s+PASSED", stdo)
 
     @pytest.mark.parametrize(
         "framework, problem, language",

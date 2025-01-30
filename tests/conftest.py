@@ -14,7 +14,9 @@ import yaml
 from scipy.io import mmread
 
 from tests.constants import (
+    FEDRAMP_COMPLIANT_SUFFIX,
     PYTHON_SKLEARN,
+    PYTHON_SKLEARN_FEDRAMP_COMPLIANT,
     PYTHON_XGBOOST,
     PYTHON_KERAS,
     PYTHON_PYTORCH,
@@ -249,6 +251,7 @@ def pytest_addoption(parser):
         required=False,
         choices=[
             PYTHON_SKLEARN,
+            PYTHON_SKLEARN_FEDRAMP_COMPLIANT,
             PYTHON_XGBOOST,
             PYTHON_KERAS,
             PYTHON_PYTORCH,
@@ -268,7 +271,8 @@ def pytest_addoption(parser):
 
 @pytest.fixture(scope="session")
 def framework_env(pytestconfig):
-    return pytestconfig.getoption("framework_env")
+    framework_env = pytestconfig.getoption("framework_env")
+    return framework_env.removesuffix(FEDRAMP_COMPLIANT_SUFFIX) if framework_env else None
 
 
 _datasets = {
