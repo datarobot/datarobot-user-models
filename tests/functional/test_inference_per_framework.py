@@ -18,6 +18,7 @@ import pytest
 import requests
 from scipy.sparse import csr_matrix
 
+from constants import SKLEARN_FEDRAMP_COMPLIANT
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.enum import (
     MODEL_CONFIG_FILENAME,
@@ -114,6 +115,12 @@ class TestInference:
             (SKLEARN, MULTICLASS, PYTHON, None, False),
             (SKLEARN, MULTICLASS, PYTHON, None, True),
             (SKLEARN, MULTICLASS_BINARY, PYTHON, None, False),
+            (SKLEARN_FEDRAMP_COMPLIANT, SPARSE, PYTHON_PREDICT_SPARSE, None, False),
+            (SKLEARN_FEDRAMP_COMPLIANT, REGRESSION_INFERENCE, NO_CUSTOM, None, False),
+            (SKLEARN_FEDRAMP_COMPLIANT, BINARY, PYTHON, None, False),
+            (SKLEARN_FEDRAMP_COMPLIANT, MULTICLASS, PYTHON, None, False),
+            (SKLEARN_FEDRAMP_COMPLIANT, MULTICLASS, PYTHON, None, True),
+            (SKLEARN_FEDRAMP_COMPLIANT, MULTICLASS_BINARY, PYTHON, None, False),
             (KERAS, REGRESSION, PYTHON, None, False),
             (KERAS, BINARY, PYTHON, None, False),
             (KERAS, MULTICLASS, PYTHON, None, False),
@@ -276,6 +283,11 @@ class TestInference:
             (SKLEARN, BINARY, PYTHON, None),
             (SKLEARN, MULTICLASS, PYTHON, None),
             (SKLEARN, MULTICLASS_BINARY, PYTHON, None),
+            (SKLEARN_FEDRAMP_COMPLIANT, SPARSE, PYTHON_PREDICT_SPARSE, None),
+            (SKLEARN_FEDRAMP_COMPLIANT, REGRESSION, PYTHON, None),
+            (SKLEARN_FEDRAMP_COMPLIANT, BINARY, PYTHON, None),
+            (SKLEARN_FEDRAMP_COMPLIANT, MULTICLASS, PYTHON, None),
+            (SKLEARN_FEDRAMP_COMPLIANT, MULTICLASS_BINARY, PYTHON, None),
             (KERAS, REGRESSION, PYTHON, None),
             (KERAS, BINARY, PYTHON, None),
             (KERAS, MULTICLASS, PYTHON, None),
@@ -407,7 +419,7 @@ class TestInference:
             elif resources.target_types(problem) == TargetType.MULTICLASS.value:
                 assert ModelInfoKeys.CLASS_LABELS in response_dict
 
-            if framework == SKLEARN and problem == REGRESSION:
+            if framework in (SKLEARN, SKLEARN_FEDRAMP_COMPLIANT) and problem == REGRESSION:
                 assert ModelInfoKeys.MODEL_METADATA in response_dict
 
         unset_drum_supported_env_vars()
@@ -566,6 +578,7 @@ class TestInference:
         "framework, problem, language, use_labels_file",
         [
             (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, False),
+            (SKLEARN_FEDRAMP_COMPLIANT, REGRESSION_INFERENCE, NO_CUSTOM, False),
             (SKLEARN, BINARY, PYTHON, False),
             (SKLEARN, MULTICLASS_BINARY, PYTHON, False),
             (SKLEARN, MULTICLASS, PYTHON, False),
