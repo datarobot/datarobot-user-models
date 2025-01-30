@@ -24,7 +24,7 @@ pip install pytest pytest-xdist
 title "Uninstalling datarobot-drum"
 pip uninstall datarobot-drum datarobot-mlops -y
 
-title "Installing datarobot-drum from source"
+title "Installing dependencies, with datarobot-drum installed from source-code"
 
 pushd custom_model_runner
 
@@ -32,12 +32,14 @@ if [ "$FRAMEWORK" = "java_codegen" ]; then
     make java_components
 fi
 
+temp_requirements_file=$(mktemp)
+cp ${REQ_FILE_PATH} ${temp_requirements_file}
 # remove DRUM from requirements file to be able to install it from source
-sed -i "s/^datarobot-drum.*//" ${REQ_FILE_PATH}
+sed -i "s/^datarobot-drum.*//" ${temp_requirements_file}
 
 [ "$FRAMEWORK" = "r_lang" ] && EXTRA="[R]" || EXTRA=""
-pip install --force-reinstall -r ${REQ_FILE_PATH} .$EXTRA
-rm -rf build datarobot_drum.egg-info dist
+pip install --force-reinstall -r ${temp_requirements_file} .$EXTRA
+rm -rf build datarobot_drum.egg-info dist ${temp_requirements_file}
 
 popd  # custom_model_runner
 
