@@ -50,6 +50,7 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "License :: Other/Proprietary License",
         "Operating System :: MacOS",
         "Operating System :: POSIX",
@@ -70,5 +71,5 @@ setup(
     },
     install_requires=requirements,
     extras_require=extras_require,
-    python_requires=">=3.8,<3.12",
+    python_requires=">=3.8,<3.13",
 )
