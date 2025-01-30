@@ -68,7 +68,7 @@ def fit(
     estimator.set_params(
         **{
             "model__penalty": parameters["penalty"],
-            "model__dual": parameters["dual"],
+            "model__dual": bool(parameters["dual"]),
             "model__tol": parameters["tol"],
             "model__solver": parameters["solver"],
         }
