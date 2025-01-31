@@ -126,11 +126,6 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self.python_model_adapter = PythonModelAdapter(
             model_dir=self._code_dir, target_type=self.target_type
         )
-        # download model artifacts with a "load_model" hook
-        custom_py_paths = self._get_custom_artifacts()
-        if custom_py_paths:
-            sys.path.append(self._code_dir)
-            self.python_model_adapter.load_custom_hooks()
 
         self.status_reporter = MLOpsStatusReporter(
             mlops_service_url=self.datarobot_endpoint,
