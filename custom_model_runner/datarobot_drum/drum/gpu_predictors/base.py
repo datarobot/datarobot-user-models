@@ -63,7 +63,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self.deployment_id = os.environ.get("MLOPS_DEPLOYMENT_ID", None)
 
         # server configuration is set in the Drop-in environment
-        self.openai_port = os.environ.get("OPENAI_PORT", "9999")
+        self.openai_port = os.environ.get("OPENAI_PORT", "8000")
         self.openai_host = os.environ.get("OPENAI_HOST", "localhost")
         self.openai_process = None
         self.openai_server_thread = None
@@ -146,50 +146,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self.ai_client = OpenAI(
             base_url=f"http://{self.openai_host}:{self.openai_port}/v1", api_key="fake"
         )
-        self.openai_server_thread = Thread(
-            target=self.download_and_serve_model, name="OpenAI Server"
-        )
-        self.openai_server_thread.start()
 
-        self._openai_server_watchdog = Thread(
-            target=self.watchdog, daemon=True, name="OpenAI Watchdog"
-        )
-        self._openai_server_watchdog.start()
-
-    def watchdog(self):
-        """
-        Used as a watchdog thread that will monitor the openai_server_thread and restart it if it
-        crashes.
-        """
-        # OpenAI server can crash due to user misconfiguration and in this case we don't want the
-        # watchdog to keep trying to restart it (as it will just fail again). The current logic
-        # waits for the server to successfully start once before enabling the watchdog.
-        self.logger.info("Starting OpenAI Server watchdog thread in standby mode...")
-        while not self._openai_server_ready_sentinel.exists():
-            if self._is_shutting_down.is_set():
-                return
-            time.sleep(7)
-        self.logger.info("OpenAI Server is ready; switching watchdog to active mode...")
-
-        restarts_left = self._max_watchdog_restarts
-        sleep_time = 2
-        while not self._is_shutting_down.is_set():
-            self.openai_server_thread.join(timeout=5)
-            if not self.openai_server_thread.is_alive():
-                if restarts_left == 0:
-                    self.logger.error("OpenAI server thread has crashed too many times, exiting...")
-                    sys.exit(1)
-
-                # Since these LLM artifacts are large, it is best for us to just restart the
-                # OpenAI server to avoid re-downloading the model. If/when we implement an
-                # emptyDir volume to store model data that can persist K8s Container restarts,
-                # then we can just crash the whole server and let K8s restart us.
-                self.logger.error("OpenAI server thread has crashed, restarting...")
-                self.openai_server_thread = Thread(target=self.download_and_serve_model)
-                self.openai_server_thread.start()
-                time.sleep(sleep_time)
-                restarts_left -= 1
-                sleep_time = min(self._max_watchdog_backoff, sleep_time**2)
 
     def run_load_model_hook_idempotent(self):
         """
@@ -353,27 +310,4 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         raise NotImplementedError
 
     def terminate(self):
-        self._is_shutting_down.set()
-        self._openai_server_ready_sentinel.unlink(missing_ok=True)
-        if not self.openai_process or not self.openai_process.process:
-            self.logger.info("OpenAI server is not running, skipping shutdown...")
-            return
-
-        pgid = None
-        pid = self.openai_process.process.pid
-        try:
-            pgid = os.getpgid(pid)
-            self.logger.info("Sending signal to ProcessGroup: %s", pgid)
-            os.killpg(pgid, signal.SIGTERM)
-        except ProcessLookupError:
-            self.logger.warning("server at pid=%s is already gone", pid)
-
-        assert self.openai_server_thread is not None
-        self.openai_server_thread.join(timeout=10)
-        if self.openai_server_thread.is_alive():
-            if pgid is not None:
-                self.logger.warning("Forcefully killing process group: %s", pgid)
-                os.killpg(pgid, signal.SIGKILL)
-                self.openai_server_thread.join(timeout=5)
-            if self.openai_server_thread.is_alive():
-                raise TimeoutError("Server failed to shutdown gracefully in allotted time")
+        pass
