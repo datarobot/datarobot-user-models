@@ -29,6 +29,10 @@
                 "allow_dr_api_access": "{{ allow_dr_api_access }}",
                 "user_secrets_mount_path": {{ user_secrets_mount_path | jsonify }},
                 "user_secrets_prefix": {{ user_secrets_prefix | jsonify}},
+                "use_datarobot_predict": {{ use_datarobot_predict }},
+                "forecast_point": {{ forecast_point | jsonify }},
+                "predictions_start_date": {{ predictions_start_date | jsonify }},
+                "predictions_end_date": {{ predictions_end_date | jsonify }},
                 "gpu_predictor": {{ gpu_predictor | jsonify }},
                 "triton_host": {{ triton_host | jsonify }},
                 "triton_http_port": {{ triton_http_port | jsonify }}

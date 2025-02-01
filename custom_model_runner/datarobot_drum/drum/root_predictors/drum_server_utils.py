@@ -86,6 +86,7 @@ class DrumServerRun:
         target_name=None,
         wait_for_server_timeout=30,
         max_workers=None,
+        use_datarobot_predict=False,
     ):
         self.port = DrumUtils.find_free_port()
         self.server_address = "localhost:{}".format(self.port)
@@ -118,6 +119,7 @@ class DrumServerRun:
         self._gpu_predictor = gpu_predictor
         self._wait_for_server_timeout = wait_for_server_timeout
         self._max_workers = max_workers
+        self._use_datarobot_predict = use_datarobot_predict
 
     def __enter__(self):
         self._server_thread = self._thread_class(
@@ -236,4 +238,7 @@ class DrumServerRun:
 
         if self._append_cmd is not None:
             cmd += " " + self._append_cmd
+
+        if self._use_datarobot_predict:
+            cmd += " --use-datarobot-predict"
         return cmd

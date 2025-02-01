@@ -28,6 +28,10 @@ class DrumScoreAdapter(DrumInputFileAdapter, DrumClassLabelAdapter):
         positive_class_label=None,
         negative_class_label=None,
         class_labels=None,
+        use_datarobot_predict=False,
+        forecast_point=None,
+        predictions_start_date=None,
+        predictions_end_date=None,
     ):
         """
         Parameters
@@ -45,7 +49,14 @@ class DrumScoreAdapter(DrumInputFileAdapter, DrumClassLabelAdapter):
             Optional. Name of the negative class label if target type is binary
         class_labels: list[str] or None
             Optional. List of class labels
-
+        use_datarobot_predict: bool
+            Optional. Whether to use datarobot-predict package or not
+        forecast_point : str or None
+            Optional, Forecast point as timestamp in ISO format
+        predictions_start_date : str or None
+            Optional, Start of predictions as timestamp in ISO format
+        predictions_end_date : str or None
+            Optional, End of predictions as timestamp in ISO format
         """
         DrumInputFileAdapter.__init__(
             self=self,
@@ -61,4 +72,8 @@ class DrumScoreAdapter(DrumInputFileAdapter, DrumClassLabelAdapter):
             class_labels=class_labels,
         )
 
+        self.use_datarobot_predict = use_datarobot_predict
         self.custom_task_folder_path = custom_task_folder_path
+        self.forecast_point = forecast_point
+        self.predictions_start_date = predictions_start_date
+        self.predictions_end_date = predictions_end_date
