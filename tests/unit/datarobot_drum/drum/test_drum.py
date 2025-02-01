@@ -366,6 +366,7 @@ class TestCMRunnerServer:
             "allow_dr_api_access": "False",
             "user_secrets_mount_path": None,
             "user_secrets_prefix": None,
+            "use_datarobot_predict": False,
             "gpu_predictor": None,
             "triton_host": "http://localhost",
             "triton_http_port": 8000,
@@ -405,6 +406,49 @@ class TestCMRunnerServer:
         assert params["user_secrets_mount_path"] is None
         assert params["user_secrets_prefix"] is None
 
+    def test_time_series_args_rejected(self, runtime_factory, server_args):
+        """Test that time series args are rejected for server command even with use_datarobot_predict"""
+        # Test forecast point
+        args = server_args + [
+            "--use-datarobot-predict",
+            "--forecast-point", "2023-01-01T00:00:00"
+        ]
+        with pytest.raises(SystemExit):
+            runtime_factory(args).run()
+            
+        # Test prediction dates
+        args = server_args + [
+            "--use-datarobot-predict",
+            "--predictions-start-date", "2023-01-01T00:00:00",
+            "--predictions-end-date", "2023-12-31T23:59:59"  
+        ]
+        with pytest.raises(SystemExit):
+            runtime_factory(args).run()
+
+    def test_use_datarobot_predict_enabled(
+        self, runtime_factory, server_args, mock_predictor_configure, this_dir
+    ):
+        """Test server with use_datarobot_predict enabled"""
+        server_args.extend(["--use-datarobot-predict"])
+        runner = runtime_factory(server_args)
+        runner.run()
+
+        mock_predictor_configure.assert_called_once()
+        actual_params = mock_predictor_configure.call_args[0][0]
+        assert actual_params["use_datarobot_predict"] is True
+
+    def test_use_datarobot_predict_env_var(
+        self, runtime_factory, server_args, mock_predictor_configure
+    ):
+        """Test use_datarobot_predict can be enabled via env var"""
+        with patch.dict(os.environ, {"USE_DATAROBOT_PREDICT": "true"}):
+            runner = runtime_factory(server_args)
+            runner.run()
+            
+            mock_predictor_configure.assert_called_once()
+            actual_params = mock_predictor_configure.call_args[0][0]
+            assert actual_params["use_datarobot_predict"] is True
+
 
 @pytest.fixture
 def mock_read_csv(module_under_test):
@@ -442,6 +486,10 @@ class TestCMRunnerScore:
             "allow_dr_api_access": "False",
             "user_secrets_mount_path": None,
             "user_secrets_prefix": None,
+            "use_datarobot_predict": False,
+            "forecast_point": None,
+            "predictions_start_date": None,
+            "predictions_end_date": None,
             "gpu_predictor": None,
             "triton_host": "http://localhost",
             "triton_http_port": 8000,
@@ -478,6 +526,62 @@ class TestCMRunnerScore:
         params = mock_predictor_configure.call_args[0][0]
         assert params["user_secrets_mount_path"] is None
         assert params["user_secrets_prefix"] is None
+
+    def test_score_with_time_series_forecast_point(
+        self, runtime_factory, score_args, mock_predictor_configure, this_dir
+    ):
+        """Test score with forecast point parameter"""
+        score_args.extend(["--use-datarobot-predict", "--forecast-point", "2023-01-01T00:00:00"])
+        runner = runtime_factory(score_args)
+        runner.run()
+
+        mock_predictor_configure.assert_called_once()
+        actual_params = mock_predictor_configure.call_args[0][0]
+        
+        # Assert only time series related params
+        assert actual_params["use_datarobot_predict"] is True 
+        assert actual_params["forecast_point"] == "2023-01-01T00:00:00"
+        assert actual_params["predictions_start_date"] is None
+        assert actual_params["predictions_end_date"] is None
+
+    def test_score_with_time_series_prediction_dates(
+        self, runtime_factory, score_args, mock_predictor_configure, this_dir
+    ):
+        """Test score with prediction start/end dates"""
+        score_args.extend([
+            "--use-datarobot-predict",
+            "--predictions-start-date", "2023-01-01T00:00:00",
+            "--predictions-end-date", "2023-12-31T23:59:59"
+        ])
+        runner = runtime_factory(score_args)
+        runner.run()
+
+        mock_predictor_configure.assert_called_once()
+        actual_params = mock_predictor_configure.call_args[0][0]
+        
+        # Assert only time series related params
+        assert actual_params["use_datarobot_predict"] is True
+        assert actual_params["forecast_point"] is None
+        assert actual_params["predictions_start_date"] == "2023-01-01T00:00:00"
+        assert actual_params["predictions_end_date"] == "2023-12-31T23:59:59"
+
+    def test_score_time_series_requires_use_dr_predict(
+        self, runtime_factory, score_args, mock_predictor_configure
+    ):
+        """Test time series args require use_datarobot_predict"""
+        # Test with forecast point
+        score_args.extend(["--forecast-point", "2023-01-01T00:00:00"])
+        with pytest.raises(SystemExit):
+            runtime_factory(score_args).run()
+
+        # Test with prediction dates
+        score_args = score_args[:-2]
+        score_args.extend([
+            "--predictions-start-date", "2023-01-01T00:00:00",
+            "--predictions-end-date", "2023-12-31T23:59:59"
+        ])
+        with pytest.raises(SystemExit):
+            runtime_factory(score_args).run()
 
 
 class TestUtilityFunctions:
