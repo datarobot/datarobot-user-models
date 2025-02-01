@@ -54,7 +54,7 @@ class DrumScoreAdapter(DrumInputFileAdapter, DrumClassLabelAdapter):
         forecast_point : str or None
             Optional, Forecast point as timestamp in ISO format
         predictions_start_date : str or None
-            Optional, Start of predictions as timestamp in ISO format  
+            Optional, Start of predictions as timestamp in ISO format
         predictions_end_date : str or None
             Optional, End of predictions as timestamp in ISO format
         """

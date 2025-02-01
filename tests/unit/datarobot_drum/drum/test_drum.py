@@ -409,18 +409,17 @@ class TestCMRunnerServer:
     def test_time_series_args_rejected(self, runtime_factory, server_args):
         """Test that time series args are rejected for server command even with use_datarobot_predict"""
         # Test forecast point
-        args = server_args + [
-            "--use-datarobot-predict",
-            "--forecast-point", "2023-01-01T00:00:00"
-        ]
+        args = server_args + ["--use-datarobot-predict", "--forecast-point", "2023-01-01T00:00:00"]
         with pytest.raises(SystemExit):
             runtime_factory(args).run()
-            
+
         # Test prediction dates
         args = server_args + [
             "--use-datarobot-predict",
-            "--predictions-start-date", "2023-01-01T00:00:00",
-            "--predictions-end-date", "2023-12-31T23:59:59"  
+            "--predictions-start-date",
+            "2023-01-01T00:00:00",
+            "--predictions-end-date",
+            "2023-12-31T23:59:59",
         ]
         with pytest.raises(SystemExit):
             runtime_factory(args).run()
@@ -444,7 +443,7 @@ class TestCMRunnerServer:
         with patch.dict(os.environ, {"USE_DATAROBOT_PREDICT": "true"}):
             runner = runtime_factory(server_args)
             runner.run()
-            
+
             mock_predictor_configure.assert_called_once()
             actual_params = mock_predictor_configure.call_args[0][0]
             assert actual_params["use_datarobot_predict"] is True
@@ -537,9 +536,9 @@ class TestCMRunnerScore:
 
         mock_predictor_configure.assert_called_once()
         actual_params = mock_predictor_configure.call_args[0][0]
-        
+
         # Assert only time series related params
-        assert actual_params["use_datarobot_predict"] is True 
+        assert actual_params["use_datarobot_predict"] is True
         assert actual_params["forecast_point"] == "2023-01-01T00:00:00"
         assert actual_params["predictions_start_date"] is None
         assert actual_params["predictions_end_date"] is None
@@ -548,17 +547,21 @@ class TestCMRunnerScore:
         self, runtime_factory, score_args, mock_predictor_configure, this_dir
     ):
         """Test score with prediction start/end dates"""
-        score_args.extend([
-            "--use-datarobot-predict",
-            "--predictions-start-date", "2023-01-01T00:00:00",
-            "--predictions-end-date", "2023-12-31T23:59:59"
-        ])
+        score_args.extend(
+            [
+                "--use-datarobot-predict",
+                "--predictions-start-date",
+                "2023-01-01T00:00:00",
+                "--predictions-end-date",
+                "2023-12-31T23:59:59",
+            ]
+        )
         runner = runtime_factory(score_args)
         runner.run()
 
         mock_predictor_configure.assert_called_once()
         actual_params = mock_predictor_configure.call_args[0][0]
-        
+
         # Assert only time series related params
         assert actual_params["use_datarobot_predict"] is True
         assert actual_params["forecast_point"] is None
@@ -576,10 +579,14 @@ class TestCMRunnerScore:
 
         # Test with prediction dates
         score_args = score_args[:-2]
-        score_args.extend([
-            "--predictions-start-date", "2023-01-01T00:00:00",
-            "--predictions-end-date", "2023-12-31T23:59:59"
-        ])
+        score_args.extend(
+            [
+                "--predictions-start-date",
+                "2023-01-01T00:00:00",
+                "--predictions-end-date",
+                "2023-12-31T23:59:59",
+            ]
+        )
         with pytest.raises(SystemExit):
             runtime_factory(score_args).run()
 

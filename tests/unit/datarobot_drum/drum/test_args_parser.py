@@ -769,26 +769,25 @@ class TestDrPredictTimeSeriesArgs:
     def test_time_series_args_not_available(self, this_dir, command):
         """Test time series args are rejected for non-score commands"""
         base_args = [command, "--code-dir", this_dir]
-        
+
         # Add required args for specific commands
         if command == "server":
             base_args.extend(["--address", "localhost:5000"])
         elif command in ["fit", "validation", "perf-test"]:
             base_args.extend(["--input", __file__])
-            
+
         # Test forecast point
-        args = base_args + [
-            "--use-datarobot-predict",
-            "--forecast-point", "2023-01-01T00:00:00"
-        ]
+        args = base_args + ["--use-datarobot-predict", "--forecast-point", "2023-01-01T00:00:00"]
         with pytest.raises(SystemExit):
             get_args_parser_options(args)
-            
+
         # Test prediction dates
         args = base_args + [
             "--use-datarobot-predict",
-            "--predictions-start-date", "2023-01-01T00:00:00",
-            "--predictions-end-date", "2023-12-31T23:59:59"
+            "--predictions-start-date",
+            "2023-01-01T00:00:00",
+            "--predictions-end-date",
+            "2023-12-31T23:59:59",
         ]
         with pytest.raises(SystemExit):
             get_args_parser_options(args)
@@ -802,8 +801,10 @@ class TestDrPredictTimeSeriesArgs:
 
         # Test with prediction dates
         args = base_args + [
-            "--predictions-start-date", "2023-01-01T00:00:00",
-            "--predictions-end-date", "2023-12-31T23:59:59"
+            "--predictions-start-date",
+            "2023-01-01T00:00:00",
+            "--predictions-end-date",
+            "2023-12-31T23:59:59",
         ]
         with pytest.raises(SystemExit):
             get_args_parser_options(args)
@@ -811,19 +812,18 @@ class TestDrPredictTimeSeriesArgs:
     def test_time_series_score_command_success(self, base_args):
         """Test time series args work with score command"""
         # Test forecast point works
-        args = base_args + [
-            "--use-datarobot-predict",
-            "--forecast-point", "2023-01-01T00:00:00"
-        ]
+        args = base_args + ["--use-datarobot-predict", "--forecast-point", "2023-01-01T00:00:00"]
         options = get_args_parser_options(args)
         assert options.use_datarobot_predict
         assert options.forecast_point == "2023-01-01T00:00:00"
-        
-        # Test prediction dates work 
+
+        # Test prediction dates work
         args = base_args + [
             "--use-datarobot-predict",
-            "--predictions-start-date", "2023-01-01T00:00:00",
-            "--predictions-end-date", "2023-12-31T23:59:59"
+            "--predictions-start-date",
+            "2023-01-01T00:00:00",
+            "--predictions-end-date",
+            "2023-12-31T23:59:59",
         ]
         options = get_args_parser_options(args)
         assert options.use_datarobot_predict
@@ -832,33 +832,31 @@ class TestDrPredictTimeSeriesArgs:
 
     def test_server_command_rejects_time_series(self, server_args):
         """Test server command explicitly rejects time series args"""
+        args = server_args + ["--use-datarobot-predict", "--forecast-point", "2023-01-01T00:00:00"]
+        with pytest.raises(SystemExit):
+            get_args_parser_options(args)
+
         args = server_args + [
             "--use-datarobot-predict",
-            "--forecast-point", "2023-01-01T00:00:00"
+            "--predictions-start-date",
+            "2023-01-01T00:00:00",
+            "--predictions-end-date",
+            "2023-12-31T23:59:59",
         ]
         with pytest.raises(SystemExit):
             get_args_parser_options(args)
 
-        args = server_args + [
-            "--use-datarobot-predict", 
-            "--predictions-start-date", "2023-01-01T00:00:00",
-            "--predictions-end-date", "2023-12-31T23:59:59"
-        ]
-        with pytest.raises(SystemExit):
-            get_args_parser_options(args)
-
-    @pytest.mark.parametrize("time_series_arg", [
-        "--forecast-point", 
-        "--predictions-start-date",
-        "--predictions-end-date"
-    ])
+    @pytest.mark.parametrize(
+        "time_series_arg",
+        ["--forecast-point", "--predictions-start-date", "--predictions-end-date"],
+    )
     def test_use_dr_predict_required(self, base_args, time_series_arg):
         """Test that time series args require --use-datarobot-predict"""
         # Test without use_datarobot_predict
         base_args.extend([time_series_arg, "2023-01-01T00:00:00"])
         with pytest.raises(SystemExit):
             get_args_parser_options(base_args)
-            
+
         # Add use_datarobot_predict and verify it works
         base_args.extend(["--use-datarobot-predict"])
         if time_series_arg == "--predictions-start-date":
@@ -868,11 +866,9 @@ class TestDrPredictTimeSeriesArgs:
         options = get_args_parser_options(base_args)
         assert options.use_datarobot_predict
 
-    @pytest.mark.parametrize("timestamp", [
-        "2023-01-01T00:00:00",
-        "2023-01-01T00:00:00Z",
-        "2023-01-01T00:00:00+00:00"
-    ])
+    @pytest.mark.parametrize(
+        "timestamp", ["2023-01-01T00:00:00", "2023-01-01T00:00:00Z", "2023-01-01T00:00:00+00:00"]
+    )
     def test_valid_forecast_point(self, base_args, timestamp):
         """Test valid forecast point timestamps with use_datarobot_predict"""
         base_args.extend(["--use-datarobot-predict", "--forecast-point", timestamp])
@@ -880,18 +876,25 @@ class TestDrPredictTimeSeriesArgs:
         assert options.use_datarobot_predict
         assert options.forecast_point == timestamp
 
-    @pytest.mark.parametrize("start_date,end_date", [
-        ("2023-01-01T00:00:00", "2023-12-31T23:59:59"),
-        ("2023-01-01T00:00:00Z", "2023-12-31T23:59:59Z"),
-        ("2023-01-01T00:00:00+00:00", "2023-12-31T23:59:59+00:00")
-    ])
+    @pytest.mark.parametrize(
+        "start_date,end_date",
+        [
+            ("2023-01-01T00:00:00", "2023-12-31T23:59:59"),
+            ("2023-01-01T00:00:00Z", "2023-12-31T23:59:59Z"),
+            ("2023-01-01T00:00:00+00:00", "2023-12-31T23:59:59+00:00"),
+        ],
+    )
     def test_valid_prediction_dates(self, base_args, start_date, end_date):
         """Test valid prediction date ranges with use_datarobot_predict"""
-        base_args.extend([
-            "--use-datarobot-predict",
-            "--predictions-start-date", start_date,
-            "--predictions-end-date", end_date
-        ])
+        base_args.extend(
+            [
+                "--use-datarobot-predict",
+                "--predictions-start-date",
+                start_date,
+                "--predictions-end-date",
+                end_date,
+            ]
+        )
         options = get_args_parser_options(base_args)
         assert options.use_datarobot_predict
         assert options.predictions_start_date == start_date
@@ -900,53 +903,59 @@ class TestDrPredictTimeSeriesArgs:
     def test_prediction_dates_require_both(self, base_args):
         """Test that prediction dates must be provided together"""
         # Test with only start date
-        base_args.extend([
-            "--use-datarobot-predict",
-            "--predictions-start-date", "2023-01-01T00:00:00"
-        ])
+        base_args.extend(
+            ["--use-datarobot-predict", "--predictions-start-date", "2023-01-01T00:00:00"]
+        )
         with pytest.raises(SystemExit):
             get_args_parser_options(base_args)
 
         # Test with only end date
         base_args = base_args[:-2]
-        base_args.extend([
-            "--predictions-end-date", "2023-12-31T23:59:59"
-        ])
+        base_args.extend(["--predictions-end-date", "2023-12-31T23:59:59"])
         with pytest.raises(SystemExit):
             get_args_parser_options(base_args)
 
     def test_forecast_point_and_dates_mutually_exclusive(self, base_args):
         """Test that forecast point cannot be used with prediction dates"""
-        base_args.extend([
-            "--use-datarobot-predict",
-            "--forecast-point", "2023-01-01T00:00:00",
-            "--predictions-start-date", "2023-01-01T00:00:00",
-            "--predictions-end-date", "2023-12-31T23:59:59"
-        ])
+        base_args.extend(
+            [
+                "--use-datarobot-predict",
+                "--forecast-point",
+                "2023-01-01T00:00:00",
+                "--predictions-start-date",
+                "2023-01-01T00:00:00",
+                "--predictions-end-date",
+                "2023-12-31T23:59:59",
+            ]
+        )
         with pytest.raises(SystemExit):
             get_args_parser_options(base_args)
 
-    @pytest.mark.parametrize("invalid_timestamp", [
-        "2023-13-01T00:00:00",  # Invalid month
-        "2023-01-32T00:00:00",  # Invalid day
-        "not-a-timestamp",      # Invalid string
-    ])
+    @pytest.mark.parametrize(
+        "invalid_timestamp",
+        [
+            "2023-13-01T00:00:00",  # Invalid month
+            "2023-01-32T00:00:00",  # Invalid day
+            "not-a-timestamp",  # Invalid string
+        ],
+    )
     def test_invalid_timestamps(self, base_args, invalid_timestamp):
         """Test invalid ISO-8601 timestamps are rejected"""
         # Test with forecast point
-        base_args.extend([
-            "--use-datarobot-predict",
-            "--forecast-point", invalid_timestamp
-        ])
+        base_args.extend(["--use-datarobot-predict", "--forecast-point", invalid_timestamp])
         with pytest.raises(SystemExit):
             get_args_parser_options(base_args)
 
         # Test with prediction dates
         base_args = base_args[:-2]
-        base_args.extend([
-            "--predictions-start-date", invalid_timestamp,
-            "--predictions-end-date", "2023-12-31T23:59:59"
-        ])
+        base_args.extend(
+            [
+                "--predictions-start-date",
+                invalid_timestamp,
+                "--predictions-end-date",
+                "2023-12-31T23:59:59",
+            ]
+        )
         with pytest.raises(SystemExit):
             get_args_parser_options(base_args)
 
@@ -960,12 +969,8 @@ class TestDrPredictTimeSeriesArgs:
 
     def test_invalid_command_with_time_series(self, request):
         """Test time series args not allowed with other commands"""
-        for cmd in ['fit_args', 'validation_args', 'perf_args', 'push_args']:
+        for cmd in ["fit_args", "validation_args", "perf_args", "push_args"]:
             args = request.getfixturevalue(cmd)
-            args.extend([
-                "--use-datarobot-predict",
-                "--forecast-point", "2023-01-01T00:00:00"
-            ])
+            args.extend(["--use-datarobot-predict", "--forecast-point", "2023-01-01T00:00:00"])
             with pytest.raises(SystemExit):
                 get_args_parser_options(args)
-

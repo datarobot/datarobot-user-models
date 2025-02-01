@@ -16,7 +16,8 @@ from datarobot_drum.drum.enum import (
     TargetType,
     UnstructuredDtoKeys,
     X_TRANSFORM_KEY,
-    Y_TRANSFORM_KEY, StructuredDtoKeys,
+    Y_TRANSFORM_KEY,
+    StructuredDtoKeys,
 )
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from datarobot_drum.drum.server import (
@@ -146,9 +147,7 @@ class PredictMixin:
         kwargs_params[StructuredDtoKeys.QUERY] = request.args
         kwargs_params[StructuredDtoKeys.SPARSE_COLNAMES] = sparse_column_names
 
-        predict_response = self._predictor.predict(
-            binary_data=binary_data, **kwargs_params
-        )
+        predict_response = self._predictor.predict(binary_data=binary_data, **kwargs_params)
 
         if self._target_type == TargetType.UNSTRUCTURED:
             response = predict_response.predictions

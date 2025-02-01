@@ -291,7 +291,7 @@ class ArgumentsOptions:
     LAZY_LOADING_FILE = "--lazy-loading-file"
     USE_DATAROBOT_PREDICT = "--use-datarobot-predict"
     FORECAST_POINT = "--forecast-point"
-    PREDICTIONS_START_DATE = "--predictions-start-date"  
+    PREDICTIONS_START_DATE = "--predictions-start-date"
     PREDICTIONS_END_DATE = "--predictions-end-date"
 
     DRUM_COMMAND = "drum"

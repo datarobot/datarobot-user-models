@@ -880,12 +880,12 @@ class CMRunnerArgsRegistry(object):
     @staticmethod
     def _is_valid_iso8601(arg):
         try:
-            datetime.fromisoformat(arg.replace('Z', '+00:00'))
+            datetime.fromisoformat(arg.replace("Z", "+00:00"))
             return arg
         except ValueError:
             raise argparse.ArgumentTypeError(f"The value {arg} is not a valid ISO-8601 timestamp!")
 
-    @staticmethod 
+    @staticmethod
     def _reg_arg_time_series(*parsers):
         def require_both_dates(arg):
             # First check if this is score command
@@ -903,7 +903,7 @@ class CMRunnerArgsRegistry(object):
             dates = [ArgumentsOptions.PREDICTIONS_START_DATE, ArgumentsOptions.PREDICTIONS_END_DATE]
             if not all([x in sys.argv for x in dates]):
                 raise argparse.ArgumentTypeError(error_message)
-            
+
             if ArgumentsOptions.FORECAST_POINT in sys.argv:
                 raise argparse.ArgumentTypeError(
                     "\nError - cannot use both forecast point and prediction dates together.\n"
@@ -919,7 +919,13 @@ class CMRunnerArgsRegistry(object):
                 )
 
             # Rest of validation logic
-            if any(x in sys.argv for x in [ArgumentsOptions.PREDICTIONS_START_DATE, ArgumentsOptions.PREDICTIONS_END_DATE]):
+            if any(
+                x in sys.argv
+                for x in [
+                    ArgumentsOptions.PREDICTIONS_START_DATE,
+                    ArgumentsOptions.PREDICTIONS_END_DATE,
+                ]
+            ):
                 raise argparse.ArgumentTypeError(
                     "\nError - cannot use both forecast point and prediction dates together.\n"
                     "Use either --forecast-point or --predictions-start-date/--predictions-end-date"
@@ -934,10 +940,10 @@ class CMRunnerArgsRegistry(object):
                 required=False,
                 help="Forecast point as timestamp in ISO format. Cannot be used with predictions start/end dates.",
             )
-            
+
             group.add_argument(
                 ArgumentsOptions.PREDICTIONS_START_DATE,
-                type=require_both_dates, 
+                type=require_both_dates,
                 required=False,
                 help="Start of predictions as timestamp in ISO format. Must be used with --predictions-end-date",
             )
@@ -945,7 +951,7 @@ class CMRunnerArgsRegistry(object):
             parser.add_argument(
                 ArgumentsOptions.PREDICTIONS_END_DATE,
                 type=require_both_dates,
-                required=False, 
+                required=False,
                 help="End of predictions as timestamp in ISO format. Must be used with --predictions-start-date",
             )
 
@@ -1107,7 +1113,7 @@ class CMRunnerArgsRegistry(object):
             score_parser, server_parser, validation_parser
         )
 
-        # Only register time series args for score command and when use_datarobot_predict is enabled 
+        # Only register time series args for score command and when use_datarobot_predict is enabled
         CMRunnerArgsRegistry._reg_arg_use_datarobot_predict(server_parser, score_parser)
         CMRunnerArgsRegistry._reg_arg_time_series(score_parser)
 
@@ -1277,15 +1283,15 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry.verify_triton_server_options(options, options.subparser_name)
 
         # Add validation for time series args requiring use_datarobot_predict
-        time_series_args = [
-            "forecast_point", "predictions_start_date", "predictions_end_date"
-        ]
+        time_series_args = ["forecast_point", "predictions_start_date", "predictions_end_date"]
         if any(getattr(options, arg, None) is not None for arg in time_series_args):
             if options.subparser_name != ArgumentsOptions.SCORE:
                 print("\nError: Time series arguments can only be used with the score command")
                 exit(1)
             if not getattr(options, "use_datarobot_predict", False):
-                print("\nError: Time series arguments require --use-datarobot-predict to be enabled")
+                print(
+                    "\nError: Time series arguments require --use-datarobot-predict to be enabled"
+                )
                 exit(1)
 
     @staticmethod
