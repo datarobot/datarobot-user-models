@@ -64,7 +64,8 @@ ENV CODE_DIR=/opt/code
 ENV ADDRESS=0.0.0.0:8080
 
 # This makes print statements show up in the logs API
-ENV WITH_ERROR_SERVER=1
+ENV WITH_ERROR_SERVER=1 \
+    PYTHONUNBUFFERED=1
 
 COPY --from=build ${HOME} ${HOME}
 COPY --chown=nonroot:nonroot ./*.sh ${CODE_DIR}/
