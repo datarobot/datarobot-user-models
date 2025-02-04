@@ -411,8 +411,7 @@ class TestMLOpsMonitoring:
             dockerfile_lines[line_index_to_insert + 1 : line_index_to_insert + 1] = [
                 f"COPY {drum_wheel_filename} {drum_wheel_filename}\n",
                 "RUN pip uninstall -y datarobot-drum datarobot-mlops && \\\n"
-                f"   pip install --force-reinstall {drum_wheel_filename} && \\\n"
-                f"   rm -rf {drum_wheel_filename}\n",
+                f"   pip install --force-reinstall {drum_wheel_filename}\n",
             ]
 
             with open(dockerfile_path, "w") as file:
