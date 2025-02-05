@@ -19,17 +19,15 @@ TRAINING_TEMPLATES_PATH = os.path.join(REPO_ROOT_PATH, "task_templates", "3_pipe
 
 MODEL_TEMPLATES_PATH = os.path.join(REPO_ROOT_PATH, "model_templates")
 PUBLIC_DROPIN_ENVS_PATH = os.path.join(REPO_ROOT_PATH, "public_dropin_environments")
+PUBLIC_FIPS_DROPIN_ENVS_PATH = os.path.join(REPO_ROOT_PATH, "public_fips_dropin_environments")
 PUBLIC_DROPIN_GPU_ENVS_PATH = os.path.join(REPO_ROOT_PATH, "public_dropin_gpu_environments")
 
 
 TRAINING = "training"
 INFERENCE = "inference"
 
-FEDRAMP_COMPLIANT_SUFFIX = "_fedramp_compliant"
-
 # Framework environments keywords:
 PYTHON_SKLEARN = "python3_sklearn"
-PYTHON_SKLEARN_FEDRAMP_COMPLIANT = PYTHON_SKLEARN + FEDRAMP_COMPLIANT_SUFFIX
 PYTHON_XGBOOST = "python3_xgboost"
 PYTHON_KERAS = "python3_keras"
 PYTHON_PYTORCH = "python3_pytorch"
@@ -46,7 +44,6 @@ XGB = "xgboost"
 KERAS = "keras"
 KERAS_JOBLIB = "keras_joblib"
 SKLEARN = "sklearn"
-SKLEARN_FEDRAMP_COMPLIANT = SKLEARN + FEDRAMP_COMPLIANT_SUFFIX
 SKLEARN_NO_ARTIFACTS = "sklearn_no_artifacts"
 SKLEARN_BINARY = "sklearn_binary"
 SKLEARN_REGRESSION = "sklearn_regression"

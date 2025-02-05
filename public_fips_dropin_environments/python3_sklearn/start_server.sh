@@ -12,6 +12,10 @@ if [ "${ENABLE_CUSTOM_MODEL_RUNTIME_ENV_DUMP}" = 1 ]; then
     env
 fi
 
+# By default the virtual environment is activated by the entrypoint. However, if the user executes this script
+# directly, the virtual environment must be activated manually.
+. ${VIRTUAL_ENV}/bin/activate
+
 echo
 echo "Executing command: drum server $*"
 echo

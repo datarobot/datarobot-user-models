@@ -14,7 +14,7 @@ import pytest
 from dr_usertool.datarobot_user_database import DataRobotUserDatabase
 from dr_usertool.utils import get_permissions
 
-from tests.constants import PUBLIC_DROPIN_ENVS_PATH, TESTS_DATA_PATH
+from tests.constants import PUBLIC_DROPIN_ENVS_PATH, TESTS_DATA_PATH, PUBLIC_FIPS_DROPIN_ENVS_PATH
 
 WEBSERVER_URL = "http://localhost"
 ENDPOINT_URL = WEBSERVER_URL + "/api/v2"
@@ -108,6 +108,16 @@ def java_drop_in_env():
 @pytest.fixture(scope="session")
 def sklearn_drop_in_env():
     env_dir = os.path.join(PUBLIC_DROPIN_ENVS_PATH, "python3_sklearn")
+    environment = dr.ExecutionEnvironment.create(
+        name="python3_sklearn", programming_language="python"
+    )
+    environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
+    return environment.id, environment_version.id
+
+
+@pytest.fixture(scope="session")
+def sklearn_fips_drop_in_env():
+    env_dir = os.path.join(PUBLIC_FIPS_DROPIN_ENVS_PATH, "python3_sklearn")
     environment = dr.ExecutionEnvironment.create(
         name="python3_sklearn", programming_language="python"
     )

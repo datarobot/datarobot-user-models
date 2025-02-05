@@ -27,28 +27,29 @@ COPY --from=build /usr/bin/pip /usr/bin/pip
 # Just for convenience
 COPY --from=build /bin/ls /bin/ls
 
-COPY --chown=nonroot:nonroot requirements.txt requirements.txt
+COPY requirements.txt requirements.txt
 
-USER nonroot
+ENV VIRTUAL_ENV=/opt/venv
 
-RUN python -m ensurepip --default-pip && \
-    python -m pip install --upgrade --user pip && \
-    python -m pip install --user --no-cache-dir -r requirements.txt
+RUN sh -c "python -m venv ${VIRTUAL_ENV} && \
+    . ${VIRTUAL_ENV}/bin/activate && \
+    python -m ensurepip --default-pip && \
+    python -m pip install --upgrade pip && \
+    python -m pip install --no-cache-dir -r requirements.txt"
 
-# MARK: FUNCTIONAL-TEST-ADD-HERE. (This line is used by DRUM functional test automation and can be safely ignored.)
-
-ENV HOME=/home/nonroot
-ENV PATH=${HOME}/.local/bin:${PATH}
+ENV PATH=${VIRTUAL_ENV}/bin:${PATH}
+ENV HOME=/opt
 ENV CODE_DIR=/opt/code
 ENV ADDRESS=0.0.0.0:8080
+
+# MARK: FUNCTIONAL-TEST-ADD-HERE. (This line is used by DRUM functional test automation and can be safely ignored.)
 
 # This makes print statements show up in the logs API
 ENV WITH_ERROR_SERVER=1 \
     PYTHONUNBUFFERED=1
 
-WORKDIR ${HOME}
-COPY --from=build ${HOME} ${HOME}
-COPY --chown=nonroot:nonroot ./*.sh ${CODE_DIR}/
+
+COPY ./*.sh ${CODE_DIR}/
 WORKDIR ${CODE_DIR}
 
-ENTRYPOINT ["sh", "-c", "${CODE_DIR}/start_server.sh \"$@\"", "--"]
+ENTRYPOINT ["sh", "-c", ". ${VIRTUAL_ENV}/bin/activate && ${CODE_DIR}/start_server.sh \"$@\"", "--"]

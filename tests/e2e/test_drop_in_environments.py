@@ -118,6 +118,16 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
+    def sklearn_fips_regression_custom_model(self, sklearn_fips_drop_in_env):
+        env_id, _ = sklearn_fips_drop_in_env
+        return self.make_custom_model(
+            "sklearn_reg.pkl",
+            env_id,
+            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            target_name=REGRESSION_TARGET,
+        )
+
+    @pytest.fixture(scope="session")
     def keras_regression_custom_model(self, keras_drop_in_env):
         env_id, _ = keras_drop_in_env
         return self.make_custom_model(
@@ -185,6 +195,7 @@ class TestDropInEnvironments(object):
             ("xgb_regression_custom_model", "regression_testing_data"),
             ("onnx_regression_custom_model", "regression_testing_data"),
             ("sklearn_regression_custom_model", "regression_testing_data"),
+            ("sklearn_fips_regression_custom_model", "regression_testing_data"),
             ("java_regression_custom_model", "regression_testing_data"),
         ],
     )

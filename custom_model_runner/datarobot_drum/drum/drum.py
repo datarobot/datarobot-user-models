@@ -27,8 +27,6 @@ from typing import Union
 
 import docker.errors
 import pandas as pd
-from pydantic import BaseModel
-from pydantic import Field
 
 from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
 from datarobot_drum.drum.adapters.model_adapters.abstract_model_adapter import AbstractModelAdapter
@@ -78,20 +76,6 @@ from scipy.io import mmwrite
 
 SERVER_PIPELINE = "prediction_server_pipeline.json.j2"
 PREDICTOR_PIPELINE = "prediction_pipeline.json.j2"
-
-
-# Function to convert camelCase to snake_case
-def camel_to_snake(name: str) -> str:
-    return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
-
-
-class SecurityContext(BaseModel):
-    user_id: int = Field(..., alias="userId")
-    group_id: int = Field(..., alias="groupId")
-
-    class Config:
-        alias_generator = camel_to_snake
-        populate_by_name = True  # Enables using both camelCase & snake_case
 
 
 class CMRunner:
@@ -876,7 +860,7 @@ class CMRunner:
                 print(pd.read_csv(tmp_output_filename))
 
     def _prepare_docker_command(
-        self, options, run_mode, raw_arguments, security_context: Optional[SecurityContext] = None
+        self, options, run_mode, raw_arguments, virtualenv_path: Optional[str] = None
     ) -> str:
         """
         Building a docker command line for running the model inside the docker - this command line
@@ -893,12 +877,9 @@ class CMRunner:
         in_docker_fit_row_weights_filename = "/opt/fit_row_weights.csv"
         in_docker_runtime_parameters_file = "/opt/runtime_parameters.yaml"
 
-        security_context = security_context or SecurityContext(
-            user_id=os.getuid(), group_id=os.getgid()
-        )
         docker_cmd = (
-            "docker run --rm --init --entrypoint '' --interactive"
-            f" --user {security_context.user_id}:{security_context.group_id}"
+            f"docker run --rm --init --entrypoint '' --interactive"
+            f" --user {os.getuid()}:{os.getgid()}"
             f" -v {options.code_dir}:{in_docker_model}"
         )
 
@@ -1001,6 +982,10 @@ class CMRunner:
 
         docker_cmd += f" {options.docker}"
         docker_cmd = shlex.split(docker_cmd)
+        if virtualenv_path:
+            in_docker_cmd_list = [
+                "sh", "-c", f". {virtualenv_path}/bin/activate && {' '.join(in_docker_cmd_list)}"
+            ]
         docker_cmd += in_docker_cmd_list
 
         self._print_verbose("docker command: <{}>".format(docker_cmd))
