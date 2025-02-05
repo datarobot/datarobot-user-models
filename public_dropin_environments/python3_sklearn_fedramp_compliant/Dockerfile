@@ -29,8 +29,6 @@ COPY --from=build /bin/ls /bin/ls
 
 COPY --chown=nonroot:nonroot requirements.txt requirements.txt
 
-RUN mkdir /opt/code && chown -R nonroot:nonroot /opt/code
-
 USER nonroot
 
 RUN python -m ensurepip --default-pip && \
