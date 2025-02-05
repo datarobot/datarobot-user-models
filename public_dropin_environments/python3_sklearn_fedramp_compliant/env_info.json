@@ -8,6 +8,7 @@
   "useCases": [
     "customModel"
   ],
+  "isFedRampCompliant": true,
   "securityContext": {
     "userId": 65532,
     "groupId": 65532
