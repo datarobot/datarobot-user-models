@@ -18,7 +18,6 @@ import sys
 import tempfile
 import time
 from distutils.dir_util import copy_tree
-from encodings.punycode import selective_find
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Callable, Optional
@@ -28,6 +27,9 @@ from typing import Union
 
 import docker.errors
 import pandas as pd
+from pydantic import BaseModel
+from pydantic import Field
+
 from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
 from datarobot_drum.drum.adapters.model_adapters.abstract_model_adapter import AbstractModelAdapter
 from datarobot_drum.drum.adapters.model_adapters.r_model_adapter import RModelAdapter
@@ -76,6 +78,20 @@ from scipy.io import mmwrite
 
 SERVER_PIPELINE = "prediction_server_pipeline.json.j2"
 PREDICTOR_PIPELINE = "prediction_pipeline.json.j2"
+
+
+# Function to convert camelCase to snake_case
+def camel_to_snake(name: str) -> str:
+    return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
+
+
+class SecurityContext(BaseModel):
+    user_id: int = Field(..., alias="userId")
+    group_id: int = Field(..., alias="groupId")
+
+    class Config:
+        alias_generator = camel_to_snake
+        populate_by_name = True  # Enables using both camelCase & snake_case
 
 
 class CMRunner:
@@ -859,7 +875,9 @@ class CMRunner:
             else:
                 print(pd.read_csv(tmp_output_filename))
 
-    def _prepare_docker_command(self, options, run_mode, raw_arguments):
+    def _prepare_docker_command(
+        self, options, run_mode, raw_arguments, security_context: Optional[SecurityContext] = None
+    ) -> str:
         """
         Building a docker command line for running the model inside the docker - this command line
         can be used by the user independently of drum.
@@ -875,10 +893,14 @@ class CMRunner:
         in_docker_fit_row_weights_filename = "/opt/fit_row_weights.csv"
         in_docker_runtime_parameters_file = "/opt/runtime_parameters.yaml"
 
-        docker_cmd = "docker run --rm --init --entrypoint '' --interactive --user {}:{}".format(
-            os.getuid(), os.getgid()
+        security_context = security_context or SecurityContext(
+            user_id=os.getuid(), group_id=os.getgid()
         )
-        docker_cmd_args = ' -v "{}":{}'.format(options.code_dir, in_docker_model)
+        docker_cmd = (
+            "docker run --rm --init --entrypoint '' --interactive"
+            f" --user {security_context.user_id}:{security_context.group_id}"
+            f" -v {options.code_dir}:{in_docker_model}"
+        )
 
         in_docker_cmd_list = raw_arguments
         # Inside a docker we always use drum command
@@ -894,9 +916,7 @@ class CMRunner:
         DrumUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.DOCKER)
         DrumUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.SKIP_DEPS_INSTALL)
         if options.memory:
-            docker_cmd_args += " --memory {mem_size} --memory-swap {mem_size} ".format(
-                mem_size=options.memory
-            )
+            docker_cmd += f" --memory {options.memory} --memory-swap {options.memory}"
             DrumUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.MEMORY)
 
         if options.class_labels and ArgumentsOptions.CLASS_LABELS not in in_docker_cmd_list:
@@ -927,19 +947,17 @@ class CMRunner:
             DrumUtils.replace_cmd_argument_value(
                 in_docker_cmd_list, ArgumentsOptions.ADDRESS, host_port_inside_docker
             )
-            docker_cmd_args += " -p {port}:{port}".format(port=port)
+            docker_cmd += f" -p {port}:{port}"
 
         if CMRunnerArgsRegistry.get_arg_option(options, ArgumentsOptions.RUNTIME_PARAMS_FILE):
-            docker_cmd_args += (
-                f' -v "{options.runtime_params_file}":{in_docker_runtime_parameters_file}'
-            )
+            docker_cmd += f' -v "{options.runtime_params_file}":{in_docker_runtime_parameters_file}'
             DrumUtils.delete_cmd_argument(in_docker_cmd_list, ArgumentsOptions.RUNTIME_PARAMS_FILE)
             in_docker_cmd_list.extend(
                 [ArgumentsOptions.RUNTIME_PARAMS_FILE, in_docker_runtime_parameters_file]
             )
 
         if run_mode in [RunMode.SCORE, RunMode.PERF_TEST, RunMode.VALIDATION, RunMode.FIT]:
-            docker_cmd_args += ' -v "{}":{}'.format(options.input, in_docker_input_file)
+            docker_cmd += f' -v "{options.input}":{in_docker_input_file}'
 
             if run_mode == RunMode.SCORE and options.output:
                 output_file = os.path.realpath(options.output)
@@ -947,24 +965,20 @@ class CMRunner:
                     # Creating an empty file so the mount command will mount the file correctly -
                     # otherwise docker create an empty directory
                     open(output_file, "a").close()
-                docker_cmd_args += ' -v "{}":{}'.format(output_file, in_docker_output_file)
+                docker_cmd += f' -v "{output_file}":{in_docker_output_file}'
                 DrumUtils.replace_cmd_argument_value(
                     in_docker_cmd_list, ArgumentsOptions.OUTPUT, in_docker_output_file
                 )
             elif run_mode == RunMode.FIT:
                 if options.output:
                     fit_output_dir = os.path.realpath(options.output)
-                    docker_cmd_args += ' -v "{}":{}'.format(
-                        fit_output_dir, in_docker_fit_output_dir
-                    )
+                    docker_cmd += f' -v "{fit_output_dir}":{in_docker_fit_output_dir}'
                 DrumUtils.replace_cmd_argument_value(
                     in_docker_cmd_list, ArgumentsOptions.OUTPUT, in_docker_fit_output_dir
                 )
                 if options.target_csv:
                     fit_target_filename = os.path.realpath(options.target_csv)
-                    docker_cmd_args += ' -v "{}":{}'.format(
-                        fit_target_filename, in_docker_fit_target_filename
-                    )
+                    docker_cmd += f' -v "{fit_target_filename}":{in_docker_fit_target_filename}'
                     DrumUtils.replace_cmd_argument_value(
                         in_docker_cmd_list,
                         ArgumentsOptions.TARGET_CSV,
@@ -976,8 +990,8 @@ class CMRunner:
                     )
                 if options.row_weights_csv:
                     fit_row_weights_filename = os.path.realpath(options.row_weights_csv)
-                    docker_cmd_args += ' -v "{}":{}'.format(
-                        fit_row_weights_filename, in_docker_fit_row_weights_filename
+                    docker_cmd += (
+                        f' -v "{fit_row_weights_filename}":{in_docker_fit_row_weights_filename}'
                     )
                     DrumUtils.replace_cmd_argument_value(
                         in_docker_cmd_list,
@@ -985,7 +999,7 @@ class CMRunner:
                         in_docker_fit_row_weights_filename,
                     )
 
-        docker_cmd += " {} {}".format(docker_cmd_args, options.docker)
+        docker_cmd += f" {options.docker}"
         docker_cmd = shlex.split(docker_cmd)
         docker_cmd += in_docker_cmd_list
 

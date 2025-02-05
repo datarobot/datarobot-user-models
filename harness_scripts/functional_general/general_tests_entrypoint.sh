@@ -37,6 +37,9 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 title "Installing requirements for all the tests: requirements_test.txt"
 pip install -r requirements_test.txt
 
+# Install latest requirements from sklearn environment (For tests that are executed locally)
+pip install -r $tmp_py3_sklearn_env_dir/requirements.txt
+
 pushd custom_model_runner
 title "Install drum from source"
 pip install .
