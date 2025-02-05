@@ -1,10 +1,10 @@
-# Python 3 Scikit-Learn FedRamp-compliant Drop-In Template Environment
+# Python 3 Scikit-Learn FIPS-compliant Drop-In Template Environment
 
-This template environment can be used to create artifact-only FedRamp-compliant scikit-learn custom models.
+This template environment can be used to create artifact-only FIPS-compliant scikit-learn custom models.
 Your custom model directory needs only contain your model artifact if you use the
 environment correctly.
 
-While it is not guaranteed to be fully FedRAMP compliant, it is a significant step in that direction. We'll be
+While it is not guaranteed to be fully FIPS-compliant, it is a significant step in that direction. We'll be
 working to make it fully compliant in the future.
 
 ## Supported Libraries
@@ -20,7 +20,7 @@ For specific version information, see [requirements](requirements.txt).
 
 ## Instructions
 
-1. From the terminal, run `tar -czvf py_dropin.tar.gz -C /path/to/public_dropin_environments/python3_sklearn_fedramp_compliant/ .`
+1. From the terminal, run `tar -czvf py_dropin.tar.gz -C /path/to/public_dropin_environments/python3_sklearn_fips_compliant/ .`
 2. Using either the API or from the UI create a new Custom Environment with the tarball created
 in step 1.
 
