@@ -27,7 +27,7 @@ pipeline:
                     image: curlimages/curl:latest
                     shell: Sh
                     command: |
-                      name="<+pipeline.name> - <+pipeline.variables.framework>"
+                      name="<+pipeline.name> - <+pipeline.variables.framework> (<+pipeline.variables.env_folder>)"
 
                       echo "Update PR status"
                       curl -i -X POST \
@@ -60,7 +60,7 @@ pipeline:
                       git diff --name-only "$(git merge-base origin/master HEAD)" HEAD
 
                       # check if there are changes in the env folder, env folder name is <+pipeline.variables.framework>
-                      if [ $(git diff --name-only "$(git merge-base origin/master HEAD)" HEAD | grep public_dropin_environments/<+pipeline.variables.framework> | head -1) ]; then
+                      if [ $(git diff --name-only "$(git merge-base origin/master HEAD)" HEAD | grep <+pipeline.variables.env_folder>/<+pipeline.variables.framework> | head -1) ]; then
                         changed_deps=true;
                         test_image_tag=<+pipeline.variables.framework>_<+trigger.prNumber>
                       else
@@ -101,7 +101,7 @@ pipeline:
             variables:
               - name: env_folder
                 type: String
-                value: public_dropin_environments
+                value: <+pipeline.variables.env_folder>
               - name: env_name
                 type: String
                 value: <+pipeline.variables.framework>
@@ -186,5 +186,9 @@ pipeline:
       description: ""
       required: false
       value: <+input>
+    - name: env_folder
+      type: String
+      value: <+input>.default(public_dropin_environments)
+      description: "The root path of all the environments"
   identifier: test_functional_by_framework
   name: test functional by framework
