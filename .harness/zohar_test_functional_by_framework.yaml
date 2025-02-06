@@ -114,7 +114,7 @@ pipeline:
                     command: |-
                       echo "Running functional tests in framework <+pipeline.variables.env_folder>/<+pipeline.variables.framework>"
                       ./harness_scripts/functional_by_framework/check_by_framework_run1_step_entrypoint.sh \
-                        <+pipeline.variables.framework>
+                        <+pipeline.variables.framework> <+pipeline.variables.env_folder>
                     resources:
                       limits:
                         memory: 3G

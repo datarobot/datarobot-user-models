@@ -660,7 +660,15 @@ class TestFit:
     )
     @pytest.mark.parametrize("weights", [WEIGHTS_CSV, None])
     def test_fit_sh(
-        self, resources, framework, problem, parameters, weights, tmp_path, framework_env
+        self,
+        resources,
+        framework,
+        problem,
+        parameters,
+        weights,
+        tmp_path,
+        framework_env,
+        env_folder,
     ):
         skip_if_framework_not_in_env(framework, framework_env)
         custom_model_dir = _create_custom_model_dir(
@@ -676,7 +684,8 @@ class TestFit:
         fit_sh = os.path.join(
             TESTS_ROOT_PATH,
             "..",
-            "public_dropin_environments/{}_{}/fit.sh".format(
+            "{}/{}_{}/fit.sh".format(
+                env_folder,
                 PYTHON,
                 framework
                 if framework

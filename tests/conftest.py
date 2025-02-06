@@ -268,10 +268,22 @@ def pytest_addoption(parser):
         default=None,
     )
 
+    parser.addoption(
+        "--env-folder",
+        required=False,
+        choices=["public_dropin_environments", "public_fips_dropin_environments"],
+        default=None,
+    )
+
 
 @pytest.fixture(scope="session")
 def framework_env(pytestconfig):
     return pytestconfig.getoption("framework_env")
+
+
+@pytest.fixture(scope="session")
+def env_folder(pytestconfig):
+    return pytestconfig.getoption("env_folder")
 
 
 _datasets = {
