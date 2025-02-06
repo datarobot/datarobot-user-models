@@ -114,7 +114,8 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
             raise DrumCommonException("The unstructured target type is not supported")
 
         # Let hook authors know where they can contact the NIM server
-        kwargs["nim_url"] = f"http://{self.openai_host}:{self.openai_port}"
+        kwargs["base_url"] = f"http://{self.openai_host}:{self.openai_port}"
+        kwargs["openai_client"] = self.ai_client
         # Let the hook know the name of the model we launched
         model = self.model_name
 
