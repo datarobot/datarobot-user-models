@@ -1,6 +1,6 @@
 pipeline:
-  name: env_image_build_and_publish
-  identifier: env_image_publish
+  name: zohar_env_image_build_and_publish
+  identifier: zohar_env_image_publish
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models
   tags: {}
@@ -10,6 +10,7 @@ pipeline:
         connectorRef: account.svc_harness_git1
         repoName: datarobot-user-models
         build: <+input>
+        branch: <+codebase.branch>
   stages:
     - stage:
         name: env_image_build_and_publish

@@ -1,6 +1,8 @@
 pipeline:
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models
+  identifier: zohar_test_functional_by_framework
+  name: zohar_test functional by framework
   tags: {}
   properties:
     ci:
@@ -8,6 +10,7 @@ pipeline:
         connectorRef: account.svc_harness_git1
         repoName: datarobot-user-models
         build: <+input>
+        branch: <+codebase.branch>
   stages:
     - stage:
         name: Check if framework env has changed
@@ -44,33 +47,12 @@ pipeline:
                     image: alpine/git
                     shell: Sh
                     command: |-
-                      # echo "configuring git"
-                      # cat <<EOF > ${HOME}/.netrc
-                      # machine ${DRONE_NETRC_MACHINE}
-                      # login ${DRONE_NETRC_USERNAME}
-                      # password ${DRONE_NETRC_PASSWORD}
-                      # EOF
-                      # echo "git configured"
-                      echo <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.spec.image>
-                      git status
-                      git branch
-                      git branch -r
-                      git fetch origin master:refs/remotes/origin/master
-
-                      git diff --name-only "$(git merge-base origin/master HEAD)" HEAD
-
-                      # check if there are changes in the env folder, env folder name is <+pipeline.variables.framework>
-                      if [ $(git diff --name-only "$(git merge-base origin/master HEAD)" HEAD | grep <+pipeline.variables.env_folder>/<+pipeline.variables.framework> | head -1) ]; then
-                        changed_deps=true;
-                        test_image_tag=<+pipeline.variables.framework>_<+trigger.prNumber>
-                      else
-                        changed_deps=false;
-                        test_image_tag=<+pipeline.variables.framework>_latest;
-                      fi
-                      export changed_deps
-                      export test_image_tag
-                      echo ${changed_deps}
-                      echo ${test_image_tag}
+                      export IMAGE=<+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.spec.image>
+                      export CODEBASE_BRANCH=<+codebase.branch>
+                      export ENV_FOLDER=<+pipeline.variables.env_folder>
+                      export FRAMEWORK=<+pipeline.variables.framework>
+                      export TRIGGER_PR_NUMBER=<+trigger.prNumber>
+                      . ./harness_scripts/functional_by_framework/check_env_changed_check_diff.sh
                     outputVariables:
                       - name: changed_deps
                       - name: test_image_tag
@@ -90,10 +72,10 @@ pipeline:
         type: Pipeline
         spec:
           org: Custom_Models
-          pipeline: env_image_publish
+          pipeline: zohar_env_image_publish
           project: datarobotusermodels
           inputs:
-            identifier: env_image_publish
+            identifier: zohar_env_image_publish
             properties:
               ci:
                 codebase:
@@ -128,8 +110,9 @@ pipeline:
                   spec:
                     connectorRef: datarobot_user_models_read_write
                     image: datarobotdev/datarobot-user-models:<+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>
-                    shell: Bash
+                    shell: Sh
                     command: |-
+                      echo "Running functional tests in framework <+pipeline.variables.env_folder>/<+pipeline.variables.framework>"
                       ./harness_scripts/functional_by_framework/check_by_framework_run1_step_entrypoint.sh \
                         <+pipeline.variables.framework>
                     resources:
@@ -190,5 +173,3 @@ pipeline:
       type: String
       value: <+input>.default(public_dropin_environments)
       description: "The root path of all the environments"
-  identifier: test_functional_by_framework
-  name: test functional by framework
