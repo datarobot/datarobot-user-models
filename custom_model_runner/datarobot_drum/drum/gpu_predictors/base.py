@@ -139,6 +139,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
             verify_ssl=self.verify_ssl,
             total_deployment_stages=self.num_deployment_stages,
         )
+        self.python_model_adapter.load_custom_hooks()
 
         self._openai_server_ready_sentinel = Path(self._code_dir) / ".server_ready"
         self._is_shutting_down = Event()
@@ -307,7 +308,12 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         return completion_choices
 
     def predict_unstructured(self, data, **kwargs):
-        raise DrumCommonException("The unstructured target type is not supported")
+        model = None  # no artifacts are loaded, requests are proxied to a separate server
+        if self.python_model_adapter.has_custom_hook(CustomHooks.SCORE_UNSTRUCTURED):
+            predictions = self.python_model_adapter.predict_unstructured(model=model, data=data, **kwargs)
+            return predictions, None
+        else:
+            raise DrumCommonException("The unstructured target type is not supported")
 
     def _transform(self, **kwargs):
         raise DrumCommonException("Transform feature is not supported")
