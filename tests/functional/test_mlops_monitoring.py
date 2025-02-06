@@ -16,7 +16,6 @@ import re
 from subprocess import TimeoutExpired
 import sys
 import time
-from typing import Tuple, Optional
 
 from retry import retry
 import pytest
