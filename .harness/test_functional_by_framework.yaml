@@ -126,7 +126,7 @@ pipeline:
                     shell: Sh
                     command: |
                       status="<+execution.steps.Run_1.status>"
-                      name="<+pipeline.name> - <+pipeline.variables.framework>"
+                      name="<+pipeline.name> - <+pipeline.variables.framework> (<+pipeline.variables.env_folder>)"
 
                       echo "Update PR status"
                       echo "$status"
