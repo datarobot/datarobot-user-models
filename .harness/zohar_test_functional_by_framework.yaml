@@ -2,7 +2,7 @@ pipeline:
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models
   identifier: zohar_test_functional_by_framework
-  name: zohar_test functional by framework
+  name: zohar_test_functional_by_framework
   tags: {}
   properties:
     ci:

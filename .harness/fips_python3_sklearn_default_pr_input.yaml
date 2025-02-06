@@ -1,7 +1,7 @@
 inputSet:
-  name: fips_pythin3_sklearn_default_pr_input
+  name: fips_python3_sklearn_default_pr_input
   tags: {}
-  identifier: fips_pythin3_sklearn_default_pr_input
+  identifier: fips_python3_sklearn_default_pr_input
   orgIdentifier: Custom_Models
   projectIdentifier: datarobotusermodels
   pipeline:
