@@ -24,6 +24,13 @@ COPY --from=build /bin/mkdir /bin/mkdir
 # Required for custom-models to install dependencies
 COPY --from=build /usr/bin/pip /usr/bin/pip
 
+# Required for drum functional tests
+COPY --from=build /bin/cp /bin/cp
+COPY --from=build /bin/rm /bin/rm
+COPY --from=build /bin/mktemp /bin/mktemp
+COPY --from=build /bin/sed /bin/sed
+COPY --from=build /usr/bin/dirname /usr/bin/dirname
+
 # Just for convenience
 COPY --from=build /bin/ls /bin/ls
 
