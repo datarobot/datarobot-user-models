@@ -16,7 +16,8 @@ PUBLIC_ENVS_DIR="${ROOT_DIR}/public_dropin_environments"
 ENV_REQ_FILE_PATH="${PUBLIC_ENVS_DIR}/${FRAMEWORK}/requirements.txt"
 [ ! -f $ENV_REQ_FILE_PATH ] && echo "Requirements file not found: $ENV_REQ_FILE_PATH" && exit 1
 
-. ${script_dir}/../../tools/update-python-to-meet-requirements.sh
+# All our envs have python>3.9, comment out for now
+# . ${script_dir}/../../tools/update-python-to-meet-requirements.sh
 
 title "Installing pytest"
 pip install pytest pytest-xdist
