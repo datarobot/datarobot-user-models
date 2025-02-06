@@ -17,7 +17,6 @@ from subprocess import TimeoutExpired
 import sys
 import time
 
-
 from retry import retry
 import pytest
 import pandas as pd
@@ -26,7 +25,6 @@ from flask import Flask, request
 
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.drum import CMRunner
-from datarobot_drum.drum.drum import SecurityContext
 from datarobot_drum.drum.enum import ArgumentsOptions
 from datarobot_drum.drum.enum import RunMode
 from datarobot_drum.drum.runtime import DrumRuntime
@@ -42,7 +40,7 @@ from tests.constants import (
     PYTHON_UNSTRUCTURED_MLOPS,
     PUBLIC_DROPIN_ENVS_PATH,
     PYTHON_SKLEARN,
-    PYTHON_SKLEARN_FEDRAMP_COMPLIANT,
+    PUBLIC_FIPS_DROPIN_ENVS_PATH,
 )
 
 from datarobot_drum.drum.root_predictors.utils import (
@@ -287,15 +285,15 @@ class TestMLOpsMonitoring:
         assert len([m for m in messages if "payload" in m]) == NUM_REPORTED_DEPLOYMENT_STATS
 
     @pytest.mark.parametrize(
-        "framework, problem, language, is_fedramp_compliant",
+        "framework, problem, language, is_fips_compliant",
         [
             (None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_MLOPS, False),
             (None, UNSTRUCTURED, PYTHON_UNSTRUCTURED_MLOPS, True),
         ],
-        ids=["non_fedramp_compliant", "fedramp_compliant"],
+        ids=["non_fips_compliant", "fips_compliant"],
     )
     def test_drum_unstructured_model_embedded_monitoring_in_sklearn_env(
-        self, resources, framework, problem, language, is_fedramp_compliant, tmp_path
+        self, resources, framework, problem, language, is_fips_compliant, tmp_path
     ):
         cmd, _, output_file = TestMLOpsMonitoring._drum_with_monitoring(
             resources,
@@ -308,9 +306,8 @@ class TestMLOpsMonitoring:
             with_monitor_settings=False,
         )
 
-        environment = PYTHON_SKLEARN_FEDRAMP_COMPLIANT if is_fedramp_compliant else PYTHON_SKLEARN
-        py_sklearn_env_path = Path(PUBLIC_DROPIN_ENVS_PATH) / environment
-        security_context = self._get_security_context_from_env(py_sklearn_env_path)
+        envs_path = PUBLIC_FIPS_DROPIN_ENVS_PATH if is_fips_compliant else PUBLIC_DROPIN_ENVS_PATH
+        py_sklearn_env_path = Path(envs_path) / PYTHON_SKLEARN
         with self._drop_in_environment_with_drum_from_source_code(
             py_sklearn_env_path
         ) as new_py_sklearn_env_path:
@@ -327,11 +324,7 @@ class TestMLOpsMonitoring:
             cm_runner = CMRunner(runtime)
 
             # This command tries to build the image and returns cmd to start DRUM in container
-            docker_cmd_lst = cm_runner._prepare_docker_command(
-                options, RunMode.SCORE, args, security_context
-            )
-            # Required for a FedRAMP-compliant environment, which operates with a non-root user.
-            self._set_permissions_recursive(tmp_path, 0o777)
+            docker_cmd_lst = cm_runner._prepare_docker_command(options, RunMode.SCORE, args)
 
             # Configure network for the container and map the stub server port.
             # I'm not sure, I want to add the following logic into DRUM itself. It should be considered expert usage
@@ -348,13 +341,6 @@ class TestMLOpsMonitoring:
             assert "10" in out_data
 
     @staticmethod
-    def _get_security_context_from_env(env_path):
-        with open(env_path / "env_info.json") as f:
-            env_info = json.load(f)
-            security_context = env_info.get("securityContext")
-        return SecurityContext(**security_context) if security_context else None
-
-    @staticmethod
     def _set_permissions_recursive(path, mode):
         for root, dirs, files in os.walk(path):
             os.chmod(root, mode)  # Set permissions for the directory
@@ -364,7 +350,7 @@ class TestMLOpsMonitoring:
                 os.chmod(os.path.join(root, f), mode)  # Set permissions for files
 
     @contextlib.contextmanager
-    def _drop_in_environment_with_drum_from_source_code(self, drop_in_env_path: Path):
+    def _drop_in_environment_with_drum_from_source_code(self, drop_in_env_path: Path) -> str:
         """
         This context manager creates a temporary environment with the DRUM from the source code.
         """
@@ -392,7 +378,6 @@ class TestMLOpsMonitoring:
             shutil.copy(current_drum_path / "dist" / drum_wheel_filename, temp_env_dir)
 
             dockerfile_path = Path(temp_env_dir) / "Dockerfile"
-
             with open(dockerfile_path, "r") as file:
                 dockerfile_lines = file.readlines()
 
@@ -410,8 +395,8 @@ class TestMLOpsMonitoring:
 
             dockerfile_lines[line_index_to_insert + 1 : line_index_to_insert + 1] = [
                 f"COPY {drum_wheel_filename} {drum_wheel_filename}\n",
-                "RUN pip uninstall -y datarobot-drum datarobot-mlops && \\\n"
-                f"   pip install --force-reinstall {drum_wheel_filename}\n",
+                f"RUN pip uninstall -y datarobot-drum datarobot-mlops && \\\n"
+                f"    pip install --force-reinstall {drum_wheel_filename}\n",
             ]
 
             with open(dockerfile_path, "w") as file:
