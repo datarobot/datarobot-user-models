@@ -1093,6 +1093,17 @@ class TestNimLlm:
         assert len(response_data["predictions"]) == 1
         assert "What do you call a fake noodle?" in response_data["predictions"][0], response_data
 
+    def test_predict_unstructured(self, nim_predictor):
+        data = io.StringIO("user_prompt\ntell me a joke")
+        headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
+        response = requests.post(
+            f"{nim_predictor.url_server_address}/predictUnstructured/",
+            data=data,
+            headers=headers,
+        )
+        assert response.ok, response.content
+        assert response.content == "succeeded"
+
     @pytest.mark.parametrize("streaming", [False, True], ids=["sync", "streaming"])
     @pytest.mark.parametrize(
         "nchoices",
