@@ -5,7 +5,7 @@ inputSet:
   orgIdentifier: Custom_Models
   projectIdentifier: datarobotusermodels
   pipeline:
-    identifier: test_functional_by_framework
+    identifier: zohar_test_functional_by_framework
     properties:
       ci:
         codebase:
@@ -23,6 +23,7 @@ inputSet:
               properties:
                 ci:
                   codebase:
+                    branch: <+codebase.branch>
                     build:
                       type: PR
                       spec:
