@@ -24,7 +24,7 @@ echo "changed_paths: $changed_paths"
 test_image_tag_base=${ENV_FOLDER}_${FRAMEWORK}
 if echo "${changed_paths}" | grep "${ENV_FOLDER}/${FRAMEWORK}" > /dev/null; then
     changed_deps=true;
-    if [ -n $TRIGGER_PR_NUMBER]; then
+    if [ -n $TRIGGER_PR_NUMBER ]; then
         test_image_tag=${test_image_tag_base}_${TRIGGER_PR_NUMBER};
     else
         test_image_tag=${test_image_tag_base}_${CODEBASE_BRANCH//\//_}
