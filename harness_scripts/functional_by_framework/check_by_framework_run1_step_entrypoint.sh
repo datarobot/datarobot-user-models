@@ -12,8 +12,8 @@ title "Assuming running integration tests in framework container (inside Docker)
 
 ROOT_DIR="$(pwd)"
 PUBLIC_ENVS_DIR="${ROOT_DIR}/public_dropin_environments"
-REQ_FILE_PATH="${PUBLIC_ENVS_DIR}/${FRAMEWORK}/requirements.txt"
-[ ! -f $REQ_FILE_PATH ] && echo "Requirements file not found: $REQ_FILE_PATH" && exit 1
+ENV_REQ_FILE_PATH="${PUBLIC_ENVS_DIR}/${FRAMEWORK}/requirements.txt"
+[ ! -f $ENV_REQ_FILE_PATH ] && echo "Requirements file not found: $ENV_REQ_FILE_PATH" && exit 1
 
 script_dir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 . ${script_dir}/../../tools/update-python-to-meet-requirements.sh
@@ -33,7 +33,7 @@ if [ "$FRAMEWORK" = "java_codegen" ]; then
 fi
 
 temp_requirements_file=$(mktemp)
-cp ${REQ_FILE_PATH} ${temp_requirements_file}
+cp ${ENV_REQ_FILE_PATH} ${temp_requirements_file}
 # remove DRUM from requirements file to be able to install it from source
 sed -i "s/^datarobot-drum.*//" ${temp_requirements_file}
 
