@@ -771,6 +771,7 @@ class CMRunner:
             "target_type": self.target_type.value,
             "user_secrets_mount_path": getattr(options, "user_secrets_mount_path", None),
             "user_secrets_prefix": getattr(options, "user_secrets_prefix", None),
+            "use_datarobot_predict": str(options.use_datarobot_predict).lower(),
         }
 
         if self.run_mode == RunMode.SCORE:
@@ -779,6 +780,9 @@ class CMRunner:
                     "input_filename": options.input,
                     "output_filename": '"{}"'.format(options.output) if options.output else "null",
                     "sparse_column_file": options.sparse_column_file,
+                    "forecast_point": options.forecast_point,
+                    "predictions_start_date": options.predictions_start_date,
+                    "predictions_end_date": options.predictions_end_date,
                 }
             )
         else:
