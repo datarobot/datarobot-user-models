@@ -704,6 +704,12 @@ class CMRunnerArgsRegistry(object):
                 ),
             )
             parser.add_argument(
+                ArgumentsOptions.MULTI_CONTAINER_DEPLOYMENT,
+                action="store_true",
+                default=False,
+                help="When true, a model is expected to run in a separate container.",
+            )
+            parser.add_argument(
                 ArgumentsOptions.TRITON_HOST,
                 default=os.environ.get("TRITON_HOST", "http://localhost"),
                 help="NVIDIA Triton Inference Server URL",

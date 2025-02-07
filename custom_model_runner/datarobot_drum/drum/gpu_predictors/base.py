@@ -97,6 +97,12 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         except ImportError:
             raise DrumCommonException("OpenAI Python SDK is not installed")
 
+    @property
+    def is_multi_container_deployment(self):
+        # Custom model can run with multiple containers in a POD,
+        # where first container runs DRUM and second serves a model.
+        return self._params.get("multi_container_deployment", False)
+
     def supports_chat(self):
         return True
 
@@ -147,15 +153,18 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self.ai_client = OpenAI(
             base_url=f"http://{self.openai_host}:{self.openai_port}/v1", api_key="fake"
         )
-        self.openai_server_thread = Thread(
-            target=self.download_and_serve_model, name="OpenAI Server"
-        )
-        self.openai_server_thread.start()
 
-        self._openai_server_watchdog = Thread(
-            target=self.watchdog, daemon=True, name="OpenAI Watchdog"
-        )
-        self._openai_server_watchdog.start()
+        # In multi-container deployments DRUM does not manage OpenAI server processes.
+        if not self.is_multi_container_deployment:
+            self.openai_server_thread = Thread(
+                target=self.download_and_serve_model, name="OpenAI Server"
+            )
+            self.openai_server_thread.start()
+
+            self._openai_server_watchdog = Thread(
+                target=self.watchdog, daemon=True, name="OpenAI Watchdog"
+            )
+            self._openai_server_watchdog.start()
 
     def watchdog(self):
         """
