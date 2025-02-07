@@ -1173,10 +1173,11 @@ class TestNimEmbedQa:
                 raise RuntimeError("Server failed to start")
             yield run
 
-    def test_predict_unstructured(self, nim_predictor):
+    @pytest.mark.parametrize("input_type", ["query", "passage"])
+    def test_predict_unstructured(self, nim_predictor, input_type):
         response = requests.post(
             f"{nim_predictor.url_server_address}/predictUnstructured/",
-            json={"input": ["Hello world"], "input_type": "query"},
+            json={"input": ["Hello world"], "input_type": input_type},
         )
         assert response.ok, response.content
 
