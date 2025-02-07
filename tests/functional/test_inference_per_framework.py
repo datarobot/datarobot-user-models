@@ -1180,6 +1180,12 @@ class TestNimEmbedQa:
         )
         assert response.ok, response.content
 
+        response_data = response.json()
+        embedding = response_data["data"][0]
+        assert embedding["object"] == "embedding"
+        assert embedding["index"] == 0
+        assert len(embedding["embedding"]) > 0
+
 
 class TestVllm:
     @pytest.fixture(scope="class")
