@@ -808,7 +808,7 @@ class CMRunner:
         run_language = self._check_artifacts_and_get_run_language()
         infra_pipeline_str = self._prepare_prediction_server_or_batch_pipeline(run_language)
 
-        pipeline = infra_pipeline_str if isinstance(infra_pipeline_str, dict) else json.loads(infra_pipeline_str)
+        pipeline = json.loads(infra_pipeline_str)
         if "pipe" not in pipeline or not pipeline["pipe"]:
             raise DrumCommonException("Pipeline is empty")
         if "arguments" not in pipeline["pipe"][0]:
