@@ -16,5 +16,5 @@ def score_unstructured(model, data, base_url, openai_client, **kwargs):
         input_type = payload.pop("input_type")
         model += f"-{input_type}"
     payload["model"] = model
-    response = openai_client.embeddings.create(payload)
+    response = openai_client.embeddings.create(**payload)
     return json.dumps(response), {"mimetype": "application/json"}
