@@ -224,6 +224,7 @@ framework_envs = {
     GPU_NIM: [GPU_NIM],
     GPU_NIM_EMBEDQA: [GPU_NIM_EMBEDQA],
     GPU_VLLM: [GPU_VLLM],
+    PYTHON3_BASE: [PYTHON3_BASE],
 }
 
 

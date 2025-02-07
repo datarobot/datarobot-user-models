@@ -1288,12 +1288,8 @@ class TestVllm:
 
 
 class TestFIPSPythonBase:
-    def test_predict(self, framework_env, env_folder, endpoint_prediction_methods):
-        framework = PYTHON3_BASE
-        if env_folder != "public_fips_dropin_environments" or framework_env != PYTHON3_BASE:
-            pytest.skip(
-                "Provided framework: {} != test case framework: {}".format(framework_env, framework)
-            )
+    def test_predict(self, framework_env, endpoint_prediction_methods):
+        skip_if_framework_not_in_env(PYTHON3_BASE, framework_env)
 
         input_dataset = os.path.join(TESTS_DATA_PATH, "juniors_3_year_stats_regression.csv")
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "python3_dummy_regression")
