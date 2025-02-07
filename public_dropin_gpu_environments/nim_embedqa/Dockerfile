@@ -13,6 +13,7 @@ ENV PIP_NO_CACHE_DIR=1
 RUN /usr/bin/python3 -m venv $DATAROBOT_VENV_PATH && $DATAROBOT_VENV_PATH/bin/pip3 install -U pip
 COPY requirements.txt requirements.txt
 
+ENV PIP_INDEX_URL=https://pypi.org/simple
 RUN $DATAROBOT_VENV_PATH/bin/pip install -r requirements.txt
 
 ENV CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
