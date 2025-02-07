@@ -70,7 +70,7 @@ pipeline:
       type: String
       description: ""
       required: true
-      value: <+input>.allowedValues(python3_sklearn,python3_xgboost,python3_onnx,python3_pytorch,python3_keras,python3_pmml,python311_genai,python39_genai,java_codegen,r_lang)
+      value: <+input>.allowedValues(python3_sklearn,python3_xgboost,python3_onnx,python3_pytorch,python3_keras,python3_pmml,python311_genai,python39_genai,java_codegen,r_lang,python3_base)
     - name: image_tag
       type: String
       description: ""
