@@ -27,14 +27,16 @@ pipeline:
                     image: curlimages/curl:latest
                     shell: Sh
                     command: |
-                      name="<+pipeline.name> - <+pipeline.variables.framework> (<+pipeline.variables.env_folder>)"
+                      pipeline_execution_github_status_key="<+pipeline.name> - <+pipeline.variables.framework> (<+pipeline.variables.env_folder>)"
 
                       echo "Update PR status"
                       curl -i -X POST \
                       -H "Authorization: Bearer <+secrets.getValue("account.Github_Access_Token")>" \
                       -H "Accept: application/vnd.github.v3+json" \
                       https://api.github.com/repos/<+account.name>/datarobot-user-models/statuses/<+trigger.commitSha> \
-                      -d "{\"state\":\"pending\",\"target_url\":\"<+pipeline.execution.url>\",\"description\":\"Test is running\",\"context\":\"$name\"}"
+                      -d "{\"state\":\"pending\",\"target_url\":\"<+pipeline.execution.url>\",\"description\":\"Test is running\",\"context\":\"$pipeline_execution_github_status_key\"}"
+                    outputVariables:
+                      - name: pipeline_execution_github_status_key
               - step:
                   type: Run
                   name: check_diff
@@ -86,7 +88,7 @@ pipeline:
                 value: <+pipeline.variables.framework>
               - name: image_tag
                 type: String
-                value: <+input>.default(<+pipeline.variables.env_name>_latest)
+                value: <+input>.default(<+pipeline.variables.env_folder>_<+pipeline.variables.env_name>_latest)
         when:
           pipelineStatus: Success
           condition: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.changed_deps> == true
@@ -126,7 +128,7 @@ pipeline:
                     shell: Sh
                     command: |
                       status="<+execution.steps.Run_1.status>"
-                      name="<+pipeline.name> - <+pipeline.variables.framework> (<+pipeline.variables.env_folder>)"
+                      github_status_key="<+pipeline.stages.check_env_changed.spec.execution.steps.report_status_to_github_pr_0.output.outputVariables.pipeline_execution_github_status_key>"
 
                       echo "Update PR status"
                       echo "$status"
@@ -145,7 +147,7 @@ pipeline:
                       -X POST \
                       -H "Accept: application/vnd.github.v3+json" \
                       https://api.github.com/repos/<+account.name>/datarobot-user-models/statuses/<+trigger.commitSha> \
-                      -d "{\"state\":\"$state\",\"target_url\":\"<+pipeline.execution.url>\",\"description\":\"$description\",\"context\":\"$name\"}"
+                      -d "{\"state\":\"$state\",\"target_url\":\"<+pipeline.execution.url>\",\"description\":\"$description\",\"context\":\"$github_status_key\"}"
                   when:
                     stageStatus: All
           caching:
