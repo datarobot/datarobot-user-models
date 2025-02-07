@@ -152,6 +152,7 @@ from tests.constants import (
     PYTHON_GEO_POINT,
     GPU_TRITON,
     GPU_NIM,
+    GPU_NIM_EMBEDQA,
     GPU_VLLM,
 )
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
@@ -220,6 +221,7 @@ framework_envs = {
     JULIA: [MLJ],
     GPU_TRITON: [GPU_TRITON],
     GPU_NIM: [GPU_NIM],
+    GPU_NIM_EMBEDQA: [GPU_NIM_EMBEDQA],
     GPU_VLLM: [GPU_VLLM],
 }
 
@@ -260,6 +262,7 @@ def pytest_addoption(parser):
             JULIA,
             GPU_TRITON,
             GPU_NIM,
+            GPU_NIM_EMBEDQA,
             GPU_VLLM,
         ],
         default=None,

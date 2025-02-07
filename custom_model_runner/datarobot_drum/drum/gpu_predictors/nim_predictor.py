@@ -10,6 +10,7 @@ import subprocess
 from pathlib import Path
 
 from datarobot_drum.drum.enum import CustomHooks
+from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
 
 
@@ -107,3 +108,26 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
             self.openai_process.process = p
             for line in p.stdout:
                 self.logger.info(line[:-1])
+
+    def predict_unstructured(self, data, **kwargs):
+        if not self.python_model_adapter.has_custom_hook(CustomHooks.SCORE_UNSTRUCTURED):
+            raise DrumCommonException("The unstructured target type is not supported")
+
+        # Let hook authors know where they can contact the NIM server
+        kwargs["base_url"] = f"http://{self.openai_host}:{self.openai_port}"
+        kwargs["openai_client"] = self.ai_client
+        # Let the hook know the name of the model we launched
+        model = self.model_name
+
+        str_or_tuple = self.python_model_adapter.predict_unstructured(
+            model=model, data=data, **kwargs
+        )
+        if isinstance(str_or_tuple, (str, bytes, type(None))):
+            ret = str_or_tuple, None
+        elif isinstance(str_or_tuple, tuple):
+            ret = str_or_tuple
+        else:
+            raise DrumCommonException(
+                "Wrong type returned in unstructured mode: {}".format(type(str_or_tuple))
+            )
+        return ret
