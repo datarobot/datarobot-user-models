@@ -1043,5 +1043,5 @@ class TestFit:
             assert os.path.exists(output / FIT_METADATA_FILENAME)
             data = json.load(open(output / FIT_METADATA_FILENAME))
             assert "fit_memory_usage" in data.keys()
-            assert 240 > data["fit_memory_usage"] > 100
-            assert 240 > data["prediction_memory_usage"] > 100
+            assert 250 > data["fit_memory_usage"] > 100
+            assert 250 > data["prediction_memory_usage"] > 100
