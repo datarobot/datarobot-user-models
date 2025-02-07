@@ -99,6 +99,7 @@ from tests.constants import (
     PYTHON_VECTOR_DATABASE,
     VECTOR_DATABASE,
     PYTHON3_BASE,
+    REPO_ROOT_PATH,
 )
 
 
@@ -1288,15 +1289,46 @@ class TestVllm:
 
 
 class TestFIPSPythonBase:
-    def test_predict(self, framework_env, endpoint_prediction_methods):
+    @pytest.fixture
+    def start_server_in_env_folder(self, env_folder, framework_env):
+        return os.path.join(
+            REPO_ROOT_PATH,
+            "{}/{}/start_server.sh".format(env_folder, framework_env),
+        )
+
+    @pytest.fixture
+    def start_server_in_opt_code(self):
+        return "/opt/code/start_server.sh"
+
+    @pytest.mark.parametrize(
+        "start_server_location",
+        [
+            pytest.param(None, id="run-using-drum_server"),
+            pytest.param("start_server_in_env_folder", id="run-using-start_server-in-env-folder"),
+            pytest.param("start_server_in_opt_code", id="run-using-start_server-in-/opt/code"),
+        ],
+    )
+    def test_predict(
+        self, framework_env, env_folder, endpoint_prediction_methods, start_server_location, request
+    ):
+        # /opt/code test case will fail locally if running not in the env image
         skip_if_framework_not_in_env(PYTHON3_BASE, framework_env)
 
         input_dataset = os.path.join(TESTS_DATA_PATH, "juniors_3_year_stats_regression.csv")
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "python3_dummy_regression")
+
+        start_server_sh = (
+            request.getfixturevalue(start_server_location)
+            if start_server_location is not None
+            else None
+        )
+
         with DrumServerRun(
-            "regression",
+            REGRESSION,
             None,
             custom_model_dir,
+            pass_args_as_env_vars=True,
+            cmd_override=start_server_sh,
         ) as run:
             # do predictions
 
