@@ -48,6 +48,7 @@ from tests.constants import (
     BINARY,
     CODEGEN,
     GPU_NIM,
+    GPU_NIM_EMBEDQA,
     GPU_TRITON,
     GPU_VLLM,
     JULIA,
@@ -89,6 +90,7 @@ from tests.constants import (
     SPARSE,
     SPARSE_TRANSFORM,
     TESTS_DATA_PATH,
+    TESTS_FIXTURES_PATH,
     TEXT_GENERATION,
     GEO_POINT,
     TRANSFORM,
@@ -1031,7 +1033,7 @@ class TestInference:
             assert "INDIGO FINCH" in response_text[header_length:]
 
 
-class TestNIM:
+class TestNimLlm:
     @pytest.fixture(scope="class")
     def nim_predictor(self, framework_env):
         skip_if_framework_not_in_env(GPU_NIM, framework_env)
@@ -1132,7 +1134,54 @@ class TestNIM:
         assert "Boston! One of the oldest and most historic cities" in llm_response
 
 
-class TestVLLM:
+class TestNimEmbedQa:
+    @pytest.fixture(scope="class")
+    def nim_predictor(self, framework_env):
+        skip_if_framework_not_in_env(GPU_NIM_EMBEDQA, framework_env)
+        skip_if_keys_not_in_env(["GPU_COUNT", "NGC_API_KEY"])
+
+        os.environ["MLOPS_RUNTIME_PARAM_NGC_API_KEY"] = json.dumps(
+            {
+                "type": "credential",
+                "payload": {
+                    "credentialType": "apiToken",
+                    "apiToken": os.environ["NGC_API_KEY"],
+                },
+            }
+        )
+
+        # the Runtime Parameters used for prediction requests
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
+        ] = '{"type": "numeric", "payload": 10}'
+
+        custom_model_dir = os.path.join(TESTS_FIXTURES_PATH, "nim_embedqa")
+
+        with DrumServerRun(
+            target_type=TargetType.UNSTRUCTURED.value,
+            labels=None,
+            custom_model_dir=custom_model_dir,
+            with_error_server=True,
+            production=False,
+            logging_level="info",
+            gpu_predictor=GPU_NIM,
+            target_name="response",
+            wait_for_server_timeout=600,
+        ) as run:
+            response = requests.get(run.url_server_address)
+            if not response.ok:
+                raise RuntimeError("Server failed to start")
+            yield run
+
+    def test_predict_unstructured(self, nim_predictor):
+        response = requests.post(
+            f"{nim_predictor.url_server_address}/predictUnstructured/",
+            json={"input": ["Hello world"], "input_type": "query"},
+        )
+        assert response.ok, response.content
+
+
+class TestVllm:
     @pytest.fixture(scope="class")
     def vllm_predictor(self, framework_env):
         skip_if_framework_not_in_env(GPU_VLLM, framework_env)
