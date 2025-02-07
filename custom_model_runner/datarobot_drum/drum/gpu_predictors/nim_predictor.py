@@ -26,9 +26,6 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
 
         # Server configuration is set in the Drop-in environment
         self.gpu_count = os.environ.get("GPU_COUNT")
-        if not self.gpu_count:
-            raise ValueError("Unexpected empty GPU count.")
-
         self.ngc_token = self.get_optional_parameter("NGC_API_KEY")
         self.model_profile = self.get_optional_parameter("NIM_MODEL_PROFILE")
         self.max_model_len = self.get_optional_parameter("NIM_MAX_MODEL_LEN")
@@ -43,6 +40,9 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
         Download OSS LLM model via custom hook or make sure runtime params are set correctly
         to allow NIM to download the model from NGC.
         """
+        if not self.gpu_count:
+            raise ValueError("Unexpected empty GPU count.")
+
         self.run_load_model_hook_idempotent()
 
         cmd = ["/opt/nvidia/nvidia_entrypoint.sh"]
