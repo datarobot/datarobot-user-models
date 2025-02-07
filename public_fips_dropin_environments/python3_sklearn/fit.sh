@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/sh
 # Copyright 2025 DataRobot, Inc. and its affiliates.
 #
 # All rights reserved.
