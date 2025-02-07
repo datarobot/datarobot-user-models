@@ -6,8 +6,10 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import json
 
+from openai import OpenAI
 
-def score_unstructured(model, data, base_url, openai_client, **kwargs):
+
+def score_unstructured(model: str, data: str, base_url: str, openai_client: OpenAI, **kwargs):
     payload = json.loads(data)
     # `input_type` is an extension to OpenAI API that NIM uses for certain embedding models
     # One way to pass this is to append to the model name:
@@ -17,4 +19,4 @@ def score_unstructured(model, data, base_url, openai_client, **kwargs):
         model += f"-{input_type}"
     payload["model"] = model
     response = openai_client.embeddings.create(**payload)
-    return json.dumps(response), {"mimetype": "application/json"}
+    return response.to_json(), {"mimetype": "application/json"}
