@@ -98,6 +98,7 @@ from tests.constants import (
     R,
     PYTHON_VECTOR_DATABASE,
     VECTOR_DATABASE,
+    PYTHON3_BASE,
 )
 
 
@@ -1284,3 +1285,40 @@ class TestVllm:
             llm_response = completion.choices[0].message.content
 
         assert re.search(r"is a (vibrant and historic|bustling) city", llm_response)
+
+
+class TestFIPSPythonBase:
+    def test_predict(self, framework_env, env_folder, endpoint_prediction_methods):
+        framework = PYTHON3_BASE
+        if env_folder != "public_fips_dropin_environments" or framework_env != PYTHON3_BASE:
+            pytest.skip(
+                "Provided framework: {} != test case framework: {}".format(framework_env, framework)
+            )
+
+        input_dataset = os.path.join(TESTS_DATA_PATH, "juniors_3_year_stats_regression.csv")
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "python3_dummy_regression")
+        with DrumServerRun(
+            "regression",
+            None,
+            custom_model_dir,
+        ) as run:
+            # do predictions
+
+            response = requests.get(run.url_server_address + "/info/")
+
+            assert response.ok
+            for endpoint in endpoint_prediction_methods:
+                for post_args in [
+                    {"files": {"X": open(input_dataset)}},
+                    {"data": open(input_dataset, "rb")},
+                ]:
+                    response = requests.post(run.url_server_address + endpoint, **post_args)
+
+                    assert response.ok
+                    actual_num_predictions = len(
+                        json.loads(response.text)[RESPONSE_PREDICTIONS_KEY]
+                    )
+                    in_data = StructuredInputReadUtils.read_structured_input_file_as_df(
+                        input_dataset
+                    )
+                    assert in_data.shape[0] == actual_num_predictions
