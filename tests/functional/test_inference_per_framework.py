@@ -98,7 +98,7 @@ from tests.constants import (
     R,
     PYTHON_VECTOR_DATABASE,
     VECTOR_DATABASE,
-    PYTHON3_BASE,
+    PYTHON311,
     REPO_ROOT_PATH,
 )
 
@@ -1288,7 +1288,7 @@ class TestVllm:
         assert re.search(r"is a (vibrant and historic|bustling) city", llm_response)
 
 
-class TestFIPSPythonBase:
+class TestPython311Fips:
     @pytest.fixture
     def start_server_in_env_folder(self, env_folder, framework_env):
         return os.path.join(
@@ -1312,7 +1312,7 @@ class TestFIPSPythonBase:
         self, framework_env, env_folder, endpoint_prediction_methods, start_server_location, request
     ):
         # /opt/code test case will fail locally if running not in the env image
-        skip_if_framework_not_in_env(PYTHON3_BASE, framework_env)
+        skip_if_framework_not_in_env(PYTHON311, framework_env)
 
         input_dataset = os.path.join(TESTS_DATA_PATH, "juniors_3_year_stats_regression.csv")
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "python3_dummy_regression")
