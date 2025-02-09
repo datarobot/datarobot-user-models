@@ -43,10 +43,8 @@ pipeline:
                   identifier: check_diff
                   spec:
                     connectorRef: account.dockerhub_datarobot_read
-                    image: alpine/git
                     shell: Sh
                     command: |-
-                      export IMAGE=<+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.spec.image>
                       export CODEBASE_BRANCH=<+codebase.branch>
                       export ENV_FOLDER=<+pipeline.variables.env_folder>
                       export FRAMEWORK=<+pipeline.variables.framework>

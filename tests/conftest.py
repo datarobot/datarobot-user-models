@@ -154,7 +154,7 @@ from tests.constants import (
     GPU_NIM,
     GPU_NIM_EMBEDQA,
     GPU_VLLM,
-    PYTHON3_BASE,
+    PYTHON311,
 )
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from tests.constants import PYTHON_UNSTRUCTURED_DR_API_ACCESS
@@ -224,7 +224,7 @@ framework_envs = {
     GPU_NIM: [GPU_NIM],
     GPU_NIM_EMBEDQA: [GPU_NIM_EMBEDQA],
     GPU_VLLM: [GPU_VLLM],
-    PYTHON3_BASE: [PYTHON3_BASE],
+    PYTHON311: [PYTHON311],
 }
 
 
@@ -266,7 +266,7 @@ def pytest_addoption(parser):
             GPU_NIM,
             GPU_NIM_EMBEDQA,
             GPU_VLLM,
-            PYTHON3_BASE,
+            PYTHON311,
         ],
         default=None,
     )
