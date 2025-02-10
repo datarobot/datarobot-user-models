@@ -367,6 +367,7 @@ class TestCMRunnerServer:
             "user_secrets_mount_path": None,
             "user_secrets_prefix": None,
             "gpu_predictor": None,
+            "multi_container_deployment": False,
             "triton_host": "http://localhost",
             "triton_http_port": 8000,
             "triton_grpc_port": 8001,
@@ -443,6 +444,7 @@ class TestCMRunnerScore:
             "user_secrets_mount_path": None,
             "user_secrets_prefix": None,
             "gpu_predictor": None,
+            "multi_container_deployment": False,
             "triton_host": "http://localhost",
             "triton_http_port": 8000,
         }
