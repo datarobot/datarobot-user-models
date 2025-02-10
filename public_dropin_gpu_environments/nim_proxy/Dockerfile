@@ -4,27 +4,25 @@ RUN useradd -u 1000 -m drum
 
 # install genai-perf tool
 # see https://docs.nvidia.com/nim/benchmarking/llm/latest/step-by-step.html
-RUN mkdir -p /.cache && chown -R drum:drum /.cache
-RUN apt update && apt install -y --no-install-recommends git
-RUN git config --global credential.helper store
+#RUN mkdir -p /.cache && chown -R drum:drum /.cache
+#RUN apt update && apt install -y --no-install-recommends git
+#RUN git config --global credential.helper store
 
-RUN apt install -y libstdc++6 gcc g++ make cmake clang
-RUN pip install genai-perf==0.0.10
+#RUN apt install -y libstdc++6 gcc g++ make cmake clang
+#RUN pip install genai-perf==0.0.10
 
-
-COPY public_dropin_gpu_environments/nim_proxy/* /opt/code/
-RUN pip install -r /opt/code/requirements.txt
-
-# install DRUM in development mode
-COPY custom_model_runner /opt/code/custom_model_runner/
-RUN pip install -e /opt/code/custom_model_runner/
-
+ENV PATH=/home/drum/.local/bin:$PATH
 ENV OPENAI_HOST=localhost
 ENV OPENAI_PORT=8000
 ENV CODE_DIR=/opt/code
 ENV ADDRESS=0.0.0.0:8080
 
 WORKDIR ${CODE_DIR}
+COPY --chown=1000:1000 . ${CODE_DIR}/
+
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
+
 USER drum
 
 ENTRYPOINT ["/opt/code/start_server.sh"]

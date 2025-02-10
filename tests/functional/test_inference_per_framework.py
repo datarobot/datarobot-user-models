@@ -100,6 +100,7 @@ from tests.constants import (
     VECTOR_DATABASE,
     PYTHON311,
     REPO_ROOT_PATH,
+    GPU_NIM_MULTI_CONTAINER,
 )
 
 
@@ -1061,6 +1062,7 @@ class TestNimLlm:
         ] = '{"type": "numeric", "payload": 10}'
 
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "gpu_nim_textgen")
+        is_multi_container_deployment = framework_env == GPU_NIM_MULTI_CONTAINER
 
         with DrumServerRun(
             target_type=TargetType.TEXT_GENERATION.value,
@@ -1070,6 +1072,7 @@ class TestNimLlm:
             production=False,
             logging_level="info",
             gpu_predictor=GPU_NIM,
+            multi_container_deployment=is_multi_container_deployment,
             target_name="response",
             wait_for_server_timeout=600,
         ) as run:
