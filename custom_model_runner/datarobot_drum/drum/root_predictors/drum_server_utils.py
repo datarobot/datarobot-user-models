@@ -83,6 +83,7 @@ class DrumServerRun:
         user_secrets_mount_path: Optional[str] = None,
         thread_class=Thread,
         gpu_predictor=None,
+        multi_container_deployment=False,  # TODO
         target_name=None,
         wait_for_server_timeout=30,
         max_workers=None,
