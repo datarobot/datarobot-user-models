@@ -117,8 +117,14 @@ Subsystem       sftp    /usr/lib/ssh/sftp-server
 #       ForceCommand cvs server
 Port 8022
 
-HostKey /etc/ssh/keys/ssh_host_rsa_key
-HostKey /etc/ssh/keys/ssh_host_dsa_key
-HostKey /etc/ssh/keys/ssh_host_ecdsa_key
-HostKey /etc/ssh/keys/ssh_host_ed25519_key
+HostKey /etc/ssh/keys/ssh_host_key
+
+# FIPS compliant and supported by https://asyncssh.readthedocs.io/en/stable/api.html#key-exchange-algorithms
+Ciphers aes256-ctr,aes192-ctr,aes128-ctr
+HostKeyAlgorithms ecdsa-sha2-nistp256,ssh-ed25519
+KexAlgorithms ecdh-sha2-nistp256,ecdh-sha2-nistp521,ecdh-sha2-nistp384,diffie-hellman-group-exchange-sha256,diffie-hellman-group-exchange-sha1,diffie-hellman-group14-sha1
+MACs hmac-sha2-256,hmac-sha2-512,hmac-sha1
+
 PasswordAuthentication no
+ChallengeResponseAuthentication no
+PermitEmptyPasswords no
