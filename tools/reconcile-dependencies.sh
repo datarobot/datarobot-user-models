@@ -13,6 +13,9 @@ pip install pip==23.0.0
 # Install or upgrade pip-tools for dependency management
 pip install --upgrade pip-tools
 
+# Set the RPY2_CFFI_MODE environment variable to ABI to avoid issues with rpy2
+export RPY2_CFFI_MODE=ABI
+
 # Define the directories containing the environments
 env_dirs=("../public_dropin_gpu_environments" "../public_dropin_environments")
 
