@@ -31,8 +31,8 @@ pipeline:
                     command: |-
                       if [ "<+pipeline.variables.env_name>" = "java_codegen" ]; then
                         # For java env we install maven and build java components to make mave download most of the depndencies
-                        cp -r custom_model_runner/ public_dropin_environments/java_codegen/
-                        cd public_dropin_environments/java_codegen
+                        cp -r custom_model_runner/<+pipeline.variables.env_folder>/java_codegen/
+                        cd <+pipeline.variables.env_folder>/java_codegen
                         echo -e "RUN apt-get update && apt-get install -y maven" >> Dockerfile 
                         echo -e "COPY ./custom_model_runner /tmp/custom_model_runner" >> Dockerfile 
                         echo -e "RUN cd /tmp/custom_model_runner && make java_components" >> Dockerfile 
@@ -65,12 +65,12 @@ pipeline:
       type: String
       description: ""
       required: true
-      value: <+input>.allowedValues(public_dropin_environments)
+      value: <+input>.allowedValues(public_dropin_environments, public_fips_dropin_environments)
     - name: env_name
       type: String
       description: ""
       required: true
-      value: <+input>.allowedValues(python3_sklearn,python3_xgboost,python3_onnx,python3_pytorch,python3_keras,python3_pmml,python311_genai,python39_genai,java_codegen,r_lang)
+      value: <+input>.allowedValues(python3_sklearn,python3_xgboost,python3_onnx,python3_pytorch,python3_keras,python3_pmml,python311_genai,python39_genai,java_codegen,r_lang,python311)
     - name: image_tag
       type: String
       description: ""

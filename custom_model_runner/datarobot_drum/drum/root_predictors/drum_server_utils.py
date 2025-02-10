@@ -86,6 +86,7 @@ class DrumServerRun:
         target_name=None,
         wait_for_server_timeout=30,
         max_workers=None,
+        cmd_override=None,
     ):
         self.port = DrumUtils.find_free_port()
         self.server_address = "localhost:{}".format(self.port)
@@ -118,6 +119,7 @@ class DrumServerRun:
         self._gpu_predictor = gpu_predictor
         self._wait_for_server_timeout = wait_for_server_timeout
         self._max_workers = max_workers
+        self._cmd_override = cmd_override
 
     def __enter__(self):
         self._server_thread = self._thread_class(
@@ -177,6 +179,7 @@ class DrumServerRun:
 
     def get_command(self):
         cmd = f"{ArgumentsOptions.MAIN_COMMAND} server --logging-level={self._log_level}"
+        cmd = self._cmd_override or cmd
 
         if self._pass_args_as_env_vars:
             os.environ[ArgumentOptionsEnvVars.CODE_DIR] = str(self._custom_model_dir)

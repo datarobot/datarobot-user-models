@@ -154,6 +154,7 @@ from tests.constants import (
     GPU_NIM,
     GPU_NIM_EMBEDQA,
     GPU_VLLM,
+    PYTHON311,
 )
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from tests.constants import PYTHON_UNSTRUCTURED_DR_API_ACCESS
@@ -223,6 +224,7 @@ framework_envs = {
     GPU_NIM: [GPU_NIM],
     GPU_NIM_EMBEDQA: [GPU_NIM_EMBEDQA],
     GPU_VLLM: [GPU_VLLM],
+    PYTHON311: [PYTHON311],
 }
 
 
@@ -264,7 +266,15 @@ def pytest_addoption(parser):
             GPU_NIM,
             GPU_NIM_EMBEDQA,
             GPU_VLLM,
+            PYTHON311,
         ],
+        default=None,
+    )
+
+    parser.addoption(
+        "--env-folder",
+        required=False,
+        choices=["public_dropin_environments", "public_fips_dropin_environments"],
         default=None,
     )
 
@@ -272,6 +282,11 @@ def pytest_addoption(parser):
 @pytest.fixture(scope="session")
 def framework_env(pytestconfig):
     return pytestconfig.getoption("framework_env")
+
+
+@pytest.fixture(scope="session")
+def env_folder(pytestconfig):
+    return pytestconfig.getoption("env_folder")
 
 
 _datasets = {

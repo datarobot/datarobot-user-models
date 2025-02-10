@@ -98,6 +98,8 @@ from tests.constants import (
     R,
     PYTHON_VECTOR_DATABASE,
     VECTOR_DATABASE,
+    PYTHON311,
+    REPO_ROOT_PATH,
 )
 
 
@@ -1284,3 +1286,67 @@ class TestVllm:
             llm_response = completion.choices[0].message.content
 
         assert re.search(r"is a (vibrant and historic|bustling) city", llm_response)
+
+
+class TestPython311Fips:
+    @pytest.fixture
+    def start_server_in_env_folder(self, env_folder, framework_env):
+        return os.path.join(
+            REPO_ROOT_PATH,
+            "{}/{}/start_server.sh".format(env_folder, framework_env),
+        )
+
+    @pytest.fixture
+    def start_server_in_opt_code(self):
+        return "/opt/code/start_server.sh"
+
+    @pytest.mark.parametrize(
+        "start_server_location",
+        [
+            pytest.param(None, id="run-using-drum_server"),
+            pytest.param("start_server_in_env_folder", id="run-using-start_server-in-env-folder"),
+            pytest.param("start_server_in_opt_code", id="run-using-start_server-in-/opt/code"),
+        ],
+    )
+    def test_predict(
+        self, framework_env, env_folder, endpoint_prediction_methods, start_server_location, request
+    ):
+        # /opt/code test case will fail locally if running not in the env image
+        skip_if_framework_not_in_env(PYTHON311, framework_env)
+
+        input_dataset = os.path.join(TESTS_DATA_PATH, "juniors_3_year_stats_regression.csv")
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "python3_dummy_regression")
+
+        start_server_sh = (
+            request.getfixturevalue(start_server_location)
+            if start_server_location is not None
+            else None
+        )
+
+        with DrumServerRun(
+            REGRESSION,
+            None,
+            custom_model_dir,
+            pass_args_as_env_vars=True,
+            cmd_override=start_server_sh,
+        ) as run:
+            # do predictions
+
+            response = requests.get(run.url_server_address + "/info/")
+
+            assert response.ok
+            for endpoint in endpoint_prediction_methods:
+                for post_args in [
+                    {"files": {"X": open(input_dataset)}},
+                    {"data": open(input_dataset, "rb")},
+                ]:
+                    response = requests.post(run.url_server_address + endpoint, **post_args)
+
+                    assert response.ok
+                    actual_num_predictions = len(
+                        json.loads(response.text)[RESPONSE_PREDICTIONS_KEY]
+                    )
+                    in_data = StructuredInputReadUtils.read_structured_input_file_as_df(
+                        input_dataset
+                    )
+                    assert in_data.shape[0] == actual_num_predictions

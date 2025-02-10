@@ -186,6 +186,7 @@ PYTHON_VECTOR_DATABASE = "python_vector_database"
 R_UNSTRUCTURED = "r_unstructured"
 R_UNSTRUCTURED_PARAMS = "r_unstructured_params"
 PYTHON_XGBOOST_CLASS_LABELS_VALIDATION = "predictions_and_class_labels_validation"
+PYTHON311 = "python311"
 
 DOCKER_PYTHON_SKLEARN = "python3_sklearn_test_env"
 

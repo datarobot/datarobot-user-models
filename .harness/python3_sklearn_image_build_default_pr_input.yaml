@@ -15,7 +15,7 @@ inputSet:
     variables:
       - name: env_folder
         type: String
-        value: public_dropin_environments
+        value: <+input>.default(public_dropin_environments)
       - name: env_name
         type: String
         value: python3_sklearn
