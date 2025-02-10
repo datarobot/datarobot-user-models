@@ -1,0 +1,11 @@
+{
+  "id": "67a6236b8206bdd08ef065cc",
+  "name": "[GenAI][NVIDIA] Generic image used to proxy requests to NIM",
+  "description": "",
+  "programmingLanguage": "python",
+  "label": "v1.3.3+dr.2",
+  "environmentVersionId": "67a623818206bdd08ef065cd",
+  "environmentVersionDescription": "Adds NVIDIA genai-perf tool",
+  "isDownloadable": false,
+  "isPublic": true
+}

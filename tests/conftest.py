@@ -153,6 +153,7 @@ from tests.constants import (
     GPU_TRITON,
     GPU_NIM,
     GPU_NIM_EMBEDQA,
+    GPU_NIM_MULTI_CONTAINER,
     GPU_VLLM,
     PYTHON311,
 )
@@ -222,6 +223,7 @@ framework_envs = {
     JULIA: [MLJ],
     GPU_TRITON: [GPU_TRITON],
     GPU_NIM: [GPU_NIM],
+    GPU_NIM_MULTI_CONTAINER: [GPU_NIM],
     GPU_NIM_EMBEDQA: [GPU_NIM_EMBEDQA],
     GPU_VLLM: [GPU_VLLM],
     PYTHON311: [PYTHON311],
@@ -264,6 +266,7 @@ def pytest_addoption(parser):
             JULIA,
             GPU_TRITON,
             GPU_NIM,
+            GPU_NIM_MULTI_CONTAINER,
             GPU_NIM_EMBEDQA,
             GPU_VLLM,
             PYTHON311,

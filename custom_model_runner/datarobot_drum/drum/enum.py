@@ -266,6 +266,7 @@ class ArgumentsOptions:
     TRITON_HOST = "--triton-host"
     TRITON_HTTP_PORT = "--triton-http-port"
     TRITON_GRPC_PORT = "--triton-grpc-port"
+    MULTI_CONTAINER_DEPLOYMENT = "--multi-container-deployment"
     DEPLOYMENT_CONFIG = "--deployment-config"
     QUERY = "--query"
     CONTENT_TYPE = "--content-type"
