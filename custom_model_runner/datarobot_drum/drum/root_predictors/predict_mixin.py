@@ -321,9 +321,8 @@ class PredictMixin:
         return self._do_predict_structured(logger=logger)
 
     def do_predict_unstructured(self, logger=None):
-        if (self._target_type != TargetType.UNSTRUCTURED and
-          # Moderation library requires textgeneration models to respond on /predictUnstructured route
-            not self._gpu_predictor_type):
+        # Moderation library requires textgeneration models to respond on /predictUnstructured route
+        if self._target_type != TargetType.UNSTRUCTURED and not self._gpu_predictor_type:
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             wrong_target_type_error_message = (
                 "This model has target type {}, "
