@@ -10,11 +10,9 @@ import logging
 from cgi import FieldStorage
 from io import BytesIO, StringIO
 
-from packaging import version
-
 from scipy.io import mmwrite, mmread
 from scipy.sparse import issparse
-from scipy.sparse.csr import csr_matrix
+from scipy.sparse import csr_matrix
 
 from datarobot_drum.drum.enum import X_FORMAT_KEY, X_TRANSFORM_KEY
 

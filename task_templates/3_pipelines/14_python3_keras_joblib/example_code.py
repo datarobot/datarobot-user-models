@@ -4,13 +4,15 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import tempfile
+
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.layers import Dense, Dropout
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.constraints import MaxNorm as maxnorm
 from tensorflow.keras.models import load_model
-from tensorflow.keras.wrappers.scikit_learn import KerasClassifier, KerasRegressor
 
+from scikeras.wrappers import KerasClassifier, KerasRegressor
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler
@@ -200,16 +202,20 @@ def serialize_estimator_pipeline(estimator_pipeline: Pipeline, output_dir_path: 
     # extract preprocessor pipeline
     preprocessor = estimator_pipeline.named_steps.preprocessor
 
-    # extract keras model from the pipeline obj
-    keras_model = estimator_pipeline.named_steps.estimator.model
+    # This is the actual trained Keras model. It is only available after calling .fit().
+    keras_model = estimator_pipeline.named_steps.estimator.model_
 
     # save the model (in '.h5' format - as its easy to load using keras' load_model() later)
     # to BytesIO obj (in RAM - as its easy to joblib dump later)
     io_container = io.BytesIO()
-    with h5py.File(io_container, mode="w") as file:
-        # setting 'include_optimizer' to True is only needed when warm starting.
-        # Will save a lot of space as well
-        keras_model.save(file, include_optimizer=False)
+
+    # Use a temporary file to save and then load into memory
+    # Keras 3 no longer supports passing an open HDF5 file handle (h5py.File) directly to
+    # model.save(). Instead, it expects a string filepath ending in .keras (recommended) or .h5.
+    with tempfile.NamedTemporaryFile(suffix=".h5") as temp_file:
+        keras_model.save(temp_file.name, include_optimizer=False)  # Save to disk first
+        temp_file.seek(0)  # Move to start of file
+        io_container.write(temp_file.read())  # Read into BytesIO
 
     # save the preprocessor and the model to dictionary
     model_dict = dict()
@@ -238,8 +244,12 @@ def deserialize_estimator_pipeline(input_dir: str) -> Pipeline:
     # load the dictionary obj from the joblib file
     joblib_file_path = Path(input_dir) / "artifact.joblib"
     estimator_dict = joblib.load(joblib_file_path)
-    with h5py.File(estimator_dict["model"], mode="r") as fp:
-        keras_model = load_model(fp)
+
+    # Write to a temporary file
+    with tempfile.NamedTemporaryFile(suffix=".h5", delete=True) as temp_file:
+        temp_file.write(estimator_dict["model"].getvalue())  # Save bytes to disk
+        temp_file.flush()  # Ensure all data is written
+        keras_model = load_model(temp_file.name)  # Load model from file
 
     pipeline = Pipeline(
         [("preprocessor", estimator_dict["preprocessor_pipeline"]), ("estimator", keras_model)]
