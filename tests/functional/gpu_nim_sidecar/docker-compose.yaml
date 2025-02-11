@@ -9,6 +9,7 @@ services:
       - TARGET_TYPE=textgeneration
       - TARGET_NAME=prompt
       - TEST_URL_HOST=${TEST_URL_HOST}
+      - MLOPS_RUNTIME_PARAM_prompt_column_name={"type":"string","payload":"user_prompt"}
     working_dir: ${GIT_ROOT}
     volumes:
       - ${HOME}:${HOME}

@@ -234,7 +234,7 @@ class DrumServerRun:
         if self._gpu_predictor:
             cmd += "  --gpu-predictor {}".format(self._gpu_predictor)
         if self._sidecar:
-            cmd += "  --sidecar {}".format(self._sidecar)
+            cmd += "  --sidecar"
         if self._target_name:
             os.environ["TARGET_NAME"] = self._target_name
 
