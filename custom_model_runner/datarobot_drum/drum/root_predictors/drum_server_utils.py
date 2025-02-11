@@ -83,7 +83,7 @@ class DrumServerRun:
         user_secrets_mount_path: Optional[str] = None,
         thread_class=Thread,
         gpu_predictor=None,
-        multi_container_deployment=False,
+        sidecar=False,
         target_name=None,
         wait_for_server_timeout=30,
         max_workers=None,
@@ -118,7 +118,7 @@ class DrumServerRun:
         self._user_secrets_mount_path = user_secrets_mount_path
         self._thread_class = thread_class
         self._gpu_predictor = gpu_predictor
-        self._multi_container_deployment = multi_container_deployment
+        self._sidecar = sidecar
         self._wait_for_server_timeout = wait_for_server_timeout
         self._max_workers = max_workers
         self._cmd_override = cmd_override
@@ -233,8 +233,8 @@ class DrumServerRun:
             cmd += " --verbose"
         if self._gpu_predictor:
             cmd += "  --gpu-predictor {}".format(self._gpu_predictor)
-        if self._multi_container_deployment:
-            cmd += "  --multi-container-deployment {}".format(self._multi_container_deployment)
+        if self._sidecar:
+            cmd += "  --sidecar {}".format(self._sidecar)
         if self._target_name:
             os.environ["TARGET_NAME"] = self._target_name
 

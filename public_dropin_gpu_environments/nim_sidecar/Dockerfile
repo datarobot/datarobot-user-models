@@ -18,7 +18,7 @@ ENV CODE_DIR=/opt/code
 ENV ADDRESS=0.0.0.0:8080
 
 WORKDIR ${CODE_DIR}
-COPY --chown=1000:1000 . ${CODE_DIR}/
+COPY --chown=1000:1000 ../nim_proxy ${CODE_DIR}/
 
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt

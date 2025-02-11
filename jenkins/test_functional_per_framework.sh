@@ -44,9 +44,9 @@ elif [ "$1" = "nim" ]; then
 elif [ "$1" = "nim_embedqa" ]; then
     ENVS_DIR="public_dropin_gpu_environments"
     DOCKER_IMAGE="nim_embedqa"
-elif [ "$1" = "nim_multi_container" ]; then
+elif [ "$1" = "nim_sidecar" ]; then
     ENVS_DIR="public_dropin_gpu_environments"
-    DOCKER_IMAGE="nim_proxy"
+    DOCKER_IMAGE="nim_sidecar"
 elif [ "$1" = "triton" ]; then
     ENVS_DIR="public_dropin_gpu_environments"
     DOCKER_IMAGE="triton_server"
@@ -123,8 +123,8 @@ touch ${GIT_ROOT}/results_integration.xml
 chmod 777 ${GIT_ROOT}/results_integration.xml
 sudo chmod -R 777 ${GIT_ROOT}/.pytest_cache
 
-if [[ "$FRAMEWORK" == "nim_multi_container" ]]; then
-  docker-compose -f tests/functional/gpu_multi_container/docker-compose.yaml up --abort-on-container-exit
+if [[ "$FRAMEWORK" == "nim_sidecar" ]]; then
+  docker-compose -f tests/functional/gpu_nim_sidecar/docker-compose.yaml up --abort-on-container-exit
 else
   docker run -i $TERMINAM_OPTION $GPU_OPTION \
       --network $network \

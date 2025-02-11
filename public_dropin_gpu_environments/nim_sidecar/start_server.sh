@@ -17,4 +17,4 @@ fi
 echo
 echo "Starting DRUM server..."
 echo
-exec drum server --gpu-predictor=nim --multi-container-deployment --logging-level=info "$@"
+exec drum server --sidecar --gpu-predictor=nim --logging-level=info "$@"
