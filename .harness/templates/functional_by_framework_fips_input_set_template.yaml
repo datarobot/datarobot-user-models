@@ -1,0 +1,14 @@
+template:
+  name: functional_by_framework_fips_input_set_template
+  identifier: functional_by_framework_fips_input_set_template
+  versionLabel: v1
+  type: InputSet
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  spec:
+    template:
+      identifier: input_set_template
+    variables:
+      - name: env_folder
+        type: String
+        value: public_fips_dropin_environments
