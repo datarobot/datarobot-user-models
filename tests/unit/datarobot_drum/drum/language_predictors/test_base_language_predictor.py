@@ -376,3 +376,56 @@ class TestChat(TestBaseLanguagePredictor):
 
         assert response.choices[0].message.content == "How are you"
         mock_mlops_function.assert_called_once()
+
+    @pytest.mark.parametrize(
+        "chat_content, expected_prompt",
+        [
+            ("Hi, How are you?", "Hi, How are you?"),
+            (
+                [
+                    {"type": "text", "text": "Is this image toxic? Answer YES or NO"},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": "https://img.url/boardwalk.jpg",
+                        },
+                    },
+                ],
+                "Is this image toxic? Answer YES or NO\nImage URL: https://img.url/boardwalk.jpg",
+            ),
+            (
+                [
+                    {"type": "text", "text": "Is this audio toxic? Answer YES or NO"},
+                    {
+                        "type": "input_audio",
+                        "input_audio": {"data": b"encoded string", "format": "wav"},
+                    },
+                ],
+                "Is this audio toxic? Answer YES or NO\nAudio Input, Format: wav",
+            ),
+        ],
+    )
+    def test_chat_prompt_inputs(
+        self, language_predictor_with_mlops, mock_mlops, chat_content, expected_prompt
+    ):
+        def chat_hook(completion_request):
+            return create_completion("How are you")
+
+        language_predictor_with_mlops.chat_hook = chat_hook
+        _ = language_predictor_with_mlops.chat(
+            {
+                "model": "any",
+                "messages": [
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": chat_content},
+                ],
+            }
+        )
+        expected_df = pd.DataFrame({"promptText": [expected_prompt]})
+        expected_predictions = ["How are you"]
+        actual_df = mock_mlops.report_predictions_data.call_args.args[0]
+        actual_predictions = mock_mlops.report_predictions_data.call_args.args[1]
+        assert expected_predictions == actual_predictions
+        pd.testing.assert_frame_equal(
+            actual_df, expected_df, check_like=True, check_dtype=False
+        )
