@@ -38,7 +38,7 @@ pipeline:
                   name: reconcile_dependencies
                   identifier: reconcile_dependencies
                   spec:
-                    connectorRef: datarobot_user_models_read_write
+                    connectorRef: account.dockerhub_datarobot_read
                     image: datarobotdev/platform-base-python-310-devel
                     shell: Bash
                     command: |-
