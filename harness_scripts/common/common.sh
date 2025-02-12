@@ -1,4 +1,4 @@
 
-function title {
+title() {
     echo -e "\n== $1 =="
 }

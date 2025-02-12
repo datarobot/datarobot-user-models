@@ -97,6 +97,11 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         except ImportError:
             raise DrumCommonException("OpenAI Python SDK is not installed")
 
+    @property
+    def is_sidecar(self):
+        # When true, DRUM is expected to run as a sidecar, proxying/monitoring requests to a model container.
+        return self._params.get("sidecar", False)
+
     def supports_chat(self):
         return True
 
@@ -146,15 +151,18 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self.ai_client = OpenAI(
             base_url=f"http://{self.openai_host}:{self.openai_port}/v1", api_key="fake"
         )
-        self.openai_server_thread = Thread(
-            target=self.download_and_serve_model, name="OpenAI Server"
-        )
-        self.openai_server_thread.start()
 
-        self._openai_server_watchdog = Thread(
-            target=self.watchdog, daemon=True, name="OpenAI Watchdog"
-        )
-        self._openai_server_watchdog.start()
+        # In multi-container deployments DRUM does not manage OpenAI server processes.
+        if not self.is_sidecar:
+            self.openai_server_thread = Thread(
+                target=self.download_and_serve_model, name="OpenAI Server"
+            )
+            self.openai_server_thread.start()
+
+            self._openai_server_watchdog = Thread(
+                target=self.watchdog, daemon=True, name="OpenAI Watchdog"
+            )
+            self._openai_server_watchdog.start()
 
     def watchdog(self):
         """

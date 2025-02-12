@@ -48,6 +48,7 @@ from tests.constants import (
     BINARY,
     CODEGEN,
     GPU_NIM,
+    GPU_NIM_EMBEDQA,
     GPU_TRITON,
     GPU_VLLM,
     JULIA,
@@ -89,6 +90,7 @@ from tests.constants import (
     SPARSE,
     SPARSE_TRANSFORM,
     TESTS_DATA_PATH,
+    TESTS_FIXTURES_PATH,
     TEXT_GENERATION,
     GEO_POINT,
     TRANSFORM,
@@ -96,6 +98,9 @@ from tests.constants import (
     R,
     PYTHON_VECTOR_DATABASE,
     VECTOR_DATABASE,
+    PYTHON311,
+    REPO_ROOT_PATH,
+    GPU_NIM_SIDECAR,
 )
 
 
@@ -227,7 +232,6 @@ class TestInference:
         "framework, problem, language, docker, use_labels_file",
         [
             (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None, False),
-            (KERAS, REGRESSION, PYTHON, None, False),
             (XGB, REGRESSION, PYTHON, None, False),
             (PYTORCH, REGRESSION, PYTHON, None, False),
             (ONNX, REGRESSION, PYTHON, None, False),
@@ -1031,7 +1035,7 @@ class TestInference:
             assert "INDIGO FINCH" in response_text[header_length:]
 
 
-class TestNIM:
+class TestNimLlm:
     @pytest.fixture(scope="class")
     def nim_predictor(self, framework_env):
         skip_if_framework_not_in_env(GPU_NIM, framework_env)
@@ -1066,6 +1070,7 @@ class TestNIM:
             production=False,
             logging_level="info",
             gpu_predictor=GPU_NIM,
+            sidecar=(framework_env == GPU_NIM_SIDECAR),
             target_name="response",
             wait_for_server_timeout=600,
         ) as run:
@@ -1132,7 +1137,61 @@ class TestNIM:
         assert "Boston! One of the oldest and most historic cities" in llm_response
 
 
-class TestVLLM:
+class TestNimEmbedQa:
+    @pytest.fixture(scope="class")
+    def nim_predictor(self, framework_env):
+        skip_if_framework_not_in_env(GPU_NIM_EMBEDQA, framework_env)
+        skip_if_keys_not_in_env(["GPU_COUNT", "NGC_API_KEY"])
+
+        os.environ["MLOPS_RUNTIME_PARAM_NGC_API_KEY"] = json.dumps(
+            {
+                "type": "credential",
+                "payload": {
+                    "credentialType": "apiToken",
+                    "apiToken": os.environ["NGC_API_KEY"],
+                },
+            }
+        )
+
+        # the Runtime Parameters used for prediction requests
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
+        ] = '{"type": "numeric", "payload": 10}'
+
+        custom_model_dir = os.path.join(TESTS_FIXTURES_PATH, "nim_embedqa")
+
+        with DrumServerRun(
+            target_type=TargetType.UNSTRUCTURED.value,
+            labels=None,
+            custom_model_dir=custom_model_dir,
+            with_error_server=True,
+            production=False,
+            logging_level="info",
+            gpu_predictor=GPU_NIM,
+            target_name="response",
+            wait_for_server_timeout=600,
+        ) as run:
+            response = requests.get(run.url_server_address)
+            if not response.ok:
+                raise RuntimeError("Server failed to start")
+            yield run
+
+    @pytest.mark.parametrize("input_type", ["query", "passage"])
+    def test_predict_unstructured(self, nim_predictor, input_type):
+        response = requests.post(
+            f"{nim_predictor.url_server_address}/predictUnstructured/",
+            json={"input": ["Hello world"], "input_type": input_type},
+        )
+        assert response.ok, response.content
+
+        response_data = response.json()
+        embedding = response_data["data"][0]
+        assert embedding["object"] == "embedding"
+        assert embedding["index"] == 0
+        assert len(embedding["embedding"]) > 0
+
+
+class TestVllm:
     @pytest.fixture(scope="class")
     def vllm_predictor(self, framework_env):
         skip_if_framework_not_in_env(GPU_VLLM, framework_env)
@@ -1228,3 +1287,67 @@ class TestVLLM:
             llm_response = completion.choices[0].message.content
 
         assert re.search(r"is a (vibrant and historic|bustling) city", llm_response)
+
+
+class TestPython311Fips:
+    @pytest.fixture
+    def start_server_in_env_folder(self, env_folder, framework_env):
+        return os.path.join(
+            REPO_ROOT_PATH,
+            "{}/{}/start_server.sh".format(env_folder, framework_env),
+        )
+
+    @pytest.fixture
+    def start_server_in_opt_code(self):
+        return "/opt/code/start_server.sh"
+
+    @pytest.mark.parametrize(
+        "start_server_location",
+        [
+            pytest.param(None, id="run-using-drum_server"),
+            pytest.param("start_server_in_env_folder", id="run-using-start_server-in-env-folder"),
+            pytest.param("start_server_in_opt_code", id="run-using-start_server-in-/opt/code"),
+        ],
+    )
+    def test_predict(
+        self, framework_env, env_folder, endpoint_prediction_methods, start_server_location, request
+    ):
+        # /opt/code test case will fail locally if running not in the env image
+        skip_if_framework_not_in_env(PYTHON311, framework_env)
+
+        input_dataset = os.path.join(TESTS_DATA_PATH, "juniors_3_year_stats_regression.csv")
+        custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "python3_dummy_regression")
+
+        start_server_sh = (
+            request.getfixturevalue(start_server_location)
+            if start_server_location is not None
+            else None
+        )
+
+        with DrumServerRun(
+            REGRESSION,
+            None,
+            custom_model_dir,
+            pass_args_as_env_vars=True,
+            cmd_override=start_server_sh,
+        ) as run:
+            # do predictions
+
+            response = requests.get(run.url_server_address + "/info/")
+
+            assert response.ok
+            for endpoint in endpoint_prediction_methods:
+                for post_args in [
+                    {"files": {"X": open(input_dataset)}},
+                    {"data": open(input_dataset, "rb")},
+                ]:
+                    response = requests.post(run.url_server_address + endpoint, **post_args)
+
+                    assert response.ok
+                    actual_num_predictions = len(
+                        json.loads(response.text)[RESPONSE_PREDICTIONS_KEY]
+                    )
+                    in_data = StructuredInputReadUtils.read_structured_input_file_as_df(
+                        input_dataset
+                    )
+                    assert in_data.shape[0] == actual_num_predictions

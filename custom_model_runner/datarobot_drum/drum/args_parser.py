@@ -704,6 +704,12 @@ class CMRunnerArgsRegistry(object):
                 ),
             )
             parser.add_argument(
+                ArgumentsOptions.SIDECAR,
+                action="store_true",
+                default=False,
+                help="When true, DRUM is expected to run as a sidecar, proxying/monitoring requests to a model container.",
+            )
+            parser.add_argument(
                 ArgumentsOptions.TRITON_HOST,
                 default=os.environ.get("TRITON_HOST", "http://localhost"),
                 help="NVIDIA Triton Inference Server URL",

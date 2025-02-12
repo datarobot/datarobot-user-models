@@ -10,6 +10,7 @@ import subprocess
 from pathlib import Path
 
 from datarobot_drum.drum.enum import CustomHooks
+from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
 
 
@@ -26,9 +27,6 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
 
         # Server configuration is set in the Drop-in environment
         self.gpu_count = os.environ.get("GPU_COUNT")
-        if not self.gpu_count:
-            raise ValueError("Unexpected empty GPU count.")
-
         self.ngc_token = self.get_optional_parameter("NGC_API_KEY")
         self.model_profile = self.get_optional_parameter("NIM_MODEL_PROFILE")
         self.max_model_len = self.get_optional_parameter("NIM_MAX_MODEL_LEN")
@@ -43,6 +41,9 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
         Download OSS LLM model via custom hook or make sure runtime params are set correctly
         to allow NIM to download the model from NGC.
         """
+        if not self.gpu_count:
+            raise ValueError("Unexpected empty GPU count.")
+
         self.run_load_model_hook_idempotent()
 
         cmd = ["/opt/nvidia/nvidia_entrypoint.sh"]
@@ -107,3 +108,26 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
             self.openai_process.process = p
             for line in p.stdout:
                 self.logger.info(line[:-1])
+
+    def predict_unstructured(self, data, **kwargs):
+        if not self.python_model_adapter.has_custom_hook(CustomHooks.SCORE_UNSTRUCTURED):
+            raise DrumCommonException("The unstructured target type is not supported")
+
+        # Let hook authors know where they can contact the NIM server
+        kwargs["base_url"] = f"http://{self.openai_host}:{self.openai_port}"
+        kwargs["openai_client"] = self.ai_client
+        # Let the hook know the name of the model we launched
+        model = self.model_name
+
+        str_or_tuple = self.python_model_adapter.predict_unstructured(
+            model=model, data=data, **kwargs
+        )
+        if isinstance(str_or_tuple, (str, bytes, type(None))):
+            ret = str_or_tuple, None
+        elif isinstance(str_or_tuple, tuple):
+            ret = str_or_tuple
+        else:
+            raise DrumCommonException(
+                "Wrong type returned in unstructured mode: {}".format(type(str_or_tuple))
+            )
+        return ret

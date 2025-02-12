@@ -321,7 +321,8 @@ class PredictMixin:
         return self._do_predict_structured(logger=logger)
 
     def do_predict_unstructured(self, logger=None):
-        if self._target_type != TargetType.UNSTRUCTURED:
+        # LLMs can also serve as guard models where moderations library expects to interface via /predictUnstructured
+        if self._target_type not in {TargetType.UNSTRUCTURED, TargetType.TEXT_GENERATION}:
             response_status = HTTP_422_UNPROCESSABLE_ENTITY
             wrong_target_type_error_message = (
                 "This model has target type {}, "

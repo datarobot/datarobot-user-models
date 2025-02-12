@@ -13,7 +13,7 @@ For specific version information, see [requirements](requirements.txt).
 
 ## Instructions
 
-1. From the terminal, run `tar -czvf py_dropin.tar.gz -C /path/to/public_dropin_environments/python3_sklearn/ .`
+1. From the terminal, run `tar -czvf py_dropin.tar.gz -C /path/to/public_dropin_environments/python3_xgboost/ .`
 2. Using either the API or from the UI create a new Custom Environment with the tarball created
 in step 1.
 

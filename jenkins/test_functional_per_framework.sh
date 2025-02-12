@@ -8,13 +8,14 @@
 
 set -ex
 
-GIT_ROOT=$(git rev-parse --show-toplevel)
+export GIT_ROOT=$(git rev-parse --show-toplevel)
 
 
 source "${GIT_ROOT}/tools/image-build-utils.sh"
 source "${GIT_ROOT}/tests/functional/integration-helpers.sh"
 
 ENVS_DIR="public_dropin_environments"
+FRAMEWORK=$1
 
 if [ "$1" = "python3_keras" ]; then
     DOCKER_IMAGE="python3_keras"
@@ -40,6 +41,12 @@ elif [ "$1" = "julia" ]; then
 elif [ "$1" = "nim" ]; then
     ENVS_DIR="public_dropin_gpu_environments"
     DOCKER_IMAGE="nim_llama_8b"
+elif [ "$1" = "nim_embedqa" ]; then
+    ENVS_DIR="public_dropin_gpu_environments"
+    DOCKER_IMAGE="nim_embedqa"
+elif [ "$1" = "nim_sidecar" ]; then
+    ENVS_DIR="public_dropin_gpu_environments"
+    DOCKER_IMAGE="nim_sidecar"
 elif [ "$1" = "triton" ]; then
     ENVS_DIR="public_dropin_gpu_environments"
     DOCKER_IMAGE="triton_server"
@@ -47,6 +54,8 @@ elif [ "$1" = "vllm" ]; then
     ENVS_DIR="public_dropin_gpu_environments"
     DOCKER_IMAGE="vllm"
 fi;
+
+export DOCKER_IMAGE=$DOCKER_IMAGE
 
 # The "jenkins_artifacts" folder is created in the groovy script
 DRUM_WHEEL_REAL_PATH="$(realpath "$(find jenkins_artifacts/datarobot_drum*.whl)")"
@@ -96,6 +105,7 @@ echo "detected machine=$machine url_host: $url_host"
 #       In mac we dont have host network so we use the host.docker.internal ip
 # Note: The `--gpus all` is required for GPU predictors tests
 
+export TEST_URL_HOST=$url_host
 export GPU_COUNT=$(nvidia-smi -L | wc -l)
 echo "GPU count: $GPU_COUNT"
 
@@ -107,7 +117,16 @@ else
   unset GPU_COUNT
 fi
 
-docker run -i $TERMINAM_OPTION $GPU_OPTION \
+# allow write access to test results file from docker
+rm -f ${GIT_ROOT}/results_integration.xml
+touch ${GIT_ROOT}/results_integration.xml
+chmod 777 ${GIT_ROOT}/results_integration.xml
+sudo chmod -R 777 ${GIT_ROOT}/.pytest_cache
+
+if [[ "$FRAMEWORK" == "nim_sidecar" ]]; then
+  docker-compose -f tests/functional/gpu_nim_sidecar/docker-compose.yaml up --abort-on-container-exit
+else
+  docker run -i $TERMINAM_OPTION $GPU_OPTION \
       --network $network \
       -v $HOME:$HOME \
       -e GPU_COUNT \
@@ -123,6 +142,7 @@ docker run -i $TERMINAM_OPTION $GPU_OPTION \
       --entrypoint "" \
       $DOCKER_IMAGE \
       ./tests/functional/run_integration_tests_in_framework_container.sh $1
+fi
 
 TEST_RESULT=$?
 
