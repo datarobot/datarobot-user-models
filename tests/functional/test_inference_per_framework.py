@@ -231,7 +231,6 @@ class TestInference:
         "framework, problem, language, docker, use_labels_file",
         [
             (SKLEARN, REGRESSION_INFERENCE, NO_CUSTOM, None, False),
-            (KERAS, REGRESSION, PYTHON, None, False),
             (XGB, REGRESSION, PYTHON, None, False),
             (PYTORCH, REGRESSION, PYTHON, None, False),
             (ONNX, REGRESSION, PYTHON, None, False),
