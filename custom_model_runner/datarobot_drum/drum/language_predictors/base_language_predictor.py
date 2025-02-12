@@ -297,7 +297,25 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         except DRCommonException:
             logger.exception("Failed to report deployment stats")
 
-        latest_message = completion_create_params["messages"][-1]["content"]
+        prompt_content = completion_create_params["messages"][-1]["content"]
+        if isinstance(prompt_content, str):
+            latest_message = completion_create_params["messages"][-1]["content"]
+        elif isinstance(prompt_content, list):
+            concatenated_prompt = []
+            for content in prompt_content:
+                if content["type"] == "text":
+                    message = content
+                elif content["type"] == "image_url":
+                    message = f"Image URL: {content['image_url']['url']}"
+                elif content["type"] == "input_audio":
+                    message = f"Audio Input, Format: {content['input_audio']['format']}"
+                else:
+                    message = f"Unhandled content type: {content['type']}"
+                concatenated_prompt.append(message)
+            latest_message = "\n".join(concatenated_prompt)
+        else:
+            logger.warning(f"Unhandled prompt type: {type(prompt_content)}")
+            return
         features_df = pd.DataFrame([{self._prompt_column_name: latest_message}])
         predictions = [message_content]
 
