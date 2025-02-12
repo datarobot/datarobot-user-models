@@ -42,8 +42,6 @@ pipeline:
                     image: datarobot/dropin-env-base:1.0.0-python-3.11.11-slim-bookworm
                     shell: Bash
                     command: |-
-                      rm .git/hooks/pre-push
-
                       bash tools/econcile_dependencies.sh
 
                       git config --global user.name "svc-harness-git2"
