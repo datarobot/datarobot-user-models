@@ -17,7 +17,7 @@ pip install --upgrade pip-tools
 export RPY2_CFFI_MODE=ABI
 
 # Define the directories containing the environments
-env_dirs=("../public_dropin_gpu_environments" "../public_dropin_environments")
+env_dirs=("public_dropin_gpu_environments" "public_dropin_environments")
 
 # Iterate over each environment directory
 for dir in "${env_dirs[@]}"; do
