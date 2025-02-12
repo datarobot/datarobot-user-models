@@ -7,7 +7,11 @@ pipeline:
       codebase:
         connectorRef: account.svc_harness_git1
         repoName: datarobot-user-models
-        build: <+input>
+        build:
+          type: <+trigger.type>  # This dynamically changes based on the trigger type
+          spec:
+            number: <+trigger.prNumber>  # If it's a PR trigger, this uses the PR number
+            branch: <+pipeline.branch>   # # Uses the branch selected during the pipeline editing
   stages:
     - stage:
         name: Check if framework env has changed
@@ -76,7 +80,11 @@ pipeline:
             properties:
               ci:
                 codebase:
-                  build: <+input>
+                  build:
+                    type: <+trigger.type>  # This dynamically changes based on the trigger type
+                    spec:
+                      number: <+trigger.prNumber>  # If it's a PR trigger, this uses the PR number
+                      branch: <+pipeline.branch>   # # Uses the branch selected during the pipeline editing
             variables:
               - name: env_folder
                 type: String
