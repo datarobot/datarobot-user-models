@@ -1,0 +1,61 @@
+pipeline:
+  name: python dependencies
+  identifier: python_dependencies
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  description: ""
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
+  stages:
+    - stage:
+        name: Reconcile Python Dependencies
+        identifier: Reconcile_Python_Dependencies
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+          buildIntelligence:
+            enabled: true
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: account.cigeneral
+              namespace: harness-delegate-ng
+              automountServiceAccountToken: true
+              nodeSelector: {}
+              os: Linux
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: reconcile_dependencies
+                  identifier: reconcile_dependencies
+                  spec:
+                    connectorRef: datarobot_user_models_read_write
+                    image: datarobot/dropin-env-base:1.0.0-python-3.11.11-slim-bookworm
+                    shell: Bash
+                    command: |-
+                      rm .git/hooks/pre-push
+
+                      bash tools/econcile_dependencies.sh
+
+                      git config --global user.name "svc-harness-git2"
+                      git config --global user.email "svc-harness-git2@datarobot.com"
+                      git config --global url.https://${GITHUB_ACCESS_TOKEN}@github.com/.insteadOf https://github.com/
+
+                      if [ -n "$(git status --porcelain public_dropin_environments public_dropin_gpu_environments)" ]; then
+                          git add public_dropin_environments public_dropin_gpu_environments
+                          git commit -m "Reconcile drop-in environments"
+                          git push --set-upstream origin "$(git branch --show-current)"
+                      else
+                          echo "No changes detected in git"
+                      fi
+                    envVariables:
+                      GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
