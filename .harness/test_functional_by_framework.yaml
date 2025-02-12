@@ -86,7 +86,7 @@ pipeline:
                 value: <+pipeline.variables.framework>
               - name: image_tag
                 type: String
-                value: <+input>.default(<+pipeline.variables.env_folder>_<+pipeline.variables.env_name>_latest)
+                value: <+input>.default(<+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>)
         when:
           pipelineStatus: Success
           condition: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.changed_deps> == true
