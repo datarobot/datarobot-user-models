@@ -757,6 +757,7 @@ class CMRunner:
             "monitor_settings": options.monitor_settings,
             "external_webserver_url": options.webserver,
             "gpu_predictor": options.gpu_predictor,
+            "sidecar": options.sidecar,
             "triton_host": options.triton_host,
             "triton_http_port": int(options.triton_http_port),
             "triton_grpc_port": int(options.triton_grpc_port),
