@@ -1,4 +1,4 @@
-# Python 3 XGBoost Drop-In Template Environment
+# Python 3 XGBoost FIPS-compliant Drop-In Template Environment
 
 This template environment can be used to create artifact-only xgboost custom models.
 Your custom model directory needs only contain your model artifact if you use the
@@ -13,7 +13,7 @@ For specific version information, see [requirements](requirements.txt).
 
 ## Instructions
 
-1. From the terminal, run `tar -czvf py_dropin.tar.gz -C /path/to/public_dropin_environments/python3_xgboost/ .`
+1. From the terminal, run `tar -czvf py_dropin.tar.gz -C /path/to/public_fips_dropin_environments/python3_xgboost/ .`
 2. Using either the API or from the UI create a new Custom Environment with the tarball created
 in step 1.
 
@@ -21,7 +21,6 @@ in step 1.
 
 To use this environment, your custom model archive must contain a single serialized model artifact
 with `.pkl` file extension as well as any other custom code needed to use your serialized model.
-
 
 This environment makes the following assumption about your serialized model:
 - The data sent to custom model can be used to make predictions without
