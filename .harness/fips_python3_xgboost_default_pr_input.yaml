@@ -13,7 +13,7 @@ inputSet:
             type: <+trigger.type>  # This dynamically changes based on the trigger type
             spec:
               number: <+trigger.prNumber>  # If it's a PR trigger, this uses the PR number
-              branch: <+trigger.branch>    # If it's a branch trigger, this uses the branch name
+              branch: <+pipeline.branch>   # # Uses the branch selected during the pipeline editing
     stages:
       - stage:
           identifier: Build_image_because_of_change
@@ -28,7 +28,7 @@ inputSet:
                       type: <+trigger.type>  # This dynamically changes based on the trigger type
                       spec:
                         number: <+trigger.prNumber>  # If it's a PR trigger, this uses the PR number
-                        branch: <+trigger.branch>    # If it's a branch trigger, this uses the branch name
+                        branch: <+pipeline.branch>   # # Uses the branch selected during the pipeline editing
               variables:
                 - name: image_tag
                   type: String
