@@ -39,7 +39,7 @@ pipeline:
                   identifier: reconcile_dependencies
                   spec:
                     connectorRef: datarobot_user_models_read_write
-                    image: datarobot/dropin-env-base:1.0.0-python-3.11.11-slim-bookworm
+                    image: datarobotdev/platform-base-python-310-devel
                     shell: Bash
                     command: |-
                       bash tools/reconcile-dependencies.sh
