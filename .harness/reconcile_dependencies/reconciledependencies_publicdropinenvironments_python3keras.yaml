@@ -43,4 +43,20 @@ pipeline:
                     command: |-
                       cd public_dropin_environments/python3_keras
                       bash ../../tools/reconcile_dependencies.sh
+                      cd ../..
+
+                      git config --global user.name "svc-harness-git2"
+                      git config --global user.email "svc-harness-git2@datarobot.com"
+                      git config --global url.https://${GITHUB_ACCESS_TOKEN}@github.com/.insteadOf https://github.com/
+
+                      if [ -n "$(git status --porcelain public_dropin_environments/python3_keras)" ]; then
+                          git add public_dropin_environments/python3_keras
+                          git commit -m "Reconcile dependencies for public_dropin_environments/python3_keras"
+                          git push --set-upstream origin "$(git branch --show-current)"
+                      else
+                          echo "No changes detected in git"
+                      fi
+                    resources:
+                      limits:
+                        memory: 1000Mi
                   description: Run the tools/reconcile_dependencies.sh script to auto-generate requirements.txt file base on its requirements.in file.
