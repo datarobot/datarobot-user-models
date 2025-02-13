@@ -3,9 +3,9 @@
   "name": "[PREVIEW][GenAI][NVIDIA] NIM Qwen-2.5-7b-instruct",
   "description": "NVIDIA Inference Microservice GPU accelerated LLM capabilities through OpenAI compatible API's.\nThis NIM was built for Qwen-2.5-7b-instruct.",
   "programmingLanguage": "python",
-  "label": "v1.0.0+dr.1",
-  "environmentVersionId": "67a445b8cbce0265d756e233",
-  "environmentVersionDescription": "Initial release.\nFROM nvcr.io/nim/qwen/qwen-2.5-7b-instruct:1.0.0",
+  "label": "v1.0.0+dr.2",
+  "environmentVersionId": "67abbb4fcbce021ed2502583",
+  "environmentVersionDescription": "Security updates.\nFROM nvcr.io/nim/qwen/qwen-2.5-7b-instruct:1.0.0",
   "isDownloadable": false,
   "isPublic": true
 }
