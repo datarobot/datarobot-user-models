@@ -209,23 +209,15 @@ class PredictionServer(PredictMixin):
 
             return response, response_status
 
-        @model_api.route(
-            "/nim/<path:path>",
-            defaults={"path": ""},
-            methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
-        )
-        @model_api.route(
-            "/directAccess/<path:path>",
-            defaults={"path": ""},
-            methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
-        )
+        @model_api.route("/directAccess/<path:path>", methods=["GET", "POST", "PUT"])
+        @model_api.route("/nim/<path:path>", methods=["GET", "POST", "PUT"])
         def forward_request(path):
             openai_host = os.environ.get("OPENAI_HOST", "localhost")
             openai_port = os.environ.get("OPENAI_PORT", "8000")
 
             resp = requests.request(
                 method=request.method,
-                url=f"http://{openai_host}:{openai_port}/{path}",
+                url=f"http://{openai_host}:{openai_port}/{path.rstrip('/')}",
                 headers=request.headers,
                 params=request.args,
                 data=request.get_data(),
