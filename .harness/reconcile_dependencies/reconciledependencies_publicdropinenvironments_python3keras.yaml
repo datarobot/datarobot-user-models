@@ -41,14 +41,23 @@ pipeline:
                     image: datarobot/dropin-env-base:1.0.0-python-3.11.11-slim-bookworm
                     shell: Bash
                     command: |-
-                      cd public_dropin_environments/python3_keras
-                      bash ../../tools/reconcile_dependencies.sh
-                      cd ../..
+                      (
+                          cd public_dropin_environments/python3_keras || exit 1
+                          bash ../../tools/reconcile_dependencies.sh
+                      )
 
+                      # Ensure git is installed
+                      if ! command -v git &> /dev/null; then
+                          echo "Git is not installed. Installing git..."
+                          sudo apt update && sudo apt install -y git
+                      fi
+
+                      # Configure git user details
                       git config --global user.name "svc-harness-git2"
                       git config --global user.email "svc-harness-git2@datarobot.com"
                       git config --global url.https://${GITHUB_ACCESS_TOKEN}@github.com/.insteadOf https://github.com/
 
+                      # Check for changes and commit if necessary
                       if [ -n "$(git status --porcelain public_dropin_environments/python3_keras)" ]; then
                           git add public_dropin_environments/python3_keras
                           git commit -m "Reconcile dependencies for public_dropin_environments/python3_keras"
@@ -58,5 +67,5 @@ pipeline:
                       fi
                     resources:
                       limits:
-                        memory: 2000Mi
+                        memory: 5Gi
                   description: Run the tools/reconcile_dependencies.sh script to auto-generate requirements.txt file base on its requirements.in file.
