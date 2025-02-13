@@ -21,7 +21,8 @@ if [[ -f "requirements.in" ]]; then  # Check if requirements.in exists
                 --no-annotate \
                 --no-emit-index-url \
                 --no-emit-trusted-host \
-                --verbose "requirements.in"
+                --verbose "requirements.in" \
+                --output-file="requirements.txt"
 else
     echo "Skipping (no requirements.in found)"
 fi
