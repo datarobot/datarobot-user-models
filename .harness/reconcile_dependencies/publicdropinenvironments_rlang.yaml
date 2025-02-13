@@ -38,7 +38,7 @@ pipeline:
                   identifier: reconcile_dependencies
                   spec:
                     connectorRef: account.dockerhub_datarobot_read
-                    image: datarobot/dropin-env-base:1.0.0-python-3.11.11-slim-bookworm
+                    image: datarobot/dropin-env-base-r:ubuntu22.04-r4.2.2-py3.10-jre11
                     shell: Bash
                     command: |-
                       # Ensure git is installed
