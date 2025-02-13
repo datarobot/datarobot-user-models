@@ -1,0 +1,46 @@
+pipeline:
+  name: reconcile-dependencies_public-dropin-environments_python3-keras
+  identifier: reconciledependencies_publicdropinenvironments_python3keras
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
+  stages:
+    - stage:
+        name: reconcile_python_dependencies
+        identifier: reconcile_python_dependencies
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+          buildIntelligence:
+            enabled: true
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: account.cigeneral
+              namespace: harness-delegate-ng
+              automountServiceAccountToken: true
+              nodeSelector: {}
+              os: Linux
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: reconcile_dependencies
+                  identifier: reconcile_dependencies
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: datarobot/dropin-env-base:1.0.0-python-3.11.11-slim-bookworm
+                    shell: Bash
+                    command: |-
+                      cd public_dropin_environments/python3_keras
+                      bash ../../tools/reconcile_dependencies.sh
+                  description: Run the tools/reconcile_dependencies.sh script to auto-generate requirements.txt file base on its requirements.in file.
