@@ -56,7 +56,7 @@ pipeline:
                       # Configure git user details
                       git config --global user.name "svc-harness-git2"
                       git config --global user.email "svc-harness-git2@datarobot.com"
-                      git config --global url.https://${GITHUB_ACCESS_TOKEN}@github.com/.insteadOf https://github.com/
+                      git config --global url."https://${GITHUB_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
 
                       # Mark /harness as a safe Git directory
                       git config --global --add safe.directory /harness
