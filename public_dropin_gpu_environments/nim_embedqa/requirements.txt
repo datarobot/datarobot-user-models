@@ -22,7 +22,7 @@ certifi==2024.8.30
 cffi==1.17.1
 charset-normalizer==3.4.0
 click==8.1.7
-cryptography==43.0.3
+cryptography==44.0.1
 datarobot==3.5.2
 datarobot-drum @ git+https://github.com/datarobot/datarobot-user-models.git@44f4bfa0035c23aa05fd31704fdc0b6ff46bf9d6#subdirectory=custom_model_runner
 datarobot-mlops==10.2.0

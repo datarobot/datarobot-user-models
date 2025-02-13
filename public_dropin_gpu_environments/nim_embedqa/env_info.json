@@ -3,9 +3,9 @@
   "name": "[GenAI][NVIDIA] NeMo Retriever Text Embedding NIM",
   "description": "The NVIDIA Retrieval QA Llama3.2 1b Embedding NIM is an embedding NIM optimized for multilingual and crosslingual text question-answering retrieval.\nThis NIM was built for Llama 3.2 1B Embedding v2.",
   "programmingLanguage": "python",
-  "label": "v1.3.1+dr.2",
-  "environmentVersionId": "67a625fbcbce027ce91b6d78",
-  "environmentVersionDescription": "Rerun prior release.\nFROM nvcr.io/nim/nvidia/llama-3.2-nv-embedqa-1b-v2:1.3.1",
+  "label": "v1.3.1+dr.3",
+  "environmentVersionId": "67abbeb7cbce021ed2502586",
+  "environmentVersionDescription": "Security update.\nFROM nvcr.io/nim/nvidia/llama-3.2-nv-embedqa-1b-v2:1.3.1",
   "isDownloadable": false,
   "isPublic": true
 }
