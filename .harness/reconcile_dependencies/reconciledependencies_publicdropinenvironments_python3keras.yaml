@@ -58,5 +58,5 @@ pipeline:
                       fi
                     resources:
                       limits:
-                        memory: 1000Mi
+                        memory: 2000Mi
                   description: Run the tools/reconcile_dependencies.sh script to auto-generate requirements.txt file base on its requirements.in file.
