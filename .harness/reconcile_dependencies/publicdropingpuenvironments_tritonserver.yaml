@@ -65,6 +65,7 @@ pipeline:
                       if [ -n "$(git status --porcelain public_dropin_gpu_environments/triton_server)" ]; then
                           git add public_dropin_gpu_environments/triton_server
                           git commit -m "Reconcile dependencies for public_dropin_gpu_environments/triton_server"
+                          git config pull.rebase true
                           git pull origin "$(git branch --show-current)"
                           git push --set-upstream origin "$(git branch --show-current)"
                       else

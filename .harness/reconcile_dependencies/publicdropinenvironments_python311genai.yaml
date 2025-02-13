@@ -49,7 +49,7 @@ pipeline:
 
                       # Change to the correct directory and run dependency reconciliation
                       (
-                          cd public_dropin_environments/python311-genai || exit 1
+                          cd public_dropin_environments/python311_genai || exit 1
                           bash ../../tools/reconcile_dependencies.sh
                       )
 
@@ -62,9 +62,10 @@ pipeline:
                       git config --global --add safe.directory /harness
 
                       # Check for changes and commit if necessary
-                      if [ -n "$(git status --porcelain public_dropin_environments/python311-genai)" ]; then
-                          git add public_dropin_environments/python311-genai
-                          git commit -m "Reconcile dependencies for public_dropin_environments/python311-genai"
+                      if [ -n "$(git status --porcelain public_dropin_environments/python311_genai)" ]; then
+                          git add public_dropin_environments/python311_genai
+                          git commit -m "Reconcile dependencies for public_dropin_environments/python311_genai"
+                          git config pull.rebase true
                           git pull origin "$(git branch --show-current)"
                           git push --set-upstream origin "$(git branch --show-current)"
                       else
