@@ -47,7 +47,7 @@ pipeline:
 
                       # Change to the correct directory and run dependency reconciliation
                       (
-                          cd public_dropin_environments/python3_keras || exit 1
+                          cd public_dropin_environments/python3_onnx || exit 1
                           bash ../../tools/reconcile_dependencies.sh
                       )
 
@@ -60,9 +60,9 @@ pipeline:
                       git config --global --add safe.directory /harness
 
                       # Check for changes and commit if necessary
-                      if [ -n "$(git status --porcelain public_dropin_environments/python3_keras)" ]; then
-                          git add public_dropin_environments/python3_keras
-                          git commit -m "Reconcile dependencies for public_dropin_environments/python3_keras"
+                      if [ -n "$(git status --porcelain public_dropin_environments/python3_onnx)" ]; then
+                          git add public_dropin_environments/python3_onnx
+                          git commit -m "Reconcile dependencies for public_dropin_environments/python3_onnx"
                           git push --set-upstream origin "$(git branch --show-current)"
                       else
                           echo "No changes detected in git"
@@ -72,7 +72,6 @@ pipeline:
                     resources:
                       limits:
                         memory: 5Gi
-                  description: Run the tools/reconcile_dependencies.sh script to auto-generate
-                    requirements.txt file base on its requirements.in file.
+                  description: Run the tools/reconcile_dependencies.sh script to auto-generate requirements.txt file base on its requirements.in file.
   identifier: reconciledependencies_publicdropinenvironments_python3onnx
   name: reconcile-dependencies_public-dropin-environments_python3-onnx
