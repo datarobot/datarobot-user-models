@@ -76,6 +76,8 @@ pipeline:
                       else
                           echo "No changes detected in git"
                       fi
+                    envVariables:
+                      GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
                     resources:
                       limits:
                         memory: 5Gi
