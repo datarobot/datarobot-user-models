@@ -41,16 +41,17 @@ pipeline:
                     image: datarobot/dropin-env-base:1.0.0-python-3.11.11-slim-bookworm
                     shell: Bash
                     command: |-
+                      # Ensure git is installed
+                      if ! command -v git &> /dev/null; then
+                          echo "Git is not installed. Installing git..."
+                          apt-get update && apt-get install -y git
+                      fi
+
+                      # Change to the correct directory and run dependency reconciliation
                       (
                           cd public_dropin_environments/python3_keras || exit 1
                           bash ../../tools/reconcile_dependencies.sh
                       )
-
-                      # Ensure git is installed
-                      if ! command -v git &> /dev/null; then
-                          echo "Git is not installed. Installing git..."
-                          sudo apt update && sudo apt install -y git
-                      fi
 
                       # Configure git user details
                       git config --global user.name "svc-harness-git2"
