@@ -34,6 +34,7 @@ class TestDropInEnvironments(object):
         custom_predict_path=None,
         other_file_names=None,
         artifact_only=False,
+        maximum_memory=None,
         target_name="target",
     ):
         """
@@ -102,7 +103,10 @@ class TestDropInEnvironments(object):
             items.append((artifact_path, artifact_name))
 
         model_version = dr.CustomModelVersion.create_clean(
-            custom_model_id=custom_model.id, base_environment_id=base_environment_id, files=items
+            custom_model_id=custom_model.id,
+            base_environment_id=base_environment_id,
+            files=items,
+            maximum_memory=maximum_memory,
         )
 
         return custom_model.id, model_version.id
@@ -152,6 +156,18 @@ class TestDropInEnvironments(object):
             env_id,
             custom_predict_path=CUSTOM_PREDICT_PY_PATH,
             other_file_names=["PyTorch.py"],
+            maximum_memory=8 * 1024 * 1024 * 1024,
+        )
+
+    @pytest.fixture(scope="session")
+    def python311_genai_custom_model_fips_compliant(self, python311_genai_fips_drop_in_env):
+        env_id, _ = python311_genai_fips_drop_in_env
+        return self.make_custom_model(
+            "torch_reg.pth",
+            env_id,
+            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            other_file_names=["PyTorch.py"],
+            maximum_memory=8 * 1024 * 1024 * 1024,
         )
 
     @pytest.fixture(scope="session")
@@ -186,20 +202,25 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.mark.parametrize(
-        "model, test_data_id",
+        "model, test_data_id, max_wait",
         [
-            ("python311_genai_custom_model", "regression_testing_data"),
-            ("r_regression_custom_model", "regression_testing_data"),
-            ("torch_regression_custom_model", "regression_testing_data"),
-            ("keras_regression_custom_model", "regression_testing_data"),
-            ("xgb_regression_custom_model", "regression_testing_data"),
-            ("onnx_regression_custom_model", "regression_testing_data"),
-            ("sklearn_regression_custom_model", "regression_testing_data"),
-            ("sklearn_fips_regression_custom_model", "regression_testing_data"),
-            ("java_regression_custom_model", "regression_testing_data"),
+            ("python311_genai_custom_model", "regression_testing_data", 2 * DEFAULT_MAX_WAIT),
+            (
+                "python311_genai_custom_model_fips_compliant",
+                "regression_testing_data",
+                3 * DEFAULT_MAX_WAIT,
+            ),
+            ("r_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
+            ("torch_regression_custom_model", "regression_testing_data", 2 * DEFAULT_MAX_WAIT),
+            ("keras_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
+            ("xgb_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
+            ("onnx_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
+            ("sklearn_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
+            ("sklearn_fips_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
+            ("java_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
         ],
     )
-    def test_drop_in_environments(self, request, model, test_data_id):
+    def test_drop_in_environments(self, request, model, test_data_id, max_wait):
         total, used, free = shutil.disk_usage("/")
         print("Total: %d GiB" % (total // (2**30)))
         print("Used: %d GiB" % (used // (2**30)))
@@ -207,15 +228,6 @@ class TestDropInEnvironments(object):
 
         model_id, model_version_id = request.getfixturevalue(model)
         test_data_id = request.getfixturevalue(test_data_id)
-
-        max_wait = DEFAULT_MAX_WAIT
-        if model in [
-            "python311_genai_custom_model",
-            "torch_regression_custom_model",
-        ]:
-            # The torch, genai, R drop-ins are very large.
-            # It takes approx. 7 minutes just to pull the image in k8s.
-            max_wait *= 2
 
         test = dr.CustomModelTest.create(
             custom_model_id=model_id,

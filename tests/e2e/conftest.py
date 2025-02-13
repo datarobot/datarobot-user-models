@@ -11,6 +11,7 @@ from urllib.parse import urlparse
 
 import datarobot as dr
 import pytest
+from datarobot.enums import DEFAULT_MAX_WAIT
 from dr_usertool.datarobot_user_database import DataRobotUserDatabase
 from dr_usertool.utils import get_permissions
 
@@ -97,108 +98,84 @@ def pytest_sessionstart(session):
     dr.Client(endpoint=ENDPOINT_URL, token=os.environ["DATAROBOT_API_TOKEN"])
 
 
+def create_drop_in_env(
+    env_root_folder, env_name, programming_language="python", max_wait=DEFAULT_MAX_WAIT
+):
+    env_dir = os.path.join(env_root_folder, env_name)
+    full_env_name = f"{os.path.basename(env_root_folder)}/{env_name}"
+    environment = dr.ExecutionEnvironment.create(
+        name=full_env_name, programming_language=programming_language
+    )
+    environment_version = dr.ExecutionEnvironmentVersion.create(
+        environment.id, str(env_dir), max_wait=max_wait
+    )
+    return environment.id, environment_version.id
+
+
 @pytest.fixture(scope="session")
 def java_drop_in_env():
-    env_dir = os.path.join(PUBLIC_DROPIN_ENVS_PATH, "java_codegen")
-    environment = dr.ExecutionEnvironment.create(name="java_drop_in", programming_language="java")
-    environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
-    return environment.id, environment_version.id
+    return create_drop_in_env(PUBLIC_DROPIN_ENVS_PATH, "java_codegen", "java")
 
 
 @pytest.fixture(scope="session")
 def sklearn_drop_in_env():
-    env_dir = os.path.join(PUBLIC_DROPIN_ENVS_PATH, "python3_sklearn")
-    environment = dr.ExecutionEnvironment.create(
-        name="python3_sklearn", programming_language="python"
-    )
-    environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
-    return environment.id, environment_version.id
+    return create_drop_in_env(PUBLIC_DROPIN_ENVS_PATH, "python3_sklearn")
 
 
 @pytest.fixture(scope="session")
 def sklearn_fips_drop_in_env():
-    env_dir = os.path.join(PUBLIC_FIPS_DROPIN_ENVS_PATH, "python3_sklearn")
-    environment = dr.ExecutionEnvironment.create(
-        name="python3_sklearn", programming_language="python"
-    )
-    environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
-    return environment.id, environment_version.id
+    return create_drop_in_env(PUBLIC_FIPS_DROPIN_ENVS_PATH, "python3_sklearn")
 
 
 @pytest.fixture(scope="session")
 def xgboost_drop_in_env():
-    env_dir = os.path.join(PUBLIC_DROPIN_ENVS_PATH, "python3_xgboost")
-    environment = dr.ExecutionEnvironment.create(
-        name="python3_xgboost", programming_language="python"
-    )
-    environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
-    return environment.id, environment_version.id
+    return create_drop_in_env(PUBLIC_DROPIN_ENVS_PATH, "python3_xgboost")
 
 
 @pytest.fixture(scope="session")
 def pytorch_drop_in_env():
-    env_dir = os.path.join(PUBLIC_DROPIN_ENVS_PATH, "python3_pytorch")
-    environment = dr.ExecutionEnvironment.create(
-        name="python3_pytorch", programming_language="python"
+    return create_drop_in_env(
+        PUBLIC_DROPIN_ENVS_PATH, "python3_pytorch", max_wait=2 * DEFAULT_MAX_WAIT
     )
-    environment_version = dr.ExecutionEnvironmentVersion.create(
-        environment.id, env_dir, max_wait=1200
-    )
-    return environment.id, environment_version.id
 
 
 @pytest.fixture(scope="session")
 def python311_genai_drop_in_env():
-    env_dir = os.path.join(PUBLIC_DROPIN_ENVS_PATH, "python311_genai")
-    environment = dr.ExecutionEnvironment.create(
-        name="python311_genai", programming_language="python"
+    return create_drop_in_env(
+        PUBLIC_DROPIN_ENVS_PATH, "python311_genai", max_wait=2 * DEFAULT_MAX_WAIT
     )
-    environment_version = dr.ExecutionEnvironmentVersion.create(
-        environment.id, env_dir, max_wait=1200
+
+
+@pytest.fixture(scope="session")
+def python311_genai_fips_drop_in_env():
+    return create_drop_in_env(
+        PUBLIC_FIPS_DROPIN_ENVS_PATH, "python311_genai", max_wait=3 * DEFAULT_MAX_WAIT
     )
-    return environment.id, environment_version.id
 
 
 @pytest.fixture(scope="session")
 def onnx_drop_in_env():
-    env_dir = os.path.join(PUBLIC_DROPIN_ENVS_PATH, "python3_onnx")
-    environment = dr.ExecutionEnvironment.create(name="python3_onnx", programming_language="python")
-    environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
-    return environment.id, environment_version.id
+    return create_drop_in_env(PUBLIC_DROPIN_ENVS_PATH, "python3_onnx")
 
 
 @pytest.fixture(scope="session")
 def keras_drop_in_env():
-    env_dir = os.path.join(PUBLIC_DROPIN_ENVS_PATH, "python3_keras")
-    environment = dr.ExecutionEnvironment.create(
-        name="python3_keras", programming_language="python"
-    )
-    environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
-    return environment.id, environment_version.id
+    return create_drop_in_env(PUBLIC_DROPIN_ENVS_PATH, "python3_keras")
 
 
 @pytest.fixture(scope="session")
 def pmml_drop_in_env():
-    env_dir = os.path.join(PUBLIC_DROPIN_ENVS_PATH, "python3_pmml")
-    environment = dr.ExecutionEnvironment.create(name="python3_pmml", programming_language="python")
-    environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
-    return environment.id, environment_version.id
+    return create_drop_in_env(PUBLIC_DROPIN_ENVS_PATH, "python3_pmml")
 
 
 @pytest.fixture(scope="session")
 def r_drop_in_env():
-    env_dir = os.path.join(PUBLIC_DROPIN_ENVS_PATH, "r_lang")
-    environment = dr.ExecutionEnvironment.create(name="r_drop_in", programming_language="r")
-    environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
-    return environment.id, environment_version.id
+    return create_drop_in_env(PUBLIC_DROPIN_ENVS_PATH, "r_lang", "r")
 
 
 @pytest.fixture(scope="session")
 def julia_drop_in_env():
-    env_dir = os.path.join(PUBLIC_DROPIN_ENVS_PATH, "julia_mlj")
-    environment = dr.ExecutionEnvironment.create(name="julia_drop_in", programming_language="other")
-    environment_version = dr.ExecutionEnvironmentVersion.create(environment.id, env_dir)
-    return environment.id, environment_version.id
+    return create_drop_in_env(PUBLIC_DROPIN_ENVS_PATH, "julia_mlj", "other")
 
 
 @pytest.fixture(scope="session")
