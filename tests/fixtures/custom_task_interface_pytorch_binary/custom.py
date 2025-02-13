@@ -62,7 +62,13 @@ class CustomTask(BinaryEstimatorInterface):
             The deserialized object
         """
         custom_task = cls.load_task(artifact_directory)
-        custom_task.estimator = torch.load(Path(artifact_directory) / "torch_class.pth")
+
+        # PyTorch 2.6+ changed the default behavior of torch.load() to only load model
+        # weights (weights_only=True). We need to explicitly set weights_only=False to load
+        # the full model.
+        custom_task.estimator = torch.load(
+            Path(artifact_directory) / "torch_class.pth", weights_only=False
+        )
 
         return custom_task
 
