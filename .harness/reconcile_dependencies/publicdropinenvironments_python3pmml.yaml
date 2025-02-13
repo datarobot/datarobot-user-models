@@ -63,6 +63,7 @@ pipeline:
                       if [ -n "$(git status --porcelain public_dropin_environments/python3_pmml)" ]; then
                           git add public_dropin_environments/python3_pmml
                           git commit -m "Reconcile dependencies for public_dropin_environments/python3_pmml"
+                          git pull origin "$(git branch --show-current)"
                           git push --set-upstream origin "$(git branch --show-current)"
                       else
                           echo "No changes detected in git"

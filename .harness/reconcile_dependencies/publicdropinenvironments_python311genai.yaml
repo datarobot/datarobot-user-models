@@ -65,6 +65,7 @@ pipeline:
                       if [ -n "$(git status --porcelain public_dropin_environments/python311-genai)" ]; then
                           git add public_dropin_environments/python311-genai
                           git commit -m "Reconcile dependencies for public_dropin_environments/python311-genai"
+                          git pull origin "$(git branch --show-current)"
                           git push --set-upstream origin "$(git branch --show-current)"
                       else
                           echo "No changes detected in git"
