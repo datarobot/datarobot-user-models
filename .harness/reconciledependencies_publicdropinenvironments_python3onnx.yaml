@@ -1,0 +1,78 @@
+pipeline:
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
+  stages:
+    - stage:
+        name: reconcile_python_dependencies
+        identifier: reconcile_python_dependencies
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+          buildIntelligence:
+            enabled: true
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: account.cigeneral
+              namespace: harness-delegate-ng
+              automountServiceAccountToken: true
+              nodeSelector: {}
+              os: Linux
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: reconcile_dependencies
+                  identifier: reconcile_dependencies
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: datarobot/dropin-env-base:1.0.0-python-3.11.11-slim-bookworm
+                    shell: Bash
+                    command: |-
+                      # Ensure git is installed
+                      if ! command -v git &> /dev/null; then
+                          echo "Git is not installed. Installing git..."
+                          apt-get update && apt-get install -y git
+                      fi
+
+                      # Change to the correct directory and run dependency reconciliation
+                      (
+                          cd public_dropin_environments/python3_keras || exit 1
+                          bash ../../tools/reconcile_dependencies.sh
+                      )
+
+                      # Configure git user details
+                      git config --global user.name "svc-harness-git2"
+                      git config --global user.email "svc-harness-git2@datarobot.com"
+                      git config --global url."https://${GITHUB_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
+
+                      # Mark /harness as a safe Git directory
+                      git config --global --add safe.directory /harness
+
+                      # Check for changes and commit if necessary
+                      if [ -n "$(git status --porcelain public_dropin_environments/python3_keras)" ]; then
+                          git add public_dropin_environments/python3_keras
+                          git commit -m "Reconcile dependencies for public_dropin_environments/python3_keras"
+                          git push --set-upstream origin "$(git branch --show-current)"
+                      else
+                          echo "No changes detected in git"
+                      fi
+                    envVariables:
+                      GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
+                    resources:
+                      limits:
+                        memory: 5Gi
+                  description: Run the tools/reconcile_dependencies.sh script to auto-generate
+                    requirements.txt file base on its requirements.in file.
+  identifier: reconciledependencies_publicdropinenvironments_python3onnx
+  name: reconcile-dependencies_public-dropin-environments_python3-onnx
