@@ -1,5 +1,5 @@
-# https://docs.nvidia.com/deeplearning/triton-inference-server/release-notes/rel-24-01.html#rel-24-01
-FROM nvcr.io/nvidia/tritonserver:24.01-py3
+# https://docs.nvidia.com/deeplearning/triton-inference-server/release-notes/
+FROM nvcr.io/nvidia/tritonserver:25.01-py3
 
 # Install the list of core requirements, e.g. sklearn, numpy, pandas, flask.
 # **Don't modify this file!**
