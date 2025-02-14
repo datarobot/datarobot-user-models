@@ -1,0 +1,158 @@
+pipeline:
+  name: reconcile-dependencies_main-pipeline
+  identifier: reconciledependencies_mainpipeline
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  stages:
+    - parallel:
+        - stage:
+            name: public-dropin-gpu-environments_nim-llama-70b
+            identifier: publicdropingpuenvironments_nimllama70b
+            description: ""
+            type: Pipeline
+            spec:
+              org: Custom_Models
+              pipeline: reconciledependencies_publicdropingpuenvironments_nimllama70b
+              project: datarobotusermodels
+              inputs:
+                identifier: reconciledependencies_publicdropingpuenvironments_nimllama70b
+                properties:
+                  ci:
+                    codebase:
+                      build: <+input>
+        - stage:
+            name: public-dropin-gpu-environments_nim-qwen-7b
+            identifier: publicdropingpuenvironments_nimqwen7b
+            description: ""
+            type: Pipeline
+            spec:
+              org: Custom_Models
+              pipeline: reconciledependencies_publicdropingpuenvironments_nimqwen7b
+              project: datarobotusermodels
+              inputs:
+                identifier: reconciledependencies_publicdropingpuenvironments_nimqwen7b
+                properties:
+                  ci:
+                    codebase:
+                      build: <+input>
+        - stage:
+            name: public-dropin-gpu-environments_vllm
+            identifier: publicdropingpuenvironments_vllm
+            description: ""
+            type: Pipeline
+            spec:
+              org: Custom_Models
+              pipeline: reconciledependencies_publicdropingpuenvironments_vllm
+              project: datarobotusermodels
+              inputs:
+                identifier: reconciledependencies_publicdropingpuenvironments_vllm
+                properties:
+                  ci:
+                    codebase:
+                      build: <+input>
+        - stage:
+            name: public-dropin-gpu-environments_triton-server
+            identifier: publicdropingpuenvironments_tritonserver
+            description: ""
+            type: Pipeline
+            spec:
+              org: Custom_Models
+              pipeline: reconciledependencies_publicdropingpuenvironments_tritonserver
+              project: datarobotusermodels
+              inputs:
+                identifier: reconciledependencies_publicdropingpuenvironments_tritonserver
+                properties:
+                  ci:
+                    codebase:
+                      build: <+input>
+        - stage:
+            name: public-dropin-gpu-environments_nim-sidecar
+            identifier: publicdropingpuenvironments_nimsidecar
+            description: ""
+            type: Pipeline
+            spec:
+              org: Custom_Models
+              pipeline: reconciledependencies_publicdropingpuenvironments_nimsidecar
+              project: datarobotusermodels
+              inputs:
+                identifier: reconciledependencies_publicdropingpuenvironments_nimsidecar
+                properties:
+                  ci:
+                    codebase:
+                      build: <+input>
+        - stage:
+            name: public-dropin-gpu-environments_nim-llama-8b
+            identifier: publicdropingpuenvironments_nimllama8b
+            description: ""
+            type: Pipeline
+            spec:
+              org: Custom_Models
+              pipeline: reconciledependencies_publicdropingpuenvironments_nimllama8b
+              project: datarobotusermodels
+              inputs:
+                identifier: reconciledependencies_publicdropingpuenvironments_nimllama8b
+                properties:
+                  ci:
+                    codebase:
+                      build: <+input>
+        - stage:
+            name: public-dropin-gpu-environments_nim-embedqa
+            identifier: publicdropingpuenvironments_nimembedqa
+            description: ""
+            type: Pipeline
+            spec:
+              org: Custom_Models
+              pipeline: reconciledependencies_publicdropingpuenvironments_nimembedqa
+              project: datarobotusermodels
+              inputs:
+                identifier: reconciledependencies_publicdropingpuenvironments_nimembedqa
+                properties:
+                  ci:
+                    codebase:
+                      build: <+input>
+        - stage:
+            name: public-dropin-environments_r-lang
+            identifier: publicdropinenvironments_rlang
+            description: ""
+            type: Pipeline
+            spec:
+              org: Custom_Models
+              pipeline: reconciledependencies_publicdropinenvironments_rlang
+              project: datarobotusermodels
+              inputs:
+                identifier: reconciledependencies_publicdropinenvironments_rlang
+                properties:
+                  ci:
+                    codebase:
+                      build: <+input>
+        - stage:
+            name: public-dropin-environments_python311-genai
+            identifier: publicdropinenvironments_python311genai
+            description: ""
+            type: Pipeline
+            spec:
+              org: Custom_Models
+              pipeline: reconciledependencies_publicdropinenvironments_python311genai
+              project: datarobotusermodels
+              inputs:
+                identifier: reconciledependencies_publicdropinenvironments_python311genai
+                properties:
+                  ci:
+                    codebase:
+                      build: <+input>
+        - stage:
+            name: public-dropin-environments_python3-xgboost
+            identifier: publicdropinenvironments_python3xgboost
+            description: ""
+            type: Pipeline
+            spec:
+              org: Custom_Models
+              pipeline: reconciledependencies_publicdropinenvironments_python3xgboost
+              project: datarobotusermodels
+              inputs:
+                identifier: reconciledependencies_publicdropinenvironments_python3xgboost
+                properties:
+                  ci:
+                    codebase:
+                      build: <+input>
