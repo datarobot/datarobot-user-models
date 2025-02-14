@@ -37,7 +37,7 @@ pipeline:
                   name: reconcile_dependencies
                   identifier: reconcile_dependencies
                   spec:
-                    connectorRef: account.harnessImage
+                    connectorRef: account.docker_hq
                     image: nvcr.io/nim/qwen/qwen-2.5-7b-instruct:1.0.0
                     shell: Bash
                     command: |-
