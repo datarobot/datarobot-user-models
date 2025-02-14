@@ -37,7 +37,7 @@ pipeline:
                   name: reconcile_dependencies
                   identifier: reconcile_dependencies
                   spec:
-                    connectorRef: account.dockerhub_datarobot_read
+                    connectorRef: nvcrio
                     image: nvcr.io/nvidia/tritonserver:24.01-py3
                     shell: Bash
                     command: |-
