@@ -9,6 +9,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 
 # pylint: disable-all
 from __future__ import absolute_import
+from pathlib import Path
 import os
 
 import pandas as pd
@@ -69,7 +70,7 @@ class MultiModel(nn.Module):
         self.layer1 = nn.Linear(input_size, 8)
         self.relu = nn.ReLU()
         self.layer2 = nn.Linear(8, output_size)
-        self.out = nn.Softmax()
+        self.out = nn.Softmax(dim=1)  # Explicit dim added
 
     def forward(self, input_):
         out = self.layer1(input_)
@@ -92,7 +93,7 @@ def train_epoch(model, opt, criterion, X, y, batch_size=50):
         # (1) Forward
         y_hat = model(x_batch)
         # (2) Compute diff
-        loss = criterion(y_hat, y_batch)
+        loss = criterion(y_hat.squeeze(1), y_batch)
         # (3) Compute gradients
         loss.backward()
         # (4) update weights
@@ -104,7 +105,8 @@ def train_epoch(model, opt, criterion, X, y, batch_size=50):
 if __name__ == "__main__":
     from PyTorch import BinModel, RegModel, MultiModel
 
-    TEST_DATA_ROOT = "~/workspace/datarobot-user-models/tests/testdata"
+    script_dir = Path(__file__).parent
+    TEST_DATA_ROOT = str(script_dir / ".." / ".." / "testdata")
     BINARY_DATA = os.path.join(TEST_DATA_ROOT, "iris_binary_training.csv")
     REGRESSION_DATA = os.path.join(TEST_DATA_ROOT, "juniors_3_year_stats_regression.csv")
     MULTICLASS_DATA = os.path.join(TEST_DATA_ROOT, "skyserver_sql2_27_2018_6_51_39_pm.csv")
