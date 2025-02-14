@@ -75,7 +75,7 @@ pipeline:
                           GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
                         resources:
                           limits:
-                            memory: 5Gi
+                            memory: 2Gi
                       description: Reconcile dependencies for public_dropin_environments/python3_keras
                   - step:
                       type: Run
@@ -125,7 +125,7 @@ pipeline:
                           GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
                         resources:
                           limits:
-                            memory: 5Gi
+                            memory: 2Gi
                       description: Reconcile dependencies for public_dropin_environments/python3_onnx
                   - step:
                       type: Run
@@ -175,7 +175,7 @@ pipeline:
                           GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
                         resources:
                           limits:
-                            memory: 5Gi
+                            memory: 2Gi
                       description: Reconcile dependencies for public_dropin_environments/python3_pmml
                   - step:
                       type: Run
@@ -225,7 +225,7 @@ pipeline:
                           GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
                         resources:
                           limits:
-                            memory: 5Gi
+                            memory: 2Gi
                       description: Reconcile dependencies for public_dropin_environments/python3_pytorch
                   - step:
                       type: Run
@@ -275,7 +275,7 @@ pipeline:
                           GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
                         resources:
                           limits:
-                            memory: 5Gi
+                            memory: 2Gi
                       description: Reconcile dependencies for public_dropin_environments/python3_sklearn
                   - step:
                       type: Run
@@ -325,7 +325,7 @@ pipeline:
                           GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
                         resources:
                           limits:
-                            memory: 5Gi
+                            memory: 2Gi
                       description: Reconcile dependencies for public_dropin_environments/python3_xgboost
                   - step:
                       type: Run
@@ -375,7 +375,7 @@ pipeline:
                           GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
                         resources:
                           limits:
-                            memory: 5Gi
+                            memory: 2Gi
                       description: Reconcile dependencies for public_dropin_environments/python311_genai
                   - step:
                       type: Run
@@ -425,7 +425,7 @@ pipeline:
                           GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
                         resources:
                           limits:
-                            memory: 5Gi
+                            memory: 2Gi
                       description: Reconcile dependencies for public_dropin_environments/r_lang
                   - step:
                       type: Run
@@ -475,7 +475,7 @@ pipeline:
                           GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
                         resources:
                           limits:
-                            memory: 5Gi
+                            memory: 2Gi
                       description: Reconcile dependencies for public_dropin_gpu_environments/nim_embedqa
                   - step:
                       type: Run
@@ -525,7 +525,7 @@ pipeline:
                           GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
                         resources:
                           limits:
-                            memory: 5Gi
+                            memory: 2Gi
                       description: Reconcile dependencies for public_dropin_gpu_environments/nim_llama_8b
                   - step:
                       type: Run
@@ -575,7 +575,7 @@ pipeline:
                           GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
                         resources:
                           limits:
-                            memory: 5Gi
+                            memory: 2Gi
                       description: Reconcile dependencies for public_dropin_gpu_environments/nim_llama_70b
                   - step:
                       type: Run
@@ -625,7 +625,7 @@ pipeline:
                           GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
                         resources:
                           limits:
-                            memory: 5Gi
+                            memory: 2Gi
                       description: Reconcile dependencies for public_dropin_gpu_environments/nim_qwen_7b
                   - step:
                       type: Run
@@ -675,7 +675,7 @@ pipeline:
                           GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
                         resources:
                           limits:
-                            memory: 5Gi
+                            memory: 2Gi
                       description: Reconcile dependencies for public_dropin_gpu_environments/nim_sidecar
                   - step:
                       type: Run
@@ -725,7 +725,7 @@ pipeline:
                           GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
                         resources:
                           limits:
-                            memory: 5Gi
+                            memory: 2Gi
                       description: Reconcile dependencies for public_dropin_gpu_environments/triton_server
                   - step:
                       type: Run
@@ -775,7 +775,7 @@ pipeline:
                           GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
                         resources:
                           limits:
-                            memory: 5Gi
+                            memory: 2Gi
                       description: Reconcile dependencies for public_dropin_gpu_environments/vllm
   properties:
     ci:
