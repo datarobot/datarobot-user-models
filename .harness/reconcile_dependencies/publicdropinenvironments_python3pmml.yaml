@@ -41,35 +41,36 @@ pipeline:
                     image: datarobot/dropin-env-base:debian11-py3.9-jre11.0.16-drum1.13.0-mlops9.2.8
                     shell: Bash
                     command: |-
-                      # Ensure git is installed
+                      # Navigate to environment directory
+                      ENV_DIR="public_dropin_environments/python3_pmml"
+                      cd "$ENV_DIR" || exit 1
+                      # Ensure Git is installed
                       if ! command -v git &> /dev/null; then
-                          echo "Git is not installed. Installing git..."
+                          echo "Git is not installed. Installing..."
                           apt-get update && apt-get install -y git
                       fi
-
-                      # Change to the correct directory and run dependency reconciliation
-                      (
-                          cd public_dropin_environments/python3_pmml || exit 1
-                          bash ../../tools/reconcile_dependencies.sh
-                      )
-
-                      # Configure git user details
+                      # Configure Git
                       git config --global user.name "svc-harness-git2"
                       git config --global user.email "svc-harness-git2@datarobot.com"
                       git config --global url."https://${GITHUB_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
-
-                      # Mark /harness as a safe Git directory
-                      git config --global --add safe.directory /harness
-
-                      # Check for changes and commit if necessary
-                      if [ -n "$(git status --porcelain public_dropin_environments/python3_pmml)" ]; then
-                          git add public_dropin_environments/python3_pmml
-                          git commit -m "Reconcile dependencies for public_dropin_environments/python3_pmml"
+                      git config --global --add safe.directory /harness  # Mark /harness as a safe directory
+                      # Run dependency reconciliation if there are file changes
+                      if ! git diff --quiet master -- .; then
+                          echo "Changes detected in $ENV_DIR. Running reconciliation..."
+                          bash ../../tools/reconcile_dependencies.sh
+                      else
+                          echo "No changes detected. Skipping reconciliation."
+                          exit 0  # Exit early if no changes
+                      fi
+                      # Commit and push changes if any
+                      if [[ -n $(git status --porcelain) ]]; then
+                          git add .
+                          git commit -m "Reconcile dependencies for $ENV_DIR"
                           git config pull.rebase true
-                          git pull origin "$(git branch --show-current)"
+                          git pull origin "$(git branch --show-current)" --rebase
                           git push --set-upstream origin "$(git branch --show-current)"
                       else
-                          echo "No changes detected in git"
+                          echo "No changes detected in Git."
                       fi
                     envVariables:
                       GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
