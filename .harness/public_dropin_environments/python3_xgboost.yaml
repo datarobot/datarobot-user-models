@@ -3,7 +3,8 @@ pipeline:
   identifier: python3xgboost_publicdropinenvironments
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models
-  tags: {}
+  tags:
+    reconcile dependencies: ""
   properties:
     ci:
       codebase:
