@@ -1,5 +1,5 @@
 pipeline:
-  name: reconcile-dependencies_public-dropin-environments_python3-sklearn
+  name: python3-sklearn_public-dropin-environments
   identifier: reconciledependencies_publicdropinenvironments_python3sklearn
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models

@@ -1,5 +1,5 @@
 pipeline:
-  name: reconcile-dependencies_public-dropin-environments_python3-keras
+  name: python3-keras_public-dropin-environments
   identifier: reconciledependencies_publicdropinenvironments_python3keras
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models

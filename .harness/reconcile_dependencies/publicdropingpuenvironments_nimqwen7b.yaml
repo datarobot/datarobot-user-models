@@ -1,5 +1,5 @@
 pipeline:
-  name: reconcile-dependencies_public-dropin-gpu-environments_nim-qwen-7b
+  name: nim-qwen-7b_public-dropin-gpu-environments
   identifier: reconciledependencies_publicdropingpuenvironments_nimqwen7b
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models

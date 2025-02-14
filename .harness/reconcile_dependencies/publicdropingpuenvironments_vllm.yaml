@@ -1,5 +1,5 @@
 pipeline:
-  name: reconcile-dependencies_public-dropin-gpu-environments_vllm
+  name: vllm_public-dropin-gpu-environments
   identifier: reconciledependencies_publicdropingpuenvironments_vllm
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models

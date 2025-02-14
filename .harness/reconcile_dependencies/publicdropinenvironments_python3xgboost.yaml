@@ -1,5 +1,5 @@
 pipeline:
-  name: reconcile-dependencies_public-dropin-environments_python3-xgboost
+  name: python3-xgboost_public-dropin-environments
   identifier: reconciledependencies_publicdropinenvironments_python3xgboost
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models

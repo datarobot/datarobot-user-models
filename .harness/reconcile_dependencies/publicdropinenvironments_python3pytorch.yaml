@@ -1,5 +1,5 @@
 pipeline:
-  name: reconcile-dependencies_public-dropin-environments_python3-pytorch
+  name: python3-pytorch_public-dropin-environments
   identifier: reconciledependencies_publicdropinenvironments_python3pytorch
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models

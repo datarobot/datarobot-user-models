@@ -1,5 +1,5 @@
 pipeline:
-  name: reconcile-dependencies_public-dropin-environments_r-lang
+  name: r-lang_public-dropin-environments
   identifier: reconciledependencies_publicdropinenvironments_rlang
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models

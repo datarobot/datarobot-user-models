@@ -1,4 +1,6 @@
 pipeline:
+  name: python3-pmml_public-dropin-environments
+  identifier: reconciledependencies_publicdropinenvironments_python3pmml
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models
   tags: {}
@@ -75,5 +77,3 @@ pipeline:
                       limits:
                         memory: 5Gi
                   description: Run the tools/reconcile_dependencies.sh script to auto-generate requirements.txt file base on its requirements.in file.
-  identifier: reconciledependencies_publicdropinenvironments_python3pmml
-  name: reconcile-dependencies_public-dropin-environments_python3-pmml

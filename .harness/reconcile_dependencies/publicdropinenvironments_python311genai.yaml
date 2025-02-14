@@ -1,5 +1,5 @@
 pipeline:
-  name: reconcile-dependencies_public-dropin-environments_python311-genai
+  name: python311-genai_public-dropin-environments
   identifier: reconciledependencies_publicdropinenvironments_python311genai
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models

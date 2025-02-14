@@ -1,5 +1,5 @@
 pipeline:
-  name: reconcile-dependencies_public-dropin-gpu-environments_nim-llama-70b
+  name: nim-llama-70b_public-dropin-gpu-environments
   identifier: reconciledependencies_publicdropingpuenvironments_nimllama70b
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models

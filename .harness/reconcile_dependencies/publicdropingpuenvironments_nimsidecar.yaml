@@ -1,5 +1,5 @@
 pipeline:
-  name: reconcile-dependencies_public-dropin-gpu-environments_nim-sidecar
+  name: nim-sidecar_public-dropin-gpu-environments
   identifier: reconciledependencies_publicdropingpuenvironments_nimsidecar
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models
