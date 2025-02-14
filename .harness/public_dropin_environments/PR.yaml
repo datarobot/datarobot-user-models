@@ -1,0 +1,14 @@
+inputSet:
+  name: PR
+  identifier: PR
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: rlang_publicdropinenvironments
+    properties:
+      ci:
+        codebase:
+          build:
+            type: PR
+            spec:
+              number: <+trigger.prNumber>
