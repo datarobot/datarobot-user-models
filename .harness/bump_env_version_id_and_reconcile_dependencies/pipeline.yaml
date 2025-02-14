@@ -1,0 +1,42 @@
+pipeline:
+  name: bump_env_version_id_and_reconcile_dependencies
+  identifier: bump_env_version_id_and_reconcile_dependencies
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  stages:
+    - stage:
+        name: reconcile_python_dependencies
+        identifier: reconcile_python_dependencies
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+          buildIntelligence:
+            enabled: true
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: account.cigeneral
+              namespace: harness-delegate-ng
+              automountServiceAccountToken: true
+              nodeSelector: {}
+              os: Linux
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Run_1
+                  identifier: Run_1
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: datarobot/dropin-env-base:1.0.0-python-3.11.11-slim-bookworm
+                    shell: Bash
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
