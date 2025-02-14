@@ -16,7 +16,8 @@ ENV HOME=/opt/.home
 
 COPY --chown=1000:0 .gitkeep ${HOME}/.placeholder
 COPY --chown=1000:0 .gitkeep ${CODE_DIR}/.placeholder
-RUN chmod g=u ${CODE_DIR} ${HOME}
+COPY --chown=1000:0 .gitkeep ${DATAROBOT_VENV_PATH}/.placeholder
+RUN chmod g=u ${CODE_DIR} ${HOME} ${DATAROBOT_VENV_PATH}
 
 USER 1000:0
 RUN python3.9 -m venv $DATAROBOT_VENV_PATH && $DATAROBOT_VENV_PATH/bin/pip install -U pip
