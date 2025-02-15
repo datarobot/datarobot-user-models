@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 import requests
+from datarobot_drum.drum.enum import EnvVarNames
 from flask import Response, jsonify, request
 from werkzeug.exceptions import HTTPException
 
@@ -212,8 +213,8 @@ class PredictionServer(PredictMixin):
         @model_api.route("/directAccess/<path:path>", methods=["GET", "POST", "PUT"])
         @model_api.route("/nim/<path:path>", methods=["GET", "POST", "PUT"])
         def forward_request(path):
-            openai_host = os.environ.get("OPENAI_HOST", "localhost")
-            openai_port = os.environ.get("OPENAI_PORT", "8000")
+            openai_host = os.environ.get(EnvVarNames.OPENAI_HOST, "localhost")
+            openai_port = os.environ.get(EnvVarNames.OPENAI_PORT, "8000")
 
             resp = requests.request(
                 method=request.method,
