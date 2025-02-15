@@ -1136,6 +1136,33 @@ class TestNimLlm:
 
         assert "Boston! One of the oldest and most historic cities" in llm_response
 
+    @pytest.mark.parametrize("path", ["directAccess", "nim"])
+    def test_forward_http_get(self, path, nim_predictor):
+        base_url = f"{nim_predictor.url_server_address}/{path}"
+        response = requests.get(f"{base_url}/v1/models")
+        assert response.ok
+
+        response_data = response.json().get("data")
+        assert len(response_data) == 1
+        assert response_data[0].get("id") == "datarobot-deployed-llm"
+
+    @pytest.mark.parametrize("path", ["directAccess", "nim"])
+    def test_forward_http_post(self, path, nim_predictor):
+        from openai import OpenAI
+
+        base_url = f"{nim_predictor.url_server_address}/{path}"
+        client = OpenAI(base_url=base_url, api_key="not-required", max_retries=0)
+
+        completion = client.chat.completions.create(
+            model="any name works",
+            messages=[
+                {"role": "system", "content": "You are a calculator. Answer with a single number."},
+                {"role": "user", "content": "twenty one plus twenty one"},
+            ],
+        )
+        llm_response = completion.choices[0].message.content
+        assert "42" in llm_response
+
 
 class TestNimEmbedQa:
     @pytest.fixture(scope="class")

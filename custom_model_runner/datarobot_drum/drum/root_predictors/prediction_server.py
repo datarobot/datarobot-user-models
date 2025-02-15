@@ -5,41 +5,41 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
+import os
 import sys
 from pathlib import Path
 
-from flask import jsonify
+import requests
+from datarobot_drum.drum.enum import EnvVarNames
+from flask import Response, jsonify, request
 from werkzeug.exceptions import HTTPException
 
-from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
+from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.enum import (
+    FLASK_EXT_FILE_NAME,
+    GPU_PREDICTORS,
     LOGGER_NAME_PREFIX,
     TARGET_TYPE_ARG_KEYWORD,
     ModelInfoKeys,
     RunLanguage,
     TargetType,
-    FLASK_EXT_FILE_NAME,
-    GPU_PREDICTORS,
 )
-from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
+from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
 from datarobot_drum.drum.resource_monitor import ResourceMonitor
-
-from datarobot_drum.drum.root_predictors.stdout_flusher import StdoutFlusher
 from datarobot_drum.drum.root_predictors.deployment_config_helpers import (
     parse_validate_deployment_config_file,
 )
 from datarobot_drum.drum.root_predictors.predict_mixin import PredictMixin
-
-
+from datarobot_drum.drum.root_predictors.stdout_flusher import StdoutFlusher
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
-    HTTP_500_INTERNAL_SERVER_ERROR,
-    get_flask_app,
-    base_api_blueprint,
     HTTP_400_BAD_REQUEST,
+    HTTP_500_INTERNAL_SERVER_ERROR,
+    base_api_blueprint,
+    get_flask_app,
 )
+from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -86,7 +86,9 @@ class PredictionServer(PredictMixin):
         elif self._run_language == RunLanguage.R:
             # this import is here, because RPredictor imports rpy library,
             # which is not installed for Java and Python cases.
-            from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import RPredictor
+            from datarobot_drum.drum.language_predictors.r_predictor.r_predictor import (
+                RPredictor,
+            )
 
             predictor = RPredictor()
         elif self._gpu_predictor_type and self._gpu_predictor_type == GPU_PREDICTORS.TRITON:
@@ -96,15 +98,11 @@ class PredictionServer(PredictMixin):
 
             predictor = TritonPredictor()
         elif self._gpu_predictor_type and self._gpu_predictor_type == GPU_PREDICTORS.NIM:
-            from datarobot_drum.drum.gpu_predictors.nim_predictor import (
-                NIMPredictor,
-            )
+            from datarobot_drum.drum.gpu_predictors.nim_predictor import NIMPredictor
 
             predictor = NIMPredictor()
         elif self._gpu_predictor_type and self._gpu_predictor_type == GPU_PREDICTORS.VLLM:
-            from datarobot_drum.drum.gpu_predictors.vllm_predictor import (
-                VllmPredictor,
-            )
+            from datarobot_drum.drum.gpu_predictors.vllm_predictor import VllmPredictor
 
             predictor = VllmPredictor()
         else:
@@ -211,6 +209,23 @@ class PredictionServer(PredictMixin):
                 self._post_predict_and_transform()
 
             return response, response_status
+
+        @model_api.route("/directAccess/<path:path>", methods=["GET", "POST", "PUT"])
+        @model_api.route("/nim/<path:path>", methods=["GET", "POST", "PUT"])
+        def forward_request(path):
+            openai_host = os.environ.get(EnvVarNames.OPENAI_HOST, "localhost")
+            openai_port = os.environ.get(EnvVarNames.OPENAI_PORT, "8000")
+
+            resp = requests.request(
+                method=request.method,
+                url=f"http://{openai_host}:{openai_port}/{path.rstrip('/')}",
+                headers=request.headers,
+                params=request.args,
+                data=request.get_data(),
+                allow_redirects=False,
+            )
+
+            return Response(resp.content, status=resp.status_code, headers=dict(resp.headers))
 
         @model_api.route("/stats/", methods=["GET"])
         def stats():

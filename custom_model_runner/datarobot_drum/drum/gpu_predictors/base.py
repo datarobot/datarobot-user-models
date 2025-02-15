@@ -27,7 +27,7 @@ from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
 from datarobot_drum.drum.common import SupportedPayloadFormats
-from datarobot_drum.drum.enum import CUSTOM_FILE_NAME
+from datarobot_drum.drum.enum import CUSTOM_FILE_NAME, EnvVarNames
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.enum import CustomHooks
 from datarobot_drum.drum.enum import PayloadFormat
@@ -63,8 +63,8 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self.deployment_id = os.environ.get("MLOPS_DEPLOYMENT_ID", None)
 
         # server configuration is set in the Drop-in environment
-        self.openai_port = os.environ.get("OPENAI_PORT", "9999")
-        self.openai_host = os.environ.get("OPENAI_HOST", "localhost")
+        self.openai_port = os.environ.get(EnvVarNames.OPENAI_PORT, "9999")
+        self.openai_host = os.environ.get(EnvVarNames.OPENAI_HOST, "localhost")
         self.openai_process = None
         self.openai_server_thread = None
         self._openai_server_watchdog = None
