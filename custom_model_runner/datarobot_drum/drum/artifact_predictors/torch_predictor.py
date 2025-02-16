@@ -54,7 +54,10 @@ class PyTorchPredictor(ArtifactPredictor):
         self._logger.debug("sys_path: {}".format(sys.path))
         import torch
 
-        model = torch.load(artifact_path)
+        # PyTorch 2.6+ changed the default behavior of torch.load() to only load model
+        # weights (weights_only=True). We need to explicitly set weights_only=False to load
+        # the full model.
+        model = torch.load(artifact_path, weights_only=False)
         model.eval()
         return model
 
