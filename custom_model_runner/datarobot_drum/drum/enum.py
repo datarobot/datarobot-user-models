@@ -485,6 +485,7 @@ class VectorDatabaseMetrics(str, Enum):
     the processing for each metric. These are added when the deployment is
     created (in the main application).
     """
+
     TOTAL_CITATION_TOKENS = "Total Citation Tokens"
     AVERAGE_CITATION_TOKENS = "Average Citation Tokens"
     TOTAL_DOCUMENTS = "Total Documents"
