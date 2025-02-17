@@ -15,6 +15,8 @@ import pandas as pd
 from datarobot_drum.drum.adapters.model_adapters.custom_metrics import create_vdb_metric_pipeline
 from datarobot_drum.drum.enum import VectorDatabaseMetrics
 
+MODEL_ID = "abadface"
+MODEL_PKG_ID = "c0ffee"
 CUSTOM_METRIC_MODULE = "datarobot_drum.drum.adapters.model_adapters.custom_metrics"
 FETCH_METRIC_FUNCTION = f"{CUSTOM_METRIC_MODULE}.fetch_deployment_custom_metrics"
 
@@ -92,10 +94,12 @@ def test_custom_metrics_processor(dataframe: pd.DataFrame, expected: dict[str, A
             host="localhost",
             api_token="<TOKEN>",
             deployment_id=deployment_id,
-            model_id=None,
-            model_package_id=None,
+            model_id=MODEL_ID,
+            model_package_id=MODEL_PKG_ID,
         )
         payload = processor.create_custom_metrics_bulk_payload(result_df=dataframe)
+        assert MODEL_ID == payload["modelId"]
+        assert MODEL_PKG_ID == payload["modelPackageId"]
 
         # remap to buckets to be a dict by id
         reported = {p.get("customMetricId"): p for p in payload["buckets"]}
