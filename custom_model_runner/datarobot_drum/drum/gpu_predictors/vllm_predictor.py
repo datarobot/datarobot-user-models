@@ -28,6 +28,7 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
         # Add support for some common additional params for vLLM
         self.max_model_len = self.get_optional_parameter("max_model_len")
         self.gpu_memory_utilization = self.get_optional_parameter("gpu_memory_utilization")
+        self.default_parallelism = self.get_optional_parameter("default_parallelism", "tp")
         self.gpu_count = int(os.environ.get("GPU_COUNT", 0))
 
     @property
@@ -98,9 +99,14 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
         if self.gpu_memory_utilization and "--gpu-memory-utilization" not in cmd:
             cmd.extend(["--gpu-memory-utilization", str(self.gpu_memory_utilization)])
 
-        # If the user hasn't already specified the number of GPUs, we will default to using all
-        if self.gpu_count > 1 and "--tensor-parallel-size" not in cmd:
-            cmd.extend(["--tensor-parallel-size", str(self.gpu_count)])
+        # Take advantage of multiple GPUs (https://docs.vllm.ai/en/latest/serving/distributed_serving.html)
+        if self.gpu_count > 1 and (
+            "--tensor-parallel-size" not in cmd
+            or "-tp" not in cmd
+            or "--pipeline-parallel-size" not in cmd
+            or "-pp" not in cmd
+        ):
+            cmd.extend([f"-{self.default_parallelism}", str(self.gpu_count)])
 
         env = os.environ.copy()
         if self.huggingface_token:
