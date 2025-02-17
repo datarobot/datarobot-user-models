@@ -24,3 +24,4 @@ pydantic
 datarobot-storage
 datarobot-mlops>=10.2.0  # Required for the 'set_api_spooler' with arugments
 datarobot>=3.1.0,<4
+tiktoken  # used for VDB metrics (citation token counting)
