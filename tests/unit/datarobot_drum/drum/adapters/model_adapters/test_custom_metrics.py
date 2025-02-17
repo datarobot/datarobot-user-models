@@ -12,14 +12,10 @@ import pytest
 
 import pandas as pd
 
-from custom_model_runner.datarobot_drum.drum.adapters.model_adapters.custom_metrics import (
-    create_vdb_metric_pipeline,
-)
-from custom_model_runner.datarobot_drum.drum.enum import VectorDatabaseMetrics
+from datarobot_drum.drum.adapters.model_adapters.custom_metrics import create_vdb_metric_pipeline
+from datarobot_drum.drum.enum import VectorDatabaseMetrics
 
-CUSTOM_METRIC_MODULE = (
-    "custom_model_runner.datarobot_drum.drum.adapters.model_adapters.custom_metrics"
-)
+CUSTOM_METRIC_MODULE = "datarobot_drum.drum.adapters.model_adapters.custom_metrics"
 FETCH_METRIC_FUNCTION = f"{CUSTOM_METRIC_MODULE}.fetch_deployment_custom_metrics"
 
 METRIC_ID_MAP = {name: str(index) * 8 for index, name in enumerate(VectorDatabaseMetrics)}

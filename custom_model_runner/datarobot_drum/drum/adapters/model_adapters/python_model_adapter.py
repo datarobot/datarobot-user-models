@@ -20,6 +20,7 @@ from pandas.core.indexes.base import Index
 from scipy.sparse import issparse
 
 from datarobot_drum.drum.adapters.model_adapters.abstract_model_adapter import AbstractModelAdapter
+from datarobot_drum.drum.adapters.model_adapters.custom_metrics import create_vdb_metric_pipeline
 from datarobot_drum.drum.artifact_predictors.keras_predictor import KerasPredictor
 from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
 from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPredictor
@@ -69,9 +70,6 @@ from datarobot_drum.custom_task_interfaces.custom_task_interface import (
     patch_outputs_to_scrub_secrets,
 )
 
-from custom_model_runner.datarobot_drum.drum.adapters.model_adapters.custom_metrics import (
-    create_vdb_metric_pipeline,
-)
 
 RUNNING_LANG_MSG = "Running environment language: Python."
 

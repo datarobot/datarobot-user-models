@@ -717,9 +717,7 @@ def fake_metric_response(names: list[str]) -> dict[str, Any]:
 
 
 class TestPythonModelAdapterVectorDatabase:
-    CUSTOM_METRIC_MODULE = (
-        "custom_model_runner.datarobot_drum.drum.adapters.model_adapters.custom_metrics"
-    )
+    CUSTOM_METRIC_MODULE = "datarobot_drum.drum.adapters.model_adapters.custom_metrics"
     FETCH_METRIC_FUNCTION = f"{CUSTOM_METRIC_MODULE}.fetch_deployment_custom_metrics"
     STANDARD_ENV = {
         "DATAROBOT_ENDPOINT": "localhost",
