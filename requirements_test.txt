@@ -8,4 +8,6 @@ responses
 retry
 scikit-learn==1.3.2
 scipy>=1.1,<2
+tiktoken
 urllib3>=1.25.0,<2.0.0
+cachetools  # seems to be missing from datarobot_storage

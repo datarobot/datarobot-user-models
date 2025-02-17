@@ -475,3 +475,17 @@ class ModelMetadataMultiHyperParamTypes(object):
     @classmethod
     def all_list(cls):
         return [cls.INT, cls.FLOAT, cls.SELECT]
+
+
+class VectorDatabaseMetrics(str, Enum):
+    """
+    These are the names of the custom-metrics created for a VDB deployment.
+
+    These names are used to get the custom-metric id's, and determine
+    the processing for each metric. These are added when the deployment is
+    created (in the main application).
+    """
+    TOTAL_CITATION_TOKENS = "Total Citation Tokens"
+    AVERAGE_CITATION_TOKENS = "Average Citation Tokens"
+    TOTAL_DOCUMENTS = "Total Documents"
+    AVERAGE_DOCUMENTS = "Average Documents"

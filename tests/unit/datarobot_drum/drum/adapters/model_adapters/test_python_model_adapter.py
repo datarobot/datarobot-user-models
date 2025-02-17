@@ -46,6 +46,7 @@ from datarobot_drum.drum.enum import (
     MODERATIONS_LIBRARY_PACKAGE,
     CustomHooks,
     GUARD_HOOK_MODULE,
+    VectorDatabaseMetrics,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 
@@ -701,3 +702,96 @@ class TestPythonModelAdapterWithGuards:
             # Even if guard pipeline exists - moderation chat wrapper does not exist, so invoke
             # only user chat method
             assert response.choices[0].message.content == "Hello there"
+
+
+def fake_metric_body(name: str) -> dict[str, Any]:
+    return {
+        "id": str(random.randint(5000, 100000)),
+        "name": name,
+    }
+
+
+def fake_metric_response(names: list[str]) -> dict[str, Any]:
+    """Create a fake response -- mapping name to a fake body"""
+    return {name: fake_metric_body(name) for name in names}
+
+
+class TestPythonModelAdapterVectorDatabase:
+    CUSTOM_METRIC_MODULE = (
+        "custom_model_runner.datarobot_drum.drum.adapters.model_adapters.custom_metrics"
+    )
+    FETCH_METRIC_FUNCTION = f"{CUSTOM_METRIC_MODULE}.fetch_deployment_custom_metrics"
+    STANDARD_ENV = {
+        "DATAROBOT_ENDPOINT": "localhost",
+        "DATAROBOT_API_TOKEN": "my-key",
+        "MLOPS_DEPLOYMENT_ID": "1111",
+        "TARGET_NAME": "my-vdb",
+    }
+
+    @pytest.mark.parametrize(
+        ["environment"],
+        [
+            pytest.param({}, id="empty"),
+            pytest.param(
+                {"DATAROBOT_API_TOKEN": "my-key", "MLOPS_DEPLOYMENT_ID": "1111"}, id="no-host"
+            ),
+            pytest.param(
+                {"DATAROBOT_ENDPOINT": "localhost", "MLOPS_DEPLOYMENT_ID": "1111"}, id="no-token"
+            ),
+            pytest.param(
+                {"DATAROBOT_ENDPOINT": "localhost", "DATAROBOT_API_TOKEN": "my-key"},
+                id="no-deployment",
+            ),
+        ],
+    )
+    def test_vector_db_missing_params(self, environment):
+        vdb_target_name = "my-vdb-target"
+        local_env = {"TARGET_NAME": vdb_target_name}
+        local_env.update(environment)
+        with patch.dict(os.environ, local_env):
+            adapter = PythonModelAdapter(Mock(), TargetType.VECTOR_DATABASE)
+            assert adapter._target_name == vdb_target_name
+            assert adapter._target_type == TargetType.VECTOR_DATABASE
+            assert adapter._vdb_metrics is None
+
+    @pytest.mark.parametrize(
+        ["custom_metrics", "count"],
+        [
+            pytest.param(
+                fake_metric_response([v.value for v in VectorDatabaseMetrics]),
+                len(VectorDatabaseMetrics),
+                id="all",
+            ),
+            pytest.param(
+                fake_metric_response([VectorDatabaseMetrics.TOTAL_CITATION_TOKENS.value]),
+                1,
+                id="one",
+            ),
+            pytest.param(
+                fake_metric_response(
+                    [VectorDatabaseMetrics.AVERAGE_DOCUMENTS.value, "Prompt Injection"]
+                ),
+                1,
+                id="unused",
+            ),
+            pytest.param(
+                fake_metric_response(["Documents", "Prompt Injection"]),
+                0,
+                id="no-matches",
+            ),
+        ],
+    )
+    def test_vector_db_metric_setup(self, custom_metrics: dict[str, Any], count):
+        with patch.dict(os.environ, TestPythonModelAdapterVectorDatabase.STANDARD_ENV), patch(
+            TestPythonModelAdapterVectorDatabase.FETCH_METRIC_FUNCTION, return_value=custom_metrics
+        ):
+            adapter = PythonModelAdapter(Mock(), TargetType.VECTOR_DATABASE)
+            assert adapter._target_type == TargetType.VECTOR_DATABASE
+            processor = adapter._vdb_metrics
+            metric_count = 0 if processor is None else len(processor._aggregated_metrics)
+            assert metric_count == count
+            if processor is not None:
+                assert (
+                    processor.deployment_id
+                    == TestPythonModelAdapterVectorDatabase.STANDARD_ENV.get("MLOPS_DEPLOYMENT_ID")
+                )

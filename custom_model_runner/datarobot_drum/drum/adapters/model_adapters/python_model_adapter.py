@@ -51,6 +51,7 @@ from datarobot_drum.drum.enum import (
     GUARD_CHAT_WRAPPER_NAME,
     GUARD_HOOK_MODULE,
     MODERATIONS_LIBRARY_PACKAGE,
+    VectorDatabaseMetrics,
 )
 from datarobot_drum.drum.exceptions import (
     DrumCommonException,
@@ -66,6 +67,10 @@ from datarobot_drum.custom_task_interfaces.custom_task_interface import (
     secrets_injection_context,
     load_secrets,
     patch_outputs_to_scrub_secrets,
+)
+
+from custom_model_runner.datarobot_drum.drum.adapters.model_adapters.custom_metrics import (
+    create_vdb_metric_pipeline,
 )
 
 RUNNING_LANG_MSG = "Running environment language: Python."
@@ -109,6 +114,7 @@ class PythonModelAdapter(AbstractModelAdapter):
         self._custom_task_class_instance = None
         self._guard_moderation_hooks = None
         self._guard_pipeline = None
+        self._vdb_metrics = None
 
         if target_type in (TargetType.TEXT_GENERATION, TargetType.VECTOR_DATABASE):
             self._target_name = os.environ.get("TARGET_NAME")
@@ -118,6 +124,8 @@ class PythonModelAdapter(AbstractModelAdapter):
                 )
             if target_type == TargetType.TEXT_GENERATION:
                 self._load_guard_hooks_for_drum()
+            else:
+                self._load_vdb_metrics_for_drum()
         else:
             self._target_name = None
 
@@ -144,6 +152,32 @@ class PythonModelAdapter(AbstractModelAdapter):
         except ImportError as e:
             self._logger.warning(f"Could not load guard hooks: {e}, moderation will be disabled")
             # Just log that no guard info present
+
+    def _load_vdb_metrics_for_drum(self):
+        """
+        Create the VDB metrics processor (when appropriate).
+
+        It seems like this should only be done once, so we don't have to redo -- may be an
+        issue if metric creation is delayed (or cou.
+        """
+        host = os.environ.get("DATAROBOT_ENDPOINT", None)
+        api_token = os.environ.get("DATAROBOT_API_TOKEN", None)
+        deployment_id = os.environ.get("MLOPS_DEPLOYMENT_ID", None)
+        model_id = os.environ.get("MLOPS_MODEL_ID", None)
+        model_package_id = os.environ.get("MLOPS_MODEL_PACKAGE_ID", None)
+
+        if any(not v for v in (host, api_token, deployment_id)):
+            self._logger.error(
+                f"Missing a required parameter for: host={host}, api_token={'REDACTED' if api_token else 'None'}, deployment_id={deployment_id}"
+            )
+            return
+
+        # TODO: lazy loading, and insure that something is available for tokenization of citations?
+        self._vdb_metrics = create_vdb_metric_pipeline(
+            host, api_token, deployment_id, model_id, model_package_id
+        )
+        self._logger.debug("VDB metrics loaded: {}".format(self._vdb_metrics))
+        return
 
     def _log_and_raise_final_error(self, exc: Exception, message: str) -> NoReturn:
         self._logger.exception(f"{message} Exception: {exc!r}")
@@ -652,6 +686,9 @@ class PythonModelAdapter(AbstractModelAdapter):
                 )
             predictions = predictions_df.values
             model_labels = predictions_df.columns
+
+        if self._vdb_metrics:
+            self.process_predictions(predictions)
 
         return RawPredictResponse(predictions, model_labels, extra_model_output)
 
