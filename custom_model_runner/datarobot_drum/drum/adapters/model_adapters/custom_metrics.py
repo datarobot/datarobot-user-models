@@ -266,12 +266,13 @@ def fetch_deployment_custom_metrics(
     """
     Fetches all the custom-metrics for a given deployment, and organizes them into a map by name.
     """
-    url = get_deployment_url(host, deployment_id, "customMetrics/")
+    url = get_deployment_url(host, deployment_id, "customMetrics")
     offset = 0
-    limit = 100
+    limit = 20
     deployment_metrics = {}
-    params = {"offset": offset, "limit": limit}
+    params = {"limit": limit}
     while True:
+        params["offset"] = offset
         try:
             response = requests.get(url, headers=headers, params=params)
             response.raise_for_status()  # not sure if this is needed
