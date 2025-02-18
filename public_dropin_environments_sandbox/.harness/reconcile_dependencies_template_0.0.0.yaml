@@ -55,7 +55,7 @@ template:
                         git config --global user.email "svc-harness-git2@datarobot.com"
                         git config --global url."https://${GITHUB_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
                         git config --global --add safe.directory /harness  # Mark /harness as a safe directory
-                        git clone https://${GITHUB_ACCESS_TOKEN}@github.com/datarobot/datarobot-user-models.git
+                        git clone https://github.com/datarobot/datarobot-user-models.git
 
                         # Get the current branch name
                         current_branch=$(git branch --show-current)
