@@ -1,0 +1,44 @@
+pipeline:
+  name: publish to docker
+  identifier: publish_to_docker
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
+  stages:
+    - stage:
+        name: build_and_publish
+        identifier: build_and_publish
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+          buildIntelligence:
+            enabled: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: BuildAndPushDockerRegistry
+                  name: BuildAndPushDockerRegistry_1
+                  identifier: BuildAndPushDockerRegistry_1
+                  spec:
+                    connectorRef: datarobot_user_models_read_write
+                    repo: datarobotdev/<+pipeline.variables.env_name>
+                    tags:
+                      - <+pipeline.variables.release_version>
+                    caching: true
+                    dockerfile: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>/Dockerfile
+                    context: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
