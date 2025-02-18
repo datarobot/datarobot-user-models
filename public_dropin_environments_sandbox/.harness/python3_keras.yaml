@@ -3,8 +3,6 @@ pipeline:
   identifier: python3keras_publicdropinenvironments
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models
-  tags:
-    reconcile dependencies: ""
   properties:
     ci:
       codebase:
@@ -45,19 +43,19 @@ pipeline:
                       # Navigate to environment directory
                       ENV_DIR="public_dropin_environments_sandbox/python3_keras"
                       cd "$ENV_DIR" || exit 1
-                      
+
                       # Ensure Git is installed
                       if ! command -v git &> /dev/null; then
                           echo "Git is not installed. Installing..."
                           apt-get update && apt-get install -y git
                       fi
-                      
+
                       # Configure Git
                       git config --global user.name "svc-harness-git2"
                       git config --global user.email "svc-harness-git2@datarobot.com"
                       git config --global url."https://${GITHUB_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
                       git config --global --add safe.directory /harness  # Mark /harness as a safe directory
-                      
+
                       # Commit and push changes if any
                       if [[ -n $(git status --porcelain) ]]; then
                           git add .
