@@ -39,6 +39,7 @@ pipeline:
                     repo: datarobotdev/<+pipeline.variables.env_name>
                     tags:
                       - <+pipeline.variables.release_version>
+                      - latest
                     caching: true
                     dockerfile: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>/Dockerfile
                     context: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
