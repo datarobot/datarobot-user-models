@@ -1,4 +1,6 @@
 
+PYTEST_IGNORES := -W ignore::pytest.PytestCollectionWarning
+
 ########################################
 ##@ General
 default: help
@@ -44,14 +46,14 @@ cov-clean:
 
 cov: coverage
 coverage: cov-clean ## Measure unit-test code coverage
-	pytest -v --cov-report term --cov-report html --cov custom_model_runner/ tests/unit
+	pytest -v $(PYTEST_IGNORES) --cov-report term --cov-report html --cov custom_model_runner/ tests/unit
 	@echo "open file://`pwd`/htmlcov/index.html"
 
 unit-test: ## Run all unit tests
-	pytest -v tests/unit
+	pytest -v $(PYTEST_IGNORES) tests/unit
 
 integration-tests: ## Run all integration tests
-	pytest -v tests/integration
+	pytest -v $(PYTEST_IGNORES) tests/integration
 
 functional-tests: ## Run all the functional tests
-	pytest -v tests/functional
+	pytest -v $(PYTEST_IGNORES) tests/functional
