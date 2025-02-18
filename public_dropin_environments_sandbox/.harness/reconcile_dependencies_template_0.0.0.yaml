@@ -40,11 +40,11 @@ template:
                     identifier: reconcile_dependencies
                     spec:
                       connectorRef: account.dockerhub_datarobot_read
-                      image: <+pipeline.image_uri>
+                      image: <+pipeline.variables.image_uri>
                       shell: Bash
                       command: |-
                         # Navigate to environment directory
-                        ENV_DIR=<+pipeline.env_dir>
+                        ENV_DIR=<+pipeline.variables.env_dir>
                         cd "$ENV_DIR" || exit 1
 
                         # Ensure Git is installed
