@@ -13,6 +13,7 @@ import pytest
 
 import pandas as pd
 import responses
+import tiktoken
 
 from datarobot_drum.drum.adapters.model_adapters.custom_metrics import (
     create_vdb_metric_pipeline,
@@ -24,6 +25,9 @@ MODEL_ID = "abadface"
 MODEL_PKG_ID = "c0ffee"
 
 METRIC_ID_MAP = {name: str(index) * 8 for index, name in enumerate(VectorDatabaseMetrics)}
+
+# NOTE: force loading the encodings BEFORE responses snags the request
+encoder = tiktoken.get_encoding("cl100k_base")
 
 
 def no_citations_df() -> pd.DataFrame:
