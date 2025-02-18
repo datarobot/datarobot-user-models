@@ -1,5 +1,7 @@
 template:
-  name: python dependencies
+  name: reconcile dependencies template
+  identifier: reconcile_dependencies_template
+  versionLabel: 0.0.0
   type: Pipeline
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models
@@ -12,8 +14,8 @@ template:
           build: <+input>
     stages:
       - stage:
-          name: reconcile_python_dependencies
-          identifier: reconcile_python_dependencies
+          name: reconcile_dependencies
+          identifier: reconcile_dependencies
           description: ""
           type: CI
           spec:
@@ -38,11 +40,11 @@ template:
                     identifier: reconcile_dependencies
                     spec:
                       connectorRef: account.dockerhub_datarobot_read
-                      image: datarobot/dropin-env-base:1.0.0-python-3.11.11-slim-bookworm
+                      image: <+pipeline.image_uri>
                       shell: Bash
                       command: |-
                         # Navigate to environment directory
-                        ENV_DIR="public_dropin_environments_sandbox/python3_keras"
+                        ENV_DIR=<+pipeline.env_dir>
                         cd "$ENV_DIR" || exit 1
 
                         # Ensure Git is installed
@@ -73,5 +75,14 @@ template:
                         limits:
                           memory: 5Gi
                     description: Run the tools/reconcile_dependencies.sh script to auto-generate requirements.txt file base on its requirements.in file.
-  identifier: python_dependencies
-  versionLabel: 0.0.0
+    variables:
+      - name: env_dir
+        type: String
+        description: The directory of the environment to reconcile, e.g. "public_dropin_environments_sandbox/python3_keras"
+        required: true
+        value: <+input>
+      - name: image_uri
+        type: String
+        description: The image URI to use for the reconcile_dependencies step. Preferably, the same image used as the base image for the environment, e.g. "datarobot/dropin-env-base:1.0.0-python-3.11.11-slim-bookworm"
+        required: true
+        value: <+input>
