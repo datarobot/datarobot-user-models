@@ -43,14 +43,6 @@ template:
                       image: <+pipeline.variables.image_uri>
                       shell: Bash
                       command: |-
-                        # Check out the target branch
-                        git checkout <+pipeline.properties.ci.codebase.build.spec.branch>
-                        current_branch=$(git branch --show-current)
-                        echo "Current branch: $current_branch"
-
-                        # Navigate to environment directory
-                        ENV_DIR=<+pipeline.variables.env_dir>
-                        cd "$ENV_DIR" || exit 1
 
                         # Ensure Git is installed
                         if ! command -v git &> /dev/null; then
@@ -63,6 +55,15 @@ template:
                         git config --global user.email "svc-harness-git2@datarobot.com"
                         git config --global url."https://${GITHUB_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
                         git config --global --add safe.directory /harness  # Mark /harness as a safe directory
+
+                        # Check out the target branch
+                        git checkout <+pipeline.properties.ci.codebase.build.spec.branch>
+                        current_branch=$(git branch --show-current)
+                        echo "Current branch: $current_branch"
+
+                        # Navigate to environment directory
+                        ENV_DIR=<+pipeline.variables.env_dir>
+                        cd "$ENV_DIR" || exit 1
 
                         # Run dependency reconciliation if there are file changes
                         if [ -n "$(echo $(git diff --name-only master -- ./requirements.*))" ]; then
