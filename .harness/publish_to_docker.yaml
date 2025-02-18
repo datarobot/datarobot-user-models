@@ -43,3 +43,19 @@ pipeline:
                     caching: true
                     dockerfile: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>/Dockerfile
                     context: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
+  variables:
+    - name: env_folder
+      type: String
+      description: ""
+      required: true
+      value: <+input>.allowedValues(public_dropin_environments, public_dropin_gpu_environments, public_dropin_environments_sandbox)
+    - name: env_name
+      type: String
+      description: ""
+      required: true
+      value: <+input>
+    - name: release_version
+      type: String
+      description: ""
+      required: true
+      value: <+input>
