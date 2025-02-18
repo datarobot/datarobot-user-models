@@ -60,7 +60,7 @@ template:
                         git config --global --add safe.directory /harness  # Mark /harness as a safe directory
 
                         # Run dependency reconciliation if there are file changes
-                        if [ -n "$(git diff --name-only master -- ./requirements.*)" ]; then
+                        if [ -n "$(echo $(git diff --name-only master -- ./requirements.*))" ]; then
                           echo "Requirements changes detected in $ENV_DIR. Running reconciliation..."
                           bash ../../tools/reconcile_dependencies.sh
                         else
