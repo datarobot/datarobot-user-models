@@ -121,47 +121,6 @@ class TestBaseLanguagePredictor:
         mock_mlops.init.assert_called_once()
 
 
-class TestPredict(TestBaseLanguagePredictor):
-    @pytest.mark.parametrize("training_data_available", [True, False])
-    def test_report_predictions_data_invocation(
-        self, mock_mlops, mock_dr_client, training_data_available
-    ):
-        language_predictor = TestLanguagePredictor()
-        language_predictor_with_mlops_params = (
-            self._language_predictor_with_mlops_params_dr_api_access()
-        )
-        language_predictor_with_mlops_params["monitor"] = True
-        champion_model_package = Mock()
-        setattr(champion_model_package, "datasets", {})
-        if training_data_available:
-            champion_model_package.datasets.update(
-                {"training_data_catalog_id": "6781c879d5494fd56c36760a"}
-            )
-        with patch.object(dr.Deployment, "get") as mock_get_deployment:
-            mock_get_deployment.return_value = Mock()
-            mock_get_deployment.return_value.get_champion_model_package.return_value = (
-                champion_model_package
-            )
-            mock_get_deployment.return_value.model = {"prompt": "promptText"}
-
-            language_predictor.configure(language_predictor_with_mlops_params)
-
-        data = bytes(pd.DataFrame({"promptText": ["Hello!"]}).to_csv(index=False), encoding="utf-8")
-        _ = language_predictor.predict(binary_data=data)
-
-        if training_data_available:
-            expected_df = pd.DataFrame({"promptText": ["Hello!"]})
-            expected_predictions = ["How are you?"]
-            actual_df = mock_mlops.report_predictions_data.call_args.kwargs["features_df"]
-            actual_predictions = mock_mlops.report_predictions_data.call_args.kwargs["predictions"]
-            assert expected_predictions == actual_predictions
-            pd.testing.assert_frame_equal(
-                actual_df, expected_df, check_like=True, check_dtype=False
-            )
-        else:
-            mock_mlops.report_predictions_data.assert_not_called()
-
-
 class TestChat(TestBaseLanguagePredictor):
     @pytest.mark.parametrize("stream", [False, True])
     def test_chat_without_mlops(self, language_predictor, stream):
@@ -417,52 +376,3 @@ class TestChat(TestBaseLanguagePredictor):
 
         assert response.choices[0].message.content == "How are you"
         mock_mlops_function.assert_called_once()
-
-    @pytest.mark.parametrize("training_data_available", [True, False])
-    def test_report_predictions_data_invocation(
-        self, mock_mlops, mock_dr_client, training_data_available
-    ):
-        language_predictor = TestLanguagePredictor()
-        language_predictor_with_mlops_params = (
-            self._language_predictor_with_mlops_params_dr_api_access()
-        )
-        champion_model_package = Mock()
-        setattr(champion_model_package, "datasets", {})
-        if training_data_available:
-            champion_model_package.datasets.update(
-                {"training_data_catalog_id": "6781c879d5494fd56c36760a"}
-            )
-        with patch.object(dr.Deployment, "get") as mock_get_deployment:
-            mock_get_deployment.return_value = Mock()
-            mock_get_deployment.return_value.get_champion_model_package.return_value = (
-                champion_model_package
-            )
-            mock_get_deployment.return_value.model = {"prompt": "promptText"}
-
-            language_predictor.configure(language_predictor_with_mlops_params)
-
-        def chat_hook(completion_request):
-            return create_completion("How are you")
-
-        language_predictor.chat_hook = chat_hook
-        _ = language_predictor.chat(
-            {
-                "model": "any",
-                "messages": [
-                    {"role": "system", "content": "You are a helpful assistant."},
-                    {"role": "user", "content": "Hello!"},
-                ],
-            }
-        )
-
-        if training_data_available:
-            expected_df = pd.DataFrame({"promptText": ["Hello!"]})
-            expected_predictions = ["How are you"]
-            actual_df = mock_mlops.report_predictions_data.call_args.args[0]
-            actual_predictions = mock_mlops.report_predictions_data.call_args.args[1]
-            assert expected_predictions == actual_predictions
-            pd.testing.assert_frame_equal(
-                actual_df, expected_df, check_like=True, check_dtype=False
-            )
-        else:
-            mock_mlops.report_predictions_data.assert_not_called()

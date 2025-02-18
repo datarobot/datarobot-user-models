@@ -86,7 +86,6 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             class_labels=class_labels,
         )
         self._deployment = None
-        self._training_data_available = True
         self._model = None
         self._code_dir = None
         self._params = None
@@ -143,14 +142,9 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         if to_bool(self._params.get("allow_dr_api_access")):
             try:
                 self._deployment = dr.Deployment.get(deployment_id)
-                champion_model_package = self._deployment.get_champion_model_package()
-                self._training_data_available = (
-                    champion_model_package.datasets.get("training_data_catalog_id") is not None
-                )
             except Exception as e:
                 logger.warning(f"Failed to get deployment info: {e}", exc_info=True)
 
-        logger.info(f"Reporting monitoring data enabled: {self._training_data_available}")
         self._mlops = MLOps()
 
         self._mlops.set_deployment_id(deployment_id)
@@ -207,35 +201,23 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                 num_predictions=len(predictions), execution_time_ms=predict_time_ms
             )
 
-            if self._training_data_available:
-                df = StructuredInputReadUtils.read_structured_input_data_as_df(
-                    kwargs.get(StructuredDtoKeys.BINARY_DATA),
-                    kwargs.get(StructuredDtoKeys.MIMETYPE),
-                )
-                # mlops.report_predictions_data expect the prediction data in the following format:
-                # Regression: [10, 12, 13]
-                # Classification: [[0.5, 0.5], [0.7, 03]]
-                # In case of classification, class names are also required
-                class_names = None
-                if len(predictions.columns) == 1:
-                    mlops_predictions = predictions[predictions.columns[0]].tolist()
-                else:
-                    mlops_predictions = predictions.values.tolist()
-                    class_names = list(predictions.columns)
+            df = StructuredInputReadUtils.read_structured_input_data_as_df(
+                kwargs.get(StructuredDtoKeys.BINARY_DATA),
+                kwargs.get(StructuredDtoKeys.MIMETYPE),
+            )
+            # mlops.report_predictions_data expect the prediction data in the following format:
+            # Regression: [10, 12, 13]
+            # Classification: [[0.5, 0.5], [0.7, 03]]
+            # In case of classification, class names are also required
+            class_names = None
+            if len(predictions.columns) == 1:
+                mlops_predictions = predictions[predictions.columns[0]].tolist()
             else:
-                # Feature drift and predictions data collections is disabled, no point
-                # reporting it.
-                df = None
-                # Target drift is disabled, no point reporting predictions for monitoring
-                mlops_predictions = None
-                class_names = None
+                mlops_predictions = predictions.values.tolist()
+                class_names = list(predictions.columns)
             # TODO: Need to convert predictions to a proper format
             # TODO: or add report_predictions_data that can handle a df directly..
             # TODO: need to handle associds correctly
-
-            if mlops_predictions is None and df is None:
-                # If neither features nor predictions can be reported for monitoring, return
-                return
 
             self._mlops.report_predictions_data(
                 features_df=df, predictions=mlops_predictions, class_names=class_names
@@ -316,19 +298,8 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             logger.exception("Failed to report deployment stats")
 
         latest_message = completion_create_params["messages"][-1]["content"]
-        if self._training_data_available:
-            features_df = pd.DataFrame([{self._prompt_column_name: latest_message}])
-            predictions = [message_content]
-        else:
-            # Feature drift and predictions data collections is disabled, no point
-            # reporting it.
-            # Target drift is disabled, no point reporting predictions for monitoring
-            predictions = None
-            features_df = None
-
-        if features_df is None and predictions is None:
-            # If neither features nor predictions can be reported for monitoring, return
-            return
+        features_df = pd.DataFrame([{self._prompt_column_name: latest_message}])
+        predictions = [message_content]
 
         try:
             self._mlops.report_predictions_data(
