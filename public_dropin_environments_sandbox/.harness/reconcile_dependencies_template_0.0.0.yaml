@@ -14,8 +14,8 @@ template:
           build: <+input>
     stages:
       - stage:
-          name: reconcile_dependencies
-          identifier: reconcile_dependencies
+          name: Reconcile Python Dependencies
+          identifier: Reconcile_Python_Dependencies
           description: ""
           type: CI
           spec:
@@ -59,6 +59,15 @@ template:
                         git config --global url."https://${GITHUB_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
                         git config --global --add safe.directory /harness  # Mark /harness as a safe directory
 
+                        # Run dependency reconciliation if there are file changes
+                        if ! git diff --quiet master -- ./requirements.*; then
+                          echo "Changes detected in $ENV_DIR. Running reconciliation..."
+                          bash ../../tools/reconcile_dependencies.sh
+                        else
+                          echo "No changes detected. Skipping reconciliation."
+                          exit 0  # Exit early if no changes
+                        fi
+                                 
                         # Commit and push changes if any
                         if [[ -n $(git status --porcelain) ]]; then
                             git add .
