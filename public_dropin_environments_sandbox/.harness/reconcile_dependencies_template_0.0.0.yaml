@@ -59,6 +59,10 @@ template:
                         git config --global url."https://${GITHUB_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
                         git config --global --add safe.directory /harness  # Mark /harness as a safe directory
 
+                        # Print the current branch
+                        current_branch=$(git branch --show-current)
+                        echo "Current branch: $current_branch"
+
                         # Run dependency reconciliation if there are file changes
                         if [ -n "$(echo $(git diff --name-only master -- ./requirements.*))" ]; then
                           echo "Requirements changes detected in $ENV_DIR. Running reconciliation..."
