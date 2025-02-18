@@ -57,7 +57,12 @@ template:
                         git config --global --add safe.directory /harness  # Mark /harness as a safe directory
 
                         # Check out the target branch
-                        git checkout <+pipeline.branch>
+                        target_branch="<+pipeline.branch>"
+                        echo "Target branch: $target_branch"
+                        if [ "$current_branch" != "$target_branch" ]; then
+                          echo "Switching to branch $target_branch..."
+                          git checkout "$target_branch"
+                        else
                         current_branch=$(git branch --show-current)
                         echo "Current branch: $current_branch"
 
