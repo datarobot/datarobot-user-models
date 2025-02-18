@@ -13,3 +13,13 @@ inputSet:
             type: branch
             spec:
               branch: master
+    variables:
+      - name: env_folder
+        type: String
+        value: public_dropin_environments_sandbox
+      - name: env_name
+        type: String
+        value: python3_keras
+      - name: release_version
+        type: String
+        value: 10.2.5
