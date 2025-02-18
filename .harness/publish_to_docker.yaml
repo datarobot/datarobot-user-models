@@ -36,7 +36,7 @@ pipeline:
                   identifier: BuildAndPushDockerRegistry_1
                   spec:
                     connectorRef: datarobot_user_models_read_write
-                    repo: datarobotdev/<+pipeline.variables.env_name>
+                    repo: datarobotdev/env-<+pipeline.variables.repo_name>
                     tags:
                       - <+pipeline.variables.release_version>
                       - latest
@@ -55,6 +55,11 @@ pipeline:
       required: true
       value: <+input>
     - name: release_version
+      type: String
+      description: ""
+      required: true
+      value: <+input>
+    - name: repo_name
       type: String
       description: ""
       required: true
