@@ -57,7 +57,7 @@ template:
                         git config --global --add safe.directory /harness  # Mark /harness as a safe directory
 
                         # Check out the target branch
-                        git checkout <+pipeline.properties.ci.codebase.build.spec.branch>
+                        git checkout <+pipeline.pipeline.branch>
                         current_branch=$(git branch --show-current)
                         echo "Current branch: $current_branch"
 
