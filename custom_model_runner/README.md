@@ -1,4 +1,4 @@
-## About !!!
+## About
 The DataRobot Model Runner (DRUM) is a tool that allows you to work locally with Python, R, and Java custom models.
 It can be used to verify that a custom model can run and make predictions before it is uploaded to DataRobot.
 However, this testing is only for development purposes. DataRobot recommends that any model you wish to deploy should also be tested in the Custom Model Workshop.
