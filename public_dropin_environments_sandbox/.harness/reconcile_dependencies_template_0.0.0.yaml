@@ -59,8 +59,14 @@ template:
                         git config --global url."https://${GITHUB_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
                         git config --global --add safe.directory /harness  # Mark /harness as a safe directory
 
-                        # Run dependency reconciliation
-                        bash ../../tools/reconcile_dependencies.sh
+                        # Run dependency reconciliation if there are file changes
+                        if [ -n "$(echo $(git diff --name-only master -- ./requirements.*))" ]; then
+                          echo "Requirements changes detected in $ENV_DIR. Running reconciliation..."
+                          bash ../../tools/reconcile_dependencies.sh
+                        else
+                          echo "No requirements changes detected. Skipping reconciliation."
+                          exit 0  # Exit early if no changes
+                        fi
                                  
                         # Commit and push changes if any
                         if [[ -n $(git status --porcelain) ]]; then
