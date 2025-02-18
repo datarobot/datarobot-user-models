@@ -65,6 +65,8 @@ template:
                         echo "Target branch: $target_branch"
                       
                         # Compare the current branch with the target branch
+                        echo "Listing all branches..."
+                        git branch -a
                         if [ "$current_branch" != "$target_branch" ]; then
                           echo "Switching to branch $target_branch..."
                           git checkout "$target_branch"
