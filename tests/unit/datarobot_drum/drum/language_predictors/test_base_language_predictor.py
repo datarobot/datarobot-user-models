@@ -426,6 +426,4 @@ class TestChat(TestBaseLanguagePredictor):
         actual_df = mock_mlops.report_predictions_data.call_args.args[0]
         actual_predictions = mock_mlops.report_predictions_data.call_args.args[1]
         assert expected_predictions == actual_predictions
-        pd.testing.assert_frame_equal(
-            actual_df, expected_df, check_like=True, check_dtype=False
-        )
+        pd.testing.assert_frame_equal(actual_df, expected_df, check_like=True, check_dtype=False)
