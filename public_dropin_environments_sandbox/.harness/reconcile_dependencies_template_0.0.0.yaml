@@ -1,0 +1,123 @@
+template:
+  name: reconcile dependencies template
+  identifier: reconcile_dependencies_template
+  versionLabel: 0.0.0
+  type: Pipeline
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  spec:
+    properties:
+      ci:
+        codebase:
+          connectorRef: account.svc_harness_git1
+          repoName: datarobot-user-models
+          build: <+input>
+    stages:
+      - stage:
+          name: Reconcile Python Dependencies
+          identifier: Reconcile_Python_Dependencies
+          description: ""
+          type: CI
+          spec:
+            cloneCodebase: false
+            caching:
+              enabled: true
+            buildIntelligence:
+              enabled: true
+            infrastructure:
+              type: KubernetesDirect
+              spec:
+                connectorRef: account.cigeneral
+                namespace: harness-delegate-ng
+                automountServiceAccountToken: true
+                nodeSelector: {}
+                os: Linux
+            execution:
+              steps:
+                - step:
+                    type: Run
+                    name: reconcile_dependencies
+                    identifier: reconcile_dependencies
+                    spec:
+                      connectorRef: account.dockerhub_datarobot_read
+                      image: <+pipeline.variables.image_uri>
+                      shell: Bash
+                      command: |-
+
+                        # Ensure Git is installed
+                        if ! command -v git &> /dev/null; then
+                            echo "Git is not installed. Installing..."
+                            apt-get update && apt-get install -y git
+                        fi
+
+                        # Configure Git
+                        git config --global user.name "svc-harness-git2"
+                        git config --global user.email "svc-harness-git2@datarobot.com"
+                        git config --global url."https://${GITHUB_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
+                        git config --global --add safe.directory /harness  # Mark /harness as a safe directory
+                        
+                        # Clone the datarobot-user-models repository
+                        git init
+                        git clone https://github.com/datarobot/datarobot-user-models.git
+                        cd datarobot-user-models || exit 1
+
+                        # Get the current branch name
+                        current_branch=$(git branch --show-current)
+                        echo "Current branch: $current_branch"
+                      
+                        # Define the target branch (replace <+pipeline.branch> with the actual target branch name)
+                        target_branch="<+pipeline.branch>"
+                        echo "Target branch: $target_branch"
+                      
+                        # Compare the current branch with the target branch
+                        echo "Listing all branches..."
+                        git branch -a
+                        if [ "$current_branch" != "$target_branch" ]; then
+                          echo "Switching to branch $target_branch..."
+                          git checkout "$target_branch"
+                        else
+                          # If already on the target branch, just print the current branch again
+                          echo "Already on the target branch. No need to switch."
+                          echo "Current branch: $current_branch"
+                        fi
+
+                        # Navigate to environment directory
+                        ENV_DIR=<+pipeline.variables.env_dir>
+                        cd "$ENV_DIR" || exit 1
+
+                        # Run dependency reconciliation if there are file changes
+                        if [ -n "$(echo $(git diff --name-only master -- ./requirements.*))" ]; then
+                          echo "Requirements changes detected in $ENV_DIR. Running reconciliation..."
+                          bash ../../tools/reconcile_dependencies.sh
+                        else
+                          echo "No requirements changes detected. Skipping reconciliation."
+                          exit 0  # Exit early if no changes
+                        fi
+                                 
+                        # Commit and push changes if any
+                        if [[ -n $(git status --porcelain) ]]; then
+                            git add .
+                            git commit -m "Reconcile dependencies for $ENV_DIR"
+                            git config pull.rebase true
+                            git pull origin "$(git branch --show-current)" --rebase
+                            git push --set-upstream origin "$(git branch --show-current)"
+                        else
+                            echo "No changes detected in Git."
+                        fi
+                      envVariables:
+                        GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
+                      resources:
+                        limits:
+                          memory: 5Gi
+                    description: Run the tools/reconcile_dependencies.sh script to auto-generate requirements.txt file base on its requirements.in file.
+    variables:
+      - name: env_dir
+        type: String
+        description: The directory of the environment to reconcile, e.g. "public_dropin_environments_sandbox/python3_keras"
+        required: true
+        value: <+input>
+      - name: image_uri
+        type: String
+        description: The image URI to use for the reconcile_dependencies step. Preferably, the same image used as the base image for the environment, e.g. "datarobot/dropin-env-base:1.0.0-python-3.11.11-slim-bookworm"
+        required: true
+        value: <+input>
