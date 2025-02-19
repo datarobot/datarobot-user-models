@@ -21,4 +21,4 @@ inputSet:
         value: python3_keras
       - name: image_tag
         type: String
-        value: <+pipeline.variables.env_name>_latest
+        value: <+pipeline.variables.env_folder>_<+pipeline.variables.env_name>_latest
