@@ -1,0 +1,16 @@
+inputSet:
+  name: branch
+  identifier: branch
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: python3keras_publicdropinenvironments
+    template:
+      templateInputs:
+        properties:
+          ci:
+            codebase:
+              build:
+                type: branch
+                spec:
+                  branch: <+trigger.sourceBranch>
