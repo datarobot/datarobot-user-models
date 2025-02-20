@@ -17,14 +17,6 @@ pipeline:
             paths: []
           buildIntelligence:
             enabled: true
-          infrastructure:
-            type: KubernetesDirect
-            spec:
-              connectorRef: account.cigeneral
-              namespace: harness-delegate-ng
-              automountServiceAccountToken: true
-              nodeSelector: {}
-              os: Linux
           execution:
             steps:
               - step:
@@ -44,3 +36,9 @@ pipeline:
                       username: yakovg
                       password: <+secrets.getValue("dockerhub-token-yakov-goldberg")>
                   description: Drone Trivy Scan
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
