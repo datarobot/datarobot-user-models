@@ -41,7 +41,7 @@ pipeline:
                       ENV_VERSION_ID=$(jq -r '.environmentVersionId' env_info.json)
 
                       TAGS="v$RELEASE_VERSION-$ENV_VERSION_ID,v$RELEASE_VERSION-latest"
-                      if [[ "$TARGET_BRANCH" == "master" ]]; then
+                      if [ "$TARGET_BRANCH" == "master" ]; then
                         TAGS="$TAGS,latest"
                       fi
 
