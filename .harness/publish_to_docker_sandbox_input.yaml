@@ -23,3 +23,6 @@ inputSet:
       - name: release_version
         type: String
         value: 10.2.5
+      - name: repo_name
+        type: String
+        value: python3-keras-sandbox
