@@ -78,9 +78,9 @@ pipeline:
       type: String
       description: ""
       required: true
-      value: ""
+      value: <+input>
     - name: latest_tag
       type: String
       description: ""
       required: false
-      value: latest,
+      value: <+input>.allowedValues(latest,)
