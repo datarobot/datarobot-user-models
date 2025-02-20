@@ -1,0 +1,46 @@
+pipeline:
+  name: trivy
+  identifier: trivy
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  stages:
+    - stage:
+        name: Scan
+        identifier: Scan
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: false
+          caching:
+            enabled: true
+            paths: []
+          buildIntelligence:
+            enabled: true
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: account.cigeneral
+              namespace: harness-delegate-ng
+              automountServiceAccountToken: true
+              nodeSelector: {}
+              os: Linux
+          execution:
+            steps:
+              - step:
+                  type: Plugin
+                  name: Drone Trivy Scan
+                  identifier: Drone_Trivy_Scan
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: datarobotdev/drone-trivy
+                    reports:
+                      type: JUnit
+                      spec:
+                        paths:
+                          - reports/**.xml
+                    settings:
+                      image: datarobotdev/env-python3-keras-sandbox
+                      username: yakovg
+                      password: <+secrets.getValue("dockerhub-token-yakov-goldberg")>
+                  description: Drone Trivy Scan
