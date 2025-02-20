@@ -31,6 +31,22 @@ pipeline:
           execution:
             steps:
               - step:
+                  type: Run
+                  name: Get Environment Version
+                  identifier: Get_Environment_Version
+                  spec:
+                    shell: Sh
+                    command: |-
+                      cd $ENV_DIR
+                      export ENV_VERSION_ID=$(jq -r '.environmentVersionId' env_info.json)
+                    envVariables:
+                      ENV_DIR: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
+                    outputVariables:
+                      - name: ENV_VERSION_ID
+                        type: String
+                        value: ENV_VERSION_ID
+                  description: Extract the environment version ID from env_info.json
+              - step:
                   type: BuildAndPushDockerRegistry
                   name: BuildAndPushDockerRegistry_1
                   identifier: BuildAndPushDockerRegistry_1
