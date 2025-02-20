@@ -54,7 +54,7 @@ pipeline:
                     connectorRef: datarobot_user_models_read_write
                     repo: datarobotdev/env-<+pipeline.variables.repo_name>
                     tags:
-                      - v<+pipeline.variables.release_version>-<+execution.steps.Get_Environment_Version.output.outputVariables.ENV_VERSION_ID>,v<+pipeline.variables.release_version>-latest,latest
+                      - <+pipeline.variables.latest_tag>v<+pipeline.variables.release_version>-latest,v<+pipeline.variables.release_version>-<+execution.steps.Get_Environment_Version.output.outputVariables.ENV_VERSION_ID>
                     caching: true
                     dockerfile: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>/Dockerfile
                     context: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
@@ -78,4 +78,9 @@ pipeline:
       type: String
       description: ""
       required: true
-      value: <+input>
+      value: ""
+    - name: latest_tag
+      type: String
+      description: ""
+      required: false
+      value: latest,
