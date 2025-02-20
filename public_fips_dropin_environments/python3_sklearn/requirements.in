@@ -1,3 +1,5 @@
 datarobot-drum
-torch
 scikit-learn
+scipy
+numpy
+pandas
