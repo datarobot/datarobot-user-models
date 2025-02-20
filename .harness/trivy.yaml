@@ -43,8 +43,8 @@ pipeline:
                       image: datarobotdev/env-python3-keras-sandbox
                       username: yakovg
                       password: <+secrets.getValue("dockerhub-token-yakov-goldberg")>
-                      ignore_policy: trivy-ignore.rego
-                      source: .harness
+                      ignore_policy: /dev/zero
+                      source: /opt/code
                   description: Drone Trivy Scan
           infrastructure:
             type: KubernetesDirect
