@@ -32,20 +32,29 @@ pipeline:
             steps:
               - step:
                   type: Run
-                  name: Get Environment Version
+                  name: Compute Tags
                   identifier: Get_Environment_Version
                   spec:
                     shell: Sh
                     command: |-
                       cd $ENV_DIR
-                      export ENV_VERSION_ID=$(jq -r '.environmentVersionId' env_info.json)
+                      ENV_VERSION_ID=$(jq -r '.environmentVersionId' env_info.json)
+
+                      TAGS="v$RELEASE_VERSION-$ENV_VERSION_ID,v$RELEASE_VERSION-latest"
+                      if [[ "$TARGET_BRANCH" == "master" ]]; then
+                        TAGS=$TAGS,latest"
+                      fi
+
+                      export TAGS
                     envVariables:
                       ENV_DIR: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
+                      TARGET_BRANCH: <+pipeline.variables.target_branch>
+                      RELEASE_VERSION: <+pipeline.variables.release_version>
                     outputVariables:
-                      - name: ENV_VERSION_ID
+                      - name: TAGS
                         type: String
-                        value: ENV_VERSION_ID
-                  description: Extract the environment version ID from env_info.json
+                        value: TAGS
+                  description: Compute the image tags based on the target_branch and environment version ID from env_info.json
               - step:
                   type: BuildAndPushDockerRegistry
                   name: BuildAndPushDockerRegistry_1
@@ -54,7 +63,7 @@ pipeline:
                     connectorRef: datarobot_user_models_read_write
                     repo: datarobotdev/env-<+pipeline.variables.repo_name>
                     tags:
-                      - <+pipeline.variables.latest_tag>v<+pipeline.variables.release_version>-latest,v<+pipeline.variables.release_version>-<+execution.steps.Get_Environment_Version.output.outputVariables.ENV_VERSION_ID>
+                      - <+execution.steps.Get_Environment_Version.output.outputVariables.TAGS>
                     caching: true
                     dockerfile: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>/Dockerfile
                     context: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
@@ -79,8 +88,8 @@ pipeline:
       description: ""
       required: true
       value: <+input>
-    - name: latest_tag
+    - name: target_branch
       type: String
       description: ""
-      required: false
-      value: <+input>.allowedValues(\'latest,\',\'\')
+      required: true
+      value: <+input>
