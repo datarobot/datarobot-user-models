@@ -42,7 +42,7 @@ pipeline:
 
                       TAGS="v$RELEASE_VERSION-$ENV_VERSION_ID,v$RELEASE_VERSION-latest"
                       if [[ "$TARGET_BRANCH" == "master" ]]; then
-                        TAGS=$TAGS,latest"
+                        TAGS="$TAGS,latest"
                       fi
 
                       export TAGS
