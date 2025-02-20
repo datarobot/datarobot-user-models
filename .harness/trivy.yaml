@@ -44,7 +44,6 @@ pipeline:
                       username: yakovg
                       password: <+secrets.getValue("dockerhub-token-yakov-goldberg")>
                       ignore_policy: /dev/zero
-                      source: /opt/code
                   description: Drone Trivy Scan
           infrastructure:
             type: KubernetesDirect
