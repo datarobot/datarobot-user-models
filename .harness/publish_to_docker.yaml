@@ -83,4 +83,4 @@ pipeline:
       type: String
       description: ""
       required: false
-      value: <+input>.allowedValues("latest,")
+      value: latest,
