@@ -29,9 +29,7 @@ logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 def get_deployment_url(host: str, deployment_id: str, *args) -> str:
     """Get the URL for the deployment sub-path."""
-    # remove the api/v2 from the host, since it is now in the urls
-    _host = host.replace("/api/v2", "")
-    parts = [_host, "api/v2/deployments", deployment_id] + list(args)
+    parts = [host, "deployments", deployment_id] + list(args)
     return "/".join([_.strip("/") for _ in parts]) + "/"
 
 
@@ -81,12 +79,10 @@ class CitationTokenCount(AggregatedMetricEvaluator):
     """Counts the total tokens in all citation values."""
 
     def score(self, df: pd.DataFrame) -> float:
-        total = 0
-        columns = get_citation_columns(df.columns)
-        for column in columns:
-            total += sum(get_token_count(v) for v in df[column].values)
-
-        return total
+        return sum(
+            sum(get_token_count(v) for v in df[column].values)
+            for column in get_citation_columns(df.columns)
+        )
 
 
 class CitationTokenAverage(AggregatedMetricEvaluator):
@@ -106,29 +102,21 @@ class CitationTokenAverage(AggregatedMetricEvaluator):
 
 
 class DocumentCount(AggregatedMetricEvaluator):
-    """Counts tne number of non-blank citations"""
+    """Counts the number of non-blank citations"""
 
     def score(self, df: pd.DataFrame) -> float:
-        # not sure it is necessary to check if blank...
-        non_blank = 0
-        columns = get_citation_columns(df.columns)
-        for column in columns:
-            non_blank += sum(v != "" for v in df[column].values)
-
-        return non_blank
+        return sum(
+            sum(bool(v) for v in df[column].values) for column in get_citation_columns(df.columns)
+        )
 
 
 class DocumentAverage(AggregatedMetricEvaluator):
-    """Counts tne number of non-blank citations"""
+    """Counts the average number of non-blank citations"""
 
     def score(self, df: pd.DataFrame) -> float:
-        # not sure it is necessary to check if blank...
-        non_blank = 0
-        columns = get_citation_columns(df.columns)
-        for column in columns:
-            non_blank += sum(v != "" for v in df[column].values)
-
-        return non_blank
+        return sum(
+            sum(bool(v) for v in df[column].values) for column in get_citation_columns(df.columns)
+        )
 
 
 class CustomMetricsProcessor:
@@ -233,12 +221,12 @@ class CustomMetricsProcessor:
                 self._bulk_upload_url, data=json.dumps(payload), headers=self._headers
             )
             if response.status_code != 202:
-                raise Exception(
+                raise requests.RequestException(
                     f"Error uploading custom metrics: Status Code: {response.status_code}"
                     f"Message: {response.text}"
                 )
             self._logger.info("Successfully uploaded custom metrics")
-        except Exception as e:
+        except requests.RequestException as e:
             title = "Failed to upload custom metrics"
             message = f"Exception: {e} Payload: {payload}"
             self._logger.error(title + " " + message)
@@ -276,7 +264,7 @@ def fetch_deployment_custom_metrics(
         try:
             response = requests.get(url, headers=headers, params=params)
             response.raise_for_status()  # not sure if this is needed
-        except Exception as e:
+        except requests.RequestException as e:
             logger.warning(f"Could not load vdb metrics: {e}")
             break
 

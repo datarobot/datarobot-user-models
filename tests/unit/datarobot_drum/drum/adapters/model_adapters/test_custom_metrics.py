@@ -163,8 +163,7 @@ def expected_map(
 
 
 @responses.activate
-@pytest.mark.usefixtures("full_custom_metrics_response")
-@pytest.mark.usefixtures("bulk_upload_success")
+@pytest.mark.usefixtures("full_custom_metrics_response", "bulk_upload_success")
 @pytest.mark.parametrize(
     ["dataframe", "expected"],
     [
@@ -199,8 +198,7 @@ def test_custom_metrics_processor_success(
 
 
 @responses.activate
-@pytest.mark.usefixtures("full_custom_metrics_response")
-@pytest.mark.usefixtures("bulk_upload_failure")
+@pytest.mark.usefixtures("full_custom_metrics_response", "bulk_upload_failure")
 def test_custom_metrics_processor_failure(mock_server_address, deployment_id):
     dataframe = single_citation_df()
     processor = create_vdb_metric_pipeline(

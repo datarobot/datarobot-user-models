@@ -705,6 +705,7 @@ class TestPythonModelAdapterWithGuards:
 
 
 def fake_metric_body(name: str) -> dict[str, Any]:
+    """Create a fake metric body with a random ID and the given name."""
     return {
         "id": str(random.randint(5000, 100000)),
         "name": name,
@@ -712,7 +713,7 @@ def fake_metric_body(name: str) -> dict[str, Any]:
 
 
 def fake_metric_response(names: list[str]) -> dict[str, Any]:
-    """Create a fake response -- mapping name to a fake body"""
+    """Create a fake response mapping names to a fake metric bodies."""
     return {name: fake_metric_body(name) for name in names}
 
 
