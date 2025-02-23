@@ -15,6 +15,7 @@ from datarobot.enums import DEFAULT_MAX_WAIT
 BASE_FIXTURE_DIR = "tests/fixtures"
 ARTIFACT_DIR = "drop_in_model_artifacts"
 CUSTOM_PREDICT_PY_PATH = os.path.join(BASE_FIXTURE_DIR, "custom.py")
+CUSTOM_UNSTRUCTURED_PREDICT_PY_PATH = os.path.join(BASE_FIXTURE_DIR, "unstructured_custom.py")
 CUSTOM_PREDICT_R_PATH = os.path.join(BASE_FIXTURE_DIR, "custom.R")
 CUSTOM_LOAD_PREDICT_PY_PATH = os.path.join(BASE_FIXTURE_DIR, "load_model_custom.py")
 CUSTOM_LOAD_PREDICT_R_PATH = os.path.join(BASE_FIXTURE_DIR, "load_model_custom.R")
@@ -122,7 +123,7 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def sklearn_fips_regression_custom_model(self, sklearn_fips_drop_in_env):
+    def sklearn_regression_custom_model_fips_compliant(self, sklearn_fips_drop_in_env):
         env_id, _ = sklearn_fips_drop_in_env
         return self.make_custom_model(
             "sklearn_reg.pkl",
@@ -139,14 +140,53 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def torch_regression_custom_model(self, pytorch_drop_in_env):
+    def keras_regression_custom_model_fips_compliant(self, keras_fips_drop_in_env):
+        env_id, _ = keras_fips_drop_in_env
+        return self.make_custom_model(
+            "keras_reg.h5",
+            env_id,
+            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            maximum_memory=750 * 1024 * 1024,
+        )
+
+    @pytest.fixture(scope="session")
+    def pytorch_regression_custom_model(self, pytorch_drop_in_env):
         env_id, _ = pytorch_drop_in_env
         return self.make_custom_model(
             "torch_reg.pth",
             env_id,
             custom_predict_path=CUSTOM_PREDICT_PY_PATH,
             other_file_names=["PyTorch.py"],
+            maximum_memory=8 * 1024 * 1024 * 1024,
         )
+
+    @pytest.fixture(scope="session")
+    def pytorch_regression_custom_model_fips_compliant(self, pytorch_fips_drop_in_env):
+        env_id, _ = pytorch_fips_drop_in_env
+        return self.make_custom_model(
+            "torch_reg.pth",
+            env_id,
+            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            other_file_names=["PyTorch.py"],
+            maximum_memory=8 * 1024 * 1024 * 1024,
+        )
+
+    @pytest.fixture(scope="session")
+    def python311_custom_model_fips_compliant(self, python311_fips_drop_in_env):
+        env_id, _ = python311_fips_drop_in_env
+        custom_model = dr.CustomInferenceModel.create(
+            name="python311_custom_model_fips_compliant",
+            target_type=dr.TARGET_TYPE.UNSTRUCTURED,
+            target_name="dummy-target",
+        )
+
+        model_version = dr.CustomModelVersion.create_clean(
+            custom_model_id=custom_model.id,
+            base_environment_id=env_id,
+            files=[(CUSTOM_UNSTRUCTURED_PREDICT_PY_PATH, "custom.py")],
+        )
+
+        return custom_model.id, model_version.id
 
     @pytest.fixture(scope="session")
     def python311_genai_custom_model(self, python311_genai_drop_in_env):
@@ -178,8 +218,22 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
+    def onnx_regression_custom_model_fips_compliant(self, onnx_fips_drop_in_env):
+        env_id, _ = onnx_fips_drop_in_env
+        return self.make_custom_model(
+            "onnx_reg.onnx", env_id, custom_predict_path=CUSTOM_PREDICT_PY_PATH
+        )
+
+    @pytest.fixture(scope="session")
     def xgb_regression_custom_model(self, xgboost_drop_in_env):
         env_id, _ = xgboost_drop_in_env
+        return self.make_custom_model(
+            "xgb_reg.pkl", env_id, custom_predict_path=CUSTOM_PREDICT_PY_PATH
+        )
+
+    @pytest.fixture(scope="session")
+    def xgb_regression_custom_model_fips_compliant(self, xgboost_fips_drop_in_env):
+        env_id, _ = xgboost_fips_drop_in_env
         return self.make_custom_model(
             "xgb_reg.pkl", env_id, custom_predict_path=CUSTOM_PREDICT_PY_PATH
         )
@@ -204,6 +258,7 @@ class TestDropInEnvironments(object):
     @pytest.mark.parametrize(
         "model, test_data_id, max_wait",
         [
+            ("python311_custom_model_fips_compliant", "regression_testing_data", DEFAULT_MAX_WAIT),
             ("python311_genai_custom_model", "regression_testing_data", 2 * DEFAULT_MAX_WAIT),
             (
                 "python311_genai_custom_model_fips_compliant",
@@ -211,12 +266,36 @@ class TestDropInEnvironments(object):
                 3 * DEFAULT_MAX_WAIT,
             ),
             ("r_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
-            ("torch_regression_custom_model", "regression_testing_data", 2 * DEFAULT_MAX_WAIT),
+            ("pytorch_regression_custom_model", "regression_testing_data", 2 * DEFAULT_MAX_WAIT),
+            (
+                "pytorch_regression_custom_model_fips_compliant",
+                "regression_testing_data",
+                2 * DEFAULT_MAX_WAIT,
+            ),
             ("keras_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
+            (
+                "keras_regression_custom_model_fips_compliant",
+                "regression_testing_data",
+                DEFAULT_MAX_WAIT,
+            ),
             ("xgb_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
+            (
+                "xgb_regression_custom_model_fips_compliant",
+                "regression_testing_data",
+                DEFAULT_MAX_WAIT,
+            ),
             ("onnx_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
+            (
+                "onnx_regression_custom_model_fips_compliant",
+                "regression_testing_data",
+                DEFAULT_MAX_WAIT,
+            ),
             ("sklearn_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
-            ("sklearn_fips_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
+            (
+                "sklearn_regression_custom_model_fips_compliant",
+                "regression_testing_data",
+                DEFAULT_MAX_WAIT,
+            ),
             ("java_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
         ],
     )

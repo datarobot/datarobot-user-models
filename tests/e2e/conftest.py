@@ -118,6 +118,11 @@ def java_drop_in_env():
 
 
 @pytest.fixture(scope="session")
+def python311_fips_drop_in_env():
+    return create_drop_in_env(PUBLIC_FIPS_DROPIN_ENVS_PATH, "python311")
+
+
+@pytest.fixture(scope="session")
 def sklearn_drop_in_env():
     return create_drop_in_env(PUBLIC_DROPIN_ENVS_PATH, "python3_sklearn")
 
@@ -133,9 +138,21 @@ def xgboost_drop_in_env():
 
 
 @pytest.fixture(scope="session")
+def xgboost_fips_drop_in_env():
+    return create_drop_in_env(PUBLIC_FIPS_DROPIN_ENVS_PATH, "python3_xgboost")
+
+
+@pytest.fixture(scope="session")
 def pytorch_drop_in_env():
     return create_drop_in_env(
         PUBLIC_DROPIN_ENVS_PATH, "python3_pytorch", max_wait=2 * DEFAULT_MAX_WAIT
+    )
+
+
+@pytest.fixture(scope="session")
+def pytorch_fips_drop_in_env():
+    return create_drop_in_env(
+        PUBLIC_FIPS_DROPIN_ENVS_PATH, "python3_pytorch", max_wait=2 * DEFAULT_MAX_WAIT
     )
 
 
@@ -159,8 +176,18 @@ def onnx_drop_in_env():
 
 
 @pytest.fixture(scope="session")
+def onnx_fips_drop_in_env():
+    return create_drop_in_env(PUBLIC_FIPS_DROPIN_ENVS_PATH, "python3_onnx")
+
+
+@pytest.fixture(scope="session")
 def keras_drop_in_env():
     return create_drop_in_env(PUBLIC_DROPIN_ENVS_PATH, "python3_keras")
+
+
+@pytest.fixture(scope="session")
+def keras_fips_drop_in_env():
+    return create_drop_in_env(PUBLIC_FIPS_DROPIN_ENVS_PATH, "python3_keras")
 
 
 @pytest.fixture(scope="session")
