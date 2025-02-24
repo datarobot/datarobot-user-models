@@ -59,7 +59,7 @@ pipeline:
                     envVariables:
                       ENV_DIR: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
                       TARGET_BRANCH: <+pipeline.variables.target_branch>
-                      GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit1")>
+                      GITHUB_ACCESS_TOKEN: <+secrets.getValue("project.datarobot_github_pat")>
                     outputVariables:
                       - name: TAGS
                         type: String
