@@ -43,9 +43,13 @@ pipeline:
 
                       # download current Datarobot version from Datarobot monorepo
                       curl -H "Accept: application/vnd.github.v3.raw" -O \
-                      "https://raw.githubusercontent.com/datarobot/DataRobot/refs/heads/master/config/RELEASE_VERSION?token=${GITHUB_ACCESS_TOKEN}"
+                      "https://raw.githubusercontent.com/datarobot/DataRobot/refs/heads/master/config/RELEASE_VERSION"
                       ls
                       RELEASE_VERSION=$(cat RELEASE_VERSION)
+
+                      if [ "$TARGET_BRANCH" != "master" ]; then
+                        RELEASE_VERSION=$(echo $TARGET_BRANCH | sed 's|release/||')
+                      fi
 
                       TAGS="v$RELEASE_VERSION-$ENV_VERSION_ID,v$RELEASE_VERSION-latest"
                       if [ "$TARGET_BRANCH" = "master" ]; then
