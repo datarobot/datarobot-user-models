@@ -146,7 +146,6 @@ class TestDropInEnvironments(object):
             "keras_reg.h5",
             env_id,
             custom_predict_path=CUSTOM_PREDICT_PY_PATH,
-            maximum_memory=750 * 1024 * 1024,
         )
 
     @pytest.fixture(scope="session")
