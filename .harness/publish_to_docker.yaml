@@ -42,7 +42,8 @@ pipeline:
                       ENV_VERSION_ID=$(jq -r '.environmentVersionId' env_info.json)
 
                       # download current Datarobot version from Datarobot monorepo
-                      curl -H "Accept: application/vnd.github.v3.raw" -o RELEASE_VERSION "https://raw.githubusercontent.com/datarobot/DataRobot/refs/heads/master/config/RELEASE_VERSION?token=${GITHUB_ACCESS_TOKEN}"
+                      echo $GITHUB_ACCESS_TOKEN
+                      curl -H "Accept: application/vnd.github.v3.raw" -o RELEASE_VERSION "https://raw.githubusercontent.com/datarobot/DataRobot/refs/heads/master/config/RELEASE_VERSION?token=GHSAT0AAAAAAC5M53WYKO2YMEHJ36BNLBREZ54YDCQ"
                       ls
                       RELEASE_VERSION=$(cat RELEASE_VERSION)
 
