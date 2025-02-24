@@ -20,14 +20,6 @@ pipeline:
           execution:
             steps:
               - step:
-                  type: Background
-                  name: DinD
-                  identifier: DinD
-                  spec:
-                    connectorRef: account.dockerhub_datarobot_read
-                    image: docker:dind
-                    shell: Sh
-              - step:
                   type: Plugin
                   name: Drone Trivy Scan
                   identifier: Drone_Trivy_Scan
@@ -45,11 +37,9 @@ pipeline:
                       password: <+secrets.getValue("dockerhub-token-yakov-goldberg")>
                       ignore_policy: /dev/zero
                   description: Drone Trivy Scan
-          infrastructure:
-            type: KubernetesDirect
-            spec:
-              connectorRef: account.cigeneral
-              namespace: harness-delegate-ng
-              automountServiceAccountToken: true
-              nodeSelector: {}
-              os: Linux
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
