@@ -51,28 +51,15 @@ pipeline:
                   spec:
                     shell: Sh
                     command: |-
-                      ls DataRobot
+                      # get current DataRobot release version
                       RELEASE_VERSION=$(cat DataRobot/config/RELEASE_VERSION)
-                      echo $RELEASE_VERSION
+                      if [ "$TARGET_BRANCH" != "master" ]; then
+                        RELEASE_VERSION=$(echo $TARGET_BRANCH | sed 's|release/||')
+                      fi
 
                       # get environment version from env_info.json
                       cd $ENV_DIR
                       ENV_VERSION_ID=$(jq -r '.environmentVersionId' env_info.json)
-
-                      # get the current Datarobot version from Datarobot monorepo
-                      git config --global user.name "svc-harness-git2"
-                      git config --global user.email "svc-harness-git2@datarobot.com"
-                      git config --global url."https://${GITHUB_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
-
-                      git clone --no-checkout --filter=blob:none https://github.com/datarobot/DataRobot.git
-                      cd DataRobot
-                      git sparse-checkout init --cone
-                      git sparse-checkout set config/RELEASE_VERSION
-                      git checkout master
-
-                      if [ "$TARGET_BRANCH" != "master" ]; then
-                        RELEASE_VERSION=$(echo $TARGET_BRANCH | sed 's|release/||')
-                      fi
 
                       TAGS="v$RELEASE_VERSION-$ENV_VERSION_ID,v$RELEASE_VERSION-latest"
                       if [ "$TARGET_BRANCH" = "master" ]; then
