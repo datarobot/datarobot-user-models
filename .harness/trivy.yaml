@@ -32,7 +32,7 @@ pipeline:
                         paths:
                           - reports/**.xml
                     settings:
-                      image: datarobotdev/env-python3-keras-sandbox
+                      image: datarobotdev/<+pipelines.variables.imageName>
                       username: yakovg
                       password: <+secrets.getValue("dockerhub-token-yakov-goldberg")>
                       ignore_policy: /dev/zero
@@ -43,3 +43,9 @@ pipeline:
           runtime:
             type: Cloud
             spec: {}
+  variables:
+    - name: imageName
+      type: String
+      description: ""
+      required: true
+      value: <+input>
