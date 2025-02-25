@@ -64,7 +64,7 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
 
         # vllm_nvext is configured via env vars
         # See https://docs.nvidia.com/nim/large-language-models/latest/configuration.html
-        env["NIM_SERVED_MODEL_NAME"] = self.model_name
+        env["NIM_SERVED_MODEL_NAME"] = self.served_model_name
         env["NIM_SERVER_PORT"] = str(self.openai_port)
         if self.model_profile:
             env["NIM_MODEL_PROFILE"] = self.model_profile
@@ -117,7 +117,7 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
         kwargs["base_url"] = f"http://{self.openai_host}:{self.openai_port}"
         kwargs["openai_client"] = self.ai_client
         # Let the hook know the name of the model we launched
-        model = self.model_name
+        model = self.served_model_name
 
         str_or_tuple = self.python_model_adapter.predict_unstructured(
             model=model, data=data, **kwargs

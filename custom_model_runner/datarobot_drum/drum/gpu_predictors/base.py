@@ -74,6 +74,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         # chat input fields
         self.system_prompt_value = self.get_optional_parameter("system_prompt")
         self.user_prompt_column = self.get_optional_parameter("prompt_column_name", "promptText")
+        self.served_model_name = self.get_optional_parameter("served_model_name", self.DEFAULT_MODEL_NAME)
 
         # completions configuration can be changed with Runtime parameters
         self.max_tokens = int(self.get_optional_parameter("max_tokens", 0)) or None
@@ -108,15 +109,12 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
     def _chat(self, completion_create_params, association_id):
         # Force the incoming model name to to match the expected model name because the
         # name isn't very applicable to BYO LLMs.
-        completion_create_params["model"] = self.model_name
+        model_name = completion_create_params.pop("model", self.served_model_name)
+        completion_create_params["model"] = model_name
         return self.ai_client.chat.completions.create(**completion_create_params)
 
     def has_read_input_data_hook(self):
         return False
-
-    @property
-    def model_name(self):
-        return self.DEFAULT_MODEL_NAME
 
     @property
     def supported_payload_formats(self):
@@ -295,7 +293,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
 
         try:
             completions = self.ai_client.chat.completions.create(
-                model=self.model_name,
+                model=self.served_model_name,
                 messages=messages,
                 n=self.num_choices_per_completion,
                 temperature=self.temperature,
