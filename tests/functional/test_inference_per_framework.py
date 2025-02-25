@@ -1055,6 +1055,9 @@ class TestNimLlm:
         os.environ[
             "MLOPS_RUNTIME_PARAM_prompt_column_name"
         ] = '{"type":"string","payload":"user_prompt"}'
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_served_model_name"
+        ] = '{"type":"string","payload":"override-llm-name"}'
         os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 256}'
         os.environ[
             "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
@@ -1094,6 +1097,7 @@ class TestNimLlm:
         assert len(response_data["predictions"]) == 1
         assert "What do you call a fake noodle?" in response_data["predictions"][0], response_data
 
+    @pytest.mark.parametrize("model_name", ["", "override-llm-name"])
     @pytest.mark.parametrize("streaming", [False, True], ids=["sync", "streaming"])
     @pytest.mark.parametrize(
         "nchoices",
@@ -1104,7 +1108,7 @@ class TestNimLlm:
             ),
         ],
     )
-    def test_chat_api(self, nim_predictor, streaming, nchoices):
+    def test_chat_api(self, nim_predictor, streaming, nchoices, model_name):
         from openai import OpenAI
 
         client = OpenAI(
@@ -1112,7 +1116,7 @@ class TestNimLlm:
         )
 
         completion = client.chat.completions.create(
-            model="any name works",
+            model=model_name,
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": "Describe the city of Boston"},
@@ -1144,17 +1148,17 @@ class TestNimLlm:
 
         response_data = response.json().get("data")
         assert len(response_data) == 1
-        assert response_data[0].get("id") == "datarobot-deployed-llm"
+        assert response_data[0].get("id") == "override-llm-name"
 
     @pytest.mark.parametrize("path", ["directAccess", "nim"])
-    def test_forward_http_post(self, path, nim_predictor):
+    def test_direct_access_completion(self, path, nim_predictor):
         from openai import OpenAI
 
         base_url = f"{nim_predictor.url_server_address}/{path}"
         client = OpenAI(base_url=base_url, api_key="not-required", max_retries=0)
 
         completion = client.chat.completions.create(
-            model="any name works",
+            model="override-llm-name",
             messages=[
                 {"role": "system", "content": "You are a calculator. Answer with a single number."},
                 {"role": "user", "content": "twenty one plus twenty one"},
@@ -1278,9 +1282,10 @@ class TestVllm:
             "Boston is a vibrant, historic city" in response_data["predictions"][0]
         ), response_data
 
+    @pytest.mark.parametrize("model_name", ["", "datarobot-deployed-llm"])
     @pytest.mark.parametrize("streaming", [False, True], ids=["sync", "streaming"])
     @pytest.mark.parametrize("nchoices", [1, 3])
-    def test_chat_api(self, vllm_predictor, streaming, nchoices):
+    def test_chat_api(self, vllm_predictor, streaming, nchoices, model_name):
         from openai import OpenAI
 
         if streaming and nchoices > 1:
@@ -1291,7 +1296,7 @@ class TestVllm:
         )
 
         completion = client.chat.completions.create(
-            model="any name works",
+            model=model_name,
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": "Describe the city of Boston"},
