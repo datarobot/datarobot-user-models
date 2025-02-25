@@ -41,8 +41,6 @@ pipeline:
                       cd $ENV_DIR
                       ENV_VERSION_ID=$(jq -r '.environmentVersionId' env_info.json)
 
-                      echo $GITHUB_ACCESS_TOKEN
-
                       # download current Datarobot version from Datarobot monorepo
                       curl -H "Accept: application/vnd.github.v3.raw" -o RELEASE_VERSION "https://raw.githubusercontent.com/datarobot/DataRobot/refs/heads/master/config/RELEASE_VERSION?token=${GITHUB_ACCESS_TOKEN}"
                       ls
@@ -61,7 +59,7 @@ pipeline:
                     envVariables:
                       ENV_DIR: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
                       TARGET_BRANCH: <+pipeline.variables.target_branch>
-                      GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
+                      GITHUB_ACCESS_TOKEN: GHSAT0AAAAAAC5M53WYCHWAMZDFCTY6PM4IZ55LLQA
                     outputVariables:
                       - name: TAGS
                         type: String
