@@ -70,12 +70,11 @@ pipeline:
                     envVariables:
                       ENV_DIR: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
                       TARGET_BRANCH: <+pipeline.variables.target_branch>
-                      GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
                     outputVariables:
                       - name: TAGS
                         type: String
                         value: TAGS
-                  description: Compute the image tags based on the target_branch and environment version ID from env_info.json
+                  description: Compute the image tags based on the current DR release version, target_branch and environment version ID from env_info.json
               - step:
                   type: BuildAndPushDockerRegistry
                   name: BuildAndPushDockerRegistry_1
