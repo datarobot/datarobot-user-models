@@ -1,6 +1,6 @@
 pipeline:
-  name: trivy
-  identifier: trivy
+  name: "daily security scans"
+  identifier: trivy_scan
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models
   tags: {}
@@ -8,7 +8,7 @@ pipeline:
     - stage:
         name: Scan
         identifier: Scan
-        description: ""
+        description: "Scan the image with trivy"
         type: CI
         spec:
           cloneCodebase: false
@@ -17,14 +17,6 @@ pipeline:
             paths: []
           buildIntelligence:
             enabled: true
-          infrastructure:
-            type: KubernetesDirect
-            spec:
-              connectorRef: account.cigeneral
-              namespace: harness-delegate-ng
-              automountServiceAccountToken: true
-              nodeSelector: {}
-              os: Linux
           execution:
             steps:
               - step:
@@ -40,7 +32,20 @@ pipeline:
                         paths:
                           - reports/**.xml
                     settings:
-                      image: datarobotdev/env-python3-keras-sandbox
+                      image: datarobotdev/<+pipelines.variables.imageName>
                       username: yakovg
                       password: <+secrets.getValue("dockerhub-token-yakov-goldberg")>
+                      ignore_policy: /dev/zero
                   description: Drone Trivy Scan
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+  variables:
+    - name: imageName
+      type: String
+      description: ""
+      required: true
+      value: <+input>
