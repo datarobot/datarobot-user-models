@@ -9,6 +9,11 @@ import os
 import subprocess
 from pathlib import Path
 
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
+from datarobot_drum.drum.enum import CLASS_LABELS_ARG_KEYWORD
+from datarobot_drum.drum.enum import NEGATIVE_CLASS_LABEL_ARG_KEYWORD
+from datarobot_drum.drum.enum import POSITIVE_CLASS_LABEL_ARG_KEYWORD
+from datarobot_drum.drum.enum import TARGET_TYPE_ARG_KEYWORD
 from datarobot_drum.drum.enum import CustomHooks
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
@@ -109,6 +114,23 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
             for line in p.stdout:
                 self.logger.info(line[:-1])
 
+    def _predict(self, **kwargs) -> RawPredictResponse:
+        if self.python_model_adapter.has_custom_hook(CustomHooks.SCORE):
+            # This is adapted from the PythonPredictor class
+            kwargs[TARGET_TYPE_ARG_KEYWORD] = self.target_type
+            if self.positive_class_label is not None and self.negative_class_label is not None:
+                kwargs[POSITIVE_CLASS_LABEL_ARG_KEYWORD] = self.positive_class_label
+                kwargs[NEGATIVE_CLASS_LABEL_ARG_KEYWORD] = self.negative_class_label
+            if self.class_labels:
+                kwargs[CLASS_LABELS_ARG_KEYWORD] = self.class_labels
+
+            # Let hook authors know where they can contact the NIM server
+            kwargs["base_url"] = f"http://{self.openai_host}:{self.openai_port}"
+            kwargs["openai_client"] = self.ai_client
+            return self.python_model_adapter.predict(model=self.served_model_name, **kwargs)
+        else:
+            return super()._predict(**kwargs)
+
     def predict_unstructured(self, data, **kwargs):
         if not self.python_model_adapter.has_custom_hook(CustomHooks.SCORE_UNSTRUCTURED):
             raise DrumCommonException("The unstructured target type is not supported")
@@ -116,11 +138,10 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
         # Let hook authors know where they can contact the NIM server
         kwargs["base_url"] = f"http://{self.openai_host}:{self.openai_port}"
         kwargs["openai_client"] = self.ai_client
-        # Let the hook know the name of the model we launched
-        model = self.served_model_name
 
+        # This is adapted from the PythonPredictor class
         str_or_tuple = self.python_model_adapter.predict_unstructured(
-            model=model, data=data, **kwargs
+            model=self.served_model_name, data=data, **kwargs
         )
         if isinstance(str_or_tuple, (str, bytes, type(None))):
             ret = str_or_tuple, None
