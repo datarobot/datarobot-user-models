@@ -51,10 +51,9 @@ pipeline:
                   spec:
                     shell: Sh
                     command: |-
-                      ls
-                      RELEASE_VERSION=$(cat config/RELEASE_VERSION)
+                      ls DataRobot
+                      RELEASE_VERSION=$(cat DataRobot/config/RELEASE_VERSION)
                       echo $RELEASE_VERSION
-
 
                       # get environment version from env_info.json
                       cd $ENV_DIR
