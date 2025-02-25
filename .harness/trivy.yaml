@@ -32,7 +32,7 @@ pipeline:
                         paths:
                           - reports/**.xml
                     settings:
-                      image: datarobotdev/<+pipelines.variables.imageName>
+                      image: datarobotdev/<+pipeline.variables.imageName>
                       username: yakovg
                       password: <+secrets.getValue("dockerhub-token-yakov-goldberg")>
                       ignore_policy: /dev/zero
