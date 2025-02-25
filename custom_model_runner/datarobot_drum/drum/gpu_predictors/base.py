@@ -111,6 +111,9 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         completion_create_params["model"] = self.model_name
         return self.ai_client.chat.completions.create(**completion_create_params)
 
+    def _get_supported_llm_models(self):
+        return self.ai_client.models.list()
+
     def has_read_input_data_hook(self):
         return False
 

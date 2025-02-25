@@ -8,3 +8,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 
 def is_streaming_response(response):
     return getattr(response, "object", None) != "chat.completion"
+
+
+def is_openai_model(model):
+    return getattr(model, "object", None) == "model"
