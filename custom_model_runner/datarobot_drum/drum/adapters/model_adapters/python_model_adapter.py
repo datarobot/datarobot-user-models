@@ -26,6 +26,7 @@ from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPre
 from datarobot_drum.drum.artifact_predictors.torch_predictor import PyTorchPredictor
 from datarobot_drum.drum.artifact_predictors.xgboost_predictor import XGBoostPredictor
 from datarobot_drum.drum.artifact_predictors.onnx_predictor import ONNXPredictor
+from datarobot_drum.drum.root_predictors.chat_helpers import is_openai_model
 
 from datarobot_drum.drum.common import (
     reroute_stdout_to_stderr,
@@ -762,6 +763,18 @@ class PythonModelAdapter(AbstractModelAdapter):
             )
         else:
             return self._custom_hooks.get(CustomHooks.CHAT)(completion_create_params, model)
+
+    def get_supported_llm_models(self, model):
+        result = {"object": "list", "data": []}
+        if (
+            self._target_type == TargetType.TEXT_GENERATION
+            and self._custom_hooks.get(CustomHooks.GET_SUPPORTED_LLM_MODELS_LIST)
+        ):
+            response = self._custom_hooks.get(CustomHooks.GET_SUPPORTED_LLM_MODELS_LIST)(model)
+            for model in response:
+                if is_openai_model(model):
+                    result["data"].append(model.to_dict())
+        return result
 
     def fit(
         self,
