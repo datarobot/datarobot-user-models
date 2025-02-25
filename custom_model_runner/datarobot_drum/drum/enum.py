@@ -118,6 +118,7 @@ class CustomHooks:
     POST_PROCESS = "post_process"
     FIT = "fit"
     CHAT = "chat"
+    GET_SUPPORTED_LLM_MODELS_LIST = "get_supported_llm_models"
 
     ALL_PREDICT_STRUCTURED = [
         INIT,
@@ -128,7 +129,9 @@ class CustomHooks:
         POST_PROCESS,
     ]
     ALL_PREDICT_UNSTRUCTURED = [INIT, LOAD_MODEL, SCORE_UNSTRUCTURED]
-    ALL_PREDICT_FIT_CHAT_STRUCTURED = ALL_PREDICT_STRUCTURED + [FIT, CHAT]
+    ALL_PREDICT_FIT_CHAT_STRUCTURED = ALL_PREDICT_STRUCTURED + [
+        FIT, CHAT, GET_SUPPORTED_LLM_MODELS_LIST
+    ]
 
 
 class UnstructuredDtoKeys:

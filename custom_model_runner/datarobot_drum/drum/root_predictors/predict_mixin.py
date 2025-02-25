@@ -407,6 +407,10 @@ class PredictMixin:
 
         return response, HTTP_200_OK
 
+    def get_supported_llm_models(self, logger=None):
+        result = self._predictor.get_supported_llm_models()
+        return result, HTTP_200_OK
+
     def do_transform(self, logger=None):
         if self._target_type != TargetType.TRANSFORM:
             endpoint = (
