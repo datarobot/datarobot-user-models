@@ -245,6 +245,13 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
+    def java_regression_custom_model_fips_compliant(self, java_fips_drop_in_env):
+        env_id, _ = java_fips_drop_in_env
+        return self.make_custom_model(
+            "java_reg.jar", env_id, artifact_only=True, target_name=REGRESSION_TARGET
+        )
+
+    @pytest.fixture(scope="session")
     def r_regression_custom_model(self, r_drop_in_env):
         env_id, _ = r_drop_in_env
         return self.make_custom_model(
@@ -296,6 +303,11 @@ class TestDropInEnvironments(object):
                 DEFAULT_MAX_WAIT,
             ),
             ("java_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
+            (
+                "java_regression_custom_model_fips_compliant",
+                "regression_testing_data",
+                DEFAULT_MAX_WAIT,
+            ),
         ],
     )
     def test_drop_in_environments(self, request, model, test_data_id, max_wait):
