@@ -1072,7 +1072,7 @@ class TestNimLlm:
             gpu_predictor=GPU_NIM,
             sidecar=(framework_env == GPU_NIM_SIDECAR),
             target_name="response",
-            wait_for_server_timeout=600,
+            wait_for_server_timeout=400,
         ) as run:
             response = requests.get(run.url_server_address)
             if not response.ok:
