@@ -32,7 +32,7 @@ pipeline:
                         paths:
                           - reports/**.xml
                     settings:
-                      image: datarobotdev/<+pipelines.variables.imageName>
+                      image: datarobotdev/<+pipeline.variables.imageName>
                       # TODO: Replace the following lines with the new credentials once they are added 
                       username: yakovg
                       password: <+secrets.getValue("dockerhub-token-yakov-goldberg")>
