@@ -15,8 +15,7 @@ import time
 import typing
 from pathlib import Path
 from subprocess import Popen
-from threading import Event
-from threading import Thread
+from threading import Event, Thread
 
 import numpy as np
 import requests
@@ -24,21 +23,27 @@ from requests import ConnectionError, Timeout
 from requests import codes as http_codes
 
 from datarobot_drum import RuntimeParameters
-from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
-from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
+    PythonModelAdapter,
+    RawPredictResponse,
+)
 from datarobot_drum.drum.common import SupportedPayloadFormats
-from datarobot_drum.drum.enum import CUSTOM_FILE_NAME, EnvVarNames, TargetType
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
-from datarobot_drum.drum.enum import CustomHooks
-from datarobot_drum.drum.enum import PayloadFormat
-from datarobot_drum.drum.enum import StructuredDtoKeys
+from datarobot_drum.drum.enum import (
+    CUSTOM_FILE_NAME,
+    LOGGER_NAME_PREFIX,
+    CustomHooks,
+    EnvVarNames,
+    PayloadFormat,
+    StructuredDtoKeys,
+    TargetType,
+)
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.gpu_predictors import MLOpsStatusReporter
 from datarobot_drum.drum.language_predictors.base_language_predictor import (
     BaseLanguagePredictor,
 )
-from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
 from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerProcess
+from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
 
 
 class ChatRoles:

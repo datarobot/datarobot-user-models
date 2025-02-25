@@ -9,12 +9,16 @@ import os
 import subprocess
 from pathlib import Path
 
-from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
-from datarobot_drum.drum.enum import CLASS_LABELS_ARG_KEYWORD
-from datarobot_drum.drum.enum import NEGATIVE_CLASS_LABEL_ARG_KEYWORD
-from datarobot_drum.drum.enum import POSITIVE_CLASS_LABEL_ARG_KEYWORD
-from datarobot_drum.drum.enum import TARGET_TYPE_ARG_KEYWORD
-from datarobot_drum.drum.enum import CustomHooks
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
+    RawPredictResponse,
+)
+from datarobot_drum.drum.enum import (
+    CLASS_LABELS_ARG_KEYWORD,
+    NEGATIVE_CLASS_LABEL_ARG_KEYWORD,
+    POSITIVE_CLASS_LABEL_ARG_KEYWORD,
+    TARGET_TYPE_ARG_KEYWORD,
+    CustomHooks,
+)
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
 

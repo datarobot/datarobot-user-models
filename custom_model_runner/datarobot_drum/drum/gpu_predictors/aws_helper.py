@@ -1,7 +1,8 @@
-import boto3
 import os
 import time
 from urllib.parse import urlparse
+
+import boto3
 
 
 class TransferMonitor(object):
