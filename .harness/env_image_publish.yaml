@@ -29,9 +29,11 @@ pipeline:
                     image: alpine/git
                     shell: Sh
                     command: |-
-                      if [ "<+pipeline.variables.env_name>" = "java_codegen" ]; then
-                        # For java env we install maven and build java components to make mave download most of the depndencies
-                        cp -r custom_model_runner/<+pipeline.variables.env_folder>/java_codegen/
+                      if [ "<+pipeline.variables.env_name>" = "java_codegen" ] && [ "<+pipeline.variables.env_folder>" != "public_fips_dropin_environments" ]; then
+                        # For non FIPS-compliant java env we install maven and build java components to make maven
+                        # download most of the dependencies. For the FIPS-compliant java env we don't need to do this
+                        # because we skip installations and use the already installed dependencies.
+                        cp -r custom_model_runner/ <+pipeline.variables.env_folder>/java_codegen/
                         cd <+pipeline.variables.env_folder>/java_codegen
                         echo -e "RUN apt-get update && apt-get install -y maven" >> Dockerfile 
                         echo -e "COPY ./custom_model_runner /tmp/custom_model_runner" >> Dockerfile 
