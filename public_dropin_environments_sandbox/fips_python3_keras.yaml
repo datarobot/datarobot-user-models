@@ -1,0 +1,21 @@
+pipeline:
+  name: python3-keras_public-dropin-environments
+  identifier: python3keras_publicdropinenvironments
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  template:
+    templateRef: reconcile_dependencies_template
+    versionLabel: 0.0.0
+    templateInputs:
+      properties:
+        ci:
+          codebase:
+            build: <+input>
+      variables:
+        - name: env_dir
+          type: String
+          value: public_dropin_environments_sandbox/python3_keras
+        - name: image_uri
+          type: String
+          value: datarobot/dropin-env-base:1.0.0-python-3.11.11-slim-bookworm
