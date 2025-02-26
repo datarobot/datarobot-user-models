@@ -15,7 +15,7 @@ def score_unstructured(model: str, data: str, base_url: str, openai_client: Open
     # `input_type` is an extension to OpenAI API that NIM uses for certain embedding models
     # One way to pass this is to append to the model name:
     #   https://docs.nvidia.com/nim/nemo-retriever/text-embedding/latest/reference.html#openai-api
-    input_type = payload.pop("input_type")
+    input_type = payload.pop("input_type", None)
 
     # The user passed a model param so just defer to them
     if "model" in payload:
