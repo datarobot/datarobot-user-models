@@ -12,11 +12,10 @@ pip install pip==23.0.0
 # Install or upgrade pip-tools for dependency management
 pip install --upgrade pip-tools
 
-printf "Home directory: "
-printf $HOME
-
-# Add user-installed binaries to PATH
-export PATH=$HOME/.local/bin:$PATH
+# Add user-installed binaries to PATH only if the directory exists
+if [[ -d "$HOME/.local/bin" ]]; then
+    export PATH="$HOME/.local/bin:$PATH"
+fi
 
 if [[ -f "requirements.in" ]]; then  # Check if requirements.in exists
     # Generate a fully pinned requirements.txt file from requirements.in
