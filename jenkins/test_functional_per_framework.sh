@@ -111,7 +111,7 @@ export GPU_COUNT=$(nvidia-smi -L | wc -l)
 echo "GPU count: $GPU_COUNT"
 
 GPU_OPTION=""
-if [[ $GPU_COUNT -ge 1 && "$FRAMEWORK" != "nim_sidecar" ]] ; then
+if [[ $GPU_COUNT -ge 1 ]] ; then
   GPU_OPTION="--gpus all"
 else
   # Don't set env var if no GPUs are available to tests can be skipped
@@ -136,6 +136,7 @@ docker run -i $TERMINAM_OPTION $GPU_OPTION \
     -v /tmp:/tmp \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v "${GIT_ROOT}:${GIT_ROOT}" \
+    --user root \
     --workdir ${GIT_ROOT} \
     --entrypoint "" \
     $DOCKER_IMAGE \
