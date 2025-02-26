@@ -10,7 +10,7 @@ set -e  # Exit immediately if a command exits with a non-zero status
 pip install pip==23.0.0
 
 # Install or upgrade pip-tools for dependency management
-pip install --upgrade pip-tools
+pip install --user --upgrade pip-tools
 
 if [[ -f "requirements.in" ]]; then  # Check if requirements.in exists
     # Generate a fully pinned requirements.txt file from requirements.in
