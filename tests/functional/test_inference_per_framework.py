@@ -1097,7 +1097,9 @@ class TestNimLlm:
         assert len(response_data["predictions"]) == 1
         assert "What do you call a fake noodle?" in response_data["predictions"][0], response_data
 
-    @pytest.mark.parametrize("model_name", ["", "override-llm-name"])
+    @pytest.mark.parametrize(
+        "model_name", ["", "override-llm-name"], ids=["no-model-name", "pass-model-name"]
+    )
     @pytest.mark.parametrize("streaming", [False, True], ids=["sync", "streaming"])
     @pytest.mark.parametrize(
         "nchoices",
@@ -1282,7 +1284,9 @@ class TestVllm:
             "Boston is a vibrant, historic city" in response_data["predictions"][0]
         ), response_data
 
-    @pytest.mark.parametrize("model_name", ["", "datarobot-deployed-llm"])
+    @pytest.mark.parametrize(
+        "model_name", ["", "datarobot-deployed-llm"], ids=["no_model_name", "default_model_name"]
+    )
     @pytest.mark.parametrize("streaming", [False, True], ids=["sync", "streaming"])
     @pytest.mark.parametrize("nchoices", [1, 3])
     def test_chat_api(self, vllm_predictor, streaming, nchoices, model_name):
