@@ -3,9 +3,8 @@
   "name": "[GenAI][NVIDIA] Generic image used to proxy requests to NIM",
   "description": "",
   "programmingLanguage": "python",
-  "label": "v1.3.3+dr.2",
-  "environmentVersionId": "67a623818206bdd08ef065cd",
-  "environmentVersionDescription": "Adds NVIDIA genai-perf tool",
+  "environmentVersionId": "67bf7c82b9eb89fd786dcd1e",
+  "environmentVersionDescription": "Adds support for score() hook and flexible model name handling",
   "isDownloadable": false,
   "isPublic": true
 }
