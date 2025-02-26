@@ -97,9 +97,10 @@ pipeline:
         description: ""
         type: CI
         spec:
-          cloneCodebase: true
+          cloneCodebase: false
           caching:
             enabled: true
+            paths: []
           buildIntelligence:
             enabled: true
           infrastructure:
