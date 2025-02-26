@@ -47,7 +47,7 @@ pipeline:
               - step:
                   type: Run
                   name: Compute Tags
-                  identifier: Get_Environment_Version
+                  identifier: Compute_Tags
                   spec:
                     shell: Sh
                     command: |-
@@ -61,7 +61,8 @@ pipeline:
                       cd $ENV_DIR
                       ENV_VERSION_ID=$(jq -r '.environmentVersionId' env_info.json)
 
-                      TAGS="v$RELEASE_VERSION-$ENV_VERSION_ID,v$RELEASE_VERSION-latest"
+                      TAG_TO_SIGN="v$RELEASE_VERSION-$ENV_VERSION_ID"
+                      TAGS="$TAG_TO_SIGN,v$RELEASE_VERSION-latest"
                       if [ "$TARGET_BRANCH" = "master" ]; then
                         TAGS="$TAGS,latest"
                       fi
@@ -74,6 +75,9 @@ pipeline:
                       - name: TAGS
                         type: String
                         value: TAGS
+                      - name: TAG_TO_SIGN
+                        type: String
+                        value: TAG_TO_SIGN
                   description: Compute the image tags based on the current DR release version, target_branch and environment version ID from env_info.json
               - step:
                   type: BuildAndPushDockerRegistry
@@ -83,10 +87,75 @@ pipeline:
                     connectorRef: datarobot_user_models_read_write
                     repo: datarobotdev/env-<+pipeline.variables.repo_name>
                     tags:
-                      - <+execution.steps.Get_Environment_Version.output.outputVariables.TAGS>
+                      - <+execution.steps.Compute_Tags.output.outputVariables.TAGS>
                     caching: true
                     dockerfile: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>/Dockerfile
                     context: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
+    - stage:
+        name: sign
+        identifier: sign
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+          buildIntelligence:
+            enabled: true
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: account.cigeneral
+              namespace: harness-delegate-ng
+              automountServiceAccountToken: true
+              nodeSelector: {}
+              os: Linux
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: sign
+                  identifier: sign
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: datarobotdev/platform-base-python-311-devel
+                    shell: Sh
+                    command: |-
+                      # install notation
+                      export NOTATION_VERSION=1.2.0
+                      curl -LO https://github.com/notaryproject/notation/releases/download/v$NOTATION_VERSION/notation_$NOTATION_VERSION\_linux_amd64.tar.gz
+
+                      tar xvzf notation_$NOTATION_VERSION\_linux_amd64.tar.gz -C /usr/bin/ notation
+
+                      # Create directory
+                      mkdir plugins
+
+                      # Download the zip
+                      curl -o notation-aws-signer-plugin.zip https://d2hvyiie56hcat.cloudfront.net/linux/amd64/plugin/latest/notation-aws-signer-plugin.zip
+
+                      # Unzip to the correct location
+                      microdnf install unzip
+                      unzip notation-aws-signer-plugin.zip -d plugins/
+                      chmod +x plugins/notation-com.amazonaws.signer.notation.plugin
+
+                      # install
+                      notation plugin install --file plugins/notation-com.amazonaws.signer.notation.plugin
+
+                      # set AWS credentials
+                      set +x
+                      temp_role=$(aws sts assume-role --role-arn arn:aws:iam::883986434461:role/dr-artifact-signing-role --role-session-name test)
+                      export AWS_ACCESS_KEY_ID=$(echo $temp_role | jq -r .Credentials.AccessKeyId)
+                      export AWS_SECRET_ACCESS_KEY=$(echo $temp_role | jq -r .Credentials.SecretAccessKey)
+                      export AWS_SESSION_TOKEN=$(echo $temp_role | jq -r .Credentials.SessionToken)
+
+                      # sign image
+                      export AWS_REGION=us-east-1
+                      notation sign $TARGET_IMAGE_FULLNAME --username $DOCKER_USERNAME --password $DOCKER_PASSWORD --plugin "com.amazonaws.signer.notation.plugin" --id "arn:aws:signer:us-east-1:883986434461:/signing-profiles/dr_artifacts_20241231162516984400000001"
+                    envVariables:
+                      TARGET_IMAGE_FULLNAME: datarobotdev/env-<+pipeline.variables.repo_name>:<+execution.steps.Compute_Tags.output.outputVariables.TAG_TO_SIGN>
+                      DOCKER_USERNAME: yakovg
+                      DOCKER_PASSWORD: <+secrets.getValue("dockerhub-token-yakov-goldberg")>
+                  description: Sign image using AWS Signer and Notation.
   variables:
     - name: env_folder
       type: String
