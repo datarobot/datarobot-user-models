@@ -1037,6 +1037,59 @@ class TestInference:
             assert "INDIGO FINCH" in response_text[header_length:]
 
 
+class NimSideCarBase:
+    NIM_SIDECAR_IMAGE: str = None
+    CUSTOM_MODEL_DIR = "/tmp"
+    TARGET_NAME = "response"
+    TARGET_TYPE = TargetType.TEXT_GENERATION
+    READY_TIMEOUT_SEC = 600
+    LABELS = None
+
+    @pytest.fixture(scope="class")
+    def nim_sidecar(self, framework_env):
+        skip_if_framework_not_in_env(GPU_NIM_SIDECAR, framework_env)
+        skip_if_keys_not_in_env(["GPU_COUNT", "NGC_API_KEY"])
+
+        ngc_key = os.environ["NGC_API_KEY"]
+        client = docker.from_env()
+        client.login(username="$oauthtoken", password=ngc_key, registry="nvcr.io")
+        container = client.containers.run(
+            image=self.NIM_SIDECAR_IMAGE,
+            environment={"NGC_API_KEY": ngc_key},
+            network="host",  # TODO This assumes we always run on Linux
+            detach=True,
+            device_requests=[docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])],
+        )
+        yield container
+        # For debugging, dump output of NIM container for pytest to display on failure
+        print(container.logs(tail="all", timestamps=True).decode())
+        container.remove(force=True)
+
+    @pytest.fixture(scope="class")
+    def nim_predictor(self, nim_sidecar):
+        # the Runtime Parameters used for prediction requests
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
+        ] = '{"type": "numeric", "payload": 10}'
+
+        with DrumServerRun(
+            target_type=self.TARGET_TYPE.value,
+            labels=self.LABELS,
+            custom_model_dir=self.CUSTOM_MODEL_DIR,
+            with_error_server=True,
+            production=False,
+            logging_level="info",
+            gpu_predictor=GPU_NIM,
+            sidecar=True,
+            target_name=self.TARGET_NAME,
+            wait_for_server_timeout=self.READY_TIMEOUT_SEC,
+        ) as run:
+            response = requests.get(run.url_server_address)
+            if not response.ok:
+                raise RuntimeError("Server failed to start")
+            yield run
+
+
 class TestNimLlm:
     @pytest.fixture(scope="class")
     def nim_predictor(self, framework_env):
@@ -1171,44 +1224,10 @@ class TestNimLlm:
         assert "42" in llm_response
 
 
-class TestNimEmbedQa:
-    @pytest.fixture(scope="class")
-    def nim_predictor(self, framework_env):
-        skip_if_framework_not_in_env(GPU_NIM_EMBEDQA, framework_env)
-        skip_if_keys_not_in_env(["GPU_COUNT", "NGC_API_KEY"])
-
-        os.environ["MLOPS_RUNTIME_PARAM_NGC_API_KEY"] = json.dumps(
-            {
-                "type": "credential",
-                "payload": {
-                    "credentialType": "apiToken",
-                    "apiToken": os.environ["NGC_API_KEY"],
-                },
-            }
-        )
-
-        # the Runtime Parameters used for prediction requests
-        os.environ[
-            "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
-        ] = '{"type": "numeric", "payload": 10}'
-
-        custom_model_dir = os.path.join(TESTS_FIXTURES_PATH, "nim_embedqa")
-
-        with DrumServerRun(
-            target_type=TargetType.UNSTRUCTURED.value,
-            labels=None,
-            custom_model_dir=custom_model_dir,
-            with_error_server=True,
-            production=False,
-            logging_level="info",
-            gpu_predictor=GPU_NIM,
-            target_name="response",
-            wait_for_server_timeout=600,
-        ) as run:
-            response = requests.get(run.url_server_address)
-            if not response.ok:
-                raise RuntimeError("Server failed to start")
-            yield run
+class TestNimEmbedQa(NimSideCarBase):
+    NIM_SIDECAR_IMAGE = "nvcr.io/nim/nvidia/llama-3.2-nv-embedqa-1b-v2:1.3.1"
+    CUSTOM_MODEL_DIR = os.path.join(TESTS_FIXTURES_PATH, "nim_embedqa")
+    TARGET_TYPE = TargetType.UNSTRUCTURED
 
     @pytest.mark.parametrize("input_type", ["query", "passage"])
     def test_predict_unstructured(self, nim_predictor, input_type):
@@ -1225,61 +1244,11 @@ class TestNimEmbedQa:
         assert len(embedding["embedding"]) > 0
 
 
-class NimSideCarBase:
-    CUSTOM_MODEL_DIR = "/tmp"
-    TARGET_NAME = "response"
-    TARGET_TYPE = TargetType.TEXT_GENERATION
-    LABELS = None
-
-    @pytest.fixture(scope="class")
-    def nim_predictor(self, nim_sidecar):
-        # the Runtime Parameters used for prediction requests
-        os.environ[
-            "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
-        ] = '{"type": "numeric", "payload": 10}'
-
-        with DrumServerRun(
-            sidecar=True,
-            target_type=self.TARGET_TYPE.value,
-            labels=self.LABELS,
-            custom_model_dir=self.CUSTOM_MODEL_DIR,
-            with_error_server=True,
-            production=False,
-            logging_level="info",
-            gpu_predictor=GPU_NIM,
-            target_name=self.TARGET_NAME,
-            wait_for_server_timeout=600,
-        ) as run:
-            response = requests.get(run.url_server_address)
-            if not response.ok:
-                raise RuntimeError("Server failed to start")
-            yield run
-
-
-class TestNimJailbreak(NimSideCarBase):
+class TestNimJailBreak(NimSideCarBase):
+    NIM_SIDECAR_IMAGE = "nvcr.io/nim/nvidia/nemoguard-jailbreak-detect:1.0.0"
     CUSTOM_MODEL_DIR = os.path.join(TESTS_FIXTURES_PATH, "nim_jailbreak")
     TARGET_TYPE = TargetType.BINARY
     LABELS = ["True", "False"]
-
-    @pytest.fixture(scope="class", autouse=True)
-    def nim_sidecar(self, framework_env):
-        skip_if_framework_not_in_env(GPU_NIM_SIDECAR, framework_env)
-        skip_if_keys_not_in_env(["GPU_COUNT", "NGC_API_KEY"])
-
-        ngc_key = os.environ["NGC_API_KEY"]
-        client = docker.from_env()
-        client.login(username="$oauthtoken", password=ngc_key, registry="nvcr.io")
-        container = client.containers.run(
-            image="nvcr.io/nim/nvidia/nemoguard-jailbreak-detect:1.0.0",
-            environment={"NGC_API_KEY": ngc_key},
-            network="host",  # TODO This assumes we always run on Linux
-            detach=True,
-            device_requests=[docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])],
-        )
-        yield container
-        # For debugging, dump output of NIM container for pytest to display on failure
-        print(container.logs(tail="all", timestamps=True).decode())
-        container.remove(force=True)
 
     def test_predict(self, nim_predictor):
         data = io.StringIO(
