@@ -206,6 +206,16 @@ def r_drop_in_env():
 
 
 @pytest.fixture(scope="session")
+def r_fips_drop_in_env():
+    return create_drop_in_env(
+        PUBLIC_FIPS_DROPIN_ENVS_PATH,
+        "r_lang",
+        "r",
+        max_wait=4 * DEFAULT_MAX_WAIT,
+    )
+
+
+@pytest.fixture(scope="session")
 def julia_drop_in_env():
     return create_drop_in_env(PUBLIC_DROPIN_ENVS_PATH, "julia_mlj", "other")
 
