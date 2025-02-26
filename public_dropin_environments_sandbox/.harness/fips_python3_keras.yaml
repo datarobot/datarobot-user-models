@@ -1,6 +1,6 @@
 pipeline:
-  name: python3-keras_public-dropin-environments
-  identifier: python3keras_publicdropinenvironments
+  name: fips-python3-keras_public-dropin-environments
+  identifier: fipspython3keras_publicdropinenvironments
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models
   tags: {}
