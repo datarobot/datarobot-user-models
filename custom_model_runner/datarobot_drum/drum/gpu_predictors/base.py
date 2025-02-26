@@ -116,7 +116,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
     def _chat(self, completion_create_params, association_id):
         # Force the incoming model name to to match the expected model name because the
         # name isn't very applicable to BYO LLMs.
-        model_name = completion_create_params.pop("model") or self.served_model_name
+        model_name = completion_create_params.pop("model", None) or self.served_model_name
         completion_create_params["model"] = model_name
         return self.ai_client.chat.completions.create(**completion_create_params)
 
