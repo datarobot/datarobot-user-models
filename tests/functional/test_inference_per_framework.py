@@ -1232,7 +1232,7 @@ class NimSideCarBase:
     LABELS = None
 
     @pytest.fixture(scope="class")
-    def nim_predictor(self, framework_env, nim_sidecar):
+    def nim_predictor(self, nim_sidecar):
         # the Runtime Parameters used for prediction requests
         os.environ[
             "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
@@ -1261,7 +1261,7 @@ class TestNimJailbreak(NimSideCarBase):
     TARGET_TYPE = TargetType.BINARY
 
     @pytest.fixture(scope="class", autouse=True)
-    def nim_sidecar(self):
+    def nim_sidecar(self, framework_env):
         skip_if_framework_not_in_env(GPU_NIM_SIDECAR, framework_env)
         skip_if_keys_not_in_env(["GPU_COUNT", "NGC_API_KEY"])
 
