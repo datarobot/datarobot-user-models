@@ -1307,7 +1307,7 @@ class TestVllm:
             ],
             n=nchoices,
             stream=streaming,
-            temperature=0.1,
+            temperature=0.01,
         )
 
         if streaming:
@@ -1322,7 +1322,10 @@ class TestVllm:
             assert len(completion.choices) == nchoices
             llm_response = completion.choices[0].message.content
 
-        assert re.search(r"is a (vibrant and historic|bustling) city", llm_response)
+        assert re.search(
+            r"Boston(, the capital (city )?of Massachusetts,)? is a (vibrant and )?(bustling|historic) (city|metropolis)",
+            llm_response,
+        )
 
 
 class TestPython311Fips:
