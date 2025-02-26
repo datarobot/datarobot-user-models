@@ -127,8 +127,9 @@ custom-model-templates.Rproj
 # java/jar
 custom_model_runner/**/*.jar
 tests/functional/custom_java_predictor/**/*.jar
-*.class 
+*.class
 
 # misc
 .metals
 .vscode
+.server_ready
