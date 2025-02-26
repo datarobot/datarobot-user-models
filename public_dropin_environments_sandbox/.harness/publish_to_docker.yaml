@@ -1,0 +1,107 @@
+pipeline:
+  name: publish to docker
+  identifier: publish_to_docker
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
+  stages:
+    - stage:
+        name: build_and_publish
+        identifier: build_and_publish
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+          buildIntelligence:
+            enabled: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: GitClone
+                  name: Get DR Release Version
+                  identifier: Get_DR_Release_Version
+                  spec:
+                    connectorRef: account.svc_harness_git1
+                    repoName: DataRobot
+                    sparseCheckout:
+                      - config/RELEASE_VERSION
+                    depth: 1
+                    build:
+                      type: branch
+                      spec:
+                        branch: master
+              - step:
+                  type: Run
+                  name: Compute Tags
+                  identifier: Get_Environment_Version
+                  spec:
+                    shell: Sh
+                    command: |-
+                      # get current DataRobot release version
+                      RELEASE_VERSION=$(cat DataRobot/config/RELEASE_VERSION)
+                      if [ "$TARGET_BRANCH" != "master" ]; then
+                        RELEASE_VERSION=$(echo $TARGET_BRANCH | sed 's|release/||')
+                      fi
+                      # get environment version from env_info.json
+                      cd $ENV_DIR
+                      ENV_VERSION_ID=$(jq -r '.environmentVersionId' env_info.json)
+                      TAGS="v$RELEASE_VERSION-$ENV_VERSION_ID,v$RELEASE_VERSION-latest"
+                      if [ "$TARGET_BRANCH" = "master" ]; then
+                        TAGS="$TAGS,latest"
+                      fi
+                      export TAGS
+                    envVariables:
+                      ENV_DIR: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
+                      TARGET_BRANCH: <+pipeline.variables.target_branch>
+                    outputVariables:
+                      - name: TAGS
+                        type: String
+                        value: TAGS
+                  description: Compute the image tags based on the current DR release version, target_branch and environment version ID from env_info.json
+              - step:
+                  type: BuildAndPushDockerRegistry
+                  name: BuildAndPushDockerRegistry_1
+                  identifier: BuildAndPushDockerRegistry_1
+                  spec:
+                    connectorRef: datarobot_user_models_read_write
+                    repo: datarobotdev/env-<+pipeline.variables.repo_name>
+                    tags:
+                      - <+execution.steps.Get_Environment_Version.output.outputVariables.TAGS>
+                    caching: true
+                    dockerfile: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>/Dockerfile
+                    context: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
+  variables:
+    - name: env_folder
+      type: String
+      description: ""
+      required: true
+      value: <+input>.allowedValues(public_dropin_environments, public_dropin_gpu_environments, public_dropin_environments_sandbox)
+    - name: env_name
+      type: String
+      description: ""
+      required: true
+      value: <+input>
+    - name: repo_name
+      type: String
+      description: ""
+      required: true
+      value: <+input>
+    - name: target_branch
+      type: String
+      description: ""
+      required: true
+      value: <+input>
