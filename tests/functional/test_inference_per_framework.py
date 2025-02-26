@@ -1157,7 +1157,7 @@ class TestNimLlm:
     def test_direct_access_completion(self, path, nim_predictor):
         from openai import OpenAI
 
-        base_url = f"{nim_predictor.url_server_address}/{path}"
+        base_url = f"{nim_predictor.url_server_address}/{path}/v1"
         client = OpenAI(base_url=base_url, api_key="not-required", max_retries=0)
 
         completion = client.chat.completions.create(
