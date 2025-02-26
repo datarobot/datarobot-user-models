@@ -5,12 +5,10 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
-import os
 import sys
 from pathlib import Path
 
 import requests
-from datarobot_drum.drum.enum import EnvVarNames
 from flask import Response, jsonify, request
 from werkzeug.exceptions import HTTPException
 
@@ -213,8 +211,15 @@ class PredictionServer(PredictMixin):
         @model_api.route("/directAccess/<path:path>", methods=["GET", "POST", "PUT"])
         @model_api.route("/nim/<path:path>", methods=["GET", "POST", "PUT"])
         def forward_request(path):
-            openai_host = os.environ.get(EnvVarNames.OPENAI_HOST, "localhost")
-            openai_port = os.environ.get(EnvVarNames.OPENAI_PORT, "8000")
+            if not hasattr(self._predictor, "openai_host") or not hasattr(
+                self._predictor, "openai_port"
+            ):
+                return {
+                    "message": "This endpoint is only supported by OpenAI based predictors"
+                }, HTTP_400_BAD_REQUEST
+
+            openai_host = self._predictor.openai_host
+            openai_port = self._predictor.openai_port
 
             resp = requests.request(
                 method=request.method,

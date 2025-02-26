@@ -1233,7 +1233,6 @@ class NimSideCarBase:
 
     @pytest.fixture(scope="class")
     def nim_predictor(self, framework_env, nim_sidecar):
-
         # the Runtime Parameters used for prediction requests
         os.environ[
             "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
