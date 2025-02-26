@@ -6,8 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### [1.16.6] - 2025-02-??
 ##### Changed
-- vLLM and NIM predictors now all user to specify `model` name as part of a chat completion request. The old behavior hard-coded `datarobot-deployed-llm` as the model name. While this value is still the default if no model name is passed in the completion request, it can be overriden by setting the `served_model_name` runtime parameter.
-- Adds support for `predict()` hook in `NIMPredictor()` class.
+- vLLM and NIM predictors now allow the user to specify `model` name as part of a chat completion request. The old behavior hard-coded `datarobot-deployed-llm` as the model name. While this value is still the default if no model name is passed in the completion request, it can be overriden by setting the `served_model_name` runtime parameter.
+- Adds support for `score()` hook in `NIMPredictor()` class.
 
 #### [1.16.5] - 2025-02-18
 ##### Changed
@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Extend DRUM API to support proxy requests to the model server.
 - Extend NimPredictor to support multi-container deployments
 - Internal adjustments to support newer versions of Keras.
-- Adds support for `predict_unstructured()` hook in `NIMPredictor()` class.
+- Adds support for `score_unstructured()` hook in `NIMPredictor()` class.
 
 #### [1.16.4] - 2025-01-31
 ##### Changed
