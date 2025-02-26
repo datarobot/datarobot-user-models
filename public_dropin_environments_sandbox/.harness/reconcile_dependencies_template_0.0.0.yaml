@@ -84,6 +84,9 @@ template:
                         # Navigate to environment directory
                         ENV_DIR=<+pipeline.variables.env_dir>
                         cd "$ENV_DIR" || exit 1
+                        
+                        # Install pip-tools
+                        pip install pip-tools
 
                         # Run dependency reconciliation if there are file changes
                         if [ -n "$(echo $(git diff --name-only master -- ./requirements.*))" ]; then
