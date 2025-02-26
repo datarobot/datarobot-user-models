@@ -15,7 +15,7 @@ pipeline:
       variables:
         - name: env_dir
           type: String
-          value: public_dropin_environments_sandbox/python3_keras
+          value: public_dropin_environments_sandbox/fips_python3_keras
         - name: image_uri
           type: String
-          value: datarobot/dropin-env-base:1.0.0-python-3.11.11-slim-bookworm
+          value: datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev
