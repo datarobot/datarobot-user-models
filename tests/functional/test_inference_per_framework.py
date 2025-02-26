@@ -1090,6 +1090,7 @@ class NimSideCarBase:
             yield run
 
 
+@pytest.mark.xdist_group("gpu")
 class TestNimLlm:
     @pytest.fixture(scope="class")
     def nim_predictor(self, framework_env):
@@ -1224,16 +1225,22 @@ class TestNimLlm:
         assert "42" in llm_response
 
 
+@pytest.mark.xdist_group("gpu")
 class TestNimEmbedQa(NimSideCarBase):
     NIM_SIDECAR_IMAGE = "nvcr.io/nim/nvidia/llama-3.2-nv-embedqa-1b-v2:1.3.1"
     CUSTOM_MODEL_DIR = os.path.join(TESTS_FIXTURES_PATH, "nim_embedqa")
     TARGET_TYPE = TargetType.UNSTRUCTURED
 
+    @pytest.fixture
+    def model_name(self):
+        base, tag = self.NIM_SIDECAR_IMAGE.split(":")
+        return base.split("/", 2)[-1]
+
     @pytest.mark.parametrize("input_type", ["query", "passage"])
-    def test_predict_unstructured(self, nim_predictor, input_type):
+    def test_predict_unstructured(self, nim_predictor, input_type, model_name):
         response = requests.post(
             f"{nim_predictor.url_server_address}/predictUnstructured/",
-            json={"input": ["Hello world"], "input_type": input_type},
+            json={"input": ["Hello world"], "model": f"{model_name}-{input_type}"},
         )
         assert response.ok, response.content
 
@@ -1244,6 +1251,7 @@ class TestNimEmbedQa(NimSideCarBase):
         assert len(embedding["embedding"]) > 0
 
 
+@pytest.mark.xdist_group("gpu")
 class TestNimJailBreak(NimSideCarBase):
     NIM_SIDECAR_IMAGE = "nvcr.io/nim/nvidia/nemoguard-jailbreak-detect:1.0.0"
     CUSTOM_MODEL_DIR = os.path.join(TESTS_FIXTURES_PATH, "nim_jailbreak")
@@ -1268,7 +1276,10 @@ class TestNimJailBreak(NimSideCarBase):
         assert {"False": 0.0, "True": 1.0} == response_data["predictions"][0]
 
 
+@pytest.mark.xdist_group("gpu")
 class TestVllm:
+    UNSET = object()
+
     @pytest.fixture(scope="class")
     def vllm_predictor(self, framework_env):
         skip_if_framework_not_in_env(GPU_VLLM, framework_env)
@@ -1328,12 +1339,9 @@ class TestVllm:
             "Boston is a vibrant, historic city" in response_data["predictions"][0]
         ), response_data
 
-    @pytest.mark.parametrize(
-        "model_name", ["", "datarobot-deployed-llm"], ids=["no_model_name", "default_model_name"]
-    )
     @pytest.mark.parametrize("streaming", [False, True], ids=["sync", "streaming"])
     @pytest.mark.parametrize("nchoices", [1, 3])
-    def test_chat_api(self, vllm_predictor, streaming, nchoices, model_name):
+    def test_chat_api(self, vllm_predictor, streaming, nchoices):
         from openai import OpenAI
 
         if streaming and nchoices > 1:
@@ -1344,7 +1352,7 @@ class TestVllm:
         )
 
         completion = client.chat.completions.create(
-            model=model_name,
+            model="datarobot-deployed-llm",
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": "Describe the city of Boston"},
@@ -1370,6 +1378,34 @@ class TestVllm:
             r"Boston(, the capital (city )?of Massachusetts,)? is a (vibrant and )?(bustling|historic) (city|metropolis)",
             llm_response,
         )
+
+    @pytest.mark.parametrize(
+        "model_name", ["", "datarobot-deployed-llm", "bogus-name", None, UNSET]
+    )
+    def test_chat_api_model_name(self, vllm_predictor, model_name):
+        url = f"{vllm_predictor.url_server_address}/v1/chat/completions"
+        payload = {
+            "model": model_name,
+            "messages": [
+                {
+                    "role": "developer",
+                    "content": "You are a helpful assistant.",
+                },
+                {
+                    "role": "user",
+                    "content": "Hello!",
+                },
+            ],
+        }
+        if model_name is self.UNSET:
+            del payload["model"]
+
+        response = requests.post(url, json=payload)
+        if model_name == "bogus-name":
+            assert response.status_code == 500
+            assert "model `bogus-name` does not exist." in response.text
+        else:
+            assert response.ok, response.text
 
 
 class TestPython311Fips:
