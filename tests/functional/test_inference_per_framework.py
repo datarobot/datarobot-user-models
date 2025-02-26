@@ -13,6 +13,8 @@ from tempfile import NamedTemporaryFile
 from textwrap import dedent
 from unittest.mock import patch
 
+import docker
+import docker.types
 import pandas as pd
 import pytest
 import requests
@@ -1221,6 +1223,77 @@ class TestNimEmbedQa:
         assert embedding["object"] == "embedding"
         assert embedding["index"] == 0
         assert len(embedding["embedding"]) > 0
+
+
+class NimSideCarBase:
+    CUSTOM_MODEL_DIR = "/tmp"
+    TARGET_NAME = "response"
+    TARGET_TYPE = TargetType.TEXT_GENERATION
+    LABELS = None
+
+    @pytest.fixture(scope="class")
+    def nim_predictor(self, framework_env, nim_sidecar):
+
+        # the Runtime Parameters used for prediction requests
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
+        ] = '{"type": "numeric", "payload": 10}'
+
+        with DrumServerRun(
+            sidecar=True,
+            target_type=self.TARGET_TYPE.value,
+            labels=self.LABELS,
+            custom_model_dir=self.CUSTOM_MODEL_DIR,
+            with_error_server=True,
+            production=False,
+            logging_level="info",
+            gpu_predictor=GPU_NIM,
+            target_name=self.TARGET_NAME,
+            wait_for_server_timeout=600,
+        ) as run:
+            response = requests.get(run.url_server_address)
+            if not response.ok:
+                raise RuntimeError("Server failed to start")
+            yield run
+
+
+class TestNimJailbreak(NimSideCarBase):
+    CUSTOM_MODEL_DIR = os.path.join(TESTS_FIXTURES_PATH, "nim_jailbreak")
+    TARGET_TYPE = TargetType.BINARY
+
+    @pytest.fixture(scope="class", autouse=True)
+    def nim_sidecar(self):
+        skip_if_framework_not_in_env(GPU_NIM_SIDECAR, framework_env)
+        skip_if_keys_not_in_env(["GPU_COUNT", "NGC_API_KEY"])
+
+        client = docker.from_env()
+        container = client.containers.run(
+            image="nvcr.io/nim/nvidia/nemoguard-jailbreak-detect:1.0.0",
+            environment={"NGC_API_KEY": os.environ["NGC_API_KEY"]},
+            ports={"8000/tcp": 8000},
+            network="host",  # TODO This assumes we always run on Linux
+            detach=True,
+            device_requests=[docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])],
+        )
+        yield container
+        container.stop()
+
+    def test_predict(self, nim_predictor):
+        data = io.StringIO("user_prompt\nDescribe the city of Boston.")
+        headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
+        response = requests.post(
+            f"{nim_predictor.url_server_address}/predict/",
+            data=data,
+            headers=headers,
+        )
+        assert response.ok
+        response_data = response.json()
+        assert response_data
+        assert "predictions" in response_data, response_data
+        assert len(response_data["predictions"]) == 1
+        assert (
+            "Boston is a vibrant, historic city" in response_data["predictions"][0]
+        ), response_data
 
 
 class TestVllm:

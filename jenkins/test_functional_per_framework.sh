@@ -98,19 +98,20 @@ if [ -t 1 ] ; then
 fi
 
 echo "detected machine=$machine url_host: $url_host"
-# Note : The mapping of /tmp is critical so the code inside the docker can run the tests.
-#        Since one of the tests is using a docker the second docker can only share a host file
-#        system with the first docker.
+# Note: The mapping of /tmp is critical so the code inside the docker can run the tests.
+#       Since one of the tests is using a docker the second docker can only share a host file
+#       system with the first docker.
 # Note: The --network=host will allow a code running inside the docker to access the host network
 #       In mac we dont have host network so we use the host.docker.internal ip
 # Note: The `--gpus all` is required for GPU predictors tests
+# Note: For nim_sidecar, the GPUs go to the sidecar container, not the DRUM container
 
 export TEST_URL_HOST=$url_host
 export GPU_COUNT=$(nvidia-smi -L | wc -l)
 echo "GPU count: $GPU_COUNT"
 
 GPU_OPTION=""
-if [ $GPU_COUNT -ge 1 ] ; then
+if [[ $GPU_COUNT -ge 1 && "$FRAMEWORK" != "nim_sidecar" ]] ; then
   GPU_OPTION="--gpus all"
 else
   # Don't set env var if no GPUs are available to tests can be skipped
@@ -123,26 +124,22 @@ touch ${GIT_ROOT}/results_integration.xml
 chmod 777 ${GIT_ROOT}/results_integration.xml
 sudo chmod -R 777 ${GIT_ROOT}/.pytest_cache
 
-if [[ "$FRAMEWORK" == "nim_sidecar" ]]; then
-  docker-compose -f tests/functional/gpu_nim_sidecar/docker-compose.yaml up --abort-on-container-exit
-else
-  docker run -i $TERMINAM_OPTION $GPU_OPTION \
-      --network $network \
-      -v $HOME:$HOME \
-      -e GPU_COUNT \
-      -e AWS_ACCESS_KEY_ID \
-      -e AWS_SECRET_ACCESS_KEY \
-      -e HF_TOKEN \
-      -e NGC_API_KEY \
-      -e TEST_URL_HOST=$url_host \
-      -v /tmp:/tmp \
-      -v /var/run/docker.sock:/var/run/docker.sock \
-      -v "${GIT_ROOT}:${GIT_ROOT}" \
-      --workdir ${GIT_ROOT} \
-      --entrypoint "" \
-      $DOCKER_IMAGE \
-      ./tests/functional/run_integration_tests_in_framework_container.sh $1
-fi
+docker run -i $TERMINAM_OPTION $GPU_OPTION \
+    --network $network \
+    -v $HOME:$HOME \
+    -e GPU_COUNT \
+    -e AWS_ACCESS_KEY_ID \
+    -e AWS_SECRET_ACCESS_KEY \
+    -e HF_TOKEN \
+    -e NGC_API_KEY \
+    -e TEST_URL_HOST=$url_host \
+    -v /tmp:/tmp \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v "${GIT_ROOT}:${GIT_ROOT}" \
+    --workdir ${GIT_ROOT} \
+    --entrypoint "" \
+    $DOCKER_IMAGE \
+    ./tests/functional/run_integration_tests_in_framework_container.sh $1
 
 TEST_RESULT=$?
 
