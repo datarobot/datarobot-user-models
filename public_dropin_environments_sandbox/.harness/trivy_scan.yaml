@@ -1,0 +1,52 @@
+pipeline:
+  name: "daily security scans"
+  identifier: trivy_scan
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  stages:
+    - stage:
+        name: Scan
+        identifier: Scan
+        description: "Scan the image with trivy"
+        type: CI
+        spec:
+          cloneCodebase: false
+          caching:
+            enabled: true
+            paths: []
+          buildIntelligence:
+            enabled: true
+          execution:
+            steps:
+              - step:
+                  type: Plugin
+                  name: Drone Trivy Scan
+                  identifier: Drone_Trivy_Scan
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: datarobotdev/drone-trivy
+                    reports:
+                      type: JUnit
+                      spec:
+                        paths:
+                          - reports/**.xml
+                    settings:
+                      image: datarobotdev/<+pipeline.variables.imageName>
+                      # TODO: Replace the following lines with the new credentials once they are added 
+                      username: yakovg
+                      password: <+secrets.getValue("dockerhub-token-yakov-goldberg")>
+                      ignore_policy: /dev/zero
+                  description: Drone Trivy Scan
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+  variables:
+    - name: imageName
+      type: String
+      description: ""
+      required: true
+      value: <+input>
