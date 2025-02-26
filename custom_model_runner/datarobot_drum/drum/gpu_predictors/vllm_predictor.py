@@ -51,7 +51,7 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
             "--port",
             self.openai_port,
             "--served-model-name",
-            self.model_name,
+            self.served_model_name,
         ]
 
         code_dir = Path(self._code_dir)

@@ -15,8 +15,7 @@ import time
 import typing
 from pathlib import Path
 from subprocess import Popen
-from threading import Event
-from threading import Thread
+from threading import Event, Thread
 
 import numpy as np
 import requests
@@ -24,21 +23,27 @@ from requests import ConnectionError, Timeout
 from requests import codes as http_codes
 
 from datarobot_drum import RuntimeParameters
-from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
-from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
+from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
+    PythonModelAdapter,
+    RawPredictResponse,
+)
 from datarobot_drum.drum.common import SupportedPayloadFormats
-from datarobot_drum.drum.enum import CUSTOM_FILE_NAME, EnvVarNames
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
-from datarobot_drum.drum.enum import CustomHooks
-from datarobot_drum.drum.enum import PayloadFormat
-from datarobot_drum.drum.enum import StructuredDtoKeys
+from datarobot_drum.drum.enum import (
+    CUSTOM_FILE_NAME,
+    LOGGER_NAME_PREFIX,
+    CustomHooks,
+    EnvVarNames,
+    PayloadFormat,
+    StructuredDtoKeys,
+    TargetType,
+)
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.gpu_predictors import MLOpsStatusReporter
 from datarobot_drum.drum.language_predictors.base_language_predictor import (
     BaseLanguagePredictor,
 )
-from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
 from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerProcess
+from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
 
 
 class ChatRoles:
@@ -74,6 +79,9 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         # chat input fields
         self.system_prompt_value = self.get_optional_parameter("system_prompt")
         self.user_prompt_column = self.get_optional_parameter("prompt_column_name", "promptText")
+        self.served_model_name: str = self.get_optional_parameter(
+            "served_model_name", self.DEFAULT_MODEL_NAME
+        )
 
         # completions configuration can be changed with Runtime parameters
         self.max_tokens = int(self.get_optional_parameter("max_tokens", 0)) or None
@@ -81,7 +89,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self.temperature = self.get_optional_parameter("temperature") or None
 
         # used to load custom model hooks
-        self.python_model_adapter = None
+        self.python_model_adapter: PythonModelAdapter = None
         # report deployment status events to DataRobot
         self.verify_ssl = self.get_optional_parameter("verifySSL", True)
         self.status_reporter: MLOpsStatusReporter = None
@@ -108,15 +116,12 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
     def _chat(self, completion_create_params, association_id):
         # Force the incoming model name to to match the expected model name because the
         # name isn't very applicable to BYO LLMs.
-        completion_create_params["model"] = self.model_name
+        model_name = completion_create_params.pop("model") or self.served_model_name
+        completion_create_params["model"] = model_name
         return self.ai_client.chat.completions.create(**completion_create_params)
 
     def has_read_input_data_hook(self):
         return False
-
-    @property
-    def model_name(self):
-        return self.DEFAULT_MODEL_NAME
 
     @property
     def supported_payload_formats(self):
@@ -253,6 +258,13 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         return default_value
 
     def _predict(self, **kwargs) -> RawPredictResponse:
+        if self.target_type != TargetType.TEXT_GENERATION:
+            raise DrumCommonException(
+                "The default predict() implementation for this Predictor requires a Text "
+                "Generation target type. To support other target types, you must implement "
+                "a custom hook."
+            )
+
         data = kwargs.get(StructuredDtoKeys.BINARY_DATA)
         if isinstance(data, bytes):
             data = data.decode("utf8")
@@ -295,7 +307,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
 
         try:
             completions = self.ai_client.chat.completions.create(
-                model=self.model_name,
+                model=self.served_model_name,
                 messages=messages,
                 n=self.num_choices_per_completion,
                 temperature=self.temperature,
