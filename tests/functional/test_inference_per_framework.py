@@ -1073,7 +1073,6 @@ class TestNimLlm:
             production=False,
             logging_level="info",
             gpu_predictor=GPU_NIM,
-            sidecar=(framework_env == GPU_NIM_SIDECAR),
             target_name="response",
             wait_for_server_timeout=400,
         ) as run:
