@@ -137,7 +137,7 @@ class NimSideCarBase:
             yield run
 
 
-class NimLlmMixin:
+class NimLlmCases:
     def test_predict(self, nim_predictor):
         data = io.StringIO("user_prompt\ntell me a joke")
         headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
@@ -227,7 +227,7 @@ class NimLlmMixin:
 
 
 @pytest.mark.xdist_group("gpu")
-class TestLegacyNimLlm(NimLlmMixin):
+class TestLegacyNimLlm(NimLlmCases):
     @pytest.fixture(scope="class")
     def nim_predictor(self, framework_env):
         skip_if_framework_not_in_env(GPU_NIM, framework_env)
@@ -275,7 +275,7 @@ class TestLegacyNimLlm(NimLlmMixin):
 
 
 @pytest.mark.xdist_group("gpu")
-class TestNimLlm(NimSideCarBase, NimLlmMixin):
+class TestNimLlm(NimSideCarBase, NimLlmCases):
     NIM_SIDECAR_IMAGE = "nvcr.io/nim/meta/llama-3.2-3b-instruct:1.6.0"
 
 
