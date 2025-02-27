@@ -127,6 +127,10 @@ class NimSideCarBase:
 
     @pytest.fixture(scope="class")
     def nim_predictor(self, nim_sidecar):
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_served_model_name"
+        ] = f'{{"type": "string", "payload": "{self.model_name}"}}'
+
         # the Runtime Parameters used for prediction requests
         os.environ[
             "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
@@ -255,6 +259,9 @@ class TestLegacyNimLlm(NimLlmCases):
                 },
             }
         )
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
+        ] = '{"type": "numeric", "payload": 10}'
 
         # the Runtime Parameters used for prediction requests
         os.environ[
@@ -264,9 +271,6 @@ class TestLegacyNimLlm(NimLlmCases):
             "MLOPS_RUNTIME_PARAM_served_model_name"
         ] = f'{{"type":"string","payload":"{self.model_name}"}}'
         os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 256}'
-        os.environ[
-            "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
-        ] = '{"type": "numeric", "payload": 10}'
 
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "gpu_nim_textgen")
 
@@ -290,6 +294,7 @@ class TestLegacyNimLlm(NimLlmCases):
 @pytest.mark.xdist_group("gpu")
 class TestNimLlm(NimSideCarBase, NimLlmCases):
     NIM_SIDECAR_IMAGE = "nvcr.io/nim/meta/llama-3.1-8b-instruct:1.3.3"
+    prompt_column_name = "promptText"
 
 
 @pytest.mark.xdist_group("gpu")
@@ -347,21 +352,23 @@ class TestVllm:
         skip_if_framework_not_in_env(GPU_VLLM, framework_env)
         skip_if_keys_not_in_env(["GPU_COUNT"])
 
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
+        ] = '{"type": "numeric", "payload": 10}'
+
         # Override default params from example model to use a smaller model
-        # TODO: remove this when we can inject runtime params correctly.
         os.environ["MLOPS_RUNTIME_PARAM_model"] = json.dumps(
             {
                 "type": "string",
                 "payload": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
             }
         )
+
+        # the Runtime Parameters used for prediction requests
         os.environ[
             "MLOPS_RUNTIME_PARAM_prompt_column_name"
         ] = '{"type":"string","payload":"user_prompt"}'
         os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 30}'
-        os.environ[
-            "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
-        ] = '{"type": "numeric", "payload": 10}'
 
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "gpu_vllm_textgen")
         with open(os.path.join(custom_model_dir, "engine_config.json"), "w") as f:
