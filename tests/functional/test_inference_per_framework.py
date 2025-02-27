@@ -40,6 +40,7 @@ from datarobot_drum.drum.root_predictors.utils import (
     _create_custom_model_dir,
     _exec_shell_cmd,
 )
+from tests.conftest import skip_if_framework_not_in_env
 from tests.constants import (
     BINARY,
     CODEGEN,
