@@ -85,6 +85,12 @@ def test_triton_predictor(framework, target_type, model_template_dir, framework_
 
 
 class NimSideCarBase:
+    """
+    Base class to help in writing new tests for various NIM models. The main requirement is the
+    need to specify a `NIM_SIDECAR_IMAGE`. The default behavior is to spin up an LLM NIM but this
+    class should be flexible enough to support other NIM families by overriding the other class
+    attributes.
+    """
     NIM_SIDECAR_IMAGE: str = None
     CUSTOM_MODEL_DIR = "/tmp"
     TARGET_NAME = "response"
@@ -155,6 +161,10 @@ class NimSideCarBase:
 
 
 class NimLlmCases:
+    """
+    Split the actual LLM test cases into its own _mixin_ class to allow us to share tests between
+    single-container and sidecar modes.
+    """
     def test_predict(self, nim_predictor):
         data = io.StringIO(f"{self.prompt_column_name}\ntell me a joke")
         headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
@@ -242,6 +252,10 @@ class NimLlmCases:
 
 @pytest.mark.xdist_group("gpu")
 class TestLegacyNimLlm(NimLlmCases):
+    """
+    This is the old way we used to run NIM LLM models (in a single container). This was released
+    in 10.0 - 10.2 so leaving this test around for now until all customers have moved to 11.0+
+    """
     model_name = "override-llm-name"
     prompt_column_name = "user_prompt"
 
