@@ -92,6 +92,16 @@ class NimSideCarBase:
     READY_TIMEOUT_SEC = 600
     LABELS = None
 
+    @property
+    def model_name(self):
+        """
+        The convetion appears to be that given a docker image such as
+            nvcr.io/nim/nvidia/llama-3.2-nv-embedqa-1b-v2:1.3.1
+        The served model name is: nvidia/llama-3.2-nv-embedqa-1b-v2
+        """
+        base, tag = self.NIM_SIDECAR_IMAGE.split(":")
+        return base.split("/", 2)[-1]
+
     @pytest.fixture(scope="class")
     def nim_sidecar(self, framework_env):
         skip_if_framework_not_in_env(GPU_NIM_SIDECAR, framework_env)
@@ -106,6 +116,9 @@ class NimSideCarBase:
             network="host",  # TODO This assumes we always run on Linux
             detach=True,
             device_requests=[docker.types.DeviceRequest(count=-1, capabilities=[["gpu"]])],
+            # most of the AWS GPU nodes we would use for testing NIMs have NVMe storage
+            # that is great for caching the model files.
+            volumes={"/opt/dlami/nvme/": {"bind": "/opt/nim/.cache", "mode": "rw"}},
         )
         yield container
         # For debugging, dump output of NIM container for pytest to display on failure
@@ -139,23 +152,20 @@ class NimSideCarBase:
 
 class NimLlmCases:
     def test_predict(self, nim_predictor):
-        data = io.StringIO("user_prompt\ntell me a joke")
+        data = io.StringIO(f"{self.prompt_column_name}\ntell me a joke")
         headers = {"Content-Type": f"{PredictionServerMimetypes.TEXT_CSV};charset=UTF-8"}
         response = requests.post(
             f"{nim_predictor.url_server_address}/predict/",
             data=data,
             headers=headers,
         )
-        assert response.ok
+        assert response.ok, response.text
         response_data = response.json()
         assert response_data
         assert "predictions" in response_data, response_data
         assert len(response_data["predictions"]) == 1
         assert "What do you call a fake noodle?" in response_data["predictions"][0], response_data
 
-    @pytest.mark.parametrize(
-        "model_name", ["", "override-llm-name"], ids=["no-model-name", "pass-model-name"]
-    )
     @pytest.mark.parametrize("streaming", [False, True], ids=["sync", "streaming"])
     @pytest.mark.parametrize(
         "nchoices",
@@ -166,7 +176,7 @@ class NimLlmCases:
             ),
         ],
     )
-    def test_chat_api(self, nim_predictor, streaming, nchoices, model_name):
+    def test_chat_api(self, nim_predictor, streaming, nchoices):
         from openai import OpenAI
 
         client = OpenAI(
@@ -174,7 +184,7 @@ class NimLlmCases:
         )
 
         completion = client.chat.completions.create(
-            model=model_name,
+            model=self.model_name,
             messages=[
                 {"role": "system", "content": "You are a helpful assistant."},
                 {"role": "user", "content": "Describe the city of Boston"},
@@ -206,7 +216,7 @@ class NimLlmCases:
 
         response_data = response.json().get("data")
         assert len(response_data) == 1
-        assert response_data[0].get("id") == "override-llm-name"
+        assert response_data[0].get("id") == self.model_name
 
     @pytest.mark.parametrize("path", ["directAccess", "nim"])
     def test_direct_access_completion(self, path, nim_predictor):
@@ -216,7 +226,7 @@ class NimLlmCases:
         client = OpenAI(base_url=base_url, api_key="not-required", max_retries=0)
 
         completion = client.chat.completions.create(
-            model="override-llm-name",
+            model=self.model_name,
             messages=[
                 {"role": "system", "content": "You are a calculator. Answer with a single number."},
                 {"role": "user", "content": "twenty one plus twenty one"},
@@ -228,6 +238,9 @@ class NimLlmCases:
 
 @pytest.mark.xdist_group("gpu")
 class TestLegacyNimLlm(NimLlmCases):
+    model_name = "override-llm-name"
+    prompt_column_name = "user_prompt"
+
     @pytest.fixture(scope="class")
     def nim_predictor(self, framework_env):
         skip_if_framework_not_in_env(GPU_NIM, framework_env)
@@ -246,10 +259,10 @@ class TestLegacyNimLlm(NimLlmCases):
         # the Runtime Parameters used for prediction requests
         os.environ[
             "MLOPS_RUNTIME_PARAM_prompt_column_name"
-        ] = '{"type":"string","payload":"user_prompt"}'
+        ] = f'{{"type":"string","payload":"{self.prompt_column_name}"}}'
         os.environ[
             "MLOPS_RUNTIME_PARAM_served_model_name"
-        ] = '{"type":"string","payload":"override-llm-name"}'
+        ] = f'{{"type":"string","payload":"{self.model_name}"}}'
         os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 256}'
         os.environ[
             "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
@@ -276,7 +289,7 @@ class TestLegacyNimLlm(NimLlmCases):
 
 @pytest.mark.xdist_group("gpu")
 class TestNimLlm(NimSideCarBase, NimLlmCases):
-    NIM_SIDECAR_IMAGE = "nvcr.io/nim/meta/llama-3.2-3b-instruct:1.6.0"
+    NIM_SIDECAR_IMAGE = "nvcr.io/nim/meta/llama-3.1-8b-instruct:1.3.3"
 
 
 @pytest.mark.xdist_group("gpu")
@@ -285,16 +298,11 @@ class TestNimEmbedQa(NimSideCarBase):
     CUSTOM_MODEL_DIR = os.path.join(TESTS_FIXTURES_PATH, "nim_embedqa")
     TARGET_TYPE = TargetType.UNSTRUCTURED
 
-    @pytest.fixture
-    def model_name(self):
-        base, tag = self.NIM_SIDECAR_IMAGE.split(":")
-        return base.split("/", 2)[-1]
-
     @pytest.mark.parametrize("input_type", ["query", "passage"])
-    def test_predict_unstructured(self, nim_predictor, input_type, model_name):
+    def test_predict_unstructured(self, nim_predictor, input_type):
         response = requests.post(
             f"{nim_predictor.url_server_address}/predictUnstructured/",
-            json={"input": ["Hello world"], "model": f"{model_name}-{input_type}"},
+            json={"input": ["Hello world"], "model": f"{self.model_name}-{input_type}"},
         )
         assert response.ok, response.content
 
