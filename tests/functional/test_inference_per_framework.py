@@ -4,17 +4,12 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-import io
 import json
 import os
-import re
-from json import JSONDecoder
 from tempfile import NamedTemporaryFile
 from textwrap import dedent
 from unittest.mock import patch
 
-import docker
-import docker.types
 import pandas as pd
 import pytest
 import requests
@@ -45,14 +40,9 @@ from datarobot_drum.drum.root_predictors.utils import (
     _create_custom_model_dir,
     _exec_shell_cmd,
 )
-from tests.conftest import skip_if_framework_not_in_env, skip_if_keys_not_in_env
 from tests.constants import (
     BINARY,
     CODEGEN,
-    GPU_NIM,
-    GPU_NIM_EMBEDQA,
-    GPU_TRITON,
-    GPU_VLLM,
     JULIA,
     KERAS,
     MLJ,
@@ -92,7 +82,6 @@ from tests.constants import (
     SPARSE,
     SPARSE_TRANSFORM,
     TESTS_DATA_PATH,
-    TESTS_FIXTURES_PATH,
     TEXT_GENERATION,
     GEO_POINT,
     TRANSFORM,
@@ -102,7 +91,6 @@ from tests.constants import (
     VECTOR_DATABASE,
     PYTHON311,
     REPO_ROOT_PATH,
-    GPU_NIM_SIDECAR,
 )
 
 
