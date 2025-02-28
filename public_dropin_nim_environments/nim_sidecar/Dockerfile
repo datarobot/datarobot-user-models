@@ -30,9 +30,6 @@ COPY --from=build /bin/chmod /bin/chmod
 # Required for DR backend to create /opt/code (Maybe required by applications other than custom-models)
 COPY --from=build /bin/mkdir /bin/mkdir
 
-# Required for custom-models to install dependencies
-COPY --from=build /usr/bin/pip /usr/bin/pip
-
 # Just for convenience
 COPY --from=build /bin/ls /bin/ls
 
