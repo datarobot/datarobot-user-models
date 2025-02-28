@@ -152,7 +152,6 @@ from tests.constants import (
     PYTHON_GEO_POINT,
     GPU_TRITON,
     GPU_NIM,
-    GPU_NIM_EMBEDQA,
     GPU_NIM_SIDECAR,
     GPU_VLLM,
     PYTHON311,
@@ -224,7 +223,6 @@ framework_envs = {
     GPU_TRITON: [GPU_TRITON],
     GPU_NIM: [GPU_NIM],
     GPU_NIM_SIDECAR: [GPU_NIM_SIDECAR],
-    GPU_NIM_EMBEDQA: [GPU_NIM_EMBEDQA],
     GPU_VLLM: [GPU_VLLM],
     PYTHON311: [PYTHON311],
 }
@@ -267,7 +265,6 @@ def pytest_addoption(parser):
             GPU_TRITON,
             GPU_NIM,
             GPU_NIM_SIDECAR,
-            GPU_NIM_EMBEDQA,
             GPU_VLLM,
             PYTHON311,
         ],

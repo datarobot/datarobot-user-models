@@ -51,4 +51,7 @@
 /tests/e2e/test_custom_task_templates.py                          @datarobot/core-modeling
 /tests/e2e/test_drop_in_environments.py                           @datarobot/custom-models @datarobot/core-modeling
 /tests/e2e/test_drum_push.py                                      @datarobot/custom-models @datarobot/core-modeling
+/tests/fixtures/nim_embedqa                                       @datarobot/tracking-agent @datarobot/custom-models
+/tests/fixtures/nim_jailbreak                                     @datarobot/tracking-agent @datarobot/custom-models
 /tests/functional                                                 @datarobot/custom-models @datarobot/core-modeling
+/tests/functional/test_inference_gpu_predictors.py                @datarobot/tracking-agent @datarobot/custom-models
