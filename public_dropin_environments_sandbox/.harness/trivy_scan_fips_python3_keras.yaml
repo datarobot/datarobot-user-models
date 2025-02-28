@@ -1,0 +1,11 @@
+inputSet:
+  name: Sandbox FIPS
+  identifier: Sandbox_FIPS
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: trivy_scan
+    variables:
+      - name: imageName
+        type: String
+        value: env-fips-python3-keras-sandbox
