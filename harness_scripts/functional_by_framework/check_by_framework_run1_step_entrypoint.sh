@@ -21,31 +21,38 @@ title "Assuming running integration tests in framework container (inside Docker)
 title "Installing pytest"
 pip install pytest pytest-xdist
 
-title "Uninstalling datarobot-drum"
-pip uninstall datarobot-drum datarobot-mlops -y
+# The FIPS-compliant Java image does not include maven (and its dependencies) required to build Java artifacts
+# from source. Therefore, keep the installed dependencies, including datarobot-drum. This means that tests will run
+# with the datarobot-drum version specified in the environment's requirements.txt file.
+if ! { [ "${FRAMEWORK}" = "java_codegen" ] && [ "${ENV_FOLDER}" = "public_fips_dropin_environments" ]; }; then
+    title "Uninstalling datarobot-drum"
+    pip uninstall datarobot-drum datarobot-mlops -y
 
-title "Installing dependencies, with datarobot-drum installed from source-code"
+    title "Installing dependencies, with datarobot-drum installed from source-code"
 
-PUBLIC_ENV_PATH="${ROOT_DIR}/${ENV_FOLDER}/${FRAMEWORK}"
-ENV_REQ_FILE_PATH="${PUBLIC_ENV_PATH}/requirements.txt"
-if [ -f ${ENV_REQ_FILE_PATH} ]; then
-    # Make sure to install the requirements from the environment, but without datarobot-drum
-    cd "${PUBLIC_ENV_PATH}/"
-    TMP_ENV_REQ_FILE_PATH=/tmp/requirements.txt
-    python3 -c "print('\n'.join([line for line in open('requirements.txt') if not line.startswith('datarobot-drum')]))"  > ${TMP_ENV_REQ_FILE_PATH}
-    INST_ENV_REQ_CMD=" -r ${TMP_ENV_REQ_FILE_PATH}"
-else
-    echo "No requirements file found at: ${ENV_REQ_FILE_PATH}"
-    INST_ENV_REQ_CMD=""
+    PUBLIC_ENV_PATH="${ROOT_DIR}/${ENV_FOLDER}/${FRAMEWORK}"
+    ENV_REQ_FILE_PATH="${PUBLIC_ENV_PATH}/requirements.txt"
+
+    if [ -f ${ENV_REQ_FILE_PATH} ]; then
+        # Make sure to install the requirements from the environment, but without datarobot-drum
+        cd "${PUBLIC_ENV_PATH}/"
+        TMP_ENV_REQ_FILE_PATH=/tmp/requirements.txt
+        python3 -c "print('\n'.join([line for line in open('requirements.txt') if not line.startswith('datarobot-drum')]))"  > ${TMP_ENV_REQ_FILE_PATH}
+        INST_ENV_REQ_CMD=" -r ${TMP_ENV_REQ_FILE_PATH}"
+    else
+        echo "No requirements file found at: ${ENV_REQ_FILE_PATH}"
+        INST_ENV_REQ_CMD=""
+    fi
+
+    cd "${ROOT_DIR}/custom_model_runner"
+    if [ "${FRAMEWORK}" = "java_codegen" ]; then
+        make java_components
+    fi
+
+    [ "${FRAMEWORK}" = "r_lang" ] && EXTRA="[R]" || EXTRA=""
+    # Install datarobot-drum from source code, but keep dependencies that were installed by the environment
+    pip install --force-reinstall .${EXTRA} ${INST_ENV_REQ_CMD}
 fi
-
-cd "${ROOT_DIR}/custom_model_runner"
-if [ "${FRAMEWORK}" = "java_codegen" ]; then
-    make java_components
-fi
-[ "${FRAMEWORK}" = "r_lang" ] && EXTRA="[R]" || EXTRA=""
-# Install datarobot-drum from source code, but keep dependencies that were installed by the environment
-pip install --force-reinstall .${EXTRA} ${INST_ENV_REQ_CMD}
 
 cd "${ROOT_DIR}"
 TESTS_TO_RUN="tests/functional/test_inference_per_framework.py \
