@@ -106,9 +106,9 @@ apt-get install r-cran-littler r-base r-base-dev
 
 #### R packages
 ```sh
-Rscript -e "install.packages(c('devtools', 'tidyverse', 'caret', 'recipes', 'glmnet', 'plumber', 'Rook', 'rjson', 'e1071'), Ncpus=4)"
-Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$forReg, c(1)]), Ncpus=4)'
-Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$forClass, c(1)]), Ncpus=4)'
+Rscript -e "install.packages(c('caret', 'recipes', 'glmnet', 'Rook', 'rjson', 'e1071', 'tidyverse', 'devtools'), repos='https://cloud.r-project.org', Ncpus=4)"
+Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$forReg, c(1)]), repos="https://cloud.r-project.org", Ncpus=4)'
+Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$forClass, c(1)]), repos="https://cloud.r-project.org", Ncpus=4)'
 ```
 
 ### DRUM developers

@@ -357,7 +357,7 @@ class TestSchemaValidator:
         assert validator.validate_inputs(data)
 
         data = data.astype(np.float32)
-        data[40] = np.NAN
+        data[40] = np.nan
         assert validator.validate_inputs(data)
 
         data = data.astype(np.float32) / 10

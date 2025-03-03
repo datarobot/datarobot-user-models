@@ -261,6 +261,16 @@ class TestDropInEnvironments(object):
             target_name=REGRESSION_TARGET,
         )
 
+    @pytest.fixture(scope="session")
+    def r_regression_custom_model_fips_compliant(self, r_fips_drop_in_env):
+        env_id, _ = r_fips_drop_in_env
+        return self.make_custom_model(
+            "r_reg.rds",
+            env_id,
+            custom_predict_path=CUSTOM_PREDICT_R_PATH,
+            target_name=REGRESSION_TARGET,
+        )
+
     @pytest.mark.parametrize(
         "model, test_data_id, max_wait",
         [
@@ -272,6 +282,11 @@ class TestDropInEnvironments(object):
                 3 * DEFAULT_MAX_WAIT,
             ),
             ("r_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
+            (
+                "r_regression_custom_model_fips_compliant",
+                "regression_testing_data",
+                5 * DEFAULT_MAX_WAIT,
+            ),
             ("pytorch_regression_custom_model", "regression_testing_data", 2 * DEFAULT_MAX_WAIT),
             (
                 "pytorch_regression_custom_model_fips_compliant",
