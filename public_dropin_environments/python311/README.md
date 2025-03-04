@@ -1,6 +1,6 @@
 # Python 3.11 Drop-In Template Environment
 
-This template environment can be used to create FIPS-compliant custom models.
+This template environment can be used to create Python-based custom models.
 You are responsible for installing all required dependencies. 
 To do so, provide requirements.txt together with your model files
 
