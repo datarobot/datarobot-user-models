@@ -19,7 +19,6 @@ TRAINING_TEMPLATES_PATH = os.path.join(REPO_ROOT_PATH, "task_templates", "3_pipe
 
 MODEL_TEMPLATES_PATH = os.path.join(REPO_ROOT_PATH, "model_templates")
 PUBLIC_DROPIN_ENVS_PATH = os.path.join(REPO_ROOT_PATH, "public_dropin_environments")
-PUBLIC_FIPS_DROPIN_ENVS_PATH = os.path.join(REPO_ROOT_PATH, "public_fips_dropin_environments")
 PUBLIC_DROPIN_GPU_ENVS_PATH = os.path.join(REPO_ROOT_PATH, "public_dropin_gpu_environments")
 PUBLIC_DROPIN_NIM_ENVS_PATH = os.path.join(REPO_ROOT_PATH, "public_dropin_nim_environments")
 
