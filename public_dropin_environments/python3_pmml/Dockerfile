@@ -1,17 +1,19 @@
 # This is a private chain-guard development image that is stored in DataRobot's private registry.
 # Replace it with your own development chain-gaurd image if you build your own.
-ARG BASE_ROOT_IMAGE=datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev
-FROM ${BASE_ROOT_IMAGE} AS build
+ARG PRODUCTION_BASE_IMAGE=datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11
+ARG DEVELOPMENT_BASE_IMAGE=${PRODUCTION_BASE_IMAGE}-dev
+
+FROM ${DEVELOPMENT_BASE_IMAGE} AS build
 
 USER root
 
 RUN apk add --no-cache openjdk-11
 
-# This is a private production chain-guard image that is stored in DataRobot's private registry.
-# Replace it with your own production chain-gaurd image if you build your own.
-FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11
+FROM ${PRODUCTION_BASE_IMAGE}
 
 USER root
+
+# MARK: LOCAL-DEV-BUILD-ADD-HERE.
 
 # Copy the JDK from the development stage
 COPY --from=build /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/java-11-openjdk
