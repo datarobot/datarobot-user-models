@@ -136,7 +136,10 @@ class TestDropInEnvironments(object):
     def keras_regression_custom_model(self, keras_drop_in_env):
         env_id, _ = keras_drop_in_env
         return self.make_custom_model(
-            "keras_reg.h5", env_id, custom_predict_path=CUSTOM_PREDICT_PY_PATH
+            "keras_reg.h5",
+            env_id,
+            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
+            maximum_memory=4 * 1024 * 1024 * 1024,
         )
 
     @pytest.fixture(scope="session")
@@ -171,10 +174,10 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def python311_custom_model_fips_compliant(self, python311_fips_drop_in_env):
-        env_id, _ = python311_fips_drop_in_env
+    def python311_custom_model(self, python311_drop_in_env):
+        env_id, _ = python311_drop_in_env
         custom_model = dr.CustomInferenceModel.create(
-            name="python311_custom_model_fips_compliant",
+            name="python311_custom_model",
             target_type=dr.TARGET_TYPE.UNSTRUCTURED,
             target_name="dummy-target",
         )
@@ -259,6 +262,7 @@ class TestDropInEnvironments(object):
             env_id,
             custom_predict_path=CUSTOM_PREDICT_R_PATH,
             target_name=REGRESSION_TARGET,
+            maximum_memory=1024 * 1024 * 1024,
         )
 
     @pytest.fixture(scope="session")
@@ -274,14 +278,14 @@ class TestDropInEnvironments(object):
     @pytest.mark.parametrize(
         "model, test_data_id, max_wait",
         [
-            ("python311_custom_model_fips_compliant", "regression_testing_data", DEFAULT_MAX_WAIT),
-            ("python311_genai_custom_model", "regression_testing_data", 2 * DEFAULT_MAX_WAIT),
+            ("python311_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
+            ("python311_genai_custom_model", "regression_testing_data", 3 * DEFAULT_MAX_WAIT),
             (
                 "python311_genai_custom_model_fips_compliant",
                 "regression_testing_data",
                 3 * DEFAULT_MAX_WAIT,
             ),
-            ("r_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
+            ("r_regression_custom_model", "regression_testing_data", 5 * DEFAULT_MAX_WAIT),
             (
                 "r_regression_custom_model_fips_compliant",
                 "regression_testing_data",

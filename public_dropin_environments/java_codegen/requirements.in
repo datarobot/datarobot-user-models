@@ -1,4 +1,3 @@
 datarobot-drum
-xgboost
 pandas
-scikit-learn
+numpy

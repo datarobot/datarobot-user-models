@@ -1,5 +1,5 @@
-#!/usr/bin/env sh
-# Copyright 2021 DataRobot, Inc. and its affiliates.
+#!/bin/sh
+# Copyright 2025 DataRobot, Inc. and its affiliates.
 #
 # All rights reserved.
 # This is proprietary source code of DataRobot, Inc. and its affiliates.
@@ -37,7 +37,5 @@ if [ -n "${USER_SECRETS_MOUNT_PATH}" ]; then
     CMD="${CMD} --user-secrets-mount-path ${USER_SECRETS_MOUNT_PATH}"
 fi
 
-echo "Environment variables:"
-env
 echo "${CMD}"
 sh -c "${CMD}"

@@ -22,7 +22,6 @@ in step 1.
 To use this environment, your custom model archive must contain a single serialized model artifact
 with `.pkl` file extension as well as any other custom code needed to use your serialized model.
 
-
 This environment makes the following assumption about your serialized model:
 - The data sent to custom model can be used to make predictions without
 additional pre-processing
