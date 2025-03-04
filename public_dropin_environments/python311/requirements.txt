@@ -18,9 +18,9 @@ azure-storage-blob==12.19.0
     # via datarobot-storage
 blinker==1.9.0
     # via flask
-boto3==1.36.26
+boto3==1.36.23
     # via datarobot-storage
-botocore==1.36.26
+botocore==1.36.23
     # via
     #   boto3
     #   s3transfer
@@ -40,7 +40,7 @@ cryptography==44.0.1
     #   azure-storage-blob
     #   msal
     #   pyjwt
-datarobot==3.6.3
+datarobot==3.6.2
     # via datarobot-drum
 datarobot-drum==1.16.5
     # via -r requirements.in
@@ -65,7 +65,7 @@ google-auth==1.28.1
     #   google-api-core
     #   google-cloud-core
     #   google-cloud-storage
-google-cloud-core==2.4.2
+google-cloud-core==2.4.2rc0
     # via google-cloud-storage
 google-cloud-storage==1.43.0
     # via datarobot-storage
@@ -73,7 +73,7 @@ google-crc32c==1.6.0
     # via google-resumable-media
 google-resumable-media==2.7.2
     # via google-cloud-storage
-googleapis-common-protos==1.68.0
+googleapis-common-protos==1.67.0
     # via google-api-core
 idna==3.10
     # via requests
@@ -108,7 +108,6 @@ mypy-extensions==1.0.0
     # via datarobot
 numpy==2.2.3
     # via
-    #   -r requirements.in
     #   datarobot
     #   datarobot-drum
     #   pandas
@@ -119,7 +118,6 @@ packaging==24.2
     # via datarobot-drum
 pandas==2.2.3
     # via
-    #   -r requirements.in
     #   datarobot
     #   datarobot-drum
     #   datarobot-mlops

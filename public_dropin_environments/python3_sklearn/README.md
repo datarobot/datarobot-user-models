@@ -9,7 +9,11 @@ environment correctly.
 This environment has built for python 3 and has support for the following scientific libraries.
 For specific version information, see [requirements](requirements.txt).
 
+- datarobot-drum
 - scikit-learn
+- scipy
+- numpy
+- pandas
 
 ## Instructions
 
@@ -30,7 +34,7 @@ additional pre-processing
 - Binary classification models return two floating point values that sum to 1.0 per row of prediction data.
   - The first value is the negative class probability, the second is the positive class probability
 - There is a single pkl file present
-  
+
 If these assumptions are incorrect for your model, you should make a copy of [custom.py](https://github.com/datarobot/datarobot-user-models/blob/master/model_templates/python3_sklearn/custom.py), modify it as needed, and include in your custom model archive.
 
 The structure of your custom model archive should look like:
