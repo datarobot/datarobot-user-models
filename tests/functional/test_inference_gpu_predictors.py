@@ -320,19 +320,20 @@ class TestNimEmbedQa(NimSideCarBase):
     CUSTOM_MODEL_DIR = os.path.join(TESTS_FIXTURES_PATH, "nim_embedqa")
     TARGET_TYPE = TargetType.UNSTRUCTURED
 
-    @pytest.mark.parametrize("input_type", ["query", "passage"])
+    @pytest.mark.parametrize("input_type", ["prompting", "indexing"])
     def test_predict_unstructured(self, nim_predictor, input_type):
         response = requests.post(
             f"{nim_predictor.url_server_address}/predictUnstructured/",
-            json={"input": ["Hello world"], "model": f"{self.model_name}-{input_type}"},
+            json={
+                "input": ["Hello", "Day", "Sunday", "Cake", "Java", "Python"],
+                "embedding_stage": input_type
+            },
         )
         assert response.ok, response.content
 
         response_data = response.json()
-        embedding = response_data["data"][0]
-        assert embedding["object"] == "embedding"
-        assert embedding["index"] == 0
-        assert len(embedding["embedding"]) > 0
+        embedding = response_data["result"]
+        assert len(embedding) == 6
 
 
 @pytest.mark.xdist_group("gpu")
