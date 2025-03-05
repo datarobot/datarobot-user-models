@@ -24,7 +24,7 @@ pip install pytest pytest-xdist
 # The FIPS-compliant Java image does not include maven (and its dependencies) required to build Java artifacts
 # from source. Therefore, keep the installed dependencies, including datarobot-drum. This means that tests will run
 # with the datarobot-drum version specified in the environment's requirements.txt file.
-if ! { [ "${FRAMEWORK}" = "java_codegen" ] && [ "${ENV_FOLDER}" = "public_fips_dropin_environments" ]; }; then
+if [ "${FRAMEWORK}" != "java_codegen" ]; then
     title "Uninstalling datarobot-drum"
     pip uninstall datarobot-drum datarobot-mlops -y
 
