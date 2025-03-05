@@ -262,7 +262,6 @@ class TestDropInEnvironments(object):
             env_id,
             custom_predict_path=CUSTOM_PREDICT_R_PATH,
             target_name=REGRESSION_TARGET,
-            maximum_memory=1024 * 1024 * 1024,
         )
 
     @pytest.fixture(scope="session")
