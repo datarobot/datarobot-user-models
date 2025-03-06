@@ -100,14 +100,26 @@ class NimSideCarBase:
     LABELS = None
 
     @property
-    def model_name(self):
+    def real_model_name(self):
         """
         The convetion appears to be that given a docker image such as
             nvcr.io/nim/nvidia/llama-3.2-nv-embedqa-1b-v2:1.3.1
         The served model name is: nvidia/llama-3.2-nv-embedqa-1b-v2
+
+        NOTE: there are exceptions to this rule, e.g.:
+        nvcr.io/nim/tokyotech-llm/llama-3.1-swallow-70b-instruct-v0.1:latest, but
+        institute-of-science-tokyo/llama-3.1-swallow-70b-instruct-v0.1
         """
         base, tag = self.NIM_SIDECAR_IMAGE.split(":")
         return base.split("/", 2)[-1]
+
+    @property
+    def fake_model_name(self):
+        return "ANY_MODEL_NAME_SHOULD_BE_ACCEPTED"
+
+    @property
+    def model_name(self):
+        return self.fake_model_name
 
     @pytest.fixture(scope="class")
     def nim_sidecar(self, framework_env):
