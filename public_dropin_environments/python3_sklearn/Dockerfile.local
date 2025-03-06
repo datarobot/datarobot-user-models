@@ -1,0 +1,31 @@
+# This Dockerfile.local can built with the following command:
+#   > docker build -f Dockerfile.local -t python3-sklearn-local-dev .
+# where the 'python3-sklearn-local-dev' is the name of the image that will be created.
+
+FROM python:3.11-alpine
+
+RUN apk add --no-cache build-base python3-dev linux-headers
+
+COPY requirements.txt requirements.txt
+
+ENV VIRTUAL_ENV=/opt/venv
+
+RUN sh -c "python -m venv ${VIRTUAL_ENV} && \
+    . ${VIRTUAL_ENV}/bin/activate && \
+    python -m pip install --upgrade pip && \
+    python -m pip install --no-cache-dir -r requirements.txt"
+
+ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+ENV PATH=${VIRTUAL_ENV}/bin:${JAVA_HOME}/bin:${PATH}
+ENV HOME=/opt
+ENV CODE_DIR=/opt/code
+ENV ADDRESS=0.0.0.0:8080
+
+# This makes print statements show up in the logs API
+ENV WITH_ERROR_SERVER=1 \
+    PYTHONUNBUFFERED=1
+
+COPY ./*.sh ${CODE_DIR}/
+WORKDIR ${CODE_DIR}
+
+ENTRYPOINT ["sh", "-c", "${CODE_DIR}/start_server.sh \"$@\"", "--"]
