@@ -1,6 +1,6 @@
 inputSet:
-  name: python3_keras_image_build_default_pr_input
-  identifier: python3_keras_image_build_default_pr_input
+  name: python3_keras_reconcile_dependencies_default_pr_input
+  identifier: python3_keras_reconcile_dependencies_default_pr_input
   orgIdentifier: Custom_Models
   projectIdentifier: datarobotusermodels
   pipeline:
