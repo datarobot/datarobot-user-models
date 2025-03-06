@@ -122,28 +122,35 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         In the new approach, the OpenAI server starts separately. Therefore, we must either: set NIM_SERVED_MODEL_NAME
         in the second container, or retrieve the model name from the API.
         """
-        if self.is_sidecar:
-            nim_served_model_name = self.get_optional_parameter("NIM_SERVED_MODEL_NAME")
-            if not nim_served_model_name:
-                models = self.ai_client.models.list()
-                model_ids = [model.id for model in models]
+        served_model_name = self.get_optional_parameter(
+            "served_model_name", self.DEFAULT_MODEL_NAME
+        )
 
-                # If this ever occurs, the custom model template should be updated with the model-metadata.yaml file,
-                # which includes the NIM_SERVED_MODEL_NAME runtime parameter. This ensures that DRUM knows which model
-                # to proxy requests to.
-                if len(model_ids) > 1:
-                    raise DrumCommonException(
-                        f"Multiple models are found in the NIM Container, while server expects only one:"
-                        f" {model_ids}."
-                    )
+        if not self.is_sidecar:
+            return served_model_name
 
-                nim_served_model_name = model_ids[0]
+        model_ids = self._get_deployed_model_ids()
 
-            return nim_served_model_name
+        if not model_ids:
+            # Some containers do not expose the model names API
+            return served_model_name
+        if len(model_ids) == 1:
+            return model_ids[0]
 
-        else:
-            # It's ok to use the default hardcoded name in single-container deployments
-            return self.get_optional_parameter("served_model_name", self.DEFAULT_MODEL_NAME)
+        # Multiple models detected, but only one is expected.
+        raise DrumCommonException(
+            f"Multiple models detected in the NIM container, but only one is expected: {model_ids}."
+        )
+
+    def _get_deployed_model_ids(self):
+        try:
+            models = self.ai_client.models.list()
+            model_ids = [model.id for model in models]
+            self.logger.info("Retrieved model list: %s", model_ids)
+            return model_ids
+        except Exception as e:
+            self.logger.warning("Failed to retrieve model list: %s", str(e))
+            return []
 
     def supports_chat(self):
         return True
@@ -385,10 +392,14 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
             response = requests.get(health_url, timeout=5)
             return {"message": response.text}, response.status_code
         except Timeout:
+            # reset cache state until healthy
+            del self.served_model_name
             return {
                 "message": f"Timeout waiting for {self.NAME} health route to respond."
             }, http_codes.SERVICE_UNAVAILABLE
         except ConnectionError as err:
+            # reset cache state until healthy
+            del self.served_model_name
             return {
                 "message": f"{self.NAME} server is not ready: {str(err)}"
             }, http_codes.SERVICE_UNAVAILABLE
