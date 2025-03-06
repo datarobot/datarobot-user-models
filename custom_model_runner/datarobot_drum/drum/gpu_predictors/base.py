@@ -13,6 +13,7 @@ import signal
 import sys
 import time
 import typing
+from functools import cached_property
 from pathlib import Path
 from subprocess import Popen
 from threading import Event, Thread
@@ -79,9 +80,6 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         # chat input fields
         self.system_prompt_value = self.get_optional_parameter("system_prompt")
         self.user_prompt_column = self.get_optional_parameter("prompt_column_name", "promptText")
-        self.served_model_name: str = self.get_optional_parameter(
-            "served_model_name", self.DEFAULT_MODEL_NAME
-        )
 
         # completions configuration can be changed with Runtime parameters
         self.max_tokens = int(self.get_optional_parameter("max_tokens", 0)) or None
@@ -109,6 +107,43 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
     def is_sidecar(self):
         # When true, DRUM is expected to run as a sidecar, proxying/monitoring requests to a model container.
         return self._params.get("sidecar", False)
+
+    @cached_property
+    def served_model_name(self):
+        """
+        There are two ways to specify the model name:
+        - Explicitly set in the request: Required by the /chat/completions API.
+        - Not set in the request: In this case, we ensure backward compatibility with the /predictions API.
+
+        Next, there are two ways to run the model:
+        - Old way: Single-container deployment, where both DRUM and the OpenAI server run in the same container.
+        - New way: Multi-container deployment, where DRUM runs as a sidecar alongside the OpenAI server.
+
+        In the new approach, the OpenAI server starts separately. Therefore, we must either: set NIM_SERVED_MODEL_NAME
+        in the second container, or retrieve the model name from the API.
+        """
+        if self.is_sidecar:
+            nim_served_model_name = self.get_optional_parameter("NIM_SERVED_MODEL_NAME")
+            if not nim_served_model_name:
+                models = self.ai_client.models.list()
+                model_ids = [model.id for model in models]
+
+                # If this ever occurs, the custom model template should be updated with the model-metadata.yaml file,
+                # which includes the NIM_SERVED_MODEL_NAME runtime parameter. This ensures that DRUM knows which model
+                # to proxy requests to.
+                if len(model_ids) > 1:
+                    raise DrumCommonException(
+                        f"Multiple models are found in the NIM Container, while server expects only one:"
+                        f" {model_ids}."
+                    )
+
+                nim_served_model_name = model_ids[0]
+
+            return nim_served_model_name
+
+        else:
+            # It's ok to use the default hardcoded name in single-container deployments
+            return self.get_optional_parameter("served_model_name", self.DEFAULT_MODEL_NAME)
 
     def supports_chat(self):
         return True
