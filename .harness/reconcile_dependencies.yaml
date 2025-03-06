@@ -1,6 +1,6 @@
 pipeline:
   name: reconcile dependencies
-  identifier: env_reconcile_dependencies
+  identifier: reconcile_dependencies
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models
   tags: {}

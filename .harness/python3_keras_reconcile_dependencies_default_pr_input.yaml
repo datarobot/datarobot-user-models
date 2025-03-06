@@ -4,7 +4,7 @@ inputSet:
   orgIdentifier: Custom_Models
   projectIdentifier: datarobotusermodels
   pipeline:
-    identifier: env_reconcile_dependencies
+    identifier: reconcile_dependencies
     properties:
       ci:
         codebase:
