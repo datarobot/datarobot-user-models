@@ -1,0 +1,27 @@
+inputSet:
+  name: python3_onnx_publish_to_docker_pr_input
+  identifier: python3_onnx_publish_to_docker_pr_input
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: publish_to_docker
+    properties:
+      ci:
+        codebase:
+          build:
+            type: branch
+            spec:
+              branch: <+trigger.branch>
+    variables:
+      - name: env_folder
+        type: String
+        value: public_dropin_environments
+      - name: env_name
+        type: String
+        value: python3_onnx
+      - name: repo_name
+        type: String
+        value: python-onnx
+      - name: target_branch
+        type: String
+        value: <+input>
