@@ -78,6 +78,9 @@ pipeline:
                         echo "Already on the target branch. No need to switch."
                         echo "Current branch: $current_branch"
                       fi
+                      
+                      # r_lang specific setup
+                      export RPY2_CFFI_MODE=ABI
 
                       # Navigate to environment directory
                       ENV_DIR=<+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
