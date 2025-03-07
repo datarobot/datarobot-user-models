@@ -1,0 +1,11 @@
+inputSet:
+  name: python3_pmml_trivy_scan_pr_input
+  identifier: python3_pmml_trivy_scan_pr_input
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: trivy_scan
+    variables:
+      - name: imageName
+        type: String
+        value: env-python-pmml
