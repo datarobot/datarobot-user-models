@@ -1,0 +1,24 @@
+inputSet:
+  name: python311_genai
+  identifier: python311_genai
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: publish_to_docker
+    properties:
+      ci:
+        codebase:
+          build: ""
+    variables:
+      - name: env_folder
+        type: String
+        value: public_dropin_environments
+      - name: env_name
+        type: String
+        value: python311_genai
+      - name: repo_name
+        type: String
+        value: python-genai
+      - name: target_branch
+        type: String
+        value: master
