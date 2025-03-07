@@ -1,0 +1,27 @@
+inputSet:
+  name: python3_pmml_publish_to_docker_pr_input
+  identifier: python3_pmml_publish_to_docker_pr_input
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: publish_to_docker
+    properties:
+      ci:
+        codebase:
+          build:
+            type: branch
+            spec:
+              branch: <+trigger.branch>
+    variables:
+      - name: env_folder
+        type: String
+        value: public_dropin_environments
+      - name: env_name
+        type: String
+        value: python3_pmml
+      - name: repo_name
+        type: String
+        value: python-pmml
+      - name: target_branch
+        type: String
+        value: <+input>
