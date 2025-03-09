@@ -274,7 +274,7 @@ def pytest_addoption(parser):
     parser.addoption(
         "--env-folder",
         required=False,
-        choices=["public_dropin_environments", "public_fips_dropin_environments"],
+        choices=["public_dropin_environments"],
         default=None,
     )
 
