@@ -40,7 +40,6 @@ from tests.constants import (
     PYTHON_UNSTRUCTURED_MLOPS,
     PUBLIC_DROPIN_ENVS_PATH,
     PYTHON_SKLEARN,
-    PUBLIC_FIPS_DROPIN_ENVS_PATH,
 )
 
 from datarobot_drum.drum.root_predictors.utils import (
@@ -306,7 +305,7 @@ class TestMLOpsMonitoring:
             with_monitor_settings=False,
         )
 
-        envs_path = PUBLIC_FIPS_DROPIN_ENVS_PATH if is_fips_compliant else PUBLIC_DROPIN_ENVS_PATH
+        envs_path = PUBLIC_DROPIN_ENVS_PATH
         py_sklearn_env_path = Path(envs_path) / PYTHON_SKLEARN
         with self._drop_in_environment_with_drum_from_source_code(
             py_sklearn_env_path
