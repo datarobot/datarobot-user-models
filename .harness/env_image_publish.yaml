@@ -29,7 +29,13 @@ pipeline:
                     repo: datarobotdev/datarobot-user-models
                     tags:
                       - <+pipeline.variables.image_tag>
-                    dockerfile: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>/Dockerfile
+                    dockerfile: ${{
+                      if(
+                        eq(pipeline.variables.use_local_dockerfile, "true"),
+                        "<+pipeline.variables.env_folder>/<+pipeline.variables.env_name>/Dockerfile.local",
+                        "<+pipeline.variables.env_folder>/<+pipeline.variables.env_name>/Dockerfile"
+                      )
+                    }}
                     context: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
                     resources:
                       limits:
@@ -59,3 +65,7 @@ pipeline:
       description: ""
       required: true
       value: <+input>.default(<+pipeline.variables.env_folder>_<+pipeline.variables.env_name>_latest)
+    - name: use_local_dockerfile
+      type: String
+      value: <+input>.default("false")
+      description: "Use Dockerfile.local to test the image for local development"
