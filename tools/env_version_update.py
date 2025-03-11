@@ -24,7 +24,7 @@ PUBLIC_ENVS_DIR_NAME = "public_dropin_environments"
 ENV_INFO_JSON = "env_info.json"
 
 
-def main(dir_to_scan):
+def main(dir_to_scan, env=None):
     """
     Iterate over directories in dir_to_scan, load json from env._info.json,
     adn replace environment version id
@@ -35,6 +35,8 @@ def main(dir_to_scan):
         folder with drop in environments
     """
     for item in os.listdir(dir_to_scan):
+        if env and env != item:
+            continue
         item_abs_path = os.path.abspath(os.path.join(dir_to_scan, item))
         if os.path.isdir(item_abs_path):
             env_info_json = os.path.join(item_abs_path, ENV_INFO_JSON)
@@ -54,7 +56,12 @@ if __name__ == "__main__":
         default=os.path.join(ROOT_DIR, PUBLIC_ENVS_DIR_NAME),
         help="Path to public drop-in envs",
     )
+    parser.add_argument(
+        "-e",
+        "--env",
+        default=None,
+        help="Name of the environment to update",
+    )
 
     args = parser.parse_args()
-    envs_dir = args.dir
-    main(envs_dir)
+    main(args.dir, args.env)
