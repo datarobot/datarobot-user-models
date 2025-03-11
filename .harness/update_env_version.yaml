@@ -42,6 +42,8 @@ pipeline:
                       git config --global user.email "svc-harness-git2@datarobot.com"
                       git config --global url."https://${GITHUB_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
 
+                      pip install bson
+
                       # update the environment version ID
                       python3 tools/env_version_update.py --dir $ENV_DIR --env $ENV_NAME
 
