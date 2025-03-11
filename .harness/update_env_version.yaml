@@ -48,7 +48,7 @@ pipeline:
                       python3 tools/env_version_update.py --dir $ENV_DIR --env $ENV_NAME
 
                       # Commit and push changes if any
-                      if [[ -n $(git status --porcelain) ]]; then
+                      if [ -n "$(git status --porcelain)" ]; then
                           git add .
                           git commit -m "Update Environment Version ID for $ENV_DIR / $ENV_NAME"
                           git push --no-verify --set-upstream origin HEAD:<+pipeline.branch>
