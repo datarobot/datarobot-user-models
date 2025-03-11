@@ -1,0 +1,18 @@
+inputSet:
+  name: sandbox_test
+  identifier: sandbox_test
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: update_env_version
+    properties:
+      ci:
+        codebase:
+          build: ""
+    variables:
+      - name: env_dir
+        type: String
+        value: public_dropin_environments_sandbox
+      - name: env_name
+        type: String
+        value: python3_keras
