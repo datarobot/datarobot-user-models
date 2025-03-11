@@ -24,4 +24,4 @@ inputSet:
         value: java-codegen
       - name: target_branch
         type: String
-        value: <+input>
+        value: <+trigger.branch>
