@@ -1,0 +1,81 @@
+pipeline:
+  name: update env version
+  identifier: update_env_version
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
+  stages:
+    - stage:
+        name: Update Env Version
+        identifier: Update_Env_Version
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+          buildIntelligence:
+            enabled: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Update Env Version
+                  identifier: Update_Env_Version
+                  spec:
+                    shell: Sh
+                    command: |-
+                      # Configure Git
+                      git config --global user.name "svc-harness-git2"
+                      git config --global user.email "svc-harness-git2@datarobot.com"
+                      git config --global url."https://${GITHUB_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
+
+                      # Get the current branch name
+                      current_branch=$(git branch --show-current)
+                      echo "Current branch: $current_branch"
+
+                      # Define the target branch (replace <+pipeline.branch> with the actual target branch name)
+                      target_branch="<+pipeline.branch>"
+                      echo "Target branch: $target_branch"
+
+                      # Compare the current branch with the target branch
+                      echo "Listing all branches..."
+                      git branch -a
+                      if [ "$current_branch" != "$target_branch" ]; then
+                        echo "Switching to branch $target_branch..."
+                        git checkout "$target_branch"
+                      else
+                        # If already on the target branch, just print the current branch again
+                        echo "Already on the target branch. No need to switch."
+                        echo "Current branch: $current_branch"
+                      fi
+
+                      # update the environment version ID
+                      python3 tools/env_version_update.py --dir $ENV_DIR --env $ENV_NAME
+
+                      # Commit and push changes if any
+                      if [[ -n $(git status --porcelain) ]]; then
+                          git add .
+                          git commit -m "Update Environment Version ID for $ENV_DIR / $ENV_NAME"
+                          git config pull.rebase true
+                          git pull origin "$(git branch --show-current)" --rebase
+                          git push --set-upstream origin "$(git branch --show-current)"
+                      else
+                          echo "No changes detected in Git."
+                      fi
+                    envVariables:
+                      ENV_NAME: <+pipeline.variables.env_name>
+                      ENV_DIR: <+pipeline.variables.env_dir>
+                  description: Run update_env_version.py script for the given environment and commit results.
