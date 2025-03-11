@@ -35,16 +35,17 @@ def main(dir_to_scan, env=None):
         folder with drop in environments
     """
     for item in os.listdir(dir_to_scan):
+        if env and env != item:
+            continue
         item_abs_path = os.path.abspath(os.path.join(dir_to_scan, item))
         if os.path.isdir(item_abs_path):
-            if not env or env == item:
-                env_info_json = os.path.join(item_abs_path, ENV_INFO_JSON)
-                with open(env_info_json) as json_file:
-                    metadata = json.load(json_file)
-                    metadata["environmentVersionId"] = str(ObjectId())
-                with open(env_info_json, "w") as json_file:
-                    json.dump(metadata, json_file, indent=2)
-                    json_file.write("\n")
+            env_info_json = os.path.join(item_abs_path, ENV_INFO_JSON)
+            with open(env_info_json) as json_file:
+                metadata = json.load(json_file)
+                metadata["environmentVersionId"] = str(ObjectId())
+            with open(env_info_json, "w") as json_file:
+                json.dump(metadata, json_file, indent=2)
+                json_file.write("\n")
 
 
 if __name__ == "__main__":
