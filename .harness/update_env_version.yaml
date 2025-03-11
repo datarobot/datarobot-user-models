@@ -26,7 +26,7 @@ pipeline:
             steps:
               - step:
                   type: Run
-                  name: Update Env Version
+                  name: update_env_version
                   identifier: Update_Env_Version
                   spec:
                     connectorRef: account.dockerhub_datarobot_read
