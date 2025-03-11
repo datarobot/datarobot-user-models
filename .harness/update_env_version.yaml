@@ -79,3 +79,14 @@ pipeline:
                       ENV_NAME: <+pipeline.variables.env_name>
                       ENV_DIR: <+pipeline.variables.env_dir>
                   description: Run update_env_version.py script for the given environment and commit results.
+  variables:
+    - name: env_dir
+      type: String
+      description: ""
+      required: true
+      value: <+input>.allowedValues(public_dropin_environments,public_dropin_environments_sandbox)
+    - name: env_name
+      type: String
+      description: ""
+      required: true
+      value: <+input>
