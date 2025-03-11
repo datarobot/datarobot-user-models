@@ -22,12 +22,6 @@ pipeline:
             enabled: true
           buildIntelligence:
             enabled: true
-          platform:
-            os: Linux
-            arch: Amd64
-          runtime:
-            type: Cloud
-            spec: {}
           execution:
             steps:
               - step:
@@ -35,12 +29,14 @@ pipeline:
                   name: Update Env Version
                   identifier: Update_Env_Version
                   spec:
-                    shell: Sh
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: datarobotdev/platform-base-python-310-devel
+                    shell: Bash
                     command: |-
                       # Configure Git
                       git config --global user.name "svc-harness-git2"
                       git config --global user.email "svc-harness-git2@datarobot.com"
-                      git config --global url."https://${GITHUB_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
+                      git config --global url.https://${GITHUB_ACCESS_TOKEN}@github.com/.insteadOf https://github.com/
 
                       pip install bson
 
@@ -60,6 +56,14 @@ pipeline:
                       ENV_DIR: <+pipeline.variables.env_dir>
                       GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
                   description: Run update_env_version.py script for the given environment and commit results.
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: account.cigeneral
+              namespace: harness-delegate-ng
+              automountServiceAccountToken: true
+              nodeSelector: {}
+              os: Linux
   variables:
     - name: env_dir
       type: String
