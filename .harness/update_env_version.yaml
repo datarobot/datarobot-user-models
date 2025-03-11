@@ -58,6 +58,7 @@ pipeline:
                     envVariables:
                       ENV_NAME: <+pipeline.variables.env_name>
                       ENV_DIR: <+pipeline.variables.env_dir>
+                      GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
                   description: Run update_env_version.py script for the given environment and commit results.
   variables:
     - name: env_dir
