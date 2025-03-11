@@ -1,5 +1,6 @@
 inputSet:
   name: sandbox_test
+  tags: {}
   identifier: sandbox_test
   orgIdentifier: Custom_Models
   projectIdentifier: datarobotusermodels
@@ -8,7 +9,10 @@ inputSet:
     properties:
       ci:
         codebase:
-          build: ""
+          build:
+            type: PR
+            spec:
+              number: <+trigger.prNumber>
     variables:
       - name: env_dir
         type: String
