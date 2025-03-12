@@ -368,6 +368,17 @@ class PredictMixin:
         return response, response_status
 
     def do_chat(self, logger=None):
+        # _predictor is a BaseLanguagePredictor attribute of PredictionServer;
+        # see PredictionServer.__init__()
+        if not self.__predictor.supports_chat():
+            message = "This model's chat interface was called, but it does not support chat."
+            if logger is not None:
+                logger.error(message)
+            return (
+                {"message": "ERROR: " + message},
+                HTTP_422_UNPROCESSABLE_ENTITY,
+            )
+
         completion_create_params = request.json
 
         result = self._predictor.chat(completion_create_params)
