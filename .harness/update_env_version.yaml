@@ -1,0 +1,77 @@
+pipeline:
+  name: update env version
+  identifier: update_env_version
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
+  stages:
+    - stage:
+        name: Update Env Version
+        identifier: Update_Env_Version
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+          buildIntelligence:
+            enabled: true
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: update_env_version
+                  identifier: Update_Env_Version
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: datarobotdev/platform-base-python-310-devel
+                    shell: Bash
+                    command: |-
+                      # Configure Git
+                      git config --global user.name "svc-harness-git2"
+                      git config --global user.email "svc-harness-git2@datarobot.com"
+                      git config --global url.https://${GITHUB_ACCESS_TOKEN}@github.com/.insteadOf https://github.com/
+
+                      pip install bson
+
+                      # update the environment version ID
+                      python3 tools/env_version_update.py --dir $ENV_DIR --env $ENV_NAME
+
+                      # Commit and push changes if any
+                      if [ -n "$(git status --porcelain)" ]; then
+                          git add .
+                          git commit -m "Update Environment Version ID for $ENV_DIR / $ENV_NAME"
+                          git push --no-verify --set-upstream origin HEAD:<+pipeline.branch>
+                      else
+                          echo "No changes detected in Git."
+                      fi
+                    envVariables:
+                      ENV_NAME: <+pipeline.variables.env_name>
+                      ENV_DIR: <+pipeline.variables.env_dir>
+                      GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
+                  description: Run update_env_version.py script for the given environment and commit results.
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: account.cigeneral
+              namespace: harness-delegate-ng
+              automountServiceAccountToken: true
+              nodeSelector: {}
+              os: Linux
+  variables:
+    - name: env_dir
+      type: String
+      description: ""
+      required: true
+      value: <+input>.allowedValues(public_dropin_environments,public_dropin_environments_sandbox)
+    - name: env_name
+      type: String
+      description: ""
+      required: true
+      value: <+input>
