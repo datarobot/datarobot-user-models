@@ -368,8 +368,12 @@ class PredictMixin:
         return response, response_status
 
     def do_chat(self, logger=None):
-        unsupported_chat_message = "This model's chat interface was called, but chat is not supported."
-        undefined_chat_message = "This model's chat interface was called, but chat() is not implemented."
+        unsupported_chat_message = (
+            "This model's chat interface was called, but chat is not supported."
+        )
+        undefined_chat_message = (
+            "This model's chat interface was called, but chat() is not implemented."
+        )
         # _predictor is a BaseLanguagePredictor attribute of PredictionServer;
         # see PredictionServer.__init__()
         if not self._predictor.supports_chat():

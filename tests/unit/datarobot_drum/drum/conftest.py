@@ -39,6 +39,7 @@ def chat_python_model_adapter():
 
 class NonChatPythonModelAdapter(PythonModelAdapter):
     """A model adapter whose supports_chat() will return False"""
+
     def __init__(self, model_dir, target_type):
         super().__init__(model_dir, target_type)
 

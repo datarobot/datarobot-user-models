@@ -105,9 +105,9 @@ def test_prediction_server(openai_client, chat_python_model_adapter):
 
 @pytest.mark.usefixtures("prediction_server")
 def test_prediction_server_chat_unimplemented(openai_client, chat_python_model_adapter):
-    """ Attempt to chat when the model does not implement chat(). """
+    """Attempt to chat when the model does not implement chat()."""
     chat_python_model_adapter.chat_hook = None  # decouple from upstream tests
-    with pytest.raises(UnprocessableEntityError, match=r'but chat\(\) is not implemented'):
+    with pytest.raises(UnprocessableEntityError, match=r"but chat\(\) is not implemented"):
         _ = openai_client.chat.completions.create(
             model="any",
             messages=[
@@ -119,8 +119,8 @@ def test_prediction_server_chat_unimplemented(openai_client, chat_python_model_a
 
 @pytest.mark.usefixtures("non_chat_prediction_server")
 def test_prediction_server_chat_unsupported(openai_client, non_chat_python_model_adapter):
-    """ Attempt to chat when the model does not support chat(). """
-    with pytest.raises(UnprocessableEntityError, match='but chat is not supported'):
+    """Attempt to chat when the model does not support chat()."""
+    with pytest.raises(UnprocessableEntityError, match="but chat is not supported"):
         _ = openai_client.chat.completions.create(
             model="any",
             messages=[
