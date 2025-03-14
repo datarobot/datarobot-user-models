@@ -368,18 +368,41 @@ class PredictMixin:
         return response, response_status
 
     def do_chat(self, logger=None):
-        completion_create_params = request.json
-
-        result = self._predictor.chat(completion_create_params)
-        if not is_streaming_response(result):
-            response = result.to_dict()
-        else:
-            response = Response(
-                stream_with_context(PredictMixin._stream_openai_chunks(result)),
-                mimetype="text/event-stream",
+        unsupported_chat_message = (
+            "This model's chat interface was called, but chat is not supported."
+        )
+        undefined_chat_message = (
+            "This model's chat interface was called, but chat() is not implemented."
+        )
+        # _predictor is a BaseLanguagePredictor attribute of PredictionServer;
+        # see PredictionServer.__init__()
+        if not self._predictor.supports_chat():
+            if logger is not None:
+                logger.error(unsupported_chat_message)
+            return (
+                {"message": "ERROR: " + unsupported_chat_message},
+                HTTP_422_UNPROCESSABLE_ENTITY,
             )
 
-        return response, HTTP_200_OK
+        completion_create_params = request.json
+        try:
+            result = self._predictor.chat(completion_create_params)
+            if not is_streaming_response(result):
+                response = result.to_dict()
+            else:
+                response = Response(
+                    stream_with_context(PredictMixin._stream_openai_chunks(result)),
+                    mimetype="text/event-stream",
+                )
+
+            return response, HTTP_200_OK
+        except TypeError:  # if chat() is not defined, hook evaluates to None
+            if logger is not None:
+                logger.error(undefined_chat_message)
+            return (
+                {"message": "ERROR: " + undefined_chat_message},
+                HTTP_422_UNPROCESSABLE_ENTITY,
+            )
 
     def do_transform(self, logger=None):
         if self._target_type != TargetType.TRANSFORM:
