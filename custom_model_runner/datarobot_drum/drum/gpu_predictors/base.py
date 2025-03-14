@@ -152,8 +152,11 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         return True
 
     def _chat(self, completion_create_params, association_id):
-        # Disregard the model name set in request, as we always use the one defined in the environment
-        completion_create_params["model"] = self.served_model_name
+        model_name_from_request = completion_create_params["model"]
+        if model_name_from_request == self.DEFAULT_MODEL_NAME:
+            # when `datarobot-deployed-llm` is sent, replace it with the correct model name
+            completion_create_params["model"] = self.served_model_name
+
         return self.ai_client.chat.completions.create(**completion_create_params)
 
     def has_read_input_data_hook(self):
