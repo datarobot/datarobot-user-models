@@ -131,16 +131,12 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
 
         model_ids = self._get_deployed_model_ids()
 
-        if not model_ids:
+        if len(model_ids) >= 1:
+            return model_ids[0]
+        else:
             # Some containers do not expose the model names API
             return served_model_name
-        if len(model_ids) == 1:
-            return model_ids[0]
 
-        # Multiple models detected, but only one is expected.
-        raise DrumCommonException(
-            f"Multiple models detected in the NIM container, but only one is expected: {model_ids}."
-        )
 
     def _get_deployed_model_ids(self):
         try:
