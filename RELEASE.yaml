@@ -31,6 +31,8 @@ post_branch_cut_pipelines:
     service: harness
     endpoint: Custom_Models/project/public_environments_management/pipelines/build_environments_installer_on_harness_infra
     variables:
+      environments_repo: "datarobot-user-models"
+      environments_repo_branch: "release/{version}"
       environments_path: "./datarobot-user-models/public_dropin_environments"
       environments: ""
       installer_env: "release"
