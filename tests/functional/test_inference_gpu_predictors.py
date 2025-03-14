@@ -100,26 +100,18 @@ class NimSideCarBase:
     LABELS = None
 
     @property
-    def real_model_name(self):
+    def model_name(self):
         """
         The convetion appears to be that given a docker image such as
             nvcr.io/nim/nvidia/llama-3.2-nv-embedqa-1b-v2:1.3.1
         The served model name is: nvidia/llama-3.2-nv-embedqa-1b-v2
-
-        NOTE: there are exceptions to this rule, e.g.:
-        nvcr.io/nim/tokyotech-llm/llama-3.1-swallow-70b-instruct-v0.1:latest, but
-        institute-of-science-tokyo/llama-3.1-swallow-70b-instruct-v0.1
         """
         base, tag = self.NIM_SIDECAR_IMAGE.split(":")
         return base.split("/", 2)[-1]
 
     @property
-    def fake_model_name(self):
-        return "ANY_MODEL_NAME_SHOULD_BE_ACCEPTED"
-
-    @property
-    def model_name(self):
-        return self.fake_model_name
+    def default_model_name(self):
+        return "datarobot-deployed-llm"
 
     @pytest.fixture(scope="class")
     def nim_sidecar(self, framework_env):
@@ -146,10 +138,6 @@ class NimSideCarBase:
 
     @pytest.fixture(scope="class")
     def nim_predictor(self, nim_sidecar):
-        os.environ[
-            "MLOPS_RUNTIME_PARAM_served_model_name"
-        ] = f'{{"type": "string", "payload": "{self.model_name}"}}'
-
         # the Runtime Parameters used for prediction requests
         os.environ[
             "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
