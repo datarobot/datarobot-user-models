@@ -41,6 +41,7 @@ if [ "$1" = "r_lang" ]; then
 fi
 
 pytest ${TESTS_TO_RUN} \
+       -v --tb=short \
        --framework-env $1 \
        --junit-xml="./results_integration.xml" \
        --dist loadgroup \

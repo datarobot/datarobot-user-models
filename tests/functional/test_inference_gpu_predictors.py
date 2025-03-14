@@ -134,10 +134,6 @@ class NimSideCarBase:
 
     @pytest.fixture(scope="class")
     def nim_predictor(self, nim_sidecar):
-        os.environ[
-            "MLOPS_RUNTIME_PARAM_served_model_name"
-        ] = f'{{"type": "string", "payload": "{self.model_name}"}}'
-
         # the Runtime Parameters used for prediction requests
         os.environ[
             "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
@@ -250,6 +246,26 @@ class NimLlmCases:
         )
         llm_response = completion.choices[0].message.content
         assert "42" in llm_response
+
+    def test_chat_api_with_default_model_name(self, nim_predictor):
+        from openai import OpenAI
+
+        client = OpenAI(
+            base_url=nim_predictor.url_server_address, api_key="not-required", max_retries=0
+        )
+
+        completion = client.chat.completions.create(
+            model="datarobot-deployed-llm",
+            messages=[
+                {"role": "system", "content": "You are a calculator. Answer with a single number."},
+                {"role": "user", "content": "1+1="},
+            ],
+        )
+
+        assert len(completion.choices) == 1
+        llm_response = completion.choices[0].message.content
+
+        assert "2" in llm_response
 
 
 @pytest.mark.xdist_group("gpu")

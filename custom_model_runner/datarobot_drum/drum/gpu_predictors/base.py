@@ -13,6 +13,7 @@ import signal
 import sys
 import time
 import typing
+from functools import cached_property
 from pathlib import Path
 from subprocess import Popen
 from threading import Event, Thread
@@ -79,9 +80,6 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         # chat input fields
         self.system_prompt_value = self.get_optional_parameter("system_prompt")
         self.user_prompt_column = self.get_optional_parameter("prompt_column_name", "promptText")
-        self.served_model_name: str = self.get_optional_parameter(
-            "served_model_name", self.DEFAULT_MODEL_NAME
-        )
 
         # completions configuration can be changed with Runtime parameters
         self.max_tokens = int(self.get_optional_parameter("max_tokens", 0)) or None
@@ -110,14 +108,56 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         # When true, DRUM is expected to run as a sidecar, proxying/monitoring requests to a model container.
         return self._params.get("sidecar", False)
 
+    @cached_property
+    def served_model_name(self):
+        """
+        There are two ways to specify the model name:
+        - Explicitly set in the request: Required by the /chat/completions API.
+        - Not set in the request: In this case, we ensure backward compatibility with the /predictions API.
+
+        Next, there are two ways to run the model:
+        - Old way: Single-container deployment, where both DRUM and the OpenAI server run in the same container.
+        - New way: Multi-container deployment, where DRUM runs as a sidecar alongside the OpenAI server.
+
+        In the new approach, the OpenAI server starts separately. Therefore, we must either: set NIM_SERVED_MODEL_NAME
+        in the second container, or retrieve the model name from the API.
+        """
+        served_model_name = self.get_optional_parameter(
+            "served_model_name", self.DEFAULT_MODEL_NAME
+        )
+
+        if not self.is_sidecar:
+            return served_model_name
+
+        model_ids = self._get_deployed_model_ids()
+
+        if len(model_ids) >= 1:
+            return model_ids[0]
+        else:
+            # Some containers do not expose the model names API
+            return served_model_name
+
+    def _get_deployed_model_ids(self):
+        try:
+            models = self.ai_client.models.list()
+            model_ids = [model.id for model in models]
+            self.logger.info("Retrieved model list: %s", model_ids)
+            return model_ids
+        except Exception as e:
+            self.logger.warning("Failed to retrieve model list: %s", str(e))
+            return []
+
     def supports_chat(self):
         return True
 
     def _chat(self, completion_create_params, association_id):
-        # Defer to the caller for the `model` name but to maintain our old behavior, also allow the field
-        # to be optional and fallback to the configured default name.
-        model_name = completion_create_params.get("model") or self.served_model_name
-        completion_create_params["model"] = model_name
+        # Use the `model` name provided by the caller. However, to maintain backward compatibility,
+        # allow this field to be optional and fallback to the configured default model name if not provided.
+        # If `datarobot-deployed-llm` is specified as the model, replace it with the corresponding actual model name.
+        model_name_from_request = completion_create_params.get("model")
+        if not model_name_from_request or model_name_from_request == self.DEFAULT_MODEL_NAME:
+            completion_create_params["model"] = self.served_model_name
+
         return self.ai_client.chat.completions.create(**completion_create_params)
 
     def has_read_input_data_hook(self):
@@ -352,10 +392,14 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
             response = requests.get(health_url, timeout=5)
             return {"message": response.text}, response.status_code
         except Timeout:
+            # reset cache state until healthy
+            del self.served_model_name
             return {
                 "message": f"Timeout waiting for {self.NAME} health route to respond."
             }, http_codes.SERVICE_UNAVAILABLE
         except ConnectionError as err:
+            # reset cache state until healthy
+            del self.served_model_name
             return {
                 "message": f"{self.NAME} server is not ready: {str(err)}"
             }, http_codes.SERVICE_UNAVAILABLE
