@@ -109,9 +109,6 @@ class NimSideCarBase:
         base, tag = self.NIM_SIDECAR_IMAGE.split(":")
         return base.split("/", 2)[-1]
 
-    @property
-    def default_model_name(self):
-        return "datarobot-deployed-llm"
 
     @pytest.fixture(scope="class")
     def nim_sidecar(self, framework_env):
@@ -250,6 +247,27 @@ class NimLlmCases:
         )
         llm_response = completion.choices[0].message.content
         assert "42" in llm_response
+
+
+    def test_chat_api_with_default_model_name(self, nim_predictor):
+        from openai import OpenAI
+
+        client = OpenAI(
+            base_url=nim_predictor.url_server_address, api_key="not-required", max_retries=0
+        )
+
+        completion = client.chat.completions.create(
+            model="datarobot-deployed-llm",
+            messages=[
+                {"role": "system", "content": "You are a calculator. Answer with a single number."},
+                {"role": "user", "content": "1+1="},
+            ],
+        )
+
+        assert len(completion.choices) == 1
+        llm_response = completion.choices[0].message.content
+
+        assert "2" in llm_response
 
 
 @pytest.mark.xdist_group("gpu")
