@@ -137,7 +137,6 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
             # Some containers do not expose the model names API
             return served_model_name
 
-
     def _get_deployed_model_ids(self):
         try:
             models = self.ai_client.models.list()
@@ -152,9 +151,11 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         return True
 
     def _chat(self, completion_create_params, association_id):
-        model_name_from_request = completion_create_params["model"]
-        if model_name_from_request == self.DEFAULT_MODEL_NAME:
-            # when `datarobot-deployed-llm` is sent, replace it with the correct model name
+        # Use the `model` name provided by the caller. However, to maintain backward compatibility,
+        # allow this field to be optional and fallback to the configured default model name if not provided.
+        # If `datarobot-deployed-llm` is specified as the model, replace it with the corresponding actual model name.
+        model_name_from_request = completion_create_params.get("model")
+        if not model_name_from_request or model_name_from_request == self.DEFAULT_MODEL_NAME:
             completion_create_params["model"] = self.served_model_name
 
         return self.ai_client.chat.completions.create(**completion_create_params)

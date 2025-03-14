@@ -109,7 +109,6 @@ class NimSideCarBase:
         base, tag = self.NIM_SIDECAR_IMAGE.split(":")
         return base.split("/", 2)[-1]
 
-
     @pytest.fixture(scope="class")
     def nim_sidecar(self, framework_env):
         skip_if_framework_not_in_env(GPU_NIM_SIDECAR, framework_env)
@@ -247,7 +246,6 @@ class NimLlmCases:
         )
         llm_response = completion.choices[0].message.content
         assert "42" in llm_response
-
 
     def test_chat_api_with_default_model_name(self, nim_predictor):
         from openai import OpenAI
