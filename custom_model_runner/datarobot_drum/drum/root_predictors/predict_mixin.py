@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import logging
 
 import werkzeug
 from flask import request, Response, stream_with_context
@@ -21,6 +22,7 @@ from datarobot_drum.drum.enum import (
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
+    HTTP_404_NOT_FOUND,
     HTTP_422_UNPROCESSABLE_ENTITY,
 )
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
@@ -45,6 +47,11 @@ class PredictMixin:
     This flow assumes endpoints implemented using Flask.
 
     """
+
+    @staticmethod
+    def _log_if_possible(logger, log_level, message):
+        if logger is not None:
+            logger.log(log_level, message)
 
     @staticmethod
     def _validate_content_type_header(header):
@@ -377,32 +384,28 @@ class PredictMixin:
         # _predictor is a BaseLanguagePredictor attribute of PredictionServer;
         # see PredictionServer.__init__()
         if not self._predictor.supports_chat():
-            if logger is not None:
-                logger.error(unsupported_chat_message)
+            if self._target_type == TargetType.TEXT_GENERATION:
+                message = undefined_chat_message
+            else:
+                message = unsupported_chat_message
+            self._log_if_possible(logger, logging.ERROR, message)
             return (
-                {"message": "ERROR: " + unsupported_chat_message},
-                HTTP_422_UNPROCESSABLE_ENTITY,
+                {"message": "ERROR: " + message},
+                HTTP_404_NOT_FOUND,
             )
 
         completion_create_params = request.json
-        try:
-            result = self._predictor.chat(completion_create_params)
-            if not is_streaming_response(result):
-                response = result.to_dict()
-            else:
-                response = Response(
-                    stream_with_context(PredictMixin._stream_openai_chunks(result)),
-                    mimetype="text/event-stream",
-                )
 
-            return response, HTTP_200_OK
-        except TypeError:  # if chat() is not defined, hook evaluates to None
-            if logger is not None:
-                logger.error(undefined_chat_message)
-            return (
-                {"message": "ERROR: " + undefined_chat_message},
-                HTTP_422_UNPROCESSABLE_ENTITY,
+        result = self._predictor.chat(completion_create_params)
+        if not is_streaming_response(result):
+            response = result.to_dict()
+        else:
+            response = Response(
+                stream_with_context(PredictMixin._stream_openai_chunks(result)),
+                mimetype="text/event-stream",
             )
+
+        return response, HTTP_200_OK
 
     def do_transform(self, logger=None):
         if self._target_type != TargetType.TRANSFORM:

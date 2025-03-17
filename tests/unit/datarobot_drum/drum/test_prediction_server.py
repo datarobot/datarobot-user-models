@@ -5,8 +5,8 @@ import httpx
 import openai
 import pytest
 from httpx import WSGITransport
+from openai import NotFoundError
 from openai import OpenAI, Stream
-from openai import UnprocessableEntityError
 from openai.types.chat import (
     ChatCompletion,
 )
@@ -69,6 +69,22 @@ def non_chat_prediction_server(test_flask_app, non_chat_python_model_adapter):
 
 
 @pytest.fixture
+def non_textgen_prediction_server(test_flask_app, non_chat_python_model_adapter):
+    with patch.dict(os.environ, {"TARGET_NAME": "target"}), patch(
+        "datarobot_drum.drum.language_predictors.python_predictor.python_predictor.PythonPredictor._init_mlops"
+    ), patch.object(LazyLoadingHandler, "download_lazy_loading_files"):
+        params = {
+            "run_language": RunLanguage.PYTHON,
+            "target_type": TargetType.REGRESSION,
+            "deployment_config": None,
+            "__custom_model_path__": "/non-existing-path-to-avoid-loading-unwanted-artifacts",
+        }
+        server = PredictionServer(params)
+        server._predictor._mlops = Mock()
+        server.materialize()
+
+
+@pytest.fixture
 def openai_client(test_flask_app):
     return OpenAI(
         base_url="http://localhost:8080",
@@ -103,11 +119,10 @@ def test_prediction_server(openai_client, chat_python_model_adapter):
     assert completion.choices[0].message.content == "Response"
 
 
-@pytest.mark.usefixtures("prediction_server")
-def test_prediction_server_chat_unimplemented(openai_client, chat_python_model_adapter):
-    """Attempt to chat when the model does not implement chat()."""
-    chat_python_model_adapter.chat_hook = None  # decouple from upstream tests
-    with pytest.raises(UnprocessableEntityError, match=r"but chat\(\) is not implemented"):
+@pytest.mark.usefixtures("non_textgen_prediction_server")
+def test_prediction_server_chat_unsupported(openai_client):
+    """Attempt to chat with a non-textgen model."""
+    with pytest.raises(NotFoundError, match="but chat is not supported"):
         _ = openai_client.chat.completions.create(
             model="any",
             messages=[
@@ -118,9 +133,9 @@ def test_prediction_server_chat_unimplemented(openai_client, chat_python_model_a
 
 
 @pytest.mark.usefixtures("non_chat_prediction_server")
-def test_prediction_server_chat_unsupported(openai_client, non_chat_python_model_adapter):
-    """Attempt to chat when the model does not support chat()."""
-    with pytest.raises(UnprocessableEntityError, match="but chat is not supported"):
+def test_prediction_server_chat_unimplemented(openai_client):
+    """Attempt to chat when a textgen model does not implement chat()."""
+    with pytest.raises(NotFoundError, match=r"but chat\(\) is not implemented"):
         _ = openai_client.chat.completions.create(
             model="any",
             messages=[
