@@ -110,42 +110,21 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
 
     @cached_property
     def served_model_name(self):
-        """
-        There are two ways to specify the model name:
-        - Explicitly set in the request: Required by the /chat/completions API.
-        - Not set in the request: In this case, we ensure backward compatibility with the /predictions API.
-
-        Next, there are two ways to run the model:
-        - Old way: Single-container deployment, where both DRUM and the OpenAI server run in the same container.
-        - New way: Multi-container deployment, where DRUM runs as a sidecar alongside the OpenAI server.
-
-        In the new approach, the OpenAI server starts separately. Therefore, we must either: set NIM_SERVED_MODEL_NAME
-        in the second container, or retrieve the model name from the API.
-        """
-        served_model_name = self.get_optional_parameter(
-            "served_model_name", self.DEFAULT_MODEL_NAME
-        )
+        """Return model name from runtime parameters or fetch from OpenAI server."""
+        default_name = self.get_optional_parameter("served_model_name", self.DEFAULT_MODEL_NAME)
 
         if not self.is_sidecar:
-            return served_model_name
+            return default_name
 
-        model_ids = self._get_deployed_model_ids()
-
-        if len(model_ids) >= 1:
-            return model_ids[0]
-        else:
-            # Some containers do not expose the model names API
-            return served_model_name
-
-    def _get_deployed_model_ids(self):
         try:
             models = self.ai_client.models.list()
             model_ids = [model.id for model in models]
             self.logger.info("Retrieved model list: %s", model_ids)
-            return model_ids
+            # Return first model ID if available, otherwise fall back to default
+            return model_ids[0] if model_ids else default_name
         except Exception as e:
             self.logger.warning("Failed to retrieve model list: %s", str(e))
-            return []
+            return default_name
 
     def supports_chat(self):
         return True
@@ -392,17 +371,23 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
             response = requests.get(health_url, timeout=5)
             return {"message": response.text}, response.status_code
         except Timeout:
-            # reset cache state until healthy
-            del self.served_model_name
+            self._reset_cached_model_name()
             return {
                 "message": f"Timeout waiting for {self.NAME} health route to respond."
             }, http_codes.SERVICE_UNAVAILABLE
         except ConnectionError as err:
-            # reset cache state until healthy
-            del self.served_model_name
+            self._reset_cached_model_name()
             return {
                 "message": f"{self.NAME} server is not ready: {str(err)}"
             }, http_codes.SERVICE_UNAVAILABLE
+
+    def _reset_cached_model_name(self):
+        """
+        Resets the cached model name to ensure it's correctly re-fetched from the OpenAI server.
+        This prevents caching incorrect values if the model name was requested before the server was ready.
+        """
+        if hasattr(self, "served_model_name"):
+            del self.served_model_name
 
     @staticmethod
     def _check_process(process: Popen):
