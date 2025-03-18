@@ -35,3 +35,29 @@ def chat_python_model_adapter():
         new=ChatPythonModelAdapter,
     ) as adapter:
         yield adapter
+
+
+class NonChatPythonModelAdapter(PythonModelAdapter):
+    """A model adapter whose supports_chat() will return False"""
+
+    def __init__(self, model_dir, target_type):
+        super().__init__(model_dir, target_type)
+
+        self._custom_hooks.pop(CustomHooks.CHAT, None)
+
+    def load_model_from_artifact(
+        self,
+        user_secrets_mount_path: Optional[str] = None,
+        user_secrets_prefix: Optional[str] = None,
+        skip_predictor_lookup=False,
+    ):
+        return "model"
+
+
+@pytest.fixture
+def non_chat_python_model_adapter():
+    with patch(
+        "datarobot_drum.drum.language_predictors.python_predictor.python_predictor.PythonModelAdapter",
+        new=NonChatPythonModelAdapter,
+    ) as adapter:
+        yield adapter

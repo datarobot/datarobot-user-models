@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import logging
 
 import werkzeug
 from flask import request, Response, stream_with_context
@@ -21,6 +22,7 @@ from datarobot_drum.drum.enum import (
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from datarobot_drum.drum.server import (
     HTTP_200_OK,
+    HTTP_404_NOT_FOUND,
     HTTP_422_UNPROCESSABLE_ENTITY,
 )
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
@@ -45,6 +47,11 @@ class PredictMixin:
     This flow assumes endpoints implemented using Flask.
 
     """
+
+    @staticmethod
+    def _log_if_possible(logger, log_level, message):
+        if logger is not None:
+            logger.log(log_level, message)
 
     @staticmethod
     def _validate_content_type_header(header):
@@ -368,6 +375,25 @@ class PredictMixin:
         return response, response_status
 
     def do_chat(self, logger=None):
+        unsupported_chat_message = (
+            "This model's chat interface was called, but chat is not supported."
+        )
+        undefined_chat_message = (
+            "This model's chat interface was called, but chat() is not implemented."
+        )
+        # _predictor is a BaseLanguagePredictor attribute of PredictionServer;
+        # see PredictionServer.__init__()
+        if not self._predictor.supports_chat():
+            if self._target_type == TargetType.TEXT_GENERATION:
+                message = undefined_chat_message
+            else:
+                message = unsupported_chat_message
+            self._log_if_possible(logger, logging.ERROR, message)
+            return (
+                {"message": "ERROR: " + message},
+                HTTP_404_NOT_FOUND,
+            )
+
         completion_create_params = request.json
 
         result = self._predictor.chat(completion_create_params)
