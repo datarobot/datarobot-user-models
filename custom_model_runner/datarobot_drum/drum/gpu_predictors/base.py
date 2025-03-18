@@ -127,7 +127,9 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
             return default_name
 
     def supports_chat(self):
-        return True
+        if self.target_type == TargetType.TEXT_GENERATION:
+            return True
+        return False
 
     def _chat(self, completion_create_params, association_id):
         # Use the `model` name provided by the caller. However, to maintain backward compatibility,
