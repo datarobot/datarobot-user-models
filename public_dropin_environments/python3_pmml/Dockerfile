@@ -31,6 +31,10 @@ COPY --from=build /bin/mkdir /bin/mkdir
 # Required for custom-models to install dependencies
 COPY --from=build /usr/bin/pip /usr/bin/pip
 
+# Cleanup '__pycache__' directories. It solves an AsymmetricPrivateKey scanning error.
+COPY --from=build /usr/bin/rm /usr/bin/rm
+COPY --from=build /usr/bin/find /usr/bin/find
+
 # Just for convenience
 COPY --from=build /bin/ls /bin/ls
 
@@ -42,7 +46,9 @@ RUN sh -c "python -m venv ${VIRTUAL_ENV} && \
     . ${VIRTUAL_ENV}/bin/activate && \
     python -m ensurepip --default-pip && \
     python -m pip install --upgrade pip && \
-    python -m pip install --no-cache-dir -r requirements.txt"
+    python -m pip install --no-cache-dir -r requirements.txt && \
+    find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} + && \
+    rm -rf /usr/bin/rm /usr/bin/find"
 
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk
 ENV PATH=${VIRTUAL_ENV}/bin:${JAVA_HOME}/bin:${PATH}
