@@ -403,7 +403,7 @@ class TargetType(Enum):
             cls.TRANSFORM,
             cls.TEXT_GENERATION,
             cls.GEO_POINT,
-            cls.VECTOR_DATABASE
+            cls.VECTOR_DATABASE,
         ]
 
     def is_classification(self):
