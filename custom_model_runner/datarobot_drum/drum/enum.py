@@ -392,20 +392,6 @@ class TargetType(Enum):
     GEO_POINT = "geopoint"
     VECTOR_DATABASE = "vectordatabase"
 
-    @classmethod
-    def all(cls):
-        return [
-            cls.BINARY,
-            cls.REGRESSION,
-            cls.ANOMALY,
-            cls.UNSTRUCTURED,
-            cls.MULTICLASS,
-            cls.TRANSFORM,
-            cls.TEXT_GENERATION,
-            cls.GEO_POINT,
-            cls.VECTOR_DATABASE,
-        ]
-
     def is_classification(self):
         return self in [self.BINARY, self.MULTICLASS]
 
