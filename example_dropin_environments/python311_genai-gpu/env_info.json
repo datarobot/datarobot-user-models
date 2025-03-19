@@ -1,6 +1,6 @@
 {
   "id": "666b39a88c596d95eddb9f26",
-  "name": "[DataRobot][NVIDIA] Python 3.11 GenAI",
+  "name": "[DataRobot][NVIDIA] Python 3.11 GenAI [DEPRECATED]",
   "description": "This template environment can be used to create GenAI-powered custom models and includes common dependencies for workflows using OpenAI, Langchain, vector DBs, or transformers in PyTorch. This environment is created to run on machines with GPU support. Similar to other drop-in environments, you can either include a `.pth` artifact or any other code needed to deserialize your model, and optionally, a `custom.py` file.",
   "programmingLanguage": "python",
   "environmentVersionId": "67a0cbe1acd22608cc9683a3",
