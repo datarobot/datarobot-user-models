@@ -1,4 +1,6 @@
 import typing
+import pytest
+from datarobot_drum.drum.enum import TargetType
 
 from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
 from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerProcess
@@ -19,6 +21,22 @@ class TestGPUPredictor(BaseOpenAiGpuPredictor):
         pass
 
 
-def test_supports_chat():
+@pytest.fixture
+def mock_target_name_env_var(monkeypatch):
+    monkeypatch.setenv("TARGET_NAME", "target")
+    yield
+    monkeypatch.delenv("TARGET_NAME")
+
+
+@pytest.mark.parametrize("target_type", list(TargetType))
+def test_supports_chat(mock_target_name_env_var, target_type):
     predictor = TestGPUPredictor()
-    assert predictor.supports_chat()
+    params = {
+        "target_type": target_type,
+        "__custom_model_path__": "/opt/code/custom.py",
+    }
+    predictor.configure(params)
+    if target_type == TargetType.TEXT_GENERATION:
+        assert predictor.supports_chat()
+    else:
+        assert not predictor.supports_chat()
