@@ -3,8 +3,8 @@
   "name": "DRUM NIM Sidecar",
   "description": "",
   "programmingLanguage": "python",
-  "environmentVersionId": "67d94ed3da51e13ed7d1e8a2",
-  "environmentVersionDescription": "",
+  "environmentVersionId": "67dbc5522bb140739a1e9840",
+  "environmentVersionDescription": "Ensure only TextGen models have chat capability",
   "isDownloadable": false,
   "isPublic": true
 }
