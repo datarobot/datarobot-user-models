@@ -70,6 +70,7 @@ class DrumServerRun:
         target_type: str,
         labels,
         custom_model_dir: str,
+        port: Optional[int] = None,
         docker=None,
         with_error_server=False,
         show_stacktrace=True,
@@ -89,7 +90,7 @@ class DrumServerRun:
         max_workers=None,
         cmd_override=None,
     ):
-        self.port = DrumUtils.find_free_port()
+        self.port = port or DrumUtils.find_free_port()
         self.server_address = "localhost:{}".format(self.port)
         url_host = os.environ.get("TEST_URL_HOST", "localhost")
 

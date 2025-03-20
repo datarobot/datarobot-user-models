@@ -32,6 +32,11 @@ from tests.constants import (
     TESTS_FIXTURES_PATH,
 )
 
+# Use fixed port for testing to exercise port conflict issues we have seen between NIMs and DRUM
+# server in production. GPU tests run serially anyway so no need for use of dynamic ports in
+# these tests.
+DRUM_HTTP_PORT = 8080
+
 
 @pytest.mark.parametrize(
     "framework, target_type, model_template_dir",
@@ -66,6 +71,7 @@ def test_triton_predictor(framework, target_type, model_template_dir, framework_
         production=False,
         gpu_predictor=framework,
         wait_for_server_timeout=600,
+        port=DRUM_HTTP_PORT,
     ) as run:
         headers = {
             "Content-Type": f"{PredictionServerMimetypes.APPLICATION_OCTET_STREAM};charset=UTF-8"
@@ -150,6 +156,7 @@ class NimSideCarBase:
             sidecar=True,
             target_name=self.TARGET_NAME,
             wait_for_server_timeout=self.READY_TIMEOUT_SEC,
+            port=DRUM_HTTP_PORT,
         ) as run:
             response = requests.get(run.url_server_address)
             if not response.ok:
@@ -317,6 +324,7 @@ class TestLegacyNimLlm(NimLlmCases):
             gpu_predictor=GPU_NIM,
             target_name="response",
             wait_for_server_timeout=400,
+            port=DRUM_HTTP_PORT,
         ) as run:
             response = requests.get(run.url_server_address)
             if not response.ok:
@@ -418,6 +426,7 @@ class TestVllm:
             gpu_predictor=GPU_VLLM,
             target_name="response",
             wait_for_server_timeout=360,
+            port=DRUM_HTTP_PORT,
         ) as run:
             response = requests.get(run.url_server_address)
             if not response.ok:
