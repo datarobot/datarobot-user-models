@@ -6,7 +6,6 @@ The majority of these environments are focused around DataRobot's GenAI features
 In this repository, we provide several example environments that you can use and modify:
 * [NVIDIA Triton Inference Server](triton_server)
 * [vLLM OpenAI’s Compatible Server](vllm)
-* [Python 3.11 GenAI Environment](python311_genai)
 
 These sample environments each define the libraries available in the environment
 and are designed to allow for simple custom model environments to be made that
