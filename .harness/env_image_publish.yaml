@@ -24,12 +24,34 @@ pipeline:
                   type: BuildAndPushDockerRegistry
                   name: BuildAndPushDockerRegistry_1
                   identifier: BuildAndPushDockerRegistry_1
+                  when:
+                    stageStatus: Success
+                    pipelineStatus: Success
+                    condition: <+pipeline.variables.use_local_dockerfile> != "true"
                   spec:
                     connectorRef: datarobot_user_models_read_write
                     repo: datarobotdev/datarobot-user-models
                     tags:
                       - <+pipeline.variables.image_tag>
                     dockerfile: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>/Dockerfile
+                    context: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
+                    resources:
+                      limits:
+                        memory: 3G
+              - step:
+                  type: BuildAndPushDockerRegistry
+                  name: LocalBuildAndPushDockerRegistry_1
+                  identifier: LocalBuildAndPushDockerRegistry_1
+                  when:
+                    stageStatus: Success
+                    pipelineStatus: Success
+                    condition: <+pipeline.variables.use_local_dockerfile> == "true"
+                  spec:
+                    connectorRef: datarobot_user_models_read_write
+                    repo: datarobotdev/datarobot-user-models
+                    tags:
+                      - <+pipeline.variables.image_tag>.local
+                    dockerfile: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>/Dockerfile.local
                     context: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
                     resources:
                       limits:
@@ -59,3 +81,7 @@ pipeline:
       description: ""
       required: true
       value: <+input>.default(<+pipeline.variables.env_folder>_<+pipeline.variables.env_name>_latest)
+    - name: use_local_dockerfile
+      type: String
+      required: false
+      value: <+input>.default("false")

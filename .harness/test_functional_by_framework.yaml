@@ -48,6 +48,7 @@ pipeline:
                       export CODEBASE_BRANCH=<+codebase.branch>
                       export ENV_FOLDER=<+pipeline.variables.env_folder>
                       export FRAMEWORK=<+pipeline.variables.framework>
+                      export USE_LOCAL_DOCKERFILE=<+pipeline.variables.use_local_dockerfile>
                       export TRIGGER_PR_NUMBER=<+trigger.prNumber>
                       . ./harness_scripts/functional_by_framework/check_env_changed_check_diff.sh
                     outputVariables:
@@ -86,7 +87,10 @@ pipeline:
                 value: <+pipeline.variables.framework>
               - name: image_tag
                 type: String
-                value: <+input>.default(<+pipeline.variables.env_folder>_<+pipeline.variables.env_name>_latest)
+                value: datarobotdev/datarobot-user-models:<+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>
+              - name: use_local_dockerfile
+                type: String
+                value: <+pipeline.variables.use_local_dockerfile>
         when:
           pipelineStatus: Success
           condition: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.changed_deps> == true
@@ -169,5 +173,9 @@ pipeline:
       type: String
       value: <+input>.default(public_dropin_environments)
       description: "The root path of all the environments"
+    - name: use_local_dockerfile
+      type: String
+      value: <+input>.default("false")
+      description: "Use Dockerfile.local to test the image for local development"
   identifier: test_functional_by_framework
   name: test functional by framework

@@ -1,0 +1,33 @@
+trigger:
+  name: python3_pytorch_local_on_push
+  identifier: python3_pytorch_local_on_push_master
+  enabled: true
+  stagesToExecute: []
+  description: ""
+  tags: {}
+  encryptedWebhookSecretIdentifier: ""
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipelineIdentifier: env_image_publish
+  source:
+    type: Webhook
+    spec:
+      type: Github
+      spec:
+        type: Push
+        spec:
+          connectorRef: account.svc_harness_git1
+          autoAbortPreviousExecutions: false
+          payloadConditions:
+            - key: changedFiles
+              operator: Contains
+              value: public_dropin_environments/python3_pytorch
+            - key: targetBranch
+              operator: Equals
+              value: master
+          headerConditions: []
+          repoName: datarobot-user-models
+          actions: []
+  pipelineBranchName: <+trigger.branch>
+  inputSetRefs:
+    - python3_pytorch_local_image_build_default_pr_input
