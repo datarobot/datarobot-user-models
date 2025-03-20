@@ -12,7 +12,7 @@ pipeline:
     - stage:
         name: Build DRUM and publish to Pypi
         identifier: Build_DRUM
-        description: ""
+        description: Pipeline to release DRUM to https://pypi.org/project/datarobot-drum/
         type: CI
         spec:
           cloneCodebase: true
@@ -43,5 +43,10 @@ pipeline:
           runtime:
             type: Cloud
             spec: {}
+          caching:
+            enabled: false
+            paths: []
+          buildIntelligence:
+            enabled: false
   identifier: release_drum_to_pypi
   name: Release DRUM to Pypi
