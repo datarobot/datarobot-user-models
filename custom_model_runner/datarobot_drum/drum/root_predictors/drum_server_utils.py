@@ -70,7 +70,6 @@ class DrumServerRun:
         target_type: str,
         labels,
         custom_model_dir: str,
-        port: Optional[int] = None,
         docker=None,
         with_error_server=False,
         show_stacktrace=True,
@@ -89,6 +88,7 @@ class DrumServerRun:
         wait_for_server_timeout=30,
         max_workers=None,
         cmd_override=None,
+        port: Optional[int] = None,
     ):
         self.port = port or DrumUtils.find_free_port()
         self.server_address = "localhost:{}".format(self.port)
