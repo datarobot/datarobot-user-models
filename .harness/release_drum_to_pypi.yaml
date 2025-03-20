@@ -12,7 +12,7 @@ pipeline:
     - stage:
         name: Build DRUM and publish to Pypi
         identifier: Build_DRUM
-        description: Pipeline to release DRUM to https://pypi.org/project/datarobot-drum/
+        description: ""
         type: CI
         spec:
           cloneCodebase: true
@@ -50,3 +50,4 @@ pipeline:
             enabled: false
   identifier: release_drum_to_pypi
   name: Release DRUM to Pypi
+  description: Pipeline to release DRUM to https://pypi.org/project/datarobot-drum/
