@@ -85,3 +85,9 @@ pipeline:
       type: String
       required: false
       value: <+input>.default("false")
+  description: |-
+    Builds an environment image and pushes it to the DockerHub registry. These images are used to run functional tests for every PR.  
+
+    It is used to:  
+    * Build a temporary image for testing when a PR includes environment changes.  
+    * Build and update the latest environment image after a PR is merged.

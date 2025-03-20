@@ -172,10 +172,14 @@ pipeline:
     - name: env_folder
       type: String
       value: <+input>.default(public_dropin_environments)
-      description: "The root path of all the environments"
+      description: The root path of all the environments
     - name: use_local_dockerfile
       type: String
       value: <+input>.default("false")
-      description: "Use Dockerfile.local to test the image for local development"
+      description: Use Dockerfile.local to test the image for local development
   identifier: test_functional_by_framework
   name: test functional by framework
+  description: |-
+    Runs functional tests for each framework in a corresponding image.
+    If only DRUM changed in the PR, latest image is taken for every framework, DRUM installed and tests run.
+    If environment itself has changed, temporary image is built.

@@ -75,3 +75,4 @@ pipeline:
       description: ""
       required: true
       value: <+input>
+  description: Update environment version ID in env_info.json if environment has changed. Pipeline is triggered for the envs explicitly defined in pipeline inputs.

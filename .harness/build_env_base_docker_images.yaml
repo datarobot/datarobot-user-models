@@ -157,3 +157,4 @@ pipeline:
       description: ""
       required: true
       value: <+input>
+  description: used to build base images for our envs. Not in use anymore

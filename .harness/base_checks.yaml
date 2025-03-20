@@ -75,3 +75,4 @@ pipeline:
                 spec: {}
   identifier: base_checks
   name: base_checks
+  description: Run unit and integration tests on every PR
