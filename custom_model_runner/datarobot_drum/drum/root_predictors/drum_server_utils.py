@@ -88,8 +88,9 @@ class DrumServerRun:
         wait_for_server_timeout=30,
         max_workers=None,
         cmd_override=None,
+        port: Optional[int] = None,
     ):
-        self.port = DrumUtils.find_free_port()
+        self.port = port or DrumUtils.find_free_port()
         self.server_address = "localhost:{}".format(self.port)
         url_host = os.environ.get("TEST_URL_HOST", "localhost")
 
