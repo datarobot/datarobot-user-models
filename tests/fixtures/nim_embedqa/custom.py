@@ -4,30 +4,39 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import json
 
 from openai import OpenAI
+
+EMBEDDING_STAGE_MAP = {"indexing": "passage", "prompting": "query"}
 
 
 def score_unstructured(model: str, data: str, base_url: str, openai_client: OpenAI, **kwargs):
     payload = json.loads(data)
 
+    if "input" not in payload:
+        raise ValueError("Field `input` is required.")
+    texts = payload["input"]
+
+    if "embedding_stage" not in payload:
+        raise ValueError("Field `embedding_stage` is required.")
+    embedding_stage = payload["embedding_stage"]
+    input_type = EMBEDDING_STAGE_MAP[embedding_stage]
+
+    extra_body = {"truncate": "END"}
+
     # `input_type` is an extension to OpenAI API that NIM uses for certain embedding models
     # One way to pass this is to append to the model name:
-    #   https://docs.nvidia.com/nim/nemo-retriever/text-embedding/latest/reference.html#openai-api
-    input_type = payload.pop("input_type", None)
+    # https://docs.nvidia.com/nim/nemo-retriever/text-embedding/latest/reference.html#openai-api
+    extra_body.update({"input_type": input_type})
 
-    # The user passed a model param so just defer to them
-    if "model" in payload:
-        pass
+    import os
 
-    # No model param but input_type is set so generate the model name
-    elif input_type:
-        model += f"-{input_type}"
-        payload["model"] = model
+    model_name = os.environ.get("NIM_MODEL_NAME", "datarobot-deployed-llm")
+    embedding_response = openai_client.embeddings.create(
+        input=texts, model=model_name, encoding_format="float", extra_body=extra_body
+    )
 
-    # Otherwise fall back to what DRUM thinks the model name should be
-    else:
-        payload["model"] = model
-    response = openai_client.embeddings.create(**payload)
-    return response.to_json(), {"mimetype": "application/json"}
+    result = [_data.embedding for _data in embedding_response.data]
+    return json.dumps({"result": result})
