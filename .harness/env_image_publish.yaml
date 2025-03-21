@@ -59,3 +59,9 @@ pipeline:
       description: ""
       required: true
       value: <+input>.default(<+pipeline.variables.env_folder>_<+pipeline.variables.env_name>_latest)
+  description: |-
+    Builds environment image and push to dockerhub registry. These images are used to run functional tests on every PR.
+
+    Is used to:
+    * if there are changes in the env in a particular PR, build temp image to run tests in.
+    * build the latest version of the env, after PR is merged,

@@ -64,8 +64,7 @@ pipeline:
                         connectorRef: account.dockerhub_datarobot_read
                         image: datarobot/drum-builder:ubuntu-22-04
                         shell: Bash
-                        command: |-
-                          ./harness_scripts/functional_general/custom_java_predictor_entrypoint.sh
+                        command: ./harness_scripts/functional_general/custom_java_predictor_entrypoint.sh
                         resources:
                           limits:
                             memory: 3G
@@ -110,3 +109,4 @@ pipeline:
   identifier: test_functional_general
   name: test functional general
   allowStageExecutions: true
+  description: Runs functional tests on every PR

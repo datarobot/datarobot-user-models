@@ -43,5 +43,11 @@ pipeline:
           runtime:
             type: Cloud
             spec: {}
+          caching:
+            enabled: false
+            paths: []
+          buildIntelligence:
+            enabled: false
   identifier: release_drum_to_pypi
   name: Release DRUM to Pypi
+  description: Pipeline to release DRUM to https://pypi.org/project/datarobot-drum/
