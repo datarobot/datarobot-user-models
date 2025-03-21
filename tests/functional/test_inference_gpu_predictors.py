@@ -134,11 +134,6 @@ class NimSideCarBase:
 
     @pytest.fixture(scope="class")
     def nim_predictor(self, nim_sidecar):
-        # the Runtime Parameters used for prediction requests
-        os.environ[
-            "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
-        ] = '{"type": "numeric", "payload": 10}'
-
         with DrumServerRun(
             target_type=self.TARGET_TYPE.value,
             labels=self.LABELS,
