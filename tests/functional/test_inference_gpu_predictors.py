@@ -485,6 +485,27 @@ class TestVllm:
             llm_response,
         )
 
+    def test_chat_api_extra_body(self, vllm_predictor):
+        from openai import OpenAI
+
+        client = OpenAI(
+            base_url=vllm_predictor.url_server_address, api_key="not-required", max_retries=0
+        )
+
+        completion = client.chat.completions.create(
+            model="datarobot-deployed-llm",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": "Describe the city of Boston"},
+            ],
+            temperature=0.01,
+            extra_body={"guided_choice": ["True", "False"]},
+        )
+
+        assert len(completion.choices) == 1
+        assert completion.choices[0].message.content is not None
+        assert "True" == completion.choices[0].message.content
+
     @pytest.mark.parametrize(
         "model_name", ["", "datarobot-deployed-llm", "bogus-name", None, UNSET]
     )

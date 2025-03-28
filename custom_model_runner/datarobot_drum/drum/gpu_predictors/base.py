@@ -5,6 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import csv
+import inspect
 import io
 import json
 import logging
@@ -45,6 +46,16 @@ from datarobot_drum.drum.language_predictors.base_language_predictor import (
 )
 from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerProcess
 from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
+
+# OpenAI client isn't a required dependency for DRUM, so we need to check if it's available
+try:
+    from openai import OpenAI
+    from openai.resources.chat.completions import Completions
+
+    COMPLETIONS_CREATE_SIGNATURE = inspect.signature(Completions.create)
+    _HAS_OPENAI = True
+except ImportError:
+    _HAS_OPENAI = False
 
 
 class ChatRoles:
@@ -97,10 +108,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         )
         self._max_watchdog_backoff = self.get_optional_parameter("max_watchdog_backoff_sec", 300)
 
-        # Have a check in the ctor to we fail early if optional deps are not installed.
-        try:
-            import openai  # noqa: F401
-        except ImportError:
+        if not _HAS_OPENAI:
             raise DrumCommonException("OpenAI Python SDK is not installed")
 
     @property
@@ -139,7 +147,11 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         if not model_name_from_request or model_name_from_request == self.DEFAULT_MODEL_NAME:
             completion_create_params["model"] = self.served_model_name
 
-        return self.ai_client.chat.completions.create(**completion_create_params)
+        # Separate valid kwargs from extra kwargs
+        valid_params = set(COMPLETIONS_CREATE_SIGNATURE.parameters.keys())
+        valid_kwargs = {k: v for k, v in completion_create_params.items() if k in valid_params}
+        extra_kwargs = {k: v for k, v in completion_create_params.items() if k not in valid_params}
+        return self.ai_client.chat.completions.create(**valid_kwargs, extra_body=extra_kwargs)
 
     def has_read_input_data_hook(self):
         return False
@@ -151,8 +163,6 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         return formats
 
     def configure(self, params):
-        from openai import OpenAI
-
         super().configure(params)
         self.python_model_adapter = PythonModelAdapter(
             model_dir=self._code_dir, target_type=self.target_type
