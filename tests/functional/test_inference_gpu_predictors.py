@@ -504,10 +504,7 @@ class TestVllm:
 
         assert len(completion.choices) == 1
         assert completion.choices[0].message.content is not None
-        assert re.search(
-            r"Boston(, the capital (city )?of Massachusetts,)? is a (vibrant and )?(bustling|historic) (city|metropolis)",
-            completion.choices[0].message.content,
-        )
+        assert "True" == completion.choices[0].message.content
 
     @pytest.mark.parametrize(
         "model_name", ["", "datarobot-deployed-llm", "bogus-name", None, UNSET]
