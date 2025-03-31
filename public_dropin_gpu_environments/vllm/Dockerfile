@@ -1,4 +1,4 @@
-FROM vllm/vllm-openai:v0.7.2
+FROM vllm/vllm-openai:v0.8.2
 USER root
 RUN apt-get update && apt-get install -y \
     python3.12 \

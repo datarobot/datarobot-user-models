@@ -404,7 +404,10 @@ class TestVllm:
         os.environ[
             "MLOPS_RUNTIME_PARAM_prompt_column_name"
         ] = '{"type":"string","payload":"user_prompt"}'
-        os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 30}'
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_system_prompt"
+        ] = '{"type":"string","payload":"You are a helpful assistant"}'
+        os.environ["MLOPS_RUNTIME_PARAM_temperature"] = '{"type":"numeric","payload":0.01}'
 
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "gpu_vllm_textgen")
         with open(os.path.join(custom_model_dir, "engine_config.json"), "w") as f:
@@ -441,9 +444,11 @@ class TestVllm:
         assert response_data
         assert "predictions" in response_data, response_data
         assert len(response_data["predictions"]) == 1
-        assert (
-            "Boston is a vibrant, historic city" in response_data["predictions"][0]
-        ), response_data
+        llm_response = response_data["predictions"][0]
+        assert re.search(
+            r"Boston(, the capital (city )?of Massachusetts,)? is a (vibrant and )?(bustling|historic) (city|metropolis)",
+            llm_response,
+        )
 
     @pytest.mark.parametrize("streaming", [False, True], ids=["sync", "streaming"])
     @pytest.mark.parametrize("nchoices", [1, 3])
@@ -484,6 +489,27 @@ class TestVllm:
             r"Boston(, the capital (city )?of Massachusetts,)? is a (vibrant and )?(bustling|historic) (city|metropolis)",
             llm_response,
         )
+
+    def test_chat_api_extra_body(self, vllm_predictor):
+        from openai import OpenAI
+
+        client = OpenAI(
+            base_url=vllm_predictor.url_server_address, api_key="not-required", max_retries=0
+        )
+
+        completion = client.chat.completions.create(
+            model="datarobot-deployed-llm",
+            messages=[
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": "Describe the city of Boston"},
+            ],
+            temperature=0.01,
+            extra_body={"guided_choice": ["True", "False"]},
+        )
+
+        assert len(completion.choices) == 1
+        assert completion.choices[0].message.content is not None
+        assert "True" == completion.choices[0].message.content
 
     @pytest.mark.parametrize(
         "model_name", ["", "datarobot-deployed-llm", "bogus-name", None, UNSET]

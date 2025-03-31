@@ -8,10 +8,11 @@ import itertools
 import logging
 import os
 import time
-import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from random import getrandbits
 from typing import Optional, List
+from uuid import UUID
 
 import pandas as pd
 
@@ -54,6 +55,11 @@ except ImportError as e:
         mlops_loaded = True
     except ImportError as e:
         mlops_import_error += "\n\tError importing MLOps python module(old path): {}".format(e)
+
+
+def uuid4_fast():
+    # https://bugs.python.org/issue45556
+    return UUID(int=getrandbits(128), version=4)
 
 
 @dataclass
@@ -245,7 +251,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
     def chat(self, completion_create_params):
         start_time = time.time()
         try:
-            association_id = str(uuid.uuid4())
+            association_id = str(uuid4_fast())
             response = self._chat(completion_create_params, association_id)
             response = self._validate_chat_response(response)
         except Exception as e:
