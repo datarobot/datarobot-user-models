@@ -3,8 +3,8 @@
   "name": "[GenAI] vLLM Inference Server",
   "description": "A high-throughput and memory-efficient inference and serving engine for LLMs.",
   "programmingLanguage": "python",
-  "label": "v0.7.2+dr.2",
+  "label": "v0.8.2+dr.1",
   "environmentVersionId": "67e60eebcbce025568bead79",
-  "environmentVersionDescription": "Bump DRUM version to fix extra_body handling.\nFROM vllm/vllm-openai:v0.7.2",
+  "environmentVersionDescription": "Fix extra_body handling and bump vLLM.\nFROM vllm/vllm-openai:v0.8.2",
   "isPublic": true
 }
