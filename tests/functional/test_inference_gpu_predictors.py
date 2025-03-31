@@ -404,7 +404,10 @@ class TestVllm:
         os.environ[
             "MLOPS_RUNTIME_PARAM_prompt_column_name"
         ] = '{"type":"string","payload":"user_prompt"}'
-        os.environ["MLOPS_RUNTIME_PARAM_max_tokens"] = '{"type": "numeric", "payload": 30}'
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_system_prompt"
+        ] = '{"type":"string","payload":"You are a helpful assistant"}'
+        os.environ["MLOPS_RUNTIME_PARAM_temperature"] = '{"type":"numeric","payload":0.01}'
 
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "gpu_vllm_textgen")
         with open(os.path.join(custom_model_dir, "engine_config.json"), "w") as f:
@@ -441,9 +444,11 @@ class TestVllm:
         assert response_data
         assert "predictions" in response_data, response_data
         assert len(response_data["predictions"]) == 1
-        assert (
-            "Boston, Massachusetts, is a thriving and vibrant city" in response_data["predictions"][0]
-        ), response_data
+        llm_response = response_data["predictions"][0]
+        assert re.search(
+            r"Boston(, the capital (city )?of Massachusetts,)? is a (vibrant and )?(bustling|historic) (city|metropolis)",
+            llm_response,
+        )
 
     @pytest.mark.parametrize("streaming", [False, True], ids=["sync", "streaming"])
     @pytest.mark.parametrize("nchoices", [1, 3])
