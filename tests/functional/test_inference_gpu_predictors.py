@@ -442,7 +442,7 @@ class TestVllm:
         assert "predictions" in response_data, response_data
         assert len(response_data["predictions"]) == 1
         assert (
-            "Boston is a vibrant, historic city" in response_data["predictions"][0]
+            "Boston, Massachusetts, is a thriving and vibrant city" in response_data["predictions"][0]
         ), response_data
 
     @pytest.mark.parametrize("streaming", [False, True], ids=["sync", "streaming"])
