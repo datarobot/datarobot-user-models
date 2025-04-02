@@ -179,4 +179,7 @@ pipeline:
       required: true
       value: <+input>
   allowStageExecutions: true
-  description: please add description
+  description: |-
+    On the PR merge, builds and pushes image to registry with tags:
+    latest, v11.0-latest, v11.0-env_Version_id.
+    This is explicitly done according to defined triggers and inputs.
