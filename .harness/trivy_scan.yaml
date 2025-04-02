@@ -1,5 +1,5 @@
 pipeline:
-  name: "daily security scans"
+  name: daily security scans
   identifier: trivy_scan
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models
@@ -8,7 +8,7 @@ pipeline:
     - stage:
         name: Scan
         identifier: Scan
-        description: "Scan the image with trivy"
+        description: Scan the image with trivy
         type: CI
         spec:
           cloneCodebase: false
@@ -33,7 +33,6 @@ pipeline:
                           - reports/**.xml
                     settings:
                       image: datarobotdev/<+pipeline.variables.imageName>
-                      # TODO: Replace the following lines with the new credentials once they are added 
                       username: yakovg
                       password: <+secrets.getValue("dockerhub-token-yakov-goldberg")>
                       ignore_policy: /dev/zero
@@ -50,3 +49,4 @@ pipeline:
       description: ""
       required: true
       value: <+input>
+  description: Performs daily security scans on environment images according to inputs
