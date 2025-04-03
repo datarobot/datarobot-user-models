@@ -36,7 +36,6 @@ datarobot==3.6.4
 datarobot-drum==1.16.6
 datarobot-mlops==10.2.8
 datarobot-model-metrics==0.6.13
-datarobot-moderations==11.0.5
 datarobot-predict==1.13.1
 datarobot-storage==2.1.2
 Deprecated==1.2.18
@@ -45,6 +44,7 @@ distro==1.9.0
 docker==7.1.0
 docstring_parser==0.16
 docutils==0.16
+drprotobuf-browser-service==0.4.0
 faiss-cpu==1.8.0
 fastapi==0.115.12
 fastembed==0.4.0
@@ -176,6 +176,7 @@ schema==0.7.7
 scikit-learn==1.5.0
 scipy==1.12.0
 sentence-transformers==3.0.0
+service-library==0.8.3
 setuptools==68.2.2
 shapely==2.1.0rc1
 shellingham==1.5.4
@@ -207,7 +208,7 @@ tzdata==2025.2
 unidic-lite==1.0.8
 urllib3==1.26.20
 uvicorn==0.34.0
-watchdog==6.0.0
+watchdog==4.0.2
 wcwidth==0.2.13
 Werkzeug==3.1.3
 wheel==0.45.1
