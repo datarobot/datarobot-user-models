@@ -1,0 +1,51 @@
+-c dep.constraints
+
+pyarrow>=0.15.1,<16.0.0
+datarobot-drum==1.16.6
+datarobot-mlops==10.2.8
+cloudpickle==2.2.1
+# torch for x86_64 archtectures and linux from pypi comes with GPU support and dependencies which adds mutliple addtional GBs to the image which we don't need
+# You can see find available wheels of the Meta torch repository here: https://download.pytorch.org/whl/torch/
+torch @ https://download.pytorch.org/whl/cpu/torch-2.2.2%2Bcpu-cp312-cp312-linux_x86_64.whl#sha256=431a747b5a880cf8e1fb6d58db6bfafa6768cbec76517d046854537c03323edf
+transformers==4.48.3
+openai==1.58.1
+langchain==0.3.18
+langchain-community==0.3.17
+optimum==1.24.0
+onnxruntime==1.18.1
+onnx==1.17.0
+sentence-transformers==3.0.0
+faiss-cpu==1.8.0
+numpy==1.26.4
+pandas<=2.2.3
+scikit-learn==1.5.0
+scipy>=1.1,<=1.12
+tiktoken==0.7.0
+google-cloud-aiplatform>=1.34.0,<=1.67.1
+pydantic>=2.7.0,<=2.9.2
+pydantic-settings==2.7.1
+aiofiles==23.2.1
+aioboto3==13.1.1
+rouge-score==0.1.2
+fugashi==1.3.2
+unidic-lite==1.0.8
+llama-index-core==0.12.27
+nltk==3.9.1
+SQLAlchemy==2.0.35
+# Required for logging done in the model_execution_lib
+loguru==0.7.2
+
+# httpx 0.28.0 breaks opanai library
+# https://github.com/openai/openai-python/issues/1902
+httpx<0.28.0
+# Keep this in sync with version in worker/pyproject.toml
+datarobot-moderations==11.0.5
+# A leaf dependency of moderations. The reason to pin the version is that in version 0.4.1 it starts using rust-stemmers which is licensed under GPLv3
+fastembed<0.4.1
+# A fork of NeMo which supports Python 3.12. Should stop using fork here when https://github.com/NVIDIA/NeMo-Guardrails/pull/984 is merged
+nemoguardrails @ git+https://github.com/datarobot-forks/NeMo-Guardrails@v0.11.1+dr2
+
+backoff>=2.2.1
+
+# UCF
+drprotobuf-browser-service

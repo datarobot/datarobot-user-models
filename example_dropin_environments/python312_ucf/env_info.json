@@ -1,0 +1,8 @@
+{
+  "id": "67ee9a366f744de6a8c7b7c2",
+  "name": "[GenAI] Python 3.12 with UCF client",
+  "description": "Python 3.12 environment for GenAI custom models with Moderation and assessment support",
+  "programmingLanguage": "python",
+  "environmentVersionId": "67ee9a48ca49d793973735dd",
+  "isPublic": true
+}
