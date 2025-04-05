@@ -14,12 +14,16 @@ ENV CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
 ENV DATAROBOT_VENV_PATH=/opt/venv
 ENV HOME=/opt/.home
 
-COPY --chown=1000:0 .gitkeep ${HOME}/.placeholder
-COPY --chown=1000:0 .gitkeep ${CODE_DIR}/.placeholder
-COPY --chown=1000:0 .gitkeep ${DATAROBOT_VENV_PATH}/.placeholder
-RUN chmod g=u ${CODE_DIR} ${HOME} ${DATAROBOT_VENV_PATH}
+RUN groupadd -g 1000 datarobot && \
+    useradd -u 1000 -g datarobot -m -d $HOME -s /bin/bash datarobot
 
-USER 1000:0
+USER datarobot
+
+COPY --chown=1000:1000 .gitkeep ${HOME}/.placeholder
+COPY --chown=1000:1000 .gitkeep ${CODE_DIR}/.placeholder
+COPY --chown=1000:1000 .gitkeep ${DATAROBOT_VENV_PATH}/.placeholder
+RUN chmod -R g=u ${CODE_DIR} ${HOME} ${DATAROBOT_VENV_PATH}
+
 RUN python3.12 -m venv $DATAROBOT_VENV_PATH && ${DATAROBOT_VENV_PATH}/bin/pip install -U pip
 ENV PATH=${DATAROBOT_VENV_PATH}/bin:$PATH
 
@@ -27,7 +31,7 @@ COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
 WORKDIR ${CODE_DIR}
-COPY --chown=1000:0 ./*.sh ./*.py ${CODE_DIR}/
+COPY --chown=1000:1000 ./*.sh ./*.py ${CODE_DIR}/
 
 ENV WITH_ERROR_SERVER=1
 
