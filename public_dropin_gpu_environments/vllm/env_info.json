@@ -3,8 +3,8 @@
   "name": "[GenAI] vLLM Inference Server",
   "description": "A high-throughput and memory-efficient inference and serving engine for LLMs.",
   "programmingLanguage": "python",
-  "label": "v0.7.2+dr.1",
-  "environmentVersionId": "67ac1407cbce027429de0a0a",
-  "environmentVersionDescription": "Bump vLLM version and fix permissions of homedir.\nFROM vllm/vllm-openai:v0.7.2",
+  "label": "v0.7.2+dr.2",
+  "environmentVersionId": "67f16000e24e5593be0d34b4",
+  "environmentVersionDescription": "Fixed wrong python problem, system user permissions\nFROM vllm/vllm-openai:v0.7.2",
   "isPublic": true
 }
