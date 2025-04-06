@@ -15,5 +15,4 @@ echo
 echo "Starting DRUM server..."
 echo
 
-. ${DATAROBOT_VENV_PATH}/bin/activate
 exec drum server --gpu-predictor=vllm --logging-level=info "$@"
