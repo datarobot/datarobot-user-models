@@ -71,21 +71,4 @@ if [ "${FRAMEWORK}" = "r_lang" ]; then
                   "
 fi
 
-
-if [ "${FRAMEWORK}" = "vllm" ]; then
-    # Note: The `--gpus all` is required for GPU predictors tests
-    # Note: For nim_sidecar, the GPUs go to the sidecar container, not the DRUM container
-    export GPU_COUNT=$(nvidia-smi -L | wc -l)
-    echo "GPU count: $GPU_COUNT"
-
-    GPU_OPTION=""
-    if [[ $GPU_COUNT -ge 1 ]] ; then
-      GPU_OPTION="--gpus all"
-    else
-      # Don't set env var if no GPUs are available to tests can be skipped
-      unset GPU_COUNT
-    fi
-fi
-
-
 pytest ${TESTS_TO_RUN} --framework-env ${FRAMEWORK} --env-folder ${ENV_FOLDER} -rs
