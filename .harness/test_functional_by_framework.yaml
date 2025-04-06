@@ -87,7 +87,7 @@ pipeline:
                 value: <+pipeline.variables.framework>
               - name: image_tag
                 type: String
-                value: datarobotdev/datarobot-user-models:<+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>
+                value: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>
               - name: use_local_dockerfile
                 type: String
                 value: <+pipeline.variables.use_local_dockerfile>
