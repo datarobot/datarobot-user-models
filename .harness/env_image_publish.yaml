@@ -70,7 +70,7 @@ pipeline:
       type: String
       description: ""
       required: true
-      value: <+input>.allowedValues(public_dropin_environments, public_dropin_gpu_environments, public_dropin_nim_environments)
+      value: <+input>.allowedValues(public_dropin_environments)
     - name: env_name
       type: String
       description: ""
