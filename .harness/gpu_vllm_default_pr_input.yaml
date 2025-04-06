@@ -1,5 +1,6 @@
 inputSet:
   name: gpu_vllm_default_pr_input
+  tags: {}
   identifier: gpu_vllm_default_pr_input
   orgIdentifier: Custom_Models
   projectIdentifier: datarobotusermodels
@@ -23,10 +24,10 @@ inputSet:
     variables:
       - name: framework
         type: String
-        value: ""
+        value: vllm
       - name: env_folder
         type: String
-        value: public_dropin_environments
+        value: public_dropin_gpu_environments
       - name: use_local_dockerfile
         type: String
-        value: "\"false\""
+        value: "false"
