@@ -56,6 +56,7 @@ fi
 
 cd "${ROOT_DIR}"
 TESTS_TO_RUN="tests/functional/test_inference_per_framework.py \
+              tests/functional/test_inference_gpu_predictors.py \
               tests/functional/test_fit_per_framework.py \
               tests/functional/test_other_cases_per_framework.py \
               tests/functional/test_unstructured_mode_per_framework.py
@@ -70,4 +71,4 @@ if [ "${FRAMEWORK}" = "r_lang" ]; then
                   "
 fi
 
-pytest ${TESTS_TO_RUN} --framework-env ${FRAMEWORK} --env-folder ${ENV_FOLDER}
+pytest ${TESTS_TO_RUN} --framework-env ${FRAMEWORK} --env-folder ${ENV_FOLDER} -rs

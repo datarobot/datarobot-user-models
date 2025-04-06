@@ -274,7 +274,11 @@ def pytest_addoption(parser):
     parser.addoption(
         "--env-folder",
         required=False,
-        choices=["public_dropin_environments"],
+        choices=[
+            "public_dropin_environments",
+            "public_dropin_gpu_environments",
+            "public_dropin_nim_environments",
+        ],
         default=None,
     )
 
