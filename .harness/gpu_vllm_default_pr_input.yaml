@@ -9,7 +9,10 @@ inputSet:
     properties:
       ci:
         codebase:
-          build: ""
+          build:
+            type: PR
+            spec:
+              number: <+trigger.prNumber>
     stages:
       - stage:
           identifier: Build_image_because_of_change
@@ -20,7 +23,10 @@ inputSet:
               properties:
                 ci:
                   codebase:
-                    build: ""
+                    build:
+                      type: PR
+                      spec:
+                        number: <+trigger.prNumber>
     variables:
       - name: framework
         type: String
