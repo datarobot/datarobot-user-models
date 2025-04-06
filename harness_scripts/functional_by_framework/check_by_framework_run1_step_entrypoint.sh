@@ -71,4 +71,4 @@ if [ "${FRAMEWORK}" = "r_lang" ]; then
                   "
 fi
 
-pytest ${TESTS_TO_RUN} --framework-env ${FRAMEWORK} --env-folder ${ENV_FOLDER}
+pytest ${TESTS_TO_RUN} --framework-env ${FRAMEWORK} --env-folder ${ENV_FOLDER} -v
