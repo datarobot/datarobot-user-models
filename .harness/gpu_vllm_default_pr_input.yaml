@@ -36,4 +36,4 @@ inputSet:
         value: public_dropin_gpu_environments
       - name: use_local_dockerfile
         type: String
-        value: "false"
+        value: false
