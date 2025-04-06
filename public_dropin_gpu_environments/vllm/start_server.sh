@@ -14,5 +14,4 @@ echo "GPU count: $GPU_COUNT"
 echo
 echo "Starting DRUM server..."
 echo
-
 exec drum server --gpu-predictor=vllm --logging-level=info "$@"
