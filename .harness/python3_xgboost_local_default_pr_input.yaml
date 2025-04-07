@@ -16,3 +16,6 @@ inputSet:
       - name: framework
         type: String
         value: python3_xgboost
+      - name: use_local_dockerfile
+        type: string
+        value: "true"
