@@ -1,5 +1,6 @@
 inputSet:
   name: python3_sklearn_local_image_build_default_pr_input
+  tags: {}
   identifier: python3_sklearn_local_image_build_default_pr_input
   orgIdentifier: Custom_Models
   projectIdentifier: datarobotusermodels
@@ -23,5 +24,5 @@ inputSet:
         type: String
         value: <+pipeline.variables.env_folder>_<+pipeline.variables.env_name>_latest
       - name: use_local_dockerfile
-        type: string
+        type: String
         value: "true"

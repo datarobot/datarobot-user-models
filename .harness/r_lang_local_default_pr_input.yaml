@@ -17,5 +17,5 @@ inputSet:
         type: String
         value: r_lang
       - name: use_local_dockerfile
-        type: string
+        type: String
         value: "true"
