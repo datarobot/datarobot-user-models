@@ -22,6 +22,3 @@ inputSet:
       - name: image_tag
         type: String
         value: <+pipeline.variables.env_folder>_<+pipeline.variables.env_name>_latest
-      - name: use_local_dockerfile
-        type: string
-        value: "true"
