@@ -27,10 +27,6 @@ inputSet:
                       type: PR
                       spec:
                         number: <+trigger.prNumber>
-              variables:
-                - name: image_tag
-                  type: String
-                  value: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>
     variables:
       - name: framework
         type: String
