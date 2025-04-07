@@ -38,6 +38,3 @@ inputSet:
       - name: env_folder
         type: String
         value: public_dropin_gpu_environments
-      - name: use_local_dockerfile
-        type: String
-        value: <+input>.default("false")
