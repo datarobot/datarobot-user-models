@@ -17,5 +17,5 @@ inputSet:
         type: String
         value: python3_pmml
       - name: use_local_dockerfile
-        type: string
+        type: String
         value: "true"
