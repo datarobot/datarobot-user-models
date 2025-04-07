@@ -14,14 +14,21 @@ ENV CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
 ENV DATAROBOT_VENV_PATH=/opt/venv
 ENV HOME=/opt/.home
 
+RUN groupadd -g 1000 datarobot && \
+    useradd -u 1000 -g datarobot -m -d $HOME -s /bin/bash datarobot
+
+USER 1000:0
+
 COPY --chown=1000:0 .gitkeep ${HOME}/.placeholder
 COPY --chown=1000:0 .gitkeep ${CODE_DIR}/.placeholder
 COPY --chown=1000:0 .gitkeep ${DATAROBOT_VENV_PATH}/.placeholder
-RUN chmod g=u ${CODE_DIR} ${HOME} ${DATAROBOT_VENV_PATH}
+RUN chmod -R g=u ${CODE_DIR} ${HOME} ${DATAROBOT_VENV_PATH}
 
-USER 1000:0
 RUN python3.12 -m venv $DATAROBOT_VENV_PATH && ${DATAROBOT_VENV_PATH}/bin/pip install -U pip
 ENV PATH=${DATAROBOT_VENV_PATH}/bin:$PATH
+# This variable has to be populated as of the current commit's DRUM version, as vllm predictor in DRUM
+# uses it to craft a correct PATH to launch vllm from a system python.
+ENV VIRTUAL_ENV=${DATAROBOT_VENV_PATH}
 
 COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
