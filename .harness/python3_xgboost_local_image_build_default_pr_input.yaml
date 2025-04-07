@@ -1,5 +1,6 @@
 inputSet:
   name: python3_xgboost_local_image_build_default_pr_input
+  tags: {}
   identifier: python3_xgboost_local_image_build_default_pr_input
   orgIdentifier: Custom_Models
   projectIdentifier: datarobotusermodels
@@ -22,3 +23,6 @@ inputSet:
       - name: image_tag
         type: String
         value: <+pipeline.variables.env_folder>_<+pipeline.variables.env_name>_latest
+      - name: use_local_dockerfile
+        type: String
+        value: "true"
