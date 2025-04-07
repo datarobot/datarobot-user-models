@@ -171,13 +171,12 @@ pipeline:
       value: <+input>
     - name: env_folder
       type: String
-      description: The root path of all the environments
       value: <+input>.default(public_dropin_environments)
+      description: The root path of all the environments
     - name: use_local_dockerfile
       type: String
-      description: Use Dockerfile.local to test the image for local development
-      required: true
       value: <+input>.default("false")
+      description: Use Dockerfile.local to test the image for local development
   identifier: test_functional_by_framework
   name: test functional by framework
   description: |-
