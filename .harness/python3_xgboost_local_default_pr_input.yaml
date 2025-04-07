@@ -1,5 +1,6 @@
 inputSet:
   name: python3_xgboost_local_default_pr_input
+  tags: {}
   identifier: python3_xgboost_local_default_pr_input
   orgIdentifier: Custom_Models
   projectIdentifier: datarobotusermodels
@@ -12,7 +13,24 @@ inputSet:
             type: PR
             spec:
               number: <+trigger.prNumber>
+    stages:
+      - stage:
+          identifier: Build_image_because_of_change
+          type: Pipeline
+          spec:
+            inputs:
+              identifier: env_image_publish
+              properties:
+                ci:
+                  codebase:
+                    build: <+input>
     variables:
       - name: framework
         type: String
         value: python3_xgboost
+      - name: env_folder
+        type: String
+        value: <+input>.default(public_dropin_environments)
+      - name: use_local_dockerfile
+        type: String
+        value: "true"
