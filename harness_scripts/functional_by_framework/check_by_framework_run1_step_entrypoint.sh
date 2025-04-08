@@ -2,6 +2,7 @@
 
 set -e
 ROOT_DIR="$(pwd)"
+DRUM_SOURCE_DIR="${ROOT_DIR}/custom_model_runner"
 
 # POSIX compliant way to get the directory of the script
 script_dir="${0%/*}"
@@ -50,17 +51,27 @@ if [ "${FRAMEWORK}" != "java_codegen" ]; then
         INST_ENV_REQ_CMD=""
     fi
 
-    cd "${ROOT_DIR}/custom_model_runner"
     title "List files in custom_model_runner"
-    ls -lah
+    ls -lah ${DRUM_SOURCE_DIR}
 
     if [ "${FRAMEWORK}" = "java_codegen" ]; then
+        cd ${DRUM_SOURCE_DIR}
         make java_components
     fi
 
     [ "${FRAMEWORK}" = "r_lang" ] && EXTRA="[R]" || EXTRA=""
     # Install datarobot-drum from source code, but keep dependencies that were installed by the environment
-    pip install --force-reinstall .${EXTRA} ${INST_ENV_REQ_CMD}
+    pip install --force-reinstall ${DRUM_SOURCE_DIR}${EXTRA} ${INST_ENV_REQ_CMD}
+
+    if [ "${FRAMEWORK}" != "vllm" ]; then
+
+    else
+      DRUM_SOURCE_DIR_TMP="/tmp/custom_model_runner"
+      cp -r ${DRUM_SOURCE_DIR} ${DRUM_SOURCE_DIR_TMP}
+      pip install --force-reinstall ${DRUM_SOURCE_DIR_TMP}${EXTRA} ${INST_ENV_REQ_CMD}
+    fi
+
+
 fi
 
 cd "${ROOT_DIR}"
