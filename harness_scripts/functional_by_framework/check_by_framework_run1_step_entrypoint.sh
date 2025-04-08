@@ -54,24 +54,18 @@ if [ "${FRAMEWORK}" != "java_codegen" ]; then
     title "List files in custom_model_runner"
     ls -lah ${DRUM_SOURCE_DIR}
 
-    if [ "${FRAMEWORK}" = "java_codegen" ]; then
-        cd ${DRUM_SOURCE_DIR}
-        make java_components
-    fi
-
     [ "${FRAMEWORK}" = "r_lang" ] && EXTRA="[R]" || EXTRA=""
-    # Install datarobot-drum from source code, but keep dependencies that were installed by the environment
-    pip install --force-reinstall ${DRUM_SOURCE_DIR}${EXTRA} ${INST_ENV_REQ_CMD}
 
-    if [ "${FRAMEWORK}" != "vllm" ]; then
+    DRUM_SOURCE_DIR_TMP=${DRUM_SOURCE_DIR}
 
-    else
+    # GPU envs run not as root, so we can not build within cloned dir, so we copy DRUM source to /tmp
+    # FIPS envs dont have cp, but run as root, so we run from cloned folder.
+    if [ "${FRAMEWORK}" = "vllm" ]; then
       DRUM_SOURCE_DIR_TMP="/tmp/custom_model_runner"
       cp -r ${DRUM_SOURCE_DIR} ${DRUM_SOURCE_DIR_TMP}
-      pip install --force-reinstall ${DRUM_SOURCE_DIR_TMP}${EXTRA} ${INST_ENV_REQ_CMD}
     fi
-
-
+    # Install datarobot-drum from source code, but keep dependencies that were installed by the environment
+    pip install --force-reinstall ${DRUM_SOURCE_DIR_TMP}${EXTRA} ${INST_ENV_REQ_CMD}
 fi
 
 cd "${ROOT_DIR}"
