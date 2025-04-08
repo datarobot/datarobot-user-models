@@ -18,6 +18,12 @@ ENV_FOLDER=$2
 
 title "Assuming running integration tests in framework container (inside Docker), for env: '${ENV_FOLDER}/${FRAMEWORK}'"
 
+title "Running as a user:"
+# FIPS images don't have id command
+set +e
+id
+set -e
+
 title "Installing pytest"
 pip install pytest pytest-xdist
 
@@ -45,6 +51,9 @@ if [ "${FRAMEWORK}" != "java_codegen" ]; then
     fi
 
     cd "${ROOT_DIR}/custom_model_runner"
+    title "List files in custom_model_runner"
+    ls -lah
+
     if [ "${FRAMEWORK}" = "java_codegen" ]; then
         make java_components
     fi
