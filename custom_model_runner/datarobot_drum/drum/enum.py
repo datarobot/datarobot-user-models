@@ -68,6 +68,9 @@ GUARD_HOOK_MODULE = MODERATIONS_LIBRARY_PACKAGE + "." + GUARD_HOOK
 GUARD_INIT_HOOK_NAME = "init"
 GUARD_SCORE_WRAPPER_NAME = "guard_score_wrapper"
 GUARD_CHAT_WRAPPER_NAME = "guard_chat_wrapper"
+VDB_SCORE_WRAPPER_NAME = "vdb_score_wrapper"
+VDB_INIT_HOOK_NAME = "init_vdb"
+
 
 LOG_LEVELS = {
     "all": logging.NOTSET,

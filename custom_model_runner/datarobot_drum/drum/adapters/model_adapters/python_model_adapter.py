@@ -51,6 +51,8 @@ from datarobot_drum.drum.enum import (
     GUARD_CHAT_WRAPPER_NAME,
     GUARD_HOOK_MODULE,
     MODERATIONS_LIBRARY_PACKAGE,
+    VDB_INIT_HOOK_NAME,
+    VDB_SCORE_WRAPPER_NAME,
 )
 from datarobot_drum.drum.exceptions import (
     DrumCommonException,
@@ -116,8 +118,7 @@ class PythonModelAdapter(AbstractModelAdapter):
                 raise ValueError(
                     "Unexpected empty target name for text generation or vector database target."
                 )
-            if target_type == TargetType.TEXT_GENERATION:
-                self._load_guard_hooks_for_drum()
+            self._load_guard_hooks_for_drum()
         else:
             self._target_name = None
 
@@ -130,14 +131,26 @@ class PythonModelAdapter(AbstractModelAdapter):
             )
             self._guard_moderation_hooks = {
                 GUARD_INIT_HOOK_NAME: getattr(guard_module, GUARD_INIT_HOOK_NAME, None),
+                VDB_INIT_HOOK_NAME: getattr(guard_module, VDB_INIT_HOOK_NAME, None),
                 GUARD_SCORE_WRAPPER_NAME: getattr(guard_module, GUARD_SCORE_WRAPPER_NAME, None),
                 GUARD_CHAT_WRAPPER_NAME: getattr(guard_module, GUARD_CHAT_WRAPPER_NAME, None),
+                VDB_SCORE_WRAPPER_NAME: getattr(guard_module, VDB_SCORE_WRAPPER_NAME, None),
             }
-            if self._guard_moderation_hooks[GUARD_INIT_HOOK_NAME] and (
-                self._guard_moderation_hooks[GUARD_SCORE_WRAPPER_NAME]
-                or self._guard_moderation_hooks[GUARD_CHAT_WRAPPER_NAME]
+            if (
+                self._target_type == TargetType.TEXT_GENERATION
+                and self._guard_moderation_hooks[GUARD_INIT_HOOK_NAME]
+                and (
+                    self._guard_moderation_hooks[GUARD_SCORE_WRAPPER_NAME]
+                    or self._guard_moderation_hooks[GUARD_CHAT_WRAPPER_NAME]
+                )
             ):
                 self._guard_pipeline = self._guard_moderation_hooks[GUARD_INIT_HOOK_NAME]()
+            elif (
+                self._target_type == TargetType.VECTOR_DATABASE
+                and self._guard_moderation_hooks[VDB_INIT_HOOK_NAME]
+                and self._guard_moderation_hooks[VDB_SCORE_WRAPPER_NAME]
+            ):
+                self._guard_pipeline = self._guard_moderation_hooks[VDB_INIT_HOOK_NAME]()
             else:
                 self._logger.debug("No guards defined")
 
@@ -597,23 +610,32 @@ class PythonModelAdapter(AbstractModelAdapter):
         extra_model_output = None
         if self._custom_hooks.get(CustomHooks.SCORE):
             try:
-                if self._target_type == TargetType.TEXT_GENERATION and self._guard_pipeline:
-                    predictions_df = self._guard_moderation_hooks[GUARD_SCORE_WRAPPER_NAME](
-                        data,
-                        model,
-                        self._guard_pipeline,
-                        self._custom_hooks.get(CustomHooks.SCORE),
-                        **kwargs,
-                    )
-                    if self._target_name not in predictions_df:
-                        predictions_df.rename(
-                            columns={"completion": self._target_name}, inplace=True
+                if self._guard_pipeline:
+                    if self._target_type == TargetType.TEXT_GENERATION:
+                        predictions_df = self._guard_moderation_hooks[GUARD_SCORE_WRAPPER_NAME](
+                            data,
+                            model,
+                            self._guard_pipeline,
+                            self._custom_hooks.get(CustomHooks.SCORE),
+                            **kwargs,
                         )
-                else:
-                    # noinspection PyCallingNonCallable
-                    predictions_df = self._custom_hooks.get(CustomHooks.SCORE)(
-                        data, model, **kwargs
-                    )
+                        if self._target_name not in predictions_df:
+                            predictions_df.rename(
+                                columns={"completion": self._target_name}, inplace=True
+                            )
+                    elif self._target_type == TargetType.VECTOR_DATABASE:
+                        predictions_df = self._guard_moderation_hooks[VDB_SCORE_WRAPPER_NAME](
+                            data,
+                            model,
+                            self._guard_pipeline,
+                            self._custom_hooks.get(CustomHooks.SCORE),
+                            **kwargs,
+                        )
+                    else:
+                        # noinspection PyCallingNonCallable
+                        predictions_df = self._custom_hooks.get(CustomHooks.SCORE)(
+                            data, model, **kwargs
+                        )
             except Exception as exc:
                 self._log_and_raise_final_error(
                     exc, "Model 'score' hook failed to make predictions."
