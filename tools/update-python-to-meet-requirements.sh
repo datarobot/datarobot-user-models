@@ -1,4 +1,4 @@
-#/usr/bin/env bash
+#!/usr/bin/env bash
 
 min_required_version="3.9"  # Required for datarobot-mlops
 current_version=$(python3 --version 2>&1 | awk '{print $2}')
