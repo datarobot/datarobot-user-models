@@ -2,6 +2,7 @@
 
 set -e
 ROOT_DIR="$(pwd)"
+DRUM_SOURCE_DIR="${ROOT_DIR}/custom_model_runner"
 
 # POSIX compliant way to get the directory of the script
 script_dir="${0%/*}"
@@ -17,6 +18,12 @@ ENV_FOLDER=$2
 [ -z ${ENV_FOLDER} ] && echo "Environment variable 'ENV_FOLDER' is missing" && exit 1
 
 title "Assuming running integration tests in framework container (inside Docker), for env: '${ENV_FOLDER}/${FRAMEWORK}'"
+
+title "Running as a user:"
+# FIPS images don't have id command
+set +e
+id
+set -e
 
 title "Installing pytest"
 pip install pytest pytest-xdist
@@ -44,14 +51,21 @@ if [ "${FRAMEWORK}" != "java_codegen" ]; then
         INST_ENV_REQ_CMD=""
     fi
 
-    cd "${ROOT_DIR}/custom_model_runner"
-    if [ "${FRAMEWORK}" = "java_codegen" ]; then
-        make java_components
-    fi
+    title "List files in custom_model_runner"
+    ls -lah ${DRUM_SOURCE_DIR}
 
     [ "${FRAMEWORK}" = "r_lang" ] && EXTRA="[R]" || EXTRA=""
+
+    DRUM_SOURCE_DIR_TMP=${DRUM_SOURCE_DIR}
+
+    # GPU envs run not as root, so we can not build within cloned dir, so we copy DRUM source to /tmp
+    # FIPS envs dont have cp, but run as root, so we run from cloned folder.
+    if [ "${FRAMEWORK}" = "vllm" ]; then
+      DRUM_SOURCE_DIR_TMP="/tmp/custom_model_runner"
+      cp -r ${DRUM_SOURCE_DIR} ${DRUM_SOURCE_DIR_TMP}
+    fi
     # Install datarobot-drum from source code, but keep dependencies that were installed by the environment
-    pip install --force-reinstall .${EXTRA} ${INST_ENV_REQ_CMD}
+    pip install --force-reinstall ${DRUM_SOURCE_DIR_TMP}${EXTRA} ${INST_ENV_REQ_CMD}
 fi
 
 cd "${ROOT_DIR}"

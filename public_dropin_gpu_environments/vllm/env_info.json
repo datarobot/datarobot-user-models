@@ -3,8 +3,8 @@
   "name": "[GenAI] vLLM Inference Server",
   "description": "A high-throughput and memory-efficient inference and serving engine for LLMs.",
   "programmingLanguage": "python",
-  "label": "v0.8.2+dr.3",
-  "environmentVersionId": "67f2d5b470acad827e749693",
-  "environmentVersionDescription": "More ROSA-friendly permissions\nFROM vllm/vllm-openai:v0.8.2",
+  "label": "v0.8.3+dr.1",
+  "environmentVersionId": "67f487b33324a82f9234d1c9",
+  "environmentVersionDescription": "Update to vllm v0.8.3\nFROM vllm/vllm-openai:v0.8.3",
   "isPublic": true
 }
