@@ -1,0 +1,11 @@
+{
+  "id": "5e8c889607389fe0f466c72d",
+  "name": "My small simple env",
+  "description": "Just an Alpine image",
+  "programmingLanguage": "python",
+  "environmentVersionId": "67d933f6d3381d60db7ef898",
+  "isPublic": true,
+  "useCases": [
+    "customModel"
+  ]
+}
