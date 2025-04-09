@@ -1,0 +1,27 @@
+inputSet:
+  name: gpu_vllm_image_build_default_on_pr
+  identifier: gpu_vllm_image_build_default_on_pr
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: env_image_publish
+    properties:
+      ci:
+        codebase:
+          build:
+            type: branch
+            spec:
+              branch: <+trigger.branch>
+    variables:
+      - name: env_folder
+        type: String
+        value: public_dropin_gpu_environments
+      - name: env_name
+        type: String
+        value: vllm
+      - name: image_tag
+        type: String
+        value: <+pipeline.variables.env_folder>_<+pipeline.variables.env_name>_latest
+      - name: use_local_dockerfile
+        type: String
+        value: "false"
