@@ -29,7 +29,7 @@ ARG GID=10101
 # be sure that package available in microdnf repo
 # to check use this bash commands:
 # ```bash```
-# docker run --rm -it registry.access.redhat.com/ubi8/ubi-minimal:8.7 bash
+# docker run --rm -it registry.access.redhat.com/ubi8/ubi-minimal:8.9 bash
 # microdnf repoquery python3*
 # ```
 ARG PYTHON_VERSION=3.11

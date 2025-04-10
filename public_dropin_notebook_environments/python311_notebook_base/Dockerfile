@@ -29,13 +29,13 @@ ARG GID=10101
 # be sure that package available in microdnf repo
 # to check use this bash commands:
 # ```bash```
-# docker run --rm -it registry.access.redhat.com/ubi8/ubi-minimal:8.9 bash
+# docker run --rm -it registry.access.redhat.com/ubi9/ubi-minimal:9.5 bash
 # microdnf repoquery python3*
 # ```
 ARG PYTHON_VERSION=3.11
-ARG PYTHON_EXACT_VERSION=3.11.11
+ARG PYTHON_EXACT_VERSION=3.11.9
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9 AS base
+FROM registry.access.redhat.com/ubi9/ubi-minimal:9.5 AS base
 # some globally required dependencies
 
 ARG UNAME
@@ -54,10 +54,10 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # Add any package that will be installed on system level here:
 RUN echo "[Python$PYTHON_VERSION] GIT_COMMIT: $GIT_COMMIT" \
-    && microdnf update \
-    && microdnf install -y python$PYTHON_VERSION-$PYTHON_EXACT_VERSION python$PYTHON_VERSION-devel-$PYTHON_EXACT_VERSION \
-  gcc-8.5.0 gcc-c++-8.5.0 glibc-devel-2.28 libffi-devel-3.1 graphviz-2.40.1 python$PYTHON_VERSION-pip \
-  openblas-0.3.15 python$PYTHON_VERSION-scipy shadow-utils passwd git openssh-server tar gzip unzip zip wget \
+    && microdnf update -y \
+    && microdnf install -y python$PYTHON_VERSION-$PYTHON_EXACT_VERSION python3-devel-3.9.21 \
+  gcc-11.5.0 gcc-c++-11.5.0 glib2-devel-2.68.4 libffi-devel-3.4.2 graphviz-2.44.0 python$PYTHON_VERSION-pip \
+  openblas-0.3.26 python$PYTHON_VERSION-scipy shadow-utils passwd git openssh-server tar gzip unzip zip wget \
   java-11-openjdk-headless vim-minimal nano \
   && microdnf clean all
 
@@ -72,6 +72,9 @@ ENV PATH="$VENV_PATH/bin:$PATH" \
 
 RUN python3 -m venv ${VENV_PATH} && pip3 install -U pip setuptools
 WORKDIR ${WORKDIR}
+
+# Install git helper binary used for private git authentication in Notebooks/Codepaces
+RUN curl -L -o drgithelper https://github.com/datarobot-oss/drgithelper/releases/download/v0.0.9/drgithelper && chmod +x drgithelper
 
 COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
 COPY ./jupyter_kernel_gateway_config.py ./start_server.sh ${WORKDIR}/
@@ -91,7 +94,7 @@ RUN groupadd -g $GID -o $UNAME && \
 COPY ./setup-prompt.sh /etc/profile.d/setup-prompt.sh
 
 # remove microdnf
-RUN microdnf remove microdnf
+RUN microdnf remove microdnf -y
 
 # additional setup scripts
 COPY ./setup-ssh.sh ./common-user-limits.sh ./setup-venv.sh ${WORKDIR}/
