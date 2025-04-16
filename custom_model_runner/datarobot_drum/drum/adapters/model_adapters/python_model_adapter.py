@@ -46,10 +46,7 @@ from datarobot_drum.drum.enum import (
     PayloadFormat,
     StructuredDtoKeys,
     TargetType,
-    GUARD_INIT_HOOK_NAME,
-    GUARD_SCORE_WRAPPER_NAME,
-    GUARD_CHAT_WRAPPER_NAME,
-    GUARD_HOOK_MODULE,
+    MODERATIONS_HOOK_MODULE,
     MODERATIONS_LIBRARY_PACKAGE,
 )
 from datarobot_drum.drum.exceptions import (
@@ -107,8 +104,9 @@ class PythonModelAdapter(AbstractModelAdapter):
         # New custom task class and instance loaded from custom.py
         self._custom_task_class = None
         self._custom_task_class_instance = None
-        self._guard_moderation_hooks = None
-        self._guard_pipeline = None
+        self._moderation_pipeline = None
+        self._moderation_score_fn = None
+        self._moderation_chat_fn = None
 
         if target_type in (TargetType.TEXT_GENERATION, TargetType.VECTOR_DATABASE):
             self._target_name = os.environ.get("TARGET_NAME")
@@ -116,34 +114,25 @@ class PythonModelAdapter(AbstractModelAdapter):
                 raise ValueError(
                     "Unexpected empty target name for text generation or vector database target."
                 )
-            if target_type == TargetType.TEXT_GENERATION:
-                self._load_guard_hooks_for_drum()
+            self._load_moderation_hooks()
         else:
             self._target_name = None
 
-    def _load_guard_hooks_for_drum(self):
+    def _load_moderation_hooks(self):
         try:
-            guard_module = __import__(GUARD_HOOK_MODULE, fromlist=[MODERATIONS_LIBRARY_PACKAGE])
+            mod_module = __import__(MODERATIONS_HOOK_MODULE, fromlist=[MODERATIONS_LIBRARY_PACKAGE])
             self._logger.info(
-                f"Detected {guard_module.__name__} in {guard_module.__file__}.. "
-                f"trying to load hooks"
+                f"Detected {mod_module.__name__} in {mod_module.__file__}.. trying to load hooks"
             )
-            self._guard_moderation_hooks = {
-                GUARD_INIT_HOOK_NAME: getattr(guard_module, GUARD_INIT_HOOK_NAME, None),
-                GUARD_SCORE_WRAPPER_NAME: getattr(guard_module, GUARD_SCORE_WRAPPER_NAME, None),
-                GUARD_CHAT_WRAPPER_NAME: getattr(guard_module, GUARD_CHAT_WRAPPER_NAME, None),
-            }
-            if self._guard_moderation_hooks[GUARD_INIT_HOOK_NAME] and (
-                self._guard_moderation_hooks[GUARD_SCORE_WRAPPER_NAME]
-                or self._guard_moderation_hooks[GUARD_CHAT_WRAPPER_NAME]
-            ):
-                self._guard_pipeline = self._guard_moderation_hooks[GUARD_INIT_HOOK_NAME]()
-            else:
-                self._logger.debug("No guards defined")
+            self._moderation_score_fn = mod_module.get_moderations_fn(self._target_type, "score")
+            self._moderation_chat_fn = mod_module.get_moderations_fn(self._target_type, "chat")
+            self._moderation_pipeline = mod_module.create_pipeline(self._target_type)
 
         except ImportError as e:
-            self._logger.warning(f"Could not load guard hooks: {e}, moderation will be disabled")
-            # Just log that no guard info present
+            self._logger.warning(
+                f"Could not load moderation hooks: {e}, moderation will be disabled"
+            )
+            # Just log that no moderation info present
 
     def _log_and_raise_final_error(self, exc: Exception, message: str) -> NoReturn:
         self._logger.exception(f"{message} Exception: {exc!r}")
@@ -597,11 +586,11 @@ class PythonModelAdapter(AbstractModelAdapter):
         extra_model_output = None
         if self._custom_hooks.get(CustomHooks.SCORE):
             try:
-                if self._target_type == TargetType.TEXT_GENERATION and self._guard_pipeline:
-                    predictions_df = self._guard_moderation_hooks[GUARD_SCORE_WRAPPER_NAME](
+                if self._moderation_pipeline and self._moderation_score_fn:
+                    predictions_df = self._moderation_score_fn(
                         data,
                         model,
-                        self._guard_pipeline,
+                        self._moderation_pipeline,
                         self._custom_hooks.get(CustomHooks.SCORE),
                         **kwargs,
                     )
@@ -748,15 +737,11 @@ class PythonModelAdapter(AbstractModelAdapter):
         return predictions
 
     def chat(self, completion_create_params, model, association_id):
-        if (
-            self._target_type == TargetType.TEXT_GENERATION
-            and self._guard_pipeline
-            and self._guard_moderation_hooks[GUARD_CHAT_WRAPPER_NAME]
-        ):
-            return self._guard_moderation_hooks[GUARD_CHAT_WRAPPER_NAME](
+        if self._moderation_pipeline and self._moderation_chat_fn:
+            return self._moderation_chat_fn(
                 completion_create_params,
                 model,
-                self._guard_pipeline,
+                self._moderation_pipeline,
                 self._custom_hooks.get(CustomHooks.CHAT),
                 association_id,
             )

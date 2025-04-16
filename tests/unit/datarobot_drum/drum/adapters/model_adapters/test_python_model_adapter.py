@@ -40,12 +40,10 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.enum import (
     TargetType,
-    GUARD_SCORE_WRAPPER_NAME,
-    GUARD_CHAT_WRAPPER_NAME,
-    GUARD_HOOK,
+    MODERATIONS_HOOK,
+    MODERATIONS_HOOK_MODULE,
     MODERATIONS_LIBRARY_PACKAGE,
     CustomHooks,
-    GUARD_HOOK_MODULE,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 
@@ -584,7 +582,7 @@ class TestPythonModelAdapterWithGuards:
         guard_package_init_py = guard_package_path / "__init__.py"
 
         # And the guard hook file to it
-        guard_hook_filename = guard_package_path / f"{GUARD_HOOK}.py"
+        guard_hook_filename = guard_package_path / f"{MODERATIONS_HOOK}.py"
         if not os.path.exists(guard_package_path):
             guard_package_path.mkdir(parents=True)
             guard_package_init_py.touch(exist_ok=True)
@@ -594,13 +592,13 @@ class TestPythonModelAdapterWithGuards:
         with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
             # Remove any existing cached imports to allow importing the fake guard package.
             # Existing imports will be there if real moderations library is in python path.
-            sys.modules.pop(GUARD_HOOK_MODULE, None)
+            sys.modules.pop(MODERATIONS_HOOK_MODULE, None)
             sys.modules.pop(MODERATIONS_LIBRARY_PACKAGE, None)
 
             adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
-            assert adapter._guard_pipeline is not None
+            assert adapter._moderation_pipeline is not None
             # Ensure that it is Mock as set by guard_hook_contents
-            assert isinstance(adapter._guard_pipeline, Mock)
+            assert isinstance(adapter._moderation_pipeline, Mock)
 
         sys.path.remove(str(tmp_path))
 
@@ -624,8 +622,8 @@ class TestPythonModelAdapterWithGuards:
         with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
             adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
             if guard_hook_present:
-                adapter._guard_pipeline = Mock()
-                adapter._guard_moderation_hooks = {GUARD_SCORE_WRAPPER_NAME: guard_score_wrapper}
+                adapter._moderation_pipeline = Mock()
+                adapter._moderation_score_fn = guard_score_wrapper
             adapter._custom_hooks["score"] = custom_score
             response = adapter.predict(binary_data=data)
             # If the guard score wrapper is invoked, completion will be upper case letters
@@ -676,8 +674,8 @@ class TestPythonModelAdapterWithGuards:
         with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
             adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
             if guard_hook_present:
-                adapter._guard_pipeline = Mock()
-                adapter._guard_moderation_hooks = {GUARD_CHAT_WRAPPER_NAME: guard_chat_wrapper}
+                adapter._moderation_pipeline = Mock()
+                adapter._moderation_chat_fn = guard_chat_wrapper
             adapter._custom_hooks["chat"] = self.custom_chat
             response = adapter.chat({"messages": messages}, None, "association_id")
             # If the guard score wrapper is invoked, completion will be upper case letters
@@ -694,8 +692,8 @@ class TestPythonModelAdapterWithGuards:
         with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
             adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
             # Moderation library is present, but with guard chat hook
-            adapter._guard_pipeline = Mock()
-            adapter._guard_moderation_hooks = {GUARD_CHAT_WRAPPER_NAME: None}
+            adapter._moderation_pipeline = Mock()
+            adapter._moderation_chat_fn = None
             adapter._custom_hooks["chat"] = self.custom_chat
             response = adapter.chat({"messages": messages}, None, "association_id")
             # Even if guard pipeline exists - moderation chat wrapper does not exist, so invoke
