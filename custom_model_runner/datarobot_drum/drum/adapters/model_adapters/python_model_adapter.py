@@ -127,12 +127,12 @@ class PythonModelAdapter(AbstractModelAdapter):
             # use the 'create_pipeline' to determine if using version that supports VDB
             if hasattr(mod_module, "create_pipeline"):
                 self._moderation_score_hook = mod_module.get_moderations_fn(
-                    self._target_type, CustomHooks.SCORE
+                    self._target_type.value, CustomHooks.SCORE
                 )
                 self._moderation_chat_hook = mod_module.get_moderations_fn(
-                    self._target_type, CustomHooks.CHAT
+                    self._target_type.value, CustomHooks.CHAT
                 )
-                self._moderation_pipeline = mod_module.create_pipeline(self._target_type)
+                self._moderation_pipeline = mod_module.create_pipeline(self._target_type.value)
             elif self._target_type == TargetType.TEXT_GENERATION:
                 # older versions only support textgeneration -- access functions directly from module
                 self._moderation_score_hook = getattr(mod_module, "guard_score_wrapper", None)
