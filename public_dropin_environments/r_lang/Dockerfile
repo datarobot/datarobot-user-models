@@ -78,6 +78,7 @@ COPY --from=build /usr/lib/libkeyutils* /usr/lib/
 COPY --from=build /usr/lib/libevent-2.1* /usr/lib/
 COPY --from=build /usr/lib/libsasl2* /usr/lib/
 COPY --from=build /usr/lib/libbrotlicommon* /usr/lib/
+COPY --from=build /usr/lib/libzstd* /usr/lib/
 
 COPY --from=build /etc/R /etc/R
 COPY --from=build /usr/share/R /usr/share/R
