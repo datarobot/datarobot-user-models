@@ -755,3 +755,20 @@ class TestPythonModelAdapterWithGuards:
             # Even if guard pipeline exists - moderation chat wrapper does not exist, so invoke
             # only user chat method
             assert response.choices[0].message.content == "Hello there"
+
+    def test_vdb_wrapper_invoked(self, tmp_path):
+        def custom_score(data, model, **kwargs):
+            """Dummy score method just for the purpose of unit test"""
+            return data
+
+        df = pd.DataFrame({"text": ["abc", "def"]})
+        data = bytes(df.to_csv(index=False), encoding="utf-8")
+        text_generation_target_name = "completion"
+        with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
+            adapter = PythonModelAdapter(tmp_path, TargetType.VECTOR_DATABASE)
+            adapter._moderation_pipeline = Mock()
+            adapter._moderation_score_hook = Mock(return_value=df)
+            adapter._custom_hooks["score"] = custom_score
+
+            adapter.predict(binary_data=data)
+            assert adapter._moderation_score_hook.call_count == 1
