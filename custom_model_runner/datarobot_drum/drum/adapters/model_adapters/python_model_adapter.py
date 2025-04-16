@@ -124,13 +124,22 @@ class PythonModelAdapter(AbstractModelAdapter):
             self._logger.info(
                 f"Detected {mod_module.__name__} in {mod_module.__file__}.. trying to load hooks"
             )
-            self._moderation_score_hook = mod_module.get_moderations_fn(
-                self._target_type, CustomHooks.SCORE
-            )
-            self._moderation_chat_hook = mod_module.get_moderations_fn(
-                self._target_type, CustomHooks.CHAT
-            )
-            self._moderation_pipeline = mod_module.create_pipeline(self._target_type)
+            # use the 'create_pipeline' to determine if using version that supports VDB
+            if hasattr(mod_module, "create_pipeline"):
+                self._moderation_score_hook = mod_module.get_moderations_fn(
+                    self._target_type, CustomHooks.SCORE
+                )
+                self._moderation_chat_hook = mod_module.get_moderations_fn(
+                    self._target_type, CustomHooks.CHAT
+                )
+                self._moderation_pipeline = mod_module.create_pipeline(self._target_type)
+            elif self._target_type == TargetType.TEXT_GENERATION:
+                # older versions only support textgeneration -- access functions directly from module
+                self._moderation_score_hook = getattr(mod_module, "guard_score_wrapper")
+                self._moderation_chat_hook = getattr(mod_module, "guard_chat_wrapper")
+                self._moderation_pipeline = mod_module.init()
+            else:
+                self._logger.warning(f"No support of {self._target_type} target in moderations.")
 
         except ImportError as e:
             self._logger.warning(
