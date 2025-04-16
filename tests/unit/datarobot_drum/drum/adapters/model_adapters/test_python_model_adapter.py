@@ -623,7 +623,7 @@ class TestPythonModelAdapterWithGuards:
             adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
             if guard_hook_present:
                 adapter._moderation_pipeline = Mock()
-                adapter._moderation_score_fn = guard_score_wrapper
+                adapter._moderation_score_hook = guard_score_wrapper
             adapter._custom_hooks["score"] = custom_score
             response = adapter.predict(binary_data=data)
             # If the guard score wrapper is invoked, completion will be upper case letters
@@ -675,7 +675,7 @@ class TestPythonModelAdapterWithGuards:
             adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
             if guard_hook_present:
                 adapter._moderation_pipeline = Mock()
-                adapter._moderation_chat_fn = guard_chat_wrapper
+                adapter._moderation_chat_hook = guard_chat_wrapper
             adapter._custom_hooks["chat"] = self.custom_chat
             response = adapter.chat({"messages": messages}, None, "association_id")
             # If the guard score wrapper is invoked, completion will be upper case letters
@@ -693,7 +693,7 @@ class TestPythonModelAdapterWithGuards:
             adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
             # Moderation library is present, but with guard chat hook
             adapter._moderation_pipeline = Mock()
-            adapter._moderation_chat_fn = None
+            adapter._moderation_chat_hook = None
             adapter._custom_hooks["chat"] = self.custom_chat
             response = adapter.chat({"messages": messages}, None, "association_id")
             # Even if guard pipeline exists - moderation chat wrapper does not exist, so invoke

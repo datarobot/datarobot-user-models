@@ -105,8 +105,8 @@ class PythonModelAdapter(AbstractModelAdapter):
         self._custom_task_class = None
         self._custom_task_class_instance = None
         self._moderation_pipeline = None
-        self._moderation_score_fn = None
-        self._moderation_chat_fn = None
+        self._moderation_score_hook = None
+        self._moderation_chat_hook = None
 
         if target_type in (TargetType.TEXT_GENERATION, TargetType.VECTOR_DATABASE):
             self._target_name = os.environ.get("TARGET_NAME")
@@ -124,8 +124,12 @@ class PythonModelAdapter(AbstractModelAdapter):
             self._logger.info(
                 f"Detected {mod_module.__name__} in {mod_module.__file__}.. trying to load hooks"
             )
-            self._moderation_score_fn = mod_module.get_moderations_fn(self._target_type, "score")
-            self._moderation_chat_fn = mod_module.get_moderations_fn(self._target_type, "chat")
+            self._moderation_score_hook = mod_module.get_moderations_fn(
+                self._target_type, CustomHooks.SCORE
+            )
+            self._moderation_chat_hook = mod_module.get_moderations_fn(
+                self._target_type, CustomHooks.CHAT
+            )
             self._moderation_pipeline = mod_module.create_pipeline(self._target_type)
 
         except ImportError as e:
@@ -586,8 +590,8 @@ class PythonModelAdapter(AbstractModelAdapter):
         extra_model_output = None
         if self._custom_hooks.get(CustomHooks.SCORE):
             try:
-                if self._moderation_pipeline and self._moderation_score_fn:
-                    predictions_df = self._moderation_score_fn(
+                if self._moderation_pipeline and self._moderation_score_hook:
+                    predictions_df = self._moderation_score_hook(
                         data,
                         model,
                         self._moderation_pipeline,
@@ -737,8 +741,8 @@ class PythonModelAdapter(AbstractModelAdapter):
         return predictions
 
     def chat(self, completion_create_params, model, association_id):
-        if self._moderation_pipeline and self._moderation_chat_fn:
-            return self._moderation_chat_fn(
+        if self._moderation_pipeline and self._moderation_chat_hook:
+            return self._moderation_chat_hook(
                 completion_create_params,
                 model,
                 self._moderation_pipeline,
