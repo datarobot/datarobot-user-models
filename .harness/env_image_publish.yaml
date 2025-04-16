@@ -50,7 +50,7 @@ pipeline:
                     connectorRef: datarobot_user_models_read_write
                     repo: datarobotdev/datarobot-user-models
                     tags:
-                      - <+pipeline.variables.image_tag>.local
+                      - <+pipeline.variables.image_tag>
                     dockerfile: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>/Dockerfile.local
                     context: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
                     resources:
