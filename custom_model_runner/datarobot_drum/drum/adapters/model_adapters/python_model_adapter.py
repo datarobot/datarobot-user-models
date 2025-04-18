@@ -69,6 +69,8 @@ from datarobot_drum.custom_task_interfaces.custom_task_interface import (
     patch_outputs_to_scrub_secrets,
 )
 
+from datarobot_drum import RuntimeParameters
+
 RUNNING_LANG_MSG = "Running environment language: Python."
 
 
@@ -765,15 +767,47 @@ class PythonModelAdapter(AbstractModelAdapter):
             return self._custom_hooks.get(CustomHooks.CHAT)(completion_create_params, model)
 
     def get_supported_llm_models(self, model):
+        """
+        Return list of LLM models supported by this custom model.
+        Usually, the trigger is a call to OpenAI models.list() (/v1/models, or /models)
+
+        If custom.py defines get_supported_llm_models(), use its returned list.
+        If that hook is not defined, return the model defined in LLM_ID runtime parameter.
+        If neither is present, return an empty list.
+
+        Parameters
+        ----------
+        model
+
+        Returns
+        -------
+
+        """
         result = {"object": "list", "data": []}
-        if (
-            self._target_type == TargetType.TEXT_GENERATION
-            and self._custom_hooks.get(CustomHooks.GET_SUPPORTED_LLM_MODELS_LIST)
-        ):
+        if self._custom_hooks.get(CustomHooks.GET_SUPPORTED_LLM_MODELS_LIST):
+            self._logger.debug("get_supported_llm_models: custom.py defines the hook")
             response = self._custom_hooks.get(CustomHooks.GET_SUPPORTED_LLM_MODELS_LIST)(model)
             for model in response:
                 if is_openai_model(model):
                     result["data"].append(model.to_dict())
+        else:
+            # defining the hook overrides built-in behavior and is optional
+            self._logger.debug("get_supported_llm_models: hook is not defined")
+            llm_id_key = "LLM_ID"
+            if RuntimeParameters.has(llm_id_key):
+                self._logger.debug("get_supported_llm_models: returning LLM_ID")
+                llm_id = RuntimeParameters.get(llm_id_key)
+                result["data"].append(
+                    {
+                        "id": llm_id,
+                        "object": "model",
+                        "created": 1735689600,  # Jan. 1, 2025
+                        "owned_by": "DataRobot",  # todo
+                    }
+                )
+            else:
+                self._logger.debug("get_supported_llm_models: returning empty list")
+
         return result
 
     def fit(

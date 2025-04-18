@@ -145,6 +145,13 @@ def test_prediction_server_chat_unimplemented(openai_client):
         )
 
 
+@pytest.mark.usefixtures("non_textgen_prediction_server")
+def test_prediction_server_list_llm_models_unsupported(openai_client):
+    """Attempt to list supported LLM models with a non-textgen model."""
+    with pytest.raises(NotFoundError, match="is supported only for TextGen models"):
+        _ = openai_client.models.list()
+
+
 @pytest.mark.usefixtures("prediction_server")
 @pytest.mark.parametrize("use_generator", [True, False])
 def test_streaming(openai_client, chat_python_model_adapter, use_generator):
