@@ -208,6 +208,21 @@ class PredictionServer(PredictMixin):
 
             return response, response_status
 
+        # models routes are defined without trailing slash because this is required by the OpenAI python client.
+        @model_api.route("/models", methods=["GET"])
+        @model_api.route("/v1/models", methods=["GET"])
+        def get_supported_llm_models():
+            logger.debug("Entering models endpoint")
+
+            self._pre_predict_and_transform()
+
+            try:
+                response, response_status = self.get_supported_llm_models(logger=logger)
+            finally:
+                self._post_predict_and_transform()
+
+            return response, response_status
+
         @model_api.route("/directAccess/<path:path>", methods=["GET", "POST", "PUT"])
         @model_api.route("/nim/<path:path>", methods=["GET", "POST", "PUT"])
         def forward_request(path):

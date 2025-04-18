@@ -407,6 +407,17 @@ class PredictMixin:
 
         return response, HTTP_200_OK
 
+    def get_supported_llm_models(self, logger=None):
+        if self._target_type != TargetType.TEXT_GENERATION:
+            message = "get_supported_llm_models is supported only for TextGen models"
+            self._log_if_possible(logger, logging.WARNING, message)
+            return (
+                {"message": "ERROR: " + message},
+                HTTP_404_NOT_FOUND,
+            )
+        result = self._predictor.get_supported_llm_models()
+        return result, HTTP_200_OK
+
     def do_transform(self, logger=None):
         if self._target_type != TargetType.TRANSFORM:
             endpoint = (

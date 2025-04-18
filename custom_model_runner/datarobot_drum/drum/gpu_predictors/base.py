@@ -46,6 +46,7 @@ from datarobot_drum.drum.language_predictors.base_language_predictor import (
 )
 from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerProcess
 from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
+from datarobot_drum.drum.root_predictors.chat_helpers import is_openai_model
 
 # OpenAI client isn't a required dependency for DRUM, so we need to check if it's available
 try:
@@ -152,6 +153,13 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         valid_kwargs = {k: v for k, v in completion_create_params.items() if k in valid_params}
         extra_kwargs = {k: v for k, v in completion_create_params.items() if k not in valid_params}
         return self.ai_client.chat.completions.create(**valid_kwargs, extra_body=extra_kwargs)
+
+    def _get_supported_llm_models(self):
+        result = {"object": "list", "data": []}
+        for model in self.ai_client.models.list():
+            if is_openai_model(model):
+                result["data"].append(model.to_dict())
+        return result
 
     def has_read_input_data_hook(self):
         return False
