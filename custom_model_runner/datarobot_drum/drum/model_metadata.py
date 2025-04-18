@@ -43,7 +43,7 @@ from datarobot_drum.drum.typeschema_validation import (
 PARAM_NAME_MAX_LENGTH = 64
 
 # Max length of a select value
-PARAM_SELECT_VALUE_MAX_LENGTH = 32
+PARAM_SELECT_VALUE_MAX_LENGTH = 1024
 
 # Max number of possible select values
 PARAM_SELECT_NUM_VALUES_MAX_LENGTH = 24
