@@ -13,6 +13,9 @@ from openai.types.chat import ChatCompletionChunk
 from openai.types.chat import ChatCompletionMessage
 from openai.types.chat import CompletionCreateParams
 from openai.types.chat.chat_completion import Choice
+from openai.types.model import Model
+
+from datarobot_drum import RuntimeParameters
 
 """
 This example shows how to create a text generation model supporting OpenAI chat
@@ -20,11 +23,22 @@ This example shows how to create a text generation model supporting OpenAI chat
 
 from typing import Any, Dict
 
-import pandas as pd
-
-from openai.types.model import Model
 
 def get_supported_llm_models(model: Any):
+    """
+    Return a list of supported LLM models; response to /v1/models and OpenAI models.list().
+    If custom.py does not define this function, DRUM will return a list of either:
+    * the model defined in the LLM_ID runtime parameter, if that exists, or:
+    * an empty list
+
+    Parameters
+    ----------
+    model: a model ID to compare against; optional
+
+    Returns: list of openai.types.model.Model
+    -------
+
+    """
     return [
         Model(
             id="datarobot_llm_id",
@@ -51,37 +65,14 @@ def load_model(code_dir: str) -> Any:
     return "dummy"
 
 
-def score(data, model, **kwargs):
-    """
-    This hook is only needed if you would like to use **drum** with a framework not natively
-    supported by the tool.
-
-    Note: While best practice is to include the score hook, if the score hook is not present
-    DataRobot will add a score hook and call the default predict method for the library
-    See https://github.com/datarobot/datarobot-user-models#built-in-model-support for details
-
-    This dummy implementation reverses all input text and returns.
-
-    Parameters
-    ----------
-    data : is the dataframe to make predictions against.
-    model : is the deserialized model loaded by **drum** or by `load_model`, if supplied
-    kwargs : additional keyword arguments to the method
-    Returns
-    -------
-    This method should return results as a dataframe with the following format:
-      Text Generation: must have column with target, containing text data for each input row.
-    """
-    data = list(data["input"])
-    flipped = ["".join(reversed(inp)) for inp in data]
-    result = pd.DataFrame({"output": flipped})
-    return result
-
-
-def chat(completion_create_params: CompletionCreateParams, model: Any) -> ChatCompletion | Iterator[ChatCompletionChunk]:
+def chat(
+    completion_create_params: CompletionCreateParams, model: Any
+) -> ChatCompletion | Iterator[ChatCompletionChunk]:
     """
     This hook supports chat completions; see https://platform.openai.com/docs/api-reference/chat/create.
-    
+    In this non-streaming example, the "LLM" echoes back the user's prompt,
+    acting as the model specified  in the chat completion request.
+
     Parameters
     ----------
     completion_create_params: the chat completion request.
@@ -91,7 +82,6 @@ def chat(completion_create_params: CompletionCreateParams, model: Any) -> ChatCo
     -------
 
     """
-    print(str(completion_create_params))
     model = completion_create_params["model"]
     message_content = "Echo: " + completion_create_params["messages"][0]["content"]
 
@@ -108,4 +98,3 @@ def chat(completion_create_params: CompletionCreateParams, model: Any) -> ChatCo
         model=model,
         object="chat.completion",
     )
-
