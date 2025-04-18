@@ -17,6 +17,7 @@ from custom_model_runner.datarobot_drum.drum.adapters.model_adapters.python_mode
 )
 from custom_model_runner.datarobot_drum.drum.enum import CustomHooks
 from tests.unit.datarobot_drum.drum.chat_utils import create_completion, create_completion_chunks
+from tests.unit.datarobot_drum.drum.helpers import inject_runtime_parameter
 
 
 class TestDRCommonException(Exception):
@@ -444,10 +445,9 @@ class TestModelsAPI(TestBaseLanguagePredictor):
 
     def _inject_llm_id_runtime_parameter(self, value: str):
         """
-        Inject "LLM_ID" runtime parameter into environment as JSON string.
-        The Python model adapter inspects this when listing models.
+        Inject "LLM_ID" runtime parameter for the Python model adapter to use.
         """
-        os.environ["MLOPS_RUNTIME_PARAM_LLM_ID"] = f'{{"payload": "{value}", "type": "string"}}'
+        inject_runtime_parameter("LLM_ID", value)
 
     def test_wrong_target_type(self):
         """
@@ -480,13 +480,9 @@ class TestModelsAPI(TestBaseLanguagePredictor):
         self._inject_llm_id_runtime_parameter(model_id)
         pma = PythonModelAdapter(model_dir=".", target_type=TargetType.TEXT_GENERATION)
         response = pma.get_supported_llm_models(None)
-        assert response["object"] == "list"
-        assert len(response["data"]) == 1
-        assert response["data"][0] == {
-            "id": model_id,
-            "object": "model",
-            "created": ANY,
-            "owned_by": "DataRobot",
+        assert response == {
+            "object": "list",
+            "data": [{"id": model_id, "object": "model", "created": ANY, "owned_by": "DataRobot"}],
         }
 
     def test_with_hook(self):
