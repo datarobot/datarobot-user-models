@@ -19,3 +19,11 @@ def inject_runtime_parameter(name: str, value: str):
     os.environ[
         f"{RuntimeParameters.PARAM_PREFIX}_{name}"
     ] = f'{{"payload": "{value}", "type": "string"}}'
+
+
+def unset_runtime_parameter(name: str):
+    """
+    Unset a runtime parameter int the environment,
+    as if it was never defined.
+    """
+    os.environ.pop(f"{RuntimeParameters.PARAM_PREFIX}_{name}", None)

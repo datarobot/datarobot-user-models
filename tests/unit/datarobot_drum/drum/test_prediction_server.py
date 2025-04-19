@@ -20,6 +20,7 @@ from datarobot_drum.drum.root_predictors.prediction_server import PredictionServ
 from datarobot_drum.drum.server import _create_flask_app
 from tests.unit.datarobot_drum.drum.chat_utils import create_completion, create_completion_chunks
 from tests.unit.datarobot_drum.drum.helpers import inject_runtime_parameter
+from tests.unit.datarobot_drum.drum.helpers import unset_runtime_parameter
 
 
 @pytest.fixture
@@ -112,6 +113,18 @@ def openai_client(test_flask_app):
     )
 
 
+MODEL_ID_FROM_RUNTIME_PARAMETER = "model_id_from_runtime_parameter"
+
+
+@pytest.fixture
+def llm_id_parameter():
+    """Run this test with the LLM_ID parameter set (and remove afterwards)"""
+    parameter_name = "LLM_ID"
+    inject_runtime_parameter(parameter_name, MODEL_ID_FROM_RUNTIME_PARAMETER)
+    yield
+    unset_runtime_parameter(parameter_name)
+
+
 @pytest.mark.usefixtures("prediction_server")
 def test_prediction_server(openai_client, chat_python_model_adapter):
     def chat_hook(completion_request, model):
@@ -174,16 +187,14 @@ def test_prediction_server_list_llm_models_no_hook_no_rtp(openai_client, chat_py
 
 @pytest.mark.usefixtures("prediction_server")
 def test_prediction_server_list_llm_models_no_hook_with_rtp(
-    openai_client, chat_python_model_adapter
+    openai_client, chat_python_model_adapter, llm_id_parameter
 ):
     """Attempt to list supported LLM models where no hook exists but a runtime parameter exists."""
-    model_id = "test_no_hook_with_rtp"
-    inject_runtime_parameter("LLM_ID", model_id)
     response = openai_client.models.list()
     assert response.object == "list"
     assert len(response.data) == 1
     assert response.data[0].to_dict() == {
-        "id": model_id,
+        "id": MODEL_ID_FROM_RUNTIME_PARAMETER,
         "object": "model",
         "created": ANY,
         "owned_by": "DataRobot",
@@ -192,9 +203,12 @@ def test_prediction_server_list_llm_models_no_hook_with_rtp(
 
 @pytest.mark.usefixtures("list_models_prediction_server")
 def test_prediction_server_list_llm_models_with_hook(
-    openai_client, list_models_python_model_adapter
+    openai_client, list_models_python_model_adapter, llm_id_parameter
 ):
-    """List supported LLM models where a hook exists."""
+    """
+    List supported LLM models where a hook exists.
+    The runtime parameter should be ignored in favor of the hook response.
+    """
     model_id = "test_with_hook model"
     owned_by = "test_with_hook owner"
 
@@ -209,7 +223,6 @@ def test_prediction_server_list_llm_models_with_hook(
         ]
 
     list_models_python_model_adapter.models_hook = models_hook
-    inject_runtime_parameter("LLM_ID", "model_id_from_RTP")
     response = openai_client.models.list()
     assert response.object == "list"
     assert len(response.data) == 1
