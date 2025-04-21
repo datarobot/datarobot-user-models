@@ -6,6 +6,9 @@ import pytest
 from datarobot_drum.drum.enum import CustomHooks
 
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
+from tests.unit.datarobot_drum.drum.helpers import MODEL_ID_FROM_RUNTIME_PARAMETER
+from tests.unit.datarobot_drum.drum.helpers import inject_runtime_parameter
+from tests.unit.datarobot_drum.drum.helpers import unset_runtime_parameter
 
 
 class ChatPythonModelAdapter(PythonModelAdapter):
@@ -102,3 +105,12 @@ def non_chat_python_model_adapter():
         new=NonChatPythonModelAdapter,
     ) as adapter:
         yield adapter
+
+
+@pytest.fixture
+def llm_id_parameter():
+    """Run this test with the LLM_ID parameter set (and remove afterwards)"""
+    parameter_name = "LLM_ID"
+    inject_runtime_parameter(parameter_name, MODEL_ID_FROM_RUNTIME_PARAMETER)
+    yield
+    unset_runtime_parameter(parameter_name)

@@ -17,7 +17,7 @@ from custom_model_runner.datarobot_drum.drum.adapters.model_adapters.python_mode
 )
 from custom_model_runner.datarobot_drum.drum.enum import CustomHooks
 from tests.unit.datarobot_drum.drum.chat_utils import create_completion, create_completion_chunks
-from tests.unit.datarobot_drum.drum.helpers import inject_runtime_parameter
+from tests.unit.datarobot_drum.drum.helpers import MODEL_ID_FROM_RUNTIME_PARAMETER
 
 
 class TestDRCommonException(Exception):
@@ -443,12 +443,6 @@ class TestModelsAPI(TestBaseLanguagePredictor):
     Where possible, the real adapter is used with no mocking (but minimal configuration).
     """
 
-    def _inject_llm_id_runtime_parameter(self, value: str):
-        """
-        Inject "LLM_ID" runtime parameter for the Python model adapter to use.
-        """
-        inject_runtime_parameter("LLM_ID", value)
-
     def test_wrong_target_type(self):
         """
         Not a textgen model? models() should return empty list
@@ -470,14 +464,13 @@ class TestModelsAPI(TestBaseLanguagePredictor):
         response = pma.get_supported_llm_models(None)
         assert response == {"data": [], "object": "list"}
 
-    def test_no_hook_with_parameter(self):
+    def test_no_hook_with_parameter(self, llm_id_parameter):
         """
         models hook is not defined, but LLM_ID runtime parameter does exist:
         response should use runtime parameter
         """
         os.environ["TARGET_NAME"] = "completion"  # required but not used here
-        model_id = "test_no_hook model"
-        self._inject_llm_id_runtime_parameter(model_id)
+        model_id = MODEL_ID_FROM_RUNTIME_PARAMETER
         pma = PythonModelAdapter(model_dir=".", target_type=TargetType.TEXT_GENERATION)
         response = pma.get_supported_llm_models(None)
         assert response == {
@@ -485,7 +478,7 @@ class TestModelsAPI(TestBaseLanguagePredictor):
             "data": [{"id": model_id, "object": "model", "created": ANY, "owned_by": "DataRobot"}],
         }
 
-    def test_with_hook(self):
+    def test_with_hook(self, llm_id_parameter):
         """
         If models hook is defined: return that hook's results
         Exercises the model adapter's logic; more than just calling our mocked function directly.
@@ -505,7 +498,6 @@ class TestModelsAPI(TestBaseLanguagePredictor):
 
         # provide minimal information to initialize a real adapter
         os.environ["TARGET_NAME"] = "completion"  # required but not used here
-        self._inject_llm_id_runtime_parameter("a different model")
         pma = PythonModelAdapter(model_dir=".", target_type=TargetType.TEXT_GENERATION)
         pma._custom_hooks[CustomHooks.GET_SUPPORTED_LLM_MODELS_LIST] = models_hook
         response = pma.get_supported_llm_models(None)

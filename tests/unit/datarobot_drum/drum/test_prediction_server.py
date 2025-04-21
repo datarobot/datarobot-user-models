@@ -19,6 +19,7 @@ from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHan
 from datarobot_drum.drum.root_predictors.prediction_server import PredictionServer
 from datarobot_drum.drum.server import _create_flask_app
 from tests.unit.datarobot_drum.drum.chat_utils import create_completion, create_completion_chunks
+from tests.unit.datarobot_drum.drum.helpers import MODEL_ID_FROM_RUNTIME_PARAMETER
 from tests.unit.datarobot_drum.drum.helpers import inject_runtime_parameter
 from tests.unit.datarobot_drum.drum.helpers import unset_runtime_parameter
 
@@ -111,18 +112,6 @@ def openai_client(test_flask_app):
         api_key="<KEY>",
         http_client=httpx.Client(transport=WSGITransport(app=test_flask_app)),
     )
-
-
-MODEL_ID_FROM_RUNTIME_PARAMETER = "model_id_from_runtime_parameter"
-
-
-@pytest.fixture
-def llm_id_parameter():
-    """Run this test with the LLM_ID parameter set (and remove afterwards)"""
-    parameter_name = "LLM_ID"
-    inject_runtime_parameter(parameter_name, MODEL_ID_FROM_RUNTIME_PARAMETER)
-    yield
-    unset_runtime_parameter(parameter_name)
 
 
 @pytest.mark.usefixtures("prediction_server")
