@@ -20,9 +20,9 @@ def inject_runtime_parameter(name: str, value: str):
     as if the RuntimeParametersLoader had loaded it.
     Purpose: test more of the real predictor/adaptor stack with less mocking.
     """
-    os.environ[f"{RuntimeParameters.PARAM_PREFIX}_{name}"] = (
-        f'{{"payload": "{value}", "type": "string"}}'
-    )
+    os.environ[
+        f"{RuntimeParameters.PARAM_PREFIX}_{name}"
+    ] = f'{{"payload": "{value}", "type": "string"}}'
 
 
 def unset_runtime_parameter(name: str):

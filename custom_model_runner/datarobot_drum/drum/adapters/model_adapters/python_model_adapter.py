@@ -802,7 +802,7 @@ class PythonModelAdapter(AbstractModelAdapter):
                         "id": llm_id,
                         "object": "model",
                         "created": 1735689600,  # Jan. 1, 2025
-                        "owned_by": "DataRobot",  # todo
+                        "owned_by": "DataRobot",
                     }
                 )
             else:

@@ -20,8 +20,6 @@ from datarobot_drum.drum.root_predictors.prediction_server import PredictionServ
 from datarobot_drum.drum.server import _create_flask_app
 from tests.unit.datarobot_drum.drum.chat_utils import create_completion, create_completion_chunks
 from tests.unit.datarobot_drum.drum.helpers import MODEL_ID_FROM_RUNTIME_PARAMETER
-from tests.unit.datarobot_drum.drum.helpers import inject_runtime_parameter
-from tests.unit.datarobot_drum.drum.helpers import unset_runtime_parameter
 
 
 @pytest.fixture
@@ -230,6 +228,7 @@ def test_prediction_server_list_llm_models_unsupported(openai_client):
         _ = openai_client.models.list()
 
 
+@pytest.mark.usefixtures("prediction_server")
 @pytest.mark.parametrize("use_generator", [True, False])
 def test_streaming(openai_client, chat_python_model_adapter, use_generator):
     chunks = create_completion_chunks(["How", "are", "you", "doing"])
