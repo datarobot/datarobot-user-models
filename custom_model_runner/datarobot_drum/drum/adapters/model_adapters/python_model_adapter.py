@@ -781,7 +781,8 @@ class PythonModelAdapter(AbstractModelAdapter):
 
         Returns
         -------
-
+        Dict matching JSON structure of GET https://api.openai.com/v1/models response:
+        {"object": "list", "data": [{id, object, created, owned_by}, ...]}
         """
         result = {"object": "list", "data": []}
         if self._custom_hooks.get(CustomHooks.GET_SUPPORTED_LLM_MODELS_LIST):
