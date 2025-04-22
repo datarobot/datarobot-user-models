@@ -40,12 +40,10 @@ from datarobot_drum.custom_task_interfaces.user_secrets import (
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.enum import (
     TargetType,
-    GUARD_SCORE_WRAPPER_NAME,
-    GUARD_CHAT_WRAPPER_NAME,
-    GUARD_HOOK,
+    MODERATIONS_HOOK,
+    MODERATIONS_HOOK_MODULE,
     MODERATIONS_LIBRARY_PACKAGE,
     CustomHooks,
-    GUARD_HOOK_MODULE,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 
@@ -565,6 +563,16 @@ class TestPythonModelAdapterInitialization:
             PythonModelAdapter(Mock(), TargetType.VECTOR_DATABASE)
 
 
+def set_moderations_lib_content(path: Path, content: str):
+    # Create dummy datarobot dome package with the drum_integration.py
+    mod_dir = path / MODERATIONS_LIBRARY_PACKAGE
+    mod_dir.mkdir(parents=True, exist_ok=True)
+    mod_init_py = mod_dir / "__init__.py"
+    mod_init_py.touch(exist_ok=True)
+    mod_hook_file = mod_dir / f"{MODERATIONS_HOOK}.py"
+    mod_hook_file.write_text(content)
+
+
 class TestPythonModelAdapterWithGuards:
     """Use cases to test the moderation integration with DRUM"""
 
@@ -579,28 +587,74 @@ class TestPythonModelAdapterWithGuards:
             return Mock()
         """
         sys.path.insert(0, str(tmp_path))
-        # Create dummy datarobot dome package
-        guard_package_path = tmp_path / MODERATIONS_LIBRARY_PACKAGE
-        guard_package_init_py = guard_package_path / "__init__.py"
-
-        # And the guard hook file to it
-        guard_hook_filename = guard_package_path / f"{GUARD_HOOK}.py"
-        if not os.path.exists(guard_package_path):
-            guard_package_path.mkdir(parents=True)
-            guard_package_init_py.touch(exist_ok=True)
-        guard_hook_filename.write_text(textwrap.dedent(guard_hook_contents))
+        set_moderations_lib_content(tmp_path, textwrap.dedent(guard_hook_contents))
 
         text_generation_target_name = "completion"
         with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
             # Remove any existing cached imports to allow importing the fake guard package.
             # Existing imports will be there if real moderations library is in python path.
-            sys.modules.pop(GUARD_HOOK_MODULE, None)
+            sys.modules.pop(MODERATIONS_HOOK_MODULE, None)
             sys.modules.pop(MODERATIONS_LIBRARY_PACKAGE, None)
 
             adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
-            assert adapter._guard_pipeline is not None
+            assert adapter._moderation_pipeline is not None
             # Ensure that it is Mock as set by guard_hook_contents
-            assert isinstance(adapter._guard_pipeline, Mock)
+            assert isinstance(adapter._moderation_pipeline, Mock)
+            assert adapter._moderation_score_hook is not None
+            # would be nice to check chat_hook, but having a stub function causes other problems
+            assert adapter._moderation_chat_hook is None
+
+            adapter = PythonModelAdapter(tmp_path, TargetType.VECTOR_DATABASE)
+            assert adapter._moderation_pipeline is None
+            assert adapter._moderation_score_hook is None
+            assert adapter._moderation_chat_hook is None
+        sys.path.remove(str(tmp_path))
+
+    @pytest.mark.parametrize(
+        ["target_type", "score_hook_name"],
+        [
+            pytest.param(TargetType.TEXT_GENERATION, "mock_llm_score_hook", id="textgen"),
+            pytest.param(TargetType.VECTOR_DATABASE, "mock_vdb_score_hook", id="vectordb"),
+        ],
+    )
+    def test_loading_moderations_hook_module(self, target_type, score_hook_name, tmp_path):
+        moderation_content = """
+        from unittest.mock import Mock
+
+        def mock_llm_score_hook(data, model, pipeline, drum_score_fn, **kwargs):
+            return data
+
+        def mock_vdb_score_hook(data, model, pipeline, drum_score_fn, **kwargs):
+            return data
+
+        def get_moderations_fn(target_type, custom_hook):
+            if target_type == "textgeneration":
+                if custom_hook == "score":
+                    return mock_llm_score_hook
+            elif target_type == "vectordatabase":
+                if custom_hook == "score":
+                    return mock_vdb_score_hook
+            return None            
+
+        def create_pipeline(target_type):
+            return Mock()
+        """
+        sys.path.insert(0, str(tmp_path))
+
+        set_moderations_lib_content(tmp_path, textwrap.dedent(moderation_content))
+        text_generation_target_name = "completion"
+        with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
+            # Remove any existing cached imports to allow importing the fake guard package.
+            # Existing imports will be there if real moderations library is in python path.
+            sys.modules.pop(MODERATIONS_HOOK_MODULE, None)
+            sys.modules.pop(MODERATIONS_LIBRARY_PACKAGE, None)
+
+            adapter = PythonModelAdapter(tmp_path, target_type)
+            assert adapter._moderation_pipeline is not None
+            assert isinstance(adapter._moderation_pipeline, Mock)
+            assert score_hook_name in str(adapter._moderation_score_hook)
+            # would be nice to check chat_hook, but having a stub function causes other problems
+            assert adapter._moderation_chat_hook is None
 
         sys.path.remove(str(tmp_path))
 
@@ -624,8 +678,8 @@ class TestPythonModelAdapterWithGuards:
         with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
             adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
             if guard_hook_present:
-                adapter._guard_pipeline = Mock()
-                adapter._guard_moderation_hooks = {GUARD_SCORE_WRAPPER_NAME: guard_score_wrapper}
+                adapter._moderation_pipeline = Mock()
+                adapter._moderation_score_hook = guard_score_wrapper
             adapter._custom_hooks["score"] = custom_score
             response = adapter.predict(binary_data=data)
             # If the guard score wrapper is invoked, completion will be upper case letters
@@ -676,8 +730,8 @@ class TestPythonModelAdapterWithGuards:
         with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
             adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
             if guard_hook_present:
-                adapter._guard_pipeline = Mock()
-                adapter._guard_moderation_hooks = {GUARD_CHAT_WRAPPER_NAME: guard_chat_wrapper}
+                adapter._moderation_pipeline = Mock()
+                adapter._moderation_chat_hook = guard_chat_wrapper
             adapter._custom_hooks["chat"] = self.custom_chat
             response = adapter.chat({"messages": messages}, None, "association_id")
             # If the guard score wrapper is invoked, completion will be upper case letters
@@ -694,10 +748,27 @@ class TestPythonModelAdapterWithGuards:
         with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
             adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
             # Moderation library is present, but with guard chat hook
-            adapter._guard_pipeline = Mock()
-            adapter._guard_moderation_hooks = {GUARD_CHAT_WRAPPER_NAME: None}
+            adapter._moderation_pipeline = Mock()
+            adapter._moderation_chat_hook = None
             adapter._custom_hooks["chat"] = self.custom_chat
             response = adapter.chat({"messages": messages}, None, "association_id")
             # Even if guard pipeline exists - moderation chat wrapper does not exist, so invoke
             # only user chat method
             assert response.choices[0].message.content == "Hello there"
+
+    def test_vdb_wrapper_invoked(self, tmp_path):
+        def custom_score(data, model, **kwargs):
+            """Dummy score method just for the purpose of unit test"""
+            return data
+
+        df = pd.DataFrame({"text": ["abc", "def"]})
+        data = bytes(df.to_csv(index=False), encoding="utf-8")
+        text_generation_target_name = "completion"
+        with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
+            adapter = PythonModelAdapter(tmp_path, TargetType.VECTOR_DATABASE)
+            adapter._moderation_pipeline = Mock()
+            adapter._moderation_score_hook = Mock(return_value=df)
+            adapter._custom_hooks["score"] = custom_score
+
+            adapter.predict(binary_data=data)
+            assert adapter._moderation_score_hook.call_count == 1
