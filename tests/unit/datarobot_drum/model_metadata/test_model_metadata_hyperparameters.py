@@ -707,7 +707,8 @@ def test_yaml_metadata__select_hyper_param_invalid_value_size(
 
     with open(os.path.join(tmp_path, MODEL_CONFIG_FILENAME), mode="w") as f:
         yaml.dump(model_metadata, f)
-        with pytest.raises(DrumCommonException, match="String is longer than 32 characters"):
+        match_string = f"String is longer than {PARAM_SELECT_VALUE_MAX_LENGTH} characters"
+        with pytest.raises(DrumCommonException, match=match_string):
             read_model_metadata_yaml(tmp_path)
 
 
