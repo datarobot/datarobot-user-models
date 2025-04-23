@@ -1,4 +1,5 @@
 import os
+from unittest.mock import ANY
 from unittest.mock import Mock, patch
 
 import httpx
@@ -10,6 +11,7 @@ from openai import OpenAI, Stream
 from openai.types.chat import (
     ChatCompletion,
 )
+from openai.types.model import Model
 from werkzeug.exceptions import BadRequest
 
 from datarobot_drum.drum.enum import RunLanguage, TargetType
@@ -17,6 +19,7 @@ from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHan
 from datarobot_drum.drum.root_predictors.prediction_server import PredictionServer
 from datarobot_drum.drum.server import _create_flask_app
 from tests.unit.datarobot_drum.drum.chat_utils import create_completion, create_completion_chunks
+from tests.unit.datarobot_drum.drum.helpers import MODEL_ID_FROM_RUNTIME_PARAMETER
 
 
 @pytest.fixture
@@ -38,6 +41,22 @@ def test_flask_app():
 
 @pytest.fixture
 def prediction_server(test_flask_app, chat_python_model_adapter):
+    with patch.dict(os.environ, {"TARGET_NAME": "target"}), patch(
+        "datarobot_drum.drum.language_predictors.python_predictor.python_predictor.PythonPredictor._init_mlops"
+    ), patch.object(LazyLoadingHandler, "download_lazy_loading_files"):
+        params = {
+            "run_language": RunLanguage.PYTHON,
+            "target_type": TargetType.TEXT_GENERATION,
+            "deployment_config": None,
+            "__custom_model_path__": "/non-existing-path-to-avoid-loading-unwanted-artifacts",
+        }
+        server = PredictionServer(params)
+        server._predictor._mlops = Mock()
+        server.materialize()
+
+
+@pytest.fixture
+def list_models_prediction_server(test_flask_app, list_models_python_model_adapter):
     with patch.dict(os.environ, {"TARGET_NAME": "target"}), patch(
         "datarobot_drum.drum.language_predictors.python_predictor.python_predictor.PythonPredictor._init_mlops"
     ), patch.object(LazyLoadingHandler, "download_lazy_loading_files"):
@@ -143,6 +162,70 @@ def test_prediction_server_chat_unimplemented(openai_client):
                 {"role": "user", "content": "Hello!"},
             ],
         )
+
+
+@pytest.mark.usefixtures("prediction_server")
+def test_prediction_server_list_llm_models_no_hook_no_rtp(openai_client, chat_python_model_adapter):
+    """Attempt to list supported LLM models where no hook exists and no runtime parameter exists."""
+    response = openai_client.models.list()
+    assert response.object == "list"
+    assert response.data == []
+
+
+@pytest.mark.usefixtures("prediction_server")
+def test_prediction_server_list_llm_models_no_hook_with_rtp(
+    openai_client, chat_python_model_adapter, llm_id_parameter
+):
+    """Attempt to list supported LLM models where no hook exists but a runtime parameter exists."""
+    response = openai_client.models.list()
+    assert response.object == "list"
+    assert len(response.data) == 1
+    assert response.data[0].to_dict() == {
+        "id": MODEL_ID_FROM_RUNTIME_PARAMETER,
+        "object": "model",
+        "created": ANY,
+        "owned_by": "DataRobot",
+    }
+
+
+@pytest.mark.usefixtures("list_models_prediction_server")
+def test_prediction_server_list_llm_models_with_hook(
+    openai_client, list_models_python_model_adapter, llm_id_parameter
+):
+    """
+    List supported LLM models where a hook exists.
+    The runtime parameter should be ignored in favor of the hook response.
+    """
+    model_id = "test_with_hook model"
+    owned_by = "test_with_hook owner"
+
+    def models_hook(model):
+        return [
+            Model(
+                id=model_id,
+                created=1744854432,
+                object="model",
+                owned_by=owned_by,
+            )
+        ]
+
+    list_models_python_model_adapter.models_hook = models_hook
+    response = openai_client.models.list()
+    assert response.object == "list"
+    assert len(response.data) == 1
+    assert response.data[0].to_dict() == {
+        "id": model_id,
+        "object": "model",
+        "created": ANY,
+        "owned_by": owned_by,
+    }
+
+
+@pytest.mark.usefixtures("non_textgen_prediction_server")
+def test_prediction_server_list_llm_models_unsupported(openai_client):
+    """Attempt to list supported LLM models with a non-textgen model."""
+    with pytest.raises(NotFoundError, match="is supported only for TextGen models"):
+        _ = openai_client.models.list()
 
 
 @pytest.mark.usefixtures("prediction_server")

@@ -285,6 +285,12 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
 
             return generator()
 
+    def get_supported_llm_models(self):
+        return self._get_supported_llm_models()
+
+    def _get_supported_llm_models(self):
+        raise NotImplementedError("GET /models (get_models) is not implemented ")
+
     def _chat(self, completion_create_params, association_id):
         raise NotImplementedError("Chat is not implemented ")
 

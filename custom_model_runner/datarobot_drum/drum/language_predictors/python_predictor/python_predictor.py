@@ -109,6 +109,9 @@ class PythonPredictor(BaseLanguagePredictor):
     def _chat(self, completion_create_params, association_id):
         return self._model_adapter.chat(completion_create_params, self._model, association_id)
 
+    def _get_supported_llm_models(self):
+        return self._model_adapter.get_supported_llm_models(self._model)
+
     def terminate(self):
         if self._mlops:
             self._mlops.shutdown()

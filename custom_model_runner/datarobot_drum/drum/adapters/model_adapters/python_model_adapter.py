@@ -26,6 +26,7 @@ from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPre
 from datarobot_drum.drum.artifact_predictors.torch_predictor import PyTorchPredictor
 from datarobot_drum.drum.artifact_predictors.xgboost_predictor import XGBoostPredictor
 from datarobot_drum.drum.artifact_predictors.onnx_predictor import ONNXPredictor
+from datarobot_drum.drum.root_predictors.chat_helpers import is_openai_model
 
 from datarobot_drum.drum.common import (
     reroute_stdout_to_stderr,
@@ -64,6 +65,8 @@ from datarobot_drum.custom_task_interfaces.custom_task_interface import (
     load_secrets,
     patch_outputs_to_scrub_secrets,
 )
+
+from datarobot_drum import RuntimeParameters
 
 RUNNING_LANG_MSG = "Running environment language: Python."
 
@@ -760,6 +763,51 @@ class PythonModelAdapter(AbstractModelAdapter):
             )
         else:
             return self._custom_hooks.get(CustomHooks.CHAT)(completion_create_params, model)
+
+    def get_supported_llm_models(self, model):
+        """
+        Return list of LLM models supported by this custom model.
+        Usually, the trigger is a call to OpenAI models.list() (/v1/models, or /models)
+
+        If custom.py defines get_supported_llm_models(), use its returned list.
+        If that hook is not defined, return the model defined in LLM_ID runtime parameter.
+        If neither is present, return an empty list.
+
+        Parameters
+        ----------
+        model
+
+        Returns
+        -------
+        Dict matching JSON structure of GET https://api.openai.com/v1/models response:
+        {"object": "list", "data": [{id, object, created, owned_by}, ...]}
+        """
+        result = {"object": "list", "data": []}
+        if self._custom_hooks.get(CustomHooks.GET_SUPPORTED_LLM_MODELS_LIST):
+            self._logger.debug("get_supported_llm_models: custom.py defines the hook")
+            response = self._custom_hooks.get(CustomHooks.GET_SUPPORTED_LLM_MODELS_LIST)(model)
+            for model in response:
+                if is_openai_model(model):
+                    result["data"].append(model.to_dict())
+        else:
+            # defining the hook overrides built-in behavior and is optional
+            self._logger.debug("get_supported_llm_models: hook is not defined")
+            llm_id_key = "LLM_ID"
+            if RuntimeParameters.has(llm_id_key):
+                self._logger.debug("get_supported_llm_models: returning LLM_ID")
+                llm_id = RuntimeParameters.get(llm_id_key)
+                result["data"].append(
+                    {
+                        "id": llm_id,
+                        "object": "model",
+                        "created": 1735689600,  # Jan. 1, 2025
+                        "owned_by": "DataRobot",
+                    }
+                )
+            else:
+                self._logger.debug("get_supported_llm_models: returning empty list")
+
+        return result
 
     def fit(
         self,

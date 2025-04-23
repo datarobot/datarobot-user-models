@@ -1,6 +1,8 @@
+import os
 from unittest.mock import patch, Mock, ANY
 
 import pytest
+from openai.types.model import Model
 import pandas as pd
 import numpy as np
 import datarobot as dr
@@ -9,7 +11,13 @@ from werkzeug.exceptions import BadRequest
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
+
+from custom_model_runner.datarobot_drum.drum.adapters.model_adapters.python_model_adapter import (
+    PythonModelAdapter,
+)
+from custom_model_runner.datarobot_drum.drum.enum import CustomHooks
 from tests.unit.datarobot_drum.drum.chat_utils import create_completion, create_completion_chunks
+from tests.unit.datarobot_drum.drum.helpers import MODEL_ID_FROM_RUNTIME_PARAMETER
 
 
 class TestDRCommonException(Exception):
@@ -427,3 +435,73 @@ class TestChat(TestBaseLanguagePredictor):
         actual_predictions = mock_mlops.report_predictions_data.call_args.args[1]
         assert expected_predictions == actual_predictions
         pd.testing.assert_frame_equal(actual_df, expected_df, check_like=True, check_dtype=False)
+
+
+class TestModelsAPI(TestBaseLanguagePredictor):
+    """
+    Test serving of models.list() API from a textgen model.
+    Where possible, the real adapter is used with no mocking (but minimal configuration).
+    """
+
+    def test_wrong_target_type(self):
+        """
+        Not a textgen model? models() should return empty list
+        Prediction server returns HTTP 404;
+        that's tested in test_prediction_server_list_llm_models_unsupported.
+        """
+        os.environ["TARGET_NAME"] = "completion"  # required but not used here
+        pma = PythonModelAdapter(model_dir=".", target_type=TargetType.REGRESSION)
+        response = pma.get_supported_llm_models(None)
+        assert response == {"data": [], "object": "list"}
+
+    def test_no_hook_no_parameter(self):
+        """
+        models hook is not defined, and LLM_ID runtime parameter does not exist:
+        response should succeed but be empty
+        """
+        os.environ["TARGET_NAME"] = "completion"  # required but not used here
+        pma = PythonModelAdapter(model_dir=".", target_type=TargetType.TEXT_GENERATION)
+        response = pma.get_supported_llm_models(None)
+        assert response == {"data": [], "object": "list"}
+
+    def test_no_hook_with_parameter(self, llm_id_parameter):
+        """
+        models hook is not defined, but LLM_ID runtime parameter does exist:
+        response should use runtime parameter
+        """
+        os.environ["TARGET_NAME"] = "completion"  # required but not used here
+        model_id = MODEL_ID_FROM_RUNTIME_PARAMETER
+        pma = PythonModelAdapter(model_dir=".", target_type=TargetType.TEXT_GENERATION)
+        response = pma.get_supported_llm_models(None)
+        assert response == {
+            "object": "list",
+            "data": [{"id": model_id, "object": "model", "created": ANY, "owned_by": "DataRobot"}],
+        }
+
+    def test_with_hook(self, llm_id_parameter):
+        """
+        If models hook is defined: return that hook's results
+        Exercises the model adapter's logic; more than just calling our mocked function directly.
+        """
+        model_id = "test_with_hook model"
+        owned_by = "test_with_hook owner"
+
+        def models_hook(model):
+            return [
+                Model(
+                    id=model_id,
+                    created=1744854432,
+                    object="model",
+                    owned_by=owned_by,
+                )
+            ]
+
+        # provide minimal information to initialize a real adapter
+        os.environ["TARGET_NAME"] = "completion"  # required but not used here
+        pma = PythonModelAdapter(model_dir=".", target_type=TargetType.TEXT_GENERATION)
+        pma._custom_hooks[CustomHooks.GET_SUPPORTED_LLM_MODELS_LIST] = models_hook
+        response = pma.get_supported_llm_models(None)
+        assert response == {
+            "object": "list",
+            "data": [{"id": model_id, "object": "model", "created": ANY, "owned_by": owned_by}],
+        }
