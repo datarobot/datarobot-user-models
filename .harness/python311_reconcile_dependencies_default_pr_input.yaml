@@ -1,5 +1,6 @@
 inputSet:
   name: python311_reconcile_dependencies_default_pr_input
+  tags: {}
   identifier: python311_reconcile_dependencies_default_pr_input
   orgIdentifier: Custom_Models
   projectIdentifier: datarobotusermodels
@@ -8,7 +9,10 @@ inputSet:
     properties:
       ci:
         codebase:
-          build: ""
+          build:
+            type: branch
+            spec:
+              branch: <+trigger.branch>
     variables:
       - name: env_folder
         type: String
@@ -19,3 +23,4 @@ inputSet:
       - name: image_uri
         type: String
         value: datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev
+  isInlineHCEntity: false
