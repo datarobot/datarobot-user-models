@@ -21,7 +21,7 @@ charset-normalizer==3.4.1
 click==8.1.8
 cryptography==44.0.1
 datarobot==3.6.2
-datarobot-drum==1.16.5
+datarobot-drum==0.0.0
 datarobot-mlops==10.2.8
 datarobot-storage==0.0.0
 docker==7.1.0
