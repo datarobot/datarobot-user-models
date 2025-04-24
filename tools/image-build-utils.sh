@@ -46,7 +46,7 @@ function build_dropin_env_dockerfile() {
     WITH_R="[R]"
   fi
 
-  # support Darwin
+  # support Darwin (must have the gnu-sed installed, standard Mac sed does not work)
   if command -v gsed &> /dev/null; then
     local sed=gsed
   else
