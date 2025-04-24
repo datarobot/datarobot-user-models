@@ -14,10 +14,7 @@
 
 set -ex
 
-source "$(dirname "$0")/image-build-utils.sh"
-
-build_drum
-
+# check to make sure we have all required args before building an image
 if [ -z "$1" ]; then
   echo "Please pass in a dropin env dir path to build"
   exit 1
@@ -27,6 +24,10 @@ IMAGE_NAME="drum-testing-image-for-$1"
 
 DRUM_WHEEL=$(find custom_model_runner/dist/datarobot_drum*.whl)
 DRUM_WHEEL_REAL_PATH=$(realpath "$DRUM_WHEEL")
+
+source "$(dirname "$0")/image-build-utils.sh"
+
+build_drum
 
 build_dropin_env_dockerfile "$1" "$DRUM_WHEEL_REAL_PATH"
 
