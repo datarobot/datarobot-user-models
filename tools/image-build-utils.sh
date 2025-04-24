@@ -29,7 +29,9 @@ function build_drum() {
 function build_dropin_env_dockerfile() {
   DROPIN_ENV_DIRNAME=$1
   DRUM_WHEEL_REAL_PATH=$2
+  MOD_WHEEL_PATH=$3
   DRUM_WHEEL_FILENAME=$(basename "$DRUM_WHEEL_REAL_PATH")
+  MOD_WHEEL_FILENAME=$(basename "$MOD_WHEEL_PATH")
   WITH_R=""
 
   if [ "$DROPIN_ENV_DIRNAME" = "python39_streamlit" ] || [ "$DROPIN_ENV_DIRNAME" = "python312_apps" ]; then
@@ -39,6 +41,9 @@ function build_dropin_env_dockerfile() {
   pwd
   pushd "$DROPIN_ENV_DIRNAME" || exit 1
   cp "$DRUM_WHEEL_REAL_PATH" .
+  if [[ -nz "$MOD_WHEEL_FILENAME" ]]; then
+    cp "$MOD_WHEEL_PATH" .
+  fi
 
   # check if DRUM is installed with R option
   if grep "datarobot-drum\[R\]" requirements.txt
@@ -58,6 +63,18 @@ function build_dropin_env_dockerfile() {
   fi
   # replace 'datarobot-drum' requirement with a wheel
   $sed -i "s/^datarobot-drum.*/${DRUM_WHEEL_FILENAME}${WITH_R}/" requirements.txt
+
+  # when given a moderations wheel file, inject into Dockerfile and requirements.txt
+  if [[ -nz "$MOD_WHEEL_FILENAME" ]]; then
+    if ! grep -q "COPY \+${MOD_WHEEL_FILENAME}" Dockerfile; then
+      $sed -i "/COPY \+requirements.txt \+requirements.txt/a COPY ${MOD_WHEEL_FILENAME} ${MOD_WHEEL_FILENAME}" Dockerfile
+    fi
+    # remove any 'datarobot-moderations' requirement, and add the wheel file requirements
+    $sed -i "s/^datarobot-moderations.*//" requirements.txt
+    if ! grep -q "${MOD_WHEEL_FILENAME}" requirements.txt; then
+      $sed -i "/${DRUM_WHEEL_FILENAME}${WITH_R}/a ${MOD_WHEEL_FILENAME}${WITH_R}" requirements.txt
+    fi
+  fi
 
   popd || exit 1
 }

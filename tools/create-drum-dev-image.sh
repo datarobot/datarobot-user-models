@@ -20,6 +20,13 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
+# the datarobot-moderations wheel file is expected to be the second argument
+MODERATION_WHEEL=$2
+MODERATION_WHEEL_REAL_PATH=""
+if [[ -nz "${MODERATION_WHEEL}" ]]; then
+  MODERATION_WHEEL_REAL_PATH=$(realpath "$MODERATION_WHEEL")
+fi
+
 IMAGE_NAME="drum-testing-image-for-$1"
 
 DRUM_WHEEL=$(find custom_model_runner/dist/datarobot_drum*.whl)
@@ -29,7 +36,7 @@ source "$(dirname "$0")/image-build-utils.sh"
 
 build_drum
 
-build_dropin_env_dockerfile "$1" "$DRUM_WHEEL_REAL_PATH"
+build_dropin_env_dockerfile "$1" "$DRUM_WHEEL_REAL_PATH" "$MODERATION_WHEEL_REAL_PATH"
 
 pushd $1 || exit 1
 docker build -t "$IMAGE_NAME" .
