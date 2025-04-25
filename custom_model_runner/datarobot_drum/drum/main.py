@@ -43,7 +43,7 @@ import signal
 import sys
 
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
-from datarobot_drum.drum.common import config_logging
+from datarobot_drum.drum.common import config_logging, setup_tracer
 from datarobot_drum.drum.enum import RunMode
 from datarobot_drum.drum.enum import ExitCodes
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
@@ -90,6 +90,9 @@ def main():
         options = arg_parser.parse_args()
         CMRunnerArgsRegistry.verify_options(options)
         _setup_required_environment_variables(options)
+        # Env vars may setup OTEL configuration, lets setup
+        # tracer after all env vars updated
+        setup_tracer(RuntimeParameters)
         if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
             options.max_workers = RuntimeParameters.get("CUSTOM_MODEL_WORKERS")
         runtime.options = options

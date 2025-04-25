@@ -12,6 +12,7 @@ import requests
 from flask import Response, jsonify, request
 from werkzeug.exceptions import HTTPException
 
+from opentelemetry import trace
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.enum import (
     FLASK_EXT_FILE_NAME,
@@ -38,8 +39,12 @@ from datarobot_drum.drum.server import (
     get_flask_app,
 )
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
+from datarobot_drum.drum.common import otel_context
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
+
+
+tracer = trace.get_tracer(__name__)
 
 
 class PredictionServer(PredictMixin):
@@ -157,25 +162,24 @@ class PredictionServer(PredictMixin):
         @model_api.route("/invocations", methods=["POST"])
         def predict():
             logger.debug("Entering predict() endpoint")
-
-            self._pre_predict_and_transform()
-            try:
-                response, response_status = self.do_predict_structured(logger=logger)
-            finally:
-                self._post_predict_and_transform()
+            with otel_context(tracer, "drum.predict", request.headers):
+                self._pre_predict_and_transform()
+                try:
+                    response, response_status = self.do_predict_structured(logger=logger)
+                finally:
+                    self._post_predict_and_transform()
 
             return response, response_status
 
         @model_api.route("/transform/", methods=["POST"])
         def transform():
             logger.debug("Entering transform() endpoint")
-
-            self._pre_predict_and_transform()
-
-            try:
-                response, response_status = self.do_transform(logger=logger)
-            finally:
-                self._post_predict_and_transform()
+            with otel_context(tracer, "drum.transform", request.headers):
+                self._pre_predict_and_transform()
+                try:
+                    response, response_status = self.do_transform(logger=logger)
+                finally:
+                    self._post_predict_and_transform()
 
             return response, response_status
 
@@ -183,14 +187,12 @@ class PredictionServer(PredictMixin):
         @model_api.route("/predictUnstructured/", methods=["POST"])
         def predict_unstructured():
             logger.debug("Entering predict() endpoint")
-
-            self._pre_predict_and_transform()
-
-            try:
-                response, response_status = self.do_predict_unstructured(logger=logger)
-            finally:
-                self._post_predict_and_transform()
-
+            with otel_context(tracer, "drum.predictUnstructured", request.headers):
+                self._pre_predict_and_transform()
+                try:
+                    response, response_status = self.do_predict_unstructured(logger=logger)
+                finally:
+                    self._post_predict_and_transform()
             return (response, response_status)
 
         # Chat routes are defined without trailing slash because this is required by the OpenAI python client.
@@ -198,13 +200,12 @@ class PredictionServer(PredictMixin):
         @model_api.route("/v1/chat/completions", methods=["POST"])
         def chat():
             logger.debug("Entering chat endpoint")
-
-            self._pre_predict_and_transform()
-
-            try:
-                response, response_status = self.do_chat(logger=logger)
-            finally:
-                self._post_predict_and_transform()
+            with otel_context(tracer, "completions", request.headers):
+                self._pre_predict_and_transform()
+                try:
+                    response, response_status = self.do_chat(logger=logger)
+                finally:
+                    self._post_predict_and_transform()
 
             return response, response_status
 
@@ -226,24 +227,25 @@ class PredictionServer(PredictMixin):
         @model_api.route("/directAccess/<path:path>", methods=["GET", "POST", "PUT"])
         @model_api.route("/nim/<path:path>", methods=["GET", "POST", "PUT"])
         def forward_request(path):
-            if not hasattr(self._predictor, "openai_host") or not hasattr(
-                self._predictor, "openai_port"
-            ):
-                return {
-                    "message": "This endpoint is only supported by OpenAI based predictors"
-                }, HTTP_400_BAD_REQUEST
+            with otel_context(tracer, "completions", request.headers) as span:
+                if not hasattr(self._predictor, "openai_host") or not hasattr(
+                    self._predictor, "openai_port"
+                ):
+                    msg = "This endpoint is only supported by OpenAI based predictors"
+                    span.set_status(StatusCode.ERROR, msg)
+                    return {"message": msg}, HTTP_400_BAD_REQUEST
 
-            openai_host = self._predictor.openai_host
-            openai_port = self._predictor.openai_port
+                openai_host = self._predictor.openai_host
+                openai_port = self._predictor.openai_port
 
-            resp = requests.request(
-                method=request.method,
-                url=f"http://{openai_host}:{openai_port}/{path.rstrip('/')}",
-                headers=request.headers,
-                params=request.args,
-                data=request.get_data(),
-                allow_redirects=False,
-            )
+                resp = requests.request(
+                    method=request.method,
+                    url=f"http://{openai_host}:{openai_port}/{path.rstrip('/')}",
+                    headers=request.headers,
+                    params=request.args,
+                    data=request.get_data(),
+                    allow_redirects=False,
+                )
 
             return Response(resp.content, status=resp.status_code, headers=dict(resp.headers))
 
