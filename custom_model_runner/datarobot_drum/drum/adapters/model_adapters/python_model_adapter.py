@@ -107,6 +107,7 @@ class PythonModelAdapter(AbstractModelAdapter):
         # New custom task class and instance loaded from custom.py
         self._custom_task_class = None
         self._custom_task_class_instance = None
+        self._mod_pipeline = None
         self._moderation_pipeline = None
         self._moderation_score_hook = None
         self._moderation_chat_hook = None
@@ -127,8 +128,11 @@ class PythonModelAdapter(AbstractModelAdapter):
             self._logger.info(
                 f"Detected {mod_module.__name__} in {mod_module.__file__}.. trying to load hooks"
             )
+            # use the 'moderation_pipeline_factory()' to determine if moderations has integrated pipeline
+            if hasattr(mod_module, "moderation_pipeline_factory"):
+                self._mod_pipeline = mod_module.moderation_pipeline_factory(self._target_type.value)
             # use the 'create_pipeline' to determine if using version that supports VDB
-            if hasattr(mod_module, "create_pipeline"):
+            elif hasattr(mod_module, "create_pipeline"):
                 self._moderation_score_hook = mod_module.get_moderations_fn(
                     self._target_type.value, CustomHooks.SCORE
                 )
@@ -600,14 +604,21 @@ class PythonModelAdapter(AbstractModelAdapter):
         if request_labels is not None:
             assert all(isinstance(label, str) for label in request_labels)
         extra_model_output = None
-        if self._custom_hooks.get(CustomHooks.SCORE):
+        score_fn = self._custom_hooks.get(CustomHooks.SCORE)
+        if score_fn:
             try:
-                if self._moderation_pipeline and self._moderation_score_hook:
+                if self._mod_pipeline:
+                    predictions_df = self._mod_pipeline.score(data, model, score_fn, **kwargs)
+                    if self._target_name not in predictions_df:
+                        predictions_df.rename(
+                            columns={"completion": self._target_name}, inplace=True
+                        )
+                elif self._moderation_pipeline and self._moderation_score_hook:
                     predictions_df = self._moderation_score_hook(
                         data,
                         model,
                         self._moderation_pipeline,
-                        self._custom_hooks.get(CustomHooks.SCORE),
+                        score_fn,
                         **kwargs,
                     )
                     if self._target_name not in predictions_df:
@@ -616,9 +627,7 @@ class PythonModelAdapter(AbstractModelAdapter):
                         )
                 else:
                     # noinspection PyCallingNonCallable
-                    predictions_df = self._custom_hooks.get(CustomHooks.SCORE)(
-                        data, model, **kwargs
-                    )
+                    predictions_df = score_fn(data, model, **kwargs)
             except Exception as exc:
                 self._log_and_raise_final_error(
                     exc, "Model 'score' hook failed to make predictions."
@@ -753,16 +762,19 @@ class PythonModelAdapter(AbstractModelAdapter):
         return predictions
 
     def chat(self, completion_create_params, model, association_id):
-        if self._moderation_pipeline and self._moderation_chat_hook:
+        chat_fn = self._custom_hooks.get(CustomHooks.CHAT)
+        if self._mod_pipeline:
+            self._mod_pipeline.chat(completion_create_params, model, chat_fn, association_id)
+        elif self._moderation_pipeline and self._moderation_chat_hook:
             return self._moderation_chat_hook(
                 completion_create_params,
                 model,
                 self._moderation_pipeline,
-                self._custom_hooks.get(CustomHooks.CHAT),
+                chat_fn,
                 association_id,
             )
         else:
-            return self._custom_hooks.get(CustomHooks.CHAT)(completion_create_params, model)
+            return chat_fn(completion_create_params, model)
 
     def get_supported_llm_models(self, model):
         """
