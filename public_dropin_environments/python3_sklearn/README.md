@@ -6,7 +6,7 @@ environment correctly.
 
 ## Supported Libraries
 
-Dummy update
+Dummy update 2
 
 This environment has built for python 3 and has support for the following scientific libraries.
 For specific version information, see [requirements](requirements.txt).
