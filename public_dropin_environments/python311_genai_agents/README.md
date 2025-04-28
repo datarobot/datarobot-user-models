@@ -1,18 +1,35 @@
-# Python 3.11 Base Notebook Drop-In Template Environment
+# Python 3 GenAI Agents Drop-In Template Environment
 
-This template environment can be used to create custom Python 3.11 notebook environments.
+This template environment can be used to create GenAI-powered custom models and includes common dependencies for 
+workflows using CrewAI, Langgraph, Llama-Index and other agentic workflows.
+
+Additionally, this environment is fully compatible with `Codespaces` and `Notebooks` in the DataRobot platform.
 
 ## Supported Libraries
 
-This environment has been built for python 3.11 and includes minimal dependencies required for DataRobot Notebook to work.
+This environment is built for python 3 and has support for the following libraries.
+For specific version information and the complete list of included packages, see [requirements](requirements.txt).
+
+- crewai
+- langgraph
+- langchain
+- llama-index
+- openai
+- numpy
+- pandas
 
 ## Instructions
 
-1. Update [requirements](requirements.txt) to add your custom libraries supported by Python 3.11.
-2. From the terminal, run `tar -czvf py311_notebook_dropin.tar.gz -C /path/to/public_dropin_notebook_environments/python311_notebook_base/ .`
-3. Using either the API or from the UI create a new Custom Environment with the tarball created in step 2.
+1. From the terminal, run `tar -czvf py_dropin.tar.gz -C /path/to/public_dropin_environments/python3_genai_agents/ .`
+2. Using either the API or from the UI create a new Custom Environment with the tarball created
+in step 1.
 
-### Using this environment in notebooks
+### Creating models for this environment
 
-Upon successful build, the custom environment can be used in notebooks, by selecting it 
-from `ENVIRONMENT` settings > `Image` in the notebook sidebar.
+To use this environment, your custom model archive will typically contain a `custom.py` file containing the necessary hooks, as well as other files needed for your workflow. You can implement the hook functions such as `load_model` and `score_unstructured`, as documented [here](../../custom_model_runner/README.md)
+
+Within your `custom.py` code, by importing the necessary dependencies found in this environment, you can implement your Python code under the related custom hook functions, to build your GenAI workflows. 
+
+If you need additional dependencies, you can add those packages in your `requirements.txt` file that you include within your custom model archive and DataRobot will make them available to your custom Python code after you build the environment.
+
+

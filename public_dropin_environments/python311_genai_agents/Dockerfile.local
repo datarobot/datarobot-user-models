@@ -27,7 +27,43 @@ ARG GID=10101
 
 ARG PYTHON_VERSION=3.11
 
-FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev AS base
+# This reproduces a free open source variant of
+# https://images.chainguard.dev/directory/image/python
+FROM cgr.dev/chainguard/wolfi-base AS chainguard_python_dev
+
+ARG PYTHON_VERSION
+SHELL ["/bin/sh", "-o", "pipefail", "-c"]
+RUN echo "[Python $PYTHON_VERSION]"
+
+ENV PATH="${PATH}:/sbin"
+RUN apk update && apk upgrade
+# Wolfi python image
+RUN apk add --no-cache ca-certificates-bundle gdbm glibc glibc-locale-posix \
+ld-linux libbz2-1 libcrypto3 libexpat1 libffi libgcc libssl3 libstdc++ \
+mpdecimal ncurses ncurses-terminfo readline sqlite-libs \
+wolfi-baselayout xz zlib
+# Wolfi python dev image
+RUN apk add --no-cache apk-tools  bash  binutils  build-base  busybox  cyrus-sasl  \
+gcc  git  glibc-dev  gmp  heimdal-libs  isl  keyutils-libs  \
+krb5-conf  krb5-libs  libatomic  libbrotlicommon1  libbrotlidec1  \
+libcom_err  libcrypt1  libcurl-openssl4  libgo  libgomp  libidn2  \
+libldap  libnghttp2-14  libpcre2-8-0  libpsl  libquadmath  libstdc++-dev  \
+libunistring  libverto  libxcrypt  libxcrypt-dev  libzstd1  \
+linux-headers  make  mpc  mpfr  nss-db  nss-hesiod  \
+openssf-compiler-options  pkgconf  posix-cc-wrappers  wget
+# Python
+RUN apk add --no-cache \
+    python-$PYTHON_VERSION \
+    python-$PYTHON_VERSION-base \
+    py$PYTHON_VERSION-pip \
+    py3-pip-wheel
+# Python dev
+RUN apk add python-$PYTHON_VERSION-dev \
+    python-$PYTHON_VERSION-base-dev \
+    py$PYTHON_VERSION-pip-base \
+    py$PYTHON_VERSION-setuptools
+
+FROM chainguard_python_dev AS base
 
 ARG UNAME
 ARG UID
