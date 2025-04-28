@@ -1,0 +1,4 @@
+datarobot-drum==1.16.11
+datarobot==3.7.0
+numpy==1.26.2
+uwsgi
