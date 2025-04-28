@@ -24,6 +24,8 @@ For specific version information and the complete list of included packages, see
 2. Using either the API or from the UI create a new Custom Environment with the tarball created
 in step 1.
 
+_The Dockerfile.local should be used when customizing the Dockerfile or building locally._
+
 ### Creating models for this environment
 
 To use this environment, your custom model archive will typically contain a `custom.py` file containing the necessary hooks, as well as other files needed for your workflow. You can implement the hook functions such as `load_model` and `score_unstructured`, as documented [here](../../custom_model_runner/README.md)

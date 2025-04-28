@@ -1,4 +1,4 @@
-# Copyright 2024 DataRobot, Inc. and its affiliates.
+# Copyright 2025 DataRobot, Inc. and its affiliates.
 # All rights reserved.
 # DataRobot, Inc. Confidential.
 # This is unpublished proprietary source code of DataRobot, Inc.
@@ -25,8 +25,6 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 
-ARG PYTHON_VERSION=3.11
-
 FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev AS base
 
 ARG UNAME
@@ -36,7 +34,10 @@ ARG WORKDIR
 ARG AGENTDIR
 ARG VENV_PATH
 
+USER root
+
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+RUN apk update && apk upgrade
 RUN apk add --no-cache graphviz openblas openssh-server gzip zip unzip curl \
   openjdk-11 vim nano procps tzdata poppler-utils
 RUN apk add rust sqlite
@@ -111,7 +112,6 @@ FROM minimal AS builder
 
 ARG WORKDIR
 ARG VENV_PATH
-ARG PYTHON_VERSION
 
 COPY ./kernel.json ${VENV_PATH}/share/jupyter/kernels/python3/
 COPY ./requirements.txt ${WORKDIR}/
