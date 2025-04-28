@@ -122,7 +122,8 @@ def _validate_dimensionality_and_type(predictions):
 def _validate_predictions_are_one_dimensional(predictions):
     if predictions.shape[1] != 1:
         raise DrumCommonException(
-            f"Regression, Text Generation and anomaly predictions must contain only 1 column. "
+            f"Regression, Text Generation, Agentic Workflow "
+            f"and anomaly predictions must contain only 1 column. "
             f"Your predictions have {predictions.shape[1]} columns"
         )
 
