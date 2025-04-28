@@ -36,7 +36,7 @@ def test_supports_chat(mock_target_name_env_var, target_type):
         "__custom_model_path__": "/opt/code/custom.py",
     }
     predictor.configure(params)
-    if target_type == TargetType.TEXT_GENERATION:
+    if target_type in [TargetType.TEXT_GENERATION, TargetType.AGENTIC_WORKFLOW]:
         assert predictor.supports_chat()
     else:
         assert not predictor.supports_chat()

@@ -244,3 +244,27 @@ def test_marshal_predictions_vector_database_invalid_dtype():
         marshal_predictions(
             request_labels=labels, predictions="a", target_type=TargetType.VECTOR_DATABASE
         )
+
+
+def test_marshal_predictions_reshape_agentic_workflow():
+    preds = np.array(["response 1", "response 2", "response 3"])
+    labels = [PRED_COLUMN]
+    res = marshal_predictions(
+        request_labels=labels, predictions=preds, target_type=TargetType.AGENTIC_WORKFLOW
+    )
+    assert res.equals(pd.DataFrame({PRED_COLUMN: preds}))
+
+
+def test_marshal_predictions_agentic_workflow_invalid_dtype():
+    labels = [PRED_COLUMN]
+    with pytest.raises(
+        DrumCommonException, match="predictions must return a np array, but received"
+    ):
+        marshal_predictions(
+            request_labels=labels, predictions="a", target_type=TargetType.AGENTIC_WORKFLOW
+        )
+    with pytest.raises(DrumCommonException, match="predictions must contain only 1 column"):
+        preds = np.array([["a", "b", "c", "d"], ["e", "f", "g", "h"]])
+        marshal_predictions(
+            request_labels=labels, predictions=preds, target_type=TargetType.AGENTIC_WORKFLOW
+        )

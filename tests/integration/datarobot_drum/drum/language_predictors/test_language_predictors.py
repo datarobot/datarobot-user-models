@@ -66,6 +66,7 @@ class FakeLanguagePredictor(BaseLanguagePredictor):
         {"target_type": TargetType.TEXT_GENERATION},
         {"target_type": TargetType.GEO_POINT},
         {"target_type": TargetType.VECTOR_DATABASE},
+        {"target_type": TargetType.AGENTIC_WORKFLOW},
     ],
 )
 def test_lang_predictor_configure(predictor_params, essential_language_predictor_init_params):
@@ -146,6 +147,13 @@ class TestPythonPredictor(object):
                 np.array([["relevant_1"], ["relevant_2, relevant_3"]]),
                 None,
             ),
+            (
+                {
+                    "target_type": TargetType.AGENTIC_WORKFLOW,
+                },
+                np.array(["a", "b"]),
+                None,
+            ),
         ],
     )
     def test_python_predictor_predict(
@@ -169,7 +177,10 @@ class TestPythonPredictor(object):
             init_params = copy.deepcopy(essential_language_predictor_init_params)
             init_params.update(predictor_params)
             py_predictor = PythonPredictor()
-            if predictor_params["target_type"] == TargetType.TEXT_GENERATION:
+            if predictor_params["target_type"] in [
+                TargetType.TEXT_GENERATION,
+                TargetType.AGENTIC_WORKFLOW,
+            ]:
                 with patch.dict(os.environ, {"TARGET_NAME": "Response"}):
                     py_predictor.configure(init_params)
             elif predictor_params["target_type"] == TargetType.VECTOR_DATABASE:

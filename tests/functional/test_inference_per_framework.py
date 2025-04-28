@@ -90,6 +90,8 @@ from tests.constants import (
     R,
     PYTHON_VECTOR_DATABASE,
     VECTOR_DATABASE,
+    PYTHON_AGENTIC_WORKFLOW,
+    AGENTIC_WORKFLOW,
     PYTHON311,
     REPO_ROOT_PATH,
 )
@@ -156,6 +158,7 @@ class TestInference:
             (PYTHON_TEXT_GENERATION, TEXT_GENERATION, PYTHON_TEXT_GENERATION, None, False),
             (PYTHON_GEO_POINT, GEO_POINT, PYTHON_GEO_POINT, None, False),
             (PYTHON_VECTOR_DATABASE, VECTOR_DATABASE, PYTHON_VECTOR_DATABASE, None, False),
+            (PYTHON_AGENTIC_WORKFLOW, AGENTIC_WORKFLOW, PYTHON_AGENTIC_WORKFLOW, None, False),
         ],
     )
     def test_custom_models_with_drum(
@@ -206,7 +209,7 @@ class TestInference:
             cmd += " --docker {} --verbose ".format(docker)
 
         env_vars = {}
-        if problem == TEXT_GENERATION:
+        if problem in (TEXT_GENERATION, AGENTIC_WORKFLOW):
             env_vars = {"TARGET_NAME": "Response"}
         elif problem == VECTOR_DATABASE:
             env_vars = {"TARGET_NAME": "relevant"}
@@ -314,6 +317,7 @@ class TestInference:
             (PYTHON_TEXT_GENERATION, TEXT_GENERATION, PYTHON_TEXT_GENERATION, None),
             (PYTHON_GEO_POINT, GEO_POINT, PYTHON_GEO_POINT, None),
             (PYTHON_VECTOR_DATABASE, VECTOR_DATABASE, PYTHON_VECTOR_DATABASE, None),
+            (PYTHON_AGENTIC_WORKFLOW, AGENTIC_WORKFLOW, PYTHON_AGENTIC_WORKFLOW, None),
         ],
     )
     @pytest.mark.parametrize("pass_args_as_env_vars", [False])
@@ -347,7 +351,7 @@ class TestInference:
         unset_drum_supported_env_vars()
 
         env_vars = {}
-        if problem == TEXT_GENERATION:
+        if problem in (TEXT_GENERATION, AGENTIC_WORKFLOW):
             env_vars = {"TARGET_NAME": "Response"}
         elif problem == VECTOR_DATABASE:
             env_vars = {"TARGET_NAME": "relevant"}

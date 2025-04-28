@@ -562,6 +562,17 @@ class TestPythonModelAdapterInitialization:
         with pytest.raises(ValueError, match="Unexpected empty target name"):
             PythonModelAdapter(Mock(), TargetType.VECTOR_DATABASE)
 
+    def test_valid_initialization_for_agentic_workflow(self):
+        target_name = "Response"
+        with patch.dict(os.environ, {"TARGET_NAME": target_name}):
+            adapter = PythonModelAdapter(Mock(), TargetType.AGENTIC_WORKFLOW)
+            assert adapter._target_name == target_name
+
+    def test_invalid_initialization_for_agentic_workflow(self):
+        os.environ.pop("TARGET_NAME", None)
+        with pytest.raises(ValueError, match="Unexpected empty target name"):
+            PythonModelAdapter(Mock(), TargetType.AGENTIC_WORKFLOW)
+
 
 def set_moderations_lib_content(path: Path, content: str):
     # Create dummy datarobot dome package with the drum_integration.py
@@ -615,6 +626,7 @@ class TestPythonModelAdapterWithGuards:
         [
             pytest.param(TargetType.TEXT_GENERATION, "mock_llm_score_hook", id="textgen"),
             pytest.param(TargetType.VECTOR_DATABASE, "mock_vdb_score_hook", id="vectordb"),
+            pytest.param(TargetType.AGENTIC_WORKFLOW, "mock_agentic_score_hook", id="agentic"),
         ],
     )
     def test_loading_moderations_hook_module(self, target_type, score_hook_name, tmp_path):
@@ -626,6 +638,9 @@ class TestPythonModelAdapterWithGuards:
 
         def mock_vdb_score_hook(data, model, pipeline, drum_score_fn, **kwargs):
             return data
+        
+        def mock_agentic_score_hook(data, model, pipeline, drum_score_fn, **kwargs):
+            return data
 
         def get_moderations_fn(target_type, custom_hook):
             if target_type == "textgeneration":
@@ -634,6 +649,9 @@ class TestPythonModelAdapterWithGuards:
             elif target_type == "vectordatabase":
                 if custom_hook == "score":
                     return mock_vdb_score_hook
+            elif target_type == "agenticworkflow":
+                if custom_hook == "score":
+                    return mock_agentic_score_hook
             return None            
 
         def create_pipeline(target_type):
