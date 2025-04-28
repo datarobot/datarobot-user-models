@@ -329,9 +329,9 @@ class DataFrameFormatter(BaseFormatter):  # type: ignore[misc]
 def load_ipython_extension(ipython: Magics) -> None:
     if is_pandas_loaded:
         dataframe_json_formatter = DataFrameFormatter()
-        ipython.display_formatter.formatters["application/vnd.dataframe+json"] = (
-            dataframe_json_formatter
-        )
+        ipython.display_formatter.formatters[
+            "application/vnd.dataframe+json"
+        ] = dataframe_json_formatter
         dataframe_json_formatter.for_type(DataFrame, formatter)
 
         print("Pandas DataFrame MimeType Extension loaded")
