@@ -131,10 +131,11 @@ FROM base AS minimal
 ARG WORKDIR
 ARG VENV_PATH
 
-COPY ./dr_requirements.txt ./agent/requirements-agent.txt ${WORKDIR}/
+COPY ./kernel.json ${VENV_PATH}/share/jupyter/kernels/python3/
+COPY ./requirements.txt ./agent/requirements-agent.txt ${WORKDIR}/
 RUN python3 -m ensurepip --upgrade
 RUN python3 -m pip install --upgrade pip setuptools
-RUN python3 -m pip install --no-cache-dir -r ${WORKDIR}/dr_requirements.txt && rm ${WORKDIR}/dr_requirements.txt
+RUN python3 -m pip install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt
 RUN python3 -m pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt && rm ${WORKDIR}/requirements-agent.txt
 
 RUN rm ${VENV_PATH}/share/jupyter/kernels/python3/kernel.json && chmod a+x ${WORKDIR}/start_server.sh
@@ -149,11 +150,7 @@ ARG WORKDIR
 ARG VENV_PATH
 ARG PYTHON_VERSION
 
-COPY ./kernel.json ${VENV_PATH}/share/jupyter/kernels/python3/
-COPY ./requirements.txt ${WORKDIR}/
-RUN pip3 install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt
-
-# THIS IS A SET OF HACKS TO ENABLE CREWAI + DATAROBOT
+# THIS IS REQUIRED FOR COMPATIBILITY WITH AGENTIC FRAMEWORKS
 COPY ./requirements-genai.txt ${WORKDIR}/
 RUN pip3 uninstall -y urllib3
 RUN pip3 install --no-cache-dir -r ${WORKDIR}/requirements-genai.txt && rm ${WORKDIR}/requirements-genai.txt
