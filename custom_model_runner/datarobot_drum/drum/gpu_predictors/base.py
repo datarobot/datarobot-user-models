@@ -136,7 +136,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
             return default_name
 
     def supports_chat(self):
-        if self.target_type == TargetType.TEXT_GENERATION:
+        if self.target_type in [TargetType.TEXT_GENERATION, TargetType.AGENTIC_WORKFLOW]:
             return True
         return False
 
