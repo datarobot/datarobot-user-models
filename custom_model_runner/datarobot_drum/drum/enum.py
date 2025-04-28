@@ -393,6 +393,7 @@ class TargetType(Enum):
     TEXT_GENERATION = "textgeneration"
     GEO_POINT = "geopoint"
     VECTOR_DATABASE = "vectordatabase"
+    AGENTIC_WORKFLOW = "agenticworkflow"
 
     def is_classification(self):
         return self in [self.BINARY, self.MULTICLASS]
@@ -404,6 +405,7 @@ class TargetType(Enum):
             self.TEXT_GENERATION,
             self.GEO_POINT,
             self.VECTOR_DATABASE,
+            self.AGENTIC_WORKFLOW,
         ]
 
 
