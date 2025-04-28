@@ -37,7 +37,6 @@ ARG VENV_PATH
 USER root
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-RUN apk update && apk upgrade
 RUN apk add --no-cache graphviz openblas openssh-server gzip zip unzip curl \
   openjdk-11 vim nano procps tzdata poppler-utils
 RUN apk add rust sqlite
@@ -112,14 +111,16 @@ FROM minimal AS builder
 
 ARG WORKDIR
 ARG VENV_PATH
+ARG PYTHON_VERSION
 
 COPY ./kernel.json ${VENV_PATH}/share/jupyter/kernels/python3/
 COPY ./requirements.txt ${WORKDIR}/
-RUN pip3 install  -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt
+RUN pip3 install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt
 
 # THIS IS A SET OF HACKS TO ENABLE CREWAI + DATAROBOT
+COPY ./requirements-genai.txt ${WORKDIR}/
 RUN pip3 uninstall -y urllib3
-RUN pip3 install --no-cache-dir --no-warn-conflicts 'crewai[tools]'
+RUN pip3 install --no-cache-dir -r ${WORKDIR}/requirements-genai.txt && rm ${WORKDIR}/requirements-genai.txt
 RUN pip3 uninstall -y litellm
 RUN pip3 install --no-cache-dir --no-warn-conflicts git+https://github.com/datarobot-forks/litellm@mattn/add-datarobot-support-to-litellm
 

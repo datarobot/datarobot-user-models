@@ -1,0 +1,6 @@
+crewai==0.117.1
+crewai-tools==0.42.2
+llama-index==0.12.33
+langgraph==0.3.34
+langchain==0.3.24
+langchain-community==0.3.22

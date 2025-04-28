@@ -1,4 +1,4 @@
-# Copyright 2025 DataRobot, Inc. and its affiliates.
+# Copyright 2024 DataRobot, Inc. and its affiliates.
 # All rights reserved.
 # DataRobot, Inc. Confidential.
 # This is unpublished proprietary source code of DataRobot, Inc.
@@ -151,11 +151,12 @@ ARG PYTHON_VERSION
 
 COPY ./kernel.json ${VENV_PATH}/share/jupyter/kernels/python3/
 COPY ./requirements.txt ${WORKDIR}/
-RUN pip3 install  -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt
+RUN pip3 install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt
 
 # THIS IS A SET OF HACKS TO ENABLE CREWAI + DATAROBOT
+COPY ./requirements-genai.txt ${WORKDIR}/
 RUN pip3 uninstall -y urllib3
-RUN pip3 install --no-cache-dir --no-warn-conflicts 'crewai[tools]'
+RUN pip3 install --no-cache-dir -r ${WORKDIR}/requirements-genai.txt && rm ${WORKDIR}/requirements-genai.txt
 RUN pip3 uninstall -y litellm
 RUN pip3 install --no-cache-dir --no-warn-conflicts git+https://github.com/datarobot-forks/litellm@mattn/add-datarobot-support-to-litellm
 
