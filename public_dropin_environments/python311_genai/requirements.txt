@@ -34,7 +34,7 @@ coloredlogs==15.0.1
 cryptography==44.0.1
 dataclasses-json==0.6.7
 datarobot==3.6.2
-datarobot-drum==1.16.13
+datarobot-drum==1.16.12
 datarobot-mlops==10.2.8
 datarobot-storage==0.0.0
 deprecated==1.2.18
