@@ -143,9 +143,9 @@ def _exec_shell_cmd(
     if verbose:
         if capture_output:
             if len(stdout):
-                logger.info("stdout: %s", stdout)
+                print("stdout: {}".format(stdout))
             if len(stderr):
-                logger.error("stderr: %s", stderr)
+                print("stderr: {}".format(stderr))
     if assert_if_fail:
         assert p.returncode == 0, err_msg
 
