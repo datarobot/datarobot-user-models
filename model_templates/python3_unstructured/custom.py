@@ -4,9 +4,13 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import logging
 
 from io import BytesIO
 import werkzeug
+
+
+logger = logging.getLogger(__name__)
 
 
 def load_model(input_dir):
@@ -14,17 +18,17 @@ def load_model(input_dir):
 
 
 def score_unstructured(model, data, query, **kwargs):
-    print("Model: ", model)
-    print("Incoming content type params: ", kwargs)
-    print("Incoming data type: ", type(data))
-    print("Incoming data: ", data)
+    logger.info("Running scoring for unstructured model: %s", model)
+    logger.info("Incoming content type params: %s", kwargs)
+    logger.info("Incoming data type: %s", type(data))
+    logger.info("Incoming data: %s", data)
 
     mlops = kwargs.get("mlops")
-    print(f"MLOps supported: {mlops is not None}")
+    logger.info("MLOps supported: %s", mlops is not None)
 
     headers = kwargs.get("headers")
-    print("Incoming request headers: ", headers)
-    print("Incoming query params: ", query)
+    logger.info("Incoming request headers: %s", headers)
+    logger.info("Incoming query params: %s", query)
 
     if headers and "multipart/form-data" in headers.get("Content-Type"):
         # For more information refer to:

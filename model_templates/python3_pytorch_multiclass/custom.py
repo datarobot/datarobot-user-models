@@ -8,6 +8,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 This example shows how to create a multiclass neural net with pytorch
 """
+import logging
 import os
 import pickle
 from typing import List, Optional, Any, Dict
@@ -19,6 +20,10 @@ import torch
 
 from preprocessing import dense_preprocessing_pipeline
 from model_utils import build_classifier, train_classifier, save_torch_model
+
+
+logger = logging.getLogger(__name__)
+
 
 preprocessor = None
 
@@ -76,12 +81,12 @@ def fit(
         so that the trained object can be used during scoring.
     """
 
-    print("Fitting Preprocessing pipeline")
+    logger.info("Fitting Preprocessing pipeline")
     preprocessor = dense_preprocessing_pipeline.fit(X)
     lb = LabelEncoder().fit(y)
 
     # write out the class labels file
-    print("Serializing preprocessor and class labels")
+    logger.info("Serializing preprocessor and class labels")
     with open(os.path.join(output_dir, "class_labels.txt"), mode="w") as f:
         f.write("\n".join(str(label) for label in lb.classes_))
 
@@ -93,7 +98,7 @@ def fit(
     with open(os.path.join(output_dir, "preprocessor.pkl"), mode="wb") as f:
         pickle.dump(preprocessor, f)
 
-    print("Transforming input data")
+    logger.info("Transforming input data")
     X = preprocessor.transform(X)
     y = lb.transform(y)
 
@@ -101,7 +106,7 @@ def fit(
     torch.manual_seed(0)
 
     estimator, optimizer, criterion = build_classifier(X, len(lb.classes_))
-    print("Training classifier")
+    logger.info("Training classifier")
     train_classifier(X, y, estimator, optimizer, criterion)
     artifact_name = "artifact.pth"
     save_torch_model(estimator, output_dir, artifact_name)

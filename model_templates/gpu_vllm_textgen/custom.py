@@ -3,7 +3,7 @@ MODEL_DIR = "/opt/code/vllm/"
 
 
 def load_model(code_dir: str):
-    # print(f"Downloading model to {MODEL_DIR}...")
+    # logger.info("Downloading model to %s...", MODEL_DIR)
 
     # Add custom code to download supported OSS LLM here, otherwise we will
     # download the weights from the HuggingFace Hub based on the model name

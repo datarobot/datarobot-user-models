@@ -3,7 +3,7 @@ MODEL_DIR = "/opt/code/model-repo/"
 
 
 def load_model(code_dir: str):
-    # print(f"Downloading model to {MODEL_DIR}...")
+    # logger.info("Downloading model to %s...", MODEL_DIR)
 
     # Here is where you can put code that downloads the model artifacts
     # from an internal source. See the official documentation for more details:

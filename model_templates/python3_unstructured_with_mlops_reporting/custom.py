@@ -9,27 +9,30 @@ a binary model, which was defined in DataRobot as `Unstructured (Binary)`, just 
 the usage of the `mlops` instance.
 The
 """
+import logging
 
 import pickle
 import time
 from pathlib import Path
-import sys
 
 import pandas as pd
 import tempfile
 
 
+logger = logging.getLogger(__name__)
+
+
 def load_model(input_dir):
     model_path = str(Path(input_dir) / "model.pkl")
-    print(f"Loading model: {model_path}")
+    logger.info("Loading model: %s", model_path)
     return pickle.load(open(model_path, "rb"))
 
 
 def score_unstructured(model, data, query, **kwargs):
-    print(f"Model: {model} ", flush=True)
-    print(f"Incoming data type: {type(data)}", flush=True)
-    print(f"Incoming kwargs: {kwargs}", flush=True)
-    print(f"Incoming query params: {query}", flush=True)
+    logger.info("Running scoring for unstructured model: %s", model)
+    logger.info("Incoming data type: %s", type(data))
+    logger.info("Incoming kwargs: %s", kwargs)
+    logger.info("Incoming query params: %s", query)
 
     # The 'mlops' instance is available only when the 'MLOPS_REPORTING_FROM_UNSTRUCTURED_MODELS'
     # feature-flag is enabled.
@@ -51,7 +54,7 @@ def score_unstructured(model, data, query, **kwargs):
             (end_time - start_time) * 1000,  # Prediction execution's time
         )
     else:
-        print("Skip mlops reporting because mlops is not enabled.", flush=True)
+        logger.info("Skip mlops reporting because mlops is not enabled.")
 
     reporting_predictions = _prepare_reporting_predictions(predictions_array)
 
