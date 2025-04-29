@@ -172,23 +172,6 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def python311_genai_agents_custom_model(self, python311_genai_agents_drop_in_env):
-        env_id, _ = python311_genai_agents_drop_in_env
-
-        custom_model = dr.CustomInferenceModel.create(
-            name="python311_genai_agents_custom_model",
-            target_type=dr.TARGET_TYPE.UNSTRUCTURED,
-            target_name="dummy-target",
-        )
-        model_version = dr.CustomModelVersion.create_clean(
-            custom_model_id=custom_model.id,
-            base_environment_id=env_id,
-            files=[(CUSTOM_UNSTRUCTURED_PREDICT_PY_PATH, "custom.py")],
-        )
-
-        return custom_model.id, model_version.id
-
-    @pytest.fixture(scope="session")
     def onnx_regression_custom_model(self, onnx_drop_in_env):
         env_id, _ = onnx_drop_in_env
         return self.make_custom_model(
