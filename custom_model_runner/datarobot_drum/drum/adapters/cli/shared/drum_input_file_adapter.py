@@ -9,13 +9,13 @@ import sys
 from typing import Optional
 
 import pandas as pd
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.common import get_drum_logger
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.utils.dataframe import is_sparse_series
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 
-logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
+logger = get_drum_logger(__name__)
 
 
 class DrumInputFileAdapter(object):
@@ -139,10 +139,9 @@ class DrumInputFileAdapter(object):
             assert self.target_filename is None
 
             if self.target_name not in self.input_dataframe.columns:
-                e = "The target column '{}' does not exist in your input data.".format(
-                    self.target_name
-                )
-                print(e, file=sys.stderr)
+                error_msg = "The target column '%s' does not exist in your input data."
+                e = error_msg % self.target_name
+                logger.error(error_msg, self.target_name, exc_info=e)
                 raise DrumCommonException(e)
 
             y = self.input_dataframe[self.target_name]

@@ -13,6 +13,7 @@ from contextlib import contextmanager
 from pathlib import Path
 
 from datarobot_drum.drum.enum import (
+    LOGGER_NAME_PREFIX,
     MODEL_CONFIG_FILENAME,
     PredictionServerMimetypes,
     PayloadFormat,
@@ -45,6 +46,11 @@ def verbose_stdout(verbose):
 
 def config_logging():
     logging.basicConfig(format="%(asctime)-15s %(levelname)s %(name)s:  %(message)s")
+
+
+def get_drum_logger(logger_name):
+    """Provides a logger with `drum.` prefix."""
+    return logging.getLogger(".".join([LOGGER_NAME_PREFIX, logger_name]))
 
 
 def get_metadata(options):

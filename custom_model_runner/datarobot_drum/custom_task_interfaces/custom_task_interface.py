@@ -11,12 +11,16 @@ import sys
 from contextlib import contextmanager
 from typing import Optional, Dict, Any
 
+from datarobot_drum.drum.common import get_drum_logger
 from datarobot_drum.custom_task_interfaces.user_secrets import (
     load_secrets,
     patch_outputs_to_scrub_secrets,
     reset_outputs_to_allow_secrets,
 )
 from datarobot_drum.drum.exceptions import DrumSerializationError
+
+
+logger = get_drum_logger(__name__)
 
 
 class Serializable(object):
@@ -193,9 +197,11 @@ class CustomTaskInterface(Serializable):
 
     @staticmethod
     def log_message(message):
-        """Prints the message to the logs and then flushes the buffer."""
-        print(message)
-        sys.stdout.flush()
+        """Prints the message to the logs and then flushes the buffer.
+
+        DEPRECATED: Please use logging module instead.
+        """
+        logger.info(message)
 
 
 @contextmanager

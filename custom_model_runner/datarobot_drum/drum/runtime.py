@@ -12,7 +12,7 @@ from datarobot_drum.drum.server import (
     get_flask_app,
     HTTP_513_DRUM_PIPELINE_ERROR,
 )
-from datarobot_drum.drum.common import verbose_stdout
+from datarobot_drum.drum.common import verbose_stdout, get_drum_logger
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, RunMode
 
 from datarobot_drum.drum.exceptions import DrumCommonException
@@ -20,7 +20,7 @@ from datarobot_drum.drum.args_parser import ArgumentsOptions
 
 from termcolor import colored
 
-logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
+logger = get_drum_logger(__name__)
 logger.setLevel(logging.ERROR)
 logger_drum = logging.getLogger(LOGGER_NAME_PREFIX)
 

@@ -5,22 +5,21 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import io
-import logging
 import os
 
 import numpy as np
 import pandas as pd
 from scipy.io import mmread
 
+from datarobot_drum.drum.common import get_drum_logger
 from datarobot_drum.drum.enum import (
     InputFormatToMimetype,
     PredictionServerMimetypes,
-    LOGGER_NAME_PREFIX,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 
 
-logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
+logger = get_drum_logger(__name__)
 
 
 class StructuredInputReadUtils:

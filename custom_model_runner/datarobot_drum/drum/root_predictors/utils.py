@@ -11,6 +11,7 @@ import shlex
 import subprocess
 import time
 
+from datarobot_drum.drum.common import get_drum_logger
 from datarobot_drum.drum.enum import (
     ArgumentOptionsEnvVars,
     PythonArtifacts,
@@ -18,6 +19,8 @@ from datarobot_drum.drum.enum import (
     JavaArtifacts,
     JuliaArtifacts,
 )
+
+logger = get_drum_logger(__name__)
 
 PYTHON = "python3"
 JULIA = "julia"
@@ -140,9 +143,9 @@ def _exec_shell_cmd(
     if verbose:
         if capture_output:
             if len(stdout):
-                print("stdout: {}".format(stdout))
+                logger.info("stdout: %s", stdout)
             if len(stderr):
-                print("stderr: {}".format(stderr))
+                logger.error("stderr: %s", stderr)
     if assert_if_fail:
         assert p.returncode == 0, err_msg
 

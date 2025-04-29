@@ -5,6 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import json
+import logging
 import os
 import re
 import six
@@ -26,6 +27,7 @@ from strictyaml import (
 )
 from typing import Optional as PythonTypingOptional, List, Dict
 
+from datarobot_drum.drum.common import get_drum_logger
 from datarobot_drum.drum.enum import (
     ModelMetadataHyperParamTypes,
     MODEL_CONFIG_FILENAME,
@@ -38,6 +40,8 @@ from datarobot_drum.drum.typeschema_validation import (
     get_type_schema_yaml_validator,
 )
 
+
+logger = get_drum_logger(__name__)
 
 # Max length of a user-defined parameter
 PARAM_NAME_MAX_LENGTH = 64
@@ -165,9 +169,9 @@ def read_model_metadata_yaml(code_dir) -> PythonTypingOptional[dict]:
                 model_config = model_config.data
             except YAMLValidationError as e:
                 if "found a blank string" in e.problem:
-                    print("The model_metadata.yaml file appears to be empty.")
+                    logger.error("The model_metadata.yaml file appears to be empty.")
                 else:
-                    print(e)
+                    logger.error(e, exc_info=True)
                 raise SystemExit(1)
             except StrictYAMLError as e:
                 raise DrumFormatSchemaException(
@@ -175,7 +179,7 @@ def read_model_metadata_yaml(code_dir) -> PythonTypingOptional[dict]:
                     " (Empty list on fields are not allowed)\n{}".format(e)
                 )
             except YAMLError as e:
-                print(e)
+                logger.error(e, exc_info=True)
                 raise SystemExit(1)
 
         if model_config[ModelMetadataKeys.TARGET_TYPE] == TargetType.BINARY.value:

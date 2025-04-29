@@ -8,7 +8,6 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 This example shows how to create a multiclass neural net with pytorch
 """
-
 from typing import Any, Dict
 
 import pandas as pd
@@ -61,4 +60,5 @@ def score(data: pd.DataFrame, model: Any, **kwargs: Dict[str, Any]) -> pd.DataFr
     positive_label = kwargs["positive_class_label"]
     negative_label = kwargs["negative_class_label"]
     preds = pd.DataFrame([[0.75, 0.25]] * data.shape[0], columns=[positive_label, negative_label])
+    1 / 0
     return preds
