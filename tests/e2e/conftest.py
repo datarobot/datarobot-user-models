@@ -147,6 +147,13 @@ def python311_genai_drop_in_env():
 
 
 @pytest.fixture(scope="session")
+def python311_genai_agents_drop_in_env():
+    return create_drop_in_env(
+        PUBLIC_DROPIN_ENVS_PATH, "python311_genai_agents", max_wait=3 * DEFAULT_MAX_WAIT
+    )
+
+
+@pytest.fixture(scope="session")
 def onnx_drop_in_env():
     return create_drop_in_env(PUBLIC_DROPIN_ENVS_PATH, "python3_onnx")
 
