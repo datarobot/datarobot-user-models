@@ -1126,7 +1126,7 @@ class CMRunner:
                     )
 
                 self.logger.info(
-                    "Image successfully built", extra={"tag": tag, "image id": image_id}
+                    "Image successfully built; tag: {}; image id: {}", tag, image_id
                 )
                 print(
                     "It is recommended to use --docker {}, if you don't need to rebuild the image.\n".format(
