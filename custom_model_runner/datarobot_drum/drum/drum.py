@@ -1125,9 +1125,7 @@ class CMRunner:
                         "Failed to build a docker image:\n{}".format(all_lines)
                     )
 
-                self.logger.info(
-                    "Image successfully built; tag: {}; image id: {}", tag, image_id
-                )
+                self.logger.info("Image successfully built; tag: %s; image id: %s", tag, image_id)
                 print(
                     "It is recommended to use --docker {}, if you don't need to rebuild the image.\n".format(
                         tag
