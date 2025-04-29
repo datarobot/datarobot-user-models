@@ -6,17 +6,6 @@
 # The copyright notice above does not evidence any actual or intended
 # publication of such source code.
 
-
-###################   !NOTA BENE!   #######################
-#   All the files, parameters and packages are necessary  #
-#   for the proper functioning of Notebooks.              #
-#   If needed, you can include any system package         #
-#   that will be installed through apt-get or             #
-#   add a required package to the requirements.txt file.  #
-#   Please note that removing predefined packages         #
-#   may result in issues with Notebooks functionality.    #
-###########################################################
-
 ARG WORKDIR=/etc/system/kernel
 ARG AGENTDIR=/etc/system/kernel/agent
 ARG VENV_PATH=${WORKDIR}/.venv
@@ -89,45 +78,37 @@ EXPOSE 8888
 # sshd port
 EXPOSE 22
 
-FROM base AS minimal
+FROM base AS builder
 # this stage has only bare minimal of dependencies installed to optimize build time for the local development
 
 ARG WORKDIR
 ARG VENV_PATH
 
-COPY ./kernel.json ${VENV_PATH}/share/jupyter/kernels/python3/
-COPY ./requirements.txt ./agent/requirements-agent.txt ${WORKDIR}/
+COPY ./requirements.txt ${WORKDIR}/
+COPY ./requirements-genai.txt ${WORKDIR}/
+COPY ./agent/requirements-agent.txt ${WORKDIR}/
 RUN python3 -m ensurepip --upgrade
 RUN python3 -m pip install --upgrade pip setuptools
 RUN python3 -m pip install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt
 RUN python3 -m pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt && rm ${WORKDIR}/requirements-agent.txt
 
+# Generative AI Agents
+RUN python3 -m pip uninstall -y urllib3
+RUN python3 -m pip install --no-cache-dir -r ${WORKDIR}/requirements-genai.txt && rm ${WORKDIR}/requirements-genai.txt
+RUN python3 -m pip uninstall -y litellm
+RUN python3 -m pip install --no-cache-dir --no-warn-conflicts git+https://github.com/datarobot-forks/litellm@mattn/add-datarobot-support-to-litellm
+
 RUN rm ${VENV_PATH}/share/jupyter/kernels/python3/kernel.json && chmod a+x ${WORKDIR}/start_server.sh
+COPY ./kernel.json ${VENV_PATH}/share/jupyter/kernels/python3/
 
 # Monitoring agent port
 EXPOSE 8889
-
-FROM minimal AS builder
-# this stage includes all data science dependencies we want to have in the kernel runtime out of the box
-
-ARG WORKDIR
-ARG VENV_PATH
-ARG PYTHON_VERSION
-
-# THIS IS REQUIRED FOR COMPATIBILITY WITH AGENTIC FRAMEWORKS
-COPY ./requirements-genai.txt ${WORKDIR}/
-RUN pip3 uninstall -y urllib3
-RUN pip3 install --no-cache-dir -r ${WORKDIR}/requirements-genai.txt && rm ${WORKDIR}/requirements-genai.txt
-RUN pip3 uninstall -y litellm
-RUN pip3 install --no-cache-dir --no-warn-conflicts git+https://github.com/datarobot-forks/litellm@mattn/add-datarobot-support-to-litellm
 
 FROM base AS kernel
 # this stage is what actually going to be run as kernel image and it's clean from all build junks
 
 ARG UNAME
-
 ARG WORKDIR
-
 ARG GIT_COMMIT
 
 LABEL com.datarobot.repo-name="notebooks"
@@ -140,5 +121,3 @@ COPY --from=builder --chown=$UNAME $WORKDIR $WORKDIR
 # This is required for custom models to work with this image
 COPY ./start_server_drum.sh /opt/code/start_server.sh
 ENV HOME=/opt CODE_DIR=/opt/code ADDRESS=0.0.0.0:8080
-
-
