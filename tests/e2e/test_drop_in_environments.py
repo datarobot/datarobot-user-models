@@ -224,6 +224,7 @@ class TestDropInEnvironments(object):
         [
             ("python311_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
             ("python311_genai_custom_model", "regression_testing_data", 3 * DEFAULT_MAX_WAIT),
+            ("python311_genai_custom_model_agents", "regression_testing_data", 3 * DEFAULT_MAX_WAIT),
             ("r_regression_custom_model", "regression_testing_data", 5 * DEFAULT_MAX_WAIT),
             ("pytorch_regression_custom_model", "regression_testing_data", 2 * DEFAULT_MAX_WAIT),
             ("keras_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
