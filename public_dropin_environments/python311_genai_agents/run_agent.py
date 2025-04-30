@@ -78,21 +78,21 @@ class RunAgent:
         print("NOTE: Realtime logging will be delayed in terminal and displayed after execution.")
 
         # This logic spools an ephemeral DRUM server to run the agent
-        os.environ["MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"] = (
-            '{"type": "numeric", "payload": 10}'
-        )
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS"
+        ] = '{"type": "numeric", "payload": 10}'
         os.environ["MLOPS_RUNTIME_PARAM_model"] = json.dumps(
             {
                 "type": "string",
                 "payload": "TinyLlama/TinyLlama-1.1B-Chat-v1.0",
             }
         )
-        os.environ["MLOPS_RUNTIME_PARAM_prompt_column_name"] = (
-            '{"type":"string","payload":"user_prompt"}'
-        )
-        os.environ["MLOPS_RUNTIME_PARAM_system_prompt"] = (
-            '{"type":"string","payload":"You are a helpful assistant"}'
-        )
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_prompt_column_name"
+        ] = '{"type":"string","payload":"user_prompt"}'
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_system_prompt"
+        ] = '{"type":"string","payload":"You are a helpful assistant"}'
         os.environ["MLOPS_RUNTIME_PARAM_temperature"] = '{"type":"numeric","payload":0.01}'
         with DrumServerRun(
             target_type=TargetType.TEXT_GENERATION.value,
