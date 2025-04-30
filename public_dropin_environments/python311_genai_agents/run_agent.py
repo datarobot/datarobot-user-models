@@ -5,6 +5,8 @@
 # This is proprietary source code of DataRobot, Inc. and its affiliates.
 #
 # Released under the terms of DataRobot Tool and Utility Agreement.
+# pylint: skip-file
+
 import argparse
 import json
 import os
