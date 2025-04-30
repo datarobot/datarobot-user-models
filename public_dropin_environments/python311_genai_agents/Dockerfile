@@ -84,6 +84,7 @@ FROM base AS builder
 ARG WORKDIR
 ARG VENV_PATH
 
+COPY ./run_agent.py ${WORKDIR}/
 COPY ./requirements.txt ${WORKDIR}/
 COPY ./requirements-genai.txt ${WORKDIR}/
 COPY ./agent/requirements-agent.txt ${WORKDIR}/
