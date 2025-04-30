@@ -1011,7 +1011,11 @@ class CMRunner:
         container_drum_version = " ".join(container_drum_version.split())
 
         host_drum_version = "{} {}".format(ArgumentsOptions.MAIN_COMMAND, drum_version)
-        if container_drum_version != host_drum_version:
+        if result.returncode != 0:
+            print(f"Unable to determine DRUM version in {options.docker}")
+            error_info = result.stderr.decode("utf8", errors="ignore")
+            self.logger.info(f"{options.docker} reports: {error_info}")
+        elif container_drum_version != host_drum_version:
             print(
                 "WARNING: looks like host DRUM version doesn't match container DRUM version. This can lead to unexpected behavior.\n"
                 "Host DRUM version: {}\n"
@@ -1026,7 +1030,7 @@ class CMRunner:
                 "Host DRUM version matches container DRUM version: {}".format(host_drum_version)
             )
         self._print_verbose("-" * 20)
-        p = subprocess.Popen(docker_cmd_lst)
+        p = subprocess.Popen(docker_cmd_lst, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         try:
             retcode = p.wait()
         except KeyboardInterrupt:
@@ -1034,6 +1038,10 @@ class CMRunner:
             retcode = 0
 
         self._print_verbose("{bar} retcode: {retcode} {bar}".format(bar="-" * 10, retcode=retcode))
+        if retcode:
+            self.logger.info(" ".join(docker_cmd_lst))
+            error_info = p.stderr.read().decode("utf8", errors="ignore")
+            self.logger.error(f"{options.docker} reports: {error_info}")
         return retcode
 
     def _maybe_build_image(self, docker_image_or_directory):
