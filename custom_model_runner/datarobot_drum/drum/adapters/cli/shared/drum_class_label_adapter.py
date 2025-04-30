@@ -4,16 +4,13 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-import logging
-import sys
-
 import numpy as np
 import pandas as pd
-from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
+from datarobot_drum.drum.common import get_drum_logger
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.exceptions import DrumCommonException
 
-logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
+logger = get_drum_logger(__name__)
 
 
 def needs_class_labels(
@@ -43,10 +40,9 @@ def possibly_intuit_order(
         assert target_filename is None
         df = pd.read_csv(input_filename)
         if target_name not in df.columns:
-            e = "The column '{}' does not exist in your dataframe. \nThe columns in your dataframe are these: {}".format(
-                target_name, list(df.columns)
-            )
-            print(e, file=sys.stderr)
+            error_msg = "The column '%s' does not exist in your dataframe. \nThe columns in your dataframe are these: %s"
+            e = error_msg % (target_name, list(df.columns))
+            logger.error(error_msg, target_name, list(df.columns))
             raise DrumCommonException(e)
         uniq = df[target_name].astype(str).unique()
         classes = set(uniq) - {np.nan}
@@ -60,7 +56,7 @@ def possibly_intuit_order(
 def infer_class_labels(target_type, input_filename, target_filename=None, target_name=None):
     # No class label information was supplied, but we may be able to infer the labels
     if target_type.is_classification():
-        print("WARNING: class list not supplied. Using unique target values.")
+        logger.warning("Class list not supplied. Using unique target values.")
 
     possible_class_labels = possibly_intuit_order(
         input_filename=input_filename,

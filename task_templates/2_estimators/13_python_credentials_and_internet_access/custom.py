@@ -9,8 +9,12 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import pandas as pd
 from sklearn.tree import DecisionTreeClassifier
 
+from datarobot_drum.drum.common import get_drum_logger
 from datarobot_drum.custom_task_interfaces import BinaryEstimatorInterface, ApiTokenSecret
 import requests
+
+
+logger = get_drum_logger(__name__)
 
 
 class CustomTask(BinaryEstimatorInterface):
@@ -69,8 +73,8 @@ class CustomTask(BinaryEstimatorInterface):
         """This is just a quick demo of what you _could_ do"""
         api_token: ApiTokenSecret = self.secrets["MY_CREDENTIAL"]
         headers = {"Authorization": f"Bearer {api_token.api_token}"}
-        self.log_message(
-            f"using api-token: {api_token}. In actually logs, the secret value will be starred out"
+        logger.info(
+            "using api-token: %s. In actually logs, the secret value will be starred out", api_token
         )
         rows = data.shape[0]
         response = requests.post(

@@ -8,7 +8,6 @@ import numbers
 import sys
 from abc import ABC, abstractmethod
 import base64
-import logging
 from enum import auto
 from enum import Enum as PythonNativeEnum
 from io import BytesIO
@@ -20,11 +19,12 @@ from strictyaml import Map, Optional, Seq, Int, Enum, Str, YAML
 import numpy as np
 import pandas as pd
 
+from datarobot_drum.drum.common import get_drum_logger
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
 
-logger = logging.getLogger("drum." + __name__)
+logger = get_drum_logger(__name__)
 
 
 T = TypeVar("T")
@@ -225,7 +225,8 @@ class DataTypes(BaseValidator):
         values = list(set(values) - self._SKIP_VALIDATION)
         if len(values) == 0:
             logger.info(
-                f"Values ({self.list_str(values)}) specified do not have runtime validation in DRUM, only within DataRobot."
+                "Values (%s) specified do not have runtime validation in DRUM, only within DataRobot.",
+                self.list_str(values),
             )
         super(DataTypes, self).__init__(condition, values)
 
@@ -565,17 +566,16 @@ class SchemaValidator:
             errors.extend(validator.validate(dataframe))
         if len(validators) == 0:
             if self._verbose:
-                logger.info("No type schema for {} provided.".format(step_label))
+                logger.info("No type schema for %s provided.", step_label)
             return True
         elif len(errors) == 0:
             if self._verbose:
-                logger.info("Schema validation completed for task {}.".format(step_label))
+                logger.info("Schema validation completed for task %s.", step_label)
             return True
         else:
             logger.error(
-                "Schema validation found mismatch between {} dataset and the supplied schema".format(
-                    step_label
-                )
+                "Schema validation found mismatch between %s dataset and the supplied schema",
+                step_label,
             )
             for error in errors:
                 logger.error(error)
@@ -601,5 +601,5 @@ class SchemaValidator:
         if target_type != TargetType.TRANSFORM and self._output_validators:
             msg = "Specifying output_requirements in model_metadata.yaml is only valid for custom transform tasks."
 
-            print(msg, file=sys.stderr)
+            logger.error(msg)
             raise DrumSchemaValidationException(msg)

@@ -22,7 +22,7 @@ from io import StringIO
 from contextlib import closing
 
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
-from datarobot_drum.drum.common import SupportedPayloadFormats
+from datarobot_drum.drum.common import SupportedPayloadFormats, get_drum_logger
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     StructuredDtoKeys,
@@ -56,7 +56,7 @@ class JavaPredictor(BaseLanguagePredictor):
 
     def __init__(self):
         super(JavaPredictor, self).__init__()
-        self.logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
+        self.logger = get_drum_logger(__name__)
 
         self._gateway = None
         self._predictor_via_py4j = None
@@ -83,7 +83,7 @@ class JavaPredictor(BaseLanguagePredictor):
         files_list = sorted(os.listdir(self.custom_model_path))
         files_list_str = " | ".join(files_list).lower()
 
-        self.logger.debug("files in custom model path: ".format(files_list_str))
+        self.logger.debug("files in custom model path: %s", files_list_str)
         reg_exp = r"|".join(r"(\{})".format(ext) for ext in JavaArtifacts.ALL)
         ext_re = re.findall(reg_exp, files_list_str)
         ext_re = [[match for match in matches if match != ""] for matches in ext_re]
@@ -99,12 +99,12 @@ class JavaPredictor(BaseLanguagePredictor):
                     RUNNING_LANG_MSG, self.custom_model_path, JavaArtifacts.ALL, files_list_str
                 )
             )
-        self.logger.debug("relevant artifact extensions {}".format(", ".join(ext_re)))
+        self.logger.debug("relevant artifact extensions %s", ", ".join(ext_re))
 
         if JavaArtifacts.MOJO_PIPELINE_EXTENSION in ext_re:
             ## check for liscense
             license_location = os.path.join(params["__custom_model_path__"], "license.sig")
-            self.logger.debug("license location: {}".format(license_location))
+            self.logger.debug("license location: %s", license_location)
             try:
                 os.environ["DRIVERLESS_AI_LICENSE_FILE"]
             except:
@@ -125,7 +125,7 @@ class JavaPredictor(BaseLanguagePredictor):
         else:
             self.model_artifact_extension = ext_re[0]
 
-        self.logger.debug("model artifact extension: {}".format(self.model_artifact_extension))
+        self.logger.debug("model artifact extension: %s", self.model_artifact_extension)
 
         ## only needed to add mojo runtime jars
         additional_jars = (
@@ -235,7 +235,7 @@ class JavaPredictor(BaseLanguagePredictor):
         """
         custom_class_path = os.environ.get(EnvVarNames.DRUM_JAVA_CUSTOM_CLASS_PATH)
         if custom_class_path:
-            self.logger.debug("Custom class path: {}".format(custom_class_path))
+            self.logger.debug("Custom class path: %s", custom_class_path)
             self._jar_files.append(custom_class_path)
         else:
             # find DRUM system file `predictors.jar` next to the current file in its installation dir
@@ -246,7 +246,7 @@ class JavaPredictor(BaseLanguagePredictor):
 
         java_cp = ":".join(self._jar_files)
 
-        self.logger.debug("Full Java class path: {}".format(java_cp))
+        self.logger.debug("Full Java class path: %s", java_cp)
 
         self._java_port = JavaPredictor.find_free_port()
 
@@ -258,7 +258,7 @@ class JavaPredictor(BaseLanguagePredictor):
             self._custom_predictor_class
             or JavaPredictor.java_class_by_ext[self.model_artifact_extension]
         )
-        self.logger.info("Loading predictor class: {}".format(class_to_load))
+        self.logger.info("Loading predictor class: %s", class_to_load)
 
         PY_TO_LOG4J2_LEVELS = {
             "NOTSET": "ALL",
@@ -284,7 +284,7 @@ class JavaPredictor(BaseLanguagePredictor):
                 str(self._java_port),
             ]
         )
-        self.logger.debug("java gateway cmd: " + " ".join(cmd))
+        self.logger.debug("java gateway cmd: %s", " ".join(cmd))
 
         self._proc = subprocess.Popen(
             cmd
@@ -300,6 +300,8 @@ class JavaPredictor(BaseLanguagePredictor):
                 print(stdo.decode())
             if stde is not None:
                 print(stde.decode())
+            error_msg = "java gateway failed to start"
+            self.logger.error(error_msg, extra={"stderr": stde, "stdout": stdo})
             raise DrumCommonException("java gateway failed to start")
 
         self.logger.debug("java server entry point run successfully!")
@@ -339,9 +341,7 @@ class JavaPredictor(BaseLanguagePredictor):
             raise Exception("None reference of py4j java object!")
 
         self.logger.debug(
-            "Py4J component referenced successfully! comp_via_py4j: {}".format(
-                self._predictor_via_py4j
-            )
+            "Py4J component referenced successfully! comp_via_py4j: %s", self._predictor_via_py4j
         )
 
     def _cleanup(self):
@@ -355,7 +355,7 @@ class JavaPredictor(BaseLanguagePredictor):
                 self.logger.debug("Shutting down py4j gateway ...")
                 self._gateway.shutdown()
             except Exception as ex:
-                self.logger.info("exception in gateway shutdown, {}".format(ex))
+                self.logger.error("exception in gateway shutdown", exc_info=True)
 
         if self._proc:
             self.logger.debug("Killing py4j gateway server ...")
