@@ -1,7 +1,7 @@
 # Python 3 GenAI Agents Drop-In Template Environment
 
 This template environment can be used to create GenAI-powered custom models and includes common dependencies for
-workflows using CrewAI, Langgraph, Llama-Index and other agentic workflows.
+workflows using CrewAI, LangGraph, Llama-Index and other agentic workflows.
 
 Additionally, this environment is fully compatible with `Codespaces` and `Notebooks` in the DataRobot platform.
 
@@ -20,7 +20,7 @@ For specific version information and the complete list of included packages, see
 
 ## Instructions
 
-1. From the terminal, run `tar -czvf py_dropin.tar.gz -C /path/to/public_dropin_environments/python3_genai_agents/ .`
+1. From the terminal, run `tar -czvf py_dropin.tar.gz -C /path/to/public_dropin_environments/python311_genai_agents/ .`
 2. Using either the API or from the UI create a new Custom Environment with the tarball created
 in step 1.
 
