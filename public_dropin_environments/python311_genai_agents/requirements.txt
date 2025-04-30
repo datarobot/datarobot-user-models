@@ -1,0 +1,13 @@
+setuptools==68.2.2
+ecs-logging==2.0.0
+jupyter-client==7.4.9
+jupyter_kernel_gateway==2.5.2
+jupyter_core==5.2.0
+ipykernel==6.28.0
+pandas==1.5.1
+numpy<2.0.0
+mistune==2.0.4
+datarobot-drum==1.16.11
+datarobot==3.7.0
+numpy==1.26.2
+uwsgi

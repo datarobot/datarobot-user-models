@@ -33,8 +33,7 @@
 /model_templates/triton_onnx_unstructured                         @datarobot/tracking-agent @datarobot/custom-models
 /public_dropin_environments/java_codegen                          @datarobot/custom-models
 /public_dropin_environments/python311_genai                       @datarobot/buzok @datarobot/codegen
-/public_dropin_environments/python312_apps                        @datarobot/custom-models @datarobot/applications
-/public_dropin_environments/python39_streamlit                    @datarobot/custom-models @datarobot/applications
+/public_dropin_environments/python311_genai_agents                @datarobot/buzok @datarobot/codegen
 /public_dropin_environments/python3_keras                         @datarobot/custom-models @datarobot/core-modeling
 /public_dropin_environments/python3_onnx                          @datarobot/custom-models
 /public_dropin_environments/python3_pmml                          @datarobot/custom-models @datarobot/core-modeling
@@ -44,7 +43,6 @@
 /public_dropin_environments/r_lang                                @datarobot/custom-models @datarobot/core-modeling
 /public_dropin_environments_sandbox                               @datarobot/custom-models
 /public_dropin_gpu_environments                                   @datarobot/tracking-agent @datarobot/custom-models
-/public_dropin_gpu_environments/python311_genai                   @datarobot/buzok @datarobot/codegen
 /public_dropin_nim_environments                                   @datarobot/tracking-agent @datarobot/custom-models
 /public_dropin_notebook_environments                              @datarobot/custom-models @datarobot/cfx
 /task_templates                                                   @datarobot/core-modeling

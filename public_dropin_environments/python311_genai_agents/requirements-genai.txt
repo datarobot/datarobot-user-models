@@ -1,0 +1,14 @@
+crewai>=0.117.1
+crewai-tools>=0.42.2
+
+langgraph>=0.3.34
+langchain>=0.3.24
+langchain-community>=0.3.22
+
+llama-index>=0.12.33
+llama-index-llms-openai>=0.3.38
+llama-index-llms-langchain>=0.6.1
+llama-index-llms-litellm>=0.4.1
+
+openai>=1.76.0
+traceloop-sdk>=0.39.4
