@@ -150,6 +150,8 @@ from tests.constants import (
     PYTHON_TEXT_GENERATION,
     GEO_POINT,
     PYTHON_GEO_POINT,
+    AGENTIC_WORKFLOW,
+    PYTHON_AGENTIC_WORKFLOW,
     GPU_TRITON,
     GPU_NIM,
     GPU_NIM_SIDECAR,
@@ -197,7 +199,7 @@ framework_envs = {
         CUSTOM_TASK_INTERFACE_PYTORCH_BINARY,
         CUSTOM_TASK_INTERFACE_PYTORCH_MULTICLASS,
     ],
-    PYTHON311_GENAI: [PYTHON_TEXT_GENERATION],
+    PYTHON311_GENAI: [PYTHON_TEXT_GENERATION, PYTHON_AGENTIC_WORKFLOW],
     PYTHON_ONNX: [ONNX],
     PYTHON_PYPMML: [PYPMML],
     R_LANG: [
@@ -354,6 +356,7 @@ _datasets = {
     (None, MULTICLASS_LABEL_SPACES): os.path.join(TESTS_DATA_PATH, "iris_with_spaces_full.csv"),
     (PYTHON_TEXT_GENERATION, TEXT_GENERATION): os.path.join(TESTS_DATA_PATH, "prompts.csv"),
     (PYTHON_GEO_POINT, GEO_POINT): os.path.join(TESTS_DATA_PATH, "geo_dataset.csv"),
+    (PYTHON_AGENTIC_WORKFLOW, AGENTIC_WORKFLOW): os.path.join(TESTS_DATA_PATH, "prompts.csv"),
 }
 
 _training_models_paths = {
@@ -445,6 +448,7 @@ _targets = {
     MULTICLASS_LABEL_SPACES: "Species",
     TEXT_GENERATION: "COMPLETION",
     GEO_POINT: "coordinates",
+    AGENTIC_WORKFLOW: "Response",
 }
 
 _target_types = {
@@ -472,6 +476,7 @@ _target_types = {
     MULTICLASS_LABEL_SPACES: "multiclass",
     TEXT_GENERATION: "textgeneration",
     GEO_POINT: "geopoint",
+    AGENTIC_WORKFLOW: "agenticworkflow",
 }
 
 _class_labels = {
@@ -620,6 +625,7 @@ _class_labels = {
     (MLJ, MULTICLASS): ["GALAXY", "QSO", "STAR"],
     (PYTHON_TEXT_GENERATION, TEXT_GENERATION): None,
     (PYTHON_GEO_POINT, GEO_POINT): None,
+    (PYTHON_AGENTIC_WORKFLOW, AGENTIC_WORKFLOW): None,
 }
 
 # key: list of tuples; tuple: (artifact path, Optional(rename to a new name))
@@ -800,6 +806,7 @@ _artifacts = {
     (CUSTOM_TASK_INTERFACE_XGB_REGRESSION, REGRESSION): None,
     (PYTHON_TEXT_GENERATION, TEXT_GENERATION): None,
     (PYTHON_GEO_POINT, GEO_POINT): None,
+    (PYTHON_AGENTIC_WORKFLOW, AGENTIC_WORKFLOW): None,
 }
 
 _custom_filepaths = {
@@ -863,6 +870,10 @@ _custom_filepaths = {
     ),
     PYTHON_GEO_POINT: (
         os.path.join(TESTS_FIXTURES_PATH, "geo_point_custom.py"),
+        "custom.py",
+    ),
+    PYTHON_AGENTIC_WORKFLOW: (
+        os.path.join(TESTS_FIXTURES_PATH, "text_generation_custom.py"),
         "custom.py",
     ),
     PYTHON_UNSTRUCTURED: (os.path.join(TESTS_FIXTURES_PATH, "unstructured_custom.py"), "custom.py"),

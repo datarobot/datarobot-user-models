@@ -162,6 +162,7 @@ class PredictMixin:
                 TargetType.TEXT_GENERATION,
                 TargetType.GEO_POINT,
                 TargetType.VECTOR_DATABASE,
+                TargetType.AGENTIC_WORKFLOW,
             ):
                 # float32 is not JSON serializable, so cast to float, which is float64
                 predict_response.predictions = predict_response.predictions.astype("float")

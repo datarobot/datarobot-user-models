@@ -111,11 +111,16 @@ class PythonModelAdapter(AbstractModelAdapter):
         self._moderation_score_hook = None
         self._moderation_chat_hook = None
 
-        if target_type in (TargetType.TEXT_GENERATION, TargetType.VECTOR_DATABASE):
+        if target_type in (
+            TargetType.TEXT_GENERATION,
+            TargetType.VECTOR_DATABASE,
+            TargetType.AGENTIC_WORKFLOW,
+        ):
             self._target_name = os.environ.get("TARGET_NAME")
             if not self._target_name:
                 raise ValueError(
-                    "Unexpected empty target name for text generation or vector database target."
+                    "Unexpected empty target name for text generation, "
+                    "vector database, or agentic workflow target."
                 )
             self._load_moderation_hooks()
         else:
@@ -136,7 +141,7 @@ class PythonModelAdapter(AbstractModelAdapter):
                     self._target_type.value, CustomHooks.CHAT
                 )
                 self._moderation_pipeline = mod_module.create_pipeline(self._target_type.value)
-            elif self._target_type == TargetType.TEXT_GENERATION:
+            elif self._target_type in (TargetType.TEXT_GENERATION, TargetType.AGENTIC_WORKFLOW):
                 # older versions only support textgeneration -- access functions directly from module
                 self._moderation_score_hook = getattr(mod_module, "guard_score_wrapper", None)
                 self._moderation_chat_hook = getattr(mod_module, "guard_chat_wrapper", None)
