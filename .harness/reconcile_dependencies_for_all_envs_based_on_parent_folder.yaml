@@ -1,0 +1,163 @@
+pipeline:
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  stages:
+    - stage:
+        name: Reconcile Python Dependencies
+        identifier: Reconcile_Python_Dependencies
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: false
+          caching:
+            enabled: true
+          buildIntelligence:
+            enabled: true
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: reconcile_dependencies
+                  identifier: reconcile_dependencies
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev
+                    shell: Bash
+                    command: |-
+                      # Ensure Git is installed
+                      if ! command -v git &> /dev/null; then
+                          echo "Git is not installed. Installing..."
+                          apt-get update && apt-get install -y git
+                      fi
+
+                      # Configure Git
+                      git config --global user.name "svc-harness-git2"
+                      git config --global user.email "svc-harness-git2@datarobot.com"
+                      git config --global url."https://${GITHUB_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
+                      git config --global --add safe.directory /harness  # Mark /harness as a safe directory
+
+                      pip install bson
+
+                      # Clone the datarobot-user-models repository
+                      git init
+                      git clone https://github.com/datarobot/datarobot-user-models.git
+                      cd datarobot-user-models || exit 1
+
+                      ROOT_DIR=$(pwd)
+
+                      # Get the current branch name
+                      current_branch=$(git branch --show-current)
+                      echo "Current branch: $current_branch"
+
+                      # Define the target branch (replace <+pipeline.branch> with the actual target branch name)
+                      target_branch="<+trigger.branch>"
+                      echo "Target branch: $target_branch"
+
+                      # Compare the current branch with the target branch
+                      echo "Listing all branches..."
+                      git branch -a
+                      if [ "$current_branch" != "$target_branch" ]; then
+                        echo "Switching to branch $target_branch..."
+                        git checkout "$target_branch"
+                      else
+                        # If already on the target branch, just print the current branch again
+                        echo "Already on the target branch. No need to switch."
+                        echo "Current branch: $current_branch"
+                      fi
+
+                      # r_lang specific setup
+                      export RPY2_CFFI_MODE=ABI
+
+                      # Navigate to environment directory
+                      ENV_DIR=<+pipeline.variables.env_folder>
+                      TARGET_DIR=${ENV_DIR}
+
+                      # Capture the filtered directories into a variable
+                      CHANGED_DIRS=$(git diff --name-only "$current_branch" "$target_branch" \
+                        | grep '/' \
+                        | xargs -n1 dirname \
+                        | grep "^$TARGET_DIR" \
+                        | while read -r DIR; do
+                            REST=${DIR#"$TARGET_DIR/"}
+                            if [ -z "$REST" ]; then
+                              echo "$DIR"
+                            else
+                              FIRST_LEVEL=$(echo "$REST" | cut -d'/' -f1)
+                              echo "$TARGET_DIR/$FIRST_LEVEL"
+                            fi
+                          done \
+                      | sort -u)
+
+                      # Output the list stored in the variable
+                      echo "=== Changed environments ==="
+                      echo "$CHANGED_DIRS"
+                      echo "=== === === === === === ==="
+
+
+                      # Iterate over each directory in the list
+                      for DIR in $CHANGED_DIRS; do
+                        # Run the script for each directory
+                        cd ${DIR} || exit 1
+                        echo "Running: bash ${ROOT_DIR}/tools/reconcile_dependencies.sh $DIR"
+                        bash ${ROOT_DIR}/tools/reconcile_dependencies.sh "$DIR"
+
+                        # This could be a searate step
+                        echo "Checking whether Environment Version ID should be updated"
+                        git show master:./env_info.json | grep -n 'environmentVersionId' > /tmp/old_env_version_id.txt
+                        git show HEAD:./env_info.json | grep -n 'environmentVersionId' > /tmp/new_env_version_id.txt
+                        # If env version was not updated, update
+                        if diff /tmp/old_env_version_id.txt /tmp/new_env_version_id.txt > /dev/null; then
+                          echo "Updating Environment Version ID"
+                          python3 ${ROOT_DIR}/tools/env_version_update.py --file ./env_info.json
+                        fi
+
+
+                        cd -
+                      done
+
+                      # Run dependency reconciliation if there are file changes
+                      #if [ -n "$(echo $(git diff --name-only master -- ./requirements.*))" ]; then
+                      #  echo "Requirements changes detected in $ENV_DIR. Running reconciliation..."
+                      #  bash ${ROOT_DIR}/tools/reconcile_dependencies.sh
+                      #else
+                      #  echo "No requirements changes detected. Skipping reconciliation."
+                      #  exit 0  # Exit early if no changes
+                      #fi
+                               
+                      # Commit and push changes if any
+                      if [[ -n $(git status --porcelain) ]]; then
+                        git status --porcelain
+                        git commit -a -m "Reconcile dependencies for $ENV_DIR"
+                        git config pull.rebase true
+                        git pull origin "$(git branch --show-current)" --rebase
+                        git push --set-upstream origin "$(git branch --show-current)"
+
+                        echo "Reconciled dependencied commited to branch"
+                        exit 0
+                      else
+                        echo "No changes detected in Git."
+                      fi
+                    envVariables:
+                      GITHUB_ACCESS_TOKEN: <+secrets.getValue("account.githubpatsvcharnessgit2")>
+                    resources:
+                      limits:
+                        memory: 5Gi
+                  description: Run the tools/reconcile_dependencies.sh script to auto-generate requirements.txt file base on its requirements.in file.
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+  variables:
+    - name: env_folder
+      type: String
+      description: The folder containing the environment to reconcile, e.g. "public_dropin_environments"
+      required: true
+      value: <+input>.allowedValues(public_dropin_environments)
+  identifier: reconcile_dependencies_for_all_envs_based_on_parent_folder
+  description: |-
+    On PR, for every drop in env defined in input set, check reconcile dependencies.
+    Get requirements.in and generate requirements.txt.
+  name: reconcile dependencies for all envs based on parent
