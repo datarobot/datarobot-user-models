@@ -1029,8 +1029,9 @@ class CMRunner:
             self._print_verbose(
                 "Host DRUM version matches container DRUM version: {}".format(host_drum_version)
             )
+        self.logger.info(" ".join(docker_cmd_lst))
         self._print_verbose("-" * 20)
-        p = subprocess.Popen(docker_cmd_lst, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = subprocess.Popen(docker_cmd_lst)
         try:
             retcode = p.wait()
         except KeyboardInterrupt:
@@ -1038,10 +1039,6 @@ class CMRunner:
             retcode = 0
 
         self._print_verbose("{bar} retcode: {retcode} {bar}".format(bar="-" * 10, retcode=retcode))
-        if retcode:
-            self.logger.info(" ".join(docker_cmd_lst))
-            error_info = p.stderr.read().decode("utf8", errors="ignore")
-            self.logger.error(f"{options.docker} reports: {error_info}")
         return retcode
 
     def _maybe_build_image(self, docker_image_or_directory):
