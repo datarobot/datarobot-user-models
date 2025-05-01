@@ -1017,7 +1017,7 @@ class CMRunner:
         if result.returncode != 0:
             print(f"Unable to determine DRUM version in {options.docker}")
             error_info = result.stderr.decode("utf8", errors="ignore")
-            self.logger.info(f"{options.docker} reports: {error_info}")
+            self.logger.info(f"{options.docker} failed to get version: {error_info}")
         elif container_drum_version != host_drum_version:
             print(
                 "WARNING: looks like host DRUM version doesn't match container DRUM version. This can lead to unexpected behavior.\n"
