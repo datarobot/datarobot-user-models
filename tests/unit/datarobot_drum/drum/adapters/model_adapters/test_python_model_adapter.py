@@ -629,11 +629,6 @@ class TestPythonModelAdapterWithGuards:
             patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}),
             mock_moderation_content(tmp_path, textwrap.dedent(guard_hook_contents)),
         ):
-            # Remove any existing cached imports to allow importing the fake guard package.
-            # Existing imports will be there if real moderations library is in python path.
-            sys.modules.pop(MODERATIONS_HOOK_MODULE, None)
-            sys.modules.pop(MODERATIONS_LIBRARY_PACKAGE, None)
-
             adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
             assert adapter._moderation_pipeline is not None
             # Ensure that it is Mock as set by guard_hook_contents
@@ -681,11 +676,6 @@ class TestPythonModelAdapterWithGuards:
             patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}),
             mock_moderation_content(tmp_path, textwrap.dedent(moderation_content)),
         ):
-            # Remove any existing cached imports to allow importing the fake guard package.
-            # Existing imports will be there if real moderations library is in python path.
-            sys.modules.pop(MODERATIONS_HOOK_MODULE, None)
-            sys.modules.pop(MODERATIONS_LIBRARY_PACKAGE, None)
-
             adapter = PythonModelAdapter(tmp_path, target_type)
             assert adapter._moderation_pipeline is not None
             assert isinstance(adapter._moderation_pipeline, Mock)
@@ -712,11 +702,6 @@ class TestPythonModelAdapterWithGuards:
             patch.dict(os.environ, {"TARGET_NAME": target_name}),
             mock_moderation_content(tmp_path, textwrap.dedent(moderation_content)),
         ):
-            # Remove any existing cached imports to allow importing the fake guard package.
-            # Existing imports will be there if real moderations library is in python path.
-            sys.modules.pop(MODERATIONS_HOOK_MODULE, None)
-            sys.modules.pop(MODERATIONS_LIBRARY_PACKAGE, None)
-
             adapter = PythonModelAdapter(tmp_path, target_type)
             assert adapter._mod_pipeline is not None
 
