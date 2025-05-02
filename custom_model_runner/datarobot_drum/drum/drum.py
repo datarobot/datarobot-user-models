@@ -468,6 +468,7 @@ class CMRunner:
             if self.options.docker and (
                 self.run_mode not in (RunMode.PUSH, RunMode.PERF_TEST, RunMode.VALIDATION)
             ):
+                self._check_docker_drum_version(self.options)
                 ret = self._run_inside_docker(self.options, self.run_mode, self.raw_arguments)
                 if ret:
                     raise DrumCommonException("Error from docker process: {}".format(ret))
@@ -986,10 +987,12 @@ class CMRunner:
         self._print_verbose("docker command: <{}>".format(docker_cmd))
         return docker_cmd
 
-    def _run_inside_docker(self, options, run_mode, raw_arguments):
-        self._check_artifacts_and_get_run_language()
-        docker_cmd_lst = self._prepare_docker_command(options, run_mode, raw_arguments)
+    def _check_docker_drum_version(self, options) -> None:
+        """
+        Checks that the drum version installed inside the container matches current.
 
+        It is not a fatal problem if versions don't match -- just a warning.
+        """
         self._print_verbose("Checking DRUM version in container...")
         result = subprocess.run(
             [
@@ -1011,7 +1014,11 @@ class CMRunner:
         container_drum_version = " ".join(container_drum_version.split())
 
         host_drum_version = "{} {}".format(ArgumentsOptions.MAIN_COMMAND, drum_version)
-        if container_drum_version != host_drum_version:
+        if result.returncode != 0:
+            print(f"Unable to determine DRUM version in {options.docker}")
+            error_info = result.stderr.decode("utf8", errors="ignore")
+            self.logger.info(f"{options.docker} failed to get version: {error_info}")
+        elif container_drum_version != host_drum_version:
             print(
                 "WARNING: looks like host DRUM version doesn't match container DRUM version. This can lead to unexpected behavior.\n"
                 "Host DRUM version: {}\n"
@@ -1025,6 +1032,15 @@ class CMRunner:
             self._print_verbose(
                 "Host DRUM version matches container DRUM version: {}".format(host_drum_version)
             )
+
+        return
+
+    def _run_inside_docker(self, options, run_mode, raw_arguments):
+        """Runs the drum command inside the provided container."""
+        self._check_artifacts_and_get_run_language()
+        docker_cmd_lst = self._prepare_docker_command(options, run_mode, raw_arguments)
+
+        self.logger.info(" ".join(docker_cmd_lst))
         self._print_verbose("-" * 20)
         p = subprocess.Popen(docker_cmd_lst)
         try:
