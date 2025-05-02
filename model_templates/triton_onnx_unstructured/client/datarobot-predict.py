@@ -143,7 +143,7 @@ def main(filename, deployment_id, mimetype, charset):
         logger.warning(
             "Input file is too large: %s bytes. Max allowed size is: %s bytes.",
             data_size,
-            MAX_PREDICTION_FILE_SIZE_BYTES
+            MAX_PREDICTION_FILE_SIZE_BYTES,
         )
         return 1
     try:

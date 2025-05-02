@@ -5,6 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
+
 # Use this helper class to access the runtime parameter values in your model
 from datarobot_drum import RuntimeParameters
 
@@ -24,12 +25,8 @@ def transform(data, model):
     option2 = RuntimeParameters.get("option2")
     option3 = RuntimeParameters.get("option3")
     logger.info(
-        "Loading the following Runtime Parameters:",
-        extra={
-            "option1": option1,
-            "option2": option2,
-            "option3": option3,
-        }
+        "Loading the following Runtime Parameters: "
+        f"option1: {option1}, option2: {option2}, option3: {option3}",
     )
 
     credential = RuntimeParameters.get("encryption_key")
@@ -39,8 +36,8 @@ def transform(data, model):
             "Using credentials api_key: ",
             extra={
                 "credential_type": credential_type,
-                "api_key": str({k: mask(v) for k, v in credential.items()})
-            }
+                "api_key": str({k: mask(v) for k, v in credential.items()}),
+            },
         )
     else:
         logger.info("No credential data set")
