@@ -7,6 +7,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import logging
 import os
 import sys
+from contextvars import ContextVar
 from distutils.util import strtobool
 
 from contextlib import contextmanager
@@ -19,6 +20,9 @@ from datarobot_drum.drum.enum import (
     PayloadFormat,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
+
+
+ctx_request_id = ContextVar("request_id")
 
 
 @contextmanager
@@ -44,8 +48,23 @@ def verbose_stdout(verbose):
         sys.stdout = old_target
 
 
+def request_id_filter(record: logging.LogRecord):
+    """
+    A filter which injects context-specific information into logs and ensures
+    that only information for a specific webapp is included in its log
+    """
+    request_id = ctx_request_id.get(None)
+    record.request_id = request_id
+    return True
+
+
 def config_logging():
-    logging.basicConfig(format="%(asctime)-15s %(levelname)s %(name)s:  %(message)s")
+    stream_handler = logging.StreamHandler()
+    stream_handler.addFilter(request_id_filter)
+    logging.basicConfig(
+        format="%(asctime)-15s %(levelname)s %(name)s request_id:%(request_id)s:  %(message)s",
+        handlers=[stream_handler],
+    )
 
 
 def get_drum_logger(logger_name):
