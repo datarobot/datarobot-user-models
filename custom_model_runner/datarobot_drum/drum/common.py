@@ -130,7 +130,7 @@ FIT_METADATA_FILENAME = "fit_runtime_data.json"
 
 def make_otel_endpoint(datarobot_endpoint):
     parsed_url = urlparse(datarobot_endpoint)
-    stripped_url = (parsed_url.scheme, parsed_url.netloc, "otel/v1/traces", "", "", "")
+    stripped_url = (parsed_url.scheme, parsed_url.netloc, "otel", "", "", "")
     result = urlunparse(stripped_url)
     return result
 
@@ -153,17 +153,15 @@ def setup_tracer(runtime_parameters):
             "datarobot.deployment_id": deployment_id,
         }
     )
-    endpoint = None
-    headers = None
-
     key = os.environ.get("DATAROBOT_API_TOKEN")
     datarobot_endpoint = os.environ.get("DATAROBOT_ENDPOINT")
-    if not key or not endpoint:
+    if not key or not datarobot_endpoint:
         return
-
     endpoint = make_otel_endpoint(datarobot_endpoint)
+
+    os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = endpoint
     headers = {"Authorization": f"Bearer {key}"}
-    otlp_exporter = OTLPSpanExporter(endpoint=endpoint, headers=headers)
+    otlp_exporter = OTLPSpanExporter(headers=headers)
     provider = TracerProvider(resource=resource)
     provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
     trace.set_tracer_provider(provider)

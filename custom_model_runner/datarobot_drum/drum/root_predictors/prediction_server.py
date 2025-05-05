@@ -162,7 +162,7 @@ class PredictionServer(PredictMixin):
         @model_api.route("/invocations", methods=["POST"])
         def predict():
             logger.debug("Entering predict() endpoint")
-            with otel_context(tracer, "drum.predict", request.headers):
+            with otel_context(tracer, "drum.invocations", request.headers):
                 self._pre_predict_and_transform()
                 try:
                     response, response_status = self.do_predict_structured(logger=logger)
@@ -200,7 +200,7 @@ class PredictionServer(PredictMixin):
         @model_api.route("/v1/chat/completions", methods=["POST"])
         def chat():
             logger.debug("Entering chat endpoint")
-            with otel_context(tracer, "completions", request.headers):
+            with otel_context(tracer, "drum.chat.completions", request.headers):
                 self._pre_predict_and_transform()
                 try:
                     response, response_status = self.do_chat(logger=logger)
@@ -227,7 +227,7 @@ class PredictionServer(PredictMixin):
         @model_api.route("/directAccess/<path:path>", methods=["GET", "POST", "PUT"])
         @model_api.route("/nim/<path:path>", methods=["GET", "POST", "PUT"])
         def forward_request(path):
-            with otel_context(tracer, "completions", request.headers) as span:
+            with otel_context(tracer, "drum.directAccess", request.headers) as span:
                 if not hasattr(self._predictor, "openai_host") or not hasattr(
                     self._predictor, "openai_port"
                 ):
