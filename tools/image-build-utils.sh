@@ -41,7 +41,7 @@ function build_dropin_env_dockerfile() {
   pwd
   pushd "$DROPIN_ENV_DIRNAME" || exit 1
   cp "$DRUM_WHEEL_REAL_PATH" .
-  if [[ -nz "$MOD_WHEEL_FILENAME" ]]; then
+  if [[ -n "$MOD_WHEEL_FILENAME" ]]; then
     cp "$MOD_WHEEL_PATH" .
   fi
 
@@ -65,7 +65,7 @@ function build_dropin_env_dockerfile() {
   $sed -i "s/^datarobot-drum.*/${DRUM_WHEEL_FILENAME}${WITH_R}/" requirements.txt
 
   # when given a moderations wheel file, inject into Dockerfile and requirements.txt
-  if [[ -nz "$MOD_WHEEL_FILENAME" ]]; then
+  if [[ -n "$MOD_WHEEL_FILENAME" ]]; then
     if ! grep -q "COPY \+${MOD_WHEEL_FILENAME}" Dockerfile; then
       $sed -i "/COPY \+requirements.txt \+requirements.txt/a COPY ${MOD_WHEEL_FILENAME} ${MOD_WHEEL_FILENAME}" Dockerfile
     fi
