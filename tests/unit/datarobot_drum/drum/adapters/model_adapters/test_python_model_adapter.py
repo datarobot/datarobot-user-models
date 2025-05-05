@@ -10,6 +10,7 @@ import json
 import logging
 import os
 import random
+import shutil
 import sys
 from dataclasses import dataclass
 
@@ -584,6 +585,43 @@ def set_moderations_lib_content(path: Path, content: str):
     mod_hook_file.write_text(content)
 
 
+def remove_moderations_lib_content(path: Path):
+    """Removes the moderations subdirectory from the specified path."""
+    mod_dir = path / MODERATIONS_LIBRARY_PACKAGE
+    if not mod_dir.exists() or not mod_dir.is_dir():
+        return
+
+    shutil.rmtree(mod_dir)
+
+
+@contextlib.contextmanager
+def mock_moderation_content(path: Path, content: str):
+    """
+    Sets the moderations content in the provided path, makes adjustments to find it, and
+    cleans up the files and modules following test execution.
+    """
+
+    # remove any currently loaded moderations libraries
+    sys.modules.pop(MODERATIONS_HOOK_MODULE, None)
+    sys.modules.pop(MODERATIONS_LIBRARY_PACKAGE, None)
+
+    # put provided path in the search path for modules
+    sys.path.insert(0, str(path))
+
+    # set the content to the provided value
+    set_moderations_lib_content(path, content)
+    try:
+        yield  # let the test run here
+    finally:
+        # remove the moderations subdirectory and remove it from search path
+        remove_moderations_lib_content(path)
+        sys.path.remove(str(path))
+
+        # unload any moderation modules, so they don't get used by another test
+        sys.modules.pop(MODERATIONS_HOOK_MODULE, None)
+        sys.modules.pop(MODERATIONS_LIBRARY_PACKAGE, None)
+
+
 class TestPythonModelAdapterWithGuards:
     """Use cases to test the moderation integration with DRUM"""
 
@@ -597,16 +635,11 @@ class TestPythonModelAdapterWithGuards:
         def init():
             return Mock()
         """
-        sys.path.insert(0, str(tmp_path))
-        set_moderations_lib_content(tmp_path, textwrap.dedent(guard_hook_contents))
-
         text_generation_target_name = "completion"
-        with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
-            # Remove any existing cached imports to allow importing the fake guard package.
-            # Existing imports will be there if real moderations library is in python path.
-            sys.modules.pop(MODERATIONS_HOOK_MODULE, None)
-            sys.modules.pop(MODERATIONS_LIBRARY_PACKAGE, None)
-
+        with (
+            patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}),
+            mock_moderation_content(tmp_path, textwrap.dedent(guard_hook_contents)),
+        ):
             adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
             assert adapter._moderation_pipeline is not None
             # Ensure that it is Mock as set by guard_hook_contents
@@ -619,7 +652,6 @@ class TestPythonModelAdapterWithGuards:
             assert adapter._moderation_pipeline is None
             assert adapter._moderation_score_hook is None
             assert adapter._moderation_chat_hook is None
-        sys.path.remove(str(tmp_path))
 
     @pytest.mark.parametrize(
         ["target_type", "score_hook_name"],
@@ -657,16 +689,11 @@ class TestPythonModelAdapterWithGuards:
         def create_pipeline(target_type):
             return Mock()
         """
-        sys.path.insert(0, str(tmp_path))
-
-        set_moderations_lib_content(tmp_path, textwrap.dedent(moderation_content))
         text_generation_target_name = "completion"
-        with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
-            # Remove any existing cached imports to allow importing the fake guard package.
-            # Existing imports will be there if real moderations library is in python path.
-            sys.modules.pop(MODERATIONS_HOOK_MODULE, None)
-            sys.modules.pop(MODERATIONS_LIBRARY_PACKAGE, None)
-
+        with (
+            patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}),
+            mock_moderation_content(tmp_path, textwrap.dedent(moderation_content)),
+        ):
             adapter = PythonModelAdapter(tmp_path, target_type)
             assert adapter._moderation_pipeline is not None
             assert isinstance(adapter._moderation_pipeline, Mock)
@@ -674,7 +701,27 @@ class TestPythonModelAdapterWithGuards:
             # would be nice to check chat_hook, but having a stub function causes other problems
             assert adapter._moderation_chat_hook is None
 
-        sys.path.remove(str(tmp_path))
+    @pytest.mark.parametrize(
+        ["target_type"],
+        [
+            pytest.param(TargetType.TEXT_GENERATION, id="textgen"),
+            pytest.param(TargetType.VECTOR_DATABASE, id="vectordb"),
+        ],
+    )
+    def test_loading_moderations_pipeline(self, target_type, tmp_path):
+        moderation_content = """
+        from unittest.mock import Mock
+
+        def moderation_pipeline_factory(target_type):
+            return Mock()
+        """
+        target_name = "completion"
+        with (
+            patch.dict(os.environ, {"TARGET_NAME": target_name}),
+            mock_moderation_content(tmp_path, textwrap.dedent(moderation_content)),
+        ):
+            adapter = PythonModelAdapter(tmp_path, target_type)
+            assert adapter._mod_pipeline is not None
 
     @pytest.mark.parametrize(
         "guard_hook_present, expected_predictions",
@@ -781,8 +828,8 @@ class TestPythonModelAdapterWithGuards:
 
         df = pd.DataFrame({"text": ["abc", "def"]})
         data = bytes(df.to_csv(index=False), encoding="utf-8")
-        text_generation_target_name = "completion"
-        with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
+        target_name = "completion"
+        with patch.dict(os.environ, {"TARGET_NAME": target_name}):
             adapter = PythonModelAdapter(tmp_path, TargetType.VECTOR_DATABASE)
             adapter._moderation_pipeline = Mock()
             adapter._moderation_score_hook = Mock(return_value=df)
@@ -790,3 +837,27 @@ class TestPythonModelAdapterWithGuards:
 
             adapter.predict(binary_data=data)
             assert adapter._moderation_score_hook.call_count == 1
+
+    def test_vdb_moderation_pipeline(self, tmp_path):
+        def custom_score(data, model, **kwargs):
+            """Dummy score method just for the purpose of unit test"""
+            return data
+
+        class TestModPipeline:
+            def __init__(self):
+                self.call_count = 0
+
+            def score(self, data, model, score_fn, **kwargs):
+                self.call_count += 1
+                return score_fn(data, model, **kwargs)
+
+        df = pd.DataFrame({"text": ["abc", "def"]})
+        data = bytes(df.to_csv(index=False), encoding="utf-8")
+        target_name = "completion"
+        with patch.dict(os.environ, {"TARGET_NAME": target_name}):
+            adapter = PythonModelAdapter(tmp_path, TargetType.VECTOR_DATABASE)
+            adapter._mod_pipeline = TestModPipeline()
+            adapter._custom_hooks["score"] = custom_score
+
+            adapter.predict(binary_data=data)
+            assert adapter._mod_pipeline.call_count == 1
