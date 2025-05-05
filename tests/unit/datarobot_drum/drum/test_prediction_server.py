@@ -1,4 +1,5 @@
 import os
+import uuid
 from unittest.mock import ANY
 from unittest.mock import Mock, patch
 
@@ -17,24 +18,25 @@ from werkzeug.exceptions import BadRequest
 from datarobot_drum.drum.enum import RunLanguage, TargetType
 from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
 from datarobot_drum.drum.root_predictors.prediction_server import PredictionServer
-from datarobot_drum.drum.server import _create_flask_app
+from datarobot_drum.drum.server import create_flask_app, HEADER_REQUEST_ID
+from datarobot_drum.drum.server import get_flask_app
 from tests.unit.datarobot_drum.drum.chat_utils import create_completion, create_completion_chunks
 from tests.unit.datarobot_drum.drum.helpers import MODEL_ID_FROM_RUNTIME_PARAMETER
 
 
 @pytest.fixture
 def test_flask_app():
-    with patch("datarobot_drum.drum.server._create_flask_app") as mock_create_flask_app, patch(
+    with patch("datarobot_drum.drum.server.create_flask_app") as mockcreate_flask_app, patch(
         "datarobot_drum.drum.root_predictors.prediction_server.PredictionServer._run_flask_app"
     ):
-        app = _create_flask_app()
+        app = create_flask_app()
         app.config.update(
             {
                 "TESTING": True,
             }
         )
 
-        mock_create_flask_app.return_value = app
+        mockcreate_flask_app.return_value = app
 
         yield app
 
@@ -292,3 +294,23 @@ def test_run_flask_app(processes_param, expected_processes):
     app = Mock()
     server._run_flask_app(app)
     app.run.assert_called_with("localhost", "6789", threaded=False, processes=expected_processes)
+
+
+@pytest.mark.usefixtures("prediction_server")
+def test_request_id_in_flask_app(test_flask_app):
+    prediction_client = test_flask_app.test_client()
+
+    sample_request_id = str(uuid.uuid4())
+    # test unique request_id generated for the request
+    data = prediction_client.get("/info/")
+    assert data.headers.get(HEADER_REQUEST_ID)
+    assert data.headers.get(HEADER_REQUEST_ID) != sample_request_id
+
+    # test request with propagated request_id
+    data = prediction_client.get("/info/", headers={HEADER_REQUEST_ID: sample_request_id})
+    assert data.headers.get(HEADER_REQUEST_ID) == sample_request_id
+
+    # make sure the next request without request_id will have unique identifier by default
+    data = prediction_client.get("/info/")
+    assert data.headers.get(HEADER_REQUEST_ID)
+    assert data.headers.get(HEADER_REQUEST_ID) != sample_request_id
