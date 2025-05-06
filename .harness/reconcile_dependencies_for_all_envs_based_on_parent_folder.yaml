@@ -102,7 +102,7 @@ pipeline:
                         echo "Running: bash ${ROOT_DIR}/tools/reconcile_dependencies.sh $DIR"
                         bash ${ROOT_DIR}/tools/reconcile_dependencies.sh "$DIR"
 
-                        # This could be a searate step
+                        # This could be a separate step, but we already iterate over folders here.
                         echo "Checking whether Environment Version ID should be updated"
                         git show master:./env_info.json | grep -n 'environmentVersionId' > /tmp/old_env_version_id.txt
                         git show HEAD:./env_info.json | grep -n 'environmentVersionId' > /tmp/new_env_version_id.txt
@@ -116,15 +116,6 @@ pipeline:
                         cd -
                       done
 
-                      # Run dependency reconciliation if there are file changes
-                      #if [ -n "$(echo $(git diff --name-only master -- ./requirements.*))" ]; then
-                      #  echo "Requirements changes detected in $ENV_DIR. Running reconciliation..."
-                      #  bash ${ROOT_DIR}/tools/reconcile_dependencies.sh
-                      #else
-                      #  echo "No requirements changes detected. Skipping reconciliation."
-                      #  exit 0  # Exit early if no changes
-                      #fi
-                               
                       # Commit and push changes if any
                       if [[ -n $(git status --porcelain) ]]; then
                         git status --porcelain
