@@ -1,0 +1,11 @@
+inputSet:
+  name: reconcile_dependencies_parent_folder
+  identifier: reconcile_dependencies_parent_folder
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: reconcile_dependencies_for_all_envs_based_on_parent_folder
+    variables:
+      - name: env_folder
+        type: String
+        value: public_dropin_environments
