@@ -70,7 +70,7 @@ if __name__ == "__main__":
         "-f",
         "--file",
         default=None,
-        help="Path of the env_info.json to update. If provided, other ",
+        help="Path of the env_info.json to update. If provided, other arguments are ignored.",
     )
 
     args = parser.parse_args()
