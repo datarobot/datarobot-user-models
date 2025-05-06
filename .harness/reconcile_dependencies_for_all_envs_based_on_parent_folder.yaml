@@ -149,6 +149,7 @@ pipeline:
       value: <+input>.allowedValues(public_dropin_environments)
   identifier: reconcile_dependencies_for_all_envs_based_on_parent_folder
   description: |-
-    On PR, for every drop in env defined in input set, check reconcile dependencies.
-    Get requirements.in and generate requirements.txt.
+    On PR, for every drop in env in parent envs folder, e.g. public_dropin_environments:
+    * Enforce getting requirements.in and generate requirements.txt.
+    * Update environmentVersionId in env_info.json
   name: reconcile dependencies for all envs based on parent
