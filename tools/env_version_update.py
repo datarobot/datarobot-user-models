@@ -24,6 +24,15 @@ PUBLIC_ENVS_DIR_NAME = "public_dropin_environments"
 ENV_INFO_JSON = "env_info.json"
 
 
+def update_env_info_file(env_info_file):
+    with open(env_info_file) as json_file:
+        metadata = json.load(json_file)
+        metadata["environmentVersionId"] = str(ObjectId())
+    with open(env_info_file, "w") as json_file:
+        json.dump(metadata, json_file, indent=2)
+        json_file.write("\n")
+
+
 def main(dir_to_scan, env=None):
     """
     Iterate over directories in dir_to_scan, load json from env._info.json,
@@ -40,12 +49,7 @@ def main(dir_to_scan, env=None):
         item_abs_path = os.path.abspath(os.path.join(dir_to_scan, item))
         if os.path.isdir(item_abs_path):
             env_info_json = os.path.join(item_abs_path, ENV_INFO_JSON)
-            with open(env_info_json) as json_file:
-                metadata = json.load(json_file)
-                metadata["environmentVersionId"] = str(ObjectId())
-            with open(env_info_json, "w") as json_file:
-                json.dump(metadata, json_file, indent=2)
-                json_file.write("\n")
+            update_env_info_file(env_info_json)
 
 
 if __name__ == "__main__":
@@ -62,6 +66,15 @@ if __name__ == "__main__":
         default=None,
         help="Name of the environment to update",
     )
+    parser.add_argument(
+        "-f",
+        "--file",
+        default=None,
+        help="Path of the env_info.json to update. If provided, other arguments are ignored.",
+    )
 
     args = parser.parse_args()
-    main(args.dir, args.env)
+    if args.file:
+        update_env_info_file(args.file)
+    else:
+        main(args.dir, args.env)
