@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### [1.16.12] - 2025-04-23
 ##### Changed
 - Allow `select` advanced tuning parameters to be up to 1024 characters
+- Add support for `get_supported_llm_models()` hook with OpenAI `v1/models` API.
 
 #### [1.16.11] - 2025-03-31
 ##### Changed
