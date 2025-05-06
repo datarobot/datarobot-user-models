@@ -17,12 +17,24 @@ pipeline:
           execution:
             steps:
               - step:
+                  type: GitClone
+                  name: Get DR Release Version
+                  identifier: Get_DR_Release_Version
+                  spec:
+                    connectorRef: account.svc_harness_git1
+                    repoName: DataRobot
+                    sparseCheckout:
+                      - config/RELEASE_VERSION
+                    depth: 1
+                    build:
+                      type: branch
+                      spec:
+                        branch: master
+              - step:
                   type: Run
                   name: reconcile_dependencies
                   identifier: reconcile_dependencies
                   spec:
-                    connectorRef: account.dockerhub_datarobot_read
-                    image: datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev
                     shell: Bash
                     command: |-
                       # Ensure Git is installed
@@ -31,13 +43,20 @@ pipeline:
                           apt-get update && apt-get install -y git
                       fi
 
+                      echo "Getting current DataRobot release version"
+                      RELEASE_VERSION=$(cat DataRobot/config/RELEASE_VERSION)
+                      # if [ "$TARGET_BRANCH" != "master" ]; then
+                      #  RELEASE_VERSION=$(echo $TARGET_BRANCH | sed 's|release/||')
+                      # fi
+                      echo "Current DataRobot release version: ${RELEASE_VERSION}"
+
                       # Configure Git
                       git config --global user.name "svc-harness-git2"
                       git config --global user.email "svc-harness-git2@datarobot.com"
                       git config --global url."https://${GITHUB_ACCESS_TOKEN}@github.com/".insteadOf "https://github.com/"
                       git config --global --add safe.directory /harness  # Mark /harness as a safe directory
 
-                      pip install bson
+                      pip install bson pyyaml
 
                       # Clone the datarobot-user-models repository
                       git init
@@ -108,10 +127,31 @@ pipeline:
                         git show HEAD:./env_info.json | grep -n 'environmentVersionId' > /tmp/new_env_version_id.txt
                         # If env version was not updated, update
                         if diff /tmp/old_env_version_id.txt /tmp/new_env_version_id.txt > /dev/null; then
-                          echo "Updating Environment Version ID"
+                          echo "Updating Environment Version IDi --"
                           python3 ${ROOT_DIR}/tools/env_version_update.py --file ./env_info.json
+                          echo "DONE Updating Environment Version IDi --"
                         fi
 
+                        # convert env_info.json to values.yaml
+                        echo "Updating values.yaml with info from env_info.json"
+                        python3 ${ROOT_DIR}/tools/build_values_yaml.py from-json --json ./env_info.json --yaml ./values.yaml
+
+                        echo "Getting env version id from yaml"
+                        ENV_VERSION_ID=$(yq '.environmentVersionId' ./values.yaml)
+                        IMAGE_REPOSITORY=$(yq '.imageRepository' ./values.yaml)
+
+                        IMAGE_TAG="v$RELEASE_VERSION-$ENV_VERSION_ID"
+                        TAGS="$IMAGE_TAG,v$RELEASE_VERSION-latest"
+                        if [ "$TARGET_BRANCH" = "master" ]; then
+                          TAGS="$TAGS,latest"
+                        fi
+
+                        python3 ${ROOT_DIR}/tools/build_values_yaml.py set-values \
+                                                          --yaml ./values.yaml  \
+                                                          tags=${TAGS} \
+                                                          image=datarobotdev/${IMAGE_REPOSITORY}:${IMAGE_TAG}
+
+                        git add ./values.yaml
 
                         cd -
                       done
@@ -119,12 +159,12 @@ pipeline:
                       # Commit and push changes if any
                       if [[ -n $(git status --porcelain) ]]; then
                         git status --porcelain
-                        git commit -a -m "Reconcile dependencies for $ENV_DIR"
+                        git commit -a -m "Reconcile dependencies, updated IDs, tags, values.yaml for $DIR"
                         git config pull.rebase true
                         git pull origin "$(git branch --show-current)" --rebase
                         git push --set-upstream origin "$(git branch --show-current)"
 
-                        echo "Reconciled dependencied commited to branch"
+                        echo "Reconciled dependencies commited to branch"
                         exit 0
                       else
                         echo "No changes detected in Git."
