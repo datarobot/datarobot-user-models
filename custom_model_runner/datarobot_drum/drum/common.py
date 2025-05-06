@@ -62,7 +62,7 @@ def config_logging():
     stream_handler = logging.StreamHandler()
     stream_handler.addFilter(request_id_filter)
     logging.basicConfig(
-        format="%(asctime)-15s %(levelname)s %(name)s request_id:%(request_id)s:  %(message)s",
+        format="%(asctime)-15s %(levelname)s %(name)s:  %(message)s request_id:%(request_id)s",
         handlers=[stream_handler],
     )
 
