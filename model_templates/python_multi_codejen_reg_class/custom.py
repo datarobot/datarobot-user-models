@@ -4,7 +4,12 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import logging
+
 from datarobot_drum.drum.language_predictors.java_predictor.java_predictor import JavaPredictor
+
+
+logger = logging.getLogger(__name__)
 
 
 class ScoringCodePredictor(JavaPredictor):
@@ -65,7 +70,7 @@ def score(data, model, **kwargs):
         pred_df2 = model[1].predict(data)
         print(pred_df2)
     except Exception as e:
-        print(e)
+        logger.error(e, exc_info=True)
 
     # Predict and print on regression predictor
     pred_df3 = model[2].predict(data)

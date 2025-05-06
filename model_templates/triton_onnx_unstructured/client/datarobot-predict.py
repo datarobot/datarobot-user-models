@@ -7,6 +7,7 @@ This example uses the requests library which you can install with:
 We highly recommend that you update SSL certificates with:
     pip install -U "urllib3[secure]" certifi
 """
+import logging
 import sys
 from json import JSONDecoder
 
@@ -16,6 +17,10 @@ from torchvision import transforms
 import tritonclient.http as httpclient
 import requests
 import json
+
+
+logger = logging.getLogger(__name__)
+
 
 # See README.md on how to set up those keys
 API_URL = "<DATAROBOT_API_URL>"
@@ -135,10 +140,10 @@ def main(filename, deployment_id, mimetype, charset):
 
     data_size = sys.getsizeof(data)
     if data_size >= MAX_PREDICTION_FILE_SIZE_BYTES:
-        print(
-            ("Input file is too large: {} bytes. " "Max allowed size is: {} bytes.").format(
-                data_size, MAX_PREDICTION_FILE_SIZE_BYTES
-            )
+        logger.warning(
+            "Input file is too large: %s bytes. Max allowed size is: %s bytes.",
+            data_size,
+            MAX_PREDICTION_FILE_SIZE_BYTES,
         )
         return 1
     try:
@@ -146,7 +151,7 @@ def main(filename, deployment_id, mimetype, charset):
             data, deployment_id, mimetype, charset
         )
     except DataRobotPredictionError as exc:
-        print(exc)
+        logger.error(exc, exc_info=True)
         return 1
 
     predictions = binary_response_as_numpy(response)

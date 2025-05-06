@@ -4,8 +4,13 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import logging
+
 # Use this helper class to access the runtime parameter values in your model
 from datarobot_drum import RuntimeParameters
+
+
+logger = logging.getLogger(__name__)
 
 
 # This is a naive function so as to not dump the full credential values
@@ -15,36 +20,39 @@ def mask(value, visible=3):
 
 
 def transform(data, model):
-    print("=" * 40)
-    print("Loading the following Runtime Parameters:")
+    logger.info("=" * 40)
     option1 = RuntimeParameters.get("option1")
-    print(f"\toption1: {option1}")
     option2 = RuntimeParameters.get("option2")
-    print(f"\toption2: {option2}")
     option3 = RuntimeParameters.get("option3")
-    print(f"\toption3: {option3}")
+    logger.info(
+        "Loading the following Runtime Parameters: "
+        f"option1: {option1}, option2: {option2}, option3: {option3}",
+    )
 
     credential = RuntimeParameters.get("encryption_key")
     if credential is not None:
         credential_type = credential.pop("credentialType")
-        print(
-            f"\tapi_key(type={credential_type}): "
-            + str({k: mask(v) for k, v in credential.items()})
+        logger.info(
+            "Using credentials api_key: ",
+            extra={
+                "credential_type": credential_type,
+                "api_key": str({k: mask(v) for k, v in credential.items()}),
+            },
         )
     else:
-        print("No credential data set")
+        logger.info("No credential data set")
 
     # boolean runtime param
     bool_var = RuntimeParameters.get("bool_var")
-    print(f"\tbool_var: {bool_var}")
+    logger.info("\tbool_var: %s", bool_var)
 
     # numeric runtime param
     number1 = RuntimeParameters.get("number1")
-    print(f"\tnumber1: {number1}")
+    logger.info("\tnumber1: %s", number1)
     number2 = RuntimeParameters.get("number2")
-    print(f"\tnumber2: {number2}")
+    logger.info("\tnumber2: %s", number2)
 
-    print("=" * 40)
+    logger.info("=" * 40)
 
     # This transform function is just for illustrative purposes so just
     # return the data back unaltered.
