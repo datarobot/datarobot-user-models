@@ -20,7 +20,6 @@ fi
 if [[ -f "requirements.in" ]]; then  # Check if requirements.in exists
     # Generate a fully pinned requirements.txt file from requirements.in
     pip-compile --index-url=https://pypi.org/simple \
-                --upgrade \
                 --no-annotate \
                 --no-emit-index-url \
                 --no-emit-trusted-host \
