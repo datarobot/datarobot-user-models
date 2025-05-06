@@ -160,7 +160,10 @@ def setup_tracer(runtime_parameters):
     endpoint = make_otel_endpoint(datarobot_endpoint)
 
     os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = endpoint
-    headers = {"Authorization": f"Bearer {key}"}
+    headers = {
+        "Authorization": f"Bearer {key}",
+        "X-DataRobot-Entity-Id": f"entity=deployment; id={deployment_id};",
+    }
     otlp_exporter = OTLPSpanExporter(headers=headers)
     provider = TracerProvider(resource=resource)
     provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
