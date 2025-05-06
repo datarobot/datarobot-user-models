@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Added 
 - Request ID for logging messages
 - API requests are logged with Request ID
+- Access log with request_id for errored API calls 
 
 ##### Changed
 - Using logs output for all server operations. `print` command is discouraged in user modules.

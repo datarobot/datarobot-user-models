@@ -26,7 +26,7 @@ from tests.unit.datarobot_drum.drum.helpers import MODEL_ID_FROM_RUNTIME_PARAMET
 
 @pytest.fixture
 def test_flask_app():
-    with patch("datarobot_drum.drum.server.create_flask_app") as mockcreate_flask_app, patch(
+    with patch("datarobot_drum.drum.server.create_flask_app") as mock_create_flask_app, patch(
         "datarobot_drum.drum.root_predictors.prediction_server.PredictionServer._run_flask_app"
     ):
         app = create_flask_app()
@@ -36,7 +36,7 @@ def test_flask_app():
             }
         )
 
-        mockcreate_flask_app.return_value = app
+        mock_create_flask_app.return_value = app
 
         yield app
 
