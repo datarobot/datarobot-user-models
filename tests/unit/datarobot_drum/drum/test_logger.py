@@ -20,4 +20,5 @@ def test_drum_logger(caplog):
     log_record = caplog.records[0]
     assert log_record.name == "drum.test"
     assert log_record.message == "test message"
-    assert log_record.request_id == sample_request_id
+    assert log_record.context_data
+    assert log_record.context_data.get("request_id") == sample_request_id
