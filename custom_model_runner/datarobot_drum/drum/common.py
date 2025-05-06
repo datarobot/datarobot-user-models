@@ -54,7 +54,7 @@ def request_id_filter(record: logging.LogRecord):
     that only information for a specific webapp is included in its log
     """
     request_id = ctx_request_id.get(None)
-    record.request_id = request_id
+    record.context_data = {"request_id": request_id} if request_id else ""
     return True
 
 
@@ -62,7 +62,7 @@ def config_logging():
     stream_handler = logging.StreamHandler()
     stream_handler.addFilter(request_id_filter)
     logging.basicConfig(
-        format="%(asctime)-15s %(levelname)s %(name)s:  %(message)s request_id:%(request_id)s",
+        format="%(asctime)-15s %(levelname)s %(name)s:  %(message)s %(context_data)s",
         handlers=[stream_handler],
     )
 
