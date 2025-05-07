@@ -143,8 +143,9 @@ def setup_tracer(runtime_parameters):
         return
     # if deployment_id is not found, most likely this is custom model
     # testing
-    default = "000000000000000000000000"
-    deployment_id = os.environ.get("MLOPS_DEPLOYMENT_ID", os.environ.get("DEPLOYMENT_ID", default))
+    deployment_id = os.environ.get("MLOPS_DEPLOYMENT_ID", os.environ.get("DEPLOYMENT_ID"))
+    if not deployment_id:
+        return
 
     service_name = f"deployment-{deployment_id}"
     resource = Resource.create(

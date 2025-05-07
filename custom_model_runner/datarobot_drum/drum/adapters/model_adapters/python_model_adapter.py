@@ -27,7 +27,6 @@ from datarobot_drum.drum.artifact_predictors.torch_predictor import PyTorchPredi
 from datarobot_drum.drum.artifact_predictors.xgboost_predictor import XGBoostPredictor
 from datarobot_drum.drum.artifact_predictors.onnx_predictor import ONNXPredictor
 from datarobot_drum.drum.root_predictors.chat_helpers import is_openai_model
-
 from datarobot_drum.drum.common import (
     reroute_stdout_to_stderr,
     SupportedPayloadFormats,
@@ -123,6 +122,22 @@ class PythonModelAdapter(AbstractModelAdapter):
                     "Unexpected empty target name for text generation, "
                     "vector database, or agentic workflow target."
                 )
+            # Instrument http clients in order to get nice traces from moderation library. We are
+            # doing this here because moderation library is loaded before custom.py.
+            try:
+                from opentelemetry.instrumentation.requests import RequestsInstrumentor
+                from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
+
+                RequestsInstrumentor().instrument()
+                AioHttpClientInstrumentor().instrument()
+            except (ImportError, ModuleNotFoundError):
+                msg = """Instrumentation for requests or aiottp is not loaded, make sure appropriate
+                packages are installed:
+
+                pip install opentelemetry-instrumentation-requests
+                pip install opentelemetry-instrumentation-aiohttp-client
+                """
+                self._logger.warning(msg)
             self._load_moderation_hooks()
         else:
             self._target_name = None
