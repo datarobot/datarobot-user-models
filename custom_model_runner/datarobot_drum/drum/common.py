@@ -9,6 +9,7 @@ import os
 import sys
 from contextvars import ContextVar
 from distutils.util import strtobool
+from urllib.parse import urlparse, urlunparse
 
 from contextlib import contextmanager
 from pathlib import Path
@@ -20,6 +21,12 @@ from datarobot_drum.drum.enum import (
     PayloadFormat,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
+from opentelemetry import trace, context
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 
 
 ctx_request_id = ContextVar("request_id")
@@ -119,3 +126,57 @@ def to_bool(value):
 
 
 FIT_METADATA_FILENAME = "fit_runtime_data.json"
+
+
+def make_otel_endpoint(datarobot_endpoint):
+    parsed_url = urlparse(datarobot_endpoint)
+    stripped_url = (parsed_url.scheme, parsed_url.netloc, "otel", "", "", "")
+    result = urlunparse(stripped_url)
+    return result
+
+
+def setup_tracer(runtime_parameters):
+    # OTEL disabled by default for now.
+    if not (
+        runtime_parameters.has("OTEL_SDK_ENABLED") and runtime_parameters.get("OTEL_SDK_ENABLED")
+    ):
+        return
+    # if deployment_id is not found, most likely this is custom model
+    # testing
+    deployment_id = os.environ.get("MLOPS_DEPLOYMENT_ID", os.environ.get("DEPLOYMENT_ID"))
+    if not deployment_id:
+        return
+
+    service_name = f"deployment-{deployment_id}"
+    resource = Resource.create(
+        {
+            "service.name": service_name,
+            "datarobot.deployment_id": deployment_id,
+        }
+    )
+    key = os.environ.get("DATAROBOT_API_TOKEN")
+    datarobot_endpoint = os.environ.get("DATAROBOT_ENDPOINT")
+    if not key or not datarobot_endpoint:
+        return
+    endpoint = make_otel_endpoint(datarobot_endpoint)
+
+    os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = endpoint
+    headers = {
+        "Authorization": f"Bearer {key}",
+        "X-DataRobot-Entity-Id": f"entity=deployment; id={deployment_id};",
+    }
+    otlp_exporter = OTLPSpanExporter(headers=headers)
+    provider = TracerProvider(resource=resource)
+    provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+    trace.set_tracer_provider(provider)
+
+
+@contextmanager
+def otel_context(tracer, span_name, carrier):
+    ctx = TraceContextTextMapPropagator().extract(carrier=carrier)
+    token = context.attach(ctx)
+    try:
+        with tracer.start_as_current_span(span_name) as span:
+            yield span
+    finally:
+        context.detach(token)
