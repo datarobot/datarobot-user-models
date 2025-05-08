@@ -18,9 +18,25 @@ git branch -a
 changed_paths=$(git diff --name-only origin/master...HEAD)
 echo "changed_paths: $changed_paths"
 
+test_image_repository=datarobot-user-models
 test_image_tag_base=${ENV_FOLDER}_${FRAMEWORK}
+
+yaml_file="${ENV_FOLDER}/${FRAMEWORK}/values.yaml"
+if [ -f "${yaml_file}" ]; then
+    ls -la ${yaml_file}
+    ENV_VERSION_ID=$(yq '.environmentVersionId' ${yaml_file})
+    IMAGE_REPOSITORY=$(yq '.imageRepository' ${yaml_file})
+    echo ${ENV_VERSION_ID}
+    echo ${IMAGE_REPOSITORY}
+    test_image_repository=${IMAGE_REPOSITORY}
+    test_image_tag_base=${ENV_VERSION_ID}
+else
+    echo "Yaml file does not exist, continue with old `datarobot-user-models` images"
+fi
+
 if echo "${changed_paths}" | grep "${ENV_FOLDER}/${FRAMEWORK}" > /dev/null; then
     changed_deps=true;
+    test_image_namespace=datarobotdev
     if [ -n $TRIGGER_PR_NUMBER ] && [ "$TRIGGER_PR_NUMBER" != "null" ]; then
         test_image_tag=${test_image_tag_base}_${TRIGGER_PR_NUMBER};
     else
@@ -32,7 +48,10 @@ if echo "${changed_paths}" | grep "${ENV_FOLDER}/${FRAMEWORK}" > /dev/null; then
     fi
 else
     changed_deps=false;
+    # should be changed when switch to yaml
+    test_image_namespace=datarobotdev
     test_image_tag=${test_image_tag_base}_latest;
+
 fi
 
 # If the environment variable 'USE_LOCAL_DOCKERFILE' is set to "true", than add '.local'
@@ -42,6 +61,11 @@ fi
 
 # Required by the Harness step
 export changed_deps
+export test_image_namespace
+export test_image_repository
 export test_image_tag
 
-echo "changed_deps: $changed_deps, test_image_tag: $test_image_tag"
+echo "changed_deps: $changed_deps"
+echo "test_image_namespace: $test_image_namespace"
+echo "test_image_repository: $test_image_repository"
+echo "test_image_tag: $test_image_tag"
