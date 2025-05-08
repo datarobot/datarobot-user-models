@@ -28,7 +28,7 @@ pipeline:
                     stageStatus: Success
                   spec:
                     connectorRef: datarobot_user_models_read_write
-                    repo: datarobotdev/datarobot-user-models
+                    repo: <+pipeline.variables.image_namespace_repo>
                     tags:
                       - <+pipeline.variables.image_tag>
                     dockerfile: <+pipeline.variables.dockerfile_path>
@@ -54,6 +54,11 @@ pipeline:
       type: String
       required: true
       value: <+input>
+    - name: image_namespace_repo
+      type: String
+      description: ""
+      required: true
+      value: <+input>.default(datarobotdev/datarobot-user-models)
     - name: image_tag
       type: String
       description: ""
