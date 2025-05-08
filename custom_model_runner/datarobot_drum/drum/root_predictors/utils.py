@@ -105,12 +105,38 @@ def _create_custom_model_dir(
 
 
 def _queue_output(stdout, stderr, queue):
-    for line in iter(stdout.readline, b''):
+    """Helper function to stream output from subprocess to a queue."""
+    for line in iter(stdout.readline, b""):
         queue.put(line)
-    for line in iter(stderr.readline, b''):
+    for line in iter(stderr.readline, b""):
         queue.put(line)
     stdout.close()
     stderr.close()
+
+
+def _stream_p_open(p: subprocess.Popen):
+    """Wraps the Popen object to stream output in a separate thread.
+    This realtime output of the stdout and stderr of the process
+    is streamed to the terminal.
+    """
+    q = Queue()
+    t = Thread(target=_queue_output, args=(p.stdout, p.stderr, q))
+    t.daemon = True  # thread dies with the program
+    t.start()
+    while True:
+        try:
+            # Stream output if available
+            line = q.get_nowait()
+            print(line.strip()) if len(line.strip()) > 0 else None
+        except Empty:
+            # Check if the process has terminated
+            if p.poll() is not None:
+                break
+            time.sleep(1)
+        except Exception:
+            break
+    # Output has already been displayed
+    return "", ""
 
 
 def _exec_shell_cmd(
@@ -145,23 +171,7 @@ def _exec_shell_cmd(
 
     if capture_output:
         if stream_output:
-            q = Queue()
-            t = Thread(target=_queue_output, args=(p.stdout, p.stderr, q))
-            t.daemon = True  # thread dies with the program
-            t.start()
-            while True:
-                try:
-                    line = q.get_nowait()
-                    if len(line) > 0:
-                        print(line)
-                except Empty:
-                    if p.poll() is not None:
-                        break
-                    time.sleep(1)
-                except Exception:
-                    break
-            t.join()
-            stdout, stderr = "", ""
+            (stdout, stderr) = _stream_p_open(p)
         else:
             (stdout, stderr) = p.communicate()
     else:
