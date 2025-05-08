@@ -10,6 +10,8 @@ import shutil
 import shlex
 import subprocess
 import time
+from queue import Queue, Empty
+from threading import Thread
 
 from datarobot_drum.drum.common import get_drum_logger
 from datarobot_drum.drum.enum import (
@@ -102,6 +104,15 @@ def _create_custom_model_dir(
     return custom_model_dir
 
 
+def _queue_output(stdout, stderr, queue):
+    for line in iter(stdout.readline, b''):
+        queue.put(line)
+    for line in iter(stderr.readline, b''):
+        queue.put(line)
+    stdout.close()
+    stderr.close()
+
+
 def _exec_shell_cmd(
     cmd,
     err_msg,
@@ -110,6 +121,7 @@ def _exec_shell_cmd(
     env=os.environ,
     verbose=True,
     capture_output=True,
+    stream_output=False,
 ):
     """
     Wrapper used by tests and validation to run shell command.
@@ -132,7 +144,26 @@ def _exec_shell_cmd(
         process_obj_holder.process = p
 
     if capture_output:
-        (stdout, stderr) = p.communicate()
+        if stream_output:
+            q = Queue()
+            t = Thread(target=_queue_output, args=(p.stdout, p.stderr, q))
+            t.daemon = True  # thread dies with the program
+            t.start()
+            while True:
+                try:
+                    line = q.get_nowait()
+                    if len(line) > 0:
+                        print(line)
+                except Empty:
+                    if p.poll() is not None:
+                        break
+                    time.sleep(1)
+                except Exception:
+                    break
+            t.join()
+            stdout, stderr = "", ""
+        else:
+            (stdout, stderr) = p.communicate()
     else:
         stdout, stderr = None, None
 
