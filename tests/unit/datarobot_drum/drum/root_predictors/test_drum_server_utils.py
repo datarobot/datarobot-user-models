@@ -110,7 +110,7 @@ class TestingThread:
     def __init__(self, name, target, args: Tuple[str, DrumServerProcess, Any]):
         self.name = name
         self.target = target
-        self.command, self.process_object_holder, self.verbose = args
+        self.command, self.process_object_holder, self.verbose, self.stream_output = args
 
     def start(self):
         self.process_object_holder.process = Mock(pid=123)
