@@ -14,11 +14,6 @@ pipeline:
         identifier: check_env_changed
         description: ""
         type: CI
-        strategy:
-          matrix:
-            dockerfile:
-              - file1
-              - file2
         spec:
           cloneCodebase: true
           execution:
@@ -73,6 +68,11 @@ pipeline:
         identifier: Build_image_because_of_change
         description: ""
         type: Pipeline
+        strategy:
+          matrix:
+            dockerfile:
+              - file1
+              - file2
         spec:
           org: Custom_Models
           pipeline: env_image_publish
