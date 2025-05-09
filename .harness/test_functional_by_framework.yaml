@@ -160,15 +160,16 @@ pipeline:
                     image: curlimages/curl:latest
                     shell: Sh
                     command: |
-                      status="<+execution.steps.Run_1.status>"
+                      status_0="<+execution.steps.Run_1_0.status>"
+                      status_1="<+execution.steps.Run_1_1.status>"
                       github_status_key="<+pipeline.stages.check_env_changed.spec.execution.steps.report_status_to_github_pr_0.output.outputVariables.pipeline_execution_github_status_key>"
 
                       echo "Update PR status"
-                      echo "$status"
-                      if [[ "$status" == "SUCCEEDED" ]]; then
+                      echo "Status_0: $status_0; Status_1: $status_1"
+                      if [[ "$status_0" == "SUCCEEDED" && "$status_1" == "SUCCEEDED" ]]; then
                         state="success"
                         description="Passed"
-                      elif [[ "$status" == "PENDING" ]]; then
+                      elif [[ "$status_0" == "PENDING" ||  "$status_1" == "PENDING" ]]; then
                         state="pending"
                         description="Pending"
                       else
