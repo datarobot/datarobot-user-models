@@ -97,7 +97,7 @@ pipeline:
               condition: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.changed_deps> == true
             tags: {}
         - stage:
-            name: Build TMP image if framework env has changed LOCAL
+            name: Build TMP image if framework env has changed LOCALL
             identifier: Build_image_because_of_change_local
             description: ""
             type: Pipeline
