@@ -50,7 +50,16 @@ pipeline:
                       export FRAMEWORK=<+pipeline.variables.framework>
                       export TRIGGER_PR_NUMBER=<+trigger.prNumber>
                       . ./harness_scripts/functional_by_framework/check_env_changed_check_diff.sh
+
+                      dockerfile_local=<+pipeline.variables.env_folder>/<+pipeline.variables.framework>/Dockerfile.local
+                      if [[ -f "$dockerfile_local" ]]; then
+                        dockerfile_local_exists=true
+                      else
+                        dockerfile_local_exists=false
+                      fi
+                      export dockerfile_local_exists
                     outputVariables:
+                      - name: dockerfile_local_exists
                       - name: changed_deps
                       - name: test_image_tag
           caching:
@@ -93,7 +102,7 @@ pipeline:
               condition: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.changed_deps> == true
             tags: {}
         - stage:
-            name: Build TMP image if framework env has changed LOCALL
+            name: Build TMP image if framework env has changed LOCAL
             identifier: Build_image_because_of_change_local
             description: ""
             type: Pipeline
@@ -119,7 +128,7 @@ pipeline:
                     value: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>.local
             when:
               pipelineStatus: Success
-              condition: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.changed_deps> == true
+              condition: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.changed_deps> == true && <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.dockerfile_local_exists> == true
             tags: {}
     - stage:
         name: Test functional by framework
@@ -144,6 +153,14 @@ pipeline:
                     image: datarobotdev/datarobot-user-models:<+matrix.image_tag>
                     shell: Sh
                     command: |-
+                      echo "Checking if test for local should run"
+                      echo "Tag: <+matrix.image_tag>"
+                      echo "Dockerfile.local exists: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.dockerfile_local_exists>"
+
+                      if [[ "<+matrix.image_tag>" == *local* && <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.dockerfile_local_exists> == false ]]; then
+                        echo "Dockerfile.local does not exist, skippinig test"
+                        exit 0
+                      fi
                       ./harness_scripts/functional_by_framework/check_by_framework_run1_step_entrypoint.sh \
                         <+pipeline.variables.framework> <+pipeline.variables.env_folder>
                     resources:
