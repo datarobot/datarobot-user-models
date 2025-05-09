@@ -15,6 +15,11 @@ pipeline:
         description: ""
         type: CI
         spec:
+          strategy:
+            matrix:
+              dockerfile:
+                - file1
+                - file2
           cloneCodebase: true
           execution:
             steps:
