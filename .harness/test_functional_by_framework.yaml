@@ -52,9 +52,7 @@ pipeline:
                       . ./harness_scripts/functional_by_framework/check_env_changed_check_diff.sh
 
                       dockerfile_local=./<+pipeline.variables.env_folder>/<+pipeline.variables.framework>/Dockerfile.local
-                      ls -la
-                      ls ${dockerfile_local}
-                      if [[ -f "$dockerfile_local" ]]; then
+                      if [ -f "$dockerfile_local" ]; then
                         dockerfile_local_exists=true
                       else
                         dockerfile_local_exists=false
