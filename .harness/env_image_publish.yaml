@@ -50,7 +50,7 @@ pipeline:
       type: String
       description: ""
       required: true
-      value: <+input>.default(<+pipeline.variables.env_folder>_<+pipeline.variables.env_name>_latest)
+      value: <+input>
     - name: context_path
       type: String
       required: false
