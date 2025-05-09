@@ -90,6 +90,7 @@ pipeline:
                     value: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>
             when:
               pipelineStatus: Success
+              condition: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.changed_deps> == true
             tags: {}
         - stage:
             name: Build TMP image if framework env has changed LOCALL
@@ -118,6 +119,7 @@ pipeline:
                     value: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>.local
             when:
               pipelineStatus: Success
+              condition: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.changed_deps> == true
             tags: {}
     - stage:
         name: Test functional by framework
