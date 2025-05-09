@@ -48,7 +48,6 @@ pipeline:
                       export CODEBASE_BRANCH=<+codebase.branch>
                       export ENV_FOLDER=<+pipeline.variables.env_folder>
                       export FRAMEWORK=<+pipeline.variables.framework>
-                      export USE_LOCAL_DOCKERFILE=<+pipeline.variables.use_local_dockerfile>
                       export TRIGGER_PR_NUMBER=<+trigger.prNumber>
                       . ./harness_scripts/functional_by_framework/check_env_changed_check_diff.sh
                     outputVariables:
