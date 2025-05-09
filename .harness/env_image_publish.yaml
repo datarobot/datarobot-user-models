@@ -33,8 +33,8 @@ pipeline:
                     repo: datarobotdev/datarobot-user-models
                     tags:
                       - <+pipeline.variables.image_tag>
-                    dockerfile: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>/Dockerfile
-                    context: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
+                    dockerfile: <+pipeline.variables.dockerfile_path>
+                    context: <+pipeline.variables.context_path>
                     resources:
                       limits:
                         memory: 3G
@@ -85,6 +85,14 @@ pipeline:
       type: String
       required: false
       value: <+input>.default("false")
+    - name: context_path
+      type: String
+      required: false
+      value: <+input>
+    - name: dockerfile_path
+      type: String
+      required: false
+      value: <+input>
   description: |-
     Builds an environment image and pushes it to the DockerHub registry. These images are used to run functional tests for every PR.  
 
