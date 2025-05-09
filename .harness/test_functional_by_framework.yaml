@@ -181,6 +181,9 @@ pipeline:
                     command: |
                       status_0="<+execution.steps.Run_1_0.status>"
                       status_1="<+execution.steps.Run_1_1.status>"
+                      if [[ "$status_1" == "null" ]]; then
+                        status_1="SUCCEEDED"
+                      fi
                       github_status_key="<+pipeline.stages.check_env_changed.spec.execution.steps.report_status_to_github_pr_0.output.outputVariables.pipeline_execution_github_status_key>"
 
                       echo "Update PR status"
