@@ -46,18 +46,18 @@ pipeline:
             type: Cloud
             spec: {}
   variables:
+    - name: context_path
+      type: String
+      required: true
+      value: <+input>
+    - name: dockerfile_path
+      type: String
+      required: true
+      value: <+input>
     - name: image_tag
       type: String
       description: ""
       required: true
-      value: <+input>
-    - name: context_path
-      type: String
-      required: false
-      value: <+input>
-    - name: dockerfile_path
-      type: String
-      required: false
       value: <+input>
   description: |-
     Builds an environment image and pushes it to the DockerHub registry. These images are used to run functional tests for every PR.  
