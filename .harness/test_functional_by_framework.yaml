@@ -59,7 +59,7 @@ pipeline:
                         dockerfile_local_exists=false
                       fi
                       export dockerfile_local_exists
-                      matrix_values="${test_image_tag}, ${test_image_tag}.local"
+                      matrix_values="${test_image_tag},${test_image_tag}.local"
                     outputVariables:
                       - name: dockerfile_local_exists
                       - name: matrix_values
