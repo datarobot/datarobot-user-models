@@ -51,7 +51,7 @@ pipeline:
                       export TRIGGER_PR_NUMBER=<+trigger.prNumber>
                       . ./harness_scripts/functional_by_framework/check_env_changed_check_diff.sh
 
-                      dockerfile_local=./<+pipeline.variables.env_folder>/<+pipeline.variables.framework>/Dockerfile.local
+                      dockerfile_local="./<+pipeline.variables.env_folder>/<+pipeline.variables.framework>/Dockerfile.local"
                       ls -la ${dockefile_local}
                       if [ -f "${dockerfile_local}" ]; then
                         dockerfile_local_exists=true
