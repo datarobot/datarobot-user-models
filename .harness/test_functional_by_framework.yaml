@@ -14,12 +14,12 @@ pipeline:
         identifier: check_env_changed
         description: ""
         type: CI
+        strategy:
+          matrix:
+            dockerfile:
+              - file1
+              - file2
         spec:
-          strategy:
-            matrix:
-              dockerfile:
-                - file1
-                - file2
           cloneCodebase: true
           execution:
             steps:
