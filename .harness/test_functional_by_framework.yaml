@@ -59,8 +59,10 @@ pipeline:
                         dockerfile_local_exists=false
                       fi
                       export dockerfile_local_exists
+                      matrix_values="${test_image_tag}, ${test_image_tag}.local"
                     outputVariables:
                       - name: dockerfile_local_exists
+                      - name: matrix_values
                       - name: changed_deps
                       - name: test_image_tag
           caching:
@@ -146,9 +148,7 @@ pipeline:
                   identifier: Run_1
                   strategy:
                     matrix:
-                      image_tag:
-                        - <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>
-                        - <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>.local
+                      image_tag: <+<+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.matrix_values>.split(',')>
                   spec:
                     connectorRef: datarobot_user_models_read_write
                     image: datarobotdev/datarobot-user-models:<+matrix.image_tag>
