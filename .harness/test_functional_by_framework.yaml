@@ -55,11 +55,12 @@ pipeline:
                       ls -la ${dockefile_local}
                       if [ -f "${dockerfile_local}" ]; then
                         dockerfile_local_exists=true
+                        matrix_values="${test_image_tag},${test_image_tag}.local"
                       else
                         dockerfile_local_exists=false
+                        matrix_values="${test_image_tag}"
                       fi
                       export dockerfile_local_exists
-                      matrix_values="${test_image_tag},${test_image_tag}.local"
                     outputVariables:
                       - name: dockerfile_local_exists
                       - name: matrix_values
