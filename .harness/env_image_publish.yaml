@@ -26,8 +26,6 @@ pipeline:
                   identifier: BuildAndPushDockerRegistry_1
                   when:
                     stageStatus: Success
-                    pipelineStatus: Success
-                    condition: <+pipeline.variables.use_local_dockerfile> != "true"
                   spec:
                     connectorRef: datarobot_user_models_read_write
                     repo: datarobotdev/datarobot-user-models
