@@ -108,9 +108,14 @@ pipeline:
                   type: Run
                   name: Run functional test in provided framework
                   identifier: Run_1
+                  strategy:
+                    matrix:
+                      image_tag:
+                        - <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>
+                        - <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>
                   spec:
                     connectorRef: datarobot_user_models_read_write
-                    image: datarobotdev/datarobot-user-models:<+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>
+                    image: datarobotdev/datarobot-user-models:<+matrix.image_tag>
                     shell: Sh
                     command: |-
                       ./harness_scripts/functional_by_framework/check_by_framework_run1_step_entrypoint.sh \
