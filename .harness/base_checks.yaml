@@ -37,8 +37,8 @@ pipeline:
                         matrix:
                           python_version:
                             - "3.9"
-                            - "3.10"
-                            - "3.11"
+                            - "datarobotdev/env-python-sklearn:latest"
+                            - "datarobotdev/env-python-pmml:latest"
                             - "3.12"
                           nodeName: <+matrix.python_version>
               platform:
