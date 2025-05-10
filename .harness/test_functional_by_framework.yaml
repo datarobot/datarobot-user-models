@@ -52,19 +52,22 @@ pipeline:
                       . ./harness_scripts/functional_by_framework/check_env_changed_check_diff.sh
 
                       dockerfile_local="./<+pipeline.variables.env_folder>/<+pipeline.variables.framework>/Dockerfile.local"
-                      ls -la ${dockefile_local}
+
+                      image_uri=${test_image_namespace}/${test_image_repository}:${test_image_tag}
                       if [ -f "${dockerfile_local}" ]; then
                         dockerfile_local_exists=true
-                        matrix_values="${test_image_tag},${test_image_tag}.local"
+                        matrix_values="${image_uri},datarobotdev/${test_image_repository}:${test_image_tag}.local"
                       else
                         dockerfile_local_exists=false
-                        matrix_values="${test_image_tag}"
+                        matrix_values="${image_uri}"
                       fi
                       export dockerfile_local_exists
                     outputVariables:
                       - name: dockerfile_local_exists
                       - name: matrix_values
                       - name: changed_deps
+                      - name: test_image_namespace
+                      - name: test_image_repository
                       - name: test_image_tag
           caching:
             enabled: false
@@ -98,6 +101,9 @@ pipeline:
                   - name: dockerfile_path
                     type: String
                     value: <+pipeline.variables.env_folder>/<+pipeline.variables.framework>/Dockerfile
+                  - name: image_namespace_repo
+                    type: String
+                    value: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_namespace>/<+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_repository>
                   - name: image_tag
                     type: String
                     value: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>
@@ -127,6 +133,9 @@ pipeline:
                   - name: dockerfile_path
                     type: String
                     value: <+pipeline.variables.env_folder>/<+pipeline.variables.framework>/Dockerfile.local
+                  - name: image_namespace_repo
+                    type: String
+                    value: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_namespace>/<+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_repository>
                   - name: image_tag
                     type: String
                     value: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>.local
@@ -149,10 +158,10 @@ pipeline:
                   identifier: Run_1
                   strategy:
                     matrix:
-                      image_tag: <+<+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.matrix_values>.split(',')>
+                      image_uri: <+<+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.matrix_values>.split(',')>
                   spec:
                     connectorRef: datarobot_user_models_read_write
-                    image: datarobotdev/datarobot-user-models:<+matrix.image_tag>
+                    image: <+matrix.image_uri>
                     shell: Sh
                     command: |-
                       echo "Checking if test for local should run"
