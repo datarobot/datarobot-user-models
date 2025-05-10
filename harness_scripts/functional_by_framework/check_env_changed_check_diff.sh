@@ -16,28 +16,48 @@ git fetch origin master ${CODEBASE_BRANCH}
 git branch -a
 
 changed_paths=$(git diff --name-only origin/master...HEAD)
-echo "changed_paths: $changed_paths"
+echo "--- changed paths ---"
+echo "${changed_paths}"
+echo "--- --- --- --- ---"
 
+# by default define namespace, repo, and tag for the existing flow without changes
+# e.g. datarobotdev/datarobot-user-models:public_dropin_envs_python3_sklearn_latest
+test_image_namespace=datarobotdev
 test_image_repository=datarobot-user-models
-test_image_tag_base=${ENV_FOLDER}_${FRAMEWORK}
 
-yaml_file="${ENV_FOLDER}/${FRAMEWORK}/values.yaml"
-if [ -f "${yaml_file}" ]; then
-    ls -la ${yaml_file}
-    ENV_VERSION_ID=$(yq '.environmentVersionId' ${yaml_file})
-    IMAGE_REPOSITORY=$(yq '.imageRepository' ${yaml_file})
-    echo ${ENV_VERSION_ID}
-    echo ${IMAGE_REPOSITORY}
-    test_image_repository=${IMAGE_REPOSITORY}
-    test_image_tag_base=${ENV_VERSION_ID}
+test_image_tag_base=${ENV_FOLDER}_${FRAMEWORK}
+test_image_tag=${test_image_tag_base}_latest;
+
+changed_deps=false;
+env_info="${ENV_FOLDER}/${FRAMEWORK}/env_info.json"
+
+IMAGE_REPOSITORY=$(jq -r '.imageRepository' ${env_info})
+if [ "${IMAGE_REPOSITORY}" = "null" ]; then
+  echo "Image repository is not defined in env_info.json"
 else
-    echo "Yaml file does not exist, continue with old `datarobot-user-models` images"
+  # if env_info has imageRepository
+  # point test_image_namespace to datarobot
+  # point test_image_repository to defined repo
+  # point tag to ENV_VERSION_ID
+  # e.g. datarobot/env-python-sklearn:12355123abc918234
+  ENV_VERSION_ID=$(jq -r '.environmentVersionId' ${env_info})
+  echo "read: ${ENV_VERSION_ID}"
+  echo "read ${IMAGE_REPOSITORY}"
+  test_image_namespace=datarobot
+  test_image_repository=${IMAGE_REPOSITORY}
+  test_image_tag_base=${ENV_VERSION_ID}
+  test_image_tag=${ENV_VERSION_ID}
 fi
+
 
 if echo "${changed_paths}" | grep "${ENV_FOLDER}/${FRAMEWORK}" > /dev/null; then
     changed_deps=true;
+    # if env changed, means we want to push tmp image into datarobotdev
     test_image_namespace=datarobotdev
     if [ -n $TRIGGER_PR_NUMBER ] && [ "$TRIGGER_PR_NUMBER" != "null" ]; then
+        # datarobotdev/env-python-sklearn:12355123abc918234_PR_NUM
+        # or
+        # datarobotdev/datarobot-user-models:public_dropin_envs_python3_sklearn_PR_NUM
         test_image_tag=${test_image_tag_base}_${TRIGGER_PR_NUMBER};
     else
         test_image_tag=${test_image_tag_base}_${CODEBASE_BRANCH}
@@ -46,18 +66,7 @@ if echo "${changed_paths}" | grep "${ENV_FOLDER}/${FRAMEWORK}" > /dev/null; then
           test_image_tag=${test_image_tag%%/*}_${test_image_tag#*/}
         done
     fi
-else
-    changed_deps=false;
-    # should be changed when switch to yaml
-    test_image_namespace=datarobotdev
-    test_image_tag=${test_image_tag_base}_latest;
-
 fi
-
-# If the environment variable 'USE_LOCAL_DOCKERFILE' is set to "true", than add '.local'
-#if [ -n $USE_LOCAL_DOCKERFILE ] && [ "$USE_LOCAL_DOCKERFILE" = "true" ]; then
-#    test_image_tag=${test_image_tag}.local
-#fi
 
 # Required by the Harness step
 export changed_deps
