@@ -44,7 +44,8 @@ else
   # point tag to ENV_VERSION_ID
   # e.g. datarobot/env-python-sklearn:12355123abc918234
   echo "read ${IMAGE_REPOSITORY}"
-  test_image_namespace=datarobot
+  # after promotion work, change to datarobot
+  test_image_namespace=datarobotdev
   test_image_repository=${IMAGE_REPOSITORY}
   test_image_tag_base=${ENV_VERSION_ID}
   test_image_tag=${ENV_VERSION_ID}

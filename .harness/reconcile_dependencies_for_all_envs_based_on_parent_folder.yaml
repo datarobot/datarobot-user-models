@@ -133,25 +133,25 @@ pipeline:
                         fi
 
                         # convert env_info.json to values.yaml
-                        echo "Updating values.yaml with info from env_info.json"
-                        python3 ${ROOT_DIR}/tools/build_values_yaml.py from-json --json ./env_info.json --yaml ./values.yaml
+                        # echo "Updating values.yaml with info from env_info.json"
+                        # python3 ${ROOT_DIR}/tools/build_values_yaml.py from-json --json ./env_info.json --yaml ./values.yaml
 
-                        echo "Getting env version id from yaml"
-                        ENV_VERSION_ID=$(yq '.environmentVersionId' ./values.yaml)
-                        IMAGE_REPOSITORY=$(yq '.imageRepository' ./values.yaml)
+                        # echo "Getting env version id from yaml"
+                        # ENV_VERSION_ID=$(yq '.environmentVersionId' ./values.yaml)
+                        # IMAGE_REPOSITORY=$(yq '.imageRepository' ./values.yaml)
 
-                        IMAGE_TAG="v$RELEASE_VERSION-$ENV_VERSION_ID"
-                        TAGS="$IMAGE_TAG,v$RELEASE_VERSION-latest"
-                        if [ "$TARGET_BRANCH" = "master" ]; then
-                          TAGS="$TAGS,latest"
-                        fi
+                        # IMAGE_TAG="v$RELEASE_VERSION-$ENV_VERSION_ID"
+                        # TAGS="$IMAGE_TAG,v$RELEASE_VERSION-latest"
+                        # if [ "$TARGET_BRANCH" = "master" ]; then
+                        #   TAGS="$TAGS,latest"
+                        # fi
 
-                        python3 ${ROOT_DIR}/tools/build_values_yaml.py set-values \
-                                                          --yaml ./values.yaml  \
-                                                          tags=${TAGS} \
-                                                          image=datarobotdev/${IMAGE_REPOSITORY}:${IMAGE_TAG}
+                        # python3 ${ROOT_DIR}/tools/build_values_yaml.py set-values \
+                        #                                   --yaml ./values.yaml  \
+                        #                                   tags=${TAGS} \
+                        #                                   image=datarobotdev/${IMAGE_REPOSITORY}:${IMAGE_TAG}
 
-                        git add ./values.yaml
+                        # git add ./values.yaml
 
                         cd -
                       done
