@@ -36,9 +36,9 @@ else
 fi
 
 # If the environment variable 'USE_LOCAL_DOCKERFILE' is set to "true", than add '.local'
-if [ -n $USE_LOCAL_DOCKERFILE ] && [ "$USE_LOCAL_DOCKERFILE" = "true" ]; then
-    test_image_tag=${test_image_tag}.local
-fi
+#if [ -n $USE_LOCAL_DOCKERFILE ] && [ "$USE_LOCAL_DOCKERFILE" = "true" ]; then
+#    test_image_tag=${test_image_tag}.local
+#fi
 
 # Required by the Harness step
 export changed_deps

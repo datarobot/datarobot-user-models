@@ -26,33 +26,13 @@ pipeline:
                   identifier: BuildAndPushDockerRegistry_1
                   when:
                     stageStatus: Success
-                    pipelineStatus: Success
-                    condition: <+pipeline.variables.use_local_dockerfile> != "true"
                   spec:
                     connectorRef: datarobot_user_models_read_write
                     repo: datarobotdev/datarobot-user-models
                     tags:
                       - <+pipeline.variables.image_tag>
-                    dockerfile: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>/Dockerfile
-                    context: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
-                    resources:
-                      limits:
-                        memory: 3G
-              - step:
-                  type: BuildAndPushDockerRegistry
-                  name: LocalBuildAndPushDockerRegistry_1
-                  identifier: LocalBuildAndPushDockerRegistry_1
-                  when:
-                    stageStatus: Success
-                    pipelineStatus: Success
-                    condition: <+pipeline.variables.use_local_dockerfile> == "true"
-                  spec:
-                    connectorRef: datarobot_user_models_read_write
-                    repo: datarobotdev/datarobot-user-models
-                    tags:
-                      - <+pipeline.variables.image_tag>
-                    dockerfile: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>/Dockerfile.local
-                    context: <+pipeline.variables.env_folder>/<+pipeline.variables.env_name>
+                    dockerfile: <+pipeline.variables.dockerfile_path>
+                    context: <+pipeline.variables.context_path>
                     resources:
                       limits:
                         memory: 3G
@@ -66,25 +46,19 @@ pipeline:
             type: Cloud
             spec: {}
   variables:
-    - name: env_folder
+    - name: context_path
       type: String
-      description: ""
       required: true
-      value: <+input>.allowedValues(public_dropin_environments, public_dropin_gpu_environments, public_dropin_nim_environments)
-    - name: env_name
+      value: <+input>
+    - name: dockerfile_path
       type: String
-      description: ""
       required: true
-      value: <+input>.allowedValues(python3_sklearn,python3_xgboost,python3_onnx,python3_pytorch,python3_keras,python3_pmml,python311_genai,python39_genai,java_codegen,r_lang,python311,vllm,triton_server,nim_llama_8b,nim_sidecar)
+      value: <+input>
     - name: image_tag
       type: String
       description: ""
       required: true
-      value: <+input>.default(<+pipeline.variables.env_folder>_<+pipeline.variables.env_name>_latest)
-    - name: use_local_dockerfile
-      type: String
-      required: false
-      value: <+input>.default("false")
+      value: <+input>
   description: |-
     Builds an environment image and pushes it to the DockerHub registry. These images are used to run functional tests for every PR.  
 
