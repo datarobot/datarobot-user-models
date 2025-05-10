@@ -22,14 +22,17 @@ echo "--- --- --- --- ---"
 
 # by default define namespace, repo, and tag for the existing flow without changes
 # e.g. datarobotdev/datarobot-user-models:public_dropin_envs_python3_sklearn_latest
+env_info="${ENV_FOLDER}/${FRAMEWORK}/env_info.json"
+ENV_VERSION_ID=$(jq -r '.environmentVersionId' ${env_info})
+
 test_image_namespace=datarobotdev
 test_image_repository=datarobot-user-models
 
-test_image_tag_base=${ENV_FOLDER}_${FRAMEWORK}
-test_image_tag=${test_image_tag_base}_latest;
+test_image_tag_base=${ENV_FOLDER}_${FRAMEWORK}_${ENV_VERSION_ID}
+test_image_tag=${test_image_tag_base}
 
 changed_deps=false;
-env_info="${ENV_FOLDER}/${FRAMEWORK}/env_info.json"
+
 
 IMAGE_REPOSITORY=$(jq -r '.imageRepository' ${env_info})
 if [ "${IMAGE_REPOSITORY}" = "null" ]; then
@@ -40,8 +43,6 @@ else
   # point test_image_repository to defined repo
   # point tag to ENV_VERSION_ID
   # e.g. datarobot/env-python-sklearn:12355123abc918234
-  ENV_VERSION_ID=$(jq -r '.environmentVersionId' ${env_info})
-  echo "read: ${ENV_VERSION_ID}"
   echo "read ${IMAGE_REPOSITORY}"
   test_image_namespace=datarobot
   test_image_repository=${IMAGE_REPOSITORY}
@@ -58,7 +59,7 @@ if echo "${changed_paths}" | grep "${ENV_FOLDER}/${FRAMEWORK}" > /dev/null; then
         # datarobotdev/env-python-sklearn:12355123abc918234_PR_NUM
         # or
         # datarobotdev/datarobot-user-models:public_dropin_envs_python3_sklearn_PR_NUM
-        test_image_tag=${test_image_tag_base}_${TRIGGER_PR_NUMBER};
+        test_image_tag=${test_image_tag_base}
     else
         test_image_tag=${test_image_tag_base}_${CODEBASE_BRANCH}
         # If the test_image_tag may contain a slash, replace it with an underscore (POSIX compliant)
