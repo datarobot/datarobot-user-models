@@ -1,5 +1,5 @@
 pipeline:
-  name: env_image_build_and_publishh
+  name: env_image_build_and_publish
   identifier: env_image_publish
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models
