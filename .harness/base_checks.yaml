@@ -25,7 +25,7 @@ pipeline:
                       identifier: run_unit_tests
                       spec:
                         connectorRef: account.dockerhub_datarobot_read
-                        image: python:<+matrix.python_version>
+                        image: <+matrix.image>
                         shell: Bash
                         command: ./harness_scripts/base_check/unit_tests_entrypoint.sh
                         reports:
@@ -35,12 +35,12 @@ pipeline:
                               - results.tests.xml
                       strategy:
                         matrix:
-                          python_version:
-                            - "3.9"
-                            - "3.10"
-                            - "3.11"
-                            - "3.12"
-                          nodeName: <+matrix.python_version>
+                          image:
+                            - "python:3.9"
+                            - "datarobotdev/datarobot-user-models:public_dropin_environments_python3_sklearn_1258"
+                            - "datarobotdev/datarobot-user-models:python3_xgboost_1252"
+                            - "python:3.12"
+                          nodeName: <+matrix.image>
               platform:
                 os: Linux
                 arch: Amd64
