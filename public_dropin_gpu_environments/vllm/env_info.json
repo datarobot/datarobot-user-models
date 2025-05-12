@@ -4,7 +4,7 @@
   "description": "A high-throughput and memory-efficient inference and serving engine for LLMs.",
   "programmingLanguage": "python",
   "label": "v0.8.3+dr.1",
-  "environmentVersionId": "67f487b33324a82f9234d1c9",
+  "environmentVersionId": "68225130c69a2f2230f668b5",
   "environmentVersionDescription": "Update to vllm v0.8.3\nFROM vllm/vllm-openai:v0.8.3",
   "isPublic": true
 }
