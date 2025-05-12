@@ -191,8 +191,8 @@ class TestStreamingOutput:
         mock_stdout.close.assert_called_once()
         mock_stderr.close.assert_called_once()
 
-    @patch("builtins.print")
-    def test_stream_p_open_handles_process_output(self, mock_print):
+    @patch("custom_model_runner.datarobot_drum.drum.root_predictors.utils.logger.info")
+    def test_stream_p_open_handles_process_output(self, mock_logger):
         # Create a mock Popen object
         mock_process = Mock(spec=subprocess.Popen)
 
@@ -210,7 +210,7 @@ class TestStreamingOutput:
         assert stdout == ""
         assert stderr == ""
 
-        # Verify print was called with the expected content
+        # Verify logger.info was called with the expected content
         expected_outputs = [
             b"stdout line 1",
             b"stdout line 2",
@@ -218,10 +218,10 @@ class TestStreamingOutput:
             b"stderr line 2",
         ]
 
-        # Get the actual arguments passed to print
-        actual_outputs = [call_args[0][0] for call_args in mock_print.call_args_list]
+        # Get the actual arguments passed to logger.info
+        actual_outputs = [call_args[0][0] for call_args in mock_logger.call_args_list]
 
-        # Verify all expected outputs were printed
+        # Verify all expected outputs were logged
         assert len(actual_outputs) == len(expected_outputs)
         for expected in expected_outputs:
             assert expected in actual_outputs
@@ -229,8 +229,8 @@ class TestStreamingOutput:
         # Verify poll was called to check for process termination
         assert mock_process.poll.call_count == 2
 
-    @patch("builtins.print")
-    def test_stream_p_open_handles_empty_streams(self, mock_print):
+    @patch("custom_model_runner.datarobot_drum.drum.root_predictors.utils.logger.info")
+    def test_stream_p_open_handles_empty_streams(self, mock_logger):
         # Create a mock Popen object with empty streams
         mock_process = Mock(spec=subprocess.Popen)
         mock_process.stdout = io.BytesIO(b"")
@@ -245,11 +245,11 @@ class TestStreamingOutput:
         # Verify results
         assert stdout == ""
         assert stderr == ""
-        mock_print.assert_not_called()  # No output to print
+        mock_logger.assert_not_called()  # No output to log
         mock_process.poll.assert_called_once()  # Process termination was checked
 
-    @patch("builtins.print")
-    def test_stream_p_open_handles_delayed_output(self, mock_print):
+    @patch("custom_model_runner.datarobot_drum.drum.root_predictors.utils.logger.info")
+    def test_stream_p_open_handles_delayed_output(self, mock_logger):
         # Create a mock process
         mock_process = Mock(spec=subprocess.Popen)
 
@@ -283,12 +283,12 @@ class TestStreamingOutput:
         thread.join(timeout=2)
         assert not thread.is_alive()
 
-        # Verify print was called with the expected content
-        mock_print.assert_any_call(b"delayed stdout")
-        mock_print.assert_any_call(b"delayed stderr")
+        # Verify logger.info was called with the expected content
+        mock_logger.assert_any_call(b"delayed stdout")
+        mock_logger.assert_any_call(b"delayed stderr")
 
-    @patch("builtins.print")
-    def test_stream_p_open_ignores_empty_lines(self, mock_print):
+    @patch("custom_model_runner.datarobot_drum.drum.root_predictors.utils.logger.info")
+    def test_stream_p_open_ignores_empty_lines(self, mock_logger):
         # Create a mock Popen object
         mock_process = Mock(spec=subprocess.Popen)
 
@@ -306,7 +306,7 @@ class TestStreamingOutput:
         assert stdout == ""
         assert stderr == ""
 
-        # Verify only non-empty lines were printed
-        mock_print.assert_any_call(b"regular line")
-        mock_print.assert_any_call(b"error line")
-        assert mock_print.call_count == 2  # Only two lines should be printed
+        # Verify only non-empty lines were logged
+        mock_logger.assert_any_call(b"regular line")
+        mock_logger.assert_any_call(b"error line")
+        assert mock_logger.call_count == 2  # Only two lines should be logged
