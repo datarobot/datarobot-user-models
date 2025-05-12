@@ -10,7 +10,7 @@ pipeline:
         build: <+input>
   stages:
     - stage:
-        name: Check if framework env has changed1
+        name: Check if framework env has changed
         identifier: check_env_changed
         description: ""
         type: CI
