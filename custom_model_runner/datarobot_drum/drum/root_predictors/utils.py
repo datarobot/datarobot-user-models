@@ -123,7 +123,11 @@ def _stream_p_open(subprocess_popen: subprocess.Popen):
     SEE: https://datarobot.atlassian.net/browse/RAPTOR-12510
     """
     logger_queue = Queue()
-    logger_thread = Thread(target=_queue_output, daemon=True, args=(subprocess_popen.stdout, subprocess_popen.stderr, logger_queue))
+    logger_thread = Thread(
+        target=_queue_output,
+        daemon=True,
+        args=(subprocess_popen.stdout, subprocess_popen.stderr, logger_queue),
+    )
     logger_thread.start()
     while True:
         try:
