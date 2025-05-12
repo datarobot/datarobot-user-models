@@ -25,4 +25,6 @@ COPY ./*.sh ${CODE_DIR}/
 
 ENV WITH_ERROR_SERVER=1
 
+USER nobody
+
 ENTRYPOINT ["/opt/code/start_server.sh"]
