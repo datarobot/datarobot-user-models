@@ -39,14 +39,14 @@ def wait_for_server(url, timeout):
             raise TimeoutError("Server failed to start: url: {}".format(url))
 
 
-def _run_server_thread(cmd, process_obj_holder, verbose=True, stream_output=False):
+def _run_server_thread(cmd, process_obj_holder, verbose=True, capture_output=True):
     _exec_shell_cmd(
         cmd,
         "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
         assert_if_fail=False,
         process_obj_holder=process_obj_holder,
         verbose=verbose,
-        stream_output=stream_output,
+        capture_output=capture_output,
     )
 
 
