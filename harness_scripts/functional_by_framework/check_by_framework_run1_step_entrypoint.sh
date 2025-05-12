@@ -36,10 +36,8 @@ pip install pytest pytest-xdist
 # with the datarobot-drum version specified in the environment's requirements.txt file.
 if [ "${FRAMEWORK}" != "java_codegen" ]; then
     title "Uninstalling datarobot-drum"
-
-    # I think we don't need to uninstall datarobot-mlops
-    # pip uninstall datarobot-drum datarobot-mlops -y
-    pip uninstall datarobot-drum -y
+    # I think we don't need to uninstall datarobot-mlops, but removing it broke drum re-installation.
+    pip uninstall datarobot-drum datarobot-mlops -y
 
     title "Installing dependencies, with datarobot-drum installed from source-code"
 
