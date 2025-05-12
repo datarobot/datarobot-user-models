@@ -90,7 +90,7 @@ class DrumServerRun:
         max_workers=None,
         cmd_override=None,
         port: Optional[int] = None,
-        stream_output: Optional[bool] = False,
+        capture_output: Optional[bool] = True,
     ):
         self.port = port or DrumUtils.find_free_port()
         self.server_address = "localhost:{}".format(self.port)
@@ -125,7 +125,7 @@ class DrumServerRun:
         self._wait_for_server_timeout = wait_for_server_timeout
         self._max_workers = max_workers
         self._cmd_override = cmd_override
-        self._stream_output = stream_output
+        self._capture_output = capture_output
 
     def __enter__(self):
         self._server_thread = self._thread_class(
@@ -135,7 +135,7 @@ class DrumServerRun:
                 self.get_command(),
                 self._process_object_holder,
                 self._verbose,
-                self._stream_output,
+                self._capture_output,
             ),
         )
         self._server_thread.start()
