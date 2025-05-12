@@ -44,9 +44,6 @@ COPY --from=build /usr/bin/pip /usr/bin/pip
 # Just for convenience
 COPY --from=build /bin/ls /bin/ls
 
-
-COPY requirements.txt requirements.txt
-
 ENV VIRTUAL_ENV=/opt/venv
 # Copy preinstalled virtualenv
 COPY --from=build --chown=nonroot ${VIRTUAL_ENV} ${VIRTUAL_ENV}

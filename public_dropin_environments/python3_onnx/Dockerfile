@@ -3,11 +3,20 @@
 ARG BASE_ROOT_IMAGE=datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev
 FROM ${BASE_ROOT_IMAGE} AS build
 
+USER root
+
+ENV VIRTUAL_ENV=/opt/venv
+
+RUN python -m venv ${VIRTUAL_ENV} && \
+    ${VIRTUAL_ENV}/bin/python -m ensurepip --default-pip --upgrade
+
+COPY requirements.txt requirements.txt
+RUN ${VIRTUAL_ENV}/bin/python -m pip install --no-cache-dir -r requirements.txt && \
+    find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} +
+
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-gaurd image if you build your own.
 FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11
-
-USER root
 
 # Required to run the entrypoint script
 COPY --from=build /bin/sh /bin/sh
@@ -24,10 +33,6 @@ COPY --from=build /bin/mkdir /bin/mkdir
 # Required for custom-models to install dependencies
 COPY --from=build /usr/bin/pip /usr/bin/pip
 
-# Cleanup '__pycache__' directories. It solves an AsymmetricPrivateKey scanning error.
-COPY --from=build /usr/bin/rm /usr/bin/rm
-COPY --from=build /usr/bin/find /usr/bin/find
-
 # Just for convenience
 COPY --from=build /bin/ls /bin/ls
 
@@ -35,13 +40,8 @@ COPY requirements.txt requirements.txt
 
 ENV VIRTUAL_ENV=/opt/venv
 
-RUN sh -c "python -m venv ${VIRTUAL_ENV} && \
-    . ${VIRTUAL_ENV}/bin/activate && \
-    python -m ensurepip --default-pip && \
-    python -m pip install --upgrade pip && \
-    python -m pip install --no-cache-dir -r requirements.txt && \
-    find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} + && \
-    rm -rf /usr/bin/rm /usr/bin/find"
+# Copy preinstalled virtualenv
+COPY --from=build --chown=nonroot ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 
 ENV PATH=${VIRTUAL_ENV}/bin:${PATH}
 ENV HOME=/opt
