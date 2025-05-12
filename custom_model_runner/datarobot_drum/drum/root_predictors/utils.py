@@ -127,7 +127,7 @@ def _stream_p_open(subprocess_popen: subprocess.Popen):
         try:
             # Stream output if available
             line = q.get_nowait()
-            print(line.strip()) if len(line.strip()) > 0 else None
+            logger.info(line.strip()) if len(line.strip()) > 0 else None
         except Empty:
             # Check if the process has terminated
             if subprocess_popen.poll() is not None:
