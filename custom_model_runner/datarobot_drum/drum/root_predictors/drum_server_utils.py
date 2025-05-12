@@ -39,13 +39,14 @@ def wait_for_server(url, timeout):
             raise TimeoutError("Server failed to start: url: {}".format(url))
 
 
-def _run_server_thread(cmd, process_obj_holder, verbose=True):
+def _run_server_thread(cmd, process_obj_holder, verbose=True, stream_output=False):
     _exec_shell_cmd(
         cmd,
         "Failed in {} command line! {}".format(ArgumentsOptions.MAIN_COMMAND, cmd),
         assert_if_fail=False,
         process_obj_holder=process_obj_holder,
         verbose=verbose,
+        stream_output=stream_output,
     )
 
 
@@ -89,6 +90,7 @@ class DrumServerRun:
         max_workers=None,
         cmd_override=None,
         port: Optional[int] = None,
+        stream_output: Optional[bool] = False,
     ):
         self.port = port or DrumUtils.find_free_port()
         self.server_address = "localhost:{}".format(self.port)
@@ -123,12 +125,18 @@ class DrumServerRun:
         self._wait_for_server_timeout = wait_for_server_timeout
         self._max_workers = max_workers
         self._cmd_override = cmd_override
+        self._stream_output = stream_output
 
     def __enter__(self):
         self._server_thread = self._thread_class(
             name="DRUM Server",
             target=_run_server_thread,
-            args=(self.get_command(), self._process_object_holder, self._verbose),
+            args=(
+                self.get_command(),
+                self._process_object_holder,
+                self._verbose,
+                self._stream_output,
+            ),
         )
         self._server_thread.start()
         time.sleep(0.5)

@@ -10,6 +10,8 @@ import shutil
 import shlex
 import subprocess
 import time
+from queue import Queue, Empty
+from threading import Thread
 
 from datarobot_drum.drum.common import get_drum_logger
 from datarobot_drum.drum.enum import (
@@ -102,6 +104,47 @@ def _create_custom_model_dir(
     return custom_model_dir
 
 
+def _queue_output(stdout, stderr, queue):
+    """Helper function to stream output from subprocess to a queue."""
+    for line in iter(stdout.readline, b""):
+        queue.put(line)
+    for line in iter(stderr.readline, b""):
+        queue.put(line)
+    stdout.close()
+    stderr.close()
+
+
+def _stream_p_open(subprocess_popen: subprocess.Popen):
+    """Wraps the Popen object to stream output in a separate thread.
+    This realtime output of the stdout and stderr of the process
+    is streamed to the terminal.
+
+    This logic was added because there is not a direct python execution flow for DRUM.
+    SEE: https://datarobot.atlassian.net/browse/RAPTOR-12510
+    """
+    logger_queue = Queue()
+    logger_thread = Thread(
+        target=_queue_output,
+        daemon=True,
+        args=(subprocess_popen.stdout, subprocess_popen.stderr, logger_queue),
+    )
+    logger_thread.start()
+    while True:
+        try:
+            # Stream output if available
+            line = logger_queue.get_nowait()
+            logger.info(line.strip()) if len(line.strip()) > 0 else None
+        except Empty:
+            # Check if the process has terminated
+            if subprocess_popen.poll() is not None:
+                break
+            time.sleep(1)
+        except Exception:
+            break
+    # Output has already been displayed
+    return "", ""
+
+
 def _exec_shell_cmd(
     cmd,
     err_msg,
@@ -110,6 +153,7 @@ def _exec_shell_cmd(
     env=os.environ,
     verbose=True,
     capture_output=True,
+    stream_output=False,
 ):
     """
     Wrapper used by tests and validation to run shell command.
@@ -132,7 +176,10 @@ def _exec_shell_cmd(
         process_obj_holder.process = p
 
     if capture_output:
-        (stdout, stderr) = p.communicate()
+        if stream_output:
+            (stdout, stderr) = _stream_p_open(p)
+        else:
+            (stdout, stderr) = p.communicate()
     else:
         stdout, stderr = None, None
 
