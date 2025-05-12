@@ -114,13 +114,13 @@ def _queue_output(stdout, stderr, queue):
     stderr.close()
 
 
-def _stream_p_open(p: subprocess.Popen):
+def _stream_p_open(subprocess_popen: subprocess.Popen):
     """Wraps the Popen object to stream output in a separate thread.
     This realtime output of the stdout and stderr of the process
     is streamed to the terminal.
     """
     q = Queue()
-    t = Thread(target=_queue_output, args=(p.stdout, p.stderr, q))
+    t = Thread(target=_queue_output, args=(subprocess_popen.stdout, subprocess_popen.stderr, q))
     t.daemon = True  # thread dies with the program
     t.start()
     while True:
@@ -130,7 +130,7 @@ def _stream_p_open(p: subprocess.Popen):
             print(line.strip()) if len(line.strip()) > 0 else None
         except Empty:
             # Check if the process has terminated
-            if p.poll() is not None:
+            if subprocess_popen.poll() is not None:
                 break
             time.sleep(1)
         except Exception:
