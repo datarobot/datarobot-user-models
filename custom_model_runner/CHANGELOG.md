@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ##### Changed
 - Using logs output for all server operations. `print` command is discouraged in user modules.
+- Non-root user is configured for drop-in environments 
 
 #### [1.16.12] - 2025-04-23
 ##### Changed
