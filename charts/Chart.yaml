@@ -1,0 +1,185 @@
+global: {}
+image:
+  tag: latest
+  registry: docker.io
+  repository: datarobotdev/environmentscli
+environments:
+- name: env-gpu-vllm
+  image: datarobot/env-gpu-vllm:68225130c69a2f2230f668b5
+  tags:
+  - 68225130c69a2f2230f668b5
+  environment_name: "[GenAI] vLLM Inference Server"
+  environment_id: 662d6a54ef58f64c5a07d122
+  environment_version_id: 68225130c69a2f2230f668b5
+  environment_version_label: "v0.8.3+dr.1"
+  environment_description: "A high-throughput and memory-efficient inference and serving\
+    \ engine for LLMs."
+  environment_version_description: "Update to vllm v0.8.3\nFROM vllm/vllm-openai:v0.8.3"
+  programming_language: python
+  is_public: true
+  use_cases:
+  - customModel
+- name: env-python-sklearn
+  image: datarobot/env-python-sklearn:68220405046afc414c6a9ffa
+  tags:
+  - 68220405046afc414c6a9ffa
+  environment_name: "[DataRobot] Python 3.11 Scikit-Learn Drop-In"
+  environment_id: 5e8c889607389fe0f466c72d
+  environment_version_id: 68220405046afc414c6a9ffa
+  environment_version_label: ""
+  environment_description: "This template environment can be used to create artifact-only\
+    \ scikit-learn custom models. This environment contains scikit-learn and only\
+    \ requires your model artifact as a .pkl file and optionally a custom.py file."
+  environment_version_description: ""
+  programming_language: python
+  is_public: true
+  use_cases:
+  - customModel
+- name: env-python
+  image: datarobot/env-python:68220405046afc414c6a9ff6
+  tags:
+  - 68220405046afc414c6a9ff6
+  environment_name: "[DataRobot] Python 3.11 Drop-In"
+  environment_id: 67a554baeade3a4ce2ab6700
+  environment_version_id: 68220405046afc414c6a9ff6
+  environment_version_label: ""
+  environment_description: "This template environment can be used to create Python\
+    \ based custom models. User is responsible to provide requirements.txt with the\
+    \ model, to install all the required dependencies."
+  environment_version_description: ""
+  programming_language: python
+  is_public: true
+  use_cases:
+  - customModel
+- name: env-java-codegen
+  image: datarobot/env-java-codegen:68220405046afc414c6a9ff3
+  tags:
+  - 68220405046afc414c6a9ff3
+  environment_name: "[DataRobot] Java Drop-In (DR Codegen, H2O)"
+  environment_id: 5e3028d9c38741266ef86452
+  environment_version_id: 68220405046afc414c6a9ff3
+  environment_version_label: ""
+  environment_description: "This template can be used as an environment for DataRobot\
+    \ generated scoring code or models that implement the either the IClassificationPredictor\
+    \ or IRegressionPredictor interface from the datarobot-prediction package and\
+    \ for H2O models exported as POJO or MOJO."
+  environment_version_description: ""
+  programming_language: java
+  is_public: true
+  use_cases:
+  - customModel
+- name: env-python-pytorch
+  image: datarobot/env-python-pytorch:68220405046afc414c6a9ff7
+  tags:
+  - 68220405046afc414c6a9ff7
+  environment_name: "[DataRobot] Python 3.11 PyTorch Drop-In"
+  environment_id: 5e8c888007389fe0f466c72b
+  environment_version_id: 68220405046afc414c6a9ff7
+  environment_version_label: ""
+  environment_description: "This template environment can be used to create artifact-only\
+    \ PyTorch custom models. This environment contains PyTorch and requires only your\
+    \ model artifact as a .pth file, any other code needed to deserialize your model,\
+    \ and optionally a custom.py file."
+  environment_version_description: ""
+  programming_language: python
+  is_public: true
+  use_cases:
+  - customModel
+- name: env-python-genai
+  image: datarobot/env-python-genai:68220405046afc414c6a9ffb
+  tags:
+  - 68220405046afc414c6a9ffb
+  environment_name: "[DataRobot] Python 3.11 GenAI"
+  environment_id: 64d2ba178dd3f0b1fa2162f0
+  environment_version_id: 68220405046afc414c6a9ffb
+  environment_version_label: ""
+  environment_description: "This template environment can be used to create GenAI-powered\
+    \ custom models and includes common dependencies for workflows using OpenAI, Langchain,\
+    \ vector DBs, or transformers in PyTorch. Similar to other drop-in environments,\
+    \ you can either include a .pth artifact or any other code needed to deserialize\
+    \ your model, and optionally a custom.py file."
+  environment_version_description: ""
+  programming_language: python
+  is_public: true
+  use_cases:
+  - customModel
+- name: env-python-onnx
+  image: datarobot/env-python-onnx:68220404046afc414c6a9ff1
+  tags:
+  - 68220404046afc414c6a9ff1
+  environment_name: "[DataRobot] Python 3.11 ONNX Drop-In"
+  environment_id: 62059a573f7d5f5cebabcba5
+  environment_version_id: 68220404046afc414c6a9ff1
+  environment_version_label: ""
+  environment_description: "This template environment can be used to create artifact-only\
+    \ ONNX custom models. This environment contains ONNX runtime and only requires\
+    \ your model artifact as an .onnx file and optionally a custom.py file."
+  environment_version_description: ""
+  programming_language: python
+  is_public: true
+  use_cases:
+  - customModel
+- name: env-python-pmml
+  image: datarobot/env-python-pmml:68220405046afc414c6a9ff8
+  tags:
+  - 68220405046afc414c6a9ff8
+  environment_name: "[DataRobot] Python 3.11 PMML Drop-In"
+  environment_id: 5ee7dfc6433a8423386102ce
+  environment_version_id: 68220405046afc414c6a9ff8
+  environment_version_label: ""
+  environment_description: "This template environment can be used to create artifact-only\
+    \ PMML custom models. This environment contains PyPMML and only requires your\
+    \ model artifact as a .pmml file and optionally a custom.py file."
+  environment_version_description: ""
+  programming_language: python
+  is_public: true
+  use_cases:
+  - customModel
+- name: env-python-xgboost
+  image: datarobot/env-python-xgboost:68220404046afc414c6a9ff2
+  tags:
+  - 68220404046afc414c6a9ff2
+  environment_name: "[DataRobot] Python 3.11 XGBoost Drop-In"
+  environment_id: 5e8c88a407389fe0f466c72f
+  environment_version_id: 68220404046afc414c6a9ff2
+  environment_version_label: ""
+  environment_description: "This template environment can be used to create artifact-only\
+    \ xgboost custom models. This environment contains xgboost and only requires your\
+    \ model artifact as a .pkl file and optionally a custom.py file."
+  environment_version_description: ""
+  programming_language: python
+  is_public: true
+  use_cases:
+  - customModel
+- name: env-python-keras
+  image: datarobot/env-python-keras:68220405046afc414c6a9ff9
+  tags:
+  - 68220405046afc414c6a9ff9
+  environment_name: "[DataRobot] Python 3.11 Keras Drop-In"
+  environment_id: 5e8c886607389fe0f466c729
+  environment_version_id: 68220405046afc414c6a9ff9
+  environment_version_label: ""
+  environment_description: "This template environment can be used to create artifact-only\
+    \ keras custom models. This environment contains keras backed by tensorflow and\
+    \ only requires your model artifact as a .h5 file and optionally a custom.py file."
+  environment_version_description: ""
+  programming_language: python
+  is_public: true
+  use_cases:
+  - customModel
+- name: env-r-lang
+  image: datarobot/env-r-lang:68220405046afc414c6a9ff5
+  tags:
+  - 68220405046afc414c6a9ff5
+  environment_name: "[DataRobot] R 4.4.3 Drop-In"
+  environment_id: 5ea850ca1d41c8173c2feef6
+  environment_version_id: 68220405046afc414c6a9ff5
+  environment_version_label: ""
+  environment_description: "This template environment can be used to create artifact-only\
+    \ R custom models that use the caret library. Your custom model archive need only\
+    \ contain your model artifacts if you use the environment correctly."
+  environment_version_description: ""
+  programming_language: r
+  is_public: true
+  use_cases:
+  - customModel
