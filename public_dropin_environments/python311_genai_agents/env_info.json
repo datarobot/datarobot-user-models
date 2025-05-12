@@ -3,7 +3,7 @@
   "name": "[DataRobot] Python 3.11 GenAI Agents",
   "description": "This template environment can be used to create GenAI-powered agents using CrewAI, LangGraph, or Llama-Index. Similar to other drop-in environments, you can either include a .pth artifact or any other code needed to deserialize your model, and optionally a custom.py file. You can also use this environment in codespaces.",
   "programmingLanguage": "python",
-  "environmentVersionId": "68220405046afc414c6a9ff4",
+  "environmentVersionId": "68225c555e9eef0f4d810899",
   "isPublic": true,
   "useCases": [
     "notebook",
