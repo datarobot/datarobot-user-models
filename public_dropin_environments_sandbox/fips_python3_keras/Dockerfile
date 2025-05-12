@@ -52,4 +52,6 @@ ENV WITH_ERROR_SERVER=1 \
 COPY ./*.sh ${CODE_DIR}/
 WORKDIR ${CODE_DIR}
 
+USER nonroot
+
 ENTRYPOINT ["sh", "-c", "${CODE_DIR}/start_server.sh \"$@\"", "--"]

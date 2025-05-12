@@ -47,6 +47,8 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR ${CODE_DIR}
 COPY . ${CODE_DIR}/
 
+USER nonroot
+
 # We have found performance to be best with 10 workers and by setting it this way, users can
 # still override it with the CUSTOM_MODEL_WORKERS runtime param.
 ENV MAX_WORKERS=10
