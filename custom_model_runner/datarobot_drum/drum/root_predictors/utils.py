@@ -118,15 +118,17 @@ def _stream_p_open(subprocess_popen: subprocess.Popen):
     """Wraps the Popen object to stream output in a separate thread.
     This realtime output of the stdout and stderr of the process
     is streamed to the terminal.
+
+    This logic was added because there is not a direct python execution flow for DRUM.
+    SEE: https://datarobot.atlassian.net/browse/RAPTOR-12510
     """
-    q = Queue()
-    t = Thread(target=_queue_output, args=(subprocess_popen.stdout, subprocess_popen.stderr, q))
-    t.daemon = True  # thread dies with the program
-    t.start()
+    logger_queue = Queue()
+    logger_thread = Thread(target=_queue_output, daemon=True, args=(subprocess_popen.stdout, subprocess_popen.stderr, logger_queue))
+    logger_thread.start()
     while True:
         try:
             # Stream output if available
-            line = q.get_nowait()
+            line = logger_queue.get_nowait()
             logger.info(line.strip()) if len(line.strip()) > 0 else None
         except Empty:
             # Check if the process has terminated
