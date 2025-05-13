@@ -25,6 +25,9 @@ set +e
 id
 set -e
 
+title "Upgrade pip"
+pip install -U pip
+
 title "Installing pytest"
 pip install pytest pytest-xdist
 
@@ -33,6 +36,7 @@ pip install pytest pytest-xdist
 # with the datarobot-drum version specified in the environment's requirements.txt file.
 if [ "${FRAMEWORK}" != "java_codegen" ]; then
     title "Uninstalling datarobot-drum"
+    # I think we don't need to uninstall datarobot-mlops, but removing it broke drum re-installation.
     pip uninstall datarobot-drum datarobot-mlops -y
 
     title "Installing dependencies, with datarobot-drum installed from source-code"
@@ -64,8 +68,13 @@ if [ "${FRAMEWORK}" != "java_codegen" ]; then
       DRUM_SOURCE_DIR_TMP="/tmp/custom_model_runner"
       cp -r ${DRUM_SOURCE_DIR} ${DRUM_SOURCE_DIR_TMP}
     fi
-    # Install datarobot-drum from source code, but keep dependencies that were installed by the environment
-    pip install --force-reinstall ${DRUM_SOURCE_DIR_TMP}${EXTRA} ${INST_ENV_REQ_CMD}
+    # Install datarobot-drum from source code.
+    # Testing image either was just built (if env changed), or the latest release image is used for testing.
+    # I think we should not reinstall all the deps.
+    # We only install DRUM from source, if some deps were changed they are upgraded.
+    # This saves time by avoiding heavy AI/nvidia packages reinstallation.
+    # pip install --force-reinstall ${DRUM_SOURCE_DIR_TMP}${EXTRA} ${INST_ENV_REQ_CMD}
+    pip install --upgrade ${DRUM_SOURCE_DIR_TMP}${EXTRA}
 fi
 
 cd "${ROOT_DIR}"
