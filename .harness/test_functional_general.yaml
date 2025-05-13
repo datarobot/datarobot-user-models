@@ -11,7 +11,7 @@ pipeline:
   stages:
     - parallel:
         - stage:
-            name: test mlops reporting1
+            name: test mlops reporting
             identifier: mlops_reporting
             description: This was historically separated from all the oter functional tests as MLOps package should be installed
             type: CI
