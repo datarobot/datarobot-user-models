@@ -37,27 +37,19 @@ from openai.types.chat.completion_create_params import (
 root = logging.getLogger()
 
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--user_prompt", type=str, default="", help="user_prompt for chat endpoint"
-)
-parser.add_argument(
-    "--extra_body", type=str, default="", help="extra_body for chat endpoint"
-)
+parser.add_argument("--user_prompt", type=str, default="", help="user_prompt for chat endpoint")
+parser.add_argument("--extra_body", type=str, default="", help="extra_body for chat endpoint")
 parser.add_argument(
     "--custom_model_dir",
     type=str,
     default="",
     help="directory containing custom.py location",
 )
-parser.add_argument(
-    "--output_path", type=str, default="", help="json output file location"
-)
+parser.add_argument("--output_path", type=str, default="", help="json output file location")
 args = parser.parse_args()
 
 
-def setup_logging(
-    logger: logging.Logger, output_path: str, log_level: int = logging.INFO
-) -> None:
+def setup_logging(logger: logging.Logger, output_path: str, log_level: int = logging.INFO) -> None:
     if len(output_path) == 0:
         output_path = "output.log"
     else:
