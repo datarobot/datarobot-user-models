@@ -8,5 +8,6 @@
   "useCases": [
     "notebook",
     "customModel"
-  ]
+  ],
+  "imageRepository": "env-python-genai-agents"
 }
