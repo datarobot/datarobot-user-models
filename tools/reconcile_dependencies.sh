@@ -7,7 +7,7 @@
 set -e  # Exit immediately if a command exits with a non-zero status
 
 # Ensure a specific pip version for compatibility
-pip install pip==23.0.0
+pip install -U pip==25.1.1
 
 # Install or upgrade pip-tools for dependency management
 pip install --upgrade pip-tools
