@@ -33,7 +33,15 @@ ARG GID=10101
 # microdnf repoquery python3*
 # ```
 ARG PYTHON_VERSION=3.11
-ARG PYTHON_EXACT_VERSION=3.11.9
+ARG PYTHON_EXACT_VERSION=3.11.11
+
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.9 AS pulumi_builder
+RUN microdnf update -y \
+  && microdnf install -y tar gzip \
+  && microdnf clean all
+
+RUN curl -o install_pulumi.sh https://get.pulumi.com && chmod +x install_pulumi.sh
+RUN ./install_pulumi.sh --version latest --install-root ./pulumi --no-edit-path
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal:9.5 AS base
 # some globally required dependencies
@@ -96,6 +104,8 @@ COPY ./setup-prompt.sh /etc/profile.d/setup-prompt.sh
 RUN curl -fsSL https://rpm.nodesource.com/setup_22.x | bash - && \
     microdnf install -y nodejs && \
     microdnf clean all
+
+RUN sh -c "$(curl --location https://taskfile.dev/install.sh)" -- -d -b /usr/local/bin
 
 # remove microdnf
 RUN microdnf remove microdnf -y
@@ -163,6 +173,7 @@ LABEL com.datarobot.repo-sha=$GIT_COMMIT
 RUN chown -R $UNAME:$UNAME ${WORKDIR} /home/notebooks
 
 COPY --from=builder --chown=$UNAME $WORKDIR $WORKDIR
+COPY --from=pulumi_builder --chown=$UNAME /pulumi/bin $VENV_PATH/bin
 
 # This is required for custom models to work with this image
 COPY ./start_server_drum.sh /opt/code/start_server.sh

@@ -1,7 +1,7 @@
 {
   "id": "6807b77d70d573235153b370",
-  "name": "[Experimental] Python 3.12 + NodeJS 22.15 Base ENV",
-  "description": "This is experimental base environment that includes: \n- Python 3.12.9 \n - NodeJs v22.15",
+  "name": "[Experimental] Python 3.11 + NodeJS 22.15 Base ENV",
+  "description": "This is experimental base environment that includes: \n- Python 3.11 \n - NodeJs v22.15",
   "programmingLanguage": "python",
   "environmentVersionId": "6807c1653f295b1c8f79edb6",
   "isPublic": false,

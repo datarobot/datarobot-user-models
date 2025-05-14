@@ -12,7 +12,7 @@ This environment is built for Python 3.11 and includes only the minimal required
 2. From the terminal, run:
 
    ```
-   tar -czvf py311_notebook_dropin.tar.gz -C /path/to/public_dropin_notebook_environments/python311_notebook_base/ .
+   tar -czvf python311_node22_dropin.tar.gz -C /path/to/public_dropin_notebook_environments/python311_node22/ .
    ```
 
 3. Using either the API or from the UI create a new Custom Environment with the tarball created in step 2.
