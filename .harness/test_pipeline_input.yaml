@@ -1,11 +1,12 @@
 inputSet:
   name: test_pipeline_input_image_build_pipeline
+  tags: {}
   identifier: test_pipeline_input_image_build_pipeline
   orgIdentifier: Custom_Models
   projectIdentifier: datarobotusermodels
   pipeline:
     identifier: reconcile_dependencies_for_all_envs_based_on_parent_folder
     variables:
-      - name: env_folder
+      - name: parent_envs_folders
         type: String
-        value: public_dropin_environments
+        value: ""
