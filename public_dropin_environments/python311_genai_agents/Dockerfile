@@ -26,9 +26,11 @@ ARG VENV_PATH
 USER root
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+# hadolint ignore=DL3018,DL3059
 RUN apk add --no-cache graphviz openblas openssh-server gzip zip unzip curl \
   openjdk-11 vim nano procps tzdata poppler-utils
-RUN apk add rust sqlite
+# hadolint ignore=DL3018,DL3059
+RUN apk add --no-cache rust sqlite
 
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -39,6 +41,7 @@ ENV PYTHONUNBUFFERED=1 \
 ENV PATH="$VENV_PATH/bin:$PATH" \
   PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
+# hadolint ignore=DL3013
 RUN python3 -m venv ${VENV_PATH} && pip3 install -U pip setuptools
 WORKDIR ${WORKDIR}
 
@@ -84,20 +87,20 @@ FROM base AS builder
 ARG WORKDIR
 ARG VENV_PATH
 
-COPY ./run_agent.py ${WORKDIR}/
 COPY ./requirements.txt ${WORKDIR}/
-COPY ./requirements-genai.txt ${WORKDIR}/
 COPY ./agent/requirements-agent.txt ${WORKDIR}/
-RUN python3 -m ensurepip --upgrade
-RUN python3 -m pip install --upgrade pip setuptools
-RUN python3 -m pip install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt
-RUN python3 -m pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt && rm ${WORKDIR}/requirements-agent.txt
+
+# hadolint ignore=DL3013
+RUN python3 -m pip install --upgrade pip setuptools && \
+    python3 -m pip install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt && \
+    python3 -m pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt && rm ${WORKDIR}/requirements-agent.txt
 
 # Generative AI Agents
-RUN python3 -m pip uninstall -y urllib3
-RUN python3 -m pip install --no-cache-dir -r ${WORKDIR}/requirements-genai.txt && rm ${WORKDIR}/requirements-genai.txt
-RUN python3 -m pip uninstall -y litellm
-RUN python3 -m pip install --no-cache-dir --no-warn-conflicts git+https://github.com/datarobot-forks/litellm@mattn/add-datarobot-support-to-litellm
+RUN python3 -m pip uninstall -y litellm && \
+    python3 -m pip install --no-cache-dir --no-warn-conflicts git+https://github.com/datarobot-forks/litellm@mattn/add-datarobot-support-to-litellm
+
+# Copy agent runtime into work directory
+COPY ./run_agent.py ${WORKDIR}/
 
 RUN rm ${VENV_PATH}/share/jupyter/kernels/python3/kernel.json && chmod a+x ${WORKDIR}/start_server.sh
 COPY ./kernel.json ${VENV_PATH}/share/jupyter/kernels/python3/

@@ -38,6 +38,9 @@ cd "$WORKING_DIR" || exit
 # setup ipython extensions
 cp -r /etc/ipython/ /home/notebooks/.ipython/
 
+# Copy agent runtime from work directory to executable directory
+cp /etc/system/kernel/run_agent.py /home/notebooks/storage/run_agent.py
+
 # clear out kubernetes_specific env vars before starting kernel gateway as it will inherit them
 prefix="KUBERNETES_"; for var in $(printenv | cut -d= -f1); do [[ "$var" == "$prefix"* ]] && unset "$var"; done
 
