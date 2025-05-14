@@ -11,7 +11,7 @@ ROOT="${ROOT%/}"
 IFS=',' read -ra FILTER_DIRS <<< "$FILTER_RAW"
 
 # Base ref to compare against
-BASE_REF="origin/master"
+BASE_REF="master"
 
 echo "📁 Using root folder: '$ROOT'"
 if [[ -n "$FILTER_RAW" ]]; then
