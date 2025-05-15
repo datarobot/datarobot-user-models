@@ -27,6 +27,8 @@ ENV WITH_ERROR_SERVER=1
 # Uncomment the following line to switch from Flask to production mode
 #ENV PRODUCTION=1 MAX_WORKERS=4 SHOW_STACKTRACE=1
 
+RUN chmod -R 777 $HOME
+
 USER nobody
 
 ENTRYPOINT ["/opt/code/start_server.sh"]

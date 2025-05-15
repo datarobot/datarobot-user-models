@@ -45,6 +45,8 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR ${CODE_DIR}
 COPY . ${CODE_DIR}/
 
+RUN chmod -R 777 $HOME
+
 USER nonroot
 
 # We have found performance to be best with 10 workers and by setting it this way, users can

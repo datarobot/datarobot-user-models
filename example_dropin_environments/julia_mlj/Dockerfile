@@ -24,6 +24,9 @@ ENV WITH_ERROR_SERVER=1
 #Uncomment the following line to switch to production mode
 #ENV PRODUCTION=1 MAX_WORKERS=4 SHOW_STACKTRACE=1
 
+RUN chmod -R 777 $HOME
+
+# Security scanners require non-root user to be explicitly specified for the Docker image
 USER nobody
 
 ENTRYPOINT ["/opt/code/start_server.sh"]
