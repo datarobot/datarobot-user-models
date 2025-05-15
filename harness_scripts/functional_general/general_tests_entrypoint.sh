@@ -17,14 +17,15 @@ cp -r custom_model_runner/ $tmp_py3_sklearn_env_dir
 
 constants_file="tests/constants.py"
 image_name=$(grep -oP '^DOCKER_PYTHON_SKLEARN\s*=\s*"\K[^"]+' "$constants_file")
+image_name="python3_sklearn_test_env"
 [ -z $image_name ] && echo "DOCKER_PYTHON_SKLEARN is not set in $constants_file" && exit 1
 
 pushd $tmp_py3_sklearn_env_dir
 # remove DRUM from requirements file to be able to install it from source
 sed -i "s/^datarobot-drum.*//" requirements.txt
 # Update the Dockerfile to install the custom model runner
-echo -e "RUN pip uninstall -y datarobot-drum || true\nCOPY ./custom_model_runner /tmp/custom_model_runner\nRUN pip install /tmp/custom_model_runner" >> Dockerfile
-docker build --target not-protected-build -t $image_name .
+echo -e "RUN pip uninstall -y datarobot-drum || true\nCOPY ./custom_model_runner /tmp/custom_model_runner\nRUN pip install /tmp/custom_model_runner" >> Dockerfile.tests
+docker build -t $image_name -f Dockerfile.tests .
 popd
 
 docker images
