@@ -16,8 +16,6 @@ RUN ${VIRTUAL_ENV}/bin/python -m pip install -r requirements.txt
 FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11
 ENV VIRTUAL_ENV=/opt/venv
 
-USER root
-
 # Required to run the entrypoint script
 COPY --from=build /bin/sh /bin/sh
 
@@ -33,7 +31,7 @@ COPY --from=build /bin/mkdir /bin/mkdir
 # Just for convenience
 COPY --from=build /bin/ls /bin/ls
 
-COPY --from=build ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+COPY --from=build --chown=nonroot ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 ENV PATH=${VIRTUAL_ENV}/bin:${PATH}
 ENV OPENAI_HOST=localhost
 ENV OPENAI_PORT=8000
@@ -46,6 +44,11 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR ${CODE_DIR}
 COPY . ${CODE_DIR}/
+
+USER root
+RUN chmod -R 777 $HOME
+# Security scanners require non-root user to be explicitly specified for the Docker image
+USER nonroot
 
 # We have found performance to be best with 10 workers and by setting it this way, users can
 # still override it with the CUSTOM_MODEL_WORKERS runtime param.
