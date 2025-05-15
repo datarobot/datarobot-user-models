@@ -18,6 +18,9 @@ COPY --from=build /bin/chown /bin/chown
 # Required to change the permissions of the 'start_server.sh' that is copied into the managed-image
 COPY --from=build /bin/chmod /bin/chmod
 
+# Required to change the ownership for Custom Models PPS
+COPY --from=build /bin/chgrp /bin/chgrp
+
 # Required for DR backend to create /opt/code (Maybe required by applications other than custom-models)
 COPY --from=build /bin/mkdir /bin/mkdir
 
@@ -40,8 +43,7 @@ RUN sh -c "python -m venv ${VIRTUAL_ENV} && \
     python -m ensurepip --default-pip && \
     python -m pip install --upgrade pip && \
     python -m pip install --no-cache-dir -r requirements.txt && \
-    find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} + && \
-    rm -rf /usr/bin/rm /usr/bin/find"
+    find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} +"
 
 ENV PATH=${VIRTUAL_ENV}/bin:${PATH}
 ENV HOME=/opt

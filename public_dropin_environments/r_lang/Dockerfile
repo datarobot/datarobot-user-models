@@ -99,6 +99,9 @@ COPY --from=build /bin/sh /bin/sh
 # Required to change the ownership of copied files into the managed-image
 COPY --from=build /bin/chown /bin/chown
 
+# Required to change the ownership for Custom Models PPS
+COPY --from=build /bin/chgrp /bin/chgrp
+
 # Required to change the permissions of the 'start_server.sh' that is copied into the managed-image
 COPY --from=build /bin/chmod /bin/chmod
 
@@ -128,8 +131,7 @@ RUN sh -c "python -m venv ${VIRTUAL_ENV} && \
     python -m pip install --no-cache-dir -r requirements.txt && \
     python ensure_sh_shebang.py ${R_HOME}/bin && \
     mkdir -p /usr/share/doc/R/html && \
-    find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} + && \
-    rm -rf /usr/bin/rm /usr/bin/find"
+    find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} +"
 
 ENV PATH=${VIRTUAL_ENV}/bin:${PATH}
 ENV LD_LIBRARY_PATH=${R_HOME}/lib:/usr/lib
