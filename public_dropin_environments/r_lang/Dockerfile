@@ -146,7 +146,7 @@ COPY ./*.sh ${CODE_DIR}/
 WORKDIR ${CODE_DIR}
 
 RUN chmod -R 777 $HOME
-
+# Security scanners require non-root user to be explicitly specified for the Docker image
 USER nonroot
 
 ENTRYPOINT ["sh", "-c", "exec ${CODE_DIR}/start_server.sh \"$@\"", "--"]

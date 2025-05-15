@@ -45,8 +45,9 @@ ENV PYTHONUNBUFFERED=1
 WORKDIR ${CODE_DIR}
 COPY . ${CODE_DIR}/
 
+USER root
 RUN chmod -R 777 $HOME
-
+# Security scanners require non-root user to be explicitly specified for the Docker image
 USER nonroot
 
 # We have found performance to be best with 10 workers and by setting it this way, users can
