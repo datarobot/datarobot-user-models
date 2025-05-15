@@ -16,7 +16,7 @@ RUN ${VIRTUAL_ENV}/bin/python -m pip install --no-cache-dir -r requirements.txt 
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-gaurd image if you build your own.
-FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11
+FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11 AS not-protected-build
 
 # Required to run the entrypoint script
 COPY --from=build /bin/sh /bin/sh
@@ -56,9 +56,11 @@ ENV WITH_ERROR_SERVER=1 \
 COPY ./*.sh ${CODE_DIR}/
 WORKDIR ${CODE_DIR}
 
+ENTRYPOINT ["sh", "-c", "exec ${CODE_DIR}/start_server.sh \"$@\"", "--"]
+
+FROM not-protected-build AS drum-runtime
+
 USER root
 RUN chmod -R 777 $HOME
 # Security scanners require non-root user to be explicitly specified for the Docker image
 USER nonroot
-
-ENTRYPOINT ["sh", "-c", "exec ${CODE_DIR}/start_server.sh \"$@\"", "--"]

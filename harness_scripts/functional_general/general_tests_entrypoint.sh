@@ -24,7 +24,7 @@ pushd $tmp_py3_sklearn_env_dir
 sed -i "s/^datarobot-drum.*//" requirements.txt
 # Update the Dockerfile to install the custom model runner
 echo -e "RUN pip uninstall -y datarobot-drum || true\nCOPY ./custom_model_runner /tmp/custom_model_runner\nRUN pip install /tmp/custom_model_runner" >> Dockerfile
-docker build -t $image_name .
+docker build --target not-protected-build -t $image_name .
 popd
 
 docker images
