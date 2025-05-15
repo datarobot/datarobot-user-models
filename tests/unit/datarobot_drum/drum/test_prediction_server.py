@@ -74,22 +74,6 @@ def list_models_prediction_server(test_flask_app, list_models_python_model_adapt
 
 
 @pytest.fixture
-def non_chat_prediction_server(test_flask_app, non_chat_python_model_adapter):
-    with patch.dict(os.environ, {"TARGET_NAME": "target"}), patch(
-        "datarobot_drum.drum.language_predictors.python_predictor.python_predictor.PythonPredictor._init_mlops"
-    ), patch.object(LazyLoadingHandler, "download_lazy_loading_files"):
-        params = {
-            "run_language": RunLanguage.PYTHON,
-            "target_type": TargetType.TEXT_GENERATION,
-            "deployment_config": None,
-            "__custom_model_path__": "/non-existing-path-to-avoid-loading-unwanted-artifacts",
-        }
-        server = PredictionServer(params)
-        server._predictor._mlops = Mock()
-        server.materialize()
-
-
-@pytest.fixture
 def non_textgen_prediction_server(test_flask_app, non_chat_python_model_adapter):
     with patch.dict(os.environ, {"TARGET_NAME": "target"}), patch(
         "datarobot_drum.drum.language_predictors.python_predictor.python_predictor.PythonPredictor._init_mlops"
@@ -153,9 +137,25 @@ def test_prediction_server_chat_unsupported(openai_client):
         )
 
 
-@pytest.mark.usefixtures("non_chat_prediction_server")
-def test_prediction_server_chat_unimplemented(openai_client):
+@pytest.mark.parametrize("target_type", [TargetType.TEXT_GENERATION, TargetType.AGENTIC_WORKFLOW])
+def test_prediction_server_chat_unimplemented(
+    test_flask_app, non_chat_python_model_adapter, openai_client, target_type
+):
     """Attempt to chat when a textgen model does not implement chat()."""
+
+    with patch.dict(os.environ, {"TARGET_NAME": "target"}), patch(
+        "datarobot_drum.drum.language_predictors.python_predictor.python_predictor.PythonPredictor._init_mlops"
+    ), patch.object(LazyLoadingHandler, "download_lazy_loading_files"):
+        params = {
+            "run_language": RunLanguage.PYTHON,
+            "target_type": target_type,
+            "deployment_config": None,
+            "__custom_model_path__": "/non-existing-path-to-avoid-loading-unwanted-artifacts",
+        }
+        server = PredictionServer(params)
+        server._predictor._mlops = Mock()
+        server.materialize()
+
     with pytest.raises(NotFoundError, match=r"but chat\(\) is not implemented"):
         _ = openai_client.chat.completions.create(
             model="any",
