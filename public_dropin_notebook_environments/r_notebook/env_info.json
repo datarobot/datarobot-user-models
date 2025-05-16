@@ -7,5 +7,6 @@
   "isPublic": true,
   "useCases": [
     "notebook"
-  ]
+  ],
+  "imageRepository": "env-notebook-r-notebook"
 }
