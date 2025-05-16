@@ -385,7 +385,7 @@ class PredictMixin:
         # _predictor is a BaseLanguagePredictor attribute of PredictionServer;
         # see PredictionServer.__init__()
         if not self._predictor.supports_chat():
-            if self._target_type == TargetType.TEXT_GENERATION:
+            if self._target_type in [TargetType.TEXT_GENERATION, TargetType.AGENTIC_WORKFLOW]:
                 message = undefined_chat_message
             else:
                 message = unsupported_chat_message
