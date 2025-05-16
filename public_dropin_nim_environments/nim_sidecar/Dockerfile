@@ -18,6 +18,10 @@ ENV VIRTUAL_ENV=/opt/venv
 
 USER root
 
+# Most of the binaries below are just symlinks to busybox and some OCI build tools follow
+# symlinks (Docker buildkit) and some do not (Kaniko) so copy this in to be safe.
+COPY --from=build /usr/bin/busybox /usr/bin/busybox
+
 # Required to run the entrypoint script
 COPY --from=build /bin/sh /bin/sh
 

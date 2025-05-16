@@ -3,7 +3,7 @@
   "name": "DRUM NIM Sidecar",
   "description": "",
   "programmingLanguage": "python",
-  "environmentVersionId": "682250c4c69a2f21e00b6792",
+  "environmentVersionId": "68271e33cbce0259964dfc19",
   "environmentVersionDescription": "Run with 10 HTTP workers by default",
   "isDownloadable": false,
   "isPublic": true
