@@ -8,5 +8,6 @@
   "isPublic": true,
   "useCases": [
     "customApplication"
-  ]
+  ],
+  "imageRepository": "env-python312-apps"
 }

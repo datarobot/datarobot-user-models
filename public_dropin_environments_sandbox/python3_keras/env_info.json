@@ -7,5 +7,6 @@
   "isPublic": true,
   "useCases": [
     "customModel"
-  ]
+  ],
+  "imageRepository": "env-sandbox-python3-keras"
 }

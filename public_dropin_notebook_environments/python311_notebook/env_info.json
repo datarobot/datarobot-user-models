@@ -8,5 +8,7 @@
   "useCases": [
     "notebook",
     "customModel"
-  ]
+  ],
+  "imageRepository": "env-python311-notebook",
+  "tags": []
 }

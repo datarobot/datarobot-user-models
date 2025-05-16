@@ -6,5 +6,6 @@
   "environmentVersionId": "68271e33cbce0259964dfc19",
   "environmentVersionDescription": "Run with 10 HTTP workers by default",
   "isDownloadable": false,
-  "isPublic": true
+  "isPublic": true,
+  "imageRepository": "env-nim-sidecar"
 }
