@@ -126,15 +126,22 @@ class PythonModelAdapter(AbstractModelAdapter):
             # doing this here because moderation library is loaded before custom.py.
             try:
                 from opentelemetry.instrumentation.requests import RequestsInstrumentor
-                from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
 
                 RequestsInstrumentor().instrument()
-                AioHttpClientInstrumentor().instrument()
             except (ImportError, ModuleNotFoundError):
-                msg = """Instrumentation for requests or aiottp is not loaded, make sure appropriate
+                msg = """Instrumentation for requests is not loaded, make sure appropriate
                 packages are installed:
 
                 pip install opentelemetry-instrumentation-requests
+                """
+            try:
+                from opentelemetry.instrumentation.aiohttp_client import AioHttpClientInstrumentor
+
+                AioHttpClientInstrumentor().instrument()
+            except (ImportError, ModuleNotFoundError):
+                msg = """Instrumentation for aiottp is not loaded, make sure appropriate
+                packages are installed:
+
                 pip install opentelemetry-instrumentation-aiohttp-client
                 """
                 self._logger.warning(msg)

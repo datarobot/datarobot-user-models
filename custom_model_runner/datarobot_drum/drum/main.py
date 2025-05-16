@@ -92,7 +92,8 @@ def main():
         _setup_required_environment_variables(options)
         # Env vars may setup OTEL configuration, lets setup
         # tracer after all env vars updated
-        setup_tracer(RuntimeParameters)
+
+        setup_tracer(RuntimeParameters, options)
         if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
             options.max_workers = RuntimeParameters.get("CUSTOM_MODEL_WORKERS")
         runtime.options = options
