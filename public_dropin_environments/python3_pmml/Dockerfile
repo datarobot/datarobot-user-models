@@ -16,6 +16,10 @@ USER root
 # Copy the JDK from the development stage
 COPY --from=build /usr/lib/jvm/java-11-openjdk /usr/lib/jvm/java-11-openjdk
 
+# Most of the binaries below are just symlinks to busybox and some OCI build tools follow
+# symlinks (Docker buildkit) and some do not (Kaniko) so copy this in to be safe.
+COPY --from=build /usr/bin/busybox /usr/bin/busybox
+
 # Required to run the entrypoint script
 COPY --from=build /bin/sh /bin/sh
 
