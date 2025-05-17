@@ -7,5 +7,5 @@
   "environmentVersionId": "67abbb30cbce021ed2502582",
   "environmentVersionDescription": "Security updates.\nFROM nvcr.io/nvidia/tritonserver:25.01-py3",
   "isPublic": true,
-  "imageRepository": "env-triton-server"
+  "imageRepository": "env-gpu-triton-server"
 }
