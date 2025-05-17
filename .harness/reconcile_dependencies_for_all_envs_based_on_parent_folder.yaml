@@ -92,21 +92,9 @@ pipeline:
                       ENV_DIR=<+pipeline.variables.env_folder>
                       TARGET_DIR=${ENV_DIR}
 
-                      # Capture the filtered directories into a variable
-                      CHANGED_DIRS=$(git diff --name-only "$current_branch" "$target_branch" \
-                        | grep '/' \
-                        | xargs -n1 dirname \
-                        | grep "^$TARGET_DIR" \
-                        | while read -r DIR; do
-                            REST=${DIR#"$TARGET_DIR/"}
-                            if [ -z "$REST" ]; then
-                              echo "$DIR"
-                            else
-                              FIRST_LEVEL=$(echo "$REST" | cut -d'/' -f1)
-                              echo "$TARGET_DIR/$FIRST_LEVEL"
-                            fi
-                          done \
-                      | sort -u)
+                      # Find changed envs and export changed_environments
+                      . ./harness_scripts/detect_changed_environments.sh ${ROOT_DIR} <+pipeline.variables.parent_envs_folders>
+                      CHANGED_DIRS=${changed_environments}
 
                       # Output the list stored in the variable
                       echo "=== Changed environments ==="
@@ -129,7 +117,7 @@ pipeline:
                         if diff /tmp/old_env_version_id.txt /tmp/new_env_version_id.txt > /dev/null; then
                           echo "Updating Environment Version IDi --"
                           python3 ${ROOT_DIR}/tools/env_version_update.py --file ./env_info.json
-                          echo "DONE Updating Environment Version IDi --"
+                          echo "DONE Updating Environment Version ID --"
                         fi
 
                         # convert env_info.json to values.yaml
@@ -182,11 +170,11 @@ pipeline:
             type: Cloud
             spec: {}
   variables:
-    - name: env_folder
+    - name: parent_envs_folders
       type: String
-      description: The folder containing the environment to reconcile, e.g. "public_dropin_environments"
-      required: true
-      value: <+input>.allowedValues(public_dropin_environments)
+      description: "The folder containing comma separated white list of env parent folders. E.g. \"public_dropin_environments, public_dropin_gpu_environments\". Changed envs not in these folders will be ignored. Defaut: empty."
+      required: false
+      value: <+input>
   identifier: reconcile_dependencies_for_all_envs_based_on_parent_folder
   description: |-
     On PR, for every drop in env in parent envs folder, e.g. public_dropin_environments:
