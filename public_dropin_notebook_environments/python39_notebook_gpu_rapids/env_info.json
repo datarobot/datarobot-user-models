@@ -9,5 +9,6 @@
     "notebook",
     "gpu",
     "customModel"
-  ]
+  ],
+  "imageRepository": "env-notebook-python39-notebook-gpu-rapids"
 }
