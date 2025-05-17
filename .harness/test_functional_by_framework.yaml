@@ -20,7 +20,7 @@ pipeline:
             steps:
               - step:
                   type: Run
-                  name: Report status to github PR
+                  name: Report status to github PR1
                   identifier: report_status_to_github_pr_0
                   spec:
                     connectorRef: account.dockerhub_datarobot_read
