@@ -49,7 +49,11 @@ pipeline:
                       export ENV_FOLDER=<+pipeline.variables.env_folder>
                       export FRAMEWORK=<+pipeline.variables.framework>
                       export TRIGGER_PR_NUMBER=<+trigger.prNumber>
-                      . ./harness_scripts/functional_by_framework/check_env_changed_check_diff.sh
+
+                      matrix_json_values=$(python3 ./harness_scripts/functional_by_framework_multistep/generate_testlist.py ./tests/functional/test_per_framework.json ./)
+                      echo ${matrix_json_values}
+
+                      exit 1
 
                       dockerfile_local="./<+pipeline.variables.env_folder>/<+pipeline.variables.framework>/Dockerfile.local"
 
