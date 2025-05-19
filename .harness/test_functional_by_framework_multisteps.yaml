@@ -79,6 +79,7 @@ pipeline:
                   strategy:
                     matrix:
                       env: <+json.list("environments", <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.matrix_values>)>
+                      nodeName: <+matrix.env.env_folder>/<+matrix.env.framework> - <+matrix.env.tag>
                   spec:
                     connectorRef: datarobot_user_models_read_write
                     image: datarobotdev/<+matrix.env.repo>:<+matrix.env.tag>
