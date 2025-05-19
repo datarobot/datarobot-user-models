@@ -1,0 +1,15 @@
+inputSet:
+  name: default_on_pr_input
+  identifier: default_on_pr_input
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: Test_functional_by_framework_multisteps
+    properties:
+      ci:
+        codebase:
+          repoName: datarobot-user-models
+          build:
+            type: PR
+            spec:
+              number: <+trigger.prNumber>
