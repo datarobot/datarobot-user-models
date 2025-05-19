@@ -11,7 +11,7 @@ pipeline:
         sparseCheckout: []
   stages:
     - stage:
-        name: Build list of envs to test
+        name: Build list of envs to test1
         identifier: build_list_of_envs_to_test
         description: ""
         type: CI
