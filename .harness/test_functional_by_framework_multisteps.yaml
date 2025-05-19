@@ -87,6 +87,9 @@ pipeline:
             spec: {}
         when:
           pipelineStatus: Success
+        strategy:
+          matrix:
+            env: <+asdf>
   identifier: Test_functional_by_framework_multisteps
   description: |-
     Runs functional tests for each framework in a corresponding image.
