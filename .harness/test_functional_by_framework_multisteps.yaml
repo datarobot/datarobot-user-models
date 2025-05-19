@@ -91,7 +91,7 @@ pipeline:
           matrix:
             abc:
               - a
-              - b
+              - bc
   identifier: Test_functional_by_framework_multisteps
   description: |-
     Runs functional tests for each framework in a corresponding image.
