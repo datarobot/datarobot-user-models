@@ -54,21 +54,13 @@ pipeline:
                   identifier: Run_1
                   strategy:
                     matrix:
-                      env: <+json.list("environments", <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.matrix_values>)>
+                      env: <+json.list("environments", <+pipeline.stages.check_env_changed.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.matrix_values>)>
                       nodeName: <+matrix.env.env_folder>/<+matrix.env.framework> - <+matrix.env.tag>
                   spec:
                     connectorRef: datarobot_user_models_read_write
                     image: datarobotdev/<+matrix.env.repo>:<+matrix.env.tag>
                     shell: Sh
                     command: |-
-                      echo "Checking if test for local should run"
-                      echo "Tag: <+matrix.image_tag>"
-                      echo "Dockerfile.local exists: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.dockerfile_local_exists>"
-
-                      if [[ "<+matrix.image_tag>" == *local* && <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.dockerfile_local_exists> == false ]]; then
-                        echo "Dockerfile.local does not exist, skippinig test"
-                        exit 0
-                      fi
                       ./harness_scripts/functional_by_framework/check_by_framework_run1_step_entrypoint.sh \
                         <+matrix.env.framework> <+matrix.env.env_folder>
                     resources:
