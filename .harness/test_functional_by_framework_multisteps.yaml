@@ -79,6 +79,9 @@ pipeline:
             spec: {}
         when:
           pipelineStatus: Success
+        strategy:
+          matrix:
+            env: <+json.list("environments", <+pipeline.stages.check_env_changed.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.matrix_values>)>
   identifier: Test_functional_by_framework_multisteps
   description: |-
     Runs functional tests for each framework in a corresponding image.
