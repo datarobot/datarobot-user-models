@@ -81,42 +81,6 @@ pipeline:
                         memory: 3G
                   when:
                     stageStatus: Success
-              - step:
-                  type: Run
-                  name: Report status to github PR
-                  identifier: report_status_to_github_pr_1
-                  spec:
-                    connectorRef: account.dockerhub_datarobot_read
-                    image: curlimages/curl:latest
-                    shell: Sh
-                    command: |
-                      status_0="<+execution.steps.Run_1_0.status>"
-                      status_1="<+execution.steps.Run_1_1.status>"
-                      if [[ "$status_1" == "null" ]]; then
-                        status_1="SUCCEEDED"
-                      fi
-                      github_status_key="<+pipeline.stages.check_env_changed.spec.execution.steps.report_status_to_github_pr_0.output.outputVariables.pipeline_execution_github_status_key>"
-
-                      echo "Update PR status"
-                      echo "Status_0: $status_0; Status_1: $status_1"
-                      if [[ "$status_0" == "SUCCEEDED" && "$status_1" == "SUCCEEDED" ]]; then
-                        state="success"
-                        description="Passed"
-                      elif [[ "$status_0" == "PENDING" ||  "$status_1" == "PENDING" ]]; then
-                        state="pending"
-                        description="Pending"
-                      else
-                        state="failure"
-                        description="Failed"
-                      fi
-
-                      curl -i -u <+account.name>:<+secrets.getValue("account.Github_Access_Token")> \
-                      -X POST \
-                      -H "Accept: application/vnd.github.v3+json" \
-                      https://api.github.com/repos/<+account.name>/datarobot-user-models/statuses/<+trigger.commitSha> \
-                      -d "{\"state\":\"$state\",\"target_url\":\"<+pipeline.execution.url>\",\"description\":\"$description\",\"context\":\"$github_status_key\"}"
-                  when:
-                    stageStatus: All
           caching:
             enabled: false
             paths: []
