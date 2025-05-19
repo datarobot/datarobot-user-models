@@ -1,6 +1,6 @@
 {
   "environments" : [
     {"env_folder":  "public_dropin_environments", "framework":  "python311", "with_local":  true},
-    {"env_folder":  "public_dropin_environments", "framework":  "python3_sklearn"}
+    {"env_folder":  "public_dropin_environments", "framework":  "python3_pmml"}
   ]
 }
