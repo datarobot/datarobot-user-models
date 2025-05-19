@@ -1,0 +1,251 @@
+pipeline:
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
+  stages:
+    - stage:
+        name: Check if framework env has changed
+        identifier: check_env_changed
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Report status to github PR
+                  identifier: report_status_to_github_pr_0
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: curlimages/curl:latest
+                    shell: Sh
+                    command: |
+                      pipeline_execution_github_status_key="<+pipeline.name> - <+pipeline.variables.framework> (<+pipeline.variables.env_folder>)"
+
+                      echo "Update PR status"
+                      curl -i -X POST \
+                      -H "Authorization: Bearer <+secrets.getValue("account.Github_Access_Token")>" \
+                      -H "Accept: application/vnd.github.v3+json" \
+                      https://api.github.com/repos/<+account.name>/datarobot-user-models/statuses/<+trigger.commitSha> \
+                      -d "{\"state\":\"pending\",\"target_url\":\"<+pipeline.execution.url>\",\"description\":\"Test is running\",\"context\":\"$pipeline_execution_github_status_key\"}"
+                    outputVariables:
+                      - name: pipeline_execution_github_status_key
+              - step:
+                  type: Run
+                  name: check_diff
+                  identifier: check_diff
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    shell: Sh
+                    command: |-
+                      export CODEBASE_BRANCH=<+codebase.branch>
+                      export ENV_FOLDER=<+pipeline.variables.env_folder>
+                      export FRAMEWORK=<+pipeline.variables.framework>
+                      export TRIGGER_PR_NUMBER=<+trigger.prNumber>
+                      . ./harness_scripts/functional_by_framework/check_env_changed_check_diff.sh
+
+                      dockerfile_local="./<+pipeline.variables.env_folder>/<+pipeline.variables.framework>/Dockerfile.local"
+
+                      image_uri=${test_image_namespace}/${test_image_repository}:${test_image_tag}
+                      if [ -f "${dockerfile_local}" ]; then
+                        dockerfile_local_exists=true
+                        matrix_values="${image_uri},datarobotdev/${test_image_repository}:${test_image_tag}.local"
+                      else
+                        dockerfile_local_exists=false
+                        matrix_values="${image_uri}"
+                      fi
+                      export dockerfile_local_exists
+                    outputVariables:
+                      - name: dockerfile_local_exists
+                      - name: matrix_values
+                      - name: changed_deps
+                      - name: test_image_namespace
+                      - name: test_image_repository
+                      - name: test_image_tag
+          caching:
+            enabled: false
+            paths: []
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+    - parallel:
+        - stage:
+            name: Build TMP image if framework env has changed
+            identifier: Build_image_because_of_change
+            description: ""
+            type: Pipeline
+            spec:
+              org: Custom_Models
+              pipeline: env_image_publish
+              project: datarobotusermodels
+              inputs:
+                identifier: env_image_publish
+                properties:
+                  ci:
+                    codebase:
+                      build: <+input>
+                variables:
+                  - name: context_path
+                    type: String
+                    value: <+pipeline.variables.env_folder>/<+pipeline.variables.framework>
+                  - name: dockerfile_path
+                    type: String
+                    value: <+pipeline.variables.env_folder>/<+pipeline.variables.framework>/Dockerfile
+                  - name: image_namespace_repo
+                    type: String
+                    value: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_namespace>/<+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_repository>
+                  - name: image_tag
+                    type: String
+                    value: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>
+            when:
+              pipelineStatus: Success
+              condition: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.changed_deps>
+                == true
+            tags: {}
+        - stage:
+            name: Build TMP image if framework env has changed LOCAL
+            identifier: Build_image_because_of_change_local
+            description: ""
+            type: Pipeline
+            spec:
+              org: Custom_Models
+              pipeline: env_image_publish
+              project: datarobotusermodels
+              inputs:
+                identifier: env_image_publish
+                properties:
+                  ci:
+                    codebase:
+                      build: <+input>
+                variables:
+                  - name: context_path
+                    type: String
+                    value: <+pipeline.variables.env_folder>/<+pipeline.variables.framework>
+                  - name: dockerfile_path
+                    type: String
+                    value: <+pipeline.variables.env_folder>/<+pipeline.variables.framework>/Dockerfile.local
+                  - name: image_namespace_repo
+                    type: String
+                    value: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_namespace>/<+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_repository>
+                  - name: image_tag
+                    type: String
+                    value: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.test_image_tag>.local
+            when:
+              pipelineStatus: Success
+              condition: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.changed_deps>
+                == true && <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.dockerfile_local_exists>
+                == true
+            tags: {}
+    - stage:
+        name: Test functional by framework
+        identifier: check_by_framework
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Run functional test in provided framework
+                  identifier: Run_1
+                  strategy:
+                    matrix:
+                      image_uri: "<+<+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.matrix_values>.split(',')>"
+                  spec:
+                    connectorRef: datarobot_user_models_read_write
+                    image: <+matrix.image_uri>
+                    shell: Sh
+                    command: |-
+                      echo "Checking if test for local should run"
+                      echo "Tag: <+matrix.image_tag>"
+                      echo "Dockerfile.local exists: <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.dockerfile_local_exists>"
+
+                      if [[ "<+matrix.image_tag>" == *local* && <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.dockerfile_local_exists> == false ]]; then
+                        echo "Dockerfile.local does not exist, skippinig test"
+                        exit 0
+                      fi
+                      ./harness_scripts/functional_by_framework/check_by_framework_run1_step_entrypoint.sh \
+                        <+pipeline.variables.framework> <+pipeline.variables.env_folder>
+                    resources:
+                      limits:
+                        memory: 3G
+                  when:
+                    stageStatus: Success
+              - step:
+                  type: Run
+                  name: Report status to github PR
+                  identifier: report_status_to_github_pr_1
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: curlimages/curl:latest
+                    shell: Sh
+                    command: |
+                      status_0="<+execution.steps.Run_1_0.status>"
+                      status_1="<+execution.steps.Run_1_1.status>"
+                      if [[ "$status_1" == "null" ]]; then
+                        status_1="SUCCEEDED"
+                      fi
+                      github_status_key="<+pipeline.stages.check_env_changed.spec.execution.steps.report_status_to_github_pr_0.output.outputVariables.pipeline_execution_github_status_key>"
+
+                      echo "Update PR status"
+                      echo "Status_0: $status_0; Status_1: $status_1"
+                      if [[ "$status_0" == "SUCCEEDED" && "$status_1" == "SUCCEEDED" ]]; then
+                        state="success"
+                        description="Passed"
+                      elif [[ "$status_0" == "PENDING" ||  "$status_1" == "PENDING" ]]; then
+                        state="pending"
+                        description="Pending"
+                      else
+                        state="failure"
+                        description="Failed"
+                      fi
+
+                      curl -i -u <+account.name>:<+secrets.getValue("account.Github_Access_Token")> \
+                      -X POST \
+                      -H "Accept: application/vnd.github.v3+json" \
+                      https://api.github.com/repos/<+account.name>/datarobot-user-models/statuses/<+trigger.commitSha> \
+                      -d "{\"state\":\"$state\",\"target_url\":\"<+pipeline.execution.url>\",\"description\":\"$description\",\"context\":\"$github_status_key\"}"
+                  when:
+                    stageStatus: All
+          caching:
+            enabled: false
+            paths: []
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+        when:
+          pipelineStatus: Success
+  variables:
+    - name: framework
+      type: String
+      description: ""
+      required: false
+      value: <+input>
+    - name: env_folder
+      type: String
+      value: <+input>.default(public_dropin_environments)
+      description: The root path of all the environments
+    - name: use_local_dockerfile
+      type: String
+      value: <+input>.default("false")
+      description: Use Dockerfile.local to test the image for local development
+  identifier: Test_functional_by_framework_multisteps
+  description: |-
+    Runs functional tests for each framework in a corresponding image.
+    If only DRUM changed in the PR, latest image is taken for every framework, DRUM installed and tests run.
+    If environment itself has changed, temporary image is built.
+  name: Test functional by framework - multisteps
