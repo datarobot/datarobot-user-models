@@ -6,16 +6,17 @@ import logging
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='[%(levelname)s] %(asctime)s - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
+    format="[%(levelname)s] %(asctime)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 
 logger = logging.getLogger(__name__)
 
+
 def load_tests_list(tests_list_path):
     try:
         logger.info(f"Loading tests list from {tests_list_path}")
-        with open(tests_list_path, 'r') as f:
+        with open(tests_list_path, "r") as f:
             data = json.load(f)
         return data.get("environments", [])
     except FileNotFoundError:
@@ -25,15 +26,13 @@ def load_tests_list(tests_list_path):
         logger.error("Invalid JSON in tests list.")
         sys.exit(1)
 
+
 def load_env_info(env_info_path):
     try:
         logger.info(f"Reading env_info from {env_info_path}")
-        with open(env_info_path, 'r') as f:
+        with open(env_info_path, "r") as f:
             data = json.load(f)
-        return {
-            "repo": data["imageRepository"],
-            "tag": data["environmentVersionId"]
-        }
+        return {"repo": data["imageRepository"], "tag": data["environmentVersionId"]}
     except FileNotFoundError:
         logger.error(f"env_info.json not found at path: {env_info_path}")
         return None
@@ -43,6 +42,7 @@ def load_env_info(env_info_path):
     except json.JSONDecodeError:
         logger.error("Invalid JSON in env_info.json.")
         return None
+
 
 def build_environments(env_list, root_path):
     output_envs = []
@@ -63,7 +63,7 @@ def build_environments(env_list, root_path):
             "env_folder": env_folder,
             "framework": framework,
             "repo": env_info["repo"],
-            "tag": env_info["tag"]
+            "tag": env_info["tag"],
         }
 
         output_envs.append(base_record)
@@ -75,6 +75,7 @@ def build_environments(env_list, root_path):
             logger.info(f"Added local version for environment: {env_folder}/{framework}")
 
     return output_envs
+
 
 def main():
     if len(sys.argv) != 3:
@@ -88,7 +89,8 @@ def main():
     final_envs = build_environments(env_list, root_path)
 
     output = {"environments": final_envs}
-    print(json.dumps(output, separators=(',', ':')))  # Minified JSON
+    print(json.dumps(output, separators=(",", ":")))  # Minified JSON
+
 
 if __name__ == "__main__":
     main()
