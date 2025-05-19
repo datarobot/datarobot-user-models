@@ -52,10 +52,6 @@ pipeline:
                   type: Run
                   name: Run functional test in provided framework
                   identifier: Run_1
-                  strategy:
-                    matrix:
-                      env: <+json.list("environments", <+pipeline.stages.check_env_changed.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.matrix_values>)>
-                      nodeName: <+matrix.env.env_folder>/<+matrix.env.framework> - <+matrix.env.tag>
                   spec:
                     connectorRef: datarobot_user_models_read_write
                     image: datarobotdev/<+matrix.env.repo>:<+matrix.env.tag>
@@ -81,7 +77,8 @@ pipeline:
           pipelineStatus: Success
         strategy:
           matrix:
-            stage_level_env: <+json.list("environments", <+pipeline.stages.check_env_changed.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.matrix_values>)>
+            env: <+json.list("environments", <+pipeline.stages.check_env_changed.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.matrix_values>)>
+            nodeName: <+matrix.env.env_folder>/<+matrix.env.framework> - <+matrix.env.tag>
   identifier: Test_functional_by_framework_multisteps
   description: |-
     Runs functional tests for each framework in a corresponding image.
