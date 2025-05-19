@@ -6,8 +6,9 @@ pipeline:
     ci:
       codebase:
         connectorRef: account.svc_harness_git1
-        repoName: datarobot-user-models
+        repoName: <+input>
         build: <+input>
+        sparseCheckout: []
   stages:
     - stage:
         name: Check if framework env has changed
