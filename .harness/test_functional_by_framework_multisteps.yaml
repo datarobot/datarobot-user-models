@@ -67,7 +67,7 @@ pipeline:
                   when:
                     stageStatus: Success
           caching:
-            enabled: false
+            enabled: true
             paths: []
           platform:
             os: Linux
@@ -75,6 +75,8 @@ pipeline:
           runtime:
             type: Cloud
             spec: {}
+          buildIntelligence:
+            enabled: true
         when:
           pipelineStatus: Success
         strategy:
