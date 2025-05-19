@@ -147,20 +147,6 @@ pipeline:
             spec: {}
         when:
           pipelineStatus: Success
-  variables:
-    - name: framework
-      type: String
-      description: ""
-      required: false
-      value: <+input>
-    - name: env_folder
-      type: String
-      value: <+input>.default(public_dropin_environments)
-      description: The root path of all the environments
-    - name: use_local_dockerfile
-      type: String
-      value: <+input>.default("false")
-      description: Use Dockerfile.local to test the image for local development
   identifier: Test_functional_by_framework_multisteps
   description: |-
     Runs functional tests for each framework in a corresponding image.
