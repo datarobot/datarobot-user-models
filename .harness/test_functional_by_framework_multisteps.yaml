@@ -89,7 +89,7 @@ pipeline:
           pipelineStatus: Success
         strategy:
           matrix:
-            env: <+json.list("environments", <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.matrix_values>)>
+            abc: <+json.list("environments", <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.matrix_values>)>
   identifier: Test_functional_by_framework_multisteps
   description: |-
     Runs functional tests for each framework in a corresponding image.
