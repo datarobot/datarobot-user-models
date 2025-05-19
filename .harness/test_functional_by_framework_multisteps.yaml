@@ -11,8 +11,8 @@ pipeline:
         sparseCheckout: []
   stages:
     - stage:
-        name: Check if framework env has changed
-        identifier: check_env_changed
+        name: Build list of envs to test
+        identifier: build_list_of_envs_to_test
         description: ""
         type: CI
         spec:
@@ -82,7 +82,7 @@ pipeline:
           pipelineStatus: Success
         strategy:
           matrix:
-            env: <+json.list("environments", <+pipeline.stages.check_env_changed.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.matrix_values>)>
+            env: <+json.list("environments", <+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.matrix_values>)>
             nodeName: <+matrix.env.env_folder>/<+matrix.env.framework> - <+matrix.env.tag>
   identifier: Test_functional_by_framework_multisteps
   description: |-
