@@ -78,10 +78,10 @@ pipeline:
                   identifier: Run_1
                   strategy:
                     matrix:
-                      image_uri: <+<+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.matrix_values>.split(',')>
+                      env: <+json.list("environments", <+pipeline.stages.check_env_changed.spec.execution.steps.check_diff.output.outputVariables.matrix_values>)>
                   spec:
                     connectorRef: datarobot_user_models_read_write
-                    image: <+matrix.image_uri>
+                    image: datarobotdev/<+matrix.env.repo>:<+matrix.env.tag>
                     shell: Sh
                     command: |-
                       echo "Checking if test for local should run"
@@ -93,7 +93,7 @@ pipeline:
                         exit 0
                       fi
                       ./harness_scripts/functional_by_framework/check_by_framework_run1_step_entrypoint.sh \
-                        <+pipeline.variables.framework> <+pipeline.variables.env_folder>
+                        <+matrix.env.framework> <+matrix.env.env_folder>
                     resources:
                       limits:
                         memory: 3G
