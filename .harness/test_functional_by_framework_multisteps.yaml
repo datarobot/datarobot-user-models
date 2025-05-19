@@ -26,11 +26,6 @@ pipeline:
                     connectorRef: account.dockerhub_datarobot_read
                     shell: Sh
                     command: |-
-                      export CODEBASE_BRANCH=<+codebase.branch>
-                      export ENV_FOLDER=<+pipeline.variables.env_folder>
-                      export FRAMEWORK=<+pipeline.variables.framework>
-                      export TRIGGER_PR_NUMBER=<+trigger.prNumber>
-
                       matrix_values=$(python3 ./harness_scripts/functional_by_framework_multistep/generate_testlist.py ./tests/functional/test_per_framework.json ./)
                       echo ${matrix_values}
                     outputVariables:
