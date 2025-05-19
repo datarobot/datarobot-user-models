@@ -20,8 +20,8 @@ pipeline:
             steps:
               - step:
                   type: Run
-                  name: check_diff
-                  identifier: check_diff
+                  name: build_list_of_environments_to_test_on
+                  identifier: build_list_of_environments_to_test_on
                   spec:
                     connectorRef: account.dockerhub_datarobot_read
                     shell: Sh
