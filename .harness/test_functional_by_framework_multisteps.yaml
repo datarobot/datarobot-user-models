@@ -31,7 +31,7 @@ pipeline:
                     outputVariables:
                       - name: matrix_values
           caching:
-            enabled: false
+            enabled: true
             paths: []
           platform:
             os: Linux
@@ -39,6 +39,8 @@ pipeline:
           runtime:
             type: Cloud
             spec: {}
+          buildIntelligence:
+            enabled: true
     - stage:
         name: Test functional by framework
         identifier: check_by_framework
