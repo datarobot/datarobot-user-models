@@ -1,0 +1,92 @@
+pipeline:
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: <+input>
+        build: <+input>
+        sparseCheckout: []
+  stages:
+    - stage:
+        name: Build list of envs to test
+        identifier: build_list_of_envs_to_test
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: build_list_of_environments_to_test_on
+                  identifier: build_list_of_environments_to_test_on
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    shell: Sh
+                    command: |-
+                      matrix_values=$(python3 ./harness_scripts/functional_by_framework_multistep/generate_testlist.py ./tests/functional/test_per_framework.json ./)
+                      echo ${matrix_values}
+                    outputVariables:
+                      - name: matrix_values
+          caching:
+            enabled: true
+            paths: []
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          buildIntelligence:
+            enabled: true
+    - stage:
+        name: Test functional by framework
+        identifier: check_by_framework
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Run functional test in provided framework
+                  identifier: Run_1
+                  spec:
+                    connectorRef: datarobot_user_models_read_write
+                    image: datarobotdev/<+matrix.env.repo>:<+matrix.env.tag>
+                    shell: Sh
+                    command: |-
+                      ./harness_scripts/functional_by_framework/check_by_framework_run1_step_entrypoint.sh \
+                        <+matrix.env.framework> <+matrix.env.env_folder>
+                    resources:
+                      limits:
+                        memory: 3G
+                  when:
+                    stageStatus: Success
+          caching:
+            enabled: true
+            paths: []
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          buildIntelligence:
+            enabled: true
+        when:
+          pipelineStatus: Success
+        strategy:
+          matrix:
+            env: <+json.list("environments", <+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.matrix_values>)>
+            nodeName: <+matrix.env.env_folder>/<+matrix.env.framework> - <+matrix.env.tag>
+  identifier: Test_functional_by_framework_multisteps
+  description: |-
+    Runs functional tests for each framework in a corresponding image.
+    If only DRUM changed in the PR, latest image is taken for every framework, DRUM installed and tests run.
+    If environment itself has changed, temporary image is built.
+  name: Test functional by framework - multisteps
