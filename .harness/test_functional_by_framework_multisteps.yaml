@@ -32,7 +32,7 @@ pipeline:
                 type: String
                 value: <+input>.default(false).allowedValues(false,true)
     - stage:
-        name: Build changed images
+        name: Build changed images for changed environments
         identifier: Build_changed_images
         description: ""
         type: Pipeline
@@ -52,6 +52,7 @@ pipeline:
               - name: envs_folders
                 type: String
                 value: <+input>
+        tags: {}
     - stage:
         name: Build list of envs to test
         identifier: build_list_of_envs_to_test
