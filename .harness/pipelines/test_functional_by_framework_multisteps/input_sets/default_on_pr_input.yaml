@@ -9,7 +9,7 @@ inputSet:
     variables:
       - name: target_repo
         type: String
-        value: <
+        value: <+input>
       - name: target_branch
         type: String
         value: <+trigger.branch>
