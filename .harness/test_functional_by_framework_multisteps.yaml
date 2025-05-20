@@ -2,13 +2,6 @@ pipeline:
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models
   tags: {}
-  properties:
-    ci:
-      codebase:
-        connectorRef: account.svc_harness_git1
-        repoName: <+input>
-        build: <+input>
-        sparseCheckout: []
   stages:
     - stage:
         name: Reconcile envVersionIds requirements
@@ -91,7 +84,7 @@ pipeline:
         description: ""
         type: CI
         spec:
-          cloneCodebase: true
+          cloneCodebase: false
           execution:
             steps:
               - step:
