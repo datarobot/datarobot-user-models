@@ -15,10 +15,7 @@ inputSet:
         value: <+trigger.sourceBranch>
       - name: envs_parent_folders_to_include
         type: String
-        value: ""
-      - name: force_requirements_upgrade
-        type: String
-        value: <+input>.default(false).allowedValues(true,false)
+        value: <+input>
     properties:
       ci:
         codebase:
