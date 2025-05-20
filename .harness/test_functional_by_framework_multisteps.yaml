@@ -27,10 +27,10 @@ pipeline:
                 value: <+pipeline.variables.target_branch>
               - name: envs_parent_folders
                 type: String
-                value: <+input>
+                value: <+pipeline.variables.envs_parent_folders_to_include>
               - name: force_requirements_upgrade
                 type: String
-                value: <+input>.default(false).allowedValues(false,true)
+                value: <+pipeline.variables.force_requirements_upgrade>
     - stage:
         name: Build changed images for changed environments
         identifier: Build_changed_images
