@@ -46,15 +46,11 @@ parser.add_argument(
     default="",
     help="directory containing custom.py location",
 )
-parser.add_argument(
-    "--output_path", type=str, default="", help="json output file location"
-)
+parser.add_argument("--output_path", type=str, default="", help="json output file location")
 args = parser.parse_args()
 
 
-def setup_logging(
-    logger: logging.Logger, output_path: str, log_level: int = logging.INFO
-) -> None:
+def setup_logging(logger: logging.Logger, output_path: str, log_level: int = logging.INFO) -> None:
     if len(output_path) == 0:
         output_path = "output.log"
     else:
