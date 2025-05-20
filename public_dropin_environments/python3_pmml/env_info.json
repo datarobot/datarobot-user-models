@@ -1,6 +1,6 @@
 {
   "id": "5ee7dfc6433a8423386102ce",
-  "name": "[DataRobot] Python 3.11 PMML Drop-In",
+  "name": "[DataRobot] Python 3.11 PMML Drop-In - test",
   "description": "This template environment can be used to create artifact-only PMML custom models. This environment contains PyPMML and only requires your model artifact as a .pmml file and optionally a custom.py file.",
   "programmingLanguage": "python",
   "environmentVersionId": "68271d84cbce0247227de59d",
