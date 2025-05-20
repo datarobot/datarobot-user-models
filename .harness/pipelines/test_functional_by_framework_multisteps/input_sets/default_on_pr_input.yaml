@@ -25,4 +25,3 @@ inputSet:
             type: PR
             spec:
               number: <+trigger.prNumber>
-  isInlineHCEntity: false
