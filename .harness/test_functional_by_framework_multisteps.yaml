@@ -133,3 +133,14 @@ pipeline:
     If only DRUM changed in the PR, latest image is taken for every framework, DRUM installed and tests run.
     If environment itself has changed, temporary image is built.
   name: Test functional by framework - multisteps
+  variables:
+    - name: target_repo
+      type: String
+      description: ""
+      required: true
+      value: ""
+    - name: target_branch
+      type: String
+      description: ""
+      required: false
+      value: ""
