@@ -21,10 +21,10 @@ pipeline:
             variables:
               - name: target_repo
                 type: String
-                value: <+input>.default(datarobot-user-models)
+                value: <+input>
               - name: target_repo_branch
                 type: String
-                value: <+input>.default(yakov/build-images-pipeline)
+                value: <+input>
               - name: envs_parent_folders
                 type: String
                 value: <+input>
