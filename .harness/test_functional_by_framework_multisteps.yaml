@@ -21,10 +21,10 @@ pipeline:
             variables:
               - name: target_repo
                 type: String
-                value: <+input>
+                value: <+pipeline.variables.target_repo>
               - name: target_repo_branch
                 type: String
-                value: <+input>
+                value: <+pipeline.variables.target_branch>
               - name: envs_parent_folders
                 type: String
                 value: <+input>
