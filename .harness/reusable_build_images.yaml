@@ -15,7 +15,7 @@ pipeline:
             branch: <+pipeline.variables.target_branch>
   stages:
     - stage:
-        name: Detect changes and output images build matrix2
+        name: Detect changes and output images build matrix
         identifier: Detect_changes_and_output_images_build_matrix
         description: ""
         type: CI
