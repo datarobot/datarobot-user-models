@@ -41,9 +41,11 @@ pipeline:
                   spec:
                     shell: Bash
                     command: |-
-                      echo "Hello"
+                      echo "Reading environments to populate list of images to build"
                       pwd
                       ls -la
+                      git log -2
+
                       IFS=',' read -ra DIR_ARRAY <<< "<+pipeline.variables.envs_folders>"
 
                       json_array="[]"
