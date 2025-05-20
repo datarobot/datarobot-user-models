@@ -5,6 +5,19 @@ inputSet:
   projectIdentifier: datarobotusermodels
   pipeline:
     identifier: Test_functional_by_framework_multisteps
+    variables:
+      - name: target_repo
+        type: String
+        value: datarobot-user-models
+      - name: target_branch
+        type: String
+        value: <+trigger.sourceBranch>
+      - name: envs_parent_folders_to_include
+        type: String
+        value: ""
+      - name: force_requirements_upgrade
+        type: String
+        value: "false"
     properties:
       ci:
         codebase:

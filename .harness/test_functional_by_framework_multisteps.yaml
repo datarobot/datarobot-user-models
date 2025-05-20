@@ -63,6 +63,7 @@ pipeline:
                     connectorRef: account.dockerhub_datarobot_read
                     shell: Sh
                     command: |-
+                      git log -2
                       matrix_values=$(python3 ./harness_scripts/functional_by_framework_multistep/generate_testlist.py ./tests/functional/test_per_framework.json ./)
                       echo ${matrix_values}
                     outputVariables:
