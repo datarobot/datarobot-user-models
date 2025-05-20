@@ -9,13 +9,13 @@ inputSet:
     variables:
       - name: target_repo
         type: String
-        value: <+input>
+        value: datarobot-user-models
       - name: target_branch
         type: String
-        value: <+trigger.branch>
+        value: <+trigger.sourceBranch>
       - name: envs_parent_folders_to_include
         type: String
-        value: <+input>
+        value: ""
       - name: force_requirements_upgrade
         type: String
         value: <+input>.default(false).allowedValues(true,false)
@@ -26,3 +26,4 @@ inputSet:
             type: PR
             spec:
               number: <+trigger.prNumber>
+  isInlineHCEntity: false
