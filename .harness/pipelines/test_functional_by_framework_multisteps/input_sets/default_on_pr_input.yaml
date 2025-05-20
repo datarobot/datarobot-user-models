@@ -8,7 +8,6 @@ inputSet:
     properties:
       ci:
         codebase:
-          repoName: datarobot-user-models
           build:
             type: PR
             spec:

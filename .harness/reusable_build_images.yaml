@@ -1,0 +1,161 @@
+pipeline:
+  name: WIP REUSABLE PIPELINE to build images
+  identifier: WIP_build_images
+  projectIdentifier: datarobotusermodels
+  orgIdentifier: Custom_Models
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: <+pipeline.variables.target_repo>
+        build:
+          type: branch
+          spec:
+            branch: <+pipeline.variables.target_branch>
+  stages:
+    - stage:
+        name: Detect changes and output images build matrix
+        identifier: Detect_changes_and_output_images_build_matrix
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+            override: false
+          buildIntelligence:
+            enabled: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Build params matrix
+                  identifier: Build_params_matrix
+                  spec:
+                    shell: Bash
+                    command: |-
+                      echo "Hello"
+                      pwd
+                      ls -la
+                      IFS=',' read -ra DIR_ARRAY <<< "<+pipeline.variables.envs_folders>"
+
+                      json_array="[]"
+
+                      for DIR in "${DIR_ARRAY[@]}"; do
+                        cd "${DIR}" || exit 1
+                        echo "Processing dir: ${DIR}"
+
+                        # Read fields from env_info.json
+                        REPO_NAME=$(jq -r '.imageRepository' ./env_info.json)
+                        ENV_VERSION_ID=$(jq -r '.environmentVersionId' ./env_info.json)
+
+                        # Create JSON object for this env
+                        env_json=$(jq -n \
+                          --arg path "${DIR}" \
+                          --arg dockerfile "Dockerfile" \
+                          --arg repo "${REPO_NAME}" \
+                          --arg tag "${ENV_VERSION_ID}" \
+                          '{path: $path, repository: $repo, tag: $tag, dockerfile: $dockerfile}')
+
+                        # Append to the JSON array
+                        json_array=$(echo "${json_array}" | jq --argjson obj "${env_json}" '. + [$obj]')
+
+                        # repeat if Dockerfile.local exists and add local suffix to dockerfile and tag
+                        if [ -f "./Dockerfile.local" ]; then
+                          env_json=$(jq -n \
+                            --arg path "${DIR}" \
+                            --arg dockerfile "Dockerfile.local" \
+                            --arg repo "${REPO_NAME}" \
+                            --arg tag "${ENV_VERSION_ID}.local" \
+                            '{path: $path, repository: $repo, tag: $tag, dockerfile: $dockerfile}')
+
+                          # Append to the JSON array
+                          json_array=$(echo "${json_array}" | jq --argjson obj "${env_json}" '. + [$obj]')
+                        fi
+
+
+                        cd - || exit 1
+                      done
+
+                      matrix_json=$(jq -n --argjson arr "${json_array}" '{images: $arr}' | jq -c .)
+
+                      # Print final JSON array
+                      echo "${matrix_json}"
+                      export matrix_json
+                    outputVariables:
+                      - name: matrix_json
+                        type: String
+                        value: matrix_json
+        when:
+          pipelineStatus: Success
+          condition: <+pipeline.variables.envs_folders>!=""
+    - stage:
+        name: build images
+        identifier: build_images
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          caching:
+            enabled: true
+            override: false
+          buildIntelligence:
+            enabled: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: BuildAndPushDockerRegistry
+                  name: Build and push to dockerhub
+                  identifier: Build_and_push_to_dockerhub
+                  spec:
+                    connectorRef: datarobot_user_models_read_write
+                    repo: datarobotdev/<+matrix.image.repository>
+                    tags:
+                      - <+matrix.image.tag>
+                    caching: true
+                    dockerfile: <+matrix.image.path>/<+matrix.image.dockerfile>
+                    context: <+matrix.image.path>
+        when:
+          pipelineStatus: Success
+          condition: <+pipeline.variables.envs_folders>!=""
+        strategy:
+          matrix:
+            image: <+json.list("images", <+pipeline.stages.Detect_changes_and_output_images_build_matrix.spec.execution.steps.Build_params_matrix.output.outputVariables.matrix_json>)>
+            nodeName: <+matrix.image.repository>:<+matrix.image.tag>
+  description: |-
+    This pipeline can be used in other repositories to:
+    * detect which environments have changed. Environment is a folder with env_info.json
+    * build images according to repo name and environment version ID from env_info.json
+    Should receive:
+    Repo
+    Branch
+    Comma separated list of paths to envs to build
+  variables:
+    - name: target_repo
+      type: String
+      description: "Target repo: e.g. datarobot-user-models"
+      required: false
+      value: <+input>
+    - name: target_branch
+      type: String
+      description: E.g. master
+      required: false
+      value: <+input>
+    - name: envs_folders
+      type: String
+      description: Paths to envs' folders to build images from (usually changed envs from prev step)
+      required: false
+      value: <+input>

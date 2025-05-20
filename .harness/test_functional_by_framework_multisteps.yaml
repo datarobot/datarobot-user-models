@@ -2,14 +2,50 @@ pipeline:
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models
   tags: {}
-  properties:
-    ci:
-      codebase:
-        connectorRef: account.svc_harness_git1
-        repoName: <+input>
-        build: <+input>
-        sparseCheckout: []
   stages:
+    - stage:
+        name: Reconcile envVersionIds requirements
+        identifier: Reconcile_envVersionIds_requirements
+        template:
+          templateRef: org.Execution_Environments_Reconcile_Stage
+          versionLabel: v1
+          templateInputs:
+            type: CI
+            variables:
+              - name: target_repo
+                type: String
+                value: <+pipeline.variables.target_repo>
+              - name: target_repo_branch
+                type: String
+                value: <+pipeline.variables.target_branch>
+              - name: envs_parent_folders
+                type: String
+                value: <+pipeline.variables.envs_parent_folders_to_include>
+              - name: force_requirements_upgrade
+                type: String
+                value: <+pipeline.variables.force_requirements_upgrade>
+    - stage:
+        name: Build changed images for changed environments
+        identifier: Build_changed_images
+        description: ""
+        type: Pipeline
+        spec:
+          org: Custom_Models
+          pipeline: WIP_build_images
+          project: datarobotusermodels
+          inputs:
+            identifier: WIP_build_images
+            variables:
+              - name: target_repo
+                type: String
+                value: <+pipeline.variables.target_repo>
+              - name: target_branch
+                type: String
+                value: <+pipeline.variables.target_branch>
+              - name: envs_folders
+                type: String
+                value: <+pipeline.stages.Reconcile_envVersionIds_requirements.spec.execution.steps.find_changed.output.outputVariables.CHANGED_DIRS>
+        tags: {}
     - stage:
         name: Build list of envs to test
         identifier: build_list_of_envs_to_test
@@ -42,6 +78,8 @@ pipeline:
             spec: {}
           buildIntelligence:
             enabled: true
+        when:
+          pipelineStatus: Success
     - stage:
         name: Test functional by framework
         identifier: check_by_framework
@@ -90,3 +128,33 @@ pipeline:
     If only DRUM changed in the PR, latest image is taken for every framework, DRUM installed and tests run.
     If environment itself has changed, temporary image is built.
   name: Test functional by framework - multisteps
+  variables:
+    - name: target_repo
+      type: String
+      description: ""
+      required: true
+      value: <+input>
+    - name: target_branch
+      type: String
+      description: ""
+      required: false
+      value: <+input>
+    - name: envs_parent_folders_to_include
+      type: String
+      description: |-
+        Comma separated list of envs parent folders to update; all if empty.
+        E.g. if changes are in: parent1/env1, parent2/env2; and parent2 is provided, only parent2/env2 is included
+      required: false
+      value: <+input>
+    - name: force_requirements_upgrade
+      type: String
+      description: Whether to force all requirements update to the latest versions
+      required: false
+      value: <+input>.default(false).allowedValues(true,false)
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
+        sparseCheckout: []
