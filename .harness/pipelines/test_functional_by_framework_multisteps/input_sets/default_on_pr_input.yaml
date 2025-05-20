@@ -13,6 +13,12 @@ inputSet:
       - name: target_branch
         type: String
         value: <+trigger.sourceBranch>
+      - name: envs_parent_folders_to_include
+        type: String
+        value: <+input>
+      - name: force_requirements_upgrade
+        type: String
+        value: "false"
     properties:
       ci:
         codebase:
