@@ -52,7 +52,7 @@ pipeline:
         description: ""
         type: CI
         spec:
-          cloneCodebase: false
+          cloneCodebase: true
           execution:
             steps:
               - step:
@@ -84,7 +84,7 @@ pipeline:
         description: ""
         type: CI
         spec:
-          cloneCodebase: false
+          cloneCodebase: true
           execution:
             steps:
               - step:
@@ -149,3 +149,10 @@ pipeline:
       description: Whether to force all requirements update to the latest versions
       required: false
       value: <+input>.default(false).allowedValues(true,false)
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: datarobot-user-models
+        build: <+input>
+        sparseCheckout: []
