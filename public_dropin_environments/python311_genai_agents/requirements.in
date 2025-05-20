@@ -25,4 +25,14 @@ llama-index-llms-langchain
 llama-index-llms-litellm
 openai
 ragas
+
+# Generative AI Telemetry
 traceloop-sdk
+opentelemetry-api
+opentelemetry-sdk
+opentelemetry-instrumentation-aiohttp-client
+opentelemetry-instrumentation-crewai
+opentelemetry-instrumentation-langchain
+opentelemetry-instrumentation-llamaindex
+opentelemetry-instrumentation-openai
+opentelemetry-instrumentation-requests
