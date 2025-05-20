@@ -45,13 +45,13 @@ pipeline:
             variables:
               - name: target_repo
                 type: String
-                value: <+input>
+                value: <+pipeline.variables.target_repo>
               - name: target_branch
                 type: String
-                value: <+input>
+                value: <+pipeline.variables.target_branch>
               - name: envs_folders
                 type: String
-                value: <+input>
+                value: <+pipeline.stages.Reconcile_envVersionIds_requirements.spec.execution.steps.find_changed.output.outputVariables.CHANGED_DIRS>
         tags: {}
     - stage:
         name: Build list of envs to test
