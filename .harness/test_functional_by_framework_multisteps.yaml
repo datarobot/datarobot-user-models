@@ -105,6 +105,27 @@ pipeline:
           matrix:
             env: <+json.list("environments", <+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.matrix_values>)>
             nodeName: <+matrix.env.env_folder>/<+matrix.env.framework> - <+matrix.env.tag>
+    - stage:
+        name: Build changed images
+        identifier: Build_changed_images
+        description: ""
+        type: Pipeline
+        spec:
+          org: Custom_Models
+          pipeline: WIP_build_images
+          project: datarobotusermodels
+          inputs:
+            identifier: WIP_build_images
+            variables:
+              - name: target_repo
+                type: String
+                value: <+input>
+              - name: target_branch
+                type: String
+                value: <+input>
+              - name: envs_folders
+                type: String
+                value: <+input>
   identifier: Test_functional_by_framework_multisteps
   description: |-
     Runs functional tests for each framework in a corresponding image.
