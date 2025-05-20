@@ -1,10 +1,24 @@
 inputSet:
   name: default_on_pr_input
+  tags: {}
   identifier: default_on_pr_input
   orgIdentifier: Custom_Models
   projectIdentifier: datarobotusermodels
   pipeline:
     identifier: Test_functional_by_framework_multisteps
+    variables:
+      - name: target_repo
+        type: String
+        value: <
+      - name: target_branch
+        type: String
+        value: <+trigger.branch>
+      - name: envs_parent_folders_to_include
+        type: String
+        value: <+input>
+      - name: force_requirements_upgrade
+        type: String
+        value: <+input>.default(false).allowedValues(true,false)
     properties:
       ci:
         codebase:
