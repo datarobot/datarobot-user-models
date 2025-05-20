@@ -151,3 +151,8 @@ pipeline:
         E.g. if changes are in: parent1/env1, parent2/env2; and parent2 is provided, only parent2/env2 is included
       required: false
       value: <+input>
+    - name: force_requirements_upgrade
+      type: String
+      description: Whether to force all requirements update to the latest versions
+      required: false
+      value: <+input>.default(false).allowedValues(true,false)
