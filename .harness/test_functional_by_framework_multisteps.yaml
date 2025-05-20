@@ -84,6 +84,27 @@ pipeline:
           matrix:
             env: <+json.list("environments", <+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.matrix_values>)>
             nodeName: <+matrix.env.env_folder>/<+matrix.env.framework> - <+matrix.env.tag>
+    - stage:
+        name: Reconcile envVersionIds requirements
+        identifier: Reconcile_envVersionIds_requirements
+        template:
+          templateRef: org.Execution_Environments_Reconcile_Stage
+          versionLabel: v1
+          templateInputs:
+            type: CI
+            variables:
+              - name: target_repo
+                type: String
+                value: <+input>.default(datarobot-user-models)
+              - name: target_repo_branch
+                type: String
+                value: <+input>.default(yakov/build-images-pipeline)
+              - name: envs_parent_folders
+                type: String
+                value: <+input>
+              - name: force_requirements_upgrade
+                type: String
+                value: <+input>.default(false).allowedValues(false,true)
   identifier: Test_functional_by_framework_multisteps
   description: |-
     Runs functional tests for each framework in a corresponding image.
