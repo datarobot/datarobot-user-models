@@ -161,8 +161,6 @@ pipeline:
                   name: report_status_to_github_end
                   identifier: report_status_to_github_end
                   spec:
-                    connectorRef: account.dockerhub_datarobot_read
-                    image: curlimages/curl:latest
                     shell: Sh
                     command: |-
                       status_0="<+execution.steps.Run_1.status>"
