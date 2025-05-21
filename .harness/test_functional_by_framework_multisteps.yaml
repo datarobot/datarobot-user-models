@@ -52,9 +52,22 @@ pipeline:
         description: ""
         type: CI
         spec:
-          cloneCodebase: true
+          cloneCodebase: false
           execution:
             steps:
+              - step:
+                  type: GitClone
+                  name: Clone repo
+                  identifier: Clone_repo
+                  spec:
+                    connectorRef: account.svc_harness_git1
+                    repoName: <+pipeline.variables.target_repo>
+                    cloneDirectory: /harness/<+pipeline.variables.target_repo>
+                    build:
+                      type: branch
+                      spec:
+                        branch: <+pipeline.variables.target_branch>
+                  description: Explicitly clone repo to pull a commit created during reconciliation
               - step:
                   type: Run
                   name: build_list_of_environments_to_test_on
@@ -63,6 +76,8 @@ pipeline:
                     connectorRef: account.dockerhub_datarobot_read
                     shell: Sh
                     command: |-
+                      cd /harness/<+pipeline.variables.target_repo>
+                      echo "Show last 2 git commits: "
                       git log -2
                       matrix_values=$(python3 ./harness_scripts/functional_by_framework_multistep/generate_testlist.py ./tests/functional/test_per_framework.json ./)
                       echo ${matrix_values}
@@ -91,6 +106,19 @@ pipeline:
           execution:
             steps:
               - step:
+                  type: GitClone
+                  name: Clone repo
+                  identifier: Clone_repo
+                  spec:
+                    connectorRef: account.svc_harness_git1
+                    repoName: <+pipeline.variables.target_repo>
+                    cloneDirectory: /harness/<+pipeline.variables.target_repo>
+                    build:
+                      type: branch
+                      spec:
+                        branch: <+pipeline.variables.target_branch>
+                  description: Explicitly clone repo to pull a commit created during reconciliation
+              - step:
                   type: Run
                   name: Run functional test in provided framework
                   identifier: Run_1
@@ -99,6 +127,7 @@ pipeline:
                     image: datarobotdev/<+matrix.env.repo>:<+matrix.env.tag>
                     shell: Sh
                     command: |-
+                      cd /harness/<+pipeline.variables.target_repo>
                       ./harness_scripts/functional_by_framework/check_by_framework_run1_step_entrypoint.sh \
                         <+matrix.env.framework> <+matrix.env.env_folder>
                     resources:
