@@ -170,7 +170,7 @@ pipeline:
                   name: report_status_to_github_end
                   identifier: report_status_to_github_end
                   spec:
-                    shell: Sh
+                    shell: Bash
                     command: |-
                       latest_commit_sha="<+pipeline.stages.test_by_framework_in_container.spec.execution.steps.report_status_to_github_start.output.outputVariables.latest_commit_sha>"
                       github_status_key="<+pipeline.stages.test_by_framework_in_container.spec.execution.steps.report_status_to_github_start.output.outputVariables.pipeline_execution_github_status_key>"
