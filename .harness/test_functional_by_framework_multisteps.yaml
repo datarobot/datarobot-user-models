@@ -113,7 +113,9 @@ pipeline:
                   name: report_status_to_github_start
                   identifier: report_status_to_github_start
                   spec:
-                    shell: Sh
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: curlimages/curl:latest
+                    shell: Bash
                     command: |-
                       pipeline_execution_github_status_key="Test framework - <+pipeline.variables.env_folder> - <+matrix.env.repo>:<+matrix.env.tag>"
 
