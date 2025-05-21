@@ -67,7 +67,7 @@ pipeline:
                       type: branch
                       spec:
                         branch: <+pipeline.variables.target_branch>
-                  description: Explicitly cone repo to pull a commit created during reconciliation
+                  description: Explicitly clone repo to pull a commit created during reconciliation
               - step:
                   type: Run
                   name: build_list_of_environments_to_test_on
@@ -117,7 +117,7 @@ pipeline:
                       type: branch
                       spec:
                         branch: <+pipeline.variables.target_branch>
-                  description: Explicitly cone repo to pull a commit created during reconciliation
+                  description: Explicitly clone repo to pull a commit created during reconciliation
               - step:
                   type: Run
                   name: Run functional test in provided framework
