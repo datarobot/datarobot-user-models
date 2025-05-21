@@ -118,7 +118,7 @@ pipeline:
                       git log -2
                       latest_commit_sha=$(git log -1 --pretty=format:"%H")
                       echo ${latest_commit_sha}
-                      pipeline_execution_github_status_key="Test framework - <+pipeline.variables.env_folder> - <+matrix.env.repo>:<+matrix.env.tag>"
+                      pipeline_execution_github_status_key="Test framework - <+matrix.env.env_folder> - <+matrix.env.repo>:<+matrix.env.tag>"
 
                       echo "Update PR status"
                       curl -i -X POST \
@@ -195,7 +195,7 @@ pipeline:
                       curl -i -u <+account.name>:<+secrets.getValue("account.Github_Access_Token")> \
                       -X POST \
                       -H "Accept: application/vnd.github.v3+json" \
-                      https://api.github.com/repos/<+account.name>/datarobot-user-models/statuses/<+trigger.commitSha> \
+                      https://api.github.com/repos/<+account.name>/datarobot-user-models/statuses/${latest_commit_sha} \
                       -d "{\"state\":\"$state\",\"target_url\":\"<+pipeline.execution.url>\",\"description\":\"$description\",\"context\":\"$github_status_key\"}"
                   when:
                     stageStatus: All
