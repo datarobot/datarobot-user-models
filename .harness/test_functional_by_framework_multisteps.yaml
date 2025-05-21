@@ -124,7 +124,7 @@ pipeline:
                       curl -i -X POST \
                       -H "Authorization: Bearer <+secrets.getValue("account.Github_Access_Token")>" \
                       -H "Accept: application/vnd.github.v3+json" \
-                      https://api.github.com/repos/<+account.name>/datarobot-user-models/statuses/<+trigger.commitSha> \
+                      https://api.github.com/repos/<+account.name>/datarobot-user-models/statuses/${latest_commit_sha} \
                       -d "{\"state\":\"pending\",\"target_url\":\"<+pipeline.execution.url>\",\"description\":\"Test is running\",\"context\":\"$pipeline_execution_github_status_key\"}"
                     outputVariables:
                       - name: pipeline_execution_github_status_key
@@ -171,6 +171,10 @@ pipeline:
                   spec:
                     shell: Sh
                     command: |-
+                      git log -2
+                      latest_commit_sha="<+pipeline.stages.test_by_framework_in_container.spec.execution.steps.report_status_to_github_start.output.outputVariables.latest_commit_sha>"
+                      echo ${latest_commit_sha}
+
                       status_0="<+execution.steps.Run_1.status>"
 
                       github_status_key="<+pipeline.stages.test_by_framework_in_container.spec.execution.steps.report_status_to_github_start.output.outputVariables.pipeline_execution_github_status_key>"
