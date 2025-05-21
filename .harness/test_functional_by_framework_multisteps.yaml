@@ -25,6 +25,33 @@ pipeline:
                 type: String
                 value: <+pipeline.variables.force_requirements_upgrade>
     - stage:
+        name: dummy
+        identifier: dummy
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: false
+          caching:
+            enabled: true
+            override: false
+          buildIntelligence:
+            enabled: true
+          platform:
+            os: Linux
+            arch: Amd64
+          runtime:
+            type: Cloud
+            spec: {}
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: Run_1
+                  identifier: Run_1
+                  spec:
+                    shell: Bash
+                    command: echo <+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.matrix_values>
+    - stage:
         name: Build changed images for changed environments
         identifier: Build_changed_images
         description: ""
