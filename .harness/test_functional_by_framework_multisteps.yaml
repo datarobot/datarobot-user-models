@@ -109,6 +109,25 @@ pipeline:
           execution:
             steps:
               - step:
+                  type: Run
+                  name: report_status_to_github_start
+                  identifier: report_status_to_github_start
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: curlimages/curl:latest
+                    shell: Bash
+                    command: |-
+                      pipeline_execution_github_status_key="Test framework - <+pipeline.variables.env_folder> - <+matrix.env.repo>:<+matrix.env.tag>"
+
+                      echo "Update PR status"
+                      curl -i -X POST \
+                      -H "Authorization: Bearer <+secrets.getValue("account.Github_Access_Token")>" \
+                      -H "Accept: application/vnd.github.v3+json" \
+                      https://api.github.com/repos/<+account.name>/datarobot-user-models/statuses/<+trigger.commitSha> \
+                      -d "{\"state\":\"pending\",\"target_url\":\"<+pipeline.execution.url>\",\"description\":\"Test is running\",\"context\":\"$pipeline_execution_github_status_key\"}"
+                      outputVariables:
+                        - name: pipeline_execution_github_status_key
+              - step:
                   type: GitClone
                   name: Clone repo
                   identifier: Clone_repo
@@ -138,6 +157,38 @@ pipeline:
                         memory: 3G
                   when:
                     stageStatus: Success
+                contextType: Pipeline
+              - step:
+                  type: Run
+                  name: report_status_to_github_end
+                  identifier: report_status_to_github_end
+                  spec:
+                    connectorRef: account.dockerhub_datarobot_read
+                    image: curlimages/curl:latest
+                    shell: Bash
+                    command: |-
+                      status_0="<+execution.steps.Run_1.status>"
+
+                      github_status_key="<+pipeline.stages.test_by_framework_in_container.spec.execution.steps.report_status_to_github_start.output.outputVariables.pipeline_execution_github_status_key>"
+
+                      echo "Update PR status"
+
+                      if [[ "$status_0" == "SUCCEEDED" ]]; then
+                        state="success"
+                        description="Passed"
+                      elif [[ "$status_0" == "PENDING" ]]; then
+                        state="pending"
+                        description="Pending"
+                      else
+                        state="failure"
+                        description="Failed"
+                      fi
+
+                      curl -i -u <+account.name>:<+secrets.getValue("account.Github_Access_Token")> \
+                      -X POST \
+                      -H "Accept: application/vnd.github.v3+json" \
+                      https://api.github.com/repos/<+account.name>/datarobot-user-models/statuses/<+trigger.commitSha> \
+                      -d "{\"state\":\"$state\",\"target_url\":\"<+pipeline.execution.url>\",\"description\":\"$description\",\"context\":\"$github_status_key\"}"
           caching:
             enabled: true
             paths: []
