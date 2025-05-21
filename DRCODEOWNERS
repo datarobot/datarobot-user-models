@@ -46,7 +46,6 @@
 /public_dropin_environments/r_lang                                @datarobot/genai-systems @datarobot/core-modeling
 /public_dropin_environments_sandbox                               @datarobot/genai-systems
 /public_dropin_gpu_environments                                   @datarobot/tracking-agent @datarobot/genai-systems
-/public_dropin_gpu_environments/python311_genai                   @datarobot/buzok @datarobot/codegen
 /public_dropin_nim_environments                                   @datarobot/tracking-agent @datarobot/genai-systems
 /public_dropin_notebook_environments                              @datarobot/genai-systems @datarobot/cfx
 /task_templates                                                   @datarobot/core-modeling
