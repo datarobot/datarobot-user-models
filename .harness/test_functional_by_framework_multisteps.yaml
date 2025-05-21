@@ -123,8 +123,8 @@ pipeline:
                       -H "Accept: application/vnd.github.v3+json" \
                       https://api.github.com/repos/<+account.name>/datarobot-user-models/statuses/<+trigger.commitSha> \
                       -d "{\"state\":\"pending\",\"target_url\":\"<+pipeline.execution.url>\",\"description\":\"Test is running\",\"context\":\"$pipeline_execution_github_status_key\"}"
-                      outputVariables:
-                        - name: pipeline_execution_github_status_key
+                    outputVariables:
+                      - name: pipeline_execution_github_status_key
               - step:
                   type: GitClone
                   name: Clone repo
