@@ -115,6 +115,9 @@ pipeline:
                   spec:
                     shell: Sh
                     command: |-
+                      git log -2
+                      latest_commit_sha=$(git log -1 --pretty=format:"%H")
+                      echo ${latest_commit_sha}
                       pipeline_execution_github_status_key="Test framework - <+pipeline.variables.env_folder> - <+matrix.env.repo>:<+matrix.env.tag>"
 
                       echo "Update PR status"
