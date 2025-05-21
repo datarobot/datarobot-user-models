@@ -46,6 +46,9 @@ pipeline:
                 type: String
                 value: <+pipeline.stages.Reconcile_envVersionIds_requirements.spec.execution.steps.find_changed.output.outputVariables.CHANGED_DIRS>
         tags: {}
+        when:
+          pipelineStatus: Success
+          condition: <+pipeline.stages.build_list_of_envs_to_test.spec.execution.steps.build_list_of_environments_to_test_on.output.outputVariables.matrix_values>!=null
     - stage:
         name: Build list of envs to test
         identifier: build_list_of_envs_to_test
