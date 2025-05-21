@@ -18,38 +18,38 @@
 # Default owners for everything in the repo.
 # Unless a later match takes precedence, these groups will be requested for
 # review when someone opens a pull request.
-/                                                                 @datarobot/custom-models
-/MODEL-METADATA.md                                                @datarobot/custom-models @datarobot/core-modeling
-/README.md                                                        @datarobot/custom-models @datarobot/core-modeling
+/                                                                 @datarobot/genai-systems
+/MODEL-METADATA.md                                                @datarobot/genai-systems @datarobot/core-modeling
+/README.md                                                        @datarobot/genai-systems @datarobot/core-modeling
 /VALIDATION-SCHEMA.md                                             @datarobot/core-modeling
-/custom_model_runner                                              @datarobot/custom-models @datarobot/core-modeling
-/custom_model_runner/datarobot_drum/drum/gpu_predictors           @datarobot/tracking-agent @datarobot/custom-models
+/custom_model_runner                                              @datarobot/genai-systems @datarobot/core-modeling
+/custom_model_runner/datarobot_drum/drum/gpu_predictors           @datarobot/tracking-agent @datarobot/genai-systems
 /custom_model_runner/datarobot_drum/drum/typeschema_validation.py @datarobot/core-modeling
 /custom_model_runner/datarobot_drum/resource/default_typeschema   @datarobot/core-modeling
-/model_templates/gpu_nim_textgen                                  @datarobot/tracking-agent @datarobot/custom-models
-/model_templates/gpu_vllm_textgen                                 @datarobot/tracking-agent @datarobot/custom-models
-/model_templates/proxy_model_azureml                              @datarobot/tracking-agent @datarobot/custom-models
-/model_templates/proxy_model_datarobot                            @datarobot/tracking-agent @datarobot/custom-models
-/model_templates/triton_onnx_unstructured                         @datarobot/tracking-agent @datarobot/custom-models
-/public_dropin_environments/java_codegen                          @datarobot/custom-models
+/model_templates/gpu_nim_textgen                                  @datarobot/tracking-agent @datarobot/genai-systems
+/model_templates/gpu_vllm_textgen                                 @datarobot/tracking-agent @datarobot/genai-systems
+/model_templates/proxy_model_azureml                              @datarobot/tracking-agent @datarobot/genai-systems
+/model_templates/proxy_model_datarobot                            @datarobot/tracking-agent @datarobot/genai-systems
+/model_templates/triton_onnx_unstructured                         @datarobot/tracking-agent @datarobot/genai-systems
+/public_dropin_environments/java_codegen                          @datarobot/genai-systems
 /public_dropin_environments/python311_genai                       @datarobot/buzok
 /public_dropin_environments/python311_genai_agents                @datarobot/buzok
-/public_dropin_environments/python3_keras                         @datarobot/custom-models @datarobot/core-modeling
-/public_dropin_environments/python3_onnx                          @datarobot/custom-models
-/public_dropin_environments/python3_pmml                          @datarobot/custom-models @datarobot/core-modeling
-/public_dropin_environments/python3_pytorch                       @datarobot/custom-models @datarobot/core-modeling
-/public_dropin_environments/python3_sklearn                       @datarobot/custom-models @datarobot/core-modeling
-/public_dropin_environments/python3_xgboost                       @datarobot/custom-models @datarobot/core-modeling
-/public_dropin_environments/r_lang                                @datarobot/custom-models @datarobot/core-modeling
-/public_dropin_environments_sandbox                               @datarobot/custom-models
-/public_dropin_gpu_environments                                   @datarobot/tracking-agent @datarobot/custom-models
-/public_dropin_nim_environments                                   @datarobot/tracking-agent @datarobot/custom-models
-/public_dropin_notebook_environments                              @datarobot/custom-models @datarobot/cfx
+/public_dropin_environments/python3_keras                         @datarobot/genai-systems @datarobot/core-modeling
+/public_dropin_environments/python3_onnx                          @datarobot/genai-systems
+/public_dropin_environments/python3_pmml                          @datarobot/genai-systems @datarobot/core-modeling
+/public_dropin_environments/python3_pytorch                       @datarobot/genai-systems @datarobot/core-modeling
+/public_dropin_environments/python3_sklearn                       @datarobot/genai-systems @datarobot/core-modeling
+/public_dropin_environments/python3_xgboost                       @datarobot/genai-systems @datarobot/core-modeling
+/public_dropin_environments/r_lang                                @datarobot/genai-systems @datarobot/core-modeling
+/public_dropin_environments_sandbox                               @datarobot/genai-systems
+/public_dropin_gpu_environments                                   @datarobot/tracking-agent @datarobot/genai-systems
+/public_dropin_nim_environments                                   @datarobot/tracking-agent @datarobot/genai-systems
+/public_dropin_notebook_environments                              @datarobot/genai-systems @datarobot/cfx
 /task_templates                                                   @datarobot/core-modeling
 /tests/e2e/test_custom_task_templates.py                          @datarobot/core-modeling
-/tests/e2e/test_drop_in_environments.py                           @datarobot/custom-models @datarobot/core-modeling
-/tests/e2e/test_drum_push.py                                      @datarobot/custom-models @datarobot/core-modeling
-/tests/fixtures/nim_embedqa                                       @datarobot/tracking-agent @datarobot/custom-models
-/tests/fixtures/nim_jailbreak                                     @datarobot/tracking-agent @datarobot/custom-models
-/tests/functional                                                 @datarobot/custom-models @datarobot/core-modeling
-/tests/functional/test_inference_gpu_predictors.py                @datarobot/tracking-agent @datarobot/custom-models
+/tests/e2e/test_drop_in_environments.py                           @datarobot/genai-systems @datarobot/core-modeling
+/tests/e2e/test_drum_push.py                                      @datarobot/genai-systems @datarobot/core-modeling
+/tests/fixtures/nim_embedqa                                       @datarobot/tracking-agent @datarobot/genai-systems
+/tests/fixtures/nim_jailbreak                                     @datarobot/tracking-agent @datarobot/genai-systems
+/tests/functional                                                 @datarobot/genai-systems @datarobot/core-modeling
+/tests/functional/test_inference_gpu_predictors.py                @datarobot/tracking-agent @datarobot/genai-systems
