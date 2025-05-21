@@ -35,8 +35,6 @@
 /public_dropin_apps_environments/python39_streamlit               @datarobot/applications
 /public_dropin_environments/java_codegen                          @datarobot/genai-systems
 /public_dropin_environments/python311_genai                       @datarobot/buzok @datarobot/codegen
-/public_dropin_environments/python312_apps                        @datarobot/genai-systems @datarobot/applications
-/public_dropin_environments/python39_streamlit                    @datarobot/genai-systems @datarobot/applications
 /public_dropin_environments/python3_keras                         @datarobot/genai-systems @datarobot/core-modeling
 /public_dropin_environments/python3_onnx                          @datarobot/genai-systems
 /public_dropin_environments/python3_pmml                          @datarobot/genai-systems @datarobot/core-modeling
