@@ -115,7 +115,7 @@ pipeline:
                   spec:
                     connectorRef: account.dockerhub_datarobot_read
                     image: curlimages/curl:latest
-                    shell: Bash
+                    shell: Sh
                     command: |-
                       pipeline_execution_github_status_key="Test framework - <+pipeline.variables.env_folder> - <+matrix.env.repo>:<+matrix.env.tag>"
 
@@ -165,7 +165,7 @@ pipeline:
                   spec:
                     connectorRef: account.dockerhub_datarobot_read
                     image: curlimages/curl:latest
-                    shell: Bash
+                    shell: Sh
                     command: |-
                       status_0="<+execution.steps.Run_1.status>"
 
