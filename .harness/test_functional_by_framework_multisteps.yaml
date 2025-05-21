@@ -128,6 +128,11 @@ pipeline:
                       -d "{\"state\":\"pending\",\"target_url\":\"<+pipeline.execution.url>\",\"description\":\"Test is running\",\"context\":\"$pipeline_execution_github_status_key\"}"
                     outputVariables:
                       - name: pipeline_execution_github_status_key
+                        type: String
+                        value: pipeline_execution_github_status_key
+                      - name: latest_commit_sha
+                        type: String
+                        value: latest_commit_sha
               - step:
                   type: GitClone
                   name: Clone repo
