@@ -12,33 +12,34 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# pylint: skip-file
-
 import argparse
 import json
 import logging
 import os
 import sys
-from typing import Any, cast
+from typing import cast
 
 import requests
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerRun
 from openai import OpenAI
-from openai.types.chat import (
-    ChatCompletion,
-    ChatCompletionSystemMessageParam,
-    ChatCompletionUserMessageParam,
-)
-from openai.types.chat.completion_create_params import (
-    CompletionCreateParamsNonStreaming,
-)
+from openai.types.chat import ChatCompletion
 
 root = logging.getLogger()
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--user_prompt", type=str, default="", help="user_prompt for chat endpoint")
-parser.add_argument("--extra_body", type=str, default="", help="extra_body for chat endpoint")
+parser.add_argument(
+    "--chat_completion",
+    type=str,
+    default="{}",
+    help="OpenAI ChatCompletion dict as json string",
+)
+parser.add_argument(
+    "--default_headers",
+    type=str,
+    default="{}",
+    help="OpenAI default_headers as json string",
+)
 parser.add_argument(
     "--custom_model_dir",
     type=str,
@@ -72,29 +73,8 @@ def setup_logging(logger: logging.Logger, output_path: str, log_level: int = log
     logger.addHandler(handler_file)
 
 
-def construct_prompt(user_prompt: str, extra_body: str) -> Any:
-    extra_body_params = json.loads(extra_body) if extra_body else {}
-    completion_create_params = CompletionCreateParamsNonStreaming(
-        model="datarobot-deployed-llm",
-        messages=[
-            ChatCompletionSystemMessageParam(
-                content="You are a helpful assistant",
-                role="system",
-            ),
-            ChatCompletionUserMessageParam(
-                content=user_prompt,
-                role="user",
-            ),
-        ],
-        n=1,
-        temperature=0.01,
-        extra_body=extra_body_params,  # type: ignore[typeddict-unknown-key]
-    )
-    return completion_create_params
-
-
 def execute_drum(
-    user_prompt: str, extra_body: str, custom_model_dir: str, output_path: str
+    chat_completion: str, default_headers: str, custom_model_dir: str, output_path: str
 ) -> ChatCompletion:
     root.info("Executing agent as [chat] endpoint. DRUM Executor.")
     root.info("Starting DRUM server.")
@@ -111,22 +91,30 @@ def execute_drum(
         port=8191,
         stream_output=True,
     ) as drum_runner:
-        root.info("Verifying DRUM server.")
+        root.info("Verifying DRUM server")
         response = requests.get(drum_runner.url_server_address)
         if not response.ok:
-            raise RuntimeError("Server failed to start")
+            root.error("Server failed to start")
+            try:
+                root.error(response.text)
+                root.error(response.json())
+            finally:
+                raise RuntimeError("Server failed to start")
+
+        root.info("Parsing OpenAI request")
+        completion_params = json.loads(chat_completion)
+        header_params = json.loads(default_headers)
 
         # Use a standard OpenAI client to call the DRUM server. This mirrors the behavior of a deployed agent.
-        root.info("Building prompt.")
+        # Using the `chat.completions.create` method ensures the parameters are OpenAI compatible.
+        root.info("Executing Agent")
         client = OpenAI(
             base_url=drum_runner.url_server_address,
             api_key="not-required",
+            default_headers=header_params,
             max_retries=0,
         )
-        completion_create_params = construct_prompt(user_prompt, extra_body)
-
-        root.info("Executing Agent.")
-        completion = client.chat.completions.create(**completion_create_params)
+        completion = client.chat.completions.create(**completion_params)
 
     # Continue outside the context manager to ensure the server is stopped and logs
     # are flushed before we write the output
@@ -145,8 +133,8 @@ if len(args.custom_model_dir) == 0:
     args.custom_model_dir = os.path.join(os.getcwd(), "custom_model")
 setup_logging(logger=root, output_path=args.output_path, log_level=logging.INFO)
 result = execute_drum(
-    user_prompt=args.user_prompt,
-    extra_body=args.extra_body,
+    chat_completion=args.chat_completion,
+    default_headers=args.default_headers,
     custom_model_dir=args.custom_model_dir,
     output_path=args.output_path,
 )

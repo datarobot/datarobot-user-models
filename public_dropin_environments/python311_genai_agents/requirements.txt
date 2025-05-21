@@ -201,6 +201,7 @@ opentelemetry-exporter-otlp-proto-common==1.33.0
 opentelemetry-exporter-otlp-proto-grpc==1.33.0
 opentelemetry-exporter-otlp-proto-http==1.33.0
 opentelemetry-instrumentation==0.54b0
+opentelemetry-instrumentation-aiohttp-client==0.54b0
 opentelemetry-instrumentation-alephalpha==0.40.3
 opentelemetry-instrumentation-anthropic==0.40.3
 opentelemetry-instrumentation-asgi==0.54b0
