@@ -1,5 +1,4 @@
 # Python 3 PyTorch Drop-In Template Environment
-dummy
 
 This template environment can be used to create artifact-only PyTorch custom models.
 Your custom model directory needs only contain your model artifact if you use the
