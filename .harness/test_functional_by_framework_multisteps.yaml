@@ -100,8 +100,8 @@ pipeline:
         when:
           pipelineStatus: Success
     - stage:
-        name: Test functional by framework
-        identifier: check_by_framework
+        name: Test func by framework in container
+        identifier: test_by_framework_in_container
         description: ""
         type: CI
         spec:
