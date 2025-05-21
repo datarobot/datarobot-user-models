@@ -128,8 +128,6 @@ pipeline:
                     shell: Sh
                     command: |-
                       cd /harness/<+pipeline.variables.target_repo>
-                      echo "Show last 2 git commits: "
-                      git log -2
                       ./harness_scripts/functional_by_framework/check_by_framework_run1_step_entrypoint.sh \
                         <+matrix.env.framework> <+matrix.env.env_folder>
                     resources:
