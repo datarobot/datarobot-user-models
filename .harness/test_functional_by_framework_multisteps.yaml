@@ -126,7 +126,7 @@ pipeline:
                   name: report_status_to_github_start
                   identifier: report_status_to_github_start
                   spec:
-                    shell: Sh
+                    shell: Bash
                     command: |-
                       cd /harness/<+pipeline.variables.target_repo>
                       git log -2
