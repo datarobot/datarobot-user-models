@@ -1,4 +1,4 @@
-#/usr/bin/env bash
+#!/usr/bin/env bash
 
 script_dir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
 . ${script_dir}/update-python-to-meet-requirements.sh
@@ -17,5 +17,5 @@ python3 -m venv $tmp_venv_path
 . ${tmp_venv_path}/bin/activate
 
 pip install -U pip
-pip install wheel
+pip install -U wheel setuptools
 echo "== Virtual environment is ready for the tests: '$tmp_venv_path' =="
