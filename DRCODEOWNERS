@@ -31,6 +31,8 @@
 /model_templates/proxy_model_azureml                              @datarobot/tracking-agent @datarobot/genai-systems
 /model_templates/proxy_model_datarobot                            @datarobot/tracking-agent @datarobot/genai-systems
 /model_templates/triton_onnx_unstructured                         @datarobot/tracking-agent @datarobot/genai-systems
+/public_dropin_apps_environments/python312_apps                   @datarobot/applications
+/public_dropin_apps_environments/python39_streamlit               @datarobot/applications
 /public_dropin_environments/java_codegen                          @datarobot/genai-systems
 /public_dropin_environments/python311_genai                       @datarobot/buzok @datarobot/codegen
 /public_dropin_environments/python312_apps                        @datarobot/genai-systems @datarobot/applications
