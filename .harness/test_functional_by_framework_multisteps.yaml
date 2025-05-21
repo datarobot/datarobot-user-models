@@ -197,6 +197,8 @@ pipeline:
                       -H "Accept: application/vnd.github.v3+json" \
                       https://api.github.com/repos/<+account.name>/datarobot-user-models/statuses/<+trigger.commitSha> \
                       -d "{\"state\":\"$state\",\"target_url\":\"<+pipeline.execution.url>\",\"description\":\"$description\",\"context\":\"$github_status_key\"}"
+                  when:
+                    stageStatus: All
           caching:
             enabled: true
             paths: []
