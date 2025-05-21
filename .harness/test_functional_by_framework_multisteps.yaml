@@ -4,7 +4,7 @@ pipeline:
   tags: {}
   stages:
     - stage:
-        name: Reconcile envVersionIds requirements2
+        name: Reconcile envVersionIds requirements
         identifier: Reconcile_envVersionIds_requirements
         template:
           templateRef: org.Execution_Environments_Reconcile_Stage
