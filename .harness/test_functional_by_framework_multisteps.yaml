@@ -175,6 +175,9 @@ pipeline:
                       latest_commit_sha="<+pipeline.stages.test_by_framework_in_container.spec.execution.steps.report_status_to_github_start.output.outputVariables.latest_commit_sha>"
                       github_status_key="<+pipeline.stages.test_by_framework_in_container.spec.execution.steps.report_status_to_github_start.output.outputVariables.pipeline_execution_github_status_key>"
 
+                      echo ${latest_commit_sha}
+                      echo ${github_status_key}
+
                       status_0="<+execution.steps.Run_1.status>"
 
                       echo "Update PR status"
