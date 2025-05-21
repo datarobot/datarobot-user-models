@@ -109,19 +109,6 @@ pipeline:
           execution:
             steps:
               - step:
-                  type: GitClone
-                  name: Clone repo
-                  identifier: Clone_repo
-                  spec:
-                    connectorRef: account.svc_harness_git1
-                    repoName: <+pipeline.variables.target_repo>
-                    cloneDirectory: /harness/<+pipeline.variables.target_repo>
-                    build:
-                      type: branch
-                      spec:
-                        branch: <+pipeline.variables.target_branch>
-                  description: Explicitly clone repo to pull a commit created during reconciliation
-              - step:
                   type: Run
                   name: report_status_to_github_start
                   identifier: report_status_to_github_start
@@ -146,6 +133,19 @@ pipeline:
                       - name: latest_commit_sha
                         type: String
                         value: latest_commit_sha
+              - step:
+                  type: GitClone
+                  name: Clone repo
+                  identifier: Clone_repo
+                  spec:
+                    connectorRef: account.svc_harness_git1
+                    repoName: <+pipeline.variables.target_repo>
+                    cloneDirectory: /harness/<+pipeline.variables.target_repo>
+                    build:
+                      type: branch
+                      spec:
+                        branch: <+pipeline.variables.target_branch>
+                  description: Explicitly clone repo to pull a commit created during reconciliation
               - step:
                   type: Run
                   name: Run functional test in provided framework
