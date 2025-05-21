@@ -105,9 +105,22 @@ pipeline:
         description: ""
         type: CI
         spec:
-          cloneCodebase: true
+          cloneCodebase: false
           execution:
             steps:
+              - step:
+                  type: GitClone
+                  name: Clone repo
+                  identifier: Clone_repo
+                  spec:
+                    connectorRef: account.svc_harness_git1
+                    repoName: <+pipeline.variables.target_repo>
+                    cloneDirectory: /harness/<+pipeline.variables.target_repo>
+                    build:
+                      type: branch
+                      spec:
+                        branch: <+pipeline.variables.target_branch>
+                  description: Explicitly clone repo to pull a commit created during reconciliation
               - step:
                   type: Run
                   name: report_status_to_github_start
@@ -133,19 +146,6 @@ pipeline:
                       - name: latest_commit_sha
                         type: String
                         value: latest_commit_sha
-              - step:
-                  type: GitClone
-                  name: Clone repo
-                  identifier: Clone_repo
-                  spec:
-                    connectorRef: account.svc_harness_git1
-                    repoName: <+pipeline.variables.target_repo>
-                    cloneDirectory: /harness/<+pipeline.variables.target_repo>
-                    build:
-                      type: branch
-                      spec:
-                        branch: <+pipeline.variables.target_branch>
-                  description: Explicitly clone repo to pull a commit created during reconciliation
               - step:
                   type: Run
                   name: Run functional test in provided framework
@@ -245,10 +245,3 @@ pipeline:
       description: Whether to force all requirements update to the latest versions
       required: false
       value: <+input>.default(false).allowedValues(true,false)
-  properties:
-    ci:
-      codebase:
-        connectorRef: account.svc_harness_git1
-        repoName: datarobot-user-models
-        build: <+input>
-        sparseCheckout: []
