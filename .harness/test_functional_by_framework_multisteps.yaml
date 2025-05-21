@@ -76,12 +76,9 @@ pipeline:
                     connectorRef: account.dockerhub_datarobot_read
                     shell: Sh
                     command: |-
-                      echo $(pwd)
-                      ls -la
                       cd /harness/<+pipeline.variables.target_repo>
-                      echo ${pwd}
-                      echo $(ls -la)
-                      echo $(git log -2)
+                      echo "Show last 2 git commits: "
+                      git log -2
                       matrix_values=$(python3 ./harness_scripts/functional_by_framework_multistep/generate_testlist.py ./tests/functional/test_per_framework.json ./)
                       echo ${matrix_values}
                     outputVariables:
@@ -130,12 +127,9 @@ pipeline:
                     image: datarobotdev/<+matrix.env.repo>:<+matrix.env.tag>
                     shell: Sh
                     command: |-
-                      echo $(pwd)
-                      ls -la
                       cd /harness/<+pipeline.variables.target_repo>
-                      echo ${pwd}
-                      echo $(ls -la)
-                      echo $(git log -2)
+                      echo "Show last 2 git commits: "
+                      git log -2
                       ./harness_scripts/functional_by_framework/check_by_framework_run1_step_entrypoint.sh \
                         <+matrix.env.framework> <+matrix.env.env_folder>
                     resources:
