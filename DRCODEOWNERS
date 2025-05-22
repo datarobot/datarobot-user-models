@@ -23,14 +23,14 @@
 /README.md                                                        @datarobot/genai-systems @datarobot/core-modeling
 /VALIDATION-SCHEMA.md                                             @datarobot/core-modeling
 /custom_model_runner                                              @datarobot/genai-systems @datarobot/core-modeling
-/custom_model_runner/datarobot_drum/drum/gpu_predictors           @datarobot/tracking-agent @datarobot/genai-systems
+/custom_model_runner/datarobot_drum/drum/gpu_predictors           @datarobot/genai-systems
 /custom_model_runner/datarobot_drum/drum/typeschema_validation.py @datarobot/core-modeling
 /custom_model_runner/datarobot_drum/resource/default_typeschema   @datarobot/core-modeling
-/model_templates/gpu_nim_textgen                                  @datarobot/tracking-agent @datarobot/genai-systems
-/model_templates/gpu_vllm_textgen                                 @datarobot/tracking-agent @datarobot/genai-systems
-/model_templates/proxy_model_azureml                              @datarobot/tracking-agent @datarobot/genai-systems
-/model_templates/proxy_model_datarobot                            @datarobot/tracking-agent @datarobot/genai-systems
-/model_templates/triton_onnx_unstructured                         @datarobot/tracking-agent @datarobot/genai-systems
+/model_templates/gpu_nim_textgen                                  @datarobot/genai-systems
+/model_templates/gpu_vllm_textgen                                 @datarobot/genai-systems
+/model_templates/proxy_model_azureml                              @datarobot/genai-systems
+/model_templates/proxy_model_datarobot                            @datarobot/genai-systems
+/model_templates/triton_onnx_unstructured                         @datarobot/genai-systems
 /public_dropin_apps_environments/python312_apps                   @datarobot/applications
 /public_dropin_apps_environments/python39_streamlit               @datarobot/applications
 /public_dropin_environments/java_codegen                          @datarobot/genai-systems
@@ -43,14 +43,14 @@
 /public_dropin_environments/python3_xgboost                       @datarobot/genai-systems @datarobot/core-modeling
 /public_dropin_environments/r_lang                                @datarobot/genai-systems @datarobot/core-modeling
 /public_dropin_environments_sandbox                               @datarobot/genai-systems
-/public_dropin_gpu_environments                                   @datarobot/tracking-agent @datarobot/genai-systems
-/public_dropin_nim_environments                                   @datarobot/tracking-agent @datarobot/genai-systems
+/public_dropin_gpu_environments                                   @datarobot/genai-systems
+/public_dropin_nim_environments                                   @datarobot/genai-systems
 /public_dropin_notebook_environments                              @datarobot/genai-systems @datarobot/cfx
 /task_templates                                                   @datarobot/core-modeling
 /tests/e2e/test_custom_task_templates.py                          @datarobot/core-modeling
 /tests/e2e/test_drop_in_environments.py                           @datarobot/genai-systems @datarobot/core-modeling
 /tests/e2e/test_drum_push.py                                      @datarobot/genai-systems @datarobot/core-modeling
-/tests/fixtures/nim_embedqa                                       @datarobot/tracking-agent @datarobot/genai-systems
-/tests/fixtures/nim_jailbreak                                     @datarobot/tracking-agent @datarobot/genai-systems
+/tests/fixtures/nim_embedqa                                       @datarobot/genai-systems
+/tests/fixtures/nim_jailbreak                                     @datarobot/genai-systems
 /tests/functional                                                 @datarobot/genai-systems @datarobot/core-modeling
-/tests/functional/test_inference_gpu_predictors.py                @datarobot/tracking-agent @datarobot/genai-systems
+/tests/functional/test_inference_gpu_predictors.py                @datarobot/genai-systems
