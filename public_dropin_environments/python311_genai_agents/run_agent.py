@@ -17,7 +17,7 @@ import json
 import logging
 import os
 import sys
-from typing import cast
+from typing import Any, cast
 
 import requests
 from datarobot_drum.drum.enum import TargetType
@@ -27,27 +27,30 @@ from openai.types.chat import ChatCompletion
 
 root = logging.getLogger()
 
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--chat_completion",
-    type=str,
-    default="{}",
-    help="OpenAI ChatCompletion dict as json string",
-)
-parser.add_argument(
-    "--default_headers",
-    type=str,
-    default="{}",
-    help="OpenAI default_headers as json string",
-)
-parser.add_argument(
-    "--custom_model_dir",
-    type=str,
-    default="",
-    help="directory containing custom.py location",
-)
-parser.add_argument("--output_path", type=str, default="", help="json output file location")
-args = parser.parse_args()
+
+def argparse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--chat_completion",
+        type=str,
+        default="{}",
+        help="OpenAI ChatCompletion dict as json string",
+    )
+    parser.add_argument(
+        "--default_headers",
+        type=str,
+        default="{}",
+        help="OpenAI default_headers as json string",
+    )
+    parser.add_argument(
+        "--custom_model_dir",
+        type=str,
+        default="",
+        help="directory containing custom.py location",
+    )
+    parser.add_argument("--output_path", type=str, default="", help="json output file location")
+    args = parser.parse_args()
+    return args
 
 
 def setup_logging(logger: logging.Logger, output_path: str, log_level: int = logging.INFO) -> None:
@@ -128,13 +131,20 @@ def execute_drum(
     return cast(ChatCompletion, completion)
 
 
+def main() -> Any:
+    args = argparse_args()
+    if len(args.custom_model_dir) == 0:
+        args.custom_model_dir = os.path.join(os.getcwd(), "custom_model")
+    setup_logging(logger=root, output_path=args.output_path, log_level=logging.INFO)
+    result = execute_drum(
+        chat_completion=args.chat_completion,
+        default_headers=args.default_headers,
+        custom_model_dir=args.custom_model_dir,
+        output_path=args.output_path,
+    )
+    return result
+
+
 # Agent execution
-if len(args.custom_model_dir) == 0:
-    args.custom_model_dir = os.path.join(os.getcwd(), "custom_model")
-setup_logging(logger=root, output_path=args.output_path, log_level=logging.INFO)
-result = execute_drum(
-    chat_completion=args.chat_completion,
-    default_headers=args.default_headers,
-    custom_model_dir=args.custom_model_dir,
-    output_path=args.output_path,
-)
+if __name__ == "__main__":
+    main()
