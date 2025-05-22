@@ -104,31 +104,38 @@ def execute_drum(
 
 
 if __name__ == "__main__":
-    with open(DEFAULT_OUTPUT_PATH, "a") as f:
-        sys.stdout = f
-        sys.stderr = f 
-        print("Parsing args")
-        args = parser.parse_args()
-    
-    output_log_path = args.output_path + ".log" if args.output_path else DEFAULT_OUTPUT_PATH
-    with open(output_log_path, "a") as f:
-        sys.stdout = f
-        sys.stderr = f
+    stdout = sys.stdout
+    stderr = sys.stderr
+    try:
+        with open(DEFAULT_OUTPUT_PATH, "a") as f:
+            sys.stdout = f
+            sys.stderr = f 
+            print("Parsing args")
+            args = parser.parse_args()
         
-        print("Setting up logging")
-        setup_logging(logger=root, log_level=logging.INFO)
-        if len(args.custom_model_dir) == 0:
-            args.custom_model_dir = CURRENT_DIR / "custom_model"
-        # Agent execution
-        root.info(f"Executing agent at {args.custom_model_dir}")
-        try:
-            result = execute_drum(
-                chat_completion=args.chat_completion,
-                    custom_model_dir=args.custom_model_dir,
-                    output_path=args.output_path,
-                )
-        except Exception as e:
-            root.exception(f"Error executing agent: {e}")
-            sys.exit(1)
-    
-    sys.exit(0)
+        output_log_path = args.output_path + ".log" if args.output_path else DEFAULT_OUTPUT_PATH
+        with open(output_log_path, "a") as f:
+            sys.stdout = f
+            sys.stderr = f
+            
+            print("Setting up logging")
+            setup_logging(logger=root, log_level=logging.INFO)
+            if len(args.custom_model_dir) == 0:
+                args.custom_model_dir = CURRENT_DIR / "custom_model"
+            # Agent execution
+            root.info(f"Executing agent at {args.custom_model_dir}")
+            try:
+                result = execute_drum(
+                    chat_completion=args.chat_completion,
+                        custom_model_dir=args.custom_model_dir,
+                        output_path=args.output_path,
+                    )
+            except Exception as e:
+                root.exception(f"Error executing agent: {e}")
+    except Exception:
+        pass
+    finally:
+        # Return to original stdout and stderr otherwise the kernel will fail to flush and 
+        # hang
+        sys.stdout = stdout
+        sys.stderr = stderr
