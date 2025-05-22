@@ -90,10 +90,9 @@ def main():
         options = arg_parser.parse_args()
         CMRunnerArgsRegistry.verify_options(options)
         _setup_required_environment_variables(options)
-        # Env vars may setup OTEL configuration, lets setup
-        # tracer after all env vars updated
 
-        setup_tracer(RuntimeParameters, options)
+        setup_tracer(RuntimeParameters)
+
         if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
             options.max_workers = RuntimeParameters.get("CUSTOM_MODEL_WORKERS")
         runtime.options = options
