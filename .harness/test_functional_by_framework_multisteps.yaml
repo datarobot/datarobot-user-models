@@ -15,7 +15,10 @@ pipeline:
               - name: target_repo
                 type: String
                 value: <+pipeline.variables.target_repo>
-              - name: target_repo_branch
+              - name: target_repo_source_branch
+                type: String
+                value: <+pipeline.variables.source_branch>
+              - name: target_repo_target_branch
                 type: String
                 value: <+pipeline.variables.target_branch>
               - name: envs_parent_folders
@@ -230,6 +233,11 @@ pipeline:
       required: true
       value: <+input>
     - name: target_branch
+      type: String
+      description: Target branch (master, release/10.2)
+      required: false
+      value: <+input>
+    - name: source_branch
       type: String
       description: ""
       required: false
