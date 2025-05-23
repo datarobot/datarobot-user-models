@@ -1,5 +1,6 @@
 inputSet:
   name: default_on_pr_input
+  tags: {}
   identifier: default_on_pr_input
   orgIdentifier: Custom_Models
   projectIdentifier: datarobotusermodels
@@ -11,6 +12,9 @@ inputSet:
         value: datarobot-user-models
       - name: target_branch
         type: String
+        value: <+trigger.targetBranch>
+      - name: source_branch
+        type: String
         value: <+trigger.sourceBranch>
       - name: envs_parent_folders_to_include
         type: String
@@ -18,10 +22,3 @@ inputSet:
       - name: force_requirements_upgrade
         type: String
         value: "false"
-    properties:
-      ci:
-        codebase:
-          build:
-            type: PR
-            spec:
-              number: <+trigger.prNumber>
