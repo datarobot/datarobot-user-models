@@ -135,65 +135,42 @@ def make_otel_endpoint(datarobot_endpoint):
     return result
 
 
-def setup_tracer(runtime_parameters, options):
-    """Setups OTEL tracer if not configured externally.
+def setup_tracer(runtime_parameters):
+    """Setups OTEL tracer.
 
-    It is possible to provied OTEL compliant OTEL_EXPORTER_OTLP_ENDPOINT
-    or OTEL_EXPORTER_OTLP_TRACES_ENDPOINT and override trace collector
-    to anydd
-
+    OTEL is configured by OTEL_EXPORTER_OTLP_ENDPOINT and
+    OTEL_EXPORTER_OTLP_HEADERS env vars set by DR.
 
     Parameters
     ----------
     runtime_parameters: Type[RuntimeParameters] class handles runtime parameters for custom modes
         used to check if OTEL configuration from user.
-    options: argparse.Namespace: object obtained from argparser filled with user supplied
-        command argumetns
     Returns
     -------
     None
     """
-    if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT") or os.environ.get(
-        "OTEL_EXPORTER_OTLP_TRACES_ENDPOINT"
-    ):
-        # OTEL configured externaly via env vars
-        resource = Resource.create()
-    else:
-        gpu_predictor = getattr(options, "gpu_predictor", None)
+    log = get_drum_logger("setup_tracer")
 
-        # if explicitly asked enable/disable otel
-        if runtime_parameters.has("OTEL_SDK_ENABLED"):
-            enable_otel = runtime_parameters.get("OTEL_SDK_ENABLED")
-        # if not expliciety specified, enable otel by default for gpu models
-        elif gpu_predictor:
-            enable_otel = True
-        else:
-            enable_otel = False
-        # if deployment_id is not found, most likely this is custom model
-        # testing
-        deployment_id = os.environ.get("MLOPS_DEPLOYMENT_ID", os.environ.get("DEPLOYMENT_ID"))
-        if not enable_otel or not deployment_id:
-            return
+    # Can be used to disable OTEL reporting from env var parameters
+    # https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
+    if runtime_parameters.has("OTEL_SDK_DISABLED") and os.environ.get("OTEL_SDK_DISABLED"):
+        log.info("Tracing explictly disabled")
+        return
 
-        resource = Resource.create(
-            {
-                "datarobot.deployment_id": deployment_id,
-            }
-        )
-        key = os.environ.get("DATAROBOT_API_TOKEN")
-        datarobot_endpoint = os.environ.get("DATAROBOT_ENDPOINT")
-        if not key or not datarobot_endpoint:
-            return
+    main_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
+    trace_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")
+    if not main_endpoint and not trace_endpoint:
+        log.info("Tracing is not configured")
+        return
 
-        endpoint = make_otel_endpoint(datarobot_endpoint)
-        h = f"X-DataRobot-Api-Key={key},X-DataRobot-Entity-Id=deployment-{deployment_id}"
-        os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = endpoint
-        os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = h
-
+    resource = Resource.create()
     otlp_exporter = OTLPSpanExporter()
     provider = TracerProvider(resource=resource)
     provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
     trace.set_tracer_provider(provider)
+
+    endpoint = main_endpoint or trace_endpoint
+    log.info(f"Tracing is configured with endpoint: {endpoint}")
 
 
 @contextmanager
