@@ -326,7 +326,7 @@ tinycss2==1.4.0
 tokenizers==0.20.3
 tomli==2.2.1
 tomli-w==1.2.0
-tornado==6.4.2
+tornado==6.5.1
 tqdm==4.67.1
 traceloop-sdk==0.40.3
 trafaret==2.1.1
