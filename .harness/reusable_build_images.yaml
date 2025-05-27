@@ -8,7 +8,7 @@ pipeline:
     ci:
       codebase:
         connectorRef: account.svc_harness_git1
-        repoName: <+pipeline.variables.target_repo>
+        repoName: <+pipeline.variables.repo>
         build:
           type: branch
           spec:
