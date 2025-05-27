@@ -30,4 +30,8 @@ distro
 # next version of httpx, 0.28.0, has a bug that breaks opanai library, which is pinned
 # https://github.com/openai/openai-python/issues/1902
 httpx==0.27.2
+
+# pinned because image failed to be built
 protobuf==3.20.3
+grpcio==1.70.0
+grpcio-status==1.48.2
