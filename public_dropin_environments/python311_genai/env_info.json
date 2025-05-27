@@ -3,10 +3,17 @@
   "name": "[DataRobot] Python 3.11 GenAI",
   "description": "This template environment can be used to create GenAI-powered custom models and includes common dependencies for workflows using OpenAI, Langchain, vector DBs, or transformers in PyTorch. Similar to other drop-in environments, you can either include a .pth artifact or any other code needed to deserialize your model, and optionally a custom.py file.",
   "programmingLanguage": "python",
-  "environmentVersionId": "67d933f6d3381d60db7ef89a",
+  "label": "",
+  "environmentVersionId": "68364487b23206101f1c8976",
+  "environmentVersionDescription": "",
   "isPublic": true,
   "useCases": [
     "customModel"
   ],
-  "imageRepository": "env-python-genai"
+  "imageRepository": "env-python-genai",
+  "tags": [
+    "v11.0-68364487b23206101f1c8976",
+    "68364487b23206101f1c8976",
+    "v11.0-latest"
+  ]
 }
