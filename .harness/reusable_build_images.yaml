@@ -146,14 +146,14 @@ pipeline:
     Branch
     Comma separated list of paths to envs to build
   variables:
-    - name: target_repo
+    - name: repo
       type: String
       description: "Target repo: e.g. datarobot-user-models"
       required: false
       value: <+input>
-    - name: target_branch
+    - name: source_branch
       type: String
-      description: E.g. master
+      description: E.g. branch with the changed code
       required: false
       value: <+input>
     - name: envs_folders
