@@ -4,7 +4,7 @@
   "description": "This template environment can be used to create artifact-only PyTorch custom models. This environment contains PyTorch and requires only your model artifact as a .pth file, any other code needed to deserialize your model, and optionally a custom.py file.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "682f99cc114ca012ff23c346",
+  "environmentVersionId": "6836047df8c4a3109a473477",
   "environmentVersionDescription": "",
   "isPublic": true,
   "useCases": [
@@ -12,8 +12,8 @@
   ],
   "imageRepository": "env-python-pytorch",
   "tags": [
-    "v11.1.0-682f99cc114ca012ff23c346",
-    "682f99cc114ca012ff23c346",
+    "v11.1.0-6836047df8c4a3109a473477",
+    "6836047df8c4a3109a473477",
     "v11.1.0-latest"
   ]
 }
