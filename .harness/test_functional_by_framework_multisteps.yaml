@@ -39,12 +39,12 @@ pipeline:
           inputs:
             identifier: WIP_build_images
             variables:
-              - name: target_repo
+              - name: repo
                 type: String
                 value: <+pipeline.variables.target_repo>
-              - name: target_branch
+              - name: source_branch
                 type: String
-                value: <+pipeline.variables.target_branch>
+                value: <+pipeline.variables.source_branch>
               - name: envs_folders
                 type: String
                 value: <+pipeline.stages.Reconcile_envVersionIds_requirements.spec.execution.steps.find_changed.output.outputVariables.CHANGED_DIRS>
