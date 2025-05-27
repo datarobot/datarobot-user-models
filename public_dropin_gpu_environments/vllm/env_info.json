@@ -6,5 +6,9 @@
   "label": "v0.7.2+dr.3",
   "environmentVersionId": "67f2d6da68e2a011adda2996",
   "environmentVersionDescription": "More ROSA-friendly file permissions\nFROM vllm/vllm-openai:v0.7.2",
-  "isPublic": true
+  "isPublic": true,
+    "useCases": [
+    "customModel"
+  ],
+  "imageRepository": "env-gpu-vllm"
 }
