@@ -622,6 +622,33 @@ def mock_moderation_content(path: Path, content: str):
         sys.modules.pop(MODERATIONS_LIBRARY_PACKAGE, None)
 
 
+class TestModerationPipeline:
+    """Mocks the moderations pipeline to test interactions with DRUM."""
+
+    def __init__(self, *args, **kwargs):
+        self.score_call_count = 0
+        self.chat_call_count = 0
+
+    def score(self, input_df: pd.DataFrame, model, drum_score_fn, **kwargs):
+        """Score function just runs the DRUM score function."""
+        self.score_call_count += 1
+        return drum_score_fn(input_df, model, **kwargs)
+
+    def chat(
+        self,
+        completion_create_params: pd.DataFrame,
+        model,
+        drum_chat_fn,
+        association_id: str = None,
+        **kwargs,
+    ):
+        """Chat function just runs the DRUM chat function."""
+        self.chat_call_count += 1
+        return drum_chat_fn(
+            completion_create_params, model, association_id=association_id, **kwargs
+        )
+
+
 class TestPythonModelAdapterWithGuards:
     """Use cases to test the moderation integration with DRUM"""
 
@@ -768,7 +795,7 @@ class TestPythonModelAdapterWithGuards:
         )
 
     @staticmethod
-    def custom_chat(completion_create_params, model):
+    def custom_chat(completion_create_params, model, association_id=None):
         """Dummy chat method just for the purpose of unit test"""
         return TestPythonModelAdapterWithGuards._build_chat_completion(
             completion_create_params["messages"][-1]["content"]
@@ -843,21 +870,48 @@ class TestPythonModelAdapterWithGuards:
             """Dummy score method just for the purpose of unit test"""
             return data
 
-        class TestModPipeline:
-            def __init__(self):
-                self.call_count = 0
-
-            def score(self, data, model, score_fn, **kwargs):
-                self.call_count += 1
-                return score_fn(data, model, **kwargs)
-
         df = pd.DataFrame({"text": ["abc", "def"]})
         data = bytes(df.to_csv(index=False), encoding="utf-8")
         target_name = "completion"
         with patch.dict(os.environ, {"TARGET_NAME": target_name}):
             adapter = PythonModelAdapter(tmp_path, TargetType.VECTOR_DATABASE)
-            adapter._mod_pipeline = TestModPipeline()
+            adapter._mod_pipeline = TestModerationPipeline()
             adapter._custom_hooks["score"] = custom_score
 
-            adapter.predict(binary_data=data)
-            assert adapter._mod_pipeline.call_count == 1
+            result = adapter.predict(binary_data=data)
+            assert result is not None
+            assert adapter._mod_pipeline.score_call_count == 1
+
+    def test_llm_moderation_pipeline_score(self, tmp_path):
+        def custom_score(data, model, **kwargs):
+            """Dummy score method just for the purpose of unit test"""
+            return data
+
+        df = pd.DataFrame({"text": ["abc", "def"]})
+        data = bytes(df.to_csv(index=False), encoding="utf-8")
+        target_name = "completion"
+        with patch.dict(os.environ, {"TARGET_NAME": target_name}):
+            adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
+            adapter._mod_pipeline = TestModerationPipeline()
+            adapter._custom_hooks["score"] = custom_score
+
+            result = adapter.predict(binary_data=data)
+            assert result is not None
+            assert adapter._mod_pipeline.score_call_count == 1
+
+    def test_llm_moderation_pipeline_chat(self, tmp_path):
+        messages = [
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "Hello there"},
+        ]
+        target_name = "completion"
+        with patch.dict(os.environ, {"TARGET_NAME": target_name}):
+            adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
+            adapter._mod_pipeline = TestModerationPipeline()
+            adapter._custom_hooks["chat"] = self.custom_chat
+
+            response = adapter.chat({"messages": messages}, None, "association_id")
+            # Even if guard pipeline exists - moderation chat wrapper does not exist, so invoke
+            # only user chat method
+            assert response.choices[0].message.content == "Hello there"
+            assert adapter._mod_pipeline.chat_call_count == 1

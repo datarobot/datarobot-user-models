@@ -791,7 +791,7 @@ class PythonModelAdapter(AbstractModelAdapter):
     def chat(self, completion_create_params, model, association_id):
         chat_fn = self._custom_hooks.get(CustomHooks.CHAT)
         if self._mod_pipeline:
-            self._mod_pipeline.chat(completion_create_params, model, chat_fn, association_id)
+            return self._mod_pipeline.chat(completion_create_params, model, chat_fn, association_id)
         elif self._moderation_pipeline and self._moderation_chat_hook:
             return self._moderation_chat_hook(
                 completion_create_params,
