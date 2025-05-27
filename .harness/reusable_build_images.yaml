@@ -12,7 +12,7 @@ pipeline:
         build:
           type: branch
           spec:
-            branch: <+pipeline.variables.target_branch>
+            branch: <+pipeline.variables.source_branch>
   stages:
     - stage:
         name: Detect changes and output images build matrix
