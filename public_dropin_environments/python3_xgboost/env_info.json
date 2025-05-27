@@ -4,7 +4,7 @@
   "description": "This template environment can be used to create artifact-only xgboost custom models. This environment contains xgboost and only requires your model artifact as a .pkl file and optionally a custom.py file.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "682f99e2114ca0133180afbf",
+  "environmentVersionId": "68360493f8c4a310d0592216",
   "environmentVersionDescription": "",
   "isPublic": true,
   "useCases": [
@@ -12,8 +12,8 @@
   ],
   "imageRepository": "env-python-xgboost",
   "tags": [
-    "v11.1.0-682f99e2114ca0133180afbf",
-    "682f99e2114ca0133180afbf",
+    "v11.1.0-68360493f8c4a310d0592216",
+    "68360493f8c4a310d0592216",
     "v11.1.0-latest"
   ]
 }
