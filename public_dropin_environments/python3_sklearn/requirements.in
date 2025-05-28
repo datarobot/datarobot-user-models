@@ -3,3 +3,8 @@ scikit-learn
 scipy
 numpy
 pandas
+
+# pin this deps to keep them after the reconcile required for tests to pass
+datarobot==3.6.2
+datarobot-drum==1.16.5
+datarobot-mlops==10.2.8
