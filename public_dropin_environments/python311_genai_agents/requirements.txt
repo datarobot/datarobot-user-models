@@ -46,7 +46,7 @@ crewai-tools==0.44.0
 cryptography==44.0.3
 dataclasses-json==0.6.7
 datarobot==3.7.1
-datarobot-drum @ git+https://github.com/datarobot/datarobot-user-models@f8a8af26feae480d2a44ac7f9bd087635a0bdc89#egg=datarobot-drum&subdirectory=custom_model_runner
+datarobot-drum==1.16.14
 datarobot-mlops==11.0.0
 datarobot-storage==2.2.0
 datasets==3.6.0
