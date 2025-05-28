@@ -4,14 +4,15 @@ ecs-logging
 jupyter-client
 jupyter_kernel_gateway
 jupyter_core
-ipykernel
+ipykernel<6.29.0
 pandas
 numpy
 mistune
-datarobot-drum @ git+https://github.com/datarobot/datarobot-user-models#egg=datarobot-drum&subdirectory=custom_model_runner
+datarobot-drum>=1.16.14
 datarobot
 numpy
 uwsgi
+flask>=3.1.1
 
 # Generative AI Frameworks
 crewai

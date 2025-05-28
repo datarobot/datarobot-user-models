@@ -4,7 +4,7 @@
   "description": "This template environment can be used to create GenAI-powered agents using CrewAI, LangGraph, or Llama-Index. Similar to other drop-in environments, you can either include a .pth artifact or any other code needed to deserialize your model, and optionally a custom.py file. You can also use this environment in codespaces.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "6830d3140012af0f96ebdc53",
+  "environmentVersionId": "683733219604e901ac1a7541",
   "environmentVersionDescription": "",
   "isPublic": true,
   "useCases": [
@@ -13,8 +13,8 @@
   ],
   "imageRepository": "env-python-genai-agents",
   "tags": [
-    "v11.1.0-6830d3140012af0f96ebdc53",
-    "6830d3140012af0f96ebdc53",
+    "v11.1.0-683733219604e901ac1a7541",
+    "683733219604e901ac1a7541",
     "v11.1.0-latest"
   ]
 }

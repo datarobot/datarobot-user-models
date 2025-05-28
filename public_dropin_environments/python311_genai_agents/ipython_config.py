@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This need to load extensions automaticaly when kernel starting
+# This need to load extensions automatically when kernel starting
 
 c.InteractiveShellApp.extensions = ["dataframe_formatter"]
