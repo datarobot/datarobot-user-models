@@ -39,7 +39,12 @@ from datarobot_drum.drum.server import (
     get_flask_app,
 )
 from datarobot_drum.profiler.stats_collector import StatsCollector, StatsOperation
-from datarobot_drum.drum.common import otel_context
+from datarobot_drum.drum.common import (
+    otel_context,
+    extract_chat_request_attributes,
+    extract_chat_response_attributes,
+)
+from opentelemetry.trace.status import StatusCode
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -200,12 +205,16 @@ class PredictionServer(PredictMixin):
         @model_api.route("/v1/chat/completions", methods=["POST"])
         def chat():
             logger.debug("Entering chat endpoint")
-            with otel_context(tracer, "drum.chat.completions", request.headers):
+            with otel_context(tracer, "drum.chat.completions", request.headers) as span:
+                span.set_attributes(extract_chat_request_attributes(request.json))
                 self._pre_predict_and_transform()
                 try:
                     response, response_status = self.do_chat(logger=logger)
                 finally:
                     self._post_predict_and_transform()
+
+                if isinstance(response, dict) and response_status == 200:
+                    span.set_attributes(extract_chat_response_attributes(response))
 
             return response, response_status
 

@@ -182,3 +182,34 @@ def otel_context(tracer, span_name, carrier):
             yield span
     finally:
         context.detach(token)
+
+
+def extract_chat_request_attributes(completion_params):
+    """Extracts otel related attributes from chat request payload
+
+    Used to populate span with relevant monitoring attriubtes.
+    """
+    attributes = {}
+    attributes["gen_ai.request.model"] = completion_params.get("model")
+    for i, m in enumerate(completion_params.get("messages", [])):
+        attributes[f"gen_ai.prompt.{i}.role"] = m.get("role")
+        attributes[f"gen_ai.prompt.{i}.content"] = m.get("content")
+        # last promt wins
+        attributes["gen_ai.prompt"] = m.get("content")
+    return attributes
+
+
+def extract_chat_response_attributes(response):
+    """Extracts otel related attributes from chat response.
+
+    Used to populate span with relevant monitoring attriubtes.
+    """
+    attributes = {}
+    attributes["gen_ai.response.model"] = response.get("model")
+    for i, c in enumerate(response.get("choices", [])):
+        m = c.get("message", {})
+        attributes[f"gen_ai.completion.{i}.role"] = m.get("role")
+        attributes[f"gen_ai.completion.{i}.content"] = m.get("content")
+        # last completion wins
+        attributes["gen_ai.completion"] = m.get("content")
+    return attributes
