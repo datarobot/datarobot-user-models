@@ -9,7 +9,6 @@
     {"env_folder":  "public_dropin_environments", "framework":  "python3_xgboost", "with_local":  true},
     {"env_folder":  "public_dropin_environments", "framework":  "python311", "with_local":  true},
     {"env_folder":  "public_dropin_environments", "framework":  "python311_genai", "with_local":  true},
-    {"env_folder":  "public_dropin_environments", "framework":  "r_lang", "with_local":  true},
-    {"env_folder":  "public_dropin_gpu_environments", "framework":  "vllm"}
+    {"env_folder":  "public_dropin_environments", "framework":  "r_lang", "with_local":  true}
   ]
 }
