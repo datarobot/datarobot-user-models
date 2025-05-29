@@ -53,7 +53,6 @@ RUN sh -c "python -m venv ${VIRTUAL_ENV} && \
     . ${VIRTUAL_ENV}/bin/activate && \
     python -m ensurepip --default-pip && \
     python -m pip install --upgrade pip && \
-    python -m pip install --no-cache-dir -r requirements.txt && \
     find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} +"
 
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk
