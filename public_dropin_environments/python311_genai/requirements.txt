@@ -35,7 +35,7 @@ coloredlogs==15.0.1
 cryptography==44.0.1
 dataclasses-json==0.6.7
 datarobot==3.6.2
-datarobot-drum==1.16.13
+datarobot-drum==1.16.15
 datarobot-mlops==10.2.8
 datarobot-storage==0.0.0
 deprecated==1.2.18
@@ -133,9 +133,13 @@ openai==1.62.0
 opentelemetry-api==1.27.0
 opentelemetry-exporter-otlp-proto-common==1.27.0
 opentelemetry-exporter-otlp-proto-http==1.27.0
+opentelemetry-instrumentation==0.48b0
+opentelemetry-instrumentation-aiohttp-client==0.48b0
+opentelemetry-instrumentation-requests==0.48b0
 opentelemetry-proto==1.27.0
 opentelemetry-sdk==1.27.0
 opentelemetry-semantic-conventions==0.48b0
+opentelemetry-util-http==0.48b0
 optimum==1.24.0
 orjson==3.10.15
 packaging==24.2
