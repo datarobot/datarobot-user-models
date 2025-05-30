@@ -4,7 +4,16 @@
   "description": "A high-throughput and memory-efficient inference and serving engine for LLMs.",
   "programmingLanguage": "python",
   "label": "v0.7.2+dr.3",
-  "environmentVersionId": "67f2d6da68e2a011adda2996",
+  "environmentVersionId": "68364554b232061316b92dd6",
   "environmentVersionDescription": "More ROSA-friendly file permissions\nFROM vllm/vllm-openai:v0.7.2",
-  "isPublic": true
+  "isPublic": true,
+  "useCases": [
+    "customModel"
+  ],
+  "imageRepository": "env-gpu-vllm",
+  "tags": [
+    "v11.0-68364554b232061316b92dd6",
+    "68364554b232061316b92dd6",
+    "v11.0-latest"
+  ]
 }

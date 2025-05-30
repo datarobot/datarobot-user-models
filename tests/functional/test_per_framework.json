@@ -1,0 +1,14 @@
+{
+  "environments" : [
+    {"env_folder":  "public_dropin_environments", "framework":  "java_codegen", "with_local":  true},
+    {"env_folder":  "public_dropin_environments", "framework":  "python3_keras", "with_local":  true},
+    {"env_folder":  "public_dropin_environments", "framework":  "python3_onnx", "with_local":  true},
+    {"env_folder":  "public_dropin_environments", "framework":  "python3_pmml", "with_local":  true},
+    {"env_folder":  "public_dropin_environments", "framework":  "python3_pytorch", "with_local":  true},
+    {"env_folder":  "public_dropin_environments", "framework":  "python3_sklearn", "with_local":  true},
+    {"env_folder":  "public_dropin_environments", "framework":  "python3_xgboost", "with_local":  true},
+    {"env_folder":  "public_dropin_environments", "framework":  "python311", "with_local":  true},
+    {"env_folder":  "public_dropin_environments", "framework":  "python311_genai", "with_local":  true},
+    {"env_folder":  "public_dropin_environments", "framework":  "r_lang", "with_local":  true}
+  ]
+}
