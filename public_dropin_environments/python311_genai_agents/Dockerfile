@@ -100,6 +100,13 @@ RUN source ${VENV_PATH}/bin/activate && \
     uv pip uninstall litellm && \
     uv pip install --no-cache-dir git+https://github.com/datarobot-forks/litellm@mattn/add-datarobot-support-to-litellm
 
+# Install DataRobot Moderations
+# hadolint ignore=DL3013
+RUN source ${VENV_PATH}/bin/activate && \
+    uv pip install --no-cache-dir datarobot-moderations \
+    --index https://artifactory.devinfra.drdev.io/artifactory/api/pypi/datarobot-python-dev/simple \
+    --index-strategy unsafe-best-match
+
 # Copy agent runtime into work directory
 COPY ./run_agent.py ${WORKDIR}/
 
