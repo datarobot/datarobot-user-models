@@ -107,9 +107,6 @@ class PythonModelAdapter(AbstractModelAdapter):
         self._custom_task_class = None
         self._custom_task_class_instance = None
         self._mod_pipeline = None
-        self._moderation_pipeline = None
-        self._moderation_score_hook = None
-        self._moderation_chat_hook = None
 
         if target_type in (
             TargetType.TEXT_GENERATION,
@@ -158,20 +155,6 @@ class PythonModelAdapter(AbstractModelAdapter):
             # use the 'moderation_pipeline_factory()' to determine if moderations has integrated pipeline
             if hasattr(mod_module, "moderation_pipeline_factory"):
                 self._mod_pipeline = mod_module.moderation_pipeline_factory(self._target_type.value)
-            # use the 'create_pipeline' to determine if using version that supports VDB
-            elif hasattr(mod_module, "create_pipeline"):
-                self._moderation_score_hook = mod_module.get_moderations_fn(
-                    self._target_type.value, CustomHooks.SCORE
-                )
-                self._moderation_chat_hook = mod_module.get_moderations_fn(
-                    self._target_type.value, CustomHooks.CHAT
-                )
-                self._moderation_pipeline = mod_module.create_pipeline(self._target_type.value)
-            elif self._target_type in (TargetType.TEXT_GENERATION, TargetType.AGENTIC_WORKFLOW):
-                # older versions only support textgeneration -- access functions directly from module
-                self._moderation_score_hook = getattr(mod_module, "guard_score_wrapper", None)
-                self._moderation_chat_hook = getattr(mod_module, "guard_chat_wrapper", None)
-                self._moderation_pipeline = mod_module.init()
             else:
                 self._logger.warning(f"No support of {self._target_type} target in moderations.")
 
@@ -640,18 +623,6 @@ class PythonModelAdapter(AbstractModelAdapter):
                         predictions_df.rename(
                             columns={"completion": self._target_name}, inplace=True
                         )
-                elif self._moderation_pipeline and self._moderation_score_hook:
-                    predictions_df = self._moderation_score_hook(
-                        data,
-                        model,
-                        self._moderation_pipeline,
-                        score_fn,
-                        **kwargs,
-                    )
-                    if self._target_name not in predictions_df:
-                        predictions_df.rename(
-                            columns={"completion": self._target_name}, inplace=True
-                        )
                 else:
                     # noinspection PyCallingNonCallable
                     predictions_df = score_fn(data, model, **kwargs)
@@ -792,16 +763,8 @@ class PythonModelAdapter(AbstractModelAdapter):
         chat_fn = self._custom_hooks.get(CustomHooks.CHAT)
         if self._mod_pipeline:
             return self._mod_pipeline.chat(completion_create_params, model, chat_fn, association_id)
-        elif self._moderation_pipeline and self._moderation_chat_hook:
-            return self._moderation_chat_hook(
-                completion_create_params,
-                model,
-                self._moderation_pipeline,
-                chat_fn,
-                association_id,
-            )
-        else:
-            return chat_fn(completion_create_params, model)
+
+        return chat_fn(completion_create_params, model)
 
     def get_supported_llm_models(self, model):
         """
