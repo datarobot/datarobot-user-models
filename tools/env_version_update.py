@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Copyright 2021 DataRobot, Inc. and its affiliates.
 All rights reserved.

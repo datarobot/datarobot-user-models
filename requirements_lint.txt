@@ -1,3 +1,5 @@
 black==23.10.1
 pylint==3.1.0
 click==8.1.7
+# strictly not needed for linting, but used when updating environment
+bson

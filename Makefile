@@ -24,6 +24,9 @@ clean: cov-clean ## Remove build artifacts
 	find . -type d -name __pycache__ | xargs rm -rf
 	find . -name '*.pyc' -delete
 
+update-env: ## Update execution-environment version
+	./tools/env_version_update.py
+
 ########################################
 ##@ Lint
 lint: ## Run linting
