@@ -707,10 +707,12 @@ class TestPythonModelAdapterWithGuards:
         ],
     )
     def test_loading_moderations_pipeline(self, target_type, tmp_path):
-        moderation_content = """
+        moderation_content = f"""
         from unittest.mock import Mock
+        import os
 
-        def moderation_pipeline_factory(target_type):
+        def moderation_pipeline_factory(target_type, model_dir=os.getcwd()):
+            assert model_dir == \"{str(tmp_path)}\"
             return Mock()
         """
         target_name = "completion"

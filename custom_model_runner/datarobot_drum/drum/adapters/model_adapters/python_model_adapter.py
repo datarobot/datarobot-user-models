@@ -155,7 +155,7 @@ class PythonModelAdapter(AbstractModelAdapter):
             # use the 'moderation_pipeline_factory()' to determine if moderations has integrated pipeline
             if hasattr(mod_module, "moderation_pipeline_factory"):
                 self._mod_pipeline = mod_module.moderation_pipeline_factory(
-                    self._target_type.value, model_dir=model_dir
+                    self._target_type.value, model_dir=str(model_dir)
                 )
             else:
                 self._logger.warning(f"No support of {self._target_type} target in moderations.")
