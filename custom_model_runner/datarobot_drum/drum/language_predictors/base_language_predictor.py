@@ -350,10 +350,8 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             if EXCEPTION_422 in exception_string and DRIFT_ERROR_MESSAGE in exception_string:
                 logger.warning(exception_string)
                 return
-            raise
         except DRCommonException:
             logger.exception("Failed to report predictions data")
-            raise
 
     def _mlops_report_error(self, start_time):
         if not self._mlops:
