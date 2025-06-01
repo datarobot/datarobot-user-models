@@ -33,8 +33,14 @@ from datarobot_drum.drum.data_marshalling import marshal_predictions
 from datarobot_drum.drum.root_predictors.chat_helpers import is_streaming_response
 
 import datarobot as dr
+from datarobot_mlops.common.connected_exception import DRMLOpsConnectedException
 
 DEFAULT_PROMPT_COLUMN_NAME = "promptText"
+EXCEPTION_422 = "predictionInputs/fromJSON/: 422 Client Error: UNPROCESSABLE ENTITY for url"
+DRIFT_ERROR_MESSAGE = (
+    "Feature Drift tracking and predictions data collection are disabled. Enable feature drift "
+    "tracking or predictions data collection from deployment settings first, to post features"
+)
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
@@ -339,8 +345,16 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                 predictions,
                 association_ids=[association_id],
             )
+        except DRMLOpsConnectedException as e:
+            import ipdb; ipdb.set_trace()
+            exception_string = str(e)
+            if EXCEPTION_422 in exception_string and DRIFT_ERROR_MESSAGE in exception_string:
+                logger.warning(exception_string)
+                return
+            raise
         except DRCommonException:
             logger.exception("Failed to report predictions data")
+            raise
 
     def _mlops_report_error(self, start_time):
         if not self._mlops:
