@@ -346,7 +346,6 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                 association_ids=[association_id],
             )
         except DRMLOpsConnectedException as e:
-            import ipdb; ipdb.set_trace()
             exception_string = str(e)
             if EXCEPTION_422 in exception_string and DRIFT_ERROR_MESSAGE in exception_string:
                 logger.warning(exception_string)

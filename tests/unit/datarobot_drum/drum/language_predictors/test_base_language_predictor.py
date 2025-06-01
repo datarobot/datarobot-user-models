@@ -459,7 +459,7 @@ class TestChat(TestBaseLanguagePredictor):
             "http://datarobot-nginx/api/v2/deployments/did/predictionInputs/fromJSON/: "
             "422 Client Error: UNPROCESSABLE ENTITY for url: "
             "http://datarobot-nginx/api/v2/deployments/did/predictionInputs/fromJSON/ "
-            "{\"message\": \"Index 0: Feature Drift tracking and predictions data collection"
+            '{"message": "Index 0: Feature Drift tracking and predictions data collection'
             " are disabled. Enable feature drift tracking or predictions data collection "
             "from deployment settings first, to post features"
         )
@@ -482,6 +482,7 @@ class TestChat(TestBaseLanguagePredictor):
             assert True
         except DRMLOpsConnectedException as e:
             assert False, f"Not expected to raise the exception: {e}"
+
 
 class TestModelsAPI(TestBaseLanguagePredictor):
     """
