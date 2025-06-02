@@ -153,9 +153,15 @@ class TestChat(TestBaseLanguagePredictor):
         )
 
         if stream:
-            content = "".join([(chunk.choices[0].delta.content or "") for chunk in response])
+            messages = []
+            for chunk in response:
+                assert hasattr(chunk, "datarobot_association_id")
+                if chunk.choices[0].delta.content:
+                    messages.append(chunk.choices[0].delta.content)
+            content = "".join(messages)
         else:
             content = response.choices[0].message.content
+            assert hasattr(response, "datarobot_association_id")
 
         assert content == "How are you"
 
@@ -211,7 +217,10 @@ class TestChat(TestBaseLanguagePredictor):
         )
         if stream:
             # Streaming response needs to be consumed for anything to happen
-            [chunk for chunk in response]
+            for chunk in response:
+                assert hasattr(chunk, "datarobot_association_id")
+        else:
+            hasattr(response, "datarobot_association_id")
 
         mock_mlops.report_deployment_stats.assert_called_once_with(
             num_predictions=1, execution_time_ms=ANY
@@ -242,7 +251,7 @@ class TestChat(TestBaseLanguagePredictor):
         with patch.object(TestLanguagePredictor, "_chat") as mock_chat:
             mock_chat.return_value = create_completion("How are you")
 
-            language_predictor_with_mlops.chat(
+            completion = language_predictor_with_mlops.chat(
                 {
                     "model": "any",
                     "messages": [
@@ -257,6 +266,7 @@ class TestChat(TestBaseLanguagePredictor):
             ]
 
             mock_chat.assert_called_once_with(ANY, association_id)
+            hasattr(completion, "datarobot_association_id")
 
     def test_prompt_column_name(self, chat_python_model_adapter, mock_mlops, mock_dr_client):
         language_predictor = TestLanguagePredictor()

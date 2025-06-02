@@ -265,6 +265,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                 response.choices[0].message.content,
                 association_id,
             )
+            setattr(response, "datarobot_association_id", association_id)
             return response
         else:
 
@@ -274,6 +275,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                     for chunk in response:
                         if chunk.choices and chunk.choices[0].delta.content:
                             message_content.append(chunk.choices[0].delta.content)
+                        setattr(chunk, "datarobot_association_id", association_id)
                         yield chunk
                 except Exception:
                     self._mlops_report_error(start_time)
