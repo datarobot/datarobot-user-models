@@ -10,5 +10,10 @@
   "useCases": [
     "customModel"
   ],
-  "imageRepository": "env-gpu-vllm"
+  "imageRepository": "env-gpu-vllm",
+  "tags": [
+    "v11.1.0-68225130c69a2f2230f668b5",
+    "68225130c69a2f2230f668b5",
+    "v11.1.0-latest"
+  ]
 }
