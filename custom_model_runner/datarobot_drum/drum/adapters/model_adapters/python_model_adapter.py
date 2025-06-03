@@ -142,11 +142,11 @@ class PythonModelAdapter(AbstractModelAdapter):
                 pip install opentelemetry-instrumentation-aiohttp-client
                 """
                 self._logger.warning(msg)
-            self._load_moderation_hooks()
+            self._load_moderation_hooks(model_dir)
         else:
             self._target_name = None
 
-    def _load_moderation_hooks(self):
+    def _load_moderation_hooks(self, model_dir):
         try:
             mod_module = __import__(MODERATIONS_HOOK_MODULE, fromlist=[MODERATIONS_LIBRARY_PACKAGE])
             self._logger.info(
@@ -154,7 +154,9 @@ class PythonModelAdapter(AbstractModelAdapter):
             )
             # use the 'moderation_pipeline_factory()' to determine if moderations has integrated pipeline
             if hasattr(mod_module, "moderation_pipeline_factory"):
-                self._mod_pipeline = mod_module.moderation_pipeline_factory(self._target_type.value)
+                self._mod_pipeline = mod_module.moderation_pipeline_factory(
+                    self._target_type.value, model_dir=str(model_dir)
+                )
             else:
                 self._logger.warning(f"No support of {self._target_type} target in moderations.")
 
