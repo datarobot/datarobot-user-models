@@ -1,3 +1,4 @@
+import logging
 import os
 from unittest.mock import patch, Mock, ANY
 
@@ -448,10 +449,11 @@ class TestChat(TestBaseLanguagePredictor):
         assert expected_predictions == actual_predictions
         pd.testing.assert_frame_equal(actual_df, expected_df, check_like=True, check_dtype=False)
 
-    def test_masked_422(self, language_predictor_with_mlops, mock_mlops):
+    def test_masked_422(self, language_predictor_with_mlops, mock_mlops, caplog):
         def chat_hook(completion_request):
             return create_completion("How are you")
 
+        caplog.set_level(logging.INFO)
         language_predictor_with_mlops.chat_hook = chat_hook
 
         exception_string = (
@@ -464,22 +466,18 @@ class TestChat(TestBaseLanguagePredictor):
             "from deployment settings first, to post features"
         )
         mock_mlops.report_predictions_data.side_effect = DRMLOpsConnectedException(exception_string)
-        logger = datarobot_drum.drum.language_predictors.base_language_predictor.logger
         try:
-            with patch.object(logger, "warning") as mock_warning:
-                _ = language_predictor_with_mlops.chat(
-                    {
-                        "model": "any",
-                        "messages": [
-                            {"role": "system", "content": "You are a helpful assistant."},
-                            {"role": "user", "content": "Hi"},
-                        ],
-                    }
-                )
-                mock_warning.assert_called_once()
-                args, _ = mock_warning.call_args
-                assert exception_string in args[0]
-            assert True
+            _ = language_predictor_with_mlops.chat(
+                {
+                    "model": "any",
+                    "messages": [
+                        {"role": "system", "content": "You are a helpful assistant."},
+                        {"role": "user", "content": "Hi"},
+                    ],
+                }
+            )
+            assert exception_string in caplog.records[-1].message
+            assert caplog.records[-1].levelname == "WARNING"
         except DRMLOpsConnectedException as e:
             assert False, f"Not expected to raise the exception: {e}"
 
