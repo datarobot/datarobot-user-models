@@ -131,7 +131,7 @@ pipeline:
                     dockerfile: <+matrix.image.path>/<+matrix.image.dockerfile>
                     context: <+matrix.image.path>
                     buildArgs:
-                      ARTIFACTORY_INDEX: https://Read01:<+secrets.getValue("account.svc-read01-artifactory")>@artifactory.devinfra.drdev.io/artifactory/api/pypi/python-all/simple
+                      ARTIFACTORY_INDEX: https://svc-read01:<+secrets.getValue("account.svc-read01-artifactory")>@artifactory.devinfra.drdev.io/artifactory/api/pypi/python-all/simple
         when:
           pipelineStatus: Success
           condition: <+pipeline.variables.envs_folders>!=""
