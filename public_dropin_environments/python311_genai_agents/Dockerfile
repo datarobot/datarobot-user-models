@@ -9,6 +9,7 @@
 ARG WORKDIR=/etc/system/kernel
 ARG AGENTDIR=/etc/system/kernel/agent
 ARG VENV_PATH=${WORKDIR}/.venv
+ARG ARTIFACTORY_INDEX=https://artifactory.devinfra.drdev.io/artifactory/api/pypi/datarobot-python-dev/simple
 
 ARG UNAME=notebooks
 ARG UID=10101
@@ -104,7 +105,7 @@ RUN source ${VENV_PATH}/bin/activate && \
 # hadolint ignore=DL3013
 RUN source ${VENV_PATH}/bin/activate && \
     uv pip install --no-cache-dir datarobot-moderations \
-    --index https://artifactory.devinfra.drdev.io/artifactory/api/pypi/datarobot-python-dev/simple \
+    --index ${ARTIFACTORY_INDEX} \
     --index-strategy unsafe-best-match
 
 # Copy agent runtime into work directory
