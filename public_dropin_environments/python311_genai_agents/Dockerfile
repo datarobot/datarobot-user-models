@@ -91,16 +91,16 @@ FROM base AS builder
 ARG WORKDIR
 ARG VENV_PATH
 
-# COPY ./requirements.txt ${WORKDIR}/
-# COPY ./agent/requirements-agent.txt ${WORKDIR}/
+COPY ./requirements.txt ${WORKDIR}/
+COPY ./agent/requirements-agent.txt ${WORKDIR}/
 
-# # hadolint ignore=DL3013
-# RUN source ${VENV_PATH}/bin/activate && \
-#     uv pip install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt && \
-#     uv pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt && rm ${WORKDIR}/requirements-agent.txt && \
-#     # Generative AI Agents
-#     uv pip uninstall litellm && \
-#     uv pip install --no-cache-dir git+https://github.com/datarobot-forks/litellm@mattn/add-datarobot-support-to-litellm
+# hadolint ignore=DL3013
+RUN source ${VENV_PATH}/bin/activate && \
+    uv pip install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt && \
+    uv pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt && rm ${WORKDIR}/requirements-agent.txt && \
+    # Generative AI Agents
+    uv pip uninstall litellm && \
+    uv pip install --no-cache-dir git+https://github.com/datarobot-forks/litellm@mattn/add-datarobot-support-to-litellm
 
 # Install DataRobot Moderations
 # hadolint ignore=DL3013
