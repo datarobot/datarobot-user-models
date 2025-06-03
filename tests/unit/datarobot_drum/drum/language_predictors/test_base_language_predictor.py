@@ -1,7 +1,10 @@
+import logging
 import os
 from unittest.mock import patch, Mock, ANY
 
+import datarobot_drum
 import pytest
+from datarobot_mlops.common.connected_exception import DRMLOpsConnectedException
 from openai.types.model import Model
 import pandas as pd
 import numpy as np
@@ -445,6 +448,38 @@ class TestChat(TestBaseLanguagePredictor):
         actual_predictions = mock_mlops.report_predictions_data.call_args.args[1]
         assert expected_predictions == actual_predictions
         pd.testing.assert_frame_equal(actual_df, expected_df, check_like=True, check_dtype=False)
+
+    def test_masked_422(self, language_predictor_with_mlops, mock_mlops, caplog):
+        def chat_hook(completion_request):
+            return create_completion("How are you")
+
+        caplog.set_level(logging.INFO)
+        language_predictor_with_mlops.chat_hook = chat_hook
+
+        exception_string = (
+            "Request error for "
+            "http://datarobot-nginx/api/v2/deployments/did/predictionInputs/fromJSON/: "
+            "422 Client Error: UNPROCESSABLE ENTITY for url: "
+            "http://datarobot-nginx/api/v2/deployments/did/predictionInputs/fromJSON/ "
+            '{"message": "Index 0: Feature Drift tracking and predictions data collection'
+            " are disabled. Enable feature drift tracking or predictions data collection "
+            "from deployment settings first, to post features"
+        )
+        mock_mlops.report_predictions_data.side_effect = DRMLOpsConnectedException(exception_string)
+        try:
+            _ = language_predictor_with_mlops.chat(
+                {
+                    "model": "any",
+                    "messages": [
+                        {"role": "system", "content": "You are a helpful assistant."},
+                        {"role": "user", "content": "Hi"},
+                    ],
+                }
+            )
+            assert exception_string in caplog.records[-1].message
+            assert caplog.records[-1].levelname == "WARNING"
+        except DRMLOpsConnectedException as e:
+            assert False, f"Not expected to raise the exception: {e}"
 
 
 class TestModelsAPI(TestBaseLanguagePredictor):
