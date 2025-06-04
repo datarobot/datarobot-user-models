@@ -58,12 +58,8 @@ def argparse_args() -> argparse.Namespace:
         default="{}",
         help="OpenAI default_headers as json string",
     )
-    parser.add_argument(
-        "--output_path", type=str, default=None, help="json output file location"
-    )
-    parser.add_argument(
-        "--otlp_entity_id", type=str, default=None, help="Entity ID for tracing"
-    )
+    parser.add_argument("--output_path", type=str, default=None, help="json output file location")
+    parser.add_argument("--otlp_entity_id", type=str, default=None, help="Entity ID for tracing")
     args = parser.parse_args()
     return args
 
@@ -102,17 +98,13 @@ def setup_otlp_env_variables(entity_id: str | None = None) -> None:
     if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT") or os.environ.get(
         "OTEL_EXPORTER_OTLP_HEADERS"
     ):
-        root.info(
-            "OTEL_EXPORTER_OTLP_ENDPOINT or OTEL_EXPORTER_OTLP_HEADERS already set, skipping"
-        )
+        root.info("OTEL_EXPORTER_OTLP_ENDPOINT or OTEL_EXPORTER_OTLP_HEADERS already set, skipping")
         return
 
     datarobot_endpoint = os.environ.get("DATAROBOT_ENDPOINT")
     datarobot_api_token = os.environ.get("DATAROBOT_API_TOKEN")
     if not datarobot_endpoint or not datarobot_api_token:
-        root.warning(
-            "DATAROBOT_ENDPOINT or DATAROBOT_API_TOKEN not set, tracing is disabled"
-        )
+        root.warning("DATAROBOT_ENDPOINT or DATAROBOT_API_TOKEN not set, tracing is disabled")
         return
 
     parsed_url = urlparse(datarobot_endpoint)
@@ -200,9 +192,7 @@ def main() -> Any:
 
             root.info("Setting up logging")
             output_log_path = str(
-                Path(args.output_path + ".log")
-                if args.output_path
-                else DEFAULT_OUTPUT_LOG_PATH
+                Path(args.output_path + ".log") if args.output_path else DEFAULT_OUTPUT_LOG_PATH
             )
             setup_logging(
                 logger=root,
