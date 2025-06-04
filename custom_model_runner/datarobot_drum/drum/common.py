@@ -26,6 +26,7 @@ from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExport
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
 
 
@@ -135,7 +136,7 @@ def make_otel_endpoint(datarobot_endpoint):
     return result
 
 
-def setup_tracer(runtime_parameters):
+def setup_tracer(runtime_parameters, options):
     """Setups OTEL tracer.
 
     OTEL is configured by OTEL_EXPORTER_OTLP_ENDPOINT and
@@ -145,6 +146,8 @@ def setup_tracer(runtime_parameters):
     ----------
     runtime_parameters: Type[RuntimeParameters] class handles runtime parameters for custom modes
         used to check if OTEL configuration from user.
+    options: argparse.Namespace: object obtained from argparser filled with user supplied
+        command argumetns
     Returns
     -------
     None
@@ -166,7 +169,19 @@ def setup_tracer(runtime_parameters):
     resource = Resource.create()
     otlp_exporter = OTLPSpanExporter()
     provider = TracerProvider(resource=resource)
-    provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+
+    # In case of NIM flask server is configured to run in multiprocessing
+    # mode that uses fork. Since BatchSpanProcessor start background thread
+    # with bunch of locks, OTEL simply deadlocks and does not offlooad any
+    # spans. Even if we start BatchSpanProcessor per fork, batches often
+    # missing due to process exits before all data offloaded. In forking
+    # case we use SimpleSpanProcessor (mostly NIMs) otherwise BatchSpanProcessor
+    # (most frequent case)
+    if options.max_workers > 1:
+        provider.add_span_processor(SimpleSpanProcessor(otlp_exporter))
+    else:
+        provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+
     trace.set_tracer_provider(provider)
 
     endpoint = main_endpoint or trace_endpoint

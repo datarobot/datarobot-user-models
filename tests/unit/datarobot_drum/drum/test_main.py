@@ -35,7 +35,7 @@ def test_custom_model_workers(
         runtime_params.has.return_value = False
 
     main()
-    runtime_params.has.assert_called_with("CUSTOM_MODEL_WORKERS")
+    runtime_params.has.assert_any_call("CUSTOM_MODEL_WORKERS")
     if workers_param:
-        runtime_params.get.assert_called_with("CUSTOM_MODEL_WORKERS")
+        runtime_params.get.assert_any_call("CUSTOM_MODEL_WORKERS")
     assert expected_workers == options.max_workers
