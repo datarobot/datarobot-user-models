@@ -185,6 +185,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
                 mlops_service_url=self._params["external_webserver_url"],
                 mlops_api_token=self._params["api_token"],
             )
+            self._mlops.set_async_reporting()
 
     def get_prompt_column_name(self):
         if not self._params.get("deployment_id", None):
