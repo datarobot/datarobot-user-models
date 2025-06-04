@@ -6,7 +6,10 @@ FROM ${BASE_ROOT_IMAGE} AS build
 USER root
 
 # Install R and required R packages using apk and Rscript
-RUN apk add --no-cache \
+RUN echo "https://dl-cdn.alpinelinux.org/alpine/edge/testing" >> /etc/apk/repositories && \
+    echo "https://dl-cdn.alpinelinux.org/alpine/edge/community" >> /etc/apk/repositories && \
+    apk update && \
+    apk add --no-cache \
     R \
     R-dev \
     openblas \

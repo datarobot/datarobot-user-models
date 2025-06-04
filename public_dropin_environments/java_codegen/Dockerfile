@@ -6,7 +6,7 @@ FROM ${BASE_ROOT_IMAGE} AS build
 USER root
 
 # The JDK (not just JRE) is required because Py4J calls a Java method (o0.configure) that tries to execute 'javac'.
-RUN apk add --no-cache openjdk-11
+RUN apk add --no-cache openjdk11
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-gaurd image if you build your own.
