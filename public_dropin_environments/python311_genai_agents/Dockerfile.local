@@ -67,7 +67,7 @@ USER root
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # hadolint ignore=DL3018,DL3059
-RUN apk add --no-cache graphviz openblas openssh-server gzip zip unzip curl \
+RUN apk add --no-cache uv graphviz openblas openssh-server gzip zip unzip curl \
   openjdk-11 vim nano procps tzdata poppler-utils
 # hadolint ignore=DL3018,DL3059
 RUN apk add --no-cache rust sqlite
@@ -81,8 +81,10 @@ ENV PYTHONUNBUFFERED=1 \
 ENV PATH="$VENV_PATH/bin:$PATH" \
   PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
-# hadolint ignore=DL3013
-RUN python3 -m venv ${VENV_PATH} && pip3 install -U pip setuptools
+# hadolint ignore=SC1091
+RUN uv venv ${VENV_PATH} && \
+    source ${VENV_PATH}/bin/activate && \
+    uv pip install -U pip setuptools
 WORKDIR ${WORKDIR}
 
 COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
@@ -130,14 +132,13 @@ ARG VENV_PATH
 COPY ./requirements.txt ${WORKDIR}/
 COPY ./agent/requirements-agent.txt ${WORKDIR}/
 
-# hadolint ignore=DL3013
-RUN python3 -m pip install --upgrade pip setuptools && \
-    python3 -m pip install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt && \
-    python3 -m pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt && rm ${WORKDIR}/requirements-agent.txt
-
-# Generative AI Agents
-RUN python3 -m pip uninstall -y litellm && \
-    python3 -m pip install --no-cache-dir --no-warn-conflicts git+https://github.com/datarobot-forks/litellm@mattn/add-datarobot-support-to-litellm
+# hadolint ignore=SC1091
+RUN source ${VENV_PATH}/bin/activate && \
+    uv pip install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt && \
+    uv pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt && rm ${WORKDIR}/requirements-agent.txt && \
+    # Generative AI Agents
+    uv pip uninstall litellm && \
+    uv pip install --no-cache-dir git+https://github.com/BerriAI/litellm@v1.72.1.dev1
 
 # Copy agent runtime into work directory
 COPY ./run_agent.py ${WORKDIR}/
