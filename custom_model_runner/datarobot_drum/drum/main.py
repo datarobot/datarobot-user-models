@@ -91,12 +91,11 @@ def main():
         CMRunnerArgsRegistry.verify_options(options)
         _setup_required_environment_variables(options)
 
-        setup_tracer(RuntimeParameters)
-
         if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
             options.max_workers = RuntimeParameters.get("CUSTOM_MODEL_WORKERS")
         runtime.options = options
 
+        setup_tracer(RuntimeParameters, options)
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
 

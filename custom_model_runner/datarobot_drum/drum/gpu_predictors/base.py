@@ -48,6 +48,9 @@ from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerProc
 from datarobot_drum.drum.server import HTTP_513_DRUM_PIPELINE_ERROR
 from datarobot_drum.drum.root_predictors.chat_helpers import is_openai_model
 
+
+logger = logging.getLogger(__name__)
+
 # OpenAI client isn't a required dependency for DRUM, so we need to check if it's available
 try:
     from openai import OpenAI
@@ -55,6 +58,21 @@ try:
 
     COMPLETIONS_CREATE_SIGNATURE = inspect.signature(Completions.create)
     _HAS_OPENAI = True
+
+    try:
+        # disable "anonymous" tracking from traceloop
+        os.environ["TRACELOOP_TRACE_CONTENT"] = "false"
+        from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+
+        OpenAIInstrumentor().instrument()
+    except (ImportError, ModuleNotFoundError):
+        msg = """Instrumentation for openai is not loaded, make sure appropriate
+        packages are installed:
+
+        pip install opentelemetry-instrumentation-openai
+        """
+        logger.warning(msg)
+
 except ImportError:
     _HAS_OPENAI = False
 
