@@ -1,6 +1,6 @@
 {
   "id": "66151694d53a8a537360dbd8",
-  "name": "[GenAI][NVIDIA] NIM Llama-3.1-8b-instruct",
+  "name": "[GenAI][NVIDIA] NIM Llama-3.1-8b-instruct***",
   "description": "NVIDIA Inference Microservice GPU accelerated LLM capabilities through OpenAI compatible API's.\nThis NIM was built for Llama3.1-8b-instruct.",
   "programmingLanguage": "python",
   "label": "v1.3.3+dr.3",
