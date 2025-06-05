@@ -4,7 +4,7 @@
   "description": "This template can be used as an environment for DataRobot generated scoring code or models that implement the either the IClassificationPredictor or IRegressionPredictor interface from the datarobot-prediction package and for H2O models exported as POJO or MOJO.",
   "programmingLanguage": "java",
   "label": "",
-  "environmentVersionId": "6839fd8c0c7c49980cd3f878",
+  "environmentVersionId": "6840ef5a33c8d20ff7a3e4cd",
   "environmentVersionDescription": "",
   "isPublic": true,
   "useCases": [
@@ -12,8 +12,8 @@
   ],
   "imageRepository": "env-java-codegen",
   "tags": [
-    "v11.1.0-6839fd8c0c7c49980cd3f878",
-    "6839fd8c0c7c49980cd3f878",
+    "v11.1.0-6840ef5a33c8d20ff7a3e4cd",
+    "6840ef5a33c8d20ff7a3e4cd",
     "v11.1.0-latest"
   ]
 }
