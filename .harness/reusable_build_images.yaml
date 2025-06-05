@@ -119,17 +119,25 @@ pipeline:
           execution:
             steps:
               - step:
-                  type: BuildAndPushDockerRegistry
-                  name: Build and push to dockerhub
-                  identifier: Build_and_push_to_dockerhub
+                  type: Run
+                  name: Build images and push to dockerhub
+                  identifier: Build_images_and_push_to_dockerhub
                   spec:
-                    connectorRef: datarobot_user_models_read_write
-                    repo: datarobotdev/<+matrix.image.repository>
-                    tags:
-                      - <+matrix.image.tag>
-                    caching: true
-                    dockerfile: <+matrix.image.path>/<+matrix.image.dockerfile>
-                    context: <+matrix.image.path>
+                    shell: Bash
+                    command: |-
+                      echo "Starting script"
+                      docker login -u datarobotsvc1 -p <+secrets.getValue("org.genai-systems-dockerhub-token")>
+                      docker login -u '$oauthtoken' -p '<+secrets.getValue("NVIDIA_NGC_Credential")>' nvcr.io
+
+                      repo=datarobotdev/<+matrix.image.repository>
+                      tag=<+matrix.image.tag>
+                      dockerfile=<+matrix.image.path>/<+matrix.image.dockerfile>
+                      context=<+matrix.image.path>
+
+                      cd ${context}
+                      image_name=${repo}:${tag}
+                      docker build -t ${image_name} -f ${dockerfile} .
+                      docker push ${image_name}
         when:
           pipelineStatus: Success
           condition: <+pipeline.variables.envs_folders>!=""
