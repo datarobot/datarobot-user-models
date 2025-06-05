@@ -35,7 +35,7 @@ distro==1.9.0
 docker==7.1.0
 exceptiongroup==1.2.2
 filechunkio==1.8
-flask==3.1.0
+flask==3.1.1
 frozenlist==1.5.0
 google-api-core==1.34.0
 google-auth==1.28.1
