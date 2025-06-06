@@ -68,6 +68,9 @@ def main():
             if runtime.options and RunMode(runtime.options.subparser_name) == RunMode.SERVER:
                 if runtime.cm_runner:
                     runtime.cm_runner.terminate()
+            # Let traceer offload accumulated spans before shutdown.
+            if runtime.trace_provider is not None:
+                runtime.trace_provider.shutdown()
 
             os._exit(130)
 
@@ -95,7 +98,8 @@ def main():
             options.max_workers = RuntimeParameters.get("CUSTOM_MODEL_WORKERS")
         runtime.options = options
 
-        setup_tracer(RuntimeParameters, options)
+        runtime.trace_provider = setup_tracer(RuntimeParameters, options)
+
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
 

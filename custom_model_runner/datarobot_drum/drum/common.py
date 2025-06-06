@@ -150,7 +150,7 @@ def setup_tracer(runtime_parameters, options):
         command argumetns
     Returns
     -------
-    None
+    TracerProvider
     """
     log = get_drum_logger("setup_tracer")
 
@@ -186,6 +186,7 @@ def setup_tracer(runtime_parameters, options):
 
     endpoint = main_endpoint or trace_endpoint
     log.info(f"Tracing is configured with endpoint: {endpoint}")
+    return provider
 
 
 @contextmanager

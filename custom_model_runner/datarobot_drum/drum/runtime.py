@@ -30,6 +30,7 @@ class DrumRuntime:
         self.initialization_succeeded = False
         self.options = None
         self.cm_runner = None
+        self.trace_provider = None
 
     def __enter__(self):
         return self
