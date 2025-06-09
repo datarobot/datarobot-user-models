@@ -20,7 +20,7 @@ click==8.2.1
 coloredlogs==15.0.1
 cryptography==45.0.3
 datarobot==3.7.1
-datarobot-drum==1.16.15
+datarobot-drum==1.16.17
 datarobot-mlops==11.0.0
 datarobot-storage==2.2.0
 deprecated==1.2.18

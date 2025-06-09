@@ -4,7 +4,7 @@
   "description": "",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "6839ffc2dd4d8b13479274cd",
+  "environmentVersionId": "68471f880c7c496749baa213",
   "environmentVersionDescription": "Run with 10 HTTP workers by default",
   "isPublic": true,
   "useCases": null,

@@ -4,7 +4,7 @@
   "description": "This template environment can be used to create artifact-only PMML custom models. This environment contains PyPMML and only requires your model artifact as a .pmml file and optionally a custom.py file.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "6839fd8c0c7c49980cd3f87d",
+  "environmentVersionId": "68471e460c7c496330f88790",
   "environmentVersionDescription": "",
   "isPublic": true,
   "useCases": [
