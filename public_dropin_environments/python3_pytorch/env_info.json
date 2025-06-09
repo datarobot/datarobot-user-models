@@ -10,10 +10,11 @@
   "useCases": [
     "customModel"
   ],
+  "contextUrl": null,
   "imageRepository": "env-python-pytorch",
   "tags": [
-    "v11.1.0-6839fd8c0c7c49980cd3f87c",
-    "6839fd8c0c7c49980cd3f87c",
+    "v11.1.0-68471e460c7c496330f8878f",
+    "68471e460c7c496330f8878f",
     "v11.1.0-latest"
   ]
 }

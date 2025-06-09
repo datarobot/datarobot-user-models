@@ -10,10 +10,11 @@
   "useCases": [
     "customModel"
   ],
+  "contextUrl": null,
   "imageRepository": "env-python-keras",
   "tags": [
-    "v11.1.0-6839fd8c0c7c49980cd3f87e",
-    "6839fd8c0c7c49980cd3f87e",
+    "v11.1.0-68471e460c7c496330f88791",
+    "68471e460c7c496330f88791",
     "v11.1.0-latest"
   ]
 }

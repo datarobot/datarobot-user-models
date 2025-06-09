@@ -10,10 +10,11 @@
   "useCases": [
     "customModel"
   ],
+  "contextUrl": null,
   "imageRepository": "env-python-xgboost",
   "tags": [
-    "v11.1.0-6839fd8c0c7c49980cd3f877",
-    "6839fd8c0c7c49980cd3f877",
+    "v11.1.0-68471e460c7c496330f8878a",
+    "68471e460c7c496330f8878a",
     "v11.1.0-latest"
   ]
 }
