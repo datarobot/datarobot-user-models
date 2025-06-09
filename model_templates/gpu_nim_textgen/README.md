@@ -3,7 +3,7 @@
 This text generation example uses Llama-3.1-8b model pre-compiled for one of the [supported](https://docs.nvidia.com/nim/large-language-models/latest/support-matrix.html#llama-3-1-8b-instruct) GPUs.
 
 ## Requirements
-- NIM LLM [Execution Environment](../../public_dropin_nim_environments/nim_llama_8b/)
+- NIM LLM [Execution Environment](../../example_dropin_environments/nim_llama_8b/)
 - NIM Models currently only available via Developer program:
 https://developer.nvidia.com/developer-program
 - Generate a valid NVIDIA NGC Registry API Key:

@@ -2,7 +2,7 @@
 This folder contains templates for building NVIDIA NIM environments used in DataRobot.
 
 In this repository, we provide several example environments that you can use and modify:
-* [Llama 8B Example Environment](nim_llama_8b)
+* [Llama 8B Example Environment](../example_dropin_environments/nim_llama_8b)
 * [Running NIM as a Sidecar Example Environment](nim_sidecar)
 
 These sample environments each define the libraries available in the environment
