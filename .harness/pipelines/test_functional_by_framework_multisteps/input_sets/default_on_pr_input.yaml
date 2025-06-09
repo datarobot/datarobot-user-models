@@ -18,7 +18,7 @@ inputSet:
         value: <+trigger.sourceBranch>
       - name: envs_parent_folders_to_include
         type: String
-        value: ""
+        value: public_dropin_environments,public_dropin_apps_environments,public_dropin_gpu_environments,public_dropin_nim_environments,public_dropin_notebook_environments
       - name: force_requirements_upgrade
         type: String
         value: "false"
