@@ -3,12 +3,19 @@
   "name": "[DataRobot - Deprecated] Python 3.11 Notebook Drop-In",
   "description": "Deprecated in favor of Python 3.11 Base Notebook Drop-In Template",
   "programmingLanguage": "python",
-  "environmentVersionId": "678909b6776ffccaa3401ae5",
+  "label": "",
+  "environmentVersionId": "6848b6632081a81ae47ee7d3",
+  "environmentVersionDescription": "",
   "isPublic": false,
   "useCases": [
     "notebook",
     "customModel"
   ],
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_notebook_environments/python311_notebook",
-  "imageRepository": "env-notebook-python311-notebook"
+  "imageRepository": "env-notebook-python311-notebook",
+  "tags": [
+    "v11.1.0-6848b6632081a81ae47ee7d3",
+    "6848b6632081a81ae47ee7d3",
+    "v11.1.0-latest"
+  ]
 }
