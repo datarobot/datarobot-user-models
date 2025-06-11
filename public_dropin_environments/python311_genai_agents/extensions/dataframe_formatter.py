@@ -20,8 +20,6 @@ import traceback
 from enum import Enum
 from typing import Any
 from typing import Callable
-from typing import Dict
-from typing import List
 from typing import Optional
 from typing import Union
 from typing import cast
@@ -75,7 +73,7 @@ class DataframesProcessSteps(str, Enum):
     DEFAULT = "get_columns"
 
 
-Columns = List[Dict[str, Any]]
+Columns = list[dict[str, Any]]
 
 DEFAULT_INDEX_KEY = "index"
 
@@ -83,7 +81,7 @@ DEFAULT_INDEX_KEY = "index"
 def _register_exception(
     e: Exception,
     step: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     exc_info = sys.exc_info()
     traceback_msg = traceback.format_exception(*exc_info)
 
@@ -174,7 +172,7 @@ def _transform_to_json(data: DataFrame) -> Any:
     return json.loads(data.to_json(orient="table", index=True, default_handler=str))["data"]
 
 
-def _prepare_df_for_chart_cell(val: DataFrame, columns: List[str]) -> Union[DataFrame, List[str]]:
+def _prepare_df_for_chart_cell(val: DataFrame, columns: list[str]) -> Union[DataFrame, list[str]]:
     if len(columns) == 0:
         data = []
     elif len(columns) == 1:
@@ -190,9 +188,9 @@ def _prepare_df_for_chart_cell(val: DataFrame, columns: List[str]) -> Union[Data
 # This formatter can operate with data that we have received as a DataFrame
 def formatter(  # noqa: C901,PLR0912
     val: "DataFrame",
-    formatter: Optional[Callable[..., List[str]]] = None,
+    formatter: Optional[Callable[..., list[str]]] = None,
     **formatter_kwargs: Any,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     error = []
     dataframe_limit = 5000
     dataframe_id = id(val)
