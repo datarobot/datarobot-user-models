@@ -96,17 +96,6 @@ class GenericPredictorComponent:
 
     def materialize(self):
         output_filename = self._params.get("output_filename")
-        if self.cli_adapter.target_type == TargetType.TEXT_GENERATION:
-            binary_data = self.cli_adapter.input_binary_data
-            completion_create_params = json.loads(binary_data.decode('utf-8'))
-
-            response = self._predictor.chat(
-                completion_create_params
-            )
-            with open(output_filename, "w") as output:
-                json.dump(response.to_dict(), output)
-            return []
-
         if self.cli_adapter.target_type == TargetType.UNSTRUCTURED:
             # TODO: add support to use cli_adapter for unstructured
             return self._materialize_unstructured(
