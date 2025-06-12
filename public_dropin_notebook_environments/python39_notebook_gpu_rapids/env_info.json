@@ -3,12 +3,20 @@
   "name": "[DataRobot] Python 3.9 Notebook Drop-In with GPU support and RAPIDS",
   "description": "This template environment can be used to create Python 3.9 notebook environments with GPU and RAPIDS.",
   "programmingLanguage": "python",
+  "label": "",
   "environmentVersionId": "679bc5cb714043fa6fd04a8c",
+  "environmentVersionDescription": "",
   "isPublic": true,
   "useCases": [
     "notebook",
     "gpu",
     "customModel"
   ],
-  "imageRepository": "env-notebook-python39-notebook-gpu-rapids"
+  "contextUrl": null,
+  "imageRepository": "env-notebook-python39-notebook-gpu-rapids",
+  "tags": [
+    "v11.1.0-679bc5cb714043fa6fd04a8c",
+    "679bc5cb714043fa6fd04a8c",
+    "v11.1.0-latest"
+  ]
 }

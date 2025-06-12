@@ -11,6 +11,7 @@
     "notebook",
     "customModel"
   ],
+  "contextUrl": null,
   "imageRepository": "env-python-genai-agents",
   "tags": [
     "v11.1.0-68409da3ebb36a0f9475123a",

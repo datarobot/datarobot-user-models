@@ -10,6 +10,7 @@
   "useCases": [
     "customModel"
   ],
+  "contextUrl": null,
   "imageRepository": "env-r-lang",
   "tags": [
     "v11.1.0-6839fd8c0c7c49980cd3f87a",
