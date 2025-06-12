@@ -16,6 +16,7 @@ import argparse
 import json
 import logging
 import os
+import socket
 import sys
 from pathlib import Path
 from typing import Any, TextIO
@@ -89,6 +90,16 @@ def argparse_args() -> argparse.Namespace:
     )
     args = parser.parse_args()
     return args
+
+
+def get_open_port() -> int:
+    """Get an open port on the local machine."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(("", 0))
+    s.listen(1)
+    port = s.getsockname()[1]
+    s.close()
+    return int(port)
 
 
 def setup_logging(
@@ -192,7 +203,7 @@ def execute_drum(
         logging_level="info",
         target_name="response",
         wait_for_server_timeout=360,
-        port=8191,
+        port=get_open_port(),
         stream_output=True,
         max_workers=2,  # this will force drum tracing to not use batchprocessor
     ) as drum_runner:
