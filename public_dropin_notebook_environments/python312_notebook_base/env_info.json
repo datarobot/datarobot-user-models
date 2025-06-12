@@ -1,0 +1,11 @@
+{
+  "name": "[DataRobot] Python 3.12 Notebook Base Image",
+  "description": "This template environment can be used to create Python 3.12 notebook environments.",
+  "programmingLanguage": "python",
+  "label": "",
+  "environmentVersionDescription": "",
+  "useCases": [
+    "notebook",
+    "customModel"
+  ]
+}
