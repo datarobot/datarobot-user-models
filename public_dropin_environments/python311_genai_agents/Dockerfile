@@ -14,7 +14,7 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 
-FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev-drbuild-1328 AS base
+FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev AS base
 
 ARG UNAME
 ARG UID
