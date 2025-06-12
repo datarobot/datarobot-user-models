@@ -17,6 +17,9 @@ with inline_predictor(code_dir, 'textgeneration') as predictor:
     result = predictor.chat(payload)
     print(result)
 
+
+NOTE: expects TARGET_NAME env var for text gen, agentic, and VDB types.
+
 """
 import contextlib
 import tempfile
