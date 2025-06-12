@@ -3,12 +3,12 @@ setuptools
 ecs-logging
 jupyter-client
 jupyter_kernel_gateway
-jupyter_core
+jupyter_core>=5.8.1
 ipykernel<6.29.0
 pandas
 numpy
 mistune
-datarobot-drum>=1.16.14
+datarobot-drum>=1.16.16
 datarobot
 numpy
 uwsgi
@@ -25,7 +25,8 @@ llama-index-llms-openai
 llama-index-llms-langchain
 llama-index-llms-litellm
 openai
-ragas
+ragas @ git+https://github.com/explodinggradients/ragas@5d59549ad5ef511f621502c563bc55ac5aeb9188#subdirectory=ragas
+datarobot-moderations>=11.1.14
 
 # Generative AI Telemetry
 traceloop-sdk

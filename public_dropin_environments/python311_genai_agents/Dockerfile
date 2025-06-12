@@ -14,7 +14,7 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 
-FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev-drbuild-1328 AS base
+FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev AS base
 
 ARG UNAME
 ARG UID
@@ -36,7 +36,9 @@ ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     VENV_PATH=${VENV_PATH} \
     PIP_NO_CACHE_DIR=1 \
-    NOTEBOOKS_KERNEL="python"
+    NOTEBOOKS_KERNEL="python" \
+    DEEPEVAL_HOME=/tmp/.deepeval \
+    DEEPEVAL_TELEMETRY_OPT_OUT="YES"
 
 ENV PATH="$VENV_PATH/bin:$PATH" \
   PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
@@ -98,7 +100,7 @@ RUN source ${VENV_PATH}/bin/activate && \
     uv pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt && rm ${WORKDIR}/requirements-agent.txt && \
     # Generative AI Agents
     uv pip uninstall litellm && \
-    uv pip install --no-cache-dir git+https://github.com/BerriAI/litellm@v1.72.1.dev1
+    uv pip install --no-cache-dir litellm>=1.72.1
 
 # Copy agent runtime into work directory
 COPY ./run_agent.py ${WORKDIR}/
