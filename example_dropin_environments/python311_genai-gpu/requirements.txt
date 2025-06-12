@@ -23,7 +23,7 @@ rouge-score==0.1.2
 fugashi==1.3.2
 unidic-lite==1.0.8
 llama-index==0.12.28
-llama-index-llms-azure-openai==0.1.8
+llama-index-llms-azure-openai==0.3.4
 distro==1.9.0
 # next version of httpx, 0.28.0, has a bug that breaks opanai library, which is pinned
 # https://github.com/openai/openai-python/issues/1902
