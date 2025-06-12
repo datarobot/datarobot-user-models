@@ -6,7 +6,6 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import json
 import urllib
-from typing import Optional
 
 import werkzeug
 from datarobot_drum.drum.adapters.cli.drum_score_adapter import DrumScoreAdapter
@@ -39,6 +38,10 @@ class GenericPredictorComponent:
             class_labels=params.get("classLabels"),
         )
         self._predictor = self._setup_predictor()
+
+    @property
+    def predictor(self):
+        return self._predictor
 
     def _setup_predictor(self):
         if self._run_language == RunLanguage.PYTHON:
