@@ -7,17 +7,16 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 Example:
 
 import json
+
 payload = json.loads(open("input.json", "r").read())
 code_dir = (
-    'datarobot-user-models/model_templates/python3_dummy_chat'
+    '/datarobot-user-models/model_templates/python3_dummy_chat'
 )
 
-with inline_predictor(code_dir, 'textgeneration') as predictor:
+with drum_inline_predictor(target_type=TargetType.AGENTIC_WORKFLOW.value, custom_model_dir=code_dir,
+                           target_name='response') as predictor:
     result = predictor.chat(payload)
     print(result)
-
-
-NOTE: expects TARGET_NAME env var for text gen, agentic, and VDB types.
 
 """
 import contextlib
