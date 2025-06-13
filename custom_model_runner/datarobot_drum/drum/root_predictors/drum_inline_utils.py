@@ -1,4 +1,3 @@
-
 """
 Copyright 2025 DataRobot, Inc. and its affiliates.
 All rights reserved.
@@ -22,6 +21,7 @@ NOTE: expects TARGET_NAME env var for text gen, agentic, and VDB types.
 
 """
 import contextlib
+import os
 import tempfile
 
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
@@ -33,18 +33,20 @@ from datarobot_drum.runtime_parameters.runtime_parameters import RuntimeParamete
 
 
 @contextlib.contextmanager
-def inline_predictor(code_dir, target_type, *cmd_args):
+def drum_inline_predictor(target_type, custom_model_dir, target_name, *cmd_args):
     with DrumRuntime() as runtime, tempfile.NamedTemporaryFile(mode="wb") as tf:
         # setup
+
+        os.environ["TARGET_NAME"] = target_name
         arg_parser = CMRunnerArgsRegistry.get_arg_parser()
         CMRunnerArgsRegistry.extend_sys_argv_with_env_vars()
         args = [
             'score',
             '--code-dir',
-            code_dir,
+            custom_model_dir,
 
             # regular score is actually a CLI thing, so it expects input/output,
-            # we can ignore these as we handover the predictor directly to the caller to do I/O.
+            # we can ignore these as we hand over the predictor directly to the caller to do I/O.
             '--input',
             tf.name,
             '--output',
