@@ -22,7 +22,7 @@ click==8.1.8
 cryptography==44.0.1
 datarobot==3.6.2
 datarobot-drum==1.16.5
-datarobot-mlops==10.2.8
+datarobot-mlops==11.1.0a3
 datarobot-storage==0.0.0
 docker==7.1.0
 filechunkio==1.8

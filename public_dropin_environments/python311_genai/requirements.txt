@@ -36,7 +36,7 @@ cryptography==44.0.1
 dataclasses-json==0.6.7
 datarobot==3.6.2
 datarobot-drum==1.16.17
-datarobot-mlops==10.2.8
+datarobot-mlops==11.1.0a3
 datarobot-storage==0.0.0
 deprecated==1.2.18
 dirtyjson==1.0.8
