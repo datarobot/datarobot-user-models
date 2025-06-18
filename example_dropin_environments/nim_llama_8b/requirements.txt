@@ -25,8 +25,8 @@ click==8.1.7
 cryptography==44.0.1
 datarobot==3.5.2
 datarobot-drum==1.16.3
-datarobot-mlops==10.2.0
-datarobot-mlops-connected-client==10.2.0
+datarobot-mlops==11.1.0a3
+datarobot-mlops-connected-client==11.1.0a3
 datarobot-storage==0.0.0
 distro==1.9.0
 docker==4.4.4

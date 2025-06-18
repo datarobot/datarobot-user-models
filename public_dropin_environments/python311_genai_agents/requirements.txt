@@ -61,7 +61,7 @@ cryptography==44.0.3
 dataclasses-json==0.6.7
 datarobot==3.7.1
 datarobot-drum==1.16.16
-datarobot-mlops==11.0.0
+datarobot-mlops==11.1.0a3
 datarobot-moderations==11.1.14
 datarobot-predict==1.13.2
 datarobot-storage==2.2.0
