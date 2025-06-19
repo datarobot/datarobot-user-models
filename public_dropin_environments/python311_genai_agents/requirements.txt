@@ -396,7 +396,7 @@ typing-inspect==0.9.0
 typing-inspection==0.4.0
 tzdata==2025.2
 uri-template==1.3.0
-urllib3==2.4.0
+urllib3==2.5.0
 uv==0.7.3
 uvicorn[standard]==0.34.2
 uvloop==0.21.0
