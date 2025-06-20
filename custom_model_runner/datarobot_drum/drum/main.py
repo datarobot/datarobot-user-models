@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
 
 #!/usr/bin/env python3
@@ -43,7 +44,11 @@ import signal
 import sys
 
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
-from datarobot_drum.drum.common import config_logging, setup_tracer, setup_required_environment_variables
+from datarobot_drum.drum.common import (
+    config_logging,
+    setup_tracer,
+    setup_required_environment_variables,
+)
 from datarobot_drum.drum.enum import RunMode
 from datarobot_drum.drum.enum import ExitCodes
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException

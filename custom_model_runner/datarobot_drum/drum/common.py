@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import logging
 import os
 import sys
@@ -239,6 +240,4 @@ def setup_required_environment_variables(options):
         loader.setup_environment_variables()
 
     if "lazy_loading_file" in options and options.lazy_loading_file:
-        LazyLoadingHandler.setup_environment_variables_from_values_file(
-            options.lazy_loading_file
-        )
+        LazyLoadingHandler.setup_environment_variables_from_values_file(options.lazy_loading_file)
