@@ -12,3 +12,4 @@ urllib3>=1.25.0,<2.0.0
 # strictly not needed for testing, but used when updating environment
 bson
 openai>=1.55.3
+datarobot-moderations
