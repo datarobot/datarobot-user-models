@@ -19,6 +19,7 @@ google-cloud-aiplatform
 aws-request-signer
 pydantic
 pydantic-settings
+protobuf<4,>=3.20.0
 aiofiles
 aioboto3
 rouge-score
