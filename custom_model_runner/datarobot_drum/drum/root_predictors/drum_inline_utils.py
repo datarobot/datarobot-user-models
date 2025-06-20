@@ -19,6 +19,7 @@ with drum_inline_predictor(target_type=TargetType.AGENTIC_WORKFLOW.value, custom
     print(result)
 
 """
+
 import contextlib
 import os
 import tempfile
@@ -40,17 +41,16 @@ def drum_inline_predictor(target_type, custom_model_dir, target_name, *cmd_args)
         arg_parser = CMRunnerArgsRegistry.get_arg_parser()
         CMRunnerArgsRegistry.extend_sys_argv_with_env_vars()
         args = [
-            'score',
-            '--code-dir',
+            "score",
+            "--code-dir",
             custom_model_dir,
-
             # regular score is actually a CLI thing, so it expects input/output,
             # we can ignore these as we hand over the predictor directly to the caller to do I/O.
-            '--input',
+            "--input",
             tf.name,
-            '--output',
+            "--output",
             tf.name,
-            '--target-type',
+            "--target-type",
             target_type,
             *cmd_args,
         ]
