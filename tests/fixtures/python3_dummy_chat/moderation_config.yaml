@@ -1,0 +1,15 @@
+guards:
+- description: Track the number of tokens associated with the input to the LLM, and/or  retrieved
+    text from the vector database.
+  name: prompt_tokens
+  ootb_type: token_count
+  stage: prompt
+  type: ootb
+- description: Track the number of tokens associated with the input to the LLM, and/or  retrieved
+    text from the vector database.
+  name: response_tokens
+  ootb_type: token_count
+  stage: response
+  type: ootb
+timeout_action: score
+timeout_sec: 60
