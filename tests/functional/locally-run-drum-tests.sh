@@ -50,7 +50,6 @@ function check_env_or_create() {
     pip install pytest -r ${GIT_ROOT}/custom_model_runner/requirements.txt
     pip install pytest -r ${GIT_ROOT}/requirements_lint.txt
     pip install pytest -r ${GIT_ROOT}/requirements_test.txt
-    pip install pytest -r ${GIT_ROOT}/requirements_test_moderations.txt
     deactivate
 }
 

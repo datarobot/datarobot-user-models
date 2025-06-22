@@ -12,7 +12,7 @@ from tests.constants import TESTS_FIXTURES_PATH
 
 class TestDrumInlinePredictor:
     @pytest.fixture
-    def chat_custom_model_code_dir(self):
+    def chat_code_dir(self):
         return os.path.join(TESTS_FIXTURES_PATH, "python3_dummy_chat")
 
     @pytest.fixture
@@ -35,15 +35,18 @@ class TestDrumInlinePredictor:
     def datarobot_details(self):
         return ("http://my-datarobot/api/v2", "notatoken")
 
+    @pytest.skip(
+        "Installing datarobot-moderations in functional tests adds 30m to the test suite. Figure out why"
+    )
     @responses.activate
     @pytest.mark.parametrize(
         "target_type", [TargetType.AGENTIC_WORKFLOW, TargetType.TEXT_GENERATION]
     )
-    def test_chat(
+    def test_chat_with_moderations(
         self,
         target_type,
         monkeypatch,
-        chat_custom_model_code_dir,
+        chat_code_dir,
         chat_request_no_stream,
         datarobot_details,
     ):
@@ -62,7 +65,7 @@ class TestDrumInlinePredictor:
         # act
         with drum_inline_predictor(
             target_type=TargetType.TEXT_GENERATION.value,
-            custom_model_dir=chat_custom_model_code_dir,
+            custom_model_dir=chat_code_dir,
             target_name="response",
         ) as predictor:
             result = predictor.chat(chat_request_no_stream)
@@ -75,5 +78,30 @@ class TestDrumInlinePredictor:
             )
             assert result.datarobot_moderations["Prompts_token_count"] == 8
             assert result.datarobot_moderations["Responses_token_count"] == 8
+            assert result.choices[0].message.content == "Echo: You are a helpful assistant."
+            assert result.choices[0].finish_reason == "stop"
+
+    @pytest.mark.parametrize(
+        "target_type", [TargetType.AGENTIC_WORKFLOW, TargetType.TEXT_GENERATION]
+    )
+    def test_chat(self, target_type, monkeypatch, chat_code_dir, chat_request_no_stream):
+        # arrange
+        monkeypatch.delitem(os.environ, "DATAROBOT_ENDPOINT", raising=False)
+        monkeypatch.delitem(os.environ, "DATAROBOT_API_TOKEN", raising=False)
+
+        # act
+        with drum_inline_predictor(
+            target_type=TargetType.TEXT_GENERATION.value,
+            custom_model_dir=chat_code_dir,
+            target_name="response",
+        ) as predictor:
+            result = predictor.chat(chat_request_no_stream)
+
+            # assert
+            assert isinstance(result, ChatCompletion)
+            assert (
+                result.datarobot_moderations["unmoderated_response"]
+                == "Echo: You are a helpful assistant."
+            )
             assert result.choices[0].message.content == "Echo: You are a helpful assistant."
             assert result.choices[0].finish_reason == "stop"
