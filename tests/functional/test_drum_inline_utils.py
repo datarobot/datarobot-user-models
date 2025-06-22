@@ -35,7 +35,7 @@ class TestDrumInlinePredictor:
     def datarobot_details(self):
         return ("http://my-datarobot/api/v2", "notatoken")
 
-    @pytest.skip(
+    @pytest.mark.skip(
         "Installing datarobot-moderations in functional tests adds 30m to the test suite. Figure out why"
     )
     @responses.activate
