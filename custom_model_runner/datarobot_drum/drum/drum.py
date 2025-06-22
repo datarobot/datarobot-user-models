@@ -803,10 +803,7 @@ class CMRunner:
 
         return DrumUtils.render_file(functional_pipeline_filepath, replace_data)
 
-    def _run_predictions(self, stats_collector: Optional[StatsCollector] = None):
-        if self.run_mode not in [RunMode.SCORE, RunMode.SERVER]:
-            raise NotImplemented(f"The given run mode is supported here: {self.run_mode}")
-
+    def get_predictor_params(self):
         run_language = self._check_artifacts_and_get_run_language()
         infra_pipeline_str = self._prepare_prediction_server_or_batch_pipeline(run_language)
 
@@ -815,12 +812,17 @@ class CMRunner:
             raise DrumCommonException("Pipeline is empty")
         if "arguments" not in pipeline["pipe"][0]:
             raise DrumCommonException("Arguments are missing in the pipeline")
+        return pipeline["pipe"][0]["arguments"]
+
+    def _run_predictions(self, stats_collector: Optional[StatsCollector] = None):
+        if self.run_mode not in [RunMode.SCORE, RunMode.SERVER]:
+            raise NotImplemented(f"The given run mode is supported here: {self.run_mode}")
 
         self.logger.info(
             f">>> Start {ArgumentsOptions.MAIN_COMMAND} in the {self.run_mode.value} mode"
         )
 
-        params = pipeline["pipe"][0]["arguments"]
+        params = self.get_predictor_params()
         predictor = None
         try:
             if stats_collector:

@@ -5,7 +5,6 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import urllib
-from typing import Optional
 
 import werkzeug
 from datarobot_drum.drum.adapters.cli.drum_score_adapter import DrumScoreAdapter
@@ -38,6 +37,10 @@ class GenericPredictorComponent:
             class_labels=params.get("classLabels"),
         )
         self._predictor = self._setup_predictor()
+
+    @property
+    def predictor(self):
+        return self._predictor
 
     def _setup_predictor(self):
         if self._run_language == RunLanguage.PYTHON:
@@ -92,7 +95,6 @@ class GenericPredictorComponent:
 
     def materialize(self):
         output_filename = self._params.get("output_filename")
-
         if self.cli_adapter.target_type == TargetType.UNSTRUCTURED:
             # TODO: add support to use cli_adapter for unstructured
             return self._materialize_unstructured(
