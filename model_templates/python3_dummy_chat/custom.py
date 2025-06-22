@@ -6,7 +6,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import calendar
 import time
-from typing import Any, Iterator
+from typing import Any
 import uuid
 
 from openai.types.chat import ChatCompletion
@@ -66,7 +66,7 @@ def load_model(code_dir: str) -> Any:
 
 def chat(
     completion_create_params: CompletionCreateParams, model: Any
-) -> ChatCompletion | Iterator[ChatCompletionChunk]:
+):
     """
     This hook supports chat completions;
     see https://platform.openai.com/docs/api-reference/chat/create.
@@ -74,6 +74,7 @@ def chat(
     acting as the model specified in the chat completion request.
     If streaming is requested, yields ChatCompletionChunk objects
     for each "token" (word) in the response.
+    Returns ChatCompletion or Iterator[ChatCompletionChunk]
     """
     _ = model
     inter_token_latency_seconds = 0.25

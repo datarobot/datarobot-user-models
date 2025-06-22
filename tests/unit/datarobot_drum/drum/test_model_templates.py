@@ -17,6 +17,7 @@ from model_templates.python3_dummy_chat.custom import chat as dummy_chat_chat
 # The particular model usually doesn't matter for the example hooks
 CHAT_COMPLETIONS_MODEL = "datarobot-deployed-llm"
 
+
 @pytest.mark.usefixtures("prediction_server")
 @pytest.mark.parametrize("is_streaming", [True, False])
 def test_dummy_chat_chat(openai_client, chat_python_model_adapter, is_streaming):
