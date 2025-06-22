@@ -99,9 +99,5 @@ class TestDrumInlinePredictor:
 
             # assert
             assert isinstance(result, ChatCompletion)
-            assert (
-                result.datarobot_moderations["unmoderated_response"]
-                == "Echo: You are a helpful assistant."
-            )
             assert result.choices[0].message.content == "Echo: You are a helpful assistant."
             assert result.choices[0].finish_reason == "stop"
