@@ -37,6 +37,9 @@ script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 title "Installing requirements for all the tests: requirements_test.txt"
 pip install -r requirements_test.txt
 
+title "Installing requirements for tests involving DataRobot moderations integration"
+pip install -r requirements_test_moderations.txt
+
 # Install latest requirements from sklearn environment (For tests that are executed locally)
 pip install -r $tmp_py3_sklearn_env_dir/requirements.txt
 

@@ -95,7 +95,7 @@ pipeline:
                             <+secrets.getValue("account.dockerhubdatarobotread2orgread1")>
                         resources:
                           limits:
-                            memory: 8G
+                            memory: 16G
               caching:
                 enabled: false
                 paths: []
