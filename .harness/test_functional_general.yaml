@@ -27,7 +27,7 @@ pipeline:
                         shell: Bash
                         command: |-
                           ./harness_scripts/functional_general/mlops_reporting_entrypoint.sh \
-                            <+secrets.getValue("account.dockerhubdatarobotread2orgread1")>
+                            <+secrets.getValue("org.genai-systems-dockerhub-login")> <+secrets.getValue("org.genai-systems-dockerhub-token")>
                         resources:
                           limits:
                             memory: 3G
@@ -92,7 +92,7 @@ pipeline:
                         shell: Bash
                         command: |
                           ./harness_scripts/functional_general/general_tests_entrypoint.sh \
-                            <+secrets.getValue("account.dockerhubdatarobotread2orgread1")>
+                            <+secrets.getValue("org.genai-systems-dockerhub-login")> <+secrets.getValue("org.genai-systems-dockerhub-token")>
                         resources:
                           limits:
                             memory: 8G
