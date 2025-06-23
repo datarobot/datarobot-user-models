@@ -26,7 +26,7 @@ pipeline:
                       spec:
                         shell: Bash
                         command: |-
-                          docker login -u nullspoon -p <+secrets.getValue("org.genai-systems-dockerhub-token")>
+                          docker login -u <+secrets.getValue("org.genai-systems-dockerhub-login")> -p <+secrets.getValue("org.genai-systems-dockerhub-token")>
                           ./harness_scripts/functional_general/mlops_reporting_entrypoint.sh \
                             <+secrets.getValue("account.dockerhubdatarobotread2orgread1")>
                         resources:
@@ -92,7 +92,7 @@ pipeline:
                       spec:
                         shell: Bash
                         command: |
-                          docker login -u nullspoon -p <+secrets.getValue("org.genai-systems-dockerhub-token")>
+                          docker login -u <+secrets.getValue("org.genai-systems-dockerhub-login")> -p <+secrets.getValue("org.genai-systems-dockerhub-token")>
                           ./harness_scripts/functional_general/general_tests_entrypoint.sh \
                             <+secrets.getValue("account.dockerhubdatarobotread2orgread1")>
                         resources:
