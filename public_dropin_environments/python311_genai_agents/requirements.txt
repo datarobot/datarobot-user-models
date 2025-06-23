@@ -62,7 +62,7 @@ dataclasses-json==0.6.7
 datarobot==3.7.1
 datarobot-drum==1.16.16
 datarobot-mlops==11.1.0a3
-datarobot-moderations==11.1.14
+datarobot-moderations==11.1.17
 datarobot-predict==1.13.2
 datarobot-storage==2.2.0
 datasets==3.6.0
@@ -253,6 +253,7 @@ opentelemetry-instrumentation-fastapi==0.54b0
 opentelemetry-instrumentation-google-generativeai==0.40.3
 opentelemetry-instrumentation-groq==0.40.3
 opentelemetry-instrumentation-haystack==0.40.3
+opentelemetry-instrumentation-httpx==0.54b0
 opentelemetry-instrumentation-lancedb==0.40.3
 opentelemetry-instrumentation-langchain==0.40.3
 opentelemetry-instrumentation-llamaindex==0.40.3
@@ -342,7 +343,7 @@ ragas @ git+https://github.com/explodinggradients/ragas@5d59549ad5ef511f621502c5
 readme-renderer==44.0
 referencing==0.36.2
 regex==2024.11.6
-requests==2.32.3
+requests==2.32.4
 requests-oauthlib==2.0.0
 requests-toolbelt==1.0.0
 rfc3339-validator==0.1.4
