@@ -6,7 +6,6 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import argparse
 import os
-import subprocess
 import sys
 from urllib.parse import urlparse
 

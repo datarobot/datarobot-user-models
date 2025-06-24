@@ -8,8 +8,8 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import logging
 import os
 import sys
+import trafaret as t
 from contextvars import ContextVar
-from distutils.util import strtobool
 from urllib.parse import urlparse, urlunparse
 
 from contextlib import contextmanager
@@ -126,7 +126,7 @@ def to_bool(value):
         return False
     if isinstance(value, bool):
         return value
-    return strtobool(value)
+    return t.ToBool().check(value)
 
 
 FIT_METADATA_FILENAME = "fit_runtime_data.json"
