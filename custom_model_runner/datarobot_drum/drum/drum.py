@@ -76,28 +76,6 @@ SERVER_PIPELINE = "prediction_server_pipeline.json.j2"
 PREDICTOR_PIPELINE = "prediction_pipeline.json.j2"
 
 
-def copy_tree(src, dst):
-    """Copy contents of src directory into dst directory, merging folders.
-    Returns list of copied file paths."""
-    os.makedirs(dst, exist_ok=True)
-    copied_files = []
-
-    for item in os.listdir(src):
-        s = os.path.join(src, item)
-        d = os.path.join(dst, item)
-        if os.path.isdir(s):
-            shutil.copytree(s, d, dirs_exist_ok=True)
-            # Collect all copied files recursively
-            for root, _, files in os.walk(d):
-                for f in files:
-                    copied_files.append(os.path.join(root, f))
-        else:
-            shutil.copy2(s, d)
-            copied_files.append(d)
-
-    return copied_files
-
-
 class CMRunner:
     def __init__(self, runtime):
         self.runtime = runtime
