@@ -5,7 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
-from distutils.util import strtobool
+import trafaret as t
 from typing import Any, List, Optional, Union
 
 import numpy as np
@@ -81,9 +81,9 @@ def _standardize(label):
     except ValueError:
         pass
 
-    # Maybe if its a boolean we can make it floaty anyways
+    # Maybe if it's a boolean we can make it floaty anyways
     try:
-        return float(strtobool(label))
+        return float(t.ToBool().check(label))
     except ValueError:
         pass
 

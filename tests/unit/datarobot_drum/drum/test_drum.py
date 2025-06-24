@@ -8,6 +8,7 @@
 
 import os
 import sys
+import tempfile
 from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory, NamedTemporaryFile
@@ -23,7 +24,7 @@ from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.drum import (
     CMRunner,
     create_custom_inference_model_folder,
-    output_in_code_dir,
+    _output_in_code_dir,
 )
 from datarobot_drum.drum.enum import (
     RunLanguage,
@@ -498,12 +499,49 @@ class TestUtilityFunctions:
             assert not Path(out_dir, "__pycache__").exists()
             assert not Path(out_dir, "out").exists()
 
-    def test_output_in_code_dir(self):
-        code_dir = "/test/code/is/here"
-        output_other = "/test/not/code"
-        output_code_dir = "/test/code/is/here/output"
-        assert not output_in_code_dir(code_dir, output_other)
-        assert output_in_code_dir(code_dir, output_code_dir)
+
+class TestUtilityFunctionsOutputInCommonDir:
+    def test_output_inside_code_dir(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            code_dir = Path(tmp)
+            output_dir = code_dir / "subdir"
+            output_dir.mkdir()
+            assert _output_in_code_dir(code_dir, output_dir) is True
+
+    def test_output_is_code_dir(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp)
+            assert _output_in_code_dir(path, path) is True
+
+    def test_output_outside_code_dir(self):
+        with tempfile.TemporaryDirectory() as tmp1, tempfile.TemporaryDirectory() as tmp2:
+            code_dir = Path(tmp1)
+            output_dir = Path(tmp2)
+            assert _output_in_code_dir(code_dir, output_dir) is False
+
+    def test_output_sibling_directory(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            parent = Path(tmp)
+            code_dir = parent / "code"
+            output_dir = parent / "output"
+            code_dir.mkdir()
+            output_dir.mkdir()
+            assert _output_in_code_dir(code_dir, output_dir) is False
+
+    def test_relative_path_handling(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            code_dir = base / "code"
+            output_dir = code_dir / "out"
+            output_dir.mkdir(parents=True)
+
+            # Use relative paths
+            cwd = Path.cwd()
+            try:
+                os.chdir(base)
+                assert _output_in_code_dir(Path("code"), Path("code/out")) is True
+            finally:
+                os.chdir(cwd)
 
 
 class TestRuntimeParametersDockerCommand:
