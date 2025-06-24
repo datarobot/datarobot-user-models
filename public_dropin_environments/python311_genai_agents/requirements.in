@@ -28,7 +28,7 @@ llama-index-llms-langchain
 llama-index-llms-litellm
 openai
 ragas @ git+https://github.com/explodinggradients/ragas@5d59549ad5ef511f621502c563bc55ac5aeb9188#subdirectory=ragas
-datarobot-moderations>=11.1.17
+datarobot-moderations>=11.1.18
 
 # Generative AI Telemetry
 traceloop-sdk
