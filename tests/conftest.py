@@ -18,7 +18,6 @@ from tests.constants import (
     PYTHON_XGBOOST,
     PYTHON_KERAS,
     PYTHON_PYTORCH,
-    PYTHON311_GENAI,
     PYTHON_ONNX,
     PYTHON_PYPMML,
     R_LANG,
@@ -199,7 +198,6 @@ framework_envs = {
         CUSTOM_TASK_INTERFACE_PYTORCH_BINARY,
         CUSTOM_TASK_INTERFACE_PYTORCH_MULTICLASS,
     ],
-    PYTHON311_GENAI: [PYTHON_TEXT_GENERATION, PYTHON_AGENTIC_WORKFLOW],
     PYTHON_ONNX: [ONNX],
     PYTHON_PYPMML: [PYPMML],
     R_LANG: [
@@ -258,7 +256,6 @@ def pytest_addoption(parser):
             PYTHON_XGBOOST,
             PYTHON_KERAS,
             PYTHON_PYTORCH,
-            PYTHON311_GENAI,
             PYTHON_ONNX,
             PYTHON_PYPMML,
             R_LANG,

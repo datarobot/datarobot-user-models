@@ -161,17 +161,6 @@ class TestDropInEnvironments(object):
         return custom_model.id, model_version.id
 
     @pytest.fixture(scope="session")
-    def python311_genai_custom_model(self, python311_genai_drop_in_env):
-        env_id, _ = python311_genai_drop_in_env
-        return self.make_custom_model(
-            "torch_reg.pth",
-            env_id,
-            custom_predict_path=CUSTOM_PREDICT_PY_PATH,
-            other_file_names=["PyTorch.py"],
-            maximum_memory=8 * 1024 * 1024 * 1024,
-        )
-
-    @pytest.fixture(scope="session")
     def onnx_regression_custom_model(self, onnx_drop_in_env):
         env_id, _ = onnx_drop_in_env
         return self.make_custom_model(
@@ -206,7 +195,6 @@ class TestDropInEnvironments(object):
         "model, test_data_id, max_wait",
         [
             ("python311_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
-            ("python311_genai_custom_model", "regression_testing_data", 3 * DEFAULT_MAX_WAIT),
             ("r_regression_custom_model", "regression_testing_data", 5 * DEFAULT_MAX_WAIT),
             ("pytorch_regression_custom_model", "regression_testing_data", 2 * DEFAULT_MAX_WAIT),
             ("keras_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),

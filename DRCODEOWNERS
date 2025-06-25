@@ -32,7 +32,6 @@
 /model_templates/proxy_model_datarobot                            @datarobot/genai-systems
 /model_templates/triton_onnx_unstructured                         @datarobot/genai-systems
 /public_dropin_environments/java_codegen                          @datarobot/genai-systems
-/public_dropin_environments/python311_genai                       @datarobot/buzok
 /public_dropin_environments/python311_genai_agents                @datarobot/buzok
 /public_dropin_environments/python3_keras                         @datarobot/genai-systems @datarobot/core-modeling
 /public_dropin_environments/python3_onnx                          @datarobot/genai-systems
