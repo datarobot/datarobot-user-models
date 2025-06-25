@@ -4,7 +4,7 @@
   "description": "This template environment can be used to create artifact-only PMML custom models. This environment contains PyPMML and only requires your model artifact as a .pmml file and optionally a custom.py file.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "6848b5d92081a8182b5d8d58",
+  "environmentVersionId": "685969f5b14b9d11181e639e",
   "environmentVersionDescription": "",
   "isPublic": true,
   "useCases": [
@@ -13,8 +13,8 @@
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments/python3_pmml",
   "imageRepository": "env-python-pmml",
   "tags": [
-    "v11.1.0-6848b5d92081a8182b5d8d58",
-    "6848b5d92081a8182b5d8d58",
-    "v11.1.0-latest"
+    "v11.1-685969f5b14b9d11181e639e",
+    "685969f5b14b9d11181e639e",
+    "v11.1-latest"
   ]
 }
