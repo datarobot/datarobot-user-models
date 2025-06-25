@@ -87,7 +87,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
     NAME = "Generic OpenAI API"
     DEFAULT_MODEL_NAME = "datarobot-deployed-llm"
     MAX_RESTARTS = 10
-    HEALTH_ROUTE = "/"
+    DEFAULT_HEALTH_ROUTE = "/"
 
     def __init__(self):
         super().__init__()
@@ -99,6 +99,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self.deployment_id = os.environ.get("MLOPS_DEPLOYMENT_ID", None)
 
         # server configuration is set in the Drop-in environment
+        self.health_route = self.DEFAULT_HEALTH_ROUTE
         self.openai_port = os.environ.get(EnvVarNames.OPENAI_PORT, "9999")
         self.openai_host = os.environ.get(EnvVarNames.OPENAI_HOST, "localhost")
         self.openai_process = None
@@ -405,7 +406,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
             return {"message": f"{self.NAME} has crashed."}, HTTP_513_DRUM_PIPELINE_ERROR
 
         try:
-            health_url = f"http://{self.openai_host}:{self.openai_port}{self.HEALTH_ROUTE}"
+            health_url = f"http://{self.openai_host}:{self.openai_port}{self.health_route}"
             response = requests.get(health_url, timeout=5)
             return {"message": response.text}, response.status_code
         except Timeout:
