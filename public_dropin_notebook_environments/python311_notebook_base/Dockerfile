@@ -55,7 +55,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Add any package that will be installed on system level here:
 RUN echo "[Python$PYTHON_VERSION] GIT_COMMIT: $GIT_COMMIT" \
     && microdnf update -y \
-    && microdnf install -y python$PYTHON_VERSION-$PYTHON_EXACT_VERSION python3-devel-3.9.21 \
+    && microdnf install -y python$PYTHON_VERSION-$PYTHON_EXACT_VERSION python$PYTHON_VERSION-devel-$PYTHON_EXACT_VERSION \
   gcc-11.5.0 gcc-c++-11.5.0 glib2-devel-2.68.4 libffi-devel-3.4.2 graphviz-2.44.0 python$PYTHON_VERSION-pip \
   openblas-0.3.26 python$PYTHON_VERSION-scipy shadow-utils passwd git openssh-server tar gzip unzip zip wget \
   java-11-openjdk-headless vim-minimal nano \
@@ -70,7 +70,7 @@ ENV PYTHONUNBUFFERED=1 \
 ENV PATH="$VENV_PATH/bin:$PATH" \
   PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
-RUN python3 -m venv ${VENV_PATH} && pip3 install -U pip setuptools
+RUN python3.11 -m venv ${VENV_PATH} && pip3 install -U pip setuptools
 WORKDIR ${WORKDIR}
 
 # Install git helper binary used for private git authentication in Notebooks/Codepaces
@@ -122,8 +122,8 @@ ARG WORKDIR
 ARG VENV_PATH
 
 COPY ./dr_requirements.txt ./agent/requirements-agent.txt ${WORKDIR}/
-RUN python3 -m pip install --no-cache-dir -r ${WORKDIR}/dr_requirements.txt \
-    && python3 -m pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt \
+RUN python3.11 -m pip install --no-cache-dir -r ${WORKDIR}/dr_requirements.txt \
+    && python3.11 -m pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt \
     && rm ${WORKDIR}/dr_requirements.txt \
     && rm ${WORKDIR}/requirements-agent.txt \
     && rm ${VENV_PATH}/share/jupyter/kernels/python3/kernel.json \
