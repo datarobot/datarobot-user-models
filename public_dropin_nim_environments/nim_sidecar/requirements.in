@@ -1,5 +1,5 @@
 datarobot
 datarobot-mlops
 datarobot-mlops-connected-client
-datarobot-drum
+datarobot-drum==1.16.10.post1
 openai>=1.17.0
