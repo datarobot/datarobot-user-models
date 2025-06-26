@@ -1,0 +1,5 @@
+pytest
+pytest-xdist
+httpx
+# would be good to remove openai from conftext.py and here
+openai>=1.55.3

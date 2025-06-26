@@ -29,7 +29,7 @@ title "Upgrade pip"
 pip install -U pip
 
 title "Installing pytest"
-pip install pytest pytest-xdist
+pip install -r "${ROOT_DIR}/requirements_for_per_framework_tests.txt"
 
 # The FIPS-compliant Java image does not include maven (and its dependencies) required to build Java artifacts
 # from source. Therefore, keep the installed dependencies, including datarobot-drum. This means that tests will run
