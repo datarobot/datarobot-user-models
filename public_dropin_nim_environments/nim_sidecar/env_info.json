@@ -3,13 +3,18 @@
   "name": "DRUM NIM Sidecar",
   "description": "",
   "programmingLanguage": "python",
-  "environmentVersionId": "67dc15f7cbce025441d63e14",
+  "label": "",
+  "environmentVersionId": "685d03926108710f9aa4af89",
   "environmentVersionDescription": "Run with 10 HTTP workers by default",
-  "isDownloadable": false,
   "isPublic": true,
   "useCases": [
     "customModel"
   ],
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_nim_environments/nim_sidecar",
-  "imageRepository": "env-nim-sidecar"
+  "imageRepository": "env-nim-sidecar",
+  "tags": [
+    "v11.0-685d03926108710f9aa4af89",
+    "685d03926108710f9aa4af89",
+    "v11.0-latest"
+  ]
 }
