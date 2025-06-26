@@ -6,8 +6,8 @@
   "label": "",
   "environmentVersionId": "685d03926108710f9aa4af89",
   "environmentVersionDescription": "Run with 10 HTTP workers by default",
-  "isDownloadable": false,
   "isPublic": true,
+  "isDownloadable": false,
   "useCases": [
     "customModel"
   ],
