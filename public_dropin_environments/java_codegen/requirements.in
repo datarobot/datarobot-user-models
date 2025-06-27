@@ -1,3 +1,4 @@
 datarobot-drum
+datarobot-mlops==11.1.0
 pandas
 numpy
