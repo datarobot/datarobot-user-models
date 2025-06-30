@@ -63,7 +63,7 @@ pandas==2.2.3
 pillow==11.2.1
 progress==1.6
 proto-plus==1.26.1
-protobuf==5.29.4
+protobuf==5.29.5
 psutil==7.0.0
 py4j==0.10.9.9
 pyasn1==0.6.1
