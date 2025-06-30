@@ -7,6 +7,7 @@
   "environmentVersionId": "685d77e4bf56ca100feb26ae",
   "environmentVersionDescription": "",
   "isPublic": true,
+  "isDownloadable": true,
   "useCases": [
     "notebook",
     "customModel"

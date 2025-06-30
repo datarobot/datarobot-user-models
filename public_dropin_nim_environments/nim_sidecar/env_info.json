@@ -7,6 +7,7 @@
   "environmentVersionId": "6859c4681b7ccd12c9cfedfc",
   "environmentVersionDescription": "Run with 10 HTTP workers by default",
   "isPublic": true,
+  "isDownloadable": true,
   "useCases": [
     "customModel"
   ],

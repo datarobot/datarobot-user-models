@@ -7,6 +7,7 @@
   "environmentVersionId": "6855d4a167978214d3e364d3",
   "environmentVersionDescription": "Update to vllm v0.8.3\nFROM vllm/vllm-openai:v0.8.3",
   "isPublic": true,
+  "isDownloadable": true,
   "useCases": [
     "customModel"
   ],
