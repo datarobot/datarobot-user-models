@@ -4,7 +4,7 @@
   "description": "This template environment can be used to create artifact-only PyTorch custom models. This environment contains PyTorch and requires only your model artifact as a .pth file, any other code needed to deserialize your model, and optionally a custom.py file.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "685ec316b2a1c5103edcacd9",
+  "environmentVersionId": "686302fc24d2ee103cda6864",
   "environmentVersionDescription": "",
   "isPublic": true,
   "isDownloadable": true,
@@ -14,8 +14,8 @@
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments/python3_pytorch",
   "imageRepository": "env-python-pytorch",
   "tags": [
-    "v11.2.0-685ec316b2a1c5103edcacd9",
-    "685ec316b2a1c5103edcacd9",
+    "v11.2.0-686302fc24d2ee103cda6864",
+    "686302fc24d2ee103cda6864",
     "v11.2.0-latest"
   ]
 }
