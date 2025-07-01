@@ -19,11 +19,12 @@ import os
 import socket
 import sys
 from pathlib import Path
-from typing import Any, TextIO
+from typing import Any, TextIO, cast
 from urllib.parse import urlparse, urlunparse
 
 import requests
 from datarobot_drum.drum.enum import TargetType
+from datarobot_drum.drum.root_predictors.drum_inline_utils import drum_inline_predictor
 from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerRun
 from openai import OpenAI
 from openai.types.chat import ChatCompletion
@@ -87,6 +88,11 @@ def argparse_args() -> argparse.Namespace:
         type=str,
         default=None,
         help="Custom attributes for tracing. Should be a JSON dictionary.",
+    )
+    parser.add_argument(
+        "--use_serverless",
+        action="store_true",
+        help="Use DRUM serverless predictor.",
     )
     args = parser.parse_args()
     return args
@@ -235,6 +241,24 @@ def execute_drum(
     return completion
 
 
+def execute_drum_inline(
+    chat_completion: CompletionCreateParamsBase,
+    custom_model_dir: Path,
+) -> ChatCompletion:
+    root.info("Executing agent as [chat] endpoint. DRUM Inline Executor.")
+
+    root.info("Starting DRUM runner.")
+    with drum_inline_predictor(
+        target_type=TargetType.AGENTIC_WORKFLOW.value,
+        custom_model_dir=custom_model_dir,
+        target_name="response",
+    ) as predictor:
+        root.info("Executing Agent")
+        completion = predictor.chat(chat_completion)
+
+    return cast(ChatCompletion, completion)
+
+
 def construct_prompt(chat_completion: str) -> CompletionCreateParamsBase:
     chat_completion_dict = json.loads(chat_completion)
     model = chat_completion_dict.get("model")
@@ -269,11 +293,17 @@ def run_agent_procedure(args: Any) -> None:
         root.info(f"Trace id: {trace_id}")
 
         root.info(f"Executing request in directory {args.custom_model_dir}")
-        result = execute_drum(
-            chat_completion=chat_completion,
-            default_headers=default_headers,
-            custom_model_dir=args.custom_model_dir,
-        )
+        if args.use_serverless:
+            result = execute_drum_inline(
+                chat_completion=chat_completion,
+                custom_model_dir=args.custom_model_dir,
+            )
+        else:
+            result = execute_drum(
+                chat_completion=chat_completion,
+                default_headers=default_headers,
+                custom_model_dir=args.custom_model_dir,
+            )
         store_result(
             result,
             trace_id,
