@@ -10,10 +10,14 @@ numpy
 mistune
 numpy
 uwsgi
+
+# CVE Updates
 flask>=3.1.1
 requests>=2.32.4
 protobuf>=5.29.5,<6.0.0
+starlette>=0.40.0
 
+# GenAI Environment
 click~=8.1.8
 crewai>=0.134.0
 crewai-tools>=0.48.0
