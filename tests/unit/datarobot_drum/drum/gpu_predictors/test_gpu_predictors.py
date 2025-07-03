@@ -10,6 +10,7 @@ from datarobot_drum.drum.enum import TargetType
 
 from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
 from datarobot_drum.drum.gpu_predictors.nim_predictor import NIMPredictor
+from datarobot_drum.drum.gpu_predictors.vllm_predictor import VllmPredictor
 from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerProcess
 from datarobot_drum.runtime_parameters.runtime_parameters_schema import RuntimeParameterTypes
 
@@ -138,3 +139,18 @@ class TestNIMPredictor:
             assert predictor.health_route == "/overriden/health/route"
             assert predictor.openai_port == "mocked.port"
             assert predictor.openai_host == "mocked.host"
+
+
+class TestVLLMPredictor:
+    def test_default_configuration(self):
+        predictor = VllmPredictor()
+        assert predictor.health_route == "/health"
+        assert predictor.openai_port == "9999"
+        assert predictor.openai_host == "localhost"
+
+    @pytest.mark.usefixtures("mock_openai_host_env_var", "mock_openai_port_env_var")
+    def test_configuration_values_from_from_env_vars(self):
+        predictor = VllmPredictor()
+        assert predictor.health_route == "/health"
+        assert predictor.openai_port == "45678"
+        assert predictor.openai_host == "mocked.openai.host"
