@@ -59,7 +59,7 @@ opentelemetry-util-http==0.54b1
 orjson==3.10.18
 packaging==25.0
 pandas==2.2.3
-pillow==11.2.1
+pillow==11.3.0
 progress==1.6
 proto-plus==1.26.1
 protobuf==5.29.5
