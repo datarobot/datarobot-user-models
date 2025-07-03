@@ -4,7 +4,7 @@
   "description": "A high-throughput and memory-efficient inference and serving engine for LLMs.",
   "programmingLanguage": "python",
   "label": "v0.8.3+dr.1",
-  "environmentVersionId": "6863033c24d2ee129e8e9ec4",
+  "environmentVersionId": "6865f515d7dccb0f91ea025e",
   "environmentVersionDescription": "Update to vllm v0.8.3\nFROM vllm/vllm-openai:v0.8.3",
   "isPublic": true,
   "isDownloadable": true,
@@ -14,8 +14,8 @@
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_gpu_environments/vllm",
   "imageRepository": "env-gpu-vllm",
   "tags": [
-    "v11.1-6863033c24d2ee129e8e9ec4",
-    "6863033c24d2ee129e8e9ec4",
+    "v11.1-6865f515d7dccb0f91ea025e",
+    "6865f515d7dccb0f91ea025e",
     "v11.1-latest"
   ]
 }
