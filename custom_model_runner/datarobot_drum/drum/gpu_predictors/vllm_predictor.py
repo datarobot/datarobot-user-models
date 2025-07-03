@@ -18,7 +18,7 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
     NAME = "vLLM"
     DEFAULT_MODEL_DIR = "vllm"
     ENGINE_CONFIG_FILE = "engine_config.json"
-    HEALTH_ROUTE = "/health"
+    DEFAULT_HEALTH_ROUTE = "/health"
 
     def __init__(self):
         super().__init__()
