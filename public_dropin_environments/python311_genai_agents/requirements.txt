@@ -19,6 +19,7 @@ annoy==1.17.3
 anthropic==0.49.0
 anyio==4.9.0
 appdirs==1.4.4
+appnope==0.1.4
 argcomplete==3.6.2
 argon2-cffi==23.1.0
 argon2-cffi-bindings==21.2.0
@@ -62,7 +63,7 @@ dataclasses-json==0.6.7
 datarobot==3.7.1
 datarobot-drum==1.16.19
 datarobot-mlops==11.1.0
-datarobot-moderations==11.1.18
+datarobot-moderations==11.1.19
 datarobot-predict==1.13.2
 datarobot-storage==2.2.0
 datasets==3.6.0
@@ -142,7 +143,6 @@ jaraco-classes==3.4.0
 jaraco-context==6.0.1
 jaraco-functools==4.1.0
 jedi==0.19.2
-jeepney==0.9.0
 jinja2==3.1.6
 jiter==0.8.2
 jmespath==1.0.1
@@ -360,7 +360,6 @@ ruamel-yaml==0.17.4
 s3transfer==0.11.3
 schema==0.7.7
 scipy==1.15.3
-secretstorage==3.3.3
 send2trash==1.8.3
 sentry-sdk==2.29.1
 shapely==2.1.1
