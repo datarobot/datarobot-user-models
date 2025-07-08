@@ -187,7 +187,7 @@ llama-cloud-services==0.6.15
 llama-index==0.12.35
 llama-index-agent-openai==0.4.7
 llama-index-cli==0.4.1
-llama-index-core==0.12.40
+llama-index-core==0.12.41
 llama-index-embeddings-azure-openai==0.3.7
 llama-index-embeddings-openai==0.3.1
 llama-index-indices-managed-llama-cloud==0.6.11
@@ -296,7 +296,7 @@ pathspec==0.12.1
 pdfminer-six==20250327
 pdfplumber==0.11.6
 pexpect==4.9.0
-pillow==11.2.1
+pillow==11.3.0
 pkginfo==1.10.0
 platformdirs==4.3.8
 pluggy==1.6.0
