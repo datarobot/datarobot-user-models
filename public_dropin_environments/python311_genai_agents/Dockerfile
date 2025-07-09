@@ -14,7 +14,7 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 
-FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.11-dev AS base
+FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev AS base
 
 ARG UNAME
 ARG UID
@@ -97,10 +97,7 @@ COPY ./agent/requirements-agent.txt ${WORKDIR}/
 # hadolint ignore=DL3013
 RUN source ${VENV_PATH}/bin/activate && \
     uv pip install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt && \
-    uv pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt && rm ${WORKDIR}/requirements-agent.txt && \
-    # Generative AI Agents
-    uv pip uninstall litellm && \
-    uv pip install --no-cache-dir litellm>=1.72.1
+    uv pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt && rm ${WORKDIR}/requirements-agent.txt
 
 # Copy agent runtime into work directory
 COPY ./run_agent.py ${WORKDIR}/
