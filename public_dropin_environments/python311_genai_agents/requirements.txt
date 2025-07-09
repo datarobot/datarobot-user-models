@@ -59,7 +59,7 @@ crewai-tools==0.48.0
 cryptography==44.0.3
 dataclasses-json==0.6.7
 datarobot==3.7.1
-datarobot-drum==1.16.18
+datarobot-drum==1.16.19
 datarobot-mlops==11.1.0
 datarobot-moderations==11.1.19
 datarobot-predict==1.13.2
