@@ -31,6 +31,7 @@ langchain~=0.3.23
 langgraph~=0.4.10
 langgraph-prebuilt~=0.2.3
 legacy-cgi~=2.6.3
+litellm>=1.72.1
 llama-index-llms-langchain~=0.6.1
 llama-index-llms-litellm~=0.4.1
 llama-index-llms-openai~=0.3.38
