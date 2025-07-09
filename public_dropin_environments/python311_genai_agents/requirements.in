@@ -18,12 +18,13 @@ protobuf>=5.29.5,<6.0.0
 starlette>=0.40.0
 pillow>=11.3.0
 urllib3>=2.5.0
+json-repair>=0.44.1
 
 # GenAI Environment
 click~=8.1.8
 crewai>=0.134.0
 crewai-tools>=0.48.0
-datarobot-drum~=1.16.18
+datarobot-drum~=1.16.19
 datarobot-moderations~=11.1.19
 datarobot-mlops~=11.1.0
 datarobot~=3.7.0
