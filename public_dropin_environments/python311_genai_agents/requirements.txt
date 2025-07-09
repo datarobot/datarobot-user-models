@@ -28,7 +28,6 @@ asttokens==3.0.0
 async-timeout==4.0.3
 asyncio==3.4.3
 attrs==25.3.0
-auth0-python==4.9.0
 azure-core==1.34.0
 azure-identity==1.22.0
 azure-storage-blob==12.19.0
@@ -55,7 +54,7 @@ colorama==0.4.6
 coloredlogs==15.0.1
 comm==0.2.2
 coverage==7.8.2
-crewai==0.134.0
+crewai==0.140.0
 crewai-tools==0.48.0
 cryptography==44.0.3
 dataclasses-json==0.6.7
@@ -181,7 +180,7 @@ langgraph-sdk==0.1.66
 langsmith==0.3.42
 lark==1.2.2
 legacy-cgi==2.6.3
-litellm==1.72.0
+litellm==1.72.6
 llama-cloud==0.1.21
 llama-cloud-services==0.6.15
 llama-index==0.12.35
