@@ -146,7 +146,7 @@ jinja2==3.1.6
 jiter==0.8.2
 jmespath==1.0.1
 joblib==1.5.0
-json-repair==0.44.1
+json-repair==0.25.2
 json5==0.12.0
 jsonpatch==1.33
 jsonpickle==4.0.5
