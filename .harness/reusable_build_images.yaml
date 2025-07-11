@@ -1,6 +1,6 @@
 pipeline:
   name: WIP REUSABLE PIPELINE to build images
-  identifier: WIP_build_images
+  identifier: envs_image_build
   projectIdentifier: datarobotusermodels
   orgIdentifier: Custom_Models
   tags: {}
