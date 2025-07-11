@@ -34,10 +34,10 @@ pipeline:
         type: Pipeline
         spec:
           org: Custom_Models
-          pipeline: WIP_build_images
+          pipeline: envs_image_build
           project: datarobotusermodels
           inputs:
-            identifier: WIP_build_images
+            identifier: envs_image_build
             variables:
               - name: repo
                 type: String
