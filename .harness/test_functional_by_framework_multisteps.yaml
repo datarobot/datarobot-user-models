@@ -8,7 +8,7 @@ pipeline:
         identifier: Reconcile_envVersionIds_requirements
         template:
           templateRef: org.Execution_Environments_Reconcile_Stage
-          versionLabel: v1
+          versionLabel: v2
           templateInputs:
             type: CI
             variables:
@@ -254,3 +254,12 @@ pipeline:
       description: Whether to force all requirements update to the latest versions
       required: false
       value: <+input>.default(false).allowedValues(true,false)
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.svc_harness_git1
+        repoName: <+pipeline.variables.target_repo>
+        build:
+          type: branch
+          spec:
+            branch: <+pipeline.variables.source_branch>
