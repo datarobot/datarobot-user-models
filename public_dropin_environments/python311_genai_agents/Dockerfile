@@ -97,7 +97,9 @@ COPY ./agent/requirements-agent.txt ${WORKDIR}/
 # hadolint ignore=DL3013
 RUN source ${VENV_PATH}/bin/activate && \
     uv pip install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt && \
-    uv pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt && rm ${WORKDIR}/requirements-agent.txt
+    uv pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt && rm ${WORKDIR}/requirements-agent.txt && \
+    # asyncio should never be installed in python 3.4+ as it's part of stdlib
+    uv pip uninstall asyncio
 
 # Copy agent runtime into work directory
 COPY ./run_agent.py ${WORKDIR}/
