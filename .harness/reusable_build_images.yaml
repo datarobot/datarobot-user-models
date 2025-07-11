@@ -100,7 +100,7 @@ pipeline:
           condition: <+pipeline.variables.envs_folders>!=""
     - stage:
         name: build images
-        identifier: build_images
+        identifier: build_img
         description: ""
         type: CI
         spec:
@@ -136,7 +136,7 @@ pipeline:
         strategy:
           matrix:
             image: <+json.list("images", <+pipeline.stages.get_changes_and_output_images_build_matrix.spec.execution.steps.Build_params_matrix.output.outputVariables.matrix_json>)>
-            nodeName: <+matrix.image.repository>:<+matrix.image.tag>
+            nodeName: <+strategy.iteration>-<+matrix.image.repository>:<+matrix.image.tag>
   description: |-
     This pipeline can be used in other repositories to:
     * detect which environments have changed. Environment is a folder with env_info.json
