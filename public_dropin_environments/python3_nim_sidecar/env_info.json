@@ -6,5 +6,6 @@
   "environmentVersionId": "6871959f0173df2330f624d9",
   "environmentVersionDescription": "",
   "isDownloadable": false,
-  "isPublic": true
+  "isPublic": true,
+  "imageRepository": "env-nim-sidecar"
 }
