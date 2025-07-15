@@ -25,8 +25,8 @@ datarobot-storage
 datarobot-mlops>=11.1.0a3  # Required for the 'set_api_spooler' with arugments
 datarobot>=3.1.0,<4
 # otel
-opentelemetry-api
-opentelemetry-sdk
-opentelemetry-exporter-otlp-proto-http
-opentelemetry-instrumentation-aiohttp-client
-opentelemetry-instrumentation-requests
+opentelemetry-api==1.33.0
+opentelemetry-sdk==1.33.0
+opentelemetry-exporter-otlp-proto-http==1.33.0
+opentelemetry-instrumentation-aiohttp-client==0.54b.0
+opentelemetry-instrumentation-requests==0.54b.0
