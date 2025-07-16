@@ -48,7 +48,6 @@ The DRUM tool has built-in support for the following libraries. If your model is
 | PyTorch                     | *.pth        | torch-regressor.pth   |
 | tf.keras (tensorflow>=2.2.1) | *.h5         | keras-regressor.h5    |
 | ONNX     | *.onnx       | onnx-regressor.onnx   |
-| pmml                        | *.pmml       | pmml-regressor.pmml   |
 
 
 ### R libraries

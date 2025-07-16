@@ -150,11 +150,6 @@ def keras_drop_in_env():
 
 
 @pytest.fixture(scope="session")
-def pmml_drop_in_env():
-    return create_drop_in_env(PUBLIC_DROPIN_ENVS_PATH, "python3_pmml")
-
-
-@pytest.fixture(scope="session")
 def r_drop_in_env():
     return create_drop_in_env(
         PUBLIC_DROPIN_ENVS_PATH,
