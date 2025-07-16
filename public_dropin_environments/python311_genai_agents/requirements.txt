@@ -26,7 +26,6 @@ arrow==1.3.0
 asgiref==3.8.1
 asttokens==3.0.0
 async-timeout==4.0.3
-asyncio==3.4.3
 attrs==25.3.0
 azure-core==1.34.0
 azure-identity==1.22.0
@@ -61,7 +60,7 @@ dataclasses-json==0.6.7
 datarobot==3.7.1
 datarobot-drum==1.16.19
 datarobot-mlops==11.1.0
-datarobot-moderations==11.1.19
+datarobot-moderations==11.2.0
 datarobot-predict==1.13.2
 datarobot-storage==2.2.0
 datasets==3.6.0
