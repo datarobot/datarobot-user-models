@@ -3,11 +3,15 @@
   "name": "[DataRobot] Python 3.12 Applications Base",
   "description": "Base image for Python 3.12 custom applications.",
   "programmingLanguage": "python",
-  "environmentVersionId": "672340d90513a1231033a268",
+  "label": "",
+  "environmentVersionId": "687e42bed30a56120d62f274",
   "environmentVersionDescription": "Python 3.12 without any additional packages.",
   "isPublic": true,
+  "isDownloadable": true,
   "useCases": [
     "customApplication"
   ],
-  "imageRepository": "env-apps-python312-apps"
+  "contextUrl": null,
+  "imageRepository": "env-apps-python312-apps",
+  "tags": []
 }
