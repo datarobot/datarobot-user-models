@@ -32,6 +32,10 @@ class TestDrumInlinePredictor:
         }
 
     @pytest.fixture
+    def chat_request_simple_header(self):
+        return {"authorization": "something"}
+
+    @pytest.fixture
     def datarobot_details(self):
         return ("http://my-datarobot/api/v2", "notatoken")
 
@@ -84,7 +88,16 @@ class TestDrumInlinePredictor:
     @pytest.mark.parametrize(
         "target_type", [TargetType.AGENTIC_WORKFLOW, TargetType.TEXT_GENERATION]
     )
-    def test_chat(self, target_type, monkeypatch, chat_code_dir, chat_request_no_stream):
+    @pytest.mark.parametrize("use_headers", [True, False])
+    def test_chat(
+        self,
+        target_type,
+        use_headers,
+        monkeypatch,
+        chat_code_dir,
+        chat_request_no_stream,
+        chat_request_simple_header,
+    ):
         # arrange
         monkeypatch.delitem(os.environ, "DATAROBOT_ENDPOINT", raising=False)
         monkeypatch.delitem(os.environ, "DATAROBOT_API_TOKEN", raising=False)
@@ -95,7 +108,10 @@ class TestDrumInlinePredictor:
             custom_model_dir=chat_code_dir,
             target_name="response",
         ) as predictor:
-            result = predictor.chat(chat_request_no_stream)
+            if use_headers:
+                result = predictor.chat(chat_request_no_stream, headers=chat_request_simple_header)
+            else:
+                result = predictor.chat(chat_request_no_stream)
 
             # assert
             assert isinstance(result, ChatCompletion)
