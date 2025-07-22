@@ -255,11 +255,11 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         """Predict on input_filename or binary_data"""
         pass
 
-    def chat(self, completion_create_params):
+    def chat(self, completion_create_params, **kwargs):
         start_time = time.time()
         try:
             association_id = str(uuid4_fast())
-            response = self._chat(completion_create_params, association_id)
+            response = self._chat(completion_create_params, association_id, **kwargs)
             response = self._validate_chat_response(response)
         except Exception as e:
             self._mlops_report_error(start_time)
@@ -300,7 +300,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
     def _get_supported_llm_models(self):
         raise NotImplementedError("GET /models (get_models) is not implemented ")
 
-    def _chat(self, completion_create_params, association_id):
+    def _chat(self, completion_create_params, association_id, **kwargs):
         raise NotImplementedError("Chat is not implemented ")
 
     def _mlops_report_chat_prediction(

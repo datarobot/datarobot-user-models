@@ -759,12 +759,16 @@ class PythonModelAdapter(AbstractModelAdapter):
         PythonModelAdapter._validate_unstructured_predictions(predictions)
         return predictions
 
-    def chat(self, completion_create_params, model, association_id):
+    def chat(self, completion_create_params, model, association_id, **kwargs):
         chat_fn = self._custom_hooks.get(CustomHooks.CHAT)
         if self._mod_pipeline:
             return self._mod_pipeline.chat(completion_create_params, model, chat_fn, association_id)
 
-        return chat_fn(completion_create_params, model)
+        chat_fn_params = signature(chat_fn).parameters
+        if len(chat_fn_params) > 2:
+            return chat_fn(completion_create_params, model, **kwargs)
+        else:
+            return chat_fn(completion_create_params, model)
 
     def get_supported_llm_models(self, model):
         """
