@@ -107,7 +107,9 @@ class PythonPredictor(BaseLanguagePredictor):
         return ret
 
     def _chat(self, completion_create_params, association_id, **kwargs):
-        return self._model_adapter.chat(completion_create_params, self._model, association_id, **kwargs)
+        return self._model_adapter.chat(
+            completion_create_params, self._model, association_id, **kwargs
+        )
 
     def _get_supported_llm_models(self):
         return self._model_adapter.get_supported_llm_models(self._model)

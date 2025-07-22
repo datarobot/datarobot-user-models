@@ -66,7 +66,9 @@ def load_model(code_dir: str) -> Any:
 
 
 def chat(
-    completion_create_params: CompletionCreateParams, model: Any, **kwargs: Any,
+    completion_create_params: CompletionCreateParams,
+    model: Any,
+    **kwargs: Any,
 ) -> ChatCompletion | Iterator[ChatCompletionChunk]:
     """
     This hook supports chat completions; see https://platform.openai.com/docs/api-reference/chat/create.
