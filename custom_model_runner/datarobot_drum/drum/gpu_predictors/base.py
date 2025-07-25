@@ -159,7 +159,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
             return True
         return False
 
-    def _chat(self, completion_create_params, association_id):
+    def _chat(self, completion_create_params, association_id, **kwargs):
         # Use the `model` name provided by the caller. However, to maintain backward compatibility,
         # allow this field to be optional and fallback to the configured default model name if not provided.
         # If `datarobot-deployed-llm` is specified as the model, replace it with the corresponding actual model name.

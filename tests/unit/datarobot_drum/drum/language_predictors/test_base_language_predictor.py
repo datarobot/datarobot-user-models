@@ -40,15 +40,15 @@ class TestLanguagePredictor(BaseLanguagePredictor):
     def has_read_input_data_hook(self):
         pass
 
-    def _chat(self, completion_create_params, association_id):
-        return self.chat_hook(completion_create_params)
+    def _chat(self, completion_create_params, association_id, **kwargs):
+        return self.chat_hook(completion_create_params, **kwargs)
 
 
 class NoChatLanguagePredictor(BaseLanguagePredictor):
     def _predict(self, **kwargs) -> RawPredictResponse:
         pass
 
-    def _chat(self, completion_create_params, association_id):
+    def _chat(self, completion_create_params, association_id, **kwargs):
         pass
 
     def _transform(self, **kwargs):
