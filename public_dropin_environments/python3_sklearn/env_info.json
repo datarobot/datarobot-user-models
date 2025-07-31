@@ -1,10 +1,10 @@
 {
-  "id": "5e8c889607389fe0f466c72d",
+  "id": "688ad746e96472904493e64f",
   "name": "[DataRobot] Python 3.11 Scikit-Learn Drop-In",
   "description": "This template environment can be used to create artifact-only scikit-learn custom models. This environment contains scikit-learn and only requires your model artifact as a .pkl file and optionally a custom.py file.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "68667731d3ef3910bb58c401",
+  "environmentVersionId": "688ad746fd85b3e1e19a4d68",
   "environmentVersionDescription": "",
   "isPublic": true,
   "isDownloadable": true,
