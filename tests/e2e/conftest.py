@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import json
 import os
 import uuid
 import warnings
@@ -98,6 +99,16 @@ def pytest_sessionstart(session):
     dr.Client(endpoint=ENDPOINT_URL, token=os.environ["DATAROBOT_API_TOKEN"])
 
 
+def get_image_uri(env_info_file):
+    with open(env_info_file, "r") as f:
+        data = json.load(f)
+
+    image_repo = data["imageRepository"]
+    env_version = data["environmentVersionId"]
+
+    return f"datarobot/{image_repo}:{env_version}"
+
+
 def create_drop_in_env(
     env_root_folder, env_name, programming_language="python", max_wait=DEFAULT_MAX_WAIT
 ):
@@ -106,8 +117,9 @@ def create_drop_in_env(
     environment = dr.ExecutionEnvironment.create(
         name=full_env_name, programming_language=programming_language
     )
+    image_uri = get_image_uri(os.path.join(env_dir, "env_info.json"))
     environment_version = dr.ExecutionEnvironmentVersion.create(
-        environment.id, str(env_dir), max_wait=max_wait
+        environment.id, docker_image_uri=image_uri, max_wait=max_wait
     )
     return environment.id, environment_version.id
 
