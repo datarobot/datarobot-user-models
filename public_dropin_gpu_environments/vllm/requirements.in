@@ -1,5 +1,7 @@
 datarobot
 datarobot-mlops
 datarobot-mlops-connected-client
+opentelemetry-instrumentation-requests
+opentelemetry-instrumentation-aiohttp-client
 datarobot-drum
 openai>=1.17.0
