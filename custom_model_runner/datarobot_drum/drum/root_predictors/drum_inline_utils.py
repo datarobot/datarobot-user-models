@@ -26,7 +26,8 @@ import tempfile
 from typing import Generator, List
 
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
-from datarobot_drum.drum.common import setup_tracer, setup_options
+from datarobot_drum.drum.common import setup_tracer
+from datarobot_drum.drum.utils.setup import setup_options
 from datarobot_drum.drum.drum import CMRunner
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.runtime import DrumRuntime
