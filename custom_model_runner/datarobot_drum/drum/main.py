@@ -7,6 +7,8 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 
 from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
 
+from drum.common import setup_max_workers, setup_options
+
 #!/usr/bin/env python3
 
 """
@@ -78,34 +80,12 @@ def main():
 
             os._exit(130)
 
-        arg_parser = CMRunnerArgsRegistry.get_arg_parser()
-
         try:
-            import argcomplete
-        except ImportError:
-            print(
-                "WARNING: autocompletion of arguments is not supported "
-                "as 'argcomplete' package is not found",
-                file=sys.stderr,
-            )
-        else:
-            # argcomplete call should be as close to the beginning as possible
-            argcomplete.autocomplete(arg_parser)
-
-        CMRunnerArgsRegistry.extend_sys_argv_with_env_vars()
-
-        options = arg_parser.parse_args()
-        CMRunnerArgsRegistry.verify_options(options)
-
-        try:
-            setup_required_environment_variables(options)
+            options = setup_options()
+            runtime.options = options
         except Exception as exc:
             print(str(exc))
             exit(255)
-
-        if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
-            options.max_workers = RuntimeParameters.get("CUSTOM_MODEL_WORKERS")
-        runtime.options = options
 
         runtime.trace_provider = setup_tracer(RuntimeParameters, options)
 

@@ -33,6 +33,8 @@ from datarobot_drum.drum.runtime import DrumRuntime
 from datarobot_drum.drum.root_predictors.generic_predictor import GenericPredictorComponent
 from datarobot_drum.runtime_parameters.runtime_parameters import RuntimeParameters
 
+from drum.common import setup_max_workers, setup_options
+
 
 @contextlib.contextmanager
 def drum_inline_predictor(
@@ -68,11 +70,14 @@ def drum_inline_predictor(
             target_type,
             *cmd_args,
         ]
-        options = arg_parser.parse_args(args)
-        CMRunnerArgsRegistry.verify_options(options)
-        setup_required_environment_variables(options)
 
-        runtime.options = options
+        try:
+            options = setup_options(args)
+            runtime.options = options
+        except Exception as exc:
+            print(str(exc))
+            exit(255)
+
         setup_tracer(RuntimeParameters, options)
         runtime.cm_runner = CMRunner(runtime)
         params = runtime.cm_runner.get_predictor_params()
