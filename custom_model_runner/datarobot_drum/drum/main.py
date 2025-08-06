@@ -7,8 +7,6 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 
 from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
 
-from drum.common import setup_max_workers, setup_options
-
 #!/usr/bin/env python3
 
 """
@@ -45,18 +43,16 @@ import os
 import signal
 import sys
 
-from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.common import (
     config_logging,
     setup_tracer,
-    setup_required_environment_variables,
+    setup_options,
 )
 from datarobot_drum.drum.enum import RunMode
 from datarobot_drum.drum.enum import ExitCodes
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from datarobot_drum.drum.runtime import DrumRuntime
 from datarobot_drum.runtime_parameters.runtime_parameters import (
-    RuntimeParametersLoader,
     RuntimeParameters,
 )
 

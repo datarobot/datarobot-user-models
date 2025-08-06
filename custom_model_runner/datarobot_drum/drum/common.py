@@ -15,6 +15,7 @@ from urllib.parse import urlparse, urlunparse
 from contextlib import contextmanager
 from pathlib import Path
 
+from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.enum import (
     LOGGER_NAME_PREFIX,
     MODEL_CONFIG_FILENAME,
@@ -34,8 +35,6 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
-
-from drum.args_parser import CMRunnerArgsRegistry
 
 ctx_request_id = ContextVar("request_id")
 
