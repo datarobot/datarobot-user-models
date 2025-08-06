@@ -77,7 +77,7 @@ def drum_inline_predictor(
             print(str(exc))
             exit(255)
 
-        setup_tracer(RuntimeParameters, options)
+        runtime.trace_provider = setup_tracer(RuntimeParameters, options)
         runtime.cm_runner = CMRunner(runtime)
         params = runtime.cm_runner.get_predictor_params()
         predictor = GenericPredictorComponent(params)
