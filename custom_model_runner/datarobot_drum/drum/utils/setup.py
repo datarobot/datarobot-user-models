@@ -18,6 +18,17 @@ def setup_options(args=None):
     Setup options for the Drum runtime.
     This function is used to set up the command line arguments and options
     for the Drum runtime, including environment variables and maximum workers.
+
+    Parameters
+    ----------
+    args : list, optional
+        List of command line arguments to parse. If None, uses sys.argv[1:].
+        Defaults to None, which means it will use sys.argv[1:].
+
+    Returns
+    -------
+    options : argparse.Namespace
+        Parsed command line options as an argparse.Namespace object.
     """
     arg_parser = CMRunnerArgsRegistry.get_arg_parser()
 
@@ -36,6 +47,15 @@ def setup_options(args=None):
     CMRunnerArgsRegistry.extend_sys_argv_with_env_vars()
 
     options = arg_parser.parse_args(args)
+
+    """Set max workers from runtime parameters if available."""
+    if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
+        options.max_workers = RuntimeParameters.get("CUSTOM_MODEL_WORKERS")
+    elif "max_workers" not in options or options.max_workers is None:
+        options.max_workers = 1  # Default to 1 worker if not specified
+    else:
+        options.max_workers = int(options.max_workers)
+
     CMRunnerArgsRegistry.verify_options(options)
 
     if "runtime_params_file" in options and options.runtime_params_file:
@@ -44,13 +64,5 @@ def setup_options(args=None):
 
     if "lazy_loading_file" in options and options.lazy_loading_file:
         LazyLoadingHandler.setup_environment_variables_from_values_file(options.lazy_loading_file)
-
-    """Set max workers from runtime parameters if available."""
-    if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
-        options.max_workers = RuntimeParameters.get("CUSTOM_MODEL_WORKERS")
-    elif "max_workers" not in options:
-        options.max_workers = 1  # Default to 1 worker if not specified
-    else:
-        options.max_workers = int(options.max_workers)
 
     return options
