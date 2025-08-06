@@ -46,8 +46,8 @@ import sys
 from datarobot_drum.drum.common import (
     config_logging,
     setup_tracer,
-    setup_options,
 )
+from datarobot_drum.drum.utils.setup import setup_options
 from datarobot_drum.drum.enum import RunMode
 from datarobot_drum.drum.enum import ExitCodes
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
