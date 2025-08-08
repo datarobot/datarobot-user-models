@@ -43,18 +43,16 @@ import os
 import signal
 import sys
 
-from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
 from datarobot_drum.drum.common import (
     config_logging,
     setup_tracer,
-    setup_required_environment_variables,
 )
+from datarobot_drum.drum.utils.setup import setup_options
 from datarobot_drum.drum.enum import RunMode
 from datarobot_drum.drum.enum import ExitCodes
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from datarobot_drum.drum.runtime import DrumRuntime
 from datarobot_drum.runtime_parameters.runtime_parameters import (
-    RuntimeParametersLoader,
     RuntimeParameters,
 )
 
@@ -78,34 +76,12 @@ def main():
 
             os._exit(130)
 
-        arg_parser = CMRunnerArgsRegistry.get_arg_parser()
-
         try:
-            import argcomplete
-        except ImportError:
-            print(
-                "WARNING: autocompletion of arguments is not supported "
-                "as 'argcomplete' package is not found",
-                file=sys.stderr,
-            )
-        else:
-            # argcomplete call should be as close to the beginning as possible
-            argcomplete.autocomplete(arg_parser)
-
-        CMRunnerArgsRegistry.extend_sys_argv_with_env_vars()
-
-        options = arg_parser.parse_args()
-        CMRunnerArgsRegistry.verify_options(options)
-
-        try:
-            setup_required_environment_variables(options)
+            options = setup_options()
+            runtime.options = options
         except Exception as exc:
             print(str(exc))
             exit(255)
-
-        if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
-            options.max_workers = RuntimeParameters.get("CUSTOM_MODEL_WORKERS")
-        runtime.options = options
 
         runtime.trace_provider = setup_tracer(RuntimeParameters, options)
 
