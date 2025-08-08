@@ -1,2 +1,2 @@
-fastapi[All]==0.111.0
+fastapi[All]==0.115.4
 psutil==5.9.8
