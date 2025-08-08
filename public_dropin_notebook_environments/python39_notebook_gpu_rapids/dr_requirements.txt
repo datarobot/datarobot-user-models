@@ -7,4 +7,4 @@ mistune==2.0.4
 numpy<2.0.0
 pandas==1.5.1
 setuptools==68.2.2
-starlette==0.41.0
+starlette==0.47.2
