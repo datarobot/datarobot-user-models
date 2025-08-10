@@ -8,15 +8,15 @@ pipeline:
     ci:
       codebase:
         connectorRef: account.svc_harness_git1
-        repoName: <+pipeline.variables.target_repo>
+        repoName: <+pipeline.variables.repo>
         build:
           type: branch
           spec:
-            branch: <+pipeline.variables.target_branch>
+            branch: <+pipeline.variables.source_branch>
   stages:
     - stage:
         name: Detect changes and output images build matrix
-        identifier: Detect_changes_and_output_images_build_matrix
+        identifier: get_changes_and_output_images_build_matrix
         description: ""
         type: CI
         spec:
@@ -135,7 +135,7 @@ pipeline:
           condition: <+pipeline.variables.envs_folders>!=""
         strategy:
           matrix:
-            image: <+json.list("images", <+pipeline.stages.Detect_changes_and_output_images_build_matrix.spec.execution.steps.Build_params_matrix.output.outputVariables.matrix_json>)>
+            image: <+json.list("images", <+pipeline.stages.get_changes_and_output_images_build_matrix.spec.execution.steps.Build_params_matrix.output.outputVariables.matrix_json>)>
             nodeName: <+matrix.image.repository>:<+matrix.image.tag>
   description: |-
     This pipeline can be used in other repositories to:
@@ -146,14 +146,14 @@ pipeline:
     Branch
     Comma separated list of paths to envs to build
   variables:
-    - name: target_repo
+    - name: repo
       type: String
       description: "Target repo: e.g. datarobot-user-models"
       required: false
       value: <+input>
-    - name: target_branch
+    - name: source_branch
       type: String
-      description: E.g. master
+      description: E.g. branch with the changed code
       required: false
       value: <+input>
     - name: envs_folders
