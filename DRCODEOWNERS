@@ -35,7 +35,6 @@
 /public_dropin_environments/python311_genai_agents                @datarobot/buzok
 /public_dropin_environments/python3_keras                         @datarobot/genai-systems @datarobot/core-modeling
 /public_dropin_environments/python3_onnx                          @datarobot/genai-systems
-/public_dropin_environments/python3_pmml                          @datarobot/genai-systems @datarobot/core-modeling
 /public_dropin_environments/python3_pytorch                       @datarobot/genai-systems @datarobot/core-modeling
 /public_dropin_environments/python3_sklearn                       @datarobot/genai-systems @datarobot/core-modeling
 /public_dropin_environments/python3_xgboost                       @datarobot/genai-systems @datarobot/core-modeling

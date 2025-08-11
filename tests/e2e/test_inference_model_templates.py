@@ -176,9 +176,7 @@ class TestInferenceModelTemplates(object):
                 None,
             ),
             (
-                "python3_pmml",
                 "python",
-                "pmml_drop_in_env",
                 "binary_testing_data",
                 dr.TARGET_TYPE.BINARY,
                 "Species",
