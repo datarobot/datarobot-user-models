@@ -22,8 +22,6 @@ from datarobot_drum.drum.enum import (
     PayloadFormat,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
-from datarobot_drum.runtime_parameters.runtime_parameters import RuntimeParametersLoader
 from opentelemetry import trace, context
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.sdk.resources import Resource
@@ -31,7 +29,6 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
-
 
 ctx_request_id = ContextVar("request_id")
 
@@ -232,12 +229,3 @@ def extract_chat_response_attributes(response):
         # last completion wins
         attributes["gen_ai.completion"] = m.get("content")
     return attributes
-
-
-def setup_required_environment_variables(options):
-    if "runtime_params_file" in options and options.runtime_params_file:
-        loader = RuntimeParametersLoader(options.runtime_params_file, options.code_dir)
-        loader.setup_environment_variables()
-
-    if "lazy_loading_file" in options and options.lazy_loading_file:
-        LazyLoadingHandler.setup_environment_variables_from_values_file(options.lazy_loading_file)
