@@ -48,7 +48,7 @@ jinja2==3.1.6
 jmespath==1.0.1
 joblib==1.5.1
 julia==0.5.7
-keras==3.10.0
+keras==3.11.0
 libclang==18.1.1
 markdown==3.8
 markdown-it-py==3.0.0
