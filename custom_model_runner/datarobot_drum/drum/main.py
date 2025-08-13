@@ -59,8 +59,9 @@ from datarobot_drum.runtime_parameters.runtime_parameters import (
 )
 
 
-def main():
-    with DrumRuntime() as runtime:
+def main(app, app1):
+    print(sys.argv)
+    with DrumRuntime(app1) as runtime:
         config_logging()
 
         def signal_handler(sig, frame):
@@ -116,10 +117,10 @@ def main():
 
         try:
             runtime.cm_runner = CMRunner(runtime)
-            runtime.cm_runner.run()
+            runtime.cm_runner.run(app)
         except DrumSchemaValidationException:
             sys.exit(ExitCodes.SCHEMA_VALIDATION_ERROR.value)
 
 
 if __name__ == "__main__":
-    main()
+    pass

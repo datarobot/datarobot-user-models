@@ -1,0 +1,12 @@
+ python3 ./tools/migrate_templates.py --admin-api-token Njg4ZDkxMWQ5OThlNGQ0MDVmMmVkZjU3OmI3VEduMlNuM2kzMlZURm5CK1hpbEhQSlUyWi8wZS9uMUlZQ08yaDMzVkE9 --dr-host https://datarobot.apps.datarobot.datarobot.oci-dev.datarobot.com/ --template-types models --no-update-exec-envs --force --sleep-seconds 0
+
+ docker buildx build --platform linux/amd64 -t  sergeygavrenkov123/drum_gunicorn:latest --push .
+
+cd custom_model_runner
+make wheel
+
+workon drum
+docker buildx build --platform linux/amd64 -t sergeygavrenkov123/drum_gunicorn:latest --push .
+ docker buildx build --platform linux/amd64 -t sergeygavrenkov123/drum_gunicorn:latest --push .
+
+

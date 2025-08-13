@@ -1,6 +1,6 @@
 # This is a private chain-guard development image that is stored in DataRobot's private registry.
 # Replace it with your own development chain-gaurd image if you build your own.
-FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev as build
+FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev AS build
 ENV VIRTUAL_ENV=/opt/venv
 
 USER root
@@ -9,7 +9,8 @@ RUN python -m venv ${VIRTUAL_ENV} && \
 
 COPY requirements.txt requirements.txt
 RUN ${VIRTUAL_ENV}/bin/python -m pip install -r requirements.txt
-
+COPY datarobot_drum-1.16.21-py3-none-any.whl /tmp/
+RUN ${VIRTUAL_ENV}/bin/python -m pip install  /tmp/datarobot_drum-1.16.21-py3-none-any.whl
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-gaurd image if you build your own.
@@ -44,6 +45,9 @@ ENV OPENAI_PORT=8000
 ENV CODE_DIR=/opt/code
 ENV ADDRESS=0.0.0.0:8080
 ENV WITH_ERROR_SERVER=1
+
+RUN mkdir -p ${CODE_DIR} \
+    && chmod a+rwX ${CODE_DIR}
 
 # This makes print statements show up in the logs API
 ENV PYTHONUNBUFFERED=1

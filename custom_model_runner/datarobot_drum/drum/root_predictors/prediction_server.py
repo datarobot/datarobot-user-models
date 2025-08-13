@@ -136,7 +136,7 @@ class PredictionServer(PredictMixin):
         self._stats_collector.disable()
         self._stdout_flusher.set_last_activity_time()
 
-    def materialize(self):
+    def materialize(self, app):
         model_api = base_api_blueprint(self._terminate, self._predictor)
 
         @model_api.route("/capabilities/", methods=["GET"])
@@ -283,7 +283,7 @@ class PredictionServer(PredictMixin):
         cli = sys.modules["flask.cli"]
         cli.show_server_banner = lambda *x: None
 
-        app = get_flask_app(model_api)
+        app = get_flask_app(model_api, app)
         self.load_flask_extensions(app)
         self._run_flask_app(app)
 
@@ -301,7 +301,10 @@ class PredictionServer(PredictMixin):
             processes = self._params.get("processes")
             logger.info("Number of webserver processes: %s", processes)
         try:
-            app.run(host, port, threaded=False, processes=processes)
+            pass
+            #logger.info("hhhhhhhhh Host and port: %s", host + port)
+            print(f"hhhhhhhhh{host}, {port}")
+            #app.run(host, port, threaded=False, processes=processes)
         except OSError as e:
             raise DrumCommonException("{}: host: {}; port: {}".format(e, host, port))
 

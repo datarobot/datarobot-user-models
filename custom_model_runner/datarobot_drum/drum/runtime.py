@@ -26,11 +26,12 @@ logger_drum = logging.getLogger(LOGGER_NAME_PREFIX)
 
 
 class DrumRuntime:
-    def __init__(self):
+    def __init__(self, app):
         self.initialization_succeeded = False
         self.options = None
         self.cm_runner = None
         self.trace_provider = None
+        self.app = app
 
     def __enter__(self):
         return self
@@ -83,12 +84,12 @@ class DrumRuntime:
         port = int(host_port_list[1]) if len(host_port_list) == 2 else None
 
         with verbose_stdout(self.options.verbose):
-            run_error_server(host, port, exc_value)
+            run_error_server(host, port, exc_value, self.app)
 
         return False  # propagate exception further
 
 
-def run_error_server(host, port, exc_value):
+def run_error_server(host, port, exc_value, app):
     model_api = empty_api_blueprint()
 
     @model_api.route("/", methods=["GET"])
@@ -108,6 +109,10 @@ def run_error_server(host, port, exc_value):
     @model_api.route("/transform/", methods=["POST"])
     def transform():
         return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR
-
-    app = get_flask_app(model_api)
+    print("1rrrrrrr")
+    print("1rrrrrrr")
+    print("2rrrrrrr")
+    print("2rrrrrrr")
+    print(f"rrrrrrrr{host}, {port}")
+    app = get_flask_app(model_api, app)
     app.run(host, port)

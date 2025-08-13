@@ -29,8 +29,7 @@ HEADER_REQUEST_ID = "X_Request_ID"
 logger = get_drum_logger(LOGGER_NAME_PREFIX)
 
 
-def get_flask_app(api_blueprint):
-    app = create_flask_app()
+def get_flask_app(api_blueprint, app):
     url_prefix = os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")
     app.register_blueprint(api_blueprint, url_prefix=url_prefix)
     return app
@@ -94,6 +93,4 @@ def after_request(response):
 
 def create_flask_app():
     flask_app = Flask(__name__)
-    flask_app.before_request(before_request)
-    flask_app.after_request(after_request)
     return flask_app
