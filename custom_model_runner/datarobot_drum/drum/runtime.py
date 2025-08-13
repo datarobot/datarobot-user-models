@@ -30,7 +30,9 @@ class DrumRuntime:
         self.initialization_succeeded = False
         self.options = None
         self.cm_runner = None
+        # OTEL services
         self.trace_provider = None
+        self.metric_provider = None
 
     def __enter__(self):
         return self

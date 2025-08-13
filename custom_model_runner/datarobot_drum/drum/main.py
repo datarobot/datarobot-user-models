@@ -43,10 +43,7 @@ import os
 import signal
 import sys
 
-from datarobot_drum.drum.common import (
-    config_logging,
-    setup_tracer,
-)
+from datarobot_drum.drum.common import config_logging, setup_otel
 from datarobot_drum.drum.utils.setup import setup_options
 from datarobot_drum.drum.enum import RunMode
 from datarobot_drum.drum.enum import ExitCodes
@@ -73,6 +70,8 @@ def main():
             # Let traceer offload accumulated spans before shutdown.
             if runtime.trace_provider is not None:
                 runtime.trace_provider.shutdown()
+            if runtime.metric_provider is not None:
+                runtime.metric_provider.shutdown()
 
             os._exit(130)
 
@@ -83,7 +82,9 @@ def main():
             print(str(exc))
             exit(255)
 
-        runtime.trace_provider = setup_tracer(RuntimeParameters, options)
+        trace_provider, metric_provider = setup_otel(RuntimeParameters, options)
+        runtime.trace_provider = trace_provider
+        runtime.metric_provider = metric_provider
 
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
