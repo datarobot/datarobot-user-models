@@ -22,8 +22,11 @@ from datarobot_drum.drum.enum import (
     PayloadFormat,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
-from opentelemetry import trace, context
+from opentelemetry import trace, context, metrics
+from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -136,7 +139,7 @@ def make_otel_endpoint(datarobot_endpoint):
     return result
 
 
-def setup_tracer(runtime_parameters, options):
+def setup_otel(runtime_parameters, options):
     """Setups OTEL tracer.
 
     OTEL is configured by OTEL_EXPORTER_OTLP_ENDPOINT and
@@ -150,26 +153,31 @@ def setup_tracer(runtime_parameters, options):
         command argumetns
     Returns
     -------
-    TracerProvider
+    (TracerProvider, MetricProvider)
     """
-    log = get_drum_logger("setup_tracer")
+    log = get_drum_logger("setup_otel")
 
     # Can be used to disable OTEL reporting from env var parameters
     # https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     if runtime_parameters.has("OTEL_SDK_DISABLED") and os.environ.get("OTEL_SDK_DISABLED"):
-        log.info("Tracing explictly disabled")
-        return
+        log.info("OTEL explictly disabled")
+        return (None, None)
 
-    main_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
-    trace_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")
-    if not main_endpoint and not trace_endpoint:
-        log.info("Tracing is not configured")
-        return
+    endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
+    if not endpoint:
+        log.info("OTEL is not configured")
+        return (None, None)
 
     resource = Resource.create()
-    otlp_exporter = OTLPSpanExporter()
-    provider = TracerProvider(resource=resource)
+    # OTEL metrics setup.
+    metric_exporter = OTLPMetricExporter()
+    metric_reader = PeriodicExportingMetricReader(metric_exporter)
+    metric_provider = MeterProvider(metric_readers=[metric_reader], resource=resource)
+    metrics.set_meter_provider(metric_provider)
 
+    # OTEL traces setup.
+    otlp_exporter = OTLPSpanExporter()
+    trace_provider = TracerProvider(resource=resource)
     # In case of NIM flask server is configured to run in multiprocessing
     # mode that uses fork. Since BatchSpanProcessor start background thread
     # with bunch of locks, OTEL simply deadlocks and does not offlooad any
@@ -178,15 +186,14 @@ def setup_tracer(runtime_parameters, options):
     # case we use SimpleSpanProcessor (mostly NIMs) otherwise BatchSpanProcessor
     # (most frequent case)
     if options.max_workers > 1:
-        provider.add_span_processor(SimpleSpanProcessor(otlp_exporter))
+        trace_provider.add_span_processor(SimpleSpanProcessor(otlp_exporter))
     else:
-        provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+        trace_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
 
-    trace.set_tracer_provider(provider)
+    trace.set_tracer_provider(trace_provider)
 
-    endpoint = main_endpoint or trace_endpoint
-    log.info(f"Tracing is configured with endpoint: {endpoint}")
-    return provider
+    log.info(f"OTEL is configured with endpoint: {endpoint}")
+    return trace_provider, metric_provider
 
 
 @contextmanager
