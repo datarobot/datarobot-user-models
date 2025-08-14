@@ -18,7 +18,6 @@ The [model_templates](.) folder contains sample models that work with the provid
 * [ONNX sample multiclass classification model](python3_onnx_multiclass)
 * [ONNX sample regression model](python3_onnx_regression)
 * [ONNX sample anomaly detection model](python3_onnx_anomaly)
-* [PyPMML sample model](python3_pmml)
 * [R sample model](r_lang)
 * [Java sample model](java_codegen)
 * [Julia sample models](julia)

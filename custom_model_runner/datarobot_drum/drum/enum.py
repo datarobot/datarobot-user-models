@@ -90,9 +90,8 @@ class SupportedFrameworks:
     TORCH = "torch"
     KERAS = "keras"
     XGBOOST = "xgboost"
-    PYPMML = "pypmml"
     ONNX = "onnx"
-    ALL = [SKLEARN, TORCH, KERAS, XGBOOST, PYPMML, ONNX]
+    ALL = [SKLEARN, TORCH, KERAS, XGBOOST, ONNX]
 
 
 extra_deps = {
@@ -100,7 +99,6 @@ extra_deps = {
     SupportedFrameworks.TORCH: ["torch", "numpy", "scikit-learn", "scipy"],
     SupportedFrameworks.KERAS: ["scipy", "numpy", "h5py", "tensorflow>=2.2.1"],
     SupportedFrameworks.XGBOOST: ["scipy", "numpy", "xgboost"],
-    SupportedFrameworks.PYPMML: ["pypmml"],
     SupportedFrameworks.ONNX: ["onnxruntime"],
 }
 
@@ -189,14 +187,12 @@ class PythonArtifacts:
     TORCH_EXTENSION = ".pth"
     KERAS_EXTENSION = ".h5"
     JOBLIB_EXTENSION = ".joblib"
-    PYPMML_EXTENSION = ".pmml"
     ONNX_EXTENSION = ".onnx"
     ALL = [
         PKL_EXTENSION,
         TORCH_EXTENSION,
         KERAS_EXTENSION,
         JOBLIB_EXTENSION,
-        PYPMML_EXTENSION,
         ONNX_EXTENSION,
     ]
 

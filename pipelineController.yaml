@@ -52,13 +52,6 @@ test_functional_python_onnx: &test_functional_python_onnx
     FRAMEWORK: python3_onnx
   phase: 3
 
-test_functional_python_pmml: &test_functional_python_pmml
-  taskName: test_functional_python_pmml
-  definition: jenkins/test_functional_per_framework.groovy
-  environment:
-    FRAMEWORK: python3_pmml
-  phase: 3
-
 test_functional_python_pytorch: &test_functional_python_pytorch
   taskName: test_functional_python_pytorch
   definition: jenkins/test_functional_per_framework.groovy
@@ -140,10 +133,6 @@ repositoryTasks:
         script:
           - *build_drum
           - *test_functional_python_onnx
-      - regex: ".*test_functional_python_pmml.*"
-        script:
-          - *build_drum
-          - *test_functional_python_pmml
       - regex: ".*test_functional_python_pytorch.*"
         script:
           - *build_drum
@@ -181,7 +170,6 @@ repositoryTasks:
           - *test_e2e_drop_in_envs
           - *test_functional_python_keras
           - *test_functional_python_onnx
-          - *test_functional_python_pmml
           - *test_functional_python_pytorch
           - *test_functional_python_sklearn
           - *test_functional_python_xgboost

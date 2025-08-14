@@ -21,7 +21,6 @@ from scipy.sparse import issparse
 
 from datarobot_drum.drum.adapters.model_adapters.abstract_model_adapter import AbstractModelAdapter
 from datarobot_drum.drum.artifact_predictors.keras_predictor import KerasPredictor
-from datarobot_drum.drum.artifact_predictors.pmml_predictor import PMMLPredictor
 from datarobot_drum.drum.artifact_predictors.sklearn_predictor import SKLearnPredictor
 from datarobot_drum.drum.artifact_predictors.torch_predictor import PyTorchPredictor
 from datarobot_drum.drum.artifact_predictors.xgboost_predictor import XGBoostPredictor
@@ -93,7 +92,6 @@ class PythonModelAdapter(AbstractModelAdapter):
             KerasPredictor(),
             XGBoostPredictor(),
             PyTorchPredictor(),
-            PMMLPredictor(),
             SKLearnPredictor(),
             ONNXPredictor(),
         ]

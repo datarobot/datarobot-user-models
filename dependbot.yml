@@ -33,12 +33,6 @@ updates:
     reviewers:
       - "datarobot/genai-systems"
   - package-ecosystem: "pip"
-    directory: "/public_dropin_environments/python3_pmml"
-    schedule:
-      interval: "monthly"
-    reviewers:
-      - "datarobot/genai-systems"
-  - package-ecosystem: "pip"
     directory: "/public_dropin_environments/python3_pytorch"
     schedule:
       interval: "monthly"
