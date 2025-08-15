@@ -25,6 +25,13 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 from opentelemetry import trace, context, metrics
 from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
+
+from opentelemetry._logs import set_logger_provider
+from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
+from opentelemetry.sdk._logs.export import SimpleLogRecordProcessor
+
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import Resource
@@ -139,6 +146,38 @@ def make_otel_endpoint(datarobot_endpoint):
     return result
 
 
+def _setup_otel_logging(resource, multiprocessing=False):
+    logger_provider = LoggerProvider(resource=resource)
+    set_logger_provider(logger_provider)
+    exporter = OTLPLogExporter()
+    if multiprocessing:
+        logger_provider.add_log_record_processor(SimpleLogRecordProcessor(exporter))
+    else:
+        logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
+    handler = LoggingHandler(level=logging.DEBUG, logger_provider=logger_provider)
+    logging.getLogger().addHandler(handler)
+    return logger_provider
+
+
+def _setup_otel_metrics(resource):
+    metric_exporter = OTLPMetricExporter()
+    metric_reader = PeriodicExportingMetricReader(metric_exporter)
+    metric_provider = MeterProvider(metric_readers=[metric_reader], resource=resource)
+    metrics.set_meter_provider(metric_provider)
+    return metric_provider
+
+
+def _setup_otel_tracing(resource, multiprocessing=False):
+    otlp_exporter = OTLPSpanExporter()
+    trace_provider = TracerProvider(resource=resource)
+    if multiprocessing:
+        trace_provider.add_span_processor(SimpleSpanProcessor(otlp_exporter))
+    else:
+        trace_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+    trace.set_tracer_provider(trace_provider)
+    return trace_provider
+
+
 def setup_otel(runtime_parameters, options):
     """Setups OTEL tracer.
 
@@ -161,23 +200,13 @@ def setup_otel(runtime_parameters, options):
     # https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
     if runtime_parameters.has("OTEL_SDK_DISABLED") and os.environ.get("OTEL_SDK_DISABLED"):
         log.info("OTEL explictly disabled")
-        return (None, None)
+        return (None, None, None)
 
     endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
     if not endpoint:
         log.info("OTEL is not configured")
-        return (None, None)
+        return (None, None, None)
 
-    resource = Resource.create()
-    # OTEL metrics setup.
-    metric_exporter = OTLPMetricExporter()
-    metric_reader = PeriodicExportingMetricReader(metric_exporter)
-    metric_provider = MeterProvider(metric_readers=[metric_reader], resource=resource)
-    metrics.set_meter_provider(metric_provider)
-
-    # OTEL traces setup.
-    otlp_exporter = OTLPSpanExporter()
-    trace_provider = TracerProvider(resource=resource)
     # In case of NIM flask server is configured to run in multiprocessing
     # mode that uses fork. Since BatchSpanProcessor start background thread
     # with bunch of locks, OTEL simply deadlocks and does not offlooad any
@@ -185,15 +214,15 @@ def setup_otel(runtime_parameters, options):
     # missing due to process exits before all data offloaded. In forking
     # case we use SimpleSpanProcessor (mostly NIMs) otherwise BatchSpanProcessor
     # (most frequent case)
-    if options.max_workers > 1:
-        trace_provider.add_span_processor(SimpleSpanProcessor(otlp_exporter))
-    else:
-        trace_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
+    multiprocessing = options.max_workers > 1
 
-    trace.set_tracer_provider(trace_provider)
+    resource = Resource.create()
+    trace_provider = _setup_otel_tracing(resource=resource, multiprocessing=multiprocessing)
+    logger_provider = _setup_otel_logging(resource=resource, multiprocessing=multiprocessing)
+    metric_provider = _setup_otel_metrics(resource=resource)
 
     log.info(f"OTEL is configured with endpoint: {endpoint}")
-    return trace_provider, metric_provider
+    return trace_provider, metric_provider, logger_provider
 
 
 @contextmanager

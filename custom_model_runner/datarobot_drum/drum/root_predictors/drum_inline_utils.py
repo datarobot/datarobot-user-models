@@ -77,7 +77,7 @@ def drum_inline_predictor(
             print(str(exc))
             exit(255)
 
-        trace_provider, metric_provider = setup_otel(RuntimeParameters, options)
+        trace_provider, metric_provider, log_provider = setup_otel(RuntimeParameters, options)
         runtime.cm_runner = CMRunner(runtime)
         params = runtime.cm_runner.get_predictor_params()
         predictor = GenericPredictorComponent(params)
@@ -87,3 +87,5 @@ def drum_inline_predictor(
             trace_provider.shutdown()
         if metric_provider is not None:
             metric_provider.shutdown()
+        if log_provider is not None:
+            log_provider.shutdown()

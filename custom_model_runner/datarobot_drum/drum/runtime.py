@@ -5,7 +5,6 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
-import traceback
 
 from datarobot_drum.drum.server import (
     empty_api_blueprint,
@@ -16,9 +15,7 @@ from datarobot_drum.drum.common import verbose_stdout, get_drum_logger
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, RunMode
 
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.args_parser import ArgumentsOptions
 
-from termcolor import colored
 
 logger = get_drum_logger(__name__)
 logger.setLevel(logging.ERROR)
@@ -33,6 +30,7 @@ class DrumRuntime:
         # OTEL services
         self.trace_provider = None
         self.metric_provider = None
+        self.log_provider = None
 
     def __enter__(self):
         return self
