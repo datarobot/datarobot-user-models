@@ -74,7 +74,7 @@ RUN python3.11 -m venv ${VENV_PATH} && pip3 install -U pip setuptools
 WORKDIR ${WORKDIR}
 
 # Install git helper binary used for private git authentication in Notebooks/Codepaces
-RUN curl -L -o drgithelper https://github.com/datarobot-oss/drgithelper/releases/download/v0.0.13/drgithelper && chmod +x drgithelper
+RUN curl -L -o drgithelper https://github.com/datarobot-oss/drgithelper/releases/download/v0.0.16/drgithelper && chmod +x drgithelper
 
 COPY ./agent/agent.py ./agent/cgroup_watchers.py ${AGENTDIR}/
 COPY ./jupyter_kernel_gateway_config.py ./start_server.sh ${WORKDIR}/
