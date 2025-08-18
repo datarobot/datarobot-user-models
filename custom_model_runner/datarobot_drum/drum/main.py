@@ -72,6 +72,8 @@ def main(app):
                 runtime.trace_provider.shutdown()
             if runtime.metric_provider is not None:
                 runtime.metric_provider.shutdown()
+            if runtime.log_provider is not None:
+                runtime.log_provider.shutdown()
 
             os._exit(130)
 
@@ -82,9 +84,10 @@ def main(app):
             print(str(exc))
             exit(255)
 
-        trace_provider, metric_provider = setup_otel(RuntimeParameters, options)
+        trace_provider, metric_provider, log_provider = setup_otel(RuntimeParameters, options)
         runtime.trace_provider = trace_provider
         runtime.metric_provider = metric_provider
+        runtime.log_provider = log_provider
 
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
