@@ -35,7 +35,7 @@ def test_custom_model_workers(
         runtime_params.has.return_value = False
 
     with patch("datarobot_drum.drum.main.setup_otel") as setup_otel_mock:
-        setup_otel_mock.return_value = (None, None)
+        setup_otel_mock.return_value = (None, None, None)
         main()
 
     runtime_params.has.assert_any_call("CUSTOM_MODEL_WORKERS")
