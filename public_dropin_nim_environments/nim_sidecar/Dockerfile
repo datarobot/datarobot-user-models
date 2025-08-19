@@ -9,8 +9,7 @@ RUN python -m venv ${VIRTUAL_ENV} && \
 
 COPY requirements.txt requirements.txt
 RUN ${VIRTUAL_ENV}/bin/python -m pip install -r requirements.txt
-COPY datarobot_drum-1.16.22-py3-none-any.whl /tmp/
-RUN ${VIRTUAL_ENV}/bin/python -m pip install  /tmp/datarobot_drum-1.16.22-py3-none-any.whl
+
 
 # This is a private production chain-guard image that is stored in DataRobot's private registry.
 # Replace it with your own production chain-gaurd image if you build your own.
