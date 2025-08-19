@@ -5,6 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
+import os
 import sys
 import time
 from pathlib import Path
@@ -23,7 +24,8 @@ from datarobot_drum.drum.enum import (
     TARGET_TYPE_ARG_KEYWORD,
     ModelInfoKeys,
     RunLanguage,
-    TargetType, URL_PREFIX_ENV_VAR_NAME,
+    TargetType,
+    URL_PREFIX_ENV_VAR_NAME,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
@@ -304,14 +306,15 @@ class PredictionServer(PredictMixin):
             processes = self._params.get("processes")
             logger.info("Number of webserver processes: %s", processes)
         try:
-            # Start the watchdog thread before running the app
-            self._server_watchdog = Thread(
-                target=self.watchdog,
-                args=(port,),  # Pass host and port as arguments
-                daemon=True,
-                name="OpenAI Watchdog"
-            )
-            self._server_watchdog.start()
+            if str(os.environ.get("USE_NIM_WATCHDOG", 'false')).lower() in ['true', '1', 'yes']:
+                # Start the watchdog thread before running the app
+                self._server_watchdog = Thread(
+                    target=self.watchdog,
+                    args=(port,),  # Pass host and port as arguments
+                    daemon=True,
+                    name="OpenAI Watchdog"
+                )
+                self._server_watchdog.start()
 
             app.run(host, port, threaded=False, processes=processes)
         except OSError as e:
