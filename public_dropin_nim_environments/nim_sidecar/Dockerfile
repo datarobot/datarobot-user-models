@@ -1,6 +1,6 @@
 # This is a private chain-guard development image that is stored in DataRobot's private registry.
 # Replace it with your own development chain-gaurd image if you build your own.
-FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev AS build
+FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev as build
 ENV VIRTUAL_ENV=/opt/venv
 
 USER root
@@ -42,12 +42,8 @@ ENV PATH=${VIRTUAL_ENV}/bin:${PATH}
 ENV OPENAI_HOST=localhost
 ENV OPENAI_PORT=8000
 ENV CODE_DIR=/opt/code
-ENV USE_NIM_WATCHDOG=true
 ENV ADDRESS=0.0.0.0:8080
 ENV WITH_ERROR_SERVER=1
-
-RUN mkdir -p ${CODE_DIR} \
-    && chmod a+rwX ${CODE_DIR}
 
 # This makes print statements show up in the logs API
 ENV PYTHONUNBUFFERED=1
