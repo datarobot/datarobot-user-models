@@ -306,13 +306,13 @@ class PredictionServer(PredictMixin):
             processes = self._params.get("processes")
             logger.info("Number of webserver processes: %s", processes)
         try:
-            if str(os.environ.get("USE_NIM_WATCHDOG", 'false')).lower() in ['true', '1', 'yes']:
+            if str(os.environ.get("USE_NIM_WATCHDOG", "false")).lower() in ["true", "1", "yes"]:
                 # Start the watchdog thread before running the app
                 self._server_watchdog = Thread(
                     target=self.watchdog,
                     args=(port,),  # Pass host and port as arguments
                     daemon=True,
-                    name="OpenAI Watchdog"
+                    name="OpenAI Watchdog",
                 )
                 self._server_watchdog.start()
 
@@ -330,14 +330,15 @@ class PredictionServer(PredictMixin):
         logger.info("Starting watchdog to monitor server health...")
 
         import os
+
         url_host = os.environ.get("TEST_URL_HOST", "localhost")
         url_prefix = os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")
         health_url = f"http://{url_host}:{port}/{url_prefix}/info/"
 
         request_timeout = 120
-        check_interval = 10
+        check_interval = 10  # seconds
         max_attempts = 5
-          # seconds
+
         attempt = 0
         base_sleep_time = 2
 
@@ -355,10 +356,14 @@ class PredictionServer(PredictMixin):
             except Exception as e:
                 attempt += 1
                 logger.error(f"health_url {health_url}")
-                logger.error(f"Server health check failed (attempt {attempt}/{max_attempts}): {str(e)}")
+                logger.error(
+                    f"Server health check failed (attempt {attempt}/{max_attempts}): {str(e)}"
+                )
 
                 if attempt >= max_attempts:
-                    logger.error("All health check attempts failed. Forcefully killing all processes.")
+                    logger.error(
+                        "All health check attempts failed. Forcefully killing all processes."
+                    )
 
                     # First try clean termination
                     try:
@@ -374,9 +379,9 @@ class PredictionServer(PredictMixin):
                         # Kill packedge jobs first (more aggressive approach)
                         logger.info("Killing Python package jobs")
                         # Run `busybox ps` and capture output
-                        result = subprocess.run(['busybox', 'ps'], capture_output=True, text=True)
+                        result = subprocess.run(["busybox", "ps"], capture_output=True, text=True)
                         # Parse lines, skip the header
-                        lines = result.stdout.strip().split('\n')[1:]
+                        lines = result.stdout.strip().split("\n")[1:]
                         # Extract the PID (first column)
                         pids = [int(line.split()[0]) for line in lines]
                         for pid in pids:
@@ -386,7 +391,7 @@ class PredictionServer(PredictMixin):
                         logger.error(f"Error during process killing: {str(kill_error)}")
 
                 # Quadratic backoff
-                sleep_time = base_sleep_time * (attempt ** 2)
+                sleep_time = base_sleep_time * (attempt**2)
                 logger.info(f"Retrying in {sleep_time} seconds...")
                 time.sleep(sleep_time)
 
