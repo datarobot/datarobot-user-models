@@ -109,10 +109,9 @@ def run_error_server(host, port, exc_value, app):
     @model_api.route("/transform/", methods=["POST"])
     def transform():
         return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR
-    print("1rrrrrrr")
-    print("1rrrrrrr")
-    print("2rrrrrrr")
-    print("2rrrrrrr")
     print(f"rrrrrrrr{host}, {port}")
-    app = get_flask_app(model_api, app)
-    app.run(host, port)
+    if app:
+        pass
+    else:
+        app = get_flask_app(model_api, app)
+        app.run(host, port)

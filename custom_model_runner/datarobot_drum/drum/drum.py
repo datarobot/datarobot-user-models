@@ -77,8 +77,9 @@ PREDICTOR_PIPELINE = "prediction_pipeline.json.j2"
 
 
 class CMRunner:
-    def __init__(self, runtime):
+    def __init__(self, runtime, app=None):
         self.runtime = runtime
+        self.app = app
         self.options = runtime.options
         self.options.model_config = read_model_metadata_yaml(self.options.code_dir)
         self.options.default_parameter_values = (
@@ -461,7 +462,7 @@ class CMRunner:
             run_language = RunLanguage.PYTHON
         return run_language
 
-    def run(self, app):
+    def run(self):
         try:
             if self.options.docker and (
                 self.run_mode not in (RunMode.PUSH, RunMode.PERF_TEST, RunMode.VALIDATION)
@@ -495,14 +496,14 @@ class CMRunner:
                 stats_collector.enable()
             try:
                 with self._setup_output_if_not_exists():
-                    self._run_predictions(app, stats_collector)
+                    self._run_predictions(stats_collector)
             finally:
                 if stats_collector:
                     stats_collector.disable()
             if stats_collector:
                 stats_collector.print_reports()
         elif self.run_mode == RunMode.SERVER:
-            self._run_predictions(app)
+            self._run_predictions()
         elif self.run_mode == RunMode.FIT:
             self.run_fit()
         elif self.run_mode == RunMode.PERF_TEST:
@@ -812,7 +813,7 @@ class CMRunner:
             raise DrumCommonException("Arguments are missing in the pipeline")
         return pipeline["pipe"][0]["arguments"]
 
-    def _run_predictions(self, app, stats_collector: Optional[StatsCollector] = None):
+    def _run_predictions(self, stats_collector: Optional[StatsCollector] = None):
         if self.run_mode not in [RunMode.SCORE, RunMode.SERVER]:
             raise NotImplemented(f"The given run mode is supported here: {self.run_mode}")
 
@@ -826,13 +827,13 @@ class CMRunner:
             if stats_collector:
                 stats_collector.mark("start")
             predictor = (
-                PredictionServer(params)
+                PredictionServer(params, self.app)
                 if self.run_mode == RunMode.SERVER
                 else GenericPredictorComponent(params)
             )
             if stats_collector:
                 stats_collector.mark("init")
-            predictor.materialize(app)
+            predictor.materialize()
             if stats_collector:
                 stats_collector.mark("run")
         finally:

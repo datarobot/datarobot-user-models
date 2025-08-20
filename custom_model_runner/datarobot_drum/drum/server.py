@@ -93,4 +93,6 @@ def after_request(response):
 
 def create_flask_app():
     flask_app = Flask(__name__)
+    flask_app.before_request(before_request)
+    flask_app.after_request(after_request)
     return flask_app

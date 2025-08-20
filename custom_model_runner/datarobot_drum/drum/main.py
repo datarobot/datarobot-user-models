@@ -59,9 +59,8 @@ from datarobot_drum.runtime_parameters.runtime_parameters import (
 )
 
 
-def main(app, app1):
-    print(sys.argv)
-    with DrumRuntime(app1) as runtime:
+def main(app):
+    with DrumRuntime(app) as runtime:
         config_logging()
 
         def signal_handler(sig, frame):
@@ -116,8 +115,8 @@ def main(app, app1):
         from datarobot_drum.drum.drum import CMRunner
 
         try:
-            runtime.cm_runner = CMRunner(runtime)
-            runtime.cm_runner.run(app)
+            runtime.cm_runner = CMRunner(runtime, app)
+            runtime.cm_runner.run()
         except DrumSchemaValidationException:
             sys.exit(ExitCodes.SCHEMA_VALIDATION_ERROR.value)
 
