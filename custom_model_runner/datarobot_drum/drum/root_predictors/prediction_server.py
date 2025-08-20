@@ -5,8 +5,11 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
+import os
 import sys
+import time
 from pathlib import Path
+from threading import Thread
 
 import requests
 from flask import Response, jsonify, request
@@ -22,6 +25,7 @@ from datarobot_drum.drum.enum import (
     ModelInfoKeys,
     RunLanguage,
     TargetType,
+    URL_PREFIX_ENV_VAR_NAME,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
@@ -71,6 +75,7 @@ class PredictionServer(PredictMixin):
             "run_predictor_total", "finish", StatsOperation.SUB, "start"
         )
         self._predictor = self._setup_predictor()
+        self._server_watchdog = None
 
     def _setup_predictor(self):
         if self._run_language == RunLanguage.PYTHON:
@@ -301,9 +306,94 @@ class PredictionServer(PredictMixin):
             processes = self._params.get("processes")
             logger.info("Number of webserver processes: %s", processes)
         try:
+            if str(os.environ.get("USE_NIM_WATCHDOG", "false")).lower() in ["true", "1", "yes"]:
+                # Start the watchdog thread before running the app
+                self._server_watchdog = Thread(
+                    target=self.watchdog,
+                    args=(port,),  # Pass host and port as arguments
+                    daemon=True,
+                    name="OpenAI Watchdog",
+                )
+                self._server_watchdog.start()
+
             app.run(host, port, threaded=False, processes=processes)
         except OSError as e:
             raise DrumCommonException("{}: host: {}; port: {}".format(e, host, port))
+
+    def watchdog(self, port):
+        """
+        Watchdog thread that periodically checks if the server is alive by making
+        GET requests to the /ping/ endpoint. Makes 3 attempts with quadratic backoff
+        before terminating the Flask app.
+        """
+
+        logger.info("Starting watchdog to monitor server health...")
+
+        import os
+
+        url_host = os.environ.get("TEST_URL_HOST", "localhost")
+        url_prefix = os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")
+        health_url = f"http://{url_host}:{port}/{url_prefix}/info/"
+
+        request_timeout = 120
+        check_interval = 10  # seconds
+        max_attempts = 5
+
+        attempt = 0
+        base_sleep_time = 2
+
+        while True:
+            try:
+                # Check if server is responding to health checks
+                logger.debug(f"Server health check")
+                response = requests.get(health_url, timeout=request_timeout)
+                logger.debug(f"Server health check status: {response.status_code}")
+                # Connection succeeded, reset attempts and wait for next check
+                attempt = 0
+                time.sleep(check_interval)  # Regular check interval
+                continue
+
+            except Exception as e:
+                attempt += 1
+                logger.error(f"health_url {health_url}")
+                logger.error(
+                    f"Server health check failed (attempt {attempt}/{max_attempts}): {str(e)}"
+                )
+
+                if attempt >= max_attempts:
+                    logger.error(
+                        "All health check attempts failed. Forcefully killing all processes."
+                    )
+
+                    # First try clean termination
+                    try:
+                        self._terminate()
+                    except Exception as e:
+                        logger.error(f"Error during clean termination: {str(e)}")
+
+                    # Force kill all processes
+                    import subprocess
+
+                    # Use more direct system commands to kill processes
+                    try:
+                        # Kill packedge jobs first (more aggressive approach)
+                        logger.info("Killing Python package jobs")
+                        # Run `busybox ps` and capture output
+                        result = subprocess.run(["busybox", "ps"], capture_output=True, text=True)
+                        # Parse lines, skip the header
+                        lines = result.stdout.strip().split("\n")[1:]
+                        # Extract the PID (first column)
+                        pids = [int(line.split()[0]) for line in lines]
+                        for pid in pids:
+                            print("Killing pid:", pid)
+                            subprocess.run(f"kill {pid}", shell=True)
+                    except Exception as kill_error:
+                        logger.error(f"Error during process killing: {str(kill_error)}")
+
+                # Quadratic backoff
+                sleep_time = base_sleep_time * (attempt**2)
+                logger.info(f"Retrying in {sleep_time} seconds...")
+                time.sleep(sleep_time)
 
     def terminate(self):
         terminate_op = getattr(self._predictor, "terminate", None)
