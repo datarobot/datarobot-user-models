@@ -13,12 +13,12 @@ from datarobot_drum.drum.main import main
 
 
 @pytest.mark.parametrize("workers_param, expected_workers", [(None, 0), (1, 1), (10, 10)])
-@patch("datarobot_drum.drum.main.RuntimeParameters", autospec=True)
-@patch("datarobot_drum.drum.main.RuntimeParametersLoader", autospec=True)
 @patch("datarobot_drum.drum.drum.CMRunner", autospec=True)
-@patch("datarobot_drum.drum.main.CMRunnerArgsRegistry", autospec=True)
+@patch("datarobot_drum.drum.utils.setup.RuntimeParameters", autospec=True)
+@patch("datarobot_drum.drum.utils.setup.RuntimeParametersLoader", autospec=True)
+@patch("datarobot_drum.drum.utils.setup.CMRunnerArgsRegistry", autospec=True)
 def test_custom_model_workers(
-    args_registry, cm_runner, runtime_params_loader, runtime_params, workers_param, expected_workers
+    args_registry, runtime_params_loader, runtime_params, cm_runner, workers_param, expected_workers
 ):
     options = argparse.Namespace()
     options.max_workers = 0
@@ -34,7 +34,10 @@ def test_custom_model_workers(
     else:
         runtime_params.has.return_value = False
 
-    main()
+    with patch("datarobot_drum.drum.main.setup_otel") as setup_otel_mock:
+        setup_otel_mock.return_value = (None, None, None)
+        main()
+
     runtime_params.has.assert_any_call("CUSTOM_MODEL_WORKERS")
     if workers_param:
         runtime_params.get.assert_any_call("CUSTOM_MODEL_WORKERS")

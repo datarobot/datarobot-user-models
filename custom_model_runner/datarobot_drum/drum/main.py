@@ -43,18 +43,13 @@ import os
 import signal
 import sys
 
-from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
-from datarobot_drum.drum.common import (
-    config_logging,
-    setup_tracer,
-    setup_required_environment_variables,
-)
+from datarobot_drum.drum.common import config_logging, setup_otel
+from datarobot_drum.drum.utils.setup import setup_options
 from datarobot_drum.drum.enum import RunMode
 from datarobot_drum.drum.enum import ExitCodes
 from datarobot_drum.drum.exceptions import DrumSchemaValidationException
 from datarobot_drum.drum.runtime import DrumRuntime
 from datarobot_drum.runtime_parameters.runtime_parameters import (
-    RuntimeParametersLoader,
     RuntimeParameters,
 )
 
@@ -75,39 +70,24 @@ def main():
             # Let traceer offload accumulated spans before shutdown.
             if runtime.trace_provider is not None:
                 runtime.trace_provider.shutdown()
+            if runtime.metric_provider is not None:
+                runtime.metric_provider.shutdown()
+            if runtime.log_provider is not None:
+                runtime.log_provider.shutdown()
 
             os._exit(130)
 
-        arg_parser = CMRunnerArgsRegistry.get_arg_parser()
-
         try:
-            import argcomplete
-        except ImportError:
-            print(
-                "WARNING: autocompletion of arguments is not supported "
-                "as 'argcomplete' package is not found",
-                file=sys.stderr,
-            )
-        else:
-            # argcomplete call should be as close to the beginning as possible
-            argcomplete.autocomplete(arg_parser)
-
-        CMRunnerArgsRegistry.extend_sys_argv_with_env_vars()
-
-        options = arg_parser.parse_args()
-        CMRunnerArgsRegistry.verify_options(options)
-
-        try:
-            setup_required_environment_variables(options)
+            options = setup_options()
+            runtime.options = options
         except Exception as exc:
             print(str(exc))
             exit(255)
 
-        if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
-            options.max_workers = RuntimeParameters.get("CUSTOM_MODEL_WORKERS")
-        runtime.options = options
-
-        runtime.trace_provider = setup_tracer(RuntimeParameters, options)
+        trace_provider, metric_provider, log_provider = setup_otel(RuntimeParameters, options)
+        runtime.trace_provider = trace_provider
+        runtime.metric_provider = metric_provider
+        runtime.log_provider = log_provider
 
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)

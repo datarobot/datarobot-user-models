@@ -29,7 +29,9 @@ cp -L /var/run/notebooks/ssh/authorized_keys/notebooks /etc/authorized_keys/ && 
 mkdir /etc/ssh/keys && cp -L /var/run/notebooks/ssh/keys/ssh_host_* /etc/ssh/keys/ && chmod 600 /etc/ssh/keys/ssh_host_*
 nohup /usr/sbin/sshd -D &
 
-# Initialize the git helper. Turn on/off features dependent on `GITHELPER_*` env vars
+# Ensure proper permissions on the directory used by cache daemon to ensure it starts (create dir. if needed)
+mkdir -p /home/notebooks/storage/.cache/git/credential && chmod 700 /home/notebooks/storage/.cache/git/credential
+# Initialize the git helper. Features are turned on/off dependent on `GITHELPER_*` env vars
 /etc/system/kernel/drgithelper configs set
 
 # no trailing slash in the working dir path
