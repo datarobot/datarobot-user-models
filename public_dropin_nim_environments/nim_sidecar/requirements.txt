@@ -18,6 +18,8 @@ azure-storage-blob==12.19.0
 blinker==1.9.0
 boto3==1.40.7
 botocore==1.40.7
+boto3==1.40.13
+botocore==1.40.13
 cachetools==5.5.2
 certifi==2025.8.3
 cffi==1.17.1
@@ -32,8 +34,9 @@ distro==1.9.0
 docker==7.1.0
 exceptiongroup==1.3.0
 filechunkio==1.8
-flask==3.1.1
+flask==3.1.2
 frozenlist==1.7.0
+gevent==25.5.1
 google-api-core==2.25.1
 google-auth==2.40.3
 google-cloud-core==2.4.3
@@ -41,6 +44,7 @@ google-cloud-storage==2.19.0
 google-crc32c==1.7.1
 google-resumable-media==2.7.2
 googleapis-common-protos==1.70.0
+greenlet==3.2.4
 gunicorn==23.0.0
 h11==0.16.0
 httpcore==1.0.9
@@ -60,27 +64,27 @@ msal-extensions==1.3.1
 multidict==6.6.4
 mypy-extensions==1.1.0
 numpy==2.2.6
-openai==1.99.9
+openai==1.100.2
 opentelemetry-api==1.36.0
 opentelemetry-exporter-otlp-proto-common==1.36.0
 opentelemetry-exporter-otlp-proto-http==1.36.0
 opentelemetry-instrumentation==0.57b0
 opentelemetry-instrumentation-aiohttp-client==0.57b0
-opentelemetry-instrumentation-openai==0.44.2
+opentelemetry-instrumentation-openai==0.45.6
 opentelemetry-instrumentation-requests==0.57b0
 opentelemetry-proto==1.36.0
 opentelemetry-sdk==1.36.0
 opentelemetry-semantic-conventions==0.57b0
-opentelemetry-semantic-conventions-ai==0.4.11
+opentelemetry-semantic-conventions-ai==0.4.12
 opentelemetry-util-http==0.57b0
-orjson==3.11.1
+orjson==3.11.2
 packaging==25.0
 pandas==2.3.1
 pillow==11.3.0
 progress==1.6.1
 propcache==0.3.2
 proto-plus==1.26.1
-protobuf==6.31.1
+protobuf==6.32.0
 psutil==7.0.0
 py4j==0.10.9.9
 pyasn1==0.6.1
@@ -92,7 +96,7 @@ pyjwt[crypto]==2.10.1
 python-dateutil==2.9.0.post0
 pytz==2025.2
 pyyaml==6.0.2
-requests==2.32.4
+requests==2.32.5
 requests-toolbelt==1.0.0
 rsa==4.9.1
 ruamel-yaml==0.17.4
@@ -111,6 +115,11 @@ typing-inspection==0.4.1
 tzdata==2025.2
 urllib3==2.5.0
 werkzeug==3.1.3
-wrapt==1.17.2
+wrapt==1.17.3
 yarl==1.20.1
 zipp==3.23.0
+zope-event==5.1.1
+zope-interface==7.2
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools
