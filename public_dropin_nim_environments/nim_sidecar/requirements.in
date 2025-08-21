@@ -3,5 +3,6 @@ datarobot-mlops
 datarobot-mlops-connected-client
 datarobot-drum
 openai>=1.17.0
-gunicorn
+gunicorn>=23.0.0
+gevent>=25.5.1
 opentelemetry-instrumentation-openai
