@@ -5,6 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
+import os
 import sys
 from pathlib import Path
 
@@ -252,6 +253,7 @@ class PredictionServer(PredictMixin):
                     url=f"http://{openai_host}:{openai_port}/{path.rstrip('/')}",
                     headers=request.headers,
                     params=request.args,
+                    timeout=os.environ.get("NIM_DIRECT_ACCESS_REQUEST_TIMEOUT", 3600),
                     data=request.get_data(),
                     allow_redirects=False,
                 )
@@ -301,7 +303,19 @@ class PredictionServer(PredictMixin):
             processes = self._params.get("processes")
             logger.info("Number of webserver processes: %s", processes)
         try:
-            app.run(host, port, threaded=False, processes=processes)
+            # Configure the server with timeout settings
+            from werkzeug.serving import WSGIRequestHandler
+
+            class TimeoutWSGIRequestHandler(WSGIRequestHandler):
+                timeout = os.environ.get("CLIENT_TIMEOUT", 3600) # 1 hour timeout
+
+            app.run(
+                host=host,
+                port=port,
+                threaded=False,
+                processes=processes,
+                request_handler=TimeoutWSGIRequestHandler
+            )
         except OSError as e:
             raise DrumCommonException("{}: host: {}; port: {}".format(e, host, port))
 
