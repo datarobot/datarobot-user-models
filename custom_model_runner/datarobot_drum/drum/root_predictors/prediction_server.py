@@ -131,6 +131,16 @@ class PredictionServer(PredictMixin):
         self._stats_collector.enable()
         self._stats_collector.mark("start")
 
+        # Add request timeout logging for debugging hanging requests
+        import time
+
+        request_start_time = time.time()
+        logger.debug(f"Starting prediction request at {request_start_time}")
+
+        # Store start time for timeout monitoring
+        if hasattr(request, "start_time"):
+            request.start_time = request_start_time
+
     def _post_predict_and_transform(self):
         self._stats_collector.mark("finish")
         self._stats_collector.disable()
@@ -252,6 +262,7 @@ class PredictionServer(PredictMixin):
                     url=f"http://{openai_host}:{openai_port}/{path.rstrip('/')}",
                     headers=request.headers,
                     params=request.args,
+                    timeout=120,
                     data=request.get_data(),
                     allow_redirects=False,
                 )
@@ -296,12 +307,27 @@ class PredictionServer(PredictMixin):
         host = self._params.get("host", None)
         port = self._params.get("port", None)
 
+        # Add timeout configuration to prevent server hanging
+        #app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+        app.config['PERMANENT_SESSION_LIFETIME'] = 1800  # 30 minutes
+
         processes = 1
         if self._params.get("processes"):
             processes = self._params.get("processes")
             logger.info("Number of webserver processes: %s", processes)
         try:
-            app.run(host, port, threaded=False, processes=processes)
+            # Configure the server with timeout settings
+            from werkzeug.serving import WSGIRequestHandler
+
+            class TimeoutWSGIRequestHandler(WSGIRequestHandler):
+                timeout = 120  # 5 minutes timeout for requests
+            app.run(
+                host=host,
+                port=port,
+                threaded=False,
+                processes=processes,
+                request_handler=TimeoutWSGIRequestHandler
+            )
         except OSError as e:
             raise DrumCommonException("{}: host: {}; port: {}".format(e, host, port))
 
