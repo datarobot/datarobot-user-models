@@ -4,9 +4,13 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+import asyncio
 import logging
 import sys
 from pathlib import Path
+import concurrent.futures
+from threading import Thread, Event
+import time
 
 import requests
 from flask import Response, jsonify, request
@@ -48,7 +52,6 @@ from opentelemetry.trace.status import StatusCode
 
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
-
 tracer = trace.get_tracer(__name__)
 
 
@@ -71,6 +74,10 @@ class PredictionServer(PredictMixin):
             "run_predictor_total", "finish", StatsOperation.SUB, "start"
         )
         self._predictor = self._setup_predictor()
+
+        # Initialize thread pool for concurrent request handling
+        max_workers = min(32, (self._params.get("processes", 1) * 2) + 4)
+        self._thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=max_workers)
 
     def _setup_predictor(self):
         if self._run_language == RunLanguage.PYTHON:
@@ -126,14 +133,14 @@ class PredictionServer(PredictMixin):
         if hasattr(self._predictor, "terminate"):
             self._predictor.terminate()
         self._stdout_flusher.stop()
+        if hasattr(self, '_thread_pool'):
+            self._thread_pool.shutdown(wait=False)
 
-    def _pre_predict_and_transform(self):
+    async def _pre_predict_and_transform(self):
         self._stats_collector.enable()
         self._stats_collector.mark("start")
 
         # Add request timeout logging for debugging hanging requests
-        import time
-
         request_start_time = time.time()
         logger.debug(f"Starting prediction request at {request_start_time}")
 
@@ -141,7 +148,7 @@ class PredictionServer(PredictMixin):
         if hasattr(request, "start_time"):
             request.start_time = request_start_time
 
-    def _post_predict_and_transform(self):
+    async def _post_predict_and_transform(self):
         self._stats_collector.mark("finish")
         self._stats_collector.disable()
         self._stdout_flusher.set_last_activity_time()
@@ -150,11 +157,11 @@ class PredictionServer(PredictMixin):
         model_api = base_api_blueprint(self._terminate, self._predictor)
 
         @model_api.route("/capabilities/", methods=["GET"])
-        def capabilities():
+        async def capabilities():
             return self.make_capabilities()
 
         @model_api.route("/info/", methods=["GET"])
-        def info():
+        async def info():
             model_info = self._predictor.model_info()
             model_info.update({ModelInfoKeys.LANGUAGE: self._run_language.value})
             model_info.update({ModelInfoKeys.DRUM_VERSION: drum_version})
@@ -166,62 +173,80 @@ class PredictionServer(PredictMixin):
             return model_info, HTTP_200_OK
 
         @model_api.route("/health/", methods=["GET"])
-        def health():
+        async def health():
             if hasattr(self._predictor, "readiness_probe"):
-                return self._predictor.readiness_probe()
+                # If readiness_probe is async, await it; otherwise run in executor
+                if asyncio.iscoroutinefunction(self._predictor.readiness_probe):
+                    return await self._predictor.readiness_probe()
+                else:
+                    loop = asyncio.get_event_loop()
+                    return await loop.run_in_executor(None, self._predictor.readiness_probe)
 
             return {"message": "OK"}, HTTP_200_OK
 
         @model_api.route("/predictions/", methods=["POST"])
         @model_api.route("/predict/", methods=["POST"])
         @model_api.route("/invocations", methods=["POST"])
-        def predict():
+        async def predict():
             logger.debug("Entering predict() endpoint")
             with otel_context(tracer, "drum.invocations", request.headers):
-                self._pre_predict_and_transform()
+                await self._pre_predict_and_transform()
                 try:
-                    response, response_status = self.do_predict_structured(logger=logger)
+                    # Run prediction in executor to avoid blocking the event loop
+                    loop = asyncio.get_event_loop()
+                    response, response_status = await loop.run_in_executor(
+                        None, lambda: self.do_predict_structured(logger=logger)
+                    )
                 finally:
-                    self._post_predict_and_transform()
+                    await self._post_predict_and_transform()
 
             return response, response_status
 
         @model_api.route("/transform/", methods=["POST"])
-        def transform():
+        async def transform():
             logger.debug("Entering transform() endpoint")
             with otel_context(tracer, "drum.transform", request.headers):
-                self._pre_predict_and_transform()
+                await self._pre_predict_and_transform()
                 try:
-                    response, response_status = self.do_transform(logger=logger)
+                    loop = asyncio.get_event_loop()
+                    response, response_status = await loop.run_in_executor(
+                        None, lambda: self.do_transform(logger=logger)
+                    )
                 finally:
-                    self._post_predict_and_transform()
+                    await self._post_predict_and_transform()
 
             return response, response_status
 
         @model_api.route("/predictionsUnstructured/", methods=["POST"])
-        @model_api.route("/predictUnstructured/", methods=["POST"])
-        def predict_unstructured():
+        @model_api.route("/predictUnStructured/", methods=["POST"])
+        async def predict_unstructured():
             logger.debug("Entering predict() endpoint")
-            with otel_context(tracer, "drum.predictUnstructured", request.headers):
-                self._pre_predict_and_transform()
+            with otel_context(tracer, "drum.predictUnStructured", request.headers):
+                await self._pre_predict_and_transform()
                 try:
-                    response, response_status = self.do_predict_unstructured(logger=logger)
+                    loop = asyncio.get_event_loop()
+                    response, response_status = await loop.run_in_executor(
+                        None, lambda: self.do_predict_unstructured(logger=logger)
+                    )
                 finally:
-                    self._post_predict_and_transform()
+                    await self._post_predict_and_transform()
             return (response, response_status)
 
         # Chat routes are defined without trailing slash because this is required by the OpenAI python client.
         @model_api.route("/chat/completions", methods=["POST"])
         @model_api.route("/v1/chat/completions", methods=["POST"])
-        def chat():
+        async def chat():
             logger.debug("Entering chat endpoint")
             with otel_context(tracer, "drum.chat.completions", request.headers) as span:
                 span.set_attributes(extract_chat_request_attributes(request.json))
-                self._pre_predict_and_transform()
+                await self._pre_predict_and_transform()
                 try:
-                    response, response_status = self.do_chat(logger=logger)
+                    loop = asyncio.get_event_loop()
+                    response, response_status = await loop.run_in_executor(
+                        None, lambda: self.do_chat(logger=logger)
+                    )
                 finally:
-                    self._post_predict_and_transform()
+                    await self._post_predict_and_transform()
 
                 if isinstance(response, dict) and response_status == 200:
                     span.set_attributes(extract_chat_response_attributes(response))
@@ -231,21 +256,24 @@ class PredictionServer(PredictMixin):
         # models routes are defined without trailing slash because this is required by the OpenAI python client.
         @model_api.route("/models", methods=["GET"])
         @model_api.route("/v1/models", methods=["GET"])
-        def get_supported_llm_models():
+        async def get_supported_llm_models():
             logger.debug("Entering models endpoint")
 
-            self._pre_predict_and_transform()
+            await self._pre_predict_and_transform()
 
             try:
-                response, response_status = self.get_supported_llm_models(logger=logger)
+                loop = asyncio.get_event_loop()
+                response, response_status = await loop.run_in_executor(
+                    None, lambda: self.get_supported_llm_models(logger=logger)
+                )
             finally:
-                self._post_predict_and_transform()
+                await self._post_predict_and_transform()
 
             return response, response_status
 
         @model_api.route("/directAccess/<path:path>", methods=["GET", "POST", "PUT"])
         @model_api.route("/nim/<path:path>", methods=["GET", "POST", "PUT"])
-        def forward_request(path):
+        async def forward_request(path):
             with otel_context(tracer, "drum.directAccess", request.headers) as span:
                 if not hasattr(self._predictor, "openai_host") or not hasattr(
                     self._predictor, "openai_port"
@@ -257,20 +285,31 @@ class PredictionServer(PredictMixin):
                 openai_host = self._predictor.openai_host
                 openai_port = self._predictor.openai_port
 
-                resp = requests.request(
-                    method=request.method,
-                    url=f"http://{openai_host}:{openai_port}/{path.rstrip('/')}",
-                    headers=request.headers,
-                    params=request.args,
-                    timeout=120,
-                    data=request.get_data(),
-                    allow_redirects=False,
+                # Capture request data before passing to executor to avoid context issues
+                request_method = request.method
+                request_headers = dict(request.headers)
+                request_args = dict(request.args)
+                request_data = request.get_data()
+
+                # Use asyncio for HTTP requests
+                loop = asyncio.get_event_loop()
+                resp = await loop.run_in_executor(
+                    None,
+                    lambda: requests.request(
+                        method=request_method,
+                        url=f"http://{openai_host}:{openai_port}/{path.rstrip('/')}",
+                        headers=request_headers,
+                        params=request_args,
+                        timeout=120,
+                        data=request_data,
+                        allow_redirects=False,
+                    )
                 )
 
             return Response(resp.content, status=resp.status_code, headers=dict(resp.headers))
 
         @model_api.route("/stats/", methods=["GET"])
-        def stats():
+        async def stats():
             ret_dict = self._resource_monitor.collect_resources_info()
 
             self._stats_collector.round()
@@ -282,7 +321,7 @@ class PredictionServer(PredictMixin):
             return ret_dict, HTTP_200_OK
 
         @model_api.errorhandler(Exception)
-        def handle_exception(e):
+        async def handle_exception(e):
             logger.exception(e)
 
             if isinstance(e, HTTPException) and e.code == HTTP_400_BAD_REQUEST:
@@ -308,7 +347,6 @@ class PredictionServer(PredictMixin):
         port = self._params.get("port", None)
 
         # Add timeout configuration to prevent server hanging
-        #app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
         app.config['PERMANENT_SESSION_LIFETIME'] = 1800  # 30 minutes
 
         processes = 1
@@ -320,12 +358,14 @@ class PredictionServer(PredictMixin):
             from werkzeug.serving import WSGIRequestHandler
 
             class TimeoutWSGIRequestHandler(WSGIRequestHandler):
-                timeout = 120  # 5 minutes timeout for requests
+                timeout = 120  # 2 minutes timeout for requests
+
+            # For Flask 3.0+ with async support, use threaded=True
             app.run(
                 host=host,
                 port=port,
-                threaded=False,
-                processes=processes,
+                threaded=True,  # Enable threading for async support
+                processes=1,    # Use single process with threading for async
                 request_handler=TimeoutWSGIRequestHandler
             )
         except OSError as e:

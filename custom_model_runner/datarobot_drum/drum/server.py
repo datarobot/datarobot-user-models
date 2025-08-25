@@ -41,10 +41,17 @@ def base_api_blueprint(termination_hook=None, predictor=None):
 
     @model_api.route("/", methods=["GET"])
     @model_api.route("/ping/", methods=["GET"], strict_slashes=False)
-    def ping():
+    async def ping():
         """This route is used to ensure that server has started"""
         if hasattr(predictor, "liveness_probe"):
-            return predictor.liveness_probe()
+            # If liveness_probe is async, await it; otherwise run in executor
+            import asyncio
+
+            if asyncio.iscoroutinefunction(predictor.liveness_probe):
+                return await predictor.liveness_probe()
+            else:
+                loop = asyncio.get_event_loop()
+                return await loop.run_in_executor(None, predictor.liveness_probe)
 
         return {"message": "OK"}, HTTP_200_OK
 
