@@ -57,6 +57,7 @@ tracer = trace.get_tracer(__name__)
 class TimeoutWSGIRequestHandler(WSGIRequestHandler):
     timeout = int(os.environ.get("DRUM_CLIENT_REQUEST_TIMEOUT", 3600))  # 1 hour timeout
 
+
 class PredictionServer(PredictMixin):
     def __init__(self, params: dict):
         self._params = params
@@ -313,8 +314,11 @@ class PredictionServer(PredictMixin):
                 port=port,
                 threaded=False,
                 processes=processes,
-                **({"request_handler": TimeoutWSGIRequestHandler} if os.environ.get(
-                    "DRUM_CLIENT_REQUEST_TIMEOUT") else {})
+                **(
+                    {"request_handler": TimeoutWSGIRequestHandler}
+                    if os.environ.get("DRUM_CLIENT_REQUEST_TIMEOUT")
+                    else {}
+                ),
             )
         except OSError as e:
             raise DrumCommonException("{}: host: {}; port: {}".format(e, host, port))

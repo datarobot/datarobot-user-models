@@ -15,7 +15,10 @@ from werkzeug.exceptions import BadRequest
 
 from datarobot_drum.drum.enum import RunLanguage, TargetType
 from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
-from datarobot_drum.drum.root_predictors.prediction_server import PredictionServer, TimeoutWSGIRequestHandler
+from datarobot_drum.drum.root_predictors.prediction_server import (
+    PredictionServer,
+    TimeoutWSGIRequestHandler,
+)
 from datarobot_drum.drum.server import HEADER_REQUEST_ID
 from tests.unit.datarobot_drum.drum.chat_utils import create_completion, create_completion_chunks
 from tests.unit.datarobot_drum.drum.helpers import MODEL_ID_FROM_RUNTIME_PARAMETER
@@ -231,7 +234,9 @@ def test_http_exception(openai_client, chat_python_model_adapter):
     assert exc_info.value.response.json()["error"] == "Error"
 
 
-@pytest.mark.parametrize("processes_param, expected_processes, request_timeout", [(None, 1, None), (10, 10, 600)])
+@pytest.mark.parametrize(
+    "processes_param, expected_processes, request_timeout", [(None, 1, None), (10, 10, 600)]
+)
 def test_run_flask_app(processes_param, expected_processes, request_timeout):
     if request_timeout:
         os.environ["DRUM_CLIENT_REQUEST_TIMEOUT"] = str(request_timeout)
@@ -252,10 +257,10 @@ def test_run_flask_app(processes_param, expected_processes, request_timeout):
     app = Mock()
     server._run_flask_app(app)
     called_kwargs = {
-        "host":"localhost",
-        "port":"6789",
-        "threaded":False,
-        "processes":expected_processes,
+        "host": "localhost",
+        "port": "6789",
+        "threaded": False,
+        "processes": expected_processes,
     }
     if request_timeout:
         called_kwargs["request_handler"] = TimeoutWSGIRequestHandler
