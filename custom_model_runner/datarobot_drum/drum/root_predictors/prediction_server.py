@@ -312,7 +312,7 @@ class PredictionServer(PredictMixin):
                     target=self.watchdog,
                     args=(port,),  # Pass host and port as arguments
                     daemon=True,
-                    name="OpenAI Watchdog",
+                    name="NIM Sidecar Watchdog",
                 )
                 self._server_watchdog.start()
 
