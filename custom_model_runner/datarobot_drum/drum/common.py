@@ -146,6 +146,13 @@ def make_otel_endpoint(datarobot_endpoint):
     return result
 
 
+class _ExcludeOtelLogsFilter(logging.Filter):
+    """A logging filter to exclude logs from the opentelemetry library."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return not record.name.startswith("opentelemetry")
+
+
 def _setup_otel_logging(resource, multiprocessing=False):
     logger_provider = LoggerProvider(resource=resource)
     set_logger_provider(logger_provider)
@@ -155,6 +162,8 @@ def _setup_otel_logging(resource, multiprocessing=False):
     else:
         logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
     handler = LoggingHandler(level=logging.DEBUG, logger_provider=logger_provider)
+    # Remove own logs to avoid infinite recursion if endpoint is not available
+    handler.addFilter(_ExcludeOtelLogsFilter())
     logging.getLogger().addHandler(handler)
     return logger_provider
 
@@ -198,7 +207,7 @@ def setup_otel(runtime_parameters, options):
 
     # Can be used to disable OTEL reporting from env var parameters
     # https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
-    if runtime_parameters.has("OTEL_SDK_DISABLED") and os.environ.get("OTEL_SDK_DISABLED"):
+    if runtime_parameters.has("OTEL_SDK_DISABLED") and runtime_parameters.get("OTEL_SDK_DISABLED"):
         log.info("OTEL explictly disabled")
         return (None, None, None)
 
@@ -218,8 +227,16 @@ def setup_otel(runtime_parameters, options):
 
     resource = Resource.create()
     trace_provider = _setup_otel_tracing(resource=resource, multiprocessing=multiprocessing)
-    logger_provider = _setup_otel_logging(resource=resource, multiprocessing=multiprocessing)
-    metric_provider = _setup_otel_metrics(resource=resource)
+
+    logger_provider = None
+    metric_provider = None
+    # Temporary gate until we have the feature fully enabled on main environments,
+    # to avoid noisy otel logs.
+    if runtime_parameters.has("DR_OTEL_METRICS_LOGS_ENABLED") and runtime_parameters.get(
+        "DR_OTEL_METRICS_LOGS_ENABLED"
+    ):
+        logger_provider = _setup_otel_logging(resource=resource, multiprocessing=multiprocessing)
+        metric_provider = _setup_otel_metrics(resource=resource)
 
     log.info(f"OTEL is configured with endpoint: {endpoint}")
     return trace_provider, metric_provider, logger_provider
