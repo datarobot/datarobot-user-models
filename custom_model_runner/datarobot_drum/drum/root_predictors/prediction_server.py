@@ -12,6 +12,7 @@ from pathlib import Path
 import requests
 from flask import Response, jsonify, request
 from werkzeug.exceptions import HTTPException
+from werkzeug.serving import WSGIRequestHandler
 
 from opentelemetry import trace
 from datarobot_drum.drum.description import version as drum_version
@@ -52,6 +53,9 @@ logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 tracer = trace.get_tracer(__name__)
 
+
+class TimeoutWSGIRequestHandler(WSGIRequestHandler):
+    timeout = int(os.environ.get("DRUM_CLIENT_REQUEST_TIMEOUT", 3600))  # 1 hour timeout
 
 class PredictionServer(PredictMixin):
     def __init__(self, params: dict):
@@ -304,17 +308,13 @@ class PredictionServer(PredictMixin):
             logger.info("Number of webserver processes: %s", processes)
         try:
             # Configure the server with timeout settings
-            from werkzeug.serving import WSGIRequestHandler
-
-            class TimeoutWSGIRequestHandler(WSGIRequestHandler):
-                timeout = os.environ.get("CLIENT_TIMEOUT", 3600)  # 1 hour timeout
-
             app.run(
                 host=host,
                 port=port,
                 threaded=False,
                 processes=processes,
-                request_handler=TimeoutWSGIRequestHandler,
+                **({"request_handler": TimeoutWSGIRequestHandler} if os.environ.get(
+                    "DRUM_CLIENT_REQUEST_TIMEOUT") else {})
             )
         except OSError as e:
             raise DrumCommonException("{}: host: {}; port: {}".format(e, host, port))
