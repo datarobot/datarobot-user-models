@@ -216,8 +216,9 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         timeout = int(timeout_str) if timeout_str is not None else NOT_GIVEN
 
         self.ai_client = OpenAI(
-            base_url=f"http://{self.openai_host}:{self.openai_port}/v1", api_key="fake",
-            timeout=timeout
+            base_url=f"http://{self.openai_host}:{self.openai_port}/v1",
+            api_key="fake",
+            timeout=timeout,
         )
 
         # In multi-container deployments DRUM does not manage OpenAI server processes.
