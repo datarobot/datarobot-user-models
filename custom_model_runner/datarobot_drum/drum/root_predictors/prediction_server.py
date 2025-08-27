@@ -337,7 +337,7 @@ class PredictionServer(PredictMixin):
 
         request_timeout = 120
         check_interval = 10  # seconds
-        max_attempts = 5
+        max_attempts = 3
 
         attempt = 0
         base_sleep_time = 2
