@@ -307,14 +307,14 @@ class PredictionServer(PredictMixin):
             from werkzeug.serving import WSGIRequestHandler
 
             class TimeoutWSGIRequestHandler(WSGIRequestHandler):
-                timeout = os.environ.get("CLIENT_TIMEOUT", 3600) # 1 hour timeout
+                timeout = os.environ.get("CLIENT_TIMEOUT", 3600)  # 1 hour timeout
 
             app.run(
                 host=host,
                 port=port,
                 threaded=False,
                 processes=processes,
-                request_handler=TimeoutWSGIRequestHandler
+                request_handler=TimeoutWSGIRequestHandler,
             )
         except OSError as e:
             raise DrumCommonException("{}: host: {}; port: {}".format(e, host, port))
