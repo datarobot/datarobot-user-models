@@ -295,15 +295,46 @@ class PredictionServer(PredictMixin):
     def _run_flask_app(self, app):
         host = self._params.get("host", None)
         port = self._params.get("port", None)
-
+        server_type = self._params.get("server_type", "flask")
         processes = 1
         if self._params.get("processes"):
             processes = self._params.get("processes")
             logger.info("Number of webserver processes: %s", processes)
         try:
-            app.run(host, port, threaded=False, processes=processes)
+            if True:
+                try:
+                    from gunicorn.app.base import BaseApplication
+                except ImportError:
+                    BaseApplication = None
+                    raise DrumCommonException("gunicorn is not installed. Please install gunicorn.")
+                class GunicornApp(BaseApplication):
+                    def __init__(self, app, host, port, params):
+                        self.application = app
+                        self.host = host
+                        self.port = port
+                        self.params = params
+                        super().__init__()
+                    def load_config(self):
+                        self.cfg.set("bind", f"{self.host}:{self.port}")
+                        workers = self.params.get("gunicorn_workers") or self.params.get("max_workers") or processes
+                        self.cfg.set("workers", workers)
+                        self.cfg.set("worker_class", self.params.get("gunicorn_worker_class", "sync"))
+                        self.cfg.set("backlog", self.params.get("gunicorn_backlog", 2048))
+                        self.cfg.set("timeout", self.params.get("gunicorn_timeout", 120))
+                        self.cfg.set("graceful_timeout", self.params.get("gunicorn_graceful_timeout", 30))
+                        self.cfg.set("keepalive", self.params.get("gunicorn_keep_alive", 5))
+                        self.cfg.set("max_requests", self.params.get("gunicorn_max_requests", 2000))
+                        self.cfg.set("max_requests_jitter", self.params.get("gunicorn_max_requests_jitter", 500))
+                        self.cfg.set("loglevel", self.params.get("gunicorn_log_level", "info"))
+                        # Remove unsupported config keys: access_logfile, error_logfile, access_logformat
+                        # These must be set via CLI, not config API
+                    def load(self):
+                        return self.application
+                GunicornApp(app, host, port, self._params).run()
+            else:
+                app.run(host, port, threaded=False, processes=processes)
         except OSError as e:
-            raise DrumCommonException("{}: host: {}; port: {}".format(e, host, port))
+            raise DrumCommonException(f"{e}: host: {host}; port: {port}")
 
     def terminate(self):
         terminate_op = getattr(self._predictor, "terminate", None)

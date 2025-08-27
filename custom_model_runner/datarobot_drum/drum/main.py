@@ -43,6 +43,17 @@ import os
 import signal
 import sys
 
+# Monkey patching for gevent compatibility if running with gunicorn-gevent
+if (
+    "gunicorn-gevent" in sys.argv or os.environ.get("SERVER_TYPE") == "gunicorn-gevent"
+):
+    try:
+        from gevent import monkey
+
+        monkey.patch_all()
+    except ImportError:
+        pass
+
 from datarobot_drum.drum.common import config_logging, setup_otel
 from datarobot_drum.drum.utils.setup import setup_options
 from datarobot_drum.drum.enum import RunMode
