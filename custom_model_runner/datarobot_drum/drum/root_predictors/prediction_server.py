@@ -335,9 +335,9 @@ class PredictionServer(PredictMixin):
         url_prefix = os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")
         health_url = f"http://{url_host}:{port}/{url_prefix}/info/"
 
-        request_timeout = 120
+        request_timeout = 60
         check_interval = 10  # seconds
-        max_attempts = 3
+        max_attempts = 5
 
         attempt = 0
         base_sleep_time = 2
@@ -373,6 +373,7 @@ class PredictionServer(PredictMixin):
 
                     # Force kill all processes
                     import subprocess
+                    import signal
 
                     # Use more direct system commands to kill processes
                     try:
@@ -386,7 +387,7 @@ class PredictionServer(PredictMixin):
                         pids = [int(line.split()[0]) for line in lines]
                         for pid in pids:
                             print("Killing pid:", pid)
-                            subprocess.run(f"kill {pid}", shell=True)
+                            os.kill(pid, signal.SIGTERM)
                     except Exception as kill_error:
                         logger.error(f"Error during process killing: {str(kill_error)}")
 
