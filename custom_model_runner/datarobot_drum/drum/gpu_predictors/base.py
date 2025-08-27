@@ -53,7 +53,7 @@ logger = logging.getLogger(__name__)
 
 # OpenAI client isn't a required dependency for DRUM, so we need to check if it's available
 try:
-    from openai import OpenAI
+    from openai import OpenAI, NOT_GIVEN
     from openai.resources.chat.completions import Completions
 
     COMPLETIONS_CREATE_SIGNATURE = inspect.signature(Completions.create)
@@ -211,8 +211,13 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self._openai_server_ready_sentinel = Path(self._code_dir) / ".server_ready"
         self._is_shutting_down = Event()
         self.openai_process = DrumServerProcess()
+
+        timeout_str = os.environ.get("OPENAI_CLIENT_TIMEOUT")
+        timeout = int(timeout_str) if timeout_str is not None else NOT_GIVEN
+
         self.ai_client = OpenAI(
-            base_url=f"http://{self.openai_host}:{self.openai_port}/v1", api_key="fake"
+            base_url=f"http://{self.openai_host}:{self.openai_port}/v1", api_key="fake",
+            timeout=timeout
         )
 
         # In multi-container deployments DRUM does not manage OpenAI server processes.
