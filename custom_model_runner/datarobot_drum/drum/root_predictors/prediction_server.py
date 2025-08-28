@@ -10,12 +10,16 @@ import sys
 import time
 from pathlib import Path
 from threading import Thread
+import subprocess
+import signal
 
 import requests
 from flask import Response, jsonify, request
 from werkzeug.exceptions import HTTPException
 
 from opentelemetry import trace
+
+from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.enum import (
     FLASK_EXT_FILE_NAME,
@@ -306,11 +310,13 @@ class PredictionServer(PredictMixin):
             processes = self._params.get("processes")
             logger.info("Number of webserver processes: %s", processes)
         try:
-            if str(os.environ.get("USE_NIM_WATCHDOG", "false")).lower() in ["true", "1", "yes"]:
+            if RuntimeParameters.has("USE_NIM_WATCHDOG") and str(
+                RuntimeParameters.get("USE_NIM_WATCHDOG")
+            ).lower() in ["true", "1", "yes"]:
                 # Start the watchdog thread before running the app
                 self._server_watchdog = Thread(
                     target=self.watchdog,
-                    args=(port,),  # Pass host and port as arguments
+                    args=(port,),
                     daemon=True,
                     name="NIM Sidecar Watchdog",
                 )
@@ -320,10 +326,41 @@ class PredictionServer(PredictMixin):
         except OSError as e:
             raise DrumCommonException("{}: host: {}; port: {}".format(e, host, port))
 
+    def _kill_all_processes(self):
+        """
+        Forcefully terminates all running processes related to the server.
+        Attempts a clean termination first, then uses system commands to kill remaining processes.
+        Logs errors encountered during termination.
+        """
+
+        logger.error("All health check attempts failed. Forcefully killing all processes.")
+
+        # First try clean termination
+        try:
+            self._terminate()
+        except Exception as e:
+            logger.error(f"Error during clean termination: {str(e)}")
+
+        # Use more direct system commands to kill processes
+        try:
+            # Kill packedge jobs first (more aggressive approach)
+            logger.info("Killing Python package jobs")
+            # Run `busybox ps` and capture output
+            result = subprocess.run(["busybox", "ps"], capture_output=True, text=True)
+            # Parse lines, skip the header
+            lines = result.stdout.strip().split("\n")[1:]
+            # Extract the PID (first column)
+            pids = [int(line.split()[0]) for line in lines]
+            for pid in pids:
+                print("Killing pid:", pid)
+                os.kill(pid, signal.SIGTERM)
+        except Exception as kill_error:
+            logger.error(f"Error during process killing: {str(kill_error)}")
+
     def watchdog(self, port):
         """
         Watchdog thread that periodically checks if the server is alive by making
-        GET requests to the /ping/ endpoint. Makes 3 attempts with quadratic backoff
+        GET requests to the /info/ endpoint. Makes 5 attempts with quadratic backoff
         before terminating the Flask app.
         """
 
@@ -333,7 +370,7 @@ class PredictionServer(PredictMixin):
 
         url_host = os.environ.get("TEST_URL_HOST", "localhost")
         url_prefix = os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")
-        health_url = f"http://{url_host}:{port}/{url_prefix}/info/"
+        health_url = f"http://{url_host}:{port}{url_prefix}/info/"
 
         request_timeout = 60
         check_interval = 10  # seconds
@@ -355,41 +392,13 @@ class PredictionServer(PredictMixin):
 
             except Exception as e:
                 attempt += 1
-                logger.error(f"health_url {health_url}")
-                logger.error(
+                logger.warning(f"health_url {health_url}")
+                logger.warning(
                     f"Server health check failed (attempt {attempt}/{max_attempts}): {str(e)}"
                 )
 
                 if attempt >= max_attempts:
-                    logger.error(
-                        "All health check attempts failed. Forcefully killing all processes."
-                    )
-
-                    # First try clean termination
-                    try:
-                        self._terminate()
-                    except Exception as e:
-                        logger.error(f"Error during clean termination: {str(e)}")
-
-                    # Force kill all processes
-                    import subprocess
-                    import signal
-
-                    # Use more direct system commands to kill processes
-                    try:
-                        # Kill packedge jobs first (more aggressive approach)
-                        logger.info("Killing Python package jobs")
-                        # Run `busybox ps` and capture output
-                        result = subprocess.run(["busybox", "ps"], capture_output=True, text=True)
-                        # Parse lines, skip the header
-                        lines = result.stdout.strip().split("\n")[1:]
-                        # Extract the PID (first column)
-                        pids = [int(line.split()[0]) for line in lines]
-                        for pid in pids:
-                            print("Killing pid:", pid)
-                            os.kill(pid, signal.SIGTERM)
-                    except Exception as kill_error:
-                        logger.error(f"Error during process killing: {str(kill_error)}")
+                    self._kill_all_processes()
 
                 # Quadratic backoff
                 sleep_time = base_sleep_time * (attempt**2)
