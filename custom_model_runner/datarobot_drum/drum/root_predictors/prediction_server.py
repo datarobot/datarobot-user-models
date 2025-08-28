@@ -380,6 +380,7 @@ class PredictionServer(PredictMixin):
                 logger.warning(
                     "Invalid value for NIM_WATCHDOG_REQUEST_TIMEOUT, using default of 120 seconds"
                 )
+        logger.info("Nim watchdog health check request timeout is %s", request_timeout)
         check_interval = 10  # seconds
         max_attempts = 3
         if RuntimeParameters.has("NIM_WATCHDOG_MAX_ATTEMPTS"):
@@ -387,7 +388,7 @@ class PredictionServer(PredictMixin):
                 max_attempts = int(RuntimeParameters.get("NIM_WATCHDOG_MAX_ATTEMPTS"))
             except ValueError:
                 logger.warning("Invalid value for NIM_WATCHDOG_MAX_ATTEMPTS, using default of 3")
-
+        logger.info("Nim watchdog max attempts: %s", max_attempts)
         attempt = 0
         base_sleep_time = 4
 
