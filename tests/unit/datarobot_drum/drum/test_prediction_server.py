@@ -239,7 +239,9 @@ def test_http_exception(openai_client, chat_python_model_adapter):
 )
 def test_run_flask_app(processes_param, expected_processes, request_timeout):
     if request_timeout:
-        os.environ["DRUM_CLIENT_REQUEST_TIMEOUT"] = str(request_timeout)
+        os.environ[
+            "MLOPS_RUNTIME_PARAM_DRUM_CLIENT_REQUEST_TIMEOUT"
+        ] = f'{{"type": "numeric", "payload": {request_timeout}}}'
 
     params = {
         "host": "localhost",

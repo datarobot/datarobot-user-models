@@ -211,9 +211,9 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self._openai_server_ready_sentinel = Path(self._code_dir) / ".server_ready"
         self._is_shutting_down = Event()
         self.openai_process = DrumServerProcess()
-
-        timeout_str = os.environ.get("OPENAI_CLIENT_TIMEOUT")
-        timeout = int(timeout_str) if timeout_str is not None else NOT_GIVEN
+        timeout = 3600
+        if RuntimeParameters.has("DRUM_OPENAI_CLIENT_TIMEOUT"):
+            timeout = int(RuntimeParameters.get("DRUM_OPENAI_CLIENT_TIMEOUT"))
 
         self.ai_client = OpenAI(
             base_url=f"http://{self.openai_host}:{self.openai_port}/v1",

@@ -15,6 +15,8 @@ from werkzeug.exceptions import HTTPException
 from werkzeug.serving import WSGIRequestHandler
 
 from opentelemetry import trace
+
+from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.enum import (
     FLASK_EXT_FILE_NAME,
@@ -55,7 +57,9 @@ tracer = trace.get_tracer(__name__)
 
 
 class TimeoutWSGIRequestHandler(WSGIRequestHandler):
-    timeout = int(os.environ.get("DRUM_CLIENT_REQUEST_TIMEOUT", 3600))  # 1 hour timeout
+    timeout = 3600
+    if RuntimeParameters.has("DRUM_CLIENT_REQUEST_TIMEOUT"):
+        timeout = int(RuntimeParameters.get("DRUM_CLIENT_REQUEST_TIMEOUT"))
 
 
 class PredictionServer(PredictMixin):
@@ -252,13 +256,15 @@ class PredictionServer(PredictMixin):
 
                 openai_host = self._predictor.openai_host
                 openai_port = self._predictor.openai_port
-
+                timeout = 3600
+                if RuntimeParameters.has("NIM_DIRECT_ACCESS_REQUEST_TIMEOUT"):
+                    timeout = int(RuntimeParameters.get("NIM_DIRECT_ACCESS_REQUEST_TIMEOUT"))
                 resp = requests.request(
                     method=request.method,
                     url=f"http://{openai_host}:{openai_port}/{path.rstrip('/')}",
                     headers=request.headers,
                     params=request.args,
-                    timeout=os.environ.get("NIM_DIRECT_ACCESS_REQUEST_TIMEOUT", 3600),
+                    timeout=timeout,
                     data=request.get_data(),
                     allow_redirects=False,
                 )
@@ -316,7 +322,7 @@ class PredictionServer(PredictMixin):
                 processes=processes,
                 **(
                     {"request_handler": TimeoutWSGIRequestHandler}
-                    if os.environ.get("DRUM_CLIENT_REQUEST_TIMEOUT")
+                    if RuntimeParameters.has("DRUM_CLIENT_REQUEST_TIMEOUT")
                     else {}
                 ),
             )
