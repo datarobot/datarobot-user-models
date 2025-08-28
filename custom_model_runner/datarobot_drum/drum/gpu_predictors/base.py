@@ -53,7 +53,7 @@ logger = logging.getLogger(__name__)
 
 # OpenAI client isn't a required dependency for DRUM, so we need to check if it's available
 try:
-    from openai import OpenAI, NOT_GIVEN
+    from openai import OpenAI
     from openai.resources.chat.completions import Completions
 
     COMPLETIONS_CREATE_SIGNATURE = inspect.signature(Completions.create)
