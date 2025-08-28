@@ -360,7 +360,7 @@ class PredictionServer(PredictMixin):
     def watchdog(self, port):
         """
         Watchdog thread that periodically checks if the server is alive by making
-        GET requests to the /info/ endpoint. Makes 5 attempts with quadratic backoff
+        GET requests to the /info/ endpoint. Makes 3 attempts with quadratic backoff
         before terminating the Flask app.
         """
 
@@ -372,12 +372,24 @@ class PredictionServer(PredictMixin):
         url_prefix = os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")
         health_url = f"http://{url_host}:{port}{url_prefix}/info/"
 
-        request_timeout = 60
+        request_timeout = 120
+        if RuntimeParameters.has("NIM_WATCHDOG_REQUEST_TIMEOUT"):
+            try:
+                request_timeout = int(RuntimeParameters.get("NIM_WATCHDOG_REQUEST_TIMEOUT"))
+            except ValueError:
+                logger.warning(
+                    "Invalid value for NIM_WATCHDOG_REQUEST_TIMEOUT, using default of 120 seconds"
+                )
         check_interval = 10  # seconds
-        max_attempts = 5
+        max_attempts = 3
+        if RuntimeParameters.has("NIM_WATCHDOG_MAX_ATTEMPTS"):
+            try:
+                max_attempts = int(RuntimeParameters.get("NIM_WATCHDOG_MAX_ATTEMPTS"))
+            except ValueError:
+                logger.warning("Invalid value for NIM_WATCHDOG_MAX_ATTEMPTS, using default of 3")
 
         attempt = 0
-        base_sleep_time = 2
+        base_sleep_time = 4
 
         while True:
             try:
