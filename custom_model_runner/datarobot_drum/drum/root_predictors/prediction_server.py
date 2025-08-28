@@ -146,6 +146,17 @@ class PredictionServer(PredictMixin):
         self._stats_collector.disable()
         self._stdout_flusher.set_last_activity_time()
 
+    @staticmethod
+    def get_nim_direct_access_request_timeout():
+        """
+        Returns the timeout value for NIM direct access requests.
+        Checks the 'NIM_DIRECT_ACCESS_REQUEST_TIMEOUT' runtime parameter; if not set, defaults to 3600 seconds.
+        """
+        timeout = 3600
+        if RuntimeParameters.has("NIM_DIRECT_ACCESS_REQUEST_TIMEOUT"):
+            timeout = int(RuntimeParameters.get("NIM_DIRECT_ACCESS_REQUEST_TIMEOUT"))
+        return timeout
+
     def materialize(self):
         model_api = base_api_blueprint(self._terminate, self._predictor)
 
@@ -256,15 +267,12 @@ class PredictionServer(PredictMixin):
 
                 openai_host = self._predictor.openai_host
                 openai_port = self._predictor.openai_port
-                timeout = 3600
-                if RuntimeParameters.has("NIM_DIRECT_ACCESS_REQUEST_TIMEOUT"):
-                    timeout = int(RuntimeParameters.get("NIM_DIRECT_ACCESS_REQUEST_TIMEOUT"))
                 resp = requests.request(
                     method=request.method,
                     url=f"http://{openai_host}:{openai_port}/{path.rstrip('/')}",
                     headers=request.headers,
                     params=request.args,
-                    timeout=timeout,
+                    timeout=self.get_nim_direct_access_request_timeout(),
                     data=request.get_data(),
                     allow_redirects=False,
                 )
