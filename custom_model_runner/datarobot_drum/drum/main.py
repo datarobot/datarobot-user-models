@@ -16,6 +16,7 @@ if RuntimeParameters.has("DRUM_SERVER_TYPE") and RuntimeParameters.has(
     ):
         try:
             from gevent import monkey
+
             monkey.patch_all()
         except ImportError:
             pass

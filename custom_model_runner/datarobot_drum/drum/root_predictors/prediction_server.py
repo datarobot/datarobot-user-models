@@ -415,7 +415,6 @@ class PredictionServer(PredictMixin):
                         super().__init__()
 
                     def load_config(self):
-
                         self.cfg.set("bind", f"{self.host}:{self.port}")
                         workers = (
                             self.params.get("gunicorn_workers")
