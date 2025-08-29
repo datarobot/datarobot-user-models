@@ -42,17 +42,16 @@ Examples:
 import os
 import signal
 import sys
+from datarobot_drum import RuntimeParameters
 
 # Monkey patching for gevent compatibility if running with gunicorn-gevent
-if (
-    "gunicorn-gevent" in sys.argv or os.environ.get("SERVER_TYPE") == "gunicorn-gevent"
-):
-    try:
-        from gevent import monkey
-
-        monkey.patch_all()
-    except ImportError:
-        pass
+if RuntimeParameters.has("DRUM_SERVER_TYPE") and RuntimeParameters.has("DRUM_GUNICORN_WORKER_CLASS"):
+    if str(RuntimeParameters.has("DRUM_SERVER_TYPE")).lower() == "gunicorn" and str(RuntimeParameters.get("DRUM_SERVER_TYPE")).lower() == "gevent":
+        try:
+            from gevent import monkey
+            monkey.patch_all()
+        except ImportError:
+            pass
 
 from datarobot_drum.drum.common import config_logging, setup_otel
 from datarobot_drum.drum.utils.setup import setup_options
