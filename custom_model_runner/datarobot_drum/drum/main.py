@@ -4,6 +4,21 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+from ..runtime_parameters import RuntimeParameters
+
+# Monkey patching for gevent compatibility if running with gunicorn-gevent
+if RuntimeParameters.has("DRUM_SERVER_TYPE") and RuntimeParameters.has(
+    "DRUM_GUNICORN_WORKER_CLASS"
+):
+    if (
+        str(RuntimeParameters.get("DRUM_SERVER_TYPE")).lower() == "gunicorn"
+        and str(RuntimeParameters.get("DRUM_GUNICORN_WORKER_CLASS")).lower() == "gevent"
+    ):
+        try:
+            from gevent import monkey
+            monkey.patch_all()
+        except ImportError:
+            pass
 
 from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
 
@@ -39,25 +54,10 @@ Examples:
     # Run regression user model in fit mode.
     drum fit --code-dir <custom code dir> --input <input.csv> --output <output_dir> --target-type regression --target <target feature> --verbose
 """
+
 import os
 import signal
 import sys
-from datarobot_drum import RuntimeParameters
-
-# Monkey patching for gevent compatibility if running with gunicorn-gevent
-if RuntimeParameters.has("DRUM_SERVER_TYPE") and RuntimeParameters.has(
-    "DRUM_GUNICORN_WORKER_CLASS"
-):
-    if (
-        str(RuntimeParameters.has("DRUM_SERVER_TYPE")).lower() == "gunicorn"
-        and str(RuntimeParameters.get("DRUM_GUNICORN_WORKER_CLASS")).lower() == "gevent"
-    ):
-        try:
-            from gevent import monkey
-
-            monkey.patch_all()
-        except ImportError:
-            pass
 
 from datarobot_drum.drum.common import config_logging, setup_otel
 from datarobot_drum.drum.utils.setup import setup_options
