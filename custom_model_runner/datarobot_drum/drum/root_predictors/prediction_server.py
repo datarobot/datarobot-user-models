@@ -13,6 +13,8 @@ from flask import Response, jsonify, request
 from werkzeug.exceptions import HTTPException
 
 from opentelemetry import trace
+
+from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.enum import (
     FLASK_EXT_FILE_NAME,
@@ -292,40 +294,108 @@ class PredictionServer(PredictMixin):
 
         return []
 
+    def get_gunicorn_config(self):
+        config = {}
+        if RuntimeParameters.has("DRUM_GUNICORN_WORKER_CLASS"):
+            worker_class = str(RuntimeParameters.get("DRUM_GUNICORN_WORKER_CLASS"))
+            if worker_class.lower() in {"sync", "gevent"}:
+                config["worker_class"] = worker_class
+
+        if RuntimeParameters.has("DRUM_GUNICORN_WORKER_CONNECTIONS"):
+            worker_connections = int(RuntimeParameters.get("DRUM_GUNICORN_WORKER_CONNECTIONS"))
+            if 1 <= worker_connections <= 10000:
+                config["worker_connections"] = worker_connections
+
+        if RuntimeParameters.has("DRUM_GUNICORN_BACKLOG"):
+            backlog = int(RuntimeParameters.get("DRUM_GUNICORN_BACKLOG"))
+            if 1 <= backlog <= 2048:
+                config["backlog"] = backlog
+
+        if RuntimeParameters.has("DRUM_GUNICORN_TIMEOUT"):
+            timeout = int(RuntimeParameters.get("DRUM_GUNICORN_TIMEOUT"))
+            if 1 <= timeout <= 3600:
+                config["timeout"] = timeout
+
+        if RuntimeParameters.has("DRUM_GUNICORN_GRACEFUL_TIMEOUT"):
+            graceful_timeout = int(RuntimeParameters.get("DRUM_GUNICORN_GRACEFUL_TIMEOUT"))
+            if 1 <= graceful_timeout <= 3600:
+                config["graceful_timeout"] = graceful_timeout
+
+        if RuntimeParameters.has("DRUM_GUNICORN_KEEP_ALIVE"):
+            keepalive = int(RuntimeParameters.get("DRUM_GUNICORN_KEEP_ALIVE"))
+            if 1 <= keepalive <= 3600:
+                config["keepalive"] = keepalive
+
+        if RuntimeParameters.has("DRUM_GUNICORN_MAX_REQUESTS"):
+            max_requests = int(RuntimeParameters.get("DRUM_GUNICORN_MAX_REQUESTS"))
+            if 100 <= max_requests <= 10000:
+                config["max_requests"] = max_requests
+
+        if RuntimeParameters.has("DRUM_GUNICORN_MAX_REQUESTS_JITTER"):
+            max_requests_jitter = int(RuntimeParameters.get("DRUM_GUNICORN_MAX_REQUESTS_JITTER"))
+            if 1 <= max_requests_jitter <= 10000:
+                config["max_requests_jitter"] = max_requests_jitter
+
+        if RuntimeParameters.has("DRUM_GUNICORN_LOG_LEVEL"):
+            loglevel = str(RuntimeParameters.get("DRUM_GUNICORN_LOG_LEVEL"))
+            if loglevel.lower() in {"debug", "info", "warning", "error", "critical"}:
+                config["loglevel"] = loglevel
+
+        return config
+
+    def get_server_type(self):
+        server_type = "flask"
+        if RuntimeParameters.has("DRUM_SERVER_TYPE"):
+            server_type = str(RuntimeParameters.get("DRUM_SERVER_TYPE"))
+            if server_type.lower() in {"flask", "gunicorn"}:
+                server_type = server_type.lower()
+        return server_type
+
+
     def _run_flask_app(self, app):
         host = self._params.get("host", None)
         port = self._params.get("port", None)
-        server_type = self._params.get("server_type", "flask")
+        server_type = self.get_server_type()
         processes = 1
         if self._params.get("processes"):
             processes = self._params.get("processes")
             logger.info("Number of webserver processes: %s", processes)
         try:
-            if True:
+            logger.info(self._params)
+            if server_type == "gunicorn":
+                logger.info("Starting gunicorn server")
                 try:
                     from gunicorn.app.base import BaseApplication
                 except ImportError:
                     BaseApplication = None
                     raise DrumCommonException("gunicorn is not installed. Please install gunicorn.")
                 class GunicornApp(BaseApplication):
-                    def __init__(self, app, host, port, params):
+                    def __init__(self, app, host, port, params, gunicorn_config):
                         self.application = app
                         self.host = host
                         self.port = port
                         self.params = params
+                        self.gunicorn_config = gunicorn_config
                         super().__init__()
                     def load_config(self):
+
                         self.cfg.set("bind", f"{self.host}:{self.port}")
-                        workers = self.params.get("gunicorn_workers") or self.params.get("max_workers") or processes
+                        workers = self.params.get("gunicorn_workers") or self.params.get("max_workers") or self.params.get("processes")
                         self.cfg.set("workers", workers)
-                        self.cfg.set("worker_class", self.params.get("gunicorn_worker_class", "sync"))
-                        self.cfg.set("backlog", self.params.get("gunicorn_backlog", 2048))
-                        self.cfg.set("timeout", self.params.get("gunicorn_timeout", 120))
-                        self.cfg.set("graceful_timeout", self.params.get("gunicorn_graceful_timeout", 30))
-                        self.cfg.set("keepalive", self.params.get("gunicorn_keep_alive", 5))
-                        self.cfg.set("max_requests", self.params.get("gunicorn_max_requests", 2000))
-                        self.cfg.set("max_requests_jitter", self.params.get("gunicorn_max_requests_jitter", 500))
-                        self.cfg.set("loglevel", self.params.get("gunicorn_log_level", "info"))
+
+                        self.cfg.set("worker_class", self.gunicorn_config.get("worker_class", "sync"))
+                        self.cfg.set("backlog", self.gunicorn_config.get("backlog", 2048))
+                        self.cfg.set("timeout", self.gunicorn_config.get("timeout", 120))
+                        self.cfg.set("graceful_timeout", self.gunicorn_config.get("graceful_timeout", 30))
+                        self.cfg.set("keepalive", self.gunicorn_config.get("keepalive", 5))
+                        self.cfg.set("max_requests", self.gunicorn_config.get("max_requests", 2000))
+                        self.cfg.set("max_requests_jitter", self.gunicorn_config.get("max_requests_jitter", 500))
+
+                        if self.gunicorn_config.get("worker_connections"):
+                            self.cfg.set("worker_connections", self.gunicorn_config.get("worker_connections"))
+                        self.cfg.set("loglevel", self.gunicorn_config.get("loglevel", "info"))
+
+
                         self.cfg.set('accesslog', '-')
                         self.cfg.set('errorlog', '-')  # if you want error logs to stdout
                         self.cfg.set('access_log_format', '%(t)s %(h)s %(l)s %(u)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"')
@@ -333,7 +403,9 @@ class PredictionServer(PredictMixin):
                         # These must be set via CLI, not config API
                     def load(self):
                         return self.application
-                GunicornApp(app, host, port, self._params).run()
+
+                gunicorn_config = self.get_gunicorn_config()
+                GunicornApp(app, host, port, self._params, gunicorn_config).run()
             else:
                 app.run(host, port, threaded=False, processes=processes)
         except OSError as e:
