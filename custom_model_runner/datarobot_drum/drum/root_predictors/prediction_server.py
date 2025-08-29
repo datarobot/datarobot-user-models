@@ -376,7 +376,6 @@ class PredictionServer(PredictMixin):
                 server_type = server_type.lower()
         return server_type
 
-
     def _run_flask_app(self, app):
         host = self._params.get("host", None)
         port = self._params.get("port", None)
@@ -387,7 +386,7 @@ class PredictionServer(PredictMixin):
             logger.info("Number of webserver processes: %s", processes)
         try:
             if RuntimeParameters.has("USE_NIM_WATCHDOG") and str(
-                    RuntimeParameters.get("USE_NIM_WATCHDOG")
+                RuntimeParameters.get("USE_NIM_WATCHDOG")
             ).lower() in ["true", "1", "yes"]:
                 # Start the watchdog thread before running the app
                 self._server_watchdog = Thread(
@@ -405,6 +404,7 @@ class PredictionServer(PredictMixin):
                 except ImportError:
                     BaseApplication = None
                     raise DrumCommonException("gunicorn is not installed. Please install gunicorn.")
+
                 class GunicornApp(BaseApplication):
                     def __init__(self, app, host, port, params, gunicorn_config):
                         self.application = app
@@ -413,37 +413,52 @@ class PredictionServer(PredictMixin):
                         self.params = params
                         self.gunicorn_config = gunicorn_config
                         super().__init__()
-                    def load_config(self):
 
+                    def load_config(self):
                         self.cfg.set("bind", f"{self.host}:{self.port}")
-                        workers = self.params.get("gunicorn_workers") or self.params.get("max_workers") or self.params.get("processes")
+                        workers = (
+                            self.params.get("gunicorn_workers")
+                            or self.params.get("max_workers")
+                            or self.params.get("processes")
+                        )
                         self.cfg.set("workers", workers)
 
-                        self.cfg.set("worker_class", self.gunicorn_config.get("worker_class", "sync"))
+                        self.cfg.set(
+                            "worker_class", self.gunicorn_config.get("worker_class", "sync")
+                        )
                         self.cfg.set("backlog", self.gunicorn_config.get("backlog", 2048))
                         self.cfg.set("timeout", self.gunicorn_config.get("timeout", 120))
-                        self.cfg.set("graceful_timeout", self.gunicorn_config.get("graceful_timeout", 30))
+                        self.cfg.set(
+                            "graceful_timeout", self.gunicorn_config.get("graceful_timeout", 30)
+                        )
                         self.cfg.set("keepalive", self.gunicorn_config.get("keepalive", 5))
                         self.cfg.set("max_requests", self.gunicorn_config.get("max_requests", 2000))
-                        self.cfg.set("max_requests_jitter", self.gunicorn_config.get("max_requests_jitter", 500))
+                        self.cfg.set(
+                            "max_requests_jitter",
+                            self.gunicorn_config.get("max_requests_jitter", 500),
+                        )
 
                         if self.gunicorn_config.get("worker_connections"):
-                            self.cfg.set("worker_connections", self.gunicorn_config.get("worker_connections"))
+                            self.cfg.set(
+                                "worker_connections", self.gunicorn_config.get("worker_connections")
+                            )
                         self.cfg.set("loglevel", self.gunicorn_config.get("loglevel", "info"))
 
-
-                        self.cfg.set('accesslog', '-')
-                        self.cfg.set('errorlog', '-')  # if you want error logs to stdout
-                        self.cfg.set('access_log_format', '%(t)s %(h)s %(l)s %(u)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"')
+                        self.cfg.set("accesslog", "-")
+                        self.cfg.set("errorlog", "-")  # if you want error logs to stdout
+                        self.cfg.set(
+                            "access_log_format",
+                            '%(t)s %(h)s %(l)s %(u)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"',
+                        )
                         # Remove unsupported config keys: access_logfile, error_logfile, access_logformat
                         # These must be set via CLI, not config API
+
                     def load(self):
                         return self.application
 
                 gunicorn_config = self.get_gunicorn_config()
                 GunicornApp(app, host, port, self._params, gunicorn_config).run()
             else:
-
                 # Configure the server with timeout settings
                 app.run(
                     host=host,

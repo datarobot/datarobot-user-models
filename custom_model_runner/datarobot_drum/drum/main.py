@@ -45,10 +45,16 @@ import sys
 from datarobot_drum import RuntimeParameters
 
 # Monkey patching for gevent compatibility if running with gunicorn-gevent
-if RuntimeParameters.has("DRUM_SERVER_TYPE") and RuntimeParameters.has("DRUM_GUNICORN_WORKER_CLASS"):
-    if str(RuntimeParameters.has("DRUM_SERVER_TYPE")).lower() == "gunicorn" and str(RuntimeParameters.get("DRUM_SERVER_TYPE")).lower() == "gevent":
+if RuntimeParameters.has("DRUM_SERVER_TYPE") and RuntimeParameters.has(
+    "DRUM_GUNICORN_WORKER_CLASS"
+):
+    if (
+        str(RuntimeParameters.has("DRUM_SERVER_TYPE")).lower() == "gunicorn"
+        and str(RuntimeParameters.get("DRUM_SERVER_TYPE")).lower() == "gevent"
+    ):
         try:
             from gevent import monkey
+
             monkey.patch_all()
         except ImportError:
             pass
