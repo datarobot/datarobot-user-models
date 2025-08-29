@@ -189,6 +189,17 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         formats.add(PayloadFormat.CSV)
         return formats
 
+    @staticmethod
+    def get_drum_openai_client_timeout():
+        """
+        Returns the timeout value (in seconds) for the OpenAI client.
+        Checks the 'DRUM_OPENAI_CLIENT_TIMEOUT' runtime parameter; defaults to 3600 if not set.
+        """
+        timeout = 3600
+        if RuntimeParameters.has("DRUM_OPENAI_CLIENT_TIMEOUT"):
+            timeout = int(RuntimeParameters.get("DRUM_OPENAI_CLIENT_TIMEOUT"))
+        return timeout
+
     def configure(self, params):
         super().configure(params)
         self.python_model_adapter = PythonModelAdapter(
@@ -211,8 +222,11 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self._openai_server_ready_sentinel = Path(self._code_dir) / ".server_ready"
         self._is_shutting_down = Event()
         self.openai_process = DrumServerProcess()
+
         self.ai_client = OpenAI(
-            base_url=f"http://{self.openai_host}:{self.openai_port}/v1", api_key="fake"
+            base_url=f"http://{self.openai_host}:{self.openai_port}/v1",
+            api_key="fake",
+            timeout=self.get_drum_openai_client_timeout(),
         )
 
         # In multi-container deployments DRUM does not manage OpenAI server processes.

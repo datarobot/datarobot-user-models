@@ -16,6 +16,7 @@ import signal
 import requests
 from flask import Response, jsonify, request
 from werkzeug.exceptions import HTTPException
+from werkzeug.serving import WSGIRequestHandler
 
 from opentelemetry import trace
 
@@ -58,6 +59,12 @@ logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 
 tracer = trace.get_tracer(__name__)
+
+
+class TimeoutWSGIRequestHandler(WSGIRequestHandler):
+    timeout = 3600
+    if RuntimeParameters.has("DRUM_CLIENT_REQUEST_TIMEOUT"):
+        timeout = int(RuntimeParameters.get("DRUM_CLIENT_REQUEST_TIMEOUT"))
 
 
 class PredictionServer(PredictMixin):
@@ -144,6 +151,17 @@ class PredictionServer(PredictMixin):
         self._stats_collector.mark("finish")
         self._stats_collector.disable()
         self._stdout_flusher.set_last_activity_time()
+
+    @staticmethod
+    def get_nim_direct_access_request_timeout():
+        """
+        Returns the timeout value for NIM direct access requests.
+        Checks the 'NIM_DIRECT_ACCESS_REQUEST_TIMEOUT' runtime parameter; if not set, defaults to 3600 seconds.
+        """
+        timeout = 3600
+        if RuntimeParameters.has("NIM_DIRECT_ACCESS_REQUEST_TIMEOUT"):
+            timeout = int(RuntimeParameters.get("NIM_DIRECT_ACCESS_REQUEST_TIMEOUT"))
+        return timeout
 
     def materialize(self):
         model_api = base_api_blueprint(self._terminate, self._predictor)
@@ -255,12 +273,12 @@ class PredictionServer(PredictMixin):
 
                 openai_host = self._predictor.openai_host
                 openai_port = self._predictor.openai_port
-
                 resp = requests.request(
                     method=request.method,
                     url=f"http://{openai_host}:{openai_port}/{path.rstrip('/')}",
                     headers=request.headers,
                     params=request.args,
+                    timeout=self.get_nim_direct_access_request_timeout(),
                     data=request.get_data(),
                     allow_redirects=False,
                 )
@@ -322,7 +340,19 @@ class PredictionServer(PredictMixin):
                 )
                 self._server_watchdog.start()
 
-            app.run(host, port, threaded=False, processes=processes)
+
+            # Configure the server with timeout settings
+            app.run(
+                host=host,
+                port=port,
+                threaded=False,
+                processes=processes,
+                **(
+                    {"request_handler": TimeoutWSGIRequestHandler}
+                    if RuntimeParameters.has("DRUM_CLIENT_REQUEST_TIMEOUT")
+                    else {}
+                ),
+            )
         except OSError as e:
             raise DrumCommonException("{}: host: {}; port: {}".format(e, host, port))
 
