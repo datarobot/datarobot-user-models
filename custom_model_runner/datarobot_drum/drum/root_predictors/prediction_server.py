@@ -340,7 +340,6 @@ class PredictionServer(PredictMixin):
                 )
                 self._server_watchdog.start()
 
-
             # Configure the server with timeout settings
             app.run(
                 host=host,
