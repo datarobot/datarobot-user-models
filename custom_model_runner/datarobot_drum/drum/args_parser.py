@@ -123,16 +123,6 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
-    def _reg_arg_server_type(*parsers):
-        for parser in parsers:
-            parser.add_argument(
-                '--server-type',
-                type=str,
-                default=None,
-                help='Type of server to run (optional, string)'
-            )
-
-    @staticmethod
     def _reg_arg_output(*parsers):
         for parser in parsers:
             prog_name_lst = CMRunnerArgsRegistry._tokenize_parser_prog(parser)
@@ -735,27 +725,6 @@ class CMRunnerArgsRegistry(object):
             )
 
     @staticmethod
-    def _reg_arg_gunicorn_options(*parsers):
-        for parser in parsers:
-            parser.add_argument('--gunicorn-backlog', type=int, default=2024, help='Gunicorn backlog')
-            parser.add_argument('--gunicorn-timeout', type=int, default=120, help='Gunicorn timeout')
-            parser.add_argument('--gunicorn-graceful-timeout', type=int, default=30, help='Gunicorn graceful timeout')
-            parser.add_argument('--gunicorn-keep-alive', type=int, default=5, help='Gunicorn keep alive')
-            parser.add_argument('--gunicorn-max-requests', type=int, default=2000, help='Gunicorn max requests')
-            parser.add_argument('--gunicorn-max-requests-jitter', type=int, default=500,
-                                help='Gunicorn max requests jitter')
-            parser.add_argument('--gunicorn-log-level', type=str, default='info', help='Gunicorn log level')
-            parser.add_argument('--gunicorn-access-logfile', type=str, default='-', help='Gunicorn access logfile')
-            parser.add_argument('--gunicorn-error-logfile', type=str, default='-', help='Gunicorn error logfile')
-            parser.add_argument('--gunicorn-access-logformat', type=str,
-                                default='%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"',
-                                help='Gunicorn access log format')
-            parser.add_argument('--gunicorn-workers', type=int, default=None,
-                                help='Gunicorn number of workers (overrides --max-workers)')
-            parser.add_argument('--gunicorn-worker-class', type=str, default=None,
-                                help='Gunicorn worker class (e.g. sync, gevent, eventlet, etc.)')
-
-    @staticmethod
     def _register_subcommand_perf_test(subparsers):
         desc = """
         Test the performance of an inference model. This is done by internally using the server
@@ -1056,9 +1025,6 @@ class CMRunnerArgsRegistry(object):
         CMRunnerArgsRegistry._reg_args_lazy_loading_file(
             score_parser, server_parser, validation_parser
         )
-
-        CMRunnerArgsRegistry._reg_arg_server_type(server_parser)
-        CMRunnerArgsRegistry._reg_arg_gunicorn_options(server_parser)
 
         return parser
 

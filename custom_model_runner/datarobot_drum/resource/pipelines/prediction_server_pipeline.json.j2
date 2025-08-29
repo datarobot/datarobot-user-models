@@ -20,7 +20,6 @@
                 "processes": {{ processes }},
                 "monitor": "{{ monitor }}",
                 "monitor_embedded": "{{ monitor_embedded }}",
-                "server_type": "{{ server_type }}",
                 "model_id": "{{ model_id }}",
                 "deployment_id": {{ deployment_id | jsonify }},
                 "monitor_settings": {{ monitor_settings | jsonify }},
@@ -34,16 +33,7 @@
                 "sidecar": {{ sidecar | jsonify }},
                 "triton_host": {{ triton_host | jsonify }},
                 "triton_http_port": {{ triton_http_port | jsonify }},
-                "triton_grpc_port": {{ triton_grpc_port | jsonify }},
-                "gunicorn_backlog": {{ gunicorn_backlog }},
-                "gunicorn_timeout": {{ gunicorn_timeout }},
-                "gunicorn_graceful_timeout": {{ gunicorn_graceful_timeout }},
-                "gunicorn_keep_alive": {{ gunicorn_keep_alive }},
-                "gunicorn_max_requests": {{ gunicorn_max_requests }},
-                "gunicorn_max_requests_jitter": {{ gunicorn_max_requests_jitter }},
-                "gunicorn_log_level": "{{ gunicorn_log_level }}",
-                "gunicorn_workers": {{ gunicorn_workers }},
-                "gunicorn_worker_class": "{{ gunicorn_worker_class }}"
+                "triton_grpc_port": {{ triton_grpc_port | jsonify }}
               }
           }
       ]

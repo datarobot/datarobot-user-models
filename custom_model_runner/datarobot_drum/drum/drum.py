@@ -771,20 +771,6 @@ class CMRunner:
             "target_type": self.target_type.value,
             "user_secrets_mount_path": getattr(options, "user_secrets_mount_path", None),
             "user_secrets_prefix": getattr(options, "user_secrets_prefix", None),
-            "server_type": getattr(options, "server_type", None),
-            # Gunicorn options
-            "gunicorn_backlog": getattr(options, "gunicorn_backlog", None),
-            "gunicorn_timeout": getattr(options, "gunicorn_timeout", None),
-            "gunicorn_graceful_timeout": getattr(options, "gunicorn_graceful_timeout", None),
-            "gunicorn_keep_alive": getattr(options, "gunicorn_keep_alive", None),
-            "gunicorn_max_requests": getattr(options, "gunicorn_max_requests", None),
-            "gunicorn_max_requests_jitter": getattr(options, "gunicorn_max_requests_jitter", None),
-            "gunicorn_log_level": getattr(options, "gunicorn_log_level", None),
-            "gunicorn_access_logfile": getattr(options, "gunicorn_access_logfile", None),
-            "gunicorn_error_logfile": getattr(options, "gunicorn_error_logfile", None),
-            "gunicorn_access_logformat": getattr(options, "gunicorn_access_logformat", None),
-            "gunicorn_workers": getattr(options, "gunicorn_workers", None),
-            "gunicorn_worker_class": getattr(options, "gunicorn_worker_class", None),
         }
 
         if self.run_mode == RunMode.SCORE:
