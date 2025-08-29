@@ -328,7 +328,7 @@ class PredictionServer(PredictMixin):
                         self.cfg.set("loglevel", self.params.get("gunicorn_log_level", "info"))
                         self.cfg.set('accesslog', '-')
                         self.cfg.set('errorlog', '-')  # if you want error logs to stdout
-                        self.cfg.set('access_log_format', '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"')
+                        self.cfg.set('access_log_format', '%(t)s %(h)s %(l)s %(u)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"')
                         # Remove unsupported config keys: access_logfile, error_logfile, access_logformat
                         # These must be set via CLI, not config API
                     def load(self):
