@@ -50,7 +50,7 @@ if RuntimeParameters.has("DRUM_SERVER_TYPE") and RuntimeParameters.has(
 ):
     if (
         str(RuntimeParameters.has("DRUM_SERVER_TYPE")).lower() == "gunicorn"
-        and str(RuntimeParameters.get("DRUM_SERVER_TYPE")).lower() == "gevent"
+        and str(RuntimeParameters.get("DRUM_GUNICORN_WORKER_CLASS")).lower() == "gevent"
     ):
         try:
             from gevent import monkey
