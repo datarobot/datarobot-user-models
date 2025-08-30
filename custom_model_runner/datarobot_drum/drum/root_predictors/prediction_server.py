@@ -366,6 +366,11 @@ class PredictionServer(PredictMixin):
             if loglevel.lower() in {"debug", "info", "warning", "error", "critical"}:
                 config["loglevel"] = loglevel
 
+        if RuntimeParameters.has("DRUM_GUNICORN_WORKERS"):
+            workers = int(RuntimeParameters.get("DRUM_GUNICORN_WORKERS"))
+            if 0 < workers < 200:
+                config["workers"] = workers
+
         return config
 
     def get_server_type(self):
@@ -417,10 +422,11 @@ class PredictionServer(PredictMixin):
                     def load_config(self):
                         self.cfg.set("bind", f"{self.host}:{self.port}")
                         workers = (
-                            self.params.get("gunicorn_workers")
-                            or self.params.get("max_workers")
+                            self.params.get("max_workers")
                             or self.params.get("processes")
                         )
+                        if self.gunicorn_config.get("workers"):
+                            workers = self.gunicorn_config.get("workers")
                         self.cfg.set("workers", workers)
 
                         self.cfg.set(
@@ -429,7 +435,7 @@ class PredictionServer(PredictMixin):
                         self.cfg.set("backlog", self.gunicorn_config.get("backlog", 2048))
                         self.cfg.set("timeout", self.gunicorn_config.get("timeout", 120))
                         self.cfg.set(
-                            "graceful_timeout", self.gunicorn_config.get("graceful_timeout", 30)
+                            "graceful_timeout", self.gunicorn_config.get("graceful_timeout", 60)
                         )
                         self.cfg.set("keepalive", self.gunicorn_config.get("keepalive", 5))
                         self.cfg.set("max_requests", self.gunicorn_config.get("max_requests", 2000))
@@ -444,12 +450,12 @@ class PredictionServer(PredictMixin):
                             )
                         self.cfg.set("loglevel", self.gunicorn_config.get("loglevel", "info"))
 
-                        self.cfg.set("accesslog", "-")
+                        '''self.cfg.set("accesslog", "-")
                         self.cfg.set("errorlog", "-")  # if you want error logs to stdout
                         self.cfg.set(
                             "access_log_format",
                             '%(t)s %(h)s %(l)s %(u)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"',
-                        )
+                        )'''
                         # Remove unsupported config keys: access_logfile, error_logfile, access_logformat
                         # These must be set via CLI, not config API
 
