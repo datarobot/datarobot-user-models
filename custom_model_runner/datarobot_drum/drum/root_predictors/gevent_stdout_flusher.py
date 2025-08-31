@@ -1,3 +1,4 @@
+import logging
 import sys
 import time
 try:
@@ -10,6 +11,7 @@ except ImportError:
 
 HAS_GEVENT = True
 
+logger = logging.getLogger(__name__)
 
 class GeventCompatibleStdoutFlusher:
     """An implementation to flush the stdout after a certain time of no activity.
@@ -45,18 +47,21 @@ class GeventCompatibleStdoutFlusher:
     def stop(self):
         """Stop the flusher in a synchronous fashion."""
         if not self._running:
+            logging.error("Flusher thread stopped 1.")
             return
 
         self._running = False
-
+        logging.error("Flusher thread stopped 2.")
         if HAS_GEVENT and self._flusher_greenlet:
             self._flusher_greenlet.kill()
             self._flusher_greenlet = None
         elif self._flusher_thread and self._stop_event:
+            logging.error("Flusher thread stopped 3.")
             self._stop_event.set()
             self._flusher_thread.join(timeout=2.0)  # Timeout to prevent hanging
             self._flusher_thread = None
             self._stop_event = None
+        logging.error("Flusher thread stopped 4.")
 
     def set_last_activity_time(self):
         """Set the last activity time that will be used as the reference for time comparison."""

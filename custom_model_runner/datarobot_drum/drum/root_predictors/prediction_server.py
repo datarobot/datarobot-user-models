@@ -7,12 +7,14 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import logging
 import os
 import sys
+import threading
 import time
 from pathlib import Path
 from threading import Thread
 import subprocess
 import signal
 
+import psutil
 import requests
 from flask import Response, jsonify, request
 from werkzeug.exceptions import HTTPException
@@ -312,7 +314,7 @@ class PredictionServer(PredictMixin):
 
         app = get_flask_app(model_api)
         self.load_flask_extensions(app)
-        self._run_flask_app(app)
+        self._run_flask_app(app, self._terminate)
 
         if self._stats_collector:
             self._stats_collector.print_reports()
@@ -353,7 +355,7 @@ class PredictionServer(PredictMixin):
 
         if RuntimeParameters.has("DRUM_GUNICORN_MAX_REQUESTS"):
             max_requests = int(RuntimeParameters.get("DRUM_GUNICORN_MAX_REQUESTS"))
-            if 100 <= max_requests <= 10000:
+            if 1 <= max_requests <= 10000:
                 config["max_requests"] = max_requests
 
         if RuntimeParameters.has("DRUM_GUNICORN_MAX_REQUESTS_JITTER"):
@@ -381,7 +383,7 @@ class PredictionServer(PredictMixin):
                 server_type = server_type.lower()
         return server_type
 
-    def _run_flask_app(self, app):
+    def _run_flask_app(self, app, termination_hook):
         host = self._params.get("host", None)
         port = self._params.get("port", None)
         server_type = self.get_server_type()
@@ -411,12 +413,13 @@ class PredictionServer(PredictMixin):
                     raise DrumCommonException("gunicorn is not installed. Please install gunicorn.")
 
                 class GunicornApp(BaseApplication):
-                    def __init__(self, app, host, port, params, gunicorn_config):
+                    def __init__(self, app, host, port, params, gunicorn_config, termination_hook):
                         self.application = app
                         self.host = host
                         self.port = port
                         self.params = params
                         self.gunicorn_config = gunicorn_config
+                        self.termination_hook = termination_hook
                         super().__init__()
 
                     def load_config(self):
@@ -428,6 +431,8 @@ class PredictionServer(PredictMixin):
                         if self.gunicorn_config.get("workers"):
                             workers = self.gunicorn_config.get("workers")
                         self.cfg.set("workers", workers)
+                        self.cfg.set("reuse_port", True)
+                        self.cfg.set("preload_app", True)
 
                         self.cfg.set(
                             "worker_class", self.gunicorn_config.get("worker_class", "sync")
@@ -438,7 +443,7 @@ class PredictionServer(PredictMixin):
                             "graceful_timeout", self.gunicorn_config.get("graceful_timeout", 60)
                         )
                         self.cfg.set("keepalive", self.gunicorn_config.get("keepalive", 5))
-                        self.cfg.set("max_requests", self.gunicorn_config.get("max_requests", 2000))
+                        self.cfg.set("max_requests", self.gunicorn_config.get("max_requests", 1000))
                         self.cfg.set(
                             "max_requests_jitter",
                             self.gunicorn_config.get("max_requests_jitter", 500),
@@ -449,6 +454,10 @@ class PredictionServer(PredictMixin):
                                 "worker_connections", self.gunicorn_config.get("worker_connections")
                             )
                         self.cfg.set("loglevel", self.gunicorn_config.get("loglevel", "info"))
+
+                        # Properly assign the worker_exit hook
+                        if self.termination_hook:
+                            self.cfg.set("worker_exit", self._worker_exit_hook)
 
                         '''self.cfg.set("accesslog", "-")
                         self.cfg.set("errorlog", "-")  # if you want error logs to stdout
@@ -462,8 +471,60 @@ class PredictionServer(PredictMixin):
                     def load(self):
                         return self.application
 
+                    def _worker_exit_hook(self, server, worker):
+                        pid = worker.pid
+                        server.log.info(f"[HOOK] Worker PID {pid} exiting — running termination hook.")
+
+                        def run_hook():
+                            try:
+                                self.termination_hook()
+                                server.log.info(f"[HOOK] Worker PID {pid} termination logic completed.")
+                            except Exception as e:
+                                server.log.error(f"[HOOK ERROR] Worker PID {pid}: {e}")
+
+                            try:
+                                # 🔍 Найти процесс, который слушает тот же порт
+                                port = self.port
+                                occupying_proc = None
+
+                                for proc in psutil.process_iter(['pid', 'name']):
+                                    try:
+                                        for conn in proc.connections(kind='inet'):
+                                            if conn.status == psutil.CONN_LISTEN and conn.laddr.port == port:
+                                                occupying_proc = proc
+                                                break
+                                        if occupying_proc:
+                                            break
+                                    except (psutil.NoSuchProcess, psutil.AccessDenied):
+                                        continue
+
+                                if occupying_proc:
+                                    server.log.info(
+                                        f"[PORT OCCUPIED] Порт {port} занят процессом: PID={occupying_proc.pid}, имя={occupying_proc.name()}"
+                                    )
+                                else:
+                                    server.log.info(f"[PORT FREE] Порт {port} свободен.")
+
+                                server.log.info(f"[HOOK] Worker PID {pid} termination logic completed.")
+                            except Exception as e:
+                                server.log.error(f"[HOOK ERROR] Worker PID {pid}: {e}")
+
+
+
+                        thread = threading.Thread(target=run_hook)
+                        thread.start()
+
+
+                        '''for thread in threads:
+                            try:
+                                server.log.info(f"Name: {thread.name}, ID: {thread.ident}, Daemon: {thread.daemon}")
+                            '''
+                        #server.log.info(f"Active thread count:", threading.active_count())
+                        thread.join(timeout=20)
+                        server.log.info(f"[HOOK] Worker PID {pid} cleanup done or timed out.")
+
                 gunicorn_config = self.get_gunicorn_config()
-                GunicornApp(app, host, port, self._params, gunicorn_config).run()
+                GunicornApp(app, host, port, self._params, gunicorn_config, termination_hook).run()
             else:
                 # Configure the server with timeout settings
                 app.run(
