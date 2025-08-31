@@ -3,6 +3,8 @@ argcomplete
 trafaret>=2.0.0
 docker>=4.2.2
 flask
+gevent
+gunicorn
 jinja2>=3.0.0
 memory_profiler<1.0.0
 numpy
