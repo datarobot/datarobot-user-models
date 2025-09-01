@@ -5,6 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
+from typing import Optional
 
 from datarobot_drum.drum.server import (
     empty_api_blueprint,
@@ -13,6 +14,7 @@ from datarobot_drum.drum.server import (
 )
 from datarobot_drum.drum.common import verbose_stdout, get_drum_logger
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, RunMode
+from flask import Flask
 
 from datarobot_drum.drum.exceptions import DrumCommonException
 
@@ -23,7 +25,7 @@ logger_drum = logging.getLogger(LOGGER_NAME_PREFIX)
 
 
 class DrumRuntime:
-    def __init__(self, app):
+    def __init__(self, flask_app: Optional[Flask] = None):
         self.initialization_succeeded = False
         self.options = None
         self.cm_runner = None
@@ -31,7 +33,7 @@ class DrumRuntime:
         self.trace_provider = None
         self.metric_provider = None
         self.log_provider = None
-        self.app = app
+        self.flask_app = flask_app
 
     def __enter__(self):
         return self
@@ -84,12 +86,12 @@ class DrumRuntime:
         port = int(host_port_list[1]) if len(host_port_list) == 2 else None
 
         with verbose_stdout(self.options.verbose):
-            run_error_server(host, port, exc_value, self.app)
+            run_error_server(host, port, exc_value, self.flask_app)
 
         return False  # propagate exception further
 
 
-def run_error_server(host, port, exc_value, app):
+def run_error_server(host, port, exc_value, flask_app:Optional[Flask]=None):
     model_api = empty_api_blueprint()
 
     @model_api.route("/", methods=["GET"])
@@ -109,8 +111,9 @@ def run_error_server(host, port, exc_value, app):
     @model_api.route("/transform/", methods=["POST"])
     def transform():
         return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR
-    if app:
+
+    app = get_flask_app(model_api, flask_app)
+    if flask_app:
         pass
     else:
-        app = get_flask_app(model_api, app)
         app.run(host, port)

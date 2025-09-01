@@ -77,10 +77,10 @@ PREDICTOR_PIPELINE = "prediction_pipeline.json.j2"
 
 
 class CMRunner:
-    def __init__(self, runtime, app=None, worker_ctx=None):
+    def __init__(self, runtime, flask_app=None, worker_ctx=None):
         self.runtime = runtime
-        self.app = app
-        self.worker_ctx = worker_ctx
+        self.flask_app = flask_app # This is the Flask app object, used when running the application via CLI
+        self.worker_ctx = worker_ctx # This is the Gunicorn worker context object (WorkerCtx)
         self.options = runtime.options
         self.options.model_config = read_model_metadata_yaml(self.options.code_dir)
         self.options.default_parameter_values = (
@@ -500,6 +500,7 @@ class CMRunner:
                     self._run_predictions(stats_collector)
             finally:
                 if self.worker_ctx:
+                    # Add cleanup when running via the command line (gunicorn worker)
                     self.worker_ctx.defer_cleanup(lambda: stats_collector.disable(), desc="stats_collector.disable()")
                 else:
                     if stats_collector:
@@ -831,7 +832,7 @@ class CMRunner:
             if stats_collector:
                 stats_collector.mark("start")
             predictor = (
-                PredictionServer(params, self.app)
+                PredictionServer(params, self.flask_app)
                 if self.run_mode == RunMode.SERVER
                 else GenericPredictorComponent(params)
             )
@@ -842,6 +843,7 @@ class CMRunner:
                 stats_collector.mark("run")
         finally:
             if self.worker_ctx:
+                # Add cleanup when running via the command line (gunicorn worker)
                 if predictor is not None:
                     self.worker_ctx.defer_cleanup(lambda: predictor.terminate(), desc="predictor.terminate()")
                 if stats_collector:

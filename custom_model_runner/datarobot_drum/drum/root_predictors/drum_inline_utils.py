@@ -37,7 +37,7 @@ from datarobot_drum.runtime_parameters.runtime_parameters import RuntimeParamete
 
 @contextlib.contextmanager
 def drum_inline_predictor(
-    target_type: str, custom_model_dir: str, target_name: str, app, *cmd_args: List[str]
+    target_type: str, custom_model_dir: str, target_name: str, *cmd_args: List[str]
 ) -> Generator[BaseLanguagePredictor, None, None]:
     """
     Drum run for a custom model code definition. Yields a predictor, ready to work with.
@@ -49,7 +49,7 @@ def drum_inline_predictor(
     :param cmd_args: Extra command line arguments
     :return:
     """
-    with DrumRuntime(app) as runtime, tempfile.NamedTemporaryFile(mode="wb") as tf:
+    with DrumRuntime() as runtime, tempfile.NamedTemporaryFile(mode="wb") as tf:
         # setup
 
         os.environ["TARGET_NAME"] = target_name

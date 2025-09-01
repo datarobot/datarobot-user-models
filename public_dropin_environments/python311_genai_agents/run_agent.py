@@ -255,7 +255,6 @@ def execute_drum(
 def execute_drum_inline(
     chat_completion: CompletionCreateParamsBase,
     custom_model_dir: Path,
-    app
 ) -> ChatCompletion:
     root.info("Executing agent as [chat] endpoint. DRUM Inline Executor.")
 
@@ -264,7 +263,6 @@ def execute_drum_inline(
         target_type=TargetType.AGENTIC_WORKFLOW.value,
         custom_model_dir=custom_model_dir,
         target_name="response",
-        app
     ) as predictor:
         root.info("Executing Agent")
         completion = predictor.chat(chat_completion)
@@ -310,7 +308,6 @@ def run_agent_procedure(args: Any) -> None:
             result = execute_drum_inline(
                 chat_completion=chat_completion,
                 custom_model_dir=args.custom_model_dir,
-                app,
             )
         else:
             result = execute_drum(
