@@ -8,6 +8,7 @@
 echo "Starting Custom Model environment with NIM"
 set -e
 
+
 if [ "${ENABLE_CUSTOM_MODEL_RUNTIME_ENV_DUMP}" = 1 ]; then
     echo "Environment variables:"
     env
@@ -16,6 +17,4 @@ fi
 echo
 echo "Starting DRUM server..."
 echo
-
-exec gunicorn app:app --worker-class gevent --workers=8 --bind=0.0.0.0:8080 --backlog=512 --timeout 120 --max-requests 700 --max-requests-jitter 400 --log-level=info --access-logfile - --access-logformat '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'& #works
-wait
+exec drum server --sidecar --gpu-predictor=nim --logging-level=info "$@"
