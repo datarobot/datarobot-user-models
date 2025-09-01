@@ -33,7 +33,9 @@ class DrumRuntime:
         self.trace_provider = None
         self.metric_provider = None
         self.log_provider = None
-        self.flask_app = flask_app
+        self.flask_app = (
+            flask_app  # This is the Flask app object, used when running the application via CLI
+        )
 
     def __enter__(self):
         return self
@@ -114,6 +116,7 @@ def run_error_server(host, port, exc_value, flask_app: Optional[Flask] = None):
 
     app = get_flask_app(model_api, flask_app)
     if flask_app:
+        # when running application via the command line (e.g., gunicorn worker)
         pass
     else:
         app.run(host, port)

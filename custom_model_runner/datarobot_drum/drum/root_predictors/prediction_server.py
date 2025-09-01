@@ -70,7 +70,9 @@ class TimeoutWSGIRequestHandler(WSGIRequestHandler):
 class PredictionServer(PredictMixin):
     def __init__(self, params: dict, flask_app=None):
         self._params = params
-        self.flask_app = flask_app
+        self.flask_app = (
+            flask_app  # This is the Flask app object, used when running the application via CLI
+        )
         self._show_perf = self._params.get("show_perf")
         self._resource_monitor = ResourceMonitor(monitor_current_process=True)
         self._run_language = RunLanguage(params.get("run_language"))
@@ -330,6 +332,7 @@ class PredictionServer(PredictMixin):
             logger.info("Number of webserver processes: %s", processes)
         try:
             if self.flask_app:
+                # when running application via the command line (e.g., gunicorn worker)
                 pass
             else:
                 if RuntimeParameters.has("USE_NIM_WATCHDOG") and str(
