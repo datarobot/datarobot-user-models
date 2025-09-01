@@ -76,15 +76,23 @@ def main(flask_app=None, worker_ctx=None):
             # Add cleanup when running via the command line (gunicorn worker)
             if runtime.options and RunMode(runtime.options.subparser_name) == RunMode.SERVER:
                 if runtime.cm_runner:
-                    worker_ctx.defer_cleanup(lambda: runtime.cm_runner.terminate(), desc="runtime.cm_runner.terminate()")
+                    worker_ctx.defer_cleanup(
+                        lambda: runtime.cm_runner.terminate(), desc="runtime.cm_runner.terminate()"
+                    )
             if runtime.trace_provider is not None:
-                worker_ctx.defer_cleanup(lambda: runtime.trace_provider.shutdown(), desc="runtime.trace_provider.shutdown()")
+                worker_ctx.defer_cleanup(
+                    lambda: runtime.trace_provider.shutdown(),
+                    desc="runtime.trace_provider.shutdown()",
+                )
             if runtime.metric_provider is not None:
-                worker_ctx.defer_cleanup(lambda: runtime.metric_provider.shutdown(),
-                                         desc="runtime.metric_provider.shutdown()")
+                worker_ctx.defer_cleanup(
+                    lambda: runtime.metric_provider.shutdown(),
+                    desc="runtime.metric_provider.shutdown()",
+                )
             if runtime.log_provider is not None:
-                worker_ctx.defer_cleanup(lambda: runtime.log_provider.shutdown(),
-                                         desc="runtime.log_provider.shutdown()")
+                worker_ctx.defer_cleanup(
+                    lambda: runtime.log_provider.shutdown(), desc="runtime.log_provider.shutdown()"
+                )
 
         def signal_handler(sig, frame):
             # The signal is assigned so the stacktrace is not presented when Ctrl-C is pressed.

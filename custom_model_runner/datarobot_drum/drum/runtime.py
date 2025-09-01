@@ -91,7 +91,7 @@ class DrumRuntime:
         return False  # propagate exception further
 
 
-def run_error_server(host, port, exc_value, flask_app:Optional[Flask]=None):
+def run_error_server(host, port, exc_value, flask_app: Optional[Flask] = None):
     model_api = empty_api_blueprint()
 
     @model_api.route("/", methods=["GET"])
