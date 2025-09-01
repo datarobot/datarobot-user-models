@@ -333,7 +333,7 @@ class PredictionServer(PredictMixin):
                 pass
             else:
                 if RuntimeParameters.has("USE_NIM_WATCHDOG") and str(
-                        RuntimeParameters.get("USE_NIM_WATCHDOG")
+                    RuntimeParameters.get("USE_NIM_WATCHDOG")
                 ).lower() in ["true", "1", "yes"]:
                     # Start the watchdog thread before running the app
                     self._server_watchdog = Thread(
