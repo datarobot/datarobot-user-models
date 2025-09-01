@@ -109,7 +109,6 @@ def run_error_server(host, port, exc_value, app):
     @model_api.route("/transform/", methods=["POST"])
     def transform():
         return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR
-    print(f"rrrrrrrr{host}, {port}")
     if app:
         pass
     else:

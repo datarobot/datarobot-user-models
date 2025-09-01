@@ -54,9 +54,24 @@ from datarobot_drum.runtime_parameters.runtime_parameters import (
 )
 
 
-def main(app):
+def main(app=None, worker_ctx=None):
     with DrumRuntime(app) as runtime:
         config_logging()
+
+        if worker_ctx:
+            if runtime.options and RunMode(runtime.options.subparser_name) == RunMode.SERVER:
+                if runtime.cm_runner:
+                    worker_ctx.defer_cleanup(lambda: runtime.cm_runner.terminate(), desc="runtime.cm_runner.terminate()")
+            # Let traceer offload accumulated spans before shutdown.
+            if runtime.trace_provider is not None:
+                worker_ctx.defer_cleanup(lambda: runtime.trace_provider.shutdown(), desc="runtime.trace_provider.shutdown()")
+            if runtime.metric_provider is not None:
+                worker_ctx.defer_cleanup(lambda: runtime.metric_provider.shutdown(),
+                                         desc="runtime.metric_provider.shutdown()")
+            if runtime.log_provider is not None:
+                worker_ctx.defer_cleanup(lambda: runtime.log_provider.shutdown(),
+                                         desc="runtime.log_provider.shutdown()")
+            #os._exit(130)
 
         def signal_handler(sig, frame):
             # The signal is assigned so the stacktrace is not presented when Ctrl-C is pressed.
@@ -95,11 +110,11 @@ def main(app):
         from datarobot_drum.drum.drum import CMRunner
 
         try:
-            runtime.cm_runner = CMRunner(runtime, app)
+            runtime.cm_runner = CMRunner(runtime, app, worker_ctx)
             runtime.cm_runner.run()
         except DrumSchemaValidationException:
             sys.exit(ExitCodes.SCHEMA_VALIDATION_ERROR.value)
 
 
 if __name__ == "__main__":
-    pass
+    main()

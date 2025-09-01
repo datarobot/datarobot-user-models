@@ -29,7 +29,9 @@ HEADER_REQUEST_ID = "X_Request_ID"
 logger = get_drum_logger(LOGGER_NAME_PREFIX)
 
 
-def get_flask_app(api_blueprint, app):
+def get_flask_app(api_blueprint, app=None):
+    if app is None:
+        app = create_flask_app()
     url_prefix = os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")
     app.register_blueprint(api_blueprint, url_prefix=url_prefix)
     return app
