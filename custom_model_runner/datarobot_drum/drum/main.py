@@ -73,7 +73,10 @@ def main(flask_app=None, worker_ctx=None):
         config_logging()
 
         if worker_ctx:
-            # Add cleanup when running via the command line (gunicorn worker)
+            # Perform cleanup specific to the Gunicorn worker being terminated.
+            # Gunicorn spawns multiple worker processes to handle requests. Each worker has its own context,
+            # and this ensures that only the resources associated with the current worker are released.
+            # More details in https://github.com/datarobot/datarobot-custom-templates/pull/419
             if runtime.options and RunMode(runtime.options.subparser_name) == RunMode.SERVER:
                 if runtime.cm_runner:
                     worker_ctx.defer_cleanup(
