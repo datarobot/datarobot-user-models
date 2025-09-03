@@ -65,6 +65,10 @@ class TimeoutWSGIRequestHandler(WSGIRequestHandler):
     timeout = 3600
     if RuntimeParameters.has("DRUM_CLIENT_REQUEST_TIMEOUT"):
         timeout = int(RuntimeParameters.get("DRUM_CLIENT_REQUEST_TIMEOUT"))
+    logger.info(
+        "Client request timeout is enabled, timeout: %s",
+        str(int(timeout)),
+    )
 
 
 class PredictionServer(PredictMixin):
@@ -322,6 +326,15 @@ class PredictionServer(PredictMixin):
 
         return []
 
+    def is_client_request_timeout_enabled(self):
+        if (
+            RuntimeParameters.has("DRUM_CLIENT_REQUEST_TIMEOUT")
+            and int(RuntimeParameters.get("DRUM_CLIENT_REQUEST_TIMEOUT")) > 0
+        ):
+            return True
+        else:
+            return False
+
     def _run_flask_app(self, app):
         host = self._params.get("host", None)
         port = self._params.get("port", None)
@@ -355,7 +368,7 @@ class PredictionServer(PredictMixin):
                     processes=processes,
                     **(
                         {"request_handler": TimeoutWSGIRequestHandler}
-                        if RuntimeParameters.has("DRUM_CLIENT_REQUEST_TIMEOUT")
+                        if self.is_client_request_timeout_enabled()
                         else {}
                     ),
                 )

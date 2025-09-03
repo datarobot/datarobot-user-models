@@ -235,7 +235,8 @@ def test_http_exception(openai_client, chat_python_model_adapter):
 
 
 @pytest.mark.parametrize(
-    "processes_param, expected_processes, request_timeout", [(None, 1, None), (10, 10, 600)]
+    "processes_param, expected_processes, request_timeout",
+    [(None, 1, None), (None, 1, 0), (10, 10, 600)],
 )
 def test_run_flask_app(processes_param, expected_processes, request_timeout):
     if request_timeout:
