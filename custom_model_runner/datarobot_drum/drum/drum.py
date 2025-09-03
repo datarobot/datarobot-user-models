@@ -502,7 +502,11 @@ class CMRunner:
                     self._run_predictions(stats_collector)
             finally:
                 if self.worker_ctx:
-                    # Add cleanup when running via the command line (gunicorn worker)
+                    # Perform cleanup specific to the Gunicorn worker being terminated.
+                    # Gunicorn spawns multiple worker processes to handle requests. Each worker has its own context,
+                    # and this ensures that only the resources associated with the current worker are released.
+                    # defer_cleanup simply saves methods to be executed during worker restart or shutdown.
+                    # More details in https://github.com/datarobot/datarobot-custom-templates/pull/419
                     self.worker_ctx.defer_cleanup(
                         lambda: stats_collector.disable(), desc="stats_collector.disable()"
                     )
@@ -847,7 +851,11 @@ class CMRunner:
                 stats_collector.mark("run")
         finally:
             if self.worker_ctx:
-                # Add cleanup when running via the command line (gunicorn worker)
+                # Perform cleanup specific to the Gunicorn worker being terminated.
+                # Gunicorn spawns multiple worker processes to handle requests. Each worker has its own context,
+                # and this ensures that only the resources associated with the current worker are released.
+                # defer_cleanup simply saves methods to be executed during worker restart or shutdown.
+                # More details in https://github.com/datarobot/datarobot-custom-templates/pull/419
                 if predictor is not None:
                     self.worker_ctx.defer_cleanup(
                         lambda: predictor.terminate(), desc="predictor.terminate()"

@@ -76,6 +76,7 @@ def main(flask_app=None, worker_ctx=None):
             # Perform cleanup specific to the Gunicorn worker being terminated.
             # Gunicorn spawns multiple worker processes to handle requests. Each worker has its own context,
             # and this ensures that only the resources associated with the current worker are released.
+            # defer_cleanup simply saves methods to be executed during worker restart or shutdown.
             # More details in https://github.com/datarobot/datarobot-custom-templates/pull/419
             if runtime.options and RunMode(runtime.options.subparser_name) == RunMode.SERVER:
                 if runtime.cm_runner:
