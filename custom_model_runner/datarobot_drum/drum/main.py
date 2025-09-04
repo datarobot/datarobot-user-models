@@ -129,8 +129,9 @@ def main(flask_app=None, worker_ctx=None):
         runtime.metric_provider = metric_provider
         runtime.log_provider = log_provider
 
-        signal.signal(signal.SIGINT, signal_handler)
-        signal.signal(signal.SIGTERM, signal_handler)
+        if worker_ctx is None:
+            signal.signal(signal.SIGINT, signal_handler)
+            signal.signal(signal.SIGTERM, signal_handler)
 
         from datarobot_drum.drum.drum import CMRunner
 

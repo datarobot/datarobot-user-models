@@ -65,10 +65,6 @@ class TimeoutWSGIRequestHandler(WSGIRequestHandler):
     timeout = 3600
     if RuntimeParameters.has("DRUM_CLIENT_REQUEST_TIMEOUT"):
         timeout = int(RuntimeParameters.get("DRUM_CLIENT_REQUEST_TIMEOUT"))
-    logger.info(
-        "Client request timeout is enabled, timeout: %s",
-        str(int(timeout)),
-    )
 
 
 class PredictionServer(PredictMixin):
@@ -331,6 +327,10 @@ class PredictionServer(PredictMixin):
             RuntimeParameters.has("DRUM_CLIENT_REQUEST_TIMEOUT")
             and int(RuntimeParameters.get("DRUM_CLIENT_REQUEST_TIMEOUT")) > 0
         ):
+            logger.info(
+                "Client request timeout is enabled, timeout: %s",
+                str(int(TimeoutWSGIRequestHandler.timeout)),
+            )
             return True
         else:
             return False
