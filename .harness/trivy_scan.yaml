@@ -33,8 +33,8 @@ pipeline:
                           - reports/**.xml
                     settings:
                       image: datarobotdev/<+pipeline.variables.imageName>
-                      username: yakovg
-                      password: <+secrets.getValue("dockerhub-token-yakov-goldberg")>
+                      username: <+secrets.getValue("org.genai-systems-dockerhub-login")>
+                      password: <+secrets.getValue("org.genai-systems-dockerhub-token")>
                       ignore_policy: /dev/zero
                   description: Drone Trivy Scan
           platform:

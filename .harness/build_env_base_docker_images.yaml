@@ -41,7 +41,7 @@ pipeline:
                       docker buildx ls
 
                       echo "Logging into dockerhub"
-                      docker login -u yakovg -p <+secrets.getValue("dockerhub-token-yakov-goldberg")>
+                      docker login -u <+secrets.getValue("org.genai-systems-dockerhub-login")> -p <+secrets.getValue("org.genai-systems-dockerhub-token")>
 
                       pwd
                       cd <+pipeline.variables.path_to_docker_context>
@@ -132,7 +132,7 @@ pipeline:
                       docker buildx create --name mybuilder --bootstrap --use
                       docker buildx ls
 
-                      docker login -u yakovg -p <+secrets.getValue("dockerhub-token-yakov-goldberg")>                   
+                      docker login -u <+secrets.getValue("org.genai-systems-dockerhub-login")> -p <+secrets.getValue("org.genai-systems-dockerhub-token")>
 
                       pwd
                       cd <+pipeline.variables.path_to_docker_context>
