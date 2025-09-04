@@ -154,8 +154,8 @@ pipeline:
                       notation sign $TARGET_IMAGE_FULLNAME --username $DOCKER_USERNAME --password $DOCKER_PASSWORD --plugin "com.amazonaws.signer.notation.plugin" --id "arn:aws:signer:us-east-1:883986434461:/signing-profiles/dr_artifacts_20241231162516984400000001"
                     envVariables:
                       TARGET_IMAGE_FULLNAME: docker.io/datarobotdev/env-<+pipeline.variables.repo_name>:<+pipeline.stages.build_and_publish.spec.execution.steps.Compute_Tags.output.outputVariables.TAG_TO_SIGN>
-                      DOCKER_USERNAME: yakovg
-                      DOCKER_PASSWORD: <+secrets.getValue("dockerhub-token-yakov-goldberg")>
+                      DOCKER_USERNAME: <+secrets.getValue("org.genai-systems-dockerhub-login")>
+                      DOCKER_PASSWORD: <+secrets.getValue("org.genai-systems-dockerhub-token")>
                   description: Sign image using AWS Signer and Notation
   variables:
     - name: env_folder
