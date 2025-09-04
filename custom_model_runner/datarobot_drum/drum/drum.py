@@ -77,8 +77,12 @@ PREDICTOR_PIPELINE = "prediction_pipeline.json.j2"
 
 
 class CMRunner:
-    def __init__(self, runtime):
+    def __init__(self, runtime, flask_app=None, worker_ctx=None):
         self.runtime = runtime
+        self.flask_app = (
+            flask_app  # This is the Flask app object, used when running the application via CLI
+        )
+        self.worker_ctx = worker_ctx  # This is the Gunicorn worker context object (WorkerCtx)
         self.options = runtime.options
         self.options.model_config = read_model_metadata_yaml(self.options.code_dir)
         self.options.default_parameter_values = (
@@ -497,8 +501,18 @@ class CMRunner:
                 with self._setup_output_if_not_exists():
                     self._run_predictions(stats_collector)
             finally:
-                if stats_collector:
-                    stats_collector.disable()
+                if self.worker_ctx:
+                    # Perform cleanup specific to the Gunicorn worker being terminated.
+                    # Gunicorn spawns multiple worker processes to handle requests. Each worker has its own context,
+                    # and this ensures that only the resources associated with the current worker are released.
+                    # defer_cleanup simply saves methods to be executed during worker restart or shutdown.
+                    # More details in https://github.com/datarobot/datarobot-custom-templates/pull/419
+                    self.worker_ctx.defer_cleanup(
+                        lambda: stats_collector.disable(), desc="stats_collector.disable()"
+                    )
+                else:
+                    if stats_collector:
+                        stats_collector.disable()
             if stats_collector:
                 stats_collector.print_reports()
         elif self.run_mode == RunMode.SERVER:
@@ -826,7 +840,7 @@ class CMRunner:
             if stats_collector:
                 stats_collector.mark("start")
             predictor = (
-                PredictionServer(params)
+                PredictionServer(params, self.flask_app)
                 if self.run_mode == RunMode.SERVER
                 else GenericPredictorComponent(params)
             )
@@ -836,16 +850,39 @@ class CMRunner:
             if stats_collector:
                 stats_collector.mark("run")
         finally:
-            if predictor is not None:
-                predictor.terminate()
-            if stats_collector:
-                stats_collector.mark("end")
+            if self.worker_ctx:
+                # Perform cleanup specific to the Gunicorn worker being terminated.
+                # Gunicorn spawns multiple worker processes to handle requests. Each worker has its own context,
+                # and this ensures that only the resources associated with the current worker are released.
+                # defer_cleanup simply saves methods to be executed during worker restart or shutdown.
+                # More details in https://github.com/datarobot/datarobot-custom-templates/pull/419
+                if predictor is not None:
+                    self.worker_ctx.defer_cleanup(
+                        lambda: predictor.terminate(), desc="predictor.terminate()"
+                    )
+                if stats_collector:
+                    self.worker_ctx.defer_cleanup(
+                        lambda: stats_collector.mark("end"), desc="stats_collector.mark('end')"
+                    )
+                self.worker_ctx.defer_cleanup(
+                    lambda: self.logger.info(
+                        "<<< Finish {} in the {} mode".format(
+                            ArgumentsOptions.MAIN_COMMAND, self.run_mode.value
+                        )
+                    ),
+                    desc="logger.info(...)",
+                )
 
-        self.logger.info(
-            "<<< Finish {} in the {} mode".format(
-                ArgumentsOptions.MAIN_COMMAND, self.run_mode.value
-            )
-        )
+            else:
+                if predictor is not None:
+                    predictor.terminate()
+                if stats_collector:
+                    stats_collector.mark("end")
+                self.logger.info(
+                    "<<< Finish {} in the {} mode".format(
+                        ArgumentsOptions.MAIN_COMMAND, self.run_mode.value
+                    )
+                )
 
     @contextlib.contextmanager
     def _setup_output_if_not_exists(self):

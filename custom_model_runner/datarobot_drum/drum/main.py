@@ -54,9 +54,49 @@ from datarobot_drum.runtime_parameters.runtime_parameters import (
 )
 
 
-def main():
-    with DrumRuntime() as runtime:
+def main(flask_app=None, worker_ctx=None):
+    """
+    The main entry point for the custom model runner.
+
+    This function initializes the runtime environment, sets up logging, handles
+    signal interruptions, and starts the CMRunner for executing user-defined models.
+
+    Args:
+        flask_app: Optional[Flask] Flask application instance, used when running using command line.
+        worker_ctx: Optional gunicorn worker context (WorkerCtx), used for managing cleanup tasks in a
+                    multi-worker setup (e.g., Gunicorn).
+
+    Returns:
+        None
+    """
+    with DrumRuntime(flask_app) as runtime:
         config_logging()
+
+        if worker_ctx:
+            # Perform cleanup specific to the Gunicorn worker being terminated.
+            # Gunicorn spawns multiple worker processes to handle requests. Each worker has its own context,
+            # and this ensures that only the resources associated with the current worker are released.
+            # defer_cleanup simply saves methods to be executed during worker restart or shutdown.
+            # More details in https://github.com/datarobot/datarobot-custom-templates/pull/419
+            if runtime.options and RunMode(runtime.options.subparser_name) == RunMode.SERVER:
+                if runtime.cm_runner:
+                    worker_ctx.defer_cleanup(
+                        lambda: runtime.cm_runner.terminate(), desc="runtime.cm_runner.terminate()"
+                    )
+            if runtime.trace_provider is not None:
+                worker_ctx.defer_cleanup(
+                    lambda: runtime.trace_provider.shutdown(),
+                    desc="runtime.trace_provider.shutdown()",
+                )
+            if runtime.metric_provider is not None:
+                worker_ctx.defer_cleanup(
+                    lambda: runtime.metric_provider.shutdown(),
+                    desc="runtime.metric_provider.shutdown()",
+                )
+            if runtime.log_provider is not None:
+                worker_ctx.defer_cleanup(
+                    lambda: runtime.log_provider.shutdown(), desc="runtime.log_provider.shutdown()"
+                )
 
         def signal_handler(sig, frame):
             # The signal is assigned so the stacktrace is not presented when Ctrl-C is pressed.
@@ -89,13 +129,14 @@ def main():
         runtime.metric_provider = metric_provider
         runtime.log_provider = log_provider
 
-        signal.signal(signal.SIGINT, signal_handler)
-        signal.signal(signal.SIGTERM, signal_handler)
+        if worker_ctx is None:
+            signal.signal(signal.SIGINT, signal_handler)
+            signal.signal(signal.SIGTERM, signal_handler)
 
         from datarobot_drum.drum.drum import CMRunner
 
         try:
-            runtime.cm_runner = CMRunner(runtime)
+            runtime.cm_runner = CMRunner(runtime, flask_app, worker_ctx)
             runtime.cm_runner.run()
         except DrumSchemaValidationException:
             sys.exit(ExitCodes.SCHEMA_VALIDATION_ERROR.value)

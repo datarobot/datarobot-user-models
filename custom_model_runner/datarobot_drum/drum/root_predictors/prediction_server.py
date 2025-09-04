@@ -68,8 +68,11 @@ class TimeoutWSGIRequestHandler(WSGIRequestHandler):
 
 
 class PredictionServer(PredictMixin):
-    def __init__(self, params: dict):
+    def __init__(self, params: dict, flask_app=None):
         self._params = params
+        self.flask_app = (
+            flask_app  # This is the Flask app object, used when running the application via CLI
+        )
         self._show_perf = self._params.get("show_perf")
         self._resource_monitor = ResourceMonitor(monitor_current_process=True)
         self._run_language = RunLanguage(params.get("run_language"))
@@ -310,7 +313,7 @@ class PredictionServer(PredictMixin):
         cli = sys.modules["flask.cli"]
         cli.show_server_banner = lambda *x: None
 
-        app = get_flask_app(model_api)
+        app = get_flask_app(model_api, self.flask_app)
         self.load_flask_extensions(app)
         self._run_flask_app(app)
 
@@ -318,6 +321,19 @@ class PredictionServer(PredictMixin):
             self._stats_collector.print_reports()
 
         return []
+
+    def is_client_request_timeout_enabled(self):
+        if (
+            RuntimeParameters.has("DRUM_CLIENT_REQUEST_TIMEOUT")
+            and int(RuntimeParameters.get("DRUM_CLIENT_REQUEST_TIMEOUT")) > 0
+        ):
+            logger.info(
+                "Client request timeout is enabled, timeout: %s",
+                str(int(TimeoutWSGIRequestHandler.timeout)),
+            )
+            return True
+        else:
+            return False
 
     def _run_flask_app(self, app):
         host = self._params.get("host", None)
@@ -328,30 +344,34 @@ class PredictionServer(PredictMixin):
             processes = self._params.get("processes")
             logger.info("Number of webserver processes: %s", processes)
         try:
-            if RuntimeParameters.has("USE_NIM_WATCHDOG") and str(
-                RuntimeParameters.get("USE_NIM_WATCHDOG")
-            ).lower() in ["true", "1", "yes"]:
-                # Start the watchdog thread before running the app
-                self._server_watchdog = Thread(
-                    target=self.watchdog,
-                    args=(port,),
-                    daemon=True,
-                    name="NIM Sidecar Watchdog",
-                )
-                self._server_watchdog.start()
+            if self.flask_app:
+                # when running application via the command line (e.g., gunicorn worker)
+                pass
+            else:
+                if RuntimeParameters.has("USE_NIM_WATCHDOG") and str(
+                    RuntimeParameters.get("USE_NIM_WATCHDOG")
+                ).lower() in ["true", "1", "yes"]:
+                    # Start the watchdog thread before running the app
+                    self._server_watchdog = Thread(
+                        target=self.watchdog,
+                        args=(port,),
+                        daemon=True,
+                        name="NIM Sidecar Watchdog",
+                    )
+                    self._server_watchdog.start()
 
-            # Configure the server with timeout settings
-            app.run(
-                host=host,
-                port=port,
-                threaded=False,
-                processes=processes,
-                **(
-                    {"request_handler": TimeoutWSGIRequestHandler}
-                    if RuntimeParameters.has("DRUM_CLIENT_REQUEST_TIMEOUT")
-                    else {}
-                ),
-            )
+                # Configure the server with timeout settings
+                app.run(
+                    host=host,
+                    port=port,
+                    threaded=False,
+                    processes=processes,
+                    **(
+                        {"request_handler": TimeoutWSGIRequestHandler}
+                        if self.is_client_request_timeout_enabled()
+                        else {}
+                    ),
+                )
         except OSError as e:
             raise DrumCommonException("{}: host: {}; port: {}".format(e, host, port))
 
