@@ -57,7 +57,7 @@ dataclasses-json==0.6.7
 datarobot[auth]==3.8.2
 datarobot-drum==1.16.22
 datarobot-mlops==11.1.0
-datarobot-moderations==11.2.2
+datarobot-moderations==11.2.3
 datarobot-predict==1.13.2
 datarobot-storage==2.2.0
 datasets==3.6.0
