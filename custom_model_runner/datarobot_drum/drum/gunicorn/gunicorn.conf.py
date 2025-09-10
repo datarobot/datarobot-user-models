@@ -61,9 +61,10 @@ if RuntimeParameters.has("DRUM_GUNICORN_LOG_LEVEL"):
         loglevel = temp_loglevel
 
 bind = os.environ.get("ADDRESS", "0.0.0.0:8080")
-#loglevel = "info"
+# loglevel = "info"
 accesslog = "-"
 access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
+
 
 def post_worker_init(worker):
     from datarobot_drum.drum.gunicorn.app import app, set_worker_ctx
@@ -84,11 +85,12 @@ def post_worker_init(worker):
     # Force single worker resources inside each gunicorn worker
     os.environ["MAX_WORKERS"] = "1"
     if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
-        os.environ.pop('MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS', None)
+        os.environ.pop("MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS", None)
 
     ctx = create_ctx(app)
     set_worker_ctx(ctx)
     ctx.start()
+
 
 def worker_exit(worker, code):
     """

@@ -1,6 +1,7 @@
 import threading
 from typing import Callable, Any, List, Tuple, Optional
 
+
 class WorkerCtx:
     """
     Context of a single gunicorn worker:
@@ -9,6 +10,7 @@ class WorkerCtx:
     - .cleanup() — close resources (DB/clients) in the correct order
     - add_* methods for registering objects/callbacks for stopping/cleaning up
     """
+
     def __init__(self, app):
         self.app = app
         self._running = False
@@ -17,7 +19,9 @@ class WorkerCtx:
         self._on_stop: List[Tuple[int, Callable[[], None], str]] = []
         self._on_cleanup: List[Tuple[int, Callable[[], None], str]] = []
 
-    def add_thread(self, t: threading.Thread, *, join_timeout: float = 2.0, name: Optional[str]=None):
+    def add_thread(
+        self, t: threading.Thread, *, join_timeout: float = 2.0, name: Optional[str] = None
+    ):
         """
         Adds a thread to the worker context and registers it for graceful stopping.
 
@@ -28,12 +32,14 @@ class WorkerCtx:
         """
         t.daemon = True
         self._threads.append(t)
+
         def _join():
             if t.is_alive():
                 t.join(join_timeout)
+
         self.defer_stop(_join, desc=name or f"thread:{id(t)}")
 
-    def add_greenlet(self, g, *, kill_timeout: float = 2.0, name: Optional[str]=None):
+    def add_greenlet(self, g, *, kill_timeout: float = 2.0, name: Optional[str] = None):
         """
         Adds a greenlet to the worker context and registers it for graceful stopping.
 
@@ -43,14 +49,18 @@ class WorkerCtx:
             name (Optional[str], optional): A descriptive name for the greenlet. Defaults to None.
         """
         self._greenlets.append(g)
+
         def _kill():
             try:
                 g.kill(block=True, timeout=kill_timeout)
             except Exception:
                 pass
+
         self.defer_stop(_kill, desc=name or f"greenlet:{id(g)}")
 
-    def add_closeable(self, obj: Any, method: str = "close", *, order: int = 0, desc: Optional[str]=None):
+    def add_closeable(
+        self, obj: Any, method: str = "close", *, order: int = 0, desc: Optional[str] = None
+    ):
         """
         Registers an object to be closed using a specified method (e.g., close/quit/disconnect/shutdown) during cleanup (after stop).
 
@@ -91,6 +101,7 @@ class WorkerCtx:
                 loop = None
 
             if loop and loop.is_running():
+
                 def handle_task_result(task):
                     try:
                         task.result()  # retrieve exception if any
@@ -108,6 +119,7 @@ class WorkerCtx:
         otel_utils.run_async = fixed_run_async
 
         from datarobot_drum.drum.main import main
+
         main(self.app, self)
 
     def stop(self):
@@ -144,6 +156,7 @@ class WorkerCtx:
 
     def running(self) -> bool:
         return self._running
+
 
 def create_ctx(app):
     """
