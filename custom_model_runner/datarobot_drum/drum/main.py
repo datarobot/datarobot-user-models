@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+from flask import Flask
 from datarobot_drum.drum.gunicorn.context import WorkerCtx
 
 #!/usr/bin/env python3
@@ -53,7 +54,7 @@ from datarobot_drum.runtime_parameters.runtime_parameters import (
 )
 
 
-def main(flask_app=None, worker_ctx: WorkerCtx = None):
+def main(flask_app:Flask=None, worker_ctx: WorkerCtx = None):
     """
     The main entry point for the custom model runner.
 

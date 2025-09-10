@@ -70,17 +70,7 @@ def post_worker_init(worker):
     from datarobot_drum.drum.gunicorn.app import app, set_worker_ctx
     from datarobot_drum.drum.gunicorn.context import create_ctx
     import sys, shlex
-
-    # Build synthetic argv for DRUM so argparse sees a proper subcommand
-    argv = []
-
-    # Allow passing extra DRUM args via env var, e.g.:
-    #   export DRUM_GUNICORN_DRUM_ARGS="--sidecar --gpu-predictor=nim --logging-level=info"
-    extra = os.environ.get("DRUM_GUNICORN_DRUM_ARGS")
-    if extra:
-        argv.extend(shlex.split(extra))
-
-    sys.argv = argv
+    sys.argv = shlex.split(os.environ.get("DRUM_GUNICORN_DRUM_ARGS"))
 
     # Force single worker resources inside each gunicorn worker
     os.environ["MAX_WORKERS"] = "1"
