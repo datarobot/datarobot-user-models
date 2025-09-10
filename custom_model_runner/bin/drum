@@ -1,12 +1,6 @@
 #!/usr/bin/env python3
 # PYTHON_ARGCOMPLETE_OK
-
-from datarobot_drum.drum.gunicorn.run_gunicorn import main_gunicorn
-from datarobot_drum.drum.main import main
-from datarobot_drum import RuntimeParameters
+from datarobot_drum.drum.entry_point import run_drum_server
 
 if __name__ == "__main__":
-    if RuntimeParameters.has("DRUM_SERVER_TYPE") and str(RuntimeParameters.get("DRUM_SERVER_TYPE")).lower() in {"gunicorn"}:
-        main_gunicorn()
-    else:
-        main()
+    run_drum_server()
