@@ -70,6 +70,7 @@ def post_worker_init(worker):
     from datarobot_drum.drum.gunicorn.app import app, set_worker_ctx
     from datarobot_drum.drum.gunicorn.context import create_ctx
     import sys, shlex
+
     sys.argv = shlex.split(os.environ.get("DRUM_GUNICORN_DRUM_ARGS"))
 
     # Force single worker resources inside each gunicorn worker

@@ -54,7 +54,7 @@ from datarobot_drum.runtime_parameters.runtime_parameters import (
 )
 
 
-def main(flask_app:Flask=None, worker_ctx: WorkerCtx = None):
+def main(flask_app: Flask = None, worker_ctx: WorkerCtx = None):
     """
     The main entry point for the custom model runner.
 
