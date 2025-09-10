@@ -73,13 +73,14 @@ access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"
 
 
 def post_worker_init(worker):
-    from datarobot_drum.drum.gunicorn.app import app, set_worker_ctx
+    from app import app, set_worker_ctx
     from datarobot_drum.drum.gunicorn.context import create_ctx
     import sys, shlex
 
-    sys.argv = shlex.split(os.environ.get("DRUM_GUNICORN_DRUM_ARGS"))
+    args = ["drum"]
+    args.extend(shlex.split(os.environ.get("DRUM_GUNICORN_DRUM_ARGS"))[1:])
+    sys.argv = args
 
-    # Force single worker resources inside each gunicorn worker
     os.environ["MAX_WORKERS"] = "1"
     if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
         os.environ.pop("MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS", None)
@@ -111,7 +112,7 @@ def worker_exit(worker, code):
         worker: The Gunicorn worker instance being terminated.
         code: The exit code for the worker.
     """
-    from datarobot_drum.drum.gunicorn.app import get_worker_ctx
+    from app import get_worker_ctx
 
     ctx = get_worker_ctx()
     if ctx:
