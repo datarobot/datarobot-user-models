@@ -6,7 +6,7 @@ from datarobot_drum import RuntimeParameters
 def run_drum_server():
     if RuntimeParameters.has("DRUM_SERVER_TYPE") and str(
         RuntimeParameters.get("DRUM_SERVER_TYPE")
-    ).lower() in {"gunicorn"}:
+    ).lower() == "gunicorn":
         main_gunicorn()
     else:
         main()
