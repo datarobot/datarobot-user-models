@@ -2,11 +2,17 @@
 import os
 from datarobot_drum import RuntimeParameters
 
-workers = 10
-if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
+workers = 1
+if RuntimeParameters.has("CUSTOM_MODEL_WORKERS") or os.environ.get("MAX_WORKERS"):
     temp_workers = int(RuntimeParameters.get("CUSTOM_MODEL_WORKERS"))
     if 0 < temp_workers < 200:
         workers = temp_workers
+elif os.environ.get("MAX_WORKERS"):
+    temp_workers = int(os.environ.get("MAX_WORKERS"))
+    if 0 < temp_workers < 200:
+        workers = temp_workers
+else:
+    pass
 
 backlog = 2048
 if RuntimeParameters.has("DRUM_WEBSERVER_BACKLOG"):
