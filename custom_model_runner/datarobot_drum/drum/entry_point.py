@@ -3,7 +3,7 @@ from datarobot_drum.drum.main import main
 from datarobot_drum import RuntimeParameters
 
 
-def main_selector():
+def run_drum_server():
     if RuntimeParameters.has("DRUM_SERVER_TYPE") and str(
         RuntimeParameters.get("DRUM_SERVER_TYPE")
     ).lower() in {"gunicorn"}:
@@ -13,4 +13,4 @@ def main_selector():
 
 
 if __name__ == "__main__":
-    main_selector()
+    run_drum_server()
