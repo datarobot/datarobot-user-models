@@ -68,15 +68,23 @@ access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"
 def post_worker_init(worker):
     from datarobot_drum.drum.gunicorn.app import app, set_worker_ctx
     from datarobot_drum.drum.gunicorn.context import create_ctx
-    '''import sys
+    import sys, shlex
 
-    sys.argv = [
-        "drum", "server",  # Program name
-        "--sidecar", "--gpu-predictor=nim", "--logging-level=info"
-    ]'''
+    # Build synthetic argv for DRUM so argparse sees a proper subcommand
+    argv = []
+
+    # Allow passing extra DRUM args via env var, e.g.:
+    #   export DRUM_GUNICORN_DRUM_ARGS="--sidecar --gpu-predictor=nim --logging-level=info"
+    extra = os.environ.get("DRUM_GUNICORN_DRUM_ARGS")
+    if extra:
+        argv.extend(shlex.split(extra))
+
+    sys.argv = argv
+
+    # Force single worker resources inside each gunicorn worker
     os.environ["MAX_WORKERS"] = "1"
     if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
-        del os.environ['MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS'] # to avoid conflict with MAX_WORKERS=1
+        os.environ.pop('MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS', None)
 
     ctx = create_ctx(app)
     set_worker_ctx(ctx)
