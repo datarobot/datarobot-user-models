@@ -3,7 +3,7 @@ import os
 from datarobot_drum import RuntimeParameters
 
 workers = 1
-if RuntimeParameters.has("CUSTOM_MODEL_WORKERS") or os.environ.get("MAX_WORKERS"):
+if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
     temp_workers = int(RuntimeParameters.get("CUSTOM_MODEL_WORKERS"))
     if 0 < temp_workers < 200:
         workers = temp_workers
