@@ -21,6 +21,8 @@ termcolor
 packaging
 markupsafe
 pydantic
+gevent
+gunicorn
 datarobot-storage
 datarobot-mlops>=11.1.0a3  # Required for the 'set_api_spooler' with arugments
 datarobot>=3.1.0,<4
