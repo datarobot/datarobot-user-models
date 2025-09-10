@@ -77,9 +77,7 @@ def post_worker_init(worker):
     from datarobot_drum.drum.gunicorn.context import create_ctx
     import sys, shlex
 
-    args = ["drum"]
-    args.extend(shlex.split(os.environ.get("DRUM_GUNICORN_DRUM_ARGS"))[1:])
-    sys.argv = args
+    sys.argv = shlex.split(os.environ.get("DRUM_GUNICORN_DRUM_ARGS"))
 
     os.environ["MAX_WORKERS"] = "1"
     if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
