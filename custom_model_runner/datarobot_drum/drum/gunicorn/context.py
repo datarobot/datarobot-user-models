@@ -1,5 +1,10 @@
+import logging
 import threading
 from typing import Callable, Any, List, Tuple, Optional
+
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
+
+logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 
 class WorkerCtx:
@@ -107,7 +112,7 @@ class WorkerCtx:
                         task.result()  # retrieve exception if any
                     except Exception as e:
                         # Log or handle exceptions here if needed
-                        print(f"OpenTelemetry async task error: {e}")
+                        logger.error("OpenTelemetry async task error")
 
                 # Schedule the coroutine safely and add done callback to handle errors
                 task = loop.create_task(method)
@@ -149,10 +154,10 @@ class WorkerCtx:
         """
         for _, fn, desc in sorted(self._on_cleanup, key=lambda x: x[0], reverse=True):
             try:
-                print(f"WorkerCtx cleanup: {desc}")
+                logger.info("WorkerCtx cleanup: %s", desc)
                 fn()
             except Exception as e:
-                print(f"Tracing shutdown failed: {e}")
+                logger.error("Tracing shutdown failed: %s", e)
 
     def running(self) -> bool:
         return self._running

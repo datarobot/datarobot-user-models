@@ -1,8 +1,13 @@
+import logging
 import subprocess
 from pathlib import Path
 import sys
 import os
 import shlex
+
+from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
+
+logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 
 def main_gunicorn():
@@ -35,10 +40,10 @@ def main_gunicorn():
     try:
         subprocess.run(gunicorn_command, cwd=base_dir, check=True)
     except FileNotFoundError:
-        print("gunicorn module not found. Ensure it is installed.", file=sys.stderr)
+        logger.error("gunicorn module not found. Ensure it is installed.")
         raise
     except subprocess.CalledProcessError as e:
-        print(f"Gunicorn exited with non-zero status {e.returncode}", file=sys.stderr)
+        logger.error("Gunicorn exited with non-zero status %s", e.returncode)
         raise
 
 
