@@ -97,31 +97,37 @@ class WorkerCtx:
 
         # fix RuntimeError: asyncio.run() cannot be called from a running event loop
         import asyncio
-        import opentelemetry.instrumentation.openai.utils as otel_utils
 
-        def fixed_run_async(method):
-            try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                loop = None
+        try:
+            import opentelemetry.instrumentation.openai.utils as otel_utils
+        except ImportError:
+            otel_utils = None
 
-            if loop and loop.is_running():
+        if otel_utils:
 
-                def handle_task_result(task):
-                    try:
-                        task.result()  # retrieve exception if any
-                    except Exception as e:
-                        # Log or handle exceptions here if needed
-                        logger.error("OpenTelemetry async task error")
+            def fixed_run_async(method):
+                try:
+                    loop = asyncio.get_running_loop()
+                except RuntimeError:
+                    loop = None
 
-                # Schedule the coroutine safely and add done callback to handle errors
-                task = loop.create_task(method)
-                task.add_done_callback(handle_task_result)
-            else:
-                asyncio.run(method)
+                if loop and loop.is_running():
 
-        # Apply monkey patch
-        otel_utils.run_async = fixed_run_async
+                    def handle_task_result(task):
+                        try:
+                            task.result()  # retrieve exception if any
+                        except Exception:
+                            # Log or handle exceptions here if needed
+                            logger.error("OpenTelemetry async task error")
+
+                    # Schedule the coroutine safely and add done callback to handle errors
+                    task = loop.create_task(method)
+                    task.add_done_callback(handle_task_result)
+                else:
+                    asyncio.run(method)
+
+            # Apply monkey patch
+            otel_utils.run_async = fixed_run_async
 
         from datarobot_drum.drum.main import main
 
