@@ -5,6 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 
+import os
 import sys
 
 from datarobot_drum import RuntimeParameters
@@ -47,6 +48,11 @@ def setup_options(args=None):
     CMRunnerArgsRegistry.extend_sys_argv_with_env_vars()
 
     options = arg_parser.parse_args(args)
+
+    # Override env var from CLI parameter.
+    # Now only ADDRESS is supported.
+    if getattr(options, "address", None):
+        os.environ["ADDRESS"] = options.address
 
     """Set max workers from runtime parameters if available."""
     if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):

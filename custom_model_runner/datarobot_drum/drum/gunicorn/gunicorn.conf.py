@@ -66,7 +66,7 @@ if RuntimeParameters.has("DRUM_GUNICORN_LOG_LEVEL"):
     if temp_loglevel in {"debug", "info", "warning", "error", "critical"}:
         loglevel = temp_loglevel
 
-bind = os.environ.get("ADDRESS", "0.0.0.0:8080")
+bind = os.environ["ADDRESS"]
 # loglevel = "info"
 accesslog = "-"
 access_log_format = '%(h)s %(l)s %(u)s %(t)s "%(r)s" %(s)s %(b)s "%(f)s" "%(a)s"'
