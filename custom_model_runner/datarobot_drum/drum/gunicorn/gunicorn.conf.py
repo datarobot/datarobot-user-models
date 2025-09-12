@@ -44,7 +44,7 @@ if RuntimeParameters.has("DRUM_WORKER_CONNECTIONS"):
     if 1 <= temp_worker_connections <= 10000:
         worker_connections = temp_worker_connections
 
-worker_class = "gevent"
+worker_class = "sync"
 if RuntimeParameters.has("DRUM_GUNICORN_WORKER_CLASS"):
     temp_worker_class = str(RuntimeParameters.get("DRUM_GUNICORN_WORKER_CLASS")).lower()
     if temp_worker_class in {"sync", "gevent"}:
