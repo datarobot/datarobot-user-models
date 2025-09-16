@@ -246,7 +246,7 @@ def custom_unstructured_tool_with_schema_in_yaml():
 
 
 @pytest.fixture
-def custom_unstructured_tool_with_invalid_schema():
+def custom_unstructured_tool_with_invalid_schema1():
     return dedent(
         """
         name: "[Tool] Get Data Registry Dataset"
@@ -264,6 +264,30 @@ def custom_unstructured_tool_with_invalid_schema():
             dataset_id:
               title: Dataset ID
               type: string
+          required:
+            - dataset_id
+        """
+    )
+
+
+@pytest.fixture
+def custom_unstructured_tool_with_invalid_schema2():
+    return dedent(
+        """
+        name: "[Tool] Get Data Registry Dataset"
+        description: |
+          Fetches a dataset from the DataRobot Data Registry.
+
+        type: inference
+        environmentID: 64d2ba178dd3f0b1fa2162f0
+        targetType: unstructured
+        inferenceModel:
+          targetName: target
+        inputSchema:
+          type: object
+          properties:
+            - list-instead-of-dict
+            - another-item
           required:
             - dataset_id
         """

@@ -1213,10 +1213,11 @@ def test_validate_model_metadata_output_requirements_r():
         ("inference_binary_metadata_no_label", 2),
         ("inference_multiclass_metadata_yaml_no_labels", 3),
         ("inference_multiclass_metadata_yaml_labels_and_label_file", 4),
+        ("custom_unstructured_tool_with_invalid_schema1", 5),
+        ("custom_unstructured_tool_with_invalid_schema2", 6),
         ("inference_multiclass_metadata_yaml", 100),
         ("inference_multiclass_metadata_yaml_label_file", 100),
         ("custom_unstructured_tool_with_schema_in_yaml", 100),
-        ("custom_unstructured_tool_with_invalid_schema", 100),
     ],
 )
 def test_yaml_metadata_missing_fields(tmp_path, config_yaml, request, test_case_number):
@@ -1248,6 +1249,18 @@ def test_yaml_metadata_missing_fields(tmp_path, config_yaml, request, test_case_
         with pytest.raises(
             DrumCommonException,
             match="Error - for multiclass classification, either the class labels or a class labels file should be provided in model-metadata.yaml file, but not both",
+        ):
+            read_model_metadata_yaml(tmp_path)
+    elif test_case_number == 5:
+        with pytest.raises(
+            DrumCommonException,
+            match="Error creating pydantic model from input schema: Only 'object' type schemas are supported, got ",
+        ):
+            read_model_metadata_yaml(tmp_path)
+    elif test_case_number == 6:
+        with pytest.raises(
+            DrumCommonException,
+            match="Error creating pydantic model from input schema: 'properties' must be a dictionary, got ",
         ):
             read_model_metadata_yaml(tmp_path)
     elif test_case_number == 100:
