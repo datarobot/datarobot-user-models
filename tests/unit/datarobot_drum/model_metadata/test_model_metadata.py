@@ -16,7 +16,7 @@ from typing import List, Union, Optional
 import pytest
 import numpy as np
 import pandas as pd
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from scipy import sparse
 import yaml
 from strictyaml import load, YAMLValidationError
@@ -1034,9 +1034,16 @@ class TestReadModelMetadata:
 
     @pytest.fixture
     def metadata_with_pydantic_schema(self, minimal_training_metadata):
+        """An example of using a pydantic model to generate the input schema
+        with rich annotations, which are common practices when defining pydantic
+        models for automated processing using LLMs.
+        """
+
         class ExampleSchema(BaseModel):
-            foo: int
-            bar: str
+            foo: int = Field(..., description="A foo field")
+            bar: str = Field(
+                "bar-value", title="The bar field", description="The bar field with a default value"
+            )
             baz: Optional[bool] = None
 
         minimal_training_metadata["inputSchema"] = ExampleSchema.model_json_schema()
