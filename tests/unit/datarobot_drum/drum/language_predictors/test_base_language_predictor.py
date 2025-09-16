@@ -123,7 +123,7 @@ class TestBaseLanguagePredictor:
 
     @pytest.fixture
     def mock_dr_client(self):
-        with patch.object(dr, "Client") as _:
+        with patch.object(dr, "Client") as m:
             yield
 
     def test_mlops_init(self, language_predictor_with_mlops, mock_mlops):
@@ -271,7 +271,10 @@ class TestChat(TestBaseLanguagePredictor):
             mock_chat.assert_called_once_with(ANY, association_id)
             hasattr(completion, "datarobot_association_id")
 
-    def test_prompt_column_name(self, chat_python_model_adapter, mock_mlops, mock_dr_client):
+    @pytest.mark.parametrize("row_storage_enabled", [False, True])
+    def test_prompt_column_name(
+        self, chat_python_model_adapter, mock_mlops, mock_dr_client, row_storage_enabled
+    ):
         language_predictor = TestLanguagePredictor()
         language_predictor_with_mlops_params = (
             self._language_predictor_with_mlops_params_dr_api_access()
@@ -282,6 +285,13 @@ class TestChat(TestBaseLanguagePredictor):
             deployment_instance.return_value.get_champion_model_package.return_value = Mock()
             mock_deployment.get.return_value = deployment_instance
 
+            deployment_instance.get_drift_tracking_settings.return_value = {
+                "target_drift": {"enabled": False},
+                "feature_drift": {"enabled": False},
+            }
+            deployment_instance.get_predictions_data_collection_settings.return_value = {
+                "enabled": row_storage_enabled
+            }
             language_predictor.configure(language_predictor_with_mlops_params)
 
         def chat_hook(completion_request):
@@ -298,16 +308,19 @@ class TestChat(TestBaseLanguagePredictor):
             }
         )
 
-        mock_mlops.report_predictions_data.assert_called_once_with(
-            ANY,
-            ["How are you"],
-            association_ids=ANY,
-        )
-        # Compare features dataframe separately as this doesn't play nice with assert_called
-        assert (
-            mock_mlops.report_predictions_data.call_args.args[0]["newPromptName"].values[0]
-            == "Hello!"
-        )
+        if row_storage_enabled:
+            mock_mlops.report_predictions_data.assert_called_once_with(
+                ANY,
+                ["How are you"],
+                association_ids=ANY,
+            )
+            # Compare features dataframe separately as this doesn't play nice with assert_called
+            assert (
+                mock_mlops.report_predictions_data.call_args.args[0]["newPromptName"].values[0]
+                == "Hello!"
+            )
+        else:
+            mock_mlops.report_predictions_data.assert_not_called()
 
     @pytest.mark.parametrize("stream", [False, True])
     def test_failing_hook_with_mlops(self, language_predictor_with_mlops, mock_mlops, stream):
