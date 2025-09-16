@@ -228,13 +228,16 @@ def custom_unstructured_tool_with_schema_in_yaml():
           properties:
             dataset_id:
               title: Dataset ID
+              description: The ID of the dataset to fetch from the Data Registry.
               type: string
             offset:
               title: Offset
+              description: The number of rows to skip before starting to return rows. Default is 0.
               type: integer
               default: 0
             limit:
-              title: Limit
+              title: Limit of rows
+              description: The maximum number of rows to return. If not specified, all rows will be returned.
               anyOf:
                 - type: integer
                 - type: null
