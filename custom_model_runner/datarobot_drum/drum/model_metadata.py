@@ -358,5 +358,13 @@ MODEL_CONFIG_SCHEMA = Map(
             Map({"key": Str(), "valueFrom": Str(), Optional("reminder"): Str()})
         ),
         Optional(ModelMetadataKeys.LAZY_LOADING): Any(),
+        Optional(ModelMetadataKeys.INPUT_SCHEMA): Map(
+            {
+                Optional("title"): Str(),
+                "type": Str(),
+                "properties": Any(),
+                Optional("required"): Seq(Str()),
+            }
+        ),
     }
 )
