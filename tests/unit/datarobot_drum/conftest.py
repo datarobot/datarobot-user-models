@@ -210,6 +210,93 @@ def custom_predictor_metadata_yaml():
     )
 
 
+@pytest.fixture
+def custom_unstructured_tool_with_schema_in_yaml():
+    return dedent(
+        """
+        name: "[Tool] Get Data Registry Dataset"
+        description: |
+          Fetches a dataset from the DataRobot Data Registry.
+        
+        type: inference
+        environmentID: 64d2ba178dd3f0b1fa2162f0
+        targetType: unstructured
+        inferenceModel:
+          targetName: target
+        inputSchema:
+          type: object
+          properties:
+            dataset_id:
+              title: Dataset ID
+              description: The ID of the dataset to fetch from the Data Registry.
+              type: string
+            offset:
+              title: Offset
+              description: The number of rows to skip before starting to return rows. Default is 0.
+              type: integer
+              default: 0
+            limit:
+              title: Limit of rows
+              description: The maximum number of rows to return. If not specified, all rows will be returned.
+              anyOf:
+                - type: integer
+                - type: null
+              default: null
+          required:
+            - dataset_id
+        """
+    )
+
+
+@pytest.fixture
+def custom_unstructured_tool_with_invalid_schema1():
+    return dedent(
+        """
+        name: "[Tool] Get Data Registry Dataset"
+        description: |
+          Fetches a dataset from the DataRobot Data Registry.
+
+        type: inference
+        environmentID: 64d2ba178dd3f0b1fa2162f0
+        targetType: unstructured
+        inferenceModel:
+          targetName: target
+        inputSchema:
+          type: unexpected
+          properties:
+            dataset_id:
+              title: Dataset ID
+              type: string
+          required:
+            - dataset_id
+        """
+    )
+
+
+@pytest.fixture
+def custom_unstructured_tool_with_invalid_schema2():
+    return dedent(
+        """
+        name: "[Tool] Get Data Registry Dataset"
+        description: |
+          Fetches a dataset from the DataRobot Data Registry.
+
+        type: inference
+        environmentID: 64d2ba178dd3f0b1fa2162f0
+        targetType: unstructured
+        inferenceModel:
+          targetName: target
+        inputSchema:
+          type: object
+          properties:
+            - list-instead-of-dict
+            - another-item
+          required:
+            - dataset_id
+        """
+    )
+
+
 ###############################################################################
 # HELPER FUNCS
 

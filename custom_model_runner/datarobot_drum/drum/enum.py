@@ -442,6 +442,7 @@ class ModelMetadataKeys(object):
     TRAINING_MODEL = "trainingModel"
     HYPERPARAMETERS = "hyperparameters"
     VALIDATION_SCHEMA = "typeSchema"
+    INPUT_SCHEMA = "inputSchema"
     # customPredictor section is not used by DRUM,
     # it is a place holder if user wants to add some fields and read them on his own
     CUSTOM_PREDICTOR = "customPredictor"

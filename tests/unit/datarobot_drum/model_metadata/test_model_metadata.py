@@ -11,11 +11,12 @@ from pathlib import Path
 from random import sample
 from tempfile import TemporaryDirectory
 from textwrap import dedent
-from typing import List, Union
+from typing import List, Union, Optional
 
 import pytest
 import numpy as np
 import pandas as pd
+from pydantic import BaseModel, Field
 from scipy import sparse
 import yaml
 from strictyaml import load, YAMLValidationError
@@ -1001,6 +1002,16 @@ def model_metadata_file_factory():
         yield _inner
 
 
+def normalize_schema(obj):
+    if isinstance(obj, dict):
+        return {k: normalize_schema(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [normalize_schema(v) for v in obj]
+    if obj == "null" or obj == "None":
+        return None
+    return obj
+
+
 class TestReadModelMetadata:
     @pytest.fixture
     def minimal_training_metadata(self, environment_id):
@@ -1010,12 +1021,45 @@ class TestReadModelMetadata:
             "targetType": "regression",
             "environmentID": environment_id,
             "validation": {"input": "hello"},
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "foo": {"type": "integer", "default": "42"},
+                    "bar": {"type": "string"},
+                    "baz": {"type": "boolean"},
+                },
+                "required": ["foo", "bar"],
+            },
         }
+
+    @pytest.fixture
+    def metadata_with_pydantic_schema(self, minimal_training_metadata):
+        """An example of using a pydantic model to generate the input schema
+        with rich annotations, which are common practices when defining pydantic
+        models for automated processing using LLMs.
+        """
+
+        class ExampleSchema(BaseModel):
+            foo: int = Field(..., description="A foo field")
+            bar: str = Field(
+                "bar-value", title="The bar field", description="The bar field with a default value"
+            )
+            baz: Optional[bool] = None
+
+        minimal_training_metadata["inputSchema"] = ExampleSchema.model_json_schema()
+        return minimal_training_metadata
 
     def test_minimal_data(self, model_metadata_file_factory, minimal_training_metadata):
         code_dir = model_metadata_file_factory(minimal_training_metadata)
         result = read_model_metadata_yaml(code_dir)
         assert result == minimal_training_metadata
+
+    def test_metadata_with_pydantic_schema(
+        self, model_metadata_file_factory, metadata_with_pydantic_schema
+    ):
+        code_dir = model_metadata_file_factory(metadata_with_pydantic_schema)
+        result = read_model_metadata_yaml(code_dir)
+        assert normalize_schema(result) == normalize_schema(metadata_with_pydantic_schema)
 
     def test_user_credential_specs(self, model_metadata_file_factory, minimal_training_metadata):
         credential_specs = [
@@ -1176,8 +1220,11 @@ def test_validate_model_metadata_output_requirements_r():
         ("inference_binary_metadata_no_label", 2),
         ("inference_multiclass_metadata_yaml_no_labels", 3),
         ("inference_multiclass_metadata_yaml_labels_and_label_file", 4),
+        ("custom_unstructured_tool_with_invalid_schema1", 5),
+        ("custom_unstructured_tool_with_invalid_schema2", 6),
         ("inference_multiclass_metadata_yaml", 100),
         ("inference_multiclass_metadata_yaml_label_file", 100),
+        ("custom_unstructured_tool_with_schema_in_yaml", 100),
     ],
 )
 def test_yaml_metadata_missing_fields(tmp_path, config_yaml, request, test_case_number):
@@ -1209,6 +1256,18 @@ def test_yaml_metadata_missing_fields(tmp_path, config_yaml, request, test_case_
         with pytest.raises(
             DrumCommonException,
             match="Error - for multiclass classification, either the class labels or a class labels file should be provided in model-metadata.yaml file, but not both",
+        ):
+            read_model_metadata_yaml(tmp_path)
+    elif test_case_number == 5:
+        with pytest.raises(
+            DrumCommonException,
+            match="Error creating pydantic model from input schema: Only 'object' type schemas are supported, got ",
+        ):
+            read_model_metadata_yaml(tmp_path)
+    elif test_case_number == 6:
+        with pytest.raises(
+            DrumCommonException,
+            match="Error creating pydantic model from input schema: 'properties' must be a dictionary, got ",
         ):
             read_model_metadata_yaml(tmp_path)
     elif test_case_number == 100:
