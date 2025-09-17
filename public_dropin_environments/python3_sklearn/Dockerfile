@@ -64,4 +64,4 @@ ENV WITH_ERROR_SERVER=1 \
 COPY ./*.sh ${CODE_DIR}/
 WORKDIR ${CODE_DIR}
 
-ENTRYPOINT ["sh", "-c", "exec ${CODE_DIR}/start_server.sh \"$@\"", "--"]
+ENTRYPOINT ["sh", "-c", "exec ${CODE_DIR}/start_sver.sh \"$@\"", "--"]
