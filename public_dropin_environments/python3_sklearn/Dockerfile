@@ -60,6 +60,11 @@ ENV ADDRESS=0.0.0.0:8080
 ENV WITH_ERROR_SERVER=1 \
     PYTHONUNBUFFERED=1
 
+# ENV MLOPS_RUNTIME_PARAM_DRUM_CLIENT_REQUEST_TIMEOUT='{"type": "numeric", "payload": 660}'
+
+# Gunicorn configuration
+ENV MLOPS_RUNTIME_PARAM_DRUM_SERVER_TYPE='{"type": "string", "payload": "gunicorn"}'
+
 
 COPY ./*.sh ${CODE_DIR}/
 WORKDIR ${CODE_DIR}
