@@ -14,8 +14,8 @@
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments/python3_onnx",
   "imageRepository": "env-python-onnx",
   "tags": [
-    "v11.2.0-68b7031b0066036c69004189",
-    "68b7031b0066036c69004189",
+    "v11.2.0-68ca61685fec395ef44ea228",
+    "68ca61685fec395ef44ea228",
     "v11.2.0-latest"
   ]
 }
