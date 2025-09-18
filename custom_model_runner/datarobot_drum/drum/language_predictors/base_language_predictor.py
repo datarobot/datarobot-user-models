@@ -104,6 +104,16 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         self._mlops = None
         self._schema_validator = None
         self._prompt_column_name = DEFAULT_PROMPT_COLUMN_NAME
+        self._deployment = None
+
+        self._tracking_settings = {
+            "target_drift": {"enabled": True},
+            "feature_drift": {"enabled": True},
+        }
+        self._data_collection = {"enabled": True}
+
+        self._settings_refresh_time = time.monotonic()
+        self._settings_refresh_interval = 60  # sec
 
     def configure(self, params):
         """
@@ -154,6 +164,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         if to_bool(self._params.get("allow_dr_api_access")):
             try:
                 self._deployment = dr.Deployment.get(deployment_id)
+                self._refresh_tracking_settings()
             except Exception as e:
                 logger.warning(f"Failed to get deployment info: {e}", exc_info=True)
 
@@ -171,6 +182,14 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             logger.debug("Prompt column name: %s", self._prompt_column_name)
 
         self._mlops.init()
+
+    def _refresh_tracking_settings(self):
+        deployment_id = self._params.get("deployment_id", None)
+        if to_bool(self._params.get("allow_dr_api_access")) and deployment_id is not None:
+            self._deployment = dr.Deployment.get(deployment_id)
+            self._tracking_settings = self._deployment.get_drift_tracking_settings()
+            self._data_collection = self._deployment.get_predictions_data_collection_settings()
+            self._settings_refresh_time = time.monotonic()
 
     def _configure_mlops(self):
         # If monitor_settings were provided (e.g. for testing) use them, otherwise we will
@@ -317,6 +336,16 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             )
         except DRCommonException:
             logger.exception("Failed to report deployment stats")
+
+        if self._deployment is not None:
+            if time.monotonic() - self._settings_refresh_time > self._settings_refresh_interval:
+                self._refresh_tracking_settings()
+
+        is_drift = self._tracking_settings["feature_drift"]["enabled"]
+        is_collection = self._data_collection["enabled"]
+
+        if not (is_drift or is_collection):
+            return
 
         prompt_content = completion_create_params["messages"][-1]["content"]
         if isinstance(prompt_content, str):
