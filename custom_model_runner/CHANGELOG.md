@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+#### [1.17.2] - 2025-09-22
+##### Fixed
+- Fixed MLOps agent data offloading to only occur when deployment has feature drift or prediction data collection tracing settings enabled. Settings are checked once per minute to prevent unnecessary error logging.
+- Fixed gunicorn to run only in server mode.
+
 #### [1.17.1] - 2025-09-12
 ##### Fixed
 - Otel OpenAI async monkey patching for gunicorn
