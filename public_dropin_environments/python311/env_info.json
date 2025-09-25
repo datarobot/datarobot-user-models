@@ -4,7 +4,7 @@
   "description": "This template environment can be used to create Python based custom models. User is responsible to provide requirements.txt with the model, to install all the required dependencies.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "68ca61685fec395ef44ea22a",
+  "environmentVersionId": "68d5754e0017c32aca001525",
   "environmentVersionDescription": "",
   "isPublic": true,
   "isDownloadable": true,
