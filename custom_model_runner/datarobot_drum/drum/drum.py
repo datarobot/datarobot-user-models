@@ -22,7 +22,6 @@ from typing import Callable, Optional
 from typing import Dict
 from typing import Union
 
-
 import docker.errors
 import pandas as pd
 
@@ -71,6 +70,8 @@ from datarobot_drum.profiler.stats_collector import StatsOperation
 from memory_profiler import memory_usage
 from progress.spinner import Spinner
 from scipy.io import mmwrite
+
+from datarobot_drum.drum.exceptions import UnrecoverableError
 
 SERVER_PIPELINE = "prediction_server_pipeline.json.j2"
 PREDICTOR_PIPELINE = "prediction_pipeline.json.j2"
@@ -475,6 +476,11 @@ class CMRunner:
                 if ret:
                     raise DrumCommonException("Error from docker process: {}".format(ret))
                 return
+        except UnrecoverableError as e:
+            self.logger.critical(
+                f"{e.__class__.__name__}: {e}. This is an unrecoverable error. Terminating process immediately."
+            )
+            os._exit(1)
         except DrumCommonException as e:
             self.logger.error(e)
             raise

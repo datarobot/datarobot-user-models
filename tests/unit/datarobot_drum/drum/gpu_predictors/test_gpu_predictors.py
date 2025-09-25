@@ -142,6 +142,31 @@ class TestNIMPredictor:
 
 
 class TestVLLMPredictor:
+    def test_download_and_serve_model_handles_malformed_json(
+        self, mocker, predictor_for_config_test
+    ):
+        """
+        In this code we just get if exception happen or not. I tried
+        with pytest.raises(UnrecoverableConfigurationError) as excinfo:
+            predictor_for_config_test.download_and_serve_model()
+        however as we have os._exit(1) in drum, it was stopping the code from proceeding
+        """
+        # Arrange
+        malformed_json_content = '{"args": ["--model", "test-model",]}'  # Trailing comma
+        vllm_module_path = "datarobot_drum.drum.gpu_predictors.vllm_predictor"
+
+        mocker.patch(f"{vllm_module_path}.Path.is_file", return_value=True)
+        mocker.patch(f"{vllm_module_path}.Path.read_text", return_value=malformed_json_content)
+
+        # Act & Assert
+        raise_type = ""
+        try:
+            predictor_for_config_test.download_and_serve_model()
+        except Exception as e:
+            # This will print the exact exception details to your console
+            raise_type = type(e).__name__
+        assert "UnrecoverableConfigurationError" in str(raise_type)
+
     def test_default_configuration(self):
         predictor = VllmPredictor()
         assert predictor.health_route == "/health"
