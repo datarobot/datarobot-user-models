@@ -1,2 +1,0 @@
-fastapi[All]==0.115.4
-psutil==5.9.8

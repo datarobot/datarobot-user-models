@@ -45,7 +45,7 @@ ENV PATH="$VENV_PATH/bin:$PATH" \
 
 # hadolint ignore=DL3013
 RUN uv venv ${VENV_PATH} && \
-    source ${VENV_PATH}/bin/activate && \
+    . ${VENV_PATH}/bin/activate && \
     uv pip install -U pip setuptools
 WORKDIR ${WORKDIR}
 
@@ -94,12 +94,10 @@ ARG WORKDIR
 ARG VENV_PATH
 
 COPY ./requirements.txt ${WORKDIR}/
-COPY ./agent/requirements-agent.txt ${WORKDIR}/
 
 # hadolint ignore=DL3013, SC1091
-RUN source ${VENV_PATH}/bin/activate && \
-    uv pip install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt && \
-    uv pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt && rm ${WORKDIR}/requirements-agent.txt
+RUN . ${VENV_PATH}/bin/activate && \
+    uv pip install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt
 
 # Copy agent runtime into work directory
 COPY ./run_agent.py ${WORKDIR}/
