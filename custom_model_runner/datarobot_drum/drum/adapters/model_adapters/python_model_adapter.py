@@ -17,6 +17,7 @@ from typing import NoReturn
 import numpy as np
 import pandas as pd
 from pandas.core.indexes.base import Index
+from scipy.sparse import issparse
 
 from datarobot_drum.drum.adapters.model_adapters.abstract_model_adapter import AbstractModelAdapter
 from datarobot_drum.drum.artifact_predictors.keras_predictor import KerasPredictor
