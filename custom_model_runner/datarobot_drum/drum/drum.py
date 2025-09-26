@@ -22,8 +22,8 @@ from typing import Callable, Optional
 from typing import Dict
 from typing import Union
 
-
 import docker.errors
+import pandas as pd
 
 from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
 from datarobot_drum.drum.adapters.model_adapters.abstract_model_adapter import AbstractModelAdapter
@@ -55,6 +55,8 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.exceptions import DrumPredException
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.perf_testing import CMRunTests
+from datarobot_drum.drum.push import drum_push
+from datarobot_drum.drum.push import setup_validation_options
 from datarobot_drum.drum.root_predictors.generic_predictor import GenericPredictorComponent
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
@@ -521,9 +523,6 @@ class CMRunner:
         elif self.run_mode == RunMode.NEW:
             self._generate_template()
         elif self.run_mode == RunMode.PUSH:
-            from datarobot_drum.drum.push import drum_push
-            from datarobot_drum.drum.push import setup_validation_options
-
             options, run_mode, raw_arguments = setup_validation_options(copy.deepcopy(self.options))
             validation_runner = CMRunner(self.runtime)
             validation_runner.options = options
@@ -838,7 +837,7 @@ class CMRunner:
         predictor = None
         try:
             from datarobot_drum.drum.root_predictors.prediction_server import PredictionServer
-            
+
             if stats_collector:
                 stats_collector.mark("start")
             predictor = (
@@ -898,7 +897,6 @@ class CMRunner:
                 with open(tmp_output_filename) as f:
                     print(f.read())
             else:
-                import pandas as pd
                 print(pd.read_csv(tmp_output_filename))
 
     def _prepare_docker_command(self, options, run_mode, raw_arguments) -> str:
