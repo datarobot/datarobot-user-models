@@ -24,7 +24,6 @@ from typing import Union
 
 
 import docker.errors
-import pandas as pd
 
 from datarobot_drum.drum.adapters.cli.drum_fit_adapter import DrumFitAdapter
 from datarobot_drum.drum.adapters.model_adapters.abstract_model_adapter import AbstractModelAdapter
@@ -56,10 +55,7 @@ from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.exceptions import DrumPredException
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.perf_testing import CMRunTests
-from datarobot_drum.drum.push import drum_push
-from datarobot_drum.drum.push import setup_validation_options
 from datarobot_drum.drum.root_predictors.generic_predictor import GenericPredictorComponent
-from datarobot_drum.drum.root_predictors.prediction_server import PredictionServer
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
@@ -68,7 +64,6 @@ from datarobot_drum.drum.utils.drum_utils import handle_missing_colnames
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from datarobot_drum.profiler.stats_collector import StatsCollector
 from datarobot_drum.profiler.stats_collector import StatsOperation
-from memory_profiler import memory_usage
 from progress.spinner import Spinner
 from scipy.io import mmwrite
 
@@ -526,6 +521,9 @@ class CMRunner:
         elif self.run_mode == RunMode.NEW:
             self._generate_template()
         elif self.run_mode == RunMode.PUSH:
+            from datarobot_drum.drum.push import drum_push
+            from datarobot_drum.drum.push import setup_validation_options
+
             options, run_mode, raw_arguments = setup_validation_options(copy.deepcopy(self.options))
             validation_runner = CMRunner(self.runtime)
             validation_runner.options = options
@@ -629,6 +627,8 @@ class CMRunner:
         fit_function = self._get_fit_function(cli_adapter=cli_adapter)
 
         print("Starting Fit")
+        from memory_profiler import memory_usage
+        
         fit_mem_usage = memory_usage(
             fit_function,
             interval=1,
@@ -837,6 +837,8 @@ class CMRunner:
         params = self.get_predictor_params()
         predictor = None
         try:
+            from datarobot_drum.drum.root_predictors.prediction_server import PredictionServer
+            
             if stats_collector:
                 stats_collector.mark("start")
             predictor = (
@@ -896,6 +898,7 @@ class CMRunner:
                 with open(tmp_output_filename) as f:
                     print(f.read())
             else:
+                import pandas as pd
                 print(pd.read_csv(tmp_output_filename))
 
     def _prepare_docker_command(self, options, run_mode, raw_arguments) -> str:

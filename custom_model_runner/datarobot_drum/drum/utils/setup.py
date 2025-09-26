@@ -9,7 +9,6 @@ import sys
 
 from datarobot_drum import RuntimeParameters
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
-from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
 from datarobot_drum.runtime_parameters.runtime_parameters import RuntimeParametersLoader
 
 
@@ -63,6 +62,8 @@ def setup_options(args=None):
         loader.setup_environment_variables()
 
     if "lazy_loading_file" in options and options.lazy_loading_file:
+        from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
+        
         LazyLoadingHandler.setup_environment_variables_from_values_file(options.lazy_loading_file)
 
     return options
