@@ -179,6 +179,20 @@ def secrets(secrets_prefix, env_secret, mounted_secrets_dir):
         yield
 
 
+@pytest.fixture
+def custom_model_dir():
+    with TemporaryDirectory() as temp_dirname:
+        yield Path(temp_dirname)
+
+
+@pytest.fixture
+def moderation_config_file(custom_model_dir):
+    path = custom_model_dir / "moderation_config.yaml"
+    with open(path, "w") as f:
+        f.write("moderation_config: true")
+    return path
+
+
 class TestingPythonModelAdapter(PythonModelAdapter):
     def __init__(self, model_dir, target_type):
         super().__init__(model_dir, target_type)
@@ -480,40 +494,40 @@ class TestPredictResultSplitter:
         assert pred_df.equals(regression_df)
         assert extra_model_output_response.equals(extra_model_output_df)
 
-    def test_split_result_of_text_generation(self, text_generation_df):
+    def test_split_result_of_text_generation(self, text_generation_df, custom_model_dir):
         (
             pred_df,
             extra_model_output,
         ) = PythonModelAdapter(
-            Mock(), TargetType.TEXT_GENERATION
+            custom_model_dir, TargetType.TEXT_GENERATION
         )._split_to_predictions_and_extra_model_output(text_generation_df, request_labels=None)
         assert pred_df.equals(text_generation_df)
         assert extra_model_output is None
 
     def test_split_result_of_text_generation_with_exta_model_output(
-        self, text_generation_df, extra_model_output_df
+        self, text_generation_df, extra_model_output_df, custom_model_dir
     ):
         combined_df = text_generation_df.join(extra_model_output_df)
         (
             pred_df,
             extra_model_output_response,
         ) = PythonModelAdapter(
-            Mock(), TargetType.TEXT_GENERATION
+            custom_model_dir, TargetType.TEXT_GENERATION
         )._split_to_predictions_and_extra_model_output(combined_df, request_labels=None)
         assert pred_df.equals(text_generation_df)
         assert extra_model_output_response.equals(extra_model_output_df)
 
     def test_text_generation_with_exta_model_output_and_redundant_quotation_marks_in_target(
-        self, text_generation_df, extra_model_output_df, text_generation_target_name
+        self, text_generation_df, extra_model_output_df, text_generation_target_name, custom_model_dir
     ):
         target_name_with_quotation_marks = f'"{text_generation_target_name}"'
         self._test_and_verify_extra_model_output_with_redundant_quotation_marks(
-            target_name_with_quotation_marks, text_generation_df, extra_model_output_df
+            target_name_with_quotation_marks, text_generation_df, extra_model_output_df, custom_model_dir
         )
 
     @staticmethod
     def _test_and_verify_extra_model_output_with_redundant_quotation_marks(
-        target_name_with_quotation_marks, text_generation_df, extra_model_output_df
+        target_name_with_quotation_marks, text_generation_df, extra_model_output_df, custom_model_dir
     ):
         with patch.dict(os.environ, {"TARGET_NAME": target_name_with_quotation_marks}):
             combined_df = text_generation_df.join(extra_model_output_df)
@@ -521,58 +535,58 @@ class TestPredictResultSplitter:
                 pred_df,
                 extra_model_output_response,
             ) = PythonModelAdapter(
-                Mock(), TargetType.TEXT_GENERATION
+                custom_model_dir, TargetType.TEXT_GENERATION
             )._split_to_predictions_and_extra_model_output(combined_df, request_labels=None)
             assert pred_df.equals(text_generation_df)
             assert extra_model_output_response.equals(extra_model_output_df)
 
     def test_text_generation_with_exta_model_output_and_redundant_quotation_marks_in_both_target_and_df(
-        self, text_generation_df, extra_model_output_df, text_generation_target_name
+        self, text_generation_df, extra_model_output_df, text_generation_target_name, custom_model_dir
     ):
         target_name_with_quotation_marks = f'"{text_generation_target_name}"'
         text_generation_df.rename(
             columns={text_generation_target_name: target_name_with_quotation_marks}
         )
         self._test_and_verify_extra_model_output_with_redundant_quotation_marks(
-            target_name_with_quotation_marks, text_generation_df, extra_model_output_df
+            target_name_with_quotation_marks, text_generation_df, extra_model_output_df, custom_model_dir
         )
 
 
 class TestPythonModelAdapterInitialization:
     """Use cases to test the Python adapter initialization"""
 
-    def test_valid_initialization_for_text_generation(self):
+    def test_valid_initialization_for_text_generation(self, custom_model_dir):
         text_generation_target_name = "Response"
         with patch.dict(os.environ, {"TARGET_NAME": text_generation_target_name}):
-            adapter = PythonModelAdapter(Mock(), TargetType.TEXT_GENERATION)
+            adapter = PythonModelAdapter(custom_model_dir, TargetType.TEXT_GENERATION)
             assert adapter._target_name == text_generation_target_name
 
-    def test_invalid_initialization_for_text_generation(self):
+    def test_invalid_initialization_for_text_generation(self, custom_model_dir):
         os.environ.pop("TARGET_NAME", None)
         with pytest.raises(ValueError, match="Unexpected empty target name"):
-            PythonModelAdapter(Mock(), TargetType.TEXT_GENERATION)
+            PythonModelAdapter(custom_model_dir, TargetType.TEXT_GENERATION)
 
-    def test_valid_initialization_for_vector_database(self):
+    def test_valid_initialization_for_vector_database(self, custom_model_dir):
         vdb_target_name = "relevant"
         with patch.dict(os.environ, {"TARGET_NAME": vdb_target_name}):
-            adapter = PythonModelAdapter(Mock(), TargetType.VECTOR_DATABASE)
+            adapter = PythonModelAdapter(custom_model_dir, TargetType.VECTOR_DATABASE)
             assert adapter._target_name == vdb_target_name
 
-    def test_invalid_initialization_for_vector_database(self):
+    def test_invalid_initialization_for_vector_database(self, custom_model_dir):
         os.environ.pop("TARGET_NAME", None)
         with pytest.raises(ValueError, match="Unexpected empty target name"):
-            PythonModelAdapter(Mock(), TargetType.VECTOR_DATABASE)
+            PythonModelAdapter(custom_model_dir, TargetType.VECTOR_DATABASE)
 
-    def test_valid_initialization_for_agentic_workflow(self):
+    def test_valid_initialization_for_agentic_workflow(self, custom_model_dir):
         target_name = "Response"
         with patch.dict(os.environ, {"TARGET_NAME": target_name}):
-            adapter = PythonModelAdapter(Mock(), TargetType.AGENTIC_WORKFLOW)
+            adapter = PythonModelAdapter(custom_model_dir, TargetType.AGENTIC_WORKFLOW)
             assert adapter._target_name == target_name
 
-    def test_invalid_initialization_for_agentic_workflow(self):
+    def test_invalid_initialization_for_agentic_workflow(self, custom_model_dir):
         os.environ.pop("TARGET_NAME", None)
         with pytest.raises(ValueError, match="Unexpected empty target name"):
-            PythonModelAdapter(Mock(), TargetType.AGENTIC_WORKFLOW)
+            PythonModelAdapter(custom_model_dir, TargetType.AGENTIC_WORKFLOW)
 
 
 def set_moderations_lib_content(path: Path, content: str):
@@ -652,6 +666,10 @@ def mock_moderation_content(path: Path, content: str):
 
     # put provided path in the search path for modules
     sys.path.insert(0, str(path))
+
+    # add moderation config file to the path
+    moderation_config_file = path / "moderation_config.yaml"
+    moderation_config_file.touch()
 
     # set the content to the provided value
     set_moderations_lib_content(path, content)
