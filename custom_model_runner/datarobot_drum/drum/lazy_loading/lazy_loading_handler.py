@@ -90,7 +90,7 @@ class LazyLoadingHandler:
             )
             from datarobot_storage import get_async_storage
             from datarobot_storage.enums import FileStorageBackend
-            
+
             return get_async_storage(FileStorageBackend.S3, storage_config)
         else:
             raise NotImplementedError(f"Unsupported backend type: {credential.credential_type}")

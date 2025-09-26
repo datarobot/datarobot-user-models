@@ -627,7 +627,7 @@ class CMRunner:
 
         print("Starting Fit")
         from memory_profiler import memory_usage
-        
+
         fit_mem_usage = memory_usage(
             fit_function,
             interval=1,

@@ -518,16 +518,26 @@ class TestPredictResultSplitter:
         assert extra_model_output_response.equals(extra_model_output_df)
 
     def test_text_generation_with_exta_model_output_and_redundant_quotation_marks_in_target(
-        self, text_generation_df, extra_model_output_df, text_generation_target_name, custom_model_dir
+        self,
+        text_generation_df,
+        extra_model_output_df,
+        text_generation_target_name,
+        custom_model_dir,
     ):
         target_name_with_quotation_marks = f'"{text_generation_target_name}"'
         self._test_and_verify_extra_model_output_with_redundant_quotation_marks(
-            target_name_with_quotation_marks, text_generation_df, extra_model_output_df, custom_model_dir
+            target_name_with_quotation_marks,
+            text_generation_df,
+            extra_model_output_df,
+            custom_model_dir,
         )
 
     @staticmethod
     def _test_and_verify_extra_model_output_with_redundant_quotation_marks(
-        target_name_with_quotation_marks, text_generation_df, extra_model_output_df, custom_model_dir
+        target_name_with_quotation_marks,
+        text_generation_df,
+        extra_model_output_df,
+        custom_model_dir,
     ):
         with patch.dict(os.environ, {"TARGET_NAME": target_name_with_quotation_marks}):
             combined_df = text_generation_df.join(extra_model_output_df)
@@ -541,14 +551,21 @@ class TestPredictResultSplitter:
             assert extra_model_output_response.equals(extra_model_output_df)
 
     def test_text_generation_with_exta_model_output_and_redundant_quotation_marks_in_both_target_and_df(
-        self, text_generation_df, extra_model_output_df, text_generation_target_name, custom_model_dir
+        self,
+        text_generation_df,
+        extra_model_output_df,
+        text_generation_target_name,
+        custom_model_dir,
     ):
         target_name_with_quotation_marks = f'"{text_generation_target_name}"'
         text_generation_df.rename(
             columns={text_generation_target_name: target_name_with_quotation_marks}
         )
         self._test_and_verify_extra_model_output_with_redundant_quotation_marks(
-            target_name_with_quotation_marks, text_generation_df, extra_model_output_df, custom_model_dir
+            target_name_with_quotation_marks,
+            text_generation_df,
+            extra_model_output_df,
+            custom_model_dir,
         )
 
 
