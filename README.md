@@ -83,28 +83,47 @@ Other sources:
 * There is a chance that the model you are looking for has already been implemented. 
   Check [custom inference models community Github](https://github.com/datarobot-community/custom-models/tree/master/custom_inference) 
   to see some off-the-shelf examples
-    
 
 
 ## Contribution & development <a name="contribution"></a>
 
 ### Prerequisites for development
-> Note: Only reference this section if you plan to work with DRUM.
 
-To build it, the following packages are required:
-`make`, `Java 11`, `maven`, `docker`, `R`
-E.g. for Ubuntu 18.04  
-`apt-get install build-essential openjdk-11-jdk openjdk-11-jre maven python3-dev docker apt-utils curl gpg-agent software-properties-common dirmngr libssl-dev ca-certificates locales libcurl4-openssl-dev libxml2-dev libgomp1 gcc libc6-dev pandoc`
+Following tools are required to build a `drum` package locally:
+* `make`
+* `docker`
+* `Java 11` and `maven`
+* `R`
+
+> You may not need all of these tools, install selectively based on your requirements.
+
+Ubuntu 18.04: 
+```sh
+apt-get install build-essential python3-dev docker apt-utils curl gpg-agent software-properties-common dirmngr libssl-dev ca-certificates locales libcurl4-openssl-dev libxml2-dev libgomp1 gcc libc6-dev pandoc
+```
+
+MacOS: TBD
+
+#### Java
+
+Ubuntu 18.04: 
+```
+apt-get install openjdk-11-jdk openjdk-11-jre maven
+```
+MacOS: TBD
+
 
 #### R
-Ubuntu 18.04  
+Ubuntu 18.04:  
 ```sh
 apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9
 add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/'
 apt-get install r-cran-littler r-base r-base-dev
 ```
 
-#### R packages
+MacOS: TBD
+
+R packages:
 ```sh
 Rscript -e "install.packages(c('caret', 'recipes', 'glmnet', 'Rook', 'rjson', 'e1071', 'tidyverse', 'devtools'), repos='https://cloud.r-project.org', Ncpus=4)"
 Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$forReg, c(1)]), repos="https://cloud.r-project.org", Ncpus=4)'
@@ -121,8 +140,7 @@ Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$
       1. About editable mode: https://packaging.python.org/en/latest/guides/distributing-packages-using-setuptools/#id64
          https://stackoverflow.com/questions/35064426/when-would-the-e-editable-option-be-useful-with-pip-install
 1. Pytest to your heart's content.
-1. To build DRUM or work on Java predictor, Java 11 is required. To install Java on Ubuntu: `sudo apt install openjdk-11-jdk openjdk-11-jre`.
-1. If you plan to run functional tests, build DRUM or work on Java predictor, Java 11 is required. To install Java on Ubuntu: `sudo apt install openjdk-11-jdk openjdk-11-jre`.
+2. If you plan to run functional tests, build DRUM or work on Java predictor, Java 11 is required. See [Prerequisites for development/Java](#java).
 
 #### DataRobot Confluence
 To get more information, search for `custom models` and `datarobot user models` in DataRobot Confluence.
@@ -135,8 +153,10 @@ To get more information, search for `custom models` and `datarobot user models` 
 #### Testing changes to drum in DR app
 There is a script called `create-drum-dev-image.sh` which will build and save an image with your latest local changes to the DRUM codebase. You can test new changes to drum in the DR app by running this script with an argument for which dropin env to modify, and uploading the image which gets built as an execution environment. 
 
+You can also [publish a development version](https://datarobot.atlassian.net/wiki/spaces/RAPTOR/pages/1419247790/Publishing+DRUM+to+PyPi#I-Just-Want-To-Test-My-Thing) which you can pin in your dependencies.
+
 ### Non-DataRobot developers
-To contribute to the project, use a [regular GitHub process](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork ): fork the repo and create a pull request to the original repository.
+To contribute to the project, use a [regular GitHub process](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork): fork the repo and create a pull request to the original repository.
 
 ### Tests
 
