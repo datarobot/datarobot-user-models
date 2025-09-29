@@ -140,7 +140,8 @@ Rscript -e 'library(caret); install.packages(unique(modelLookup()[modelLookup()$
       1. About editable mode: https://packaging.python.org/en/latest/guides/distributing-packages-using-setuptools/#id64
          https://stackoverflow.com/questions/35064426/when-would-the-e-editable-option-be-useful-with-pip-install
 1. Pytest to your heart's content.
-2. If you plan to run functional tests, build DRUM or work on Java predictor, Java 11 is required. See [Prerequisites for development/Java](#java).
+
+> If you plan to run functional tests, build DRUM or work on Java predictor, Java 11 is required. See [Prerequisites for development/Java](#java).
 
 #### DataRobot Confluence
 To get more information, search for `custom models` and `datarobot user models` in DataRobot Confluence.
