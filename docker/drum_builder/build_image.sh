@@ -22,14 +22,14 @@ done
 GIT_ROOT=$(git rev-parse --show-toplevel)
 BUILD_DOCKER_DIR=$GIT_ROOT/docker/drum_builder
 
-IMAGE_ORG_DATAROBOT=datarobot
+#IMAGE_ORG_DATAROBOT=datarobot
 IMAGE_ORG_DATAROBOTDEV=datarobotdev
 
 IMAGE_REPO=drum-builder
 
-IMAGE_TAG=ubuntu-22-04-test
+IMAGE_TAG=ubuntu-24-04
 
-IMAGE_NAME_DATAROBOT=${IMAGE_ORG_DATAROBOT}/${IMAGE_REPO}:${IMAGE_TAG}
+#IMAGE_NAME_DATAROBOT=${IMAGE_ORG_DATAROBOT}/${IMAGE_REPO}:${IMAGE_TAG}
 IMAGE_NAME_DATAROBOTDEV=${IMAGE_ORG_DATAROBOTDEV}/${IMAGE_REPO}:${IMAGE_TAG}
 
 echo "GIT_ROOT: $GIT_ROOT"
@@ -52,10 +52,10 @@ popd || exit 1
 # * commit the image
 docker run -t -v "$GIT_ROOT:/tmp/drum" ${IMAGE_NAME_DATAROBOTDEV} bash -c "cd /tmp/drum/custom_model_runner && make && cd /tmp/drum/tests/functional/custom_java_predictor && mvn package"
 docker commit "$(docker ps -lq)" ${IMAGE_NAME_DATAROBOTDEV}
-docker tag ${IMAGE_NAME_DATAROBOTDEV} ${IMAGE_NAME_DATAROBOT}
+#docker tag ${IMAGE_NAME_DATAROBOTDEV} ${IMAGE_NAME_DATAROBOT}
 
 if [ -n "${PUSH}" ] ; then
-  docker push ${IMAGE_NAME_DATAROBOT}
+  #docker push ${IMAGE_NAME_DATAROBOT}
   docker push ${IMAGE_NAME_DATAROBOTDEV}
 fi
 
