@@ -154,6 +154,8 @@ To get more information, search for `custom models` and `datarobot user models` 
 #### Testing changes to drum in DR app
 There is a script called `create-drum-dev-image.sh` which will build and save an image with your latest local changes to the DRUM codebase. You can test new changes to drum in the DR app by running this script with an argument for which dropin env to modify, and uploading the image which gets built as an execution environment. 
 
+You can also set [semantic version to development release](https://packaging.python.org/en/latest/specifications/version-specifiers/#version-specifiers), and run [release pipeline manually](https://app.harness.io/ng/account/oP3BKzKwSDe_4hCFYw_UWA/module/ci/orgs/Custom_Models/projects/datarobotusermodels/pipelines/release_drum_to_pypi/pipeline-studio/?storeType=REMOTE&connectorRef=account.svc_harness_git1&repoName=datarobot-user-models&branch=master) for your branch. With a released version, you can test your changes in Docker images and cloud applications.
+
 ### Non-DataRobot developers
 To contribute to the project, use a [regular GitHub process](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork): fork the repo and create a pull request to the original repository.
 
