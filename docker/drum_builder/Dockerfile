@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 ENV LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update -y && \
@@ -33,7 +33,14 @@ RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen && \
     locale-gen en_US.utf8 && \
     /usr/sbin/update-locale LANG=en_US.UTF-8
 
-RUN pip3 install -U pip
-RUN pip3 install -U setuptools wheel pytest
+ENV VIRTUAL_ENV=/opt/venv
 COPY requirements_drum.txt /tmp/requirements_drum.txt
-RUN pip3 install -r /tmp/requirements_drum.txt && rm -rf /root/.cache/pip
+
+RUN sh -c "python3 -m venv ${VIRTUAL_ENV} && \
+    . ${VIRTUAL_ENV}/bin/activate && \
+    python3 -m ensurepip --default-pip && \
+    python3 -m pip install --upgrade pip && \
+    python3 -m pip install --upgrade  setuptools wheel pytest && \
+    python3 -m pip install --no-cache-dir -r /tmp/requirements_drum.txt && \
+    find ${VIRTUAL_ENV} -type d -name '__pycache__' -exec rm -rf {} +"
+

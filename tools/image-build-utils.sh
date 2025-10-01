@@ -10,7 +10,7 @@ GIT_ROOT=$(git rev-parse --show-toplevel)
 
 function build_drum() {
   CDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )"/.. && pwd )"
-  DRUM_BUILDER_IMAGE="datarobot/drum-builder:ubuntu-22-04"
+  DRUM_BUILDER_IMAGE="datarobotdev/drum-builder:ubuntu-24-04"
 
   # pull DRUM builder container and build DRUM wheel
   docker pull ${DRUM_BUILDER_IMAGE}
@@ -21,7 +21,7 @@ function build_drum() {
     TERMINAL_OPTION="-t"
   fi
 
-  docker run -i ${TERMINAL_OPTION} -v $CDIR:/tmp/drum $DRUM_BUILDER_IMAGE bash -c "cd /tmp/drum/custom_model_runner && make"
+  docker run -i ${TERMINAL_OPTION} -v $CDIR:/tmp/drum $DRUM_BUILDER_IMAGE bash -c ". ${VIRTUAL_ENV}/bin/activate && cd /tmp/drum/custom_model_runner && make"
   docker rmi $DRUM_BUILDER_IMAGE --force
 
 }

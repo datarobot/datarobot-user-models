@@ -24,9 +24,10 @@ pipeline:
                   identifier: build_drum_and_publish_to_pypi
                   spec:
                     connectorRef: datarobot_user_models_read_write
-                    image: datarobot/drum-builder:ubuntu-22-04
+                    image: datarobotdev/drum-builder:ubuntu-24-04
                     shell: Bash
                     command: |-
+                      . ${VIRTUAL_ENV}/bin/activate
                       cd custom_model_runner
                       make
                       cd -
