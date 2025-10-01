@@ -154,8 +154,6 @@ To get more information, search for `custom models` and `datarobot user models` 
 #### Testing changes to drum in DR app
 There is a script called `create-drum-dev-image.sh` which will build and save an image with your latest local changes to the DRUM codebase. You can test new changes to drum in the DR app by running this script with an argument for which dropin env to modify, and uploading the image which gets built as an execution environment. 
 
-You can also [publish a development version](https://datarobot.atlassian.net/wiki/spaces/RAPTOR/pages/1419247790/Publishing+DRUM+to+PyPi#I-Just-Want-To-Test-My-Thing) which you can pin in your dependencies.
-
 ### Non-DataRobot developers
 To contribute to the project, use a [regular GitHub process](https://help.github.com/en/github/collaborating-with-issues-and-pull-requests/creating-a-pull-request-from-a-fork): fork the repo and create a pull request to the original repository.
 
