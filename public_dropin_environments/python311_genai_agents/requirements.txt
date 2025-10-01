@@ -58,7 +58,7 @@ crewai-tools==0.73.1
 cryptography==44.0.3
 dataclasses-json==0.6.7
 datarobot[auth]==3.8.2
-datarobot-drum==1.16.22
+datarobot-drum==1.17.2
 datarobot-mlops==11.1.0
 datarobot-moderations==11.2.3
 datarobot-predict==1.13.2
@@ -102,6 +102,7 @@ fqdn==1.5.1
 frozenlist==1.6.0
 fsspec[http]==2025.3.0
 genai-prices==0.0.27
+gevent==25.9.1
 google-api-core[grpc]==2.24.2
 google-auth==2.40.1
 google-cloud-aiplatform==1.96.0
@@ -119,6 +120,7 @@ groq==0.31.1
 grpc-google-iam-v1==0.14.2
 grpcio==1.71.0
 grpcio-status==1.71.0
+gunicorn==23.0.0
 h11==0.16.0
 h2==4.3.0
 hf-xet==1.1.9
@@ -436,6 +438,8 @@ yamlfix==1.18.0
 yarl==1.20.0
 youtube-transcript-api==1.2.2
 zipp==3.21.0
+zope-event==6.0
+zope-interface==8.0.1
 zstandard==0.23.0
 
 # The following packages are considered to be unsafe in a requirements file:

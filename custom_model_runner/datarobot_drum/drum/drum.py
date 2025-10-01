@@ -22,7 +22,6 @@ from typing import Callable, Optional
 from typing import Dict
 from typing import Union
 
-
 import docker.errors
 import pandas as pd
 
@@ -59,7 +58,6 @@ from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.push import drum_push
 from datarobot_drum.drum.push import setup_validation_options
 from datarobot_drum.drum.root_predictors.generic_predictor import GenericPredictorComponent
-from datarobot_drum.drum.root_predictors.prediction_server import PredictionServer
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
@@ -68,7 +66,6 @@ from datarobot_drum.drum.utils.drum_utils import handle_missing_colnames
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from datarobot_drum.profiler.stats_collector import StatsCollector
 from datarobot_drum.profiler.stats_collector import StatsOperation
-from memory_profiler import memory_usage
 from progress.spinner import Spinner
 from scipy.io import mmwrite
 
@@ -629,6 +626,8 @@ class CMRunner:
         fit_function = self._get_fit_function(cli_adapter=cli_adapter)
 
         print("Starting Fit")
+        from memory_profiler import memory_usage
+
         fit_mem_usage = memory_usage(
             fit_function,
             interval=1,
@@ -837,6 +836,8 @@ class CMRunner:
         params = self.get_predictor_params()
         predictor = None
         try:
+            from datarobot_drum.drum.root_predictors.prediction_server import PredictionServer
+
             if stats_collector:
                 stats_collector.mark("start")
             predictor = (
