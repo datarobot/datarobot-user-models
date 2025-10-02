@@ -14,7 +14,7 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 
-FROM datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev AS base
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.11-dev AS base
 
 ARG UNAME
 ARG UID
@@ -33,7 +33,8 @@ RUN apk add --no-cache uv graphviz openblas openssh-server gzip zip unzip curl \
 RUN apk add --no-cache rust sqlite
 
 ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONPYCACHEPREFIX=/tmp/.python_cache \
+    UV_COMPILE_BYTECODE=1 \
     VENV_PATH=${VENV_PATH} \
     PIP_NO_CACHE_DIR=1 \
     NOTEBOOKS_KERNEL="python" \
@@ -41,7 +42,7 @@ ENV PYTHONUNBUFFERED=1 \
     DEEPEVAL_TELEMETRY_OPT_OUT="YES"
 
 ENV PATH="$VENV_PATH/bin:$PATH" \
-  PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
+    PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
 # hadolint ignore=DL3013
 RUN uv venv ${VENV_PATH} && \
@@ -92,9 +93,8 @@ ENV ANNOY_COMPILER_ARGS="-D_CRT_SECURE_NO_WARNINGS,-DANNOYLIB_MULTITHREADED_BUIL
 
 ARG WORKDIR
 ARG VENV_PATH
-ARG EXT=""
 
-COPY ./pyproject.toml${EXT} ${WORKDIR}/pyproject.toml
+COPY ./requirements.txt ${WORKDIR}/
 
 WORKDIR ${WORKDIR}
 RUN . ${VENV_PATH}/bin/activate && \
@@ -116,6 +116,7 @@ FROM base AS kernel
 ARG UNAME
 ARG WORKDIR
 ARG GIT_COMMIT
+ARG VENV_PATH
 
 LABEL com.datarobot.repo-name="notebooks"
 LABEL com.datarobot.repo-sha=$GIT_COMMIT
@@ -123,6 +124,9 @@ LABEL com.datarobot.repo-sha=$GIT_COMMIT
 RUN chown -R $UNAME:$UNAME ${WORKDIR} /home/notebooks
 
 COPY --from=builder --chown=$UNAME $WORKDIR $WORKDIR
+
+# Warm the heavy dependencies
+RUN . ${VENV_PATH}/bin/activate && python -c "import numpy; import pandas; import PIL; import ragas; import scipy; import scipy.io;";
 
 # This is required for custom models to work with this image
 COPY ./start_server_drum.sh /opt/code/start_server.sh
