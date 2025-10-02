@@ -33,6 +33,7 @@ RUN apk add --no-cache uv graphviz openblas openssh-server gzip zip unzip curl \
 RUN apk add --no-cache rust sqlite
 
 ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
     PYTHONPYCACHEPREFIX=/tmp/.python_cache \
     UV_COMPILE_BYTECODE=1 \
     VENV_PATH=${VENV_PATH} \
@@ -44,7 +45,7 @@ ENV PYTHONUNBUFFERED=1 \
 ENV PATH="$VENV_PATH/bin:$PATH" \
     PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
-# hadolint ignore=DL3013
+# hadolint ignore=SC1091
 RUN uv venv ${VENV_PATH} && \
     . ${VENV_PATH}/bin/activate && \
     uv pip install -U pip setuptools
@@ -93,12 +94,14 @@ ENV ANNOY_COMPILER_ARGS="-D_CRT_SECURE_NO_WARNINGS,-DANNOYLIB_MULTITHREADED_BUIL
 
 ARG WORKDIR
 ARG VENV_PATH
+ARG EXT=""
 
-COPY ./requirements.txt ${WORKDIR}/
+COPY ./pyproject.toml${EXT} ${WORKDIR}/pyproject.toml
 
-# hadolint ignore=DL3013, SC1091
+WORKDIR ${WORKDIR}
 RUN . ${VENV_PATH}/bin/activate && \
-    uv pip install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt
+    uv sync --no-cache
+WORKDIR /
 
 # Copy agent runtime into work directory
 COPY ./run_agent.py ${WORKDIR}/
