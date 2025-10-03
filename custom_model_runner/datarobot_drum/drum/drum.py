@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import contextlib
 import copy
 import json
@@ -15,6 +16,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -51,7 +53,7 @@ from datarobot_drum.drum.enum import RunLanguage
 from datarobot_drum.drum.enum import RunMode
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.enum import TemplateType
-from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.exceptions import DrumCommonException, UnrecoverableError
 from datarobot_drum.drum.exceptions import DrumPredException
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.perf_testing import CMRunTests
@@ -73,8 +75,29 @@ SERVER_PIPELINE = "prediction_server_pipeline.json.j2"
 PREDICTOR_PIPELINE = "prediction_pipeline.json.j2"
 
 
+def _handle_thread_exception(args):
+    """
+    This global hook is called for any unhandled exception in any thread.
+    It implements a 'fast fail' policy ONLY for exceptions that inherit
+    from the UnrecoverableError class. All other unhandled exceptions will
+    not terminate the main process.
+
+    NOTE: To enforce a stricter policy where ANY unhandled exception
+    crashes the application, remove the 'if issubclass(...)' block and
+    always call os._exit(1) after logging.
+    """
+    # Check if the exception is a designed-for fatal error.
+    if issubclass(args.exc_type, UnrecoverableError):
+        logging.critical(
+            f"CRITICAL: An unrecoverable error occurred in thread '{args.thread.name}': {args.exc_value}. Terminating process immediately.",
+            exc_info=(args.exc_type, args.exc_value, args.exc_traceback),
+        )
+        os._exit(1)
+
+
 class CMRunner:
     def __init__(self, runtime, flask_app=None, worker_ctx=None):
+        threading.excepthook = _handle_thread_exception
         self.runtime = runtime
         self.flask_app = (
             flask_app  # This is the Flask app object, used when running the application via CLI
