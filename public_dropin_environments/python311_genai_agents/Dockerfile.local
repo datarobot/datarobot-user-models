@@ -140,7 +140,7 @@ COPY ./pyproject.toml${EXT} ${WORKDIR}/pyproject.toml
 
 WORKDIR ${WORKDIR}
 RUN . ${VENV_PATH}/bin/activate && \
-    uv sync --no-cache
+    uv sync
 WORKDIR /
 
 # Copy agent runtime into work directory

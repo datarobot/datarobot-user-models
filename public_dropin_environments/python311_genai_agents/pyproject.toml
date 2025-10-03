@@ -8,7 +8,7 @@ requires-python = ">=3.10, <3.13"
 dependencies = [
     "annotated-types>=0.7.0",
     "click>=8.1.8",
-    "datarobot-drum>=1.16.22",
+    "datarobot-drum>=1.17.3",
     "datarobot-mlops>=11.1.0",
     "datarobot-predict>=1.13.2",
     "dotenv>=0.9.9",
@@ -37,7 +37,7 @@ dependencies = [
     "uvicorn>=0.32.0",
     "datarobot[auth]>=3.8.2",
     "datarobot-moderations>=11.2.3",
-    
+
     # Docker image requirements (These MUST be included to avoid docker conflicts)
     "ecs-logging>=2.2.0",
     "fastapi[all]==0.115.14",
@@ -60,8 +60,8 @@ dependencies = [
     "pybase64>=1.4.2",
     "langgraph>=0.4.10",
     "langgraph-prebuilt>=0.2.3",
-    "llama-index<14.0",
-    "llama-index-core<14.0",
+    "llama-index<0.14.0",
+    "llama-index-core<0.14.0",
     "llama-index-llms-langchain>=0.6.1",
     "llama-index-llms-litellm>=0.4.1",
     "llama-index-llms-openai>=0.3.38",
