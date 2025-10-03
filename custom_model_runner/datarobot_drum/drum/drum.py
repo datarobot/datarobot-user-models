@@ -53,7 +53,7 @@ from datarobot_drum.drum.enum import RunLanguage
 from datarobot_drum.drum.enum import RunMode
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.enum import TemplateType
-from datarobot_drum.drum.exceptions import DrumCommonException
+from datarobot_drum.drum.exceptions import DrumCommonException, UnrecoverableError
 from datarobot_drum.drum.exceptions import DrumPredException
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from datarobot_drum.drum.perf_testing import CMRunTests
@@ -78,15 +78,21 @@ PREDICTOR_PIPELINE = "prediction_pipeline.json.j2"
 def _handle_thread_exception(args):
     """
     This global hook is called for any unhandled exception in any thread.
-    It logs the critical failure and forcefully terminates the entire process.
+    It implements a 'fast fail' policy ONLY for exceptions that inherit
+    from the UnrecoverableError class. All other unhandled exceptions will
+    not terminate the main process.
+
+    NOTE: To enforce a stricter policy where ANY unhandled exception
+    crashes the application, remove the 'if issubclass(...)' block and
+    always call os._exit(1) after logging.
     """
-    # 'args.exc_value' is the exception object.
-    # 'args.thread' is the thread that crashed.
-    logging.critical(
-        f"CRITICAL: Unhandled exception in thread '{args.thread.name}': {args.exc_value}. Terminating process immediately.",
-        exc_info=(args.exc_type, args.exc_value, args.exc_traceback),
-    )
-    os._exit(1)
+    # Check if the exception is a designed-for fatal error.
+    if issubclass(args.exc_type, UnrecoverableError):
+        logging.critical(
+            f"CRITICAL: An unrecoverable error occurred in thread '{args.thread.name}': {args.exc_value}. Terminating process immediately.",
+            exc_info=(args.exc_type, args.exc_value, args.exc_traceback),
+        )
+        os._exit(1)
 
 
 class CMRunner:
@@ -792,16 +798,12 @@ class CMRunner:
             "triton_grpc_port": int(options.triton_grpc_port),
             "api_token": options.api_token,
             "allow_dr_api_access": options.allow_dr_api_access,
-            "query_params": (
-                '"{}"'.format(options.query)
-                if getattr(options, "query", None) is not None
-                else "null"
-            ),
-            "content_type": (
-                '"{}"'.format(options.content_type)
-                if getattr(options, "content_type", None) is not None
-                else "null"
-            ),
+            "query_params": '"{}"'.format(options.query)
+            if getattr(options, "query", None) is not None
+            else "null",
+            "content_type": '"{}"'.format(options.content_type)
+            if getattr(options, "content_type", None) is not None
+            else "null",
             "target_type": self.target_type.value,
             "user_secrets_mount_path": getattr(options, "user_secrets_mount_path", None),
             "user_secrets_prefix": getattr(options, "user_secrets_prefix", None),
@@ -827,11 +829,9 @@ class CMRunner:
                     "engine_type": "Generic",
                     "component_type": "prediction_server",
                     "processes": options.max_workers if getattr(options, "max_workers") else "null",
-                    "deployment_config": (
-                        '"{}"'.format(options.deployment_config)
-                        if getattr(options, "deployment_config", None) is not None
-                        else "null"
-                    ),
+                    "deployment_config": '"{}"'.format(options.deployment_config)
+                    if getattr(options, "deployment_config", None) is not None
+                    else "null",
                 }
             )
 
