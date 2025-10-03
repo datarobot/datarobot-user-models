@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import contextlib
 import copy
 import json
@@ -15,6 +16,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -73,8 +75,23 @@ SERVER_PIPELINE = "prediction_server_pipeline.json.j2"
 PREDICTOR_PIPELINE = "prediction_pipeline.json.j2"
 
 
+def _handle_thread_exception(args):
+    """
+    This global hook is called for any unhandled exception in any thread.
+    It logs the critical failure and forcefully terminates the entire process.
+    """
+    # 'args.exc_value' is the exception object.
+    # 'args.thread' is the thread that crashed.
+    logging.critical(
+        f"CRITICAL: Unhandled exception in thread '{args.thread.name}': {args.exc_value}. Terminating process immediately.",
+        exc_info=(args.exc_type, args.exc_value, args.exc_traceback),
+    )
+    os._exit(1)
+
+
 class CMRunner:
     def __init__(self, runtime, flask_app=None, worker_ctx=None):
+        threading.excepthook = _handle_thread_exception
         self.runtime = runtime
         self.flask_app = (
             flask_app  # This is the Flask app object, used when running the application via CLI
@@ -775,12 +792,16 @@ class CMRunner:
             "triton_grpc_port": int(options.triton_grpc_port),
             "api_token": options.api_token,
             "allow_dr_api_access": options.allow_dr_api_access,
-            "query_params": '"{}"'.format(options.query)
-            if getattr(options, "query", None) is not None
-            else "null",
-            "content_type": '"{}"'.format(options.content_type)
-            if getattr(options, "content_type", None) is not None
-            else "null",
+            "query_params": (
+                '"{}"'.format(options.query)
+                if getattr(options, "query", None) is not None
+                else "null"
+            ),
+            "content_type": (
+                '"{}"'.format(options.content_type)
+                if getattr(options, "content_type", None) is not None
+                else "null"
+            ),
             "target_type": self.target_type.value,
             "user_secrets_mount_path": getattr(options, "user_secrets_mount_path", None),
             "user_secrets_prefix": getattr(options, "user_secrets_prefix", None),
@@ -806,9 +827,11 @@ class CMRunner:
                     "engine_type": "Generic",
                     "component_type": "prediction_server",
                     "processes": options.max_workers if getattr(options, "max_workers") else "null",
-                    "deployment_config": '"{}"'.format(options.deployment_config)
-                    if getattr(options, "deployment_config", None) is not None
-                    else "null",
+                    "deployment_config": (
+                        '"{}"'.format(options.deployment_config)
+                        if getattr(options, "deployment_config", None) is not None
+                        else "null"
+                    ),
                 }
             )
 

@@ -44,3 +44,11 @@ class DrumSerializationError(DrumException):
 
 class DrumRootComponentException(DrumException):
     """Raised when there is an issue specific to root components."""
+
+
+class UnrecoverableError(DrumException):
+    """A base exception for any error that is considered fatal and main runner should terminate immediately."""
+
+
+class UnrecoverableConfigurationError(UnrecoverableError):
+    """Raised when failure in parsing or validating configuration file."""
