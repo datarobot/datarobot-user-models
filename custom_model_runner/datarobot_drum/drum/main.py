@@ -4,6 +4,10 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
+import logging
+import threading
+
 from flask import Flask
 from datarobot_drum.drum.gunicorn.context import WorkerCtx
 
@@ -142,5 +146,18 @@ def main(flask_app: Flask = None, worker_ctx: WorkerCtx = None):
             sys.exit(ExitCodes.SCHEMA_VALIDATION_ERROR.value)
 
 
+def _handle_thread_exception(args):
+    """
+    This global hook is called for any unhandled exception in any thread.
+    """
+    logging.critical(
+        f"CRITICAL: An unrecoverable error occurred in thread '{args.thread.name}': {args.exc_value}. Terminating process immediately.",
+        exc_info=(args.exc_type, args.exc_value, args.exc_traceback),
+    )
+    os._exit(1)
+
+
+threading.excepthook = _handle_thread_exception
+
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
