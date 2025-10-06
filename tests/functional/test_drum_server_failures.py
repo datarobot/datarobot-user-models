@@ -105,7 +105,7 @@ class TestDrumServerFailures:
 
     @pytest.mark.parametrize(
         "with_error_server, production, docker",
-        [(False, False, None), (True, False, None), (False, True, DOCKER_PYTHON_SKLEARN)],
+        [(False, False, None), (True, False, None), (True, True, DOCKER_PYTHON_SKLEARN)],
     )
     def test_ping_endpoints(self, params, with_error_server, production, docker):
         _, _, custom_model_dir, server_run_args = params
@@ -128,7 +128,7 @@ class TestDrumServerFailures:
 
     @pytest.mark.parametrize(
         "with_error_server, production, docker",
-        [(False, False, None), (True, False, None), (False, True, DOCKER_PYTHON_SKLEARN)],
+        [(False, False, None), (True, False, None), (True, True, DOCKER_PYTHON_SKLEARN)],
     )
     def test_e2e_no_model_artifact(self, params, with_error_server, production, docker):
         """
@@ -152,7 +152,7 @@ class TestDrumServerFailures:
 
     @pytest.mark.parametrize(
         "with_error_server, production, docker",
-        [(False, False, None), (True, False, None), (False, True, DOCKER_PYTHON_SKLEARN)],
+        [(False, False, None), (True, False, None), (True, True, DOCKER_PYTHON_SKLEARN)],
     )
     def test_e2e_model_loading_fails(self, params, with_error_server, production, docker):
         """
@@ -179,7 +179,7 @@ class TestDrumServerFailures:
 
     @pytest.mark.parametrize(
         "with_error_server, production, docker",
-        [(False, False, None), (True, False, None), (False, True, DOCKER_PYTHON_SKLEARN)],
+        [(False, False, None), (True, False, None), (True, True, DOCKER_PYTHON_SKLEARN)],
     )
     def test_e2e_predict_fails(self, resources, params, with_error_server, production, docker):
         """
