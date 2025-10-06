@@ -56,7 +56,7 @@ ENV ADDRESS=0.0.0.0:8080
 # MARK: FUNCTIONAL-TEST-ADD-HERE. (This line is used by DRUM functional test automation and can be safely ignored.)
 
 # This makes print statements show up in the logs API
-ENV WITH_ERROR_SERVER=1 \
+ENV WITH_ERROR_SERVER=0 \
     PYTHONUNBUFFERED=1
 
 
