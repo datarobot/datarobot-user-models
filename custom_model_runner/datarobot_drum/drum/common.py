@@ -227,16 +227,8 @@ def setup_otel(runtime_parameters, options):
 
     resource = Resource.create()
     trace_provider = _setup_otel_tracing(resource=resource, multiprocessing=multiprocessing)
-
-    logger_provider = None
-    metric_provider = None
-    # Temporary gate until we have the feature fully enabled on main environments,
-    # to avoid noisy otel logs.
-    if runtime_parameters.has("DR_OTEL_METRICS_LOGS_ENABLED") and runtime_parameters.get(
-        "DR_OTEL_METRICS_LOGS_ENABLED"
-    ):
-        logger_provider = _setup_otel_logging(resource=resource, multiprocessing=multiprocessing)
-        metric_provider = _setup_otel_metrics(resource=resource)
+    logger_provider = _setup_otel_logging(resource=resource, multiprocessing=multiprocessing)
+    metric_provider = _setup_otel_metrics(resource=resource)
 
     log.info(f"OTEL is configured with endpoint: {endpoint}")
     return trace_provider, metric_provider, logger_provider
