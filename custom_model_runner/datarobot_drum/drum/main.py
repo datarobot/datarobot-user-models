@@ -11,6 +11,8 @@ import threading
 from flask import Flask
 from datarobot_drum.drum.gunicorn.context import WorkerCtx
 
+from datarobot_drum.drum.exceptions import UnrecoverableError
+
 #!/usr/bin/env python3
 
 """
@@ -150,11 +152,13 @@ def _handle_thread_exception(args):
     """
     This global hook is called for any unhandled exception in any thread.
     """
-    logging.critical(
-        f"CRITICAL: An unrecoverable error occurred in thread '{args.thread.name}': {args.exc_value}. Terminating process immediately.",
-        exc_info=(args.exc_type, args.exc_value, args.exc_traceback),
-    )
-    os._exit(1)
+    if issubclass(args.exc_type, UnrecoverableError):
+        logging.critical(
+            f"CRITICAL: An unrecoverable error occurred in thread '{args.thread.name}': {args.exc_value}. Terminating process immediately.",
+            exc_info=(args.exc_type, args.exc_value, args.exc_traceback),
+        )
+        os._exit(1)
+
 
 threading.excepthook = _handle_thread_exception
 

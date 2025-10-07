@@ -73,6 +73,7 @@ from scipy.io import mmwrite
 SERVER_PIPELINE = "prediction_server_pipeline.json.j2"
 PREDICTOR_PIPELINE = "prediction_pipeline.json.j2"
 
+
 class CMRunner:
     def __init__(self, runtime, flask_app=None, worker_ctx=None):
         self.runtime = runtime
