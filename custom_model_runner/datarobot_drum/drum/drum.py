@@ -4,6 +4,7 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
+
 import contextlib
 import copy
 import json
@@ -775,12 +776,16 @@ class CMRunner:
             "triton_grpc_port": int(options.triton_grpc_port),
             "api_token": options.api_token,
             "allow_dr_api_access": options.allow_dr_api_access,
-            "query_params": '"{}"'.format(options.query)
-            if getattr(options, "query", None) is not None
-            else "null",
-            "content_type": '"{}"'.format(options.content_type)
-            if getattr(options, "content_type", None) is not None
-            else "null",
+            "query_params": (
+                '"{}"'.format(options.query)
+                if getattr(options, "query", None) is not None
+                else "null"
+            ),
+            "content_type": (
+                '"{}"'.format(options.content_type)
+                if getattr(options, "content_type", None) is not None
+                else "null"
+            ),
             "target_type": self.target_type.value,
             "user_secrets_mount_path": getattr(options, "user_secrets_mount_path", None),
             "user_secrets_prefix": getattr(options, "user_secrets_prefix", None),
@@ -806,9 +811,11 @@ class CMRunner:
                     "engine_type": "Generic",
                     "component_type": "prediction_server",
                     "processes": options.max_workers if getattr(options, "max_workers") else "null",
-                    "deployment_config": '"{}"'.format(options.deployment_config)
-                    if getattr(options, "deployment_config", None) is not None
-                    else "null",
+                    "deployment_config": (
+                        '"{}"'.format(options.deployment_config)
+                        if getattr(options, "deployment_config", None) is not None
+                        else "null"
+                    ),
                 }
             )
 
