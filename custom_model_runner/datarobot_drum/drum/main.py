@@ -152,12 +152,12 @@ def _handle_thread_exception(args):
     """
     This global hook is called for any unhandled exception in any thread.
     """
-    if issubclass(args.exc_type, UnrecoverableError):
-        logging.critical(
-            f"CRITICAL: An unrecoverable error occurred in thread '{args.thread.name}': {args.exc_value}. Terminating process immediately.",
-            exc_info=(args.exc_type, args.exc_value, args.exc_traceback),
-        )
-        os._exit(1)
+
+    logging.critical(
+        f"CRITICAL: An unrecoverable error occurred in thread '{args.thread.name}': {args.exc_value}. Terminating process immediately.",
+        exc_info=(args.exc_type, args.exc_value, args.exc_traceback),
+    )
+    os._exit(1)
 
 
 threading.excepthook = _handle_thread_exception
