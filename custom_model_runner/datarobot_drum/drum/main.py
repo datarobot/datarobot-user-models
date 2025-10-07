@@ -157,7 +157,7 @@ def _handle_thread_exception(args):
     os._exit(1)
 
 
-threading.excepthook = _handle_thread_exception
+# threading.excepthook = _handle_thread_exception
 
 if __name__ == "__main__":
     sys.exit(main())
