@@ -16,6 +16,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 from pathlib import Path
 from tempfile import NamedTemporaryFile
@@ -72,6 +73,20 @@ from scipy.io import mmwrite
 
 SERVER_PIPELINE = "prediction_server_pipeline.json.j2"
 PREDICTOR_PIPELINE = "prediction_pipeline.json.j2"
+
+
+def _handle_thread_exception(args):
+    """
+    This global hook is called for any unhandled exception in any thread.
+    """
+    logging.critical(
+        f"CRITICAL: An unrecoverable error occurred in thread '{args.thread.name}': {args.exc_value}. Terminating process immediately.",
+        exc_info=(args.exc_type, args.exc_value, args.exc_traceback),
+    )
+    os._exit(1)
+
+
+threading.excepthook = _handle_thread_exception
 
 
 class CMRunner:
