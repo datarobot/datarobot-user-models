@@ -36,7 +36,7 @@ RUN pip install -r requirements.txt
 WORKDIR ${CODE_DIR}
 COPY --chown=1000:0 ./*.sh ./*.py ${CODE_DIR}/
 
-ENV WITH_ERROR_SERVER=1
+ENV WITH_ERROR_SERVER=0s
  #This makes print statements show up in the logs API
 ENV PYTHONUNBUFFERED=1
 
