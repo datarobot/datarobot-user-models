@@ -20,12 +20,12 @@ def create_completion(message_content):
 
 
 def create_completion_chunks(messages, use_custom_streaming_class=False):
-    class CustomChatCompletionChunk(ChatCompletionChunk):
-        pass
+    class CustomModelStreamingResponse(ChatCompletionChunk):
+        pipeline_interactions: str | None = None
 
     def create_chunk(content, finish_reason=None, role=None):
         if use_custom_streaming_class:
-            return CustomChatCompletionChunk(
+            return CustomModelStreamingResponse(
                 id="id",
                 choices=[
                     chat_completion_chunk.Choice(
@@ -37,6 +37,7 @@ def create_completion_chunks(messages, use_custom_streaming_class=False):
                 created=0,
                 model="model",
                 object="chat.completion.chunk",
+                pipeline_interactions="pipeline.interactions",
             )
         else:
             return ChatCompletionChunk(
@@ -56,7 +57,8 @@ def create_completion_chunks(messages, use_custom_streaming_class=False):
     chunks = []
     #  OpenAI returns a chunk with empty string and empty object in beginning of stream
     chunk = create_chunk("", role="assistant")
-    chunk.object = ""
+    if not use_custom_streaming_class:
+        chunk.object = ""
     chunks.append(chunk)
 
     for message in messages:
