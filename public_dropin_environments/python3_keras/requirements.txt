@@ -12,8 +12,8 @@ azure-core==1.35.1
 azure-identity==1.25.1
 azure-storage-blob==12.19.0
 blinker==1.9.0
-boto3==1.40.46
-botocore==1.40.46
+boto3==1.40.48
+botocore==1.40.48
 cachetools==6.2.0
 certifi==2025.10.5
 cffi==2.0.0
@@ -21,7 +21,7 @@ charset-normalizer==3.4.3
 click==8.3.0
 cryptography==46.0.2
 datarobot==3.9.0
-datarobot-drum==1.17.3
+datarobot-drum==1.17.4
 datarobot-mlops==11.1.0
 datarobot-storage==2.2.0
 docker==7.1.0
@@ -30,7 +30,7 @@ flask==3.1.2
 flatbuffers==25.9.23
 gast==0.6.0
 gevent==25.9.1
-google-api-core==2.25.2
+google-api-core==2.26.0
 google-auth==2.41.1
 google-cloud-core==2.4.3
 google-cloud-storage==2.19.0
