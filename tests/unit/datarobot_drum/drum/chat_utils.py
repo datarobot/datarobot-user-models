@@ -21,7 +21,7 @@ def create_completion(message_content):
 
 def create_completion_chunks(messages, use_custom_streaming_class=False):
     class CustomModelStreamingResponse(ChatCompletionChunk):
-        pipeline_interactions: str | None = None
+        pass
 
     def create_chunk(content, finish_reason=None, role=None):
         if use_custom_streaming_class:
