@@ -19,21 +19,39 @@ def create_completion(message_content):
     )
 
 
-def create_completion_chunks(messages):
+def create_completion_chunks(messages, use_custom_streaming_class=False):
+    class CustomChatCompletionChunk(ChatCompletionChunk):
+        pass
+
     def create_chunk(content, finish_reason=None, role=None):
-        return ChatCompletionChunk(
-            id="id",
-            choices=[
-                chat_completion_chunk.Choice(
-                    delta=ChoiceDelta(content=content, role=role),
-                    finish_reason=finish_reason,
-                    index=0,
-                )
-            ],
-            created=0,
-            model="model",
-            object="chat.completion.chunk",
-        )
+        if use_custom_streaming_class:
+            return CustomChatCompletionChunk(
+                id="id",
+                choices=[
+                    chat_completion_chunk.Choice(
+                        delta=ChoiceDelta(content=content, role=role),
+                        finish_reason=finish_reason,
+                        index=0,
+                    )
+                ],
+                created=0,
+                model="model",
+                object="chat.completion.chunk",
+            )
+        else:
+            return ChatCompletionChunk(
+                id="id",
+                choices=[
+                    chat_completion_chunk.Choice(
+                        delta=ChoiceDelta(content=content, role=role),
+                        finish_reason=finish_reason,
+                        index=0,
+                    )
+                ],
+                created=0,
+                model="model",
+                object="chat.completion.chunk",
+            )
 
     chunks = []
     #  OpenAI returns a chunk with empty string and empty object in beginning of stream
