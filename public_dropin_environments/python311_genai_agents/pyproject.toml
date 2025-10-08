@@ -40,7 +40,7 @@ dependencies = [
 
     # Docker image requirements (These MUST be included to avoid docker conflicts)
     "ecs-logging>=2.2.0",
-    "fastapi[all]==0.115.14",
+    "fastapi[all]==0.118.2",
     "ipykernel<6.29.0",
     "jupyter-client>=8.6.3",
     "jupyter-core>=5.8.1",
