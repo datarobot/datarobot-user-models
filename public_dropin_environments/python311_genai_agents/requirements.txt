@@ -375,7 +375,7 @@ sqlalchemy==2.0.43
 sse-starlette==3.0.2
 stack-data==0.6.3
 stagehand==0.5.3
-starlette==0.46.2
+starlette==0.47.2
 strenum==0.4.15
 strictyaml==1.4.2
 striprtf==0.0.26
