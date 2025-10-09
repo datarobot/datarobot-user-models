@@ -407,7 +407,10 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             response_iter = iter(response)
             first_chunk = next(response_iter)
 
-            if type(first_chunk).__name__ == "ChatCompletionChunk":
+            if (
+                type(first_chunk).__name__ == "ChatCompletionChunk"
+                or getattr(first_chunk, "object", None) == "chat.completion.chunk"
+            ):
                 # Return a new iterable where the peeked object is included in the beginning
                 return itertools.chain([first_chunk], response_iter)
             else:

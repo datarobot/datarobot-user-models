@@ -133,11 +133,15 @@ class TestBaseLanguagePredictor:
 
 
 class TestChat(TestBaseLanguagePredictor):
-    @pytest.mark.parametrize("stream", [False, True])
-    def test_chat_without_mlops(self, language_predictor, stream):
+    @pytest.mark.parametrize(
+        "stream, use_custom_streaming_class", [(False, False), (True, False), (True, True)]
+    )
+    def test_chat_without_mlops(self, language_predictor, stream, use_custom_streaming_class):
         def chat_hook(completion_request):
             return (
-                create_completion_chunks(["How", " are", " you"])
+                create_completion_chunks(
+                    ["How", " are", " you"], use_custom_streaming_class=use_custom_streaming_class
+                )
                 if stream
                 else create_completion("How are you")
             )
