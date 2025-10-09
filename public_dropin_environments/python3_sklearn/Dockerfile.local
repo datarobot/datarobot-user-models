@@ -10,10 +10,9 @@ COPY requirements.txt requirements.txt
 
 ENV VIRTUAL_ENV=/opt/venv
 
-RUN sh -c "python -m venv ${VIRTUAL_ENV} && \
+RUN sh -c "/usr/local/bin/python -m venv --without-pip ${VIRTUAL_ENV} && \
     . ${VIRTUAL_ENV}/bin/activate && \
-    python -m pip install --upgrade pip && \
-    python -m pip install --no-cache-dir -r requirements.txt"
+    /usr/local/bin/python -m pip install --no-cache-dir -r requirements.txt"
 
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk
 ENV PATH=${VIRTUAL_ENV}/bin:${PATH}
