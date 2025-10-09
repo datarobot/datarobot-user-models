@@ -9,7 +9,7 @@ dependencies = [
     "annotated-types>=0.7.0",
     "click>=8.1.8",
     "datarobot[auth]>=3.8.2",
-    "datarobot-drum>=1.17.3",
+    "datarobot-drum>=1.17.5",
     "datarobot-mlops>=11.1.0",
     "datarobot-moderations>=11.2.3",
     "datarobot-predict>=1.13.2",
@@ -217,3 +217,8 @@ warn_unused_ignores = true
 [[tool.mypy.overrides]]
 module = "datarobot.*"
 implicit_reexport = true
+
+[tool.uv]
+override-dependencies = [
+    "fastapi==0.118.2",
+]
