@@ -259,6 +259,11 @@ def extract_chat_request_attributes(completion_params):
         attributes["gen_ai.prompt"] = m.get("content")
     return attributes
 
+def extract_request_headers(request_headers):
+    attributes = {}
+    attributes["gen_ai.request.consumer_id"] = request_headers.get("X-DataRobot-Consumer-Id")
+    attributes["gen_ai.request.consumer_type"] = request_headers.get("X-DataRobot-Consumer-Type")
+    return attributes
 
 def extract_chat_response_attributes(response):
     """Extracts otel related attributes from chat response.
