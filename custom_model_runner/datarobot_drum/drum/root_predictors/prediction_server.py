@@ -21,6 +21,7 @@ from werkzeug.serving import WSGIRequestHandler
 from opentelemetry import trace
 
 from datarobot_drum import RuntimeParameters
+from datarobot_drum.drum.common import extract_request_headers
 from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.enum import (
     FLASK_EXT_FILE_NAME,
@@ -197,7 +198,8 @@ class PredictionServer(PredictMixin):
         @model_api.route("/invocations", methods=["POST"])
         def predict():
             logger.debug("Entering predict() endpoint")
-            with otel_context(tracer, "drum.invocations", request.headers):
+            with otel_context(tracer, "drum.invocations", request.headers) as span:
+                span.set_attributes(extract_request_headers(request.headers))
                 self._pre_predict_and_transform()
                 try:
                     response, response_status = self.do_predict_structured(logger=logger)
@@ -209,7 +211,8 @@ class PredictionServer(PredictMixin):
         @model_api.route("/transform/", methods=["POST"])
         def transform():
             logger.debug("Entering transform() endpoint")
-            with otel_context(tracer, "drum.transform", request.headers):
+            with otel_context(tracer, "drum.transform", request.headers) as span:
+                span.set_attributes(extract_request_headers(request.headers))
                 self._pre_predict_and_transform()
                 try:
                     response, response_status = self.do_transform(logger=logger)
@@ -222,7 +225,8 @@ class PredictionServer(PredictMixin):
         @model_api.route("/predictUnstructured/", methods=["POST"])
         def predict_unstructured():
             logger.debug("Entering predict() endpoint")
-            with otel_context(tracer, "drum.predictUnstructured", request.headers):
+            with otel_context(tracer, "drum.predictUnstructured", request.headers) as span:
+                span.set_attributes(extract_request_headers(request.headers))
                 self._pre_predict_and_transform()
                 try:
                     response, response_status = self.do_predict_unstructured(logger=logger)
@@ -237,6 +241,7 @@ class PredictionServer(PredictMixin):
             logger.debug("Entering chat endpoint")
             with otel_context(tracer, "drum.chat.completions", request.headers) as span:
                 span.set_attributes(extract_chat_request_attributes(request.json))
+                span.set_attributes(extract_request_headers(request.headers))
                 self._pre_predict_and_transform()
                 try:
                     response, response_status = self.do_chat(logger=logger)
@@ -267,6 +272,7 @@ class PredictionServer(PredictMixin):
         @model_api.route("/nim/<path:path>", methods=["GET", "POST", "PUT"])
         def forward_request(path):
             with otel_context(tracer, "drum.directAccess", request.headers) as span:
+                span.set_attributes(extract_request_headers(request.headers))
                 if not hasattr(self._predictor, "openai_host") or not hasattr(
                     self._predictor, "openai_port"
                 ):
