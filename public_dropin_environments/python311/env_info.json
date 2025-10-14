@@ -4,7 +4,7 @@
   "description": "This template environment can be used to create Python based custom models. User is responsible to provide requirements.txt with the model, to install all the required dependencies.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "68ee5dcf001b1d0d230024c0",
+  "environmentVersionId": "68ee7511007a403e01003cb3",
   "environmentVersionDescription": "",
   "isPublic": true,
   "isDownloadable": true,
@@ -14,8 +14,8 @@
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments/python311",
   "imageRepository": "env-python",
   "tags": [
-    "v11.2.0-68ee5dcf001b1d0d230024c0",
-    "68ee5dcf001b1d0d230024c0",
+    "v11.2.0-68ee7511007a403e01003cb3",
+    "68ee7511007a403e01003cb3",
     "v11.2.0-latest"
   ]
 }
