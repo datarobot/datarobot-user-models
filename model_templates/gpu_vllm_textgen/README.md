@@ -29,8 +29,6 @@ cp ~/datarobot-user-models/model_templates/gpu_vllm_textgen/* .
 docker build -t vllm .
 ```
 
-
-
 2. Run:
 ```shell
 docker run -p8080:8080 \
@@ -45,5 +43,6 @@ docker run -p8080:8080 \
   -e MLOPS_RUNTIME_PARAM_HuggingFaceToken="{\"type\": \"credential\", \"payload\": {\"credentialType\": \"api_token\", \"apiToken\": \"${HF_TOKEN}\"}}" \
   vllm
 ```
+
 - You can get the values for `DATAROBOT_API_TOKEN` and `MLOPS_DEPLOYMENT_ID` from the the DataRobot UI.If you use staging environment, you also need to set `DATAROBOT_ENDPOINT` to `https://staging.datarobot.com/api/v2`.
 - Note: The `--shm-size` argument is only needed if you are trying to utilize multiple GPUs to run your LLM.
