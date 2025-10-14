@@ -260,6 +260,20 @@ def extract_chat_request_attributes(completion_params):
     return attributes
 
 
+def extract_request_headers(request_headers):
+    attributes = {}
+    consumer_id = request_headers.get("X-DataRobot-Consumer-Id")
+    consumer_type = request_headers.get("X-DataRobot-Consumer-Type")
+
+    if consumer_id:
+        attributes["gen_ai.request.consumer_id"] = consumer_id
+
+    if consumer_type:
+        attributes["gen_ai.request.consumer_type"] = consumer_type
+
+    return attributes
+
+
 def extract_chat_response_attributes(response):
     """Extracts otel related attributes from chat response.
 
