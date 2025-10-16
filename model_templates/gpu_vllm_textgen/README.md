@@ -7,6 +7,7 @@ This text generation example uses Llama-3.1-8b model by default but can be chang
 - Generate a valid HuggingFace API Key:
 https://huggingface.co/docs/hub/en/security-tokens
 API Key is only needed to access models that are gated (i.e. Llama)
+- If you run locally, you need a machine with a GPU and Docker installed.
 
 ## Instructions
 
@@ -43,4 +44,5 @@ docker run -p8080:8080 \
   vllm
 ```
 
-Note: The `--shm-size` argument is only needed if you are trying to utilize multiple GPUs to run your LLM.
+- You can get the values for `DATAROBOT_API_TOKEN` and `MLOPS_DEPLOYMENT_ID` from the DataRobot UI.
+- Note: The `--shm-size` argument is only needed if you are trying to utilize multiple GPUs to run your LLM.

@@ -21,4 +21,8 @@ Paths are relative to `./datarobot-user-models`:
 To submit request using `curl`:  
 `curl -X POST http://localhost:6789/predictions/ -H "Content-Type: text/csv" --data-binary @/<absolute path to the file>/tests/testdata/juniors_3_year_stats_regression.csv`
 
+
+To run using vllm:   
+`PYTHONPATH=./custom_model_runner/ ./custom_model_runner/bin/drum server --code-dir ./model_templates/python3_dummy_regression/ --target-type regression --address localhost:5678 --gpu-predictor=vllm`
+
 Note: any input dataset will work for this model.
