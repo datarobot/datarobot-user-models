@@ -44,5 +44,5 @@ docker run -p8080:8080 \
   vllm
 ```
 
-- You can get the values for `DATAROBOT_API_TOKEN` and `MLOPS_DEPLOYMENT_ID` from the the DataRobot UI.If you use staging environment, you also need to set `DATAROBOT_ENDPOINT` to `https://staging.datarobot.com/api/v2`.
+- You can get the values for `DATAROBOT_API_TOKEN` and `MLOPS_DEPLOYMENT_ID` from the DataRobot UI.
 - Note: The `--shm-size` argument is only needed if you are trying to utilize multiple GPUs to run your LLM.
