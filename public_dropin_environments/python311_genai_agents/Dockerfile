@@ -90,16 +90,19 @@ EXPOSE 22
 FROM base AS builder
 # this stage has only bare minimal of dependencies installed to optimize build time for the local development
 
-ENV ANNOY_COMPILER_ARGS="-D_CRT_SECURE_NO_WARNINGS,-DANNOYLIB_MULTITHREADED_BUILD,-march=x86-64"
+ENV UV_COMPILE_BYTECODE=1 \
+    ANNOY_COMPILER_ARGS="-D_CRT_SECURE_NO_WARNINGS,-DANNOYLIB_MULTITHREADED_BUILD,-march=x86-64"
 
 ARG WORKDIR
 ARG VENV_PATH
 
 COPY ./pyproject.toml ${WORKDIR}/pyproject.toml
+COPY ./uv.lock ${WORKDIR}/uv.lock
 
 WORKDIR ${WORKDIR}
 RUN . ${VENV_PATH}/bin/activate && \
-    uv sync
+    uv sync && \
+    chmod -R 777 ${VENV_PATH}
 WORKDIR /
 
 # Copy agent runtime into work directory
