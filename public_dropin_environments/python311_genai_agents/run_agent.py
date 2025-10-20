@@ -17,6 +17,7 @@ import json
 import logging
 import os
 import socket
+import subprocess
 import sys
 from pathlib import Path
 from typing import Any, TextIO, cast
@@ -257,6 +258,25 @@ def run_agent_procedure(args: Any) -> None:
         )
 
 
+def install_extra_dependencies():
+    """
+    Run uv sync to pick up user's extra dependencies from pyproject.toml.
+    """
+    root.info("Syncing extra dependencies")
+    env = os.environ.copy()
+    # Unless directory where pyproject.toml is is not set, default to codespace location.
+    if env.get("UV_PROJECT") is None:
+        env["UV_PROJECT"] = "/home/notebooks/storage/"
+    # uv sync would recompile whole venv, which takes a lot of time. Disable it.
+    env["UV_COMPILE_BYTECODE"] = "0"
+
+    # Sync only extra dependencies to active venv (usually kernel) without upgrading any others.
+    # --frozen to skip dependency resolution and just install exactly what's in lock file
+    cmd = "uv sync --frozen --active --no-progress --no-cache --group extras"
+    subprocess.run(cmd.split(), env=env, stdout=sys.stdout, stderr=sys.stderr, check=False)
+    root.info("Sync completed")
+
+
 def main_stdout_redirect() -> Any:
     """
     This is a wrapper around the main function that redirects stdout and stderr to a file.
@@ -287,6 +307,7 @@ def main_stdout_redirect() -> Any:
         sys.stdout = f
         sys.stderr = f
 
+        install_extra_dependencies()
         try:
             run_agent_procedure(args)
         except Exception as e:
@@ -301,6 +322,7 @@ def main() -> Any:
     setup_logging(logger=root, log_level=logging.INFO)
     root.info("Parsing args")
     args = argparse_args()
+    install_extra_dependencies()
     run_agent_procedure(args)
     # flush stdout and stderr to ensure all output is returned to the caller
     sys.stdout.flush()

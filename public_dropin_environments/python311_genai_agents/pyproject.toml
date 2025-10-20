@@ -221,3 +221,6 @@ implicit_reexport = true
 override-dependencies = [
     "fastapi==0.118.2",
 ]
+
+[dependency-groups]
+extras = []
