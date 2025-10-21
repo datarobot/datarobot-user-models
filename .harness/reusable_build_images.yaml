@@ -106,10 +106,11 @@ pipeline:
         spec:
           cloneCodebase: true
           caching:
-            enabled: true
+            enabled: false
             override: false
+            paths: []
           buildIntelligence:
-            enabled: true
+            enabled: false
           platform:
             os: Linux
             arch: Amd64
@@ -127,7 +128,7 @@ pipeline:
                     repo: datarobotdev/<+matrix.image.repository>
                     tags:
                       - <+matrix.image.tag>
-                    caching: true
+                    caching: false
                     dockerfile: <+matrix.image.path>/<+matrix.image.dockerfile>
                     context: <+matrix.image.path>
         when:
