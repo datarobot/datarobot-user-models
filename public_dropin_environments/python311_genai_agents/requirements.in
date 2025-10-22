@@ -19,8 +19,9 @@ langchain-text-splitters>=0.3.9
 protobuf>=5.29.5,<6.0.0
 starlette>=0.47.2
 pillow>=11.3.0
+pypdf>=6.0.0
 urllib3>=2.5.0
-uv>=0.8.6
+uv>=0.9.5
 
 # GenAI Environment
 click~=8.1.8
@@ -37,11 +38,11 @@ langgraph~=0.4.10
 langgraph-prebuilt~=0.2.3
 legacy-cgi~=2.6.3
 litellm>=1.72.1
-llama-index-core>=0.12.49
-llama-index-llms-langchain~=0.6.1
-llama-index-llms-litellm~=0.4.1
-llama-index-llms-openai~=0.4.7
-llama-index~=0.12.50
+llama-index-core>=0.13.6
+llama-index-llms-langchain~=0.7.1
+llama-index-llms-litellm~=0.6.3
+llama-index-llms-openai~=0.5.6
+llama-index~=0.13.6
 multidict~=6.5.0
 onnxruntime~=1.22.0
 openai~=1.97.0
