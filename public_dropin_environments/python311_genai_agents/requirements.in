@@ -38,6 +38,7 @@ langgraph~=0.4.10
 langgraph-prebuilt~=0.2.3
 legacy-cgi~=2.6.3
 litellm>=1.72.1
+llama-index-cli~=0.5.1
 llama-index-core~=0.13.6
 llama-index-llms-langchain~=0.7.1
 llama-index-llms-litellm~=0.6.3
