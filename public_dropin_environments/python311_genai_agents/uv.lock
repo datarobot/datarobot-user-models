@@ -1042,10 +1042,6 @@ wheels = [
 ]
 
 [package.optional-dependencies]
-auth = [
-    { name = "httpx" },
-    { name = "pydantic" },
-]
 core = [
     { name = "pydantic" },
     { name = "pydantic-settings" },
@@ -1371,7 +1367,7 @@ dependencies = [
     { name = "click" },
     { name = "crewai" },
     { name = "crewai-tools" },
-    { name = "datarobot", extra = ["auth", "core"] },
+    { name = "datarobot", extra = ["core"] },
     { name = "datarobot-drum" },
     { name = "datarobot-mlops" },
     { name = "datarobot-moderations" },
@@ -1452,7 +1448,7 @@ requires-dist = [
     { name = "click", specifier = ">=8.1.8" },
     { name = "crewai", specifier = ">=0.177.0" },
     { name = "crewai-tools", specifier = ">=0.69.0" },
-    { name = "datarobot", extras = ["auth", "core"], specifier = ">=3.9.1" },
+    { name = "datarobot", extras = ["core"], specifier = ">=3.9.1" },
     { name = "datarobot-drum", specifier = ">=1.17.5" },
     { name = "datarobot-mlops", specifier = ">=11.1.0" },
     { name = "datarobot-moderations", specifier = ">=11.2.3" },
@@ -6563,7 +6559,7 @@ wheels = [
 
 [[package]]
 name = "ragas"
-version = "0.2.16.dev20+g5d59549ad.d20251013"
+version = "0.2.16.dev20+g5d59549ad.d20251023"
 source = { git = "https://github.com/explodinggradients/ragas?subdirectory=ragas&rev=5d59549ad5ef511f621502c563bc55ac5aeb9188#5d59549ad5ef511f621502c563bc55ac5aeb9188" }
 dependencies = [
     { name = "appdirs" },

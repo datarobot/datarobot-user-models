@@ -8,7 +8,7 @@ requires-python = ">=3.10, <3.13"
 dependencies = [
     "annotated-types>=0.7.0",
     "click>=8.1.8",
-    "datarobot[auth,core]>=3.9.1",
+    "datarobot[core]>=3.9.1",
     "datarobot-drum>=1.17.5",
     "datarobot-mlops>=11.1.0",
     "datarobot-moderations>=11.2.3",
@@ -218,6 +218,7 @@ module = "datarobot.*"
 implicit_reexport = true
 
 [tool.uv]
+required-version = ">=0.7.0"
 override-dependencies = [
     "fastapi==0.118.2",
 ]

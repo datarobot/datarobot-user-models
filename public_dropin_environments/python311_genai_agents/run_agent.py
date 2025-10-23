@@ -20,12 +20,12 @@ import socket
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, TextIO, cast
+from typing import Any, List, TextIO, cast
 from urllib.parse import urlparse, urlunparse
 
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.root_predictors.drum_inline_utils import drum_inline_predictor
-from openai.types.chat import ChatCompletion
+from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from openai.types.chat.completion_create_params import (
     CompletionCreateParamsBase,
 )
@@ -73,7 +73,9 @@ def argparse_args() -> argparse.Namespace:
         default="{}",
         help="OpenAI default_headers as json string",
     )
-    parser.add_argument("--output_path", type=str, default=None, help="json output file location")
+    parser.add_argument(
+        "--output_path", type=str, default=None, help="json output file location"
+    )
     parser.add_argument(
         "--otel_entity_id",
         type=str,
@@ -123,7 +125,9 @@ def setup_otel_env_variables(entity_id: str) -> None:
     if os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT") or os.environ.get(
         "OTEL_EXPORTER_OTLP_HEADERS"
     ):
-        root.info("OTEL_EXPORTER_OTLP_ENDPOINT or OTEL_EXPORTER_OTLP_HEADERS already set, skipping")
+        root.info(
+            "OTEL_EXPORTER_OTLP_ENDPOINT or OTEL_EXPORTER_OTLP_HEADERS already set, skipping"
+        )
         return
 
     datarobot_endpoint = os.environ.get("DATAROBOT_ENDPOINT", "")
@@ -146,7 +150,9 @@ def setup_otel_env_variables(entity_id: str) -> None:
         stripped_url = (parsed_url.scheme, parsed_url.netloc, "otel", "", "", "")
         otlp_endpoint = urlunparse(stripped_url)
 
-    otlp_headers = f"X-DataRobot-Api-Key={datarobot_api_token},X-DataRobot-Entity-Id={entity_id}"
+    otlp_headers = (
+        f"X-DataRobot-Api-Key={datarobot_api_token},X-DataRobot-Entity-Id={entity_id}"
+    )
     os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = otlp_endpoint
     os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = otlp_headers
     root.info(
@@ -198,7 +204,7 @@ def setup_otel(args: Any) -> Span:
 def execute_drum_inline(
     chat_completion: CompletionCreateParamsBase,
     custom_model_dir: Path,
-) -> ChatCompletion:
+) -> ChatCompletion | List[ChatCompletionChunk]:
     root.info("Executing agent as [chat] endpoint. DRUM Inline Executor.")
 
     root.info("Starting DRUM runner.")
@@ -208,9 +214,16 @@ def execute_drum_inline(
         target_name="response",
     ) as predictor:
         root.info("Executing Agent")
-        completion = predictor.chat(chat_completion)
 
-    return cast(ChatCompletion, completion)
+        if chat_completion.get("stream"):
+            completion_generator = predictor.chat(chat_completion)
+            return [
+                cast(ChatCompletionChunk, completion)
+                for completion in completion_generator
+            ]
+        else:
+            completion = predictor.chat(chat_completion)
+            return cast(ChatCompletion, completion)
 
 
 def construct_prompt(chat_completion: str) -> CompletionCreateParamsBase:
@@ -226,12 +239,23 @@ def construct_prompt(chat_completion: str) -> CompletionCreateParamsBase:
     return completion_create_params
 
 
-def store_result(result: ChatCompletion, trace_id: str, output_path: Path) -> None:
+def store_result(
+    result: ChatCompletion | List[ChatCompletionChunk], trace_id: str, output_path: Path
+) -> None:
     root.info(f"Storing result: {output_path}")
     with open(output_path, "w") as fp:
-        result_dict = result.model_dump()
-        result_dict["trace_id"] = trace_id
-        fp.write(json.dumps(result_dict))
+        if isinstance(result, list):
+            full_result = []
+            for chunk in result:
+                chunk_dict = chunk.model_dump()
+                chunk_dict["trace_id"] = trace_id
+                full_result.append(chunk_dict)
+
+            fp.write(json.dumps(full_result))
+        else:
+            result_dict = result.model_dump()
+            result_dict["trace_id"] = trace_id
+            fp.write(json.dumps(result_dict))
 
 
 def run_agent_procedure(args: Any) -> None:
@@ -258,7 +282,7 @@ def run_agent_procedure(args: Any) -> None:
         )
 
 
-def install_extra_dependencies():
+def install_extra_dependencies() -> None:
     """
     Run uv sync to pick up user's extra dependencies from pyproject.toml.
     """
@@ -273,7 +297,9 @@ def install_extra_dependencies():
     # Sync only extra dependencies to active venv (usually kernel) without upgrading any others.
     # --frozen to skip dependency resolution and just install exactly what's in lock file
     cmd = "uv sync --frozen --active --no-progress --no-cache --group extras"
-    subprocess.run(cmd.split(), env=env, stdout=sys.stdout, stderr=sys.stderr, check=False)
+    subprocess.run(
+        cmd.split(), env=env, stdout=sys.stdout, stderr=sys.stderr, check=False
+    )
     root.info("Sync completed")
 
 
