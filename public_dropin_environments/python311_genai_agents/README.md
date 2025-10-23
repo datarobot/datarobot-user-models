@@ -38,7 +38,7 @@ If you need additional dependencies, you can add those packages in your `require
 
 ## Synchronizing `pyproject.toml` and other files with `af-component-agents` [Preferred method]
 From within the `af-component-agents` repo run the following while replacing `path/to/` with the approprite path of your local environment:
-```
+```bash
 task docker_update_reqs AGENT_PATH=/path/to/datarobot-user-models/public_dropin_environments/python311_genai_agents
 ```
 
@@ -49,7 +49,7 @@ This will:
 
 ## Manually updating requirment.txt for proper display inside DataRobot:
 Run the following from within the `python311_genai_agents`:
-```
+```bash
 uv lock 
 uv sync
 uv pip freeze > requirements.txt
@@ -57,6 +57,6 @@ uv pip freeze > requirements.txt
 
 ## Manually updating the `uv.lock` file:
 Run the following from within the `python311_genai_agents`:
-```
+```bash
 uv lock --no-upgrade
 ```
