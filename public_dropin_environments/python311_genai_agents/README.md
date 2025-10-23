@@ -33,3 +33,24 @@ To use this environment, your custom model archive will typically contain a `cus
 Within your `custom.py` code, by importing the necessary dependencies found in this environment, you can implement your Python code under the related custom hook functions, to build your GenAI workflows.
 
 If you need additional dependencies, you can add those packages in your `requirements.txt` file that you include within your custom model archive and DataRobot will make them available to your custom Python code after you build the environment.
+
+# Development
+## Updating requirment.txt for proper display inside DataRobot:
+Run the following from within the `python311_genai_agents`:
+```
+uv lock 
+uv sync
+uv pip freeze > requirements.txt
+```
+
+## Updating the `uv.lock` file:
+Run the following from within the `python311_genai_agents`:
+```
+uv lock --no-upgrade
+```
+
+## Synchronizing with `af-component-agents`
+From within the `af-component-agents` repo run the following while replacing `path/to/` with the approprite path of your local environment:
+```
+task docker_update_reqs AGENT_PATH=/path/to/datarobot-user-models/public_dropin_environments/python311_genai_agents
+```
