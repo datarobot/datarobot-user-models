@@ -47,7 +47,7 @@ This will:
 - Upgrade the `uv.lock` file
 - Update the `requirements.txt` file so it properly displays in the Execution Environment UI.
 
-## Manually updating requirment.txt for proper display inside DataRobot:
+## Manually updating requirments.txt for proper display inside DataRobot:
 Run the following from within the `python311_genai_agents`:
 ```bash
 uv lock 
