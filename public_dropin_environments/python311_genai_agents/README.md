@@ -48,7 +48,7 @@ This will:
 - Update the `requirements.txt` file so it properly displays in the Execution Environment UI.
 
 ## Manually updating requirments.txt for proper display inside DataRobot:
-Run the following from within the `python311_genai_agents`:
+Run the following from within the `python311_genai_agents` directory:
 ```bash
 uv lock 
 uv sync
