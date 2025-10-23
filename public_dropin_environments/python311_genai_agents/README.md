@@ -56,7 +56,7 @@ uv pip freeze > requirements.txt
 ```
 
 ## Manually updating the `uv.lock` file:
-Run the following from within the `python311_genai_agents`:
+Run the following from within the `python311_genai_agents` directory:
 ```bash
 uv lock --no-upgrade
 ```
