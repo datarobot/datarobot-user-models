@@ -8,26 +8,26 @@ aiohttp==3.13.0
 aioitertools==0.12.0
 aiosignal==1.4.0
 aiosqlite==0.21.0
-alembic==1.17.0 ; python_full_version >= '3.11'
+alembic==1.17.0
 annotated-types==0.7.0
 annoy==1.17.3
 anthropic==0.71.0
 anyio==4.11.0
 appdirs==1.4.4
-appnope==0.1.4 ; sys_platform == 'darwin'
+appnope==0.1.4
 argcomplete==3.6.2
 argon2-cffi==25.1.0
 argon2-cffi-bindings==25.1.0
 arrow==1.3.0
 asttokens==3.0.0
-async-timeout==4.0.3 ; python_full_version < '3.11'
+async-timeout==4.0.3
 attrs==25.4.0
 authlib==1.6.5
 azure-core==1.36.0
 azure-identity==1.25.1
 azure-storage-blob==12.19.0
 backoff==2.2.1
-backports-asyncio-runner==1.2.0 ; python_full_version < '3.11'
+backports-asyncio-runner==1.2.0
 banks==2.2.0
 bcrypt==5.0.0
 beautifulsoup4==4.14.2
@@ -43,10 +43,10 @@ cffi==2.0.0
 charset-normalizer==3.4.4
 chromadb==1.1.1
 click==8.2.1
-cohere==5.19.0 ; sys_platform != 'emscripten'
+cohere==5.19.0
 colorama==0.4.6
 coloredlogs==15.0.1
-colorlog==6.10.1 ; python_full_version >= '3.11'
+colorlog==6.10.1
 comm==0.2.3
 crewai==0.193.2
 crewai-tools==0.76.0
@@ -84,9 +84,9 @@ eval-type-backport==0.2.2
 exceptiongroup==1.3.0
 execnet==2.1.1
 executing==2.2.1
-expandvars==1.1.2 ; python_full_version >= '3.11'
+expandvars==1.1.2
 fastapi==0.118.2
-fastavro==1.12.1 ; sys_platform != 'emscripten'
+fastavro==1.12.1
 fastembed==0.6.0
 fastjsonschema==2.21.2
 fastmcp==2.12.5
@@ -119,7 +119,7 @@ grpcio==1.75.1
 grpcio-status==1.75.1
 gunicorn==23.0.0
 h11==0.16.0
-hf-xet==1.1.10 ; platform_machine == 'aarch64' or platform_machine == 'amd64' or platform_machine == 'arm64' or platform_machine == 'x86_64'
+hf-xet==1.1.10
 httpcore==1.0.9
 httptools==0.7.1
 httpx==0.28.1
@@ -134,9 +134,9 @@ iniconfig==2.1.0
 instructor==1.11.3
 invoke==2.2.1
 ipykernel==6.28.0
-ipython==8.37.0 ; python_full_version < '3.11'
-ipython==9.6.0 ; python_full_version >= '3.11'
-ipython-pygments-lexers==1.1.1 ; python_full_version >= '3.11'
+ipython==8.37.0
+ipython==9.6.0
+ipython-pygments-lexers==1.1.1
 isodate==0.7.2
 isoduration==20.11.0
 itsdangerous==2.2.0
@@ -148,7 +148,7 @@ joblib==1.5.2
 json-repair==0.25.2
 json5==0.12.1
 jsonpatch==1.33
-jsonpath-ng==1.7.0 ; python_full_version >= '3.11'
+jsonpath-ng==1.7.0
 jsonpickle==4.1.1
 jsonpointer==3.0.0
 jsonref==1.1.0
@@ -168,15 +168,15 @@ lance-namespace==0.0.18
 lance-namespace-urllib3-client==0.0.18
 lancedb==0.25.2
 langchain==0.3.27
-langchain-aws==0.2.35 ; python_full_version >= '3.11'
+langchain-aws==0.2.35
 langchain-community==0.3.31
 langchain-core==0.3.79
-langchain-litellm==0.2.3 ; python_full_version >= '3.11'
+langchain-litellm==0.2.3
 langchain-mcp-adapters==0.1.11
-langchain-milvus==0.2.1 ; python_full_version >= '3.11'
+langchain-milvus==0.2.1
 langchain-nvidia-ai-endpoints==0.3.18
 langchain-openai==0.3.35
-langchain-tavily==0.2.12 ; python_full_version >= '3.11'
+langchain-tavily==0.2.12
 langchain-text-splitters==0.3.11
 langgraph==0.6.10
 langgraph-checkpoint==2.1.2
@@ -210,7 +210,7 @@ logfire==4.13.2
 logfire-api==4.13.2
 loguru==0.7.3
 lxml==6.0.2
-mako==1.3.10 ; python_full_version >= '3.11'
+mako==1.3.10
 markdown-it-py==4.0.0
 markupsafe==3.0.3
 marshmallow==3.26.1
@@ -234,16 +234,16 @@ nbconvert==7.16.6
 nbformat==5.10.4
 nemoguardrails==0.17.0
 nest-asyncio==1.6.0
-networkx==3.4.2 ; python_full_version < '3.11'
-networkx==3.5 ; python_full_version >= '3.11'
+networkx==3.4.2
+networkx==3.5
 nexus-rpc==1.1.0
 nltk==3.9.2
-numpy==1.26.4 ; python_full_version < '3.12'
-numpy==2.3.4 ; python_full_version >= '3.12'
-nvidia-nat==1.3.0rc3 ; python_full_version >= '3.11'
-nvidia-nat-crewai==1.3.0rc3 ; python_full_version >= '3.11'
-nvidia-nat-langchain==1.3.0rc3 ; python_full_version >= '3.11'
-nvidia-nat-opentelemetry==1.3.0rc3 ; python_full_version >= '3.11'
+numpy==1.26.4
+numpy==2.3.4
+nvidia-nat==1.3.0rc3
+nvidia-nat-crewai==1.3.0rc3
+nvidia-nat-langchain==1.3.0rc3
+nvidia-nat-opentelemetry==1.3.0rc3
 oauthlib==3.3.1
 ollama==0.6.0
 onnxruntime==1.22.0
@@ -252,7 +252,7 @@ openapi-core==0.19.5
 openapi-pydantic==0.5.1
 openapi-schema-validator==0.6.3
 openapi-spec-validator==0.7.2
-openinference-semantic-conventions==0.1.24 ; python_full_version >= '3.11'
+openinference-semantic-conventions==0.1.24
 openpyxl==3.1.5
 opentelemetry-api==1.37.0
 opentelemetry-exporter-otlp==1.37.0
@@ -302,7 +302,7 @@ opentelemetry-sdk==1.37.0
 opentelemetry-semantic-conventions==0.58b0
 opentelemetry-semantic-conventions-ai==0.4.13
 opentelemetry-util-http==0.58b0
-optuna==4.4.0 ; python_full_version >= '3.11'
+optuna==4.4.0
 orjson==3.11.3
 ormsgpack==1.11.0
 overrides==7.7.0
@@ -314,15 +314,15 @@ parso==0.8.5
 pathable==0.4.4
 pdfminer-six==20250506
 pdfplumber==0.11.7
-pexpect==4.9.0 ; sys_platform != 'emscripten' and sys_platform != 'win32'
+pexpect==4.9.0
 pillow==11.3.0
-pip==25.2 ; python_full_version >= '3.11'
-pkce==1.0.3 ; python_full_version >= '3.11'
-pkginfo==1.12.1.2 ; python_full_version >= '3.11'
+pip==25.2
+pkce==1.0.3
+pkginfo==1.12.1.2
 platformdirs==4.5.0
 playwright==1.55.0
 pluggy==1.6.0
-ply==3.11 ; python_full_version >= '3.11'
+ply==3.11
 portalocker==2.7.0
 posthog==3.25.0
 progress==1.6.1
@@ -332,7 +332,7 @@ propcache==0.4.1
 proto-plus==1.26.1
 protobuf==6.33.0
 psutil==5.9.8
-ptyprocess==0.7.0 ; os_name != 'nt' or (sys_platform != 'emscripten' and sys_platform != 'win32')
+ptyprocess==0.7.0
 pure-eval==0.2.3
 py-rust-stemmers==0.1.5
 py4j==0.10.9.9
@@ -340,7 +340,7 @@ pyarrow==20.0.0
 pyasn1==0.6.1
 pyasn1-modules==0.4.2
 pybase64==1.4.2
-pycparser==2.23 ; implementation_name != 'PyPy'
+pycparser==2.23
 pydantic==2.12.2
 pydantic-ai==1.1.0
 pydantic-ai-slim==1.1.0
@@ -353,13 +353,13 @@ pyfiglet==1.0.4
 pygments==2.19.2
 pyjwt==2.10.1
 pylance==0.38.1
-pymilvus==2.6.2 ; python_full_version >= '3.11'
+pymilvus==2.6.2
 pypdf==6.1.1
 pypdfium2==4.30.0
 pyperclip==1.11.0
 pypika==0.48.9
 pyproject-hooks==1.2.0
-pyreadline3==3.5.4 ; sys_platform == 'win32'
+pyreadline3==3.5.4
 pytest==8.4.2
 pytest-asyncio==1.2.0
 pytest-repeat==0.9.4
@@ -373,8 +373,8 @@ python-multipart==0.0.20
 pytube==15.0.0
 pytz==2025.2
 pyvis==0.3.2
-pywin32==311 ; sys_platform == 'win32'
-pywinpty==3.0.2 ; os_name == 'nt'
+pywin32==311
+pywinpty==3.0.2
 pyyaml==6.0.3
 pyzmq==27.1.0
 ragas @ git+https://github.com/explodinggradients/ragas@5d59549ad5ef511f621502c563bc55ac5aeb9188#subdirectory=ragas
@@ -393,8 +393,8 @@ rpds-py==0.27.1
 rsa==4.9.1
 ruamel-yaml==0.17.4
 s3transfer==0.13.1
-scipy==1.15.3 ; python_full_version < '3.11'
-scipy==1.16.2 ; python_full_version >= '3.11'
+scipy==1.15.3
+scipy==1.16.2
 send2trash==1.8.3
 sentry-sdk==2.42.0
 setuptools==80.9.0
@@ -432,7 +432,7 @@ traitlets==5.14.3
 typer==0.19.2
 types-protobuf==6.32.1.20250918
 types-python-dateutil==2.9.0.20251008
-types-requests==2.32.4.20250913 ; sys_platform != 'emscripten'
+types-requests==2.32.4.20250913
 typing-extensions==4.15.0
 typing-inspect==0.9.0
 typing-inspection==0.4.2
@@ -442,7 +442,7 @@ uri-template==1.3.0
 urllib3==2.5.0
 uv==0.9.3
 uvicorn==0.35.0
-uvloop==0.22.1 ; platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32'
+uvloop==0.22.1
 uwsgi==2.0.31
 watchdog==6.0.0
 watchfiles==1.1.1
@@ -453,8 +453,8 @@ websocket-client==1.9.0
 websockets==15.0.1
 werkzeug==3.1.1
 wheel==0.45.1
-wikipedia==1.4.0 ; python_full_version >= '3.11'
-win32-setctime==1.2.0 ; sys_platform == 'win32'
+wikipedia==1.4.0
+win32-setctime==1.2.0
 wrapt==1.17.3
 xxhash==3.6.0
 yarl==1.22.0
