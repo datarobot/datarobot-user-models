@@ -20,12 +20,12 @@ import socket
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, TextIO, cast
+from typing import Any, List, TextIO, cast
 from urllib.parse import urlparse, urlunparse
 
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.root_predictors.drum_inline_utils import drum_inline_predictor
-from openai.types.chat import ChatCompletion
+from openai.types.chat import ChatCompletion, ChatCompletionChunk
 from openai.types.chat.completion_create_params import (
     CompletionCreateParamsBase,
 )
@@ -198,7 +198,7 @@ def setup_otel(args: Any) -> Span:
 def execute_drum_inline(
     chat_completion: CompletionCreateParamsBase,
     custom_model_dir: Path,
-) -> ChatCompletion:
+) -> ChatCompletion | List[ChatCompletionChunk]:
     root.info("Executing agent as [chat] endpoint. DRUM Inline Executor.")
 
     root.info("Starting DRUM runner.")
@@ -208,9 +208,13 @@ def execute_drum_inline(
         target_name="response",
     ) as predictor:
         root.info("Executing Agent")
-        completion = predictor.chat(chat_completion)
 
-    return cast(ChatCompletion, completion)
+        if chat_completion.get("stream"):
+            completion_generator = predictor.chat(chat_completion)
+            return [cast(ChatCompletionChunk, completion) for completion in completion_generator]
+        else:
+            completion = predictor.chat(chat_completion)
+            return cast(ChatCompletion, completion)
 
 
 def construct_prompt(chat_completion: str) -> CompletionCreateParamsBase:
@@ -226,12 +230,23 @@ def construct_prompt(chat_completion: str) -> CompletionCreateParamsBase:
     return completion_create_params
 
 
-def store_result(result: ChatCompletion, trace_id: str, output_path: Path) -> None:
+def store_result(
+    result: ChatCompletion | List[ChatCompletionChunk], trace_id: str, output_path: Path
+) -> None:
     root.info(f"Storing result: {output_path}")
     with open(output_path, "w") as fp:
-        result_dict = result.model_dump()
-        result_dict["trace_id"] = trace_id
-        fp.write(json.dumps(result_dict))
+        if isinstance(result, list):
+            full_result = []
+            for chunk in result:
+                chunk_dict = chunk.model_dump()
+                chunk_dict["trace_id"] = trace_id
+                full_result.append(chunk_dict)
+
+            fp.write(json.dumps(full_result))
+        else:
+            result_dict = result.model_dump()
+            result_dict["trace_id"] = trace_id
+            fp.write(json.dumps(result_dict))
 
 
 def run_agent_procedure(args: Any) -> None:
@@ -258,7 +273,7 @@ def run_agent_procedure(args: Any) -> None:
         )
 
 
-def install_extra_dependencies():
+def install_extra_dependencies() -> None:
     """
     Run uv sync to pick up user's extra dependencies from pyproject.toml.
     """
