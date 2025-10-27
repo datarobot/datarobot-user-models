@@ -99,7 +99,10 @@ COPY ./agent/requirements-agent.txt ${WORKDIR}/
 # hadolint ignore=DL3013, SC1091
 RUN source ${VENV_PATH}/bin/activate && \
     uv pip install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt && \
-    uv pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt && rm ${WORKDIR}/requirements-agent.txt
+    uv pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt && rm ${WORKDIR}/requirements-agent.txt \
+    # CVE fix. pypdf is restricted by embedchain, which doesn't actually use it and doesn't seem to be active project.
+    # Thus force upgrade of pypdf here.
+    uv pip install --no-cache-dir --force-reinstall --no-deps pypdf==6.1.3
 
 # Copy agent runtime into work directory
 COPY ./run_agent.py ${WORKDIR}/
