@@ -1336,10 +1336,10 @@ requires-dist = [
     { name = "multidict", specifier = ">=6.5.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.15.0" },
     { name = "numpy", specifier = ">=1.26.4" },
-    { name = "nvidia-nat", marker = "python_full_version >= '3.11'", specifier = "==1.3.0rc3" },
-    { name = "nvidia-nat-crewai", marker = "python_full_version >= '3.11'", specifier = "==1.3.0rc3" },
-    { name = "nvidia-nat-langchain", marker = "python_full_version >= '3.11'", specifier = "==1.3.0rc3" },
-    { name = "nvidia-nat-opentelemetry", marker = "python_full_version >= '3.11'", specifier = "==1.3.0rc3" },
+    { name = "nvidia-nat", marker = "python_full_version >= '3.11'", specifier = "==1.3.0" },
+    { name = "nvidia-nat-crewai", marker = "python_full_version >= '3.11'", specifier = "==1.3.0" },
+    { name = "nvidia-nat-langchain", marker = "python_full_version >= '3.11'", specifier = "==1.3.0" },
+    { name = "nvidia-nat-opentelemetry", marker = "python_full_version >= '3.11'", specifier = "==1.3.0" },
     { name = "onnxruntime", specifier = ">=1.22.0,<1.23.0" },
     { name = "openai", specifier = ">=1.76.2" },
     { name = "opentelemetry-api", specifier = ">=1.33.0,<2.0.0" },
@@ -3807,7 +3807,7 @@ wheels = [
 
 [[package]]
 name = "nvidia-nat"
-version = "1.3.0rc3"
+version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aioboto3" },
@@ -3842,7 +3842,7 @@ dependencies = [
     { name = "wikipedia" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/ce/a6/07d7795a8a8a91d9728453d4ccaaac8521d18042e0398b41b1cb3d3d6659/nvidia_nat-1.3.0rc3-py3-none-any.whl", hash = "sha256:c39b316422867d219c8122fda634b32c0dda3cfec5934426fa89eea7b4c6dde2", size = 826513, upload-time = "2025-10-09T06:10:21.879Z" },
+    { url = "https://files.pythonhosted.org/packages/e7/b1/27596c61c21f4f51d3691b203a55cee1319211e6dcba7f964190e5479638/nvidia_nat-1.3.0-py3-none-any.whl", hash = "sha256:2e2499c204f2f91f4c6342f7fa5aa6b7934c0e7af58eed49933d32763cf841be", size = 828076, upload-time = "2025-10-24T22:11:45.636Z" },
 ]
 
 [package.optional-dependencies]
@@ -3852,21 +3852,22 @@ litellm = [
 
 [[package]]
 name = "nvidia-nat-crewai"
-version = "1.3.0rc3"
+version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "crewai" },
     { name = "nvidia-nat", extra = ["litellm"] },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/3d/ed/cbac4dbda1428f28514e3af1dac0e28b7916ee8809a900ddb2a59a16b72d/nvidia_nat_crewai-1.3.0rc3-py3-none-any.whl", hash = "sha256:fd46bff69c598c0135fa569040dd8482a16b370111ed141aa59a68812a96f9c1", size = 54292, upload-time = "2025-10-09T06:13:57.315Z" },
+    { url = "https://files.pythonhosted.org/packages/63/7d/20892c64f2f6b7fae257a7361fe38f509d25ea8c3592365f9ddf15f6279e/nvidia_nat_crewai-1.3.0-py3-none-any.whl", hash = "sha256:bd4a935ce36c4bb224cd96994fb4efa8288eb12d22e2268257e5abc5472269c9", size = 54418, upload-time = "2025-10-24T22:08:13.397Z" },
 ]
 
 [[package]]
 name = "nvidia-nat-langchain"
-version = "1.3.0rc3"
+version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "langchain" },
     { name = "langchain-aws" },
     { name = "langchain-core" },
     { name = "langchain-litellm" },
@@ -3878,12 +3879,12 @@ dependencies = [
     { name = "nvidia-nat" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d9/d7/246bd092aa282c84118c1957c4be1ad7e5a71fa04f4670ea3e587e3e0be4/nvidia_nat_langchain-1.3.0rc3-py3-none-any.whl", hash = "sha256:6987c4fbdd13a5c575c2d8401cac22da31c17ee081b742e1d27d653bced75be3", size = 59800, upload-time = "2025-10-09T06:11:21.649Z" },
+    { url = "https://files.pythonhosted.org/packages/7d/23/01a204768fc7b08f3cd229997fd7ea27c8e6a51131caebc49b974d6715f4/nvidia_nat_langchain-1.3.0-py3-none-any.whl", hash = "sha256:27531fe2440a9d261798e24aba48786e9e768cffa85698ad5ea6d30453ade487", size = 59808, upload-time = "2025-10-24T22:03:50.719Z" },
 ]
 
 [[package]]
 name = "nvidia-nat-opentelemetry"
-version = "1.3.0rc3"
+version = "1.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "nvidia-nat" },
@@ -3892,7 +3893,7 @@ dependencies = [
     { name = "opentelemetry-sdk" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/55/17/64dbf841813a6e9a63c099d1caa3d9fa4604fe3fa16c8e6dbfcbd1e32c70/nvidia_nat_opentelemetry-1.3.0rc3-py3-none-any.whl", hash = "sha256:bf5ca308c9c6c80354ee365a34631084bd1a49cbedd812b4331bb823b2c30e3f", size = 66721, upload-time = "2025-10-09T06:15:11.514Z" },
+    { url = "https://files.pythonhosted.org/packages/18/eb/b39d5d3dababccde5a652026f8a0f9d634a457c40134756f19eb81347ef8/nvidia_nat_opentelemetry-1.3.0-py3-none-any.whl", hash = "sha256:790f8868e440f5dc26f3fc6387e4767872f1a9d4c1a1520fff75f23b4ea71e4e", size = 67024, upload-time = "2025-10-24T22:05:36.178Z" },
 ]
 
 [[package]]
