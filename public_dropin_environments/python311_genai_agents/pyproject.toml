@@ -4,7 +4,7 @@ name = "DockerContext"
 version = "0.1.0"
 description = "Implementation of DockerContext"
 readme = "README.md"
-requires-python = ">=3.10, <3.13"
+requires-python = ">=3.11, <3.12"
 dependencies = [
     "annotated-types>=0.7.0",
     "click>=8.1.8",
