@@ -367,7 +367,6 @@ python-multipart==0.0.20
 pytube==15.0.0
 pytz==2025.2
 pyvis==0.3.2
-pywinpty==3.0.2
 pyyaml==6.0.3
 pyzmq==27.1.0
 ragas @ git+https://github.com/explodinggradients/ragas@5d59549ad5ef511f621502c563bc55ac5aeb9188#subdirectory=ragas
