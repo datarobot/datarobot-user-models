@@ -949,6 +949,23 @@ wheels = [
 ]
 
 [[package]]
+name = "datarobot-genai"
+version = "0.1.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "datarobot" },
+    { name = "datarobot-predict" },
+    { name = "openai" },
+    { name = "pandas" },
+    { name = "ragas" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e0/8b/3a03645f95a2fbded6541b77dd954cc71961f45d18b10f2ae92671b1c805/datarobot_genai-0.1.6.tar.gz", hash = "sha256:624df34e8fafada6d42aa49e85f60f67ae5f56ce79208666ece5636f080d0189", size = 10431, upload-time = "2025-10-28T11:46:48.429Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/92/e6/8d9fe240cf9ad239faa167250dec7940374941875543857b8a387e333bd4/datarobot_genai-0.1.6-py3-none-any.whl", hash = "sha256:f6b02d4faa0782adedf1ca65db003982b5286f8fb18fdaf8a405c0b9b557ef5c", size = 13226, upload-time = "2025-10-28T11:46:47.625Z" },
+]
+
+[[package]]
 name = "datarobot-mlops"
 version = "11.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1226,6 +1243,7 @@ dependencies = [
     { name = "crewai-tools" },
     { name = "datarobot", extra = ["core"] },
     { name = "datarobot-drum" },
+    { name = "datarobot-genai" },
     { name = "datarobot-mlops" },
     { name = "datarobot-moderations" },
     { name = "datarobot-predict" },
@@ -1307,6 +1325,7 @@ requires-dist = [
     { name = "crewai-tools", specifier = ">=0.69.0" },
     { name = "datarobot", extras = ["core"], specifier = ">=3.9.1" },
     { name = "datarobot-drum", specifier = ">=1.17.5" },
+    { name = "datarobot-genai", specifier = "==0.1.6" },
     { name = "datarobot-mlops", specifier = ">=11.1.0" },
     { name = "datarobot-moderations", specifier = ">=11.2.3" },
     { name = "datarobot-predict", specifier = ">=1.13.2" },

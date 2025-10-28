@@ -10,6 +10,7 @@ dependencies = [
     "click>=8.1.8",
     "datarobot[core]>=3.9.1",
     "datarobot-drum>=1.17.5",
+    "datarobot-genai==0.1.6",
     "datarobot-mlops>=11.1.0",
     "datarobot-moderations>=11.2.3",
     "datarobot-predict>=1.13.2",
