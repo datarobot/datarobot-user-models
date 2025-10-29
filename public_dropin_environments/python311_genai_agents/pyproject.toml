@@ -70,6 +70,7 @@ dependencies = [
     "pylance<=0.38.1",
     "langgraph>=0.4.10",
     "langgraph-prebuilt>=0.2.3",
+    "langchain-litellm>=0.2.3",
     "llama-index<0.14.0",
     "llama-index-core<0.14.0",
     "llama-index-llms-langchain>=0.6.1",
@@ -92,6 +93,9 @@ dev = [
     "ruff>=0.12.0",
     "types-requests>=2.32.4.20250913",
     "yamlfix>=1.17.0",
+]
+chainlit = [
+    "chainlit>=2.8.3",
 ]
 
 [tool.pytest.ini_options]
