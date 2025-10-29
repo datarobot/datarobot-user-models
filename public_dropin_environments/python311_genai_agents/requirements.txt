@@ -11,7 +11,7 @@ datarobot-predict==1.13.2
 dotenv==0.9.9
 ecs-logging==2.2.0
 fastapi==0.118.2
-fastmcp==2.12.5
+fastmcp==2.13.0
 ipykernel==6.28.0
 jupyter-client==8.6.3
 jupyter-core==5.9.1
