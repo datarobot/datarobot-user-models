@@ -4,7 +4,7 @@
   "description": "This template environment can be used to create artifact-only R custom models that use the caret library. Your custom model archive need only contain your model artifacts if you use the environment correctly.",
   "programmingLanguage": "r",
   "label": "",
-  "environmentVersionId": "68fab486003f3e01f2000437",
+  "environmentVersionId": "6902ae0a006f5c0f3b006f0e",
   "environmentVersionDescription": "",
   "isPublic": true,
   "isDownloadable": true,
