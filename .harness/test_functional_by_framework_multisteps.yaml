@@ -34,20 +34,20 @@ pipeline:
         type: Pipeline
         spec:
           org: Custom_Models
-          pipeline: envs_image_build
-          project: datarobotusermodels
+          pipeline: Build_and_Publish_ExecEnv
+          project: execution_environment_installer
           inputs:
-            identifier: envs_image_build
+            identifier: Build_and_Publish_ExecEnv
             variables:
-              - name: repo
+              - name: gitrepo
                 type: String
                 value: <+pipeline.variables.target_repo>
-              - name: source_branch
+              - name: srcref
                 type: String
                 value: <+pipeline.variables.source_branch>
-              - name: envs_folders
+              - name: targetref
                 type: String
-                value: <+pipeline.stages.Reconcile_envVersionIds_requirements.spec.execution.steps.find_changed.output.outputVariables.CHANGED_DIRS>
+                value: <+pipeline.variables.target_branch>
         tags: {}
         when:
           pipelineStatus: Success
