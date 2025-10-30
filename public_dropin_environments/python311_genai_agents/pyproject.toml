@@ -38,6 +38,7 @@ dependencies = [
     "requests>=2.32.4",
     "traceloop-sdk>=0.40.2",
     "uvicorn>=0.32.0",
+
     # Docker image requirements (These MUST be included to avoid docker conflicts)
     "ecs-logging>=2.2.0",
     "fastapi[all]==0.118.2",
@@ -52,12 +53,15 @@ dependencies = [
     "setuptools>=80.9.0",
     "ujson<5.8.0",
     "uwsgi>=2.0.30",
+
     "nvidia-nat==1.3.0; python_version >= '3.11'",
     # "nvidia-nat-llama-index==1.3.0; python_version >= '3.11'",
     "nvidia-nat-opentelemetry==1.3.0; python_version >= '3.11'",
     "nvidia-nat-crewai==1.3.0; python_version >= '3.11'",
     "nvidia-nat-langchain==1.3.0; python_version >= '3.11'",
+
     # Agent framework requirements
+    
     "crewai>=0.193.2",
     "crewai-tools>=0.69.0",
     "fastmcp>2.12.0",
@@ -73,10 +77,9 @@ dependencies = [
     "llama-index-llms-litellm>=0.4.1",
     "llama-index-llms-openai>=0.3.38",
     "opentelemetry-instrumentation-llamaindex>=0.40.5",
-    "pypdf>=6.1.3",
+    "pypdf>=6.0.0",
     "logfire>=4.6.0",
     "pydantic-ai>=1.0.5",
-    "uv>=0.9.6",
 ]
 
 [project.optional-dependencies]
