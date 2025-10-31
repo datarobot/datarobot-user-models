@@ -62,6 +62,5 @@ requests==2.32.5
 setuptools==80.9.0
 traceloop-sdk==0.47.3
 ujson==5.7.0
-uv==0.9.6
 uvicorn==0.35.0
 uwsgi==2.0.31
