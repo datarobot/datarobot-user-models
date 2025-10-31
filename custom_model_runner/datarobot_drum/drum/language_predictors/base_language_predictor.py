@@ -19,6 +19,7 @@ import pandas as pd
 from datarobot_drum.drum.adapters.cli.shared.drum_class_label_adapter import DrumClassLabelAdapter
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
 from datarobot_drum.drum.common import to_bool
+from datarobot_drum.drum.enum import MODERATIONS_EXTRA_BODY_ASSOCIATION_ID_KEY
 from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
 from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
 from datarobot_drum.drum.enum import (
@@ -276,8 +277,11 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
 
     def chat(self, completion_create_params, **kwargs):
         start_time = time.time()
+        association_id = completion_create_params.get(
+            MODERATIONS_EXTRA_BODY_ASSOCIATION_ID_KEY, None
+        )
         try:
-            association_id = str(uuid4_fast())
+            association_id = association_id or str(uuid4_fast())
             response = self._chat(completion_create_params, association_id, **kwargs)
             response = self._validate_chat_response(response)
         except Exception as e:
