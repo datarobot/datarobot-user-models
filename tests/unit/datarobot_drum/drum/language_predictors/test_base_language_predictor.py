@@ -259,7 +259,7 @@ class TestChat(TestBaseLanguagePredictor):
         "extra_body_key, extra_body_value",
         [
             (None, None),
-            ("association_id", "a123456"),  # values must be distinct and not UUIDs
+            ("datarobot_association_id", "a123456"),  # values must be distinct and not UUIDs
             ("some_other_key", "a234567"),
         ],
         ids=["xb_no_id", "xb_assoc_id", "xb_other_id"],
