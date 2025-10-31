@@ -658,13 +658,13 @@ def score_pass(data, model, **kwargs):
     return data
 
 
-def chat_alt_case(completion_create_params, model, association_id=None):
+def chat_alt_case(completion_create_params, model, association_id=None, **kwargs):
     """Dummy chat method -- alternate case to verify it is called"""
     text = alternate_case(completion_create_params["messages"][-1]["content"])
     return build_chat_completion(text)
 
 
-def chat_pass(completion_create_params, model, association_id=None):
+def chat_pass(completion_create_params, model, association_id=None, **kwargs):
     """Dummy chat method -- pass through text unchanged"""
     text = completion_create_params["messages"][-1]["content"]
     return build_chat_completion(text)
@@ -708,6 +708,7 @@ class TestModerationPipeline:
     def __init__(self, *args, **kwargs):
         self.score_call_count = 0
         self.chat_call_count = 0
+        self.chat_kwargs = None
 
     def score(self, input_df: pd.DataFrame, model, drum_score_fn, **kwargs):
         """Score function turns the completions to uppercase and runs the DRUM score function."""
@@ -725,6 +726,7 @@ class TestModerationPipeline:
     ):
         """Chat function turns the message to uppercase and runs the DRUM chat function."""
         self.chat_call_count += 1
+        self.chat_kwargs = kwargs
         prompt = completion_create_params["messages"][-1]["content"].upper()
         completion_create_params["messages"][-1]["content"] = prompt
         return drum_chat_fn(completion_create_params, model)
@@ -816,16 +818,20 @@ class TestPythonModelAdapterWithGuards:
             {"role": "user", "content": "Hello there"},
         ]
         target_name = "completion"
+        test_kwargs = {"custom_param": "test_value", "another_param": 123}
         with patch.dict(os.environ, {"TARGET_NAME": target_name}):
             adapter = PythonModelAdapter(tmp_path, TargetType.TEXT_GENERATION)
             if pipeline_present:
                 adapter._mod_pipeline = TestModerationPipeline()
             adapter._custom_hooks["chat"] = chat_fn
 
-            response = adapter.chat({"messages": messages}, None, "association_id")
+            response = adapter.chat({"messages": messages}, None, "association_id", **test_kwargs)
             # Even if guard pipeline exists - moderation chat wrapper does not exist, so invoke
             # only user chat method
             assert response.choices[0].message.content == expected_completion
             assert pipeline_count == (
                 adapter._mod_pipeline.chat_call_count if adapter._mod_pipeline else 0
             )
+            # Verify kwargs are passed through to the pipeline
+            if pipeline_present:
+                assert adapter._mod_pipeline.chat_kwargs == test_kwargs
