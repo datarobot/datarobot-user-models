@@ -1365,7 +1365,6 @@ dependencies = [
     { name = "setuptools" },
     { name = "traceloop-sdk" },
     { name = "ujson" },
-    { name = "uv" },
     { name = "uvicorn" },
     { name = "uwsgi" },
 ]
@@ -1461,7 +1460,6 @@ requires-dist = [
     { name = "traceloop-sdk", specifier = ">=0.40.2" },
     { name = "types-requests", marker = "extra == 'dev'", specifier = ">=2.32.4.20250913" },
     { name = "ujson", specifier = "<5.8.0" },
-    { name = "uv", specifier = ">=0.9.6" },
     { name = "uvicorn", specifier = ">=0.32.0" },
     { name = "uwsgi", specifier = ">=2.0.30" },
     { name = "yamlfix", marker = "extra == 'dev'", specifier = ">=1.17.0" },
