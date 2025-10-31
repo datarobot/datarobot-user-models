@@ -1,4 +1,7 @@
 [project]
+exclude-dependencies = [
+    "uv",
+]
 
 name = "DockerContext"
 version = "0.1.0"
