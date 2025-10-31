@@ -12,6 +12,7 @@ import datarobot as dr
 from werkzeug.exceptions import BadRequest
 
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
+from datarobot_drum.drum.enum import MODERATIONS_EXTRA_BODY_ASSOCIATION_ID_KEY
 from datarobot_drum.drum.enum import TargetType
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 
@@ -254,24 +255,47 @@ class TestChat(TestBaseLanguagePredictor):
             ):
                 predictor.configure(params)
 
-    def test_association_id(self, language_predictor_with_mlops, mock_mlops):
+    @pytest.mark.parametrize(
+        "extra_body_key, extra_body_value",
+        [
+            (None, None),
+            ("datarobot_association_id", "a123456"),  # values must be distinct and not UUIDs
+            ("some_other_key", "a234567"),
+        ],
+        ids=["xb_no_id", "xb_assoc_id", "xb_other_id"],
+    )
+    def test_association_id(
+        self, language_predictor_with_mlops, mock_mlops, extra_body_key, extra_body_value
+    ):
+        """
+        Test association_id handling with and without an "association_id" override field included
+        in the extra_body parameter of a chat request.
+        (When the request arrives to chat(), the extra body fields are in completion_create_params.)
+        """
         with patch.object(TestLanguagePredictor, "_chat") as mock_chat:
             mock_chat.return_value = create_completion("How are you")
+            completion_create_params = {
+                "model": "any",
+                "messages": [
+                    {"role": "system", "content": "You are a helpful assistant."},
+                    {"role": "user", "content": "Hello!"},
+                ],
+                # "association_id": "12345678"
+            }
+            if extra_body_key:
+                completion_create_params[extra_body_key] = extra_body_value
 
-            completion = language_predictor_with_mlops.chat(
-                {
-                    "model": "any",
-                    "messages": [
-                        {"role": "system", "content": "You are a helpful assistant."},
-                        {"role": "user", "content": "Hello!"},
-                    ],
-                }
-            )
+            completion = language_predictor_with_mlops.chat(completion_create_params)
 
             association_id = mock_mlops.report_predictions_data.call_args.kwargs["association_ids"][
                 0
             ]
-
+            # if (only if) the user overrides the auto-generated association ID, verify that it's used
+            if extra_body_key == MODERATIONS_EXTRA_BODY_ASSOCIATION_ID_KEY:
+                assert association_id == extra_body_value
+            else:
+                assert association_id != extra_body_value
+            # in all cases, chat() will get the ID (auto-generated or custom)
             mock_chat.assert_called_once_with(ANY, association_id)
             hasattr(completion, "datarobot_association_id")
 
