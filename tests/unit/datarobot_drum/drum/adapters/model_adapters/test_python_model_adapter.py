@@ -658,13 +658,13 @@ def score_pass(data, model, **kwargs):
     return data
 
 
-def chat_alt_case(completion_create_params, model, association_id=None):
+def chat_alt_case(completion_create_params, model, association_id=None, **kwargs):
     """Dummy chat method -- alternate case to verify it is called"""
     text = alternate_case(completion_create_params["messages"][-1]["content"])
     return build_chat_completion(text)
 
 
-def chat_pass(completion_create_params, model, association_id=None):
+def chat_pass(completion_create_params, model, association_id=None, **kwargs):
     """Dummy chat method -- pass through text unchanged"""
     text = completion_create_params["messages"][-1]["content"]
     return build_chat_completion(text)
