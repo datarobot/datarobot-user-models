@@ -188,8 +188,7 @@ implicit_reexport = true
 [tool.uv]
 required-version = ">=0.7.0"
 override-dependencies = [
-    "fastapi==0.118.2",
-    "fastapi==0.120.3",
+    "fastapi>=0.120.3",
     "ragas>=0.3.8",
 ]
 
