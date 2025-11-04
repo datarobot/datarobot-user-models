@@ -8,7 +8,7 @@ Additionally, this environment is fully compatible with `Codespaces` and `Notebo
 ## Supported Libraries
 For specific version information and the complete list of included packages, see [pyproject.toml](pyproject.toml).
 
-## Instructions
+## Build locally
 
 1. From the terminal, run `tar -czvf py_dropin.tar.gz -C /path/to/public_dropin_environments/python311_genai_agents/ .`
 2. Using either the API or from the UI create a new Custom Environment with the tarball created in step 1.
