@@ -4,7 +4,7 @@ crewai==0.193.2
 crewai-tools==0.76.0
 datarobot==3.9.1
 datarobot-drum==1.17.5
-datarobot-genai==0.1.6
+datarobot-genai==0.1.28
 datarobot-mlops==11.1.0
 datarobot-moderations==11.2.3
 datarobot-predict==1.13.2
@@ -56,7 +56,7 @@ pydantic-ai==1.1.0
 pylance==0.38.1
 pypdf==6.1.1
 python-dotenv==1.1.1
-ragas @ git+https://github.com/explodinggradients/ragas@5d59549ad5ef511f621502c563bc55ac5aeb9188#subdirectory=ragas
+ragas==0.3.8
 requests==2.32.5
 setuptools==80.9.0
 traceloop-sdk==0.47.3
