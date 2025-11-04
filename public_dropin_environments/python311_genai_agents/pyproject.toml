@@ -1,4 +1,7 @@
 [project]
+exclude-dependencies = [
+    "uv",
+]
 
 name = "DockerContext"
 version = "0.1.0"
@@ -6,6 +9,9 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # DO NOT EDIT THESE DEPENDENCIES OUTSIDE OF AF-COMPONENT-AGENT
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     "click>=8.1.8",
     "datarobot[core]>=3.9.1",
     "datarobot-drum>=1.17.5",
@@ -23,9 +29,11 @@ dependencies = [
     "opentelemetry-instrumentation-requests>=0.54b0",
     "opentelemetry-sdk>=1.33.0",
 
+    
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     # We need to verify execution environment compatibility before these are removed.
     # Codespaces must be able to launch the container!
-    
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     "dotenv>=0.9.9",
     "langchain-community>=0.3.27",
     "langchain-mcp-adapters>=0.1.9",
