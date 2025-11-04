@@ -6,7 +6,6 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
-    "annotated-types>=0.7.0",
     "click>=8.1.8",
     "datarobot[core]>=3.9.1",
     "datarobot-drum>=1.17.5",
@@ -14,16 +13,8 @@ dependencies = [
     "datarobot-mlops>=11.1.0",
     "datarobot-moderations>=11.2.3",
     "datarobot-predict>=1.13.2",
-    "dotenv>=0.9.9",
-    "langchain-community>=0.3.27",
-    "langchain-mcp-adapters>=0.1.9",
-    "langchain>=0.3.23",
-    "legacy-cgi>=2.6.3",
+
     "litellm>=1.72.1",
-    "mcp>=1.11.0",
-    "multidict>=6.5.0",
-    "onnxruntime>=1.22.0,<1.23.0",
-    "openai>=1.76.2",
     "opentelemetry-api>=1.33.0,<2.0.0",
     "opentelemetry-instrumentation-aiohttp-client>=0.54b0",
     "opentelemetry-instrumentation-httpx>=0.54b0",
@@ -32,9 +23,21 @@ dependencies = [
     "opentelemetry-instrumentation-requests>=0.54b0",
     "opentelemetry-sdk>=1.33.0",
 
+    # We need to verify execution environment compatibility before these are removed.
+    # Codespaces must be able to launch the container!
     
-   "python-dotenv>=1.1.0",
-    "ragas @ git+https://github.com/explodinggradients/ragas@5d59549ad5ef511f621502c563bc55ac5aeb9188#subdirectory=ragas",
+    "dotenv>=0.9.9",
+    "langchain-community>=0.3.27",
+    "langchain-mcp-adapters>=0.1.9",
+    "langchain>=0.3.23",
+    "legacy-cgi>=2.6.3",
+    "mcp>=1.11.0",
+    "multidict>=6.5.0",
+    "onnxruntime>=1.22.0,<1.23.0",
+    "openai>=1.76.2",
+    "annotated-types>=0.7.0",
+    "python-dotenv>=1.1.0",
+    "ragas",
     # pyarrow==21.0.0 breaks the current ragas version https://github.com/apache/arrow/issues/47155
     "pyarrow<21.0.0",
     "requests>=2.32.4",

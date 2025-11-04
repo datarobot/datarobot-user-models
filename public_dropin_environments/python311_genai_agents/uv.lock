@@ -1456,7 +1456,7 @@ requires-dist = [
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=1.2.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=6.1.1" },
     { name = "python-dotenv", specifier = ">=1.1.0" },
-    { name = "ragas", git = "https://github.com/explodinggradients/ragas?subdirectory=ragas&rev=5d59549ad5ef511f621502c563bc55ac5aeb9188" },
+    { name = "ragas" },
     { name = "requests", specifier = ">=2.32.4" },
     { name = "requests-mock", marker = "extra == 'dev'", specifier = ">=1.12.1" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.12.0" },
