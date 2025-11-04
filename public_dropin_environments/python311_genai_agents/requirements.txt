@@ -1,8 +1,8 @@
 click==8.2.1
 datarobot-drum==1.17.5
-datarobot-genai==0.1.22
+datarobot-genai==0.1.23
 ecs-logging==2.2.0
-fastapi==0.118.2
+fastapi==0.120.3
 ipykernel==6.28.0
 jupyter-client==8.6.3
 jupyter-core==5.9.1
@@ -19,5 +19,6 @@ opentelemetry-sdk==1.37.0
 pandas==2.2.3
 psutil==5.9.8
 setuptools==80.9.0
+starlette==0.50.0
 ujson==5.7.0
 uwsgi==2.0.31
