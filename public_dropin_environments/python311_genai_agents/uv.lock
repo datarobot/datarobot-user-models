@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = "==3.11.*"
 
 [manifest]
@@ -115,6 +115,18 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/c5/bb/a3adfe2af76e1ee9e3b5464522004b148b266bc99d7ec424ca7843d64a3c/aiohttp-3.13.0-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:77da5305a410910218b99f2a963092f4277d8a9c1f429c1ff1b026d1826bd0b6", size = 1737480, upload-time = "2025-10-06T19:55:38.043Z" },
     { url = "https://files.pythonhosted.org/packages/ad/53/e124dcbd64e6365602f3493fe37a11ca5b7ac0a40822a6e2bc8260cd08e0/aiohttp-3.13.0-cp311-cp311-win32.whl", hash = "sha256:2f9d9ea547618d907f2ee6670c9a951f059c5994e4b6de8dcf7d9747b420c820", size = 429824, upload-time = "2025-10-06T19:55:39.595Z" },
     { url = "https://files.pythonhosted.org/packages/3e/bd/485d98b372a2cd6998484a93ddd401ec6b6031657661c36846a10e2a1f6e/aiohttp-3.13.0-cp311-cp311-win_amd64.whl", hash = "sha256:0f19f7798996d4458c669bd770504f710014926e9970f4729cf55853ae200469", size = 454137, upload-time = "2025-10-06T19:55:41.617Z" },
+]
+
+[[package]]
+name = "aiohttp-retry"
+version = "2.9.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "aiohttp" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/9d/61/ebda4d8e3d8cfa1fd3db0fb428db2dd7461d5742cea35178277ad180b033/aiohttp_retry-2.9.1.tar.gz", hash = "sha256:8eb75e904ed4ee5c2ec242fefe85bf04240f685391c4879d8f541d6028ff01f1", size = 13608, upload-time = "2024-11-06T10:44:54.574Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/1a/99/84ba7273339d0f3dfa57901b846489d2e5c2cd731470167757f1935fffbd/aiohttp_retry-2.9.1-py3-none-any.whl", hash = "sha256:66d2759d1921838256a05a3f80ad7e724936f083e35be5abb5e16eed6be6dc54", size = 9981, upload-time = "2024-11-06T10:44:52.917Z" },
 ]
 
 [[package]]
@@ -975,6 +987,18 @@ core = [
 ]
 
 [[package]]
+name = "datarobot-asgi-middleware"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "starlette" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/37/10/b7651ffa919c76ec808db0af521e30e43adb18af9f4ee2413a4f854e7b6f/datarobot_asgi_middleware-0.2.0.tar.gz", hash = "sha256:44588d6b16a8420ed8b6b8a198a8326be61f48d39a27f7df1a6511dc319b467b", size = 14018, upload-time = "2025-06-17T02:03:29.82Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/42/9c/df8319321f8b606580cc0dab2884dcf58373aa567b8539c4a0681c96dfcc/datarobot_asgi_middleware-0.2.0-py3-none-any.whl", hash = "sha256:ac6f999a568c04964673d6f2f5134e2ce4ad67ef3eebb4c2896981c0f5291493", size = 8034, upload-time = "2025-06-17T02:03:29.047Z" },
+]
+
+[[package]]
 name = "datarobot-drum"
 version = "1.17.5"
 source = { registry = "https://pypi.org/simple" }
@@ -1039,6 +1063,25 @@ crewai = [
     { name = "crewai-tools" },
     { name = "opentelemetry-instrumentation-crewai" },
     { name = "pybase64" },
+]
+drmcp = [
+    { name = "aiohttp" },
+    { name = "aiohttp-retry" },
+    { name = "aiosignal" },
+    { name = "boto3" },
+    { name = "datarobot-asgi-middleware" },
+    { name = "fastmcp" },
+    { name = "httpx" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-exporter-otlp" },
+    { name = "opentelemetry-exporter-otlp-proto-http" },
+    { name = "opentelemetry-instrumentation-aiohttp-client" },
+    { name = "opentelemetry-instrumentation-httpx" },
+    { name = "opentelemetry-instrumentation-requests" },
+    { name = "opentelemetry-sdk" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "python-dotenv" },
 ]
 langgraph = [
     { name = "langgraph" },
@@ -1341,7 +1384,7 @@ dependencies = [
     { name = "click" },
     { name = "datarobot", extra = ["core"] },
     { name = "datarobot-drum" },
-    { name = "datarobot-genai", extra = ["crewai", "langgraph", "llamaindex", "nat", "pydanticai"] },
+    { name = "datarobot-genai", extra = ["crewai", "drmcp", "langgraph", "llamaindex", "nat", "pydanticai"] },
     { name = "datarobot-mlops" },
     { name = "datarobot-moderations" },
     { name = "datarobot-predict" },
@@ -1410,7 +1453,7 @@ requires-dist = [
     { name = "click", specifier = ">=8.1.8" },
     { name = "datarobot", extras = ["core"], specifier = ">=3.9.1" },
     { name = "datarobot-drum", specifier = ">=1.17.5" },
-    { name = "datarobot-genai", extras = ["crewai", "langgraph", "llamaindex", "nat", "pydanticai"], specifier = ">=0.1.30" },
+    { name = "datarobot-genai", extras = ["crewai", "drmcp", "langgraph", "llamaindex", "nat", "pydanticai"], specifier = ">=0.1.30" },
     { name = "datarobot-mlops", specifier = ">=11.1.0" },
     { name = "datarobot-moderations", specifier = ">=11.2.4" },
     { name = "datarobot-predict", specifier = ">=1.13.2" },
@@ -1646,7 +1689,7 @@ wheels = [
 
 [[package]]
 name = "fastmcp"
-version = "2.12.5"
+version = "2.12.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "authlib" },
@@ -1661,9 +1704,9 @@ dependencies = [
     { name = "python-dotenv" },
     { name = "rich" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/00/a6/e3b46cd3e228635e0064c2648788b6f66a53bf0d0ddbf5fb44cca951f908/fastmcp-2.12.5.tar.gz", hash = "sha256:2dfd02e255705a4afe43d26caddbc864563036e233dbc6870f389ee523b39a6a", size = 7190263, upload-time = "2025-10-17T13:24:58.896Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/35/8a/c46759bb41a53187191e5b3d963c0bde54783ecc89186a93c4947607b8e4/fastmcp-2.12.2.tar.gz", hash = "sha256:6d13e2f9be57b99763fc22485f9f603daa23bfbca35a8172baa43b283d6fc1ff", size = 5244547, upload-time = "2025-09-03T21:28:09.869Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d8/c1/9fb98c9649e15ea8cc691b4b09558b61dafb3dc0345f7322f8c4a8991ade/fastmcp-2.12.5-py3-none-any.whl", hash = "sha256:b1e542f9b83dbae7cecfdc9c73b062f77074785abda9f2306799116121344133", size = 329099, upload-time = "2025-10-17T13:24:57.518Z" },
+    { url = "https://files.pythonhosted.org/packages/5c/0a/7a8d564b1b9909dbfc36eb93d76410a4acfada6b1e13ee451a753bb6dbc2/fastmcp-2.12.2-py3-none-any.whl", hash = "sha256:0b58d68e819c82078d1fd51989d3d81f2be7382d527308b06df55f4d0a4ec94f", size = 312029, upload-time = "2025-09-03T21:28:08.62Z" },
 ]
 
 [[package]]

@@ -9,7 +9,7 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
-    "datarobot-genai[crewai, langgraph, llamaindex, nat, pydanticai]>=0.1.30",
+    "datarobot-genai[crewai, drmcp, langgraph, llamaindex, nat, pydanticai]>=0.1.30",
     "datarobot-moderations>=11.2.4",
 
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
