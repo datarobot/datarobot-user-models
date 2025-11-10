@@ -100,7 +100,7 @@ COPY ./pyproject.toml ${WORKDIR}/pyproject.toml
 COPY ./uv.lock ${WORKDIR}/uv.lock
 
 WORKDIR ${WORKDIR}
-RUN chown -R $UNAME:$UNAME ${WORKDIR}
+RUN chown -R $UNAME:$UNAME ${WORKDIR} ${VENV_PATH}
 RUN . ${VENV_PATH}/bin/activate && \
     uv sync && \
     chmod -R 777 ${VENV_PATH}
