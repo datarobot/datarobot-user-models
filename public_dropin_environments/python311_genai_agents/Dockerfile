@@ -101,7 +101,7 @@ COPY ./pyproject.toml ${WORKDIR}/pyproject.toml
 COPY ./uv.lock ${WORKDIR}/uv.lock
 
 WORKDIR ${WORKDIR}
-RUN chown -R $UNAME:$UNAME ${WORKDIR} ${VENV_PATH}
+RUN chown $UNAME:$UNAME ${WORKDIR}/uv.lock
 USER $UNAME
 
 RUN . ${VENV_PATH}/bin/activate && \
