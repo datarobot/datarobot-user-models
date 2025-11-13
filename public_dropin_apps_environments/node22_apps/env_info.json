@@ -1,0 +1,15 @@
+{
+  "id": "67810494d211dfbce6eb84d0",
+  "name": "[DataRobot] NodeJS 22 Applications Base",
+  "description": "Base image for NodeJS 22 custom applications.",
+  "programmingLanguage": "other",
+  "environmentVersionId": "690a499fd0b01ddc5e283eb5",
+  "environmentVersionDescription": "The base environment uses Node.js v22.x without any additional packages, the exact subversion depends on the current Chainguard image version.",
+  "imageRepository": "env-tpl-node",
+  "isDownloadable": true,
+  "contextUrl": null,
+  "isPublic": true,
+  "useCases": ["customApplication"],
+  "label": "",
+  "tags": []
+}
