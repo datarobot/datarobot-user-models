@@ -95,11 +95,14 @@ ENV UV_COMPILE_BYTECODE=1 \
 
 ARG WORKDIR
 ARG VENV_PATH
+ARG UNAME
 
 COPY ./pyproject.toml ${WORKDIR}/pyproject.toml
 COPY ./uv.lock ${WORKDIR}/uv.lock
 
 WORKDIR ${WORKDIR}
+USER $UNAME
+
 RUN . ${VENV_PATH}/bin/activate && \
     uv sync && \
     chmod -R 777 ${VENV_PATH}
