@@ -131,6 +131,7 @@ class WorkerCtx:
 
         from datarobot_drum.drum.main import main
         import os
+
         os.chdir(os.environ.get("CODE_DIR", "/opt/code"))
 
         main(self.app, self)
