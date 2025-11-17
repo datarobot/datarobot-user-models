@@ -21,9 +21,16 @@ For detailed methodology and validation rule derivation, see vllm_validator.py
 """
 
 import os
+import shutil
 import pytest
 from tests.unit.dockerfile_validators.vllm_validator import VllmDockerfileValidator
 from tests.unit.dockerfile_validators.docker_build_tester import DockerBuildTester
+
+
+# Check if Docker is available
+def _is_docker_available():
+    """Check if Docker command is available."""
+    return shutil.which("docker") is not None
 
 
 class TestVllmDockerfileStaticValidation:
@@ -78,6 +85,7 @@ class TestVllmDockerfileStaticValidation:
         ), f"\nTypo validation failed with {len(typo_errors)} error(s):" + "".join(typo_errors)
 
 
+@pytest.mark.skipif(not _is_docker_available(), reason="Docker not available in test environment")
 class TestVllmDockerfileBuild:
     """Docker build tests for vLLM Dockerfile."""
 
