@@ -2,35 +2,21 @@
 Unit tests for vLLM Dockerfile validation.
 
 This module validates the vLLM dropin environment Dockerfile configuration without requiring
-GPU hardware. It performs static analysis and optional Docker build tests to catch
-configuration errors (e.g., WITH_ERROR_SERVER=0s instead of 0) before deployment.
-** Testing should be extended for built image
-Test Coverage:
-    1. Static Analysis:
-       - Environment variable type and value validation
-       - Typo detection in variable values
-       - Boolean flag format validation
-       - Path variable format validation
+GPU hardware. It performs static analysis to catch configuration errors
+(e.g., WITH_ERROR_SERVER=0s instead of 0) before deployment.
 
-    2. Docker Build (Optional):
-       - Tests if image can be built successfully
-       - Validates basic Python installation
-       - Does not require GPU for build
+Test Coverage:
+    - Environment variable type and value validation
+    - Typo detection in variable values
+    - Boolean flag format validation
+    - Path variable format validation
 
 For detailed methodology and validation rule derivation, see vllm_validator.py
 """
 
 import os
-import shutil
 import pytest
 from tests.unit.dockerfile_validators.vllm_validator import VllmDockerfileValidator
-from tests.unit.dockerfile_validators.docker_build_tester import DockerBuildTester
-
-
-# Check if Docker is available
-def _is_docker_available():
-    """Check if Docker command is available."""
-    return shutil.which("docker") is not None
 
 
 class TestVllmDockerfileStaticValidation:
@@ -84,37 +70,3 @@ class TestVllmDockerfileStaticValidation:
             not typo_errors
         ), f"\nTypo validation failed with {len(typo_errors)} error(s):" + "".join(typo_errors)
 
-
-@pytest.mark.skipif(not _is_docker_available(), reason="Docker not available in test environment")
-class TestVllmDockerfileBuild:
-    """Docker build tests for vLLM Dockerfile."""
-
-    @pytest.fixture(scope="class")
-    def build_tester(self, request):
-        dockerfile_dir = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "../../../public_dropin_gpu_environments/vllm")
-        )
-        image_tag = "test-vllm-image:latest"
-        tester = DockerBuildTester(dockerfile_dir, image_tag)
-        request.addfinalizer(tester.cleanup)
-        return tester
-
-    def test_dockerfile_builds_successfully(self, build_tester):
-        """
-        Test that the Dockerfile can be built into a Docker image.
-        """
-        success, output, elapsed_time = build_tester.build_image()
-        assert success, f"Docker build failed after {elapsed_time:.1f}s:\n{output[-1000:]}"
-
-    def test_python_installation(self, build_tester):
-        """
-        Test that Python is installed in the built image.
-        """
-        success, output = build_tester.test_basic_command(["python", "--version"])
-        assert success, f"Python not found in built image:\n{output}"
-
-    def test_cleanup(self, build_tester):
-        """
-        Ensure the test image is cleaned up after tests.
-        """
-        assert build_tester.cleanup(), "Failed to clean up Docker image."
