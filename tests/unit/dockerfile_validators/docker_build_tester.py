@@ -22,12 +22,8 @@ class DockerBuildTester:
         dockerfile_dir: Directory containing the Dockerfile
         image_tag: Tag to use for the built image
 
-    Example:
-        >>> tester = DockerBuildTester('/path/to/dockerfile_dir', 'test-image:latest')
-        >>> success, output, elapsed = tester.build_image()
-        >>> if success:
-        ...     cmd_success, cmd_output = tester.test_basic_command(['python', '--version'])
-        >>> tester.cleanup()
+    Note:
+        Requires Docker to be installed and available in the system PATH.
     """
 
     def __init__(self, dockerfile_dir: str, image_tag: str):
