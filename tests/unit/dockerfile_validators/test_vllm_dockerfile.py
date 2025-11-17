@@ -69,4 +69,3 @@ class TestVllmDockerfileStaticValidation:
         assert (
             not typo_errors
         ), f"\nTypo validation failed with {len(typo_errors)} error(s):" + "".join(typo_errors)
-
