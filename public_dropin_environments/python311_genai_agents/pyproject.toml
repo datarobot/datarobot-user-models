@@ -9,7 +9,7 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
-    "datarobot-genai[crewai, drmcp, langgraph, llamaindex, nat, pydanticai]>=0.1.30",
+    "datarobot-genai[crewai, drmcp, langgraph, llamaindex, nat, pydanticai]>=0.1.57,<0.2.0",
     "datarobot-moderations>=11.2.4",
 
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -82,7 +82,7 @@ dev = [
     "yamlfix>=1.17.0",
 ]
 chainlit = [
-    "chainlit>=2.8.3",
+    "chainlit>=2.9.0",
 ]
 
 [tool.pytest.ini_options]
@@ -215,8 +215,9 @@ implicit_reexport = true
 [tool.uv]
 required-version = ">=0.7.0"
 override-dependencies = [
-    "fastapi==0.118.2",
+    "fastapi>=0.118.2,<0.122.0",
     "ragas>=0.3.8",
+    "starlette>=0.49.1",
 ]
 
 [dependency-groups]
