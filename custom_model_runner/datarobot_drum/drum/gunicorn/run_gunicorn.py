@@ -15,10 +15,6 @@ def main_gunicorn():
     package_dir = Path(__file__).resolve().parent
     config_path = package_dir / "gunicorn.conf.py"
 
-    # Run Gunicorn from the model code directory so any relative paths (e.g. .deepeval)
-    # are created under writable model code instead of inside site-packages.
-    code_dir = Path(os.environ.get("CODE_DIR", "/opt/code"))
-
     if not config_path.is_file():
         raise FileNotFoundError(f"Gunicorn config not found: {config_path}")
 
@@ -49,7 +45,7 @@ def main_gunicorn():
     ]
 
     try:
-        subprocess.run(gunicorn_command, cwd=code_dir, env=env, check=True)
+        subprocess.run(gunicorn_command, env=env, check=True)
     except FileNotFoundError:
         logger.error("gunicorn module not found. Ensure it is installed.")
         raise
