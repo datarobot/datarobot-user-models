@@ -11,9 +11,9 @@ logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 
 def main_gunicorn():
-    # Resolve directory containing this script so we can always find config and app.py
-    base_dir = Path(__file__).resolve().parent
-    config_path = base_dir / "gunicorn.conf.py"
+    # Resolve directory containing this script so we can always find config
+    package_dir = Path(__file__).resolve().parent
+    config_path = package_dir / "gunicorn.conf.py"
 
     if not config_path.is_file():
         raise FileNotFoundError(f"Gunicorn config not found: {config_path}")
@@ -25,6 +25,13 @@ def main_gunicorn():
             os.environ["DRUM_GUNICORN_DRUM_ARGS"] = shlex.join(extra_args)
         except AttributeError:
             os.environ["DRUM_GUNICORN_DRUM_ARGS"] = " ".join(shlex.quote(a) for a in extra_args)
+
+    env = os.environ.copy()
+    current_pythonpath = env.get("PYTHONPATH", "")
+    if current_pythonpath:
+        env["PYTHONPATH"] = f"{package_dir}{os.pathsep}{current_pythonpath}"
+    else:
+        env["PYTHONPATH"] = str(package_dir)
 
     # Use the gunicorn module explicitly to avoid issues where a shadowed
     # console script named "gunicorn" actually invokes the DRUM CLI.
@@ -38,7 +45,7 @@ def main_gunicorn():
     ]
 
     try:
-        subprocess.run(gunicorn_command, cwd=base_dir, check=True)
+        subprocess.run(gunicorn_command, env=env, check=True)
     except FileNotFoundError:
         logger.error("gunicorn module not found. Ensure it is installed.")
         raise
