@@ -30,6 +30,13 @@ def main_gunicorn():
         except AttributeError:
             os.environ["DRUM_GUNICORN_DRUM_ARGS"] = " ".join(shlex.quote(a) for a in extra_args)
 
+    env = os.environ.copy()
+    current_pythonpath = env.get("PYTHONPATH", "")
+    if current_pythonpath:
+        env["PYTHONPATH"] = f"{package_dir}{os.pathsep}{current_pythonpath}"
+    else:
+        env["PYTHONPATH"] = str(package_dir)
+
     # Use the gunicorn module explicitly to avoid issues where a shadowed
     # console script named "gunicorn" actually invokes the DRUM CLI.
     gunicorn_command = [
@@ -42,7 +49,7 @@ def main_gunicorn():
     ]
 
     try:
-        subprocess.run(gunicorn_command, cwd=code_dir, check=True)
+        subprocess.run(gunicorn_command, cwd=code_dir, env=env, check=True)
     except FileNotFoundError:
         logger.error("gunicorn module not found. Ensure it is installed.")
         raise
