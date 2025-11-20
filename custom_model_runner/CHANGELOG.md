@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### [1.17.8] - 2025-11-20
 ##### Changed
-- Fixed Gunicorn web server relative-path import issues by configuring `PYTHONPATH` instead of changing the working directory.
+- Fixed Gunicorn web server relative-path import issues by configuring PYTHONPATH instead of changing the working directory.
 
 #### [1.17.7] - 2025-11-18
 ##### Changed
