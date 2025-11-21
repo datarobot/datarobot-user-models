@@ -4,7 +4,7 @@
   "description": "This template environment can be used to create artifact-only scikit-learn custom models. This environment contains scikit-learn and only requires your model artifact as a .pkl file and optionally a custom.py file.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "691b1d2400039e6b1a002221",
+  "environmentVersionId": "691ff124e61f424339b8db6e",
   "environmentVersionDescription": "",
   "isPublic": true,
   "isDownloadable": true,

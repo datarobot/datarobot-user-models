@@ -4,7 +4,7 @@
   "description": "This template environment can be used to create artifact-only ONNX custom models. This environment contains ONNX runtime and only requires your model artifact as an .onnx file and optionally a custom.py file.",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "691b1d24000fda1a6f00362e",
+  "environmentVersionId": "691fed6ce61f424339b8db6c",
   "environmentVersionDescription": "",
   "isPublic": true,
   "isDownloadable": true,
