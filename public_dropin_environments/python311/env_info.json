@@ -14,8 +14,8 @@
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments/python311",
   "imageRepository": "env-python",
   "tags": [
-    "v11.3.0-691b1d2400376c423a0079c5",
-    "691b1d2400376c423a0079c5",
+    "v11.3.0-691ff15ae61f424339b8db70",
+    "691ff15ae61f424339b8db70",
     "v11.3.0-latest"
   ]
 }

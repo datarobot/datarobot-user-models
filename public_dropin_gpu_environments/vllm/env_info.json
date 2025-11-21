@@ -14,8 +14,8 @@
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_gpu_environments/vllm",
   "imageRepository": "env-gpu-vllm",
   "tags": [
-    "v11.3.0-6914a3b983d1f711d3cc0a3b",
-    "6914a3b983d1f711d3cc0a3b",
+    "v11.3.0-691ff2b8e61f424339b8db72",
+    "691ff2b8e61f424339b8db72",
     "v11.3.0-latest"
   ]
 }
