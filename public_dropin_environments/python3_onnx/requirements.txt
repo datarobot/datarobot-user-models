@@ -20,7 +20,7 @@ click==8.3.0
 coloredlogs==15.0.1
 cryptography==46.0.2
 datarobot==3.9.0
-datarobot-drum==1.17.4
+datarobot-drum==1.17.8
 datarobot-mlops==11.1.0
 datarobot-storage==2.2.0
 docker==7.1.0
