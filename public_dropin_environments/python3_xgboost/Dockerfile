@@ -59,6 +59,12 @@ ENV ADDRESS=0.0.0.0:8080
 ENV WITH_ERROR_SERVER=0 \
     PYTHONUNBUFFERED=1
 
+# OMP_NUM_THREADS is an environment variable that controls the maximum number of threads used by programs that rely on OpenMP for parallel processing.
+# In libraries like XGBoost, it limits the number of CPU threads used for computation, helping to prevent resource contention and hangs in multi-worker environments.
+# Setting OMP_NUM_THREADS=1 forces XGBoost to use only one thread per process.
+# If we need to use wekzeug max_workers > 1 in DRUM, we must set OMP_NUM_THREADS=1 to avoid potential hangs.
+# Maybe the same would apply to gunicorn, when we test.
+# ENV OMP_NUM_THREADS=1
 
 COPY ./*.sh ${CODE_DIR}/
 WORKDIR ${CODE_DIR}

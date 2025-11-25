@@ -326,10 +326,14 @@ class TestInference:
         max_workers,
     ):
         skip_if_framework_not_in_env(framework, framework_env)
-        if framework == KERAS and max_workers and max_workers > 1:
-            pytest.skip(
-                "Current Keras integration is not multi-processing safe so we skip test when max_workers > 1"
-            )
+        if max_workers and max_workers > 1:
+            if framework == KERAS:
+                pytest.skip(
+                    "Current Keras integration is not multi-processing safe so we skip test when max_workers > 1"
+                )
+            if framework == XGB:
+                os.environ["OMP_NUM_THREADS"] = "1"
+
         custom_model_dir = _create_custom_model_dir(
             resources,
             tmp_path,
@@ -399,6 +403,7 @@ class TestInference:
             if framework == SKLEARN and problem == REGRESSION:
                 assert ModelInfoKeys.MODEL_METADATA in response_dict
 
+        os.environ.pop("OMP_NUM_THREADS", None)
         unset_drum_supported_env_vars()
 
     @pytest.mark.parametrize(
