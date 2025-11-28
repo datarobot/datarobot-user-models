@@ -1494,7 +1494,7 @@ requires-dist = [
     { name = "dotenv", specifier = ">=0.9.9" },
     { name = "ecs-logging", specifier = ">=2.2.0" },
     { name = "fastapi", extras = ["all"], specifier = "==0.118.2" },
-    { name = "fastmcp", specifier = ">=2.13.0" },
+    { name = "fastmcp", specifier = ">=2.13.0.2" },
     { name = "ipykernel", specifier = "<6.29.0" },
     { name = "jupyter-client", specifier = ">=8.6.3" },
     { name = "jupyter-core", specifier = ">=5.8.1" },
