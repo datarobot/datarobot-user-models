@@ -101,7 +101,8 @@ COPY ./agent/requirements-agent.txt ${WORKDIR}/
 RUN source ${VENV_PATH}/bin/activate && \
     uv pip install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt && \
     uv pip install --no-cache-dir -r ${WORKDIR}/requirements-agent.txt && rm ${WORKDIR}/requirements-agent.txt && \
-    uv pip install --no-cache-dir --force-reinstall --no-deps pypdf==6.1.3
+    uv pip install --no-cache-dir --force-reinstall --no-deps pypdf==6.4.0 && \
+    uv pip uninstall uv
 
 # Copy agent runtime into work directory
 COPY ./run_agent.py ${WORKDIR}/
