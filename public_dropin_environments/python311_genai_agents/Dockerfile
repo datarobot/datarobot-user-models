@@ -14,47 +14,7 @@ ARG UNAME=notebooks
 ARG UID=10101
 ARG GID=10101
 
-# This reproduces a open source variant of https://images.chainguard.dev/directory/image/python
-# hadolint ignore=DL3007
-FROM cgr.dev/chainguard/wolfi-base:latest AS chainguard_python_dev
-
-ARG PYTHON_VERSION=3.11
-SHELL ["/bin/sh", "-o", "pipefail", "-c"]
-RUN echo "[Python $PYTHON_VERSION]"
-
-ENV PATH="${PATH}:/sbin"
-RUN apk update && apk upgrade
-# Wolfi python image
-# hadolint ignore=DL3018,DL3059
-RUN apk add --no-cache ca-certificates-bundle gdbm glibc glibc-locale-posix \
-ld-linux libbz2-1 libcrypto3 libexpat1 libffi libgcc libssl3 libstdc++ \
-mpdecimal ncurses ncurses-terminfo readline sqlite-libs \
-wolfi-baselayout xz zlib
-# Wolfi python dev image
-# hadolint ignore=DL3018,DL3059
-RUN apk add --no-cache apk-tools  bash  binutils  build-base  busybox  cyrus-sasl  \
-gcc  git  glibc-dev  gmp  heimdal-libs  isl  keyutils-libs  \
-krb5-conf  krb5-libs  libatomic  libbrotlicommon1  libbrotlidec1  \
-libcom_err  libcrypt1  libcurl-openssl4  libgo  libgomp  libidn2  \
-libldap  libnghttp2-14  libpcre2-8-0  libpsl  libquadmath  libstdc++-dev  \
-libunistring  libverto  libxcrypt  libxcrypt-dev  libzstd1  \
-linux-headers  make  mpc  mpfr  nss-db  nss-hesiod  \
-openssf-compiler-options  pkgconf  posix-cc-wrappers  wget
-# Python
-# hadolint ignore=DL3018,DL3059
-RUN apk add --no-cache \
-    python-$PYTHON_VERSION \
-    python-$PYTHON_VERSION-base \
-    py$PYTHON_VERSION-pip \
-    py3-pip-wheel
-# Python dev
-# hadolint ignore=DL3018,DL3059
-RUN apk add --no-cache python-$PYTHON_VERSION-dev \
-    python-$PYTHON_VERSION-base-dev \
-    py$PYTHON_VERSION-pip-base \
-    py$PYTHON_VERSION-setuptools
-
-FROM chainguard_python_dev AS base
+FROM datarobot/mirror_chainguard_datarobot.com_python-fips:3.11-dev AS base
 
 ARG UNAME
 ARG UID
@@ -83,7 +43,7 @@ ENV PYTHONUNBUFFERED=1 \
 ENV PATH="$VENV_PATH/bin:$PATH" \
   PYTHONPATH="/home/notebooks/.ipython/extensions:/home/notebooks/storage"
 
-# hadolint ignore=SC1091
+# hadolint ignore=DL3013
 RUN uv venv ${VENV_PATH} && \
     source ${VENV_PATH}/bin/activate && \
     uv pip install -U pip setuptools
@@ -128,12 +88,15 @@ EXPOSE 22
 FROM base AS builder
 # this stage has only bare minimal of dependencies installed to optimize build time for the local development
 
+ENV ANNOY_COMPILER_ARGS="-D_CRT_SECURE_NO_WARNINGS,-DANNOYLIB_MULTITHREADED_BUILD,-march=x86-64"
+
 ARG WORKDIR
 ARG VENV_PATH
 
 COPY ./requirements.txt ${WORKDIR}/
 COPY ./agent/requirements-agent.txt ${WORKDIR}/
 
+# pypdf install is a CVE fix. pypdf upgrade is restricted by embedchain, which doesn't actually use it and isn't active.
 # hadolint ignore=DL3013, SC1091
 RUN source ${VENV_PATH}/bin/activate && \
     uv pip install --no-cache-dir -r ${WORKDIR}/requirements.txt && rm ${WORKDIR}/requirements.txt && \

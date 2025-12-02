@@ -128,6 +128,8 @@ EXPOSE 22
 FROM base AS builder
 # this stage has only bare minimal of dependencies installed to optimize build time for the local development
 
+ENV ANNOY_COMPILER_ARGS="-D_CRT_SECURE_NO_WARNINGS,-DANNOYLIB_MULTITHREADED_BUILD,-march=x86-64"
+
 ARG WORKDIR
 ARG VENV_PATH
 
