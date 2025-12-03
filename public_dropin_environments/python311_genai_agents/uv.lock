@@ -841,19 +841,17 @@ toml = [
 
 [[package]]
 name = "crewai"
-version = "0.193.2"
+version = "1.6.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "appdirs" },
-    { name = "blinker" },
     { name = "chromadb" },
     { name = "click" },
     { name = "instructor" },
     { name = "json-repair" },
     { name = "json5" },
     { name = "jsonref" },
-    { name = "litellm" },
-    { name = "onnxruntime" },
+    { name = "mcp" },
     { name = "openai" },
     { name = "openpyxl" },
     { name = "opentelemetry-api" },
@@ -862,18 +860,18 @@ dependencies = [
     { name = "pdfplumber" },
     { name = "portalocker" },
     { name = "pydantic" },
+    { name = "pydantic-settings" },
     { name = "pyjwt" },
     { name = "python-dotenv" },
-    { name = "pyvis" },
     { name = "regex" },
     { name = "tokenizers" },
     { name = "tomli" },
     { name = "tomli-w" },
     { name = "uv" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/39/ac/329d62f5abfb24ffb096c041469ba24190feca1d5651084d5c332939b33f/crewai-0.193.2.tar.gz", hash = "sha256:239f1d299bbf493e76778434f6476604b585e1f228e2c75d39983a39a1522275", size = 6563484, upload-time = "2025-09-20T21:09:16.553Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1e/c4/37f5e8e0ccb2804a3e2acc0ccf58f82dc9415a08fad71a3868cdf830c669/crewai-1.6.1.tar.gz", hash = "sha256:b7d73a8a333abf71b30ab20c54086004cd0c016dfd86bba9c035ad5eb31e22a7", size = 4177912, upload-time = "2025-11-29T01:58:25.573Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/9b/81/699782ddfe3c18f6954355f4ec53d73d9c88a88bc5433f590163549a0fbf/crewai-0.193.2-py3-none-any.whl", hash = "sha256:cad4d6a5f32e902a390ca3fc84698839e7720c1ae7acdba002da9a18405a01c8", size = 431559, upload-time = "2025-09-20T21:09:08.676Z" },
+    { url = "https://files.pythonhosted.org/packages/06/87/8ab9924b79025165ed7f1b04a90f9b80137d18ceae9b8e34445a8495320c/crewai-1.6.1-py3-none-any.whl", hash = "sha256:8cec403ab89183bda28b830c722b6bc22457a2151a6aa46f07730e6fe7ab2723", size = 642861, upload-time = "2025-11-29T01:58:23.232Z" },
 ]
 
 [[package]]
@@ -1066,7 +1064,7 @@ wheels = [
 
 [[package]]
 name = "datarobot-genai"
-version = "0.1.59"
+version = "0.1.72"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "datarobot" },
@@ -1083,9 +1081,9 @@ dependencies = [
     { name = "ragas" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/fe/76/f8743cff1f0216b703d9980566bb11177830742c9f83f6ea0dbe55b6c348/datarobot_genai-0.1.59.tar.gz", hash = "sha256:09968e58bf2de4e7e82d347dc36b92019cc46b1d906cce9e6f8c8f16e99133f1", size = 100640, upload-time = "2025-11-19T12:54:04.905Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/60/97/d835f5216d59ba85afe30826638dcb53d824555edd743163e945b92f11ad/datarobot_genai-0.1.72.tar.gz", hash = "sha256:61fd5fd43ac27778dca7ee804b8a206b720191c666ea72fb3fd36012ab19011c", size = 105928, upload-time = "2025-12-03T12:17:04.206Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4f/4e/4904142dc9dd0b0c94614d288922f10a112a063353b37118e3beb629512a/datarobot_genai-0.1.59-py3-none-any.whl", hash = "sha256:1b3b7429f0c52a9c2fc9a492e61ee2201dc04b9767f7555a90010b1c83945b94", size = 166007, upload-time = "2025-11-19T12:54:03.345Z" },
+    { url = "https://files.pythonhosted.org/packages/72/b4/2d163590f8cdf01dd1d82d611e6e9bb1d0ccd05ae926918bf3009b850088/datarobot_genai-0.1.72-py3-none-any.whl", hash = "sha256:a3a308cfefb4a56a91af8f5093cde339571a9533fe9dec6b9e1309822badc3e6", size = 172591, upload-time = "2025-12-03T12:17:02.78Z" },
 ]
 
 [package.optional-dependencies]
@@ -1128,9 +1126,9 @@ llamaindex = [
     { name = "pypdf" },
 ]
 nat = [
+    { name = "crewai" },
     { name = "llama-index-llms-litellm" },
     { name = "nvidia-nat" },
-    { name = "nvidia-nat-crewai" },
     { name = "nvidia-nat-langchain" },
     { name = "nvidia-nat-opentelemetry" },
     { name = "opentelemetry-instrumentation-crewai" },
@@ -1487,7 +1485,7 @@ requires-dist = [
     { name = "click", specifier = ">=8.1.8" },
     { name = "datarobot", extras = ["core"], specifier = ">=3.9.1" },
     { name = "datarobot-drum", specifier = ">=1.17.5" },
-    { name = "datarobot-genai", extras = ["crewai", "drmcp", "langgraph", "llamaindex", "nat", "pydanticai"], specifier = ">=0.1.57,<0.2.0" },
+    { name = "datarobot-genai", extras = ["crewai", "drmcp", "langgraph", "llamaindex", "nat", "pydanticai"], specifier = ">=0.1.72,<0.2.0" },
     { name = "datarobot-mlops", specifier = ">=11.1.0" },
     { name = "datarobot-moderations", specifier = ">=11.2.4" },
     { name = "datarobot-predict", specifier = ">=1.13.2" },
@@ -2634,15 +2632,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/6d/86/08646239a313f895186ff0a4573452038eed8c86f54380b3ebac34d32fb2/jsonpath-ng-1.7.0.tar.gz", hash = "sha256:f6f5f7fd4e5ff79c785f1573b394043b39849fb2bb47bcead935d12b00beab3c", size = 37838, upload-time = "2024-10-11T15:41:42.404Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/35/5a/73ecb3d82f8615f32ccdadeb9356726d6cae3a4bbc840b437ceb95708063/jsonpath_ng-1.7.0-py3-none-any.whl", hash = "sha256:f3d7f9e848cba1b6da28c55b1c26ff915dc9e0b1ba7e752a53d6da8d5cbd00b6", size = 30105, upload-time = "2024-11-20T17:58:30.418Z" },
-]
-
-[[package]]
-name = "jsonpickle"
-version = "4.1.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e4/a6/d07afcfdef402900229bcca795f80506b207af13a838d4d99ad45abf530c/jsonpickle-4.1.1.tar.gz", hash = "sha256:f86e18f13e2b96c1c1eede0b7b90095bbb61d99fedc14813c44dc2f361dbbae1", size = 316885, upload-time = "2025-06-02T20:36:11.57Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/c1/73/04df8a6fa66d43a9fd45c30f283cc4afff17da671886e451d52af60bdc7e/jsonpickle-4.1.1-py3-none-any.whl", hash = "sha256:bb141da6057898aa2438ff268362b126826c812a1721e31cf08a6e142910dc91", size = 47125, upload-time = "2025-06-02T20:36:08.647Z" },
 ]
 
 [[package]]
@@ -4145,23 +4134,6 @@ dependencies = [
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/e7/b1/27596c61c21f4f51d3691b203a55cee1319211e6dcba7f964190e5479638/nvidia_nat-1.3.0-py3-none-any.whl", hash = "sha256:2e2499c204f2f91f4c6342f7fa5aa6b7934c0e7af58eed49933d32763cf841be", size = 828076, upload-time = "2025-10-24T22:11:45.636Z" },
-]
-
-[package.optional-dependencies]
-litellm = [
-    { name = "litellm" },
-]
-
-[[package]]
-name = "nvidia-nat-crewai"
-version = "1.3.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "crewai" },
-    { name = "nvidia-nat", extra = ["litellm"] },
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/63/7d/20892c64f2f6b7fae257a7361fe38f509d25ea8c3592365f9ddf15f6279e/nvidia_nat_crewai-1.3.0-py3-none-any.whl", hash = "sha256:bd4a935ce36c4bb224cd96994fb4efa8288eb12d22e2268257e5abc5472269c9", size = 54418, upload-time = "2025-10-24T22:08:13.397Z" },
 ]
 
 [[package]]
@@ -6091,20 +6063,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/f8/bf/abbd3cdfb8fbc7fb3d4d38d320f2441b1e7cbe29be4f23797b4a2b5d8aac/pytz-2025.2.tar.gz", hash = "sha256:360b9e3dbb49a209c21ad61809c7fb453643e048b38924c765813546746e81c3", size = 320884, upload-time = "2025-03-25T02:25:00.538Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/81/c4/34e93fe5f5429d7570ec1fa436f1986fb1f00c3e0f43a589fe2bbcd22c3f/pytz-2025.2-py2.py3-none-any.whl", hash = "sha256:5ddf76296dd8c44c26eb8f4b6f35488f3ccbf6fbbd7adee0b7262d43f0ec2f00", size = 509225, upload-time = "2025-03-25T02:24:58.468Z" },
-]
-
-[[package]]
-name = "pyvis"
-version = "0.3.2"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "ipython" },
-    { name = "jinja2" },
-    { name = "jsonpickle" },
-    { name = "networkx" },
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ab/4b/e37e4e5d5ee1179694917b445768bdbfb084f5a59ecd38089d3413d4c70f/pyvis-0.3.2-py3-none-any.whl", hash = "sha256:5720c4ca8161dc5d9ab352015723abb7a8bb8fb443edeb07f7a322db34a97555", size = 756038, upload-time = "2023-02-24T20:29:46.758Z" },
 ]
 
 [[package]]
