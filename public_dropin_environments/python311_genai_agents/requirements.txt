@@ -2,7 +2,7 @@ annotated-types==0.7.0
 click==8.2.1
 datarobot==3.9.1
 datarobot-drum==1.17.5
-datarobot-genai==0.1.72
+datarobot-genai==0.1.75
 datarobot-mlops==11.1.0
 datarobot-moderations==11.2.4
 datarobot-predict==1.13.2
@@ -18,6 +18,7 @@ langchain==0.3.27
 langchain-community==0.3.31
 langchain-litellm==0.3.0
 langchain-mcp-adapters==0.1.11
+langgraph-checkpoint==3.0.1
 legacy-cgi==2.6.3
 litellm==1.74.9
 mcp==1.16.0
@@ -34,6 +35,7 @@ opentelemetry-instrumentation-openai==0.47.3
 opentelemetry-instrumentation-requests==0.58b0
 opentelemetry-sdk==1.37.0
 pandas==2.2.3
+pdfminer-six==20251107
 psutil==5.9.8
 pyarrow==20.0.0
 pylance==0.38.1
