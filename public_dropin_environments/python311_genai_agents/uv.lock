@@ -1064,7 +1064,7 @@ wheels = [
 
 [[package]]
 name = "datarobot-genai"
-version = "0.1.72"
+version = "0.1.75"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "datarobot" },
@@ -1081,9 +1081,9 @@ dependencies = [
     { name = "ragas" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/60/97/d835f5216d59ba85afe30826638dcb53d824555edd743163e945b92f11ad/datarobot_genai-0.1.72.tar.gz", hash = "sha256:61fd5fd43ac27778dca7ee804b8a206b720191c666ea72fb3fd36012ab19011c", size = 105928, upload-time = "2025-12-03T12:17:04.206Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c2/89/c8c031c235a0ee72500ec97da75aa1a9c903978befdd914303457d414d31/datarobot_genai-0.1.75.tar.gz", hash = "sha256:a99e78f1e1d19c5cb0c8c619919339e375a42043efb4112aa73c4c49dd661ec6", size = 106365, upload-time = "2025-12-04T18:05:44.491Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/72/b4/2d163590f8cdf01dd1d82d611e6e9bb1d0ccd05ae926918bf3009b850088/datarobot_genai-0.1.72-py3-none-any.whl", hash = "sha256:a3a308cfefb4a56a91af8f5093cde339571a9533fe9dec6b9e1309822badc3e6", size = 172591, upload-time = "2025-12-03T12:17:02.78Z" },
+    { url = "https://files.pythonhosted.org/packages/27/e2/04e59a8ed9735aeb625ed0ffe4cf56a947ca74389417c3f334bbe6d371fb/datarobot_genai-0.1.75-py3-none-any.whl", hash = "sha256:06fe699b53d004d3cd5acea8683104dece5791580854ba626588df8fa59e4575", size = 172973, upload-time = "2025-12-04T18:05:41.8Z" },
 ]
 
 [package.optional-dependencies]
@@ -1487,7 +1487,7 @@ requires-dist = [
     { name = "click", specifier = ">=8.1.8" },
     { name = "datarobot", extras = ["core"], specifier = ">=3.9.1" },
     { name = "datarobot-drum", specifier = ">=1.17.5" },
-    { name = "datarobot-genai", extras = ["crewai", "drmcp", "langgraph", "llamaindex", "nat", "pydanticai"], specifier = ">=0.1.72,<0.2.0" },
+    { name = "datarobot-genai", extras = ["crewai", "drmcp", "langgraph", "llamaindex", "nat", "pydanticai"], specifier = ">=0.1.75,<0.2.0" },
     { name = "datarobot-mlops", specifier = ">=11.1.0" },
     { name = "datarobot-moderations", specifier = ">=11.2.4" },
     { name = "datarobot-predict", specifier = ">=1.13.2" },
