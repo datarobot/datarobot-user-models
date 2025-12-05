@@ -66,6 +66,9 @@ dependencies = [
     "uwsgi>=2.0.30",
     "pylance<=0.38.1",
     "pypdf>=6.1.3",
+
+    "pdfminer.six>=20251107",  # CVE fix
+    "langgraph-checkpoint>=3.0.0", # CVE fix
 ]
 
 [project.optional-dependencies]
@@ -219,6 +222,10 @@ override-dependencies = [
     "ragas>=0.3.8",
     "starlette>=0.49.1",
 ]
+
+# This can be set to allow for proxy indexes in air-gapped environments
+# [tool.uv.pip]
+# extra-index-url = ["https://pypi.org/simple/"]
 
 [dependency-groups]
 extras = []
