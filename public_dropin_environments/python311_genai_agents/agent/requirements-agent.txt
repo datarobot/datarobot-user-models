@@ -1,5 +1,7 @@
-fastapi[All]==0.122.0
+fastapi[All]==0.118.2
 psutil==5.9.8
+ipykernel<6.29.0
 jupyter-client>=8.6.3
 jupyter-core>=5.8.1
 jupyter-kernel-gateway>=3.0.1
+ecs-logging>=2.2.0
