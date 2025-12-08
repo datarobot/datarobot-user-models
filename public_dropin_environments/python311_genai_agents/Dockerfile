@@ -99,12 +99,14 @@ ARG UNAME
 
 COPY ./pyproject.toml ${WORKDIR}/pyproject.toml
 COPY ./uv.lock ${WORKDIR}/uv.lock
+COPY ./agent/requirements-agent.txt ${WORKDIR}/agent/requirements-agent.txt
 
 WORKDIR ${WORKDIR}
 USER $UNAME
 
 RUN . ${VENV_PATH}/bin/activate && \
     uv sync && \
+    uv pip install -r ${WORKDIR}/agent/requirements-agent.txt && \
     chmod -R 777 ${VENV_PATH}
 WORKDIR /
 

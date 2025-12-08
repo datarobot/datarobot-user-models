@@ -5,63 +5,14 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
-    "datarobot-genai[crewai, drmcp, langgraph, llamaindex, nat, pydanticai]>=0.1.72,<0.2.0",
-    "datarobot-moderations>=11.2.4",
-
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # THESE ARE UNIVERSALLY USED AGENT PACKAGES
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    "fastmcp>=2.13.0.2",
-    "mcp>=1.11.0",
-    "openai>=1.76.2",
-    "litellm>=1.72.1",
-    "langchain-litellm>=0.2.3",
-    "langchain-community>=0.3.27",
-    "langchain-mcp-adapters>=0.1.9",
-    "langchain>=0.3.23",
-    "opentelemetry-api>=1.33.0,<2.0.0",
-    "opentelemetry-instrumentation-aiohttp-client>=0.54b0",
-    "opentelemetry-instrumentation-httpx>=0.54b0",
-    "opentelemetry-instrumentation-langchain>=0.40.5",
-    "opentelemetry-instrumentation-openai>=0.40.5",
-    "opentelemetry-instrumentation-requests>=0.54b0",
-    "opentelemetry-sdk>=1.33.0",
-
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # THE FOLLOWING DEPENDENCIES MAY BE REQUIRED FOR IPYTHON KERNEL AND DEPLOYMENT STABILITY
-    # WE NEED TO CAREFULLY FIGURE OUT HOW TO UPGRADE AND MOVE THESE IF WE WANT TO REMOVE THEM
-    # BE VERY VERY VERY CAREFUL WHEN MODIFYING/REMOVING/UPGRADING THESE!!!!!!!!
-    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    "click>=8.1.8",
-    "datarobot[core]>=3.9.1",
-    "datarobot-drum>=1.17.5",
+    "datarobot-genai[crewai, drmcp, langgraph, llamaindex, nat, pydanticai]>=0.2.0,<0.3.0",
+    "datarobot-moderations>=11.2.4,<11.3.0",
+    "datarobot-drum>=1.17.5,<1.18.0",
     "datarobot-mlops>=11.1.0",
-    "datarobot-predict>=1.13.2",
-    "dotenv>=0.9.9",
-    "legacy-cgi>=2.6.3",
-    "multidict>=6.5.0",
-    "onnxruntime>=1.22.0,<1.23.0",
-    "annotated-types>=0.7.0",
-    "python-dotenv>=1.1.0",
-    "pyarrow<21.0.0",
-    "requests>=2.32.4",
-    "traceloop-sdk>=0.40.2",
-    "uvicorn>=0.32.0",
-    "ecs-logging>=2.2.0",
-    "fastapi[all]==0.118.2",
-    "ipykernel<6.29.0",
-    "jupyter-client>=8.6.3",
-    "jupyter-core>=5.8.1",
-    "jupyter-kernel-gateway>=3.0.1",
-    "mistune>=3.1.4",
-    "numpy>=1.26.4",
-    "pandas>=2.2.3",
-    "psutil==5.9.8",
-    "setuptools>=80.9.0",
-    "ujson<5.8.0",
-    "uwsgi>=2.0.30",
-    "pylance<=0.38.1",
-    "pypdf>=6.1.3",
+    "openai>=1.81.0,<2.0.0",
+    "litellm>=1.72.1,<2.0.0",
+    "opentelemetry-api>=1.33.0,<2.0.0",
+    "opentelemetry-sdk>=1.33.0,<2.0.0",
 ]
 
 [project.optional-dependencies]
@@ -215,6 +166,10 @@ override-dependencies = [
     "ragas>=0.3.8",
     "starlette>=0.49.1",
 ]
+
+# This can be set to allow for proxy indexes in air-gapped environments
+# [tool.uv.pip]
+# extra-index-url = ["https://pypi.org/simple/"]
 
 [dependency-groups]
 extras = []
