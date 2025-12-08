@@ -13,6 +13,9 @@ dependencies = [
     "litellm>=1.72.1,<2.0.0",
     "opentelemetry-api>=1.33.0,<2.0.0",
     "opentelemetry-sdk>=1.33.0,<2.0.0",
+
+    "pdfminer.six>=20251107",  # CVE fix
+    "langgraph-checkpoint>=3.0.0", # CVE fix
 ]
 
 [project.optional-dependencies]
