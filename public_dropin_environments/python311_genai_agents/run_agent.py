@@ -287,7 +287,7 @@ def install_extra_dependencies() -> None:
 
     # Sync only extra dependencies to active venv (usually kernel) without upgrading any others.
     # --frozen to skip dependency resolution and just install exactly what's in lock file
-    cmd = "uv sync --frozen --active --no-progress --no-cache --group extras"
+    cmd = "uv sync --frozen --active --no-progress --no-cache --color never --extra agentic_playground"
     subprocess.run(cmd.split(), env=env, stdout=sys.stdout, stderr=sys.stderr, check=False)
     root.info("Sync completed")
 

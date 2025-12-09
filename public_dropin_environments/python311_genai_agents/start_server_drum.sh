@@ -20,7 +20,7 @@ source ${VENV_PATH}/bin/activate
 # `--frozen` to skip dependency resolution and just install exactly what's in lock file
 # Compilation DISABLED - kernel venv has already been compiled, and having compilation enabled
 # would re-compile all site-packages (takes quite some time)
-time uv sync --frozen --active --no-progress --group extras || true
+time uv sync --frozen --active --no-progress --color never || true
 
 echo
 echo "Executing command: drum server $*"
