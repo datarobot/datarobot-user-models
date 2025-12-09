@@ -35,6 +35,16 @@ dev = [
 chainlit = [
     "chainlit>=2.9.0",
 ]
+# Additional dependencies required to run the agent in DataRobot Agentic playground
+agentic_playground = [
+    "fastapi[All]==0.118.2",
+    "psutil==5.9.8",
+    "ipykernel<6.29.0",
+    "jupyter-client>=8.6.3",
+    "jupyter-core>=5.8.1",
+    "jupyter-kernel-gateway>=3.0.1",
+    "ecs-logging>=2.2.0",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

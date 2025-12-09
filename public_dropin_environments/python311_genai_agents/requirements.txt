@@ -2,6 +2,12 @@ datarobot-drum==1.17.8
 datarobot-genai==0.2.0
 datarobot-mlops==11.1.0
 datarobot-moderations==11.2.8
+ecs-logging==2.2.0
+fastapi==0.121.3
+ipykernel==6.28.0
+jupyter-client==8.6.3
+jupyter-core==5.9.1
+jupyter-kernel-gateway==3.0.1
 langchain-litellm==0.3.2
 langgraph-checkpoint==3.0.1
 litellm==1.80.8
@@ -9,3 +15,4 @@ openai==1.109.1
 opentelemetry-api==1.39.0
 opentelemetry-sdk==1.39.0
 pdfminer-six==20251107
+psutil==5.9.8
