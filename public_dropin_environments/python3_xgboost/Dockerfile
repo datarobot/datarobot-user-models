@@ -70,6 +70,9 @@ ENV PYTHONPATH=/opt/venv/lib/python3.12/site-packages:/usr/lib/python3.12/site-p
 # Maybe the same would apply to gunicorn, when we test.
 # ENV OMP_NUM_THREADS=1
 
+# Gunicorn configuration
+ENV MLOPS_RUNTIME_PARAM_DRUM_SERVER_TYPE='{"type": "string", "payload": "gunicorn"}'
+
 COPY ./*.sh ${CODE_DIR}/
 WORKDIR ${CODE_DIR}
 
