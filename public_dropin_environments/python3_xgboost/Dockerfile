@@ -66,6 +66,9 @@ ENV WITH_ERROR_SERVER=0 \
 # Maybe the same would apply to gunicorn, when we test.
 # ENV OMP_NUM_THREADS=1
 
+# Gunicorn configuration
+ENV MLOPS_RUNTIME_PARAM_DRUM_SERVER_TYPE='{"type": "string", "payload": "gunicorn"}'
+
 COPY ./*.sh ${CODE_DIR}/
 WORKDIR ${CODE_DIR}
 
