@@ -104,7 +104,7 @@ WORKDIR ${WORKDIR}
 USER $UNAME
 
 RUN . ${VENV_PATH}/bin/activate && \
-    uv sync && \
+    uv sync --frozen --extra agentic_playground && \
     chmod -R 777 ${VENV_PATH}
 WORKDIR /
 

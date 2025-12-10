@@ -288,24 +288,24 @@ wheels = [
 
 [[package]]
 name = "arrow"
-version = "1.3.0"
+version = "1.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "python-dateutil" },
-    { name = "types-python-dateutil" },
+    { name = "tzdata" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2e/00/0f6e8fcdb23ea632c866620cc872729ff43ed91d284c866b515c6342b173/arrow-1.3.0.tar.gz", hash = "sha256:d4540617648cb5f895730f1ad8c82a65f2dad0166f57b75f3ca54759c4d67a85", size = 131960, upload-time = "2023-09-30T22:11:18.25Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b9/33/032cdc44182491aa708d06a68b62434140d8c50820a087fac7af37703357/arrow-1.4.0.tar.gz", hash = "sha256:ed0cc050e98001b8779e84d461b0098c4ac597e88704a655582b21d116e526d7", size = 152931, upload-time = "2025-10-18T17:46:46.761Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f8/ed/e97229a566617f2ae958a6b13e7cc0f585470eac730a73e9e82c32a3cdd2/arrow-1.3.0-py3-none-any.whl", hash = "sha256:c728b120ebc00eb84e01882a6f5e7927a53960aa990ce7dd2b10f39005a67f80", size = 66419, upload-time = "2023-09-30T22:11:16.072Z" },
+    { url = "https://files.pythonhosted.org/packages/ed/c9/d7977eaacb9df673210491da99e6a247e93df98c715fc43fd136ce1d3d33/arrow-1.4.0-py3-none-any.whl", hash = "sha256:749f0769958ebdc79c173ff0b0670d59051a535fa26e8eba02953dc19eb43205", size = 68797, upload-time = "2025-10-18T17:46:45.663Z" },
 ]
 
 [[package]]
 name = "asttokens"
-version = "3.0.0"
+version = "3.0.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/4a/e7/82da0a03e7ba5141f05cce0d302e6eed121ae055e0456ca228bf693984bc/asttokens-3.0.0.tar.gz", hash = "sha256:0dcd8baa8d62b0c1d118b399b2ddba3c4aff271d0d7a9e0d4c1681c79035bbc7", size = 61978, upload-time = "2024-11-30T04:30:14.439Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/be/a5/8e3f9b6771b0b408517c82d97aed8f2036509bc247d46114925e32fe33f0/asttokens-3.0.1.tar.gz", hash = "sha256:71a4ee5de0bde6a31d64f6b13f2293ac190344478f081c3d1bccfcf5eacb0cb7", size = 62308, upload-time = "2025-11-15T16:43:48.578Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/25/8a/c46dcc25341b5bce5472c718902eb3d38600a903b14fa6aeecef3f21a46f/asttokens-3.0.0-py3-none-any.whl", hash = "sha256:e3078351a059199dd5138cb1c706e6430c05eff2ff136af5eb4790f9d28932e2", size = 26918, upload-time = "2024-11-30T04:30:10.946Z" },
+    { url = "https://files.pythonhosted.org/packages/d2/39/e7eaf1799466a4aef85b6a4fe7bd175ad2b1c6345066aa33f1f58d4b18d0/asttokens-3.0.1-py3-none-any.whl", hash = "sha256:15a3ebc0f43c2d0a50eeafea25e19046c68398e487b9f1f5b517f7c0f40f976a", size = 27047, upload-time = "2025-11-15T16:43:16.109Z" },
 ]
 
 [[package]]
@@ -494,14 +494,14 @@ wheels = [
 
 [[package]]
 name = "bleach"
-version = "6.2.0"
+version = "6.3.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "webencodings" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/76/9a/0e33f5054c54d349ea62c277191c020c2d6ef1d65ab2cb1993f91ec846d1/bleach-6.2.0.tar.gz", hash = "sha256:123e894118b8a599fd80d3ec1a6d4cc7ce4e5882b1317a7e1ba69b56e95f991f", size = 203083, upload-time = "2024-10-29T18:30:40.477Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/07/18/3c8523962314be6bf4c8989c79ad9531c825210dd13a8669f6b84336e8bd/bleach-6.3.0.tar.gz", hash = "sha256:6f3b91b1c0a02bb9a78b5a454c92506aa0fdf197e1d5e114d2e00c6f64306d22", size = 203533, upload-time = "2025-10-27T17:57:39.211Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fc/55/96142937f66150805c25c4d0f31ee4132fd33497753400734f9dfdcbdc66/bleach-6.2.0-py3-none-any.whl", hash = "sha256:117d9c6097a7c3d22fd578fcd8d35ff1e125df6736f554da4e432fdd63f31e5e", size = 163406, upload-time = "2024-10-29T18:30:38.186Z" },
+    { url = "https://files.pythonhosted.org/packages/cd/3a/577b549de0cc09d95f11087ee63c739bba856cd3952697eec4c4bb91350a/bleach-6.3.0-py3-none-any.whl", hash = "sha256:fe10ec77c93ddf3d13a73b035abaac7a9f5e436513864ccdad516693213c65d6", size = 164437, upload-time = "2025-10-27T17:57:37.538Z" },
 ]
 
 [package.optional-dependencies]
@@ -1003,12 +1003,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/5d/d3/d49cb61bf83220bc34764abe82f31ef64500513ab82d78a24cddc2114d63/datarobot-3.9.1-py3-none-any.whl", hash = "sha256:4aa1f47ca96c3aa031fdaea43faf6410e8ed90c57e09f4b1335ec2369a49c83d", size = 792560, upload-time = "2025-10-10T18:02:55.969Z" },
 ]
 
-[package.optional-dependencies]
-core = [
-    { name = "pydantic" },
-    { name = "pydantic-settings" },
-]
-
 [[package]]
 name = "datarobot-asgi-middleware"
 version = "0.2.0"
@@ -1064,9 +1058,10 @@ wheels = [
 
 [[package]]
 name = "datarobot-genai"
-version = "0.1.75"
+version = "0.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "ag-ui-protocol" },
     { name = "datarobot" },
     { name = "datarobot-drum" },
     { name = "datarobot-predict" },
@@ -1081,9 +1076,9 @@ dependencies = [
     { name = "ragas" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c2/89/c8c031c235a0ee72500ec97da75aa1a9c903978befdd914303457d414d31/datarobot_genai-0.1.75.tar.gz", hash = "sha256:a99e78f1e1d19c5cb0c8c619919339e375a42043efb4112aa73c4c49dd661ec6", size = 106365, upload-time = "2025-12-04T18:05:44.491Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c0/77/81dfd33bbdf13a34ee1a4545425b51296b3ea87942aa64f5cf811efa698d/datarobot_genai-0.2.0.tar.gz", hash = "sha256:a70258dcaa498d8c5cef3ea4ca2308aeb38f77bbbd6bd7c9409e7d2a7754c1ba", size = 107148, upload-time = "2025-12-08T13:11:27.105Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/27/e2/04e59a8ed9735aeb625ed0ffe4cf56a947ca74389417c3f334bbe6d371fb/datarobot_genai-0.1.75-py3-none-any.whl", hash = "sha256:06fe699b53d004d3cd5acea8683104dece5791580854ba626588df8fa59e4575", size = 172973, upload-time = "2025-12-04T18:05:41.8Z" },
+    { url = "https://files.pythonhosted.org/packages/24/fc/a66f975f30bd81762ba597e22fe359079201b72c87b30db8c47b1b2be84f/datarobot_genai-0.2.0-py3-none-any.whl", hash = "sha256:fe112b438c4d5e9920cb6d90e225e55bd7fd1a93199ec594f112f38a3538c883", size = 173829, upload-time = "2025-12-08T13:11:25.916Z" },
 ]
 
 [package.optional-dependencies]
@@ -1412,58 +1407,29 @@ name = "dockercontext"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "annotated-types" },
-    { name = "click" },
-    { name = "datarobot", extra = ["core"] },
     { name = "datarobot-drum" },
     { name = "datarobot-genai", extra = ["crewai", "drmcp", "langgraph", "llamaindex", "nat", "pydanticai"] },
     { name = "datarobot-mlops" },
     { name = "datarobot-moderations" },
-    { name = "datarobot-predict" },
-    { name = "dotenv" },
+    { name = "langchain-litellm" },
+    { name = "langgraph-checkpoint" },
+    { name = "litellm" },
+    { name = "openai" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-sdk" },
+    { name = "pdfminer-six" },
+]
+
+[package.optional-dependencies]
+agentic-playground = [
     { name = "ecs-logging" },
     { name = "fastapi" },
-    { name = "fastmcp" },
     { name = "ipykernel" },
     { name = "jupyter-client" },
     { name = "jupyter-core" },
     { name = "jupyter-kernel-gateway" },
-    { name = "langchain" },
-    { name = "langchain-community" },
-    { name = "langchain-litellm" },
-    { name = "langchain-mcp-adapters" },
-    { name = "langgraph-checkpoint" },
-    { name = "legacy-cgi" },
-    { name = "litellm" },
-    { name = "mcp" },
-    { name = "mistune" },
-    { name = "multidict" },
-    { name = "numpy" },
-    { name = "onnxruntime" },
-    { name = "openai" },
-    { name = "opentelemetry-api" },
-    { name = "opentelemetry-instrumentation-aiohttp-client" },
-    { name = "opentelemetry-instrumentation-httpx" },
-    { name = "opentelemetry-instrumentation-langchain" },
-    { name = "opentelemetry-instrumentation-openai" },
-    { name = "opentelemetry-instrumentation-requests" },
-    { name = "opentelemetry-sdk" },
-    { name = "pandas" },
-    { name = "pdfminer-six" },
     { name = "psutil" },
-    { name = "pyarrow" },
-    { name = "pylance" },
-    { name = "pypdf" },
-    { name = "python-dotenv" },
-    { name = "requests" },
-    { name = "setuptools" },
-    { name = "traceloop-sdk" },
-    { name = "ujson" },
-    { name = "uvicorn" },
-    { name = "uwsgi" },
 ]
-
-[package.optional-dependencies]
 chainlit = [
     { name = "chainlit" },
 ]
@@ -1482,68 +1448,37 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "annotated-types", specifier = ">=0.7.0" },
     { name = "chainlit", marker = "extra == 'chainlit'", specifier = ">=2.9.0" },
-    { name = "click", specifier = ">=8.1.8" },
-    { name = "datarobot", extras = ["core"], specifier = ">=3.9.1" },
-    { name = "datarobot-drum", specifier = ">=1.17.5" },
-    { name = "datarobot-genai", extras = ["crewai", "drmcp", "langgraph", "llamaindex", "nat", "pydanticai"], specifier = ">=0.1.75,<0.2.0" },
+    { name = "datarobot-drum", specifier = ">=1.17.5,<1.18.0" },
+    { name = "datarobot-genai", extras = ["crewai", "drmcp", "langgraph", "llamaindex", "nat", "pydanticai"], specifier = ">=0.2.0,<0.3.0" },
     { name = "datarobot-mlops", specifier = ">=11.1.0" },
-    { name = "datarobot-moderations", specifier = ">=11.2.4" },
-    { name = "datarobot-predict", specifier = ">=1.13.2" },
-    { name = "dotenv", specifier = ">=0.9.9" },
-    { name = "ecs-logging", specifier = ">=2.2.0" },
-    { name = "fastapi", extras = ["all"], specifier = "==0.118.2" },
-    { name = "fastmcp", specifier = ">=2.13.0.2" },
-    { name = "ipykernel", specifier = "<6.29.0" },
-    { name = "jupyter-client", specifier = ">=8.6.3" },
-    { name = "jupyter-core", specifier = ">=5.8.1" },
-    { name = "jupyter-kernel-gateway", specifier = ">=3.0.1" },
-    { name = "langchain", specifier = ">=0.3.23" },
-    { name = "langchain-community", specifier = ">=0.3.27" },
+    { name = "datarobot-moderations", specifier = ">=11.2.4,<11.3.0" },
+    { name = "ecs-logging", marker = "extra == 'agentic-playground'", specifier = ">=2.2.0" },
+    { name = "fastapi", extras = ["all"], marker = "extra == 'agentic-playground'", specifier = "==0.118.2" },
+    { name = "ipykernel", marker = "extra == 'agentic-playground'", specifier = "<6.29.0" },
+    { name = "jupyter-client", marker = "extra == 'agentic-playground'", specifier = ">=8.6.3" },
+    { name = "jupyter-core", marker = "extra == 'agentic-playground'", specifier = ">=5.8.1" },
+    { name = "jupyter-kernel-gateway", marker = "extra == 'agentic-playground'", specifier = ">=3.0.1" },
     { name = "langchain-litellm", specifier = ">=0.2.3" },
-    { name = "langchain-mcp-adapters", specifier = ">=0.1.9" },
     { name = "langgraph-checkpoint", specifier = ">=3.0.0" },
-    { name = "legacy-cgi", specifier = ">=2.6.3" },
-    { name = "litellm", specifier = ">=1.72.1" },
-    { name = "mcp", specifier = ">=1.11.0" },
-    { name = "mistune", specifier = ">=3.1.4" },
-    { name = "multidict", specifier = ">=6.5.0" },
+    { name = "litellm", specifier = ">=1.72.1,<2.0.0" },
     { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.15.0" },
-    { name = "numpy", specifier = ">=1.26.4" },
-    { name = "onnxruntime", specifier = ">=1.22.0,<1.23.0" },
-    { name = "openai", specifier = ">=1.76.2" },
+    { name = "openai", specifier = ">=1.81.0,<2.0.0" },
     { name = "opentelemetry-api", specifier = ">=1.33.0,<2.0.0" },
-    { name = "opentelemetry-instrumentation-aiohttp-client", specifier = ">=0.54b0" },
-    { name = "opentelemetry-instrumentation-httpx", specifier = ">=0.54b0" },
-    { name = "opentelemetry-instrumentation-langchain", specifier = ">=0.40.5" },
-    { name = "opentelemetry-instrumentation-openai", specifier = ">=0.40.5" },
-    { name = "opentelemetry-instrumentation-requests", specifier = ">=0.54b0" },
-    { name = "opentelemetry-sdk", specifier = ">=1.33.0" },
-    { name = "pandas", specifier = ">=2.2.3" },
+    { name = "opentelemetry-sdk", specifier = ">=1.33.0,<2.0.0" },
     { name = "pdfminer-six", specifier = ">=20251107" },
     { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=4.2.0" },
-    { name = "psutil", specifier = "==5.9.8" },
-    { name = "pyarrow", specifier = "<21.0.0" },
+    { name = "psutil", marker = "extra == 'agentic-playground'", specifier = "==5.9.8" },
     { name = "pydantic", marker = "extra == 'dev'", specifier = ">=2.6.1" },
-    { name = "pylance", specifier = "<=0.38.1" },
-    { name = "pypdf", specifier = ">=6.1.3" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=7.4.0" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=1.2.0" },
     { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=6.1.1" },
-    { name = "python-dotenv", specifier = ">=1.1.0" },
-    { name = "requests", specifier = ">=2.32.4" },
     { name = "requests-mock", marker = "extra == 'dev'", specifier = ">=1.12.1" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.12.0" },
-    { name = "setuptools", specifier = ">=80.9.0" },
-    { name = "traceloop-sdk", specifier = ">=0.40.2" },
     { name = "types-requests", marker = "extra == 'dev'", specifier = ">=2.32.4.20250913" },
-    { name = "ujson", specifier = "<5.8.0" },
-    { name = "uvicorn", specifier = ">=0.32.0" },
-    { name = "uwsgi", specifier = ">=2.0.30" },
     { name = "yamlfix", marker = "extra == 'dev'", specifier = ">=1.17.0" },
 ]
-provides-extras = ["dev", "chainlit"]
+provides-extras = ["dev", "chainlit", "agentic-playground"]
 
 [package.metadata.requires-dev]
 extras = []
@@ -1564,17 +1499,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/4a/c0/89fe6215b443b919cb98a5002e107cb5026854ed1ccb6b5833e0768419d1/docutils-0.22.2.tar.gz", hash = "sha256:9fdb771707c8784c8f2728b67cb2c691305933d68137ef95a75db5f4dfbc213d", size = 2289092, upload-time = "2025-09-20T17:55:47.994Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/66/dd/f95350e853a4468ec37478414fc04ae2d61dad7a947b3015c3dcc51a09b9/docutils-0.22.2-py3-none-any.whl", hash = "sha256:b0e98d679283fc3bb0ead8a5da7f501baa632654e7056e9c5846842213d674d8", size = 632667, upload-time = "2025-09-20T17:55:43.052Z" },
-]
-
-[[package]]
-name = "dotenv"
-version = "0.9.9"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "python-dotenv" },
-]
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b2/b7/545d2c10c1fc15e48653c91efde329a790f2eecfbbf2bd16003b5db2bab0/dotenv-0.9.9-py2.py3-none-any.whl", hash = "sha256:29cf74a087b31dafdb5a446b6d7e11cbce8ed2741540e2339c69fbef92c94ce9", size = 1892, upload-time = "2025-02-19T22:15:01.647Z" },
 ]
 
 [[package]]
@@ -2427,7 +2351,7 @@ wheels = [
 
 [[package]]
 name = "ipython"
-version = "9.6.0"
+version = "9.8.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "colorama", marker = "sys_platform == 'win32'" },
@@ -2442,9 +2366,9 @@ dependencies = [
     { name = "traitlets" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/2a/34/29b18c62e39ee2f7a6a3bba7efd952729d8aadd45ca17efc34453b717665/ipython-9.6.0.tar.gz", hash = "sha256:5603d6d5d356378be5043e69441a072b50a5b33b4503428c77b04cb8ce7bc731", size = 4396932, upload-time = "2025-09-29T10:55:53.948Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/12/51/a703c030f4928646d390b4971af4938a1b10c9dfce694f0d99a0bb073cb2/ipython-9.8.0.tar.gz", hash = "sha256:8e4ce129a627eb9dd221c41b1d2cdaed4ef7c9da8c17c63f6f578fe231141f83", size = 4424940, upload-time = "2025-12-03T10:18:24.353Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/48/c5/d5e07995077e48220269c28a221e168c91123ad5ceee44d548f54a057fc0/ipython-9.6.0-py3-none-any.whl", hash = "sha256:5f77efafc886d2f023442479b8149e7d86547ad0a979e9da9f045d252f648196", size = 616170, upload-time = "2025-09-29T10:55:47.676Z" },
+    { url = "https://files.pythonhosted.org/packages/f1/df/8ee1c5dd1e3308b5d5b2f2dfea323bb2f3827da8d654abb6642051199049/ipython-9.8.0-py3-none-any.whl", hash = "sha256:ebe6d1d58d7d988fbf23ff8ff6d8e1622cfdb194daf4b7b73b792c4ec3b85385", size = 621374, upload-time = "2025-12-03T10:18:22.335Z" },
 ]
 
 [[package]]
@@ -3193,15 +3117,6 @@ wheels = [
 ]
 
 [[package]]
-name = "legacy-cgi"
-version = "2.6.3"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/a6/ed/300cabc9693209d5a03e2ebc5eb5c4171b51607c08ed84a2b71c9015e0f3/legacy_cgi-2.6.3.tar.gz", hash = "sha256:4c119d6cb8e9d8b6ad7cc0ddad880552c62df4029622835d06dfd18f438a8154", size = 24401, upload-time = "2025-03-27T00:48:56.957Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/5a/33/68c6c38193684537757e0d50a7ccb4f4656e5c2f7cd2be737a9d4a1bff71/legacy_cgi-2.6.3-py3-none-any.whl", hash = "sha256:6df2ea5ae14c71ef6f097f8b6372b44f6685283dc018535a75c924564183cdab", size = 19851, upload-time = "2025-03-27T00:48:55.366Z" },
-]
-
-[[package]]
 name = "litellm"
 version = "1.74.9"
 source = { registry = "https://pypi.org/simple" }
@@ -3691,14 +3606,14 @@ wheels = [
 
 [[package]]
 name = "matplotlib-inline"
-version = "0.1.7"
+version = "0.2.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "traitlets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/99/5b/a36a337438a14116b16480db471ad061c36c3694df7c2084a0da7ba538b7/matplotlib_inline-0.1.7.tar.gz", hash = "sha256:8423b23ec666be3d16e16b60bdd8ac4e86e840ebd1dd11a30b9f117f2fa0ab90", size = 8159, upload-time = "2024-04-15T13:44:44.803Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c7/74/97e72a36efd4ae2bccb3463284300f8953f199b5ffbc04cbbb0ec78f74b1/matplotlib_inline-0.2.1.tar.gz", hash = "sha256:e1ee949c340d771fc39e241ea75683deb94762c8fa5f2927ec57c83c4dffa9fe", size = 8110, upload-time = "2025-10-23T09:00:22.126Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8f/8e/9ad090d3553c280a8060fbf6e24dc1c0c29704ee7d1c372f0c174aa59285/matplotlib_inline-0.1.7-py3-none-any.whl", hash = "sha256:df192d39a4ff8f21b1895d72e6a13f5fcc5099f00fa84384e0ea28c2cc0653ca", size = 9899, upload-time = "2024-04-15T13:44:43.265Z" },
+    { url = "https://files.pythonhosted.org/packages/af/33/ee4519fa02ed11a94aef9559552f3b17bb863f2ecfe1a35dc7f548cde231/matplotlib_inline-0.2.1-py3-none-any.whl", hash = "sha256:d56ce5156ba6085e00a9d54fead6ed29a9c47e215cd1bba2e976ef39f5710a76", size = 9516, upload-time = "2025-10-23T09:00:20.675Z" },
 ]
 
 [[package]]
@@ -7032,15 +6947,6 @@ wheels = [
 ]
 
 [[package]]
-name = "types-python-dateutil"
-version = "2.9.0.20251008"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/fc/83/24ed25dd0c6277a1a170c180ad9eef5879ecc9a4745b58d7905a4588c80d/types_python_dateutil-2.9.0.20251008.tar.gz", hash = "sha256:c3826289c170c93ebd8360c3485311187df740166dbab9dd3b792e69f2bc1f9c", size = 16128, upload-time = "2025-10-08T02:51:34.93Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/da/af/5d24b8d49ef358468ecfdff5c556adf37f4fd28e336b96f923661a808329/types_python_dateutil-2.9.0.20251008-py3-none-any.whl", hash = "sha256:b9a5232c8921cf7661b29c163ccc56055c418ab2c6eabe8f917cbcc73a4c4157", size = 17934, upload-time = "2025-10-08T02:51:33.55Z" },
-]
-
-[[package]]
 name = "types-requests"
 version = "2.32.4.20250913"
 source = { registry = "https://pypi.org/simple" }
@@ -7196,12 +7102,6 @@ wheels = [
 ]
 
 [[package]]
-name = "uwsgi"
-version = "2.0.31"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/9f/49/2f57640e889ba509fd1fae10cccec1b58972a07c2724486efba94c5ea448/uwsgi-2.0.31.tar.gz", hash = "sha256:e8f8b350ccc106ff93a65247b9136f529c14bf96b936ac5b264c6ff9d0c76257", size = 822796, upload-time = "2025-10-11T19:17:28.794Z" }
-
-[[package]]
 name = "virtualenv"
 version = "20.35.3"
 source = { registry = "https://pypi.org/simple" }
@@ -7271,11 +7171,11 @@ wheels = [
 
 [[package]]
 name = "webcolors"
-version = "24.11.1"
+version = "25.10.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/7b/29/061ec845fb58521848f3739e466efd8250b4b7b98c1b6c5bf4d40b419b7e/webcolors-24.11.1.tar.gz", hash = "sha256:ecb3d768f32202af770477b8b65f318fa4f566c22948673a977b00d589dd80f6", size = 45064, upload-time = "2024-11-11T07:43:24.224Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/1d/7a/eb316761ec35664ea5174709a68bbd3389de60d4a1ebab8808bfc264ed67/webcolors-25.10.0.tar.gz", hash = "sha256:62abae86504f66d0f6364c2a8520de4a0c47b80c03fc3a5f1815fedbef7c19bf", size = 53491, upload-time = "2025-10-31T07:51:03.977Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/60/e8/c0e05e4684d13459f93d312077a9a2efbe04d59c393bc2b8802248c908d4/webcolors-24.11.1-py3-none-any.whl", hash = "sha256:515291393b4cdf0eb19c155749a096f779f7d909f7cceea072791cb9095b92e9", size = 14934, upload-time = "2024-11-11T07:43:22.529Z" },
+    { url = "https://files.pythonhosted.org/packages/e2/cc/e097523dd85c9cf5d354f78310927f1656c422bd7b2613b2db3e3f9a0f2c/webcolors-25.10.0-py3-none-any.whl", hash = "sha256:032c727334856fc0b968f63daa252a1ac93d33db2f5267756623c210e57a4f1d", size = 14905, upload-time = "2025-10-31T07:51:01.778Z" },
 ]
 
 [[package]]
