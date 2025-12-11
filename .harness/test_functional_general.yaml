@@ -62,9 +62,11 @@ pipeline:
                       identifier: test_inference_custom_java_predictor
                       spec:
                         connectorRef: account.dockerhub_datarobot_read
-                        image: datarobot/drum-builder:ubuntu-22-04
+                        image: datarobotdev/drum-builder:ubuntu-24-04
                         shell: Bash
-                        command: ./harness_scripts/functional_general/custom_java_predictor_entrypoint.sh
+                        command: |-
+                          . ${VIRTUAL_ENV}/bin/activate
+                          ./harness_scripts/functional_general/custom_java_predictor_entrypoint.sh
                         resources:
                           limits:
                             memory: 3G
@@ -95,7 +97,6 @@ pipeline:
                         command: |-
                           apt update
                           apt install -y docker.io
-
                           ./harness_scripts/functional_general/general_tests_entrypoint.sh \
                             <+secrets.getValue("org.genai-systems-dockerhub-login")> <+secrets.getValue("org.genai-systems-dockerhub-token")>
                         resources:
