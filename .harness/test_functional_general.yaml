@@ -92,7 +92,7 @@ pipeline:
                       identifier: test_functional_general
                       spec:
                         connectorRef: account.dockerhub_datarobot_read
-                        image: python:3.11-bookworm
+                        image: datarobotdev/drum-builder:ubuntu-24-04
                         shell: Bash
                         command: |-
                           apt update
