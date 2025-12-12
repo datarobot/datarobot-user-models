@@ -29,7 +29,6 @@ filechunkio==1.8
 flask==3.1.2
 flatbuffers==25.9.23
 gast==0.7.0
-gevent==25.9.1
 google-api-core==2.28.1
 google-auth==2.43.0
 google-cloud-core==2.5.0
@@ -38,9 +37,7 @@ google-crc32c==1.7.1
 google-pasta==0.2.0
 google-resumable-media==2.8.0
 googleapis-common-protos==1.72.0
-greenlet==3.3.0
 grpcio==1.76.0
-gunicorn==23.0.0
 h5py==3.15.1
 idna==3.11
 importlib-metadata==8.7.0
@@ -120,8 +117,6 @@ werkzeug==3.1.4
 wheel==0.45.1
 wrapt==1.17.3
 zipp==3.23.0
-zope-event==6.1
-zope-interface==8.1.1
 
 # The following packages are considered to be unsafe in a requirements file:
 # setuptools
