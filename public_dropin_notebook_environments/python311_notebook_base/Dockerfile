@@ -33,7 +33,7 @@ ARG GID=10101
 # microdnf repoquery python3*
 # ```
 ARG PYTHON_VERSION=3.11
-ARG PYTHON_EXACT_VERSION=3.11.11
+ARG PYTHON_EXACT_VERSION=3.11.13
 
 FROM registry.access.redhat.com/ubi9/ubi-minimal:9.5 AS base
 # some globally required dependencies
@@ -57,7 +57,7 @@ RUN echo "[Python$PYTHON_VERSION] GIT_COMMIT: $GIT_COMMIT" \
     && microdnf update -y \
     && microdnf install -y python$PYTHON_VERSION-$PYTHON_EXACT_VERSION python$PYTHON_VERSION-devel-$PYTHON_EXACT_VERSION \
   gcc-11.5.0 gcc-c++-11.5.0 glib2-devel-2.68.4 libffi-devel-3.4.2 graphviz-2.44.0 python$PYTHON_VERSION-pip \
-  openblas-0.3.26 python$PYTHON_VERSION-scipy shadow-utils passwd git openssh-server tar gzip unzip zip wget \
+  openblas-0.3.29 python$PYTHON_VERSION-scipy shadow-utils passwd git openssh-server tar gzip unzip zip wget \
   java-11-openjdk-headless vim-minimal nano \
   && microdnf clean all
 
