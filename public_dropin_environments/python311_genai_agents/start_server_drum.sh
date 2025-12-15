@@ -52,12 +52,6 @@ if [ -f "$SCRIPT_DIR/custom.py" ]; then
 elif [ -d "$SCRIPT_DIR/app" ]; then
     echo "Starting Custom Model environment with MCP server"
 
-    # Validate required environment variables
-    if [ -z "$DATAROBOT_API_TOKEN" ] || [ -z "$DATAROBOT_ENDPOINT" ]; then
-        echo "Error: DATAROBOT_API_TOKEN and DATAROBOT_ENDPOINT environment variables are required"
-        exit 1
-    fi
-
     # Start the MCP server
     exec python -m app.main
 
