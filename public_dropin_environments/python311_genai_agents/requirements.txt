@@ -1,5 +1,5 @@
 datarobot-drum==1.17.8
-datarobot-genai==0.2.0
+datarobot-genai==0.2.7
 datarobot-mlops==11.1.0
 datarobot-moderations==11.2.8
 ecs-logging==2.2.0
