@@ -28,18 +28,18 @@ source ${VENV_PATH}/bin/activate
 # Note: Compilation disabled since kernel venv is already compiled
 time uv sync --frozen --active --no-progress --color never --extra agentic_playground || true
 
+# Optional: Dump environment variables for debugging
+if [ "${ENABLE_CUSTOM_MODEL_RUNTIME_ENV_DUMP}" = 1 ]; then
+    echo "Environment variables:"
+    env
+fi
+
 # -----------------------------------------------------------------------------
 # Option 1: Custom Model with DRUM Server
 # Requires: custom.py file in the same directory
 # -----------------------------------------------------------------------------
 if [ -f "$SCRIPT_DIR/custom.py" ]; then
     echo "Starting Custom Model environment with DRUM prediction server"
-
-    # Optional: Dump environment variables for debugging
-    if [ "${ENABLE_CUSTOM_MODEL_RUNTIME_ENV_DUMP}" = 1 ]; then
-        echo "Environment variables:"
-        env
-    fi
 
     # Start DRUM server
     echo "\nExecuting command: drum server $*\n"
@@ -50,7 +50,7 @@ if [ -f "$SCRIPT_DIR/custom.py" ]; then
 # Requires: app/ directory in the same location
 # -----------------------------------------------------------------------------
 elif [ -d "$SCRIPT_DIR/app" ]; then
-    echo "Starting MCP server..."
+    echo "Starting Custom Model environment with MCP server"
 
     # Validate required environment variables
     if [ -z "$DATAROBOT_API_TOKEN" ] || [ -z "$DATAROBOT_ENDPOINT" ]; then
