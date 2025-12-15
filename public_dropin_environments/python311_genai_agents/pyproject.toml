@@ -5,7 +5,7 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
-    "datarobot-genai[crewai, drmcp, langgraph, llamaindex, nat, pydanticai]>=0.2.0,<0.3.0",
+    "datarobot-genai[crewai, drmcp, langgraph, llamaindex, nat, pydanticai]>=0.2.6,<0.3.0",
     "datarobot-moderations>=11.2.4,<11.3.0",
     "datarobot-drum>=1.17.5,<1.18.0",
     "datarobot-mlops>=11.1.0",
@@ -50,7 +50,7 @@ agentic_playground = [
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_functions = ["test_*"]
-pythonpath = ["custom_model"]
+pythonpath = ["agentic_workflow"]
 asyncio_mode = "auto"
 
 [tool.ruff]
@@ -159,6 +159,7 @@ disallow_subclassing_any = true
 disallow_untyped_calls = true
 disallow_untyped_decorators = true
 disallow_untyped_defs = true
+disable_error_code = ["typeddict-unknown-key"]
 enable_error_code = "ignore-without-code"
 implicit_reexport = true
 ignore_missing_imports = true

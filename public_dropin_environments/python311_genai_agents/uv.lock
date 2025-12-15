@@ -140,6 +140,15 @@ wheels = [
 ]
 
 [[package]]
+name = "aiorwlock"
+version = "1.5.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/c5/bf/d1ddcd676be027a963b3b01fdf9915daf4590b4dfd03bf1c8c2858aac7e3/aiorwlock-1.5.0.tar.gz", hash = "sha256:b529da24da659bdedcf68faf216595bde00db228c905197ac554773620e7fd2f", size = 7315, upload-time = "2024-11-25T06:03:46.452Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fd/4c/072b4097b2d05dbc4739b12a073da27496ca8241dec044c1ebc611eacf25/aiorwlock-1.5.0-py3-none-any.whl", hash = "sha256:0010cd2d2c603eb84bfee1cfd06233a976618dab90ec7108191e936137a8420a", size = 7833, upload-time = "2024-11-25T06:03:44.88Z" },
+]
+
+[[package]]
 name = "aiosignal"
 version = "1.4.0"
 source = { registry = "https://pypi.org/simple" }
@@ -985,7 +994,7 @@ wheels = [
 
 [[package]]
 name = "datarobot"
-version = "3.9.1"
+version = "3.10.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "numpy" },
@@ -998,9 +1007,9 @@ dependencies = [
     { name = "typing-extensions" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ec/90/90c0a143f7e1564b0d7e909e70b70a1358c701528a8205b3f8e51bdf9a03/datarobot-3.9.1.tar.gz", hash = "sha256:1c35fee01c06c8077973bbf4b5cf012ed40520903a038afa4fe72e137bc27135", size = 735758, upload-time = "2025-10-10T18:02:58.234Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/d8/e9/4341d6268122ce5fe0d6819ddb4aec441f7208d8c13e6b837758f598ac42/datarobot-3.10.0.tar.gz", hash = "sha256:d8dceb439c6fb078604986f2de8c206adca5fd72fb921c64327fc4d1f8077a6f", size = 745615, upload-time = "2025-12-03T21:28:02.85Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/5d/d3/d49cb61bf83220bc34764abe82f31ef64500513ab82d78a24cddc2114d63/datarobot-3.9.1-py3-none-any.whl", hash = "sha256:4aa1f47ca96c3aa031fdaea43faf6410e8ed90c57e09f4b1335ec2369a49c83d", size = 792560, upload-time = "2025-10-10T18:02:55.969Z" },
+    { url = "https://files.pythonhosted.org/packages/b6/50/96a134bc3b730c7343f346d76fd41db9955b9ad66eea3e45fa6b5916fd41/datarobot-3.10.0-py3-none-any.whl", hash = "sha256:c863fffb9eb6c253348ceb07887a777fa5b800e715ecfaac97558dea15eff355", size = 801627, upload-time = "2025-12-03T21:28:00.889Z" },
 ]
 
 [[package]]
@@ -1058,7 +1067,7 @@ wheels = [
 
 [[package]]
 name = "datarobot-genai"
-version = "0.2.0"
+version = "0.2.7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ag-ui-protocol" },
@@ -1070,15 +1079,17 @@ dependencies = [
     { name = "opentelemetry-instrumentation-httpx" },
     { name = "opentelemetry-instrumentation-openai" },
     { name = "opentelemetry-instrumentation-requests" },
+    { name = "opentelemetry-instrumentation-threading" },
     { name = "pandas" },
+    { name = "pyarrow" },
     { name = "pyjwt" },
     { name = "pypdf" },
     { name = "ragas" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/c0/77/81dfd33bbdf13a34ee1a4545425b51296b3ea87942aa64f5cf811efa698d/datarobot_genai-0.2.0.tar.gz", hash = "sha256:a70258dcaa498d8c5cef3ea4ca2308aeb38f77bbbd6bd7c9409e7d2a7754c1ba", size = 107148, upload-time = "2025-12-08T13:11:27.105Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/a9/55/043a0a3cb7d714905b96851ec8460e240eb7f80dedcbef8894b16a0d2dad/datarobot_genai-0.2.7.tar.gz", hash = "sha256:ee49b5871ab0e6301b651faafa2e700d8fdc09ac1936b7f3c6ce74224c06da8f", size = 114459, upload-time = "2025-12-15T13:07:44.378Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/24/fc/a66f975f30bd81762ba597e22fe359079201b72c87b30db8c47b1b2be84f/datarobot_genai-0.2.0-py3-none-any.whl", hash = "sha256:fe112b438c4d5e9920cb6d90e225e55bd7fd1a93199ec594f112f38a3538c883", size = 173829, upload-time = "2025-12-08T13:11:25.916Z" },
+    { url = "https://files.pythonhosted.org/packages/34/41/bfeaabd0dd7d27cdca3f3985c19eb6949f287c27ad20495bf074ec7572b5/datarobot_genai-0.2.7-py3-none-any.whl", hash = "sha256:8f5a3ddab20cb967a2554d21ed37ae4e78eceb449aa1d3fd401c038e3137b10e", size = 189500, upload-time = "2025-12-15T13:07:43.357Z" },
 ]
 
 [package.optional-dependencies]
@@ -1121,10 +1132,12 @@ llamaindex = [
     { name = "pypdf" },
 ]
 nat = [
+    { name = "anyio" },
     { name = "crewai" },
     { name = "llama-index-llms-litellm" },
     { name = "nvidia-nat" },
     { name = "nvidia-nat-langchain" },
+    { name = "nvidia-nat-mcp" },
     { name = "nvidia-nat-opentelemetry" },
     { name = "opentelemetry-instrumentation-crewai" },
     { name = "opentelemetry-instrumentation-langchain" },
@@ -1450,7 +1463,7 @@ dev = [
 requires-dist = [
     { name = "chainlit", marker = "extra == 'chainlit'", specifier = ">=2.9.0" },
     { name = "datarobot-drum", specifier = ">=1.17.5,<1.18.0" },
-    { name = "datarobot-genai", extras = ["crewai", "drmcp", "langgraph", "llamaindex", "nat", "pydanticai"], specifier = ">=0.2.0,<0.3.0" },
+    { name = "datarobot-genai", extras = ["crewai", "drmcp", "langgraph", "llamaindex", "nat", "pydanticai"], specifier = ">=0.2.6,<0.3.0" },
     { name = "datarobot-mlops", specifier = ">=11.1.0" },
     { name = "datarobot-moderations", specifier = ">=11.2.4,<11.3.0" },
     { name = "ecs-logging", marker = "extra == 'agentic-playground'", specifier = ">=2.2.0" },
@@ -4073,6 +4086,19 @@ dependencies = [
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7d/23/01a204768fc7b08f3cd229997fd7ea27c8e6a51131caebc49b974d6715f4/nvidia_nat_langchain-1.3.0-py3-none-any.whl", hash = "sha256:27531fe2440a9d261798e24aba48786e9e768cffa85698ad5ea6d30453ade487", size = 59808, upload-time = "2025-10-24T22:03:50.719Z" },
+]
+
+[[package]]
+name = "nvidia-nat-mcp"
+version = "1.3.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "aiorwlock" },
+    { name = "mcp" },
+    { name = "nvidia-nat" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7c/70/06138b00912da8a0a08901a645c3b56da497865eb631001940c5eb125a30/nvidia_nat_mcp-1.3.0-py3-none-any.whl", hash = "sha256:613478ac91e4e6948ac6d3cf767125858d2c278c150bf08a0c8d7dd54e47e6ff", size = 89231, upload-time = "2025-10-24T22:09:28.739Z" },
 ]
 
 [[package]]
