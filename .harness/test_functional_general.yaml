@@ -91,12 +91,8 @@ pipeline:
                       name: test functional general
                       identifier: test_functional_general
                       spec:
-                        connectorRef: account.dockerhub_datarobot_read
-                        image: datarobotdev/drum-builder:ubuntu-24-04
                         shell: Bash
                         command: |-
-                          apt update
-                          apt install -y docker.io
                           ./harness_scripts/functional_general/general_tests_entrypoint.sh \
                             <+secrets.getValue("org.genai-systems-dockerhub-login")> <+secrets.getValue("org.genai-systems-dockerhub-token")>
                         resources:
