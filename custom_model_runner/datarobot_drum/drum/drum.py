@@ -879,6 +879,16 @@ class CMRunner:
         in_docker_fit_row_weights_filename = "/opt/fit_row_weights.csv"
         in_docker_runtime_parameters_file = "/opt/runtime_parameters.yaml"
 
+        self.logger.info(f"YAKOFF DEBUG")
+        print(f"YAKOFF DEBUG")
+        self.logger.info(f"Source Code dir: {options.code_dir}")
+        print(f"Source Code dir: {options.code_dir}")
+        
+
+
+
+
+
         docker_cmd = (
             f"docker run --rm --init --entrypoint '' --interactive"
             f" --user {os.getuid()}:{os.getgid()}"
