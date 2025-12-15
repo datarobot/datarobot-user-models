@@ -13,6 +13,21 @@
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
+# Configure UV package manager
+export UV_PROJECT=${CODE_DIR}
+unset UV_COMPILE_BYTECODE  # Disable compilation (already done in build)
+unset UV_CACHE_DIR         # Disable caching for reproducibility
+
+# Activate the virtual environment
+source ${VENV_PATH}/bin/activate
+
+# Sync dependencies using UV
+# --active: Install into the active venv instead of creating a new one
+# --frozen: Skip dependency resolution, use exact versions from lock file
+# --extra: Install the 'agentic_playground' optional dependency group
+# Note: Compilation disabled since kernel venv is already compiled
+time uv sync --frozen --active --no-progress --color never --extra agentic_playground || true
+
 # -----------------------------------------------------------------------------
 # Option 1: Custom Model with DRUM Server
 # Requires: custom.py file in the same directory
@@ -25,21 +40,6 @@ if [ -f "$SCRIPT_DIR/custom.py" ]; then
         echo "Environment variables:"
         env
     fi
-
-    # Configure UV package manager
-    export UV_PROJECT=${CODE_DIR}
-    unset UV_COMPILE_BYTECODE  # Disable compilation (already done in build)
-    unset UV_CACHE_DIR         # Disable caching for reproducibility
-
-    # Activate the virtual environment
-    source ${VENV_PATH}/bin/activate
-
-    # Sync dependencies using UV
-    # --active: Install into the active venv instead of creating a new one
-    # --frozen: Skip dependency resolution, use exact versions from lock file
-    # --extra: Install the 'agentic_playground' optional dependency group
-    # Note: Compilation disabled since kernel venv is already compiled
-    time uv sync --frozen --active --no-progress --color never --extra agentic_playground || true
 
     # Start DRUM server
     echo "\nExecuting command: drum server $*\n"
@@ -59,7 +59,7 @@ elif [ -d "$SCRIPT_DIR/app" ]; then
     fi
 
     # Start the MCP server
-    python -m app.main
+    exec python -m app.main
 
 # -----------------------------------------------------------------------------
 # Error: No valid entry point found
