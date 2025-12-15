@@ -19,7 +19,7 @@ unset UV_COMPILE_BYTECODE  # Disable compilation (already done in build)
 unset UV_CACHE_DIR         # Disable caching for reproducibility
 
 # Activate the virtual environment
-source ${VENV_PATH}/bin/activate
+. ${VENV_PATH}/bin/activate
 
 # Sync dependencies using UV
 # --active: Install into the active venv instead of creating a new one
@@ -42,7 +42,9 @@ if [ -f "$SCRIPT_DIR/custom.py" ]; then
     echo "Starting Custom Model environment with DRUM prediction server"
 
     # Start DRUM server
-    echo "\nExecuting command: drum server $*\n"
+    echo
+    echo "Executing command: drum server $*"
+    echo
     exec drum server "$@"
 
 # -----------------------------------------------------------------------------
