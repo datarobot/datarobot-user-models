@@ -52,6 +52,9 @@ if [ -f "$SCRIPT_DIR/custom.py" ]; then
 elif [ -d "$SCRIPT_DIR/app" ]; then
     echo "Starting Custom Model environment with MCP server"
 
+    # Set Python path to script directory for module imports
+    export PYTHONPATH="$SCRIPT_DIR"
+
     # Start the MCP server
     exec python -m app.main
 
