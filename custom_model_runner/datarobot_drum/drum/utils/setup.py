@@ -32,7 +32,6 @@ def setup_options(args=None):
         Parsed command line options as an argparse.Namespace object.
     """
     arg_parser = CMRunnerArgsRegistry.get_arg_parser()
-
     try:
         import argcomplete
     except ImportError:

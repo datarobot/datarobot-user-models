@@ -222,8 +222,8 @@ class TestRuntimeParametersFromValuesFile:
         if docker:
             cmd += " --docker {} --verbose ".format(docker)
 
-        _, stdout, _ = _exec_shell_cmd(cmd, err_msg=None, assert_if_fail=False, env=env)
-        return stdout
+        _, stdout, stderr = _exec_shell_cmd(cmd, err_msg=None, assert_if_fail=False, env=env)
+        return stdout, stderr
 
     @classmethod
     def _setup_runtime_parameters(
@@ -251,20 +251,20 @@ class TestRuntimeParametersFromValuesFile:
     def test_runtime_parameters_invalid_yaml(
         self, resources, tmp_path, runtime_param_values_stream, use_runtime_params_env_var
     ):
-        stdout = self._test_custom_model_with_runtime_params(
+        stdout, stderr = self._test_custom_model_with_runtime_params(
             resources,
             tmp_path,
             runtime_param_values_stream,
             is_invalid_yaml=True,
             use_runtime_params_env_var=use_runtime_params_env_var,
         )
-        assert "Invalid runtime parameter values YAML content!" in stdout
+        assert "Invalid runtime parameter values YAML content!" in stdout + stderr
 
     @pytest.mark.parametrize("use_runtime_params_env_var", [True, False])
     def test_runtime_parameters_missing_attr(
         self, resources, tmp_path, runtime_param_values_stream, use_runtime_params_env_var
     ):
-        stdout = self._test_custom_model_with_runtime_params(
+        stdout, stderr = self._test_custom_model_with_runtime_params(
             resources,
             tmp_path,
             runtime_param_values_stream,
@@ -273,27 +273,27 @@ class TestRuntimeParametersFromValuesFile:
         )
         assert re.search(
             r".*Failed to load runtime parameter.*{\\'credentialType\\': DataError\(\\'is required\\'\)}.*",
-            stdout,
+            stdout + stderr,
         )
 
     def test_runtime_parameters_boolean_invalid(
         self, resources, tmp_path, runtime_param_values_stream
     ):
-        stderr = self._test_custom_model_with_runtime_params(
+        stdout, stderr = self._test_custom_model_with_runtime_params(
             resources, tmp_path, runtime_param_values_stream, bool_var_value="text"
         )
         assert re.search(
             r".*Failed to load runtime parameter.*value should be True or False.*",
-            stderr,
+            stdout + stderr,
         )
 
     def test_runtime_parameters_numeric_invalid(
         self, resources, tmp_path, runtime_param_values_stream
     ):
-        stderr = self._test_custom_model_with_runtime_params(
+        stdout, stderr = self._test_custom_model_with_runtime_params(
             resources, tmp_path, runtime_param_values_stream, numeric_var_value="text"
         )
         assert re.search(
             r".*Failed to load runtime parameter.*value can.*t be converted to float.*",
-            stderr,
+            stdout + stderr,
         )
