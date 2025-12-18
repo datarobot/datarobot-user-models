@@ -7,12 +7,12 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import pandas as pd
 import logging
 
-from cgi import FieldStorage
 from io import BytesIO, StringIO
 
 from scipy.io import mmwrite, mmread
 from scipy.sparse import issparse
 from scipy.sparse import csr_matrix
+from werkzeug.formparser import parse_form_data
 
 from datarobot_drum.drum.enum import X_FORMAT_KEY, X_TRANSFORM_KEY
 
@@ -102,20 +102,16 @@ def read_mtx_payload(response_dict, transform_key):
 
 
 def parse_multi_part_response(response):
+    environ = {
+        "wsgi.input": BytesIO(response.content),
+        "REQUEST_METHOD": "POST",
+        "CONTENT_TYPE": response.headers["Content-Type"],
+        "CONTENT_LENGTH": str(len(response.content)),
+    }
+    _, form, files = parse_form_data(environ)
     parsed_response = {}
-    fs = FieldStorage(
-        fp=BytesIO(response.content),
-        headers=response.headers,
-        environ={
-            "REQUEST_METHOD": "POST",
-            "CONTENT_TYPE": response.headers["Content-Type"],
-        },
-    )
-    for child in fs.list:
-        key = child.name
-        value = child.file.read()
-        parsed_response.update({key: value})
-
+    for key, file_storage in files.items():
+        parsed_response[key] = file_storage.read()
     return parsed_response
 
 
