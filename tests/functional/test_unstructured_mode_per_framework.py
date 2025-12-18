@@ -15,8 +15,21 @@ from datarobot_drum.drum.root_predictors.drum_server_utils import DrumServerRun
 from datarobot_drum.drum.root_predictors.utils import (
     _exec_shell_cmd,
     _create_custom_model_dir,
-    get_mimetype_charset_from_content_type_header,
 )
+
+# This is only for Java environment case.
+# For the java env we don't install from source,
+# so this func will be available when Java env uses released DRUM with this func.
+# Anyhow, unstructured is not supported by java, so these tests are skipped for Java env.
+try:
+    from datarobot_drum.drum.root_predictors.utils import (
+        get_mimetype_charset_from_content_type_header,
+    )
+except ImportError:
+
+    def get_mimetype_charset_from_content_type_header(header):
+        return None, None
+
 
 from requests_toolbelt import MultipartEncoder
 
