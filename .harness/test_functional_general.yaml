@@ -94,6 +94,7 @@ pipeline:
                         shell: Bash
                         command: |
                           apt update; apt install -y docker.io python3-docker
+                          touch /opt/input.csv
                           ./harness_scripts/functional_general/general_tests_entrypoint.sh \
                             <+secrets.getValue("org.genai-systems-dockerhub-login")> <+secrets.getValue("org.genai-systems-dockerhub-token")>
                         resources:
