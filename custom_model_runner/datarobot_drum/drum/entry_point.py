@@ -1,19 +1,17 @@
 from datarobot_drum.drum.gunicorn.run_gunicorn import main_gunicorn
 from datarobot_drum.drum.main import main
-import sys
 from datarobot_drum import RuntimeParameters
+from datarobot_drum.drum.utils.setup import setup_options
+
+from datarobot_drum.drum.enum import ArgumentsOptions
 
 
 def run_drum_server():
-    cmd_args = sys.argv
-    is_server = False
-    if len(cmd_args) > 1 and cmd_args[1] == "server":
-        is_server = True
-
+    options = setup_options()
     if (
-        RuntimeParameters.has("DRUM_SERVER_TYPE")
+        options.subparser_name == ArgumentsOptions.SERVER
+        and RuntimeParameters.has("DRUM_SERVER_TYPE")
         and str(RuntimeParameters.get("DRUM_SERVER_TYPE")).lower() == "gunicorn"
-        and is_server
     ):
         main_gunicorn()
     else:
