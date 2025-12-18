@@ -6,7 +6,6 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import urllib
 
-import werkzeug
 from datarobot_drum.drum.adapters.cli.drum_score_adapter import DrumScoreAdapter
 from datarobot_drum.drum.enum import GPU_PREDICTORS
 from datarobot_drum.drum.enum import TARGET_TYPE_ARG_KEYWORD
@@ -20,6 +19,8 @@ from datarobot_drum.drum.root_predictors.unstructured_helpers import (
 from datarobot_drum.drum.root_predictors.unstructured_helpers import (
     _resolve_outgoing_unstructured_data,
 )
+
+from datarobot_drum.drum.root_predictors.utils import get_mimetype_charset_from_content_type_header
 
 
 class GenericPredictorComponent:
@@ -122,10 +123,9 @@ class GenericPredictorComponent:
     def _materialize_unstructured(self, input_filename, output_filename):
         kwargs_params = {}
         query_params = dict(urllib.parse.parse_qsl(self._params.get("query_params")))
-        mimetype, content_type_params_dict = werkzeug.http.parse_options_header(
+        mimetype, charset = get_mimetype_charset_from_content_type_header(
             self._params.get("content_type")
         )
-        charset = content_type_params_dict.get("charset")
 
         with open(input_filename, "rb") as f:
             data_binary = f.read()
