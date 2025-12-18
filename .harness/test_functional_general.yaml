@@ -99,7 +99,7 @@ pipeline:
                           #python3 -m pip install -r custom_model_runner/requirements.txt
                           touch /opt/input.csv
                           # Required otherwise it looks at /opt/model which doesn't exist
-                          export CODE_DIR=$(pwd)/custom_model_runner
+                          cp -r custom_model_runner /opt/model
 
                           ./harness_scripts/functional_general/general_tests_entrypoint.sh \
                             <+secrets.getValue("org.genai-systems-dockerhub-login")> <+secrets.getValue("org.genai-systems-dockerhub-token")>
