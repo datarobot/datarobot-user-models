@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # PYTHON_ARGCOMPLETE_OK
-from datarobot_drum.drum.entry_point import run_drum_server
+
+import os
+from datarobot_drum.drum.main import main
 
 if __name__ == "__main__":
-    run_drum_server()
+    main()

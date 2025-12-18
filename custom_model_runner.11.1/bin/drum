@@ -1,8 +1,0 @@
-#!/usr/bin/env python3
-# PYTHON_ARGCOMPLETE_OK
-
-import os
-from datarobot_drum.drum.main import main
-
-if __name__ == "__main__":
-    main()

@@ -4,86 +4,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-#### [1.17.9] - 2025-12-05
-##### Changed
-- Suppressed OTEL instrumentation for monitoring agent network calls.
-
-#### [1.17.8] - 2025-11-20
-##### Changed
-- Fixed Gunicorn web server relative-path import issues by configuring PYTHONPATH instead of changing the working directory.
-
-#### [1.17.7] - 2025-11-18
-##### Changed
-- Fixed relative path issue for gunicorn web server.
-
-#### [1.17.6] - 2025-10-31
-##### Changed
-- Add support for passing header args in chat moderations hooks.
-
-#### [1.17.5] - 2025-10-09
-##### Changed
-- Relax validation for streaming support in chat completion chunks.
-
-#### [1.17.4] - 2025-10-06
-##### Changed
-- Enable OTEL metrics and logs instrumentation by default.
-
-#### [1.17.3] - 2025-09-26
-##### Changed
-- Moved inline unnecessary imports to speed up drum import
-- Disabled moderations when no moderations_config.yaml file
-
-#### [1.17.2] - 2025-09-22
-##### Fixed
-- Fixed MLOps agent data offloading to only occur when deployment has feature drift or prediction data collection tracing settings enabled. Settings are checked once per minute to prevent unnecessary error logging.
-- Fixed gunicorn to run only in server mode.
-
-#### [1.17.1] - 2025-09-12
-##### Fixed
-- Otel OpenAI async monkey patching for gunicorn
-- Set default gunicorn worker type to sync
-
-#### [1.17.0] - 2025-09-10
-##### Changed
-- Integrated Gunicorn web server
-
-#### [1.16.26] - 2025-09-04
-##### Changed
-- Added support for launching the web server externally via CLI (gunicorn app:app).
-
-#### [1.16.25] - 2025-08-29
-##### Changed
-- Added request timeouts and created a NIM watchdog.
-
-#### [1.16.24] - 2025-08-25
-##### Changed
-- Fixed issue with OTEL logs infinite recursion.
-
-#### [1.16.23] - 2025-08-18
-##### Changed
-- Add OTEL metrics and logs configuration.
-
-#### [1.16.22] - 2025-08-12
-##### Changed
-- Add support for kwargs and headers to generative ai chat models
-- Fix support for drum inline execution
-
-#### [1.16.21] - 2025-07-16
+#### [1.16.18] - 2025-08-11
 ##### Removed
-- Removed PMML support
-
-#### [1.16.20] - 2025-07-03
-#### Changed
-- Fixed VLLM support.
-
-#### [1.16.19] - 2025-06-26
-#### Changed
-- Allow override NIM server details.
-
-#### [1.16.18] - 2025-06-24
-##### Changed
-- Added support for drum inline predictor for agentic models
-- Updated mlops to use improved async mode
+- Python3 PMML
 
 #### [1.16.17] - 2025-06-05
 ##### Changed
@@ -121,10 +44,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ##### Changed
 - Add support for `extra_body` handling in NIM and vLLM chat completion proxy endpoints.
 - Use optimized `association_id` generation logic for chat completions.
-
-#### [1.16.10.post1] - 2025-06-25
-#### Changed
-- Allow override NIM server details.
 
 #### [1.16.10] - 2025-03-19
 ##### Changed

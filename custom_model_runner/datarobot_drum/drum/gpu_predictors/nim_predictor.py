@@ -29,7 +29,7 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
     ENGINE_CONFIG_FILE = "engine_config.json"
     LEGACY_START_SERVER_SCRIPT = Path("/opt/nim/start-server.sh")
     START_SERVER_SCRIPT = Path("/opt/nim/start_server.sh")
-    DEFAULT_HEALTH_ROUTE = "/v1/health/ready"
+    HEALTH_ROUTE = "/v1/health/ready"
 
     def __init__(self):
         super().__init__()
@@ -40,17 +40,6 @@ class NIMPredictor(BaseOpenAiGpuPredictor):
         self.model_profile = self.get_optional_parameter("NIM_MODEL_PROFILE")
         self.max_model_len = self.get_optional_parameter("NIM_MAX_MODEL_LEN")
         self.log_level = self.get_optional_parameter("NIM_LOG_LEVEL")
-
-        # DR prefix to denote that this is not some standard NIM variable of any sort.
-        self.health_route = self.get_optional_parameter(
-            "DR_NIM_HEALTH_ROUTE", default_value=self.DEFAULT_HEALTH_ROUTE
-        )
-        self.openai_port = self.get_optional_parameter(
-            "DR_NIM_SERVER_PORT", default_value=self.openai_port
-        )
-        self.openai_host = self.get_optional_parameter(
-            "DR_NIM_SERVER_HOST", default_value=self.openai_host
-        )
 
     @property
     def num_deployment_stages(self):

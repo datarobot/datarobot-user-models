@@ -8,8 +8,8 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import logging
 import os
 import sys
-import trafaret as t
 from contextvars import ContextVar
+from distutils.util import strtobool
 from urllib.parse import urlparse, urlunparse
 
 from contextlib import contextmanager
@@ -22,23 +22,16 @@ from datarobot_drum.drum.enum import (
     PayloadFormat,
 )
 from datarobot_drum.drum.exceptions import DrumCommonException
-from opentelemetry import trace, context, metrics
-from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
+from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
+from datarobot_drum.runtime_parameters.runtime_parameters import RuntimeParametersLoader
+from opentelemetry import trace, context
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
-
-from opentelemetry._logs import set_logger_provider
-from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
-from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
-from opentelemetry.sdk._logs.export import SimpleLogRecordProcessor
-
-from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
+
 
 ctx_request_id = ContextVar("request_id")
 
@@ -133,7 +126,7 @@ def to_bool(value):
         return False
     if isinstance(value, bool):
         return value
-    return t.ToBool().check(value)
+    return strtobool(value)
 
 
 FIT_METADATA_FILENAME = "fit_runtime_data.json"
@@ -146,48 +139,7 @@ def make_otel_endpoint(datarobot_endpoint):
     return result
 
 
-class _ExcludeOtelLogsFilter(logging.Filter):
-    """A logging filter to exclude logs from the opentelemetry library."""
-
-    def filter(self, record: logging.LogRecord) -> bool:
-        return not record.name.startswith("opentelemetry")
-
-
-def _setup_otel_logging(resource, multiprocessing=False):
-    logger_provider = LoggerProvider(resource=resource)
-    set_logger_provider(logger_provider)
-    exporter = OTLPLogExporter()
-    if multiprocessing:
-        logger_provider.add_log_record_processor(SimpleLogRecordProcessor(exporter))
-    else:
-        logger_provider.add_log_record_processor(BatchLogRecordProcessor(exporter))
-    handler = LoggingHandler(level=logging.DEBUG, logger_provider=logger_provider)
-    # Remove own logs to avoid infinite recursion if endpoint is not available
-    handler.addFilter(_ExcludeOtelLogsFilter())
-    logging.getLogger().addHandler(handler)
-    return logger_provider
-
-
-def _setup_otel_metrics(resource):
-    metric_exporter = OTLPMetricExporter()
-    metric_reader = PeriodicExportingMetricReader(metric_exporter)
-    metric_provider = MeterProvider(metric_readers=[metric_reader], resource=resource)
-    metrics.set_meter_provider(metric_provider)
-    return metric_provider
-
-
-def _setup_otel_tracing(resource, multiprocessing=False):
-    otlp_exporter = OTLPSpanExporter()
-    trace_provider = TracerProvider(resource=resource)
-    if multiprocessing:
-        trace_provider.add_span_processor(SimpleSpanProcessor(otlp_exporter))
-    else:
-        trace_provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
-    trace.set_tracer_provider(trace_provider)
-    return trace_provider
-
-
-def setup_otel(runtime_parameters, options):
+def setup_tracer(runtime_parameters, options):
     """Setups OTEL tracer.
 
     OTEL is configured by OTEL_EXPORTER_OTLP_ENDPOINT and
@@ -201,20 +153,25 @@ def setup_otel(runtime_parameters, options):
         command argumetns
     Returns
     -------
-    (TracerProvider, MetricProvider)
+    TracerProvider
     """
-    log = get_drum_logger("setup_otel")
+    log = get_drum_logger("setup_tracer")
 
     # Can be used to disable OTEL reporting from env var parameters
     # https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/
-    if runtime_parameters.has("OTEL_SDK_DISABLED") and runtime_parameters.get("OTEL_SDK_DISABLED"):
-        log.info("OTEL explictly disabled")
-        return (None, None, None)
+    if runtime_parameters.has("OTEL_SDK_DISABLED") and os.environ.get("OTEL_SDK_DISABLED"):
+        log.info("Tracing explictly disabled")
+        return
 
-    endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
-    if not endpoint:
-        log.info("OTEL is not configured")
-        return (None, None, None)
+    main_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_ENDPOINT")
+    trace_endpoint = os.environ.get("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")
+    if not main_endpoint and not trace_endpoint:
+        log.info("Tracing is not configured")
+        return
+
+    resource = Resource.create()
+    otlp_exporter = OTLPSpanExporter()
+    provider = TracerProvider(resource=resource)
 
     # In case of NIM flask server is configured to run in multiprocessing
     # mode that uses fork. Since BatchSpanProcessor start background thread
@@ -223,15 +180,16 @@ def setup_otel(runtime_parameters, options):
     # missing due to process exits before all data offloaded. In forking
     # case we use SimpleSpanProcessor (mostly NIMs) otherwise BatchSpanProcessor
     # (most frequent case)
-    multiprocessing = options.max_workers > 1
+    if options.max_workers > 1:
+        provider.add_span_processor(SimpleSpanProcessor(otlp_exporter))
+    else:
+        provider.add_span_processor(BatchSpanProcessor(otlp_exporter))
 
-    resource = Resource.create()
-    trace_provider = _setup_otel_tracing(resource=resource, multiprocessing=multiprocessing)
-    logger_provider = _setup_otel_logging(resource=resource, multiprocessing=multiprocessing)
-    metric_provider = _setup_otel_metrics(resource=resource)
+    trace.set_tracer_provider(provider)
 
-    log.info(f"OTEL is configured with endpoint: {endpoint}")
-    return trace_provider, metric_provider, logger_provider
+    endpoint = main_endpoint or trace_endpoint
+    log.info(f"Tracing is configured with endpoint: {endpoint}")
+    return provider
 
 
 @contextmanager
@@ -260,20 +218,6 @@ def extract_chat_request_attributes(completion_params):
     return attributes
 
 
-def extract_request_headers(request_headers):
-    attributes = {}
-    consumer_id = request_headers.get("X-DataRobot-Consumer-Id")
-    consumer_type = request_headers.get("X-DataRobot-Consumer-Type")
-
-    if consumer_id:
-        attributes["gen_ai.request.consumer_id"] = consumer_id
-
-    if consumer_type:
-        attributes["gen_ai.request.consumer_type"] = consumer_type
-
-    return attributes
-
-
 def extract_chat_response_attributes(response):
     """Extracts otel related attributes from chat response.
 
@@ -288,3 +232,12 @@ def extract_chat_response_attributes(response):
         # last completion wins
         attributes["gen_ai.completion"] = m.get("content")
     return attributes
+
+
+def setup_required_environment_variables(options):
+    if "runtime_params_file" in options and options.runtime_params_file:
+        loader = RuntimeParametersLoader(options.runtime_params_file, options.code_dir)
+        loader.setup_environment_variables()
+
+    if "lazy_loading_file" in options and options.lazy_loading_file:
+        LazyLoadingHandler.setup_environment_variables_from_values_file(options.lazy_loading_file)

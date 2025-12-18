@@ -66,7 +66,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "drum=datarobot_drum.drum.entry_point:run_drum_server",
+            "drum=datarobot_drum.drum.main:main",
         ],
     },
     install_requires=requirements,

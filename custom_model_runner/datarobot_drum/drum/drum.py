@@ -4,9 +4,9 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-
 import contextlib
 import copy
+import glob
 import json
 import logging
 import os
@@ -17,11 +17,13 @@ import subprocess
 import sys
 import tempfile
 import time
+from distutils.dir_util import copy_tree
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from typing import Callable, Optional
 from typing import Dict
 from typing import Union
+
 
 import docker.errors
 import pandas as pd
@@ -59,6 +61,7 @@ from datarobot_drum.drum.perf_testing import CMRunTests
 from datarobot_drum.drum.push import drum_push
 from datarobot_drum.drum.push import setup_validation_options
 from datarobot_drum.drum.root_predictors.generic_predictor import GenericPredictorComponent
+from datarobot_drum.drum.root_predictors.prediction_server import PredictionServer
 from datarobot_drum.drum.templates_generator import CMTemplateGenerator
 from datarobot_drum.drum.typeschema_validation import SchemaValidator
 from datarobot_drum.drum.utils.dataframe import is_sparse_dataframe
@@ -67,6 +70,7 @@ from datarobot_drum.drum.utils.drum_utils import handle_missing_colnames
 from datarobot_drum.drum.utils.structured_input_read_utils import StructuredInputReadUtils
 from datarobot_drum.profiler.stats_collector import StatsCollector
 from datarobot_drum.profiler.stats_collector import StatsOperation
+from memory_profiler import memory_usage
 from progress.spinner import Spinner
 from scipy.io import mmwrite
 
@@ -75,12 +79,8 @@ PREDICTOR_PIPELINE = "prediction_pipeline.json.j2"
 
 
 class CMRunner:
-    def __init__(self, runtime, flask_app=None, worker_ctx=None):
+    def __init__(self, runtime):
         self.runtime = runtime
-        self.flask_app = (
-            flask_app  # This is the Flask app object, used when running the application via CLI
-        )
-        self.worker_ctx = worker_ctx  # This is the Gunicorn worker context object (WorkerCtx)
         self.options = runtime.options
         self.options.model_config = read_model_metadata_yaml(self.options.code_dir)
         self.options.default_parameter_values = (
@@ -499,18 +499,8 @@ class CMRunner:
                 with self._setup_output_if_not_exists():
                     self._run_predictions(stats_collector)
             finally:
-                if self.worker_ctx:
-                    # Perform cleanup specific to the Gunicorn worker being terminated.
-                    # Gunicorn spawns multiple worker processes to handle requests. Each worker has its own context,
-                    # and this ensures that only the resources associated with the current worker are released.
-                    # defer_cleanup simply saves methods to be executed during worker restart or shutdown.
-                    # More details in https://github.com/datarobot/datarobot-custom-templates/pull/419
-                    self.worker_ctx.defer_cleanup(
-                        lambda: stats_collector.disable(), desc="stats_collector.disable()"
-                    )
-                else:
-                    if stats_collector:
-                        stats_collector.disable()
+                if stats_collector:
+                    stats_collector.disable()
             if stats_collector:
                 stats_collector.print_reports()
         elif self.run_mode == RunMode.SERVER:
@@ -627,8 +617,6 @@ class CMRunner:
         fit_function = self._get_fit_function(cli_adapter=cli_adapter)
 
         print("Starting Fit")
-        from memory_profiler import memory_usage
-
         fit_mem_usage = memory_usage(
             fit_function,
             interval=1,
@@ -776,16 +764,12 @@ class CMRunner:
             "triton_grpc_port": int(options.triton_grpc_port),
             "api_token": options.api_token,
             "allow_dr_api_access": options.allow_dr_api_access,
-            "query_params": (
-                '"{}"'.format(options.query)
-                if getattr(options, "query", None) is not None
-                else "null"
-            ),
-            "content_type": (
-                '"{}"'.format(options.content_type)
-                if getattr(options, "content_type", None) is not None
-                else "null"
-            ),
+            "query_params": '"{}"'.format(options.query)
+            if getattr(options, "query", None) is not None
+            else "null",
+            "content_type": '"{}"'.format(options.content_type)
+            if getattr(options, "content_type", None) is not None
+            else "null",
             "target_type": self.target_type.value,
             "user_secrets_mount_path": getattr(options, "user_secrets_mount_path", None),
             "user_secrets_prefix": getattr(options, "user_secrets_prefix", None),
@@ -811,11 +795,9 @@ class CMRunner:
                     "engine_type": "Generic",
                     "component_type": "prediction_server",
                     "processes": options.max_workers if getattr(options, "max_workers") else "null",
-                    "deployment_config": (
-                        '"{}"'.format(options.deployment_config)
-                        if getattr(options, "deployment_config", None) is not None
-                        else "null"
-                    ),
+                    "deployment_config": '"{}"'.format(options.deployment_config)
+                    if getattr(options, "deployment_config", None) is not None
+                    else "null",
                 }
             )
 
@@ -843,12 +825,10 @@ class CMRunner:
         params = self.get_predictor_params()
         predictor = None
         try:
-            from datarobot_drum.drum.root_predictors.prediction_server import PredictionServer
-
             if stats_collector:
                 stats_collector.mark("start")
             predictor = (
-                PredictionServer(params, self.flask_app)
+                PredictionServer(params)
                 if self.run_mode == RunMode.SERVER
                 else GenericPredictorComponent(params)
             )
@@ -858,39 +838,16 @@ class CMRunner:
             if stats_collector:
                 stats_collector.mark("run")
         finally:
-            if self.worker_ctx:
-                # Perform cleanup specific to the Gunicorn worker being terminated.
-                # Gunicorn spawns multiple worker processes to handle requests. Each worker has its own context,
-                # and this ensures that only the resources associated with the current worker are released.
-                # defer_cleanup simply saves methods to be executed during worker restart or shutdown.
-                # More details in https://github.com/datarobot/datarobot-custom-templates/pull/419
-                if predictor is not None:
-                    self.worker_ctx.defer_cleanup(
-                        lambda: predictor.terminate(), desc="predictor.terminate()"
-                    )
-                if stats_collector:
-                    self.worker_ctx.defer_cleanup(
-                        lambda: stats_collector.mark("end"), desc="stats_collector.mark('end')"
-                    )
-                self.worker_ctx.defer_cleanup(
-                    lambda: self.logger.info(
-                        "<<< Finish {} in the {} mode".format(
-                            ArgumentsOptions.MAIN_COMMAND, self.run_mode.value
-                        )
-                    ),
-                    desc="logger.info(...)",
-                )
+            if predictor is not None:
+                predictor.terminate()
+            if stats_collector:
+                stats_collector.mark("end")
 
-            else:
-                if predictor is not None:
-                    predictor.terminate()
-                if stats_collector:
-                    stats_collector.mark("end")
-                self.logger.info(
-                    "<<< Finish {} in the {} mode".format(
-                        ArgumentsOptions.MAIN_COMMAND, self.run_mode.value
-                    )
-                )
+        self.logger.info(
+            "<<< Finish {} in the {} mode".format(
+                ArgumentsOptions.MAIN_COMMAND, self.run_mode.value
+            )
+        )
 
     @contextlib.contextmanager
     def _setup_output_if_not_exists(self):
@@ -1254,74 +1211,35 @@ class CMRunner:
         json.dump(report_information, open(output_path, "w"))
 
 
-def _output_in_code_dir(code_dir: Path, output_dir: Path) -> bool:
-    """Return True if output_dir is inside code_dir."""
-    try:
-        output_dir.resolve().relative_to(code_dir.resolve())
-        return True
-    except ValueError:
-        return False
+def output_in_code_dir(code_dir, output_dir):
+    """Does the code directory house the output directory?"""
+    code_abs_path = os.path.abspath(code_dir)
+    output_abs_path = os.path.abspath(output_dir)
+    return os.path.commonpath([code_dir, output_abs_path]) == code_abs_path
 
 
-def _copy_tree(src_dir: Path, dst_dir: Path) -> set[Path]:
+def create_custom_inference_model_folder(code_dir, output_dir):
+    readme = """
+    This folder was generated by the DRUM tool. It provides functionality for making
+    predictions using the model trained by DRUM
     """
-    Recursively copy contents of src_dir into dst_dir.
-    Returns a set of all copied file paths.
-    """
-    copied_files = set()
-    dst_dir.mkdir(parents=True, exist_ok=True)
-
-    for item in src_dir.iterdir():
-        dst_item = dst_dir / item.name
-        if item.is_dir():
-            shutil.copytree(item, dst_item, dirs_exist_ok=True)
-            copied_files.update(p for p in dst_item.rglob("*") if p.is_file())
-        else:
-            shutil.copy2(item, dst_item)
-            copied_files.add(dst_item)
-
-    return copied_files
-
-
-def create_custom_inference_model_folder(code_dir: str, output_dir: str) -> None:
-    """
-    Prepares a model inference folder by copying code_dir into output_dir,
-    avoiding recursive self-copying if output_dir is inside code_dir.
-    """
-    code_path = Path(code_dir).resolve()
-    output_path = Path(output_dir).resolve()
-
-    readme_content = (
-        "This folder was generated by the DRUM tool. It provides functionality for making\n"
-        "predictions using the model trained by DRUM\n"
-    )
-
-    existing_files = set(p for p in output_path.rglob("*") if p.is_file())
-
-    if _output_in_code_dir(code_path, output_path):
-        with tempfile.TemporaryDirectory() as tmp:
-            tmp_path = Path(tmp)
-            _copy_tree(code_path, tmp_path)
-
-            # Remove the output subdir inside the copied tree
-            rel_output = output_path.relative_to(code_path)
-            shutil.rmtree(tmp_path / rel_output, ignore_errors=True)
-
-            # Clean up __pycache__
-            shutil.rmtree(tmp_path / "__pycache__", ignore_errors=True)
-
-            copied_files = _copy_tree(tmp_path, output_path)
+    files_in_output = set(glob.glob(output_dir + "/**"))
+    if output_in_code_dir(code_dir, output_dir):
+        # since the output directory is in the code directory use a tempdir to copy into first and
+        # cleanup files and prevent errors related to copying the output into itself.
+        with tempfile.TemporaryDirectory() as tempdir:
+            copy_tree(code_dir, tempdir)
+            # remove the temporary version of the target dir
+            shutil.rmtree(os.path.join(tempdir, os.path.relpath(output_dir, code_dir)))
+            shutil.rmtree(os.path.join(tempdir, "__pycache__"), ignore_errors=True)
+            copied_files = set(copy_tree(tempdir, output_dir))
     else:
-        copied_files = _copy_tree(code_path, output_path)
-        shutil.rmtree(output_path / "__pycache__", ignore_errors=True)
-
-    # Add README
-    (output_path / "README.md").write_text(readme_content)
-
-    # Check overwritten files
-    overwritten = existing_files & copied_files
-    if overwritten:
-        print(f"Files were overwritten: {sorted(overwritten)}")
+        copied_files = set(copy_tree(code_dir, output_dir))
+        shutil.rmtree(os.path.join(output_dir, "__pycache__"), ignore_errors=True)
+    with open(os.path.join(output_dir, "README.md"), "w") as fp:
+        fp.write(readme)
+    if files_in_output & copied_files:
+        print("Files were overwritten: {}".format(files_in_output & copied_files))
 
 
 def _get_default_numeric_param_value(param_config: Dict, cast_to_int: bool) -> Union[int, float]:

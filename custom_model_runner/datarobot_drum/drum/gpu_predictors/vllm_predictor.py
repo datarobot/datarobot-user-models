@@ -4,14 +4,13 @@ All rights reserved.
 This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
-
 import json
 import os
 import subprocess
 from pathlib import Path
 
 from datarobot_drum.drum.enum import CustomHooks
-from datarobot_drum.drum.exceptions import DrumCommonException, UnrecoverableConfigurationError
+from datarobot_drum.drum.exceptions import DrumCommonException
 from datarobot_drum.drum.gpu_predictors.base import BaseOpenAiGpuPredictor
 
 
@@ -19,7 +18,7 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
     NAME = "vLLM"
     DEFAULT_MODEL_DIR = "vllm"
     ENGINE_CONFIG_FILE = "engine_config.json"
-    DEFAULT_HEALTH_ROUTE = "/health"
+    HEALTH_ROUTE = "/health"
 
     def __init__(self):
         super().__init__()
@@ -61,19 +60,8 @@ class VllmPredictor(BaseOpenAiGpuPredictor):
         # For advanced users, allow them to specify arbitrary CLI options that we haven't exposed
         # via runtime parameters.
         if engine_config_file.is_file():
-            try:
-                config = json.loads(engine_config_file.read_text())
-            except Exception as e:
-                # Catch any other file-related errors
-                raise UnrecoverableConfigurationError(
-                    f"Failed to read or parse critical config file engine_config.json: {e}"
-                ) from e
+            config = json.loads(engine_config_file.read_text())
             if "args" in config:
-                cli_args = config["args"]
-                if not isinstance(cli_args, list):
-                    raise UnrecoverableConfigurationError(
-                        f"Invalid configuration in engine_config.json: 'args' must be a list, but found type '{type(cli_args).__name__}'."
-                    )
                 self.logger.info(f"Loading CLI args from config file: {engine_config_file}...")
                 cmd.extend(config["args"])
 

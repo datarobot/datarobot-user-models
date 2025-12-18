@@ -396,9 +396,8 @@ class PredictMixin:
             )
 
         completion_create_params = request.json
-        headers = request.headers
 
-        result = self._predictor.chat(completion_create_params, headers=headers)
+        result = self._predictor.chat(completion_create_params)
         if not is_streaming_response(result):
             response = result.to_dict()
         else:
