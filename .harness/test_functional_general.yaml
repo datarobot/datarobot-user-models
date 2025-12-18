@@ -89,6 +89,8 @@ pipeline:
                       name: test functional general
                       identifier: test_functional_general
                       spec:
+                        connectorRef: account.dockerhub_datarobot_read
+                        image: datarobot/drum-builder:ubuntu-22-04
                         shell: Bash
                         command: |
                           ./harness_scripts/functional_general/general_tests_entrypoint.sh \
