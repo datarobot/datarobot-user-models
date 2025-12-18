@@ -1,3 +1,4 @@
+-r requirements_test_unit.txt
 docker>=4.2.2,<5.0.0
 pytest
 pytest-runner
