@@ -19,6 +19,7 @@ import pandas as pd
 from datarobot_drum.drum.adapters.cli.shared.drum_class_label_adapter import DrumClassLabelAdapter
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import RawPredictResponse
 from datarobot_drum.drum.common import to_bool
+from datarobot_drum.drum.enum import MODERATIONS_EXTRA_BODY_ASSOCIATION_ID_KEY
 from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
 from datarobot_drum.drum.model_metadata import read_model_metadata_yaml
 from datarobot_drum.drum.enum import (
@@ -34,6 +35,7 @@ from datarobot_drum.drum.root_predictors.chat_helpers import is_streaming_respon
 
 import datarobot as dr
 from datarobot_mlops.common.connected_exception import DRMLOpsConnectedException
+from opentelemetry.instrumentation.utils import suppress_instrumentation
 
 DEFAULT_PROMPT_COLUMN_NAME = "promptText"
 EXCEPTION_422 = "predictionInputs/fromJSON/: 422 Client Error: UNPROCESSABLE ENTITY for url"
@@ -104,6 +106,16 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         self._mlops = None
         self._schema_validator = None
         self._prompt_column_name = DEFAULT_PROMPT_COLUMN_NAME
+        self._deployment = None
+
+        self._tracking_settings = {
+            "target_drift": {"enabled": True},
+            "feature_drift": {"enabled": True},
+        }
+        self._data_collection = {"enabled": True}
+
+        self._settings_refresh_time = time.monotonic()
+        self._settings_refresh_interval = 60  # sec
 
     def configure(self, params):
         """
@@ -124,7 +136,8 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             dr.Client(token=params["api_token"], endpoint=dr_api_endpoint)
 
         if self._should_enable_mlops():
-            self._init_mlops()
+            with suppress_instrumentation():
+                self._init_mlops()
 
         model_metadata = read_model_metadata_yaml(self._code_dir)
         if model_metadata:
@@ -154,6 +167,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         if to_bool(self._params.get("allow_dr_api_access")):
             try:
                 self._deployment = dr.Deployment.get(deployment_id)
+                self._refresh_tracking_settings()
             except Exception as e:
                 logger.warning(f"Failed to get deployment info: {e}", exc_info=True)
 
@@ -171,6 +185,14 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             logger.debug("Prompt column name: %s", self._prompt_column_name)
 
         self._mlops.init()
+
+    def _refresh_tracking_settings(self):
+        deployment_id = self._params.get("deployment_id", None)
+        if to_bool(self._params.get("allow_dr_api_access")) and deployment_id is not None:
+            self._deployment = dr.Deployment.get(deployment_id)
+            self._tracking_settings = self._deployment.get_drift_tracking_settings()
+            self._data_collection = self._deployment.get_predictions_data_collection_settings()
+            self._settings_refresh_time = time.monotonic()
 
     def _configure_mlops(self):
         # If monitor_settings were provided (e.g. for testing) use them, otherwise we will
@@ -232,9 +254,10 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             # TODO: or add report_predictions_data that can handle a df directly..
             # TODO: need to handle associds correctly
 
-            self._mlops.report_predictions_data(
-                features_df=df, predictions=mlops_predictions, class_names=class_names
-            )
+            with suppress_instrumentation():
+                self._mlops.report_predictions_data(
+                    features_df=df, predictions=mlops_predictions, class_names=class_names
+                )
 
     def predict(self, **kwargs) -> PredictResponse:
         start_predict = time.time()
@@ -255,11 +278,14 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         """Predict on input_filename or binary_data"""
         pass
 
-    def chat(self, completion_create_params):
+    def chat(self, completion_create_params, **kwargs):
         start_time = time.time()
+        association_id = completion_create_params.get(
+            MODERATIONS_EXTRA_BODY_ASSOCIATION_ID_KEY, None
+        )
         try:
-            association_id = str(uuid4_fast())
-            response = self._chat(completion_create_params, association_id)
+            association_id = association_id or str(uuid4_fast())
+            response = self._chat(completion_create_params, association_id, **kwargs)
             response = self._validate_chat_response(response)
         except Exception as e:
             self._mlops_report_error(start_time)
@@ -300,7 +326,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
     def _get_supported_llm_models(self):
         raise NotImplementedError("GET /models (get_models) is not implemented ")
 
-    def _chat(self, completion_create_params, association_id):
+    def _chat(self, completion_create_params, association_id, **kwargs):
         raise NotImplementedError("Chat is not implemented ")
 
     def _mlops_report_chat_prediction(
@@ -311,48 +337,59 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
 
         execution_time_ms = (time.time() - start_time) * 1000
 
-        try:
-            self._mlops.report_deployment_stats(
-                num_predictions=1, execution_time_ms=execution_time_ms
-            )
-        except DRCommonException:
-            logger.exception("Failed to report deployment stats")
+        with suppress_instrumentation():
+            try:
+                self._mlops.report_deployment_stats(
+                    num_predictions=1, execution_time_ms=execution_time_ms
+                )
+            except DRCommonException:
+                logger.exception("Failed to report deployment stats")
 
-        prompt_content = completion_create_params["messages"][-1]["content"]
-        if isinstance(prompt_content, str):
-            latest_message = completion_create_params["messages"][-1]["content"]
-        elif isinstance(prompt_content, list):
-            concatenated_prompt = []
-            for content in prompt_content:
-                if content["type"] == "text":
-                    message = content["text"]
-                elif content["type"] == "image_url":
-                    message = f"Image URL: {content['image_url']['url']}"
-                elif content["type"] == "input_audio":
-                    message = f"Audio Input, Format: {content['input_audio']['format']}"
-                else:
-                    message = f"Unhandled content type: {content['type']}"
-                concatenated_prompt.append(message)
-            latest_message = "\n".join(concatenated_prompt)
-        else:
-            logger.warning(f"Unhandled prompt type: {type(prompt_content)}")
-            return
-        features_df = pd.DataFrame([{self._prompt_column_name: latest_message}])
-        predictions = [message_content]
+            if self._deployment is not None:
+                if time.monotonic() - self._settings_refresh_time > self._settings_refresh_interval:
+                    self._refresh_tracking_settings()
 
-        try:
-            self._mlops.report_predictions_data(
-                features_df,
-                predictions,
-                association_ids=[association_id],
-            )
-        except DRMLOpsConnectedException as e:
-            exception_string = str(e)
-            if EXCEPTION_422 in exception_string and DRIFT_ERROR_MESSAGE in exception_string:
-                logger.warning(exception_string)
+            is_drift = self._tracking_settings["feature_drift"]["enabled"]
+            is_collection = self._data_collection["enabled"]
+
+            if not (is_drift or is_collection):
                 return
-        except DRCommonException:
-            logger.exception("Failed to report predictions data")
+
+            prompt_content = completion_create_params["messages"][-1]["content"]
+            if isinstance(prompt_content, str):
+                latest_message = completion_create_params["messages"][-1]["content"]
+            elif isinstance(prompt_content, list):
+                concatenated_prompt = []
+                for content in prompt_content:
+                    if content["type"] == "text":
+                        message = content["text"]
+                    elif content["type"] == "image_url":
+                        message = f"Image URL: {content['image_url']['url']}"
+                    elif content["type"] == "input_audio":
+                        message = f"Audio Input, Format: {content['input_audio']['format']}"
+                    else:
+                        message = f"Unhandled content type: {content['type']}"
+                    concatenated_prompt.append(message)
+                latest_message = "\n".join(concatenated_prompt)
+            else:
+                logger.warning(f"Unhandled prompt type: {type(prompt_content)}")
+                return
+            features_df = pd.DataFrame([{self._prompt_column_name: latest_message}])
+            predictions = [message_content]
+
+            try:
+                self._mlops.report_predictions_data(
+                    features_df,
+                    predictions,
+                    association_ids=[association_id],
+                )
+            except DRMLOpsConnectedException as e:
+                exception_string = str(e)
+                if EXCEPTION_422 in exception_string and DRIFT_ERROR_MESSAGE in exception_string:
+                    logger.warning(exception_string)
+                    return
+            except DRCommonException:
+                logger.exception("Failed to report predictions data")
 
     def _mlops_report_error(self, start_time):
         if not self._mlops:
@@ -360,12 +397,13 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
 
         execution_time_ms = (time.time() - start_time) * 1000
 
-        try:
-            self._mlops.report_deployment_stats(
-                num_predictions=0, execution_time_ms=execution_time_ms
-            )
-        except DRCommonException:
-            logger.exception("Failed to report deployment stats")
+        with suppress_instrumentation():
+            try:
+                self._mlops.report_deployment_stats(
+                    num_predictions=0, execution_time_ms=execution_time_ms
+                )
+            except DRCommonException:
+                logger.exception("Failed to report deployment stats")
 
     @staticmethod
     def _validate_chat_response(response):
@@ -378,7 +416,10 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
             response_iter = iter(response)
             first_chunk = next(response_iter)
 
-            if type(first_chunk).__name__ == "ChatCompletionChunk":
+            if (
+                type(first_chunk).__name__ == "ChatCompletionChunk"
+                or getattr(first_chunk, "object", None) == "chat.completion.chunk"
+            ):
                 # Return a new iterable where the peeked object is included in the beginning
                 return itertools.chain([first_chunk], response_iter)
             else:

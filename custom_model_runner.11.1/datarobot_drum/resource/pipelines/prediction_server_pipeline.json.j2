@@ -1,0 +1,40 @@
+  {
+      "name": "Python Prediction Server",
+      "engineType": "{{ engine_type }}",
+      "pipe": [
+          {
+              "name": "Prediction Server",
+              "id": 1,
+              "type": "{{ component_type }}",
+              "parents": [],
+              "arguments": {
+                "host": "{{ host }}",
+                "port": {{ port }},
+                "show_perf": {{ show_perf }},
+                "run_language": "{{ run_language }}",
+                "target_type": "{{ target_type }}",
+                "positiveClassLabel": {{ positiveClassLabel | jsonify }},
+                "negativeClassLabel": {{ negativeClassLabel | jsonify }},
+                "classLabels": {{ classLabels | jsonify }},
+                "__custom_model_path__": "{{ customModelPath }}",
+                "processes": {{ processes }},
+                "monitor": "{{ monitor }}",
+                "monitor_embedded": "{{ monitor_embedded }}",
+                "model_id": "{{ model_id }}",
+                "deployment_id": {{ deployment_id | jsonify }},
+                "monitor_settings": {{ monitor_settings | jsonify }},
+                "external_webserver_url": "{{ external_webserver_url }}",
+                "api_token": "{{ api_token }}",
+                "deployment_config": {{ deployment_config }},
+                "allow_dr_api_access": "{{ allow_dr_api_access }}",
+                "user_secrets_mount_path": {{ user_secrets_mount_path | jsonify }},
+                "user_secrets_prefix": {{ user_secrets_prefix | jsonify}},
+                "gpu_predictor": {{ gpu_predictor | jsonify }},
+                "sidecar": {{ sidecar | jsonify }},
+                "triton_host": {{ triton_host | jsonify }},
+                "triton_http_port": {{ triton_http_port | jsonify }},
+                "triton_grpc_port": {{ triton_grpc_port | jsonify }}
+              }
+          }
+      ]
+  }

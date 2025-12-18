@@ -1,0 +1,14 @@
+inputSet:
+  name: default
+  identifier: default
+  orgIdentifier: Custom_Models
+  projectIdentifier: datarobotusermodels
+  pipeline:
+    identifier: Bump_Env_Info
+    properties:
+      ci:
+        codebase:
+          build:
+            type: branch
+            spec:
+              branch: main

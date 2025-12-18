@@ -1,0 +1,24 @@
+name: default-transform-model-metadata
+type: training
+targetType: transform
+typeSchema:
+  input_requirements:
+    - field: data_types
+      condition: IN
+      value:
+        - NUM
+        - CAT
+        - TXT
+        - DATE
+        - DATE_DURATION
+    - field: sparse
+      condition: EQUALS
+      value: FORBIDDEN
+    - field: contains_missing
+      condition: EQUALS
+      value: FORBIDDEN
+
+  output_requirements:
+    - field: data_types
+      condition: EQUALS
+      value: NUM

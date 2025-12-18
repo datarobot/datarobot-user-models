@@ -1,0 +1,28 @@
+{{- range $k, $ := .Values.environments }}
+{{- if  $job.enabled }}
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: {{ $job.name }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  schedule: {{ $job.schedule }}
+  startingDeadlineSeconds: xxx
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: x
+  failedJobsHistoryLimit: x
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: {{ $job.name }}
+            image: {{ $.Values.cronJobImage }}
+            command:
+            - /bin/sh
+            - -c
+            - curl {{ $.Values.schedulerBaseUrl }}/{{ $job.url }}
+          restartPolicy: Never
+---
+{{- end }}
+{{ end }}

@@ -1,0 +1,39 @@
+  {
+      "name": "Predictor Pipeline",
+      "engineType": "Generic",
+      "pipe": [
+          {
+              "name": "Predictor",
+              "id": 1,
+              "type": "generic_predictor",
+              "parents": [],
+              "arguments": {
+                "input_filename": "{{ input_filename }}",
+                "output_filename": {{ output_filename }},
+                "sparse_column_file": {{ sparse_column_file | jsonify }},
+                "positiveClassLabel": {{ positiveClassLabel | jsonify }},
+                "negativeClassLabel": {{ negativeClassLabel | jsonify }},
+                "classLabels": {{ classLabels | jsonify }},
+                "__custom_model_path__": "{{ customModelPath }}",
+                "run_language": "{{ run_language }}",
+                "monitor": "{{ monitor }}",
+                "monitor_embedded": "{{ monitor_embedded }}",
+                "model_id": "{{ model_id }}",
+                "deployment_id": {{ deployment_id | jsonify }},
+                "monitor_settings": {{ monitor_settings | jsonify }},
+                "external_webserver_url": "{{ external_webserver_url }}",
+                "api_token": "{{ api_token }}",
+                "target_type": "{{ target_type }}",
+                "query_params": {{ query_params }},
+                "content_type": {{ content_type }},
+                "allow_dr_api_access": "{{ allow_dr_api_access }}",
+                "user_secrets_mount_path": {{ user_secrets_mount_path | jsonify }},
+                "user_secrets_prefix": {{ user_secrets_prefix | jsonify}},
+                "gpu_predictor": {{ gpu_predictor | jsonify }},
+                "sidecar": {{ sidecar | jsonify }},
+                "triton_host": {{ triton_host | jsonify }},
+                "triton_http_port": {{ triton_http_port | jsonify }}
+              }
+          }
+      ]
+  }

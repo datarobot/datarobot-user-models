@@ -65,6 +65,7 @@ CUSTOM_PY_CLASS_NAME = "CustomTask"
 MODERATIONS_LIBRARY_PACKAGE = "datarobot_dome"
 MODERATIONS_HOOK = "drum_integration"
 MODERATIONS_HOOK_MODULE = MODERATIONS_LIBRARY_PACKAGE + "." + MODERATIONS_HOOK
+MODERATIONS_EXTRA_BODY_ASSOCIATION_ID_KEY = "datarobot_association_id"
 
 LOG_LEVELS = {
     "all": logging.NOTSET,
@@ -442,6 +443,7 @@ class ModelMetadataKeys(object):
     TRAINING_MODEL = "trainingModel"
     HYPERPARAMETERS = "hyperparameters"
     VALIDATION_SCHEMA = "typeSchema"
+    INPUT_SCHEMA = "inputSchema"
     # customPredictor section is not used by DRUM,
     # it is a place holder if user wants to add some fields and read them on his own
     CUSTOM_PREDICTOR = "customPredictor"

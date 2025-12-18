@@ -12,6 +12,8 @@ import six
 import trafaret as t
 
 from pathlib import Path
+
+from pydantic import create_model
 from ruamel.yaml import YAMLError
 from strictyaml import (
     load,
@@ -25,7 +27,7 @@ from strictyaml import (
     StrictYAMLError,
     YAMLValidationError,
 )
-from typing import Optional as PythonTypingOptional, List, Dict
+from typing import Optional as PythonTypingOptional, List, Dict, Union
 
 from datarobot_drum.drum.common import get_drum_logger
 from datarobot_drum.drum.enum import (
@@ -187,7 +189,7 @@ def read_model_metadata_yaml(code_dir) -> PythonTypingOptional[dict]:
                 validate_config_fields(model_config, ModelMetadataKeys.INFERENCE_MODEL)
                 validate_config_fields(
                     model_config[ModelMetadataKeys.INFERENCE_MODEL],
-                    *["positiveClassLabel", "negativeClassLabel"]
+                    *["positiveClassLabel", "negativeClassLabel"],
                 )
 
         if model_config[ModelMetadataKeys.TARGET_TYPE] == TargetType.MULTICLASS.value:
@@ -230,8 +232,65 @@ def read_model_metadata_yaml(code_dir) -> PythonTypingOptional[dict]:
         if hyper_params:
             validate_model_metadata_hyperparameter(hyper_params)
 
+        input_schema = model_config.get(ModelMetadataKeys.INPUT_SCHEMA)
+        if input_schema:
+            try:
+                model = create_model_from_schema(input_schema)
+            except Exception as e:
+                raise DrumCommonException(
+                    "Error creating pydantic model from input schema: {}".format(e)
+                )
+
         return model_config
     return None
+
+
+def convert_json_type_to_python(prop_def: dict):
+    """Convert JSON Schema type to Python type."""
+
+    # Handle anyOf for union types
+    if "anyOf" in prop_def:
+        types = []
+        for schema in prop_def["anyOf"]:
+            types.append(convert_json_type_to_python(schema))
+        return Union[tuple(types)]
+
+    # Handle regular `type` field of the property
+    json_type = prop_def.get("type", "string")
+
+    type_mapping = {
+        "string": str,
+        "integer": int,
+        "number": float,
+        "boolean": bool,
+        "array": list,
+        "object": dict,
+        "null": type(None),
+    }
+
+    return type_mapping.get(json_type, str)
+
+
+def create_model_from_schema(schema_dict: dict):
+    """Create a Pydantic model from a JSON Schema dictionary."""
+    schema_type = schema_dict.get("type")
+    if schema_type != "object":
+        raise ValueError(f"Only 'object' type schemas are supported, got '{schema_type}'")
+
+    properties = schema_dict.get("properties", {})
+
+    properties_type = type(properties)
+    if properties_type is not dict:
+        raise ValueError(f"'properties' must be a dictionary, got '{properties_type}'")
+
+    fields, required_fields = {}, set(schema_dict.get("required", []))
+
+    for prop_name, prop_def in properties.items():
+        py_type = convert_json_type_to_python(prop_def)
+        default_value = ... if prop_name in required_fields else prop_def.get("default")
+        fields[prop_name] = (py_type, default_value)
+
+    return create_model("InputSchema", **fields)
 
 
 def read_default_model_metadata_yaml() -> PythonTypingOptional[dict]:
@@ -358,5 +417,13 @@ MODEL_CONFIG_SCHEMA = Map(
             Map({"key": Str(), "valueFrom": Str(), Optional("reminder"): Str()})
         ),
         Optional(ModelMetadataKeys.LAZY_LOADING): Any(),
+        Optional(ModelMetadataKeys.INPUT_SCHEMA): Map(
+            {
+                Optional("title"): Str(),
+                "type": Str(),
+                "properties": Any(),
+                Optional("required"): Seq(Str()),
+            }
+        ),
     }
 )

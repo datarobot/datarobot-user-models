@@ -87,7 +87,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
     NAME = "Generic OpenAI API"
     DEFAULT_MODEL_NAME = "datarobot-deployed-llm"
     MAX_RESTARTS = 10
-    HEALTH_ROUTE = "/"
+    DEFAULT_HEALTH_ROUTE = "/"
 
     def __init__(self):
         super().__init__()
@@ -99,6 +99,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self.deployment_id = os.environ.get("MLOPS_DEPLOYMENT_ID", None)
 
         # server configuration is set in the Drop-in environment
+        self.health_route = self.DEFAULT_HEALTH_ROUTE
         self.openai_port = os.environ.get(EnvVarNames.OPENAI_PORT, "9999")
         self.openai_host = os.environ.get(EnvVarNames.OPENAI_HOST, "localhost")
         self.openai_process = None
@@ -158,7 +159,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
             return True
         return False
 
-    def _chat(self, completion_create_params, association_id):
+    def _chat(self, completion_create_params, association_id, **kwargs):
         # Use the `model` name provided by the caller. However, to maintain backward compatibility,
         # allow this field to be optional and fallback to the configured default model name if not provided.
         # If `datarobot-deployed-llm` is specified as the model, replace it with the corresponding actual model name.
@@ -188,6 +189,17 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         formats.add(PayloadFormat.CSV)
         return formats
 
+    @staticmethod
+    def get_drum_openai_client_timeout():
+        """
+        Returns the timeout value (in seconds) for the OpenAI client.
+        Checks the 'DRUM_OPENAI_CLIENT_TIMEOUT' runtime parameter; defaults to 3600 if not set.
+        """
+        timeout = 3600
+        if RuntimeParameters.has("DRUM_OPENAI_CLIENT_TIMEOUT"):
+            timeout = int(RuntimeParameters.get("DRUM_OPENAI_CLIENT_TIMEOUT"))
+        return timeout
+
     def configure(self, params):
         super().configure(params)
         self.python_model_adapter = PythonModelAdapter(
@@ -210,8 +222,11 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
         self._openai_server_ready_sentinel = Path(self._code_dir) / ".server_ready"
         self._is_shutting_down = Event()
         self.openai_process = DrumServerProcess()
+
         self.ai_client = OpenAI(
-            base_url=f"http://{self.openai_host}:{self.openai_port}/v1", api_key="fake"
+            base_url=f"http://{self.openai_host}:{self.openai_port}/v1",
+            api_key="fake",
+            timeout=self.get_drum_openai_client_timeout(),
         )
 
         # In multi-container deployments DRUM does not manage OpenAI server processes.
@@ -405,7 +420,7 @@ class BaseOpenAiGpuPredictor(BaseLanguagePredictor):
             return {"message": f"{self.NAME} has crashed."}, HTTP_513_DRUM_PIPELINE_ERROR
 
         try:
-            health_url = f"http://{self.openai_host}:{self.openai_port}{self.HEALTH_ROUTE}"
+            health_url = f"http://{self.openai_host}:{self.openai_port}{self.health_route}"
             response = requests.get(health_url, timeout=5)
             return {"message": response.text}, response.status_code
         except Timeout:

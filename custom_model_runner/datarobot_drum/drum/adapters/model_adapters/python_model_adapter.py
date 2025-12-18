@@ -67,6 +67,7 @@ from datarobot_drum.custom_task_interfaces.custom_task_interface import (
 from datarobot_drum import RuntimeParameters
 
 RUNNING_LANG_MSG = "Running environment language: Python."
+MODERATION_CONFIG_FILE_NAME = "moderation_config.yaml"
 
 
 class DrumPythonModelAdapterError(DrumException):
@@ -145,6 +146,11 @@ class PythonModelAdapter(AbstractModelAdapter):
             self._target_name = None
 
     def _load_moderation_hooks(self, model_dir):
+        moderation_config_file = os.path.join(model_dir, MODERATION_CONFIG_FILE_NAME)
+        if not os.path.exists(moderation_config_file):
+            self._logger.info(f"No moderation config file found at {moderation_config_file}")
+            return
+
         try:
             mod_module = __import__(MODERATIONS_HOOK_MODULE, fromlist=[MODERATIONS_LIBRARY_PACKAGE])
             self._logger.info(
@@ -759,12 +765,18 @@ class PythonModelAdapter(AbstractModelAdapter):
         PythonModelAdapter._validate_unstructured_predictions(predictions)
         return predictions
 
-    def chat(self, completion_create_params, model, association_id):
+    def chat(self, completion_create_params, model, association_id, **kwargs):
         chat_fn = self._custom_hooks.get(CustomHooks.CHAT)
         if self._mod_pipeline:
-            return self._mod_pipeline.chat(completion_create_params, model, chat_fn, association_id)
+            return self._mod_pipeline.chat(
+                completion_create_params, model, chat_fn, association_id, **kwargs
+            )
 
-        return chat_fn(completion_create_params, model)
+        chat_fn_params = signature(chat_fn).parameters
+        if len(chat_fn_params) > 2:
+            return chat_fn(completion_create_params, model, **kwargs)
+        else:
+            return chat_fn(completion_create_params, model)
 
     def get_supported_llm_models(self, model):
         """

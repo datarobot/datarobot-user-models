@@ -1,0 +1,29 @@
+  {
+      "name": "R Default Fitter",
+      "engineType": "Generic",
+      "pipe": [
+          {
+              "name": "R Fit",
+              "id": 1,
+              "type": "r_fit",
+              "parents": [],
+              "arguments": {
+                "targetColumn": {{ target_column | jsonify }},
+                "targetFilename": {{ target_filename | jsonify }},
+                "target_type": {{ target_type | jsonify }},
+                "outputDir": "{{ output_dir }}",
+                "numRows": "{{ num_rows }}",
+                "inputFilename": "{{ input_filename }}",
+                "weightsFilename": {{ weights_filename | jsonify }},
+                "sparseColumnFile": {{sparse_column_file | jsonify }},
+                "weights": {{ weights | jsonify }},
+                "parameterFile": {{parameter_file | jsonify }},
+                "positiveClassLabel": {{ positiveClassLabel | jsonify }},
+                "negativeClassLabel": {{ negativeClassLabel | jsonify }},
+                "classLabels": {{ classLabels | jsonify }},
+                "__custom_model_path__": "{{ customModelPath }}",
+                "defaultParameterValues": {{default_parameter_values | jsonify }}
+              }
+          }
+      ]
+  }

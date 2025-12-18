@@ -26,7 +26,8 @@ import tempfile
 from typing import Generator, List
 
 from datarobot_drum.drum.args_parser import CMRunnerArgsRegistry
-from datarobot_drum.drum.common import setup_required_environment_variables, setup_tracer
+from datarobot_drum.drum.common import setup_otel
+from datarobot_drum.drum.utils.setup import setup_options
 from datarobot_drum.drum.drum import CMRunner
 from datarobot_drum.drum.language_predictors.base_language_predictor import BaseLanguagePredictor
 from datarobot_drum.drum.runtime import DrumRuntime
@@ -68,14 +69,23 @@ def drum_inline_predictor(
             target_type,
             *cmd_args,
         ]
-        options = arg_parser.parse_args(args)
-        CMRunnerArgsRegistry.verify_options(options)
-        setup_required_environment_variables(options)
 
-        runtime.options = options
-        setup_tracer(RuntimeParameters, options)
+        try:
+            options = setup_options(args)
+            runtime.options = options
+        except Exception as exc:
+            print(str(exc))
+            exit(255)
+
+        trace_provider, metric_provider, log_provider = setup_otel(RuntimeParameters, options)
         runtime.cm_runner = CMRunner(runtime)
         params = runtime.cm_runner.get_predictor_params()
         predictor = GenericPredictorComponent(params)
 
         yield predictor.predictor
+        if trace_provider is not None:
+            trace_provider.shutdown()
+        if metric_provider is not None:
+            metric_provider.shutdown()
+        if log_provider is not None:
+            log_provider.shutdown()

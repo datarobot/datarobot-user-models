@@ -5,7 +5,7 @@ This is proprietary source code of DataRobot, Inc. and its affiliates.
 Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
-import traceback
+from typing import Optional
 
 from datarobot_drum.drum.server import (
     empty_api_blueprint,
@@ -14,11 +14,10 @@ from datarobot_drum.drum.server import (
 )
 from datarobot_drum.drum.common import verbose_stdout, get_drum_logger
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX, RunMode
+from flask import Flask
 
 from datarobot_drum.drum.exceptions import DrumCommonException
-from datarobot_drum.drum.args_parser import ArgumentsOptions
 
-from termcolor import colored
 
 logger = get_drum_logger(__name__)
 logger.setLevel(logging.ERROR)
@@ -26,11 +25,17 @@ logger_drum = logging.getLogger(LOGGER_NAME_PREFIX)
 
 
 class DrumRuntime:
-    def __init__(self):
+    def __init__(self, flask_app: Optional[Flask] = None):
         self.initialization_succeeded = False
         self.options = None
         self.cm_runner = None
+        # OTEL services
         self.trace_provider = None
+        self.metric_provider = None
+        self.log_provider = None
+        self.flask_app = (
+            flask_app  # This is the Flask app object, used when running the application via CLI
+        )
 
     def __enter__(self):
         return self
@@ -83,12 +88,12 @@ class DrumRuntime:
         port = int(host_port_list[1]) if len(host_port_list) == 2 else None
 
         with verbose_stdout(self.options.verbose):
-            run_error_server(host, port, exc_value)
+            run_error_server(host, port, exc_value, self.flask_app)
 
         return False  # propagate exception further
 
 
-def run_error_server(host, port, exc_value):
+def run_error_server(host, port, exc_value, flask_app: Optional[Flask] = None):
     model_api = empty_api_blueprint()
 
     @model_api.route("/", methods=["GET"])
@@ -109,5 +114,9 @@ def run_error_server(host, port, exc_value):
     def transform():
         return {"message": "ERROR: {}".format(exc_value)}, HTTP_513_DRUM_PIPELINE_ERROR
 
-    app = get_flask_app(model_api)
-    app.run(host, port)
+    app = get_flask_app(model_api, flask_app)
+    if flask_app:
+        # when running application via the command line (e.g., gunicorn worker)
+        pass
+    else:
+        app.run(host, port)
