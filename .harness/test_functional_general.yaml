@@ -93,8 +93,12 @@ pipeline:
                         image: python:3.11-bookworm
                         shell: Bash
                         command: |
-                          apt update; apt install -y docker.io python3-docker
+                          apt update; apt install -y docker.io python3-docker python3-venv
+                          python3 -m venv /opt/venv
+                          source /opt/venv/bin/activate
+                          python3 -m pip install -r custom_model_runner/requirements.txt
                           touch /opt/input.csv
+
                           ./harness_scripts/functional_general/general_tests_entrypoint.sh \
                             <+secrets.getValue("org.genai-systems-dockerhub-login")> <+secrets.getValue("org.genai-systems-dockerhub-token")>
                         resources:
