@@ -10,8 +10,11 @@ import shutil
 import shlex
 import subprocess
 import time
+import werkzeug
+
 from queue import Queue, Empty
 from threading import Thread
+
 
 from datarobot_drum.drum.common import get_drum_logger
 from datarobot_drum.drum.enum import (
@@ -235,3 +238,9 @@ def _cmd_add_class_labels(
                 labels_str = " ".join(['"{}"'.format(label) for label in labels])
                 cmd += " --class-labels {}".format(labels_str)
     return cmd
+
+
+def get_mimetype_charset_from_content_type_header(header):
+    mimetype, content_type_params_dict = werkzeug.http.parse_options_header(header)
+    charset = content_type_params_dict.get("charset")
+    return mimetype, charset

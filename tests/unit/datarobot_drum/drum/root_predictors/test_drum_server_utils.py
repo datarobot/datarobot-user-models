@@ -310,3 +310,58 @@ class TestStreamingOutput:
         mock_logger.assert_any_call(b"regular line")
         mock_logger.assert_any_call(b"error line")
         assert mock_logger.call_count == 2  # Only two lines should be logged
+
+
+class TestGetMimetypeCharsetFromContentTypeHeader:
+    def test_typical_header(self):
+        from custom_model_runner.datarobot_drum.drum.root_predictors.utils import (
+            get_mimetype_charset_from_content_type_header,
+        )
+
+        mimetype, charset = get_mimetype_charset_from_content_type_header(
+            "text/html; charset=utf-8"
+        )
+
+        assert mimetype == "text/html"
+        assert charset == "utf-8"
+
+    def test_header_without_charset(self):
+        from custom_model_runner.datarobot_drum.drum.root_predictors.utils import (
+            get_mimetype_charset_from_content_type_header,
+        )
+
+        mimetype, charset = get_mimetype_charset_from_content_type_header("application/json")
+
+        assert mimetype == "application/json"
+        assert charset is None
+
+    def test_header_with_additional_params(self):
+        from custom_model_runner.datarobot_drum.drum.root_predictors.utils import (
+            get_mimetype_charset_from_content_type_header,
+        )
+
+        mimetype, charset = get_mimetype_charset_from_content_type_header(
+            "text/plain; charset=iso-8859-1; format=flowed"
+        )
+
+        assert mimetype == "text/plain"
+        assert charset == "iso-8859-1"
+
+    def test_empty_header(self):
+        from custom_model_runner.datarobot_drum.drum.root_predictors.utils import (
+            get_mimetype_charset_from_content_type_header,
+        )
+
+        mimetype, charset = get_mimetype_charset_from_content_type_header("")
+
+        assert mimetype == ""
+        assert charset is None
+
+    def test_none_header(self):
+        from custom_model_runner.datarobot_drum.drum.root_predictors.utils import (
+            get_mimetype_charset_from_content_type_header,
+        )
+
+        mimetype, charset = get_mimetype_charset_from_content_type_header(None)
+        assert mimetype == ""
+        assert charset is None

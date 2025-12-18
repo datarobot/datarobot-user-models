@@ -6,7 +6,6 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import logging
 
-import werkzeug
 from flask import request, Response, stream_with_context
 from requests_toolbelt import MultipartEncoder
 
@@ -40,6 +39,8 @@ from datarobot_drum.drum.root_predictors.unstructured_helpers import (
     _resolve_outgoing_unstructured_data,
 )
 
+from datarobot_drum.drum.root_predictors.utils import get_mimetype_charset_from_content_type_header
+
 
 class PredictMixin:
     """
@@ -55,9 +56,7 @@ class PredictMixin:
 
     @staticmethod
     def _validate_content_type_header(header):
-        ret_mimetype, content_type_params_dict = werkzeug.http.parse_options_header(header)
-        ret_charset = content_type_params_dict.get("charset")
-        return ret_mimetype, ret_charset
+        return get_mimetype_charset_from_content_type_header(header)
 
     @staticmethod
     def _fetch_data_from_request(file_key, logger=None):

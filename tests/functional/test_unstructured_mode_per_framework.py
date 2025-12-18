@@ -6,7 +6,6 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 """
 import pytest
 import requests
-import werkzeug
 
 from datarobot_drum.drum.enum import ArgumentsOptions
 from datarobot_drum.drum.server import HTTP_422_UNPROCESSABLE_ENTITY
@@ -18,7 +17,22 @@ from datarobot_drum.drum.root_predictors.utils import (
     _create_custom_model_dir,
 )
 
+# This is only for Java environment case.
+# For the java env we don't install from source,
+# so this func will be available when Java env uses released DRUM with this func.
+# Anyhow, unstructured is not supported by java, so these tests are skipped for Java env.
+try:
+    from datarobot_drum.drum.root_predictors.utils import (
+        get_mimetype_charset_from_content_type_header,
+    )
+except ImportError:
+
+    def get_mimetype_charset_from_content_type_header(header):
+        return None, None
+
+
 from requests_toolbelt import MultipartEncoder
+
 
 from tests.constants import (
     R_NO_ARTIFACTS,
@@ -338,11 +352,11 @@ class TestUnstructuredMode:
                             )
                             assert response.ok
                             content_type_header = response.headers["Content-Type"]
-                            mimetype, content_type_params_dict = werkzeug.http.parse_options_header(
+                            mimetype, charset = get_mimetype_charset_from_content_type_header(
                                 content_type_header
                             )
                             assert mimetype == "text/plain"
-                            assert content_type_params_dict["charset"] == UTF8
+                            assert charset == UTF8
                             if data is None:
                                 assert len(response.content) == 0
                             else:
@@ -363,11 +377,11 @@ class TestUnstructuredMode:
                             )
                             assert response.ok
                             content_type_header = response.headers["Content-Type"]
-                            mimetype, content_type_params_dict = werkzeug.http.parse_options_header(
+                            mimetype, charset = get_mimetype_charset_from_content_type_header(
                                 content_type_header
                             )
                             assert mimetype == "text/plain"
-                            assert content_type_params_dict["charset"] == UTF8
+                            assert charset == UTF8
                             if data is None:
                                 assert len(response.content) == 0
                             else:
@@ -381,10 +395,9 @@ class TestUnstructuredMode:
                     )
                     assert response.ok
                     content_type_header = response.headers["Content-Type"]
-                    mimetype, content_type_params_dict = werkzeug.http.parse_options_header(
+                    mimetype, charset = get_mimetype_charset_from_content_type_header(
                         content_type_header
                     )
                     assert "application/octet-stream" == mimetype
-                    # check params dict is empty
-                    assert not any(content_type_params_dict)
+                    assert charset is None
                     assert response.content == data_bytes
