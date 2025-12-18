@@ -93,7 +93,7 @@ pipeline:
                         image: python:3.11-bookworm
                         shell: Bash
                         command: |
-                          apt update; apt install -y docker.io python3-docker python3-venv r-base python3-mock python3-pytest-cov
+                          apt update; apt install -y docker.io python3-docker python3-venv r-base
                           touch /opt/input.csv
                           #python3 -m venv /opt/venv
                           #source /opt/venv/bin/activate
