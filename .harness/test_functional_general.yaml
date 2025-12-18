@@ -90,7 +90,7 @@ pipeline:
                       identifier: test_functional_general
                       spec:
                         connectorRef: account.dockerhub_datarobot_read
-                        image: python:3.11-bookworm
+                        image: python:3.10-bookworm
                         shell: Bash
                         command: |
                           apt update; apt install -y docker.io python3-docker python3-venv r-base
