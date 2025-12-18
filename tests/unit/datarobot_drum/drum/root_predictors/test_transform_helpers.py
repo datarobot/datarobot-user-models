@@ -55,6 +55,9 @@ def test_parse_multi_part_response():
     content = (
         (
             f"--{boundary}\r\n"
+            'Content-Disposition: form-data; name="X.format"\r\n\r\n'
+            "csv\r\n"
+            f"--{boundary}\r\n"
             'Content-Disposition: form-data; name="key1"; filename="file1.txt"\r\n'
             "Content-Type: text/plain\r\n\r\n"
         ).encode("utf-8")
@@ -73,5 +76,6 @@ def test_parse_multi_part_response():
     response.headers = {"Content-Type": f"multipart/form-data; boundary={boundary}"}
 
     result = parse_multi_part_response(response)
+    assert result["X.format"] == "csv"
     assert result["key1"] == file_content1
     assert result["key2"] == file_content2

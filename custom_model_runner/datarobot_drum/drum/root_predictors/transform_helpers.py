@@ -110,6 +110,8 @@ def parse_multi_part_response(response):
     }
     _, form, files = parse_form_data(environ)
     parsed_response = {}
+    for key, value in form.items():
+        parsed_response[key] = value
     for key, file_storage in files.items():
         parsed_response[key] = file_storage.read()
     return parsed_response
