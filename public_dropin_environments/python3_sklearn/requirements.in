@@ -1,5 +1,10 @@
 datarobot-drum
-scikit-learn
+# If this gets changed, be sure to update requirements_test.txt as well.
+# Note that this cannot be upgraded while we use the harness default image for
+# test runtimes, as they package a very old verison of scikit-learn, and
+# upgrading to latest here breaks tests. We need to change our testing runtime
+# image to something else to upgrade this further.
+scikit-learn >=1.6.1,<1.7
 scipy
 numpy
 pandas
