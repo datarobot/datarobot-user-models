@@ -2,7 +2,7 @@ datarobot-drum
 tensorflow
 numpy
 pandas
-scikit-learn
+scikit-learn >=1.6.1,<1.7
 scipy
 protobuf
 pillow
