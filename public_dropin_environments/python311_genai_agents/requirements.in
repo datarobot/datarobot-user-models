@@ -17,7 +17,7 @@ requests>=2.32.4
 protobuf>=5.29.5,<6.0.0
 starlette>=0.49.1
 pillow>=11.3.0
-urllib3>=2.5.0
+urllib3>=2.6.0
 langchain-core~=0.3.80
 langchain-text-splitters~=0.3.9
 h2~=4.3.0
@@ -25,6 +25,8 @@ pdfminer.six>=20251107
 langgraph-checkpoint~=3.0.0
 aiohttp~=3.12.14
 pypdf~=6.4.0
+filelock>=3.20.1
+werkzeug>=3.1.4
 
 # GenAI Environment
 click~=8.1.8
@@ -47,7 +49,7 @@ llama-index-llms-langchain~=0.7.0
 llama-index-llms-litellm~=0.6.0
 llama-index-llms-openai~=0.5.0
 llama-index~=0.13.0
-mcp>=1.11.0
+mcp>=1.23.0
 multidict~=6.5.0
 onnxruntime~=1.22.0
 openai>=1.76.2
