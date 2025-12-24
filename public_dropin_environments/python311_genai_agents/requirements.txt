@@ -150,7 +150,7 @@ kubernetes==32.0.1
 lancedb==0.22.0
 langchain==0.3.27
 langchain-community==0.3.31
-langchain-core==0.3.80
+langchain-core==0.3.81
 langchain-mcp-adapters==0.1.9
 langchain-nvidia-ai-endpoints==0.3.10
 langchain-openai==0.2.14
