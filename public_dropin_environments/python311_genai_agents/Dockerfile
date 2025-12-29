@@ -27,8 +27,9 @@ USER root
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # hadolint ignore=DL3018,DL3059
-RUN apk add --no-cache uv graphviz openblas openssh-server gzip zip unzip curl \
-  openjdk-11 vim nano procps tzdata poppler-utils
+RUN apk add --no-cache uv graphviz openblas openssh-server \
+    gzip zip unzip curl \
+    openjdk-11 vim nano procps tzdata poppler-utils
 # hadolint ignore=DL3018,DL3059
 RUN apk add --no-cache rust sqlite
 
