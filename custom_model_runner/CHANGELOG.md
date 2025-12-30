@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+#### [1.17.12] - unreleased
+#### Added
+- X-Drum-Version response header.
+
 #### [1.17.11] - 2025-12-26
 ##### Fixed
 - Bump Apache log4j-core from 2.19.0 to 2.25.3 to address CVE-2025-68161
