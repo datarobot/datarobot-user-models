@@ -32,13 +32,18 @@ from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
 from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.sdk._logs.export import SimpleLogRecordProcessor
 
+from opentelemetry.sdk.metrics import Counter
+from opentelemetry.sdk.metrics import Histogram
 from opentelemetry.sdk.metrics import MeterProvider
+from opentelemetry.sdk.metrics import ObservableCounter
+from opentelemetry.sdk.metrics.export import AggregationTemporality
 from opentelemetry.sdk.metrics.export import PeriodicExportingMetricReader
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
+
 
 ctx_request_id = ContextVar("request_id")
 
@@ -169,7 +174,15 @@ def _setup_otel_logging(resource, multiprocessing=False):
 
 
 def _setup_otel_metrics(resource):
-    metric_exporter = OTLPMetricExporter()
+    # OTEL SDK default termporarity is CUMULATIVE, but this is rarely what users
+    # actualy want to work with, so here we switch default. Also in case of delta
+    # PeriodicExportingMetricReader does not spam collector with same data.
+    preferred_temporality = {
+        Counter: AggregationTemporality.DELTA,
+        Histogram: AggregationTemporality.DELTA,
+        ObservableCounter: AggregationTemporality.DELTA,
+    }
+    metric_exporter = OTLPMetricExporter(preferred_temporality=preferred_temporality)
     metric_reader = PeriodicExportingMetricReader(metric_exporter)
     metric_provider = MeterProvider(metric_readers=[metric_reader], resource=resource)
     metrics.set_meter_provider(metric_provider)
