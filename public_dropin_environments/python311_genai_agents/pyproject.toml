@@ -15,7 +15,7 @@ dependencies = [
     "opentelemetry-api>=1.33.0,<2.0.0",
     "opentelemetry-sdk>=1.33.0,<2.0.0",
 
-    "pdfminer.six>=20251107",  # CVE fix
+    "pdfminer.six>=20251230",  # CVE fix
     "langgraph-checkpoint>=3.0.0", # CVE fix
 ]
 
