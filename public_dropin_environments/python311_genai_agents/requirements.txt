@@ -186,7 +186,7 @@ loguru==0.7.3
 lxml==6.0.2
 markdown-it-py==3.0.0
 markupsafe==3.0.2
-marshmallow==3.26.1
+marshmallow==3.26.2
 matplotlib-inline==0.1.7
 mcp==1.25.0
 mdurl==0.1.2
@@ -265,8 +265,8 @@ packaging==24.2
 pandas==2.2.3
 pandocfilters==1.5.1
 parso==0.8.4
-pdfminer-six==20251107
-pdfplumber==0.11.8
+pdfminer-six==20251230
+pdfplumber==0.11.9
 pexpect==4.9.0
 pillow==11.3.0
 platformdirs==4.3.8
