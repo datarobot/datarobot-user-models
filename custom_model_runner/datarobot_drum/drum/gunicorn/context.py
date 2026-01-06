@@ -95,9 +95,58 @@ class WorkerCtx:
         """
         self._running = True
 
-        # fix RuntimeError: asyncio.run() cannot be called from a running event loop
         import asyncio
 
+        try:
+            from datarobot_dome.async_http_client import AsyncHTTPClient
+        except ImportError:
+            AsyncHTTPClient = None
+
+        if AsyncHTTPClient:
+            # Save the original async method
+            _orig_bulk_upload = AsyncHTTPClient.bulk_upload_custom_metrics
+
+            def fixed_bulk_upload_custom_metrics(self, payload):
+                """
+                Wrapper around the async bulk_upload_custom_metrics that:
+                - if there is a running event loop → runs the coroutine in that loop (create_task)
+                - if there is no loop → runs it via asyncio.run() in a fresh local loop
+                """
+
+                async def _coro():
+                    try:
+                        return await _orig_bulk_upload(self, payload)
+                    except Exception:
+                        logger.exception("Failed to upload custom metrics")
+                        # Swallow the error so it doesn't break request handling
+                        return None
+
+                try:
+                    loop = asyncio.get_running_loop()
+                except RuntimeError:
+                    loop = None
+
+                if loop and loop.is_running():
+                    # Already in async context → use this same loop
+                    task = loop.create_task(_coro())
+
+                    # Optional: log any exceptions from the task
+                    def _done(t: asyncio.Task):
+                        try:
+                            t.result()
+                        except Exception:
+                            logger.exception("Failed to upload custom metrics (task)")
+
+                    task.add_done_callback(_done)
+                    return task  # so caller can await it if desired
+                else:
+                    # No running loop (sync/gevent context) → create a local loop
+                    return asyncio.run(_coro())
+
+            # Apply the monkey patch as early as possible in process startup
+            AsyncHTTPClient.bulk_upload_custom_metrics = fixed_bulk_upload_custom_metrics
+
+        # fix RuntimeError: asyncio.run() cannot be called from a running event loop
         try:
             import opentelemetry.instrumentation.openai.utils as otel_utils
         except ImportError:
