@@ -102,46 +102,44 @@ class WorkerCtx:
         except ImportError:
             AsyncHTTPClient = None
 
+        # Background loop for thread-safe async execution in sync/gevent workers.
+        # We store it on self.app to ensure it lives as long as the worker.
+        if not hasattr(self.app, "_drum_bg_loop"):
+            loop = asyncio.new_event_loop()
+            t = threading.Thread(target=loop.run_forever, daemon=True, name="DrumBgLoop")
+            t.start()
+            self.app._drum_bg_loop = loop
+
+        bg_loop = self.app._drum_bg_loop
+
         if AsyncHTTPClient:
             # Save the original async method
             _orig_bulk_upload = AsyncHTTPClient.bulk_upload_custom_metrics
 
             def fixed_bulk_upload_custom_metrics(self, payload):
                 """
-                Wrapper around the async bulk_upload_custom_metrics that:
-                - if there is a running event loop → runs the coroutine in that loop (create_task)
-                - if there is no loop → runs it via asyncio.run() in a fresh local loop
+                Thread-safe wrapper that offloads the async upload to a dedicated background loop.
+                This prevents 'attached to a different loop' and 'non-thread-safe operation' errors.
                 """
 
                 async def _coro():
                     try:
+                        # aiohttp session affinity: ensure session matches the background loop
+                        if hasattr(self, "_loop") and self._loop is not bg_loop:
+                            self._loop = bg_loop
+
+                        if hasattr(self, "session") and self.session:
+                            session_loop = getattr(self.session, "_loop", None)
+                            if session_loop and session_loop is not bg_loop:
+                                # Force recreation in the correct loop
+                                self.session = None
                         return await _orig_bulk_upload(self, payload)
                     except Exception:
                         logger.exception("Failed to upload custom metrics")
-                        # Swallow the error so it doesn't break request handling
                         return None
 
-                try:
-                    loop = asyncio.get_running_loop()
-                except RuntimeError:
-                    loop = None
-
-                if loop and loop.is_running():
-                    # Already in async context → use this same loop
-                    task = loop.create_task(_coro())
-
-                    # Optional: log any exceptions from the task
-                    def _done(t: asyncio.Task):
-                        try:
-                            t.result()
-                        except Exception:
-                            logger.exception("Failed to upload custom metrics (task)")
-
-                    task.add_done_callback(_done)
-                    return task  # so caller can await it if desired
-                else:
-                    # No running loop (sync/gevent context) → create a local loop
-                    return asyncio.run(_coro())
+                # run_coroutine_threadsafe is safe from any thread (Flask, Gevent, gthread)
+                return asyncio.run_coroutine_threadsafe(_coro(), bg_loop)
 
             # Apply the monkey patch as early as possible in process startup
             AsyncHTTPClient.bulk_upload_custom_metrics = fixed_bulk_upload_custom_metrics
@@ -155,28 +153,33 @@ class WorkerCtx:
         if otel_utils:
 
             def fixed_run_async(method):
-                try:
-                    loop = asyncio.get_running_loop()
-                except RuntimeError:
-                    loop = None
-
-                if loop and loop.is_running():
-
-                    def handle_task_result(task):
-                        try:
-                            task.result()  # retrieve exception if any
-                        except Exception:
-                            # Log or handle exceptions here if needed
-                            logger.error("OpenTelemetry async task error")
-
-                    # Schedule the coroutine safely and add done callback to handle errors
-                    task = loop.create_task(method)
-                    task.add_done_callback(handle_task_result)
-                else:
-                    asyncio.run(method)
+                """
+                Thread-safe wrapper for OTEL async tasks using the shared background loop.
+                """
+                # Schedule the coroutine safely in the background loop
+                return asyncio.run_coroutine_threadsafe(method, bg_loop)
 
             # Apply monkey patch
             otel_utils.run_async = fixed_run_async
+
+        try:
+            from datarobot_dome.guard_executor import GuardExecutor
+        except ImportError:
+            GuardExecutor = None
+
+        if GuardExecutor:
+            _orig_async_guard_executor = GuardExecutor.async_guard_executor
+
+            def fixed_async_guard_executor(self, *args, **kwargs):
+                """
+                Thread-safe wrapper for GuardExecutor async tasks using the shared background loop.
+                """
+                return asyncio.run_coroutine_threadsafe(
+                    _orig_async_guard_executor(self, *args, **kwargs), bg_loop
+                )
+
+            # Apply monkey patch
+            GuardExecutor.async_guard_executor = fixed_async_guard_executor
 
         from datarobot_drum.drum.main import main
 
