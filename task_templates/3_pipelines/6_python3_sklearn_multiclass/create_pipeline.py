@@ -13,6 +13,7 @@ from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression, Ridge
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler, FunctionTransformer
+from sklearn.multiclass import OneVsRestClassifier
 
 ##############################
 ### Preprocessing tools
@@ -147,7 +148,7 @@ def make_classifier(X):
     return Pipeline(
         steps=[
             ("preprocessing", dense_preprocessing_pipeline),
-            ("model", LogisticRegression(solver="liblinear")),
+            ("model", OneVsRestClassifier(LogisticRegression(solver="liblinear"))),
         ],
         verbose=True,
     )
