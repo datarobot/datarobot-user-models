@@ -236,7 +236,9 @@ def setup_otel(runtime_parameters, options):
     # missing due to process exits before all data offloaded. In forking
     # case we use SimpleSpanProcessor (mostly NIMs) otherwise BatchSpanProcessor
     # (most frequent case)
-    multiprocessing = options.max_workers > 1
+    multiprocessing = False
+    if hasattr(options, "max_workers") and options.max_workers is not None:
+        multiprocessing = options.max_workers > 1
 
     resource = Resource.create()
     trace_provider = _setup_otel_tracing(resource=resource, multiprocessing=multiprocessing)
