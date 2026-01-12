@@ -115,6 +115,7 @@ class TestBaseLanguagePredictor:
             "deployment_id": "1234",
             "external_webserver_url": "http://webserver",
             "api_token": "1234qwer",
+            "monitor": True,
         }
 
     def _language_predictor_with_mlops_params_dr_api_access(self):
