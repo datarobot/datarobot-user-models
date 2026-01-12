@@ -13,6 +13,7 @@ from openai.types.chat import (
 from openai.types.model import Model
 from werkzeug.exceptions import BadRequest
 
+from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.enum import RunLanguage, TargetType
 from datarobot_drum.drum.lazy_loading.lazy_loading_handler import LazyLoadingHandler
 from datarobot_drum.drum.root_predictors.prediction_server import (
@@ -289,3 +290,11 @@ def test_request_id_in_flask_app(test_flask_app):
     data = prediction_client.get("/info/")
     assert data.headers.get(HEADER_REQUEST_ID)
     assert data.headers.get(HEADER_REQUEST_ID) != sample_request_id
+
+
+@pytest.mark.usefixtures("prediction_server")
+def test_drum_version_in_flask_app(test_flask_app):
+    prediction_client = test_flask_app.test_client()
+
+    response = prediction_client.get("/info/")
+    assert response.headers["x-drum-version"] == drum_version
