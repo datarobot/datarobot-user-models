@@ -252,6 +252,7 @@ class PredictionServer(PredictMixin):
         if str(RuntimeParameters.get("USE_NIM_WATCHDOG")).lower() not in ["true", "1", "yes"]:
             return
         
+        # Note: watchdog() method must check self._running flag for graceful shutdown
         self._server_watchdog = Thread(
             target=self.watchdog,
             args=(port,),
@@ -271,171 +272,59 @@ class PredictionServer(PredictMixin):
         logger.info("Started NIM watchdog thread for port %s", port)
 ```
 
-### Updated Lifespan Handler
+### Updated Watchdog Implementation
 
-In `app.py`, start the watchdog after the predictor is initialized:
+The `watchdog()` method in `PredictionServer` must be updated to check `_running`:
 
 ```python
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """
-    Lifespan context manager for FastAPI application.
-    """
-    # === STARTUP ===
-    logger.info("FastAPI lifespan startup initiated")
-    
-    # Restore sys.argv from environment variable
-    drum_args = os.environ.get("DRUM_UVICORN_DRUM_ARGS", "")
-    if drum_args:
-        sys.argv = shlex.split(drum_args)
-        logger.debug("Restored sys.argv: %s", sys.argv)
-    
-    os.environ["MAX_WORKERS"] = "1"
-    
-    from datarobot_drum import RuntimeParameters
-    if RuntimeParameters.has("CUSTOM_MODEL_WORKERS"):
-        os.environ.pop("MLOPS_RUNTIME_PARAM_CUSTOM_MODEL_WORKERS", None)
-    
-    # Create worker context
-    from datarobot_drum.drum.fastapi.context import create_ctx
-    ctx = create_ctx(app)
-    set_worker_ctx(ctx)
-    
-    # Start the DRUM runtime (loads model, initializes predictor, etc.)
-    ctx.start()
-    
-    # Start watchdog after predictor is initialized
-    # The prediction_server should call _start_watchdog() with ctx
-    
-    logger.info("FastAPI lifespan startup complete")
-    
-    yield  # Application runs here
-    
-    # === SHUTDOWN ===
-    logger.info("FastAPI lifespan shutdown initiated")
-    
-    ctx = get_worker_ctx()
-    if ctx:
-        try:
-            # This will stop all registered threads including watchdog
-            ctx.stop()
-        except Exception as e:
-            logger.error("Error during context stop: %s", e)
-        finally:
-            ctx.cleanup()
-    
-    logger.info("FastAPI lifespan shutdown complete")
+    def watchdog(self, port):
+        """
+        Watchdog thread that periodically checks if the server is alive.
+        Supports graceful shutdown by checking the _running flag.
+        """
+        # ... (initialization code) ...
+        
+        while self._running:  # CRITICAL: Check _running flag
+            try:
+                # ... (health check logic) ...
+                if response.ok:
+                    attempt = 0
+                    # Sleep in small increments to respond quickly to shutdown signal
+                    for _ in range(check_interval):
+                        if not self._running:
+                            return
+                        time.sleep(1)
+                    continue
+                # ...
+            except Exception as e:
+                # ...
 ```
 
-### Watchdog Health Check URL for FastAPI
+## Resource Cleanup Order
 
-Update the watchdog to use the correct health URL:
+Cleanup is performed in reverse priority order (higher `order` values are executed first during cleanup).
 
+| Resource | Order | Description |
+|----------|-------|-------------|
+| Predictor / Model | 200 | Shutdown model-specific resources first |
+| ThreadPoolExecutor | 100 | Wait for active prediction threads to finish |
+| StdoutFlusher | 50 | Stop flusher thread after predictions are done |
+| DB / External Clients | 0 | Close network connections last |
+
+In `FastAPIWorkerCtx.cleanup()`:
 ```python
-def watchdog(self, port):
-    """
-    Watchdog thread that periodically checks if the server is alive.
-    Works with both Flask and FastAPI servers.
-    """
-    import os
-    import requests
-    import time
-    
-    logger.info("Starting watchdog to monitor server health...")
-    
-    url_host = os.environ.get("TEST_URL_HOST", "localhost")
-    url_prefix = os.environ.get(URL_PREFIX_ENV_VAR_NAME, "")
-    
-    # Use /info/ endpoint for health check (works with both Flask and FastAPI)
-    health_url = f"http://{url_host}:{port}{url_prefix}/info/"
-    
-    request_timeout = 120
-    if RuntimeParameters.has("NIM_WATCHDOG_REQUEST_TIMEOUT"):
-        try:
-            request_timeout = int(RuntimeParameters.get("NIM_WATCHDOG_REQUEST_TIMEOUT"))
-        except ValueError:
-            logger.warning("Invalid NIM_WATCHDOG_REQUEST_TIMEOUT, using default 120s")
-    
-    check_interval = 10  # seconds
-    max_attempts = 3
-    
-    if RuntimeParameters.has("NIM_WATCHDOG_MAX_ATTEMPTS"):
-        try:
-            max_attempts = int(RuntimeParameters.get("NIM_WATCHDOG_MAX_ATTEMPTS"))
-        except ValueError:
-            logger.warning("Invalid NIM_WATCHDOG_MAX_ATTEMPTS, using default 3")
-    
-    attempt = 0
-    base_sleep_time = 4
-    
-    while self._running if hasattr(self, '_running') else True:
-        try:
-            logger.debug("Server health check: %s", health_url)
-            response = requests.get(health_url, timeout=request_timeout)
-            logger.debug("Server health check status: %s", response.status_code)
-            
-            if response.ok:
-                attempt = 0
-                time.sleep(check_interval)
-                continue
-            else:
-                raise Exception(f"Health check returned {response.status_code}")
-                
-        except Exception as e:
-            attempt += 1
-            logger.warning(
-                "Server health check failed (attempt %d/%d): %s",
-                attempt, max_attempts, str(e)
-            )
-            
-            if attempt >= max_attempts:
-                self._kill_all_processes()
-                return  # Exit watchdog after killing processes
-            
-            # Quadratic backoff
-            sleep_time = base_sleep_time * (attempt ** 2)
-            logger.info("Retrying in %d seconds...", sleep_time)
-            time.sleep(sleep_time)
-```
-
-### Graceful Watchdog Shutdown
-
-The watchdog should check the `_running` flag to exit gracefully:
-
-```python
-class FastAPIWorkerCtx:
-    # ... existing code ...
-    
-    def add_watchdog_thread(
-        self, 
-        watchdog_fn: Callable[[int], None],
-        port: int,
-        name: str = "Watchdog"
-    ):
+    def cleanup(self):
         """
-        Special method to add a watchdog thread that checks the running flag.
-        
-        Args:
-            watchdog_fn: The watchdog function to run
-            port: Server port for health checks
-            name: Thread name
+        Cleans up resources in the worker context.
+        Executes all registered cleanup callbacks in reverse priority order.
         """
-        # Create a wrapper that passes the running check
-        def watchdog_wrapper():
-            while self._running:
-                try:
-                    watchdog_fn(port)
-                except Exception as e:
-                    logger.error("Watchdog error: %s", e)
-                    break
-        
-        t = threading.Thread(
-            target=watchdog_wrapper,
-            daemon=True,
-            name=name,
-        )
-        self.add_thread(t, join_timeout=5.0, name=name)
-        t.start()
+        # Sort by order DESCENDING (higher order first)
+        for _, fn, desc in sorted(self._on_cleanup, key=lambda x: x[0], reverse=True):
+            try:
+                logger.info("FastAPIWorkerCtx cleanup: %s", desc)
+                fn()
+            except Exception as e:
+                logger.error("Cleanup failed for %s: %s", desc, e)
 ```
 
 ## Key Differences from Gunicorn WorkerCtx

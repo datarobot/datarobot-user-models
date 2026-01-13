@@ -76,7 +76,7 @@ def __enter__(self):
 
 ### 4. Wait for server logic
 
-FastAPI/Uvicorn might take slightly longer to start than the Flask dev server. Ensure `_wait_for_server` is robust:
+FastAPI/Uvicorn might take slightly longer to start than the Flask dev server due to async loop initialization and lifespan events. We use a 30-second timeout by default, which is sufficient for most models. The `_wait_for_server` method now explicitly checks if the process is still alive while waiting to fail fast if the server crashes on startup.
 
 ```python
 def _wait_for_server(self, timeout=30):
@@ -86,19 +86,25 @@ def _wait_for_server(self, timeout=30):
     start_time = time.time()
     while time.time() - start_time < timeout:
         try:
-            response = requests.get(f"http://{self._address}/ping/")
+            # We use /ping/ as the canonical readiness check for all server types
+            response = requests.get(f"http://{self._address}/ping/", timeout=1.0)
             if response.status_code == 200:
                 logger.info("DRUM server is ready")
                 return
-        except requests.exceptions.ConnectionError:
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
             pass
         
+        # Check if process crashed
         if self._proc.poll() is not None:
-            raise RuntimeError(f"DRUM server process exited with code {self._proc.returncode}")
+            stdout, stderr = self._proc.communicate()
+            raise RuntimeError(
+                f"DRUM server process exited unexpectedly with code {self._proc.returncode}.\n"
+                f"STDOUT: {stdout}\nSTDERR: {stderr}"
+            )
         
         time.sleep(0.5)
     
-    raise TimeoutError(f"DRUM server failed to start within {timeout} seconds")
+    raise TimeoutError(f"DRUM server failed to start within {timeout} seconds at {self._address}")
 ```
 
 ## Key Changes Summary:

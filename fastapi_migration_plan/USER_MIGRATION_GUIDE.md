@@ -101,6 +101,19 @@ Check the logs for:
 - `Detected custom_fastapi.py .. trying to load FastAPI extensions`
 - `Successfully loaded FastAPI extensions`
 
+## New Runtime Parameters for FastAPI
+
+When using `DRUM_SERVER_TYPE=fastapi`, several new parameters are available for fine-tuning the server:
+
+| Parameter | Description | Default |
+|-----------|-------------|---------|
+| `DRUM_FASTAPI_EXECUTOR_WORKERS` | Number of threads in the pool for sync prediction tasks. | 4 |
+| `DRUM_FASTAPI_MAX_UPLOAD_SIZE` | Maximum allowed size for request body in bytes. | 104857600 (100MB) |
+| `DRUM_FASTAPI_ENABLE_DOCS` | Enable FastAPI automatic documentation (Swagger UI at `/docs`). | false |
+| `DRUM_UVICORN_LOOP` | Event loop implementation to use: `auto`, `asyncio`, or `uvloop`. | `auto` |
+| `DRUM_CORS_ENABLED` | Enable Cross-Origin Resource Sharing (CORS) middleware. | false |
+| `DRUM_CORS_ORIGINS` | Comma-separated list of allowed origins (e.g., `http://localhost:3000,https://app.datarobot.com`). | `*` |
+
 ## Frequently Asked Questions
 
 ### Can I keep using `custom_flask.py`?
@@ -111,3 +124,26 @@ If both `custom_flask.py` and `custom_fastapi.py` are present, DRUM will load th
 
 ### Do I need to use `async/await`?
 In FastAPI, you can use either sync or async functions for your routes. For middleware `dispatch` method, it must be `async`.
+
+## Troubleshooting & Common Pitfalls
+
+### 1. Blocking the Event Loop
+If you use synchronous blocking calls (like `requests.get()`, `time.sleep()`, or heavy CPU computation) inside an `async def` route or middleware, you will block the entire server from handling other requests.
+
+**Solution**: 
+- Use `httpx.AsyncClient` instead of `requests`.
+- Use `await asyncio.sleep()` instead of `time.sleep()`.
+- If you must use a sync library, define your route as `def` (without `async`)—FastAPI will automatically run it in a thread pool.
+- **Heavy CPU tasks**: For heavy computation in `custom_fastapi.py`, prefer offloading to `anyio.to_thread.run_sync` or just use a sync `def`.
+
+### 2. Accessing Request Body Multiple Times
+In FastAPI, the request body is a stream. Once consumed, it cannot be read again easily unless cached.
+
+**Solution**:
+DRUM's internal middleware pre-fetches the body into `request.state.body`. Use that instead of `await request.body()` if you need to access it in multiple places. Similarly, files are available in `request.state.files`.
+
+### 3. Middleware Order
+FastAPI executes middleware in reverse order of addition.
+
+**Solution**:
+If you need your middleware to run *before* DRUM's internal logic, add it *after* DRUM has initialized the app (which is what `init_app` does).

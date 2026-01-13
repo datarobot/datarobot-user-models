@@ -1,6 +1,22 @@
 # Plan: custom_model_runner/datarobot_drum/drum/fastapi/__init__.py
 
-Empty init file for the `fastapi` module.
+Package initialization for the FastAPI integration.
 
-## Changes:
-- Create an empty `__init__.py` file to make the directory a Python package.
+## Proposed Implementation:
+
+```python
+"""
+FastAPI integration package for DRUM.
+"""
+from datarobot_drum.drum.fastapi.app import app, create_app
+from datarobot_drum.drum.fastapi.context import FastAPIWorkerCtx, create_ctx
+from datarobot_drum.drum.fastapi.config import UvicornConfig
+
+__all__ = [
+    "app",
+    "create_app",
+    "FastAPIWorkerCtx",
+    "create_ctx",
+    "UvicornConfig",
+]
+```

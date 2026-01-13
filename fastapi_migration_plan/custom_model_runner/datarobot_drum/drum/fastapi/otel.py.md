@@ -14,15 +14,22 @@ We will use `FastAPIInstrumentor` from `opentelemetry.instrumentation.fastapi`.
 
 ```python
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from datarobot_drum.drum.common import setup_otel
 
 def instrument_app(app: FastAPI):
     """
     Instrument the FastAPI application with OpenTelemetry.
+    Integrates with existing setup_otel() from common.py.
     """
+    # Ensure base OTel setup is done
+    setup_otel()
+    
+    # Define health endpoints to exclude from tracing
+    excluded_urls = "/ping,/health,/,/info/,/stats/,/capabilities/"
+    
     FastAPIInstrumentor.instrument_app(
         app,
-        excluded_urls="/ping,/health,/",
-        tracer_provider=get_tracer_provider(), # From common.py
+        excluded_urls=excluded_urls,
     )
 ```
 

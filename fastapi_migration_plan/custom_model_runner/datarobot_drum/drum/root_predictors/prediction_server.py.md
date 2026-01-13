@@ -21,10 +21,23 @@ from flask import Flask, Blueprint, Response as FlaskResponse, jsonify, request 
 ```
 
 ### 2. Update `__init__` signature
+
 ```python
-def __init__(self, params: dict, app: Union[Flask, FastAPI, None] = None, worker_ctx=None):
+def __init__(self, params: dict, app: Union[Flask, FastAPI, None] = None, worker_ctx=None, flask_app=None):
     self._params = params
-    self.app = app  # Renamed from flask_app to be generic
+    
+    # Backwards compatibility for flask_app parameter
+    if flask_app is not None:
+        import warnings
+        warnings.warn(
+            "The 'flask_app' parameter is deprecated. Use 'app' instead.",
+            DeprecationWarning,
+            stacklevel=2
+        )
+        self.app = flask_app
+    else:
+        self.app = app
+        
     self._worker_ctx = worker_ctx  # Store worker context for cleanup and watchdog
     # ... rest remains the same
 ```
@@ -62,18 +75,38 @@ def _materialize_fastapi(self):
     router = APIRouter()
     
     @router.get("/")
+    @router.get("/ping")
     @router.get("/ping/")
     async def ping():
         if hasattr(self._predictor, "liveness_probe"):
             return self._predictor.liveness_probe()
         return {"message": "OK"}
     
+    @router.get("/capabilities")
     @router.get("/capabilities/")
     async def capabilities():
         return self.make_capabilities()
     
+    @router.get("/info")
     @router.get("/info/")
     async def info():
+        # ...
+```
+
+### 4a. Trailing Slash Consistency Middleware
+To ensure consistency across all endpoints without defining multiple routes for each, we can add a normalization middleware:
+
+```python
+class TrailingSlashMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if request.url.path != "/" and request.url.path.endswith("/"):
+            # Internal redirect or just strip slash for routing
+            # FastAPI's APIRouter(redirect_slashes=True) already does this with 307
+            pass
+        return await call_next(request)
+```
+
+However, defining multiple decorators is more explicit and avoids redirects for common endpoints.
         model_info = self._predictor.model_info()
         model_info.update({ModelInfoKeys.LANGUAGE: self._run_language.value})
         model_info.update({ModelInfoKeys.DRUM_VERSION: drum_version})
@@ -236,32 +269,34 @@ def _materialize_fastapi(self):
             )
             
             try:
-                # Use StreamingResponse to support both regular and SSE responses from backend
-                async def generate_content():
-                    async with httpx.AsyncClient(timeout=timeout) as client:
-                        async with client.stream(
-                            method=request.method,
-                            url=f"http://{openai_host}:{openai_port}/{path.rstrip('/')}",
-                            headers=forward_headers,
-                            params=dict(request.query_params),
-                            content=body,
-                            follow_redirects=False,
-                        ) as resp:
-                            # We need to capture the response status and headers from the stream
-                            # This is a bit tricky with StreamingResponse, so we store them
-                            request.state.proxy_status = resp.status_code
-                            request.state.proxy_headers = {
-                                k: v for k, v in resp.headers.items()
-                                if k.lower() not in ('content-encoding', 'transfer-encoding', 'content-length')
-                            }
+                # To correctly set the status code for StreamingResponse, 
+                # we perform the request and check the status before yielding the generator.
+                async with httpx.AsyncClient(timeout=timeout) as client:
+                    async with client.stream(
+                        method=request.method,
+                        url=f"http://{openai_host}:{openai_port}/{path.rstrip('/')}",
+                        headers=forward_headers,
+                        params=dict(request.query_params),
+                        content=body,
+                        follow_redirects=False,
+                    ) as resp:
+                        # Capture status and headers from upstream
+                        status_code = resp.status_code
+                        headers = {
+                            k: v for k, v in resp.headers.items()
+                            if k.lower() not in ('content-encoding', 'transfer-encoding', 'content-length')
+                        }
+
+                        async def generate_content():
                             async for chunk in resp.aiter_bytes():
                                 yield chunk
 
-                return StreamingResponse(
-                    generate_content(),
-                    # Note: status and headers will be set by the first yield if we use a more complex wrapper
-                    # For simplicity in plan, we assume 200 or handle it in the generator
-                )
+                        return StreamingResponse(
+                            generate_content(),
+                            status_code=status_code,
+                            headers=headers,
+                            media_type=resp.headers.get("content-type", "application/octet-stream")
+                        )
             except Exception as e:
                 span.set_status(StatusCode.ERROR, str(e))
                 return JSONResponse(content={"message": f"ERROR: {e}"}, status_code=502)
@@ -295,6 +330,9 @@ def _materialize_fastapi(self):
             order=100,
             desc="ThreadPoolExecutor shutdown"
         )
+    
+    # Initialize executor early to ensure it exists for cleanup
+    self._get_executor()
     
     return []
 ```
@@ -343,22 +381,26 @@ def _convert_fastapi_response(self, response, status_code):
     
     return Response(content=response, status_code=status_code)
 
-async def _run_sync_in_executor(self, func, *args, **kwargs):
-    """Run a synchronous function in a thread pool executor."""
-    import asyncio
-    from functools import partial
-    from concurrent.futures import ThreadPoolExecutor
-    
+def _get_executor(self):
+    """Get or create the thread pool executor."""
     if not hasattr(self, '_executor'):
         from datarobot_drum import RuntimeParameters
+        from concurrent.futures import ThreadPoolExecutor
         workers = 4
         if RuntimeParameters.has("DRUM_FASTAPI_EXECUTOR_WORKERS"):
             workers = int(RuntimeParameters.get("DRUM_FASTAPI_EXECUTOR_WORKERS"))
         self._executor = ThreadPoolExecutor(max_workers=workers)
+    return self._executor
+
+async def _run_sync_in_executor(self, func, *args, **kwargs):
+    """Run a synchronous function in a thread pool executor."""
+    import asyncio
+    from functools import partial
     
+    executor = self._get_executor()
     loop = asyncio.get_event_loop()
     bound_func = partial(func, *args, **kwargs)
-    return await loop.run_in_executor(self._executor, bound_func)
+    return await loop.run_in_executor(executor, bound_func)
 
 def _shutdown_executor(self):
     """Shutdown the thread pool executor."""

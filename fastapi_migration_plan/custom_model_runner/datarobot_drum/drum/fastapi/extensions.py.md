@@ -71,6 +71,16 @@ def load_fastapi_extensions(app: FastAPI, code_dir: str) -> Optional[object]:
     # Search for custom_fastapi.py in the code directory
     custom_file_paths = list(Path(code_dir).rglob(f"{FASTAPI_EXT_FILE_NAME}.py"))
     
+    # Check for legacy custom_flask.py and warn the user
+    legacy_file_paths = list(Path(code_dir).rglob("custom_flask.py"))
+    if legacy_file_paths:
+        logger.warning(
+            "Legacy custom_flask.py detected at %s while running with FastAPI. "
+            "This file will be IGNORED. Please migrate your extensions to custom_fastapi.py "
+            "referring to the USER_MIGRATION_GUIDE.md",
+            legacy_file_paths
+        )
+
     if len(custom_file_paths) > 1:
         raise RuntimeError(
             f"Found multiple custom FastAPI hook files: {custom_file_paths}. "

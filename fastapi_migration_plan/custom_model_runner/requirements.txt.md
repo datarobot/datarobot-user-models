@@ -14,6 +14,9 @@ starlette>=0.27.0,<1.0.0  # Usually comes with fastapi, but explicit for middlew
 
 # Async HTTP client (REQUIRED for /directAccess/ and /nim/ proxy endpoints)
 httpx>=0.24.0,<1.0.0
+
+# OpenTelemetry instrumentation for FastAPI
+opentelemetry-instrumentation-fastapi
 ```
 
 ## Dependency Details
@@ -24,6 +27,7 @@ httpx>=0.24.0,<1.0.0
 | `uvicorn[standard]` | ASGI server (with uvloop, httptools) | `>=0.23.0,<1.0.0` |
 | `starlette` | ASGI toolkit (middleware, routing) | `>=0.27.0,<1.0.0` |
 | `httpx` | Async HTTP client for proxy endpoints | `>=0.24.0,<1.0.0` |
+| `opentelemetry-instrumentation-fastapi` | OTel auto-instrumentation | (latest compatible) |
 
 ## Why httpx is Required
 

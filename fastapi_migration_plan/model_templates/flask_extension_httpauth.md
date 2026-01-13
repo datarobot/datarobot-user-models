@@ -146,13 +146,17 @@ def init_app(app: FastAPI):
 
 ## Updated `requirements.txt`
 
+The current `requirements.txt` contains `Flask-HTTPAuth==4.7.0`, which is Flask-specific.
+
 ```
 # Existing dependencies
 scikit-learn
 
-# FastAPI dependencies (if not already in DRUM)
-# Note: FastAPI and Starlette are typically provided by DRUM
+# Flask-specific (to be removed or replaced)
+# Flask-HTTPAuth==4.7.0
 ```
+
+For the FastAPI extension, no additional auth library might be needed as FastAPI has built-in support for HTTP Basic and Bearer auth.
 
 ## Updated `README.md`
 

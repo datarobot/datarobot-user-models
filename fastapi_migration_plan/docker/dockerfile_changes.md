@@ -9,6 +9,9 @@ To support the FastAPI migration, base Docker images must include the necessary 
 ## Base Image Updates
 
 ### `docker/dropin_env_base/Dockerfile`
+### `docker/dropin_env_base_jdk/Dockerfile`
+### `docker/dropin_env_base_r/Dockerfile`
+### `docker/dropin_env_base_julia/Dockerfile`
 
 Add FastAPI and Uvicorn dependencies:
 
@@ -20,10 +23,18 @@ RUN pip install --no-cache-dir \
     "httpx>=0.24.0,<1.0.0"
 ```
 
-### `docker/dropin_env_base_jdk/Dockerfile`
-### `docker/dropin_env_base_r/Dockerfile`
+### Base Image requirements.txt updates
 
-Similar changes are required for all base images that provide a Python runtime for DRUM.
+The following files also need to be updated to include FastAPI dependencies:
+- `docker/dropin_env_base_jdk/requirements.txt`
+- `docker/dropin_env_base_r/requirements.txt`
+- `docker/dropin_env_base_julia/requirements.txt`
+
+```
+fastapi>=0.100.0,<1.0.0
+uvicorn[standard]>=0.23.0,<1.0.0
+httpx>=0.24.0,<1.0.0
+```
 
 ## Example Environments
 
@@ -36,6 +47,21 @@ Update `requirements.txt` in relevant example environments:
 fastapi>=0.100.0
 uvicorn[standard]>=0.23.0
 ```
+
+## Public Drop-in Environments Audit
+
+There are over 20+ environments in `public_dropin_environments/` that need to be audited for FastAPI compatibility.
+
+### Audit Checklist:
+1. **Python Version**: Ensure base image uses Python 3.8+.
+2. **Flask Usage**: Identify environments that use `custom_flask.py` or rely on Flask-specific behavior.
+3. **Dependency Conflicts**: Check if adding `fastapi`/`uvicorn` conflicts with existing packages (e.g., old `pydantic` versions).
+4. **Memory Constraints**: FastAPI/Uvicorn might have slightly higher baseline memory usage than Flask/Gunicorn/gevent in some configurations.
+
+### Migration Path for Public Envs:
+- **Phase 1**: Add FastAPI/Uvicorn to `requirements.txt` or `conda.yaml` of all Python 3.8+ environments.
+- **Phase 2**: For environments using `custom_flask.py`, provide a `custom_fastapi.py` equivalent.
+- **Phase 3**: Update environment smoke tests to run with `DRUM_SERVER_TYPE=fastapi`.
 
 ## Python Version Requirements
 

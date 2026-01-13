@@ -219,6 +219,30 @@ class UvicornConfig:
         return args
 ```
 
+## SSL/TLS Configuration Parity
+
+The following DRUM parameters are mapped to Uvicorn's SSL settings:
+
+| DRUM Parameter | Uvicorn Setting | Description |
+|----------------|-----------------|-------------|
+| `DRUM_SSL_CERTFILE` | `ssl_certfile` | Path to the SSL certificate file |
+| `DRUM_SSL_KEYFILE` | `ssl_keyfile` | Path to the SSL key file |
+| `DRUM_SSL_KEYFILE_PASSWORD` | `ssl_keyfile_password` | Password for the SSL key file |
+| `DRUM_SSL_VERSION` | `ssl_version` | SSL version to use (e.g., `ssl.PROTOCOL_TLS_SERVER`) |
+| `DRUM_SSL_CERT_REQS` | `ssl_cert_reqs` | Whether client certificates are required |
+| `DRUM_SSL_CA_CERTS` | `ssl_ca_certs` | Path to the CA certificates file |
+| `DRUM_SSL_CIPHERS` | `ssl_ciphers` | SSL ciphers to use |
+
+## SSL/TLS Testing Plan
+
+To verify SSL configuration:
+1. **Certificate Generation**: Use `openssl` to generate a self-signed certificate and key.
+2. **Server Startup**: Run DRUM with `DRUM_SERVER_TYPE=fastapi` and provide the paths to the generated files via `DRUM_SSL_CERTFILE` and `DRUM_SSL_KEYFILE`.
+3. **Connectivity Test**: 
+   - Use `curl -k` to verify the server is responding over HTTPS.
+   - Use a Python script with `requests.get(..., verify=False)` to check programmatic access.
+4. **Client Auth Test**: If `DRUM_SSL_CERT_REQS` is enabled, verify that connections without a valid client certificate are rejected.
+
 ## Parameter Mapping Table
 
 | DRUM Parameter | Gunicorn Equivalent | Uvicorn Equivalent | Default |
@@ -236,5 +260,5 @@ class UvicornConfig:
 
 ## Notes:
 - Uvicorn does not have a direct equivalent to gunicorn's `worker_class` (sync/gevent). Instead, it uses `loop` (asyncio/uvloop).
-- The `max_requests_jitter` parameter from gunicorn is not directly supported by Uvicorn.
+- **Gaps in Parity**: The `max_requests_jitter` parameter from gunicorn is not directly supported by Uvicorn. While `limit_max_requests` is supported, it lacks the jitter functionality. If jitter is required to prevent thundering herds during worker recycling, it must be implemented via a custom lifespan hook or external process manager.
 - Fallback to `DRUM_GUNICORN_*` parameters is provided for backward compatibility.

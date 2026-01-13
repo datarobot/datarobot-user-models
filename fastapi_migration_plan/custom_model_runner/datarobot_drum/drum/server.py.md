@@ -98,6 +98,7 @@ class StdoutFlusherMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         response = await call_next(request)
         if self.flusher:
+            # Update activity time after request is processed
             self.flusher.set_last_activity_time()
         return response
 
@@ -132,13 +133,18 @@ class RequestTimeoutMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         
         try:
+            # Note: asyncio.wait_for will cancel the call_next(request) coroutine on timeout.
+            # If the coroutine is awaiting loop.run_in_executor(), the future will be cancelled,
+            # but the actual thread in the executor will continue to run until completion
+            # as Python threads cannot be forcefully terminated.
             return await asyncio.wait_for(
                 call_next(request),
                 timeout=self.timeout
             )
         except asyncio.TimeoutError:
             logger.error(
-                "Request timeout after %s seconds: %s %s",
+                "Request timeout after %s seconds: %s %s. "
+                "Note: Background prediction thread may still be running.",
                 self.timeout,
                 request.method,
                 request.url.path
@@ -221,36 +227,7 @@ def add_cors_middleware(app: FastAPI):
     logger.info("CORS middleware enabled with origins: %s", origins)
 ```
 
-### 3. Create FastAPI app factory
-
-```python
-def create_fastapi_app() -> FastAPI:
-    """
-    Create and configure a FastAPI application with all necessary middleware.
-    Equivalent to create_flask_app().
-    """
-    from datarobot_drum import RuntimeParameters
-    from datarobot_drum.drum.description import version as drum_version
-    
-    docs_url = None
-    if str(RuntimeParameters.get("DRUM_FASTAPI_ENABLE_DOCS")).lower() in ["true", "1", "yes"]:
-        docs_url = "/docs"
-
-    fastapi_app = FastAPI(
-        title="DRUM Prediction Server",
-        version=drum_version,
-        docs_url=docs_url,
-        redoc_url=None,
-    )
-    
-    # Add middleware (order matters - last added is first executed)
-    fastapi_app.add_middleware(RequestLoggingMiddleware)
-    fastapi_app.add_middleware(RequestIDMiddleware)
-    
-    return fastapi_app
-```
-
-### 4. Create FastAPI app registration function
+### 3. Create FastAPI app registration function
 
 ```python
 def get_fastapi_app(api_router: APIRouter, app: Optional[FastAPI] = None) -> FastAPI:
@@ -274,7 +251,7 @@ def get_fastapi_app(api_router: APIRouter, app: Optional[FastAPI] = None) -> Fas
     return app
 ```
 
-### 5. Add FastAPI exception handlers
+### 4. Add FastAPI exception handlers
 
 ```python
 def setup_fastapi_exception_handlers(app: FastAPI):
@@ -307,18 +284,28 @@ def setup_fastapi_exception_handlers(app: FastAPI):
         )
 ```
 
-### 6. Update create_fastapi_app to include all middleware
+### 5. Create FastAPI app factory
 
 ```python
 def create_fastapi_app() -> FastAPI:
     """
     Create and configure a FastAPI application with all necessary middleware.
     
-    Middleware execution order (last added = first executed):
-    1. RequestIDMiddleware - Adds request ID to all requests
-    2. RequestLoggingMiddleware - Logs failed requests  
-    3. RequestTimeoutMiddleware - Enforces request timeout
-    4. CORSMiddleware (optional) - Handles CORS if enabled
+    CRITICAL: Middleware Execution Order
+    FastAPI (Starlette) executes middleware in REVERSE order of addition for the 
+    request phase, and in the SAME order for the response phase (wrapping).
+    
+    Order of addition here:
+    1. RequestLoggingMiddleware (Outer)
+    2. RequestTimeoutMiddleware
+    3. ContentLengthLimitMiddleware
+    4. RequestIDMiddleware (Inner)
+    
+    Actual Execution Order (Request):
+    RequestID -> ContentLength -> Timeout -> Logging -> [App Router]
+    
+    Actual Execution Order (Response):
+    [App Router] -> RequestID -> ContentLength -> Timeout -> Logging
     """
     from datarobot_drum import RuntimeParameters
     from datarobot_drum.drum.description import version as drum_version
@@ -334,26 +321,29 @@ def create_fastapi_app() -> FastAPI:
         redoc_url=None,
     )
     
-    # Add middleware (order matters - last added is first executed)
-    # So the order of execution will be: CORS -> ContentLength -> Timeout -> Logging -> RequestID
+    # 1. Logging (Outer)
     fastapi_app.add_middleware(RequestLoggingMiddleware)
+    
+    # 2. Timeout
     fastapi_app.add_middleware(RequestTimeoutMiddleware)
     
-    # Add ContentLengthLimitMiddleware
+    # 3. Content Length
     max_upload_size = 100 * 1024 * 1024  # Default 100MB
     if RuntimeParameters.has("DRUM_FASTAPI_MAX_UPLOAD_SIZE"):
         max_upload_size = int(RuntimeParameters.get("DRUM_FASTAPI_MAX_UPLOAD_SIZE"))
     fastapi_app.add_middleware(ContentLengthLimitMiddleware, max_content_length=max_upload_size)
 
+    # 4. Request ID (Inner)
     fastapi_app.add_middleware(RequestIDMiddleware)
     
-    # Add CORS middleware if enabled
+    # Optional: CORS (would be outermost if added last)
     add_cors_middleware(fastapi_app)
     
     # Setup exception handlers
     setup_fastapi_exception_handlers(fastapi_app)
     
     return fastapi_app
+```
 
 
 def create_fastapi_app_dev() -> FastAPI:
@@ -419,3 +409,4 @@ HEADER_DRUM_VERSION = "X-Drum-Version"
 - Middleware order matters: last added = first executed.
 - Request timeout middleware skips health check endpoints (`/ping`, `/`, `/health`) to allow Kubernetes probes during long-running requests.
 - CORS middleware is optional and only enabled via `DRUM_CORS_ENABLED` runtime parameter.
+- `StdoutFlusherMiddleware` is added in `PredictionServer._materialize_fastapi()` to have access to the flusher instance.
