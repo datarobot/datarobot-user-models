@@ -97,6 +97,13 @@ class WorkerCtx:
 
         import asyncio
 
+        def _wrap_future(fut):
+            try:
+                asyncio.get_running_loop()
+                return asyncio.wrap_future(fut)
+            except RuntimeError:
+                return fut
+
         try:
             from datarobot_dome.async_http_client import AsyncHTTPClient
         except ImportError:
@@ -113,36 +120,58 @@ class WorkerCtx:
         bg_loop = self.app._drum_bg_loop
 
         if AsyncHTTPClient:
-            # Save the original async method
-            _orig_bulk_upload = AsyncHTTPClient.bulk_upload_custom_metrics
+            def patch_async_client_method(method_name):
+                _orig_method = getattr(AsyncHTTPClient, method_name)
 
-            def fixed_bulk_upload_custom_metrics(self, payload):
-                """
-                Thread-safe wrapper that offloads the async upload to a dedicated background loop.
-                This prevents 'attached to a different loop' and 'non-thread-safe operation' errors.
-                """
+                def fixed_method(self, *args, **kwargs):
+                    """
+                    Thread-safe wrapper that offloads the async execution to a dedicated background loop.
+                    This prevents 'attached to a different loop' and 'non-thread-safe operation' errors.
+                    """
 
-                async def _coro():
-                    try:
-                        # aiohttp session affinity: ensure session matches the background loop
-                        if hasattr(self, "_loop") and self._loop is not bg_loop:
-                            self._loop = bg_loop
+                    async def _coro():
+                        try:
+                            # 1. Ensure the client's internal loop pointer matches our background loop
+                            for attr in ["loop", "_loop"]:
+                                if hasattr(self, attr) and getattr(self, attr) is not bg_loop:
+                                    setattr(self, attr, bg_loop)
 
-                        if hasattr(self, "session") and self.session:
-                            session_loop = getattr(self.session, "_loop", None)
-                            if session_loop and session_loop is not bg_loop:
-                                # Force recreation in the correct loop
-                                self.session = None
-                        return await _orig_bulk_upload(self, payload)
-                    except Exception:
-                        logger.exception("Failed to upload custom metrics")
-                        return None
+                            # 2. Session affinity: aiohttp session MUST match the background loop
+                            if hasattr(self, "session") and self.session:
+                                session_loop = getattr(self.session, "_loop", None)
+                                if session_loop and session_loop is not bg_loop:
+                                    # Force recreation in the correct loop
+                                    try:
+                                        await self.session.close()
+                                    except Exception:
+                                        pass
+                                    self.session = None
 
-                # run_coroutine_threadsafe is safe from any thread (Flask, Gevent, gthread)
-                return asyncio.run_coroutine_threadsafe(_coro(), bg_loop)
+                            if not self.session:
+                                import aiohttp
 
-            # Apply the monkey patch as early as possible in process startup
-            AsyncHTTPClient.bulk_upload_custom_metrics = fixed_bulk_upload_custom_metrics
+                                # Use a default timeout as it's not always stored in the instance
+                                timeout = 30
+                                client_timeout = aiohttp.ClientTimeout(
+                                    connect=timeout, sock_connect=timeout, sock_read=timeout
+                                )
+                                self.session = aiohttp.ClientSession(timeout=client_timeout)
+
+                            return await _orig_method(self, *args, **kwargs)
+                        except Exception:
+                            logger.exception(f"AsyncHTTPClient.{method_name} failed")
+                            return None
+
+                    # run_coroutine_threadsafe is safe from any thread (Flask, Gevent, gthread)
+                    return _wrap_future(asyncio.run_coroutine_threadsafe(_coro(), bg_loop))
+
+                # Apply the monkey patch
+                setattr(AsyncHTTPClient, method_name, fixed_method)
+
+            # Patch all entry points that might be called from sync code
+            patch_async_client_method("bulk_upload_custom_metrics")
+            patch_async_client_method("predict")
+            patch_async_client_method("async_report_event")
 
         # fix RuntimeError: asyncio.run() cannot be called from a running event loop
         try:
@@ -157,7 +186,7 @@ class WorkerCtx:
                 Thread-safe wrapper for OTEL async tasks using the shared background loop.
                 """
                 # Schedule the coroutine safely in the background loop
-                return asyncio.run_coroutine_threadsafe(method, bg_loop)
+                return _wrap_future(asyncio.run_coroutine_threadsafe(method, bg_loop))
 
             # Apply monkey patch
             otel_utils.run_async = fixed_run_async
@@ -174,8 +203,10 @@ class WorkerCtx:
                 """
                 Thread-safe wrapper for GuardExecutor async tasks using the shared background loop.
                 """
-                return asyncio.run_coroutine_threadsafe(
-                    _orig_async_guard_executor(self, *args, **kwargs), bg_loop
+                return _wrap_future(
+                    asyncio.run_coroutine_threadsafe(
+                        _orig_async_guard_executor(self, *args, **kwargs), bg_loop
+                    )
                 )
 
             # Apply monkey patch
