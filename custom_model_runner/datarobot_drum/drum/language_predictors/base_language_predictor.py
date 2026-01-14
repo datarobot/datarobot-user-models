@@ -150,7 +150,7 @@ class BaseLanguagePredictor(DrumClassLabelAdapter, ABC):
         return endpoint
 
     def _should_enable_mlops(self):
-        return to_bool(self._params.get("monitor")) or self.supports_chat()
+        return to_bool(self._params.get("monitor"))
 
     def supports_chat(self):
         return False
