@@ -2,7 +2,7 @@
 #   > docker build -f Dockerfile.local -t java-codegen-local-dev .
 # where the 'java-codegen-local-dev' is the name of the image that will be created.
 
-FROM python:3.11-alpine
+FROM python:3.12-alpine
 
 RUN apk add --no-cache build-base python3-dev linux-headers openjdk11
 
