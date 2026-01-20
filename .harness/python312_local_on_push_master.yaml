@@ -1,6 +1,6 @@
 trigger:
-  name: python311_local_on_push
-  identifier: python311_local_on_push_master
+  name: python312_local_on_push
+  identifier: python312_local_on_push_master
   enabled: true
   stagesToExecute: []
   description: ""
@@ -21,7 +21,7 @@ trigger:
           payloadConditions:
             - key: changedFiles
               operator: Contains
-              value: public_dropin_environments/python311
+              value: public_dropin_environments/python312
             - key: targetBranch
               operator: Equals
               value: master
@@ -30,4 +30,4 @@ trigger:
           actions: []
   pipelineBranchName: <+trigger.branch>
   inputSetRefs:
-    - python311_local_image_build_default_pr_input
+    - python312_local_image_build_default_pr_input

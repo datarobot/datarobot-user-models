@@ -1,4 +1,4 @@
-# Python 3.11 Drop-In Template Environment
+# Python 3.12 Drop-In Template Environment
 
 This template environment can be used to create Python-based custom models.
 You are responsible for installing all required dependencies. 
@@ -13,7 +13,7 @@ For specific version information, see [requirements](requirements.txt).
 
 ## Instructions
 
-1. From the terminal, run `tar -czvf py_dropin.tar.gz -C /path/to/public_dropin_environments/python311/ .`
+1. From the terminal, run `tar -czvf py_dropin.tar.gz -C /path/to/public_dropin_environments/python312/ .`
 2. Using either the API or from the UI create a new Custom Environment with the tarball created
 in step 1.
 

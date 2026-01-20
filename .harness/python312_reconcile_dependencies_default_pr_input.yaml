@@ -1,10 +1,11 @@
 inputSet:
-  name: python311_local_image_build_default_pr_input
-  identifier: python311_local_image_build_default_pr_input
+  name: python312_reconcile_dependencies_default_pr_input
+  tags: {}
+  identifier: python312_reconcile_dependencies_default_pr_input
   orgIdentifier: Custom_Models
   projectIdentifier: datarobotusermodels
   pipeline:
-    identifier: env_image_publish
+    identifier: reconcile_dependencies
     properties:
       ci:
         codebase:
@@ -18,10 +19,8 @@ inputSet:
         value: public_dropin_environments
       - name: env_name
         type: String
-        value: python311
-      - name: image_tag
+        value: python312
+      - name: image_uri
         type: String
-        value: <+pipeline.variables.env_folder>_<+pipeline.variables.env_name>_latest
-      - name: use_local_dockerfile
-        type: String
-        value: "true"
+        value: datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.12-dev
+  isInlineHCEntity: false

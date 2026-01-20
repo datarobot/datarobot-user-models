@@ -71,5 +71,5 @@ setup(
     },
     install_requires=requirements,
     extras_require=extras_require,
-    python_requires=">=3.8,<3.13",
+    python_requires=">=3.8,<3.15",
 )

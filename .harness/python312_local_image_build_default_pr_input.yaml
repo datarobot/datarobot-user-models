@@ -1,6 +1,6 @@
 inputSet:
-  name: python311_image_build_default_pr_input
-  identifier: python311_image_build_default_pr_input
+  name: python312_local_image_build_default_pr_input
+  identifier: python312_local_image_build_default_pr_input
   orgIdentifier: Custom_Models
   projectIdentifier: datarobotusermodels
   pipeline:
@@ -18,7 +18,10 @@ inputSet:
         value: public_dropin_environments
       - name: env_name
         type: String
-        value: python311
+        value: python312
       - name: image_tag
         type: String
         value: <+pipeline.variables.env_folder>_<+pipeline.variables.env_name>_latest
+      - name: use_local_dockerfile
+        type: String
+        value: "true"

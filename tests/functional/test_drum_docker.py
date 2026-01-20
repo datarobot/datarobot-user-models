@@ -32,7 +32,7 @@ def dockerfile_content():
     # py-slim image is used in another test container, so it is already expected to be in the registry
     content = dedent(
         """
-    FROM python:3.11-slim
+    FROM python:3.12-slim
     VOLUME /data
     """
     )

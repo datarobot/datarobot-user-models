@@ -21,4 +21,4 @@ inputSet:
         value: python3_sklearn
       - name: image_uri
         type: String
-        value: datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.11-dev
+        value: datarobotdev/mirror_chainguard_datarobot.com_python-fips:3.12-dev

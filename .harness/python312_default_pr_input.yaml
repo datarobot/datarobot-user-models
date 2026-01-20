@@ -1,6 +1,6 @@
 inputSet:
-  name: python311_default_pr_input
-  identifier: python311_default_pr_input
+  name: python312_default_pr_input
+  identifier: python312_default_pr_input
   orgIdentifier: Custom_Models
   projectIdentifier: datarobotusermodels
   pipeline:
@@ -29,4 +29,4 @@ inputSet:
     variables:
       - name: framework
         type: String
-        value: python311
+        value: python312

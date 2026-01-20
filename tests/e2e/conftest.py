@@ -130,8 +130,8 @@ def java_drop_in_env():
 
 
 @pytest.fixture(scope="session")
-def python311_drop_in_env():
-    return create_drop_in_env(PUBLIC_DROPIN_ENVS_PATH, "python311")
+def python312_drop_in_env():
+    return create_drop_in_env(PUBLIC_DROPIN_ENVS_PATH, "python312")
 
 
 @pytest.fixture(scope="session")
