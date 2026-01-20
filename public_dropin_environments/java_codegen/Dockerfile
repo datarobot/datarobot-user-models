@@ -75,6 +75,7 @@ ENV PYTHONPATH=/opt/venv/lib/python3.12/site-packages:/usr/lib/python3.12/site-p
 
 # Gunicorn configuration
 ENV MLOPS_RUNTIME_PARAM_DRUM_SERVER_TYPE='{"type": "string", "payload": "gunicorn"}'
+ENV MAX_WORKERS=1
 
 COPY ./*.sh ${CODE_DIR}/
 WORKDIR ${CODE_DIR}
