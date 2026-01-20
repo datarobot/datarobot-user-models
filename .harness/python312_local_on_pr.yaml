@@ -1,6 +1,6 @@
 trigger:
-  name: python311 local on pr
-  identifier: python311_local_on_pr
+  name: python312 local on pr
+  identifier: python312_local_on_pr
   enabled: true
   stagesToExecute: []
   description: ""
@@ -30,4 +30,4 @@ trigger:
             - Synchronize
   pipelineBranchName: <+trigger.branch>
   inputSetRefs:
-    - python311_local_default_pr_input
+    - python312_local_default_pr_input

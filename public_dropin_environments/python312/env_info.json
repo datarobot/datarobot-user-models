@@ -1,17 +1,17 @@
 {
   "id": "67a554baeade3a4ce2ab6700",
-  "name": "[DataRobot] Python 3.11 Drop-In",
+  "name": "[DataRobot] Python 3.12 Drop-In",
   "description": "This template environment can be used to create Python based custom models. User is responsible to provide requirements.txt with the model, to install all the required dependencies.",
   "programmingLanguage": "python",
   "label": "",
   "environmentVersionId": "696fc1b30001df709e00463c",
-  "environmentVersionDescription": "Python Version: 3.11",
+  "environmentVersionDescription": "Python Version: 3.12",
   "isPublic": true,
   "isDownloadable": true,
   "useCases": [
     "customModel"
   ],
-  "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments/python311",
+  "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments/python312",
   "imageRepository": "env-python",
   "tags": [
     "v11.5.0-696fc1b30001df709e00463c",

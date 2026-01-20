@@ -1,8 +1,8 @@
 # This Dockerfile.local can built with the following command:
-#   > docker build -f Dockerfile.local -t python311-local-dev .
-# where the 'python311-local-dev' is the name of the image that will be created.
+#   > docker build -f Dockerfile.local -t python312-local-dev .
+# where the 'python312-local-dev' is the name of the image that will be created.
 
-FROM python:3.11-alpine
+FROM python:3.12-alpine
 
 RUN apk add --no-cache build-base python3-dev linux-headers
 

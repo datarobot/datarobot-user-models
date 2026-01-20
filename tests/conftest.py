@@ -153,7 +153,7 @@ from tests.constants import (
     GPU_NIM,
     GPU_NIM_SIDECAR,
     GPU_VLLM,
-    PYTHON311,
+    PYTHON312,
 )
 from datarobot_drum.drum.adapters.model_adapters.python_model_adapter import PythonModelAdapter
 from tests.constants import PYTHON_UNSTRUCTURED_DR_API_ACCESS
@@ -221,7 +221,7 @@ framework_envs = {
     GPU_NIM: [GPU_NIM],
     GPU_NIM_SIDECAR: [GPU_NIM_SIDECAR],
     GPU_VLLM: [GPU_VLLM],
-    PYTHON311: [PYTHON311],
+    PYTHON312: [PYTHON312],
 }
 
 
@@ -261,7 +261,7 @@ def pytest_addoption(parser):
             GPU_NIM,
             GPU_NIM_SIDECAR,
             GPU_VLLM,
-            PYTHON311,
+            PYTHON312,
         ],
         default=None,
     )

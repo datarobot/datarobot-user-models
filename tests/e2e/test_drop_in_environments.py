@@ -144,10 +144,10 @@ class TestDropInEnvironments(object):
         )
 
     @pytest.fixture(scope="session")
-    def python311_custom_model(self, python311_drop_in_env):
-        env_id, _ = python311_drop_in_env
+    def python312_custom_model(self, python312_drop_in_env):
+        env_id, _ = python312_drop_in_env
         custom_model = dr.CustomInferenceModel.create(
-            name="python311_custom_model",
+            name="python312_custom_model",
             target_type=dr.TARGET_TYPE.UNSTRUCTURED,
             target_name="dummy-target",
         )
@@ -194,7 +194,7 @@ class TestDropInEnvironments(object):
     @pytest.mark.parametrize(
         "model, test_data_id, max_wait",
         [
-            ("python311_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
+            ("python312_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
             ("r_regression_custom_model", "regression_testing_data", 5 * DEFAULT_MAX_WAIT),
             ("pytorch_regression_custom_model", "regression_testing_data", 2 * DEFAULT_MAX_WAIT),
             ("keras_regression_custom_model", "regression_testing_data", DEFAULT_MAX_WAIT),
