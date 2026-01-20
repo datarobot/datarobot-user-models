@@ -63,6 +63,11 @@ ENV WITH_ERROR_SERVER=0 \
 
 # Gunicorn configuration
 ENV MLOPS_RUNTIME_PARAM_DRUM_SERVER_TYPE='{"type": "string", "payload": "gunicorn"}'
+# ENV MLOPS_RUNTIME_PARAM_DRUM_GUNICORN_WORKER_CLASS='{"type": "string", "payload": "gevent"}'
+# ENV MLOPS_RUNTIME_PARAM_DRUM_WORKER_CONNECTIONS='{"type": "numeric", "payload": 5}'
+ENV MAX_WORKERS=1
+
+
 
 COPY ./*.sh ${CODE_DIR}/
 WORKDIR ${CODE_DIR}
