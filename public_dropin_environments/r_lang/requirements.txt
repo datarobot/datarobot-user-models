@@ -10,8 +10,8 @@ azure-core==1.38.0
 azure-identity==1.25.1
 azure-storage-blob==12.19.0
 blinker==1.9.0
-boto3==1.42.29
-botocore==1.42.29
+boto3==1.42.31
+botocore==1.42.31
 certifi==2026.1.4
 cffi==2.0.0
 charset-normalizer==3.4.4
@@ -26,7 +26,7 @@ filechunkio==1.8
 flask==3.1.2
 gevent==25.9.1
 google-api-core==2.29.0
-google-auth==2.47.0
+google-auth==2.48.0rc0
 google-cloud-core==2.5.0
 google-cloud-storage==2.19.0
 google-crc32c==1.8.0
