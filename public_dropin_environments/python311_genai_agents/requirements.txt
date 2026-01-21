@@ -1,7 +1,7 @@
 datarobot-drum==1.17.11
-datarobot-genai==0.2.7
+datarobot-genai==0.2.33
 datarobot-mlops==11.1.0
-datarobot-moderations==11.2.8
+datarobot-moderations==11.2.10
 ecs-logging==2.2.0
 fastapi==0.121.3
 ipykernel==6.28.0
