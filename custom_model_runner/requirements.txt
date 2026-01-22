@@ -21,6 +21,9 @@ termcolor
 packaging
 markupsafe
 pydantic
+# not required directly by drun, but drum's dependencies require it.
+# in some test environments, this is not installed by default.
+pytz
 gevent
 gunicorn
 datarobot-storage
