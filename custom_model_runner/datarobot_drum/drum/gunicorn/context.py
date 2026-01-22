@@ -235,9 +235,17 @@ class WorkerCtx:
                         session = getattr(self, "session", None)
                         if not session or session.closed:
                             import aiohttp
+                            from datarobot_drum import RuntimeParameters
 
-                            # Use a default timeout as it's not always stored in the instance
-                            timeout = 30
+                            # Use DRUM_CLIENT_REQUEST_TIMEOUT from runtime parameters (same as gunicorn.conf.py)
+                            timeout = 120
+                            if RuntimeParameters.has("DRUM_CLIENT_REQUEST_TIMEOUT"):
+                                temp_timeout = int(
+                                    RuntimeParameters.get("DRUM_CLIENT_REQUEST_TIMEOUT")
+                                )
+                                if 0 <= temp_timeout <= 3600:
+                                    timeout = temp_timeout
+
                             client_timeout = aiohttp.ClientTimeout(
                                 connect=timeout, sock_connect=timeout, sock_read=timeout
                             )
