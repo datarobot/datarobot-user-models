@@ -167,21 +167,23 @@ class WorkerCtx:
     def _patch_async_http_client(self, bg_loop, _wrap_future):
         """Patch AsyncHTTPClient methods to run in the background loop."""
         import asyncio
+        import weakref
 
         try:
             from datarobot_dome.async_http_client import AsyncHTTPClient
         except ImportError:
             return
 
-        # Per-instance locks for session recreation, keyed by client id
-        _session_locks: dict[int, asyncio.Lock] = {}
+        # Per-instance locks for session recreation.
+        # Using WeakKeyDictionary to automatically remove entries when client is garbage collected,
+        # preventing memory leaks in long-running workers with dynamic client creation.
+        _session_locks: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
 
         def _get_session_lock(client) -> asyncio.Lock:
             """Get or create an asyncio.Lock for the given client instance."""
-            client_id = id(client)
-            if client_id not in _session_locks:
-                _session_locks[client_id] = asyncio.Lock()
-            return _session_locks[client_id]
+            if client not in _session_locks:
+                _session_locks[client] = asyncio.Lock()
+            return _session_locks[client]
 
         def patch_method(method_name):
             _orig_method = getattr(AsyncHTTPClient, method_name)
