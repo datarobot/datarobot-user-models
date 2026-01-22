@@ -121,6 +121,43 @@ class WorkerCtx:
 
         bg_loop = self.app._drum_bg_loop
 
+        # Register cleanup for the background loop to allow pending async operations
+        # (metrics uploads, guard executions, telemetry) to complete during shutdown.
+        def _cleanup_bg_loop():
+            try:
+                # Give pending tasks a chance to complete by scheduling a graceful shutdown
+                async def _shutdown():
+                    tasks = [t for t in asyncio.all_tasks(bg_loop) if t is not asyncio.current_task()]
+                    if tasks:
+                        # Wait up to 5 seconds for pending tasks to complete
+                        done, pending = await asyncio.wait(tasks, timeout=5.0)
+                        for task in pending:
+                            task.cancel()
+                            try:
+                                await task
+                            except asyncio.CancelledError:
+                                pass
+                    bg_loop.stop()
+
+                asyncio.run_coroutine_threadsafe(_shutdown(), bg_loop).result(timeout=10.0)
+            except Exception as e:
+                logger.warning("Error during background loop shutdown: %s", e)
+                # Force stop if graceful shutdown fails
+                bg_loop.call_soon_threadsafe(bg_loop.stop)
+            finally:
+                # Join the thread with a timeout
+                if t.is_alive():
+                    t.join(timeout=2.0)
+                # Close the loop
+                try:
+                    bg_loop.close()
+                except Exception:
+                    pass
+
+        # Use low order (negative) so loop cleanup happens after other cleanup callbacks
+        # that might still need to use async operations
+        self.defer_cleanup(_cleanup_bg_loop, order=-100, desc="background event loop")
+
         self._patch_async_http_client(bg_loop, _wrap_future)
         self._patch_otel_utils(bg_loop, _wrap_future)
         self._patch_guard_executor(bg_loop, _wrap_future)
@@ -133,6 +170,16 @@ class WorkerCtx:
             from datarobot_dome.async_http_client import AsyncHTTPClient
         except ImportError:
             return
+
+        # Per-instance locks for session recreation, keyed by client id
+        _session_locks: dict[int, asyncio.Lock] = {}
+
+        def _get_session_lock(client) -> asyncio.Lock:
+            """Get or create an asyncio.Lock for the given client instance."""
+            client_id = id(client)
+            if client_id not in _session_locks:
+                _session_locks[client_id] = asyncio.Lock()
+            return _session_locks[client_id]
 
         def patch_method(method_name):
             _orig_method = getattr(AsyncHTTPClient, method_name)
@@ -167,25 +214,32 @@ class WorkerCtx:
                             setattr(self, attr, bg_loop)
 
                     # 2. Session affinity: aiohttp session MUST match the background loop
-                    if hasattr(self, "session") and self.session:
-                        session_loop = _get_session_loop(self.session)
-                        if session_loop and session_loop is not bg_loop:
-                            # Force recreation in the correct loop
-                            try:
-                                await self.session.close()
-                            except Exception:
-                                pass
-                            self.session = None
+                    # Use a lock to prevent race conditions when multiple coroutines
+                    # concurrently detect a stale session and try to recreate it.
+                    # Without the lock, coroutine A could create a new session, then
+                    # coroutine B (which started its check before A finished) could
+                    # set self.session = None, orphaning A's newly created session.
+                    async with _get_session_lock(self):
+                        if hasattr(self, "session") and self.session:
+                            session_loop = _get_session_loop(self.session)
+                            if session_loop and session_loop is not bg_loop:
+                                # Force recreation in the correct loop
+                                try:
+                                    await self.session.close()
+                                except Exception:
+                                    pass
+                                self.session = None
 
-                    if not self.session or self.session.closed:
-                        import aiohttp
+                        session = getattr(self, "session", None)
+                        if not session or session.closed:
+                            import aiohttp
 
-                        # Use a default timeout as it's not always stored in the instance
-                        timeout = 30
-                        client_timeout = aiohttp.ClientTimeout(
-                            connect=timeout, sock_connect=timeout, sock_read=timeout
-                        )
-                        self.session = aiohttp.ClientSession(timeout=client_timeout)
+                            # Use a default timeout as it's not always stored in the instance
+                            timeout = 30
+                            client_timeout = aiohttp.ClientTimeout(
+                                connect=timeout, sock_connect=timeout, sock_read=timeout
+                            )
+                            self.session = aiohttp.ClientSession(timeout=client_timeout)
 
                     return await _orig_method(self, *args, **kwargs)
 
