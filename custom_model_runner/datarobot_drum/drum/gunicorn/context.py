@@ -120,6 +120,7 @@ class WorkerCtx:
         bg_loop = self.app._drum_bg_loop
 
         if AsyncHTTPClient:
+
             def patch_async_client_method(method_name):
                 _orig_method = getattr(AsyncHTTPClient, method_name)
 
