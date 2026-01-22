@@ -110,11 +110,14 @@ class WorkerCtx:
 
         # Background loop for thread-safe async execution in sync/gevent workers.
         # We store it on self.app to ensure it lives as long as the worker.
-        if not hasattr(self.app, "_drum_bg_loop"):
-            loop = asyncio.new_event_loop()
-            t = threading.Thread(target=loop.run_forever, daemon=True, name="DrumBgLoop")
-            t.start()
-            self.app._drum_bg_loop = loop
+        # Guard both loop creation AND patching to prevent nested wrappers if start() is called multiple times.
+        if hasattr(self.app, "_drum_bg_loop"):
+            return  # Already initialized - skip to avoid double-patching
+
+        loop = asyncio.new_event_loop()
+        t = threading.Thread(target=loop.run_forever, daemon=True, name="DrumBgLoop")
+        t.start()
+        self.app._drum_bg_loop = loop
 
         bg_loop = self.app._drum_bg_loop
 
@@ -141,37 +144,33 @@ class WorkerCtx:
                 """
 
                 async def _coro():
-                    try:
-                        # 1. Ensure the client's internal loop pointer matches our background loop
-                        for attr in ["loop", "_loop"]:
-                            if hasattr(self, attr) and getattr(self, attr) is not bg_loop:
-                                setattr(self, attr, bg_loop)
+                    # 1. Ensure the client's internal loop pointer matches our background loop
+                    for attr in ["loop", "_loop"]:
+                        if hasattr(self, attr) and getattr(self, attr) is not bg_loop:
+                            setattr(self, attr, bg_loop)
 
-                        # 2. Session affinity: aiohttp session MUST match the background loop
-                        if hasattr(self, "session") and self.session:
-                            session_loop = getattr(self.session, "_loop", None)
-                            if session_loop and session_loop is not bg_loop:
-                                # Force recreation in the correct loop
-                                try:
-                                    await self.session.close()
-                                except Exception:
-                                    pass
-                                self.session = None
+                    # 2. Session affinity: aiohttp session MUST match the background loop
+                    if hasattr(self, "session") and self.session:
+                        session_loop = getattr(self.session, "_loop", None)
+                        if session_loop and session_loop is not bg_loop:
+                            # Force recreation in the correct loop
+                            try:
+                                await self.session.close()
+                            except Exception:
+                                pass
+                            self.session = None
 
-                        if not self.session:
-                            import aiohttp
+                    if not self.session:
+                        import aiohttp
 
-                            # Use a default timeout as it's not always stored in the instance
-                            timeout = 30
-                            client_timeout = aiohttp.ClientTimeout(
-                                connect=timeout, sock_connect=timeout, sock_read=timeout
-                            )
-                            self.session = aiohttp.ClientSession(timeout=client_timeout)
+                        # Use a default timeout as it's not always stored in the instance
+                        timeout = 30
+                        client_timeout = aiohttp.ClientTimeout(
+                            connect=timeout, sock_connect=timeout, sock_read=timeout
+                        )
+                        self.session = aiohttp.ClientSession(timeout=client_timeout)
 
-                        return await _orig_method(self, *args, **kwargs)
-                    except Exception:
-                        logger.exception(f"AsyncHTTPClient.{method_name} failed")
-                        return None
+                    return await _orig_method(self, *args, **kwargs)
 
                 # run_coroutine_threadsafe is safe from any thread (Flask, Gevent, gthread)
                 return _wrap_future(asyncio.run_coroutine_threadsafe(_coro(), bg_loop))
@@ -192,12 +191,22 @@ class WorkerCtx:
         except ImportError:
             return
 
+        def handle_task_result(future):
+            """Callback to log exceptions from OTEL async tasks."""
+            try:
+                future.result()
+            except Exception:
+                logger.exception("OpenTelemetry async task error")
+
         def fixed_run_async(method):
             """
             Thread-safe wrapper for OTEL async tasks using the shared background loop.
             """
             # Schedule the coroutine safely in the background loop
-            return _wrap_future(asyncio.run_coroutine_threadsafe(method, bg_loop))
+            fut = asyncio.run_coroutine_threadsafe(method, bg_loop)
+            # Add callback to log any exceptions (prevents silent failures)
+            fut.add_done_callback(handle_task_result)
+            return _wrap_future(fut)
 
         otel_utils.run_async = fixed_run_async
 
