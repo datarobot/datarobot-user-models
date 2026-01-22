@@ -143,6 +143,23 @@ class WorkerCtx:
                 This prevents 'attached to a different loop' and 'non-thread-safe operation' errors.
                 """
 
+                def _get_session_loop(session):
+                    """
+                    Extract the event loop from an aiohttp session.
+                    Checks multiple locations for compatibility with different aiohttp versions:
+                    - session._loop: older aiohttp versions
+                    - session._connector._loop: aiohttp 3.8+
+                    """
+                    # Try direct _loop attribute (older versions)
+                    loop = getattr(session, "_loop", None)
+                    if loop is not None:
+                        return loop
+                    # Try connector's loop (aiohttp 3.8+)
+                    connector = getattr(session, "_connector", None)
+                    if connector is not None:
+                        return getattr(connector, "_loop", None)
+                    return None
+
                 async def _coro():
                     # 1. Ensure the client's internal loop pointer matches our background loop
                     for attr in ["loop", "_loop"]:
@@ -151,7 +168,7 @@ class WorkerCtx:
 
                     # 2. Session affinity: aiohttp session MUST match the background loop
                     if hasattr(self, "session") and self.session:
-                        session_loop = getattr(self.session, "_loop", None)
+                        session_loop = _get_session_loop(self.session)
                         if session_loop and session_loop is not bg_loop:
                             # Force recreation in the correct loop
                             try:
@@ -160,7 +177,7 @@ class WorkerCtx:
                                 pass
                             self.session = None
 
-                    if not self.session:
+                    if not self.session or self.session.closed:
                         import aiohttp
 
                         # Use a default timeout as it's not always stored in the instance
