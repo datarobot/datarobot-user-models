@@ -185,7 +185,7 @@ PYTHON_AGENTIC_WORKFLOW = "python_agentic_workflow"
 R_UNSTRUCTURED = "r_unstructured"
 R_UNSTRUCTURED_PARAMS = "r_unstructured_params"
 PYTHON_XGBOOST_CLASS_LABELS_VALIDATION = "predictions_and_class_labels_validation"
-PYTHON311 = "python311"
+PYTHON312 = "python312"
 
 DOCKER_PYTHON_SKLEARN = "python3_sklearn_test_env"
 

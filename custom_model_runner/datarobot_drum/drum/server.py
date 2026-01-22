@@ -15,6 +15,7 @@ from flask import request
 
 from datarobot_drum.drum.common import ctx_request_id
 from datarobot_drum.drum.common import get_drum_logger
+from datarobot_drum.drum.description import version as drum_version
 from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 from datarobot_drum.drum.enum import URL_PREFIX_ENV_VAR_NAME
 
@@ -26,6 +27,7 @@ HTTP_500_INTERNAL_SERVER_ERROR = 500
 HTTP_513_DRUM_PIPELINE_ERROR = 513
 
 HEADER_REQUEST_ID = "X_Request_ID"
+HEADER_DRUM_VERSION = "X-Drum-Version"
 
 
 logger = get_drum_logger(LOGGER_NAME_PREFIX)
@@ -73,6 +75,7 @@ def after_request(response):
 
     request_id = ctx_request_id.get(None)
     response.headers[HEADER_REQUEST_ID] = request_id
+    response.headers[HEADER_DRUM_VERSION] = drum_version
 
     if flask.has_request_context():
         if hasattr(flask.g, "request_id_token"):

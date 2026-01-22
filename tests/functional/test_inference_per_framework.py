@@ -91,7 +91,7 @@ from tests.constants import (
     VECTOR_DATABASE,
     PYTHON_AGENTIC_WORKFLOW,
     AGENTIC_WORKFLOW,
-    PYTHON311,
+    PYTHON312,
     REPO_ROOT_PATH,
 )
 
@@ -973,7 +973,7 @@ class TestInference:
         assert "Your prediction probabilities do not add up to 1." in str(stdo)
 
 
-class TestPython311Fips:
+class TestPython312Fips:
     @pytest.fixture
     def start_server_in_env_folder(self, env_folder, framework_env):
         return os.path.join(
@@ -997,7 +997,7 @@ class TestPython311Fips:
         self, framework_env, env_folder, endpoint_prediction_methods, start_server_location, request
     ):
         # /opt/code test case will fail locally if running not in the env image
-        skip_if_framework_not_in_env(PYTHON311, framework_env)
+        skip_if_framework_not_in_env(PYTHON312, framework_env)
 
         input_dataset = os.path.join(TESTS_DATA_PATH, "juniors_3_year_stats_regression.csv")
         custom_model_dir = os.path.join(MODEL_TEMPLATES_PATH, "python3_dummy_regression")

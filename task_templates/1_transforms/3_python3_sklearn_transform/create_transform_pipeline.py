@@ -15,13 +15,8 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 numeric_selector = make_column_selector(dtype_include=np.number)
 categorical_selector = make_column_selector(dtype_include=object)
 
-
-numeric_pipeline = Pipeline(
-    steps=[
-        ("imputer", SimpleImputer(strategy="median", add_indicator=True)),
-        ("scaler", StandardScaler()),
-    ]
-)
+# SHARED
+# ======
 
 categorical_pipeline = Pipeline(
     steps=[
@@ -30,25 +25,50 @@ categorical_pipeline = Pipeline(
     ]
 )
 
+numeric_pipeline = Pipeline(
+    steps=[
+        ("imputer", SimpleImputer(strategy="median", add_indicator=True)),
+        ("scaler", StandardScaler(with_mean=False)),
+    ]
+)
+
+
+# SPARSE
+# ======
+
+
 # Sparse preprocessing pipeline, for models such as Ridge that handle sparse input well
-sparse_preprocessing_pipeline = ColumnTransformer(
+sparse_preprocessing_transformer = ColumnTransformer(
     transformers=[
         ("num", numeric_pipeline, numeric_selector),
         ("cat", categorical_pipeline, categorical_selector),
     ]
 )
 
+
+# DENSE
+# =====
+
+
 # Dense preprocessing pipeline, for models such as XGboost that do not do well with
 # extremely wide, sparse data
 # This preprocessing will work with linear models such as Ridge too
+# Sparse preprocessing pipeline, for models such as Ridge that handle sparse input well
+dense_preprocessing_transformer = ColumnTransformer(
+    transformers=[
+        ("num", numeric_pipeline, numeric_selector),
+        ("cat", categorical_pipeline, categorical_selector),
+    ]
+)
+
 dense_preprocessing_pipeline = Pipeline(
     steps=[
-        ("preprocessing", sparse_preprocessing_pipeline),
+        ("preprocessing", dense_preprocessing_transformer),
         ("SVD", TruncatedSVD(n_components=10, random_state=42, algorithm="randomized")),
     ]
 )
 
 
 def make_pipeline():
-    return sparse_preprocessing_pipeline
-    # return dense_preprocessing_pipeline
+    # return sparse_preprocessing_transformer
+    return dense_preprocessing_pipeline

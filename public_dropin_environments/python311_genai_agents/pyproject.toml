@@ -5,8 +5,8 @@ description = "Implementation of DockerContext"
 readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
-    "datarobot-genai[crewai, drmcp, langgraph, llamaindex, nat, pydanticai]>=0.2.6,<0.3.0",
-    "datarobot-moderations>=11.2.4,<11.3.0",
+    "datarobot-genai[crewai, drmcp, langgraph, llamaindex, nat, pydanticai]>=0.2.14,<0.3.0",
+    "datarobot-moderations>=11.2.10,<11.3.0",
     "datarobot-drum>=1.17.5,<1.18.0",
     "datarobot-mlops>=11.1.0",
     "openai>=1.81.0,<2.0.0",
@@ -31,9 +31,6 @@ dev = [
     "ruff>=0.12.0",
     "types-requests>=2.32.4.20250913",
     "yamlfix>=1.17.0",
-]
-chainlit = [
-    "chainlit>=2.9.0",
 ]
 # Additional dependencies required to run the agent in DataRobot Agentic playground
 agentic_playground = [

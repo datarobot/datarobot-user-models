@@ -124,7 +124,7 @@ pipeline:
       value: <+input>
     - name: image_uri
       type: String
-      description: The image URI to use for the reconcile_dependencies step. Preferably, the same image used as the base image for the environment, e.g. "datarobot/dropin-env-base:1.0.0-python-3.11.11-slim-bookworm"
+      description: The image URI to use for the reconcile_dependencies step. Preferably, the same image used as the base image for the environment, e.g. "datarobot/dropin-env-base:1.0.0-python-3.12-slim-bookworm"
       required: true
       value: <+input>
   description: |-

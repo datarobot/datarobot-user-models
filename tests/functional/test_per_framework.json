@@ -6,7 +6,7 @@
     {"env_folder":  "public_dropin_environments", "framework":  "python3_pytorch", "with_local":  false},
     {"env_folder":  "public_dropin_environments", "framework":  "python3_sklearn", "with_local":  false},
     {"env_folder":  "public_dropin_environments", "framework":  "python3_xgboost", "with_local":  false},
-    {"env_folder":  "public_dropin_environments", "framework":  "python311", "with_local":  false},
+    {"env_folder":  "public_dropin_environments", "framework":  "python312", "with_local":  false},
     {"env_folder":  "public_dropin_environments", "framework":  "r_lang", "with_local":  false},
     {"env_folder":  "public_dropin_gpu_environments", "framework":  "vllm"}
   ]
