@@ -127,7 +127,9 @@ class WorkerCtx:
             try:
                 # Give pending tasks a chance to complete by scheduling a graceful shutdown
                 async def _shutdown():
-                    tasks = [t for t in asyncio.all_tasks(bg_loop) if t is not asyncio.current_task()]
+                    tasks = [
+                        t for t in asyncio.all_tasks(bg_loop) if t is not asyncio.current_task()
+                    ]
                     if tasks:
                         # Wait up to 5 seconds for pending tasks to complete
                         done, pending = await asyncio.wait(tasks, timeout=5.0)
