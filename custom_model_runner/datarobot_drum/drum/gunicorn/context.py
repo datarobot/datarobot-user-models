@@ -7,6 +7,220 @@ from datarobot_drum.drum.enum import LOGGER_NAME_PREFIX
 logger = logging.getLogger(LOGGER_NAME_PREFIX + "." + __name__)
 
 
+def _is_gevent_patched() -> bool:
+    """Check if gevent monkey patching is active for threading module."""
+    try:
+        from gevent import monkey
+
+        return monkey.is_module_patched("threading")
+    except ImportError:
+        return False
+
+
+def _get_real_threading_lock():
+    """
+    Get a real threading.Lock that is NOT patched by gevent.
+
+    When gevent monkey patches threading, threading.Lock becomes a gevent lock
+    which can cause deadlocks when used across real OS threads (like the asyncio
+    background event loop thread).
+
+    Returns:
+        A real threading.Lock if gevent is patched, otherwise a regular threading.Lock.
+    """
+    if _is_gevent_patched():
+        try:
+            from gevent import monkey
+
+            # Get the original unpatched threading module
+            _real_threading = monkey.get_original("threading", "Lock")
+            if _real_threading:
+                return _real_threading()
+        except (ImportError, AttributeError):
+            pass
+    return threading.Lock()
+
+
+def _get_real_threading_thread():
+    """
+    Get a real threading.Thread class that is NOT patched by gevent.
+
+    When gevent monkey patches threading, threading.Thread creates greenlets instead
+    of real OS threads. For background event loops that need true thread isolation
+    (like asyncio loops used with run_coroutine_threadsafe), we need real OS threads.
+
+    Returns:
+        The real threading.Thread class if gevent is patched, otherwise the regular class.
+    """
+    if _is_gevent_patched():
+        try:
+            from gevent import monkey
+
+            RealThread = monkey.get_original("threading", "Thread")
+            if RealThread:
+                return RealThread
+        except (ImportError, AttributeError):
+            pass
+    return threading.Thread
+
+
+def _wait_for_future_gevent_safe(fut, timeout=None):
+    """
+    Wait for a concurrent.futures.Future in a gevent-safe manner.
+
+    Blocking calls like fut.result() can block the entire gevent hub when called
+    from a greenlet context. This function polls the future with cooperative yields.
+
+    Args:
+        fut: A concurrent.futures.Future to wait for.
+        timeout: Maximum time to wait in seconds (None = wait forever).
+
+    Returns:
+        The result of the future.
+
+    Raises:
+        TimeoutError: If timeout is exceeded.
+        Any exception raised by the future.
+    """
+    if not _is_gevent_patched():
+        # Not in gevent context, use regular blocking wait
+        return fut.result(timeout=timeout)
+
+    import time
+
+    try:
+        import gevent
+    except ImportError:
+        return fut.result(timeout=timeout)
+
+    start_time = time.monotonic()
+    poll_interval = 0.01  # Start with 10ms polling
+
+    while not fut.done():
+        if timeout is not None:
+            elapsed = time.monotonic() - start_time
+            if elapsed >= timeout:
+                raise TimeoutError(f"Future did not complete within {timeout} seconds")
+
+        # Cooperative yield to allow other greenlets to run
+        gevent.sleep(poll_interval)
+
+        # Exponential backoff up to 100ms to reduce CPU usage for long operations
+        poll_interval = min(poll_interval * 1.5, 0.1)
+
+    return fut.result()  # Will raise if future had an exception
+
+
+def _join_thread_gevent_safe(thread, timeout):
+    """
+    Join a thread with gevent-safe waiting if needed.
+
+    When gevent monkey patches threading, blocking on thread.join() from a greenlet
+    context will block the entire gevent hub. This function uses cooperative polling
+    to allow other greenlets to run while waiting for the thread to terminate.
+
+    Args:
+        thread: The thread to join.
+        timeout: Maximum time to wait in seconds.
+
+    Returns:
+        True if the thread terminated, False if timeout was reached.
+    """
+    if not thread.is_alive():
+        return True
+
+    if _is_gevent_patched():
+        import time
+
+        try:
+            import gevent
+        except ImportError:
+            thread.join(timeout=timeout)
+            return not thread.is_alive()
+
+        start = time.monotonic()
+        poll_interval = 0.05  # Start with 50ms polling
+
+        while thread.is_alive():
+            if time.monotonic() - start >= timeout:
+                return False
+            gevent.sleep(poll_interval)
+            # Exponential backoff up to 200ms to reduce CPU usage
+            poll_interval = min(poll_interval * 1.5, 0.2)
+        return True
+    else:
+        thread.join(timeout=timeout)
+        return not thread.is_alive()
+
+
+class _GeventFutureWrapper:
+    """
+    Wrapper for concurrent.futures.Future that provides gevent-safe waiting.
+
+    This wrapper intercepts .result() calls and uses cooperative polling
+    instead of blocking, allowing other greenlets to run while waiting.
+    """
+
+    def __init__(self, fut):
+        self._fut = fut
+
+    def result(self, timeout=None):
+        """Get the result with gevent-safe cooperative waiting."""
+        return _wait_for_future_gevent_safe(self._fut, timeout=timeout)
+
+    def done(self):
+        """Check if the future is done."""
+        return self._fut.done()
+
+    def cancelled(self):
+        """Check if the future was cancelled."""
+        return self._fut.cancelled()
+
+    def add_done_callback(self, fn):
+        """Add a callback to be called when the future completes."""
+        return self._fut.add_done_callback(fn)
+
+    def exception(self, timeout=None):
+        """Get the exception with gevent-safe cooperative waiting.
+
+        Unlike result(), this method returns the exception instead of raising it.
+        Uses cooperative polling to wait for future completion without blocking
+        the gevent hub.
+        """
+        if not _is_gevent_patched():
+            # Not in gevent context, use regular blocking wait
+            return self._fut.exception(timeout=timeout)
+
+        import time
+
+        try:
+            import gevent
+        except ImportError:
+            return self._fut.exception(timeout=timeout)
+
+        start_time = time.monotonic()
+        poll_interval = 0.01  # Start with 10ms polling
+
+        while not self._fut.done():
+            if timeout is not None:
+                elapsed = time.monotonic() - start_time
+                if elapsed >= timeout:
+                    raise TimeoutError(f"Future did not complete within {timeout} seconds")
+
+            # Cooperative yield to allow other greenlets to run
+            gevent.sleep(poll_interval)
+
+            # Exponential backoff up to 100ms to reduce CPU usage for long operations
+            poll_interval = min(poll_interval * 1.5, 0.1)
+
+        # Future is done, get the exception (returns None if no exception)
+        return self._fut.exception(timeout=0)
+
+    def __getattr__(self, name):
+        """Delegate other attributes to the underlying future."""
+        return getattr(self._fut, name)
+
+
 class WorkerCtx:
     """
     Context of a single gunicorn worker:
@@ -40,7 +254,8 @@ class WorkerCtx:
 
         def _join():
             if t.is_alive():
-                t.join(join_timeout)
+                # Use gevent-safe joining to avoid blocking the hub when called from greenlet context
+                _join_thread_gevent_safe(t, join_timeout)
 
         self.defer_stop(_join, desc=name or f"thread:{id(t)}")
 
@@ -97,16 +312,33 @@ class WorkerCtx:
 
         All async operations are offloaded to the background loop via run_coroutine_threadsafe,
         preventing 'attached to a different loop' and 'non-thread-safe operation' errors.
+
+        Gevent Compatibility:
+        - Uses real (unpatched) threading.Lock for cross-thread synchronization
+        - Provides gevent-safe future waiting that yields cooperatively
+        - Handles cleanup without blocking the gevent hub
         """
         import asyncio
 
         def _wrap_future(fut):
-            """Wrap concurrent.futures.Future as asyncio.Future if inside a running loop."""
+            """
+            Wrap concurrent.futures.Future for the current execution context.
+
+            - If inside an asyncio running loop: wrap as asyncio.Future
+            - If in gevent context: return a GeventFutureWrapper for cooperative waiting
+            - Otherwise: return the raw future for blocking .result() calls
+            """
             try:
                 asyncio.get_running_loop()
                 return asyncio.wrap_future(fut)
             except RuntimeError:
-                return fut
+                pass
+
+            # In gevent context, wrap the future for cooperative waiting
+            if _is_gevent_patched():
+                return _GeventFutureWrapper(fut)
+
+            return fut
 
         # Background loop for thread-safe async execution in sync/gevent workers.
         # We store it on self.app to ensure it lives as long as the worker.
@@ -115,7 +347,12 @@ class WorkerCtx:
             return  # Already initialized - skip to avoid double-patching
 
         loop = asyncio.new_event_loop()
-        bg_thread = threading.Thread(target=loop.run_forever, daemon=True, name="DrumBgLoop")
+        # IMPORTANT: Use real (unpatched) threading.Thread to create a real OS thread.
+        # When gevent monkey patches threading, Thread creates greenlets instead of real threads.
+        # The asyncio event loop MUST run in a real OS thread for run_coroutine_threadsafe()
+        # to work correctly - it relies on thread-safe wakeup mechanisms.
+        RealThread = _get_real_threading_thread()
+        bg_thread = RealThread(target=loop.run_forever, daemon=True, name="DrumBgLoop")
         bg_thread.start()
         self.app._drum_bg_loop = loop
         self.app._drum_bg_thread = bg_thread  # Store thread reference for cleanup
@@ -132,8 +369,7 @@ class WorkerCtx:
             if not bg_loop.is_running():
                 logger.debug("Background loop already stopped, skipping graceful shutdown")
                 # Still need to join thread and close loop
-                if loop_thread.is_alive():
-                    loop_thread.join(timeout=2.0)
+                _join_thread_gevent_safe(loop_thread, 2.0)
                 try:
                     bg_loop.close()
                 except Exception:
@@ -159,7 +395,9 @@ class WorkerCtx:
                                 pass
                     bg_loop.stop()
 
-                asyncio.run_coroutine_threadsafe(_shutdown(), bg_loop).result(timeout=10.0)
+                # Use gevent-safe waiting for the shutdown future
+                shutdown_fut = asyncio.run_coroutine_threadsafe(_shutdown(), bg_loop)
+                _wait_for_future_gevent_safe(shutdown_fut, timeout=10.0)
             except (KeyboardInterrupt, SystemExit) as e:
                 # Handle interruption signals during shutdown - force stop but don't re-raise
                 # to allow other cleanup callbacks to complete. Gunicorn handles signals at a higher level.
@@ -177,11 +415,9 @@ class WorkerCtx:
                     # Loop may already be closed
                     pass
             finally:
-                # Join the thread with a timeout
-                if loop_thread.is_alive():
-                    loop_thread.join(timeout=2.0)
-                    if loop_thread.is_alive():
-                        logger.warning("Background loop thread did not terminate within timeout")
+                # Join the thread with a timeout (gevent-safe)
+                if not _join_thread_gevent_safe(loop_thread, 2.0):
+                    logger.warning("Background loop thread did not terminate within timeout")
                 # Close the loop
                 try:
                     bg_loop.close()
@@ -210,15 +446,66 @@ class WorkerCtx:
         # Using WeakKeyDictionary to automatically remove entries when client is garbage collected,
         # preventing memory leaks in long-running workers with dynamic client creation.
         _session_locks: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
+        # Track client instances for session cleanup during shutdown.
+        # WeakSet allows automatic removal when clients are garbage collected.
+        _tracked_clients: weakref.WeakSet = weakref.WeakSet()
         # Threading lock to protect the check-then-set pattern in _get_session_lock.
-        # While currently _get_session_lock is only called from coroutines on bg_loop,
-        # this makes the code defensive against future changes that might call it from other threads.
-        _session_locks_guard = threading.Lock()
+        # This protects dictionary access from race conditions when multiple coroutines
+        # concurrently check for an existing lock.
+        # IMPORTANT: Use real (unpatched) threading.Lock to avoid gevent deadlocks.
+        # This lock is used from coroutines running in bg_loop (a real OS thread),
+        # so it must be a real threading lock, not a gevent-patched one.
+        _session_locks_guard = _get_real_threading_lock()
+        # Lock to protect _tracked_clients WeakSet from concurrent modification.
+        # WeakSet is not thread-safe, and multiple coroutines may add clients concurrently.
+        _tracked_clients_guard = _get_real_threading_lock()
 
-        def _get_session_lock(client) -> asyncio.Lock:
-            """Get or create an asyncio.Lock for the given client instance (thread-safe)."""
+        def _cleanup_all_sessions():
+            """Close all tracked aiohttp sessions during shutdown.
+
+            This prevents 'Unclosed client session' warnings from aiohttp.
+            Must be called before the background loop is stopped.
+            """
+            if not bg_loop.is_running():
+                logger.debug("Background loop not running, skipping session cleanup")
+                return
+
+            async def _close_sessions():
+                closed_count = 0
+                # Copy the set under lock to avoid concurrent modification
+                with _tracked_clients_guard:
+                    clients_snapshot = list(_tracked_clients)
+                for client in clients_snapshot:
+                    try:
+                        session = getattr(client, "session", None)
+                        if session and not session.closed:
+                            await session.close()
+                            closed_count += 1
+                    except Exception as e:
+                        logger.debug("Error closing session for client %s: %s", id(client), e)
+                if closed_count:
+                    logger.debug("Closed %d aiohttp session(s) during cleanup", closed_count)
+
+            try:
+                fut = asyncio.run_coroutine_threadsafe(_close_sessions(), bg_loop)
+                _wait_for_future_gevent_safe(fut, timeout=5.0)
+            except Exception as e:
+                logger.debug("Error during session cleanup: %s", e)
+
+        # Register session cleanup BEFORE background loop cleanup (higher order = earlier execution)
+        # This ensures sessions are closed while the loop is still running
+        self.defer_cleanup(_cleanup_all_sessions, order=-50, desc="aiohttp sessions")
+
+        async def _get_session_lock(client) -> asyncio.Lock:
+            """Get or create an asyncio.Lock for the given client instance.
+
+            Must be called from within an async context (inside bg_loop).
+            The threading lock protects dictionary access, while asyncio.Lock
+            is created in the proper event loop context (Python 3.10+ compatible).
+            """
             with _session_locks_guard:
                 if client not in _session_locks:
+                    # asyncio.Lock() created inside async context is properly bound to running loop
                     _session_locks[client] = asyncio.Lock()
                 return _session_locks[client]
 
@@ -283,7 +570,7 @@ class WorkerCtx:
                     # Without the lock, coroutine A could create a new session, then
                     # coroutine B (which started its check before A finished) could
                     # set self.session = None, orphaning A's newly created session.
-                    async with _get_session_lock(self):
+                    async with await _get_session_lock(self):
                         if hasattr(self, "session") and self.session:
                             session_loop = _get_session_loop(self.session)
                             # Recreate if loop doesn't match or if we couldn't determine the loop
@@ -320,6 +607,9 @@ class WorkerCtx:
                                 sock_read=timeout,
                             )
                             self.session = aiohttp.ClientSession(timeout=client_timeout)
+                            # Track this client for cleanup during shutdown
+                            with _tracked_clients_guard:
+                                _tracked_clients.add(self)
 
                     return await _orig_method(self, *args, **kwargs)
 
