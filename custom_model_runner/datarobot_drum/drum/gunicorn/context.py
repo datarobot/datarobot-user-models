@@ -115,20 +115,38 @@ class WorkerCtx:
             return  # Already initialized - skip to avoid double-patching
 
         loop = asyncio.new_event_loop()
-        t = threading.Thread(target=loop.run_forever, daemon=True, name="DrumBgLoop")
-        t.start()
+        bg_thread = threading.Thread(target=loop.run_forever, daemon=True, name="DrumBgLoop")
+        bg_thread.start()
         self.app._drum_bg_loop = loop
+        self.app._drum_bg_thread = bg_thread  # Store thread reference for cleanup
 
         bg_loop = self.app._drum_bg_loop
 
         # Register cleanup for the background loop to allow pending async operations
         # (metrics uploads, guard executions, telemetry) to complete during shutdown.
         def _cleanup_bg_loop():
+            # Capture thread reference in closure to avoid variable shadowing issues
+            loop_thread = self.app._drum_bg_thread
+
+            # Check if loop is still running before attempting graceful shutdown
+            if not bg_loop.is_running():
+                logger.debug("Background loop already stopped, skipping graceful shutdown")
+                # Still need to join thread and close loop
+                if loop_thread.is_alive():
+                    loop_thread.join(timeout=2.0)
+                try:
+                    bg_loop.close()
+                except Exception:
+                    pass
+                return
+
             try:
                 # Give pending tasks a chance to complete by scheduling a graceful shutdown
                 async def _shutdown():
                     tasks = [
-                        t for t in asyncio.all_tasks(bg_loop) if t is not asyncio.current_task()
+                        task
+                        for task in asyncio.all_tasks(bg_loop)
+                        if task is not asyncio.current_task()
                     ]
                     if tasks:
                         # Wait up to 5 seconds for pending tasks to complete
@@ -145,16 +163,22 @@ class WorkerCtx:
             except Exception as e:
                 logger.warning("Error during background loop shutdown: %s", e)
                 # Force stop if graceful shutdown fails
-                bg_loop.call_soon_threadsafe(bg_loop.stop)
+                try:
+                    bg_loop.call_soon_threadsafe(bg_loop.stop)
+                except RuntimeError:
+                    # Loop may already be closed
+                    pass
             finally:
                 # Join the thread with a timeout
-                if t.is_alive():
-                    t.join(timeout=2.0)
+                if loop_thread.is_alive():
+                    loop_thread.join(timeout=2.0)
+                    if loop_thread.is_alive():
+                        logger.warning("Background loop thread did not terminate within timeout")
                 # Close the loop
                 try:
                     bg_loop.close()
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.debug("Error closing background loop: %s", e)
 
         # Use low order (negative) so loop cleanup happens after other cleanup callbacks
         # that might still need to use async operations
@@ -203,17 +227,40 @@ class WorkerCtx:
                     """
                     Extract the event loop from an aiohttp session.
                     Checks multiple locations for compatibility with different aiohttp versions:
-                    - session._loop: older aiohttp versions
+                    - session._loop: older aiohttp versions (< 3.8)
                     - session._connector._loop: aiohttp 3.8+
+                    - session.connector._loop: aiohttp 3.9+ (connector is public property)
+
+                    Note: This relies on internal aiohttp attributes which may change.
+                    If all methods fail, returns None and session will be recreated.
                     """
-                    # Try direct _loop attribute (older versions)
+                    # Try direct _loop attribute (older versions < 3.8)
                     loop = getattr(session, "_loop", None)
                     if loop is not None:
                         return loop
-                    # Try connector's loop (aiohttp 3.8+)
+
+                    # Try connector's loop - first via private attribute (aiohttp 3.8+)
                     connector = getattr(session, "_connector", None)
                     if connector is not None:
-                        return getattr(connector, "_loop", None)
+                        loop = getattr(connector, "_loop", None)
+                        if loop is not None:
+                            return loop
+
+                    # Try public connector property (aiohttp 3.9+)
+                    try:
+                        connector = session.connector
+                        if connector is not None:
+                            loop = getattr(connector, "_loop", None)
+                            if loop is not None:
+                                return loop
+                    except Exception:
+                        pass
+
+                    # Fallback: if we can't determine the loop, return None
+                    # The session will be recreated to ensure correct loop affinity
+                    logger.debug(
+                        "Could not determine session's event loop, will recreate session"
+                    )
                     return None
 
                 async def _coro():
@@ -231,12 +278,13 @@ class WorkerCtx:
                     async with _get_session_lock(self):
                         if hasattr(self, "session") and self.session:
                             session_loop = _get_session_loop(self.session)
-                            if session_loop and session_loop is not bg_loop:
+                            # Recreate if loop doesn't match or if we couldn't determine the loop
+                            if session_loop is None or session_loop is not bg_loop:
                                 # Force recreation in the correct loop
                                 try:
                                     await self.session.close()
-                                except Exception:
-                                    pass
+                                except Exception as e:
+                                    logger.debug("Error closing stale session: %s", e)
                                 self.session = None
 
                         session = getattr(self, "session", None)
@@ -253,8 +301,15 @@ class WorkerCtx:
                                 if 0 <= temp_timeout <= 3600:
                                     timeout = temp_timeout
 
+                            # Set all timeout values including total to prevent hung requests.
+                            # total: overall timeout for entire operation
+                            # connect/sock_connect: connection establishment timeout
+                            # sock_read: timeout between data chunks
                             client_timeout = aiohttp.ClientTimeout(
-                                connect=timeout, sock_connect=timeout, sock_read=timeout
+                                total=timeout * 2,  # Allow 2x for total operation
+                                connect=timeout,
+                                sock_connect=timeout,
+                                sock_read=timeout,
                             )
                             self.session = aiohttp.ClientSession(timeout=client_timeout)
 
@@ -390,7 +445,7 @@ class WorkerCtx:
                 logger.info("WorkerCtx cleanup: %s", desc)
                 fn()
             except Exception as e:
-                logger.error("Tracing shutdown failed: %s", e)
+                logger.error("Cleanup failed for '%s': %s", desc, e)
 
     def running(self) -> bool:
         return self._running
