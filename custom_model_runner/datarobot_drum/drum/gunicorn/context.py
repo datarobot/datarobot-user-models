@@ -449,15 +449,22 @@ class WorkerCtx:
         # Track client instances for session cleanup during shutdown.
         # WeakSet allows automatic removal when clients are garbage collected.
         _tracked_clients: weakref.WeakSet = weakref.WeakSet()
-        # Threading lock to protect the check-then-set pattern in _get_session_lock.
+        # asyncio.Lock to protect the check-then-set pattern in _get_session_lock.
         # This protects dictionary access from race conditions when multiple coroutines
         # concurrently check for an existing lock.
-        # IMPORTANT: Use real (unpatched) threading.Lock to avoid gevent deadlocks.
-        # This lock is used from coroutines running in bg_loop (a real OS thread),
-        # so it must be a real threading lock, not a gevent-patched one.
-        _session_locks_guard = _get_real_threading_lock()
+        # Using asyncio.Lock instead of threading.Lock because this is used exclusively
+        # within async coroutines in bg_loop - asyncio.Lock provides cooperative yielding
+        # instead of blocking the event loop.
+        # Create the lock in bg_loop context to ensure proper event loop binding.
+        async def _create_async_lock():
+            return asyncio.Lock()
+
+        fut = asyncio.run_coroutine_threadsafe(_create_async_lock(), bg_loop)
+        _session_locks_guard = _wait_for_future_gevent_safe(fut, timeout=5.0)
         # Lock to protect _tracked_clients WeakSet from concurrent modification.
         # WeakSet is not thread-safe, and multiple coroutines may add clients concurrently.
+        # This remains a threading lock because _tracked_clients is accessed from both
+        # async context (bg_loop) and sync context (_cleanup_all_sessions callback).
         _tracked_clients_guard = _get_real_threading_lock()
 
         def _cleanup_all_sessions():
@@ -500,10 +507,9 @@ class WorkerCtx:
             """Get or create an asyncio.Lock for the given client instance.
 
             Must be called from within an async context (inside bg_loop).
-            The threading lock protects dictionary access, while asyncio.Lock
-            is created in the proper event loop context (Python 3.10+ compatible).
+            Uses asyncio.Lock for cooperative yielding instead of blocking the event loop.
             """
-            with _session_locks_guard:
+            async with _session_locks_guard:
                 if client not in _session_locks:
                     # asyncio.Lock() created inside async context is properly bound to running loop
                     _session_locks[client] = asyncio.Lock()
