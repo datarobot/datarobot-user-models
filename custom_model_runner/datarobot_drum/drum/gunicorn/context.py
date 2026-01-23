@@ -462,11 +462,12 @@ class WorkerCtx:
 
         fut = asyncio.run_coroutine_threadsafe(_create_async_lock(), bg_loop)
         _session_locks_guard = _wait_for_future_gevent_safe(fut, timeout=5.0)
-        # Lock to protect _tracked_clients WeakSet from concurrent modification.
-        # WeakSet is not thread-safe, and multiple coroutines may add clients concurrently.
-        # This remains a threading lock because _tracked_clients is accessed from both
-        # async context (bg_loop) and sync context (_cleanup_all_sessions callback).
-        _tracked_clients_guard = _get_real_threading_lock()
+        # asyncio.Lock to protect _tracked_clients WeakSet from concurrent modification.
+        # Using asyncio.Lock instead of threading.Lock because this is used exclusively
+        # within async coroutines in bg_loop - asyncio.Lock provides cooperative yielding
+        # instead of blocking the event loop.
+        fut = asyncio.run_coroutine_threadsafe(_create_async_lock(), bg_loop)
+        _tracked_clients_guard = _wait_for_future_gevent_safe(fut, timeout=5.0)
 
         def _cleanup_all_sessions():
             """Close all tracked aiohttp sessions during shutdown.
@@ -481,7 +482,7 @@ class WorkerCtx:
             async def _close_sessions():
                 closed_count = 0
                 # Copy the set under lock to avoid concurrent modification
-                with _tracked_clients_guard:
+                async with _tracked_clients_guard:
                     clients_snapshot = list(_tracked_clients)
                 for client in clients_snapshot:
                     try:
@@ -613,7 +614,7 @@ class WorkerCtx:
                             )
                             self.session = aiohttp.ClientSession(timeout=client_timeout)
                             # Track this client for cleanup during shutdown
-                            with _tracked_clients_guard:
+                            async with _tracked_clients_guard:
                                 _tracked_clients.add(self)
 
                     return await _orig_method(self, *args, **kwargs)
