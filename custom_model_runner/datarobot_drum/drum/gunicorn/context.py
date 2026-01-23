@@ -363,6 +363,7 @@ class WorkerCtx:
         # (metrics uploads, guard executions, telemetry) to complete during shutdown.
         def _cleanup_bg_loop():
             import gc
+            import time
 
             # Capture thread reference in closure to avoid variable shadowing issues
             loop_thread = self.app._drum_bg_thread
@@ -397,6 +398,20 @@ class WorkerCtx:
                     pass
                 return
 
+            # Helper to wait for thread termination without relying on gevent.sleep
+            # During shutdown, gevent may not process sleep() correctly
+            def _wait_for_thread_stop(thread, timeout):
+                """Wait for thread using time.sleep polling (works during gevent shutdown)."""
+                start = time.monotonic()
+                poll_interval = 0.05
+                while thread.is_alive():
+                    if time.monotonic() - start >= timeout:
+                        return False
+                    time.sleep(poll_interval)
+                    poll_interval = min(poll_interval * 1.5, 0.2)
+                return True
+
+            graceful_shutdown_succeeded = False
             try:
                 # Give pending tasks a chance to complete by scheduling a graceful shutdown
                 async def _shutdown():
@@ -406,27 +421,20 @@ class WorkerCtx:
                         if task is not asyncio.current_task()
                     ]
                     if tasks:
-                        # Wait up to 3 seconds for pending tasks to complete gracefully
-                        _, pending = await asyncio.wait(tasks, timeout=3.0)
-                        if pending:
-                            # Cancel all pending tasks
-                            for task in pending:
-                                task.cancel()
-                            # Wait for cancelled tasks with a short timeout
-                            # Some tasks may not respond to cancellation promptly
-                            try:
-                                await asyncio.wait_for(
-                                    asyncio.gather(*pending, return_exceptions=True),
-                                    timeout=2.0,
-                                )
-                            except asyncio.TimeoutError:
-                                logger.debug(
-                                    "Some tasks did not respond to cancellation within timeout"
-                                )
+                        # Cancel all tasks immediately - don't wait for graceful completion
+                        # during worker restart to minimize shutdown time
+                        for task in tasks:
+                            task.cancel()
+                        # Give cancelled tasks a brief moment to clean up
+                        try:
+                            await asyncio.wait_for(
+                                asyncio.gather(*tasks, return_exceptions=True),
+                                timeout=1.0,
+                            )
+                        except asyncio.TimeoutError:
+                            logger.debug("Some tasks did not respond to cancellation")
 
                     # Properly shutdown async generators and default executor
-                    # This prevents "coroutine was never awaited" warnings and
-                    # ensures resources are released before the loop stops
                     try:
                         await bg_loop.shutdown_asyncgens()
                     except Exception as e:
@@ -437,51 +445,57 @@ class WorkerCtx:
                     except Exception as e:
                         logger.debug("Error shutting down default executor: %s", e)
 
-                    # Small delay to allow pending transport close callbacks to complete.
-                    # This helps prevent "Bad file descriptor" errors when gevent and asyncio
-                    # both try to close the same sockets during garbage collection.
-                    await asyncio.sleep(0.1)
-
                     bg_loop.stop()
 
-                # Use gevent-safe waiting for the shutdown future
+                # Schedule the shutdown coroutine
                 shutdown_fut = asyncio.run_coroutine_threadsafe(_shutdown(), bg_loop)
-                _wait_for_future_gevent_safe(shutdown_fut, timeout=8.0)
-            except (KeyboardInterrupt, SystemExit) as e:
-                # Handle interruption signals during shutdown - force stop but don't re-raise
-                # to allow other cleanup callbacks to complete. Gunicorn handles signals at a higher level.
-                logger.warning("Interrupted during background loop shutdown: %s", type(e).__name__)
-                try:
-                    bg_loop.call_soon_threadsafe(bg_loop.stop)
-                except RuntimeError:
-                    pass
-            except Exception as e:
-                logger.warning("Error during background loop shutdown: %s", e)
-                # Force stop if graceful shutdown fails
-                try:
-                    bg_loop.call_soon_threadsafe(bg_loop.stop)
-                except RuntimeError:
-                    # Loop may already be closed
-                    pass
-            finally:
-                # Join the thread with a timeout (gevent-safe)
-                if not _join_thread_gevent_safe(loop_thread, 2.0):
-                    logger.warning("Background loop thread did not terminate within timeout")
 
-                # Run garbage collection to finalize any pending transports while we have
-                # the exception handler installed. This helps reduce "Exception ignored in __del__"
-                # messages from asyncio transports that conflict with gevent sockets.
+                # Wait for completion using time.sleep polling (not gevent.sleep)
+                # This is more reliable during gevent shutdown
+                start_time = time.monotonic()
+                timeout = 3.0  # Shorter timeout for faster worker restarts
+                poll_interval = 0.05
+
+                while not shutdown_fut.done():
+                    if time.monotonic() - start_time >= timeout:
+                        raise TimeoutError("Graceful shutdown timed out")
+                    time.sleep(poll_interval)
+                    poll_interval = min(poll_interval * 1.5, 0.1)
+
+                # Check if the future completed with an exception
+                shutdown_fut.result(timeout=0)
+                graceful_shutdown_succeeded = True
+
+            except (KeyboardInterrupt, SystemExit) as e:
+                # Handle interruption signals during shutdown - force stop
+                logger.debug("Interrupted during background loop shutdown: %s", type(e).__name__)
+            except TimeoutError:
+                # Graceful shutdown timed out - this is expected during fast worker restarts
+                logger.debug("Graceful background loop shutdown timed out, forcing stop")
+            except Exception as e:
+                logger.debug("Background loop shutdown error: %s", e)
+            finally:
+                # Force stop the loop if graceful shutdown didn't complete
+                if not graceful_shutdown_succeeded:
+                    try:
+                        bg_loop.call_soon_threadsafe(bg_loop.stop)
+                    except RuntimeError:
+                        pass  # Loop may already be stopped/closed
+
+                # Wait for the thread to terminate using time.sleep (not gevent.sleep)
+                if not _wait_for_thread_stop(loop_thread, 2.0):
+                    logger.debug("Background loop thread did not terminate within timeout")
+
+                # Run garbage collection to finalize any pending transports
                 gc.collect()
 
-                # Close the loop, suppressing OSError from gevent/asyncio socket conflicts.
-                # When gevent patches sockets and asyncio transports get garbage collected,
-                # they may try to close sockets that gevent has already detached, causing
-                # "Bad file descriptor" errors. This is benign since the worker is exiting.
+                # Close the loop, suppressing OSError from gevent/asyncio socket conflicts
                 try:
                     bg_loop.close()
                 except OSError as e:
-                    # Expected in gevent environments during transport cleanup
-                    logger.debug("OSError during background loop close (expected with gevent): %s", e)
+                    logger.debug(
+                        "OSError during background loop close (expected with gevent): %s", e
+                    )
                 except Exception as e:
                     logger.debug("Error closing background loop: %s", e)
 
