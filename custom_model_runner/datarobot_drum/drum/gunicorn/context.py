@@ -449,6 +449,7 @@ class WorkerCtx:
         # Track client instances for session cleanup during shutdown.
         # WeakSet allows automatic removal when clients are garbage collected.
         _tracked_clients: weakref.WeakSet = weakref.WeakSet()
+
         # asyncio.Lock to protect the check-then-set pattern in _get_session_lock.
         # This protects dictionary access from race conditions when multiple coroutines
         # concurrently check for an existing lock.
@@ -559,9 +560,7 @@ class WorkerCtx:
 
                     # Fallback: if we can't determine the loop, return None
                     # The session will be recreated to ensure correct loop affinity
-                    logger.debug(
-                        "Could not determine session's event loop, will recreate session"
-                    )
+                    logger.debug("Could not determine session's event loop, will recreate session")
                     return None
 
                 async def _coro():
