@@ -178,12 +178,17 @@ class WorkerCtx:
         # Using WeakKeyDictionary to automatically remove entries when client is garbage collected,
         # preventing memory leaks in long-running workers with dynamic client creation.
         _session_locks: weakref.WeakKeyDictionary = weakref.WeakKeyDictionary()
+        # Threading lock to protect the check-then-set pattern in _get_session_lock.
+        # While currently _get_session_lock is only called from coroutines on bg_loop,
+        # this makes the code defensive against future changes that might call it from other threads.
+        _session_locks_guard = threading.Lock()
 
         def _get_session_lock(client) -> asyncio.Lock:
-            """Get or create an asyncio.Lock for the given client instance."""
-            if client not in _session_locks:
-                _session_locks[client] = asyncio.Lock()
-            return _session_locks[client]
+            """Get or create an asyncio.Lock for the given client instance (thread-safe)."""
+            with _session_locks_guard:
+                if client not in _session_locks:
+                    _session_locks[client] = asyncio.Lock()
+                return _session_locks[client]
 
         def patch_method(method_name):
             _orig_method = getattr(AsyncHTTPClient, method_name)
@@ -264,6 +269,29 @@ class WorkerCtx:
         patch_method("bulk_upload_custom_metrics")
         patch_method("predict")
         patch_method("async_report_event")
+
+        # Patch close() separately - it's simpler and doesn't need session recreation logic
+        def patch_close_method():
+            if not hasattr(AsyncHTTPClient, "close"):
+                return
+
+            _orig_close = AsyncHTTPClient.close
+
+            def fixed_close(self):
+                """
+                Thread-safe wrapper for close() that offloads to the background loop.
+                Ensures the aiohttp session is properly closed to avoid 'Unclosed client session' warnings.
+                """
+
+                async def _close_coro():
+                    return await _orig_close(self)
+
+                # Offload to background loop and wait for completion
+                return _wrap_future(asyncio.run_coroutine_threadsafe(_close_coro(), bg_loop))
+
+            AsyncHTTPClient.close = fixed_close
+
+        patch_close_method()
 
     def _patch_otel_utils(self, bg_loop, _wrap_future):
         """Patch OpenTelemetry instrumentation to run async tasks in the background loop."""
