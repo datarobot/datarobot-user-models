@@ -160,6 +160,14 @@ class WorkerCtx:
                     bg_loop.stop()
 
                 asyncio.run_coroutine_threadsafe(_shutdown(), bg_loop).result(timeout=10.0)
+            except (KeyboardInterrupt, SystemExit) as e:
+                # Handle interruption signals during shutdown - force stop but don't re-raise
+                # to allow other cleanup callbacks to complete. Gunicorn handles signals at a higher level.
+                logger.warning("Interrupted during background loop shutdown: %s", type(e).__name__)
+                try:
+                    bg_loop.call_soon_threadsafe(bg_loop.stop)
+                except RuntimeError:
+                    pass
             except Exception as e:
                 logger.warning("Error during background loop shutdown: %s", e)
                 # Force stop if graceful shutdown fails
