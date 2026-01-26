@@ -85,7 +85,7 @@ class RModelAdapter(AbstractModelAdapter):
         """
         d = {True: "True", False: "False"}
         if isinstance(pd_type, pd.DataFrame):
-            mask = pd_type.applymap(type) != bool
+            mask = pd_type.map(type) != bool
             return pd_type.where(mask, pd_type.replace(d))
         # else, Series
         if pd_type.dtype == bool:
