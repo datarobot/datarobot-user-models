@@ -4,12 +4,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-#### [1.17.12] - unreleased
+#### [1.17.12] - 2026-01-27
 ##### Changed
 - Bump supported Python version to 3.12
 
 ##### Added
 - X-Drum-Version response header.
+
+##### Fixed
+- Fix asyncio event loop errors in Gunicorn worker
 
 #### [1.17.11] - 2025-12-26
 ##### Fixed
