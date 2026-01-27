@@ -4,7 +4,7 @@
   "description": "This template environment can be used to create artifact-only R custom models that use the caret library. Your custom model archive need only contain your model artifacts if you use the environment correctly.",
   "programmingLanguage": "r",
   "label": "",
-  "environmentVersionId": "69700666007d2d6868003cc5",
+  "environmentVersionId": "6978e1f70039cd475d003ddf",
   "environmentVersionDescription": "Python Version: 3.12\nR Version: 4.5.2",
   "isPublic": true,
   "isDownloadable": true,
@@ -14,8 +14,8 @@
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_environments/r_lang",
   "imageRepository": "env-r-lang",
   "tags": [
-    "v11.5.0-69700666007d2d6868003cc5",
-    "69700666007d2d6868003cc5",
+    "v11.5.0-6978e1f70039cd475d003ddf",
+    "6978e1f70039cd475d003ddf",
     "v11.5.0-latest"
   ]
 }
