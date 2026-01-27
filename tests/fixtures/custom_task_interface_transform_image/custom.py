@@ -29,4 +29,4 @@ class CustomTask(TransformerInterface):
     def transform(self, X, **kwargs):
         """Transform function that does not require any fit hook above"""
 
-        return X.applymap(self._process_image)
+        return X.map(self._process_image)

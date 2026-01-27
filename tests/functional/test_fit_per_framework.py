@@ -130,7 +130,7 @@ class TestFit:
                 df[colname] = pd.arrays.SparseArray(
                     df[colname], dtype=pd.SparseDtype(np.float64, 0)
                 )
-                mmwrite(__keep_this_around.name, sp.csr_matrix(df.to_numpy()))
+                mmwrite(__keep_this_around.name, sp.csr_matrix(df.to_numpy(na_value=0)))
             else:
                 df.to_csv(__keep_this_around.name, index=False, lineterminator="\r\n")
             return " --row-weights " + colname, __keep_this_around.name, __keep_this_around

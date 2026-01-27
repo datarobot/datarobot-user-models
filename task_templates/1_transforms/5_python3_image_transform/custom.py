@@ -57,4 +57,4 @@ class CustomTask(TransformerInterface):
             Returns a dataframe with transformed data.
         """
 
-        return data.applymap(self.process_image)
+        return data.map(self.process_image)
