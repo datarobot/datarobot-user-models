@@ -17,16 +17,21 @@ requests>=2.32.4
 protobuf>=5.29.5,<6.0.0
 starlette>=0.49.1
 pillow>=11.3.0
-urllib3>=2.6.0
+urllib3>=2.6.3
 langchain-core~=0.3.81
 langchain-text-splitters~=0.3.9
 h2~=4.3.0
 pdfminer.six>=20251230
 langgraph-checkpoint~=3.0.0
-aiohttp~=3.12.14
-pypdf~=6.4.0
-filelock>=3.20.1
-werkzeug>=3.1.4
+aiohttp>=3.13.3
+pypdf>=6.6.2
+filelock>=3.20.3
+werkzeug>=3.1.5
+pyasn1>=0.6.2
+wheel>=0.46.2
+python-multipart>=0.0.22
+orjson>=3.11.5
+azure-core>=1.38.0
 
 # GenAI Environment
 click~=8.1.8
@@ -66,6 +71,5 @@ python-dotenv~=1.1.0
 ragas @ git+https://github.com/explodinggradients/ragas@5d59549ad5ef511f621502c563bc55ac5aeb9188#subdirectory=ragas
 # pyarrow==21.0.0 breaks the current ragas version https://github.com/apache/arrow/issues/47155
 pyarrow<21.0.0
-requests~=2.32.4
 traceloop-sdk~=0.40.2
-uvicorn~=0.35.0
+uvicorn>=0.35.0
