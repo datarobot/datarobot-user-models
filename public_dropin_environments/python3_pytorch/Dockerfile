@@ -59,6 +59,9 @@ ENV ADDRESS=0.0.0.0:8080
 ENV WITH_ERROR_SERVER=0 \
     PYTHONUNBUFFERED=1
 
+# Gunicorn configuration
+ENV MLOPS_RUNTIME_PARAM_DRUM_SERVER_TYPE='{"type": "string", "payload": "gunicorn"}'
+ENV MAX_WORKERS=1
 
 COPY ./*.sh ${CODE_DIR}/
 WORKDIR ${CODE_DIR}
