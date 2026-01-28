@@ -80,7 +80,7 @@ opentelemetry-semantic-conventions==0.60b1
 opentelemetry-util-http==0.60b1
 orjson==3.11.5
 packaging==26.0
-pandas==3.0.0
+pandas==2.3.3
 pillow==12.1.0
 progress==1.6.1
 proto-plus==1.27.0
@@ -114,6 +114,7 @@ trafaret==2.1.1
 triton==3.6.0
 typing-extensions==4.15.0
 typing-inspection==0.4.2
+tzdata==2025.3
 urllib3==2.6.3
 werkzeug==3.1.5
 wrapt==1.17.3
