@@ -1029,7 +1029,7 @@ wheels = [
 
 [[package]]
 name = "datarobot-genai"
-version = "0.2.33"
+version = "0.2.42"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ag-ui-protocol" },
@@ -1049,9 +1049,9 @@ dependencies = [
     { name = "ragas" },
     { name = "requests" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/31/e8/6d737eb36a64f2aa7161856291d1750682c25b3209d24a2e9b885df181c5/datarobot_genai-0.2.33.tar.gz", hash = "sha256:256415858a35d4b36c83a81cc3a24375d8e1f612405e72adac29bc37d9623aa3", size = 145494, upload-time = "2026-01-21T10:09:19.913Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/ae/60/9350e68d93cb3f4f6cfd4f5ecb8ddf1bedc74e4385c77f7fff6fdd148b1d/datarobot_genai-0.2.42.tar.gz", hash = "sha256:cc82d8500f9594b69b3d04b7dd0618c77bb6582371d9dbc234ac06d484fb7612", size = 150250, upload-time = "2026-01-28T01:41:50.671Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/96/fc/0224c7fb515f114c6217e0cbd22db083256c6d6da7a7c8351618510435de/datarobot_genai-0.2.33-py3-none-any.whl", hash = "sha256:861ad6370bae2a54177b7a20ddd24400aef224ff5583cd2f1b01d843367cf596", size = 232826, upload-time = "2026-01-21T10:09:17.862Z" },
+    { url = "https://files.pythonhosted.org/packages/96/f9/c2ab3c2a5aa8166d148ac689a3f5fb541353b2a2dca29fc6132988d107b1/datarobot_genai-0.2.42-py3-none-any.whl", hash = "sha256:6e906a4a9a203e35d21c876223f68fe6c11b0a8a5532ad8011cd853f6e74a9ec", size = 238256, upload-time = "2026-01-28T01:41:48.81Z" },
 ]
 
 [package.optional-dependencies]
@@ -1383,7 +1383,7 @@ wheels = [
 [[package]]
 name = "dockercontext"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "datarobot-drum" },
     { name = "datarobot-genai", extra = ["crewai", "drmcp", "langgraph", "llamaindex", "nat", "pydanticai"] },
@@ -1424,7 +1424,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "datarobot-drum", specifier = ">=1.17.5,<1.18.0" },
-    { name = "datarobot-genai", extras = ["crewai", "drmcp", "langgraph", "llamaindex", "nat", "pydanticai"], specifier = ">=0.2.14,<0.3.0" },
+    { name = "datarobot-genai", extras = ["crewai", "drmcp", "langgraph", "llamaindex", "nat", "pydanticai"], specifier = ">=0.2.34,<0.3.0" },
     { name = "datarobot-mlops", specifier = ">=11.1.0" },
     { name = "datarobot-moderations", specifier = ">=11.2.10,<11.3.0" },
     { name = "ecs-logging", marker = "extra == 'agentic-playground'", specifier = ">=2.2.0" },
