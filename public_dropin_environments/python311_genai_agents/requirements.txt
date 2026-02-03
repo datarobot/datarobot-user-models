@@ -19,7 +19,6 @@ annoy==1.17.3
 anthropic==0.75.0
 anyio==4.9.0
 appdirs==1.4.4
-appnope==0.1.4
 argcomplete==3.6.2
 argon2-cffi==23.1.0
 argon2-cffi-bindings==21.2.0
@@ -397,4 +396,4 @@ zope-interface==8.2
 zstandard==0.23.0
 
 # The following packages are considered to be unsafe in a requirements file:
-setuptools==80.10.2
+# setuptools
