@@ -204,7 +204,7 @@ multidict==6.5.1
 multiprocess==0.70.16
 mypy-extensions==1.1.0
 nbclient==0.10.2
-nbconvert==7.16.6
+nbconvert==7.17.0
 nbformat==5.10.4
 nemoguardrails==0.14.0
 nest-asyncio==1.6.0
