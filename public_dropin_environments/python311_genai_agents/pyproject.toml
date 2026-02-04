@@ -6,7 +6,7 @@ readme = "README.md"
 requires-python = ">=3.11, <3.12"
 dependencies = [
     "datarobot-genai[crewai, drmcp, langgraph, llamaindex, nat, pydanticai]>=0.2.34,<0.3.0",
-    "datarobot-moderations>=11.2.10,<11.3.0",
+    "datarobot-moderations>=11.2.11,<11.3.0",
     "datarobot-drum>=1.17.5,<1.18.0",
     "datarobot-mlops>=11.1.0",
     "openai>=1.81.0,<2.0.0",
