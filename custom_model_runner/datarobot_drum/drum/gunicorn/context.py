@@ -512,6 +512,7 @@ class WorkerCtx:
         self._patch_async_http_client(bg_loop, _wrap_future)
         self._patch_otel_utils(bg_loop, _wrap_future)
         self._patch_guard_executor(bg_loop, _wrap_future)
+        self._patch_nemo_rails(bg_loop, _wrap_future)
 
     def _patch_async_http_client(self, bg_loop, _wrap_future):
         """Patch AsyncHTTPClient methods to run in the background loop."""
@@ -783,6 +784,34 @@ class WorkerCtx:
             )
 
         GuardExecutor.async_guard_executor = fixed_async_guard_executor
+
+    def _patch_nemo_rails(self, bg_loop, _wrap_future):
+        """Patch LLMRails to run generate_async in the background loop."""
+        import asyncio
+
+        try:
+            from nemoguardrails import LLMRails
+        except ImportError:
+            return
+
+        _orig_generate_async = LLMRails.generate_async
+
+        async def fixed_generate_async(self, *args, **kwargs):
+            """
+            Thread-safe async wrapper for LLMRails.generate_async that offloads execution
+            to the dedicated background event loop.
+            
+            This ensures the coroutine runs in bg_loop and returns an awaitable result
+            compatible with asyncio.gather() calls in guard_executor.py.
+            """
+            # Offload to background loop using run_coroutine_threadsafe
+            fut = asyncio.run_coroutine_threadsafe(
+                _orig_generate_async(self, *args, **kwargs), bg_loop
+            )
+            # Wrap as asyncio.Future to make it awaitable (not GeventFutureWrapper)
+            return await asyncio.wrap_future(fut)
+
+        LLMRails.generate_async = fixed_generate_async
 
     def start(self):
         """
