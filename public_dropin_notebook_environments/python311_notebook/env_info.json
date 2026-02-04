@@ -4,9 +4,10 @@
   "description": "Deprecated in favor of Python 3.11 Base Notebook Drop-In Template",
   "programmingLanguage": "python",
   "label": "",
-  "environmentVersionId": "6848b6632081a81ae47ee7d3",
+  "environmentVersionId": "6983213b1d0e8d076d77999c",
   "environmentVersionDescription": "",
   "isPublic": false,
+  "isDownloadable": true,
   "useCases": [
     "notebook",
     "customModel"
@@ -14,8 +15,8 @@
   "contextUrl": "https://github.com/datarobot/datarobot-user-models/tree/master/public_dropin_notebook_environments/python311_notebook",
   "imageRepository": "env-notebook-python311-notebook",
   "tags": [
-    "v11.1.0-6848b6632081a81ae47ee7d3",
-    "6848b6632081a81ae47ee7d3",
-    "v11.1.0-latest"
+    "v11.5.0-6983213b1d0e8d076d77999c",
+    "6983213b1d0e8d076d77999c",
+    "v11.5.0-latest"
   ]
 }
