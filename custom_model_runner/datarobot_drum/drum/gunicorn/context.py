@@ -324,23 +324,41 @@ class WorkerCtx:
             """
             Wrap concurrent.futures.Future for the current execution context.
 
-            - If inside an asyncio running loop: wrap as asyncio.Future
-            - If in gevent context: return a GeventFutureWrapper for cooperative waiting
+            - If inside bg_loop (async context in real thread): wrap as asyncio.Future (awaitable)
+            - If in gevent context without loop: return GeventFutureWrapper for cooperative waiting
             - Otherwise: return the raw future for blocking .result() calls
+            
+            The key insight: bg_loop runs in a real OS thread (not greenlet), so
+            asyncio.wrap_future is safe there even with gevent active elsewhere.
             """
-            # In gevent context, wrap the future for cooperative waiting.
-            # We do this BEFORE checking for asyncio loop because in Python 3.12 + gevent,
-            # asyncio.wrap_future can trigger 'Non-thread-safe operation' errors
-            # if called from a different greenlet than the loop.
+            # First check if we're in an async context
+            try:
+                current_loop = asyncio.get_running_loop()
+                # We're in some running event loop
+                
+                # If it's bg_loop, we're in the real OS thread - safe to use wrap_future
+                if current_loop is bg_loop:
+                    return asyncio.wrap_future(fut)
+                
+                # If it's some other loop and gevent is active, we might be in a greenlet
+                # with an event loop, which is problematic for wrap_future in Python 3.12
+                if _is_gevent_patched():
+                    # Return GeventFutureWrapper for sync-style waiting
+                    # Note: This means the caller cannot await this - they must call .result()
+                    return _GeventFutureWrapper(fut)
+                
+                # Not gevent, some other loop - safe to wrap
+                return asyncio.wrap_future(fut)
+                
+            except RuntimeError:
+                # No running loop - we're in sync context
+                pass
+
+            # In gevent sync context (no loop), use cooperative wrapper
             if _is_gevent_patched():
                 return _GeventFutureWrapper(fut)
 
-            try:
-                asyncio.get_running_loop()
-                return asyncio.wrap_future(fut)
-            except RuntimeError:
-                pass
-
+            # Plain sync context
             return fut
 
         # Background loop for thread-safe async execution in sync/gevent workers.
@@ -801,15 +819,22 @@ class WorkerCtx:
             Thread-safe async wrapper for LLMRails.generate_async that offloads execution
             to the dedicated background event loop.
             
-            This ensures the coroutine runs in bg_loop and returns an awaitable result
-            compatible with asyncio.gather() calls in guard_executor.py.
+            This ensures the coroutine runs in bg_loop and awaits the result safely,
+            avoiding asyncio.wrap_future which can trigger "Non-thread-safe operation" 
+            errors in Python 3.12 + gevent when called from a greenlet context.
             """
             # Offload to background loop using run_coroutine_threadsafe
             fut = asyncio.run_coroutine_threadsafe(
                 _orig_generate_async(self, *args, **kwargs), bg_loop
             )
-            # Wrap as asyncio.Future to make it awaitable (not GeventFutureWrapper)
-            return await asyncio.wrap_future(fut)
+            
+            # Await the result by polling the concurrent.futures.Future cooperatively.
+            # This avoids asyncio.wrap_future which can fail with gevent + Python 3.12.
+            while not fut.done():
+                await asyncio.sleep(0.01)  # Cooperative yield
+            
+            # Future is done, get the result (will raise if there was an exception)
+            return fut.result()
 
         LLMRails.generate_async = fixed_generate_async
 
