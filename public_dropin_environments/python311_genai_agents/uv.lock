@@ -1131,7 +1131,7 @@ wheels = [
 
 [[package]]
 name = "datarobot-moderations"
-version = "11.2.10"
+version = "11.2.11"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -1147,6 +1147,7 @@ dependencies = [
     { name = "llama-index-llms-bedrock-converse" },
     { name = "llama-index-llms-langchain" },
     { name = "llama-index-llms-vertex" },
+    { name = "nemo-microservices" },
     { name = "nemoguardrails" },
     { name = "nest-asyncio" },
     { name = "numpy" },
@@ -1161,7 +1162,7 @@ dependencies = [
     { name = "trafaret" },
 ]
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a0/06/c514c4ec1ef8f92d8bb4b98ae0db90c780bccb9ba05c043cfecf67b0c238/datarobot_moderations-11.2.10-py3-none-any.whl", hash = "sha256:3168021c141a8da6a9f3c48a8c0eb29fa9a6e01db9530f9eb573cc8f5a725e9d", size = 69114, upload-time = "2025-12-17T00:51:14.404Z" },
+    { url = "https://files.pythonhosted.org/packages/b7/e9/0442b78a90859ce8f4e9dc5faf28966ce324f42421f87c9b4393bd6c8f40/datarobot_moderations-11.2.11-py3-none-any.whl", hash = "sha256:eb6db70874d8fe2042269d869e5bbb50fff343b330689087cf082e7001aca577", size = 75392, upload-time = "2026-01-22T17:11:12.723Z" },
 ]
 
 [[package]]
@@ -3903,6 +3904,22 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/6d/fd/91545e604bc3dad7dca9ed03284086039b294c6b3d75c0d2fa45f9e9caf3/nbformat-5.10.4.tar.gz", hash = "sha256:322168b14f937a5d11362988ecac2a4952d3d8e3a2cbeb2319584631226d5b3a", size = 142749, upload-time = "2024-04-04T11:20:37.371Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/a9/82/0340caa499416c78e5d8f5f05947ae4bc3cba53c9f038ab6e9ed964e22f1/nbformat-5.10.4-py3-none-any.whl", hash = "sha256:3b48d6c8fbca4b299bf3982ea7db1af21580e4fec269ad087b9e81588891200b", size = 78454, upload-time = "2024-04-04T11:20:34.895Z" },
+]
+
+[[package]]
+name = "nemo-microservices"
+version = "1.5.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "anyio" },
+    { name = "distro" },
+    { name = "httpx" },
+    { name = "pydantic" },
+    { name = "sniffio" },
+    { name = "typing-extensions" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/de/72/5026083f5e3580f89b99f9ad98fdc73fd6cab018593f1aee91138b9a0540/nemo_microservices-1.5.0-py3-none-any.whl", hash = "sha256:a311f84cfb04ddcdce693b7f97708b4afe3f36560a39d77fa145b26d36db9ad4", size = 1490816, upload-time = "2025-12-18T19:39:08.617Z" },
 ]
 
 [[package]]
