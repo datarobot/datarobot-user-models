@@ -328,15 +328,18 @@ class WorkerCtx:
             - If in gevent context: return a GeventFutureWrapper for cooperative waiting
             - Otherwise: return the raw future for blocking .result() calls
             """
+            # In gevent context, wrap the future for cooperative waiting.
+            # We do this BEFORE checking for asyncio loop because in Python 3.12 + gevent,
+            # asyncio.wrap_future can trigger 'Non-thread-safe operation' errors
+            # if called from a different greenlet than the loop.
+            if _is_gevent_patched():
+                return _GeventFutureWrapper(fut)
+
             try:
                 asyncio.get_running_loop()
                 return asyncio.wrap_future(fut)
             except RuntimeError:
                 pass
-
-            # In gevent context, wrap the future for cooperative waiting
-            if _is_gevent_patched():
-                return _GeventFutureWrapper(fut)
 
             return fut
 
