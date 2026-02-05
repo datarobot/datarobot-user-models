@@ -294,8 +294,6 @@ def _create_processor_with_real_thread(factory_func):
             if not real_thread:
                 # Unable to get original Thread class, log warning and create normally
                 # This shouldn't happen, but better to be safe
-                import logging
-
                 log = logging.getLogger(__name__)
                 log.warning(
                     "Could not get original threading.Thread from gevent. "
