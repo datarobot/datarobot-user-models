@@ -309,6 +309,7 @@ class WorkerCtx:
         - AsyncHTTPClient (datarobot_dome): bulk_upload_custom_metrics, predict, async_report_event
         - OpenTelemetry instrumentation: run_async
         - GuardExecutor (datarobot_dome): async_guard_executor
+        - LLMRails (nemoguardrails): generate_async
 
         All async operations are offloaded to the background loop via run_coroutine_threadsafe,
         preventing 'attached to a different loop' and 'non-thread-safe operation' errors.
@@ -319,6 +320,33 @@ class WorkerCtx:
         - Handles cleanup without blocking the gevent hub
         """
         import asyncio
+
+        def _create_async_method_patch(bg_loop, _wrap_future, original_method):
+            """
+            Helper to create a standardized async method patch.
+
+            This reduces code duplication across _patch_guard_executor, _patch_nemo_rails, etc.
+            All patches follow the same pattern: offload to bg_loop via run_coroutine_threadsafe
+            and wrap the future appropriately for the calling context.
+
+            Args:
+                bg_loop: The background event loop to offload async operations to
+                _wrap_future: Function to wrap futures for the current execution context
+                original_method: The original async method to be wrapped
+
+            Returns:
+                A wrapper function that can replace the original method
+            """
+
+            def wrapper(self, *args, **kwargs):
+                """Thread-safe wrapper that offloads execution to the background loop."""
+                return _wrap_future(
+                    asyncio.run_coroutine_threadsafe(
+                        original_method(self, *args, **kwargs), bg_loop
+                    )
+                )
+
+            return wrapper
 
         def _wrap_future(fut):
             """
@@ -529,8 +557,8 @@ class WorkerCtx:
 
         self._patch_async_http_client(bg_loop, _wrap_future)
         self._patch_otel_utils(bg_loop, _wrap_future)
-        self._patch_guard_executor(bg_loop, _wrap_future)
-        self._patch_nemo_rails(bg_loop, _wrap_future)
+        self._patch_guard_executor(bg_loop, _wrap_future, _create_async_method_patch)
+        self._patch_nemo_rails(bg_loop, _wrap_future, _create_async_method_patch)
 
     def _patch_async_http_client(self, bg_loop, _wrap_future):
         """Patch AsyncHTTPClient methods to run in the background loop."""
@@ -780,60 +808,29 @@ class WorkerCtx:
 
         otel_utils.run_async = fixed_run_async
 
-    def _patch_guard_executor(self, bg_loop, _wrap_future):
+    def _patch_guard_executor(self, bg_loop, _wrap_future, _create_async_method_patch):
         """Patch GuardExecutor to run async_guard_executor in the background loop."""
-        import asyncio
-
         try:
             from datarobot_dome.guard_executor import GuardExecutor
         except ImportError:
             return
 
-        _orig_async_guard_executor = GuardExecutor.async_guard_executor
+        # Use the standardized helper to create the patch
+        GuardExecutor.async_guard_executor = _create_async_method_patch(
+            bg_loop, _wrap_future, GuardExecutor.async_guard_executor
+        )
 
-        def fixed_async_guard_executor(self, *args, **kwargs):
-            """
-            Thread-safe wrapper for GuardExecutor async tasks using the shared background loop.
-            """
-            return _wrap_future(
-                asyncio.run_coroutine_threadsafe(
-                    _orig_async_guard_executor(self, *args, **kwargs), bg_loop
-                )
-            )
-
-        GuardExecutor.async_guard_executor = fixed_async_guard_executor
-
-    def _patch_nemo_rails(self, bg_loop, _wrap_future):
+    def _patch_nemo_rails(self, bg_loop, _wrap_future, _create_async_method_patch):
         """Patch LLMRails to run generate_async in the background loop."""
-        import asyncio
-
         try:
             from nemoguardrails import LLMRails
         except ImportError:
             return
 
-        _orig_generate_async = LLMRails.generate_async
-
-        def fixed_generate_async(self, *args, **kwargs):
-            """
-            Thread-safe wrapper for LLMRails.generate_async that offloads execution
-            to the dedicated background event loop.
-
-            This ensures the coroutine runs in bg_loop, following the same pattern as
-            other patches (_patch_guard_executor, _patch_async_http_client) which use
-            non-async functions returning _wrap_future(asyncio.run_coroutine_threadsafe(...)).
-
-            Returns a wrapped future that can be:
-            - Awaited in async contexts (when in bg_loop)
-            - Called with .result() in sync/gevent contexts (cooperative waiting)
-            """
-            return _wrap_future(
-                asyncio.run_coroutine_threadsafe(
-                    _orig_generate_async(self, *args, **kwargs), bg_loop
-                )
-            )
-
-        LLMRails.generate_async = fixed_generate_async
+        # Use the standardized helper to create the patch
+        LLMRails.generate_async = _create_async_method_patch(
+            bg_loop, _wrap_future, LLMRails.generate_async
+        )
 
     def start(self):
         """

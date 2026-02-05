@@ -8,6 +8,7 @@ Released under the terms of DataRobot Tool and Utility Agreement.
 import logging
 import os
 import sys
+import threading
 import trafaret as t
 from contextvars import ContextVar
 from urllib.parse import urlparse, urlunparse
@@ -43,6 +44,13 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
+
+# Global lock to protect threading.Thread modification in _create_processor_with_real_thread.
+# This prevents race conditions if setup_otel() is ever called from multiple threads,
+# ensuring only one thread at a time modifies the global threading.Thread class.
+# Using RLock (reentrant lock) to allow the same thread to acquire it multiple times,
+# protecting against potential deadlocks in nested/recursive calls.
+_otel_thread_setup_lock = threading.RLock()
 
 
 ctx_request_id = ContextVar("request_id")
@@ -254,6 +262,10 @@ def _create_processor_with_real_thread(factory_func):
     during processor/reader creation to ensure background threads are real
     OS threads, preventing the KeyError.
 
+    Thread-safety: Uses _otel_thread_setup_lock (RLock) to protect the global
+    threading.Thread modification from concurrent access, preventing race
+    conditions if this function is called from multiple threads simultaneously.
+
     Args:
         factory_func: Callable that creates the processor/reader
 
@@ -273,34 +285,36 @@ def _create_processor_with_real_thread(factory_func):
         # gevent not installed, create normally
         return factory_func()
 
-    # Gevent is active - temporarily restore real threading.Thread
-    original_thread_class = threading.Thread
+    # Gevent is active - use lock to protect threading.Thread modification
+    # This prevents race conditions if multiple threads call setup_otel() concurrently
+    with _otel_thread_setup_lock:
+        original_thread_class = threading.Thread
 
-    try:
-        # Get the real (unpatched) Thread class
-        real_thread = monkey.get_original("threading", "Thread")
-        if not real_thread:
-            # Unable to get original Thread class, log warning and create normally
-            # This shouldn't happen, but better to be safe
-            import logging
+        try:
+            # Get the real (unpatched) Thread class
+            real_thread = monkey.get_original("threading", "Thread")
+            if not real_thread:
+                # Unable to get original Thread class, log warning and create normally
+                # This shouldn't happen, but better to be safe
+                import logging
 
-            log = logging.getLogger(__name__)
-            log.warning(
-                "Could not get original threading.Thread from gevent. "
-                "OpenTelemetry background threads may be greenlets, "
-                "which could cause KeyError during shutdown in Python 3.12."
-            )
+                log = logging.getLogger(__name__)
+                log.warning(
+                    "Could not get original threading.Thread from gevent. "
+                    "OpenTelemetry background threads may be greenlets, "
+                    "which could cause KeyError during shutdown in Python 3.12."
+                )
+                return factory_func()
+
+            # Replace with real Thread during processor creation
+            threading.Thread = real_thread
+
+            # Create the processor - its background thread will be a real OS thread
             return factory_func()
 
-        # Replace with real Thread during processor creation
-        threading.Thread = real_thread
-
-        # Create the processor - its background thread will be a real OS thread
-        return factory_func()
-
-    finally:
-        # Always restore gevent's patched Thread class
-        threading.Thread = original_thread_class
+        finally:
+            # Always restore gevent's patched Thread class
+            threading.Thread = original_thread_class
 
 
 def setup_otel(runtime_parameters, options):
