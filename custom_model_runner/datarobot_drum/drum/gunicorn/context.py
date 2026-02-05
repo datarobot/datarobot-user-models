@@ -814,27 +814,24 @@ class WorkerCtx:
 
         _orig_generate_async = LLMRails.generate_async
 
-        async def fixed_generate_async(self, *args, **kwargs):
+        def fixed_generate_async(self, *args, **kwargs):
             """
-            Thread-safe async wrapper for LLMRails.generate_async that offloads execution
+            Thread-safe wrapper for LLMRails.generate_async that offloads execution
             to the dedicated background event loop.
 
-            This ensures the coroutine runs in bg_loop and awaits the result safely,
-            avoiding asyncio.wrap_future which can trigger "Non-thread-safe operation"
-            errors in Python 3.12 + gevent when called from a greenlet context.
+            This ensures the coroutine runs in bg_loop, following the same pattern as
+            other patches (_patch_guard_executor, _patch_async_http_client) which use
+            non-async functions returning _wrap_future(asyncio.run_coroutine_threadsafe(...)).
+
+            Returns a wrapped future that can be:
+            - Awaited in async contexts (when in bg_loop)
+            - Called with .result() in sync/gevent contexts (cooperative waiting)
             """
-            # Offload to background loop using run_coroutine_threadsafe
-            fut = asyncio.run_coroutine_threadsafe(
-                _orig_generate_async(self, *args, **kwargs), bg_loop
+            return _wrap_future(
+                asyncio.run_coroutine_threadsafe(
+                    _orig_generate_async(self, *args, **kwargs), bg_loop
+                )
             )
-
-            # Await the result by polling the concurrent.futures.Future cooperatively.
-            # This avoids asyncio.wrap_future which can fail with gevent + Python 3.12.
-            while not fut.done():
-                await asyncio.sleep(0.01)  # Cooperative yield
-
-            # Future is done, get the result (will raise if there was an exception)
-            return fut.result()
 
         LLMRails.generate_async = fixed_generate_async
 
