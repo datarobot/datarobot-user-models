@@ -272,8 +272,6 @@ def _create_processor_with_real_thread(factory_func):
     Returns:
         The created processor/reader with real OS thread
     """
-    import threading
-
     # Check if gevent has monkey-patched threading
     try:
         from gevent import monkey
