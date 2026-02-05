@@ -27,6 +27,13 @@ RUN apk add --no-cache \
 ENV R_HOME=/usr/lib/R
 ENV LD_LIBRARY_PATH=${R_HOME}/lib:/usr/lib
 
+# TODO: DELETE THIS once chainguard ships glibc-2.43
+# This is a workaround because on 2026.02.04 chainguard broke Rscript (the next
+# command) by shipping a version of libgfortran that linked to the next version
+# of glibc (2.43) which they don't yet ship. Downgrading libgfortran to the
+# previous release (r7) resolves the issue.
+RUN apk add libgfortran=15.2.0-r7
+
 RUN Rscript -e "install.packages( \
         c('caret', 'recipes', 'glmnet', 'Rook', 'rjson', 'e1071', 'tidyverse', 'devtools'), \
         repos='https://cloud.r-project.org', \
